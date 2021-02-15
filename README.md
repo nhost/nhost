@@ -45,7 +45,7 @@ Create a Nhost project for free and get your backend in 45 seconds.
 
 ## How Nhost works
 
-Nhost stack consists of:
+The Nhost stack consists of:
 
 ### Database [PostgreSQL](https://github.com/postgres/postgres)
 
