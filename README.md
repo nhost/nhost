@@ -73,3 +73,7 @@ Nhost stack consists of:
 ### Custom API / serverless functions
 
 - Add any bussiness logic to your backend.
+
+## Community
+
+Use [Nhost GitHub Discussions](https://github.com/nhost/nhost/discussions) and join our [Discord Server](https://discord.com/invite/9V7Qb2U).
