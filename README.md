@@ -1,4 +1,10 @@
+<div align="center">
+
 ![Nhost](assets/nhost-logo.svg)
+
+</div>
+
+<hr />
 
 <div align="center">
   <h1>Nhost</h1>
