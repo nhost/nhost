@@ -25,7 +25,7 @@
 
 ## What is Nhost?
 
-Nhost is a **modern open-source Firebase alternative**. Nhost is also to the backend, what [Netlify](http://netlify.com/) / [Vercel](https://vercel.com/) is for the frontend.
+Nhost is a modern open-source Firebase alternative with the same developer experience on the backend as [Netlify](http://netlify.com/) and [Vercel](https://vercel.com/) on the frontend.
 
 Nhost's goal is to provide the **most productive developer experience to build apps**. We use the most popular and powerful technologies and make them easy to use with zero vendor lock-in.
 
