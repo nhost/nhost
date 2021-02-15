@@ -29,13 +29,13 @@ Nhost is a modern open-source Firebase alternative with the same developer exper
 
 Nhost's goal is to provide the **most productive developer experience to build apps**. We use the most popular and powerful technologies and make them easy to use with zero vendor lock-in.
 
-We also provide a **full workflow**. This means there's a full workflow from local development, to staging (coming soon), to production. Every detail is made to make developers as efficient as possible.
+We also provide a **workflow** from your local development, to staging (coming soon), and finally to production. We try to make your life as a developer as efficient as possible.
 
-A Nhost backend includes PostgreSQL, GraphQL, Hasura, Authentication, Storage, and Serverless Functions.
+A Nhost backend includes a PostgreSQL database, a GraphQL API (with Hasura), Authentication, Storage, and Serverless Functions.
 
 ## Getting started
 
-Create a Nhost project for free and get your backend in 45 seconds.
+Create a Nhost project for free and get your backend in less than a minute.
 
 [Start your Nhost project &rarr;](https://console.nhost.io)
 
@@ -53,7 +53,7 @@ The Nhost stack consists of:
 
 ### Realtime GraphQL ([Hasura's GraphQL Engine](https://github.com/hasura/graphql-engine))
 
-- Instant GraphQL API based on tables and columns in Postgres.
+- Instant GraphQL API based on your database schema.
 - Event trigger webhooks on database changes (insert / update / delete).
 - Connect remote GraphQL schemas.
 - Hasura Actions to extend the GraphQL API with custom business logic.
@@ -66,8 +66,8 @@ The Nhost stack consists of:
 
 ### Storage ([Hasura Backend Plus](https://github.com/nhost/hasura-backend-plus))
 
-- Let users upload and download files / documents / images.
-- Backend by an S3 storage API.
+- Let your users upload and download files / documents / images.
+- S3 like storage API.
 - On-the-fly image transformation.
 
 ### Custom API / serverless functions
