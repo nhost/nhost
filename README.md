@@ -67,12 +67,12 @@ The Nhost stack consists of:
 ### Storage ([Hasura Backend Plus](https://github.com/nhost/hasura-backend-plus))
 
 - Let users upload and download files / documents / images.
-- Backend by a S3 storage API.
+- Backend by an S3 storage API.
 - On-the-fly image transformation.
 
 ### Custom API / serverless functions
 
-- Add any bussiness logic to your backend.
+- Add any business logic to your backend.
 
 ## Community
 
