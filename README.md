@@ -25,13 +25,13 @@
 
 ## What is Nhost?
 
-Nhost is a **modern open-source Firebase alternative**. Nhost is also to the backend, what Netlify & Vercel is for the frontend.
+Nhost is a **modern open-source Firebase alternative**. Nhost is also to the backend, what [Netlify](http://netlify.com/) / [Vercel](https://vercel.com/) is for the frontend.
 
 Nhost's goal is to provide the **most productive developer experience to build apps**. We use the most popular and powerful technologies and make them easy to use with zero vendor lock-in.
 
-We also provide a **full workflow**. From local development to staging, to production. Every detail is made to make developers as efficient as possible.
+We also provide a **full workflow**. This means there's a full workflow from local development, to staging, to production. Every detail is made to make developers as efficient as possible.
 
-A Nhost backend includes PostgreSQL, GraphQL, Hasura, Authentication, Storage and Serverless Functions.
+A Nhost backend includes PostgreSQL, GraphQL, Hasura, Authentication, Storage, and Serverless Functions.
 
 ## Getting started
 
