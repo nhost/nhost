@@ -47,21 +47,29 @@ Create a Nhost project for free and get your backend in 45 seconds.
 
 Nhost stack consists of:
 
-- Database [PostgreSQL](https://github.com/postgres/postgres)
-  - The World's Most Advanced Open Source Relational Database
-- Realtime GraphQL ([Hasura's GraphQL Engine](https://github.com/hasura/graphql-engine))
-  - Instant GraphQL API based on tables and columns in Postgres.
-  - Event trigger webhooks on database changes (insert / update / delete).
-  - Connect remote GraphQL schemas.
-  - Hasura Actions to extend the GraphQL API with custom business logic.
-  - Powerful permission system based on JWT tokens.
-- Authentication ([Hasura Backend Plus](https://github.com/nhost/hasura-backend-plus))
-  - Email / Password
-  - OAuth providers (Google, GitHub, Facebook, Twitter, Apple, Spotify, LinkedIn, Windows Live)
-- Storage ([Hasura Backend Plus](https://github.com/nhost/hasura-backend-plus))
-  - Let users upload and download files / documents / images
-  - On-the-fly image transformation
-- Custom API (serverless functions)
-  - Add any bussiness logic
+### Database [PostgreSQL](https://github.com/postgres/postgres)
 
-Nhost also provide a [CLI](https://github.com/nhost/cli) for local development and allow you to connect your repository to deploy database migrations when you push to your default branch.
+- The World's Most Advanced Open Source Relational Database.
+
+### Realtime GraphQL ([Hasura's GraphQL Engine](https://github.com/hasura/graphql-engine))
+
+- Instant GraphQL API based on tables and columns in Postgres.
+- Event trigger webhooks on database changes (insert / update / delete).
+- Connect remote GraphQL schemas.
+- Hasura Actions to extend the GraphQL API with custom business logic.
+- Powerful permission system based on JWT tokens.
+
+### Authentication ([Hasura Backend Plus](https://github.com/nhost/hasura-backend-plus))
+
+- Email / Password.
+- OAuth providers (Google, GitHub, Facebook, Twitter, Apple, Spotify, LinkedIn, Windows Live).
+
+### Storage ([Hasura Backend Plus](https://github.com/nhost/hasura-backend-plus))
+
+- Let users upload and download files / documents / images.
+- Backend by a S3 storage API.
+- On-the-fly image transformation.
+
+### Custom API / serverless functions
+
+- Add any bussiness logic to your backend.
