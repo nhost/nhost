@@ -39,10 +39,6 @@ Create a Nhost project for free and get your backend in less than a minute.
 
 [Start your Nhost project &rarr;](https://console.nhost.io)
 
-## Nhost compared to alternatives
-
-![Nhost Alternatives](assets/nhost-alternatives.png)
-
 ## How Nhost works
 
 The Nhost stack consists of:
