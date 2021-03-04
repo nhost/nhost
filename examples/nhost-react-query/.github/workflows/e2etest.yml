@@ -1,0 +1,29 @@
+name: Cypress Test
+on:
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  cypress-test:
+    runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_GRAPHQL_ENDPOINT: ${{ secrets.NEXT_PUBLIC_GRAPHQL_ENDPOINT }}
+      NEXT_PUBLIC_BACKEND_ENDPOINT: ${{ secrets.NEXT_PUBLIC_BACKEND_ENDPOINT }}
+    container: cypress/browsers:node12.18.3-chrome87-ff82
+    steps:
+      - uses: actions/checkout@master
+      - name: Docker Compose
+        uses: isbang/compose-action@v0.2.0
+      - uses: actions/setup-node@master
+        with:
+          node-version: 14
+      - run: npm install -g yarn
+      - run: npm install -g nhost
+      - run: nhost dev
+      - run: yarn install --frozen-lockfile
+
+      - name: Run cypress tests
+        run: npm run e2e:ci
+        continue-on-error: false

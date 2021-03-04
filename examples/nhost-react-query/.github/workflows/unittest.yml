@@ -1,0 +1,21 @@
+name: Unit Tests
+on:
+  pull_request:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: actions/setup-node@master
+        with:
+          node-version: 14
+      - run: npm install -g yarn
+      - run: yarn install --frozen-lockfile
+
+      - name: Run Jest
+        uses: stefanoeb/jest-action@master
+        continue-on-error: false
