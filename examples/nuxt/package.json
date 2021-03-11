@@ -1,0 +1,21 @@
+{
+  "name": "nhost-test",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@nhost/nuxt": "^0.1.1",
+    "@nuxtjs/apollo": "^4.0.1-rc.5",
+    "@nuxtjs/auth": "^4.9.1",
+    "cookie-universal": "^2.1.4",
+    "core-js": "^3.8.3",
+    "graphql-tag": "^2.11.0",
+    "nuxt": "^2.14.12"
+  },
+  "devDependencies": {}
+}
