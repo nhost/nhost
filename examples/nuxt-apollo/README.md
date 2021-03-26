@@ -1,4 +1,6 @@
-# nhost-test
+# Nhost with NuxtJS
+
+Using the [Nhost NuxtJS module](https://github.com/nhost/nuxt-nhost-module).
 
 ## Build Setup
 
