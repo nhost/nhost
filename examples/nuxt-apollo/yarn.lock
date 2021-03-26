@@ -1423,10 +1423,10 @@
   resolved "https://registry.yarnpkg.com/@graphql-typed-document-node/core/-/core-3.1.0.tgz#0eee6373e11418bfe0b5638f654df7a4ca6a3950"
   integrity sha512-wYn6r8zVZyQJ6rQaALBEln5B1pzxb9shV5Ef97kTvn6yVGrqyXVnDqnU24MXnFubR+rZjBY9NWuxX3FB2sTsjg==
 
-"@nhost/nuxt@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@nhost/nuxt/-/nuxt-0.1.1.tgz#85d8161318676caaba721b6a806b145a7c012a93"
-  integrity sha512-vfgCCmwSzVW86lg1J0Dew646ihkHrDHy0Xay3qGp4RAlOOZf8zE1ra97Se+bjFR+5XgStYi3qK4oTa0a4pcI6Q==
+"@nhost/nuxt@^0.1.4":
+  version "0.1.4"
+  resolved "https://registry.yarnpkg.com/@nhost/nuxt/-/nuxt-0.1.4.tgz#73360e3fcc1fd8b9ccddf510ba3ead5ff8040307"
+  integrity sha512-vjRc4n5GCaIgIyUeolsadUkFhTYYbztyS1cdXxHk4KUCIH12prxJho9SfRpBBoFbYiU+VeX8COPXrmPkXH7TvQ==
   dependencies:
     cookie-universal "^2.1.4"
     nhost-js-sdk "^3.1.0"

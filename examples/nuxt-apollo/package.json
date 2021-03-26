@@ -9,7 +9,7 @@
     "generate": "nuxt generate"
   },
   "dependencies": {
-    "@nhost/nuxt": "^0.1.1",
+    "@nhost/nuxt": "^0.1.4",
     "@nuxtjs/apollo": "^4.0.1-rc.5",
     "cookie-universal": "^2.1.4",
     "core-js": "^3.8.3",
