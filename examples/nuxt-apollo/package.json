@@ -14,6 +14,7 @@
     "cookie-universal": "^2.1.4",
     "core-js": "^3.8.3",
     "graphql-tag": "^2.11.0",
+    "nhost-js-sdk": "^3.1.0",
     "nuxt": "^2.14.12"
   },
   "devDependencies": {}

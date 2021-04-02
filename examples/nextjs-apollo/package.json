@@ -13,7 +13,7 @@
     "graphql": "^15.4.0",
     "graphql-tag": "^2.11.0",
     "next": "10.0.1",
-    "nhost-js-sdk": "^3.0.0",
+    "nhost-js-sdk": "^3.1.0",
     "react": "17.0.1",
     "react-dom": "17.0.1"
   }
