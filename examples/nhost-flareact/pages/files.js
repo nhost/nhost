@@ -42,7 +42,7 @@ function Files() {
       </div>
       <div>
         <img
-          src={`${process.env.NEXT_PUBLIC_BACKEND_ENDPOINT}/storage/o/public/test.png`}
+          src={`${process.env.FLAREACT_PUBLIC_BACKEND_ENDPOINT}/storage/o/public/test.png`}
           style={{ width: "400px" }}
         />
       </div>

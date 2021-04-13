@@ -14,7 +14,7 @@
     "@apollo/client": "^3.3.14",
     "@nhost/react-apollo": "^1.0.7",
     "@nhost/react-auth": "^1.0.5",
-    "flareact": "^1.0.0",
+    "flareact": "subhendukundu/flareact#canary",
     "graphql": "^15.5.0",
     "graphql-tag": "^2.11.0",
     "nhost-js-sdk": "^3.1.0",
