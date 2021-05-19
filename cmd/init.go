@@ -110,7 +110,7 @@ var initCmd = &cobra.Command{
 		selectedProject := projects[index]
 
 		if err != nil {
-			throwError(err, "prompt failed"+err.Error(), true)
+			throwError(err, "prompt failed", true)
 		}
 
 		// create root nhost folder

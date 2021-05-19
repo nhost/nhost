@@ -4,6 +4,7 @@ go 1.16
 
 require (
 	github.com/briandowns/spinner v1.12.0 // indirect
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/fatih/color v1.11.0 // indirect
 	github.com/ghodss/yaml v1.0.0
 	github.com/manifoldco/promptui v0.8.0
