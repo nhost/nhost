@@ -81,17 +81,22 @@ var linkCmd = &cobra.Command{
 			throwError(err, "prompt failed", true)
 		}
 
-		// check if .nhost exists
-		if pathExists(dotNhost) {
-			// delete the file if it already exists
-			deletePath(path.Join(dotNhost, "nhost.yaml"))
+		// create .nhost, if it doesn't exists
+		if !pathExists(dotNhost) {
+			if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
+				throwError(err, "couldn't initialize nhost specific directory", true)
+			}
 		}
 
-		// create the file again to re-write it
-		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-			throwError(err, "couldn't initialize nhost specific directory", true)
+		// create nhost.yaml to write it
+		f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
+		if err != nil {
+			throwError(err, "failed to instantiate Nhost auth configuration", true)
 		}
 
+		defer f.Close()
+
+		// write the file
 		if err = writeToFile(
 			path.Join(dotNhost, "nhost.yaml"),
 			fmt.Sprintf(`project_id: %s`, selectedProject.ID),

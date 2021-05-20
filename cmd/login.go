@@ -72,22 +72,22 @@ type (
 
 	// Nhost project structure
 	Project struct {
-		ID                          string            `json:"id"`
-		UserID                      string            `json:"user_id"`
-		Team                        Team              `json:"team,omitempty"`
-		TeamID                      string            `json:"team_id,omitempty"`
-		Name                        string            `json:"name"`
-		HasuraGQEVersion            string            `json:"hasura_gqe_version,omitempty"`
-		BackendVersion              string            `json:"backend_version,omitempty"`
-		HasuraGQEAdminSecret        string            `json:"hasura_gqe_admin_secret,omitempty"`
-		PostgresVersion             string            `json:"postgres_version,omitempty"`
-		HasuraGQECustomEnvVariables map[string]string `json:"hasura_gqe_custom_env_variables,omitempty"`
-		BackendUserFields           string            `json:"backend_user_fields,omitempty"`
-		HBPDefaultAllowedUserRoles  string            `json:"hbp_DEFAULT_ALLOWED_USER_ROLES,omitempty"`
-		HBPRegistrationCustomFields string            `json:"hbp_REGISTRATION_CUSTOM_FIELDS,omitempty"`
-		HBPAllowedUserRoles         string            `json:"hbp_allowed_user_roles,omitempty"`
-		ProjectDomains              Domains           `json:"project_domain"`
-		ProjectEnvVars              map[string]string `json:"project_env_vars,omitempty"`
+		ID                          string                   `json:"id"`
+		UserID                      string                   `json:"user_id"`
+		Team                        Team                     `json:"team,omitempty"`
+		TeamID                      string                   `json:"team_id,omitempty"`
+		Name                        string                   `json:"name"`
+		HasuraGQEVersion            string                   `json:"hasura_gqe_version,omitempty"`
+		BackendVersion              string                   `json:"backend_version,omitempty"`
+		HasuraGQEAdminSecret        string                   `json:"hasura_gqe_admin_secret,omitempty"`
+		PostgresVersion             string                   `json:"postgres_version,omitempty"`
+		HasuraGQECustomEnvVariables map[string]string        `json:"hasura_gqe_custom_env_variables,omitempty"`
+		BackendUserFields           string                   `json:"backend_user_fields,omitempty"`
+		HBPDefaultAllowedUserRoles  string                   `json:"hbp_DEFAULT_ALLOWED_USER_ROLES,omitempty"`
+		HBPRegistrationCustomFields string                   `json:"hbp_REGISTRATION_CUSTOM_FIELDS,omitempty"`
+		HBPAllowedUserRoles         string                   `json:"hbp_allowed_user_roles,omitempty"`
+		ProjectDomains              Domains                  `json:"project_domain"`
+		ProjectEnvVars              []map[string]interface{} `json:"project_env_vars,omitempty"`
 	}
 )
 
@@ -97,6 +97,12 @@ var loginCmd = &cobra.Command{
 	Short: "Login to your Nhost account",
 	Long:  `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// if user is already logged in, ask to logout
+
+		if _, err := validateAuth(authPath); err == nil {
+			throwError(err, "you are already logged in, first logout with \"nhost logout\"", true)
+		}
 
 		if email == "" {
 

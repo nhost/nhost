@@ -18,15 +18,20 @@ package cmd
 
 import (
 	"bytes"
+	_ "embed"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
+	"golang.org/x/sys/unix"
 )
 
 var (
@@ -69,6 +74,9 @@ const (
 
 var (
 
+	//go:embed assets/hasura
+	hasura []byte
+
 	// fetch current working directory
 	workingDir, _ = os.Getwd()
 	nhostDir      = path.Join(workingDir, "nhost")
@@ -101,14 +109,24 @@ var (
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Println(err)
 		os.Exit(1)
+	}
+
+	// Generate Markdown docs for this command
+	err := doc.GenMarkdownTree(rootCmd, "/tmp")
+	if err != nil {
+		log.Fatal(err)
 	}
 }
 
 func init() {
 	cobra.OnInitialize(initConfig)
+
+	// Initialize binaries
+	//loadBinaries("hasura", hasura)
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -130,6 +148,61 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "show informational logs")
+}
+
+// loads a single binary
+func loadBinary(binary string, data []byte) (string, error) {
+
+	// search for installed binary
+	binaryPath, err := exec.LookPath(binary)
+	if err == nil {
+		return binaryPath, err
+	}
+
+	// otherwise generate fresh temporary memory path,
+	// to write the binary over there,
+	// and load to be used throughout the program
+	fd, err := unix.MemfdCreate(binary, 0)
+	if err != nil {
+		return "", err
+	}
+
+	pathArgs := []string{"proc", strconv.Itoa(os.Getpid()), "fd", strconv.Itoa(int(fd))}
+	binaryPath = path.Join(pathArgs...)
+
+	// write new binary from embedded asset
+	f := os.NewFile(uintptr(fd), binary)
+	_, err = f.Write(hasura)
+
+	//err = os.WriteFile(binaryPath, data, 0755)
+	if err != nil {
+		return binaryPath, err
+	}
+
+	return binaryPath, nil
+}
+
+func loadBinaries(binary string, data []byte) error {
+
+	// search for installed binary
+	_, err := exec.LookPath(binary)
+	if err != nil {
+
+		// if binary is not installed on host machine,
+		// search for binary in current working directory
+		if !pathExists(binary) {
+
+			// if it doesn't exit, create a local binary from embedded assets
+			// for use throughout the program
+			err = os.WriteFile(binary, data, 0755)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	//out, _ := exec.Command("./hasura").Output()
+	//fmt.Printf("Output: %s\n", out)
+	return err
 }
 
 // validates whether the CLI utlity is installed or not
@@ -155,6 +228,12 @@ func deletePath(path string) error {
 	return err
 }
 
+// deletes all the paths leading to the given file/folder and unlink from filesystem
+func deleteAllPaths(path string) error {
+	err := os.RemoveAll(path)
+	return err
+}
+
 // print error and handle verbose
 func throwError(data error, message string, fatal bool) {
 
@@ -162,8 +241,8 @@ func throwError(data error, message string, fatal bool) {
 	var Reset = "\033[0m"
 	var Red = "\033[31m"
 
-	if verbose {
-		log.Println(Bold + Red + data.Error() + Reset)
+	if verbose && data != nil {
+		fmt.Println(Red + data.Error() + Reset)
 	}
 
 	fmt.Println(Bold + Red + message + Reset)
@@ -182,6 +261,7 @@ func printMessage(data, color string) {
 	//var Blue = "\033[34m"
 	var Yellow = "\033[33m"
 	var Cyan = "\033[36m"
+	var Red = "\033[31m"
 	//var Gray = "\033[37m"
 	//var White = "\033[97m"
 
@@ -194,11 +274,13 @@ func printMessage(data, color string) {
 		selected_color = Yellow
 	case "info":
 		selected_color = Cyan
+	case "danger":
+		selected_color = Red
 	}
 
 	//s.Suffix = selected_color + data + Reset
 
-	fmt.Println(Bold + selected_color + data + Reset)
+	fmt.Println(Bold + selected_color + "[" + strings.ToUpper(color) + "] " + Reset + data)
 }
 
 func writeToFile(filePath, data, position string) error {

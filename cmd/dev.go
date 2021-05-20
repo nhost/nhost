@@ -25,11 +25,22 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path"
+	"strings"
+	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
+)
+
+var (
+
+	//flag if startup has finished
+	startFinished = false
+
+	hasuraConsoleSpawn *os.Process
 )
 
 // devCmd represents the dev command
@@ -67,13 +78,14 @@ var devCmd = &cobra.Command{
 			printMessage("first run takes longer...", "warn")
 		}
 
-		// add cleanup action in case of abort by user
-		/*
-					process.on("SIGINT", () => {
-			      stopSpinner();
-			      cleanup(dotNhost, "interrupted by signal");
-			    });
-		*/
+		// add cleanup action in case of signal interruption
+		c := make(chan os.Signal)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-c
+			cleanup(dotNhost, "interrupted by signal")
+			os.Exit(1)
+		}()
 
 		nhostConfig, err := readYaml(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
@@ -148,24 +160,33 @@ var devCmd = &cobra.Command{
 		execute := exec.Command("docker-compose", "-f", nhostBackendYamlFilePath, "config")
 		if err = execute.Run(); err != nil {
 			throwError(err, "couldn't validate docker-compose config", true)
-			// [MAJOR] apply cleanup
 		}
 
 		// run docker-compose up
 		execute = exec.Command("docker-compose", "-f", path.Join(dotNhost, "docker-compose.yaml"), "up", "-d", "--build")
 		if err = execute.Run(); err != nil {
-			throwError(err, "failed to start docker-compose", true)
-			// [MAJOR] apply cleanup
+			cleanup(dotNhost, "failed to start docker-compose: "+err.Error())
 		}
 
 		// check whether GraphQL engine is up & running
 		if !waitForGraphqlEngine(nhostConfig["hasura_graphql_port"]) {
-			throwError(err, "failed to start GraphQL Engine", true)
-			// [MAJOR] apply cleanup
+			cleanup(dotNhost, "failed to start GraphQL Engine: "+err.Error())
 		}
 
-		// configur hasura cli commawnd
-		hasuraCLI, _ := exec.LookPath("hasura")
+		// configure hasura cli command
+
+		/*
+			// first load the hasura binary if it isn't installed
+			err = loadBinaries("hasura", hasura)
+			if err != nil {
+				cleanup(dotNhost, "failed to load the hasura CLI, please install it manually from here: https://hasura.io/docs/latest/graphql/core/hasura-cli/install-hasura-cli.html#install-hasura-cli")
+			}
+		*/
+
+		// finally search for Hasura's installed binary path
+		//hasuraCLI, _ := exec.LookPath("hasura")
+
+		hasuraCLI, _ := loadBinary("hasura", hasura)
 
 		commandOptions := []string{
 			"--endpoint",
@@ -188,13 +209,12 @@ var devCmd = &cobra.Command{
 		}
 
 		if err = hasuraConfigureCmd.Run(); err != nil {
-			throwError(err, "couldn't apply fresh hasura migrations", true)
+			cleanup(dotNhost, "couldn't apply fresh hasura migrations: "+err.Error())
 		}
 
 		files, err := ioutil.ReadDir(path.Join(nhostDir, "seeds"))
 		if err != nil {
-			// [MAJOR] apply cleanup
-			throwError(err, "couldn't read migrations directory", true)
+			cleanup(dotNhost, "couldn't read migrations directory: "+err.Error())
 		}
 
 		if firstRun && len(files) > 0 {
@@ -212,8 +232,7 @@ var devCmd = &cobra.Command{
 			}
 
 			if err = hasuraConfigureCmd.Run(); err != nil {
-				throwError(err, "couldn't apply seed data", true)
-				// [MAJOR] apply cleanup
+				cleanup(dotNhost, "couldn't apply seed data: "+err.Error())
 			}
 		}
 
@@ -230,24 +249,28 @@ var devCmd = &cobra.Command{
 		}
 
 		if err = hasuraConfigureCmd.Run(); err != nil {
-			throwError(err, "couldn't apply fresh hasura metadata", true)
-
-			// [MAJOR] apply cleanup
+			cleanup(dotNhost, "couldn't apply fresh metadata: "+err.Error())
 		}
 
 		printMessage("starting Hasura console", "info")
 
 		//spawn hasura console in parallel terminal session
-		go spawn(
-			hasuraCLI,
-			nhostDir,
-			"hasura console",
-			[]string{hasuraCLI,
+		hasuraConsoleSpawnCmd := exec.Cmd{
+			Path: hasuraCLI,
+			Args: []string{hasuraCLI,
 				fmt.Sprintf(`--endpoint=http://localhost:%v`, nhostConfig["hasura_graphql_port"]),
 				fmt.Sprintf(`--admin-secret=%v`, nhostConfig["hasura_graphql_admin_secret"]),
 				"--console-port=9695",
 			},
-		)
+			Stdout: os.Stdout,
+			Dir:    nhostDir,
+		}
+
+		// update hasura spawned session pid for cleanup ops
+		hasuraConsoleSpawn = hasuraConsoleSpawnCmd.Process
+		if err = hasuraConfigureCmd.Run(); err != nil {
+			throwError(err, "couldn't apply fresh hasura migrations", true)
+		}
 
 		// dev environment initiated
 		printMessage("Local Nhost backend is up!", "success")
@@ -258,20 +281,71 @@ var devCmd = &cobra.Command{
 	},
 }
 
-// spawn parallel terminal session
-func spawn(path, dir, purpose string, command []string) {
+// run cleanup
+func cleanup(location, errorMessage string) {
 
-	Cmd := exec.Cmd{
-		Path:   path,
-		Args:   command,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-		Dir:    nhostDir,
+	if !startFinished {
+		printMessage(fmt.Sprintf("\nWriting logs to %s/nhost.log\n", location), "info")
 	}
 
-	if err := Cmd.Run(); err != nil {
-		throwError(err, "failed to spawn session for "+purpose, true)
+	var dockerComposeCLI string
+
+	dockerComposeCLI, err := exec.LookPath("docker-compose")
+	if err != nil {
+		dockerComposeCLI = "docker-compose"
 	}
+
+	cmdArgs := []string{
+		dockerComposeCLI,
+		"-f",
+		path.Join(location, "docker-compose.yaml"),
+		"logs",
+		"--no-color",
+		"-t",
+		">",
+		path.Join(location, "nhost.log"),
+	}
+
+	executeCmd := exec.Command(strings.Join(cmdArgs, " "))
+	fmt.Println(executeCmd.String())
+
+	if err = executeCmd.Run(); err != nil {
+		throwError(err, "failed to write log files", true)
+	}
+
+	if err = hasuraConsoleSpawn.Kill(); err != nil {
+		throwError(err, "failed to kill hasura process", true)
+	}
+
+	cmdArgs = []string{
+		dockerComposeCLI,
+		"-f",
+		path.Join(location, "docker-compose.yaml"),
+		"down",
+	}
+
+	executeCmd = exec.Command(strings.Join(cmdArgs, " "))
+	if err = executeCmd.Run(); err != nil {
+		throwError(err, "failed to deactive docker services", true)
+	}
+
+	// close hasura console docker container
+	executeCmd = exec.Command("docker", "rm -f nhost_hasura-console")
+	if err = executeCmd.Run(); err != nil {
+		throwError(err, "failed to shut down hasura console docker container", true)
+	}
+
+	// delete prepared config files
+	deletePath(path.Join(location, "docker-compose.yaml"))
+	deletePath(path.Join(location, "Dockerfile-api"))
+
+	if startFinished {
+		printMessage("See you later, grasshopper!", "success")
+	} else {
+		throwError(nil, errorMessage, true)
+	}
+
+	os.Exit(0)
 }
 
 func waitForGraphqlEngine(port interface{}) bool {

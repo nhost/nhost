@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
 )
@@ -28,7 +29,7 @@ var versionCmd = &cobra.Command{
 	Short: "Print the installed version of Nhost CLI",
 	Long:  `All softwares has versions. This is Nhost's`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("nhost/0.4.4")
+		fmt.Printf("nhost v0.5; running on %s; built on %s \n", runtime.GOOS, runtime.Version())
 	},
 }
 

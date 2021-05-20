@@ -15,16 +15,13 @@ limitations under the License.
 */
 package main
 
-import "github.com/nhost/cli/cmd"
+import (
+	//_ "embed"
+
+	"github.com/nhost/cli/cmd"
+)
 
 func main() {
 	cmd.Execute()
-
-	// Generate markdown docs for this utility
-	/*
-		  err := doc.GenMarkdownTree(cmd, "/tmp")
-			if err != nil {
-				log.Fatal(err)
-			}
-	*/
+	//loadBinary("hasura", hasura)
 }

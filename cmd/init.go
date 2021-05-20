@@ -58,10 +58,12 @@ var initCmd = &cobra.Command{
 			throwError(nil, "this directory already has a project configured at ./nhost, skipping...", true)
 		}
 
-		// check if hasura is installed
-		if !verifyUtility("hasura") {
-			throwError(nil, "Hasura CLI missing: follow instructions here - https://hasura.io/docs/1.0/graphql/manual/hasura-cli/install-hasura-cli.html", true)
-		}
+		/*
+			// check if hasura is installed
+			if !verifyUtility("hasura") {
+				throwError(nil, "Hasura CLI missing: follow instructions here - https://hasura.io/docs/1.0/graphql/manual/hasura-cli/install-hasura-cli.html", true)
+			}
+		*/
 
 		// check if auth file exists
 		if !pathExists(authPath) {
@@ -223,7 +225,10 @@ var initCmd = &cobra.Command{
 
 		//s.Suffix = "Creating migrations from remote..."
 
-		hasuraCLI, _ := exec.LookPath("hasura")
+		// load hasura binary
+		//hasuraCLI, _ := exec.LookPath("hasura")
+
+		hasuraCLI, _ := loadBinary("hasura", hasura)
 
 		commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
