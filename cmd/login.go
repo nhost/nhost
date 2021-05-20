@@ -44,7 +44,8 @@ type (
 		User              User   "user"
 		Error             Error  "error"
 		Email             string `json:"email"`
-		VerificationToken string `json:"verification_token"`
+		VerificationToken string `json:"verificationToken"`
+		VerifiedToken     string `json:"token"`
 	}
 
 	Error struct {
@@ -97,16 +98,6 @@ var loginCmd = &cobra.Command{
 	Long:  `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		/*
-			credentials, err := getCredentials(authPath)
-
-			//Handle Error
-			if err != nil {
-				log.Println("error getting credentials: ", err)
-			}
-
-			err = login(apiURL, credentials.Email)
-		*/
 		if email == "" {
 
 			readEmail, err := readEmail()
@@ -121,29 +112,49 @@ var loginCmd = &cobra.Command{
 			throwError(err, "failed to login with that email", true)
 		}
 
-		fmt.Println(token)
-		verified, err := runVerificationLoop(apiURL, email, token)
+		printMessage("We have sent you an email on \""+email+"\". Confirm the email to login...", "info")
+
+		verifiedToken, err := runVerificationLoop(apiURL, email, token)
 		if err != nil {
 			throwError(err, "login verification failed", true)
 		}
-		if verified {
+		if len(verifiedToken) > 0 {
 
-			// write credentials to auth file
+			// prepare credentials to auth file
 			credentials, _ := json.MarshalIndent(map[string]string{
 				"email": email,
-				"token": token,
+				"token": verifiedToken,
 			}, "", " ")
-			err := writeToFile(authPath, string(credentials), "end")
+
+			// delete any existing auth files
+			if pathExists(authPath) {
+				if err = deletePath(authPath); err != nil {
+					throwError(err, "couldn't reset the auth file, please delete it manually", true)
+				}
+			}
+
+			// create the auth file to write it
+			f, err := os.Create(authPath)
+			if err != nil {
+				throwError(err, "failed to instantiate Nhost auth configuration", true)
+			}
+
+			defer f.Close()
+
+			// write auth file
+			err = writeToFile(authPath, string(credentials), "end")
 
 			if err != nil {
 				throwError(err, "failed to save authention config", true)
 			}
+
 			// validate auth
-			user, err := validateAuth(authPath)
+			_, err = validateAuth(authPath)
 			if err != nil {
 				throwError(err, "failed to validate auth", true)
 			}
-			fmt.Println(user)
+
+			printMessage("Email verified, and login complete!", "success")
 		}
 	},
 }
@@ -185,7 +196,6 @@ func validateAuth(authFile string) (User, error) {
 
 	// read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
-	//fmt.Println(string(body))
 
 	// we unmarshal our body byteArray which contains our
 	// jsonFile's content into 'user' strcuture which we initialized above
@@ -203,13 +213,13 @@ func validateAuth(authFile string) (User, error) {
 	return response.User, err
 }
 
-func runVerificationLoop(url, email, token string) (bool, error) {
+func runVerificationLoop(url, email, token string) (string, error) {
 
 	if verbose {
 		printMessage("verifying your login...", "info")
 	}
 
-	timeout := time.After(10 * time.Second)
+	timeout := time.After(60 * time.Second)
 	ticker := time.Tick(1 * time.Second)
 
 	// Keep trying until we're timed out or get a result/error
@@ -217,16 +227,16 @@ func runVerificationLoop(url, email, token string) (bool, error) {
 		select {
 		// Got a timeout! fail with a timeout error
 		case <-timeout:
-			return false, errors.New("authverification timed out")
+			return "", errors.New("auth verification timed out")
 		// Got a tick, we should check on verify()
 		case <-ticker:
-			ok, err := verify(url, email, token)
+			token, err := verify(url, email, token)
 			if err != nil {
 				// We may return, or ignore the error
-				return false, err
+				return "", err
+			} else if len(token) > 0 {
 				// verify() done! let's return
-			} else if ok {
-				return true, nil
+				return token, nil
 			}
 			// verify() isn't done yet, but it didn't fail either, let's try again
 		}
@@ -234,7 +244,7 @@ func runVerificationLoop(url, email, token string) (bool, error) {
 }
 
 // validate the verification token
-func verify(url, email, token string) (bool, error) {
+func verify(url, email, token string) (string, error) {
 
 	//Leverage Go's HTTP Post function to make request
 	req, _ := http.NewRequest(
@@ -253,7 +263,7 @@ func verify(url, email, token string) (bool, error) {
 	//Leverage Go's HTTP Post function to make request
 	resp, err := client.Do(req)
 	if err != nil {
-		return false, err
+		return "", err
 	}
 
 	defer resp.Body.Close()
@@ -263,12 +273,19 @@ func verify(url, email, token string) (bool, error) {
 	var response AuthValidation
 	json.Unmarshal(body, &response)
 
-	//Handle Error
-	if response.Error.Code == "invalid_verification_token" {
-		return false, errors.New("your verification token is invalid")
+	// if token returned, verification is successful
+	if len(response.VerifiedToken) > 0 {
+		return response.VerifiedToken, nil
 	}
 
-	return true, err
+	//Handle Error
+	if response.Error.Code == "invalid_verification_token" {
+		return "", errors.New("your verification token is invalid")
+	} else if response.Error.Code == "server_not_available" {
+		return "", errors.New("service unavailable")
+	}
+
+	return "", err
 }
 
 // signs the user in with email and returns verification token
@@ -301,6 +318,10 @@ func login(url, email string) (string, error) {
 	//Handle Error
 	if response.Error.Code == "not_found" {
 		return response.VerificationToken, errors.New("we couldn't find an account registered with this email, please register at https://nhost.io/register")
+	} else if response.Error.Code == "unknown" {
+		return response.VerificationToken, errors.New("error while trying to create a login token")
+	} else if response.Error.Code == "server_not_available" {
+		return response.VerificationToken, errors.New("service unavailable")
 	}
 
 	return response.VerificationToken, err

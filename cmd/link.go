@@ -82,13 +82,16 @@ var linkCmd = &cobra.Command{
 		}
 
 		// check if .nhost exists
-		if !pathExists(dotNhost) {
-			if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-				throwError(err, "couldn't initialize nhost specific directory", true)
-			}
+		if pathExists(dotNhost) {
+			// delete the file if it already exists
+			deletePath(path.Join(dotNhost, "nhost.yaml"))
 		}
 
-		deletePath(path.Join(dotNhost, "nhost.yaml"))
+		// create the file again to re-write it
+		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
+			throwError(err, "couldn't initialize nhost specific directory", true)
+		}
+
 		if err = writeToFile(
 			path.Join(dotNhost, "nhost.yaml"),
 			fmt.Sprintf(`project_id: %s`, selectedProject.ID),

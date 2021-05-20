@@ -150,8 +150,8 @@ func pathExists(filePath string) bool {
 }
 
 // deletes the given file/folder path and unlink from filesystem
-func deletePath(filePath string) error {
-	err := os.RemoveAll(filePath)
+func deletePath(path string) error {
+	err := os.Remove(path)
 	return err
 }
 
