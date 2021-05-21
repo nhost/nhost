@@ -1,17 +1,25 @@
 /*
-Copyright © 2021 Mrinal Wahal mrinalwahal@gmail.com
+MIT License
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Copyright (c) Nhost
 
-    http://www.apache.org/licenses/LICENSE-2.0
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package cmd
@@ -104,6 +112,18 @@ var (
 		// configure the status spinner
 		s = spinner.New(spinner.CharSets[35], 100*time.Millisecond)
 	*/
+
+	// initialize console colours
+	Bold  = "\033[1m"
+	Reset = "\033[0m"
+	Green = "\033[32m"
+	// Blue = "\033[34m"
+	Yellow = "\033[33m"
+	Cyan   = "\033[36m"
+	Red    = "\033[31m"
+	// Gray = "\033[37m"
+	// White = "\033[97m"
+
 )
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -125,8 +145,12 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Initialize binaries
-	//loadBinaries("hasura", hasura)
+	/*
+		// Initialize binaries
+		p, _ := loadBinary("hasura", hasura)
+		r, _ := exec.Command(p).Output()
+		fmt.Println(string(r))
+	*/
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
@@ -172,14 +196,11 @@ func loadBinary(binary string, data []byte) (string, error) {
 
 	// write new binary from embedded asset
 	f := os.NewFile(uintptr(fd), binary)
-	_, err = f.Write(hasura)
+	defer f.Close()
+	_, err = f.Write(data)
 
 	//err = os.WriteFile(binaryPath, data, 0755)
-	if err != nil {
-		return binaryPath, err
-	}
-
-	return binaryPath, nil
+	return binaryPath, err
 }
 
 func loadBinaries(binary string, data []byte) error {
@@ -236,16 +257,11 @@ func deleteAllPaths(path string) error {
 
 // print error and handle verbose
 func throwError(data error, message string, fatal bool) {
-
-	var Bold = "\033[1m"
-	var Reset = "\033[0m"
-	var Red = "\033[31m"
-
 	if verbose && data != nil {
-		fmt.Println(Red + data.Error() + Reset)
+		fmt.Println(Bold + Red + "[ERROR] " + Reset + data.Error())
 	}
 
-	fmt.Println(Bold + Red + message + Reset)
+	fmt.Println(Bold + Red + "[ERROR] " + message + Reset)
 
 	if fatal {
 		os.Exit(1)
@@ -254,16 +270,6 @@ func throwError(data error, message string, fatal bool) {
 
 // Print coloured output to console
 func printMessage(data, color string) {
-
-	var Bold = "\033[1m"
-	var Reset = "\033[0m"
-	var Green = "\033[32m"
-	//var Blue = "\033[34m"
-	var Yellow = "\033[33m"
-	var Cyan = "\033[36m"
-	var Red = "\033[31m"
-	//var Gray = "\033[37m"
-	//var White = "\033[97m"
 
 	selected_color := ""
 

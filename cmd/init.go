@@ -1,17 +1,25 @@
 /*
-Copyright © 2021 Mrinal Wahal mrinalwahal@gmail.com
+MIT License
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Copyright (c) Nhost
 
-    http://www.apache.org/licenses/LICENSE-2.0
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
 
 package cmd
@@ -49,9 +57,8 @@ var initCmd = &cobra.Command{
 	Long:  `Initialize current working directory as an Nhost project.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if verbose {
-			printMessage("Initializing a new Nhost project...", "info")
-		}
+		// signify initialization is starting
+		printMessage("Initializing a new Nhost project...", "info")
 
 		// check if project is already initialized
 		if pathExists(nhostDir) {
@@ -79,7 +86,7 @@ var initCmd = &cobra.Command{
 		// concatenate personal and team projects
 		projects := userData.Projects
 		if len(projects) == 0 {
-			throwError(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
+			throwError(nil, "we couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
 		}
 
 		// if user is part of teams which have projects, append them as well
@@ -96,7 +103,7 @@ var initCmd = &cobra.Command{
 
 		// configure interactive prompt template
 		templates := promptui.SelectTemplates{
-			Active:   `❤️ {{ .Name | cyan | bold }}`,
+			Active:   `✔ {{ .Name | cyan | bold }}`,
 			Inactive: `   {{ .Name | cyan }}`,
 			Selected: `{{ "✔" | green | bold }} {{ "Project" | bold }}: {{ .Name | cyan }}`,
 		}
@@ -198,20 +205,6 @@ var initCmd = &cobra.Command{
 		}
 		f.Sync()
 
-		// check if .env.development exists, otherwise create it
-		if !pathExists(envFile) {
-			f, err = os.Create(envFile)
-			if err != nil {
-				throwError(err, "failed to create .gitignore file", true)
-			}
-
-			defer f.Close()
-			if _, err = f.WriteString("# env vars from Nhost\n"); err != nil {
-				throwError(err, "couldn't write to .env.developement file", true)
-			}
-			f.Sync()
-		}
-
 		hasuraEndpoint := "https://" + selectedProject.ProjectDomains.Hasura
 		adminSecret := selectedProject.HasuraGQEAdminSecret
 
@@ -237,11 +230,9 @@ var initCmd = &cobra.Command{
 		migrationArgs = append(migrationArgs, commonOptions...)
 
 		execute := exec.Cmd{
-			Path:   hasuraCLI,
-			Args:   migrationArgs,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Dir:    nhostDir,
+			Path: hasuraCLI,
+			Args: migrationArgs,
+			Dir:  nhostDir,
 		}
 
 		if err = execute.Run(); err != nil {
@@ -264,11 +255,9 @@ var initCmd = &cobra.Command{
 		migrationArgs = append(migrationArgs, commonOptions...)
 
 		execute = exec.Cmd{
-			Path:   hasuraCLI,
-			Args:   migrationArgs,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Dir:    nhostDir,
+			Path: hasuraCLI,
+			Args: migrationArgs,
+			Dir:  nhostDir,
 		}
 
 		if err = execute.Run(); err != nil {
@@ -282,11 +271,9 @@ var initCmd = &cobra.Command{
 		metadataArgs = append(metadataArgs, commonOptions...)
 
 		execute = exec.Cmd{
-			Path:   hasuraCLI,
-			Args:   metadataArgs,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Dir:    nhostDir,
+			Path: hasuraCLI,
+			Args: metadataArgs,
+			Dir:  nhostDir,
 		}
 
 		if err = execute.Run(); err != nil {
@@ -299,9 +286,7 @@ var initCmd = &cobra.Command{
 		// all enum compatible tables must contain at least one row
 		// https://hasura.io/docs/1.0/graphql/core/schema/enums.html#creating-an-enum-compatible-table
 
-		// use the API to check whether this project has enum compatible tables
-		//spinner.text = "Adding enum tables"
-
+		// use the saved tables metadata to check whether this project has enum compatible tables
 		fromTables, err := getEnumTablesFromMetadata(path.Join(nhostDir, "metadata", "tables.yaml"))
 		if err != nil {
 
@@ -314,26 +299,27 @@ var initCmd = &cobra.Command{
 
 		// only add seeds if enum tables exist, otherwise skip this step
 		if len(fromTables) > 0 {
-			seedArgs := []string{hasuraCLI, "seeds", "create", "roles_and_providers", fromTables}
+			seedArgs := []string{hasuraCLI, "seeds", "create", "roles_and_providers"}
+			seedArgs = append(seedArgs, fromTables...)
 			seedArgs = append(seedArgs, commonOptions...)
 
-			//fmt.Println(seedArgs)
-
-			execute = exec.Cmd{
+			execute := exec.Cmd{
 				Path: hasuraCLI,
 				Args: seedArgs,
 				Dir:  nhostDir,
 			}
 
+			// read output for testing
+			//output, err := execute.CombinedOutput()
+			//fmt.Println(string(output))
+
 			if err := execute.Run(); err != nil {
-				throwError(err, "couldn't create seeds", false)
+				throwError(err, "couldn't create seeds for enum tables", false)
 				printMessage("skipping seed creation...", "warn")
 			}
 		}
 
 		// add extensions to init migration
-		//spinner.text = "Add Postgres extensions to init migration";
-
 		extensions, err := getExtensions(hasuraEndpoint, adminSecret)
 		if err != nil {
 			throwError(err, "couldn't check for enum tables.", true)
@@ -403,10 +389,28 @@ var initCmd = &cobra.Command{
 		// write ENV variables to .env.development
 		//spinner.text = "Adding env vars to .env.development"
 
-		var envArray []string
-		for key, value := range selectedProject.ProjectEnvVars {
-			envArray = append(envArray, fmt.Sprintf(`%s=%s`, key, value))
+		// check if .env.development exists, otherwise create it
+		if !pathExists(envFile) {
+			f, err = os.Create(envFile)
+			if err != nil {
+				throwError(err, "failed to create .env.developement file", true)
+			}
+
+			defer f.Close()
+			/*
+				//avoid writing the extra line at top, otherwise it will create problems afterwards
+				if _, err = f.WriteString("# env vars from Nhost\n"); err != nil {
+					throwError(err, "couldn't write to .env.developement file", true)
+				}
+				f.Sync()
+			*/
 		}
+
+		var envArray []string
+		for _, row := range selectedProject.ProjectEnvVars {
+			envArray = append(envArray, fmt.Sprintf(`%s=%s`, row["name"], row["dev_value"]))
+		}
+
 		envData := strings.Join(envArray, "\n")
 
 		// add required env vars
@@ -591,13 +595,14 @@ func getRoles(endpoint, secret string) ([]string, error) {
 	return roles, nil
 }
 
-func getEnumTablesFromMetadata(filePath string) (string, error) {
+func getEnumTablesFromMetadata(filePath string) ([]string, error) {
 
 	if verbose {
 		printMessage("fetching enum tables from metadata...", "info")
 	}
 
-	var fromTables string
+	// initalize empty list of tables from which seeds will be created
+	var fromTables []string
 
 	// if tables metadata file doesn't exists, return error
 	if !pathExists(filePath) {
@@ -610,16 +615,14 @@ func getEnumTablesFromMetadata(filePath string) (string, error) {
 	var tables []Table
 	yaml.Unmarshal(f, &tables)
 
-	// initalize empty list of tables from which seeds will be created
-	var seedTables []string
-
 	for _, table := range tables {
 
 		// check if the table "is_enum: true"
 		if table.IsEnum {
 
 			// append to seed tables if true
-			seedTables = append(seedTables, fmt.Sprintf(
+			fromTables = append(fromTables, "--from-table")
+			fromTables = append(fromTables, fmt.Sprintf(
 				`%s.%s`,
 				table.Data.Schema,
 				table.Data.Name,
@@ -627,20 +630,16 @@ func getEnumTablesFromMetadata(filePath string) (string, error) {
 		}
 	}
 
-	for _, value := range seedTables {
-		fromTables = fromTables + " --from-table " + value
-	}
-
 	return fromTables, nil
 }
 
-func getEnumTablesFromAPI(endpoint, secret string) (string, error) {
+func getEnumTablesFromAPI(endpoint, secret string) ([]string, error) {
 
 	if verbose {
 		printMessage("fetching enumerable tables from remote...", "info")
 	}
 
-	var fromTables string
+	var fromTables []string
 
 	//Encode the data
 	postBody, _ := json.Marshal(map[string]interface{}{
@@ -668,7 +667,6 @@ func getEnumTablesFromAPI(endpoint, secret string) (string, error) {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var seedTables []string
 	var tables map[string]interface{}
 	json.Unmarshal(body, &tables)
 
@@ -680,16 +678,13 @@ func getEnumTablesFromAPI(endpoint, secret string) (string, error) {
 		parsedTableEnumFlag := parsedTable["is_enum"]
 
 		if parsedTableEnumFlag != nil && parsedTableEnumFlag.(bool) {
-			seedTables = append(seedTables, fmt.Sprintf(
+			fromTables = append(fromTables, "--from-table")
+			fromTables = append(fromTables, fmt.Sprintf(
 				`%s.%s`,
 				parsedTable["table"].(map[string]interface{})["schema"],
 				parsedTable["table"].(map[string]interface{})["name"],
 			))
 		}
-	}
-
-	for _, value := range seedTables {
-		fromTables = fromTables + " --from-table " + value
 	}
 
 	return fromTables, nil
