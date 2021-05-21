@@ -36,9 +36,12 @@ var downCmd = &cobra.Command{
 	Long:  `Stop and remove local Nhost backend started by \"nhost dev\".`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// get docker CLI
+		dockerCLI, _ := exec.LookPath("docker")
+
 		// stop docker services
 		execute := exec.Command(
-			"docker",
+			dockerCLI,
 			"rm",
 			"nhost_postgres",
 			"nhost_hasura",
@@ -48,11 +51,12 @@ var downCmd = &cobra.Command{
 			"||",
 			"true",
 		)
+		execute.Path = dockerCLI
 		if err := execute.Run(); err != nil {
-			throwError(err, "either Nhost backend services for this project were already not running, or they failed to stop", true)
+			Error(err, "either Nhost backend services for this project were already not running, or they failed to stop", true)
 		}
 
-		printMessage("Local Nhost backend is now down!", "success")
+		Print("Local Nhost backend is now down!", "success")
 	},
 }
 

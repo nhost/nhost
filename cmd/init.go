@@ -50,6 +50,12 @@ type Table struct {
 	IsEnum bool `yaml:"is_enum,omitempty"`
 }
 
+var (
+
+	// project to initialize
+	project string
+)
+
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -58,35 +64,35 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// signify initialization is starting
-		printMessage("Initializing a new Nhost project...", "info")
+		Print("Initializing a new Nhost project...", "info")
 
 		// check if project is already initialized
 		if pathExists(nhostDir) {
-			throwError(nil, "this directory already has a project configured at ./nhost, skipping...", true)
+			Error(nil, "this directory already has a project configured at ./nhost, skipping...", true)
 		}
 
 		/*
 			// check if hasura is installed
 			if !verifyUtility("hasura") {
-				throwError(nil, "Hasura CLI missing: follow instructions here - https://hasura.io/docs/1.0/graphql/manual/hasura-cli/install-hasura-cli.html", true)
+				Error(nil, "Hasura CLI missing: follow instructions here - https://hasura.io/docs/1.0/graphql/manual/hasura-cli/install-hasura-cli.html", true)
 			}
 		*/
 
 		// check if auth file exists
 		if !pathExists(authPath) {
-			throwError(nil, "credentials not found: please login first with `nhost login`", true)
+			Error(nil, "credentials not found: please login first with `nhost login`", true)
 		}
 
 		// validate authentication
 		userData, err := validateAuth(authPath)
 		if err != nil {
-			throwError(err, "couldn't validate authentication", true)
+			Error(err, "couldn't validate authentication", true)
 		}
 
 		// concatenate personal and team projects
 		projects := userData.Projects
 		if len(projects) == 0 {
-			throwError(nil, "we couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
+			Error(nil, "we couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
 		}
 
 		// if user is part of teams which have projects, append them as well
@@ -119,27 +125,27 @@ var initCmd = &cobra.Command{
 		selectedProject := projects[index]
 
 		if err != nil {
-			throwError(err, "prompt failed", true)
+			Error(err, "prompt failed", true)
 		}
 
 		// create root nhost folder
 		if err = os.MkdirAll(nhostDir, os.ModePerm); err != nil {
-			throwError(err, "couldn't initialize root nhost directory.", true)
+			Error(err, "couldn't initialize root nhost directory.", true)
 		}
 
 		// Create .nhost dir which is used for nhost specific configuration
 		if err = os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-			throwError(err, "couldn't initialize nhost specific directory", true)
+			Error(err, "couldn't initialize nhost specific directory", true)
 		}
 
 		f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
 		if err != nil {
-			throwError(err, "failed to write nHost configuration", true)
+			Error(err, "failed to write nHost configuration", true)
 		}
 
 		defer f.Close()
 		if _, err = f.WriteString("project_id: " + selectedProject.ID); err != nil {
-			throwError(err, "couldn't write to /nhost.yaml", true)
+			Error(err, "couldn't write to /nhost.yaml", true)
 		}
 		f.Sync()
 
@@ -147,7 +153,7 @@ var initCmd = &cobra.Command{
 		// GraphQL engine, PostgreSQL and HBP it is also a requirement for hasura to work
 		f, err = os.Create(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
-			throwError(err, "failed to write Nhost configuration", true)
+			Error(err, "failed to write Nhost configuration", true)
 		}
 
 		defer f.Close()
@@ -167,7 +173,7 @@ var initCmd = &cobra.Command{
 			}
 
 			if _, err = f.WriteString(key + ": " + v + "\n"); err != nil {
-				throwError(err, "failed to add following to config - "+key+": "+v, true)
+				Error(err, "failed to add following to config - "+key+": "+v, true)
 			}
 		}
 
@@ -178,7 +184,7 @@ var initCmd = &cobra.Command{
 
 			// if it doesn't exist, then create it
 			if err = os.MkdirAll(migrationsDir, os.ModePerm); err != nil {
-				throwError(err, "couldn't create migrations directory", true)
+				Error(err, "couldn't create migrations directory", true)
 			}
 		}
 
@@ -187,7 +193,7 @@ var initCmd = &cobra.Command{
 
 			// if it doesn't exist, then create it
 			if err = os.MkdirAll(metadataDir, os.ModePerm); err != nil {
-				throwError(err, "couldn't create metadata directory", true)
+				Error(err, "couldn't create metadata directory", true)
 			}
 		}
 
@@ -196,12 +202,12 @@ var initCmd = &cobra.Command{
 
 		f, err = os.Create(ignoreFile)
 		if err != nil {
-			throwError(err, "failed to create .gitignore file", false)
+			Error(err, "failed to create .gitignore file", false)
 		}
 
 		defer f.Close()
 		if _, err = f.WriteString(".nhost\napi/node_modules"); err != nil {
-			throwError(err, "couldn't write to .gitignore file", false)
+			Error(err, "couldn't write to .gitignore file", false)
 		}
 		f.Sync()
 
@@ -213,7 +219,7 @@ var initCmd = &cobra.Command{
 
 		// clear current migration information from remote
 		if err := clearMigration(hasuraEndpoint, adminSecret); err != nil {
-			throwError(err, "couldn't clear migrations from remote.", true)
+			Error(err, "couldn't clear migrations from remote.", true)
 		}
 
 		//s.Suffix = "Creating migrations from remote..."
@@ -234,9 +240,9 @@ var initCmd = &cobra.Command{
 			Args: migrationArgs,
 			Dir:  nhostDir,
 		}
-
-		if err = execute.Run(); err != nil {
-			throwError(err, "couldn't create migrations from remote", true)
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			Error(errors.New(string(output)), "failed to create migrations from remote", true)
 		}
 
 		// // mark this migration as applied (--skip-execution) on the remote server
@@ -244,7 +250,7 @@ var initCmd = &cobra.Command{
 		// // changes to that environment
 		files, err := ioutil.ReadDir(migrationsDir)
 		if err != nil {
-			throwError(err, "couldn't read migrations directory", true)
+			Error(err, "failed to read migrations directory", true)
 		}
 
 		initMigration := files[0]
@@ -260,8 +266,9 @@ var initCmd = &cobra.Command{
 			Dir:  nhostDir,
 		}
 
-		if err = execute.Run(); err != nil {
-			throwError(err, "couldn't apply created migrations.", true)
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			Error(errors.New(string(output)), "failed to apply created migrations", true)
 		}
 
 		// create metadata from remote
@@ -276,8 +283,9 @@ var initCmd = &cobra.Command{
 			Dir:  nhostDir,
 		}
 
-		if err = execute.Run(); err != nil {
-			throwError(err, "couldn't export metadata.", true)
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			Error(errors.New(string(output)), "failed to export metadata", true)
 		}
 
 		// [BROKEN CODE] - Enum Table seed creation is not yet working.
@@ -293,7 +301,7 @@ var initCmd = &cobra.Command{
 			// if tables metadata doesn't exit, fetch from API
 			fromTables, err = getEnumTablesFromAPI(hasuraEndpoint, adminSecret)
 			if err != nil {
-				throwError(err, "couldn't fetch for enum tables from Hasura server.", true)
+				Error(err, "couldn't fetch for enum tables from Hasura server.", true)
 			}
 		}
 
@@ -309,20 +317,17 @@ var initCmd = &cobra.Command{
 				Dir:  nhostDir,
 			}
 
-			// read output for testing
-			//output, err := execute.CombinedOutput()
-			//fmt.Println(string(output))
-
-			if err := execute.Run(); err != nil {
-				throwError(err, "couldn't create seeds for enum tables", false)
-				printMessage("skipping seed creation...", "warn")
+			output, err = execute.CombinedOutput()
+			if err != nil {
+				Error(errors.New(string(output)), "couldn't create seeds for enum tables", false)
+				Print("skipping seed creation...", "warn")
 			}
 		}
 
 		// add extensions to init migration
 		extensions, err := getExtensions(hasuraEndpoint, adminSecret)
 		if err != nil {
-			throwError(err, "couldn't check for enum tables.", true)
+			Error(err, "couldn't check for enum tables.", true)
 		}
 
 		for index, extension := range extensions {
@@ -341,7 +346,7 @@ var initCmd = &cobra.Command{
 
 		// write extensions to beginning of SQL file of init migration
 		if err = writeToFile(sqlPath, extensionsWriteToFile, "start"); err != nil {
-			throwError(err, "couldn't write extensions to SQL file", true)
+			Error(err, "couldn't write extensions to SQL file", true)
 		}
 
 		// add auth.roles to init migration
@@ -349,7 +354,7 @@ var initCmd = &cobra.Command{
 
 		roles, err := getRoles(hasuraEndpoint, adminSecret)
 		if err != nil {
-			throwError(err, "couldn't get hasura roles.", true)
+			Error(err, "couldn't get hasura roles.", true)
 		}
 
 		rolesSQL := "\nINSERT INTO auth.roles (role)\n    VALUES "
@@ -362,7 +367,7 @@ var initCmd = &cobra.Command{
 
 		// write roles to end of SQL file of init migration
 		if err = writeToFile(sqlPath, rolesSQL, "end"); err != nil {
-			throwError(err, "couldn't write roles to SQL file", true)
+			Error(err, "couldn't write roles to SQL file", true)
 		}
 
 		// add auth.providers to init migration
@@ -370,7 +375,7 @@ var initCmd = &cobra.Command{
 
 		providers, err := getProviders(hasuraEndpoint, adminSecret)
 		if err != nil {
-			throwError(err, "couldn't get hasura providers.", true)
+			Error(err, "couldn't get hasura providers.", true)
 		}
 
 		providersSQL := "\nINSERT INTO auth.providers (provider)\n    VALUES "
@@ -383,7 +388,7 @@ var initCmd = &cobra.Command{
 
 		// write providers to end of SQL file of init migration
 		if err = writeToFile(sqlPath, providersSQL, "end"); err != nil {
-			throwError(err, "couldn't write providers to SQL file", true)
+			Error(err, "couldn't write providers to SQL file", true)
 		}
 
 		// write ENV variables to .env.development
@@ -393,14 +398,14 @@ var initCmd = &cobra.Command{
 		if !pathExists(envFile) {
 			f, err = os.Create(envFile)
 			if err != nil {
-				throwError(err, "failed to create .env.developement file", true)
+				Error(err, "failed to create .env.developement file", true)
 			}
 
 			defer f.Close()
 			/*
 				//avoid writing the extra line at top, otherwise it will create problems afterwards
 				if _, err = f.WriteString("# env vars from Nhost\n"); err != nil {
-					throwError(err, "couldn't write to .env.developement file", true)
+					Error(err, "couldn't write to .env.developement file", true)
 				}
 				f.Sync()
 			*/
@@ -429,17 +434,56 @@ var initCmd = &cobra.Command{
 		}
 
 		if err = writeToFile(envFile, envData, "end"); err != nil {
-			throwError(err, "couldn't write project environment variables to .env.development file", false)
+			Error(err, "couldn't write project environment variables to .env.development file", false)
 		}
 
-		printMessage("Nhost project succesfully initialized.", "success")
+		Print("Nhost backend succesfully initialized", "success")
+
+		// begin the front-end initialization procedure
+		Print("Let's talk about your front-end now, shall we?\n", "info")
+
+		// configure interative prompt
+		frontendPrompt := promptui.Prompt{
+			Label:     "Do you want to setup a front-end project boilerplate?",
+			IsConfirm: true,
+		}
+
+		frontendApproval, err := frontendPrompt.Run()
+		if err != nil {
+			Error(err, "prompt aborted", true)
+		}
+
+		if strings.ToLower(frontendApproval) == "y" || strings.ToLower(frontendApproval) == "yes" {
+
+			// propose boilerplate options
+			boilerplatePrompt := promptui.Select{
+				Label: "Select Boilerplate",
+				Items: []string{"NuxtJs", "NextJs"},
+			}
+
+			_, result, err := boilerplatePrompt.Run()
+			if err != nil {
+				Error(err, "prompt aborted", true)
+			}
+
+			if result == "NuxtJs" {
+				if err = generateNuxtBoilerplate("frontend", path.Join(workingDir, "frontend"), "hasura-06e7a6e4.nhost.app", selectedProject.ProjectDomains.Hasura); err != nil {
+					Error(err, "failed to initialize nuxt project", true)
+				}
+			} else {
+				Print("We are still building the boilerplate for that!", "info")
+			}
+		}
+
+		Print("See you later, grasshopper!", "success")
+
 	},
 }
 
 func getExtensions(endpoint, secret string) ([]string, error) {
 
-	if verbose {
-		printMessage("fetching extensions...", "info")
+	if VERBOSE {
+		Print("fetching extensions...", "info")
 	}
 
 	var extensions []string
@@ -495,8 +539,8 @@ func getExtensions(endpoint, secret string) ([]string, error) {
 
 func getProviders(endpoint, secret string) ([]string, error) {
 
-	if verbose {
-		printMessage("fetching providers from remote...", "info")
+	if VERBOSE {
+		Print("fetching providers from remote...", "info")
 	}
 
 	var providers []string
@@ -546,8 +590,8 @@ func getProviders(endpoint, secret string) ([]string, error) {
 
 func getRoles(endpoint, secret string) ([]string, error) {
 
-	if verbose {
-		printMessage("fetching roles from remote...", "info")
+	if VERBOSE {
+		Print("fetching roles from remote...", "info")
 	}
 
 	var roles []string
@@ -597,8 +641,8 @@ func getRoles(endpoint, secret string) ([]string, error) {
 
 func getEnumTablesFromMetadata(filePath string) ([]string, error) {
 
-	if verbose {
-		printMessage("fetching enum tables from metadata...", "info")
+	if VERBOSE {
+		Print("fetching enum tables from metadata...", "info")
 	}
 
 	// initalize empty list of tables from which seeds will be created
@@ -635,8 +679,8 @@ func getEnumTablesFromMetadata(filePath string) ([]string, error) {
 
 func getEnumTablesFromAPI(endpoint, secret string) ([]string, error) {
 
-	if verbose {
-		printMessage("fetching enumerable tables from remote...", "info")
+	if VERBOSE {
+		Print("fetching enumerable tables from remote...", "info")
 	}
 
 	var fromTables []string
@@ -692,8 +736,8 @@ func getEnumTablesFromAPI(endpoint, secret string) ([]string, error) {
 
 func clearMigration(endpoint, secret string) error {
 
-	if verbose {
-		printMessage("clearing migration information from remote...", "info")
+	if VERBOSE {
+		Print("clearing migration information from remote...", "info")
 	}
 
 	//Encode the data
@@ -723,8 +767,8 @@ func clearMigration(endpoint, secret string) error {
 // generates fresh config.yaml for /nhost dir
 func getNhostConfig(options Project) map[string]interface{} {
 
-	if verbose {
-		printMessage("generating Nhost configuration...", "info")
+	if VERBOSE {
+		Print("generating Nhost configuration...", "info")
 	}
 
 	return map[string]interface{}{

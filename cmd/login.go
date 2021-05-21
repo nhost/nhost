@@ -49,22 +49,20 @@ type (
 
 	// Authentication validation response
 	AuthValidation struct {
-		User              User   "user"
-		Error             Error  "error"
+		User  User
+		Error struct {
+			Code  string
+			Email string
+		}
 		Email             string `json:"email"`
 		VerificationToken string `json:"verificationToken"`
 		VerifiedToken     string `json:"token"`
 	}
 
-	Error struct {
-		Code  string "code"
-		Email string "email"
-	}
-
 	// Nhost user structure
 	User struct {
-		Projects []Project "projects"
-		Teams    []Team    "teams"
+		Projects []Project
+		Teams    []Team
 	}
 
 	// Nhost project domains
@@ -74,8 +72,8 @@ type (
 
 	// Nhost individual team structure
 	Team struct {
-		Name     string    "name"
-		Projects []Project "projects"
+		Name     string
+		Projects []Project
 	}
 
 	// Nhost project structure
@@ -109,28 +107,28 @@ var loginCmd = &cobra.Command{
 		// if user is already logged in, ask to logout
 
 		if _, err := validateAuth(authPath); err == nil {
-			throwError(err, "you are already logged in, first logout with \"nhost logout\"", true)
+			Error(err, "you are already logged in, first logout with \"nhost logout\"", true)
 		}
 
 		if email == "" {
 
 			readEmail, err := readEmail()
 			if err != nil {
-				throwError(err, "couldn't read email", true)
+				Error(err, "couldn't read email", true)
 			}
 			email = readEmail
 		}
 
 		token, err := login(apiURL, email)
 		if err != nil {
-			throwError(err, "failed to login with that email", true)
+			Error(err, "failed to login with that email", true)
 		}
 
-		printMessage("We have sent you an email on \""+email+"\". Confirm the email to login...", "info")
+		Print("We have sent you an email on \""+email+"\". Confirm the email to login...", "info")
 
 		verifiedToken, err := runVerificationLoop(apiURL, email, token)
 		if err != nil {
-			throwError(err, "login verification failed", true)
+			Error(err, "login verification failed", true)
 		}
 		if len(verifiedToken) > 0 {
 
@@ -143,14 +141,14 @@ var loginCmd = &cobra.Command{
 			// delete any existing auth files
 			if pathExists(authPath) {
 				if err = deletePath(authPath); err != nil {
-					throwError(err, "couldn't reset the auth file, please delete it manually", true)
+					Error(err, "couldn't reset the auth file, please delete it manually", true)
 				}
 			}
 
 			// create the auth file to write it
 			f, err := os.Create(authPath)
 			if err != nil {
-				throwError(err, "failed to instantiate Nhost auth configuration", true)
+				Error(err, "failed to instantiate Nhost auth configuration", true)
 			}
 
 			defer f.Close()
@@ -159,16 +157,16 @@ var loginCmd = &cobra.Command{
 			err = writeToFile(authPath, string(credentials), "end")
 
 			if err != nil {
-				throwError(err, "failed to save authention config", true)
+				Error(err, "failed to save authention config", true)
 			}
 
 			// validate auth
 			_, err = validateAuth(authPath)
 			if err != nil {
-				throwError(err, "failed to validate auth", true)
+				Error(err, "failed to validate auth", true)
 			}
 
-			printMessage("Email verified, and login complete!", "success")
+			Print("Email verified, and login complete!", "success")
 		}
 	},
 }
@@ -188,8 +186,8 @@ func readEmail() (string, error) {
 // ValidateAuth func confirms whether user is logged in or not
 func validateAuth(authFile string) (User, error) {
 
-	if verbose {
-		printMessage("validating authentication...", "info")
+	if VERBOSE {
+		Print("validating authentication...", "info")
 	}
 
 	var response AuthValidation
@@ -229,8 +227,8 @@ func validateAuth(authFile string) (User, error) {
 
 func runVerificationLoop(url, email, token string) (string, error) {
 
-	if verbose {
-		printMessage("verifying your login...", "info")
+	if VERBOSE {
+		Print("verifying your login...", "info")
 	}
 
 	timeout := time.After(60 * time.Second)
@@ -305,8 +303,8 @@ func verify(url, email, token string) (string, error) {
 // signs the user in with email and returns verification token
 func login(url, email string) (string, error) {
 
-	if verbose {
-		printMessage("authenticating...", "info")
+	if VERBOSE {
+		Print("authenticating...", "info")
 	}
 
 	var response AuthValidation

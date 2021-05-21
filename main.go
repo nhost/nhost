@@ -26,7 +26,7 @@ package main
 import (
 	//_ "embed"
 
-	"github.com/nhost/cli/cmd"
+	"github.com/mrinalwahal/cli/cmd"
 )
 
 func main() {

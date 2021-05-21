@@ -43,13 +43,13 @@ var linkCmd = &cobra.Command{
 		// validate authentication
 		userData, err := validateAuth(authPath)
 		if err != nil {
-			throwError(err, "couldn't validate authentication", true)
+			Error(err, "couldn't validate authentication", true)
 		}
 
 		// concatenate personal and team projects
 		projects := userData.Projects
 		if len(projects) == 0 {
-			throwError(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
+			Error(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
 		}
 
 		// if user is part of teams which have projects, append them as well
@@ -65,7 +65,7 @@ var linkCmd = &cobra.Command{
 		}
 
 		if len(projects) == 0 {
-			throwError(errors.New("no projects found for this account, create new one by going to \"https://console.nhost.io/new\""), "no projects found", true)
+			Error(errors.New("no projects found for this account, create new one by going to \"https://console.nhost.io/new\""), "no projects found", true)
 		}
 
 		// configure interactive prompt template
@@ -86,20 +86,20 @@ var linkCmd = &cobra.Command{
 		selectedProject := projects[index]
 
 		if err != nil {
-			throwError(err, "prompt failed", true)
+			Error(err, "prompt failed", true)
 		}
 
 		// create .nhost, if it doesn't exists
 		if !pathExists(dotNhost) {
 			if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-				throwError(err, "couldn't initialize nhost specific directory", true)
+				Error(err, "couldn't initialize nhost specific directory", true)
 			}
 		}
 
 		// create nhost.yaml to write it
 		f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
 		if err != nil {
-			throwError(err, "failed to instantiate Nhost auth configuration", true)
+			Error(err, "failed to instantiate Nhost auth configuration", true)
 		}
 
 		defer f.Close()
@@ -110,11 +110,11 @@ var linkCmd = &cobra.Command{
 			fmt.Sprintf(`project_id: %s`, selectedProject.ID),
 			"start",
 		); err != nil {
-			throwError(err, "failed to save /nhost.yaml config", true)
+			Error(err, "failed to save /nhost.yaml config", true)
 		}
 
 		// project linking complete
-		printMessage("Project linked: "+selectedProject.Name, "success")
+		Print("Project linked: "+selectedProject.Name, "success")
 	},
 }
 

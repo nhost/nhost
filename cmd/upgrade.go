@@ -24,23 +24,17 @@ SOFTWARE.
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
 // upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Upgrade this utility to latest version",
+	Long: `Automatically check for the latest available version of this
+	utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("upgrade called")
+		Print("Building this functionality. Check back in some future versions?", "info")
 	},
 }
 

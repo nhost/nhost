@@ -31,24 +31,26 @@ import (
 )
 
 // reset approval flag
-var yes bool
+var approval bool
 
 // resetCmd represents the reset command
 var resetCmd = &cobra.Command{
 	Use:   "reset",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Delete all saved Nhost configuration from this project",
+	Long: `This is an irreversible action, and should always be avoided
+	unless absolutely necesarry.
+	
+	It will permanently delete the 'nhost/' and '.nhost/' from this project
+	root and you will lose all your saved configurations with Nhost.
+	
+	It will, however, not cause any changes or damage to the services already
+	running on remote.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if !yes {
+		if !approval {
 
 			// warn the user of consequences
-			printMessage("this is irreversible will remove all installed Nhost config from this project", "danger")
+			Print("this is irreversible and will remove all installed Nhost config from this project", "danger")
 
 			// configure interative prompt
 			prompt := promptui.Prompt{
@@ -58,27 +60,27 @@ to quickly create a Cobra application.`,
 
 			response, err := prompt.Run()
 			if err != nil {
-				throwError(err, "prompt aborted", true)
+				Error(err, "prompt aborted", true)
 			}
 
-			if strings.ToLower(response) == "y" || strings.ToLower(response) == "yes" {
-				yes = true
+			if strings.ToLower(response) == "y" || strings.ToLower(response) == "approval" {
+				approval = true
 			}
 		}
 
-		if yes {
+		if approval {
 
 			if err := deleteAllPaths(dotNhost); err != nil {
-				throwError(err, "couldn't delete "+dotNhost+"\nplease delete them manually", true)
+				Error(err, "couldn't delete "+dotNhost+"\nplease delete them manually", true)
 			}
 
 			if err := deleteAllPaths(nhostDir); err != nil {
-				throwError(err, "couldn't delete "+nhostDir+"\nplease delete them manually", true)
+				Error(err, "couldn't delete "+nhostDir+"\nplease delete them manually", true)
 			}
 		}
 
 		// signify reset completion
-		printMessage("nhost/ and .nhost/ permanently removed from this project", "warn")
+		Print("nhost/ and .nhost/ permanently removed from this project", "warn")
 	},
 }
 
@@ -86,7 +88,7 @@ func init() {
 	rootCmd.AddCommand(resetCmd)
 
 	// Here you will define your flags and configuration settings.
-	resetCmd.PersistentFlags().BoolVarP(&yes, "yes", "y", false, "Bypass approval prompt and proceed ahead with reset")
+	resetCmd.PersistentFlags().BoolVarP(&approval, "approval", "y", false, "Bypass approval prompt and proceed ahead with reset")
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:

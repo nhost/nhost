@@ -33,18 +33,15 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"strconv"
 	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
-	"golang.org/x/sys/unix"
 )
 
 var (
 	cfgFile string
-	verbose bool
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
@@ -78,9 +75,21 @@ var (
 // Initialize common constants and variables used by multiple commands
 const (
 	apiURL = "https://customapi.nhost.io"
+
+	// initialize console colours
+	Bold  = "\033[1m"
+	Reset = "\033[0m"
+	Green = "\033[32m"
+	// Blue = "\033[34m"
+	Yellow = "\033[33m"
+	Cyan   = "\033[36m"
+	Red    = "\033[31m"
+	// Gray = "\033[37m"
+	// White = "\033[97m"
 )
 
 var (
+	VERBOSE bool
 
 	//go:embed assets/hasura
 	hasura []byte
@@ -112,17 +121,6 @@ var (
 		// configure the status spinner
 		s = spinner.New(spinner.CharSets[35], 100*time.Millisecond)
 	*/
-
-	// initialize console colours
-	Bold  = "\033[1m"
-	Reset = "\033[0m"
-	Green = "\033[32m"
-	// Blue = "\033[34m"
-	Yellow = "\033[33m"
-	Cyan   = "\033[36m"
-	Red    = "\033[31m"
-	// Gray = "\033[37m"
-	// White = "\033[97m"
 
 )
 
@@ -171,66 +169,91 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "show informational logs")
+	rootCmd.PersistentFlags().BoolVarP(&VERBOSE, "verbose", "v", false, "show informational logs")
+}
+
+// print error and handle VERBOSE
+func Error(data error, message string, fatal bool) {
+	if VERBOSE && data != nil {
+		fmt.Println(Bold + Red + "[ERROR] " + Reset + data.Error())
+	}
+
+	fmt.Println(Bold + Red + "[ERROR] " + message + Reset)
+
+	if fatal {
+		os.Exit(1)
+	}
+}
+
+// Print coloured output to console
+func Print(data, color string) {
+
+	selected_color := ""
+
+	switch color {
+	case "success":
+		selected_color = Green
+	case "warn":
+		selected_color = Yellow
+	case "info":
+		selected_color = Cyan
+	case "danger":
+		selected_color = Red
+	}
+
+	//s.Suffix = selected_color + data + Reset
+
+	fmt.Println(Bold + selected_color + "[" + strings.ToUpper(color) + "] " + Reset + data)
 }
 
 // loads a single binary
 func loadBinary(binary string, data []byte) (string, error) {
 
+	if VERBOSE {
+		Print(fmt.Sprintf("loading %s binary...", binary), "info")
+	}
+
+	binaryPath := path.Join(dotNhost, binary)
+
 	// search for installed binary
-	binaryPath, err := exec.LookPath(binary)
-	if err == nil {
-		return binaryPath, err
+	if pathExists(binaryPath) {
+		return binaryPath, nil
 	}
 
-	// otherwise generate fresh temporary memory path,
-	// to write the binary over there,
-	// and load to be used throughout the program
-	fd, err := unix.MemfdCreate(binary, 0)
+	// if it doesn't exist, create it from embedded asset
+	if VERBOSE {
+		Print(fmt.Sprintf("%s binary doesn't exist, so creating it at ...", binary), "info")
+	}
+
+	f, err := os.Create(binaryPath)
 	if err != nil {
-		return "", err
+		Error(err, fmt.Sprintf("failed to instantiate %s binary path...", binary), true)
 	}
 
-	pathArgs := []string{"proc", strconv.Itoa(os.Getpid()), "fd", strconv.Itoa(int(fd))}
-	binaryPath = path.Join(pathArgs...)
-
-	// write new binary from embedded asset
-	f := os.NewFile(uintptr(fd), binary)
 	defer f.Close()
-	_, err = f.Write(data)
-
-	//err = os.WriteFile(binaryPath, data, 0755)
-	return binaryPath, err
-}
-
-func loadBinaries(binary string, data []byte) error {
-
-	// search for installed binary
-	_, err := exec.LookPath(binary)
-	if err != nil {
-
-		// if binary is not installed on host machine,
-		// search for binary in current working directory
-		if !pathExists(binary) {
-
-			// if it doesn't exit, create a local binary from embedded assets
-			// for use throughout the program
-			err = os.WriteFile(binary, data, 0755)
-			if err != nil {
-				return err
-			}
-		}
+	if _, err = f.Write(data); err != nil {
+		Error(err, fmt.Sprintf("failed to create %s binary...", binary), true)
 	}
-	//out, _ := exec.Command("./hasura").Output()
-	//fmt.Printf("Output: %s\n", out)
-	return err
+	f.Sync()
+
+	// Change permissions
+	err = os.Chmod(binaryPath, 0777)
+	if err != nil {
+		Error(err, fmt.Sprintf("failed to takeover %s binary permissions...", binary), true)
+	}
+
+	if VERBOSE {
+		Print(fmt.Sprintf("created %s binary at %s%s%s", binary, Bold, binaryPath, Reset), "success")
+	}
+
+	return binaryPath, err
 }
 
 // validates whether the CLI utlity is installed or not
 func verifyUtility(command string) bool {
 
-	if verbose {
-		printMessage("validating Hasura CLI installation...", "info")
+	if VERBOSE {
+		Print("validating Hasura CLI installation...", "info")
 	}
 
 	cmd := exec.Command("command", "-v", command)
@@ -253,40 +276,6 @@ func deletePath(path string) error {
 func deleteAllPaths(path string) error {
 	err := os.RemoveAll(path)
 	return err
-}
-
-// print error and handle verbose
-func throwError(data error, message string, fatal bool) {
-	if verbose && data != nil {
-		fmt.Println(Bold + Red + "[ERROR] " + Reset + data.Error())
-	}
-
-	fmt.Println(Bold + Red + "[ERROR] " + message + Reset)
-
-	if fatal {
-		os.Exit(1)
-	}
-}
-
-// Print coloured output to console
-func printMessage(data, color string) {
-
-	selected_color := ""
-
-	switch color {
-	case "success":
-		selected_color = Green
-	case "warn":
-		selected_color = Yellow
-	case "info":
-		selected_color = Cyan
-	case "danger":
-		selected_color = Red
-	}
-
-	//s.Suffix = selected_color + data + Reset
-
-	fmt.Println(Bold + selected_color + "[" + strings.ToUpper(color) + "] " + Reset + data)
 }
 
 func writeToFile(filePath, data, position string) error {

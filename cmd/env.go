@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"path"
 	"strings"
 
@@ -56,15 +57,15 @@ var lsCmd = &cobra.Command{
 	Long:  `List your environment variables stored on remote.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if verbose {
-			printMessage("fetching env vars from remote", "info")
+		if VERBOSE {
+			Print("fetching env vars from remote", "info")
 		}
 
 		var projectConfig map[string]interface{}
 
 		config, err := ioutil.ReadFile(path.Join(dotNhost, "nhost.yaml"))
 		if err != nil {
-			throwError(err, "failed to read .nhost/nhost.yaml", true)
+			Error(err, "failed to read .nhost/nhost.yaml", true)
 		}
 
 		yaml.Unmarshal(config, &projectConfig)
@@ -73,13 +74,13 @@ var lsCmd = &cobra.Command{
 
 		user, err := validateAuth(authPath)
 		if err != nil {
-			throwError(err, "failed to fetch user data from remote", true)
+			Error(err, "failed to fetch user data from remote", true)
 		}
 
 		// concatenate personal and team projects
 		projects := user.Projects
 		if len(projects) == 0 {
-			throwError(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
+			Error(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
 		}
 
 		// if user is part of teams which have projects, append them as well
@@ -103,7 +104,7 @@ var lsCmd = &cobra.Command{
 
 		// print the filtered env vars
 		envs, _ := json.Marshal(savedProject.ProjectEnvVars)
-		printMessage("env vars are as followed:", "info")
+		Print("local env vars are as followed:", "info")
 		fmt.Println(string(envs))
 	},
 }
@@ -115,15 +116,15 @@ var pullCmd = &cobra.Command{
 	Long:  `Pull and sync environment variables stored at remote with local environment.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if verbose {
-			printMessage("overwriting existing .env.development file", "info")
+		if VERBOSE {
+			Print("overwriting existing .env.development file", "info")
 		}
 
 		var projectConfig map[string]interface{}
 
 		config, err := ioutil.ReadFile(path.Join(dotNhost, "nhost.yaml"))
 		if err != nil {
-			throwError(err, "failed to read .nhost/nhost.yaml", true)
+			Error(err, "failed to read .nhost/nhost.yaml", true)
 		}
 
 		yaml.Unmarshal(config, &projectConfig)
@@ -132,13 +133,13 @@ var pullCmd = &cobra.Command{
 
 		user, err := validateAuth(authPath)
 		if err != nil {
-			throwError(err, "failed to fetch user data from remote", true)
+			Error(err, "failed to fetch user data from remote", true)
 		}
 
 		// concatenate personal and team projects
 		projects := user.Projects
 		if len(projects) == 0 {
-			throwError(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
+			Error(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
 		}
 
 		// if user is part of teams which have projects, append them as well
@@ -160,74 +161,91 @@ var pullCmd = &cobra.Command{
 			}
 		}
 
-		printMessage(fmt.Sprintf("downloading development environment variables for project: %s%s%s", Bold, savedProject.Name, Reset), "info")
+		Print(fmt.Sprintf("downloading development environment variables for project: %s%s%s", Bold, savedProject.Name, Reset), "info")
 
 		envData, err := ioutil.ReadFile(envFile)
 		if err != nil {
-			throwError(err, "failed to read .env.development file", true)
+			Error(err, "failed to read .env.development file", true)
 		}
 
 		envRows := strings.Split(string(envData), "\n")
 
 		var envMap []map[string]interface{}
-		for _, row := range envRows {
+		for index, row := range envRows {
 
-			parsedRow := strings.Split(row, "=")
+			localParsedRow := strings.Split(row, "=")
+			localKey, localValue := localParsedRow[0], localParsedRow[1]
 
-			for index, key := range parsedRow {
-				if key == "name" {
-					envMap = append(envMap, map[string]interface{}{
-						parsedRow[index]: parsedRow[index],
-					})
+			// copy the pair as it ias
+			envMap = append(envMap, map[string]interface{}{
+				localKey: localValue,
+			})
+
+			// if the same key is in response from remote, then override the previously copied value
+			for _, remoteVarRow := range savedProject.ProjectEnvVars {
+				if remoteVarRow["name"] == localKey {
+					envMap[index][localKey] = remoteVarRow["dev_value"]
 				}
 			}
 		}
 
-		var remoteEnvVars []map[string]interface{}
-		for _, variable := range savedProject.ProjectEnvVars {
+		// convert the new env var map to string
+		var envArray []string
+		for _, row := range envMap {
+			for key, value := range row {
+				envArray = append(envArray, fmt.Sprintf(`%s=%v`, key, value))
+			}
+		}
+
+		// delete the existing .env.development file
+		deletePath(envFile)
+
+		// create a fresh one
+		f, err := os.Create(envFile)
+		if err != nil {
+			Error(err, "failed to create fresh .env.development file", false)
+		}
+
+		defer f.Close()
+		if _, err = f.WriteString(strings.Join(envArray, "\n")); err != nil {
+			Error(err, "failed to write fresh .env.development file", false)
+		}
+		f.Sync()
+
+		Print("Local environment vars synced with remote. Hurray!", "success")
+
+		/*
+			// Legacy code.
+			// Might be required in the future to push local env changes to remote
+			var remoteEnvVars []map[string]interface{}
+			for _, variable := range savedProject.ProjectEnvVars {
+				remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
+					"name":  variable["name"],
+					"value": variable["dev_value"],
+				})
+			}
+
 			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-				"name":  variable["name"],
-				"value": variable["dev_value"],
+				"name":  "REGISTRATION_CUSTOM_FIELDS",
+				"value": savedProject.HBPRegistrationCustomFields,
 			})
-		}
 
-		remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-			"name":  "REGISTRATION_CUSTOM_FIELDS",
-			"value": savedProject.HBPRegistrationCustomFields,
-		})
-
-		remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-			"name":  "JWT_CUSTOM_FIELDS",
-			"value": savedProject.BackendUserFields,
-		})
-
-		remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-			"name":  "DEFAULT_ALLOWED_USER_ROLES",
-			"value": savedProject.HBPDefaultAllowedUserRoles,
-		})
-
-		remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-			"name":  "ALLOWED_USER_ROLES",
-			"value": savedProject.HBPAllowedUserRoles,
-		})
-
-		var updatedProjectEnvVarIndices []int
-		var newEnvVars []map[string]interface{}
-		for _, existingVar := range envMap {
-
-			var remoteVarIndex int
-			for remoteIndex, remoteVar := range remoteEnvVars {
-				if remoteVar["name"].(string) == envMap[remoteIndex]["name"].(string) {
-					remoteVarIndex = remoteIndex
-				}
-			}
-			tempEnvVar := remoteEnvVars[remoteVarIndex]
-			updatedProjectEnvVarIndices = append(updatedProjectEnvVarIndices, remoteVarIndex)
-			newEnvVars = append(newEnvVars, map[string]interface{}{
-				"name":  existingVar["name"],
-				"value": tempEnvVar["value"],
+			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
+				"name":  "JWT_CUSTOM_FIELDS",
+				"value": savedProject.BackendUserFields,
 			})
-		}
+
+			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
+				"name":  "DEFAULT_ALLOWED_USER_ROLES",
+				"value": savedProject.HBPDefaultAllowedUserRoles,
+			})
+
+			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
+				"name":  "ALLOWED_USER_ROLES",
+				"value": savedProject.HBPAllowedUserRoles,
+			})
+		*/
+
 	},
 }
 

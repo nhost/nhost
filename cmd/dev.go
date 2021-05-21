@@ -25,11 +25,13 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net"
 	"os"
 	"os/exec"
@@ -39,6 +41,12 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/container"
+	"github.com/docker/docker/api/types/network"
+	"github.com/docker/docker/api/types/strslice"
+	"github.com/docker/docker/client"
+	"github.com/docker/go-connections/nat"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -51,6 +59,31 @@ var (
 	hasuraConsoleSpawn *os.Process
 )
 
+type (
+
+	// Container service
+	Container struct {
+		Image       string                 "image"
+		Name        string                 "container_name"
+		Command     []string               "command"
+		Entrypoint  string                 "entrypoint"
+		Environment map[string]interface{} "environment"
+		Ports       []string               "ports"
+		Restart     string                 "restart"
+		User        string                 "user"
+		Volumes     []string               "volumes"
+		DependsOn   []string               `yaml:",omitempty"`
+		EnvFile     []string               "env_file"
+		Build       map[string]string      "build"
+	}
+
+	// Container services
+	Services struct {
+		Containers map[string]Container "services"
+		Version    string               "version"
+	}
+)
+
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:   "dev",
@@ -58,32 +91,31 @@ var devCmd = &cobra.Command{
 	Long:  `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if verbose {
-			printMessage("Initializing dev environment...", "info")
-		}
+		Print("Initializing dev environment...", "info")
 
 		// check if project is already initialized
 		if !pathExists(nhostDir) {
-			throwError(nil, "initialize your project before with \"nhost init\" or make sure to run commands at your project root", true)
+			Error(nil, "initialize your project before with \"nhost init\" or make sure to run commands at your project root", true)
 		}
 
 		// check if .nhost exists
 		if !pathExists(dotNhost) {
 			if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-				throwError(err, "couldn't initialize nhost specific directory", true)
+				Error(err, "couldn't initialize nhost specific directory", true)
 			}
 		}
 
-		// check if hasura is installed
-		if !verifyUtility("docker-compose") {
-			throwError(nil, "docker-compose not installed: follow instructions here - https://docs.docker.com/compose/install/", true)
-		}
+		/*
+			// check if docker-compose is installed
+			if !verifyUtility("docker-compose") {
+				Error(nil, "docker-compose not installed: follow instructions here - https://docs.docker.com/compose/install/", true)
+			}
+		*/
 
 		// check if this is the first time dev env is running
 		firstRun := !pathExists(path.Join(dotNhost, "db_data"))
-		printMessage("Nhost is starting...", "info")
 		if firstRun {
-			printMessage("first run takes longer, please be patient...", "warn")
+			Print("first run takes longer, please be patient...", "warn")
 		}
 
 		// add cleanup action in case of signal interruption
@@ -95,9 +127,77 @@ var devCmd = &cobra.Command{
 			os.Exit(1)
 		}()
 
+		/*
+			// connect to docker client
+			ctx := context.Background()
+			docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+			if err != nil {
+				panic(err)
+			}
+
+			// stop all running containers
+			nhostServices := map[string]string{
+				"minio":                     "nhost_minio",
+				"nhost-graphql-engine":      "nhost_hasura",
+				"nhost-hasura-backend-plus": "nhost_hbp",
+				"nhost-postgres":            "nhost_postgres",
+				"nhost-api":                 "nhost_api",
+			}
+
+			for _, container := range nhostServices {
+				if err = stopContainer(docker, ctx, container); err != nil {
+					Error(err, fmt.Sprintf("failed to stop %s container", container), true)
+				}
+			}
+
+				// read pre-written docker-compose yaml
+				preWrittenConfigFile, _ := ioutil.ReadFile(path.Join(dotNhost, "docker-compose.yaml"))
+				var preWrittenConfig Services
+				yaml.Unmarshal(preWrittenConfigFile, &preWrittenConfig)
+
+				// start containers from Nhost Backend Yaml
+				for _, service := range preWrittenConfig.Containers {
+					for serviceName, _ := range nhostServices {
+						fmt.Println(serviceName, " : ", service[serviceName])
+					}
+				}
+		*/
+		// run test postgres server
+		/*
+				postgresContainer := Container{
+					Name:    "nhost_postgres",
+					Image:   fmt.Sprintf(`postgres:%v`, options["postgres_version"]),
+					Ports:   []string{fmt.Sprintf(`%v:5432`, options["postgres_port"])},
+					Restart: "always",
+					Environment: map[string]interface{}{
+						"POSTGRES_USER":     "postgres_user",
+						"POSTGRES_PASSWORD": "postgres_password",
+					},
+					// not sure whether this volume would work on windows as well
+					Volumes: []string{"./db_data:/var/lib/postgresql/data"},
+				}
+
+			if err = runContainer(
+				docker,
+				fmt.Sprintf(`postgres:%v`, 12),
+				"nhost_postgres",
+				"5432",
+				[]string{"POSTGRES_USER=postgres_user", "POSTGRES_PASSWORD=postgres_password"},
+				nil,
+				[]string{"./db_data:/var/lib/postgresql/data"},
+				"",
+				nil,
+				nil,
+			); err != nil {
+				Error(err, fmt.Sprintf("failed to run %s container", "nhost_postgres"), true)
+			}
+
+			os.Exit(0)
+		*/
+
 		nhostConfig, err := readYaml(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
-			throwError(err, "couldn't read Nhost config", true)
+			Error(err, "couldn't read Nhost config", true)
 		}
 
 		ports := []string{
@@ -126,8 +226,8 @@ var devCmd = &cobra.Command{
 		}
 
 		if len(occupiedPorts) > 0 {
-			throwError(
-				errors.New("required ports already in use, hence abort required"),
+			Error(
+				errors.New("required ports already in use, hence aborting"),
 				fmt.Sprintf("following ports are already in use: %v \nchange nhost/config.yaml or stop the services", occupiedPorts),
 				true,
 			)
@@ -142,7 +242,7 @@ var devCmd = &cobra.Command{
 		nhostBackendYamlFilePath := path.Join(dotNhost, "docker-compose.yaml")
 		_, err = os.Create(nhostBackendYamlFilePath)
 		if err != nil {
-			throwError(err, "failed to create docker-compose config", false)
+			Error(err, "failed to create docker-compose config", false)
 		}
 
 		// write nhost backend configuration to docker-compose.yaml to auth file
@@ -150,57 +250,61 @@ var devCmd = &cobra.Command{
 
 		err = writeToFile(nhostBackendYamlFilePath, string(config), "end")
 		if err != nil {
-			throwError(err, "failed to write backend docker-compose config", true)
+			Error(err, "failed to write backend docker-compose config", true)
 		}
 
 		// write docker api file
 		_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
 		if err != nil {
-			throwError(err, "failed to create docker api config", false)
+			Error(err, "failed to create docker api config", false)
 		}
 
 		err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
 		if err != nil {
-			throwError(err, "failed to write backend docker-compose config", true)
+			Error(err, "failed to write backend docker-compose config", true)
 		}
 
+		// get docker-compose path
+		dockerComposeCLI, _ := exec.LookPath("docker-compose")
+
 		// validate compose file
-		execute := exec.Command("docker-compose", "-f", nhostBackendYamlFilePath, "config")
-		if err = execute.Run(); err != nil {
-			throwError(err, "couldn't validate docker-compose config", true)
+		execute := exec.Cmd{
+			Path: dockerComposeCLI,
+			Args: []string{dockerComposeCLI, "-f", nhostBackendYamlFilePath, "config"},
+		}
+
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			Error(err, "failed to validate docker-compose config", false)
+			cleanup(dotNhost, string(output))
 		}
 
 		// run docker-compose up
-		execute = exec.Command("docker-compose", "-f", path.Join(dotNhost, "docker-compose.yaml"), "up", "-d", "--build")
-		if err = execute.Run(); err != nil {
-			cleanup(dotNhost, "failed to start docker-compose: "+err.Error())
+		execute = exec.Cmd{
+			Path: dockerComposeCLI,
+			Args: []string{dockerComposeCLI, "-f", path.Join(dotNhost, "docker-compose.yaml"), "up", "-d", "--build"},
+		}
+
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			Error(err, "failed to start docker-compose", false)
+			cleanup(dotNhost, string(output))
 		}
 
 		// check whether GraphQL engine is up & running
 		if !waitForGraphqlEngine(nhostConfig["hasura_graphql_port"]) {
-			cleanup(dotNhost, "failed to start GraphQL Engine: "+err.Error())
+			Error(err, "failed to start GraphQL Engine", false)
+			cleanup(dotNhost, string(output))
 		}
 
-		// configure hasura cli command
-
-		/*
-			// first load the hasura binary if it isn't installed
-			err = loadBinaries("hasura", hasura)
-			if err != nil {
-				cleanup(dotNhost, "failed to load the hasura CLI, please install it manually from here: https://hasura.io/docs/latest/graphql/core/hasura-cli/install-hasura-cli.html#install-hasura-cli")
-			}
-		*/
-
-		// finally search for Hasura's installed binary path
-		//hasuraCLI, _ := exec.LookPath("hasura")
-
+		// prepare and load hasura binary
 		hasuraCLI, _ := loadBinary("hasura", hasura)
 
 		commandOptions := []string{
 			"--endpoint",
 			fmt.Sprintf(`http://localhost:%v`, nhostConfig["hasura_graphql_port"]),
 			"--admin-secret",
-			nhostConfig["hasura_graphql_admin_secret"].(string),
+			fmt.Sprintf(`%v`, nhostConfig["hasura_graphql_admin_secret"]),
 			"--skip-update-check",
 		}
 
@@ -208,21 +312,22 @@ var devCmd = &cobra.Command{
 		cmdArgs := []string{hasuraCLI, "migrate", "apply"}
 		cmdArgs = append(cmdArgs, commandOptions...)
 
-		hasuraConfigureCmd := exec.Cmd{
-			Path:   hasuraCLI,
-			Args:   cmdArgs,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Dir:    nhostDir,
+		execute = exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhostDir,
 		}
 
-		if err = hasuraConfigureCmd.Run(); err != nil {
-			cleanup(dotNhost, "couldn't apply fresh hasura migrations: "+err.Error())
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			Error(errors.New(string(output)), "", false)
+			cleanup(dotNhost, "failed to apply fresh hasura migrations")
 		}
 
 		files, err := ioutil.ReadDir(path.Join(nhostDir, "seeds"))
 		if err != nil {
-			cleanup(dotNhost, "couldn't read migrations directory: "+err.Error())
+			Error(errors.New(string(output)), "", false)
+			cleanup(dotNhost, "failed to read migrations directory")
 		}
 
 		if firstRun && len(files) > 0 {
@@ -231,16 +336,16 @@ var devCmd = &cobra.Command{
 			cmdArgs = []string{hasuraCLI, "seeds", "apply"}
 			cmdArgs = append(cmdArgs, commandOptions...)
 
-			hasuraConfigureCmd = exec.Cmd{
-				Path:   hasuraCLI,
-				Args:   cmdArgs,
-				Stdout: os.Stdout,
-				Stderr: os.Stderr,
-				Dir:    nhostDir,
+			execute = exec.Cmd{
+				Path: hasuraCLI,
+				Args: cmdArgs,
+				Dir:  nhostDir,
 			}
 
-			if err = hasuraConfigureCmd.Run(); err != nil {
-				cleanup(dotNhost, "couldn't apply seed data: "+err.Error())
+			output, err = execute.CombinedOutput()
+			if err != nil {
+				Error(err, "failed to apply seed data", false)
+				cleanup(dotNhost, string(output))
 			}
 		}
 
@@ -248,52 +353,203 @@ var devCmd = &cobra.Command{
 		cmdArgs = []string{hasuraCLI, "metadata", "apply"}
 		cmdArgs = append(cmdArgs, commandOptions...)
 
-		hasuraConfigureCmd = exec.Cmd{
-			Path:   hasuraCLI,
-			Args:   cmdArgs,
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
-			Dir:    nhostDir,
-		}
-
-		if err = hasuraConfigureCmd.Run(); err != nil {
-			cleanup(dotNhost, "couldn't apply fresh metadata: "+err.Error())
-		}
-
-		printMessage("starting Hasura console", "info")
-
-		//spawn hasura console in parallel terminal session
-		hasuraConsoleSpawnCmd := exec.Cmd{
+		execute = exec.Cmd{
 			Path: hasuraCLI,
-			Args: []string{hasuraCLI,
-				fmt.Sprintf(`--endpoint=http://localhost:%v`, nhostConfig["hasura_graphql_port"]),
-				fmt.Sprintf(`--admin-secret=%v`, nhostConfig["hasura_graphql_admin_secret"]),
-				"--console-port=9695",
-			},
-			Stdout: os.Stdout,
-			Dir:    nhostDir,
+			Args: cmdArgs,
+			Dir:  nhostDir,
 		}
 
-		// update hasura spawned session pid for cleanup ops
-		hasuraConsoleSpawn = hasuraConsoleSpawnCmd.Process
-		if err = hasuraConfigureCmd.Run(); err != nil {
-			throwError(err, "couldn't apply fresh hasura migrations", true)
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			Error(err, "failed to aapply fresh metadata", false)
+			cleanup(dotNhost, string(output))
 		}
+
+		Print("starting Hasura console", "info")
+		/*
+
+			switch runtime.GOOS {
+			case "linux":
+				err = exec.Command("xdg-open", url).Start()
+			case "windows":
+				err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+			case "darwin":
+				err = exec.Command("open", url).Start()
+			default:
+				err = fmt.Errorf("unsupported platform")
+			}
+			if err != nil {
+				log.Fatal(err)
+			}
+		*/
+
+		/*
+			//spawn hasura console in parallel terminal session
+			hasuraConsoleSpawnCmd := exec.Cmd{
+				Path: hasuraCLI,
+				Args: []string{hasuraCLI,
+					"console",
+					"--endpoint",
+					fmt.Sprintf(`http://localhost:%v`, nhostConfig["hasura_graphql_port"]),
+					"--admin-secret",
+					fmt.Sprintf(`%v`, nhostConfig["hasura_graphql_admin_secret"]),
+					"--console-port",
+					"9695",
+				},
+				Stdout: os.Stdout,
+				Dir:    nhostDir,
+			}
+
+			output, err = hasuraConsoleSpawnCmd.CombinedOutput()
+
+			// update hasura spawned session pid for cleanup ops
+			hasuraConsoleSpawn = hasuraConsoleSpawnCmd.Process
+			if err != nil {
+				Error(errors.New(string(output)), "failed to open hasura console", true)
+			}
+		*/
 
 		// dev environment initiated
-		printMessage("Local Nhost backend is up!", "success")
-		printMessage(fmt.Sprintf("GraphQL API: `http://localhost:%v/v1/graphql`", nhostConfig["hasura_graphql_port"]), "info")
-		printMessage("Hasura Console: `http://localhost:9695`", "info")
-		printMessage(fmt.Sprintf("Auth & Storage: `http://localhost:%v/v1/graphql`", nhostConfig["hasura_backend_plus_port"]), "info")
-		printMessage(fmt.Sprintf("Custom API: `http://localhost:%v/v1/graphql`", nhostConfig["api_port"]), "info")
+		Print("Local Nhost backend is up!", "success")
+		Print(fmt.Sprintf("GraphQL API: `http://localhost:%v/v1/graphql`", nhostConfig["hasura_graphql_port"]), "info")
+		Print("Hasura Console: `http://localhost:9695`", "info")
+		Print(fmt.Sprintf("Auth & Storage: `http://localhost:%v/v1/graphql`", nhostConfig["hasura_backend_plus_port"]), "info")
+		Print(fmt.Sprintf("Custom API: `http://localhost:%v/v1/graphql`", nhostConfig["api_port"]), "info")
 	},
+}
+
+// start a container in background
+func runContainer(
+	client *client.Client,
+	imagename string,
+	containername string,
+	port string,
+	inputEnv []string,
+	build []string,
+	volumes []string,
+	user string,
+	entrypoint strslice.StrSlice,
+	command strslice.StrSlice,
+) error {
+	// Define a PORT opening
+	newport, err := nat.NewPort("tcp", port)
+	if err != nil {
+		fmt.Println("Unable to create docker port")
+		return err
+	}
+
+	// Configured hostConfig:
+	// https://godoc.org/github.com/docker/docker/api/types/container#HostConfig
+	hostConfig := &container.HostConfig{
+		PortBindings: nat.PortMap{
+			newport: []nat.PortBinding{
+				{
+					HostIP:   "0.0.0.0",
+					HostPort: port,
+				},
+			},
+		},
+		RestartPolicy: container.RestartPolicy{
+			Name: "always",
+		},
+		LogConfig: container.LogConfig{
+			Type:   "json-file",
+			Config: map[string]string{},
+		},
+		Binds: volumes,
+	}
+
+	/*
+		// Define Network config (why isn't PORT in here...?:
+		// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
+		networkConfig := &network.NetworkingConfig{
+			EndpointsConfig: map[string]*network.EndpointSettings{},
+		}
+			gatewayConfig := &network.EndpointSettings{
+				Gateway: "gatewayname",
+			}
+			networkConfig.EndpointsConfig["bridge"] = gatewayConfig
+	*/
+
+	// Define ports to be exposed (has to be same as hostconfig.portbindings.newport)
+	exposedPorts := map[nat.Port]struct{}{
+		newport: struct{}{},
+	}
+
+	// Configuration
+	// https://godoc.org/github.com/docker/docker/api/types/container#Config
+	config := &container.Config{
+		Image:        imagename,
+		Env:          inputEnv,
+		ExposedPorts: exposedPorts,
+		User:         user,
+		//Hostname:     fmt.Sprintf("%s-hostnameexample", imagename),
+		OnBuild:    build,
+		Entrypoint: entrypoint,
+		Cmd:        command,
+	}
+
+	// Creating the actual container. This is "nil,nil,nil" in every example.
+	cont, err := client.ContainerCreate(
+		context.Background(),
+		config,
+		hostConfig,
+		&network.NetworkingConfig{},
+		nil,
+		containername,
+	)
+
+	if err != nil {
+		log.Println(err)
+		return err
+	}
+
+	// Run the actual container
+	client.ContainerStart(context.Background(), cont.ID, types.ContainerStartOptions{})
+	Print("container %s is created", containername)
+
+	return nil
+}
+
+// stops given containers
+func stopContainer(cli *client.Client, ctx context.Context, name string) error {
+
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	if err != nil {
+		return err
+	}
+
+	for _, container := range containers {
+		if contains(container.Names, name) {
+			Print(fmt.Sprint("stopping container ", container.Names[0], "... "), "info")
+			if err := cli.ContainerStop(ctx, container.ID, nil); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }
 
 // run cleanup
 func cleanup(location, errorMessage string) {
 
+	Error(errors.New(errorMessage), "cleanup/rollback process initiated", false)
+
 	if !startFinished {
-		printMessage(fmt.Sprintf("\nWriting logs to %s/nhost.log\n", location), "info")
+		Print(fmt.Sprintf("writing logs to %s/nhost.log", location), "info")
+	}
+
+	logPath := path.Join(location, "nhost.log")
+
+	// if log files don't exit, create them
+	if !pathExists(logPath) {
+		f, err := os.Create(logPath)
+		if err != nil {
+			Error(err, fmt.Sprintf("failed to instantiate log path at %s", logPath), true)
+		}
+
+		defer f.Close()
 	}
 
 	var dockerComposeCLI string
@@ -311,20 +567,27 @@ func cleanup(location, errorMessage string) {
 		"--no-color",
 		"-t",
 		">",
-		path.Join(location, "nhost.log"),
+		logPath,
 	}
 
 	executeCmd := exec.Command(strings.Join(cmdArgs, " "))
-	fmt.Println(executeCmd.String())
-
+	executeCmd.Path = dockerComposeCLI
 	if err = executeCmd.Run(); err != nil {
-		throwError(err, "failed to write log files", true)
+		if err = writeToFile(logPath, err.Error(), "end"); err != nil {
+			Error(err, "failed to write log files", false)
+		}
+		Error(err, "failed to trace docker-compose output", false)
 	}
 
-	if err = hasuraConsoleSpawn.Kill(); err != nil {
-		throwError(err, "failed to kill hasura process", true)
-	}
+	/*
+		// if hasura console session is active, kill it
+		p, _ := os.FindProcess(hasuraConsoleSpawn.Pid)
+		if err = p.Signal(syscall.Signal(0)); err != nil {
+			p.Kill()
+		}
+	*/
 
+	// deactivate docker services
 	cmdArgs = []string{
 		dockerComposeCLI,
 		"-f",
@@ -333,30 +596,41 @@ func cleanup(location, errorMessage string) {
 	}
 
 	executeCmd = exec.Command(strings.Join(cmdArgs, " "))
+	executeCmd.Path = dockerComposeCLI
 	if err = executeCmd.Run(); err != nil {
-		throwError(err, "failed to deactive docker services", true)
+		Error(err, "failed to stop docker services", false)
+	}
+
+	dockerCLI, _ := exec.LookPath("docker")
+
+	// deactivate docker services
+	cmdArgs = []string{
+		dockerCLI,
+		"rm",
+		"-f",
+		"nhost_hasura-console",
 	}
 
 	// close hasura console docker container
-	executeCmd = exec.Command("docker", "rm -f nhost_hasura-console")
+	executeCmd = exec.Command(strings.Join(cmdArgs, " "))
+	executeCmd.Path = dockerCLI
 	if err = executeCmd.Run(); err != nil {
-		throwError(err, "failed to shut down hasura console docker container", true)
+		Error(err, "failed to rm docker services", false)
 	}
 
 	// delete prepared config files
 	deletePath(path.Join(location, "docker-compose.yaml"))
 	deletePath(path.Join(location, "Dockerfile-api"))
 
-	if startFinished {
-		printMessage("See you later, grasshopper!", "success")
-	} else {
-		throwError(nil, errorMessage, true)
-	}
+	Print("cleanup complete", "info")
+	Print("See you later, grasshopper!", "success")
 
 	os.Exit(0)
 }
 
 func waitForGraphqlEngine(port interface{}) bool {
+
+	Print("waiting for GraphQL engine to go up...", "info")
 
 	cmd := exec.Command("curl", fmt.Sprintf(`http://localhost:%v/healthz`, port), ">", "/dev/null", "2>&1")
 
@@ -383,7 +657,7 @@ func waitForGraphqlEngine(port interface{}) bool {
 		return false
 	case <-done:
 		// Command completed before timeout. Print output and error if it exists.
-		//fmt.Println("Output:", buf.String())
+		fmt.Println("Output:", buf.String())
 		return true
 	}
 }
@@ -450,7 +724,7 @@ ENTRYPOINT ["./entrypoint-dev.sh"]
 `
 }
 
-func generateNhostBackendYaml(options map[string]interface{}) (map[string]interface{}, error) {
+func generateNhostBackendYaml(options map[string]interface{}) (Services, error) {
 
 	hasuraGraphQLEngine := "hasura/graphql-engine"
 
@@ -458,144 +732,146 @@ func generateNhostBackendYaml(options map[string]interface{}) (map[string]interf
 		hasuraGraphQLEngine = options["hasura_graphql_engine"].(string)
 	}
 
-	project := map[string]interface{}{
-		"version": "3.6",
-		"services": map[string]interface{}{
+	var services Services
 
-			// add nhost postgres service
-			"nhost-postgres": map[string]interface{}{
-				"container_name": "nhost_postgres",
-				"image":          fmt.Sprintf(`postgres:%v`, options["postgres_version"]),
-				"ports":          []string{fmt.Sprintf(`%v:5432`, options["postgres_port"])},
-				"restart":        "always",
-				"environment": map[string]string{
-					"POSTGRES_USER":     "postgres_user",
-					"POSTGRES_PASSWORD": "postgres_password",
-				},
-
-				// not sure whether this volume would work on windows as well
-				"volumes": []string{"./db_data:/var/lib/postgresql/data"},
-			},
-
-			// add nhost graphql engine service
-			"nhost-graphql-engine": map[string]interface{}{
-				"container_name": "nhost_hasura",
-				"image":          fmt.Sprintf(`%s:%v`, hasuraGraphQLEngine, options["hasura_graphql_version"]),
-				"ports":          []string{fmt.Sprintf(`%v:%v`, options["hasura_graphql_port"], options["hasura_graphql_port"])},
-				"depends_on":     []string{"nhost-postgres"},
-				"restart":        "always",
-				"environment": map[string]interface{}{
-					"HASURA_GRAPHQL_SERVER_PORT":               options["hasura_graphql_port"],
-					"HASURA_GRAPHQL_DATABASE_URL":              fmt.Sprintf(`postgres://%v:%v@nhost-postgres:5432/postgres`, options["postgres_user"], options["postgres_password"]),
-					"HASURA_GRAPHQL_ENABLE_CONSOLE":            "false",
-					"HASURA_GRAPHQL_ENABLED_LOG_TYPES":         "startup, http-log, webhook-log, websocket-log, query-log",
-					"HASURA_GRAPHQL_ADMIN_SECRET":              options["hasura_graphql_admin_secret"],
-					"HASURA_GRAPHQL_JWT_SECRET":                fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options["graphql_jwt_key"]),
-					"HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT": 20,
-					"HASURA_GRAPHQL_NO_OF_RETRIES":             20,
-					"HASURA_GRAPHQL_UNAUTHORIZED_ROLE":         "public",
-					"NHOST_HASURA_URL":                         fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, options["hasura_graphql_port"]),
-					"NHOST_WEBHOOK_SECRET":                     "devnhostwebhooksecret",
-					"NHOST_HBP_URL":                            fmt.Sprintf(`http://nhost_hbp:%v`, options["hasura_backend_plus_port"]),
-					"NHOST_CUSTOM_API_URL":                     fmt.Sprintf(`http://nhost_api:%v`, options["api_port"]),
-				},
-				"env_file": []string{options["env_file"].(string)},
-				"command":  []string{"graphql-engine", "serve"},
-
-				// not sure whether this volume would work on windows as well
-				"volumes": []string{"../nhost/migrations:/hasura-migrations"},
-			},
-
-			// add nhost hasura backend plus service
-			"nhost-hasura-backend-plus": map[string]interface{}{
-				"container_name": "nhost_hbp",
-				"image":          fmt.Sprintf(`nhost/hasura-backend-plus:%v`, options["hasura_backend_plus_version"]),
-				"ports":          []string{fmt.Sprintf(`%v:%v`, options["hasura_backend_plus_port"], options["hasura_backend_plus_port"])},
-				"depends_on":     []string{"nhost-graphql-engine"},
-				"restart":        "always",
-				"environment": map[string]interface{}{
-					"PORT":                          options["hasura_backend_plus_port"],
-					"USER_FIELDS":                   "",
-					"USER_REGISTRATION_AUTO_ACTIVE": "true",
-					"HASURA_GRAPHQL_ENDPOINT":       fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"]),
-					"HASURA_ENDPOINT":               fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"]),
-					"HASURA_GRAPHQL_ADMIN_SECRET":   options["hasura_graphql_admin_secret"],
-					"JWT_ALGORITHM":                 "HS256",
-					"JWT_KEY":                       options["graphql_jwt_key"],
-					"AUTH_ACTIVE":                   "true",
-					"AUTH_LOCAL_ACTIVE":             "true",
-					"REFRESH_TOKEN_EXPIRES":         43200,
-					"JWT_TOKEN_EXPIRES":             15,
-					"S3_ENDPOINT":                   fmt.Sprintf(`nhost_minio:%v`, options["minio_port"]),
-					"S3_SSL_ENABLED":                "false",
-					"S3_BUCKET":                     "nhost",
-					"S3_ACCESS_KEY_ID":              "minioaccesskey123123",
-					"S3_SECRET_ACCESS_KEY":          "miniosecretkey123123",
-					"LOST_PASSWORD_ENABLE":          "true",
-					"PROVIDER_SUCCESS_REDIRECT":     options["provider_success_redirect"],
-					"PROVIDER_FAILURE_REDIRECT":     options["provider_failure_redirect"],
-
-					// Google vars
-					"GOOGLE_ENABLE":        options["google_enable"],
-					"GOOGLE_CLIENT_ID":     options["google_client_id"],
-					"GOOGLE_CLIENT_SECRET": options["google_client_secret"],
-
-					// Github vars
-					"GITHUB_ENABLE":        options["github_enable"],
-					"GITHUB_CLIENT_ID":     options["github_client_id"],
-					"GITHUB_CLIENT_SECRET": options["github_client_secret"],
-
-					// Facebook vars
-					"FACEBOOK_ENABLE":        options["facebook_enable"],
-					"FACEBOOK_CLIENT_ID":     options["facebook_client_id"],
-					"FACEBOOK_CLIENT_SECRET": options["facebook_client_secret"],
-
-					// LinkedIn vars
-					"LINKEDIN_ENABLE":        options["linkedin_enable"],
-					"LINKEDIN_CLIENT_ID":     options["linkedin_client_id"],
-					"LINKEDIN_CLIENT_SECRET": options["linkedin_client_secret"],
-				},
-				"env_file": []string{options["env_file"].(string)},
-				"command":  []string{"graphql-engine", "serve"},
-
-				// not sure whether this volume would work on windows as well
-				"volumes": []string{"../nhost/custom:/app/custom"},
-			},
-
-			// add minio service
-			"minio": map[string]interface{}{
-				"container_name": "nhost_minio",
-				"image":          "minio/minio",
-				"user":           "999:1001",
-				"ports":          []string{fmt.Sprintf(`%v:%v`, options["minio_port"], options["minio_port"])},
-				"restart":        "always",
-				"environment": map[string]interface{}{
-					"MINIO_ACCESS_KEY": "minioaccesskey123123",
-					"MINIO_SECRET_KEY": "minioaccesskey123123",
-				},
-				"entrypoint": "sh",
-				"command":    fmt.Sprintf(`-c 'mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data'`, options["minio_port"]),
-
-				// not sure whether this volume would work on windows as well
-				"volumes": []string{"./minio/data:/data", "./minio/config:/.minio"},
-			},
+	postgresContainer := Container{
+		Name:    "nhost_postgres",
+		Image:   fmt.Sprintf(`postgres:%v`, options["postgres_version"]),
+		Ports:   []string{fmt.Sprintf(`%v:5432`, options["postgres_port"])},
+		Restart: "always",
+		Environment: map[string]interface{}{
+			"POSTGRES_USER":     "postgres_user",
+			"POSTGRES_PASSWORD": "postgres_password",
 		},
+		// not sure whether this volume would work on windows as well
+		Volumes: []string{"./db_data:/var/lib/postgresql/data"},
+	}
+
+	graphqlEngineContainer := Container{
+		Name:      "nhost_hasura",
+		Image:     fmt.Sprintf(`%s:%v`, hasuraGraphQLEngine, options["hasura_graphql_version"]),
+		Ports:     []string{fmt.Sprintf(`%v:%v`, options["hasura_graphql_port"], options["hasura_graphql_port"])},
+		Restart:   "always",
+		DependsOn: []string{"nhost-postgres"},
+		Environment: map[string]interface{}{
+			"HASURA_GRAPHQL_SERVER_PORT":               options["hasura_graphql_port"],
+			"HASURA_GRAPHQL_DATABASE_URL":              fmt.Sprintf(`postgres://%v:%v@nhost-postgres:5432/postgres`, options["postgres_user"], options["postgres_password"]),
+			"HASURA_GRAPHQL_ENABLE_CONSOLE":            "false",
+			"HASURA_GRAPHQL_ENABLED_LOG_TYPES":         "startup, http-log, webhook-log, websocket-log, query-log",
+			"HASURA_GRAPHQL_ADMIN_SECRET":              options["hasura_graphql_admin_secret"],
+			"HASURA_GRAPHQL_JWT_SECRET":                fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options["graphql_jwt_key"]),
+			"HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT": 20,
+			"HASURA_GRAPHQL_NO_OF_RETRIES":             20,
+			"HASURA_GRAPHQL_UNAUTHORIZED_ROLE":         "public",
+			"NHOST_HASURA_URL":                         fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, options["hasura_graphql_port"]),
+			"NHOST_WEBHOOK_SECRET":                     "devnhostwebhooksecret",
+			"NHOST_HBP_URL":                            fmt.Sprintf(`http://nhost_hbp:%v`, options["hasura_backend_plus_port"]),
+			"NHOST_CUSTOM_API_URL":                     fmt.Sprintf(`http://nhost_api:%v`, options["api_port"]),
+		},
+
+		EnvFile: []string{options["env_file"].(string)},
+		Command: []string{"graphql-engine", "serve"},
+		// not sure whether this volume would work on windows as well
+		Volumes: []string{"./db_data:/var/lib/postgresql/data"},
+	}
+
+	hasuraBackendPlusContainer := Container{
+		Name:      "nhost_hbp",
+		Image:     fmt.Sprintf(`nhost/hasura-backend-plus:%v`, options["hasura_backend_plus_version"]),
+		Ports:     []string{fmt.Sprintf(`%v:%v`, options["hasura_backend_plus_port"], options["hasura_backend_plus_port"])},
+		Restart:   "always",
+		DependsOn: []string{"nhost-graphql-engine"},
+		Environment: map[string]interface{}{
+			"PORT":                          options["hasura_backend_plus_port"],
+			"USER_FIELDS":                   "",
+			"USER_REGISTRATION_AUTO_ACTIVE": "true",
+			"HASURA_GRAPHQL_ENDPOINT":       fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"]),
+			"HASURA_ENDPOINT":               fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"]),
+			"HASURA_GRAPHQL_ADMIN_SECRET":   options["hasura_graphql_admin_secret"],
+			"JWT_ALGORITHM":                 "HS256",
+			"JWT_KEY":                       options["graphql_jwt_key"],
+			"AUTH_ACTIVE":                   "true",
+			"AUTH_LOCAL_ACTIVE":             "true",
+			"REFRESH_TOKEN_EXPIRES":         43200,
+			"JWT_TOKEN_EXPIRES":             15,
+			"S3_ENDPOINT":                   fmt.Sprintf(`nhost_minio:%v`, options["minio_port"]),
+			"S3_SSL_ENABLED":                "false",
+			"S3_BUCKET":                     "nhost",
+			"S3_ACCESS_KEY_ID":              "minioaccesskey123123",
+			"S3_SECRET_ACCESS_KEY":          "miniosecretkey123123",
+			"LOST_PASSWORD_ENABLE":          "true",
+			"PROVIDER_SUCCESS_REDIRECT":     options["provider_success_redirect"],
+			"PROVIDER_FAILURE_REDIRECT":     options["provider_failure_redirect"],
+
+			// Google vars
+			"GOOGLE_ENABLE":        options["google_enable"],
+			"GOOGLE_CLIENT_ID":     options["google_client_id"],
+			"GOOGLE_CLIENT_SECRET": options["google_client_secret"],
+
+			// Github vars
+			"GITHUB_ENABLE":        options["github_enable"],
+			"GITHUB_CLIENT_ID":     options["github_client_id"],
+			"GITHUB_CLIENT_SECRET": options["github_client_secret"],
+
+			// Facebook vars
+			"FACEBOOK_ENABLE":        options["facebook_enable"],
+			"FACEBOOK_CLIENT_ID":     options["facebook_client_id"],
+			"FACEBOOK_CLIENT_SECRET": options["facebook_client_secret"],
+
+			// LinkedIn vars
+			"LINKEDIN_ENABLE":        options["linkedin_enable"],
+			"LINKEDIN_CLIENT_ID":     options["linkedin_client_id"],
+			"LINKEDIN_CLIENT_SECRET": options["linkedin_client_secret"],
+		},
+
+		EnvFile: []string{options["env_file"].(string)},
+		Command: []string{"graphql-engine", "serve"},
+
+		// not sure whether this volume would work on windows as well
+		Volumes: []string{"../nhost/custom:/app/custom"},
+	}
+
+	minioContainer := Container{
+		Name:    "nhost_minio",
+		Image:   "minio/minio",
+		User:    "999:1001",
+		Ports:   []string{fmt.Sprintf(`%v:%v`, options["minio_port"], options["minio_port"])},
+		Restart: "always",
+		Environment: map[string]interface{}{
+			"MINIO_ACCESS_KEY": "minioaccesskey123123",
+			"MINIO_SECRET_KEY": "minioaccesskey123123",
+		},
+		Entrypoint: "sh",
+		Command:    []string{fmt.Sprintf(`-c "mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data"`, options["minio_port"])},
+
+		// not sure whether this volume would work on windows as well
+		Volumes: []string{"./minio/data:/data", "./minio/config:/.minio"},
+	}
+
+	services.Containers["nhost-postgres"] = postgresContainer
+	services.Containers["nhost-graphql-engine"] = graphqlEngineContainer
+	services.Containers["nhost-hasura-backend-plus"] = hasuraBackendPlusContainer
+	services.Containers["minio"] = minioContainer
+
+	project := Services{
+		Version:    "3.6",
+		Containers: services.Containers,
 	}
 
 	if options["startAPI"].(bool) {
-		project["services"].(map[string]interface{})["nhost-api"] = map[string]interface{}{
 
-			"container_name": "nhost_api",
+		APIContainer := Container{
+			Name: "nhost_api",
 
 			// not sure whether the following build command would work in windows or not
-			"build": map[string]string{
+			Build: map[string]string{
 				"context":    "../",
 				"dockerfile": "./.nhost/Dockerfile-api",
 			},
 
-			"ports":   []string{fmt.Sprintf(`%v:%v`, options["api_port"], options["api_port"])},
-			"restart": "always",
-			"environment": map[string]interface{}{
+			Ports:   []string{fmt.Sprintf(`%v:%v`, options["api_port"], options["api_port"])},
+			Restart: "always",
+			Environment: map[string]interface{}{
 				"PORT":                      options["api_port"],
 				"NHOST_JWT_ALGORITHM":       "HS256",
 				"NHOST_JWT_KEY":             options["graphql_jwt_key"],
@@ -605,11 +881,12 @@ func generateNhostBackendYaml(options map[string]interface{}) (map[string]interf
 				"NHOST_HBP_URL":             fmt.Sprintf(`http://nhost_hbp:%v`, options["hasura_backend_plus_port"]),
 				"NHOST_CUSTOM_API_URL":      fmt.Sprintf(`http://nhost_api:%v`, options["api_port"]),
 			},
-			"env_file": []string{options["env_file"].(string)},
+			EnvFile: []string{options["env_file"].(string)},
 
 			// not sure whether this volume would work on windows as well
-			"volumes": []string{"../api:/usr/src/app/api"},
+			Volumes: []string{"../api:/usr/src/app/api"},
 		}
+		services.Containers["nhost-api"] = APIContainer
 	}
 
 	return project, nil
