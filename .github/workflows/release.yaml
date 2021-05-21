@@ -1,10 +1,31 @@
 # .github/workflows/release.yaml
 
-on: 
-  release:
-    types: [created]
+name: Go
+
+on:
+  push:
+    branches: [ migration ]
+  pull_request:
+    branches: [ canary ]
 
 jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: 1.16
+
+    - name: Build
+      run: go build -v ./...
+
+    - name: Test
+      run: go test -v ./...
+
   releases-matrix:
     name: Release Nhost Binary
     runs-on: ubuntu-latest
