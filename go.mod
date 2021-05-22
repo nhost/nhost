@@ -3,9 +3,10 @@ module github.com/mrinalwahal/cli
 go 1.16
 
 require (
+	github.com/Microsoft/go-winio v0.5.0 // indirect
 	github.com/containerd/containerd v1.5.2 // indirect
 	github.com/docker/docker v20.10.6+incompatible
-	github.com/docker/go-connections v0.4.0 // indirect
+	github.com/docker/go-connections v0.4.0
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/manifoldco/promptui v0.8.0
 	github.com/moby/term v0.0.0-20201216013528-df9cb8a40635 // indirect

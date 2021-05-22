@@ -1,3 +1,4 @@
-go get github.com/labstack/echo
-go build -o bin/artifact main.go
-GOOS=linux GOARCH=amd64 go build -o bin/artifact -ldflags="-s -w"
+go build -o bin/nhost main.go
+GOOS=linux GOARCH=amd64 go build -o bin/nhost -ldflags="-s -w"
+GOOS=linux GOARCH=386 go build -o bin/nhost -ldflags="-s -w"
+GOOS=linux GOARCH=arm64 go build -o bin/nhost -ldflags="-s -w"

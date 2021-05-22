@@ -24,8 +24,14 @@ SOFTWARE.
 package cmd
 
 import (
-	"os/exec"
+	"context"
+	"fmt"
+	"io"
+	"os"
+	"strings"
 
+	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/client"
 	"github.com/spf13/cobra"
 )
 
@@ -36,28 +42,123 @@ var downCmd = &cobra.Command{
 	Long:  `Stop and remove local Nhost backend started by \"nhost dev\".`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// get docker CLI
-		dockerCLI, _ := exec.LookPath("docker")
+		Print("Stopping all Nhost services", "info")
 
-		// stop docker services
-		execute := exec.Command(
-			dockerCLI,
-			"rm",
-			"nhost_postgres",
-			"nhost_hasura",
-			"nhost_hbp",
-			"nhost_minio",
-			"nhost_api",
-			"||",
-			"true",
-		)
-		execute.Path = dockerCLI
-		if err := execute.Run(); err != nil {
-			Error(err, "either Nhost backend services for this project were already not running, or they failed to stop", true)
+		// connect to docker client
+		ctx := context.Background()
+		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		if err != nil {
+			Error(err, "failed to connect to docker client", true)
+		}
+
+		if err := shutdownServices(docker, ctx, ""); err != nil {
+			Error(err, "failed to shut down Nhost services", true)
 		}
 
 		Print("Local Nhost backend is now down!", "success")
 	},
+}
+
+func shutdownServices(client *client.Client, ctx context.Context, logFile string) error {
+
+	// get running containers with prefix "nhost_"
+	containers, err := getContainers(client, ctx, "nhost")
+	if err != nil {
+		return err
+	}
+
+	// stop all running containers with prefix "nhost_"
+	for _, container := range containers {
+
+		if logFile != "" {
+
+			if VERBOSE {
+				Print(fmt.Sprint("writing container logs to "+logFile), "info")
+			}
+			// generate container logs and write them to logFile
+			if err = writeContainerLogs(client, ctx, container.ID, logFile); err != nil {
+				return err
+			}
+		}
+
+		// stop the container
+		if err = stopContainer(client, ctx, container.ID); err != nil {
+			return err
+		}
+	}
+
+	// remove all running containers with prefix "nhost_"
+	for _, container := range containers {
+		if err = removeContainer(client, ctx, container.ID); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// returns the list of running containers whose names have specified prefix
+func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]types.Container, error) {
+
+	var response []types.Container
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+	for _, container := range containers {
+		if strings.Contains(container.Names[0], prefix) {
+			response = append(response, container)
+		}
+	}
+
+	return response, err
+}
+
+// stops given container
+func stopContainer(cli *client.Client, ctx context.Context, ID string) error {
+
+	if VERBOSE {
+		Print(fmt.Sprint("stopping container ", ID, "... "), "info")
+	}
+
+	err := cli.ContainerStop(ctx, ID, nil)
+	return err
+}
+
+// fetches the logs of a specific container
+// and writes them to a log file
+func writeContainerLogs(cli *client.Client, ctx context.Context, ID, filePath string) error {
+
+	options := types.ContainerLogsOptions{ShowStdout: true}
+
+	out, err := cli.ContainerLogs(ctx, ID, options)
+	if err != nil {
+		return err
+	}
+
+	// write the fetched logs to a file
+	f, err := os.Create(filePath)
+	if err != nil {
+		return err
+	}
+
+	// handle error
+	defer f.Close()
+
+	_, err = io.Copy(f, out)
+	return err
+}
+
+// removes given container
+func removeContainer(cli *client.Client, ctx context.Context, ID string) error {
+
+	if VERBOSE {
+		Print(fmt.Sprint("removing container ", ID), "warn")
+	}
+	removeOptions := types.ContainerRemoveOptions{
+		RemoveVolumes: true,
+		Force:         true,
+	}
+
+	err := cli.ContainerRemove(ctx, ID, removeOptions)
+	return err
 }
 
 func init() {

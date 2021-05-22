@@ -29,6 +29,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -53,7 +54,7 @@ type Table struct {
 var (
 
 	// project to initialize
-	project string
+	projectName string
 )
 
 // initCmd represents the init command
@@ -63,20 +64,9 @@ var initCmd = &cobra.Command{
 	Long:  `Initialize current working directory as an Nhost project.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// signify initialization is starting
-		Print("Initializing a new Nhost project...", "info")
-
-		// check if project is already initialized
 		if pathExists(nhostDir) {
-			Error(nil, "this directory already has a project configured at ./nhost, skipping...", true)
+			Error(nil, "project already exists in this directory\nto start development environment, run 'nhost' or 'nhost dev'", true)
 		}
-
-		/*
-			// check if hasura is installed
-			if !verifyUtility("hasura") {
-				Error(nil, "Hasura CLI missing: follow instructions here - https://hasura.io/docs/1.0/graphql/manual/hasura-cli/install-hasura-cli.html", true)
-			}
-		*/
 
 		// check if auth file exists
 		if !pathExists(authPath) {
@@ -107,26 +97,52 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		// configure interactive prompt template
-		templates := promptui.SelectTemplates{
-			Active:   `✔ {{ .Name | cyan | bold }}`,
-			Inactive: `   {{ .Name | cyan }}`,
-			Selected: `{{ "✔" | green | bold }} {{ "Project" | bold }}: {{ .Name | cyan }}`,
+		var selectedProject Project
+
+		// if user has already passed project_name as a flag,
+		// then iterate through projects and filter that project,
+		// avoiding taking user's choice once again through selection prompt
+		if len(projectName) > 0 {
+
+			for _, remoteProject := range projects {
+				if remoteProject.Name == projectName {
+					selectedProject = remoteProject
+				}
+			}
+		} else {
+
+			if len(projectName) > 0 {
+				Error(nil, fmt.Sprintf("no project found with name %s%s%s", Bold, projectName, Reset), false)
+			}
+
+			// if project flagged by user is not found in list of projects
+			// fetched from remote, then take user's choice through
+			// selection prompt
+
+			// configure interactive prompt template
+			templates := promptui.SelectTemplates{
+				Active:   `✔ {{ .Name | cyan | bold }}`,
+				Inactive: `   {{ .Name | cyan }}`,
+				Selected: `{{ "✔" | green | bold }} {{ "Project" | bold }}: {{ .Name | cyan }}`,
+			}
+
+			// configure interative prompt
+			prompt := promptui.Select{
+				Label:     "Select project",
+				Items:     projects,
+				Templates: &templates,
+			}
+
+			index, _, err := prompt.Run()
+			selectedProject = projects[index]
+
+			if err != nil {
+				Error(err, "prompt failed", true)
+			}
 		}
 
-		// configure interative prompt
-		prompt := promptui.Select{
-			Label:     "Select project",
-			Items:     projects,
-			Templates: &templates,
-		}
-
-		index, _, err := prompt.Run()
-		selectedProject := projects[index]
-
-		if err != nil {
-			Error(err, "prompt failed", true)
-		}
+		// signify initialization is starting
+		Print(fmt.Sprintf("Initializing Nhost project %s%s%s in this directory", Bold, selectedProject.Name, Reset), "info")
 
 		// create root nhost folder
 		if err = os.MkdirAll(nhostDir, os.ModePerm); err != nil {
@@ -219,16 +235,41 @@ var initCmd = &cobra.Command{
 
 		// clear current migration information from remote
 		if err := clearMigration(hasuraEndpoint, adminSecret); err != nil {
-			Error(err, "couldn't clear migrations from remote.", true)
+			Error(err, "failed to clear migrations from remote.", true)
 		}
 
-		//s.Suffix = "Creating migrations from remote..."
+		/*
+			// Following was a failed and feeble attempt at creating migration manually
+			// without requiring Hasura CLI
+
+			resp, err := getHasuraMigrations(hasuraEndpoint, adminSecret, []string{"--schema-only"})
+			if err != nil {
+				Error(err, "failed to fetch migrations from remote", true)
+			}
+
+			// generate initial migration dir
+			initMigrationID := xid.New()
+			initMigrationDir := path.Join(migrationsDir, fmt.Sprintf(`%s_init`, initMigrationID.String()))
+			if err = os.MkdirAll(initMigrationDir, os.ModePerm); err != nil {
+				Error(err, "couldn't create migrations directory", true)
+			}
+
+			f, err = os.Create(path.Join(initMigrationDir, "up.sql"))
+			if err != nil {
+				Error(err, "failed to create initial migration", false)
+			}
+
+			defer f.Close()
+			if _, err = f.WriteString(resp); err != nil {
+				Error(err, "failed to create initial migration", false)
+			}
+			f.Sync()
+		*/
 
 		// load hasura binary
 		//hasuraCLI, _ := exec.LookPath("hasura")
 
 		hasuraCLI, _ := loadBinary("hasura", hasura)
-
 		commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
 		// create migrations from remote
@@ -253,7 +294,13 @@ var initCmd = &cobra.Command{
 			Error(err, "failed to read migrations directory", true)
 		}
 
-		initMigration := files[0]
+		var initMigration fs.FileInfo
+		for _, file := range files {
+			if strings.Contains(file.Name(), "init") {
+				initMigration = file
+			}
+		}
+
 		version := strings.Split(initMigration.Name(), "_")[0]
 
 		// apply migrations
@@ -288,8 +335,6 @@ var initCmd = &cobra.Command{
 			Error(errors.New(string(output)), "failed to export metadata", true)
 		}
 
-		// [BROKEN CODE] - Enum Table seed creation is not yet working.
-
 		// auth.roles and auth.providers plus any enum compatible tables that might exist
 		// all enum compatible tables must contain at least one row
 		// https://hasura.io/docs/1.0/graphql/core/schema/enums.html#creating-an-enum-compatible-table
@@ -320,7 +365,7 @@ var initCmd = &cobra.Command{
 			output, err = execute.CombinedOutput()
 			if err != nil {
 				Error(errors.New(string(output)), "couldn't create seeds for enum tables", false)
-				Print("skipping seed creation...", "warn")
+				Print("skipping seed creation", "warn")
 			}
 		}
 
@@ -463,7 +508,7 @@ var initCmd = &cobra.Command{
 
 			_, result, err := boilerplatePrompt.Run()
 			if err != nil {
-				Error(err, "prompt aborted", true)
+				Print("Alright mate, next time maybe!", "success")
 			}
 
 			if result == "NuxtJs" {
@@ -480,10 +525,48 @@ var initCmd = &cobra.Command{
 	},
 }
 
+/*
+// fetches migrations from remote Hasura server to be applied manually
+func getHasuraMigrations(endpoint, secret string, options []string) (string, error) {
+
+	if VERBOSE {
+		Print("fetching migrations from remote", "info")
+	}
+
+	//Encode the data
+	postBody, _ := json.Marshal(map[string]interface{}{
+		"opts":         options,
+		"clean_output": true,
+	})
+
+	req, _ := http.NewRequest(
+		http.MethodPost,
+		endpoint+"/v1alpha1/pg_dump",
+		bytes.NewBuffer(postBody),
+	)
+
+	req.Header.Set("X-Hasura-Admin-Secret", secret)
+	req.Header.Set("X-Hasura-Role", "admin")
+
+	client := http.Client{}
+
+	//Leverage Go's HTTP Post function to make request
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	return string(body), nil
+}
+*/
 func getExtensions(endpoint, secret string) ([]string, error) {
 
 	if VERBOSE {
-		Print("fetching extensions...", "info")
+		Print("fetching extensions", "info")
 	}
 
 	var extensions []string
@@ -540,7 +623,7 @@ func getExtensions(endpoint, secret string) ([]string, error) {
 func getProviders(endpoint, secret string) ([]string, error) {
 
 	if VERBOSE {
-		Print("fetching providers from remote...", "info")
+		Print("fetching providers from remote", "info")
 	}
 
 	var providers []string
@@ -591,7 +674,7 @@ func getProviders(endpoint, secret string) ([]string, error) {
 func getRoles(endpoint, secret string) ([]string, error) {
 
 	if VERBOSE {
-		Print("fetching roles from remote...", "info")
+		Print("fetching roles from remote", "info")
 	}
 
 	var roles []string
@@ -642,7 +725,7 @@ func getRoles(endpoint, secret string) ([]string, error) {
 func getEnumTablesFromMetadata(filePath string) ([]string, error) {
 
 	if VERBOSE {
-		Print("fetching enum tables from metadata...", "info")
+		Print("fetching enum tables from metadata", "info")
 	}
 
 	// initalize empty list of tables from which seeds will be created
@@ -680,7 +763,7 @@ func getEnumTablesFromMetadata(filePath string) ([]string, error) {
 func getEnumTablesFromAPI(endpoint, secret string) ([]string, error) {
 
 	if VERBOSE {
-		Print("fetching enumerable tables from remote...", "info")
+		Print("fetching enumerable tables from remote", "info")
 	}
 
 	var fromTables []string
@@ -737,7 +820,7 @@ func getEnumTablesFromAPI(endpoint, secret string) ([]string, error) {
 func clearMigration(endpoint, secret string) error {
 
 	if VERBOSE {
-		Print("clearing migration information from remote...", "info")
+		Print("clearing migration information from remote", "info")
 	}
 
 	//Encode the data
@@ -768,7 +851,7 @@ func clearMigration(endpoint, secret string) error {
 func getNhostConfig(options Project) map[string]interface{} {
 
 	if VERBOSE {
-		Print("generating Nhost configuration...", "info")
+		Print("generating Nhost configuration", "info")
 	}
 
 	return map[string]interface{}{
@@ -785,7 +868,7 @@ func getNhostConfig(options Project) map[string]interface{} {
 		"postgres_password":           "postgres",
 		"minio_port":                  9000,
 		"api_port":                    4000,
-		"env_file":                    "../.env.development",
+		"env_file":                    envFile,
 		"provider_success_redirect":   "http://localhost:3000",
 		"provider_failure_redirect":   "http://localhost:3000/login-fail",
 		"google_enable":               false,
@@ -811,6 +894,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	initCmd.PersistentFlags().StringVarP(&projectName, "project", "p", "", "project name")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

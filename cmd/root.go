@@ -48,6 +48,13 @@ var (
 		Use:   "nhost",
 		Short: "Open Source Firebase Alternative with GraphQL",
 		Long: `
+			
+		 ____  / / / /___  _____/ /_
+		/ __ \/ /_/ / __ \/ ___/ __/
+	   / / / / __  / /_/ (__  ) /_  
+	  /_/ /_/_/ /_/\____/____/\__/
+	  
+
   Nhost is a full-fledged serverless backend for Jamstack and client-serverless applications. 
   It enables developers to build dynamic websites without having to worry about infrastructure, 
   data storage, data access and user management.
@@ -56,19 +63,24 @@ var (
   Or simply put, it's an open source firebase alternative with GraphQL, which allows 
   passionate developers to build apps fast without managing infrastructure - from MVP to global scale.
   `,
-		// Uncomment the following line if your bare application
-		// has an action associated with it:
-		//	Run: func(cmd *cobra.Command, args []string) { },
-		/*
-			PersistentPreRun: func(cmd *cobra.Command, args []string) {
-				// start the spinner
-				s.Start()
-			},
-			PersistentPostRun: func(cmd *cobra.Command, args []string) {
-				// stop the spinner
-				s.Stop()
-			},
-		*/
+		Run: func(cmd *cobra.Command, args []string) {
+
+			// check if project is already initialized
+			if pathExists(nhostDir) {
+				if VERBOSE {
+					Print("Project found in current directory", "success")
+				}
+
+				// start the "dev" command
+				devCmd.Run(cmd, args)
+
+			} else {
+
+				// start the "init" command
+				initCmd.Run(cmd, args)
+			}
+
+		},
 	}
 )
 
@@ -178,7 +190,9 @@ func Error(data error, message string, fatal bool) {
 		fmt.Println(Bold + Red + "[ERROR] " + Reset + data.Error())
 	}
 
-	fmt.Println(Bold + Red + "[ERROR] " + message + Reset)
+	if len(message) > 0 {
+		fmt.Println(Bold + Red + "[ERROR] " + message + Reset)
+	}
 
 	if fatal {
 		os.Exit(1)
@@ -222,12 +236,12 @@ func loadBinary(binary string, data []byte) (string, error) {
 
 	// if it doesn't exist, create it from embedded asset
 	if VERBOSE {
-		Print(fmt.Sprintf("%s binary doesn't exist, so creating it at ...", binary), "info")
+		Print(fmt.Sprintf("%s binary doesn't exist, so creating it at: %s", binary, binaryPath), "info")
 	}
 
 	f, err := os.Create(binaryPath)
 	if err != nil {
-		Error(err, fmt.Sprintf("failed to instantiate %s binary path...", binary), true)
+		Error(err, fmt.Sprintf("failed to instantiate binary path: %s", binary), true)
 	}
 
 	defer f.Close()

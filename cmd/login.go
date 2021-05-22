@@ -124,7 +124,7 @@ var loginCmd = &cobra.Command{
 			Error(err, "failed to login with that email", true)
 		}
 
-		Print("We have sent you an email on \""+email+"\". Confirm the email to login...", "info")
+		Print("We have sent you an email on \""+email+"\". Confirm the email to login", "info")
 
 		verifiedToken, err := runVerificationLoop(apiURL, email, token)
 		if err != nil {
@@ -187,7 +187,7 @@ func readEmail() (string, error) {
 func validateAuth(authFile string) (User, error) {
 
 	if VERBOSE {
-		Print("validating authentication...", "info")
+		Print("validating authentication", "info")
 	}
 
 	var response AuthValidation
@@ -228,7 +228,7 @@ func validateAuth(authFile string) (User, error) {
 func runVerificationLoop(url, email, token string) (string, error) {
 
 	if VERBOSE {
-		Print("verifying your login...", "info")
+		Print("verifying your login", "info")
 	}
 
 	timeout := time.After(60 * time.Second)
@@ -304,7 +304,7 @@ func verify(url, email, token string) (string, error) {
 func login(url, email string) (string, error) {
 
 	if VERBOSE {
-		Print("authenticating...", "info")
+		Print("authenticating", "info")
 	}
 
 	var response AuthValidation
