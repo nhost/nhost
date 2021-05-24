@@ -1,0 +1,21 @@
+name: nhost down
+synopsis: Stop and remove local Nhost backend started by "nhost dev"
+description: Stop and remove local Nhost backend started by "nhost dev".
+usage: nhost down [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for down
+inherited_options:
+- name: config
+  usage: config file (default is $HOME/.nhost.yaml)
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Show debugging level logs
+- name: log-file
+  shorthand: l
+  usage: Write logs to given file
+see_also:
+- nhost - Open Source Firebase Alternative with GraphQL

@@ -1,0 +1,22 @@
+name: nhost logout
+synopsis: Logout from your Nhost account
+description: |
+  Remove locally installed authentication configuration, and logout from your Nhost account.
+usage: nhost logout [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for logout
+inherited_options:
+- name: config
+  usage: config file (default is $HOME/.nhost.yaml)
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Show debugging level logs
+- name: log-file
+  shorthand: l
+  usage: Write logs to given file
+see_also:
+- nhost - Open Source Firebase Alternative with GraphQL

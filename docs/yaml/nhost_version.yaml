@@ -1,0 +1,21 @@
+name: nhost version
+synopsis: Print the installed version of Nhost CLI
+description: All softwares has versions. This is Nhost's.
+usage: nhost version [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for version
+inherited_options:
+- name: config
+  usage: config file (default is $HOME/.nhost.yaml)
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Show debugging level logs
+- name: log-file
+  shorthand: l
+  usage: Write logs to given file
+see_also:
+- nhost - Open Source Firebase Alternative with GraphQL

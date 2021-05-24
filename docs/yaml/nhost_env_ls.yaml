@@ -1,0 +1,21 @@
+name: nhost env ls
+synopsis: Fetch env vars from remote
+description: List your environment variables stored on remote.
+usage: nhost env ls [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for ls
+inherited_options:
+- name: config
+  usage: config file (default is $HOME/.nhost.yaml)
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Show debugging level logs
+- name: log-file
+  shorthand: l
+  usage: Write logs to given file
+see_also:
+- nhost env - Handle your Nhost env vars

@@ -1,0 +1,28 @@
+
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
+
+# Application Binaries
+bin/
+bin/*
+test.json
+TODO*
+app.zip
+__debug*
+requests.*
+*.rest
+.now
+.vercel
+*.zip
+.vscode/*
+.vscode/
+
+enum.json
+test.json
+nhost/*
+.nhost*
+.env*
+test/*
+test/
