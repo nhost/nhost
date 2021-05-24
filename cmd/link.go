@@ -24,7 +24,6 @@ SOFTWARE.
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -43,14 +42,14 @@ var linkCmd = &cobra.Command{
 		// validate authentication
 		userData, err := validateAuth(authPath)
 		if err != nil {
-			Error(err, "couldn't validate authentication", true)
+			log.Error("Failed to validate authentication")
+
+			// begin the login procedure
+			loginCmd.Run(cmd, args)
 		}
 
 		// concatenate personal and team projects
 		projects := userData.Projects
-		if len(projects) == 0 {
-			Error(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
-		}
 
 		// if user is part of teams which have projects, append them as well
 		teams := userData.Teams
@@ -65,7 +64,8 @@ var linkCmd = &cobra.Command{
 		}
 
 		if len(projects) == 0 {
-			Error(errors.New("no projects found for this account, create new one by going to \"https://console.nhost.io/new\""), "no projects found", true)
+			log.Info("Go to https://console.nhost.io/new and create a new project")
+			log.Fatal("We couldn't find any projects related to this account")
 		}
 
 		// configure interactive prompt template
@@ -86,20 +86,21 @@ var linkCmd = &cobra.Command{
 		selectedProject := projects[index]
 
 		if err != nil {
-			Error(err, "prompt failed", true)
+			log.Debug(err)
+			log.Fatal("Input prompt failed")
 		}
 
 		// create .nhost, if it doesn't exists
-		if !pathExists(dotNhost) {
-			if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-				Error(err, "couldn't initialize nhost specific directory", true)
-			}
+		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to initialize nhost specific directory")
 		}
 
 		// create nhost.yaml to write it
 		f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
 		if err != nil {
-			Error(err, "failed to instantiate Nhost auth configuration", true)
+			log.Debug(err)
+			log.Fatal("Failed to instantiate Nhost auth configuration")
 		}
 
 		defer f.Close()
@@ -110,11 +111,12 @@ var linkCmd = &cobra.Command{
 			fmt.Sprintf(`project_id: %s`, selectedProject.ID),
 			"start",
 		); err != nil {
-			Error(err, "failed to save /nhost.yaml config", true)
+			log.Debug(err)
+			log.Fatal("Failed to save /nhost.yaml config")
 		}
 
 		// project linking complete
-		Print("Project linked: "+selectedProject.Name, "success")
+		log.Infof("Project %s linked to existing Nhost configuration", selectedProject.Name)
 	},
 }
 

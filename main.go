@@ -24,12 +24,9 @@ SOFTWARE.
 package main
 
 import (
-	//_ "embed"
-
 	"github.com/mrinalwahal/cli/cmd"
 )
 
 func main() {
 	cmd.Execute()
-	//loadBinary("hasura", hasura)
 }

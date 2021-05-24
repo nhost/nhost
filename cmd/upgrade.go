@@ -34,7 +34,7 @@ var upgradeCmd = &cobra.Command{
 	Long: `Automatically check for the latest available version of this
 	utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		Print("Building this functionality. Check back in some future versions?", "info")
+		log.Info("This functionality is still `work in progress`")
 	},
 }
 

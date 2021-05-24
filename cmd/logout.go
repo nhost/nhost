@@ -36,12 +36,16 @@ var logoutCmd = &cobra.Command{
 
 		// check if auth file exists
 		if !pathExists(authPath) {
-			Error(nil, "credentials not found: please login first with `nhost login`", true)
+			log.Error("No saved authentication credentials found at ", authPath)
+			log.Fatal("Please login first with `nhost login`")
 		} else {
 			if err := deletePath(authPath); err != nil {
-				Error(err, "couldn't delete credentials, and failed to logout.", true)
+				log.Debug(err)
+				log.Fatal("Failed to delete existing auth credentials, hence failed to logout")
 			}
-			Print("You are now logged out of Nhost. To login use 'nhost login'", "info")
+
+			log.Warn("You are now logged out of Nhost")
+			log.Info("To login again use `nhost login`")
 		}
 	},
 }

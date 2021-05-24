@@ -39,64 +39,6 @@ import (
 
 var email string
 
-type (
-
-	// Authentication credentials structure
-	Credentials struct {
-		Email string `json:"email"`
-		Token string `json:"token"`
-	}
-
-	// Authentication validation response
-	AuthValidation struct {
-		User  User
-		Error struct {
-			Code  string
-			Email string
-		}
-		Email             string `json:"email"`
-		VerificationToken string `json:"verificationToken"`
-		VerifiedToken     string `json:"token"`
-	}
-
-	// Nhost user structure
-	User struct {
-		Projects []Project
-		Teams    []Team
-	}
-
-	// Nhost project domains
-	Domains struct {
-		Hasura string `json:"hasura_domain,omitempty"`
-	}
-
-	// Nhost individual team structure
-	Team struct {
-		Name     string
-		Projects []Project
-	}
-
-	// Nhost project structure
-	Project struct {
-		ID                          string                   `json:"id"`
-		UserID                      string                   `json:"user_id"`
-		Team                        Team                     `json:"team,omitempty"`
-		TeamID                      string                   `json:"team_id,omitempty"`
-		Name                        string                   `json:"name"`
-		HasuraGQEVersion            string                   `json:"hasura_gqe_version,omitempty"`
-		BackendVersion              string                   `json:"backend_version,omitempty"`
-		HasuraGQEAdminSecret        string                   `json:"hasura_gqe_admin_secret,omitempty"`
-		PostgresVersion             string                   `json:"postgres_version,omitempty"`
-		HasuraGQECustomEnvVariables map[string]string        `json:"hasura_gqe_custom_env_variables,omitempty"`
-		BackendUserFields           string                   `json:"backend_user_fields,omitempty"`
-		HBPDefaultAllowedUserRoles  string                   `json:"hbp_DEFAULT_ALLOWED_USER_ROLES,omitempty"`
-		HBPRegistrationCustomFields string                   `json:"hbp_REGISTRATION_CUSTOM_FIELDS,omitempty"`
-		HBPAllowedUserRoles         string                   `json:"hbp_allowed_user_roles,omitempty"`
-		ProjectDomains              Domains                  `json:"project_domain"`
-		ProjectEnvVars              []map[string]interface{} `json:"project_env_vars,omitempty"`
-	}
-)
-
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
@@ -105,31 +47,34 @@ var loginCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// if user is already logged in, ask to logout
-
 		if _, err := validateAuth(authPath); err == nil {
-			Error(err, "you are already logged in, first logout with \"nhost logout\"", true)
+			log.Fatal("You are already logged in, first logout with `nhost logout`")
 		}
 
 		if email == "" {
 
 			readEmail, err := readEmail()
 			if err != nil {
-				Error(err, "couldn't read email", true)
+				log.Debug(err)
+				log.Fatal("Failed to read email")
 			}
 			email = readEmail
 		}
 
 		token, err := login(apiURL, email)
 		if err != nil {
-			Error(err, "failed to login with that email", true)
+			log.Debug(err)
+			log.Fatal("Failed to login with that email")
 		}
 
-		Print("We have sent you an email on \""+email+"\". Confirm the email to login", "info")
+		log.Info("We have sent you an email on \"" + email + "\". Confirm the email to login")
 
 		verifiedToken, err := runVerificationLoop(apiURL, email, token)
 		if err != nil {
-			Error(err, "login verification failed", true)
+			log.Debug(err)
+			log.Fatal("Login verification failed")
 		}
+
 		if len(verifiedToken) > 0 {
 
 			// prepare credentials to auth file
@@ -141,14 +86,16 @@ var loginCmd = &cobra.Command{
 			// delete any existing auth files
 			if pathExists(authPath) {
 				if err = deletePath(authPath); err != nil {
-					Error(err, "couldn't reset the auth file, please delete it manually", true)
+					log.Debug(err)
+					log.Fatalf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", authPath)
 				}
 			}
 
 			// create the auth file to write it
 			f, err := os.Create(authPath)
 			if err != nil {
-				Error(err, "failed to instantiate Nhost auth configuration", true)
+				log.Debug(err)
+				log.Fatal("Failed to create auth configuration file")
 			}
 
 			defer f.Close()
@@ -157,16 +104,18 @@ var loginCmd = &cobra.Command{
 			err = writeToFile(authPath, string(credentials), "end")
 
 			if err != nil {
-				Error(err, "failed to save authention config", true)
+				log.Debug(err)
+				log.Fatal("Failed to save auth configuration")
 			}
 
 			// validate auth
 			_, err = validateAuth(authPath)
 			if err != nil {
-				Error(err, "failed to validate auth", true)
+				log.Debug(err)
+				log.Fatal("Failed to validate authentication")
 			}
 
-			Print("Email verified, and login complete!", "success")
+			log.Info("Email verified, and login complete!")
 		}
 	},
 }
@@ -186,9 +135,7 @@ func readEmail() (string, error) {
 // ValidateAuth func confirms whether user is logged in or not
 func validateAuth(authFile string) (User, error) {
 
-	if VERBOSE {
-		Print("validating authentication", "info")
-	}
+	log.Debug("Validating authentication")
 
 	var response AuthValidation
 
@@ -205,6 +152,9 @@ func validateAuth(authFile string) (User, error) {
 
 	//Leverage Go's HTTP Post function to make request
 	resp, err := http.Post(apiURL+"/custom/cli/login/validate", "application/json", responseBody)
+	if err != nil {
+		return response.User, err
+	}
 
 	// read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -227,9 +177,7 @@ func validateAuth(authFile string) (User, error) {
 
 func runVerificationLoop(url, email, token string) (string, error) {
 
-	if VERBOSE {
-		Print("verifying your login", "info")
-	}
+	log.Debug("Verifying your login")
 
 	timeout := time.After(60 * time.Second)
 	ticker := time.Tick(1 * time.Second)
@@ -257,6 +205,8 @@ func runVerificationLoop(url, email, token string) (string, error) {
 
 // validate the verification token
 func verify(url, email, token string) (string, error) {
+
+	log.Debug("Verifying login token")
 
 	//Leverage Go's HTTP Post function to make request
 	req, _ := http.NewRequest(
@@ -303,9 +253,7 @@ func verify(url, email, token string) (string, error) {
 // signs the user in with email and returns verification token
 func login(url, email string) (string, error) {
 
-	if VERBOSE {
-		Print("authenticating", "info")
-	}
+	log.Debug("Authenticating with email ", email)
 
 	var response AuthValidation
 
@@ -341,6 +289,8 @@ func login(url, email string) (string, error) {
 
 // fetches saved credentials from auth file
 func getCredentials(authFile string) (Credentials, error) {
+
+	log.Debug("Fetching credentials from saved auth configuration at ", authFile)
 
 	// we initialize our credentials array
 	var credentials Credentials

@@ -50,7 +50,7 @@ var resetCmd = &cobra.Command{
 		if !approval {
 
 			// warn the user of consequences
-			Print("this is irreversible and will remove all installed Nhost config from this project", "danger")
+			log.Warn("This is irreversible and will remove all installed Nhost config from this project")
 
 			// configure interative prompt
 			prompt := promptui.Prompt{
@@ -60,7 +60,8 @@ var resetCmd = &cobra.Command{
 
 			response, err := prompt.Run()
 			if err != nil {
-				Error(err, "prompt aborted", true)
+				log.Debug(err)
+				log.Fatal("Input prompt aborted")
 			}
 
 			if strings.ToLower(response) == "y" || strings.ToLower(response) == "approval" {
@@ -71,16 +72,20 @@ var resetCmd = &cobra.Command{
 		if approval {
 
 			if err := deleteAllPaths(dotNhost); err != nil {
-				Error(err, "couldn't delete "+dotNhost+"\nplease delete them manually", true)
+				log.Debug(err)
+				log.Warnf("Please delete the path %s manually", nhostDir)
+				log.Fatal("Failed to delete " + dotNhost)
 			}
 
 			if err := deleteAllPaths(nhostDir); err != nil {
-				Error(err, "couldn't delete "+nhostDir+"\nplease delete them manually", true)
+				log.Debug(err)
+				log.Warnf("Please delete the path %s manually", nhostDir)
+				log.Fatal("Failed to delete " + nhostDir)
 			}
 		}
 
 		// signify reset completion
-		Print("nhost/ and .nhost/ permanently removed from this project", "warn")
+		log.Infof("%s and %s permanently removed from this project", nhostDir, dotNhost)
 	},
 }
 

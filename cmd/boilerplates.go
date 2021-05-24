@@ -12,15 +12,14 @@ import (
 
 func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasuraEndpoint string) error {
 
-	// create frontend dir
-	if !pathExists(projectDir) {
+	projectDirs := []string{"/", "pages", "components", "assets", "layouts", "middleware", "plugins", "static", "store"}
 
-		if VERBOSE {
-			Print("initializing frontend code directories...", "info")
-		}
-		// if it doesn't exist, then create it
-		if err := os.MkdirAll(projectDir, os.ModePerm); err != nil {
-			return err
+	// create all frontend directories
+	for _, dir := range projectDirs {
+		if !pathExists(path.Join(projectDir, dir)) {
+			if err := os.MkdirAll(path.Join(projectDir, dir), os.ModePerm); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -32,9 +31,7 @@ func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasur
 
 	defer f.Close()
 
-	if VERBOSE {
-		Print("writing package.json...", "info")
-	}
+	log.Debug("Writing package.json")
 
 	if _, err = f.WriteString(getPackageDotJSON(project)); err != nil {
 		return err
@@ -55,31 +52,21 @@ func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasur
 		Dir:  projectDir,
 	}
 
-	if VERBOSE {
-		Print("installing NuxtJs in your frontend code...", "info")
-	}
+	log.Debug("Installing NuxtJs in your boilerplate")
 
 	if err = execute.Run(); err != nil {
 		return err
 	}
 
-	// create "pages" directory
-	pagesDir := path.Join(projectDir, "pages")
-	if err := os.MkdirAll(pagesDir, os.ModePerm); err != nil {
-		return err
-	}
-
-	// create or append to package.json
-	f, err = os.Create(path.Join(pagesDir, "index.html"))
+	// create index.vue file to be served at "/"
+	f, err = os.Create(path.Join(projectDir, "pages", "index.vue"))
 	if err != nil {
 		return err
 	}
 
 	defer f.Close()
 
-	if VERBOSE {
-		Print("writing index.html file...", "info")
-	}
+	log.Debug("Writing index file to serve at '/'")
 
 	// prepare html template
 	var writer bytes.Buffer
@@ -101,7 +88,7 @@ func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasur
 
 	for _, module := range modules {
 
-		args := []string{npmCLI, "install", module, "-d"}
+		args := []string{npmCLI, "install", "--save", module, "-d"}
 
 		execute := exec.Cmd{
 			Path: npmCLI,
@@ -109,9 +96,7 @@ func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasur
 			Dir:  projectDir,
 		}
 
-		if VERBOSE {
-			Print(fmt.Sprintf("installing %s module in your Nuxt project...", module), "info")
-		}
+		log.Debugf("Installing %s module in your Nuxt project", module)
 
 		if err = execute.Run(); err != nil {
 			return err
@@ -126,9 +111,7 @@ func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasur
 
 	defer f.Close()
 
-	if VERBOSE {
-		Print("writing nuxt.config.js file...", "info")
-	}
+	log.Debug("Writing nuxt.config.js file")
 
 	if _, err = f.WriteString(getNuxtConfig(project, nhostBackendDomain, modules)); err != nil {
 		return err
@@ -149,9 +132,7 @@ func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasur
 
 	defer f.Close()
 
-	if VERBOSE {
-		Print("creating Nhost apollo plugin configuration...", "info")
-	}
+	log.Info("Creating Nhost apollo plugin configuration")
 
 	if _, err = f.WriteString(getNhostApolloConfig(nhostHasuraEndpoint)); err != nil {
 		return err
@@ -166,9 +147,7 @@ func generateNuxtBoilerplate(project, projectDir, nhostBackendDomain, nhostHasur
 
 	defer f.Close()
 
-	if VERBOSE {
-		Print("creating Nhost apollo websocket client plugin...", "info")
-	}
+	log.Info("Creating Nhost apollo websocket client plugin")
 
 	if _, err = f.WriteString(getNhostApolloClientPlugin()); err != nil {
 		return err
@@ -193,6 +172,8 @@ func getPackageDotJSON(project string) string {
 }
 
 func getNuxtConfig(project, nhostURL string, modules []string) string {
+
+	log.Debug("Genearting nuxt.config.js file with your Nhost specific domains")
 
 	config := map[string]interface{}{
 		"head": map[string]interface{}{
@@ -234,7 +215,7 @@ func getNuxtConfig(project, nhostURL string, modules []string) string {
 	return fmt.Sprintf(`
 export default 
 	%v,
-`, string(marshalled))
+`, marshalled)
 }
 
 func getNhostApolloClientPlugin() string {
@@ -259,6 +240,8 @@ func getNhostApolloClientPlugin() string {
 }
 
 func getNhostApolloConfig(hasuraEndpoint string) string {
+
+	log.Debug("Generating Nuxt Apollo config with your Nhost specific project domains")
 
 	config := map[string]interface{}{
 		"httpEndpoint": fmt.Sprintf("'https://%s/v1/graphql'", hasuraEndpoint),

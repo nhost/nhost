@@ -25,9 +25,10 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"os"
+	"os/exec"
+	"path"
 	"strings"
 
 	"github.com/docker/docker/api/types"
@@ -39,27 +40,38 @@ import (
 var downCmd = &cobra.Command{
 	Use:   "down",
 	Short: "Stop and remove local Nhost backend started by \"nhost dev\"",
-	Long:  `Stop and remove local Nhost backend started by \"nhost dev\".`,
+	Long:  "Stop and remove local Nhost backend started by \"nhost dev\".",
 	Run: func(cmd *cobra.Command, args []string) {
-
-		Print("Stopping all Nhost services", "info")
+		log.Info("Stopping all Nhost services")
 
 		// connect to docker client
 		ctx := context.Background()
 		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
-			Error(err, "failed to connect to docker client", true)
+			log.Fatal("Failed to connect to docker client")
 		}
 
-		if err := shutdownServices(docker, ctx, ""); err != nil {
-			Error(err, "failed to shut down Nhost services", true)
+		if err := shutdownServices(docker, ctx, LOG_FILE); err != nil {
+			log.Fatal("Failed to shut down Nhost services")
 		}
 
-		Print("Local Nhost backend is now down!", "success")
+		deletePath(path.Join(dotNhost, "Dockerfile-api"))
+
+		// kill any running hasura console on port 9695
+		hasuraConsoleKillCmd := exec.Command("fuser", "-k", "9695/tcp")
+		if err := hasuraConsoleKillCmd.Run(); err != nil {
+			log.Debug(err)
+			log.Error("Failed to kill hasura console session")
+		}
+
+		log.Info("Cleanup complete. See you later, grasshopper!")
+		os.Exit(0)
 	},
 }
 
 func shutdownServices(client *client.Client, ctx context.Context, logFile string) error {
+
+	log.Debug("Shutting down running Nhost containers")
 
 	// get running containers with prefix "nhost_"
 	containers, err := getContainers(client, ctx, "nhost")
@@ -72,9 +84,6 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 
 		if logFile != "" {
 
-			if VERBOSE {
-				Print(fmt.Sprint("writing container logs to "+logFile), "info")
-			}
 			// generate container logs and write them to logFile
 			if err = writeContainerLogs(client, ctx, container.ID, logFile); err != nil {
 				return err
@@ -100,6 +109,8 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 // returns the list of running containers whose names have specified prefix
 func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]types.Container, error) {
 
+	log.Debug("Fetching running containers with names having the prefix: ", prefix)
+
 	var response []types.Container
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
 	for _, container := range containers {
@@ -114,9 +125,7 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 // stops given container
 func stopContainer(cli *client.Client, ctx context.Context, ID string) error {
 
-	if VERBOSE {
-		Print(fmt.Sprint("stopping container ", ID, "... "), "info")
-	}
+	log.Debug("Stopping container: ", ID)
 
 	err := cli.ContainerStop(ctx, ID, nil)
 	return err
@@ -125,6 +134,8 @@ func stopContainer(cli *client.Client, ctx context.Context, ID string) error {
 // fetches the logs of a specific container
 // and writes them to a log file
 func writeContainerLogs(cli *client.Client, ctx context.Context, ID, filePath string) error {
+
+	log.Debug("Writing container logs to ", filePath)
 
 	options := types.ContainerLogsOptions{ShowStdout: true}
 
@@ -149,9 +160,8 @@ func writeContainerLogs(cli *client.Client, ctx context.Context, ID, filePath st
 // removes given container
 func removeContainer(cli *client.Client, ctx context.Context, ID string) error {
 
-	if VERBOSE {
-		Print(fmt.Sprint("removing container ", ID), "warn")
-	}
+	log.Debug("Removing container: ", ID)
+
 	removeOptions := types.ContainerRemoveOptions{
 		RemoveVolumes: true,
 		Force:         true,

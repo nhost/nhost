@@ -24,15 +24,12 @@ SOFTWARE.
 package cmd
 
 import (
-	"bufio"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -40,7 +37,6 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -51,31 +47,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-type (
-
-	// Container service
-	Container struct {
-		Image       string                 `yaml:",omitempty"`
-		Name        string                 "container_name"
-		Command     []string               `yaml:",omitempty"`
-		Entrypoint  string                 `yaml:",omitempty"`
-		Environment map[string]interface{} `yaml:",omitempty"`
-		Ports       []string               `yaml:",omitempty"`
-		Restart     string                 `yaml:",omitempty"`
-		User        string                 `yaml:",omitempty"`
-		Volumes     []string               `yaml:",omitempty"`
-		DependsOn   []string               `yaml:"depends_on,omitempty"`
-		EnvFile     []string               `yaml:"env_file,omitempty"`
-		Build       map[string]string      `yaml:",omitempty"`
-	}
-
-	// Container services
-	Services struct {
-		Containers map[string]Container `yaml:"services,omitempty"`
-		Version    string               `yaml:",omitempty"`
-	}
-)
-
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:   "dev",
@@ -83,36 +54,38 @@ var devCmd = &cobra.Command{
 	Long:  `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		Print("Initializing dev environment", "info")
+		log.Info("Initializing dev environment")
 
 		// check if /nhost exists
 		if !pathExists(nhostDir) {
-			Error(nil, "project not found in this directory\nto initialize a project, run 'nhost' or 'nhost init'", true)
+			log.Error("Initialize a project by running 'nhost' or 'nhost init'")
+			log.Fatal("Project not found in this directory")
 		}
 
-		// check if /.nhost exists
-		if !pathExists(dotNhost) {
-			if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-				Error(err, "couldn't initialize nhost specific directory", true)
-			}
+		// create /.nhost if it doesn't exist
+		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to initialize nhost specific directory")
 		}
 
 		// connect to docker client
 		ctx := context.Background()
 		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
-			Error(err, "failed to connect to docker client", true)
+			log.Debug(err)
+			log.Fatal("Failed to connect to docker client")
 		}
 
 		// check if this is the first time dev env is running
 		firstRun := !pathExists(path.Join(dotNhost, "db_data"))
 		if firstRun {
-			Print("first run takes longer, please be patient", "warn")
+			log.Warn("First run takes longer, please be patient")
+		}
 
-			// if it doesn't exist, then create it
-			if err = os.MkdirAll(path.Join(dotNhost, "db_data"), os.ModePerm); err != nil {
-				Error(err, "failed to create db_data directory", true)
-			}
+		// if it doesn't exist, then create it
+		if err = os.MkdirAll(path.Join(dotNhost, "db_data"), os.ModePerm); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to create db_data directory")
 		}
 
 		// add cleanup action in case of signal interruption
@@ -120,28 +93,15 @@ var devCmd = &cobra.Command{
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-c
-			cleanup(docker, ctx, dotNhost, "interrupted by signal")
-			os.Exit(1)
+			log.Error("Interrupted by signal")
+			downCmd.Run(cmd, args)
 		}()
-
-		/*
-
-			// read pre-written docker-compose yaml
-			preWrittenConfigFile, _ := ioutil.ReadFile(path.Join(dotNhost, "docker-compose.yaml"))
-			var preWrittenConfig Services
-			yaml.Unmarshal(preWrittenConfigFile, &preWrittenConfig)
-
-			// start containers from Nhost Backend Yaml
-			for _, service := range preWrittenConfig.Containers {
-				for serviceName, _ := range nhostServices {
-					fmt.Println(serviceName, " : ", service[serviceName])
-				}
-			}
-		*/
 
 		nhostConfig, err := readYaml(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
-			Error(err, "couldn't read Nhost config", true)
+			log.Debug(err)
+			log.Fatal("Failed to read Nhost config")
+			downCmd.Run(cmd, args)
 		}
 
 		ports := []string{
@@ -170,41 +130,46 @@ var devCmd = &cobra.Command{
 		}
 
 		if len(occupiedPorts) > 0 {
-
-			Error(
-				nil,
-				fmt.Sprintf("ports %v are already in use, hence aborting\nchange nhost/config.yaml or stop the services", occupiedPorts),
-				true,
-			)
+			log.Errorf("Ports %v are already in use, hence aborting", occupiedPorts)
+			log.Fatal("Change nhost/config.yaml or stop the services")
 		}
 
 		// generate Nhost service containers' configurations
 		nhostServices, err := getContainerConfigs(docker, ctx, nhostConfig, dotNhost)
 		if err != nil {
-			Error(err, "", false)
-			cleanup(docker, ctx, dotNhost, "failed to generate container configurations")
+			log.Debug(err)
+			log.Error("Failed to generate container configurations")
+			downCmd.Run(cmd, args)
 		}
 
 		for _, container := range nhostServices {
 			if err = runContainer(docker, ctx, container); err != nil {
-				Error(err, fmt.Sprintf("failed to start %v container", container.ID), true)
-				cleanup(docker, ctx, dotNhost, "failed to start an Nhost service")
+				log.Debug(err)
+				log.Errorf("Failed to start %v container", container.ID)
+				downCmd.Run(cmd, args)
 			}
-			Print(fmt.Sprintf("container %s created", container.ID), "success")
+			log.Debugf("Container %s created", container.ID)
 		}
 
 		nhostConfig["startAPI"] = pathExists(path.Join(workingDir, "api"))
 		nhostConfig["graphql_jwt_key"] = generateRandomKey()
 
-		// write docker api file
-		_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
-		if err != nil {
-			Error(err, "failed to create docker api config", false)
-		}
+		if nhostConfig["startAPI"].(bool) {
 
-		err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
-		if err != nil {
-			Error(err, "failed to write backend docker-compose config", true)
+			// write docker api file
+			_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
+			if err != nil {
+				log.Debug(err)
+				log.Error("Failed to create docker api config")
+				downCmd.Run(cmd, args)
+			}
+
+			err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
+			if err != nil {
+				log.Debug(err)
+				log.Error("Failed to write backend docker-compose config")
+				downCmd.Run(cmd, args)
+			}
 		}
 
 		/*
@@ -239,7 +204,7 @@ var devCmd = &cobra.Command{
 				output, err := execute.CombinedOutput()
 				if err != nil {
 					Error(err, "failed to validate docker-compose config", false)
-					cleanup(docker, ctx, dotNhost, string(output))
+					downCmd.Run(cmd, args)
 				}
 
 				// run docker-compose up
@@ -251,15 +216,12 @@ var devCmd = &cobra.Command{
 				output, err = execute.CombinedOutput()
 				if err != nil {
 					Error(err, "failed to start docker-compose", false)
-					cleanup(docker, ctx, dotNhost, string(output))
+					downCmd.Run(cmd, args)
 				}
 		*/
 
-		Print("waiting for GraphQL engine to go up", "info")
-		// check whether GraphQL engine is up & running
-		if !validateGraphqlEngineRunning(nhostConfig["hasura_graphql_port"]) {
-			cleanup(docker, ctx, dotNhost, "failed to start GraphQL Engine")
-		}
+		log.Info("Conducting a quick health check on all freshly created services")
+		healthCmd.Run(cmd, args)
 
 		// prepare and load hasura binary
 		hasuraCLI, _ := loadBinary("hasura", hasura)
@@ -270,10 +232,6 @@ var devCmd = &cobra.Command{
 			"--admin-secret",
 			fmt.Sprintf(`%v`, nhostConfig["hasura_graphql_admin_secret"]),
 			"--skip-update-check",
-		}
-
-		if VERBOSE {
-			Print("applying migrations", "info")
 		}
 
 		// create migrations from remote
@@ -288,22 +246,23 @@ var devCmd = &cobra.Command{
 
 		output, err := execute.CombinedOutput()
 		if err != nil {
-			Error(errors.New(string(output)), "", false)
-			os.Exit(1)
-			cleanup(docker, ctx, dotNhost, "failed to apply fresh hasura migrations")
+			log.Debug(err)
+			log.Debug(string(output))
+			log.Error("Failed to apply fresh hasura migrations")
+			downCmd.Run(cmd, args)
 		}
 
 		files, err := ioutil.ReadDir(path.Join(nhostDir, "seeds"))
 		if err != nil {
-			Error(errors.New(string(output)), "", false)
-			cleanup(docker, ctx, dotNhost, "failed to read migrations directory")
+			log.Debug(err)
+			log.Debug(string(output))
+			log.Error("Failed to read migrations directory")
+			downCmd.Run(cmd, args)
 		}
 
 		if firstRun && len(files) > 0 {
 
-			if VERBOSE {
-				Print("applying seeds", "info")
-			}
+			log.Debug("Applying seeds since it's your first run")
 
 			// apply seed data
 			cmdArgs = []string{hasuraCLI, "seeds", "apply"}
@@ -317,13 +276,11 @@ var devCmd = &cobra.Command{
 
 			output, err = execute.CombinedOutput()
 			if err != nil {
-				Error(err, "failed to apply seed data", false)
-				cleanup(docker, ctx, dotNhost, string(output))
+				log.Debug(err)
+				log.Debug(string(output))
+				log.Error("Failed to apply seed data")
+				downCmd.Run(cmd, args)
 			}
-		}
-
-		if VERBOSE {
-			Print("applying metadata", "info")
 		}
 
 		// create migrations from remote
@@ -338,11 +295,14 @@ var devCmd = &cobra.Command{
 
 		output, err = execute.CombinedOutput()
 		if err != nil {
-			Error(err, "failed to aapply fresh metadata", false)
-			cleanup(docker, ctx, dotNhost, string(output))
+			log.Debug(string(output))
+			log.Debug(err)
+			log.Error("Failed to apply fresh metadata")
+			downCmd.Run(cmd, args)
 		}
 
 		/*
+			// detect OS and launch browser windows
 
 			switch runtime.GOOS {
 			case "linux":
@@ -359,20 +319,18 @@ var devCmd = &cobra.Command{
 			}
 		*/
 
-		Print("Local Nhost backend is up!\n", "success")
+		log.Info("Local Nhost development environment is now active\n")
 
-		if containerRunning(docker, ctx, "nhost_hasura") {
-			Print(fmt.Sprintf("GraphQL API: http://localhost:%v/v1/graphql", nhostConfig["hasura_graphql_port"]), "info")
-		}
-		if containerRunning(docker, ctx, "nhost_hbp") {
-			Print(fmt.Sprintf("Auth & Storage: http://localhost:%v", nhostConfig["hasura_backend_plus_port"]), "info")
-		}
-		if containerRunning(docker, ctx, "nhost_api") {
-			Print(fmt.Sprintf("Custom API: http://localhost:%v\n", nhostConfig["api_port"]), "info")
+		log.Infof("GraphQL API: http://localhost:%v/v1/graphql", nhostConfig["hasura_graphql_port"])
+		log.Infof("Auth & Storage: http://localhost:%v", nhostConfig["hasura_backend_plus_port"])
+
+		if nhostConfig["startAPI"].(bool) {
+			log.Infof("Custom API: http://localhost:%v", nhostConfig["api_port"])
 		}
 
-		Print("launching Hasura console", "info")
-		//spawn hasura console in parallel terminal session
+		log.Info("Launching Hasura console `http://localhost:9695`")
+
+		//spawn hasura console
 		hasuraConsoleSpawnCmd := exec.Cmd{
 			Path: hasuraCLI,
 			Args: []string{hasuraCLI,
@@ -384,20 +342,21 @@ var devCmd = &cobra.Command{
 				"--console-port",
 				"9695",
 			},
-			Dir: nhostDir,
+			Dir:    nhostDir,
+			Stdout: os.Stdout,
 		}
 
 		if err = hasuraConsoleSpawnCmd.Run(); err != nil {
-			Error(err, "failed to launch hasura console", false)
-		} else {
-			Print("Hasura Console: `http://localhost:9695`", "info")
+			log.Error("Failed to launch hasura console")
 		}
 
-		Print("Press Ctrl + C to stop running evironment", "waiting")
+		/*
+			Print("Press Ctrl + C to stop running evironment", "waiting")
 
-		// wait for user input infinitely to keep the utility running
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
+			// wait for user input infinitely to keep the utility running
+			scanner := bufio.NewScanner(os.Stdin)
+			scanner.Scan()
+		*/
 	},
 }
 
@@ -432,73 +391,6 @@ func runContainer(client *client.Client, ctx context.Context, cont container.Con
 		}
 	*/
 	return err
-}
-
-// run cleanup
-func cleanup(client *client.Client, ctx context.Context, location, errorMessage string) {
-
-	Error(errors.New(errorMessage), "cleanup/rollback process initiated", false)
-
-	logFile := path.Join(location, "nhost.log")
-
-	// stop all running containers with prefix "nhost_"
-	if err := shutdownServices(client, ctx, logFile); err != nil {
-		Error(err, "failed to shutdown running Nhost services", false)
-	}
-
-	// kill any running hasura console on port 9695
-	hasuraConsoleKillCmd := exec.Command("fuser", "-k", "9695/tcp")
-	if err := hasuraConsoleKillCmd.Run(); err != nil {
-		Error(err, "failed to kill hasura console session", false)
-	}
-
-	deletePath(path.Join(location, "Dockerfile-api"))
-
-	Print("cleanup complete", "info")
-	Print("See you later, grasshopper!", "success")
-	os.Exit(0)
-}
-
-func validateGraphqlEngineRunning(port interface{}) bool {
-
-	for i := 1; i <= 10; i++ {
-		valid := graphqlEngineHealthCheck(port)
-		if valid {
-			if VERBOSE {
-				Print(fmt.Sprintf("GraphQL engine health check attempt #%v successful", i), "success")
-			}
-			return true
-		}
-		time.Sleep(2 * time.Second)
-		if VERBOSE {
-			Print(fmt.Sprintf("GraphQL engine health check attempt #%v unsuccessful", i), "warn")
-		}
-	}
-
-	if VERBOSE {
-		Error(nil, "GraphQL engine health check timed out", false)
-	}
-	return false
-}
-
-func graphqlEngineHealthCheck(port interface{}) bool {
-
-	client := http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	resp, err := client.Get(fmt.Sprintf(`http://localhost:%v/healthz`, port))
-	if err != nil {
-		return false
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	if string(body) == "OK" {
-		return true
-	}
-	return false
 }
 
 // generate a random 128 byte key
@@ -565,6 +457,8 @@ ENTRYPOINT ["./entrypoint-dev.sh"]
 
 func getContainerConfigs(client *client.Client, ctx context.Context, options map[string]interface{}, cwd string) ([]container.ContainerCreateCreatedBody, error) {
 
+	log.Debug("Preparing Nhost container configurations")
+
 	hasuraGraphQLEngine := "hasura/graphql-engine"
 
 	if options["hasura_graphql_engine"] != nil && options["hasura_graphql_engine"] != "" {
@@ -572,7 +466,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	}
 	var containers []container.ContainerCreateCreatedBody
 
-	// check if a required already exists
+	// check if a required image already exists
 	// if it doesn't which case -> then pull it
 
 	requiredImages := []string{
@@ -599,7 +493,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 
 		if !available {
 			if err = pullImage(client, ctx, requiredImage); err != nil {
-				Error(err, fmt.Sprintf("failed to pull image %s\nplease pull it manually and re-run %snhost dev%s", requiredImage, Bold, Reset), false)
+				log.Errorf("Failed to pull image %s\nplease pull it manually and re-run `nhost dev`", requiredImage)
 			}
 		}
 	}
@@ -607,7 +501,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	// read env_file
 	envFile, err := ioutil.ReadFile(envFile)
 	if err != nil {
-		Print(fmt.Sprintf("failed to read %v file", options["env_file"]), "warn")
+		log.Warnf("Failed to read %v file", options["env_file"])
 		return containers, err
 	}
 
@@ -695,6 +589,9 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			ExposedPorts: nat.PortSet{
 				nat.Port(strconv.Itoa(options["hasura_graphql_port"].(int))): struct{}{},
 			},
+
+			// running following commands on launch were throwing errors,
+			// server is running and responding absolutely fine without these commands
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		&container.HostConfig{
@@ -723,19 +620,23 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		return containers, err
 	}
 
-	// create mount point if it doesn't exit
-	customMountPoint := path.Join(dotNhost, "minio", "data")
-	if !pathExists(customMountPoint) {
-		if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
-			Error(err, "failed to create .nhost/minio/data directory", false)
-		}
+	// create mount points if they doesn't exit
+	mountPoints := []mount.Mount{
+		{
+			Type:   mount.TypeBind,
+			Source: path.Join(cwd, "minio", "data"),
+			Target: "/data",
+		},
+		{
+			Type:   mount.TypeBind,
+			Source: path.Join(cwd, "minio", "config"),
+			Target: "/.minio",
+		},
 	}
 
-	// repeat for .nhost/minio/config dir
-	customMountPoint = path.Join(dotNhost, "minio", "config")
-	if !pathExists(customMountPoint) {
-		if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
-			Error(err, "failed to create .nhost/minio/config directory", false)
+	for _, mountPoint := range mountPoints {
+		if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
+			return containers, err
 		}
 	}
 
@@ -754,7 +655,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			Entrypoint:   []string{"sh"},
 			Cmd: []string{
 				"-c",
-				fmt.Sprintf(`/usr/bin/minio server --address :%v /data`, options["minio_port"]),
+				fmt.Sprintf(`mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data`, options["minio_port"]),
 			},
 		},
 		&container.HostConfig{
@@ -764,53 +665,11 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
-			Mounts: []mount.Mount{
-				{
-					Type:   mount.TypeBind,
-					Source: path.Join(cwd, "minio", "data"),
-					Target: "/data",
-				},
-				{
-					Type:   mount.TypeBind,
-					Source: path.Join(cwd, "minio", "config"),
-					Target: "/.minio",
-				},
-			},
+			Mounts: mountPoints,
 		},
 		nil,
 		nil,
 		"nhost_minio",
-	)
-
-	if err != nil {
-		return containers, err
-	}
-
-	// run an extra minio "mc" container to add "nhost" bucket
-	mcContainer, err := client.ContainerCreate(
-		ctx,
-		&container.Config{
-			Image:        `minio/mc`,
-			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(options["minio_port"].(int))): struct{}{}},
-			Entrypoint:   []string{"sh"},
-			Cmd: []string{
-				"-c",
-				"/usr/bin/mc config host add myminio http://nhost-minio:9000 minioaccesskey123123 minioaccesskey123123;",
-				"/usr/bin/mc rm -r --force myminio/nhost;",
-				"/usr/bin/mc mb myminio/nhost;",
-				"/usr/bin/mc policy download myminio/nhost;",
-				"exit 0;",
-			},
-		},
-		&container.HostConfig{
-			Links: []string{"nhost_minio:nhost-minio"},
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
-		},
-		nil,
-		nil,
-		"nhost_mc",
 	)
 
 	if err != nil {
@@ -870,13 +729,10 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	}
 
 	// create mount point if it doesn't exit
-	customMountPoint = path.Join(nhostDir, "custom")
-	if !pathExists(customMountPoint) {
-
-		// if it doesn't exist, then create it
-		if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
-			Error(err, "failed to create /nhost/custom directory", false)
-		}
+	customMountPoint := path.Join(cwd, "custom", "keys")
+	if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
+		log.Errorf("Failed to create %s directory", customMountPoint)
+		return containers, err
 	}
 
 	hasuraBackendPlusContainer, err := client.ContainerCreate(
@@ -885,6 +741,9 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			Image:        fmt.Sprintf(`nhost/hasura-backend-plus:%v`, options["hasura_backend_plus_version"]),
 			Env:          containerVariables,
 			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(options["hasura_backend_plus_port"].(int))): struct{}{}},
+
+			// running following commands on launch were throwing errors,
+			// server is running and responding absolutely fine without these commands
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		&container.HostConfig{
@@ -898,7 +757,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			Mounts: []mount.Mount{
 				{
 					Type:   mount.TypeBind,
-					Source: path.Join(nhostDir, "custom"),
+					Source: path.Join(cwd, "custom"),
 					Target: "/app/custom",
 				},
 			},
@@ -936,13 +795,10 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		}
 
 		// create mount point if it doesn't exit
-		customMountPoint = path.Join("api")
-		if !pathExists(customMountPoint) {
-
-			// if it doesn't exist, then create it
-			if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
-				Error(err, "failed to create /nhost/custom directory", false)
-			}
+		customMountPoint = path.Join(cwd, "api")
+		if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
+			log.Errorf("Failed to create %s directory", customMountPoint)
+			return containers, err
 		}
 
 		APIContainer, err := client.ContainerCreate(
@@ -966,7 +822,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				Mounts: []mount.Mount{
 					{
 						Type:   mount.TypeBind,
-						Source: path.Join("api"),
+						Source: customMountPoint,
 						Target: "/usr/src/app/api",
 					},
 				},
@@ -985,7 +841,6 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 
 	containers = append(containers, postgresContainer)
 	containers = append(containers, minioContainer)
-	containers = append(containers, mcContainer)
 
 	// add depends_on for following containers
 	containers = append(containers, graphqlEngineContainer)
@@ -994,193 +849,17 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 }
 
 func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageSummary, error) {
-	if VERBOSE {
-		Print("fetching available container images", "info")
-	}
+	log.Debug("Fetching available/installed container images")
 	images, err := cli.ImageList(ctx, types.ImageListOptions{All: true})
 	return images, err
 }
 
 func pullImage(cli *client.Client, ctx context.Context, tag string) error {
-	if VERBOSE {
-		Print(fmt.Sprintf("pulling container image: %s%s%s", Bold, tag, Reset), "info")
-	}
+	log.Debugf("Pulling container image: %s", tag)
 	out, err := cli.ImagePull(ctx, tag, types.ImagePullOptions{})
 	out.Close()
 	return err
 }
-
-/*
-
-// Legacy docker-compose generation
-
-func generateNhostBackendYaml(options map[string]interface{}) (Services, error) {
-
-	hasuraGraphQLEngine := "hasura/graphql-engine"
-
-	if options["hasura_graphql_engine"] != nil {
-		hasuraGraphQLEngine = options["hasura_graphql_engine"].(string)
-	}
-
-	postgresContainer := Container{
-		Name:    "nhost_postgres",
-		Image:   fmt.Sprintf(`postgres:%v`, options["postgres_version"]),
-		Ports:   []string{fmt.Sprintf(`%v:5432`, options["postgres_port"])},
-		Restart: "always",
-		Environment: map[string]interface{}{
-			"POSTGRES_USER":     "postgres_user",
-			"POSTGRES_PASSWORD": "postgres_password",
-		},
-		// not sure whether this volume would work on windows as well
-		Volumes: []string{"./db_data:/var/lib/postgresql/data"},
-	}
-
-	graphqlEngineContainer := Container{
-		Name:      "nhost_hasura",
-		Image:     fmt.Sprintf(`%s:%v`, hasuraGraphQLEngine, options["hasura_graphql_version"]),
-		Ports:     []string{fmt.Sprintf(`%v:%v`, options["hasura_graphql_port"], options["hasura_graphql_port"])},
-		Restart:   "always",
-		DependsOn: []string{"nhost-postgres"},
-		Environment: map[string]interface{}{
-			"HASURA_GRAPHQL_SERVER_PORT":               options["hasura_graphql_port"],
-			"HASURA_GRAPHQL_DATABASE_URL":              fmt.Sprintf(`"postgres://%v:%v@nhost-postgres:5432/postgres"`, options["postgres_user"], options["postgres_password"]),
-			"HASURA_GRAPHQL_ENABLE_CONSOLE":            "false",
-			"HASURA_GRAPHQL_ENABLED_LOG_TYPES":         "startup, http-log, webhook-log, websocket-log, query-log",
-			"HASURA_GRAPHQL_ADMIN_SECRET":              options["hasura_graphql_admin_secret"],
-			"HASURA_GRAPHQL_JWT_SECRET":                fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options["graphql_jwt_key"]),
-			"HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT": 20,
-			"HASURA_GRAPHQL_NO_OF_RETRIES":             20,
-			"HASURA_GRAPHQL_UNAUTHORIZED_ROLE":         "public",
-			"NHOST_HASURA_URL":                         fmt.Sprintf("'http://nhost_hasura:%v/v1/graphql'", options["hasura_graphql_port"]),
-			"NHOST_WEBHOOK_SECRET":                     "devnhostwebhooksecret",
-			"NHOST_HBP_URL":                            fmt.Sprintf(`"http://nhost_hbp:%v"`, options["hasura_backend_plus_port"]),
-			"NHOST_CUSTOM_API_URL":                     fmt.Sprintf(`"http://nhost_api:%v"`, options["api_port"]),
-		},
-
-		EnvFile: []string{options["env_file"].(string)},
-		Command: []string{"graphql-engine", "serve"},
-		// not sure whether this volume would work on windows as well
-		Volumes: []string{"./db_data:/var/lib/postgresql/data"},
-	}
-
-	hasuraBackendPlusContainer := Container{
-		Name:      "nhost_hbp",
-		Image:     fmt.Sprintf(`nhost/hasura-backend-plus:%v`, options["hasura_backend_plus_version"]),
-		Ports:     []string{fmt.Sprintf(`%v:%v`, options["hasura_backend_plus_port"], options["hasura_backend_plus_port"])},
-		Restart:   "always",
-		DependsOn: []string{"nhost-graphql-engine"},
-		Environment: map[string]interface{}{
-			"PORT":                          options["hasura_backend_plus_port"],
-			"USER_FIELDS":                   "",
-			"USER_REGISTRATION_AUTO_ACTIVE": "true",
-			"HASURA_GRAPHQL_ENDPOINT":       fmt.Sprintf(`"http://nhost-graphql-engine:%v/v1/graphql"`, options["hasura_graphql_port"]),
-			"HASURA_ENDPOINT":               fmt.Sprintf(`"http://nhost-graphql-engine:%v/v1/graphql"`, options["hasura_graphql_port"]),
-			"HASURA_GRAPHQL_ADMIN_SECRET":   options["hasura_graphql_admin_secret"],
-			"JWT_ALGORITHM":                 "HS256",
-			"JWT_KEY":                       options["graphql_jwt_key"],
-			"AUTH_ACTIVE":                   "true",
-			"AUTH_LOCAL_ACTIVE":             "true",
-			"REFRESH_TOKEN_EXPIRES":         43200,
-			"JWT_TOKEN_EXPIRES":             15,
-			"S3_ENDPOINT":                   fmt.Sprintf(`"nhost_minio:%v"`, options["minio_port"]),
-			"S3_SSL_ENABLED":                "false",
-			"S3_BUCKET":                     "nhost",
-			"S3_ACCESS_KEY_ID":              "minioaccesskey123123",
-			"S3_SECRET_ACCESS_KEY":          "miniosecretkey123123",
-			"LOST_PASSWORD_ENABLE":          "true",
-			"PROVIDER_SUCCESS_REDIRECT":     options["provider_success_redirect"],
-			"PROVIDER_FAILURE_REDIRECT":     options["provider_failure_redirect"],
-		},
-
-		EnvFile: []string{options["env_file"].(string)},
-		Command: []string{"graphql-engine", "serve"},
-
-		// not sure whether this volume would work on windows as well
-		Volumes: []string{fmt.Sprintf("%s:/app/custom", path.Join(nhostDir, "custom"))},
-	}
-
-	// add social auth credentials
-	socialAuthPlatforms := []string{"GOOGLE", "FACEBOOK", "GITHUB", "LINKEDIN"}
-
-	var credentials []string
-	for _, value := range socialAuthPlatforms {
-		dominations := []string{"ENABLE", "CLIENT_ID", "CLIENT_SECRET"}
-		for _, variable := range dominations {
-			credentials = append(credentials, fmt.Sprintf("%s_%s", value, variable))
-		}
-	}
-
-	for _, credential := range credentials {
-		if options[strings.ToLower(credential)] != nil {
-			hasuraBackendPlusContainer.Environment[credential] = options[strings.ToLower(credential)]
-		}
-	}
-
-	minioContainer := Container{
-		Name:    "nhost_minio",
-		Image:   `minio/minio`,
-		User:    `999:1001`,
-		Ports:   []string{fmt.Sprintf(`%v:%v`, options["minio_port"], options["minio_port"])},
-		Restart: "always",
-		Environment: map[string]interface{}{
-			"MINIO_ACCESS_KEY": "minioaccesskey123123",
-			"MINIO_SECRET_KEY": "minioaccesskey123123",
-		},
-		Entrypoint: "sh",
-		Command:    []string{fmt.Sprintf(`"-c 'mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data'"`, options["minio_port"])},
-
-		// not sure whether this volume would work on windows as well
-		Volumes: []string{`./minio/data:/data`, `./minio/config:/.minio`},
-	}
-
-	services := Services{
-		Containers: map[string]Container{
-			"nhost-postgres":            postgresContainer,
-			"nhost-graphql-engine":      graphqlEngineContainer,
-			"nhost-hasura-backend-plus": hasuraBackendPlusContainer,
-			"minio":                     minioContainer,
-		},
-	}
-
-	project := Services{
-		Version:    "3.6",
-		Containers: services.Containers,
-	}
-
-	if options["startAPI"].(bool) {
-
-		APIContainer := Container{
-			Name: "nhost_api",
-
-			// not sure whether the following build command would work in windows or not
-			Build: map[string]string{
-				"context":    "../",
-				"dockerfile": "./.nhost/Dockerfile-api",
-			},
-
-			Ports:   []string{fmt.Sprintf(`%v:%v`, options["api_port"], options["api_port"])},
-			Restart: "always",
-			Environment: map[string]interface{}{
-				"PORT":                      options["api_port"],
-				"NHOST_JWT_ALGORITHM":       "HS256",
-				"NHOST_JWT_KEY":             options["graphql_jwt_key"],
-				"NHOST_HASURA_URL":          fmt.Sprintf(`"http://nhost_hasura:%v/v1/graphql"`, options["hasura_graphql_port"]),
-				"NHOST_HASURA_ADMIN_SECRET": options["hasura_graphql_admin_secret"],
-				"NHOST_WEBHOOK_SECRET":      "devnhostwebhooksecret",
-				"NHOST_HBP_URL":             fmt.Sprintf(`"http://nhost_hbp:%v"`, options["hasura_backend_plus_port"]),
-				"NHOST_CUSTOM_API_URL":      fmt.Sprintf(`"http://nhost_api:%v"`, options["api_port"]),
-			},
-			EnvFile: []string{options["env_file"].(string)},
-
-			// not sure whether this volume would work on windows as well
-			Volumes: []string{"../api:/usr/src/app/api"},
-		}
-		services.Containers["nhost-api"] = APIContainer
-	}
-
-	return project, nil
-}
-*/
 
 func init() {
 	rootCmd.AddCommand(devCmd)
@@ -1193,5 +872,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// devCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//devCmd.Flags().BoolVarP(&background, "background", "b", false, "Run dev services in background")
 }

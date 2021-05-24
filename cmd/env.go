@@ -57,15 +57,14 @@ var lsCmd = &cobra.Command{
 	Long:  `List your environment variables stored on remote.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if VERBOSE {
-			Print("fetching env vars from remote", "info")
-		}
+		log.Info("Fetching env vars from remote")
 
 		var projectConfig map[string]interface{}
 
 		config, err := ioutil.ReadFile(path.Join(dotNhost, "nhost.yaml"))
 		if err != nil {
-			Error(err, "failed to read .nhost/nhost.yaml", true)
+			log.Debug(err)
+			log.Fatal("Failed to read .nhost/nhost.yaml")
 		}
 
 		yaml.Unmarshal(config, &projectConfig)
@@ -74,14 +73,12 @@ var lsCmd = &cobra.Command{
 
 		user, err := validateAuth(authPath)
 		if err != nil {
-			Error(err, "failed to fetch user data from remote", true)
+			log.Debug(err)
+			log.Fatal("Failed to fetch user data from remote")
 		}
 
 		// concatenate personal and team projects
 		projects := user.Projects
-		if len(projects) == 0 {
-			Error(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
-		}
 
 		// if user is part of teams which have projects, append them as well
 		teams := user.Teams
@@ -92,6 +89,11 @@ var lsCmd = &cobra.Command{
 				// append the projects
 				projects = append(projects, team.Projects...)
 			}
+		}
+
+		if len(projects) == 0 {
+			log.Info("Go to https://console.nhost.io/new and create a new project")
+			log.Fatal("We couldn't find any projects related to this account")
 		}
 
 		var savedProject Project
@@ -104,7 +106,7 @@ var lsCmd = &cobra.Command{
 
 		// print the filtered env vars
 		envs, _ := json.Marshal(savedProject.ProjectEnvVars)
-		Print("local env vars are as followed:", "info")
+		log.Info("local env vars are as followed: ")
 		fmt.Println(string(envs))
 	},
 }
@@ -116,15 +118,14 @@ var pullCmd = &cobra.Command{
 	Long:  `Pull and sync environment variables stored at remote with local environment.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if VERBOSE {
-			Print("overwriting existing .env.development file", "info")
-		}
+		log.Info("Overwriting existing .env.development file")
 
 		var projectConfig map[string]interface{}
 
 		config, err := ioutil.ReadFile(path.Join(dotNhost, "nhost.yaml"))
 		if err != nil {
-			Error(err, "failed to read .nhost/nhost.yaml", true)
+			log.Debug(err)
+			log.Fatal("Failed to read .nhost/nhost.yaml")
 		}
 
 		yaml.Unmarshal(config, &projectConfig)
@@ -133,14 +134,12 @@ var pullCmd = &cobra.Command{
 
 		user, err := validateAuth(authPath)
 		if err != nil {
-			Error(err, "failed to fetch user data from remote", true)
+			log.Debug(err)
+			log.Fatal("Failed to fetch user data from remote")
 		}
 
 		// concatenate personal and team projects
 		projects := user.Projects
-		if len(projects) == 0 {
-			Error(nil, "We couldn't find any projects related to this account, go to https://console.nhost.io/new and create one.", true)
-		}
 
 		// if user is part of teams which have projects, append them as well
 		teams := user.Teams
@@ -153,6 +152,11 @@ var pullCmd = &cobra.Command{
 			}
 		}
 
+		if len(projects) == 0 {
+			log.Info("Go to https://console.nhost.io/new and create a new project")
+			log.Fatal("We couldn't find any projects related to this account")
+		}
+
 		var savedProject Project
 
 		for _, project := range projects {
@@ -161,11 +165,12 @@ var pullCmd = &cobra.Command{
 			}
 		}
 
-		Print(fmt.Sprintf("downloading development environment variables for project: %s%s%s", Bold, savedProject.Name, Reset), "info")
+		log.Info("Downloading development environment variables for project: %s", savedProject.Name)
 
 		envData, err := ioutil.ReadFile(envFile)
 		if err != nil {
-			Error(err, "failed to read .env.development file", true)
+			log.Debug(err)
+			log.Fatal("Failed to read .env.development file")
 		}
 
 		envRows := strings.Split(string(envData), "\n")
@@ -203,16 +208,18 @@ var pullCmd = &cobra.Command{
 		// create a fresh one
 		f, err := os.Create(envFile)
 		if err != nil {
-			Error(err, "failed to create fresh .env.development file", false)
+			log.Debug(err)
+			log.Fatal("Failed to create fresh .env.development file")
 		}
 
 		defer f.Close()
 		if _, err = f.WriteString(strings.Join(envArray, "\n")); err != nil {
-			Error(err, "failed to write fresh .env.development file", false)
+			log.Debug(err)
+			log.Fatal("Failed to write fresh .env.development file")
 		}
 		f.Sync()
 
-		Print("Local environment vars synced with remote. Hurray!", "success")
+		log.Info("Local environment vars successfully synced with remote")
 
 		/*
 			// Legacy code.
