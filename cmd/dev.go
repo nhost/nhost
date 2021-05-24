@@ -24,6 +24,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"bufio"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
@@ -46,6 +47,10 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
+
+// store Hasura console session command,
+// to kill it later while shutting down dev environment
+var hasuraConsoleSpawnProcess *os.Process
 
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
@@ -100,7 +105,7 @@ var devCmd = &cobra.Command{
 		nhostConfig, err := readYaml(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to read Nhost config")
+			log.Error("Failed to read Nhost config")
 			downCmd.Run(cmd, args)
 		}
 
@@ -320,6 +325,7 @@ var devCmd = &cobra.Command{
 		*/
 
 		log.Info("Local Nhost development environment is now active\n")
+		fmt.Println()
 
 		log.Infof("GraphQL API: http://localhost:%v/v1/graphql", nhostConfig["hasura_graphql_port"])
 		log.Infof("Auth & Storage: http://localhost:%v", nhostConfig["hasura_backend_plus_port"])
@@ -329,6 +335,9 @@ var devCmd = &cobra.Command{
 		}
 
 		log.Info("Launching Hasura console `http://localhost:9695`")
+		fmt.Println()
+
+		log.Warn("Use Ctrl + C to stop running evironment")
 
 		//spawn hasura console
 		hasuraConsoleSpawnCmd := exec.Cmd{
@@ -342,35 +351,19 @@ var devCmd = &cobra.Command{
 				"--console-port",
 				"9695",
 			},
-			Dir:    nhostDir,
-			Stdout: os.Stdout,
+			Dir: nhostDir,
 		}
+
+		hasuraConsoleSpawnProcess = hasuraConsoleSpawnCmd.Process
 
 		if err = hasuraConsoleSpawnCmd.Run(); err != nil {
 			log.Error("Failed to launch hasura console")
 		}
 
-		/*
-			Print("Press Ctrl + C to stop running evironment", "waiting")
-
-			// wait for user input infinitely to keep the utility running
-			scanner := bufio.NewScanner(os.Stdin)
-			scanner.Scan()
-		*/
+		// wait for user input infinitely to keep the utility running
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
 	},
-}
-
-// check if a container is running by specified name
-func containerRunning(cli *client.Client, ctx context.Context, name string) bool {
-
-	containers, _ := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
-	for _, container := range containers {
-		if strings.Contains(container.Names[0], name) {
-			return true
-		}
-	}
-
-	return false
 }
 
 // start a fresh container in background

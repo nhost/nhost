@@ -37,7 +37,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/mattn/go-colorable"
-	"github.com/mrinalwahal/cli/formatter"
+	"github.com/nhost/cli/formatter"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
@@ -97,13 +97,13 @@ var (
 		Use:   "nhost",
 		Short: "Open Source Firebase Alternative with GraphQL",
 		Long: `
-			
-		 ____  / / / /___  _____/ /_
-		/ __ \/ /_/ / __ \/ ___/ __/
-	   / / / / __  / /_/ (__  ) /_  
-	  /_/ /_/_/ /_/\____/____/\__/
-	  
-
+		_   ____               __ 
+		/ | / / /_  ____  _____/ /_
+	   /  |/ / __ \/ __ \/ ___/ __/
+	  / /|  / / / / /_/ (__  ) /_  
+	 /_/ |_/_/ /_/\____/____/\__/  
+								   
+	 
   Nhost is a full-fledged serverless backend for Jamstack and client-serverless applications. 
   It enables developers to build dynamic websites without having to worry about infrastructure, 
   data storage, data access and user management.
@@ -122,11 +122,14 @@ var (
 			// including subcommands
 
 			log.SetOutput(colorable.NewColorableStdout())
-			log.SetFormatter(&formatter.Formatter{
+
+			// initialize logger formatter
+			formatter := &formatter.Formatter{
 				HideKeys:      true,
 				ShowFullLevel: true,
 				FieldsOrder:   []string{"component", "category"},
-			})
+				Timestamps:    false,
+			}
 
 			// if DEBUG flag is true, show logger level to debug
 			if DEBUG {
@@ -138,14 +141,19 @@ var (
 			// along with stdOut
 
 			if LOG_FILE != "" {
+
+				formatter.Timestamps = true
+				formatter.NoColors = true
+
 				logFile, err := os.OpenFile(LOG_FILE, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
 				if err != nil {
 					log.Fatal(err)
 				}
 				mw := io.MultiWriter(os.Stdout, logFile)
 				log.SetOutput(mw)
-
 			}
+
+			log.SetFormatter(formatter)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 
@@ -181,11 +189,44 @@ func Execute() {
 		os.Exit(1)
 	}
 
-	// Generate Markdown docs for this command
-	err := doc.GenMarkdownTree(rootCmd, "tmp")
+	// un-comment the following to auto-generate documentation
+	//generateDocumentation()
+
+}
+
+// auto-generate utility documentation in all required formats
+func generateDocumentation() {
+
+	docsDir := path.Join(workingDir, "docs")
+
+	// Generate Markdown docs
+	err := doc.GenMarkdownTree(rootCmd, path.Join(docsDir, "markdown"))
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// Generate REST docs
+	err = doc.GenReSTTree(rootCmd, path.Join(docsDir, "rest"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate YAML docs
+	err = doc.GenYamlTree(rootCmd, path.Join(docsDir, "yaml"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Generate MAN pages
+	header := &doc.GenManHeader{
+		Title:   "MINE",
+		Section: "3",
+	}
+	err = doc.GenManTree(rootCmd, header, path.Join(docsDir, "man"))
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func init() {

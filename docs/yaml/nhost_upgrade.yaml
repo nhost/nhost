@@ -1,0 +1,22 @@
+name: nhost upgrade
+synopsis: Upgrade this utility to latest version
+description: "Automatically check for the latest available version of this\n\tutility
+  and upgrade to it."
+usage: nhost upgrade [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for upgrade
+inherited_options:
+- name: config
+  usage: config file (default is $HOME/.nhost.yaml)
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Show debugging level logs
+- name: log-file
+  shorthand: l
+  usage: Write logs to given file
+see_also:
+- nhost - Open Source Firebase Alternative with GraphQL

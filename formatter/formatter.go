@@ -43,6 +43,9 @@ type Formatter struct {
 	// CallerFirst - print caller info first
 	CallerFirst bool
 
+	// CallerFirst - print caller info first
+	Timestamps bool
+
 	// CustomCallerFormatter - set custom formatter for caller info
 	CustomCallerFormatter func(*runtime.Frame) string
 }
@@ -51,16 +54,17 @@ type Formatter struct {
 func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	levelColor := getColorByLevel(entry.Level)
 
-	timestampFormat := f.TimestampFormat
-	if timestampFormat == "" {
-		timestampFormat = time.Stamp
-	}
-
 	// output buffer
 	b := &bytes.Buffer{}
 
 	// write time
-	b.WriteString(entry.Time.Format(timestampFormat))
+	if f.Timestamps {
+		timestampFormat := f.TimestampFormat
+		if timestampFormat == "" {
+			timestampFormat = time.Stamp
+		}
+		b.WriteString(entry.Time.Format(timestampFormat) + " ")
+	}
 
 	// write level
 	var level string
@@ -78,7 +82,7 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 		fmt.Fprintf(b, "\x1b[%dm", levelColor)
 	}
 
-	b.WriteString(" [")
+	b.WriteString("[")
 	if f.ShowFullLevel {
 		b.WriteString(level)
 	} else {

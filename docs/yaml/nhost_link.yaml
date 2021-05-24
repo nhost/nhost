@@ -1,0 +1,22 @@
+name: nhost link
+synopsis: Link Project
+description: |
+  Connect your already hosted Nhost Project to local environment and start development or testings.
+usage: nhost link [flags]
+options:
+- name: help
+  shorthand: h
+  default_value: "false"
+  usage: help for link
+inherited_options:
+- name: config
+  usage: config file (default is $HOME/.nhost.yaml)
+- name: debug
+  shorthand: d
+  default_value: "false"
+  usage: Show debugging level logs
+- name: log-file
+  shorthand: l
+  usage: Write logs to given file
+see_also:
+- nhost - Open Source Firebase Alternative with GraphQL
