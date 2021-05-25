@@ -1,13 +1,7 @@
 # .github/workflows/release.yaml
 
-name: Build & Release
-
-on:
-  push:
-    branches: [ migration ]
-  pull_request:
-    branches: [ canary ]
-
+on: release
+name: Build Release
 jobs:
   release-linux-386:
     name: release linux/386
@@ -34,7 +28,7 @@ jobs:
         GOOS: linux
         EXTRA_FILES: "LICENSE"
   release-linux-arm:
-    name: release linux/386
+    name: release linux/arm
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@master
