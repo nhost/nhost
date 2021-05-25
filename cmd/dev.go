@@ -93,13 +93,19 @@ var devCmd = &cobra.Command{
 			log.Fatal("Failed to create db_data directory")
 		}
 
+		// shut down any existing Nhost containers
+		downCmd.Run(cmd, args)
+
 		// add cleanup action in case of signal interruption
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-c
 			log.Error("Interrupted by signal")
+			hasuraConsoleSpawnProcess.Kill()
 			downCmd.Run(cmd, args)
+			log.Info("Cleanup complete. See you later, grasshopper!")
+			os.Exit(1)
 		}()
 
 		nhostConfig, err := readYaml(path.Join(nhostDir, "config.yaml"))
@@ -334,7 +340,7 @@ var devCmd = &cobra.Command{
 			log.Infof("Custom API: http://localhost:%v", nhostConfig["api_port"])
 		}
 
-		log.Info("Launching Hasura console `http://localhost:9695`")
+		log.Info("Launching Hasura console http://localhost:9695")
 		fmt.Println()
 
 		log.Warn("Use Ctrl + C to stop running evironment")
@@ -354,11 +360,11 @@ var devCmd = &cobra.Command{
 			Dir: nhostDir,
 		}
 
-		hasuraConsoleSpawnProcess = hasuraConsoleSpawnCmd.Process
-
 		if err = hasuraConsoleSpawnCmd.Run(); err != nil {
 			log.Error("Failed to launch hasura console")
 		}
+
+		hasuraConsoleSpawnProcess = hasuraConsoleSpawnCmd.Process
 
 		// wait for user input infinitely to keep the utility running
 		scanner := bufio.NewScanner(os.Stdin)

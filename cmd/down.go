@@ -41,7 +41,6 @@ var downCmd = &cobra.Command{
 	Short: "Stop and remove local Nhost backend started by \"nhost dev\"",
 	Long:  "Stop and remove local Nhost backend started by \"nhost dev\".",
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("Stopping all Nhost services")
 
 		// connect to docker client
 		ctx := context.Background()
@@ -56,19 +55,17 @@ var downCmd = &cobra.Command{
 
 		deletePath(path.Join(dotNhost, "Dockerfile-api"))
 
-		// kill any running hasura console service
-		if err := hasuraConsoleSpawnProcess.Kill(); err != nil {
-			log.Debug(err)
-			log.Error("Failed to kill hasura console session")
-		}
-
-		log.Info("Cleanup complete. See you later, grasshopper!")
+		/*
+			// kill any running hasura console service
+			if err := hasuraConsoleSpawnProcess.Kill(); err != nil {
+				log.Debug(err)
+				log.Error("Failed to kill hasura console session")
+			}
+		*/
 	},
 }
 
 func shutdownServices(client *client.Client, ctx context.Context, logFile string) error {
-
-	log.Debug("Shutting down running Nhost containers")
 
 	// get running containers with prefix "nhost_"
 	containers, err := getContainers(client, ctx, "nhost")
@@ -76,7 +73,10 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 		return err
 	}
 
-	// stop all running containers with prefix "nhost_"
+	if len(containers) > 0 {
+		log.Info("Running Nhost services detected. Shutting them down.")
+	}
+
 	for _, container := range containers {
 
 		if logFile != "" {
@@ -91,10 +91,8 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 		if err = stopContainer(client, ctx, container.ID); err != nil {
 			return err
 		}
-	}
 
-	// remove all running containers with prefix "nhost_"
-	for _, container := range containers {
+		// remove all running containers with prefix "nhost_"
 		if err = removeContainer(client, ctx, container.ID); err != nil {
 			return err
 		}

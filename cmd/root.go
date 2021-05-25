@@ -168,11 +168,16 @@ var (
 				// start the "init" command
 				initCmd.Run(cmd, args)
 
-				// provide the user with boilerplate options
-				if err := provideBoilerplateOptions(); err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to provide boilerplate options")
-				}
+				/*
+					// provide the user with boilerplate options
+					if err := provideBoilerplateOptions(); err != nil {
+						log.Debug(err)
+						log.Fatal("Failed to provide boilerplate options")
+					}
+				*/
+
+				// start the "dev" command
+				devCmd.Run(cmd, args)
 			}
 
 		},
