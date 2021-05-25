@@ -7,18 +7,22 @@ on:
     branches: [ migration, dev ]
   pull_request:
     branches: [ canary, main ]
-    
+
 jobs:
-  release-linux-amd64:
-    name: release linux/amd64
+  releases-matrix:
+    name: Release Go Binary
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/386, linux/amd64, windows/386, windows/amd64, darwin/amd64 
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64]
     steps:
-    - uses: actions/checkout@v2
-    - uses: wangyoucao577/go-release-action@v1.18
-      with:
-        github_token: ${{ secrets.ACTIONS_TOKEN }}
-        goos: linux
-        goarch: amd64
-        goversion: 1.16
-        binary_name: nhost
-        extra_files: LICENSE
+      - uses: actions/checkout@v2
+      - uses: wangyoucao577/go-release-action@v1.18
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
+          binary_name: nhost
+          extra_files: LICENSE
