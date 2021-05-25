@@ -6,7 +6,7 @@ on:
   push:
     branches: [ migration, dev ]
   pull_request:
-    branches: [ canary ]
+    branches: [ canary, main ]
     
 jobs:
   release-linux-386:
