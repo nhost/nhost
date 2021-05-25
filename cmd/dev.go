@@ -522,7 +522,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%v", options["postgres_port"])): struct{}{}},
 		},
 		&container.HostConfig{
-			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", options["postgres_port"])): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", options["postgres_port"])}}},
+			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", options["postgres_port"])): {{HostIP: "127.0.0.1", HostPort: "5432"}}},
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
