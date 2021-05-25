@@ -159,9 +159,12 @@ func validateAuth(authFile string) (User, error) {
 	// read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
 
+	//var res map[string]interface{}
 	// we unmarshal our body byteArray which contains our
 	// jsonFile's content into 'user' strcuture which we initialized above
 	json.Unmarshal(body, &response)
+
+	//fmt.Println(res["user"].(map[string]interface{})["teams"].([]interface{})[0].(map[string]interface{})["team"])
 
 	defer resp.Body.Close()
 

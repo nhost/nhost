@@ -55,13 +55,10 @@ var downCmd = &cobra.Command{
 
 		deletePath(path.Join(dotNhost, "Dockerfile-api"))
 
-		/*
-			// kill any running hasura console service
-			if err := hasuraConsoleSpawnProcess.Kill(); err != nil {
-				log.Debug(err)
-				log.Error("Failed to kill hasura console session")
-			}
-		*/
+		if contains(args, "exit") {
+			log.Info("Cleanup complete. See you later, grasshopper!")
+			os.Exit(0)
+		}
 	},
 }
 

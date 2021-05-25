@@ -80,7 +80,7 @@ var initCmd = &cobra.Command{
 		}
 
 		// validate authentication
-		userData, err := validateAuth(authPath)
+		user, err := validateAuth(authPath)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to validate authentication")
@@ -90,20 +90,20 @@ var initCmd = &cobra.Command{
 		}
 
 		// concatenate personal and team projects
-		projects := userData.Projects
+		projects := user.Projects
 		if len(projects) == 0 {
 			log.Fatal("We Failed to find any projects related to this account, go to https://console.nhost.io/new and create one.")
 		}
 
 		// if user is part of teams which have projects, append them as well
-		teams := userData.Teams
+		teams := user.Teams
 
 		for _, team := range teams {
 
 			// check if particular team has projects
-			if len(team.Projects) > 0 {
+			if len(team.Team.Projects) > 0 {
 				// append the projects
-				projects = append(projects, team.Projects...)
+				projects = append(projects, team.Team.Projects...)
 			}
 		}
 
@@ -291,7 +291,8 @@ var initCmd = &cobra.Command{
 		// load hasura binary
 		//hasuraCLI, _ := exec.LookPath("hasura")
 
-		hasuraCLI, _ := loadBinary("hasura", hasura)
+		hasuraCLI, _ := fetchBinary("hasura")
+
 		commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
 		// create migrations from remote
@@ -851,6 +852,7 @@ func getNhostConfig(options Project) map[string]interface{} {
 		"metadata_directory":          "metadata",
 		"hasura_graphql_version":      options.HasuraGQEVersion,
 		"hasura_graphql_port":         8080,
+		"hasura_console_port":         9695,
 		"hasura_graphql_admin_secret": 123456,
 		"hasura_backend_plus_version": options.BackendVersion,
 		"hasura_backend_plus_port":    9001,

@@ -22,8 +22,8 @@ type (
 
 	// Nhost user structure
 	User struct {
-		Projects []Project
-		Teams    []Team
+		Projects []Project  `json:",omitempty"`
+		Teams    []TeamData `json:",omitempty"`
 	}
 
 	// Nhost project domains
@@ -32,16 +32,20 @@ type (
 	}
 
 	// Nhost individual team structure
+	TeamData struct {
+		Team Team `json:",omitempty"`
+	}
+
 	Team struct {
-		Name     string
-		Projects []Project
+		Name     string    `json:",omitempty"`
+		Projects []Project `json:",omitempty"`
 	}
 
 	// Nhost project structure
 	Project struct {
 		ID                          string                   `json:"id"`
 		UserID                      string                   `json:"user_id"`
-		Team                        Team                     `json:"team,omitempty"`
+		Team                        Team                     `json:",omitempty"`
 		TeamID                      string                   `json:"team_id,omitempty"`
 		Name                        string                   `json:"name"`
 		HasuraGQEVersion            string                   `json:"hasura_gqe_version,omitempty"`

@@ -103,8 +103,7 @@ var devCmd = &cobra.Command{
 			<-c
 			log.Error("Interrupted by signal")
 			hasuraConsoleSpawnProcess.Kill()
-			downCmd.Run(cmd, args)
-			log.Info("Cleanup complete. See you later, grasshopper!")
+			downCmd.Run(cmd, []string{"exit"})
 			os.Exit(1)
 		}()
 
@@ -112,11 +111,12 @@ var devCmd = &cobra.Command{
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to read Nhost config")
-			downCmd.Run(cmd, args)
+			downCmd.Run(cmd, []string{"exit"})
 		}
 
 		ports := []string{
 			"hasura_graphql_port",
+			"hasura_console_port",
 			"hasura_backend_plus_port",
 			"postgres_port",
 			"minio_port",
@@ -128,8 +128,6 @@ var devCmd = &cobra.Command{
 		for _, port := range ports {
 			mappedPorts = append(mappedPorts, fmt.Sprintf("%v", nhostConfig[port]))
 		}
-
-		mappedPorts = append(mappedPorts, "9695")
 
 		freePorts := getFreePorts(mappedPorts)
 
@@ -149,15 +147,15 @@ var devCmd = &cobra.Command{
 		nhostServices, err := getContainerConfigs(docker, ctx, nhostConfig, dotNhost)
 		if err != nil {
 			log.Debug(err)
-			log.Error("Failed to generate container configurations")
 			downCmd.Run(cmd, args)
+			log.Fatal("Failed to generate container configurations")
 		}
 
 		for _, container := range nhostServices {
 			if err = runContainer(docker, ctx, container); err != nil {
 				log.Debug(err)
 				log.Errorf("Failed to start %v container", container.ID)
-				downCmd.Run(cmd, args)
+				downCmd.Run(cmd, []string{"exit"})
 			}
 			log.Debugf("Container %s created", container.ID)
 		}
@@ -172,14 +170,14 @@ var devCmd = &cobra.Command{
 			if err != nil {
 				log.Debug(err)
 				log.Error("Failed to create docker api config")
-				downCmd.Run(cmd, args)
+				downCmd.Run(cmd, []string{"exit"})
 			}
 
 			err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
 			if err != nil {
 				log.Debug(err)
 				log.Error("Failed to write backend docker-compose config")
-				downCmd.Run(cmd, args)
+				downCmd.Run(cmd, []string{"exit"})
 			}
 		}
 
@@ -235,7 +233,8 @@ var devCmd = &cobra.Command{
 		healthCmd.Run(cmd, args)
 
 		// prepare and load hasura binary
-		hasuraCLI, _ := loadBinary("hasura", hasura)
+		hasuraCLI, _ := fetchBinary("hasura")
+		//hasuraCLI := path.Join("assets", "hasura")
 
 		commandOptions := []string{
 			"--endpoint",
@@ -260,7 +259,7 @@ var devCmd = &cobra.Command{
 			log.Debug(err)
 			log.Debug(string(output))
 			log.Error("Failed to apply fresh hasura migrations")
-			downCmd.Run(cmd, args)
+			downCmd.Run(cmd, []string{"exit"})
 		}
 
 		files, err := ioutil.ReadDir(path.Join(nhostDir, "seeds"))
@@ -268,7 +267,7 @@ var devCmd = &cobra.Command{
 			log.Debug(err)
 			log.Debug(string(output))
 			log.Error("Failed to read migrations directory")
-			downCmd.Run(cmd, args)
+			downCmd.Run(cmd, []string{"exit"})
 		}
 
 		if firstRun && len(files) > 0 {
@@ -290,7 +289,7 @@ var devCmd = &cobra.Command{
 				log.Debug(err)
 				log.Debug(string(output))
 				log.Error("Failed to apply seed data")
-				downCmd.Run(cmd, args)
+				downCmd.Run(cmd, []string{"exit"})
 			}
 		}
 
@@ -309,38 +308,25 @@ var devCmd = &cobra.Command{
 			log.Debug(string(output))
 			log.Debug(err)
 			log.Error("Failed to apply fresh metadata")
-			downCmd.Run(cmd, args)
+			downCmd.Run(cmd, []string{"exit"})
 		}
 
-		/*
-			// detect OS and launch browser windows
-
-			switch runtime.GOOS {
-			case "linux":
-				err = exec.Command("xdg-open", url).Start()
-			case "windows":
-				err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-			case "darwin":
-				err = exec.Command("open", url).Start()
-			default:
-				err = fmt.Errorf("unsupported platform")
-			}
-			if err != nil {
-				log.Fatal(err)
-			}
-		*/
-
-		log.Info("Local Nhost development environment is now active\n")
+		log.Info("Local Nhost development environment is now active")
 		fmt.Println()
 
 		log.Infof("GraphQL API: http://localhost:%v/v1/graphql", nhostConfig["hasura_graphql_port"])
 		log.Infof("Auth & Storage: http://localhost:%v", nhostConfig["hasura_backend_plus_port"])
+		fmt.Println()
+
+		log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig["minio_port"])
+		log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig["postgress_port"])
+		fmt.Println()
 
 		if nhostConfig["startAPI"].(bool) {
 			log.Infof("Custom API: http://localhost:%v", nhostConfig["api_port"])
 		}
 
-		log.Info("Launching Hasura console http://localhost:9695")
+		log.Infof("Launching Hasura console http://localhost:%v", nhostConfig["hasura_console_port"])
 		fmt.Println()
 
 		log.Warn("Use Ctrl + C to stop running evironment")
@@ -355,7 +341,7 @@ var devCmd = &cobra.Command{
 				"--admin-secret",
 				fmt.Sprintf(`%v`, nhostConfig["hasura_graphql_admin_secret"]),
 				"--console-port",
-				"9695",
+				fmt.Sprintf("%v", nhostConfig["hasura_console_port"]),
 			},
 			Dir: nhostDir,
 		}
@@ -533,10 +519,10 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				fmt.Sprintf("POSTGRES_USER=%v", options["postgres_user"]),
 				fmt.Sprintf("POSTGRES_PASSWORD=%v", options["postgres_password"]),
 			},
-			ExposedPorts: nat.PortSet{nat.Port("5432"): struct{}{}},
+			ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%v", options["postgres_port"])): struct{}{}},
 		},
 		&container.HostConfig{
-			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port("5432"): {{HostIP: "127.0.0.1", HostPort: "5432"}}},
+			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", options["postgres_port"])): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", options["postgres_port"])}}},
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
@@ -560,7 +546,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	// prepare env variables for following container
 	containerVariables := []string{
 		fmt.Sprintf("HASURA_GRAPHQL_SERVER_PORT=%v", options["hasura_graphql_port"]),
-		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:5432/postgres`, options["postgres_user"], options["postgres_password"])),
+		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, options["postgres_user"], options["postgres_password"], options["postgres_port"])),
 		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", options["hasura_graphql_admin_secret"]),

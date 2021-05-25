@@ -87,9 +87,9 @@ var lsCmd = &cobra.Command{
 		for _, team := range teams {
 
 			// check if particular team has projects
-			if len(team.Projects) > 0 {
+			if len(team.Team.Projects) > 0 {
 				// append the projects
-				projects = append(projects, team.Projects...)
+				projects = append(projects, team.Team.Projects...)
 			}
 		}
 
@@ -148,9 +148,9 @@ var pullCmd = &cobra.Command{
 		for _, team := range teams {
 
 			// check if particular team has projects
-			if len(team.Projects) > 0 {
+			if len(team.Team.Projects) > 0 {
 				// append the projects
-				projects = append(projects, team.Projects...)
+				projects = append(projects, team.Team.Projects...)
 			}
 		}
 

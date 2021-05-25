@@ -27,11 +27,15 @@ package cmd
 import (
 	"bytes"
 	_ "embed"
+	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strings"
 	"syscall"
 
@@ -63,9 +67,6 @@ var (
 	cfgFile string
 	log     = logrus.New()
 	DEBUG   bool
-
-	//go:embed assets/hasura
-	hasura []byte
 
 	LOG_FILE = ""
 
@@ -338,45 +339,78 @@ func getSavedProject() Project {
 }
 
 /*
-// print error and handle VERBOSE
-func Error(data error, message string, fatal bool) {
-	if VERBOSE && data != nil {
-		fmt.Println(Bold + Red + "[ERROR] " + Reset + data.Error())
-	}
 
-	if len(message) > 0 {
-		fmt.Println(Bold + Red + "[ERROR] " + message + Reset)
-	}
-
-	if fatal {
-		os.Exit(1)
-	}
-}
-
-// Print coloured output to console
-func Print(data, color string) {
-
-	selected_color := ""
-
-	switch color {
-	case "success":
-		selected_color = Green
-	case "warn":
-		selected_color = Yellow
-	case "info":
-		selected_color = Cyan
-	case "danger":
-		selected_color = Red
-	}
-
-	//s.Suffix = selected_color + data + Reset
-
-	fmt.Println(Bold + selected_color + "[" + strings.ToUpper(color) + "] " + Reset + data)
+func getAsset(asset string) error {
+	return fs.WalkDir(assets, ".", func(location string, d fs.DirEntry, err error) (string, error) {
+		if err != nil {
+			return "", err
+		}
+		if location == path.Join("", asset) {
+			return location, nil
+		}
+		return "", nil
+	})
 }
 */
 
+func fetchBinary(binary string) (string, error) {
+
+	var url string
+
+	switch binary {
+	case "hasura":
+		url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/v2.0.0-alpha.11/cli-hasura-%v-%v", runtime.GOOS, runtime.GOARCH)
+	}
+
+	if url == "" {
+		return url, errors.New("binary not supported")
+	}
+
+	binaryPath := path.Join(dotNhost, binary)
+
+	// search for installed binary
+	if pathExists(binaryPath) {
+		return binaryPath, nil
+	}
+
+	out, err := os.Create(binaryPath)
+	if err != nil {
+		return "", err
+	}
+
+	defer out.Close()
+
+	if runtime.GOOS == "windows" {
+		url += ".exe"
+	}
+
+	log.WithField("component", fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)).Debugf("Downloading %s binary", binary)
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	log.WithField("component", fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)).Debugf("Writing %s binary", binary)
+
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return "", err
+	}
+	// Change permissions
+	err = os.Chmod(binaryPath, 0777)
+	if err != nil {
+		return "", err
+	}
+
+	return binaryPath, nil
+}
+
 // loads a single binary
 func loadBinary(binary string, data []byte) (string, error) {
+
+	//return path.Join("assets", binary), nil
 
 	log.Debugf("Loading %s binary", binary)
 
@@ -396,6 +430,9 @@ func loadBinary(binary string, data []byte) (string, error) {
 	}
 
 	defer f.Close()
+
+	//n, err := io.Copy(f, data)
+
 	if _, err = f.Write(data); err != nil {
 		log.Fatalf("Failed to create %s binary", binary)
 	}
