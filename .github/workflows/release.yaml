@@ -18,8 +18,8 @@ jobs:
       - name: Generate build files
         uses: thatisuday/go-cross-build@v1
         with:
-            platforms: 'linux/amd64, darwin/amd64, windows/amd64'
-            package: 'nhost'
+            platforms: 'linux/amd64, darwin/amd64'
+            package: ''
             name: 'nhost'
             compress: 'false'
             dest: 'bin'
