@@ -366,7 +366,7 @@ func fetchBinary(binary string) (string, error) {
 		return url, errors.New("binary not supported")
 	}
 
-	binaryPath := path.Join(dotNhost, binary)
+	binaryPath := path.Join(NHOST_DIR, binary)
 
 	// search for installed binary
 	if pathExists(binaryPath) {
