@@ -1,7 +1,13 @@
 # .github/workflows/release.yaml
 
-on: release
 name: Build Release
+
+on:
+  push:
+    branches: [ migration, dev ]
+  pull_request:
+    branches: [ canary ]
+    
 jobs:
   release-linux-386:
     name: release linux/386
