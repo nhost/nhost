@@ -94,6 +94,13 @@ var loginCmd = &cobra.Command{
 				}
 			}
 
+			// create the auth file path if it doesn't exist
+			err := os.MkdirAll(NHOST_DIR, os.ModePerm)
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to initialize Nhost root directory: ", NHOST_DIR)
+			}
+
 			// create the auth file to write it
 			f, err := os.Create(authPath)
 			if err != nil {
