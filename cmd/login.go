@@ -46,9 +46,12 @@ var loginCmd = &cobra.Command{
 	Long:  `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// if user is already logged in, ask to logout
-		if _, err := validateAuth(authPath); err == nil {
-			log.Fatal("You are already logged in, first logout with `nhost logout`")
+		if pathExists(authPath) {
+
+			// if user is already logged in, ask to logout
+			if _, err := validateAuth(authPath); err == nil {
+				log.Fatal("You are already logged in, first logout with `nhost logout`")
+			}
 		}
 
 		if email == "" {
