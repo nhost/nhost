@@ -9,17 +9,16 @@ on:
     branches: [ canary, main ]
     
 jobs:
-  generate:
-    name: Generate cross-platform builds
+  release-linux-amd64:
+    name: release linux/amd64
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v2
-      - name: Generate build files
-        uses: thatisuday/go-cross-build@v1
-        with:
-            platforms: 'linux/amd64, darwin/amd64'
-            package: ''
-            name: 'nhost'
-            compress: 'false'
-            dest: 'bin'
+    - uses: actions/checkout@v2
+    - uses: wangyoucao577/go-release-action@v1.18
+      with:
+        github_token: ${{ secrets.ACTIONS_TOKEN }}
+        goos: linux
+        goarch: amd64
+        goversion: 1.16
+        binary_name: nhost
+        extra_files: LICENSE
