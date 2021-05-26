@@ -24,12 +24,12 @@ SOFTWARE.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+	"text/tabwriter"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -107,9 +107,19 @@ var lsCmd = &cobra.Command{
 		}
 
 		// print the filtered env vars
-		envs, _ := json.Marshal(savedProject.ProjectEnvVars)
-		log.Info("local env vars are as followed: ")
-		fmt.Println(string(envs))
+		fmt.Println()
+		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+
+		fmt.Fprintln(w, "key\t\tvalue")
+		fmt.Fprintln(w, "---\t\t-----")
+		for _, envRow := range savedProject.ProjectEnvVars {
+			fmt.Fprintf(w, "%v\t\t%v", envRow["name"], envRow["dev_value"])
+			fmt.Fprintln(w)
+		}
+		w.Flush()
+		fmt.Println()
+
+		log.Info("You can edit these variables in ", path.Base(envFile))
 	},
 }
 
@@ -167,7 +177,7 @@ var pullCmd = &cobra.Command{
 			}
 		}
 
-		log.Info("Downloading development environment variables for project: %s", savedProject.Name)
+		log.Infof("Downloading development environment variables for project: %s", savedProject.Name)
 
 		envData, err := ioutil.ReadFile(envFile)
 		if err != nil {
@@ -180,18 +190,20 @@ var pullCmd = &cobra.Command{
 		var envMap []map[string]interface{}
 		for index, row := range envRows {
 
-			localParsedRow := strings.Split(row, "=")
-			localKey, localValue := localParsedRow[0], localParsedRow[1]
+			if strings.Contains(row, "=") {
+				localParsedRow := strings.Split(row, "=")
+				localKey, localValue := localParsedRow[0], localParsedRow[1]
 
-			// copy the pair as it ias
-			envMap = append(envMap, map[string]interface{}{
-				localKey: localValue,
-			})
+				// copy the pair as it is
+				envMap = append(envMap, map[string]interface{}{
+					localKey: localValue,
+				})
 
-			// if the same key is in response from remote, then override the previously copied value
-			for _, remoteVarRow := range savedProject.ProjectEnvVars {
-				if remoteVarRow["name"] == localKey {
-					envMap[index][localKey] = remoteVarRow["dev_value"]
+				// if the same key is in response from remote, then override the previously copied value
+				for _, remoteVarRow := range savedProject.ProjectEnvVars {
+					if remoteVarRow["name"] == localKey {
+						envMap[index][localKey] = remoteVarRow["dev_value"]
+					}
 				}
 			}
 		}

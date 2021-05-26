@@ -63,23 +63,30 @@ type (
 
 	// Container service
 	Container struct {
-		Image       string                 `yaml:",omitempty"`
-		Name        string                 "container_name"
-		Command     []string               `yaml:",omitempty"`
-		Entrypoint  string                 `yaml:",omitempty"`
-		Environment map[string]interface{} `yaml:",omitempty"`
-		Ports       []string               `yaml:",omitempty"`
-		Restart     string                 `yaml:",omitempty"`
-		User        string                 `yaml:",omitempty"`
-		Volumes     []string               `yaml:",omitempty"`
-		DependsOn   []string               `yaml:"depends_on,omitempty"`
-		EnvFile     []string               `yaml:"env_file,omitempty"`
-		Build       map[string]string      `yaml:",omitempty"`
+		Image               string
+		Name                string
+		Command             []string
+		Entrypoint          string
+		Environment         map[string]interface{}
+		Ports               []string
+		Restart             string
+		User                string
+		Volumes             []string
+		DependsOn           []string `yaml:"depends_on,omitempty"`
+		EnvFile             []string `yaml:"env_file,omitempty"`
+		Build               map[string]string
+		HealthCheckEndpoint string
 	}
 
 	// Container services
 	Services struct {
 		Containers map[string]Container `yaml:"services,omitempty"`
-		Version    string               `yaml:",omitempty"`
+		Version    string
+	}
+
+	ExecResult struct {
+		StdOut   string
+		StdErr   string
+		ExitCode int
 	}
 )

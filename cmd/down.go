@@ -27,8 +27,10 @@ import (
 	"context"
 	"io"
 	"os"
+	"os/signal"
 	"path"
 	"strings"
+	"syscall"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -41,6 +43,14 @@ var downCmd = &cobra.Command{
 	Short: "Stop and remove local Nhost backend started by \"nhost dev\"",
 	Long:  "Stop and remove local Nhost backend started by \"nhost dev\".",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// add cleanup action in case of signal interruption
+		c := make(chan os.Signal)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-c
+			log.Warn("Please wait while we cleanup")
+		}()
 
 		// connect to docker client
 		ctx := context.Background()
@@ -104,7 +114,7 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 	log.Debug("Fetching running containers with names having the prefix: ", prefix)
 
 	var response []types.Container
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
 	for _, container := range containers {
 		if strings.Contains(container.Names[0], prefix) {
 			response = append(response, container)

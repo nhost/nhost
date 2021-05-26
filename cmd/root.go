@@ -33,11 +33,11 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/exec"
 	"path"
 	"runtime"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/manifoldco/promptui"
 	"github.com/mattn/go-colorable"
@@ -67,6 +67,7 @@ var (
 	cfgFile string
 	log     = logrus.New()
 	DEBUG   bool
+	JSON    bool
 
 	LOG_FILE = ""
 
@@ -105,19 +106,23 @@ var (
 	 /_/ |_/_/ /_/\____/____/\__/  
 								   
 	 
-  Nhost is a full-fledged serverless backend for Jamstack and client-serverless applications. 
+  Nhost.io is a full-fledged serverless backend for Jamstack and client-serverless applications. 
   It enables developers to build dynamic websites without having to worry about infrastructure, 
   data storage, data access and user management.
   Nhost was inspired by Google Firebase, but uses SQL, GraphQL and has no vendor lock-in.
  
   Or simply put, it's an open source firebase alternative with GraphQL, which allows 
   passionate developers to build apps fast without managing infrastructure - from MVP to global scale.
+	
+  Ask your questions: https://github.com/nhost/nhost/discussions/new
+  Chat with our team: https://discord.com/invite/9V7Qb2U
+  Open feature requests or report bugs: https://github.com/nhost/cli/issues
   `,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 
 			// reset the umask before creating directories anywhere in this program
 			// otherwise applied permissions, might get affected
-			syscall.Umask(0)
+			resetUmask()
 
 			// initialize the logger for all commands,
 			// including subcommands
@@ -137,6 +142,18 @@ var (
 				log.SetLevel(logrus.DebugLevel)
 			}
 
+			// if JSON flag has been supplied,
+			// format the logs to JSON
+			if JSON {
+				log.SetFormatter(&logrus.JSONFormatter{
+					TimestampFormat: time.Stamp,
+				})
+			} else {
+
+				// otherwise set the pre-configured formatter
+				log.SetFormatter(formatter)
+			}
+
 			// if the user has specified a log write,
 			//simultaneously write logs to that file as well
 			// along with stdOut
@@ -154,7 +171,6 @@ var (
 				log.SetOutput(mw)
 			}
 
-			log.SetFormatter(formatter)
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 
@@ -238,26 +254,19 @@ func generateDocumentation() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	/*
-		// Initialize binaries
-		p, _ := loadBinary("hasura", hasura)
-		r, _ := exec.Command(p).Output()
-		fmt.Println(string(r))
-	*/
-
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nhost.yaml)")
 
-	//rootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "author name for copyright attribution")
+	rootCmd.PersistentFlags().BoolVarP(&JSON, "json", "j", false, "Print JSON formatted logs")
 	//rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
 	//rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 	//viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
 	//viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
-	//viper.SetDefault("author", "NAME HERE <EMAIL ADDRESS>")
-	//viper.SetDefault("license", "apache")
+	viper.SetDefault("author", "Mrinal Wahal mrinalwahal@gmail.com")
+	viper.SetDefault("license", "MIT")
 
 	//rootCmd.AddCommand(versionCmd)
 	//rootCmd.AddCommand(initCmd)
@@ -266,6 +275,15 @@ func init() {
 	// when this action is called directly.
 	rootCmd.PersistentFlags().StringVarP(&LOG_FILE, "log-file", "l", "", "Write logs to given file")
 	rootCmd.PersistentFlags().BoolVarP(&DEBUG, "debug", "d", false, "Show debugging level logs")
+}
+
+func resetUmask() {
+
+	// windows doesn't use umask for applying permissions,
+	// so skip it for windows
+	if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+		syscall.Umask(0)
+	}
 }
 
 // begin the front-end initialization procedure
@@ -338,25 +356,16 @@ func getSavedProject() Project {
 	return response
 }
 
-/*
-
-func getAsset(asset string) error {
-	return fs.WalkDir(assets, ".", func(location string, d fs.DirEntry, err error) (string, error) {
-		if err != nil {
-			return "", err
-		}
-		if location == path.Join("", asset) {
-			return location, nil
-		}
-		return "", nil
-	})
-}
-*/
-
+// if the required binary exists in $HOME/.nhost
+// this function returns it's exact path
+// and if the binary doesn't exist,
+// it downloads it from specifically supplied URL
+// based on user's OS and ARCH
 func fetchBinary(binary string) (string, error) {
 
 	var url string
 
+	// save binary specific URLs
 	switch binary {
 	case "hasura":
 		url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/v2.0.0-alpha.11/cli-hasura-%v-%v", runtime.GOOS, runtime.GOARCH)
@@ -366,6 +375,7 @@ func fetchBinary(binary string) (string, error) {
 		return url, errors.New("binary not supported")
 	}
 
+	// initialize the binary path
 	binaryPath := path.Join(NHOST_DIR, binary)
 
 	// search for installed binary
@@ -373,6 +383,7 @@ func fetchBinary(binary string) (string, error) {
 		return binaryPath, nil
 	}
 
+	// create the binary path
 	out, err := os.Create(binaryPath)
 	if err != nil {
 		return "", err
@@ -380,11 +391,12 @@ func fetchBinary(binary string) (string, error) {
 
 	defer out.Close()
 
+	// update binary download URL depending upon the OS
 	if runtime.GOOS == "windows" {
 		url += ".exe"
 	}
 
-	log.WithField("component", fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)).Debugf("Downloading %s binary", binary)
+	log.WithField("component", fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)).Infof("Downloading %s binary", binary)
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -398,16 +410,23 @@ func fetchBinary(binary string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	// Change permissions
+
+	// Change permissions so that the download file
+	// can become accessible and executable
 	err = os.Chmod(binaryPath, 0777)
+
 	if err != nil {
 		return "", err
 	}
 
+	//return the path at which binary has been
+	// downloaded and saved
 	return binaryPath, nil
 }
 
-// loads a single binary
+/*
+// Legacy method of loading binaries
+// embedded directly into utility binary
 func loadBinary(binary string, data []byte) (string, error) {
 
 	//return path.Join("assets", binary), nil
@@ -457,6 +476,7 @@ func verifyUtility(command string) bool {
 	cmd := exec.Command("command", "-v", command)
 	return cmd.Run() != nil
 }
+*/
 
 // validates whether a given folder/file path exists or not
 func pathExists(filePath string) bool {

@@ -59,6 +59,17 @@ var devCmd = &cobra.Command{
 	Long:  `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// add cleanup action in case of signal interruption
+		c := make(chan os.Signal)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-c
+			log.Error("Interrupted by signal")
+			hasuraConsoleSpawnProcess.Kill()
+			downCmd.Run(cmd, []string{"exit"})
+			os.Exit(1)
+		}()
+
 		log.Info("Initializing dev environment")
 
 		// check if /nhost exists
@@ -80,6 +91,7 @@ var devCmd = &cobra.Command{
 			log.Debug(err)
 			log.Fatal("Failed to connect to docker client")
 		}
+		defer docker.Close()
 
 		// check if this is the first time dev env is running
 		firstRun := !pathExists(path.Join(dotNhost, "db_data"))
@@ -95,17 +107,6 @@ var devCmd = &cobra.Command{
 
 		// shut down any existing Nhost containers
 		downCmd.Run(cmd, args)
-
-		// add cleanup action in case of signal interruption
-		c := make(chan os.Signal)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		go func() {
-			<-c
-			log.Error("Interrupted by signal")
-			hasuraConsoleSpawnProcess.Kill()
-			downCmd.Run(cmd, []string{"exit"})
-			os.Exit(1)
-		}()
 
 		nhostConfig, err := readYaml(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
@@ -180,54 +181,6 @@ var devCmd = &cobra.Command{
 				downCmd.Run(cmd, []string{"exit"})
 			}
 		}
-
-		/*
-			// skip the use of docker-compose since docker sdk is being used
-
-			nhostBackendYaml, _ := generateNhostBackendYaml(nhostConfig)
-
-			// create docker-compose.yaml
-			nhostBackendYamlFilePath := path.Join(dotNhost, "docker-compose.yaml")
-			_, err = os.Create(nhostBackendYamlFilePath)
-			if err != nil {
-				Error(err, "failed to create docker-compose config", false)
-			}
-
-			// write nhost backend configuration to docker-compose.yaml to auth file
-			config, _ := yaml.Marshal(nhostBackendYaml)
-
-			err = writeToFile(nhostBackendYamlFilePath, string(config), "end")
-			if err != nil {
-				Error(err, "failed to write backend docker-compose config", true)
-			}
-
-				// get docker-compose path
-				dockerComposeCLI, _ := exec.LookPath("docker-compose")
-
-				// validate compose file
-				execute := exec.Cmd{
-					Path: dockerComposeCLI,
-					Args: []string{dockerComposeCLI, "-f", nhostBackendYamlFilePath, "config"},
-				}
-
-				output, err := execute.CombinedOutput()
-				if err != nil {
-					Error(err, "failed to validate docker-compose config", false)
-					downCmd.Run(cmd, args)
-				}
-
-				// run docker-compose up
-				execute = exec.Cmd{
-					Path: dockerComposeCLI,
-					Args: []string{dockerComposeCLI, "-f", "nhostBackendYamlFilePath", "up", "-d", "--build"},
-				}
-
-				output, err = execute.CombinedOutput()
-				if err != nil {
-					Error(err, "failed to start docker-compose", false)
-					downCmd.Run(cmd, args)
-				}
-		*/
 
 		log.Info("Conducting a quick health check on all freshly created services")
 		healthCmd.Run(cmd, args)
@@ -319,7 +272,7 @@ var devCmd = &cobra.Command{
 		fmt.Println()
 
 		log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig["minio_port"])
-		log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig["postgress_port"])
+		log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig["postgres_port"])
 		fmt.Println()
 
 		if nhostConfig["startAPI"].(bool) {

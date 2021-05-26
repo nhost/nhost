@@ -133,7 +133,7 @@ var initCmd = &cobra.Command{
 			templates := promptui.SelectTemplates{
 				Active:   `✔ {{ .Name | cyan | bold }}`,
 				Inactive: `   {{ .Name | cyan }}`,
-				Selected: `{{ "✔" | green | bold }} {{ "Project" | bold }}: {{ .Name | cyan }}`,
+				Selected: `{{ "✔" | green | bold }} {{ "Selected Project" | bold }}: {{ .Name | cyan }}`,
 			}
 
 			// configure interative prompt
@@ -525,7 +525,7 @@ var initCmd = &cobra.Command{
 			log.Error("Failed to write project environment variables to .env.development file", false)
 		}
 
-		log.Info("Nhost backend succesfully initialized")
+		log.Info("Nhost backend successfully initialized")
 
 		log.Info("See you later, grasshopper!")
 
