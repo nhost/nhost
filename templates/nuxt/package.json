@@ -1,0 +1,20 @@
+{
+  "name": "nuxt",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate"
+  },
+  "dependencies": {
+    "@nhost/nuxt": "^0.1.4",
+    "@nuxtjs/apollo": "^4.0.1-rc.5",
+    "core-js": "^3.9.1",
+    "graphql-tag": "^2.12.4",
+    "nhost-js-sdk": "^3.1.0",
+    "nuxt": "^2.15.3"
+  },
+  "devDependencies": {}
+}
