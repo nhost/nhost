@@ -57,7 +57,9 @@ respective containers and service-exclusive health endpoints.`,
 					"-h",
 					"localhost",
 					"-p",
-					fmt.Sprintf("%v", nhostConfig["postgres_port"]), "-U", fmt.Sprintf("%v", nhostConfig["postgres_user"]),
+					fmt.Sprintf("%v", nhostConfig["postgres_port"]),
+					"-U",
+					fmt.Sprintf("%v", nhostConfig["postgres_user"]),
 				},
 			},
 			{
@@ -74,14 +76,13 @@ respective containers and service-exclusive health endpoints.`,
 			},
 		}
 
-		/*
-			services := map[string]string{
-				"nhost_postgres": "",
-				"nhost_hbp":      fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig["hasura_backend_plus_port"]),
-				"nhost_hasura":   fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig["hasura_graphql_port"]),
-				"nhost_minio":    fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", nhostConfig["minio_port"]),
-			}
-		*/
+		// Add API container if it's activated in config
+		if nhostConfig["startAPI"] != nil && nhostConfig["startAPI"].(bool) {
+			services = append(services, Container{
+				Name:                "nhost_api",
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig["api_port"]),
+			})
+		}
 
 		// connect to docker client
 		ctx := context.Background()
@@ -98,6 +99,10 @@ respective containers and service-exclusive health endpoints.`,
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
 		}
+
+		// use a flag to determine whether all
+		// health checks have been passed or not
+		ok := true
 
 		for _, service := range services {
 
@@ -141,14 +146,22 @@ respective containers and service-exclusive health endpoints.`,
 				log.WithField("component", service.Name).Info("Container is active and responding")
 			} else {
 				log.WithField("component", service.Name).Error("Container is not responding")
+				ok = false
 			}
 			if serviceValidated {
 				log.WithField("component", service.Name).Info("Service specific health check successful")
 			} else {
 				log.WithField("component", service.Name).Error("Service specific health check failed")
+				ok = false
 			}
 		}
-		// add health checks for API container too
+
+		// if even a single health check has failed,
+		// initiate cleanup
+		if !ok {
+			log.Error("Health checks failed")
+			downCmd.Run(cmd, []string{"exit"})
+		}
 	},
 }
 

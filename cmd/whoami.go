@@ -37,7 +37,7 @@ to quickly create a Cobra application.`,
 			log.Fatal("Failed to fetch authentication credentials. Please login with `nhost login`")
 		}
 
-		log.Info("You are logged in with email ", credentials.Email)
+		log.WithField("component", "email").Info(credentials.Email)
 	},
 }
 

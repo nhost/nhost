@@ -242,7 +242,11 @@ var initCmd = &cobra.Command{
 		}
 
 		defer f.Close()
-		if _, err = f.WriteString(".nhost\napi/node_modules"); err != nil {
+		if _, err = f.WriteString(
+			fmt.Sprintf("%v\n%v\n%v",
+				path.Base(dotNhost),
+				path.Join("api", "node_modules"),
+				path.Join("frontend", "node_modules"))); err != nil {
 			log.Debug(err)
 			log.Error("Failed to write to .gitignore file")
 		}
@@ -264,10 +268,6 @@ var initCmd = &cobra.Command{
 			// Following was a failed and feeble attempt at creating migration manually
 			// without requiring Hasura CLI
 
-			resp, err := getHasuraMigrations(hasuraEndpoint, adminSecret, []string{"--schema-only"})
-			if err != nil {
-				Error(err, "failed to fetch migrations from remote", true)
-			}
 
 			// generate initial migration dir
 			initMigrationID := xid.New()
@@ -291,12 +291,19 @@ var initCmd = &cobra.Command{
 		// load hasura binary
 		//hasuraCLI, _ := exec.LookPath("hasura")
 
-		hasuraCLI, _ := fetchBinary("hasura")
+		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig["hasura_cli_version"]))
+
+		// Fetch list of all ALLOWED schemas before applying
+		schemas, err := getSchemaList(hasuraEndpoint, adminSecret)
+		if err != nil {
+			log.Debug(err)
+			log.Error("failed to fetch migrations from remote")
+		}
 
 		commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
 		// create migrations from remote
-		migrationArgs := []string{hasuraCLI, "migrate", "create", "init", "--schema", "public,auth", "--from-server"}
+		migrationArgs := []string{hasuraCLI, "migrate", "create", "init", "--schema", strings.Join(schemas, ","), "--from-server"}
 		migrationArgs = append(migrationArgs, commonOptions...)
 
 		execute := exec.Cmd{
@@ -370,7 +377,7 @@ var initCmd = &cobra.Command{
 		// https://hasura.io/docs/1.0/graphql/core/schema/enums.html#creating-an-enum-compatible-table
 
 		// use the saved tables metadata to check whether this project has enum compatible tables
-		fromTables, err := getEnumTablesFromMetadata(path.Join(nhostDir, "metadata", "tables.yaml"))
+		fromTables, err := getEnumTablesFromMetadata(path.Join(nhostDir, nhostConfig["metadata_directory"].(string), "tables.yaml"))
 		if err != nil {
 			log.Debug(err)
 
@@ -536,9 +543,7 @@ var initCmd = &cobra.Command{
 // fetches migrations from remote Hasura server to be applied manually
 func getHasuraMigrations(endpoint, secret string, options []string) (string, error) {
 
-	if VERBOSE {
-		Print("fetching migrations from remote", "info")
-	}
+	log.Info("fetching migrations from remote")
 
 	//Encode the data
 	postBody, _ := json.Marshal(map[string]interface{}{
@@ -570,6 +575,66 @@ func getHasuraMigrations(endpoint, secret string, options []string) (string, err
 	return string(body), nil
 }
 */
+
+func getSchemaList(endpoint, secret string) ([]string, error) {
+
+	log.Debug("Fetching schema list from remote")
+
+	var list []string
+
+	//Encode the data
+	postBody, _ := json.Marshal(map[string]interface{}{
+		"type": "run_sql",
+		"args": map[string]interface{}{
+			"sql": "SELECT schema_name FROM information_schema.schemata;",
+		},
+	})
+
+	req, _ := http.NewRequest(
+		http.MethodPost,
+		endpoint+"/v1/query",
+		bytes.NewBuffer(postBody),
+	)
+
+	req.Header.Set("X-Hasura-Admin-Secret", secret)
+
+	client := http.Client{}
+
+	//Leverage Go's HTTP Post function to make request
+	resp, err := client.Do(req)
+	if err != nil {
+		return list, err
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	var responseData map[string]interface{}
+	json.Unmarshal(body, &responseData)
+
+	// Remove the first row/head and filter schemas from following rows
+	// Following is a sample result:
+	// From the list: [schema_name] [pg_toast] [pg_temp_1] [pg_toast_temp_1] [pg_catalog] [public] [information_schema] [hdb_catalog] [hdb_views] [auth]
+	// Only output: [public]
+	result := responseData["result"].([]interface{})[1:]
+
+	schemasToBeExcluded := []string{"information_schema", "auth", "storage"}
+
+	for _, value := range result {
+
+		parsedValue := value.([]interface{})[0].(string)
+
+		if !strings.Contains(parsedValue, "pg_") &&
+			!strings.Contains(parsedValue, "hdb_") &&
+			!contains(schemasToBeExcluded, parsedValue) {
+			list = append(list, value.([]interface{})[0].(string))
+		}
+	}
+
+	return list, nil
+}
+
 func getExtensions(endpoint, secret string) ([]string, error) {
 
 	log.Debug("Fetching extensions")
@@ -850,6 +915,7 @@ func getNhostConfig(options Project) map[string]interface{} {
 	return map[string]interface{}{
 		"version":                     2,
 		"metadata_directory":          "metadata",
+		"hasura_cli_version":          "v2.0.0-alpha.11",
 		"hasura_graphql_version":      options.HasuraGQEVersion,
 		"hasura_graphql_port":         8080,
 		"hasura_console_port":         9695,

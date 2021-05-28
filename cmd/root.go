@@ -185,13 +185,24 @@ var (
 				// start the "init" command
 				initCmd.Run(cmd, args)
 
-				/*
-					// provide the user with boilerplate options
-					if err := provideBoilerplateOptions(); err != nil {
-						log.Debug(err)
-						log.Fatal("Failed to provide boilerplate options")
-					}
-				*/
+				log.Info("Let's talk about your front-end now, shall we?\n")
+
+				// configure interative prompt
+				frontendPrompt := promptui.Prompt{
+					Label:     "Do you want to setup a front-end project template?",
+					IsConfirm: true,
+				}
+
+				frontendApproval, err := frontendPrompt.Run()
+				if err != nil {
+					log.Debug(err)
+					log.Fatal("Input prompt aborted")
+				}
+
+				if strings.ToLower(frontendApproval) == "y" || strings.ToLower(frontendApproval) == "yes" {
+
+					templatesCmd.Run(cmd, args)
+				}
 
 				// start the "dev" command
 				devCmd.Run(cmd, args)
@@ -286,54 +297,6 @@ func resetUmask() {
 	}
 }
 
-// begin the front-end initialization procedure
-func provideBoilerplateOptions() error {
-
-	log.Info("Let's talk about your front-end now, shall we?\n")
-
-	// configure interative prompt
-	frontendPrompt := promptui.Prompt{
-		Label:     "Do you want to setup a front-end project boilerplate?",
-		IsConfirm: true,
-	}
-
-	frontendApproval, err := frontendPrompt.Run()
-	if err != nil {
-		log.Debug(err)
-		log.Fatal("Input prompt aborted")
-	}
-
-	if strings.ToLower(frontendApproval) == "y" || strings.ToLower(frontendApproval) == "yes" {
-
-		// propose boilerplate options
-		boilerplatePrompt := promptui.Select{
-			Label: "Select Boilerplate",
-			Items: []string{"NuxtJs", "NextJs"},
-		}
-
-		_, result, err := boilerplatePrompt.Run()
-		if err != nil {
-			log.Debug(err)
-			log.Info("Alright mate, next time maybe!")
-		}
-
-		log.Info("Generating frontend code boilerplate")
-
-		if result == "NuxtJs" {
-
-			savedProject := getSavedProject()
-			if err = generateNuxtBoilerplate("frontend", path.Join(workingDir, "frontend"), "hasura-06e7a6e4.nhost.app", savedProject.ProjectDomains.Hasura); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to initialize nuxt project")
-			}
-		} else {
-			log.Info("We are still building the boilerplate for that one. We've noted your interest in this feature.")
-		}
-	}
-
-	return err
-}
-
 func getSavedProject() Project {
 
 	var response Project
@@ -361,14 +324,14 @@ func getSavedProject() Project {
 // and if the binary doesn't exist,
 // it downloads it from specifically supplied URL
 // based on user's OS and ARCH
-func fetchBinary(binary string) (string, error) {
+func fetchBinary(binary string, version string) (string, error) {
 
 	var url string
 
 	// save binary specific URLs
 	switch binary {
 	case "hasura":
-		url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/v2.0.0-alpha.11/cli-hasura-%v-%v", runtime.GOOS, runtime.GOARCH)
+		url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, runtime.GOARCH)
 	}
 
 	if url == "" {

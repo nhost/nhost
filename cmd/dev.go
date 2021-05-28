@@ -59,6 +59,9 @@ var devCmd = &cobra.Command{
 	Long:  `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// complex, _ := time.ParseDuration("1h10m10s")
+		// func (cli *Client) ContainerRestart(ctx context.Context, containerID string, timeout *time.Duration) error
+
 		// add cleanup action in case of signal interruption
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -186,7 +189,8 @@ var devCmd = &cobra.Command{
 		healthCmd.Run(cmd, args)
 
 		// prepare and load hasura binary
-		hasuraCLI, _ := fetchBinary("hasura")
+		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig["hasura_cli_version"]))
+
 		//hasuraCLI := path.Join("assets", "hasura")
 
 		commandOptions := []string{
@@ -385,7 +389,7 @@ func portAvaiable(port string) bool {
 
 func getDockerApiTemplate() string {
 	return `
-FROM nhost/nodeapi:v0.2.7
+FROM nhost/nodeapi:latest
 WORKDIR /usr/src/app
 COPY api ./api
 RUN ./install.sh
@@ -494,6 +498,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	)
 
 	if err != nil {
+		log.Debug(err)
 		return containers, err
 	}
 
@@ -510,7 +515,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, options["hasura_graphql_port"])),
 		"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
 		fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost_hbp:%v`, options["hasura_backend_plus_port"])),
-		fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://nhost_api:%v`, options["api_port"])),
+		fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://nhost-api:%v`, options["api_port"])),
 	}
 	containerVariables = append(containerVariables, envVars...)
 
@@ -518,6 +523,14 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	if options["graphql_jwt_key"] != nil {
 		containerVariables = append(containerVariables,
 			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options["graphql_jwt_key"])))
+	}
+
+	// if API container has to be loaded,
+	// expose it to the links as well
+
+	links := []string{"nhost_postgres:nhost-postgres"}
+	if options["startAPI"] != nil && options["startAPI"].(bool) {
+		links = append(links, "nhost_api:nhost-api")
 	}
 
 	graphqlEngineContainer, err := client.ContainerCreate(
@@ -534,7 +547,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		&container.HostConfig{
-			Links: []string{"nhost_postgres:nhost-postgres"},
+			Links: links,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(options["hasura_graphql_port"].(int))): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(options["hasura_graphql_port"].(int))}},
@@ -620,6 +633,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		fmt.Sprintf("PORT=%v", options["hasura_backend_plus_port"]),
 		"USER_FIELDS=''",
 		"USER_REGISTRATION_AUTO_ACTIVE=true",
+		fmt.Sprintf("DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, options["postgres_user"], options["postgres_password"], options["postgres_port"])),
 		fmt.Sprintf("HASURA_GRAPHQL_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"])),
 		fmt.Sprintf("HASURA_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"])),
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", options["hasura_graphql_admin_secret"]),
@@ -686,7 +700,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		&container.HostConfig{
-			Links: []string{"nhost_hasura:nhost-graphql-engine", "nhost_minio:nhost-minio"},
+			Links: []string{"nhost_hasura:nhost-graphql-engine", "nhost_minio:nhost-minio", "nhost_postgres:nhost-postgres"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(options["hasura_backend_plus_port"].(int))): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(options["hasura_backend_plus_port"].(int))}}},
@@ -719,7 +733,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			fmt.Sprintf("NHOST_HASURA_ADMIN_SECRET=%v", options["hasura_graphql_admin_secret"]),
 			"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
 			fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost-hbp:%v`, options["hasura_backend_plus_port"])),
-			fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://nhost-api:%v`, options["api_port"])),
+			fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://localhost:%v`, options["api_port"])),
 		}
 		containerVariables = append(containerVariables, envVars...)
 

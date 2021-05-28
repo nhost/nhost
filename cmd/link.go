@@ -27,6 +27,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
@@ -90,14 +91,44 @@ var linkCmd = &cobra.Command{
 			log.Fatal("Input prompt failed")
 		}
 
+		// provide confirmation prompt
+		log.Warn("If you linked to the wrong project, you could break your production environment.")
+		log.Info("Therefore we need confirmation you are serious about this.")
+
+		credentials, err := getCredentials(authPath)
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to load authentication credentials")
+		}
+
+		// configure interative prompt
+		confirmationPrompt := promptui.Prompt{
+			Label: "Enter your email to confirm this linking",
+		}
+
+		response, err := confirmationPrompt.Run()
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Input prompt aborted")
+		}
+
+		if strings.ToLower(response) != credentials.Email {
+			log.Fatal("Invalid email. Linking aborted.")
+		}
+
 		// create .nhost, if it doesn't exists
 		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize nhost specific directory")
 		}
 
+		nhostProjectConfigPath := path.Join(dotNhost, "nhost.yaml")
+
+		// first delete any existing nhost.yaml file
+		deletePath(nhostProjectConfigPath)
+
 		// create nhost.yaml to write it
-		f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
+		f, err := os.Create(nhostProjectConfigPath)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to instantiate Nhost auth configuration")
@@ -107,7 +138,7 @@ var linkCmd = &cobra.Command{
 
 		// write the file
 		if err = writeToFile(
-			path.Join(dotNhost, "nhost.yaml"),
+			nhostProjectConfigPath,
 			fmt.Sprintf(`project_id: %s`, selectedProject.ID),
 			"start",
 		); err != nil {
