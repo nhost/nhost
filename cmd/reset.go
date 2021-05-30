@@ -24,6 +24,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"os"
 	"path"
 	"strings"
 
@@ -48,7 +49,7 @@ var resetCmd = &cobra.Command{
 	running on remote.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if !approval {
+		if !approval && !contains(args, "exit") {
 
 			// warn the user of consequences
 			log.Warn("This is irreversible and will remove all installed Nhost config from this project")
@@ -78,10 +79,22 @@ var resetCmd = &cobra.Command{
 				log.Fatal("Failed to delete " + path.Base(dotNhost))
 			}
 
+			if err := deleteAllPaths(path.Join(workingDir, "api")); err != nil {
+				log.Debug(err)
+				log.Warnf("Please delete %s manually", "/api")
+				log.Fatal("Failed to delete " + "/api")
+			}
+
 			if err := deleteAllPaths(nhostDir); err != nil {
 				log.Debug(err)
 				log.Warnf("Please delete %s manually", path.Base(nhostDir))
 				log.Fatal("Failed to delete " + path.Base(nhostDir))
+			}
+
+			if err := deleteAllPaths(path.Join(workingDir, "frontend")); err != nil {
+				log.Debug(err)
+				log.Warnf("Please delete %s manually", "/frontend")
+				log.Fatal("Failed to delete " + "/frontend")
 			}
 
 			if err := deletePath(envFile); err != nil {
@@ -92,7 +105,15 @@ var resetCmd = &cobra.Command{
 		}
 
 		// signify reset completion
-		log.Infof("%s and %s permanently removed from this project", nhostDir, dotNhost)
+		log.Infof("Directories permanently removed from this project: %v, %v, %v, %v, %v",
+			path.Base(nhostDir), path.Base(dotNhost), path.Base(envFile), "/api", "/frontend")
+
+		// if an exit argument has been passed,
+		// provide a graceful exit
+		if contains(args, "exit") {
+			log.Info("Reset complete. See you later, grasshopper!")
+			os.Exit(0)
+		}
 	},
 }
 

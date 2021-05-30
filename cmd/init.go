@@ -35,9 +35,9 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"runtime"
 	"strings"
 
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -54,7 +54,7 @@ type Table struct {
 var (
 
 	// project to initialize
-	projectName string
+	remoteProject string
 )
 
 // initCmd represents the init command
@@ -71,118 +71,24 @@ var initCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		// check if auth file exists
-		if !pathExists(authPath) {
-			log.Debug("Auth credentials not found at: " + authPath)
-
-			// begin login procedure
-			loginCmd.Run(cmd, args)
-		}
-
-		// validate authentication
-		user, err := validateAuth(authPath)
-		if err != nil {
-			log.Debug(err)
-			log.Error("Failed to validate authentication")
-
-			// begin login procedure
-			loginCmd.Run(cmd, args)
-		}
-
-		// concatenate personal and team projects
-		projects := user.Projects
-		if len(projects) == 0 {
-			log.Fatal("We Failed to find any projects related to this account, go to https://console.nhost.io/new and create one.")
-		}
-
-		// if user is part of teams which have projects, append them as well
-		teams := user.Teams
-
-		for _, team := range teams {
-
-			// check if particular team has projects
-			if len(team.Team.Projects) > 0 {
-				// append the projects
-				projects = append(projects, team.Team.Projects...)
-			}
-		}
-
-		var selectedProject Project
-
-		// if user has already passed project_name as a flag,
-		// then iterate through projects and filter that project,
-		// avoiding taking user's choice once again through selection prompt
-		if len(projectName) > 0 {
-
-			for _, remoteProject := range projects {
-				if remoteProject.Name == projectName {
-					selectedProject = remoteProject
-				}
-			}
-		} else {
-
-			if len(projectName) > 0 {
-				log.Errorf("No project found with name %s%s%s", Bold, projectName, Reset)
-			}
-
-			// if project flagged by user is not found in list of projects
-			// fetched from remote, then take user's choice through
-			// selection prompt
-
-			// configure interactive prompt template
-			templates := promptui.SelectTemplates{
-				Active:   `✔ {{ .Name | cyan | bold }}`,
-				Inactive: `   {{ .Name | cyan }}`,
-				Selected: `{{ "✔" | green | bold }} {{ "Selected Project" | bold }}: {{ .Name | cyan }}`,
-			}
-
-			// configure interative prompt
-			prompt := promptui.Select{
-				Label:     "Select project",
-				Items:     projects,
-				Templates: &templates,
-			}
-
-			index, _, err := prompt.Run()
-			selectedProject = projects[index]
-
-			if err != nil {
-				log.Debug(err)
-				log.Fatal("Input prompt failed")
-			}
-		}
-
 		// signify initialization is starting
-		log.Info(fmt.Sprintf("Initializing Nhost project %s%s%s in this directory", Bold, selectedProject.Name, Reset))
+		log.Info("Initializing Nhost project in this directory")
 
 		// create root nhost folder
-		if err = os.MkdirAll(nhostDir, os.ModePerm); err != nil {
+		if err := os.MkdirAll(nhostDir, os.ModePerm); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize root nhost directory")
 		}
 
 		// Create .nhost dir which is used for nhost specific configuration
-		if err = os.MkdirAll(dotNhost, os.ModePerm); err != nil {
+		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize nhost specific directory")
 		}
 
-		f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to write nHost configuration")
-		}
-
-		defer f.Close()
-		if _, err = f.WriteString("project_id: " + selectedProject.ID); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to write to /nhost.yaml")
-		}
-		f.Sync()
-
-		// create /config.yaml file which holds configuration for
+		// create nhost/config.yaml file which holds configuration for
 		// GraphQL engine, PostgreSQL and HBP it is also a requirement for hasura to work
-		f, err = os.Create(path.Join(nhostDir, "config.yaml"))
+		f, err := os.Create(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to write Nhost configuration")
@@ -191,6 +97,8 @@ var initCmd = &cobra.Command{
 		defer f.Close()
 
 		// generate Nhost config
+		var selectedProject Project
+
 		nhostConfig := getNhostConfig(selectedProject)
 
 		// iterate over Nhost config and write every line to yaml file
@@ -252,152 +160,165 @@ var initCmd = &cobra.Command{
 		}
 		f.Sync()
 
-		hasuraEndpoint := "https://" + selectedProject.ProjectDomains.Hasura
-		adminSecret := selectedProject.HasuraGQEAdminSecret
+		// if user has already passed remote_project as a flag,
+		// then fetch list of remote projects,
+		// iterate through those projects and filter that project
+		if len(remoteProject) > 0 {
 
-		// const remoteHasuraVersion = project.hasura_gqe_version
-		// const dockerImage = `nhost/hasura-cli-docker:${remoteHasuraVersion}`
+			// check if auth file exists
+			if !pathExists(authPath) {
+				log.Debug("Auth credentials not found at: " + authPath)
 
-		// clear current migration information from remote
-		if err := clearMigration(hasuraEndpoint, adminSecret); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to clear migrations from remote")
-		}
-
-		/*
-			// Following was a failed and feeble attempt at creating migration manually
-			// without requiring Hasura CLI
-
-
-			// generate initial migration dir
-			initMigrationID := xid.New()
-			initMigrationDir := path.Join(migrationsDir, fmt.Sprintf(`%s_init`, initMigrationID.String()))
-			if err = os.MkdirAll(initMigrationDir, os.ModePerm); err != nil {
-				Error(err, "Failed to create migrations directory", true)
+				// begin login procedure
+				loginCmd.Run(cmd, args)
 			}
 
-			f, err = os.Create(path.Join(initMigrationDir, "up.sql"))
+			// validate authentication
+			user, err := validateAuth(authPath)
 			if err != nil {
-				Error(err, "failed to create initial migration", false)
+				log.Debug(err)
+				log.Error("Failed to validate authentication")
+
+				// begin login procedure
+				loginCmd.Run(cmd, args)
+			}
+
+			// concatenate personal and team projects
+			projects := user.Projects
+			if len(projects) == 0 {
+				log.Info("Go to https://console.nhost.io/new and create a new project")
+				log.Fatal("Failed to find any projects related to this account")
+			}
+
+			// if user is part of teams which have projects, append them as well
+			teams := user.Teams
+
+			for _, team := range teams {
+
+				// check if particular team has projects
+				if len(team.Team.Projects) > 0 {
+					// append the projects
+					projects = append(projects, team.Team.Projects...)
+				}
+			}
+
+			for _, project := range projects {
+				if project.Name == remoteProject {
+					selectedProject = project
+				}
+			}
+
+			if selectedProject.ID == "" {
+				log.Errorf("Remote project with name %v not found", remoteProject)
+
+				// reset the created directories
+				resetCmd.Run(cmd, []string{"exit"})
+			}
+
+			f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to write nHost configuration")
 			}
 
 			defer f.Close()
-			if _, err = f.WriteString(resp); err != nil {
-				Error(err, "failed to create initial migration", false)
+			if _, err = f.WriteString("project_id: " + selectedProject.ID); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to write to /nhost.yaml")
 			}
 			f.Sync()
-		*/
 
-		// load hasura binary
-		//hasuraCLI, _ := exec.LookPath("hasura")
+			hasuraEndpoint := "https://" + selectedProject.ProjectDomains.Hasura
+			adminSecret := selectedProject.HasuraGQEAdminSecret
 
-		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig["hasura_cli_version"]))
+			// const remoteHasuraVersion = project.hasura_gqe_version
+			// const dockerImage = `nhost/hasura-cli-docker:${remoteHasuraVersion}`
 
-		// Fetch list of all ALLOWED schemas before applying
-		schemas, err := getSchemaList(hasuraEndpoint, adminSecret)
-		if err != nil {
-			log.Debug(err)
-			log.Error("failed to fetch migrations from remote")
-		}
-
-		commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
-
-		// create migrations from remote
-		migrationArgs := []string{hasuraCLI, "migrate", "create", "init", "--schema", strings.Join(schemas, ","), "--from-server"}
-		migrationArgs = append(migrationArgs, commonOptions...)
-
-		execute := exec.Cmd{
-			Path: hasuraCLI,
-			Args: migrationArgs,
-			Dir:  nhostDir,
-		}
-		output, err := execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Debug(err)
-			log.Fatal("Failed to create migrations from remote")
-		}
-
-		// // mark this migration as applied (--skip-execution) on the remote server
-		// // so that it doesn't get run again when promoting local
-		// // changes to that environment
-		files, err := ioutil.ReadDir(migrationsDir)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to read migrations directory")
-		}
-
-		var initMigration fs.FileInfo
-		for _, file := range files {
-			if strings.Contains(file.Name(), "init") {
-				initMigration = file
+			// clear current migration information from remote
+			if err := clearMigration(hasuraEndpoint, adminSecret); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to clear migrations from remote")
 			}
-		}
 
-		version := strings.Split(initMigration.Name(), "_")[0]
+			/*
+				// Following was a failed and feeble attempt at creating migration manually
+				// without requiring Hasura CLI
 
-		// apply migrations
-		migrationArgs = []string{hasuraCLI, "migrate", "apply", "--version", version, "--skip-execution"}
-		migrationArgs = append(migrationArgs, commonOptions...)
 
-		execute = exec.Cmd{
-			Path: hasuraCLI,
-			Args: migrationArgs,
-			Dir:  nhostDir,
-		}
+				// generate initial migration dir
+				initMigrationID := xid.New()
+				initMigrationDir := path.Join(migrationsDir, fmt.Sprintf(`%s_init`, initMigrationID.String()))
+				if err = os.MkdirAll(initMigrationDir, os.ModePerm); err != nil {
+					Error(err, "Failed to create migrations directory", true)
+				}
 
-		output, err = execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Debug(err)
-			log.Fatal("Failed to apply created migrations")
-		}
+				f, err = os.Create(path.Join(initMigrationDir, "up.sql"))
+				if err != nil {
+					Error(err, "failed to create initial migration", false)
+				}
 
-		// create metadata from remote
-		//spinner.text = "Create Hasura metadata";
+				defer f.Close()
+				if _, err = f.WriteString(resp); err != nil {
+					Error(err, "failed to create initial migration", false)
+				}
+				f.Sync()
+			*/
 
-		metadataArgs := []string{hasuraCLI, "metadata", "export"}
-		metadataArgs = append(metadataArgs, commonOptions...)
+			// load hasura binary
+			//hasuraCLI, _ := exec.LookPath("hasura")
 
-		execute = exec.Cmd{
-			Path: hasuraCLI,
-			Args: metadataArgs,
-			Dir:  nhostDir,
-		}
+			hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig["hasura_cli_version"]))
 
-		output, err = execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Debug(err)
-			log.Fatal("Failed to export Hasura metadata")
-		}
-
-		// auth.roles and auth.providers plus any enum compatible tables that might exist
-		// all enum compatible tables must contain at least one row
-		// https://hasura.io/docs/1.0/graphql/core/schema/enums.html#creating-an-enum-compatible-table
-
-		// use the saved tables metadata to check whether this project has enum compatible tables
-		fromTables, err := getEnumTablesFromMetadata(path.Join(nhostDir, nhostConfig["metadata_directory"].(string), "tables.yaml"))
-		if err != nil {
-			log.Debug(err)
-
-			// if tables metadata doesn't exit, fetch from API
-			fromTables, err = getEnumTablesFromAPI(hasuraEndpoint, adminSecret)
+			// Fetch list of all ALLOWED schemas before applying
+			schemas, err := getSchemaList(hasuraEndpoint, adminSecret)
 			if err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to fetch for enum tables from Hasura server")
+				log.Error("failed to fetch migrations from remote")
 			}
-		}
 
-		// only add seeds if enum tables exist, otherwise skip this step
-		if len(fromTables) > 0 {
-			seedArgs := []string{hasuraCLI, "seeds", "create", "roles_and_providers"}
-			seedArgs = append(seedArgs, fromTables...)
-			seedArgs = append(seedArgs, commonOptions...)
+			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
+
+			// create migrations from remote
+			migrationArgs := []string{hasuraCLI, "migrate", "create", "init", "--schema", strings.Join(schemas, ","), "--from-server"}
+			migrationArgs = append(migrationArgs, commonOptions...)
 
 			execute := exec.Cmd{
 				Path: hasuraCLI,
-				Args: seedArgs,
+				Args: migrationArgs,
+				Dir:  nhostDir,
+			}
+			output, err := execute.CombinedOutput()
+			if err != nil {
+				log.Debug(string(output))
+				log.Debug(err)
+				log.Fatal("Failed to create migrations from remote")
+			}
+
+			// // mark this migration as applied (--skip-execution) on the remote server
+			// // so that it doesn't get run again when promoting local
+			// // changes to that environment
+			files, err := ioutil.ReadDir(migrationsDir)
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to read migrations directory")
+			}
+
+			var initMigration fs.FileInfo
+			for _, file := range files {
+				if strings.Contains(file.Name(), "init") {
+					initMigration = file
+				}
+			}
+
+			version := strings.Split(initMigration.Name(), "_")[0]
+
+			// apply migrations
+			migrationArgs = []string{hasuraCLI, "migrate", "apply", "--version", version, "--skip-execution"}
+			migrationArgs = append(migrationArgs, commonOptions...)
+
+			execute = exec.Cmd{
+				Path: hasuraCLI,
+				Args: migrationArgs,
 				Dir:  nhostDir,
 			}
 
@@ -405,137 +326,191 @@ var initCmd = &cobra.Command{
 			if err != nil {
 				log.Debug(string(output))
 				log.Debug(err)
-				log.Error("Failed to create seeds for enum tables")
-				log.Warn("Skipping seed creation")
+				log.Fatal("Failed to apply created migrations")
 			}
-		}
 
-		// add extensions to init migration
-		extensions, err := getExtensions(hasuraEndpoint, adminSecret)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to check for enum tables")
-		}
+			// create metadata from remote
+			//spinner.text = "Create Hasura metadata";
 
-		for index, extension := range extensions {
-			extensions[index] = fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %s;`, extension)
-		}
+			metadataArgs := []string{hasuraCLI, "metadata", "export"}
+			metadataArgs = append(metadataArgs, commonOptions...)
 
-		extensionsWriteToFile := strings.Join(extensions, "\n")
+			execute = exec.Cmd{
+				Path: hasuraCLI,
+				Args: metadataArgs,
+				Dir:  nhostDir,
+			}
 
-		// add an additional line break to efficiently shift the buffer
-		extensionsWriteToFile += "\n"
+			output, err = execute.CombinedOutput()
+			if err != nil {
+				log.Debug(string(output))
+				log.Debug(err)
+				log.Fatal("Failed to export Hasura metadata")
+			}
 
-		// concat extensions
-		// extensionsWriteToFile.concat("\n\n");
-		// create or append to .gitignore
-		sqlPath := path.Join(migrationsDir, initMigration.Name(), "up.sql")
+			// auth.roles and auth.providers plus any enum compatible tables that might exist
+			// all enum compatible tables must contain at least one row
+			// https://hasura.io/docs/1.0/graphql/core/schema/enums.html#creating-an-enum-compatible-table
 
-		// write extensions to beginning of SQL file of init migration
-		if err = writeToFile(sqlPath, extensionsWriteToFile, "start"); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to write extensions to SQL file")
-		}
-
-		// add auth.roles to init migration
-		//spinner.text = "Add auth roles to init migration";
-
-		roles, err := getRoles(hasuraEndpoint, adminSecret)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to get hasura roles")
-		}
-
-		rolesSQL := "\nINSERT INTO auth.roles (role)\n    VALUES "
-
-		var rolesMap []string
-		for _, role := range roles {
-			rolesMap = append(rolesMap, fmt.Sprintf(`('%s')`, role))
-		}
-		rolesSQL += fmt.Sprintf("%s;\n\n", strings.Join(rolesMap, ", "))
-
-		// write roles to end of SQL file of init migration
-		if err = writeToFile(sqlPath, rolesSQL, "end"); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to write roles to SQL file")
-		}
-
-		// add auth.providers to init migration
-		//spinner.text = "Add auth providers to init migration";
-
-		providers, err := getProviders(hasuraEndpoint, adminSecret)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to get hasura providers")
-		}
-
-		providersSQL := "\nINSERT INTO auth.providers (provider)\n    VALUES "
-
-		var providersMap []string
-		for _, provider := range providers {
-			providersMap = append(providersMap, fmt.Sprintf(`('%s')`, provider))
-		}
-		providersSQL += fmt.Sprintf("%s;\n\n", strings.Join(providersMap, ", "))
-
-		// write providers to end of SQL file of init migration
-		if err = writeToFile(sqlPath, providersSQL, "end"); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to write providers to SQL file")
-		}
-
-		// write ENV variables to .env.development
-		//spinner.text = "Adding env vars to .env.development"
-
-		// check if .env.development exists, otherwise create it
-		if !pathExists(envFile) {
-			f, err = os.Create(envFile)
+			// use the saved tables metadata to check whether this project has enum compatible tables
+			fromTables, err := getEnumTablesFromMetadata(path.Join(nhostDir, nhostConfig["metadata_directory"].(string), "tables.yaml"))
 			if err != nil {
 				log.Debug(err)
-				log.Warn("Failed to create .env.developement file")
+
+				// if tables metadata doesn't exit, fetch from API
+				fromTables, err = getEnumTablesFromAPI(hasuraEndpoint, adminSecret)
+				if err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to fetch for enum tables from Hasura server")
+				}
 			}
 
-			defer f.Close()
-			/*
-				//avoid writing the extra line at top, otherwise it will create problems afterwards
-				if _, err = f.WriteString("# env vars from Nhost\n"); err != nil {
-					log.Debug(err)
-					log.Error("Failed to write to .env.developement file")
+			// only add seeds if enum tables exist, otherwise skip this step
+			if len(fromTables) > 0 {
+				seedArgs := []string{hasuraCLI, "seeds", "create", "roles_and_providers"}
+				seedArgs = append(seedArgs, fromTables...)
+				seedArgs = append(seedArgs, commonOptions...)
+
+				execute := exec.Cmd{
+					Path: hasuraCLI,
+					Args: seedArgs,
+					Dir:  nhostDir,
 				}
-				f.Sync()
-			*/
-		}
 
-		var envArray []string
-		for _, row := range selectedProject.ProjectEnvVars {
-			envArray = append(envArray, fmt.Sprintf(`%s=%s`, row["name"], row["dev_value"]))
-		}
+				output, err = execute.CombinedOutput()
+				if err != nil {
+					log.Debug(string(output))
+					log.Debug(err)
+					log.Error("Failed to create seeds for enum tables")
+					log.Warn("Skipping seed creation")
+				}
+			}
 
-		envData := strings.Join(envArray, "\n")
+			// add extensions to init migration
+			extensions, err := getExtensions(hasuraEndpoint, adminSecret)
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to check for enum tables")
+			}
 
-		// add required env vars
-		envData += fmt.Sprintf("\nREGISTRATION_CUSTOM_FIELDS=%s\n", selectedProject.HBPRegistrationCustomFields)
+			for index, extension := range extensions {
+				extensions[index] = fmt.Sprintf(`CREATE EXTENSION IF NOT EXISTS %s;`, extension)
+			}
 
-		if len(selectedProject.BackendUserFields) > 0 {
-			envData += fmt.Sprintf("JWT_CUSTOM_FIELDS=%s\n", selectedProject.BackendUserFields)
-		}
+			extensionsWriteToFile := strings.Join(extensions, "\n")
 
-		if len(selectedProject.HBPDefaultAllowedUserRoles) > 0 {
-			envData += fmt.Sprintf("DEFAULT_ALLOWED_USER_ROLES=%s\n", selectedProject.HBPDefaultAllowedUserRoles)
-		}
+			// add an additional line break to efficiently shift the buffer
+			extensionsWriteToFile += "\n"
 
-		if len(selectedProject.HBPAllowedUserRoles) > 0 {
-			envData += fmt.Sprintf("ALLOWED_USER_ROLES=%s\n", selectedProject.HBPAllowedUserRoles)
-		}
+			// concat extensions
+			// extensionsWriteToFile.concat("\n\n");
+			// create or append to .gitignore
+			sqlPath := path.Join(migrationsDir, initMigration.Name(), "up.sql")
 
-		if err = writeToFile(envFile, envData, "end"); err != nil {
-			log.Debug(err)
-			log.Error("Failed to write project environment variables to .env.development file", false)
+			// write extensions to beginning of SQL file of init migration
+			if err = writeToFile(sqlPath, extensionsWriteToFile, "start"); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to write extensions to SQL file")
+			}
+
+			// add auth.roles to init migration
+			//spinner.text = "Add auth roles to init migration";
+
+			roles, err := getRoles(hasuraEndpoint, adminSecret)
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to get hasura roles")
+			}
+
+			rolesSQL := "\nINSERT INTO auth.roles (role)\n    VALUES "
+
+			var rolesMap []string
+			for _, role := range roles {
+				rolesMap = append(rolesMap, fmt.Sprintf(`('%s')`, role))
+			}
+			rolesSQL += fmt.Sprintf("%s;\n\n", strings.Join(rolesMap, ", "))
+
+			// write roles to end of SQL file of init migration
+			if err = writeToFile(sqlPath, rolesSQL, "end"); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to write roles to SQL file")
+			}
+
+			// add auth.providers to init migration
+			//spinner.text = "Add auth providers to init migration";
+
+			providers, err := getProviders(hasuraEndpoint, adminSecret)
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to get hasura providers")
+			}
+
+			providersSQL := "\nINSERT INTO auth.providers (provider)\n    VALUES "
+
+			var providersMap []string
+			for _, provider := range providers {
+				providersMap = append(providersMap, fmt.Sprintf(`('%s')`, provider))
+			}
+			providersSQL += fmt.Sprintf("%s;\n\n", strings.Join(providersMap, ", "))
+
+			// write providers to end of SQL file of init migration
+			if err = writeToFile(sqlPath, providersSQL, "end"); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to write providers to SQL file")
+			}
+
+			// write ENV variables to .env.development
+			//spinner.text = "Adding env vars to .env.development"
+
+			// check if .env.development exists, otherwise create it
+			if !pathExists(envFile) {
+				f, err = os.Create(envFile)
+				if err != nil {
+					log.Debug(err)
+					log.Warn("Failed to create .env.developement file")
+				}
+
+				defer f.Close()
+				/*
+					//avoid writing the extra line at top, otherwise it will create problems afterwards
+					if _, err = f.WriteString("# env vars from Nhost\n"); err != nil {
+						log.Debug(err)
+						log.Error("Failed to write to .env.developement file")
+					}
+					f.Sync()
+				*/
+			}
+
+			var envArray []string
+			for _, row := range selectedProject.ProjectEnvVars {
+				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row["name"], row["dev_value"]))
+			}
+
+			envData := strings.Join(envArray, "\n")
+
+			// add required env vars
+			envData += fmt.Sprintf("\nREGISTRATION_CUSTOM_FIELDS=%s\n", selectedProject.HBPRegistrationCustomFields)
+
+			if len(selectedProject.BackendUserFields) > 0 {
+				envData += fmt.Sprintf("JWT_CUSTOM_FIELDS=%s\n", selectedProject.BackendUserFields)
+			}
+
+			if len(selectedProject.HBPDefaultAllowedUserRoles) > 0 {
+				envData += fmt.Sprintf("DEFAULT_ALLOWED_USER_ROLES=%s\n", selectedProject.HBPDefaultAllowedUserRoles)
+			}
+
+			if len(selectedProject.HBPAllowedUserRoles) > 0 {
+				envData += fmt.Sprintf("ALLOWED_USER_ROLES=%s\n", selectedProject.HBPAllowedUserRoles)
+			}
+
+			if err = writeToFile(envFile, envData, "end"); err != nil {
+				log.Debug(err)
+				log.Error("Failed to write project environment variables to .env.development file", false)
+			}
 		}
 
 		log.Info("Nhost backend successfully initialized")
-
-		log.Info("See you later, grasshopper!")
-
+		log.Info("Start a local development environment with `nhost dev`")
 	},
 }
 
@@ -912,17 +887,17 @@ func getNhostConfig(options Project) map[string]interface{} {
 
 	log.Debug("Generating Nhost configuration")
 
-	return map[string]interface{}{
+	payload := map[string]interface{}{
 		"version":                     2,
 		"metadata_directory":          "metadata",
 		"hasura_cli_version":          "v2.0.0-alpha.11",
-		"hasura_graphql_version":      options.HasuraGQEVersion,
+		"hasura_graphql_version":      "v1.3.3",
 		"hasura_graphql_port":         8080,
 		"hasura_console_port":         9695,
 		"hasura_graphql_admin_secret": 123456,
-		"hasura_backend_plus_version": options.BackendVersion,
+		"hasura_backend_plus_version": "v2.4.0",
 		"hasura_backend_plus_port":    9001,
-		"postgres_version":            options.PostgresVersion,
+		"postgres_version":            "12.0",
 		"postgres_port":               5432,
 		"postgres_user":               "postgres",
 		"postgres_password":           "postgres",
@@ -944,6 +919,26 @@ func getNhostConfig(options Project) map[string]interface{} {
 		"linkedin_client_id":          "",
 		"linkedin_client_secret":      "",
 	}
+
+	// check if a loaded remote project has been passed
+	if options.HasuraGQEVersion != "" {
+		payload["hasura_graphql_version"] = options.HasuraGQEVersion
+	}
+	if options.BackendVersion != "" {
+		payload["hasura_backend_plus_version"] = options.BackendVersion
+	}
+	if options.PostgresVersion != "" {
+		payload["postgres_version"] = options.PostgresVersion
+	}
+
+	// if it's a Mac,
+	// add a custom Hasura GraphQL Engine image
+	// because it doesn't support the official one
+	if runtime.GOOS == "darwin" {
+		payload["hasura_graphql_engine"] = "fedormelexin/graphql-engine-arm64"
+	}
+
+	return payload
 }
 
 func init() {
@@ -954,7 +949,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	initCmd.PersistentFlags().StringVarP(&projectName, "project", "p", "", "project name")
+	initCmd.PersistentFlags().StringVarP(&remoteProject, "remote", "r", "", "Project name")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

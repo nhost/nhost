@@ -42,7 +42,7 @@ And you can immediately start developing on that template.`,
 
 		templates := []map[string]string{
 			{"key": "NuxtJs", "value": "nuxt"},
-			{"key": "NextJs", "value": "next"},
+			//{"key": "NextJs", "value": "next"},
 		}
 
 		// configure interactive prompt template
@@ -76,7 +76,7 @@ And you can immediately start developing on that template.`,
 			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
 			Dst:  frontendDir,
 			Dir:  true,
-			Src:  "github.com/nhost/nhost/templates",
+			Src:  "github.com/nhost/nhost/templates/",
 			Mode: getter.ClientModeDir,
 			//define the type of detectors go getter should use, in this case only github is needed
 			Detectors: []getter.Detector{
@@ -84,12 +84,8 @@ And you can immediately start developing on that template.`,
 			},
 		}
 
-		if result == "nuxt" {
-			client.Src += "/nuxt"
-		} else {
-			log.Error("We are still building the template for that one")
-			log.Info("We've noted your interest in this feature")
-		}
+		// append the chosen result template to source URL
+		client.Src += result
 
 		//download the files
 		if err := client.Get(); err != nil {

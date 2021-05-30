@@ -189,19 +189,20 @@ var (
 
 				// configure interative prompt
 				frontendPrompt := promptui.Prompt{
-					Label:     "Do you want to setup a front-end project template?",
+					Label:     "Do you want to setup a front-end project template",
 					IsConfirm: true,
 				}
 
 				frontendApproval, err := frontendPrompt.Run()
 				if err != nil {
 					log.Debug(err)
-					log.Fatal("Input prompt aborted")
+					log.Fatal("Alright then, see you later grasshopper!")
 				}
 
 				if strings.ToLower(frontendApproval) == "y" || strings.ToLower(frontendApproval) == "yes" {
 
 					templatesCmd.Run(cmd, args)
+
 				}
 
 				// start the "dev" command

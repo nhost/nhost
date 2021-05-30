@@ -10,6 +10,7 @@ require (
 	github.com/containerd/containerd v1.5.2 // indirect
 	github.com/docker/docker v20.10.6+incompatible
 	github.com/docker/go-connections v0.4.0
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/hashicorp/go-getter v1.5.3 // indirect

@@ -44,6 +44,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -308,6 +309,62 @@ var devCmd = &cobra.Command{
 		}
 
 		hasuraConsoleSpawnProcess = hasuraConsoleSpawnCmd.Process
+
+		// attach a watcher to the API conatiner's package.json
+		// to provide live reload functionality
+
+		if nhostConfig["startAPI"] != nil && nhostConfig["startAPI"].(bool) {
+
+			watcher, err := fsnotify.NewWatcher()
+			if err != nil {
+				log.Debug(err)
+				log.WithField("component", "watcher").Error("Failed to initialize live reload watcher")
+			}
+			defer watcher.Close()
+
+			done := make(chan bool)
+			go func() {
+				for {
+					select {
+					case event, ok := <-watcher.Events:
+						if !ok {
+							return
+						}
+						log.Println("event:", event)
+						if event.Op&fsnotify.Write == fsnotify.Write {
+							log.Println("modified file:", event.Name)
+
+							/*
+								// fetch list of all running containers
+								containers, err := getContainers(docker, ctx, "nhost")
+								if err != nil {
+									log.WithField("component", "nhost_api").Debug(err)
+									log.WithField("component", "nhost_api").Error("Failed to fetch container")
+								}
+
+								if err = restartContainer(docker, ctx, conatiners[0]); err != nil {
+									log.WithField("component", "nhost_api").Debug(err)
+									log.WithField("component", "nhost_api").Error("Failed to restart container")
+								}
+
+							*/
+						}
+					case err, ok := <-watcher.Errors:
+						if !ok {
+							return
+						}
+						log.Println("error:", err)
+					}
+				}
+			}()
+
+			err = watcher.Add(path.Join("api", "package.json"))
+			if err != nil {
+				log.Debug(err)
+				log.WithField("component", "package.json").Error("Failed to add to live reload watcher")
+			}
+			<-done
+		}
 
 		// wait for user input infinitely to keep the utility running
 		scanner := bufio.NewScanner(os.Stdin)

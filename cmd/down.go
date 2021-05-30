@@ -89,18 +89,18 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 		if logFile != "" {
 
 			// generate container logs and write them to logFile
-			if err = writeContainerLogs(client, ctx, container.ID, logFile); err != nil {
+			if err = writeContainerLogs(client, ctx, logFile, container); err != nil {
 				return err
 			}
 		}
 
 		// stop the container
-		if err = stopContainer(client, ctx, container.ID); err != nil {
+		if err = stopContainer(client, ctx, container); err != nil {
 			return err
 		}
 
 		// remove all running containers with prefix "nhost_"
-		if err = removeContainer(client, ctx, container.ID); err != nil {
+		if err = removeContainer(client, ctx, container); err != nil {
 			return err
 		}
 	}
@@ -124,24 +124,33 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 	return response, err
 }
 
+// restarts given container
+func restartContainer(cli *client.Client, ctx context.Context, container types.Container) error {
+
+	log.WithField("component", container.Names[0]).Debug("Restarting container")
+
+	err := cli.ContainerStop(ctx, container.ID, nil)
+	return err
+}
+
 // stops given container
-func stopContainer(cli *client.Client, ctx context.Context, ID string) error {
+func stopContainer(cli *client.Client, ctx context.Context, container types.Container) error {
 
-	log.Debug("Stopping container: ", ID)
+	log.WithField("component", container.Names[0]).Debug("Stopping container")
 
-	err := cli.ContainerStop(ctx, ID, nil)
+	err := cli.ContainerStop(ctx, container.ID, nil)
 	return err
 }
 
 // fetches the logs of a specific container
 // and writes them to a log file
-func writeContainerLogs(cli *client.Client, ctx context.Context, ID, filePath string) error {
+func writeContainerLogs(cli *client.Client, ctx context.Context, filePath string, container types.Container) error {
 
-	log.Debug("Writing container logs to ", filePath)
+	log.WithField("component", container.Names[0]).Debug("Writing container logs to ", filePath)
 
 	options := types.ContainerLogsOptions{ShowStdout: true}
 
-	out, err := cli.ContainerLogs(ctx, ID, options)
+	out, err := cli.ContainerLogs(ctx, container.ID, options)
 	if err != nil {
 		return err
 	}
@@ -160,16 +169,16 @@ func writeContainerLogs(cli *client.Client, ctx context.Context, ID, filePath st
 }
 
 // removes given container
-func removeContainer(cli *client.Client, ctx context.Context, ID string) error {
+func removeContainer(cli *client.Client, ctx context.Context, container types.Container) error {
 
-	log.Debug("Removing container: ", ID)
+	log.WithField("component", container.Names[0]).Debug("Removing container")
 
 	removeOptions := types.ContainerRemoveOptions{
 		RemoveVolumes: true,
 		Force:         true,
 	}
 
-	err := cli.ContainerRemove(ctx, ID, removeOptions)
+	err := cli.ContainerRemove(ctx, container.ID, removeOptions)
 	return err
 }
 
