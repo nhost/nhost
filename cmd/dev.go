@@ -172,8 +172,8 @@ var devCmd = &cobra.Command{
 		nhostServices, err := getContainerConfigs(docker, ctx, nhostConfig, dotNhost)
 		if err != nil {
 			log.Debug(err)
+			log.Error("Failed to generate container configurations")
 			downCmd.Run(cmd, args)
-			log.Fatal("Failed to generate container configurations")
 		}
 
 		for _, container := range nhostServices {
@@ -185,8 +185,10 @@ var devCmd = &cobra.Command{
 			log.Debugf("Container %s created", container.ID)
 		}
 
-		log.Info("Conducting a quick health check on all freshly created services")
-		healthCmd.Run(cmd, args)
+		/*
+			log.Info("Conducting a quick health check on all freshly created services")
+			healthCmd.Run(cmd, args)
+		*/
 
 		// prepare and load hasura binary
 		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprint(nhostConfig["environment"].(map[interface{}]interface{})["hasura_cli_version"]))
@@ -462,7 +464,6 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	// segregate configurations for different services
 
 	postgresConfig := options["services"].(map[interface{}]interface{})["postgres"].(map[interface{}]interface{})
-	fmt.Println(postgresConfig)
 	hasuraConfig := options["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})
 	hbpConfig := options["services"].(map[interface{}]interface{})["hasura_backend_plus"].(map[interface{}]interface{})
 	minioConfig := options["services"].(map[interface{}]interface{})["minio"].(map[interface{}]interface{})
@@ -563,13 +564,25 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				Retries:     10,
 				StartPeriod: 60000000000,
 			},
-			Image: fmt.Sprintf(`postgres:%v`, postgresConfig["version"]),
+			//Image: fmt.Sprintf(`postgres:%v`, postgresConfig["version"]),
+			Image: "nhost_postgres",
 			Env: []string{
 				fmt.Sprintf("POSTGRES_USER=%v", postgresConfig["user"]),
 				fmt.Sprintf("POSTGRES_PASSWORD=%v", postgresConfig["password"]),
 			},
 			ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%v", postgresConfig["port"])): struct{}{}},
-			Cmd:          []string{"-p", fmt.Sprintf("%v", postgresConfig["port"])},
+			/*
+				Entrypoint: []string{
+					"sh",
+					"-c",
+					fmt.Sprintf("postgres -p %v", fmt.Sprint(postgresConfig["port"])),
+				},
+			*/
+			Cmd: []string{
+				"-p",
+				fmt.Sprint(postgresConfig["port"]),
+			},
+			// CREATE SCHEMA IF NOT EXISTS auth;
 		},
 		&container.HostConfig{
 			// AutoRemove:   true,
