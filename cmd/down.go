@@ -114,7 +114,7 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 	log.Debug("Fetching running containers with names having the prefix: ", prefix)
 
 	var response []types.Container
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
 	for _, container := range containers {
 		if strings.Contains(container.Names[0], prefix) {
 			response = append(response, container)

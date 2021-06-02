@@ -185,8 +185,6 @@ var (
 				// start the "init" command
 				initCmd.Run(cmd, args)
 
-				log.Info("Let's talk about your front-end now, shall we?\n")
-
 				// configure interative prompt
 				frontendPrompt := promptui.Prompt{
 					Label:     "Do you want to setup a front-end project template",
@@ -196,7 +194,6 @@ var (
 				frontendApproval, err := frontendPrompt.Run()
 				if err != nil {
 					log.Debug(err)
-					log.Fatal("Alright then, see you later grasshopper!")
 				}
 
 				if strings.ToLower(frontendApproval) == "y" || strings.ToLower(frontendApproval) == "yes" {

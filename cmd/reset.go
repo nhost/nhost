@@ -91,10 +91,10 @@ var resetCmd = &cobra.Command{
 				log.Fatal("Failed to delete " + path.Base(nhostDir))
 			}
 
-			if err := deleteAllPaths(path.Join(workingDir, "frontend")); err != nil {
+			if err := deleteAllPaths(path.Join(workingDir, "web")); err != nil {
 				log.Debug(err)
-				log.Warnf("Please delete %s manually", "/frontend")
-				log.Fatal("Failed to delete " + "/frontend")
+				log.Warnf("Please delete %s manually", "/web")
+				log.Fatal("Failed to delete " + "/web")
 			}
 
 			if err := deletePath(envFile); err != nil {
@@ -106,7 +106,7 @@ var resetCmd = &cobra.Command{
 
 		// signify reset completion
 		log.Infof("Directories permanently removed from this project: %v, %v, %v, %v, %v",
-			path.Base(nhostDir), path.Base(dotNhost), path.Base(envFile), "/api", "/frontend")
+			path.Base(nhostDir), path.Base(dotNhost), path.Base(envFile), "/api", "/web")
 
 		// if an exit argument has been passed,
 		// provide a graceful exit

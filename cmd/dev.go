@@ -103,11 +103,13 @@ var devCmd = &cobra.Command{
 			log.Warn("First run takes longer, please be patient")
 		}
 
-		// if it doesn't exist, then create it
-		if err = os.MkdirAll(path.Join(dotNhost, "db_data"), os.ModePerm); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to create db_data directory")
-		}
+		/*
+			// if it doesn't exist, then create it
+			if err = os.MkdirAll(path.Join(dotNhost, "db_data"), os.ModePerm); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to create db_data directory")
+			}
+		*/
 
 		// shut down any existing Nhost containers
 		downCmd.Run(cmd, args)
@@ -120,24 +122,18 @@ var devCmd = &cobra.Command{
 		}
 
 		ports := []string{
-			"hasura_graphql_port",
-			"hasura_console_port",
-			"hasura_backend_plus_port",
-			"postgres_port",
-			"minio_port",
-			"api_port",
+			fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["port"]),
+			fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["console_port"]),
+			fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["hasura_backend_plus"].(map[interface{}]interface{})["port"]),
+			fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["minio"].(map[interface{}]interface{})["port"]),
+			fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["postgres"].(map[interface{}]interface{})["port"]),
+			fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["api"].(map[interface{}]interface{})["port"]),
 		}
 
-		var mappedPorts []string
-
-		for _, port := range ports {
-			mappedPorts = append(mappedPorts, fmt.Sprintf("%v", nhostConfig[port]))
-		}
-
-		freePorts := getFreePorts(mappedPorts)
+		freePorts := getFreePorts(ports)
 
 		var occupiedPorts []string
-		for _, port := range mappedPorts {
+		for _, port := range ports {
 			if !contains(freePorts, port) {
 				occupiedPorts = append(occupiedPorts, port)
 			}
@@ -148,25 +144,11 @@ var devCmd = &cobra.Command{
 			log.Fatal("Change nhost/config.yaml or stop the services")
 		}
 
-		// generate Nhost service containers' configurations
-		nhostServices, err := getContainerConfigs(docker, ctx, nhostConfig, dotNhost)
-		if err != nil {
-			log.Debug(err)
-			downCmd.Run(cmd, args)
-			log.Fatal("Failed to generate container configurations")
-		}
-
-		for _, container := range nhostServices {
-			if err = runContainer(docker, ctx, container); err != nil {
-				log.Debug(err)
-				log.Errorf("Failed to start %v container", container.ID)
-				downCmd.Run(cmd, []string{"exit"})
-			}
-			log.Debugf("Container %s created", container.ID)
-		}
-
 		nhostConfig["startAPI"] = pathExists(path.Join(workingDir, "api"))
-		nhostConfig["graphql_jwt_key"] = generateRandomKey()
+
+		if nhostConfig["graphql_jwt_key"] == "" || nhostConfig["graphql_jwt_key"] == nil {
+			nhostConfig["graphql_jwt_key"] = generateRandomKey()
+		}
 
 		if nhostConfig["startAPI"].(bool) {
 
@@ -186,19 +168,36 @@ var devCmd = &cobra.Command{
 			}
 		}
 
+		// generate Nhost service containers' configurations
+		nhostServices, err := getContainerConfigs(docker, ctx, nhostConfig, dotNhost)
+		if err != nil {
+			log.Debug(err)
+			downCmd.Run(cmd, args)
+			log.Fatal("Failed to generate container configurations")
+		}
+
+		for _, container := range nhostServices {
+			if err = runContainer(docker, ctx, container); err != nil {
+				log.Debug(err)
+				log.Errorf("Failed to start %v container", container.ID)
+				downCmd.Run(cmd, []string{"exit"})
+			}
+			log.Debugf("Container %s created", container.ID)
+		}
+
 		log.Info("Conducting a quick health check on all freshly created services")
 		healthCmd.Run(cmd, args)
 
 		// prepare and load hasura binary
-		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig["hasura_cli_version"]))
+		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprint(nhostConfig["environment"].(map[interface{}]interface{})["hasura_cli_version"]))
 
 		//hasuraCLI := path.Join("assets", "hasura")
 
 		commandOptions := []string{
 			"--endpoint",
-			fmt.Sprintf(`http://localhost:%v`, nhostConfig["hasura_graphql_port"]),
+			fmt.Sprintf(`http://localhost:%v`, nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["port"]),
 			"--admin-secret",
-			fmt.Sprintf(`%v`, nhostConfig["hasura_graphql_admin_secret"]),
+			fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["admin_secret"]),
 			"--skip-update-check",
 		}
 
@@ -272,19 +271,19 @@ var devCmd = &cobra.Command{
 		log.Info("Local Nhost development environment is now active")
 		fmt.Println()
 
-		log.Infof("GraphQL API: http://localhost:%v/v1/graphql", nhostConfig["hasura_graphql_port"])
-		log.Infof("Auth & Storage: http://localhost:%v", nhostConfig["hasura_backend_plus_port"])
+		log.Infof("GraphQL API: http://localhost:%v/v1/graphql", nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["port"])
+		log.Infof("Auth & Storage: http://localhost:%v", nhostConfig["services"].(map[interface{}]interface{})["hasura_backend_plus"].(map[interface{}]interface{})["port"])
 		fmt.Println()
 
-		log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig["minio_port"])
-		log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig["postgres_port"])
+		log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig["services"].(map[interface{}]interface{})["minio"].(map[interface{}]interface{})["port"])
+		log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig["services"].(map[interface{}]interface{})["postgres"].(map[interface{}]interface{})["port"])
 		fmt.Println()
 
 		if nhostConfig["startAPI"].(bool) {
-			log.Infof("Custom API: http://localhost:%v", nhostConfig["api_port"])
+			log.Infof("Custom API: http://localhost:%v", nhostConfig["services"].(map[interface{}]interface{})["api"].(map[interface{}]interface{})["port"])
 		}
 
-		log.Infof("Launching Hasura console http://localhost:%v", nhostConfig["hasura_console_port"])
+		log.Infof("Launching Hasura console http://localhost:%v", nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["console_port"])
 		fmt.Println()
 
 		log.Warn("Use Ctrl + C to stop running evironment")
@@ -295,11 +294,11 @@ var devCmd = &cobra.Command{
 			Args: []string{hasuraCLI,
 				"console",
 				"--endpoint",
-				fmt.Sprintf(`http://localhost:%v`, nhostConfig["hasura_graphql_port"]),
+				fmt.Sprintf(`http://localhost:%v`, nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["port"]),
 				"--admin-secret",
-				fmt.Sprintf(`%v`, nhostConfig["hasura_graphql_admin_secret"]),
+				fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["admin_secret"]),
 				"--console-port",
-				fmt.Sprintf("%v", nhostConfig["hasura_console_port"]),
+				fmt.Sprint(nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["console_port"]),
 			},
 			Dir: nhostDir,
 		}
@@ -458,21 +457,30 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 
 	log.Debug("Preparing Nhost container configurations")
 
-	hasuraGraphQLEngine := "hasura/graphql-engine"
-
-	if options["hasura_graphql_engine"] != nil && options["hasura_graphql_engine"] != "" {
-		hasuraGraphQLEngine = fmt.Sprintf(`%v`, options["hasura_graphql_engine"])
-	}
 	var containers []container.ContainerCreateCreatedBody
+
+	// segregate configurations for different services
+
+	postgresConfig := options["services"].(map[interface{}]interface{})["postgres"].(map[interface{}]interface{})
+	fmt.Println(postgresConfig)
+	hasuraConfig := options["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})
+	hbpConfig := options["services"].(map[interface{}]interface{})["hasura_backend_plus"].(map[interface{}]interface{})
+	minioConfig := options["services"].(map[interface{}]interface{})["minio"].(map[interface{}]interface{})
+	apiConfig := options["services"].(map[interface{}]interface{})["api"].(map[interface{}]interface{})
+
+	envConfig := options["environment"].(map[interface{}]interface{})
+
+	authenticationEndpoints := options["authentication"].(map[interface{}]interface{})["endpoints"].(map[interface{}]interface{})
+	authenticationProviders := options["authentication"].(map[interface{}]interface{})["providers"].(map[interface{}]interface{})
 
 	// check if a required image already exists
 	// if it doesn't which case -> then pull it
 
 	requiredImages := []string{
-		fmt.Sprintf("postgres:%v", options["postgres_version"]),
-		fmt.Sprintf("%s:%v", hasuraGraphQLEngine, options["hasura_graphql_version"]),
-		fmt.Sprintf("nhost/hasura-backend-plus:%v", options["hasura_backend_plus_version"]),
-		"minio/minio:latest",
+		fmt.Sprintf("postgres:%v", postgresConfig["version"]),
+		fmt.Sprintf("%s:%v", hasuraConfig["image"], hasuraConfig["version"]),
+		fmt.Sprintf("nhost/hasura-backend-plus:%v", hbpConfig["version"]),
+		fmt.Sprintf("minio/minio:%v", minioConfig["version"]),
 	}
 
 	availableImages, err := getInstalledImages(client, ctx)
@@ -498,9 +506,9 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	}
 
 	// read env_file
-	envFile, err := ioutil.ReadFile(envFile)
+	envFile, err := ioutil.ReadFile(envConfig["env_file"].(string))
 	if err != nil {
-		log.Warnf("Failed to read %v file", options["env_file"])
+		log.Warnf("Failed to read %v file", path.Base(envConfig["env_file"].(string)))
 		return containers, err
 	}
 
@@ -525,29 +533,51 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			networkConfig.EndpointsConfig["bridge"] = gatewayConfig
 	*/
 
+	mounts := []mount.Mount{}
+
+	// if db_data already exists, then mount it
+	if pathExists(path.Join(cwd, "db_data")) {
+		mounts = append(mounts, mount.Mount{
+			Type:   mount.TypeBind,
+			Source: path.Join(cwd, "db_data"),
+			Target: "/var/lib/postgresql/data",
+		})
+	}
+
 	postgresContainer, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: fmt.Sprintf(`postgres:%v`, options["postgres_version"]),
-			Env: []string{
-				fmt.Sprintf("POSTGRES_USER=%v", options["postgres_user"]),
-				fmt.Sprintf("POSTGRES_PASSWORD=%v", options["postgres_password"]),
+			Healthcheck: &container.HealthConfig{
+				Test: []string{
+					"CMD-SHELL",
+					"pg_isready",
+					"-h",
+					"localhost",
+					"-p",
+					fmt.Sprint(postgresConfig["port"]),
+					"-U",
+					fmt.Sprint(postgresConfig["user"]),
+				},
+				Interval:    1000000000,
+				Timeout:     10000000000,
+				Retries:     10,
+				StartPeriod: 60000000000,
 			},
-			ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%v", options["postgres_port"])): struct{}{}},
-			Cmd:          []string{"-p", fmt.Sprintf("%v", options["postgres_port"])},
+			Image: fmt.Sprintf(`postgres:%v`, postgresConfig["version"]),
+			Env: []string{
+				fmt.Sprintf("POSTGRES_USER=%v", postgresConfig["user"]),
+				fmt.Sprintf("POSTGRES_PASSWORD=%v", postgresConfig["password"]),
+			},
+			ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%v", postgresConfig["port"])): struct{}{}},
+			Cmd:          []string{"-p", fmt.Sprintf("%v", postgresConfig["port"])},
 		},
 		&container.HostConfig{
-			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", options["postgres_port"])): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", options["postgres_port"])}}},
+			// AutoRemove:   true,
+			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", postgresConfig["port"])): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", postgresConfig["port"])}}},
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
-			Mounts: []mount.Mount{
-				{
-					Type:   mount.TypeBind,
-					Source: path.Join(cwd, "db_data"),
-					Target: "/var/lib/postgresql/data",
-				},
-			},
+			Mounts: mounts,
 		},
 		nil,
 		nil,
@@ -561,26 +591,23 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 
 	// prepare env variables for following container
 	containerVariables := []string{
-		fmt.Sprintf("HASURA_GRAPHQL_SERVER_PORT=%v", options["hasura_graphql_port"]),
-		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, options["postgres_user"], options["postgres_password"], options["postgres_port"])),
+		fmt.Sprintf("HASURA_GRAPHQL_SERVER_PORT=%v", hasuraConfig["port"]),
+		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, postgresConfig["user"], postgresConfig["password"], postgresConfig["port"])),
 		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", options["hasura_graphql_admin_secret"]),
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", hasuraConfig["admin_secret"]),
 		fmt.Sprintf("HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT=%d", 20),
 		fmt.Sprintf("HASURA_GRAPHQL_NO_OF_RETRIES=%d", 20),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
-		fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, options["hasura_graphql_port"])),
+		fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig["port"])),
 		"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
-		fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost_hbp:%v`, options["hasura_backend_plus_port"])),
-		fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://nhost-api:%v`, options["api_port"])),
+		fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost_hbp:%v`, hbpConfig["port"])),
+		fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://nhost-api:%v`, apiConfig["port"])),
 	}
 	containerVariables = append(containerVariables, envVars...)
 
-	// if user has saved Hasura JWT Key, add that as well
-	if options["graphql_jwt_key"] != nil {
-		containerVariables = append(containerVariables,
-			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options["graphql_jwt_key"])))
-	}
+	containerVariables = append(containerVariables,
+		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options["graphql_jwt_key"])))
 
 	// if API container has to be loaded,
 	// expose it to the links as well
@@ -593,10 +620,21 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	graphqlEngineContainer, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: fmt.Sprintf(`%s:%v`, hasuraGraphQLEngine, options["hasura_graphql_version"]),
+			Healthcheck: &container.HealthConfig{
+				Test: []string{
+					"CMD-SHELL",
+					"curl",
+					fmt.Sprintf("http://127.0.0.1:%v/healthz", hasuraConfig["port"]),
+				},
+				Interval:    1000000000,
+				Timeout:     10000000000,
+				Retries:     10,
+				StartPeriod: 60000000000,
+			},
+			Image: fmt.Sprintf(`%s:%v`, hasuraConfig["image"], hasuraConfig["version"]),
 			Env:   containerVariables,
 			ExposedPorts: nat.PortSet{
-				nat.Port(strconv.Itoa(options["hasura_graphql_port"].(int))): struct{}{},
+				nat.Port(strconv.Itoa(hasuraConfig["port"].(int))): struct{}{},
 			},
 
 			// running following commands on launch were throwing errors,
@@ -604,21 +642,15 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		&container.HostConfig{
+			// AutoRemove: true,
 			Links: links,
 			PortBindings: map[nat.Port][]nat.PortBinding{
-				nat.Port(strconv.Itoa(options["hasura_graphql_port"].(int))): {{HostIP: "127.0.0.1",
-					HostPort: strconv.Itoa(options["hasura_graphql_port"].(int))}},
+				nat.Port(strconv.Itoa(hasuraConfig["port"].(int))): {{HostIP: "127.0.0.1",
+					HostPort: strconv.Itoa(hasuraConfig["port"].(int))}},
 			},
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
-			Mounts: []mount.Mount{
-				{
-					Type:   mount.TypeBind,
-					Source: path.Join(cwd, "db_data"),
-					Target: "/var/lib/postgresql/data",
-				},
-			},
+			/*
+			 */
+			Mounts: mounts,
 		},
 		nil,
 		nil,
@@ -652,7 +684,18 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	minioContainer, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image: `minio/minio`,
+			Healthcheck: &container.HealthConfig{
+				Test: []string{
+					"CMD-SHELL",
+					"curl",
+					fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig["port"]),
+				},
+				Interval:    1000000000,
+				Timeout:     10000000000,
+				Retries:     10,
+				StartPeriod: 60000000000,
+			},
+			Image: fmt.Sprintf(`minio/minio:%v`, minioConfig["version"]),
 			//User:  "999:1001",
 			Env: []string{
 				"MINIO_ACCESS_KEY=minioaccesskey123123",
@@ -660,17 +703,18 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				//"MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE",
 				//"MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
 			},
-			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(options["minio_port"].(int))): struct{}{}},
+			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(minioConfig["port"].(int))): struct{}{}},
 			Entrypoint:   []string{"sh"},
 			Cmd: []string{
 				"-c",
-				fmt.Sprintf(`mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data`, options["minio_port"]),
+				fmt.Sprintf(`mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data`, minioConfig["port"]),
 			},
 		},
 		&container.HostConfig{
+			// AutoRemove: true,
 			PortBindings: map[nat.Port][]nat.PortBinding{
-				nat.Port(strconv.Itoa(options["minio_port"].(int))): {{HostIP: "127.0.0.1",
-					HostPort: strconv.Itoa(options["minio_port"].(int))}}},
+				nat.Port(strconv.Itoa(minioConfig["port"].(int))): {{HostIP: "127.0.0.1",
+					HostPort: strconv.Itoa(minioConfig["port"].(int))}}},
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
@@ -687,39 +731,33 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 
 	// prepare env variables for following container
 	containerVariables = []string{
-		fmt.Sprintf("PORT=%v", options["hasura_backend_plus_port"]),
+		fmt.Sprintf("PORT=%v", hbpConfig["port"]),
 		"USER_FIELDS=''",
 		"USER_REGISTRATION_AUTO_ACTIVE=true",
-		fmt.Sprintf("DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, options["postgres_user"], options["postgres_password"], options["postgres_port"])),
-		fmt.Sprintf("HASURA_GRAPHQL_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"])),
-		fmt.Sprintf("HASURA_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, options["hasura_graphql_port"])),
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", options["hasura_graphql_admin_secret"]),
+		"PG_OPTIONS='-c search_path=auth'",
+		fmt.Sprintf("DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, postgresConfig["user"], postgresConfig["password"], postgresConfig["port"])),
+		fmt.Sprintf("HASURA_GRAPHQL_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, hasuraConfig["port"])),
+		fmt.Sprintf("HASURA_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, hasuraConfig["port"])),
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", hasuraConfig["admin_secret"]),
 		"AUTH_ACTIVE=true",
 		"AUTH_LOCAL_ACTIVE=true",
 		"REFRESH_TOKEN_EXPIRES=43200",
-		fmt.Sprintf("S3_ENDPOINT=%v", fmt.Sprintf(`nhost-minio:%v`, options["minio_port"])),
+		fmt.Sprintf("S3_ENDPOINT=%v", fmt.Sprintf(`nhost-minio:%v`, minioConfig["port"])),
 		"S3_SSL_ENABLED=false",
 		"S3_BUCKET=nhost",
 		"S3_ACCESS_KEY_ID=minioaccesskey123123",
 		"S3_SECRET_ACCESS_KEY=miniosecretkey123123",
 		"LOST_PASSWORD_ENABLE=true",
-		fmt.Sprintf("PROVIDER_SUCCESS_REDIRECT=%v", options["provider_success_redirect"]),
-		fmt.Sprintf("PROVIDER_FAILURE_REDIRECT=%v", options["provider_failure_redirect"]),
+		"JWT_ALGORITHM=HS256",
+		"JWT_TOKEN_EXPIRES=15",
+		fmt.Sprintf("PROVIDER_SUCCESS_REDIRECT=%v", authenticationEndpoints["provider_success_redirect"]),
+		fmt.Sprintf("PROVIDER_FAILURE_REDIRECT=%v", authenticationEndpoints["provider_failure_redirect"]),
 	}
 	containerVariables = append(containerVariables, envVars...)
 
-	// if user has saved Hasura JWT Key, add that as well
-	if options["graphql_jwt_key"] != nil {
-		containerVariables = append(containerVariables,
-			fmt.Sprintf("JWT_KEY=%v", options["graphql_jwt_key"]),
-		)
-		containerVariables = append(containerVariables,
-			"JWT_ALGORITHM=HS256",
-		)
-		containerVariables = append(containerVariables,
-			"JWT_TOKEN_EXPIRES=15",
-		)
-	}
+	containerVariables = append(containerVariables,
+		fmt.Sprintf("JWT_KEY=%v", options["graphql_jwt_key"]),
+	)
 
 	// prepare social auth credentials for hasura backend plus container
 	socialAuthPlatforms := []string{"GOOGLE", "FACEBOOK", "GITHUB", "LINKEDIN"}
@@ -733,8 +771,8 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	}
 
 	for _, credential := range credentials {
-		if options[strings.ToLower(credential)] != nil {
-			containerVariables = append(containerVariables, fmt.Sprintf("%s=%v", credential, options[strings.ToLower(credential)]))
+		if authenticationProviders[strings.ToLower(credential)] != nil {
+			containerVariables = append(containerVariables, fmt.Sprintf("%s=%v", credential, authenticationProviders[strings.ToLower(credential)]))
 		}
 	}
 
@@ -748,19 +786,31 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	hasuraBackendPlusContainer, err := client.ContainerCreate(
 		ctx,
 		&container.Config{
-			Image:        fmt.Sprintf(`nhost/hasura-backend-plus:%v`, options["hasura_backend_plus_version"]),
+			Healthcheck: &container.HealthConfig{
+				Test: []string{
+					"CMD-SHELL",
+					"curl",
+					fmt.Sprintf("http://127.0.0.1:%v/healthz", hbpConfig["port"]),
+				},
+				Interval:    1000000000,
+				Timeout:     10000000000,
+				Retries:     10,
+				StartPeriod: 60000000000,
+			},
+			Image:        fmt.Sprintf(`nhost/hasura-backend-plus:%v`, hbpConfig["version"]),
 			Env:          containerVariables,
-			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(options["hasura_backend_plus_port"].(int))): struct{}{}},
+			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(hbpConfig["port"].(int))): struct{}{}},
 
 			// running following commands on launch were throwing errors,
 			// server is running and responding absolutely fine without these commands
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		&container.HostConfig{
+			// AutoRemove: true,
 			Links: []string{"nhost_hasura:nhost-graphql-engine", "nhost_minio:nhost-minio", "nhost_postgres:nhost-postgres"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
-				nat.Port(strconv.Itoa(options["hasura_backend_plus_port"].(int))): {{HostIP: "127.0.0.1",
-					HostPort: strconv.Itoa(options["hasura_backend_plus_port"].(int))}}},
+				nat.Port(strconv.Itoa(hbpConfig["port"].(int))): {{HostIP: "127.0.0.1",
+					HostPort: strconv.Itoa(hbpConfig["port"].(int))}}},
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
@@ -785,24 +835,18 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 
 		// prepare env variables for following container
 		containerVariables = []string{
-			fmt.Sprintf("PORT=%v", options["api_port"]),
-			fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost-hasura:%v/v1/graphql`, options["hasura_graphql_port"])),
-			fmt.Sprintf("NHOST_HASURA_ADMIN_SECRET=%v", options["hasura_graphql_admin_secret"]),
+			fmt.Sprintf("PORT=%v", apiConfig["port"]),
+			fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost-hasura:%v/v1/graphql`, hasuraConfig["port"])),
+			fmt.Sprintf("NHOST_HASURA_ADMIN_SECRET=%v", hasuraConfig["admin_secret"]),
 			"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
-			fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost-hbp:%v`, options["hasura_backend_plus_port"])),
-			fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://localhost:%v`, options["api_port"])),
+			fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost-hbp:%v`, hbpConfig["port"])),
+			fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://localhost:%v`, apiConfig["port"])),
+			"NHOST_JWT_ALGORITHM=HS256",
 		}
 		containerVariables = append(containerVariables, envVars...)
-
-		// if user has saved Hasura JWT Key, add that as well
-		if options["graphql_jwt_key"] != nil {
-			containerVariables = append(containerVariables,
-				fmt.Sprintf("NHOST_JWT_KEY=%v", options["graphql_jwt_key"]),
-			)
-			containerVariables = append(containerVariables,
-				"NHOST_JWT_ALGORITHM=HS256",
-			)
-		}
+		containerVariables = append(containerVariables,
+			fmt.Sprintf("NHOST_JWT_KEY=%v", options["graphql_jwt_key"]),
+		)
 
 		// create mount point if it doesn't exit
 		customMountPoint = path.Join(cwd, "api")
@@ -814,18 +858,30 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		APIContainer, err := client.ContainerCreate(
 			ctx,
 			&container.Config{
+				Healthcheck: &container.HealthConfig{
+					Test: []string{
+						"CMD-SHELL",
+						"curl",
+						fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig["port"]),
+					},
+					Interval:    1000000000,
+					Timeout:     10000000000,
+					Retries:     10,
+					StartPeriod: 60000000000,
+				},
 				Env:          containerVariables,
-				ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(options["api_port"].(int))): struct{}{}},
+				ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(apiConfig["port"].(int))): struct{}{}},
 				OnBuild: []string{
 					"context:../",
 					"dockerfile:./.nhost/Dockerfile-api",
 				},
 			},
 			&container.HostConfig{
+				// AutoRemove: true,
 				Links: []string{"nhost_hasura:nhost-hasura", "nhost_hbp:nhost-hbp", "nhost_minio:nhost-minio"},
 				PortBindings: map[nat.Port][]nat.PortBinding{
-					nat.Port(strconv.Itoa(options["api_port"].(int))): {{HostIP: "127.0.0.1",
-						HostPort: strconv.Itoa(options["api_port"].(int))}}},
+					nat.Port(strconv.Itoa(apiConfig["port"].(int))): {{HostIP: "127.0.0.1",
+						HostPort: strconv.Itoa(apiConfig["port"].(int))}}},
 				RestartPolicy: container.RestartPolicy{
 					Name: "always",
 				},

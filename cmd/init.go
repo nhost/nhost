@@ -101,21 +101,17 @@ var initCmd = &cobra.Command{
 
 		nhostConfig := getNhostConfig(selectedProject)
 
-		// iterate over Nhost config and write every line to yaml file
-		for key, value := range nhostConfig {
+		// convert generated Nhost configuration to YAML
+		marshalled, err := yaml.Marshal(nhostConfig)
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to marshal generated Nhost onfiguration")
+		}
 
-			var v string
-
-			if typeof(value) == "string" {
-				v = fmt.Sprint(value.(string))
-			} else if typeof(value) == "int" {
-				v = fmt.Sprint(value.(int))
-			}
-
-			if _, err = f.WriteString(key + ": " + v + "\n"); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to add following to config - " + key + ": " + v)
-			}
+		// write the marshalled YAML configuration to file
+		if _, err = f.Write(marshalled); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to write Nhost config")
 		}
 
 		f.Sync()
@@ -154,11 +150,19 @@ var initCmd = &cobra.Command{
 			fmt.Sprintf("%v\n%v\n%v",
 				path.Base(dotNhost),
 				path.Join("api", "node_modules"),
-				path.Join("frontend", "node_modules"))); err != nil {
+				path.Join("web", "node_modules"))); err != nil {
 			log.Debug(err)
 			log.Error("Failed to write to .gitignore file")
 		}
 		f.Sync()
+
+		// create .env.development file
+		f, err = os.Create(envFile)
+		if err != nil {
+			log.Debug(err)
+			log.Warn("Failed to create .env.developement file")
+		}
+		f.Close()
 
 		// if user has already passed remote_project as a flag,
 		// then fetch list of remote projects,
@@ -460,27 +464,6 @@ var initCmd = &cobra.Command{
 			}
 
 			// write ENV variables to .env.development
-			//spinner.text = "Adding env vars to .env.development"
-
-			// check if .env.development exists, otherwise create it
-			if !pathExists(envFile) {
-				f, err = os.Create(envFile)
-				if err != nil {
-					log.Debug(err)
-					log.Warn("Failed to create .env.developement file")
-				}
-
-				defer f.Close()
-				/*
-					//avoid writing the extra line at top, otherwise it will create problems afterwards
-					if _, err = f.WriteString("# env vars from Nhost\n"); err != nil {
-						log.Debug(err)
-						log.Error("Failed to write to .env.developement file")
-					}
-					f.Sync()
-				*/
-			}
-
 			var envArray []string
 			for _, row := range selectedProject.ProjectEnvVars {
 				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row["name"], row["dev_value"]))
@@ -887,56 +870,85 @@ func getNhostConfig(options Project) map[string]interface{} {
 
 	log.Debug("Generating Nhost configuration")
 
-	payload := map[string]interface{}{
-		"version":                     2,
-		"metadata_directory":          "metadata",
-		"hasura_cli_version":          "v2.0.0-alpha.11",
-		"hasura_graphql_version":      "v1.3.3",
-		"hasura_graphql_port":         8080,
-		"hasura_console_port":         9695,
-		"hasura_graphql_admin_secret": 123456,
-		"hasura_backend_plus_version": "v2.4.0",
-		"hasura_backend_plus_port":    9001,
-		"postgres_version":            "12.0",
-		"postgres_port":               5432,
-		"postgres_user":               "postgres",
-		"postgres_password":           "postgres",
-		"minio_port":                  9000,
-		"api_port":                    4000,
-		"env_file":                    envFile,
-		"provider_success_redirect":   "http://localhost:3000",
-		"provider_failure_redirect":   "http://localhost:3000/login-fail",
-		"google_enable":               false,
-		"google_client_id":            "",
-		"google_client_secret":        "",
-		"github_enable":               false,
-		"github_client_id":            "",
-		"github_client_secret":        "",
-		"facebook_enable":             false,
-		"facebook_client_id":          "",
-		"facebook_client_secret":      "",
-		"linkedin_enable":             false,
-		"linkedin_client_id":          "",
-		"linkedin_client_secret":      "",
+	providers := make(map[string]interface{})
+	for _, provider := range []string{"google", "linkedin", "github", "facebook"} {
+		providers[provider] = map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+		}
 	}
 
-	// check if a loaded remote project has been passed
-	if options.HasuraGQEVersion != "" {
-		payload["hasura_graphql_version"] = options.HasuraGQEVersion
-	}
-	if options.BackendVersion != "" {
-		payload["hasura_backend_plus_version"] = options.BackendVersion
-	}
-	if options.PostgresVersion != "" {
-		payload["postgres_version"] = options.PostgresVersion
+	hasura := map[string]interface{}{
+		"version":      "v1.3.3",
+		"image":        "hasura/graphql-engine",
+		"admin_secret": 123456,
+		"port":         8080,
+		"console_port": 9695,
 	}
 
 	// if it's a Mac,
 	// add a custom Hasura GraphQL Engine image
 	// because it doesn't support the official one
 	if runtime.GOOS == "darwin" {
-		payload["hasura_graphql_engine"] = "fedormelexin/graphql-engine-arm64"
+		hasura["image"] = "fedormelexin/graphql-engine-arm64"
 	}
+
+	// check if a loaded remote project has been passed
+	if options.HasuraGQEVersion != "" {
+		hasura["version"] = options.HasuraGQEVersion
+	}
+
+	postgres := map[string]interface{}{
+		"version":  "12",
+		"user":     "postgres",
+		"password": "postgres",
+		"port":     5432,
+	}
+
+	if options.PostgresVersion != "" {
+		postgres["version"] = options.PostgresVersion
+	}
+
+	hbp := map[string]interface{}{
+		"version": "v2.5.0",
+		"port":    9001,
+	}
+
+	if options.BackendVersion != "" {
+		hbp["version"] = options.BackendVersion
+	}
+
+	payload := map[string]interface{}{
+		"version": 2,
+		"environment": map[string]interface{}{
+			"env_file":           envFile,
+			"hasura_cli_version": "v2.0.0-alpha.11",
+		},
+		"services": map[string]interface{}{
+			"postgres":            postgres,
+			"hasura":              hasura,
+			"hasura_backend_plus": hbp,
+			"minio": map[string]interface{}{
+				"version": "latest",
+				"port":    9000,
+			},
+			"api": map[string]interface{}{
+				"port": 4000,
+			},
+		},
+		"authentication": map[string]interface{}{
+			"endpoints": map[string]interface{}{
+				"provider_success_redirect": "http://localhost:3000",
+				"provider_failure_redirect": "http://localhost:3000/login-fail",
+			},
+			"providers": providers,
+		},
+	}
+
+	/*
+		payload["metadata_directory"] = "metadata"
+	*/
 
 	return payload
 }

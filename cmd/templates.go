@@ -17,8 +17,7 @@ package cmd
 
 import (
 	"context"
-	"os"
-	"os/exec"
+	"fmt"
 	"path"
 
 	"github.com/hashicorp/go-getter"
@@ -67,14 +66,14 @@ And you can immediately start developing on that template.`,
 
 		result := templates[index]["value"]
 
-		// intialize the frontend project directory
-		frontendDir := path.Join(workingDir, "frontend")
+		// intialize the web project directory
+		webDir := path.Join(workingDir, "web")
 
 		// initialize hashicorp go-getter client
 		client := &getter.Client{
 			Ctx: context.Background(),
 			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-			Dst:  frontendDir,
+			Dst:  webDir,
 			Dir:  true,
 			Src:  "github.com/nhost/nhost/templates/",
 			Mode: getter.ClientModeDir,
@@ -94,31 +93,37 @@ And you can immediately start developing on that template.`,
 		}
 		log.WithField("compnent", result).Debug("Template skeleton download complete")
 
-		// create nuxt project by invoking npm
-		npmCLI, err := exec.LookPath("npm")
-		if err != nil {
-			log.WithField("compnent", result).Debug(err)
-			log.WithField("compnent", result).Fatal("Failed to find npm. Is it properly installed?")
-		}
+		/*
+			// create nuxt project by invoking npm
+			npmCLI, err := exec.LookPath("npm")
+			if err != nil {
+				log.WithField("compnent", result).Debug(err)
+				log.WithField("compnent", result).Fatal("Failed to find npm. Is it properly installed?")
+			}
 
-		args = []string{npmCLI, "install", "--save-dev"}
+			args = []string{npmCLI, "install", "--save-dev"}
 
-		execute := exec.Cmd{
-			Path: npmCLI,
-			Args: args,
-			Dir:  frontendDir,
-		}
+			execute := exec.Cmd{
+				Path: npmCLI,
+				Args: args,
+				Dir:  webDir,
+			}
 
-		log.WithField("compnent", result).Info("Installing the framework inside your downloaded template")
+			log.WithField("compnent", result).Info("Installing the framework inside your downloaded template")
 
-		if err = execute.Run(); err != nil {
-			log.WithField("compnent", result).Debug(err)
-			log.WithField("compnent", result).Error("Failed to install framework inside your downloaded template")
-			log.WithField("compnent", result).Info("Please install the framework manually with: npm ", execute.Args)
-			os.Exit(1)
-		}
+			if err = execute.Run(); err != nil {
+				log.WithField("compnent", result).Debug(err)
+				log.WithField("compnent", result).Error("Failed to install framework inside your downloaded template")
+				log.WithField("compnent", result).Info("Please install the framework manually with: npm ", execute.Args)
+				os.Exit(1)
+			}
+		*/
 
 		log.WithField("compnent", result).Info("Template generation successful")
+		fmt.Println()
+
+		log.Infof("Do install selected framework, do: %vcd web && npm install --save-dev%v", Bold, Reset)
+		fmt.Println()
 	},
 }
 
