@@ -35,7 +35,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"runtime"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -493,7 +492,6 @@ var initCmd = &cobra.Command{
 		}
 
 		log.Info("Nhost backend successfully initialized")
-		log.Info("Start a local development environment with `nhost dev`")
 	},
 }
 
@@ -887,12 +885,14 @@ func getNhostConfig(options Project) map[string]interface{} {
 		"console_port": 9695,
 	}
 
-	// if it's a Mac,
-	// add a custom Hasura GraphQL Engine image
-	// because it doesn't support the official one
-	if runtime.GOOS == "darwin" {
-		hasura["image"] = "fedormelexin/graphql-engine-arm64"
-	}
+	/*
+		// if it's a Mac,
+		// add a custom Hasura GraphQL Engine image
+		// because it doesn't support the official one
+		if runtime.GOOS == "darwin" {
+			hasura["image"] = "fedormelexin/graphql-engine-arm64"
+		}
+	*/
 
 	// check if a loaded remote project has been passed
 	if options.HasuraGQEVersion != "" {
@@ -946,9 +946,7 @@ func getNhostConfig(options Project) map[string]interface{} {
 		},
 	}
 
-	/*
-		payload["metadata_directory"] = "metadata"
-	*/
+	payload["metadata_directory"] = "metadata"
 
 	return payload
 }

@@ -191,10 +191,7 @@ var (
 					IsConfirm: true,
 				}
 
-				frontendApproval, err := frontendPrompt.Run()
-				if err != nil {
-					log.Debug(err)
-				}
+				frontendApproval, _ := frontendPrompt.Run()
 
 				if strings.ToLower(frontendApproval) == "y" || strings.ToLower(frontendApproval) == "yes" {
 

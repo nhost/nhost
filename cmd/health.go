@@ -40,11 +40,17 @@ respective containers and service-exclusive health endpoints.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// load the saved Nhost configuration
-		nhostConfig, err := readYaml(path.Join(nhostDir, "config.yaml"))
+		options, err := readYaml(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read Nhost config")
 		}
+
+		postgresConfig := options["services"].(map[interface{}]interface{})["postgres"].(map[interface{}]interface{})
+		hasuraConfig := options["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})
+		hbpConfig := options["services"].(map[interface{}]interface{})["hasura_backend_plus"].(map[interface{}]interface{})
+		minioConfig := options["services"].(map[interface{}]interface{})["minio"].(map[interface{}]interface{})
+		apiConfig := options["services"].(map[interface{}]interface{})["api"].(map[interface{}]interface{})
 
 		// initialize all Nhost service structures
 		// and their respective service specific health check
@@ -57,30 +63,31 @@ respective containers and service-exclusive health endpoints.`,
 					"-h",
 					"localhost",
 					"-p",
-					fmt.Sprintf("%v", nhostConfig["postgres_port"]),
+					fmt.Sprintf("%v", postgresConfig["port"]),
 					"-U",
-					fmt.Sprintf("%v", nhostConfig["postgres_user"]),
+					fmt.Sprintf("%v", postgresConfig["user"]),
 				},
 			},
 			{
 				Name:                "nhost_hbp",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig["hasura_backend_plus_port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hbpConfig["port"]),
 			},
 			{
 				Name:                "nhost_hasura",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig["hasura_graphql_port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hasuraConfig["port"]),
 			},
 			{
 				Name:                "nhost_minio",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", nhostConfig["minio_port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig["port"]),
 			},
 		}
 
 		// Add API container if it's activated in config
-		if nhostConfig["startAPI"] != nil && nhostConfig["startAPI"].(bool) {
+		options["startAPI"] = pathExists(path.Join(workingDir, "api"))
+		if options["startAPI"].(bool) {
 			services = append(services, Container{
 				Name:                "nhost_api",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig["api_port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig["port"]),
 			})
 		}
 
@@ -229,7 +236,7 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 func checkServiceHealth(name, url string) bool {
 
 	for i := 1; i <= 10; i++ {
-		if validateEndpointHealth(url) {
+		if valid := validateEndpointHealth(url); valid {
 			log.WithField("component", name).Debugf("Service specific health check attempt #%v successful", i)
 			return true
 		}

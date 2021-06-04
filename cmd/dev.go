@@ -169,26 +169,24 @@ var devCmd = &cobra.Command{
 		}
 
 		// generate Nhost service containers' configurations
-		nhostServices, err := getContainerConfigs(docker, ctx, nhostConfig, dotNhost)
+		nhostServices, err := getContainerConfigs(docker, nhostConfig, dotNhost)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to generate container configurations")
 			downCmd.Run(cmd, args)
 		}
 
-		for _, container := range nhostServices {
-			if err = runContainer(docker, ctx, container); err != nil {
+		for _, item := range nhostServices {
+			if err = runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string)); err != nil {
 				log.Debug(err)
-				log.Errorf("Failed to start %v container", container.ID)
+				log.Errorf("Failed to start %v container", item["name"])
 				downCmd.Run(cmd, []string{"exit"})
 			}
-			log.Debugf("Container %s created", container.ID)
+			log.Debugf("Container %s created", item["name"])
 		}
 
-		/*
-			log.Info("Conducting a quick health check on all freshly created services")
-			healthCmd.Run(cmd, args)
-		*/
+		// log.Info("Conducting a quick health check on all freshly created services")
+		// healthCmd.Run(cmd, args)
 
 		// prepare and load hasura binary
 		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprint(nhostConfig["environment"].(map[interface{}]interface{})["hasura_cli_version"]))
@@ -203,7 +201,7 @@ var devCmd = &cobra.Command{
 			"--skip-update-check",
 		}
 
-		// create migrations from remote
+		// create migrations
 		cmdArgs := []string{hasuraCLI, "migrate", "apply"}
 		cmdArgs = append(cmdArgs, commandOptions...)
 
@@ -252,7 +250,25 @@ var devCmd = &cobra.Command{
 			}
 		}
 
-		// create migrations from remote
+		// export metadata
+		cmdArgs = []string{hasuraCLI, "metadata", "export"}
+		cmdArgs = append(cmdArgs, commandOptions...)
+
+		execute = exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhostDir,
+		}
+
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Debug(err)
+			log.Error("Failed to apply fresh metadata")
+			downCmd.Run(cmd, []string{"exit"})
+		}
+
+		// apply metadata
 		cmdArgs = []string{hasuraCLI, "metadata", "apply"}
 		cmdArgs = append(cmdArgs, commandOptions...)
 
@@ -374,9 +390,22 @@ var devCmd = &cobra.Command{
 }
 
 // start a fresh container in background
-func runContainer(client *client.Client, ctx context.Context, cont container.ContainerCreateCreatedBody) error {
+func runContainer(client *client.Client, ctx context.Context, containerConfig *container.Config, hostConfig *container.HostConfig, name string) error {
 
-	err := client.ContainerStart(ctx, cont.ID, types.ContainerStartOptions{})
+	container, err := client.ContainerCreate(
+		ctx,
+		containerConfig,
+		hostConfig,
+		nil,
+		nil,
+		name,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	err = client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
 
 	/*
 		// avoid using the code below if you want to run the containers in background
@@ -455,11 +484,11 @@ ENTRYPOINT ["./entrypoint-dev.sh"]
 `
 }
 
-func getContainerConfigs(client *client.Client, ctx context.Context, options map[string]interface{}, cwd string) ([]container.ContainerCreateCreatedBody, error) {
+func getContainerConfigs(client *client.Client, options map[string]interface{}, cwd string) ([]map[string]interface{}, error) {
 
 	log.Debug("Preparing Nhost container configurations")
 
-	var containers []container.ContainerCreateCreatedBody
+	var containers []map[string]interface{}
 
 	// segregate configurations for different services
 
@@ -484,23 +513,31 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		fmt.Sprintf("minio/minio:%v", minioConfig["version"]),
 	}
 
-	availableImages, err := getInstalledImages(client, ctx)
+	// if API container is going to be launched,
+	// validate it's image too
+	if options["startAPI"].(bool) {
+		requiredImages = append(requiredImages, fmt.Sprintf("nhost/nodeapi:%v", "latest"))
+	}
+
+	availableImages, err := getInstalledImages(client, context.Background())
 	if err != nil {
 		return containers, err
 	}
 
 	for _, requiredImage := range requiredImages {
-		// check wether the image is available or not
+
 		available := false
 		for _, image := range availableImages {
-			// if it NOT available, then pull the image
+
+			// check wether the image is available or not
 			if contains(image.RepoTags, requiredImage) {
 				available = true
 			}
 		}
 
+		// if it NOT available, then pull the image
 		if !available {
-			if err = pullImage(client, ctx, requiredImage); err != nil {
+			if err = pullImage(requiredImage); err != nil {
 				log.Errorf("Failed to pull image %s\nplease pull it manually and re-run `nhost dev`", requiredImage)
 			}
 		}
@@ -545,9 +582,9 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		})
 	}
 
-	postgresContainer, err := client.ContainerCreate(
-		ctx,
-		&container.Config{
+	postgresContainer := map[string]interface{}{
+		"name": "nhost_postgres",
+		"config": &container.Config{
 			Healthcheck: &container.HealthConfig{
 				Test: []string{
 					"CMD-SHELL",
@@ -571,20 +608,12 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				fmt.Sprintf("POSTGRES_PASSWORD=%v", postgresConfig["password"]),
 			},
 			ExposedPorts: nat.PortSet{nat.Port(fmt.Sprintf("%v", postgresConfig["port"])): struct{}{}},
-			/*
-				Entrypoint: []string{
-					"sh",
-					"-c",
-					fmt.Sprintf("postgres -p %v", fmt.Sprint(postgresConfig["port"])),
-				},
-			*/
 			Cmd: []string{
 				"-p",
 				fmt.Sprint(postgresConfig["port"]),
 			},
-			// CREATE SCHEMA IF NOT EXISTS auth;
 		},
-		&container.HostConfig{
+		"host_config": &container.HostConfig{
 			// AutoRemove:   true,
 			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", postgresConfig["port"])): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", postgresConfig["port"])}}},
 			RestartPolicy: container.RestartPolicy{
@@ -592,14 +621,6 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			},
 			Mounts: mounts,
 		},
-		nil,
-		nil,
-		"nhost_postgres",
-	)
-
-	if err != nil {
-		log.Debug(err)
-		return containers, err
 	}
 
 	// prepare env variables for following container
@@ -626,13 +647,13 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 	// expose it to the links as well
 
 	links := []string{"nhost_postgres:nhost-postgres"}
-	if options["startAPI"] != nil && options["startAPI"].(bool) {
+	if options["startAPI"].(bool) {
 		links = append(links, "nhost_api:nhost-api")
 	}
 
-	graphqlEngineContainer, err := client.ContainerCreate(
-		ctx,
-		&container.Config{
+	hasuraContainer := map[string]interface{}{
+		"name": "nhost_hasura",
+		"config": &container.Config{
 			Healthcheck: &container.HealthConfig{
 				Test: []string{
 					"CMD-SHELL",
@@ -654,24 +675,16 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			// server is running and responding absolutely fine without these commands
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
-		&container.HostConfig{
+
+		"host_config": &container.HostConfig{
 			// AutoRemove: true,
 			Links: links,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(hasuraConfig["port"].(int))): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hasuraConfig["port"].(int))}},
 			},
-			/*
-			 */
 			Mounts: mounts,
 		},
-		nil,
-		nil,
-		"nhost_hasura",
-	)
-
-	if err != nil {
-		return containers, err
 	}
 
 	// create mount points if they doesn't exit
@@ -694,9 +707,9 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		}
 	}
 
-	minioContainer, err := client.ContainerCreate(
-		ctx,
-		&container.Config{
+	minioContainer := map[string]interface{}{
+		"name": "nhost_minio",
+		"config": &container.Config{
 			Healthcheck: &container.HealthConfig{
 				Test: []string{
 					"CMD-SHELL",
@@ -723,7 +736,8 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				fmt.Sprintf(`mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data`, minioConfig["port"]),
 			},
 		},
-		&container.HostConfig{
+
+		"host_config": &container.HostConfig{
 			// AutoRemove: true,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(minioConfig["port"].(int))): {{HostIP: "127.0.0.1",
@@ -733,13 +747,6 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			},
 			Mounts: mountPoints,
 		},
-		nil,
-		nil,
-		"nhost_minio",
-	)
-
-	if err != nil {
-		return containers, err
 	}
 
 	// prepare env variables for following container
@@ -796,9 +803,9 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 		return containers, err
 	}
 
-	hasuraBackendPlusContainer, err := client.ContainerCreate(
-		ctx,
-		&container.Config{
+	hasuraBackendPlusContainer := map[string]interface{}{
+		"name": "nhost_hbp",
+		"config": &container.Config{
 			Healthcheck: &container.HealthConfig{
 				Test: []string{
 					"CMD-SHELL",
@@ -818,7 +825,7 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			// server is running and responding absolutely fine without these commands
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
-		&container.HostConfig{
+		"host_config": &container.HostConfig{
 			// AutoRemove: true,
 			Links: []string{"nhost_hasura:nhost-graphql-engine", "nhost_minio:nhost-minio", "nhost_postgres:nhost-postgres"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
@@ -835,16 +842,18 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				},
 			},
 		},
-		nil,
-		nil,
-		"nhost_hbp",
-	)
-
-	if err != nil {
-		return containers, err
 	}
 
-	if options["startAPI"] != nil && options["startAPI"].(bool) {
+	containers = append(containers, postgresContainer)
+	containers = append(containers, minioContainer)
+
+	// add depends_on for following containers
+	containers = append(containers, hasuraContainer)
+	containers = append(containers, hasuraBackendPlusContainer)
+
+	// if API directory is generated,
+	// generate it's container configuration too
+	if options["startAPI"].(bool) {
 
 		// prepare env variables for following container
 		containerVariables = []string{
@@ -861,16 +870,52 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 			fmt.Sprintf("NHOST_JWT_KEY=%v", options["graphql_jwt_key"]),
 		)
 
-		// create mount point if it doesn't exit
-		customMountPoint = path.Join(cwd, "api")
-		if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
-			log.Errorf("Failed to create %s directory", customMountPoint)
-			return containers, err
-		}
+		/*
+					// create the docker image for API container
+					imageName := "nhost_api"
+					tarHeader := &tar.Header{
+						Name: "Dockerfile-Api",
+						Size: int64(len([]byte(getDockerApiTemplate()))),
+					}
 
-		APIContainer, err := client.ContainerCreate(
-			ctx,
-			&container.Config{
+					buf := new(bytes.Buffer)
+					tw := tar.NewWriter(buf)
+					defer tw.Close()
+
+					err = tw.WriteHeader(tarHeader)
+					if err != nil {
+						return containers, err
+					}
+					_, err = tw.Write([]byte(getDockerApiTemplate()))
+					if err != nil {
+						return containers, err
+					}
+					dockerFileTarReader := bytes.NewReader(buf.Bytes())
+
+					_, err := client.ImageBuild(
+						context.Background(),
+						dockerFileTarReader,
+						types.ImageBuildOptions{
+							Context:    dockerFileTarReader,
+							Dockerfile: "Dockerfile-Api",
+							Tags:       []string{imageName, "latest"},
+							Remove:     true})
+					if err != nil {
+						log.Errorf("Failed to build docker image %s", imageName)
+						return containers, err
+					}
+
+					FROM nhost/nodeapi:latest
+			WORKDIR /usr/src/app
+			COPY api ./api
+			RUN ./install.sh
+			ENTRYPOINT ["./entrypoint-dev.sh"]
+		*/
+
+		APIContainer := map[string]interface{}{
+			"name": "nhost_api",
+			"config": &container.Config{
+				WorkingDir: "/usr/src/app",
 				Healthcheck: &container.HealthConfig{
 					Test: []string{
 						"CMD-SHELL",
@@ -884,12 +929,12 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				},
 				Env:          containerVariables,
 				ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(apiConfig["port"].(int))): struct{}{}},
-				OnBuild: []string{
-					"context:../",
-					"dockerfile:./.nhost/Dockerfile-api",
-				},
+				Image:        "nhost/nodeapi:latest",
+				Entrypoint:   []string{"sh", "-c", "./entrypoint-dev.sh"},
+				Cmd:          []string{"./install.sh"},
 			},
-			&container.HostConfig{
+			"host_config": &container.HostConfig{
+
 				// AutoRemove: true,
 				Links: []string{"nhost_hasura:nhost-hasura", "nhost_hbp:nhost-hbp", "nhost_minio:nhost-minio"},
 				PortBindings: map[nat.Port][]nat.PortBinding{
@@ -901,29 +946,16 @@ func getContainerConfigs(client *client.Client, ctx context.Context, options map
 				Mounts: []mount.Mount{
 					{
 						Type:   mount.TypeBind,
-						Source: customMountPoint,
+						Source: path.Join(cwd, "api"),
 						Target: "/usr/src/app/api",
 					},
 				},
 			},
-			nil,
-			nil,
-			"nhost_api",
-		)
-
-		if err != nil {
-			return containers, err
 		}
 
 		containers = append(containers, APIContainer)
 	}
 
-	containers = append(containers, postgresContainer)
-	containers = append(containers, minioContainer)
-
-	// add depends_on for following containers
-	containers = append(containers, graphqlEngineContainer)
-	containers = append(containers, hasuraBackendPlusContainer)
 	return containers, err
 }
 
@@ -933,10 +965,17 @@ func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageS
 	return images, err
 }
 
-func pullImage(cli *client.Client, ctx context.Context, tag string) error {
+func pullImage(tag string) error {
+
 	log.Debugf("Pulling container image: %s", tag)
-	out, err := cli.ImagePull(ctx, tag, types.ImagePullOptions{})
-	out.Close()
+
+	/*
+		out, err := cli.ImagePull(ctx, tag, types.ImagePullOptions{})
+		out.Close()
+	*/
+
+	dockerCLI, _ := exec.LookPath("docker")
+	err := exec.Command(dockerCLI, "image", "pull", tag).Run()
 	return err
 }
 
