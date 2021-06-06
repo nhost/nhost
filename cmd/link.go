@@ -47,6 +47,7 @@ var linkCmd = &cobra.Command{
 		// validate authentication
 		userData, err := validateAuth(authPath)
 		if err != nil {
+			log.Debug(err)
 			log.Error("Failed to validate authentication")
 
 			// begin the login procedure
@@ -88,14 +89,13 @@ var linkCmd = &cobra.Command{
 			Templates: &templates,
 		}
 
-		index := -1
-		index, _, err = prompt.Run()
+		index, _, err := prompt.Run()
 
 		project := projects[index]
 
 		// if a new project is selected,
 		// then begin input prompts
-		if index == -1 {
+		if project.ID == "new" {
 
 			// input the project name
 
