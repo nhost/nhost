@@ -89,4 +89,11 @@ type (
 		StdErr   string
 		ExitCode int
 	}
+
+	Server struct {
+		ID          string
+		Name        string
+		CountryCode string
+		City        string
+	}
 )

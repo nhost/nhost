@@ -35,6 +35,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"syscall"
@@ -150,23 +151,25 @@ var devCmd = &cobra.Command{
 			nhostConfig["graphql_jwt_key"] = generateRandomKey()
 		}
 
-		if nhostConfig["startAPI"].(bool) {
+		/*
+			if nhostConfig["startAPI"].(bool) {
 
-			// write docker api file
-			_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
-			if err != nil {
-				log.Debug(err)
-				log.Error("Failed to create docker api config")
-				downCmd.Run(cmd, []string{"exit"})
-			}
+				// write docker api file
+				_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
+				if err != nil {
+					log.Debug(err)
+					log.Error("Failed to create docker api config")
+					downCmd.Run(cmd, []string{"exit"})
+				}
 
-			err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
-			if err != nil {
-				log.Debug(err)
-				log.Error("Failed to write backend docker-compose config")
-				downCmd.Run(cmd, []string{"exit"})
+				err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
+				if err != nil {
+					log.Debug(err)
+					log.Error("Failed to write backend docker-compose config")
+					downCmd.Run(cmd, []string{"exit"})
+				}
 			}
-		}
+		*/
 
 		// generate Nhost service containers' configurations
 		nhostServices, err := getContainerConfigs(docker, nhostConfig, dotNhost)
@@ -176,17 +179,27 @@ var devCmd = &cobra.Command{
 			downCmd.Run(cmd, args)
 		}
 
+		// create the Nhost network if it doesn't exist
+		network, _ := createNetwork(docker, "nhost")
+
+		// create and start the conatiners
 		for _, item := range nhostServices {
-			if err = runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string)); err != nil {
+			if err = runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string), network); err != nil {
 				log.Debug(err)
-				log.Errorf("Failed to start %v container", item["name"])
+				log.WithField("component", item["name"]).Error("Failed to start container")
 				downCmd.Run(cmd, []string{"exit"})
 			}
-			log.Debugf("Container %s created", item["name"])
+			log.WithField("component", item["name"]).Debug("Container created")
 		}
 
 		// log.Info("Conducting a quick health check on all freshly created services")
 		// healthCmd.Run(cmd, args)
+
+		// wait for graphQL engine to become healthy
+		if ok := checkServiceHealth("hasura", fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})["port"])); !ok {
+			log.WithField("component", "hasura").Error("GraphQL engine health check failed")
+			downCmd.Run(cmd, []string{"exit"})
+		}
 
 		// prepare and load hasura binary
 		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprint(nhostConfig["environment"].(map[interface{}]interface{})["hasura_cli_version"]))
@@ -330,7 +343,7 @@ var devCmd = &cobra.Command{
 		// attach a watcher to the API conatiner's package.json
 		// to provide live reload functionality
 
-		if nhostConfig["startAPI"] != nil && nhostConfig["startAPI"].(bool) {
+		if nhostConfig["startAPI"].(bool) {
 
 			watcher, err := fsnotify.NewWatcher()
 			if err != nil {
@@ -345,37 +358,37 @@ var devCmd = &cobra.Command{
 					select {
 					case event, ok := <-watcher.Events:
 						if !ok {
+							log.Error("Watcher not okay")
 							return
 						}
-						log.Println("event:", event)
+						log.Infoln("event:", event)
 						if event.Op&fsnotify.Write == fsnotify.Write {
-							log.Println("modified file:", event.Name)
+							log.Infoln("modified file: ", event.Name)
 
-							/*
-								// fetch list of all running containers
-								containers, err := getContainers(docker, ctx, "nhost")
-								if err != nil {
-									log.WithField("component", "nhost_api").Debug(err)
-									log.WithField("component", "nhost_api").Error("Failed to fetch container")
-								}
+							APIContainerName := "nhost_api"
 
-								if err = restartContainer(docker, ctx, conatiners[0]); err != nil {
-									log.WithField("component", "nhost_api").Debug(err)
-									log.WithField("component", "nhost_api").Error("Failed to restart container")
-								}
+							// fetch list of all running containers
+							containers, err := getContainers(docker, ctx, APIContainerName)
+							if err != nil {
+								log.WithField("component", APIContainerName).Debug(err)
+								log.WithField("component", APIContainerName).Error("Failed to fetch container")
+							}
 
-							*/
+							if err = restartContainer(docker, ctx, containers[0]); err != nil {
+								log.WithField("component", APIContainerName).Debug(err)
+								log.WithField("component", APIContainerName).Error("Failed to restart container")
+							}
 						}
 					case err, ok := <-watcher.Errors:
 						if !ok {
 							return
 						}
-						log.Println("error:", err)
+						log.Error(err)
 					}
 				}
 			}()
 
-			err = watcher.Add(path.Join("api", "package.json"))
+			err = watcher.Add(path.Join(workingDir, "api", "package.json"))
 			if err != nil {
 				log.Debug(err)
 				log.WithField("component", "package.json").Error("Failed to add to live reload watcher")
@@ -384,13 +397,34 @@ var devCmd = &cobra.Command{
 		}
 
 		// wait for user input infinitely to keep the utility running
-		scanner := bufio.NewScanner(os.Stdin)
-		scanner.Scan()
+		var input []byte
+		reader := bufio.NewReader(os.Stdin)
+		// disables input buffering
+		for {
+			b, err := reader.ReadByte()
+			if err != nil {
+				log.Error(err)
+			}
+			_ = append(input, b)
+		}
+		//scanner.Scan()
 	},
 }
 
+func createNetwork(client *client.Client, name string) (string, error) {
+
+	// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
+
+	response, err := client.NetworkCreate(context.Background(), name, types.NetworkCreate{})
+	if err != nil {
+		return "", err
+	}
+
+	return response.ID, nil
+}
+
 // start a fresh container in background
-func runContainer(client *client.Client, ctx context.Context, containerConfig *container.Config, hostConfig *container.HostConfig, name string) error {
+func runContainer(client *client.Client, ctx context.Context, containerConfig *container.Config, hostConfig *container.HostConfig, name, network string) error {
 
 	container, err := client.ContainerCreate(
 		ctx,
@@ -406,6 +440,12 @@ func runContainer(client *client.Client, ctx context.Context, containerConfig *c
 	}
 
 	err = client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
+	if err != nil {
+		return err
+	}
+
+	// attach the container to the network
+	err = client.NetworkConnect(ctx, network, container.ID, nil)
 
 	/*
 		// avoid using the code below if you want to run the containers in background
@@ -474,6 +514,7 @@ func portAvaiable(port string) bool {
 	return true
 }
 
+/*
 func getDockerApiTemplate() string {
 	return `
 FROM nhost/nodeapi:latest
@@ -483,7 +524,7 @@ RUN ./install.sh
 ENTRYPOINT ["./entrypoint-dev.sh"]
 `
 }
-
+*/
 func getContainerConfigs(client *client.Client, options map[string]interface{}, cwd string) ([]map[string]interface{}, error) {
 
 	log.Debug("Preparing Nhost container configurations")
@@ -559,18 +600,6 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 		}
 	}
 
-	/*
-		// Define Network config (why isn't PORT in here...?:
-		// https://godoc.org/github.com/docker/docker/api/types/network#NetworkingConfig
-		networkConfig := &network.NetworkingConfig{
-			EndpointsConfig: map[string]*network.EndpointSettings{},
-		}
-			gatewayConfig := &network.EndpointSettings{
-				Gateway: "gatewayname",
-			}
-			networkConfig.EndpointsConfig["bridge"] = gatewayConfig
-	*/
-
 	mounts := []mount.Mount{}
 
 	// if db_data already exists, then mount it
@@ -626,7 +655,7 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 	// prepare env variables for following container
 	containerVariables := []string{
 		fmt.Sprintf("HASURA_GRAPHQL_SERVER_PORT=%v", hasuraConfig["port"]),
-		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, postgresConfig["user"], postgresConfig["password"], postgresConfig["port"])),
+		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost_postgres:%v/postgres`, postgresConfig["user"], postgresConfig["password"], postgresConfig["port"])),
 		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", hasuraConfig["admin_secret"]),
@@ -636,7 +665,7 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 		fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig["port"])),
 		"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
 		fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost_hbp:%v`, hbpConfig["port"])),
-		fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://nhost-api:%v`, apiConfig["port"])),
+		fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://nhost_api:%v`, apiConfig["port"])),
 	}
 	containerVariables = append(containerVariables, envVars...)
 
@@ -646,10 +675,12 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 	// if API container has to be loaded,
 	// expose it to the links as well
 
-	links := []string{"nhost_postgres:nhost-postgres"}
-	if options["startAPI"].(bool) {
-		links = append(links, "nhost_api:nhost-api")
-	}
+	/*
+		links := []string{"nhost_postgres:nhost-postgres"}
+			if options["startAPI"].(bool) {
+				links = append(links, "nhost_api:nhost-api")
+			}
+	*/
 
 	hasuraContainer := map[string]interface{}{
 		"name": "nhost_hasura",
@@ -678,7 +709,7 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 
 		"host_config": &container.HostConfig{
 			// AutoRemove: true,
-			Links: links,
+			//Links: links,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(hasuraConfig["port"].(int))): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hasuraConfig["port"].(int))}},
@@ -755,9 +786,9 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 		"USER_FIELDS=''",
 		"USER_REGISTRATION_AUTO_ACTIVE=true",
 		"PG_OPTIONS='-c search_path=auth'",
-		fmt.Sprintf("DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost-postgres:%v/postgres`, postgresConfig["user"], postgresConfig["password"], postgresConfig["port"])),
-		fmt.Sprintf("HASURA_GRAPHQL_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, hasuraConfig["port"])),
-		fmt.Sprintf("HASURA_ENDPOINT=%v", fmt.Sprintf(`http://nhost-graphql-engine:%v/v1/graphql`, hasuraConfig["port"])),
+		fmt.Sprintf("DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost_postgres:%v/postgres`, postgresConfig["user"], postgresConfig["password"], postgresConfig["port"])),
+		fmt.Sprintf("HASURA_GRAPHQL_ENDPOINT=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig["port"])),
+		fmt.Sprintf("HASURA_ENDPOINT=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig["port"])),
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", hasuraConfig["admin_secret"]),
 		"AUTH_ACTIVE=true",
 		"AUTH_LOCAL_ACTIVE=true",
@@ -827,7 +858,7 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 		},
 		"host_config": &container.HostConfig{
 			// AutoRemove: true,
-			Links: []string{"nhost_hasura:nhost-graphql-engine", "nhost_minio:nhost-minio", "nhost_postgres:nhost-postgres"},
+			//Links: []string{"nhost_hasura:nhost_hasura", "nhost_minio:nhost-minio", "nhost_postgres:nhost-postgres"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(hbpConfig["port"].(int))): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hbpConfig["port"].(int))}}},
@@ -855,112 +886,136 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 	// generate it's container configuration too
 	if options["startAPI"].(bool) {
 
-		// prepare env variables for following container
-		containerVariables = []string{
-			fmt.Sprintf("PORT=%v", apiConfig["port"]),
-			fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost-hasura:%v/v1/graphql`, hasuraConfig["port"])),
-			fmt.Sprintf("NHOST_HASURA_ADMIN_SECRET=%v", hasuraConfig["admin_secret"]),
-			"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
-			fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost-hbp:%v`, hbpConfig["port"])),
-			fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://localhost:%v`, apiConfig["port"])),
-			"NHOST_JWT_ALGORITHM=HS256",
+		APIContainer, err := getAPIContainerConfig(apiConfig, hbpConfig, hasuraConfig, envVars, options["graphql_jwt_key"].(string))
+		if err != nil {
+			log.Errorf("Failed to create %s conatiner", "API")
+			return containers, err
 		}
-		containerVariables = append(containerVariables, envVars...)
-		containerVariables = append(containerVariables,
-			fmt.Sprintf("NHOST_JWT_KEY=%v", options["graphql_jwt_key"]),
-		)
-
-		/*
-					// create the docker image for API container
-					imageName := "nhost_api"
-					tarHeader := &tar.Header{
-						Name: "Dockerfile-Api",
-						Size: int64(len([]byte(getDockerApiTemplate()))),
-					}
-
-					buf := new(bytes.Buffer)
-					tw := tar.NewWriter(buf)
-					defer tw.Close()
-
-					err = tw.WriteHeader(tarHeader)
-					if err != nil {
-						return containers, err
-					}
-					_, err = tw.Write([]byte(getDockerApiTemplate()))
-					if err != nil {
-						return containers, err
-					}
-					dockerFileTarReader := bytes.NewReader(buf.Bytes())
-
-					_, err := client.ImageBuild(
-						context.Background(),
-						dockerFileTarReader,
-						types.ImageBuildOptions{
-							Context:    dockerFileTarReader,
-							Dockerfile: "Dockerfile-Api",
-							Tags:       []string{imageName, "latest"},
-							Remove:     true})
-					if err != nil {
-						log.Errorf("Failed to build docker image %s", imageName)
-						return containers, err
-					}
-
-					FROM nhost/nodeapi:latest
-			WORKDIR /usr/src/app
-			COPY api ./api
-			RUN ./install.sh
-			ENTRYPOINT ["./entrypoint-dev.sh"]
-		*/
-
-		APIContainer := map[string]interface{}{
-			"name": "nhost_api",
-			"config": &container.Config{
-				WorkingDir: "/usr/src/app",
-				Healthcheck: &container.HealthConfig{
-					Test: []string{
-						"CMD-SHELL",
-						"curl",
-						fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig["port"]),
-					},
-					Interval:    1000000000,
-					Timeout:     10000000000,
-					Retries:     10,
-					StartPeriod: 60000000000,
-				},
-				Env:          containerVariables,
-				ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(apiConfig["port"].(int))): struct{}{}},
-				Image:        "nhost/nodeapi:latest",
-				Entrypoint:   []string{"sh", "-c", "./entrypoint-dev.sh"},
-				Cmd:          []string{"./install.sh"},
-			},
-			"host_config": &container.HostConfig{
-
-				// AutoRemove: true,
-				Links: []string{"nhost_hasura:nhost-hasura", "nhost_hbp:nhost-hbp", "nhost_minio:nhost-minio"},
-				PortBindings: map[nat.Port][]nat.PortBinding{
-					nat.Port(strconv.Itoa(apiConfig["port"].(int))): {{HostIP: "127.0.0.1",
-						HostPort: strconv.Itoa(apiConfig["port"].(int))}}},
-				RestartPolicy: container.RestartPolicy{
-					Name: "always",
-				},
-				Mounts: []mount.Mount{
-					{
-						Type:   mount.TypeBind,
-						Source: path.Join(cwd, "api"),
-						Target: "/usr/src/app/api",
-					},
-				},
-			},
-		}
-
 		containers = append(containers, APIContainer)
 	}
 
 	return containers, err
 }
 
+func getAPIContainerConfig(
+	apiConfig map[interface{}]interface{},
+	hbpConfig map[interface{}]interface{},
+	hasuraConfig map[interface{}]interface{},
+	envVars []string,
+	graphql_jwt_key string,
+) (map[string]interface{}, error) {
+
+	// prepare env variables for following container
+	containerVariables := []string{
+		fmt.Sprintf("PORT=%v", apiConfig["port"]),
+		fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig["port"])),
+		fmt.Sprintf("NHOST_HASURA_ADMIN_SECRET=%v", hasuraConfig["admin_secret"]),
+		"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
+		fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://nhost_hbp:%v`, hbpConfig["port"])),
+		fmt.Sprintf("NHOST_CUSTOM_API_URL=%v", fmt.Sprintf(`http://localhost:%v`, apiConfig["port"])),
+		"NHOST_JWT_ALGORITHM=HS256",
+		fmt.Sprintf("NHOST_JWT_KEY=%v", graphql_jwt_key),
+	}
+	containerVariables = append(containerVariables, envVars...)
+
+	// change directory and file access permissions
+	err := filepath.Walk(path.Join(workingDir, "api"), func(path string, info os.FileInfo, err error) error {
+		err = os.Chmod(path, 0777)
+		if err != nil {
+			log.Error(err)
+		}
+		return nil
+	})
+	if err != nil {
+		log.Error(err)
+	}
+	/*
+				// create the docker image for API container
+				imageName := "nhost_api"
+				tarHeader := &tar.Header{
+					Name: "Dockerfile-Api",
+					Size: int64(len([]byte(getDockerApiTemplate()))),
+				}
+
+				buf := new(bytes.Buffer)
+				tw := tar.NewWriter(buf)
+				defer tw.Close()
+
+				err = tw.WriteHeader(tarHeader)
+				if err != nil {
+					return containers, err
+				}
+				_, err = tw.Write([]byte(getDockerApiTemplate()))
+				if err != nil {
+					return containers, err
+				}
+				dockerFileTarReader := bytes.NewReader(buf.Bytes())
+
+				_, err := client.ImageBuild(
+					context.Background(),
+					dockerFileTarReader,
+					types.ImageBuildOptions{
+						Context:    dockerFileTarReader,
+						Dockerfile: "Dockerfile-Api",
+						Tags:       []string{imageName, "latest"},
+						Remove:     true})
+				if err != nil {
+					log.Errorf("Failed to build docker image %s", imageName)
+					return containers, err
+				}
+
+				FROM nhost/nodeapi:latest
+		WORKDIR /usr/src/app
+		COPY api ./api
+		RUN ./install.sh
+		ENTRYPOINT ["./entrypoint-dev.sh"]
+	*/
+
+	APIContainer := map[string]interface{}{
+		"name": "nhost_api",
+		"config": &container.Config{
+			WorkingDir: "/usr/src/app",
+			Healthcheck: &container.HealthConfig{
+				Test: []string{
+					"CMD-SHELL",
+					"curl",
+					fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig["port"]),
+				},
+				Interval:    1000000000,
+				Timeout:     10000000000,
+				Retries:     10,
+				StartPeriod: 60000000000,
+			},
+			Env:          containerVariables,
+			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(apiConfig["port"].(int))): struct{}{}},
+			Image:        "nhost/nodeapi:latest",
+			Entrypoint:   []string{"sh", "-c", "./entrypoint-dev.sh"},
+			Cmd:          []string{"./install.sh"},
+		},
+		"host_config": &container.HostConfig{
+			Binds: []string{path.Join(workingDir, "api")},
+			// AutoRemove: true,
+			//Links: []string{"nhost_hasura:nhost-hasura", "nhost_hbp:nhost-hbp", "nhost_minio:nhost-minio"},
+			PortBindings: map[nat.Port][]nat.PortBinding{
+				nat.Port(strconv.Itoa(apiConfig["port"].(int))): {{HostIP: "127.0.0.1",
+					HostPort: strconv.Itoa(apiConfig["port"].(int))}}},
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
+			Mounts: []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: path.Join(workingDir, "api"),
+					Target: "/usr/src/app",
+				},
+			},
+		},
+	}
+	return APIContainer, nil
+}
+
 func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageSummary, error) {
-	log.Debug("Fetching available/installed container images")
+	log.Debug("Fetching available container images")
 	images, err := cli.ImageList(ctx, types.ImageListOptions{All: true})
 	return images, err
 }

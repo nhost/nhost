@@ -24,7 +24,11 @@ SOFTWARE.
 package cmd
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -64,16 +68,17 @@ var linkCmd = &cobra.Command{
 			}
 		}
 
-		if len(projects) == 0 {
-			log.Info("Go to https://console.nhost.io/new and create a new project")
-			log.Fatal("We couldn't find any projects related to this account")
-		}
+		// add the option of a new project to the existing selection payload
+		projects = append(projects, Project{
+			Name: "Create New Project",
+			ID:   "new",
+		})
 
 		// configure interactive prompt template
 		templates := promptui.SelectTemplates{
 			Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }}`,
 			Inactive: `   {{ .Name | cyan }}`,
-			Selected: `{{ "✔" | green | bold }} {{ "Project" | bold }}: {{ .Name | cyan }}`,
+			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
 		}
 
 		// configure interative prompt
@@ -83,72 +88,224 @@ var linkCmd = &cobra.Command{
 			Templates: &templates,
 		}
 
-		index, _, err := prompt.Run()
-		selectedProject := projects[index]
+		index := -1
+		index, _, err = prompt.Run()
 
-		if err != nil {
+		project := projects[index]
+
+		// if a new project is selected,
+		// then begin input prompts
+		if index == -1 {
+
+			// input the project name
+
+			inputPrompt := promptui.Prompt{
+				Label: "Name of the project",
+			}
+
+			name, err := inputPrompt.Run()
+			if err != nil {
+				log.Fatal("Aborted")
+			}
+
+			// select the server location
+
+			servers, err := getServers()
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to fetch list of servers")
+			}
+
+			// configure interative prompt for selecting server
+			prompt := promptui.Select{
+				Label:     "Select server location",
+				Items:     servers,
+				Templates: &templates,
+			}
+
+			index, _, err := prompt.Run()
+			if err != nil {
+				log.Fatal("Aborted")
+			}
+			selectedServer := servers[index].ID
+
+			// select the team
+			index = -1
+			userData.Teams = append(userData.Teams, TeamData{
+				Team{
+					Name: "No team. Publish as personal project",
+				},
+			})
+
+			// configure interative prompt for selecting team
+			prompt = promptui.Select{
+				Label:     "Choose your team",
+				Items:     userData.Teams,
+				Templates: &templates,
+			}
+
+			index, _, err = prompt.Run()
+			if err != nil {
+				log.Fatal("Aborted")
+			}
+
+			if index == -1 {
+
+				project, err = createProject(name, selectedServer, userData.Projects[0].UserID, "")
+				if err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to create a new project")
+				}
+
+			} else {
+
+				project, err = createProject(name, selectedServer, "", userData.Teams[index].Team.Projects[0].TeamID)
+				if err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to create a new project")
+				}
+
+			}
+
+		} else {
+
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Input prompt failed")
+			}
+
+			// provide confirmation prompt
+			log.Warn("If you linked to the wrong project, you could break your production environment.")
+			log.Info("Therefore we need confirmation you are serious about this.")
+
+			credentials, err := getCredentials(authPath)
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to load authentication credentials")
+			}
+
+			// configure interative prompt
+			confirmationPrompt := promptui.Prompt{
+				Label: "Enter your email to confirm this linking",
+			}
+
+			response, err := confirmationPrompt.Run()
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Input prompt aborted")
+			}
+
+			if strings.ToLower(response) != credentials.Email {
+				log.Fatal("Invalid email. Linking aborted.")
+			}
+		}
+
+		// update the project ID
+		if err = updateNhostProject(project.ID); err != nil {
 			log.Debug(err)
-			log.Fatal("Input prompt failed")
+			log.Fatal("Failed to update Nhost project configuration locally")
 		}
 
-		// provide confirmation prompt
-		log.Warn("If you linked to the wrong project, you could break your production environment.")
-		log.Info("Therefore we need confirmation you are serious about this.")
+		// project linking complete
+		log.Infof("Project %s linked to existing Nhost configuration", project.Name)
+	},
+}
 
-		credentials, err := getCredentials(authPath)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to load authentication credentials")
-		}
+func updateNhostProject(ID string) error {
 
-		// configure interative prompt
-		confirmationPrompt := promptui.Prompt{
-			Label: "Enter your email to confirm this linking",
-		}
+	nhostProjectConfigPath := path.Join(dotNhost, "nhost.yaml")
 
-		response, err := confirmationPrompt.Run()
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Input prompt aborted")
-		}
-
-		if strings.ToLower(response) != credentials.Email {
-			log.Fatal("Invalid email. Linking aborted.")
-		}
-
-		// create .nhost, if it doesn't exists
+	// create .nhost, if it doesn't exists
+	if !pathExists(nhostProjectConfigPath) {
 		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize nhost specific directory")
 		}
-
-		nhostProjectConfigPath := path.Join(dotNhost, "nhost.yaml")
-
+	} else {
 		// first delete any existing nhost.yaml file
 		deletePath(nhostProjectConfigPath)
+	}
 
-		// create nhost.yaml to write it
-		f, err := os.Create(nhostProjectConfigPath)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to instantiate Nhost auth configuration")
-		}
+	// create nhost.yaml to write it
+	f, err := os.Create(nhostProjectConfigPath)
+	if err != nil {
+		log.Debug(err)
+		log.Fatal("Failed to instantiate Nhost auth configuration")
+	}
 
-		defer f.Close()
+	defer f.Close()
 
-		// write the file
-		if err = writeToFile(
-			nhostProjectConfigPath,
-			fmt.Sprintf(`project_id: %s`, selectedProject.ID),
-			"start",
-		); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to save /nhost.yaml config")
-		}
+	// write the file
+	if err = writeToFile(
+		nhostProjectConfigPath,
+		fmt.Sprintf(`project_id: %s`, ID),
+		"start",
+	); err != nil {
+		log.Debug(err)
+		log.Fatal("Failed to save /nhost.yaml config")
+	}
 
-		// project linking complete
-		log.Infof("Project %s linked to existing Nhost configuration", selectedProject.Name)
-	},
+	return err
+}
+
+// creates a new remote project
+func createProject(name, server, user, team string) (Project, error) {
+
+	var response Project
+
+	//Encode the data
+	postBody, _ := json.Marshal(map[string]string{
+		"name":               name,
+		"server_location_id": server,
+		"team_id":            team,
+		"user_id":            user,
+	})
+
+	responseBody := bytes.NewBuffer(postBody)
+
+	//Leverage Go's HTTP Post function to make request
+	resp, err := http.Post(apiURL+"/custom/cli/get-server-locations", "application/json", responseBody)
+	if err != nil {
+		return response, err
+	}
+
+	// read our opened xmlFile as a byte array.
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	defer resp.Body.Close()
+
+	var res map[string]interface{}
+	// we unmarshal our body byteArray which contains our
+	// jsonFile's content into 'server' strcuture
+	json.Unmarshal(body, &res)
+	filteredResponse, _ := json.Marshal(res["project"])
+	json.Unmarshal(filteredResponse, &response)
+
+	return response, nil
+}
+
+// fetches the list of Nhost production servers
+func getServers() ([]Server, error) {
+
+	var response []Server
+
+	resp, err := http.Get(apiURL + "/custom/cli/get-server-locations")
+	if err != nil {
+		return response, err
+	}
+
+	// read our opened xmlFile as a byte array.
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	defer resp.Body.Close()
+
+	var res map[string]interface{}
+	// we unmarshal our body byteArray which contains our
+	// jsonFile's content into 'server' strcuture
+	json.Unmarshal(body, &res)
+	json.Unmarshal(res["server_locations"].([]byte), &response)
+
+	return response, nil
 }
 
 func init() {

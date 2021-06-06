@@ -105,7 +105,21 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 		}
 	}
 
-	return nil
+	// search and delete Nhost network too,
+	// if you don't do this,
+	// docker will get confused about ambigous network names
+
+	network, err := getNetwork(client, ctx, "nhost")
+	if err != nil {
+		return err
+	}
+
+	if network != "" {
+		err = removeNetwork(client, ctx, network)
+		return err
+
+	}
+	return err
 }
 
 // returns the list of running containers whose names have specified prefix
@@ -122,6 +136,34 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 	}
 
 	return response, err
+}
+
+// removes a given network by ID
+func removeNetwork(cli *client.Client, ctx context.Context, ID string) error {
+
+	log.Debug("Removing network: ", ID)
+
+	err := cli.NetworkRemove(ctx, ID)
+	return err
+}
+
+// fetches ID of docker network by name
+func getNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
+
+	log.WithField("component", name).Debug("Fetching network")
+
+	response, err := cli.NetworkList(ctx, types.NetworkListOptions{})
+	if err != nil {
+		return "", err
+	}
+
+	for _, network := range response {
+		if network.Name == name {
+			return network.ID, nil
+		}
+	}
+
+	return "", err
 }
 
 // restarts given container
