@@ -28,6 +28,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var BuildVersion string = "development"
+
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
@@ -35,8 +37,20 @@ var versionCmd = &cobra.Command{
 	Long:  `All softwares has versions. This is Nhost's.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		version := 0.5
-		log.WithField("component", "Nhost").Infof("v%v", version)
+		log.WithField("component", "version").Info(BuildVersion)
+
+		release, err := getLatestRelease()
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to fetch latest release")
+		}
+
+		if release.TagName == BuildVersion {
+			log.Info("You already have the latest version. Hurray!")
+		} else {
+			log.WithField("component", release.TagName).Warn("New version available")
+			log.Info("Upgrade with `nhost upgrade`")
+		}
 	},
 }
 
@@ -51,5 +65,4 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// versionCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

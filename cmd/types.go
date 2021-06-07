@@ -9,7 +9,10 @@ type (
 	}
 
 	// Authentication validation response
-	AuthValidation struct {
+	NhostResponse struct {
+		Project struct {
+			ID string `json:",omitempty"`
+		} `json:",omitempty"`
 		User  User
 		Error struct {
 			Code  string
@@ -80,11 +83,13 @@ type (
 		HealthCheckEndpoint string
 	}
 
-	// Container services
-	Services struct {
-		Containers map[string]Container `yaml:"services,omitempty"`
-		Version    string
-	}
+	/*
+		// Container services
+		Services struct {
+			Containers map[string]Container `yaml:"services,omitempty"`
+			Version    string
+		}
+	*/
 
 	ExecResult struct {
 		StdOut   string
@@ -92,10 +97,33 @@ type (
 		ExitCode int
 	}
 
+	// Nhost servers structure
 	Server struct {
 		ID          string
 		Name        string
 		CountryCode string
 		City        string
+	}
+
+	// GitHub Release API reponse structure
+	Release struct {
+		URL         string  `json:",omitempty"`
+		Name        string  `json:",omitempty"`
+		TagName     string  `json:"tag_name,omitempty"`
+		Prerelease  string  `json:",omitempty"`
+		CreatedAt   string  `json:",omitempty"`
+		PublishedAt string  `json:",omitempty"`
+		Body        string  `json:",omitempty"`
+		Assets      []Asset `json:",omitempty"`
+	}
+
+	// GitHub Release API Assets structure
+	Asset struct {
+		URL                string `json:",omitempty"`
+		Name               string `json:",omitempty"`
+		ID                 string `json:",omitempty"`
+		Label              string `json:",omitempty"`
+		BrowserDownloadURL string `json:"browser_download_url,omitempty"`
+		Size               int    `json:",omitempty"`
 	}
 )

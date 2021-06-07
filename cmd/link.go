@@ -280,6 +280,8 @@ func updateNhostProject(ID string) error {
 // creates a new remote project
 func createProject(name, server, user, team string) (string, error) {
 
+	var response NhostResponse
+
 	//Encode the data
 	reqBody := map[string]string{
 		"name":               name,
@@ -306,16 +308,6 @@ func createProject(name, server, user, team string) (string, error) {
 
 	defer resp.Body.Close()
 
-	type Response struct {
-		Project struct {
-			ID string `json:",omitempty"`
-		} `json:",omitempty"`
-		Error struct {
-			Code string `json:",omitempty"`
-		} `json:",omitempty"`
-	}
-
-	var response Response
 	// we unmarshal our body byteArray which contains our
 	// jsonFile's content into 'server' strcuture
 	json.Unmarshal(body, &response)

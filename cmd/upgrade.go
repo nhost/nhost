@@ -24,6 +24,14 @@ SOFTWARE.
 package cmd
 
 import (
+	"context"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"runtime"
+	"strings"
+
+	"github.com/hashicorp/go-getter"
 	"github.com/spf13/cobra"
 )
 
@@ -34,8 +42,77 @@ var upgradeCmd = &cobra.Command{
 	Long: `Automatically check for the latest available version of this
 	utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Info("This functionality is still `work in progress`")
+
+		release, err := getLatestRelease()
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to fetch latest release")
+		}
+
+		if release.TagName == BuildVersion {
+			log.WithField("component", release.TagName).Info("You already have the latest version. Hurray!")
+		} else {
+			log.WithField("component", release.TagName).Info("New version available")
+
+			downloadURL := getAssetURL(release)
+
+			// initialize hashicorp go-getter client
+			client := &getter.Client{
+				Ctx: context.Background(),
+				//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
+				Dst:  workingDir,
+				Dir:  false,
+				Src:  downloadURL,
+				Mode: getter.ClientModeDir,
+			}
+
+			//download the files
+			if err := client.Get(); err != nil {
+				log.WithField("compnent", release.TagName).Debug(err)
+				log.WithField("compnent", release.TagName).Fatal("Failed to download release")
+			}
+
+			log.WithField("compnent", release.TagName).Info("New release downloaded in current working directory")
+			log.Infof("Use it with: %v./nhost -- help%v", Bold, Reset)
+		}
 	},
+}
+
+// generates asset name depending on OS and Arch
+func getAssetURL(release Release) string {
+
+	payload := []string{"nhost", release.TagName, runtime.GOOS, runtime.GOARCH}
+
+	var response string
+
+	for _, asset := range release.Assets {
+		if strings.Contains(asset.BrowserDownloadURL, strings.Join(payload, "-")) {
+			response += asset.BrowserDownloadURL
+			break
+		}
+	}
+
+	return response
+}
+
+// fetches the details of latest binary release
+func getLatestRelease() (Release, error) {
+
+	var response Release
+
+	resp, err := http.Get("https://api.github.com/repos/mrinalwahal/cli/releases/latest")
+	if err != nil {
+		return response, err
+	}
+
+	// read our opened xmlFile as a byte array.
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	defer resp.Body.Close()
+
+	json.Unmarshal(body, &response)
+
+	return response, nil
 }
 
 func init() {

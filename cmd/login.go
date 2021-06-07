@@ -147,7 +147,7 @@ func validateAuth(authFile string) (User, error) {
 
 	log.Debug("Validating authentication")
 
-	var response AuthValidation
+	var response NhostResponse
 
 	credentials, err := getCredentials(authFile)
 
@@ -246,7 +246,7 @@ func verify(url, email, token string) (string, error) {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var response AuthValidation
+	var response NhostResponse
 	json.Unmarshal(body, &response)
 
 	// if token returned, verification is successful
@@ -269,7 +269,7 @@ func login(url, email string) (string, error) {
 
 	log.Debug("Authenticating with email ", email)
 
-	var response AuthValidation
+	var response NhostResponse
 
 	//Encode the data
 	postBody, _ := json.Marshal(map[string]string{

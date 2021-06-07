@@ -170,7 +170,6 @@ var (
 				mw := io.MultiWriter(os.Stdout, logFile)
 				log.SetOutput(mw)
 			}
-
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 
@@ -287,31 +286,9 @@ func resetUmask() {
 
 	// windows doesn't use umask for applying permissions,
 	// so skip it for windows
-	if runtime.GOOS == "darwin" || runtime.GOOS == "linux" {
+	if runtime.GOOS != "windows" {
 		syscall.Umask(0)
 	}
-}
-
-func getSavedProject() Project {
-
-	var response Project
-
-	nhostConfig, err := readYaml(path.Join(dotNhost, "nhost.yaml"))
-	if err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to read Nhost config")
-	}
-
-	user, _ := validateAuth(authPath)
-
-	for _, project := range user.Projects {
-		if project.ID == nhostConfig["project_id"] {
-			response = project
-			break
-		}
-	}
-
-	return response
 }
 
 // if the required binary exists in $HOME/.nhost
