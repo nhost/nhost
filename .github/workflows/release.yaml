@@ -3,12 +3,13 @@
 name: Release
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:        
+      - '**'           # Push events to every tag including hierarchical tags like v1.0/beta
 
 jobs:
   releases-matrix:
-    name: Release Go Binary
+    name: Release Binary
     runs-on: ubuntu-latest
     strategy:
       matrix:
