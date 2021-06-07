@@ -91,6 +91,10 @@ var linkCmd = &cobra.Command{
 		}
 
 		index, _, err := prompt.Run()
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Aborted")
+		}
 
 		project := projects[index]
 
@@ -155,7 +159,7 @@ var linkCmd = &cobra.Command{
 
 			if index == 0 {
 
-				project.ID, err = createProject(project.Name, selectedServer, userData.Projects[index].UserID, "")
+				project.ID, err = createProject(project.Name, selectedServer, userData.ID, "")
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new project")
@@ -164,6 +168,13 @@ var linkCmd = &cobra.Command{
 				log.WithField("component", project.Name).Info("Project created successfully")
 
 			} else {
+
+				// configure interactive prompt template
+				templates = promptui.SelectTemplates{
+					Active:   `{{ "✔" | green | bold }} {{ .Team.Name | cyan | bold }}`,
+					Inactive: `   {{ .Team.Name | cyan }}`,
+					Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Team.Name | cyan }}`,
+				}
 
 				// select the team
 				prompt = promptui.Select{
@@ -177,7 +188,7 @@ var linkCmd = &cobra.Command{
 					log.Fatal("Aborted")
 				}
 
-				project.ID, err = createProject(project.Name, selectedServer, "", userData.Teams[index].Team.Projects[0].TeamID)
+				project.ID, err = createProject(project.Name, selectedServer, "", userData.Teams[index].Team.ID)
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new project")

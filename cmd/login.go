@@ -168,6 +168,7 @@ func validateAuth(authFile string) (User, error) {
 
 	// read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
+	//fmt.Println(string(body))
 
 	//var res map[string]interface{}
 	// we unmarshal our body byteArray which contains our

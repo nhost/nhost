@@ -22,6 +22,7 @@ type (
 
 	// Nhost user structure
 	User struct {
+		ID       string     `json:",omitempty"`
 		Projects []Project  `json:",omitempty"`
 		Teams    []TeamData `json:",omitempty"`
 	}
@@ -38,6 +39,7 @@ type (
 
 	Team struct {
 		Name     string    `json:",omitempty"`
+		ID       string    `json:",omitempty"`
 		Projects []Project `json:",omitempty"`
 	}
 
