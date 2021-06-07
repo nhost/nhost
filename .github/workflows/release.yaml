@@ -3,12 +3,12 @@
 name: Release
 
 on:
-  #release:
-    #types: # This configuration does not affect the page_build event above
-      #- created
-  push:
-    tags:
-      - '**'           # Push events to every tag including hierarchical tags like v1.0/beta
+  release:
+    types: # This configuration does not affect the page_build event above
+      - created
+  #push:
+    #tags:
+      #- '**'           # Push events to every tag including hierarchical tags like v1.0/beta
 
 jobs:
   releases-matrix:
