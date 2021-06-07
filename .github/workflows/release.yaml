@@ -3,10 +3,6 @@
 name: Release
 
 on:
-  push:
-    branches: [ migration, dev ]
-  pull_request:
-    branches: [ canary, main ]
   release:
     types: [created]
 
