@@ -1,12 +1,14 @@
 # .github/workflows/release.yaml
 
-name: Build Release
+name: Release
 
 on:
   push:
     branches: [ migration, dev ]
   pull_request:
     branches: [ canary, main ]
+  release:
+    types: [created]
 
 jobs:
   releases-matrix:
