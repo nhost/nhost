@@ -548,7 +548,7 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 	// if it doesn't which case -> then pull it
 
 	requiredImages := []string{
-		fmt.Sprintf("postgres:%v", postgresConfig["version"]),
+		fmt.Sprintf("nhost/postgres:%v", postgresConfig["version"]),
 		fmt.Sprintf("%s:%v", hasuraConfig["image"], hasuraConfig["version"]),
 		fmt.Sprintf("nhost/hasura-backend-plus:%v", hbpConfig["version"]),
 		fmt.Sprintf("minio/minio:%v", minioConfig["version"]),
@@ -579,7 +579,8 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 		// if it NOT available, then pull the image
 		if !available {
 			if err = pullImage(requiredImage); err != nil {
-				log.Errorf("Failed to pull image %s\nplease pull it manually and re-run `nhost dev`", requiredImage)
+				log.Debug(err)
+				log.WithField("component", requiredImage).Fatal("Failed to pull image. Pull it manually and re-run `nhost dev`")
 			}
 		}
 	}
@@ -630,8 +631,7 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 				Retries:     10,
 				StartPeriod: 60000000000,
 			},
-			//Image: fmt.Sprintf(`postgres:%v`, postgresConfig["version"]),
-			Image: "nhost_postgres",
+			Image: fmt.Sprintf(`nhost/postgres:%v`, postgresConfig["version"]),
 			Env: []string{
 				fmt.Sprintf("POSTGRES_USER=%v", postgresConfig["user"]),
 				fmt.Sprintf("POSTGRES_PASSWORD=%v", postgresConfig["password"]),

@@ -26,6 +26,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -99,17 +100,29 @@ var linkCmd = &cobra.Command{
 
 			// input the project name
 
-			inputPrompt := promptui.Prompt{
-				Label: "Name of the project",
+			names := []string{}
+
+			for _, project := range projects {
+				names = append(names, project.Name)
 			}
 
-			name, err := inputPrompt.Run()
-			if err != nil {
-				log.Fatal("Aborted")
+			for ok := true; ok; ok = contains(names, project.Name) {
+
+				inputPrompt := promptui.Prompt{
+					Label: "Name of the project",
+				}
+
+				project.Name, err = inputPrompt.Run()
+				if err != nil {
+					log.Fatal("Aborted")
+				}
+
+				if contains(names, project.Name) {
+					log.Error("Project with that name already exists")
+				}
 			}
 
 			// select the server location
-
 			servers, err := getServers()
 			if err != nil {
 				log.Debug(err)
@@ -129,19 +142,10 @@ var linkCmd = &cobra.Command{
 			}
 			selectedServer := servers[index].ID
 
-			// select the team
-			index = -1
-			userData.Teams = append(userData.Teams, TeamData{
-				Team{
-					Name: "No team. Publish as personal project",
-				},
-			})
-
-			// configure interative prompt for selecting team
+			// ask whether it's a team project or a personal one
 			prompt = promptui.Select{
-				Label:     "Choose your team",
-				Items:     userData.Teams,
-				Templates: &templates,
+				Label: "Choose Project Type",
+				Items: []string{"Personal Project", "Team Project"},
 			}
 
 			index, _, err = prompt.Run()
@@ -149,17 +153,31 @@ var linkCmd = &cobra.Command{
 				log.Fatal("Aborted")
 			}
 
-			if index == -1 {
+			if index == 0 {
 
-				project, err = createProject(name, selectedServer, userData.Projects[0].UserID, "")
+				project.ID, err = createProject(project.Name, selectedServer, userData.Projects[index].UserID, "")
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new project")
 				}
 
+				log.WithField("component", project.Name).Info("Project created successfully")
+
 			} else {
 
-				project, err = createProject(name, selectedServer, "", userData.Teams[index].Team.Projects[0].TeamID)
+				// select the team
+				prompt = promptui.Select{
+					Label:     "Choose your team",
+					Items:     userData.Teams,
+					Templates: &templates,
+				}
+
+				index, _, err = prompt.Run()
+				if err != nil {
+					log.Fatal("Aborted")
+				}
+
+				project.ID, err = createProject(project.Name, selectedServer, "", userData.Teams[index].Team.Projects[0].TeamID)
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new project")
@@ -207,7 +225,7 @@ var linkCmd = &cobra.Command{
 		}
 
 		// project linking complete
-		log.Infof("Project %s linked to existing Nhost configuration", project.Name)
+		log.WithField("component", project.Name).Info("Project linked to local Nhost environment")
 	},
 }
 
@@ -249,24 +267,27 @@ func updateNhostProject(ID string) error {
 }
 
 // creates a new remote project
-func createProject(name, server, user, team string) (Project, error) {
-
-	var response Project
+func createProject(name, server, user, team string) (string, error) {
 
 	//Encode the data
-	postBody, _ := json.Marshal(map[string]string{
+	reqBody := map[string]string{
 		"name":               name,
 		"server_location_id": server,
-		"team_id":            team,
-		"user_id":            user,
-	})
+	}
 
+	if user != "" {
+		reqBody["user_id"] = user
+	} else if team != "" {
+		reqBody["team_id"] = team
+	}
+
+	postBody, _ := json.Marshal(reqBody)
 	responseBody := bytes.NewBuffer(postBody)
 
 	//Leverage Go's HTTP Post function to make request
-	resp, err := http.Post(apiURL+"/custom/cli/get-server-locations", "application/json", responseBody)
+	resp, err := http.Post(apiURL+"/custom/cli/create-project", "application/json", responseBody)
 	if err != nil {
-		return response, err
+		return "", err
 	}
 
 	// read our opened xmlFile as a byte array.
@@ -274,14 +295,25 @@ func createProject(name, server, user, team string) (Project, error) {
 
 	defer resp.Body.Close()
 
-	var res map[string]interface{}
+	type Response struct {
+		Project struct {
+			ID string `json:",omitempty"`
+		} `json:",omitempty"`
+		Error struct {
+			Code string `json:",omitempty"`
+		} `json:",omitempty"`
+	}
+
+	var response Response
 	// we unmarshal our body byteArray which contains our
 	// jsonFile's content into 'server' strcuture
-	json.Unmarshal(body, &res)
-	filteredResponse, _ := json.Marshal(res["project"])
-	json.Unmarshal(filteredResponse, &response)
+	json.Unmarshal(body, &response)
 
-	return response, nil
+	if response.Error.Code != "" {
+		return "", errors.New(response.Error.Code)
+	}
+
+	return response.Project.ID, nil
 }
 
 // fetches the list of Nhost production servers
@@ -303,7 +335,8 @@ func getServers() ([]Server, error) {
 	// we unmarshal our body byteArray which contains our
 	// jsonFile's content into 'server' strcuture
 	json.Unmarshal(body, &res)
-	json.Unmarshal(res["server_locations"].([]byte), &response)
+	locations, _ := json.Marshal(res["server_locations"])
+	json.Unmarshal(locations, &response)
 
 	return response, nil
 }
