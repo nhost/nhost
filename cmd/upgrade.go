@@ -49,7 +49,7 @@ var upgradeCmd = &cobra.Command{
 			log.Fatal("Failed to fetch latest release")
 		}
 
-		if release.TagName == BuildVersion {
+		if release.TagName == Version {
 			log.WithField("component", release.TagName).Info("You already have the latest version. Hurray!")
 		} else {
 			log.WithField("component", release.TagName).Info("New version available")

@@ -28,7 +28,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var BuildVersion string = "development"
+var Version string = "development"
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
@@ -37,7 +37,7 @@ var versionCmd = &cobra.Command{
 	Long:  `All softwares has versions. This is Nhost's.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.WithField("component", "version").Info(BuildVersion)
+		log.WithField("component", "version").Info(Version)
 
 		release, err := getLatestRelease()
 		if err != nil {
@@ -45,7 +45,7 @@ var versionCmd = &cobra.Command{
 			log.Fatal("Failed to fetch latest release")
 		}
 
-		if release.TagName == BuildVersion {
+		if release.TagName == Version {
 			log.Info("You already have the latest version. Hurray!")
 		} else {
 			log.WithField("component", release.TagName).Warn("New version available")

@@ -1,7 +1,8 @@
 # .github/workflows/release.yaml
 
 name: Build
-#on: [push, pull_request]
+
+on: [push, pull_request]
 
 jobs:
   build:
@@ -16,4 +17,4 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go }}
-      - run: go run main.go
+        run: ./build.sh

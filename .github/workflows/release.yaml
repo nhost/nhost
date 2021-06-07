@@ -3,8 +3,11 @@
 name: Release
 
 on:
+  #release:
+    #types: # This configuration does not affect the page_build event above
+      #- created
   push:
-    tags:        
+    tags:
       - '**'           # Push events to every tag including hierarchical tags like v1.0/beta
 
 jobs:
@@ -28,3 +31,4 @@ jobs:
           goarch: ${{ matrix.goarch }}
           binary_name: nhost
           extra_files: LICENSE
+          ldflags: -X cmd.Version=${GITHUB_REF##*/}
