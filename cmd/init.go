@@ -66,8 +66,67 @@ var initCmd = &cobra.Command{
 		if pathExists(nhostDir) {
 			log.Error("Project already exists in this directory")
 			log.Info("To start development environment, run 'nhost' or 'nhost dev'")
-			log.Warn("To delete the saved project, run 'nhost reset'")
+			log.Info("To delete the saved project, run 'nhost reset'")
 			os.Exit(0)
+		}
+
+		var selectedProject Project
+
+		// if user has already passed remote_project as a flag,
+		// then fetch list of remote projects,
+		// iterate through those projects and filter that project
+		if len(remoteProject) > 0 {
+
+			// check if auth file exists
+			if !pathExists(authPath) {
+				log.Debug("Auth credentials not found at: " + authPath)
+
+				// begin login procedure
+				loginCmd.Run(cmd, args)
+			}
+
+			// validate authentication
+			user, err := validateAuth(authPath)
+			if err != nil {
+				log.Debug(err)
+				log.Error("Failed to validate authentication")
+
+				// begin login procedure
+				loginCmd.Run(cmd, args)
+			}
+
+			// concatenate personal and team projects
+			projects := user.Projects
+			if len(projects) == 0 {
+				log.Info("Go to https://console.nhost.io/new and create a new project")
+				log.Fatal("Failed to find any projects related to this account")
+			}
+
+			// if user is part of teams which have projects, append them as well
+			teams := user.Teams
+
+			for _, team := range teams {
+
+				// check if particular team has projects
+				if len(team.Team.Projects) > 0 {
+					// append the projects
+					projects = append(projects, team.Team.Projects...)
+				}
+			}
+
+			for _, project := range projects {
+				if project.Name == remoteProject {
+					selectedProject = project
+				}
+			}
+
+			if selectedProject.ID == "" {
+				log.Errorf("Remote project with name %v not found", remoteProject)
+
+				// reset the created directories
+				resetCmd.Run(cmd, []string{"exit"})
+			}
+
 		}
 
 		// signify initialization is starting
@@ -94,9 +153,6 @@ var initCmd = &cobra.Command{
 		}
 
 		defer f.Close()
-
-		// generate Nhost config
-		var selectedProject Project
 
 		nhostConfig := getNhostConfig(selectedProject)
 
@@ -163,60 +219,7 @@ var initCmd = &cobra.Command{
 		}
 		f.Close()
 
-		// if user has already passed remote_project as a flag,
-		// then fetch list of remote projects,
-		// iterate through those projects and filter that project
 		if len(remoteProject) > 0 {
-
-			// check if auth file exists
-			if !pathExists(authPath) {
-				log.Debug("Auth credentials not found at: " + authPath)
-
-				// begin login procedure
-				loginCmd.Run(cmd, args)
-			}
-
-			// validate authentication
-			user, err := validateAuth(authPath)
-			if err != nil {
-				log.Debug(err)
-				log.Error("Failed to validate authentication")
-
-				// begin login procedure
-				loginCmd.Run(cmd, args)
-			}
-
-			// concatenate personal and team projects
-			projects := user.Projects
-			if len(projects) == 0 {
-				log.Info("Go to https://console.nhost.io/new and create a new project")
-				log.Fatal("Failed to find any projects related to this account")
-			}
-
-			// if user is part of teams which have projects, append them as well
-			teams := user.Teams
-
-			for _, team := range teams {
-
-				// check if particular team has projects
-				if len(team.Team.Projects) > 0 {
-					// append the projects
-					projects = append(projects, team.Team.Projects...)
-				}
-			}
-
-			for _, project := range projects {
-				if project.Name == remoteProject {
-					selectedProject = project
-				}
-			}
-
-			if selectedProject.ID == "" {
-				log.Errorf("Remote project with name %v not found", remoteProject)
-
-				// reset the created directories
-				resetCmd.Run(cmd, []string{"exit"})
-			}
 
 			f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
 			if err != nil {
@@ -315,7 +318,9 @@ var initCmd = &cobra.Command{
 
 			version := strings.Split(initMigration.Name(), "_")[0]
 
-			// apply migrations
+			// apply init migration on remote
+			// to prevent this init migration being run again
+			// in production
 			migrationArgs = []string{hasuraCLI, "migrate", "apply", "--version", version, "--skip-execution"}
 			migrationArgs = append(migrationArgs, commonOptions...)
 
@@ -333,8 +338,6 @@ var initCmd = &cobra.Command{
 			}
 
 			// create metadata from remote
-			//spinner.text = "Create Hasura metadata";
-
 			metadataArgs := []string{hasuraCLI, "metadata", "export"}
 			metadataArgs = append(metadataArgs, commonOptions...)
 
@@ -389,6 +392,73 @@ var initCmd = &cobra.Command{
 				}
 			}
 
+			sqlPath := path.Join(migrationsDir, initMigration.Name(), "up.sql")
+
+			// before applying migrations
+			// replace all existing function calls inside migration
+			// from "CREATE FUNCTION" to "CREATE OR REPLACE FUNCTION"
+			// explan the reason behind this...
+
+			if err = replaceInFile(sqlPath, "CREATE FUNCTION", "CREATE OR REPLACE FUNCTION"); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to replace existing functions in initial migration")
+			}
+
+			// repeat the same search and replace
+			// for "CREATE TABLE" by appending "IF NOT EXISTS" to it
+			// explan the reason behind this...
+
+			if err = replaceInFile(sqlPath, "CREATE TABLE", "CREATE TABLE IF NOT EXISTS"); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to replace existing functions in initial migration")
+			}
+
+			// repeat the same search and replace for users table primary key
+			if err = replaceInFile(
+				sqlPath,
+				"ALTER TABLE ONLY public.users\n    ADD CONSTRAINT users_pkey PRIMARY KEY (id);",
+				"\nSELECT create_constraint_if_not_exists('public.users', 'users_pkey', 'PRIMARY KEY (id);');\n",
+			); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to replace existing functions in initial migration")
+			}
+
+			// similarly replace the public.users update trigger
+			if err = replaceInFile(
+				sqlPath,
+				"CREATE TRIGGER set_public_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();",
+				`DROP TRIGGER IF EXISTS set_public_users_updated_at ON public.users;
+	CREATE TRIGGER set_public_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+	`,
+			); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to replace existing functions in initial migration")
+			}
+
+			// write a custom constraint creation function to SQL
+			// explain the reason...
+			customConstraintFunc := `CREATE OR REPLACE FUNCTION create_constraint_if_not_exists (t_name text, c_name text, constraint_sql text)
+	  RETURNS void
+	AS
+	$BODY$
+	  BEGIN
+		-- Look for our constraint
+		IF NOT EXISTS (SELECT constraint_name
+					   FROM information_schema.constraint_column_usage
+					   WHERE constraint_name = c_name) THEN
+			EXECUTE 'ALTER TABLE ' || t_name || ' ADD CONSTRAINT ' || c_name || ' ' || constraint_sql;
+		END IF;
+	  END;
+	$BODY$
+	LANGUAGE plpgsql VOLATILE;
+	
+	`
+
+			if err = writeToFile(sqlPath, customConstraintFunc, "start"); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to write providers to SQL file")
+			}
+
 			// add extensions to init migration
 			extensions, err := getExtensions(hasuraEndpoint, adminSecret)
 			if err != nil {
@@ -408,7 +478,6 @@ var initCmd = &cobra.Command{
 			// concat extensions
 			// extensionsWriteToFile.concat("\n\n");
 			// create or append to .gitignore
-			sqlPath := path.Join(migrationsDir, initMigration.Name(), "up.sql")
 
 			// write extensions to beginning of SQL file of init migration
 			if err = writeToFile(sqlPath, extensionsWriteToFile, "start"); err != nil {
@@ -417,7 +486,6 @@ var initCmd = &cobra.Command{
 			}
 
 			// add auth.roles to init migration
-			//spinner.text = "Add auth roles to init migration";
 
 			roles, err := getRoles(hasuraEndpoint, adminSecret)
 			if err != nil {
@@ -431,7 +499,7 @@ var initCmd = &cobra.Command{
 			for _, role := range roles {
 				rolesMap = append(rolesMap, fmt.Sprintf(`('%s')`, role))
 			}
-			rolesSQL += fmt.Sprintf("%s;\n\n", strings.Join(rolesMap, ", "))
+			rolesSQL += fmt.Sprintf("%s ON CONFLICT DO NOTHING;\n\n", strings.Join(rolesMap, ", "))
 
 			// write roles to end of SQL file of init migration
 			if err = writeToFile(sqlPath, rolesSQL, "end"); err != nil {
@@ -440,7 +508,6 @@ var initCmd = &cobra.Command{
 			}
 
 			// add auth.providers to init migration
-			//spinner.text = "Add auth providers to init migration";
 
 			providers, err := getProviders(hasuraEndpoint, adminSecret)
 			if err != nil {
@@ -454,7 +521,7 @@ var initCmd = &cobra.Command{
 			for _, provider := range providers {
 				providersMap = append(providersMap, fmt.Sprintf(`('%s')`, provider))
 			}
-			providersSQL += fmt.Sprintf("%s;\n\n", strings.Join(providersMap, ", "))
+			providersSQL += fmt.Sprintf("%s ON CONFLICT DO NOTHING;\n\n", strings.Join(providersMap, ", "))
 
 			// write providers to end of SQL file of init migration
 			if err = writeToFile(sqlPath, providersSQL, "end"); err != nil {
@@ -488,6 +555,7 @@ var initCmd = &cobra.Command{
 			if err = writeToFile(envFile, envData, "end"); err != nil {
 				log.Debug(err)
 				log.Error("Failed to write project environment variables to .env.development file", false)
+
 			}
 		}
 
@@ -880,7 +948,7 @@ func getNhostConfig(options Project) map[string]interface{} {
 	hasura := map[string]interface{}{
 		"version":      "v1.3.3",
 		"image":        "hasura/graphql-engine",
-		"admin_secret": 123456,
+		"admin_secret": "hasura-admin-secret",
 		"port":         8080,
 		"console_port": 9695,
 	}
@@ -921,10 +989,6 @@ func getNhostConfig(options Project) map[string]interface{} {
 
 	payload := map[string]interface{}{
 		"version": 2,
-		"environment": map[string]interface{}{
-			"env_file":           envFile,
-			"hasura_cli_version": "v2.0.0-alpha.11",
-		},
 		"services": map[string]interface{}{
 			"postgres":            postgres,
 			"hasura":              hasura,
@@ -943,6 +1007,10 @@ func getNhostConfig(options Project) map[string]interface{} {
 				"provider_failure_redirect": "http://localhost:3000/login-fail",
 			},
 			"providers": providers,
+		},
+		"environment": map[string]interface{}{
+			"env_file":           envFile,
+			"hasura_cli_version": "v2.0.0-alpha.11",
 		},
 	}
 

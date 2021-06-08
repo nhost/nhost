@@ -73,40 +73,21 @@ var resetCmd = &cobra.Command{
 
 		if approval {
 
-			if err := deleteAllPaths(dotNhost); err != nil {
-				log.Debug(err)
-				log.Warnf("Please delete %s manually", path.Base(dotNhost))
-				log.Fatal("Failed to delete " + path.Base(dotNhost))
+			paths := []string{
+				nhostDir,
+				envFile,
+				apiDir,
+				webDir,
+				dotNhost,
 			}
 
-			if err := deleteAllPaths(path.Join(workingDir, "api")); err != nil {
-				log.Debug(err)
-				log.Warnf("Please delete %s manually", "/api")
-				log.Fatal("Failed to delete " + "/api")
-			}
-
-			if err := deleteAllPaths(nhostDir); err != nil {
-				log.Debug(err)
-				log.Warnf("Please delete %s manually", path.Base(nhostDir))
-				log.Fatal("Failed to delete " + path.Base(nhostDir))
-			}
-
-			if err := deleteAllPaths(path.Join(workingDir, "web")); err != nil {
-				log.Debug(err)
-				log.Warnf("Please delete %s manually", "/web")
-				log.Fatal("Failed to delete " + "/web")
-			}
-
-			if err := deletePath(envFile); err != nil {
-				log.Debug(err)
-				log.Warnf("Please delete %s manually", path.Base(envFile))
-				log.Fatal("Failed to delete " + path.Base(envFile))
+			for _, item := range paths {
+				if err := deleteAllPaths(item); err != nil {
+					log.Debug(err)
+					log.Warnf("Please delete %s manually", path.Base(item))
+				}
 			}
 		}
-
-		// signify reset completion
-		log.Infof("Directories permanently removed from this project: %v, %v, %v, %v, %v",
-			path.Base(nhostDir), path.Base(dotNhost), path.Base(envFile), "/api", "/web")
 
 		// if an exit argument has been passed,
 		// provide a graceful exit

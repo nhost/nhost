@@ -64,35 +64,6 @@ const (
 )
 
 var (
-	cfgFile string
-	log     = logrus.New()
-	DEBUG   bool
-	JSON    bool
-
-	LOG_FILE = ""
-
-	// fetch current working directory
-	workingDir, _ = os.Getwd()
-	nhostDir      = path.Join(workingDir, "nhost")
-	dotNhost      = path.Join(workingDir, ".nhost")
-
-	// find user's home directory
-	home, _ = os.UserHomeDir()
-
-	// generate Nhost root directory for HOME
-	NHOST_DIR = path.Join(home, ".nhost")
-
-	// generate authentication file location
-	authPath = path.Join(NHOST_DIR, "auth.json")
-
-	// generate path for migrations
-	migrationsDir = path.Join(nhostDir, "migrations")
-
-	// generate path for metadata
-	metadataDir = path.Join(nhostDir, "metadata")
-
-	// generate path for .env.development
-	envFile = path.Join(workingDir, ".env.development")
 
 	// rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
@@ -359,60 +330,6 @@ func fetchBinary(binary string, version string) (string, error) {
 	return binaryPath, nil
 }
 
-/*
-// Legacy method of loading binaries
-// embedded directly into utility binary
-func loadBinary(binary string, data []byte) (string, error) {
-
-	//return path.Join("assets", binary), nil
-
-	log.Debugf("Loading %s binary", binary)
-
-	binaryPath := path.Join(dotNhost, binary)
-
-	// search for installed binary
-	if pathExists(binaryPath) {
-		return binaryPath, nil
-	}
-
-	// if it doesn't exist, create it from embedded asset
-	log.Debugf("%s binary doesn't exist, so creating it at: %s", binary, binaryPath)
-
-	f, err := os.Create(binaryPath)
-	if err != nil {
-		log.Fatalf("Failed to instantiate binary path: %s", binary)
-	}
-
-	defer f.Close()
-
-	//n, err := io.Copy(f, data)
-
-	if _, err = f.Write(data); err != nil {
-		log.Fatalf("Failed to create %s binary", binary)
-	}
-	f.Sync()
-
-	// Change permissions
-	err = os.Chmod(binaryPath, 0777)
-	if err != nil {
-		log.Fatalf("Failed to takeover %s binary permissions", binary)
-	}
-
-	log.Debugf("Created %s binary at %s%s%s", binary, Bold, binaryPath, Reset)
-
-	return binaryPath, err
-}
-
-// validates whether the CLI utlity is installed or not
-func verifyUtility(command string) bool {
-
-	log.Debugf("Validating %s installation", command)
-
-	cmd := exec.Command("command", "-v", command)
-	return cmd.Run() != nil
-}
-*/
-
 // validates whether a given folder/file path exists or not
 func pathExists(filePath string) bool {
 	_, err := os.Stat(filePath)
@@ -421,12 +338,14 @@ func pathExists(filePath string) bool {
 
 // deletes the given file/folder path and unlink from filesystem
 func deletePath(path string) error {
+	os.Chmod(path, 0777)
 	err := os.Remove(path)
 	return err
 }
 
 // deletes all the paths leading to the given file/folder and unlink from filesystem
 func deleteAllPaths(path string) error {
+	os.Chmod(path, 0777)
 	err := os.RemoveAll(path)
 	return err
 }
@@ -457,6 +376,25 @@ func writeToFile(filePath, data, position string) error {
 	} else {
 		buffer.WriteString(string(f) + s)
 	}
+
+	// write the data to the file
+	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)
+	return err
+}
+
+func replaceInFile(filePath, search_string, replacement string) error {
+
+	// open and read the contents of the file
+	f, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	data := strings.ReplaceAll(string(f), search_string, replacement)
+
+	var buffer bytes.Buffer
+
+	buffer.WriteString(data)
 
 	// write the data to the file
 	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)

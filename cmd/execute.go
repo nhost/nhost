@@ -106,7 +106,7 @@ already running Nhost service containers.`,
 }
 
 func init() {
-	rootCmd.AddCommand(executeCmd)
+	//rootCmd.AddCommand(executeCmd)
 
 	// Here you will define your flags and configuration settings.
 

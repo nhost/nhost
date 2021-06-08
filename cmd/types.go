@@ -8,16 +8,17 @@ type (
 		Token string `json:"token"`
 	}
 
+	// Error structure
+	Error struct {
+		Code  string
+		Email string
+	}
+
 	// Authentication validation response
 	NhostResponse struct {
-		Project struct {
-			ID string `json:",omitempty"`
-		} `json:",omitempty"`
-		User  User
-		Error struct {
-			Code  string
-			Email string
-		}
+		Project           Project `json:",omitempty"`
+		User              User
+		Error             Error
 		Email             string `json:"email"`
 		VerificationToken string `json:"verificationToken"`
 		VerifiedToken     string `json:"token"`
@@ -125,5 +126,38 @@ type (
 		Label              string `json:",omitempty"`
 		BrowserDownloadURL string `json:"browser_download_url,omitempty"`
 		Size               int    `json:",omitempty"`
+	}
+
+	// Nhost config.yaml root structure
+	Configuration struct {
+		MetadataDirectory string             `yaml:"metadata_directory,omitempty"`
+		Services          map[string]Service `yaml:",omitempty"`
+		Authentication    struct {
+			Endpoints struct {
+				Failure string `yaml:"provider_failure_redirect,omitempty"`
+				Success string `yaml:"provider_success_redirect,omitempty"`
+			} `yaml:",omitempty"`
+			Providers map[string]Provider `yaml:",omitempty"`
+		} `yaml:",omitempty"`
+		Version     int                    `yaml:",omitempty"`
+		Environment map[string]interface{} `yaml:",omitempty"`
+	}
+
+	// Nhost config.yaml service structure
+	Service struct {
+		Port        int         `yaml:",omitempty"`
+		ConsolePort int         `yaml:"console_port,omitempty"`
+		Version     interface{} `yaml:",omitempty"`
+		Image       string      `yaml:",omitempty"`
+		User        string      `yaml:",omitempty"`
+		Password    string      `yaml:",omitempty"`
+		AdminSecret interface{} `yaml:"admin_secret,omitempty"`
+	}
+
+	// Nhost config.yaml auth provider structure
+	Provider struct {
+		ClientID     string `yaml:"client_id,omitempty"`
+		ClientSecret string `yaml:"client_secret,omitempty"`
+		Enabled      bool   `yaml:",omitempty"`
 	}
 )

@@ -50,10 +50,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// store Hasura console session command,
-// to kill it later while shutting down dev environment
-var hasuraConsoleSpawnProcess *os.Process
-
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:   "dev",
@@ -101,16 +97,8 @@ var devCmd = &cobra.Command{
 		// check if this is the first time dev env is running
 		firstRun := !pathExists(path.Join(dotNhost, "db_data"))
 		if firstRun {
-			log.Warn("First run takes longer, please be patient")
+			log.Info("First run takes longer, please be patient")
 		}
-
-		/*
-			// if it doesn't exist, then create it
-			if err = os.MkdirAll(path.Join(dotNhost, "db_data"), os.ModePerm); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to create db_data directory")
-			}
-		*/
 
 		// shut down any existing Nhost containers
 		downCmd.Run(cmd, args)
@@ -203,8 +191,6 @@ var devCmd = &cobra.Command{
 
 		// prepare and load hasura binary
 		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprint(nhostConfig["environment"].(map[interface{}]interface{})["hasura_cli_version"]))
-
-		//hasuraCLI := path.Join("assets", "hasura")
 
 		commandOptions := []string{
 			"--endpoint",
@@ -601,15 +587,19 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 		}
 	}
 
-	mounts := []mount.Mount{}
-
-	// if db_data already exists, then mount it
-	if pathExists(path.Join(cwd, "db_data")) {
-		mounts = append(mounts, mount.Mount{
+	// create mount points if they doesn't exist
+	mountPoints := []mount.Mount{
+		{
 			Type:   mount.TypeBind,
 			Source: path.Join(cwd, "db_data"),
 			Target: "/var/lib/postgresql/data",
-		})
+		},
+	}
+
+	for _, mountPoint := range mountPoints {
+		if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
+			return containers, err
+		}
 	}
 
 	postgresContainer := map[string]interface{}{
@@ -648,7 +638,7 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 			RestartPolicy: container.RestartPolicy{
 				Name: "always",
 			},
-			Mounts: mounts,
+			Mounts: mountPoints,
 		},
 	}
 
@@ -672,15 +662,20 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 	containerVariables = append(containerVariables,
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options["graphql_jwt_key"])))
 
-	// if API container has to be loaded,
-	// expose it to the links as well
+	// create mount points if they doesn't exist
+	mountPoints = []mount.Mount{
+		{
+			Type:   mount.TypeBind,
+			Source: migrationsDir,
+			Target: "/hasura-migrations",
+		},
+	}
 
-	/*
-		links := []string{"nhost_postgres:nhost-postgres"}
-			if options["startAPI"].(bool) {
-				links = append(links, "nhost_api:nhost-api")
-			}
-	*/
+	for _, mountPoint := range mountPoints {
+		if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
+			return containers, err
+		}
+	}
 
 	hasuraContainer := map[string]interface{}{
 		"name": "nhost_hasura",
@@ -714,12 +709,12 @@ func getContainerConfigs(client *client.Client, options map[string]interface{}, 
 				nat.Port(strconv.Itoa(hasuraConfig["port"].(int))): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hasuraConfig["port"].(int))}},
 			},
-			Mounts: mounts,
+			Mounts: mountPoints,
 		},
 	}
 
 	// create mount points if they doesn't exit
-	mountPoints := []mount.Mount{
+	mountPoints = []mount.Mount{
 		{
 			Type:   mount.TypeBind,
 			Source: path.Join(cwd, "minio", "data"),
@@ -1022,7 +1017,7 @@ func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageS
 
 func pullImage(tag string) error {
 
-	log.Debugf("Pulling container image: %s", tag)
+	log.WithField("component", tag).Debug("Pulling container image")
 
 	/*
 		out, err := cli.ImagePull(ctx, tag, types.ImagePullOptions{})
