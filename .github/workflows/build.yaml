@@ -1,4 +1,4 @@
-# .github/workflows/release.yaml
+# .github/workflows/build.yaml
 
 name: Build
 
@@ -6,15 +6,17 @@ on: [push, pull_request]
 
 jobs:
   build:
-    runs-on: ubuntu-16.04
-    strategy:
-      matrix:
-        go: [ '1.16' ]
-    name: Build sample
-    steps:
+      runs-on: ubuntu-latest
+      steps:
       - uses: actions/checkout@v2
-      - name: Setup go
-        uses: actions/setup-go@v1
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
         with:
-          go-version: ${{ matrix.go }}
-        run: go build -o nhost
+          go-version: 1.16
+
+      - name: Build
+        run: go build -v ./...
+
+      - name: Test
+        run: go test -v ./...
