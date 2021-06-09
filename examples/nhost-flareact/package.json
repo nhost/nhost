@@ -1,0 +1,24 @@
+{
+  "name": "flareact-template",
+  "version": "1.0.0",
+  "author": "Josh Larson <jplhomer@gmail.com>",
+  "license": "MIT",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "dev": "flareact dev",
+    "build": "flareact build",
+    "deploy": "flareact publish"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.3.14",
+    "@nhost/react-apollo": "^1.0.7",
+    "@nhost/react-auth": "^1.0.5",
+    "flareact": "subhendukundu/flareact#canary",
+    "graphql": "^15.5.0",
+    "graphql-tag": "^2.11.0",
+    "nhost-js-sdk": "^3.1.0",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0"
+  }
+}

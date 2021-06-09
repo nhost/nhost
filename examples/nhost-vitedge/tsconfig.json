@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "target": "es2019",
+    "strict": true,
+    "moduleResolution": "node",
+    "outDir": "dist",
+    "noEmitOnError": true,
+    "sourceMap": false,
+    "allowJs": true,
+    "noImplicitAny": false,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "types": ["@types/node", "vite/client"],
+    "lib": ["WebWorker"],
+    "plugins": []
+  },
+  "include": [
+    "src/**/*",
+    "functions/**/*"
+  ]
+}
