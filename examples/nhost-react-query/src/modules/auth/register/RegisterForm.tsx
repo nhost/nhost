@@ -9,7 +9,7 @@ const RegisterForm = (): ReactElement => {
 
   const onSubmit = async ({ email, password }: FormData): Promise<void> => {
     try {
-      await auth.register(email, password)
+      await auth.register({email, password})
       router.push('/')
     } catch (e) {
       // TODO use i18n to handle multilingual

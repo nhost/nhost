@@ -19,9 +19,10 @@ export default function LoginPage(): ReactElement {
   }, [removeRedirectTo, user, redirectTo])
 
   console.warn('user in login')
-  if (user === null) {
-    return <FullPageLoader />
-  }
+  // remove this as the login page is never shown
+  // if (user === null) {
+  //   return <FullPageLoader />
+  // }
 
   return !user ? (
     <Layout>
