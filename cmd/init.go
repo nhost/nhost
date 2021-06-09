@@ -41,15 +41,6 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// Hasura table structure
-type Table struct {
-	Data struct {
-		Name   string `yaml:"name"`
-		Schema string `yaml:"schema"`
-	} `yaml:"table"`
-	IsEnum bool `yaml:"is_enum,omitempty"`
-}
-
 var (
 
 	// project to initialize
@@ -273,7 +264,7 @@ var initCmd = &cobra.Command{
 			// load hasura binary
 			//hasuraCLI, _ := exec.LookPath("hasura")
 
-			hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig["hasura_cli_version"]))
+			hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig.Environment["hasura_cli_version"]))
 
 			// Fetch list of all ALLOWED schemas before applying
 			schemas, err := getSchemaList(hasuraEndpoint, adminSecret)
@@ -359,7 +350,7 @@ var initCmd = &cobra.Command{
 			// https://hasura.io/docs/1.0/graphql/core/schema/enums.html#creating-an-enum-compatible-table
 
 			// use the saved tables metadata to check whether this project has enum compatible tables
-			fromTables, err := getEnumTablesFromMetadata(path.Join(nhostDir, nhostConfig["metadata_directory"].(string), "tables.yaml"))
+			fromTables, err := getEnumTablesFromMetadata(path.Join(nhostDir, nhostConfig.MetadataDirectory, "tables.yaml"))
 			if err != nil {
 				log.Debug(err)
 
@@ -932,25 +923,16 @@ func clearMigration(endpoint, secret string) error {
 }
 
 // generates fresh config.yaml for /nhost dir
-func getNhostConfig(options Project) map[string]interface{} {
+func getNhostConfig(options Project) Configuration {
 
 	log.Debug("Generating Nhost configuration")
 
-	providers := make(map[string]interface{})
-	for _, provider := range []string{"google", "linkedin", "github", "facebook"} {
-		providers[provider] = map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-		}
-	}
-
-	hasura := map[string]interface{}{
-		"version":      "v1.3.3",
-		"image":        "hasura/graphql-engine",
-		"admin_secret": "hasura-admin-secret",
-		"port":         8080,
-		"console_port": 9695,
+	hasura := Service{
+		Version:     "v1.3.3",
+		Image:       "hasura/graphql-engine",
+		AdminSecret: "hasura-admin-secret",
+		Port:        8080,
+		ConsolePort: 9695,
 	}
 
 	/*
@@ -964,57 +946,134 @@ func getNhostConfig(options Project) map[string]interface{} {
 
 	// check if a loaded remote project has been passed
 	if options.HasuraGQEVersion != "" {
-		hasura["version"] = options.HasuraGQEVersion
+		hasura.Version = options.HasuraGQEVersion
 	}
 
-	postgres := map[string]interface{}{
-		"version":  "12",
-		"user":     "postgres",
-		"password": "postgres",
-		"port":     5432,
+	postgres := Service{
+		Version:  "12",
+		User:     "postgres",
+		Password: "postgres",
+		Port:     5432,
 	}
 
 	if options.PostgresVersion != "" {
-		postgres["version"] = options.PostgresVersion
+		postgres.Version = options.PostgresVersion
 	}
 
-	hbp := map[string]interface{}{
-		"version": "v2.5.0",
-		"port":    9001,
+	hbp := Service{
+		Version: "v2.5.0",
+		Port:    9001,
 	}
 
 	if options.BackendVersion != "" {
-		hbp["version"] = options.BackendVersion
+		hbp.Version = options.BackendVersion
 	}
 
-	payload := map[string]interface{}{
-		"version": 2,
-		"services": map[string]interface{}{
+	authentication := map[string]interface{}{
+		"endpoints": map[string]interface{}{
+			"provider_success_redirect": "http://localhost:3000",
+			"provider_failure_redirect": "http://localhost:3000/login-fail",
+		},
+		"providers": generateProviders(),
+	}
+
+	authPayload, _ := yaml.Marshal(authentication)
+
+	var auth Authentication
+	yaml.Unmarshal(authPayload, &auth)
+
+	payload := Configuration{
+		Version: 2,
+		Services: map[string]Service{
 			"postgres":            postgres,
 			"hasura":              hasura,
 			"hasura_backend_plus": hbp,
-			"minio": map[string]interface{}{
-				"version": "latest",
-				"port":    9000,
+			"minio": Service{
+				Version: "latest",
+				Port:    9000,
 			},
-			"api": map[string]interface{}{
-				"port": 4000,
+			"api": Service{
+				Port: 4000,
 			},
 		},
-		"authentication": map[string]interface{}{
-			"endpoints": map[string]interface{}{
-				"provider_success_redirect": "http://localhost:3000",
-				"provider_failure_redirect": "http://localhost:3000/login-fail",
-			},
-			"providers": providers,
-		},
-		"environment": map[string]interface{}{
+		Environment: map[string]interface{}{
 			"env_file":           envFile,
 			"hasura_cli_version": "v2.0.0-alpha.11",
 		},
+		MetadataDirectory: "metadata",
+		Authentication:    auth,
 	}
 
-	payload["metadata_directory"] = "metadata"
+	return payload
+}
+
+func generateProviders() map[string]interface{} {
+
+	payload := map[string]interface{}{
+		"google": map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+			"scope":         "email,profile",
+		},
+		"facebook": map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+			"scope":         "email,photos,displayName",
+		},
+		"twitter": map[string]interface{}{
+			"enable":          false,
+			"consumer_key":    "",
+			"consumer_secret": "",
+		},
+		"linkedin": map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+			"scope":         "r_emailaddress,r_liteprofile",
+		},
+		"apple": map[string]interface{}{
+			"enable":      false,
+			"client_id":   "",
+			"key_id":      "",
+			"private_key": "",
+			"team_id":     "",
+			"scope":       "name,email",
+		},
+		"github": map[string]interface{}{
+			"enable":           false,
+			"client_id":        "",
+			"client_secret":    "",
+			"token_url":        "",
+			"user_profile_url": "",
+			"scope":            "user:email",
+		},
+		"windows_live": map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+			"scope":         "wl.basic,wl.emails,wl.contacts_emails",
+		},
+		"spotify": map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+			"scope":         "user-read-email,user-read-private",
+		},
+		"gitlab": map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+			"base_url":      "",
+			"scope":         "read_user",
+		},
+		"bitbucket": map[string]interface{}{
+			"enable":        false,
+			"client_id":     "",
+			"client_secret": "",
+		},
+	}
 
 	return payload
 }

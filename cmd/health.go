@@ -40,17 +40,17 @@ respective containers and service-exclusive health endpoints.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// load the saved Nhost configuration
-		options, err := readYaml(path.Join(nhostDir, "config.yaml"))
+		options, err := readConfiguration(path.Join(nhostDir, "config.yaml"))
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read Nhost config")
 		}
 
-		postgresConfig := options["services"].(map[interface{}]interface{})["postgres"].(map[interface{}]interface{})
-		hasuraConfig := options["services"].(map[interface{}]interface{})["hasura"].(map[interface{}]interface{})
-		hbpConfig := options["services"].(map[interface{}]interface{})["hasura_backend_plus"].(map[interface{}]interface{})
-		minioConfig := options["services"].(map[interface{}]interface{})["minio"].(map[interface{}]interface{})
-		apiConfig := options["services"].(map[interface{}]interface{})["api"].(map[interface{}]interface{})
+		postgresConfig := options.Services["postgres"]
+		hasuraConfig := options.Services["hasura"]
+		hbpConfig := options.Services["hasura_backend_plus"]
+		minioConfig := options.Services["minio"]
+		apiConfig := options.Services["api"]
 
 		// initialize all Nhost service structures
 		// and their respective service specific health check
@@ -63,31 +63,30 @@ respective containers and service-exclusive health endpoints.`,
 					"-h",
 					"localhost",
 					"-p",
-					fmt.Sprintf("%v", postgresConfig["port"]),
+					fmt.Sprintf("%v", postgresConfig.Port),
 					"-U",
-					fmt.Sprintf("%v", postgresConfig["user"]),
+					fmt.Sprintf("%v", postgresConfig.User),
 				},
 			},
 			{
 				Name:                "nhost_hbp",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hbpConfig["port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hbpConfig.Port),
 			},
 			{
 				Name:                "nhost_hasura",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hasuraConfig["port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hasuraConfig.Port),
 			},
 			{
 				Name:                "nhost_minio",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig["port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig.Port),
 			},
 		}
 
 		// Add API container if it's activated in config
-		options["startAPI"] = pathExists(path.Join(workingDir, "api"))
-		if options["startAPI"].(bool) {
+		if pathExists(path.Join(workingDir, "api")) {
 			services = append(services, Container{
 				Name:                "nhost_api",
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig["port"]),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
 			})
 		}
 

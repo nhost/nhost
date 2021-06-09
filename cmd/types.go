@@ -130,17 +130,20 @@ type (
 
 	// Nhost config.yaml root structure
 	Configuration struct {
-		MetadataDirectory string             `yaml:"metadata_directory,omitempty"`
-		Services          map[string]Service `yaml:",omitempty"`
-		Authentication    struct {
-			Endpoints struct {
-				Failure string `yaml:"provider_failure_redirect,omitempty"`
-				Success string `yaml:"provider_success_redirect,omitempty"`
-			} `yaml:",omitempty"`
-			Providers map[string]Provider `yaml:",omitempty"`
+		MetadataDirectory string                 `yaml:"metadata_directory,omitempty"`
+		Services          map[string]Service     `yaml:",omitempty"`
+		Authentication    Authentication         `yaml:",omitempty"`
+		Version           int                    `yaml:",omitempty"`
+		Environment       map[string]interface{} `yaml:",omitempty"`
+	}
+
+	// Nhost config.yaml authentication structure
+	Authentication struct {
+		Endpoints struct {
+			Failure string `yaml:"provider_failure_redirect,omitempty"`
+			Success string `yaml:"provider_success_redirect,omitempty"`
 		} `yaml:",omitempty"`
-		Version     int                    `yaml:",omitempty"`
-		Environment map[string]interface{} `yaml:",omitempty"`
+		Providers map[string]interface{} `yaml:",omitempty"`
 	}
 
 	// Nhost config.yaml service structure
@@ -154,10 +157,12 @@ type (
 		AdminSecret interface{} `yaml:"admin_secret,omitempty"`
 	}
 
-	// Nhost config.yaml auth provider structure
-	Provider struct {
-		ClientID     string `yaml:"client_id,omitempty"`
-		ClientSecret string `yaml:"client_secret,omitempty"`
-		Enabled      bool   `yaml:",omitempty"`
+	// Hasura table structure
+	Table struct {
+		Data struct {
+			Name   string `yaml:"name"`
+			Schema string `yaml:"schema"`
+		} `yaml:"table"`
+		IsEnum bool `yaml:"is_enum,omitempty"`
 	}
 )

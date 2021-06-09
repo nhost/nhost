@@ -55,7 +55,7 @@ var upgradeCmd = &cobra.Command{
 		} else {
 			log.WithField("component", release.TagName).Info("New version available")
 
-			downloadURL := getAssetURL(release)
+			asset := getAsset(release)
 
 			// initialize hashicorp go-getter client
 			client := &getter.Client{
@@ -63,7 +63,7 @@ var upgradeCmd = &cobra.Command{
 				//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
 				Dst:  workingDir,
 				Dir:  false,
-				Src:  downloadURL,
+				Src:  asset.BrowserDownloadURL,
 				Mode: getter.ClientModeDir,
 			}
 
@@ -79,16 +79,18 @@ var upgradeCmd = &cobra.Command{
 	},
 }
 
-// generates asset name depending on OS and Arch
-func getAssetURL(release Release) string {
+// fetches the required asset from release
+// depending on OS and Architecture
+// by matching download URL
+func getAsset(release Release) Asset {
 
 	payload := []string{"nhost", release.TagName, runtime.GOOS, runtime.GOARCH}
 
-	var response string
+	var response Asset
 
 	for _, asset := range release.Assets {
 		if strings.Contains(asset.BrowserDownloadURL, strings.Join(payload, "-")) {
-			response += asset.BrowserDownloadURL
+			response = asset
 			break
 		}
 	}

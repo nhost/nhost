@@ -22,4 +22,4 @@ alias nhostlocal='<path-to-cli-repo>/bin/run'
 
 6. Open up a new terminal for the alias to take effect.
 
-7. Test your local nhost CLI version with: `nhostlocal version`
+7. Test your local Nhost CLI version with: `nhost version`
