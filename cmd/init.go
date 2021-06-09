@@ -35,6 +35,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -385,6 +386,31 @@ var initCmd = &cobra.Command{
 
 			sqlPath := path.Join(migrationsDir, initMigration.Name(), "up.sql")
 
+			// search and replace ADD Constraints for all schemas
+
+			// Compile the expression once, usually at init time.
+			// Use raw strings to avoid having to quote the backslashes.
+
+			expression := regexp.MustCompile(`ALTER TABLE ONLY ([\w.]*)([\s]*) ADD CONSTRAINT ([\w]*) ([\w \(\);]*)`)
+			replacement := "SELECT create_constraint_if_not_exists('%v', '%v', '%v');"
+
+			if err = replaceInFileWithRegex(sqlPath, replacement, expression, []int{1, 3, 4}); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to replace constraints in init migration")
+			}
+
+			// repeat the procedure to replace triggers
+
+			expression = regexp.MustCompile(`CREATE TRIGGER ([\w]*) BEFORE UPDATE ON ([\w.]*) FOR EACH ROW EXECUTE FUNCTION ([\w.\(\);]*)`)
+			replacement = `DROP TRIGGER IF EXISTS %v ON %v;
+CREATE TRIGGER %v BEFORE UPDATE ON %v FOR EACH ROW EXECUTE FUNCTION %v
+`
+
+			if err = replaceInFileWithRegex(sqlPath, replacement, expression, []int{1, 2, 1, 2, 3}); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to replace constraints in init migration")
+			}
+
 			// before applying migrations
 			// replace all existing function calls inside migration
 			// from "CREATE FUNCTION" to "CREATE OR REPLACE FUNCTION"
@@ -404,27 +430,19 @@ var initCmd = &cobra.Command{
 				log.Fatal("Failed to replace existing functions in initial migration")
 			}
 
-			// repeat the same search and replace for users table primary key
-			if err = replaceInFile(
-				sqlPath,
-				"ALTER TABLE ONLY public.users\n    ADD CONSTRAINT users_pkey PRIMARY KEY (id);",
-				"\nSELECT create_constraint_if_not_exists('public.users', 'users_pkey', 'PRIMARY KEY (id);');\n",
-			); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to replace existing functions in initial migration")
-			}
-
-			// similarly replace the public.users update trigger
-			if err = replaceInFile(
-				sqlPath,
-				"CREATE TRIGGER set_public_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();",
-				`DROP TRIGGER IF EXISTS set_public_users_updated_at ON public.users;
-	CREATE TRIGGER set_public_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
-	`,
-			); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to replace existing functions in initial migration")
-			}
+			/*
+						// similarly replace the public.users update trigger
+						if err = replaceInFile(
+							sqlPath,
+							"CREATE TRIGGER set_public_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();",
+							`DROP TRIGGER IF EXISTS set_public_users_updated_at ON public.users;
+				CREATE TRIGGER set_public_users_updated_at BEFORE UPDATE ON public.users FOR EACH ROW EXECUTE FUNCTION public.set_current_timestamp_updated_at();
+				`,
+						); err != nil {
+							log.Debug(err)
+							log.Fatal("Failed to replace existing functions in initial migration")
+						}
+			*/
 
 			// write a custom constraint creation function to SQL
 			// explain the reason...

@@ -34,6 +34,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"regexp"
 	"runtime"
 	"strings"
 	"syscall"
@@ -378,6 +379,38 @@ func replaceInFile(filePath, search_string, replacement string) error {
 	data := strings.ReplaceAll(string(f), search_string, replacement)
 
 	var buffer bytes.Buffer
+
+	buffer.WriteString(data)
+
+	// write the data to the file
+	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)
+	return err
+}
+
+func replaceInFileWithRegex(filePath, replacement string, expression *regexp.Regexp, indices []int) error {
+
+	// open and read the contents of the file
+	f, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	var buffer bytes.Buffer
+
+	results := expression.FindAllStringSubmatch(string(f), -1)
+
+	data := string(f)
+
+	for _, result := range results {
+
+		var values []interface{}
+
+		for _, index := range indices {
+			values = append(values, result[index])
+		}
+
+		data = strings.ReplaceAll(data, result[0], fmt.Sprintf(replacement, values...))
+	}
 
 	buffer.WriteString(data)
 
