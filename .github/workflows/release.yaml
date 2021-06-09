@@ -30,8 +30,8 @@ jobs:
           echo VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
           echo $(basename ${GITHUB_REF}) 
   
-      - name: Generate Binary
       - uses: wangyoucao577/go-release-action@v1.18
+      - name: Generate Binary
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
@@ -39,8 +39,8 @@ jobs:
           binary_name: nhost
           ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}"
 
-      - name: Notify Community
       - uses: sarisia/actions-status-discord@v1
+      - name: Notify Community
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           nodetail: true
