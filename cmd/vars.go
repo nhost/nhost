@@ -7,6 +7,24 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+const (
+	apiURL = "https://customapi.nhost.io"
+
+	// initialize console colours
+	Bold  = "\033[1m"
+	Reset = "\033[0m"
+	Green = "\033[32m"
+	// Blue = "\033[34m"
+	Yellow = "\033[33m"
+	Cyan   = "\033[36m"
+	Red    = "\033[31m"
+	// Gray = "\033[37m"
+	// White = "\033[97m"
+
+	// package repository to download latest release from
+	repository = "mrinalwahal/cli"
+)
+
 var (
 	// Utility build version
 	Version string

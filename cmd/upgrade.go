@@ -26,6 +26,7 @@ package cmd
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"runtime"
@@ -43,7 +44,7 @@ var upgradeCmd = &cobra.Command{
 	utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		release, err := getLatestRelease()
+		release, err := getLatestRelease(repository)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch latest release")
@@ -96,11 +97,11 @@ func getAssetURL(release Release) string {
 }
 
 // fetches the details of latest binary release
-func getLatestRelease() (Release, error) {
+func getLatestRelease(repo string) (Release, error) {
 
 	var response Release
 
-	resp, err := http.Get("https://api.github.com/repos/mrinalwahal/cli/releases/latest")
+	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", repo))
 	if err != nil {
 		return response, err
 	}

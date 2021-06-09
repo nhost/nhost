@@ -26,10 +26,9 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Set VERSION env
-        run: echo VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
-  
-      - name: Environment Printer
-        uses: managedkaos/print-env@v1.0
+        run: |
+          echo VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
+          echo $(basename ${GITHUB_REF}) 
   
       - uses: wangyoucao577/go-release-action@v1.18
         with:
@@ -37,5 +36,12 @@ jobs:
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
           binary_name: nhost
-          extra_files: LICENSE
-          ldflags: -X "cmd.Version=${{ env.VERSION }}"
+          ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}"
+
+      - uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          nodetail: true
+          title: `v${{ env.VERSION }}` Realeased for CLI
+          description: |
+            Download it from [here](https://github.com/${{ github.repository }}/releases/tag/${{ env.VERSION }})

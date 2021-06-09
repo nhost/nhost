@@ -37,7 +37,7 @@ var versionCmd = &cobra.Command{
 
 		log.WithField("component", "version").Info(Version)
 
-		release, err := getLatestRelease()
+		release, err := getLatestRelease(repository)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch latest release")
@@ -46,7 +46,7 @@ var versionCmd = &cobra.Command{
 		if release.TagName == Version {
 			log.Info("You already have the latest version. Hurray!")
 		} else {
-			log.WithField("component", release.TagName).Warn("New version available")
+			log.WithField("component", release.TagName).Info("New version available")
 			log.Info("Upgrade with `nhost upgrade`")
 		}
 	},
