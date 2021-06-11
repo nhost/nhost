@@ -352,7 +352,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		return err
 	}
 
-	seed_files, err := ioutil.ReadDir(path.Join(nhostDir, "seeds"))
+	seed_files, err := ioutil.ReadDir(seedsDir)
 	if err != nil {
 		log.Error("Failed to read seeds directory")
 		return err
@@ -363,16 +363,16 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		log.Debug("Applying seeds on first run")
 
 		// apply seed data
-		cmdArgs := []string{hasuraCLI, "seeds", "apply"}
+		cmdArgs = []string{hasuraCLI, "seeds", "apply"}
 		cmdArgs = append(cmdArgs, commandOptions...)
 
-		execute := exec.Cmd{
+		execute = exec.Cmd{
 			Path: hasuraCLI,
 			Args: cmdArgs,
 			Dir:  nhostDir,
 		}
 
-		output, err := execute.CombinedOutput()
+		output, err = execute.CombinedOutput()
 		if err != nil {
 			log.Debug(string(output))
 			log.Error("Failed to apply seed data")

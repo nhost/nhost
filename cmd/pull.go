@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"os"
 	"os/exec"
 	"path"
 	"regexp"
@@ -255,27 +256,44 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 
 	tables := filterEnumTables(metadata.Tables)
 
+	// first check if seeds already exist
+	// in which case skip seed creation
+
+	seeds, err := os.ReadDir(seedsDir)
+	if err != nil {
+		return migration, err
+	}
+
 	// only add seeds if enum tables exist, otherwise skip this step
-	if len(tables) > 0 {
+	for _, table := range tables {
 
-		seedTables := getSeedTables(tables)
+		applied := false
 
-		seedArgs := []string{hasuraCLI, "seeds", "create", "roles_and_providers"}
-		seedArgs = append(seedArgs, seedTables...)
-		seedArgs = append(seedArgs, commonOptions...)
-
-		execute := exec.Cmd{
-			Path: hasuraCLI,
-			Args: seedArgs,
-			Dir:  nhostDir,
+		for _, item := range seeds {
+			if strings.Split(item.Name(), "_")[1] == (table.Table.Name + ".sql") {
+				applied = true
+			}
 		}
 
-		output, err := execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Debug(err)
-			log.Error("Failed to create seeds for enum tables")
-			log.Warn("Skipping seed creation")
+		if !applied {
+
+			// apply seed for every single table
+			seedArgs := []string{hasuraCLI, "seeds", "create", table.Table.Name, "--from-table", table.Table.Schema + "." + table.Table.Name}
+			seedArgs = append(seedArgs, commonOptions...)
+
+			execute := exec.Cmd{
+				Path: hasuraCLI,
+				Args: seedArgs,
+				Dir:  nhostDir,
+			}
+
+			output, err := execute.CombinedOutput()
+			if err != nil {
+				log.Debug(string(output))
+				log.Debug(err)
+				log.Error("Failed to create seeds for enum tables")
+				log.Warn("Skipping seed creation")
+			}
 		}
 	}
 
