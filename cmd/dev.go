@@ -25,12 +25,16 @@ package cmd
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -46,6 +50,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/fsnotify/fsnotify"
+	"github.com/nhost/cli/hasura"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
@@ -181,8 +186,10 @@ var devCmd = &cobra.Command{
 		// log.Info("Conducting a quick health check on all freshly created services")
 		// healthCmd.Run(cmd, args)
 
+		hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
+
 		// wait for graphQL engine to become healthy
-		if ok := checkServiceHealth("hasura", fmt.Sprintf("http://127.0.0.1:%v/healthz", nhostConfig.Services["hasura"].Port)); !ok {
+		if ok := checkServiceHealth("hasura", fmt.Sprintf("%v/healthz", hasuraEndpoint)); !ok {
 			log.WithField("component", "hasura").Error("GraphQL engine health check failed")
 			downCmd.Run(cmd, []string{"exit"})
 		}
@@ -192,101 +199,22 @@ var devCmd = &cobra.Command{
 
 		commandOptions := []string{
 			"--endpoint",
-			fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port),
+			hasuraEndpoint,
 			"--admin-secret",
 			fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret),
 			"--skip-update-check",
 		}
 
-		// create migrations
-		cmdArgs := []string{hasuraCLI, "migrate", "apply"}
-		cmdArgs = append(cmdArgs, commandOptions...)
-
-		execute := exec.Cmd{
-			Path: hasuraCLI,
-			Args: cmdArgs,
-			Dir:  nhostDir,
-		}
-
-		output, err := execute.CombinedOutput()
-		if err != nil {
+		// arpply migrations and metadata
+		if err = prepareData(hasuraCLI, commandOptions, firstRun); err != nil {
 			log.Debug(err)
-			log.Debug(string(output))
-			log.Error("Failed to apply fresh hasura migrations")
-			downCmd.Run(cmd, []string{"exit"})
-		}
-
-		files, err := ioutil.ReadDir(path.Join(nhostDir, "seeds"))
-		if err != nil {
-			log.Debug(err)
-			log.Debug(string(output))
-			log.Error("Failed to read migrations directory")
-			downCmd.Run(cmd, []string{"exit"})
-		}
-
-		if firstRun && len(files) > 0 {
-
-			log.Debug("Applying seeds since it's your first run")
-
-			// apply seed data
-			cmdArgs = []string{hasuraCLI, "seeds", "apply"}
-			cmdArgs = append(cmdArgs, commandOptions...)
-
-			execute = exec.Cmd{
-				Path: hasuraCLI,
-				Args: cmdArgs,
-				Dir:  nhostDir,
-			}
-
-			output, err = execute.CombinedOutput()
-			if err != nil {
-				log.Debug(err)
-				log.Debug(string(output))
-				log.Error("Failed to apply seed data")
-				downCmd.Run(cmd, []string{"exit"})
-			}
-		}
-
-		// export metadata
-		cmdArgs = []string{hasuraCLI, "metadata", "export"}
-		cmdArgs = append(cmdArgs, commandOptions...)
-
-		execute = exec.Cmd{
-			Path: hasuraCLI,
-			Args: cmdArgs,
-			Dir:  nhostDir,
-		}
-
-		output, err = execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Debug(err)
-			log.Error("Failed to apply fresh metadata")
-			downCmd.Run(cmd, []string{"exit"})
-		}
-
-		// apply metadata
-		cmdArgs = []string{hasuraCLI, "metadata", "apply"}
-		cmdArgs = append(cmdArgs, commandOptions...)
-
-		execute = exec.Cmd{
-			Path: hasuraCLI,
-			Args: cmdArgs,
-			Dir:  nhostDir,
-		}
-
-		output, err = execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Debug(err)
-			log.Error("Failed to apply fresh metadata")
 			downCmd.Run(cmd, []string{"exit"})
 		}
 
 		log.Info("Local Nhost development environment is now active")
 		fmt.Println()
 
-		log.Infof("GraphQL API: http://localhost:%v/v1/graphql", nhostConfig.Services["hasura"].Port)
+		log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
 		log.Infof("Auth & Storage: http://localhost:%v", nhostConfig.Services["hasura_backend_plus"].Port)
 		fmt.Println()
 
@@ -309,7 +237,7 @@ var devCmd = &cobra.Command{
 			Args: []string{hasuraCLI,
 				"console",
 				"--endpoint",
-				fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port),
+				hasuraEndpoint,
 				"--admin-secret",
 				fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret),
 				"--console-port",
@@ -393,6 +321,166 @@ var devCmd = &cobra.Command{
 		}
 		//scanner.Scan()
 	},
+}
+
+func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
+
+	var (
+		cmdArgs []string
+		execute exec.Cmd
+		output  []byte
+	)
+
+	// If migrations directory is already mounted to nhost_hasura container,
+	// then Hasura must be auto-applying migrations
+	// hence, manually applying migrations doesn't make sense
+
+	// create migrations
+	cmdArgs = []string{hasuraCLI, "migrate", "apply"}
+	cmdArgs = append(cmdArgs, commandOptions...)
+
+	execute = exec.Cmd{
+		Path: hasuraCLI,
+		Args: cmdArgs,
+		Dir:  nhostDir,
+	}
+
+	output, err := execute.CombinedOutput()
+	if err != nil {
+		log.Debug(string(output))
+		log.Error("Failed to apply migrations")
+		return err
+	}
+
+	seed_files, err := ioutil.ReadDir(path.Join(nhostDir, "seeds"))
+	if err != nil {
+		log.Error("Failed to read seeds directory")
+		return err
+	}
+
+	if firstRun && len(seed_files) > 0 {
+
+		log.Debug("Applying seeds on first run")
+
+		// apply seed data
+		cmdArgs := []string{hasuraCLI, "seeds", "apply"}
+		cmdArgs = append(cmdArgs, commandOptions...)
+
+		execute := exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhostDir,
+		}
+
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to apply seed data")
+			return err
+		}
+	}
+
+	metaFiles, err := os.ReadDir(metadataDir)
+	if err != nil {
+		log.Debug(string(output))
+		log.Error("Failed to traverse metadata directory")
+		return err
+	}
+
+	if len(metaFiles) == 0 {
+
+		// export metadata
+		cmdArgs = []string{hasuraCLI, "metadata", "export"}
+		cmdArgs = append(cmdArgs, commandOptions...)
+
+		execute = exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhostDir,
+		}
+
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to export metadata")
+			return err
+		}
+	}
+
+	// If metadata directory is already mounted to nhost_hasura container,
+	// then Hasura must be auto-applying metadata
+	// hence, manually applying metadata doesn't make sense
+
+	// apply metadata
+	cmdArgs = []string{hasuraCLI, "metadata", "apply"}
+	cmdArgs = append(cmdArgs, commandOptions...)
+
+	execute = exec.Cmd{
+		Path: hasuraCLI,
+		Args: cmdArgs,
+		Dir:  nhostDir,
+	}
+
+	output, err = execute.CombinedOutput()
+	if err != nil {
+		log.Debug(string(output))
+		log.Error("Failed to apply metadata")
+		return err
+	}
+
+	return nil
+}
+
+func trackTable(endpoint, secret string, table hasura.TableEntry) error {
+
+	//Encode the data
+	args := map[string]interface{}{
+		"schema": table.Table.Schema,
+		"name":   table.Table.Name,
+	}
+
+	if table.IsEnum != nil {
+		args["is_enum"] = true
+	}
+
+	reqBody := map[string]interface{}{
+		"type": "track_table",
+		"args": args,
+	}
+
+	postBody, _ := json.Marshal(reqBody)
+
+	req, _ := http.NewRequest(
+		http.MethodPost,
+		endpoint+"/v1/query",
+		bytes.NewBuffer(postBody),
+	)
+
+	if secret != "" {
+		req.Header.Set("X-Hasura-Admin-Secret", secret)
+	}
+
+	client := http.Client{}
+
+	//Leverage Go's HTTP Post function to make request
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	var response HasuraResponse
+	json.Unmarshal(body, &response)
+
+	if response.Code == "already-tracked" {
+		log.WithField("component", table.Table.Name).Debug("Table is already tracked")
+		return nil
+	}
+
+	return errors.New(response.Error)
 }
 
 func createNetwork(client *client.Client, name string) (string, error) {
@@ -665,6 +753,11 @@ func getContainerConfigs(client *client.Client, options Configuration, cwd strin
 			Type:   mount.TypeBind,
 			Source: migrationsDir,
 			Target: "/hasura-migrations",
+		},
+		{
+			Type:   mount.TypeBind,
+			Source: metadataDir,
+			Target: "/hasura-metadata",
 		},
 	}
 
@@ -1005,7 +1098,6 @@ func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageS
 func pullImage(tag string) error {
 
 	log.WithField("component", tag).Debug("Pulling container image")
-
 	/*
 		out, err := cli.ImagePull(ctx, tag, types.ImagePullOptions{})
 		out.Close()

@@ -188,7 +188,7 @@ var linkCmd = &cobra.Command{
 					log.Fatal("Aborted")
 				}
 
-				project.ID, err = createProject(project.Name, selectedServer, "", userData.Teams[index].Team.ID)
+				project.ID, err = createProject(project.Name, selectedServer, userData.ID, userData.Teams[index].Team.ID)
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new project")
@@ -285,12 +285,11 @@ func createProject(name, server, user, team string) (string, error) {
 	//Encode the data
 	reqBody := map[string]string{
 		"name":               name,
+		"user_id":            user,
 		"server_location_id": server,
 	}
 
-	if user != "" {
-		reqBody["user_id"] = user
-	} else if team != "" {
+	if team != "" {
 		reqBody["team_id"] = team
 	}
 

@@ -56,6 +56,9 @@ var (
 	// generate path for metadata
 	metadataDir = path.Join(nhostDir, "metadata")
 
+	// generate path for seeds
+	seedsDir = path.Join(nhostDir, "seeds")
+
 	// generate path for frontend
 	webDir = path.Join(nhostDir, "web")
 

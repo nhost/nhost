@@ -24,6 +24,13 @@ type (
 		VerifiedToken     string `json:"token"`
 	}
 
+	// Authentication validation response
+	HasuraResponse struct {
+		Path  string `json:"path"`
+		Error string `json:"error"`
+		Code  string `json:"code"`
+	}
+
 	// Nhost user structure
 	User struct {
 		ID       string     `json:",omitempty"`
@@ -160,9 +167,13 @@ type (
 	// Hasura table structure
 	Table struct {
 		Data struct {
-			Name   string `yaml:"name"`
-			Schema string `yaml:"schema"`
-		} `yaml:"table"`
-		IsEnum bool `yaml:"is_enum,omitempty"`
+			Name   string `yaml:"name" json:"name"`
+			Schema string `yaml:"schema" json:"schema"`
+		} `yaml:"table" json:"table"`
+		IsEnum bool `yaml:"is_enum,omitempty" json:"is_enum,omitempty"`
+	}
+
+	Info struct {
+		ProjectID string `yaml:"project_id,omitempty"`
 	}
 )

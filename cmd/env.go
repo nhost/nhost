@@ -124,7 +124,7 @@ var lsCmd = &cobra.Command{
 }
 
 // pullCmd syncs env vars from remote with local environment
-var pullCmd = &cobra.Command{
+var envPullCmd = &cobra.Command{
 	Use:   "pull",
 	Short: "Sync env vars from remote with local env",
 	Long:  `Pull and sync environment variables stored at remote with local environment.`,
@@ -273,7 +273,7 @@ var pullCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(envCmd)
 	envCmd.AddCommand(lsCmd)
-	envCmd.AddCommand(pullCmd)
+	envCmd.AddCommand(envPullCmd)
 
 	// Here you will define your flags and configuration settings.
 
