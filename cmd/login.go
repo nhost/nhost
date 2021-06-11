@@ -31,6 +31,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"time"
 
 	"github.com/manifoldco/promptui"
@@ -304,7 +305,7 @@ func login(url, email string) (string, error) {
 // fetches saved credentials from auth file
 func getCredentials(authFile string) (Credentials, error) {
 
-	log.Debug("Fetching credentials from saved auth configuration at ", authFile)
+	log.Debug("Fetching credentials from ", path.Base(authFile))
 
 	// we initialize our credentials array
 	var credentials Credentials

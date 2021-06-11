@@ -20,7 +20,6 @@ import (
 	"fmt"
 	"io/fs"
 	"io/ioutil"
-	"os"
 	"os/exec"
 	"path"
 	"regexp"
@@ -50,14 +49,10 @@ and sync them with your local project.`,
 			IsConfirm: true,
 		}
 
-		response, err := confirmationPrompt.Run()
+		_, err := confirmationPrompt.Run()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Aborted")
-		}
-
-		if strings.ToLower(response) != "y" || strings.ToLower(response) != "yes" {
-			os.Exit(0)
 		}
 
 		// validate authentication
