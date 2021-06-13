@@ -24,6 +24,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -35,11 +36,11 @@ var logoutCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// check if auth file exists
-		if !pathExists(authPath) {
-			log.Error("No saved authentication credentials found at ", authPath)
+		if !pathExists(nhost.AUTH_PATH) {
+			log.Error("No saved authentication credentials found at ", nhost.AUTH_PATH)
 			log.Fatal("Please login first with `nhost login`")
 		} else {
-			if err := deletePath(authPath); err != nil {
+			if err := deletePath(nhost.AUTH_PATH); err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to delete existing auth credentials, hence failed to logout")
 			}

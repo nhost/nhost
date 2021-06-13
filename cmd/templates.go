@@ -18,10 +18,10 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"path"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/manifoldco/promptui"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -66,14 +66,11 @@ And you can immediately start developing on that template.`,
 
 		result := templates[index]["value"]
 
-		// intialize the web project directory
-		webDir := path.Join(workingDir, "web")
-
 		// initialize hashicorp go-getter client
 		client := &getter.Client{
 			Ctx: context.Background(),
 			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-			Dst:  webDir,
+			Dst:  nhost.WED_DIR,
 			Dir:  true,
 			Src:  "github.com/nhost/nhost/templates/",
 			Mode: getter.ClientModeDir,

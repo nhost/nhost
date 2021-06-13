@@ -28,6 +28,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -40,7 +41,7 @@ respective containers and service-exclusive health endpoints.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// load the saved Nhost configuration
-		options, err := readConfiguration(path.Join(nhostDir, "config.yaml"))
+		options, err := nhost.Config()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read Nhost config")
@@ -83,7 +84,7 @@ respective containers and service-exclusive health endpoints.`,
 		}
 
 		// Add API container if it's activated in config
-		if pathExists(path.Join(workingDir, "api")) {
+		if pathExists(path.Join(nhost.WORKING_DIR, "api")) {
 			services = append(services, Container{
 				Name:                "nhost_api",
 				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),

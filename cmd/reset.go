@@ -29,6 +29,7 @@ import (
 	"strings"
 
 	"github.com/manifoldco/promptui"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -74,11 +75,11 @@ var resetCmd = &cobra.Command{
 		if approval {
 
 			paths := []string{
-				nhostDir,
-				envFile,
-				apiDir,
-				webDir,
-				dotNhost,
+				nhost.NHOST_DIR,
+				nhost.ENV_FILE,
+				nhost.API_DIR,
+				nhost.WED_DIR,
+				nhost.DOT_NHOST,
 			}
 
 			for _, item := range paths {

@@ -33,6 +33,7 @@ import (
 	"strings"
 
 	"github.com/hashicorp/go-getter"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -61,7 +62,7 @@ var upgradeCmd = &cobra.Command{
 			client := &getter.Client{
 				Ctx: context.Background(),
 				//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-				Dst:  workingDir,
+				Dst:  nhost.WORKING_DIR,
 				Dir:  false,
 				Src:  asset.BrowserDownloadURL,
 				Mode: getter.ClientModeDir,

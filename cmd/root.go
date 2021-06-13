@@ -27,11 +27,9 @@ package cmd
 import (
 	"bytes"
 	_ "embed"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"regexp"
@@ -43,6 +41,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/mattn/go-colorable"
 	"github.com/nhost/cli/formatter"
+	"github.com/nhost/cli/nhost"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
@@ -131,7 +130,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 
 			// check if project is already initialized
-			if pathExists(nhostDir) {
+			if pathExists(nhost.NHOST_DIR) {
 				log.Info("Nhost project detected in current directory")
 
 				// start the "dev" command
@@ -181,7 +180,7 @@ func Execute() {
 // auto-generate utility documentation in all required formats
 func generateDocumentation() {
 
-	docsDir := path.Join(workingDir, "docs")
+	docsDir := path.Join(nhost.WORKING_DIR, "docs")
 
 	// Generate Markdown docs
 	err := doc.GenMarkdownTree(rootCmd, path.Join(docsDir, "markdown"))
@@ -246,74 +245,6 @@ func resetUmask() {
 	if runtime.GOOS != "windows" {
 		syscall.Umask(0)
 	}
-}
-
-// if the required binary exists in $HOME/.nhost
-// this function returns it's exact path
-// and if the binary doesn't exist,
-// it downloads it from specifically supplied URL
-// based on user's OS and ARCH
-func fetchBinary(binary string, version string) (string, error) {
-
-	var url string
-
-	// save binary specific URLs
-	switch binary {
-	case "hasura":
-		url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, runtime.GOARCH)
-	}
-
-	if url == "" {
-		return url, errors.New("binary not supported")
-	}
-
-	// initialize the binary path
-	binaryPath := path.Join(NHOST_DIR, binary)
-
-	// search for installed binary
-	if pathExists(binaryPath) {
-		return binaryPath, nil
-	}
-
-	// create the binary path
-	out, err := os.Create(binaryPath)
-	if err != nil {
-		return "", err
-	}
-
-	defer out.Close()
-
-	// update binary download URL depending upon the OS
-	if runtime.GOOS == "windows" {
-		url += ".exe"
-	}
-
-	log.WithField("component", fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)).Infof("Downloading %s binary", binary)
-
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	log.WithField("component", fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)).Debugf("Writing %s binary", binary)
-
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	// Change permissions so that the download file
-	// can become accessible and executable
-	err = os.Chmod(binaryPath, 0777)
-
-	if err != nil {
-		return "", err
-	}
-
-	//return the path at which binary has been
-	// downloaded and saved
-	return binaryPath, nil
 }
 
 // validates whether a given folder/file path exists or not
@@ -419,25 +350,6 @@ func replaceInFileWithRegex(filePath, replacement string, expression *regexp.Reg
 	return err
 }
 
-// checks the data type of a particular data value
-func typeof(v interface{}) string {
-	switch v.(type) {
-	case string:
-		return "string"
-	case int:
-		return "int"
-	case float64:
-		return "float64"
-	case map[string]string:
-		return "map[string]string"
-	case map[string]interface{}:
-		return "map[string]interface{}"
-	//... etc
-	default:
-		return "unknown"
-	}
-}
-
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
@@ -446,7 +358,7 @@ func initConfig() {
 	} else {
 
 		// Search config in home directory with name ".nhost" (without extension).
-		viper.AddConfigPath(home)
+		viper.AddConfigPath(nhost.HOME)
 		viper.SetConfigName(".nhost")
 	}
 

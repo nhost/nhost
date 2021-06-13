@@ -27,14 +27,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
 	"time"
 
 	"github.com/manifoldco/promptui"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -47,10 +46,10 @@ var loginCmd = &cobra.Command{
 	Long:  `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if pathExists(authPath) {
+		if pathExists(nhost.AUTH_PATH) {
 
 			// if user is already logged in, ask to logout
-			if _, err := validateAuth(authPath); err == nil {
+			if _, err := validateAuth(nhost.AUTH_PATH); err == nil {
 				log.Fatal("You are already logged in, first logout with `nhost logout`")
 			}
 		}
@@ -65,7 +64,7 @@ var loginCmd = &cobra.Command{
 			email = readEmail
 		}
 
-		token, err := login(apiURL, email)
+		token, err := login(nhost.API, email)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to login with that email")
@@ -73,7 +72,7 @@ var loginCmd = &cobra.Command{
 
 		log.Info("We have sent you an email on \"" + email + "\". Confirm the email to login")
 
-		verifiedToken, err := runVerificationLoop(apiURL, email, token)
+		verifiedToken, err := runVerificationLoop(nhost.API, email, token)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Login verification failed")
@@ -88,22 +87,22 @@ var loginCmd = &cobra.Command{
 			}, "", " ")
 
 			// delete any existing auth files
-			if pathExists(authPath) {
-				if err = deletePath(authPath); err != nil {
+			if pathExists(nhost.AUTH_PATH) {
+				if err = deletePath(nhost.AUTH_PATH); err != nil {
 					log.Debug(err)
-					log.Fatalf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", authPath)
+					log.Fatalf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH)
 				}
 			}
 
 			// create the auth file path if it doesn't exist
-			err := os.MkdirAll(NHOST_DIR, os.ModePerm)
+			err := os.MkdirAll(nhost.ROOT, os.ModePerm)
 			if err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to initialize Nhost root directory: ", NHOST_DIR)
+				log.Fatal("Failed to initialize Nhost root directory: ", nhost.ROOT)
 			}
 
 			// create the auth file to write it
-			f, err := os.Create(authPath)
+			f, err := os.Create(nhost.AUTH_PATH)
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to create auth configuration file")
@@ -112,7 +111,7 @@ var loginCmd = &cobra.Command{
 			defer f.Close()
 
 			// write auth file
-			err = writeToFile(authPath, string(credentials), "end")
+			err = writeToFile(nhost.AUTH_PATH, string(credentials), "end")
 
 			if err != nil {
 				log.Debug(err)
@@ -120,7 +119,7 @@ var loginCmd = &cobra.Command{
 			}
 
 			// validate auth
-			_, err = validateAuth(authPath)
+			_, err = validateAuth(nhost.AUTH_PATH)
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to validate authentication")
@@ -144,13 +143,13 @@ func readEmail() (string, error) {
 }
 
 // ValidateAuth func confirms whether user is logged in or not
-func validateAuth(authFile string) (User, error) {
+func validateAuth(authFile string) (nhost.User, error) {
 
 	log.Debug("Validating authentication")
 
-	var response NhostResponse
+	var response nhost.Response
 
-	credentials, err := getCredentials(authFile)
+	credentials, err := nhost.LoadCredentials()
 
 	//Handle Error
 	if err != nil {
@@ -162,7 +161,7 @@ func validateAuth(authFile string) (User, error) {
 	responseBody := bytes.NewBuffer(postBody)
 
 	//Leverage Go's HTTP Post function to make request
-	resp, err := http.Post(apiURL+"/custom/cli/login/validate", "application/json", responseBody)
+	resp, err := http.Post(nhost.API+"/custom/cli/login/validate", "application/json", responseBody)
 	if err != nil {
 		return response.User, err
 	}
@@ -247,8 +246,8 @@ func verify(url, email, token string) (string, error) {
 
 	body, _ := ioutil.ReadAll(resp.Body)
 
-	var response NhostResponse
-	json.Unmarshal(body, &response)
+	var response nhost.Response
+	err = json.Unmarshal(body, &response)
 
 	// if token returned, verification is successful
 	if len(response.VerifiedToken) > 0 {
@@ -270,7 +269,7 @@ func login(url, email string) (string, error) {
 
 	log.Debug("Authenticating with email ", email)
 
-	var response NhostResponse
+	var response nhost.Response
 
 	//Encode the data
 	postBody, _ := json.Marshal(map[string]string{
@@ -300,34 +299,6 @@ func login(url, email string) (string, error) {
 	}
 
 	return response.VerificationToken, err
-}
-
-// fetches saved credentials from auth file
-func getCredentials(authFile string) (Credentials, error) {
-
-	log.Debug("Fetching credentials from ", path.Base(authFile))
-
-	// we initialize our credentials array
-	var credentials Credentials
-
-	// Open our jsonFile
-	jsonFile, err := os.Open(authFile)
-	// if we os.Open returns an error then handle it
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	// defer the closing of our jsonFile so that we can parse it later on
-	defer jsonFile.Close()
-
-	// read our opened xmlFile as a byte array.
-	byteValue, _ := ioutil.ReadAll(jsonFile)
-
-	// we unmarshal our byteArray which contains our
-	// jsonFile's content into 'credentials' which we defined above
-	json.Unmarshal(byteValue, &credentials)
-
-	return credentials, err
 }
 
 func init() {

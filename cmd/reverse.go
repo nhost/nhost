@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/manifoldco/promptui"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +38,7 @@ that came AFTER the one you have chosen, but NOT the one that you chose
 Basically rendering your selected migration as the latest one.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		migrations, err := os.ReadDir(migrationsDir)
+		migrations, err := os.ReadDir(nhost.MIGRATIONS_DIR)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to traverse migrations directory")
@@ -101,7 +102,7 @@ Basically rendering your selected migration as the latest one.`,
 			selected_time := time.Unix(i, 0)
 
 			if current_time.After(selected_time) {
-				if err = deleteAllPaths(path.Join(migrationsDir, item.Name())); err != nil {
+				if err = deleteAllPaths(path.Join(nhost.MIGRATIONS_DIR, item.Name())); err != nil {
 					log.WithField("component", migration.Name()).Error("Failed to delete")
 				}
 			}

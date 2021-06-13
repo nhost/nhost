@@ -31,8 +31,8 @@ import (
 	"strings"
 	"text/tabwriter"
 
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 // envCmd represents the env command
@@ -61,19 +61,15 @@ var lsCmd = &cobra.Command{
 
 		log.Info("Fetching env vars from remote")
 
-		var projectConfig map[string]interface{}
-
-		config, err := ioutil.ReadFile(path.Join(dotNhost, "nhost.yaml"))
+		info, err := nhost.Info()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read .nhost/nhost.yaml")
 		}
 
-		yaml.Unmarshal(config, &projectConfig)
+		savedProjectID := info.ProjectID
 
-		savedProjectID := projectConfig["project_id"].(string)
-
-		user, err := validateAuth(authPath)
+		user, err := validateAuth(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch user data from remote")
@@ -98,7 +94,7 @@ var lsCmd = &cobra.Command{
 			log.Fatal("We couldn't find any projects related to this account")
 		}
 
-		var savedProject Project
+		var savedProject nhost.Project
 
 		for _, project := range projects {
 			if project.ID == savedProjectID {
@@ -119,7 +115,7 @@ var lsCmd = &cobra.Command{
 		w.Flush()
 		fmt.Println()
 
-		log.Info("You can edit these variables in ", path.Base(envFile))
+		log.Info("You can edit these variables in ", path.Base(nhost.ENV_FILE))
 	},
 }
 
@@ -132,19 +128,15 @@ var envPullCmd = &cobra.Command{
 
 		log.Info("Overwriting existing .env.development file")
 
-		var projectConfig map[string]interface{}
-
-		config, err := ioutil.ReadFile(path.Join(dotNhost, "nhost.yaml"))
+		info, err := nhost.Info()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read .nhost/nhost.yaml")
 		}
 
-		yaml.Unmarshal(config, &projectConfig)
+		savedProjectID := info.ProjectID
 
-		savedProjectID := projectConfig["project_id"].(string)
-
-		user, err := validateAuth(authPath)
+		user, err := validateAuth(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch user data from remote")
@@ -169,7 +161,7 @@ var envPullCmd = &cobra.Command{
 			log.Fatal("We couldn't find any projects related to this account")
 		}
 
-		var savedProject Project
+		var savedProject nhost.Project
 
 		for _, project := range projects {
 			if project.ID == savedProjectID {
@@ -179,7 +171,7 @@ var envPullCmd = &cobra.Command{
 
 		log.Infof("Downloading development environment variables for project: %s", savedProject.Name)
 
-		envData, err := ioutil.ReadFile(envFile)
+		envData, err := ioutil.ReadFile(nhost.ENV_FILE)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read .env.development file")
@@ -217,10 +209,10 @@ var envPullCmd = &cobra.Command{
 		}
 
 		// delete the existing .env.development file
-		deletePath(envFile)
+		deletePath(nhost.ENV_FILE)
 
 		// create a fresh one
-		f, err := os.Create(envFile)
+		f, err := os.Create(nhost.ENV_FILE)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to create fresh .env.development file")

@@ -27,13 +27,12 @@ import (
 	"context"
 	"io"
 	"os"
-	"os/signal"
 	"path"
 	"strings"
-	"syscall"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -44,14 +43,6 @@ var downCmd = &cobra.Command{
 	Long:  "Stop and remove local Nhost backend started by \"nhost dev\".",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// add cleanup action in case of signal interruption
-		c := make(chan os.Signal)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-		go func() {
-			<-c
-			log.Warn("Please wait while we cleanup")
-		}()
-
 		// connect to docker client
 		ctx := context.Background()
 		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -60,10 +51,10 @@ var downCmd = &cobra.Command{
 		}
 
 		if err := shutdownServices(docker, ctx, LOG_FILE); err != nil {
-			log.Fatal("Failed to shut down Nhost services")
+			log.Error("Failed to shut down Nhost services")
 		}
 
-		deletePath(path.Join(dotNhost, "Dockerfile-api"))
+		deletePath(path.Join(nhost.DOT_NHOST, "Dockerfile-api"))
 
 		if contains(args, "exit") {
 			log.Info("Cleanup complete. See you later, grasshopper!")

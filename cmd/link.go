@@ -31,10 +31,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
 	"strings"
 
 	"github.com/manifoldco/promptui"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -46,7 +46,7 @@ var linkCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// validate authentication
-		userData, err := validateAuth(authPath)
+		userData, err := validateAuth(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to validate authentication")
@@ -71,16 +71,26 @@ var linkCmd = &cobra.Command{
 		}
 
 		// add the option of a new project to the existing selection payload
-		projects = append(projects, Project{
+		projects = append(projects, nhost.Project{
 			Name: "Create New Project",
 			ID:   "new",
 		})
 
 		// configure interactive prompt template
 		templates := promptui.SelectTemplates{
-			Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }}`,
-			Inactive: `   {{ .Name | cyan }}`,
-			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
+			//Label:    "{{ . }}?",
+			Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Team.Name | faint }}`,
+			Inactive: `   {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
+			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
+		}
+
+		// configure interactive prompt search function
+		searcher := func(input string, index int) bool {
+			project := projects[index]
+			name := strings.Replace(strings.ToLower(project.Name), " ", "", -1)
+			input = strings.Replace(strings.ToLower(input), " ", "", -1)
+
+			return strings.Contains(name, input)
 		}
 
 		// configure interative prompt
@@ -88,6 +98,7 @@ var linkCmd = &cobra.Command{
 			Label:     "Select project",
 			Items:     projects,
 			Templates: &templates,
+			Searcher:  searcher,
 		}
 
 		index, _, err := prompt.Run()
@@ -127,7 +138,7 @@ var linkCmd = &cobra.Command{
 			}
 
 			// select the server location
-			servers, err := getServers()
+			servers, err := nhost.Servers()
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to fetch list of servers")
@@ -207,7 +218,7 @@ var linkCmd = &cobra.Command{
 			log.Warn("If you linked to the wrong project, you could break your production environment.")
 			log.Info("Therefore we need confirmation you are serious about this.")
 
-			credentials, err := getCredentials(authPath)
+			credentials, err := nhost.LoadCredentials()
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to load authentication credentials")
@@ -242,21 +253,19 @@ var linkCmd = &cobra.Command{
 
 func updateNhostProject(ID string) error {
 
-	nhostProjectConfigPath := path.Join(dotNhost, "nhost.yaml")
-
 	// create .nhost, if it doesn't exists
-	if !pathExists(nhostProjectConfigPath) {
-		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
+	if !pathExists(nhost.INFO_PATH) {
+		if err := os.MkdirAll(nhost.INFO_PATH, os.ModePerm); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize nhost specific directory")
 		}
 	} else {
 		// first delete any existing nhost.yaml file
-		deletePath(nhostProjectConfigPath)
+		deletePath(nhost.INFO_PATH)
 	}
 
 	// create nhost.yaml to write it
-	f, err := os.Create(nhostProjectConfigPath)
+	f, err := os.Create(nhost.INFO_PATH)
 	if err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to instantiate Nhost auth configuration")
@@ -266,7 +275,7 @@ func updateNhostProject(ID string) error {
 
 	// write the file
 	if err = writeToFile(
-		nhostProjectConfigPath,
+		nhost.INFO_PATH,
 		fmt.Sprintf(`project_id: %s`, ID),
 		"start",
 	); err != nil {
@@ -280,7 +289,7 @@ func updateNhostProject(ID string) error {
 // creates a new remote project
 func createProject(name, server, user, team string) (string, error) {
 
-	var response NhostResponse
+	var response nhost.Response
 
 	//Encode the data
 	reqBody := map[string]string{
@@ -297,7 +306,7 @@ func createProject(name, server, user, team string) (string, error) {
 	responseBody := bytes.NewBuffer(postBody)
 
 	//Leverage Go's HTTP Post function to make request
-	resp, err := http.Post(apiURL+"/custom/cli/create-project", "application/json", responseBody)
+	resp, err := http.Post(nhost.API+"/custom/cli/create-project", "application/json", responseBody)
 	if err != nil {
 		return "", err
 	}
@@ -316,31 +325,6 @@ func createProject(name, server, user, team string) (string, error) {
 	}
 
 	return response.Project.ID, nil
-}
-
-// fetches the list of Nhost production servers
-func getServers() ([]Server, error) {
-
-	var response []Server
-
-	resp, err := http.Get(apiURL + "/custom/cli/get-server-locations")
-	if err != nil {
-		return response, err
-	}
-
-	// read our opened xmlFile as a byte array.
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	defer resp.Body.Close()
-
-	var res map[string]interface{}
-	// we unmarshal our body byteArray which contains our
-	// jsonFile's content into 'server' strcuture
-	json.Unmarshal(body, &res)
-	locations, _ := json.Marshal(res["server_locations"])
-	json.Unmarshal(locations, &response)
-
-	return response, nil
 }
 
 func init() {

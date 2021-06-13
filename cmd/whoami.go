@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +32,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		credentials, err := getCredentials(authPath)
+		credentials, err := nhost.LoadCredentials()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch authentication credentials. Please login with `nhost login`")

@@ -35,8 +35,8 @@ import (
 	"strings"
 
 	"github.com/nhost/cli/hasura"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 var (
@@ -52,14 +52,14 @@ var initCmd = &cobra.Command{
 	Long:  `Initialize current working directory as an Nhost project.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if pathExists(nhostDir) {
+		if pathExists(nhost.NHOST_DIR) {
 			log.Error("Project already exists in this directory")
 			log.Info("To start development environment, run 'nhost' or 'nhost dev'")
 			log.Info("To delete the saved project, run 'nhost reset'")
 			os.Exit(0)
 		}
 
-		var selectedProject Project
+		var selectedProject nhost.Project
 
 		// if user has already passed remote_project as a flag,
 		// then fetch list of remote projects,
@@ -67,15 +67,15 @@ var initCmd = &cobra.Command{
 		if len(remoteProject) > 0 {
 
 			// check if auth file exists
-			if !pathExists(authPath) {
-				log.Debug("Auth credentials not found at: " + authPath)
+			if !pathExists(nhost.AUTH_PATH) {
+				log.Debug("Auth credentials not found at: " + nhost.AUTH_PATH)
 
 				// begin login procedure
 				loginCmd.Run(cmd, args)
 			}
 
 			// validate authentication
-			user, err := validateAuth(authPath)
+			user, err := validateAuth(nhost.AUTH_PATH)
 			if err != nil {
 				log.Debug(err)
 				log.Error("Failed to validate authentication")
@@ -122,64 +122,47 @@ var initCmd = &cobra.Command{
 		log.Info("Initializing Nhost project in this directory")
 
 		// create root nhost folder
-		if err := os.MkdirAll(nhostDir, os.ModePerm); err != nil {
+		if err := os.MkdirAll(nhost.NHOST_DIR, os.ModePerm); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize root nhost directory")
 		}
 
 		// Create .nhost dir which is used for nhost specific configuration
-		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
+		if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize nhost specific directory")
 		}
 
-		// create nhost/config.yaml file which holds configuration for
-		// GraphQL engine, PostgreSQL and HBP it is also a requirement for hasura to work
-		f, err := os.Create(path.Join(nhostDir, "config.yaml"))
-		if err != nil {
+		// generate Nhost configuration
+		// which will contain the information for GraphQL, Minio and other services
+		nhostConfig := nhost.GenerateConfig(selectedProject)
+
+		// save the Nhost configuration
+		if err := nhostConfig.Save(); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to write Nhost configuration")
+			log.Fatal("Failed to save Nhost configuration")
 		}
-
-		defer f.Close()
-
-		nhostConfig := getNhostConfig(selectedProject)
-
-		// convert generated Nhost configuration to YAML
-		marshalled, err := yaml.Marshal(nhostConfig)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to marshal generated Nhost onfiguration")
-		}
-
-		// write the marshalled YAML configuration to file
-		if _, err = f.Write(marshalled); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to write Nhost config")
-		}
-
-		f.Sync()
 
 		// check if migrations directory already exists
 
 		requiredDirs := []string{
-			migrationsDir,
-			metadataDir,
-			seedsDir,
+			nhost.MIGRATIONS_DIR,
+			nhost.METADATA_DIR,
+			nhost.SEEDS_DIR,
 		}
 
 		// if required directories don't exist, then create them
 		for _, dir := range requiredDirs {
-			if err = os.MkdirAll(dir, os.ModePerm); err != nil {
+			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 				log.Debug(err)
 				log.WithField("component", path.Base(dir)).Fatal("Failed to create directory")
 			}
 		}
 
 		// create or append to .gitignore
-		ignoreFile := path.Join(workingDir, ".gitignore")
+		ignoreFile := path.Join(nhost.WORKING_DIR, ".gitignore")
 
-		f, err = os.Create(ignoreFile)
+		f, err := os.Create(ignoreFile)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to create .gitignore file")
@@ -188,7 +171,7 @@ var initCmd = &cobra.Command{
 		defer f.Close()
 		if _, err = f.WriteString(
 			fmt.Sprintf("%v\n%v\n%v",
-				path.Base(dotNhost),
+				path.Base(nhost.DOT_NHOST),
 				path.Join("api", "node_modules"),
 				path.Join("web", "node_modules"))); err != nil {
 			log.Debug(err)
@@ -197,7 +180,7 @@ var initCmd = &cobra.Command{
 		f.Sync()
 
 		// create .env.development file
-		f, err = os.Create(envFile)
+		f, err = os.Create(nhost.ENV_FILE)
 		if err != nil {
 			log.Debug(err)
 			log.Warn("Failed to create .env.developement file")
@@ -206,7 +189,7 @@ var initCmd = &cobra.Command{
 
 		if len(remoteProject) > 0 {
 
-			f, err := os.Create(path.Join(dotNhost, "nhost.yaml"))
+			f, err := os.Create(path.Join(nhost.DOT_NHOST, "nhost.yaml"))
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to write nHost configuration")
@@ -232,7 +215,7 @@ var initCmd = &cobra.Command{
 			}
 
 			// load hasura binary
-			hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig.Environment["hasura_cli_version"]))
+			hasuraCLI, _ := hasura.Binary()
 
 			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
@@ -243,7 +226,7 @@ var initCmd = &cobra.Command{
 				log.Fatal("Failed to create migration from remote")
 			}
 
-			sqlFiles, err := ioutil.ReadDir(path.Join(migrationsDir, migration.Name()))
+			sqlFiles, err := ioutil.ReadDir(path.Join(nhost.MIGRATIONS_DIR, migration.Name()))
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to traverse migrations directory")
@@ -251,7 +234,7 @@ var initCmd = &cobra.Command{
 
 			for _, file := range sqlFiles {
 
-				sqlPath := path.Join(migrationsDir, migration.Name(), file.Name())
+				sqlPath := path.Join(nhost.MIGRATIONS_DIR, migration.Name(), file.Name())
 
 				// format the new migration
 				// so that it doesn't conflicts with existing migrations
@@ -340,7 +323,7 @@ var initCmd = &cobra.Command{
 				envData += fmt.Sprintf("ALLOWED_USER_ROLES=%s\n", selectedProject.HBPAllowedUserRoles)
 			}
 
-			if err = writeToFile(envFile, envData, "end"); err != nil {
+			if err = writeToFile(nhost.ENV_FILE, envData, "end"); err != nil {
 				log.Debug(err)
 				log.Error("Failed to write project environment variables to .env.development file", false)
 
@@ -711,162 +694,6 @@ func clearMigration(endpoint, secret string) error {
 	//Leverage Go's HTTP Post function to make request
 	_, err := client.Do(req)
 	return err
-}
-
-// generates fresh config.yaml for /nhost dir
-func getNhostConfig(options Project) Configuration {
-
-	log.Debug("Generating Nhost configuration")
-
-	hasura := Service{
-		Version:     "v1.3.3",
-		Image:       "hasura/graphql-engine",
-		AdminSecret: "hasura-admin-secret",
-		Port:        8080,
-		ConsolePort: 9695,
-	}
-
-	/*
-		// if it's a Mac,
-		// add a custom Hasura GraphQL Engine image
-		// because it doesn't support the official one
-		if runtime.GOOS == "darwin" {
-			hasura["image"] = "fedormelexin/graphql-engine-arm64"
-		}
-	*/
-
-	// check if a loaded remote project has been passed
-	if options.HasuraGQEVersion != "" {
-		hasura.Version = options.HasuraGQEVersion
-	}
-
-	postgres := Service{
-		Version:  12,
-		User:     "postgres",
-		Password: "postgres",
-		Port:     5432,
-	}
-
-	if options.PostgresVersion != "" {
-		postgres.Version = options.PostgresVersion
-	}
-
-	hbp := Service{
-		Version: "v2.5.0",
-		Port:    9001,
-	}
-
-	if options.BackendVersion != "" {
-		hbp.Version = options.BackendVersion
-	}
-
-	authentication := map[string]interface{}{
-		"endpoints": map[string]interface{}{
-			"provider_success_redirect": "http://localhost:3000",
-			"provider_failure_redirect": "http://localhost:3000/login-fail",
-		},
-		"providers": generateProviders(),
-	}
-
-	authPayload, _ := yaml.Marshal(authentication)
-
-	var auth Authentication
-	yaml.Unmarshal(authPayload, &auth)
-
-	payload := Configuration{
-		Version: 2,
-		Services: map[string]Service{
-			"postgres":            postgres,
-			"hasura":              hasura,
-			"hasura_backend_plus": hbp,
-			"minio": Service{
-				Version: "latest",
-				Port:    9000,
-			},
-			"api": Service{
-				Port: 4000,
-			},
-		},
-		Environment: map[string]interface{}{
-			"env_file":           envFile,
-			"hasura_cli_version": "v2.0.0-alpha.11",
-		},
-		MetadataDirectory: "metadata",
-		Authentication:    auth,
-	}
-
-	return payload
-}
-
-func generateProviders() map[string]interface{} {
-
-	payload := map[string]interface{}{
-		"google": map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-			"scope":         "email,profile",
-		},
-		"facebook": map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-			"scope":         "email,photos,displayName",
-		},
-		"twitter": map[string]interface{}{
-			"enable":          false,
-			"consumer_key":    "",
-			"consumer_secret": "",
-		},
-		"linkedin": map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-			"scope":         "r_emailaddress,r_liteprofile",
-		},
-		"apple": map[string]interface{}{
-			"enable":      false,
-			"client_id":   "",
-			"key_id":      "",
-			"private_key": "",
-			"team_id":     "",
-			"scope":       "name,email",
-		},
-		"github": map[string]interface{}{
-			"enable":           false,
-			"client_id":        "",
-			"client_secret":    "",
-			"token_url":        "",
-			"user_profile_url": "",
-			"scope":            "user:email",
-		},
-		"windows_live": map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-			"scope":         "wl.basic,wl.emails,wl.contacts_emails",
-		},
-		"spotify": map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-			"scope":         "user-read-email,user-read-private",
-		},
-		"gitlab": map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-			"base_url":      "",
-			"scope":         "read_user",
-		},
-		"bitbucket": map[string]interface{}{
-			"enable":        false,
-			"client_id":     "",
-			"client_secret": "",
-		},
-	}
-
-	return payload
 }
 
 func init() {

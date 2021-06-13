@@ -16,7 +16,6 @@ limitations under the License.
 package cmd
 
 import (
-	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -28,8 +27,8 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/nhost/cli/hasura"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
 )
 
 // pullCmd represents the pull command
@@ -57,7 +56,7 @@ and sync them with your local project.`,
 		}
 
 		// validate authentication
-		user, err := validateAuth(authPath)
+		user, err := validateAuth(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to validate authentication")
@@ -66,14 +65,13 @@ and sync them with your local project.`,
 			loginCmd.Run(cmd, args)
 		}
 
-		nhostProjectConfigPath := path.Join(dotNhost, "nhost.yaml")
-		info, err := getInfo(nhostProjectConfigPath)
+		info, err := nhost.Info()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read saved Nhost project information")
 		}
 
-		var linkedProject Project
+		var linkedProject nhost.Project
 
 		for _, project := range user.Projects {
 			if project.ID == info.ProjectID {
@@ -81,14 +79,8 @@ and sync them with your local project.`,
 			}
 		}
 
-		nhostConfig, err := readConfiguration(path.Join(nhostDir, "config.yaml"))
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to read Nhost config")
-		}
-
 		// load hasura binary
-		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprintf("%v", nhostConfig.Environment["hasura_cli_version"]))
+		hasuraCLI, _ := hasura.Binary()
 
 		// intialize common options
 		hasuraEndpoint := "https://" + linkedProject.ProjectDomains.Hasura
@@ -105,7 +97,7 @@ and sync them with your local project.`,
 			log.Fatal("Failed to create migration from remote")
 		}
 
-		sqlFiles, err := ioutil.ReadDir(path.Join(migrationsDir, migration.Name()))
+		sqlFiles, err := ioutil.ReadDir(path.Join(nhost.MIGRATIONS_DIR, migration.Name()))
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to traverse migrations directory")
@@ -113,7 +105,7 @@ and sync them with your local project.`,
 
 		for _, file := range sqlFiles {
 
-			sqlPath := path.Join(migrationsDir, migration.Name(), file.Name())
+			sqlPath := path.Join(nhost.MIGRATIONS_DIR, migration.Name(), file.Name())
 
 			// format the new migration
 			// so that it doesn't conflicts with existing migrations
@@ -154,7 +146,7 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 	execute := exec.Cmd{
 		Path: hasuraCLI,
 		Args: migrationArgs,
-		Dir:  nhostDir,
+		Dir:  nhost.NHOST_DIR,
 	}
 
 	output, err := execute.CombinedOutput()
@@ -174,7 +166,7 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 		// create migration file
 		version := strconv.FormatInt(time.Now().Unix(), 10)
 		migrationDirName := strings.Join([]string{version, name}, "_")
-		dir := path.Join(migrationsDir, migrationDirName)
+		dir := path.Join(nhost.MIGRATIONS_DIR, migrationDirName)
 
 		f, err := os.Create(dir)
 		if err != nil {
@@ -195,7 +187,7 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 
 	// search and load created migration
 
-	files, err := ioutil.ReadDir(migrationsDir)
+	files, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
 	if err != nil {
 		return migration, err
 	}
@@ -217,7 +209,7 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 	execute = exec.Cmd{
 		Path: hasuraCLI,
 		Args: migrationArgs,
-		Dir:  nhostDir,
+		Dir:  nhost.NHOST_DIR,
 	}
 
 	output, err = execute.CombinedOutput()
@@ -233,7 +225,7 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 	execute = exec.Cmd{
 		Path: hasuraCLI,
 		Args: metadataArgs,
-		Dir:  nhostDir,
+		Dir:  nhost.NHOST_DIR,
 	}
 
 	output, err = execute.CombinedOutput()
@@ -259,7 +251,7 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 	// first check if seeds already exist
 	// in which case skip seed creation
 
-	seeds, err := os.ReadDir(seedsDir)
+	seeds, err := os.ReadDir(nhost.SEEDS_DIR)
 	if err != nil {
 		return migration, err
 	}
@@ -284,7 +276,7 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 			execute := exec.Cmd{
 				Path: hasuraCLI,
 				Args: seedArgs,
-				Dir:  nhostDir,
+				Dir:  nhost.NHOST_DIR,
 			}
 
 			output, err := execute.CombinedOutput()
@@ -436,25 +428,6 @@ func addExtensionstoMigration(sqlPath, hasuraEndpoint, adminSecret string) error
 	}
 
 	return nil
-}
-
-func getInfo(path string) (Info, error) {
-
-	var info Info
-
-	// create .nhost, if it doesn't exists
-	if !pathExists(path) {
-		return info, errors.New("path not found")
-	}
-
-	file, err := ioutil.ReadFile(path)
-	if err != nil {
-		return info, err
-	}
-
-	yaml.Unmarshal(file, &info)
-
-	return info, nil
 }
 
 func init() {

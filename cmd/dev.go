@@ -51,8 +51,13 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/fsnotify/fsnotify"
 	"github.com/nhost/cli/hasura"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+)
+
+const (
+	exitCodeErr       = 1
+	exitCodeInterrupt = 2
 )
 
 // devCmd represents the dev command
@@ -62,265 +67,259 @@ var devCmd = &cobra.Command{
 	Long:  `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// complex, _ := time.ParseDuration("1h10m10s")
-		// func (cli *Client) ContainerRestart(ctx context.Context, containerID string, timeout *time.Duration) error
-
 		// add cleanup action in case of signal interruption
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-c
-			log.Error("Interrupted by signal")
-			hasuraConsoleSpawnProcess.Kill()
-			downCmd.Run(cmd, []string{"exit"})
-			os.Exit(1)
+			cleanup(cmd)
 		}()
 
-		log.Info("Initializing dev environment")
+		// being the execution
+		execute(cmd, args)
+	},
+}
 
-		// check if /nhost exists
-		if !pathExists(nhostDir) {
-			log.Error("Initialize a project by running 'nhost' or 'nhost init'")
-			log.Fatal("Project not found in this directory")
+func cleanup(cmd *cobra.Command) {
+	log.Warn("Please wait while we cleanup")
+	downCmd.Run(cmd, []string{"exit"})
+	os.Exit(exitCodeInterrupt)
+}
+
+func execute(cmd *cobra.Command, args []string) {
+	log.Info("Initializing dev environment")
+
+	// check if /nhost exists
+	if !pathExists(nhost.NHOST_DIR) {
+		log.Error("Initialize a project by running 'nhost' or 'nhost init'")
+		log.Fatal("Project not found in this directory")
+	}
+
+	// create /.nhost if it doesn't exist
+	if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
+		log.Debug(err)
+		log.Fatal("Failed to initialize nhost specific directory")
+	}
+
+	// connect to docker client
+	ctx := context.Background()
+	docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+	if err != nil {
+		log.Debug(err)
+		log.Fatal("Failed to connect to docker client")
+	}
+	defer docker.Close()
+
+	// check if this is the first time dev env is running
+	firstRun := !pathExists(path.Join(nhost.DOT_NHOST, "db_data"))
+	if firstRun {
+		log.Info("First run takes longer, please be patient")
+	}
+
+	// shut down any existing Nhost containers
+	downCmd.Run(cmd, args)
+
+	nhostConfig, err := nhost.Config()
+	if err != nil {
+		log.Debug(err)
+		log.Error("Failed to read Nhost config")
+		downCmd.Run(cmd, []string{"exit"})
+	}
+
+	ports := []string{
+		fmt.Sprint(nhostConfig.Services["hasura"].Port),
+		fmt.Sprint(nhostConfig.Services["hasura"].ConsolePort),
+		fmt.Sprint(nhostConfig.Services["hasura_backend_plus"].Port),
+		fmt.Sprint(nhostConfig.Services["minio"].Port),
+		fmt.Sprint(nhostConfig.Services["postgres"].Port),
+		fmt.Sprint(nhostConfig.Services["api"].Port),
+	}
+
+	freePorts := getFreePorts(ports)
+
+	var occupiedPorts []string
+	for _, port := range ports {
+		if !contains(freePorts, port) {
+			occupiedPorts = append(occupiedPorts, port)
 		}
+	}
 
-		// create /.nhost if it doesn't exist
-		if err := os.MkdirAll(dotNhost, os.ModePerm); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to initialize nhost specific directory")
-		}
+	if len(occupiedPorts) > 0 {
+		log.Errorf("Ports %v are already in use, hence aborting", occupiedPorts)
+		log.Fatal("Change nhost/config.yaml or stop the services")
+	}
 
-		// connect to docker client
-		ctx := context.Background()
-		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to connect to docker client")
-		}
-		defer docker.Close()
+	if nhostConfig.Environment["graphql_jwt_key"] == "" || nhostConfig.Environment["graphql_jwt_key"] == nil {
+		nhostConfig.Environment["graphql_jwt_key"] = generateRandomKey()
+	}
 
-		// check if this is the first time dev env is running
-		firstRun := !pathExists(path.Join(dotNhost, "db_data"))
-		if firstRun {
-			log.Info("First run takes longer, please be patient")
-		}
+	/*
+		if nhostConfig["startAPI"].(bool) {
 
-		// shut down any existing Nhost containers
-		downCmd.Run(cmd, args)
-
-		nhostConfig, err := readConfiguration(path.Join(nhostDir, "config.yaml"))
-		if err != nil {
-			log.Debug(err)
-			log.Error("Failed to read Nhost config")
-			downCmd.Run(cmd, []string{"exit"})
-		}
-
-		ports := []string{
-			fmt.Sprint(nhostConfig.Services["hasura"].Port),
-			fmt.Sprint(nhostConfig.Services["hasura"].ConsolePort),
-			fmt.Sprint(nhostConfig.Services["hasura_backend_plus"].Port),
-			fmt.Sprint(nhostConfig.Services["minio"].Port),
-			fmt.Sprint(nhostConfig.Services["postgres"].Port),
-			fmt.Sprint(nhostConfig.Services["api"].Port),
-		}
-
-		freePorts := getFreePorts(ports)
-
-		var occupiedPorts []string
-		for _, port := range ports {
-			if !contains(freePorts, port) {
-				occupiedPorts = append(occupiedPorts, port)
-			}
-		}
-
-		if len(occupiedPorts) > 0 {
-			log.Errorf("Ports %v are already in use, hence aborting", occupiedPorts)
-			log.Fatal("Change nhost/config.yaml or stop the services")
-		}
-
-		if nhostConfig.Environment["graphql_jwt_key"] == "" || nhostConfig.Environment["graphql_jwt_key"] == nil {
-			nhostConfig.Environment["graphql_jwt_key"] = generateRandomKey()
-		}
-
-		/*
-			if nhostConfig["startAPI"].(bool) {
-
-				// write docker api file
-				_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
-				if err != nil {
-					log.Debug(err)
-					log.Error("Failed to create docker api config")
-					downCmd.Run(cmd, []string{"exit"})
-				}
-
-				err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
-				if err != nil {
-					log.Debug(err)
-					log.Error("Failed to write backend docker-compose config")
-					downCmd.Run(cmd, []string{"exit"})
-				}
-			}
-		*/
-
-		// generate Nhost service containers' configurations
-		nhostServices, err := getContainerConfigs(docker, nhostConfig, dotNhost)
-		if err != nil {
-			log.Debug(err)
-			log.Error("Failed to generate container configurations")
-			downCmd.Run(cmd, args)
-		}
-
-		// create the Nhost network if it doesn't exist
-		network, _ := createNetwork(docker, "nhost")
-
-		// create and start the conatiners
-		for _, item := range nhostServices {
-			if err = runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string), network); err != nil {
+			// write docker api file
+			_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
+			if err != nil {
 				log.Debug(err)
-				log.WithField("component", item["name"]).Error("Failed to start container")
+				log.Error("Failed to create docker api config")
 				downCmd.Run(cmd, []string{"exit"})
 			}
-			log.WithField("component", item["name"]).Debug("Container created")
+
+			err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
+			if err != nil {
+				log.Debug(err)
+				log.Error("Failed to write backend docker-compose config")
+				downCmd.Run(cmd, []string{"exit"})
+			}
 		}
+	*/
 
-		// log.Info("Conducting a quick health check on all freshly created services")
-		// healthCmd.Run(cmd, args)
+	// generate Nhost service containers' configurations
+	nhostServices, err := getContainerConfigs(docker, nhostConfig, nhost.DOT_NHOST)
+	if err != nil {
+		log.Debug(err)
+		log.Error("Failed to generate container configurations")
+		downCmd.Run(cmd, args)
+	}
 
-		hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
+	// create the Nhost network if it doesn't exist
+	network, _ := createNetwork(docker, "nhost")
 
-		// wait for graphQL engine to become healthy
-		if ok := checkServiceHealth("hasura", fmt.Sprintf("%v/healthz", hasuraEndpoint)); !ok {
-			log.WithField("component", "hasura").Error("GraphQL engine health check failed")
+	// create and start the conatiners
+	for _, item := range nhostServices {
+		if err = runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string), network); err != nil {
+			log.Debug(err)
+			log.WithField("component", item["name"]).Error("Failed to start container")
 			downCmd.Run(cmd, []string{"exit"})
 		}
+		log.WithField("component", item["name"]).Debug("Container created")
+	}
 
-		// prepare and load hasura binary
-		hasuraCLI, _ := fetchBinary("hasura", fmt.Sprint(nhostConfig.Environment["hasura_cli_version"]))
+	// log.Info("Conducting a quick health check on all freshly created services")
+	// healthCmd.Run(cmd, args)
 
-		commandOptions := []string{
+	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
+
+	// wait for graphQL engine to become healthy
+	if ok := checkServiceHealth("hasura", fmt.Sprintf("%v/healthz", hasuraEndpoint)); !ok {
+		log.WithField("component", "hasura").Error("GraphQL engine health check failed")
+		downCmd.Run(cmd, []string{"exit"})
+	}
+
+	// prepare and load hasura binary
+	hasuraCLI, _ := hasura.Binary()
+
+	commandOptions := []string{
+		"--endpoint",
+		hasuraEndpoint,
+		"--admin-secret",
+		fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret),
+		"--skip-update-check",
+	}
+
+	// arpply migrations and metadata
+	if err = prepareData(hasuraCLI, commandOptions, firstRun); err != nil {
+		log.Debug(err)
+		downCmd.Run(cmd, []string{"exit"})
+	}
+
+	log.Info("Local Nhost development environment is now active")
+	fmt.Println()
+
+	log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
+	log.Infof("Auth & Storage: http://localhost:%v", nhostConfig.Services["hasura_backend_plus"].Port)
+	fmt.Println()
+
+	log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
+	log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig.Services["postgres"].Port)
+	fmt.Println()
+
+	if pathExists(nhost.API_DIR) {
+		log.Infof("Custom API: http://localhost:%v", nhostConfig.Services["api"].Port)
+	}
+
+	log.Infof("Launching Hasura console at: http://localhost:%v", nhostConfig.Services["hasura"].ConsolePort)
+	fmt.Println()
+
+	log.Warn("Use Ctrl + C to stop running evironment")
+
+	//spawn hasura console
+	hasuraConsoleSpawnCmd := exec.Cmd{
+		Path: hasuraCLI,
+		Args: []string{hasuraCLI,
+			"console",
 			"--endpoint",
 			hasuraEndpoint,
 			"--admin-secret",
 			fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret),
-			"--skip-update-check",
-		}
+			"--console-port",
+			fmt.Sprint(nhostConfig.Services["hasura"].ConsolePort),
+		},
+		Dir: nhost.NHOST_DIR,
+	}
 
-		// arpply migrations and metadata
-		if err = prepareData(hasuraCLI, commandOptions, firstRun); err != nil {
+	if err = hasuraConsoleSpawnCmd.Run(); err != nil {
+		log.Error("Hasura console has been interrupted")
+	}
+
+	// attach a watcher to the API conatiner's package.json
+	// to provide live reload functionality
+
+	if pathExists(nhost.API_DIR) {
+
+		watcher, err := fsnotify.NewWatcher()
+		if err != nil {
 			log.Debug(err)
-			downCmd.Run(cmd, []string{"exit"})
+			log.WithField("component", "watcher").Error("Failed to initialize live reload watcher")
 		}
+		defer watcher.Close()
 
-		log.Info("Local Nhost development environment is now active")
-		fmt.Println()
-
-		log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
-		log.Infof("Auth & Storage: http://localhost:%v", nhostConfig.Services["hasura_backend_plus"].Port)
-		fmt.Println()
-
-		log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
-		log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig.Services["postgres"].Port)
-		fmt.Println()
-
-		if pathExists(path.Join(workingDir, "api")) {
-			log.Infof("Custom API: http://localhost:%v", nhostConfig.Services["api"].Port)
-		}
-
-		log.Infof("Launching Hasura console at: http://localhost:%v", nhostConfig.Services["hasura"].ConsolePort)
-		fmt.Println()
-
-		log.Warn("Use Ctrl + C to stop running evironment")
-
-		//spawn hasura console
-		hasuraConsoleSpawnCmd := exec.Cmd{
-			Path: hasuraCLI,
-			Args: []string{hasuraCLI,
-				"console",
-				"--endpoint",
-				hasuraEndpoint,
-				"--admin-secret",
-				fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret),
-				"--console-port",
-				fmt.Sprint(nhostConfig.Services["hasura"].ConsolePort),
-			},
-			Dir: nhostDir,
-		}
-
-		if err = hasuraConsoleSpawnCmd.Run(); err != nil {
-			log.Error("Failed to launch hasura console")
-		}
-
-		hasuraConsoleSpawnProcess = hasuraConsoleSpawnCmd.Process
-
-		// attach a watcher to the API conatiner's package.json
-		// to provide live reload functionality
-
-		if pathExists(path.Join(workingDir, "api")) {
-
-			watcher, err := fsnotify.NewWatcher()
-			if err != nil {
-				log.Debug(err)
-				log.WithField("component", "watcher").Error("Failed to initialize live reload watcher")
-			}
-			defer watcher.Close()
-
-			done := make(chan bool)
-			go func() {
-				for {
-					select {
-					case event, ok := <-watcher.Events:
-						if !ok {
-							log.Error("Watcher not okay")
-							return
-						}
-						log.Infoln("event:", event)
-						if event.Op&fsnotify.Write == fsnotify.Write {
-							log.Infoln("modified file: ", event.Name)
-
-							APIContainerName := "nhost_api"
-
-							// fetch list of all running containers
-							containers, err := getContainers(docker, ctx, APIContainerName)
-							if err != nil {
-								log.WithField("component", APIContainerName).Debug(err)
-								log.WithField("component", APIContainerName).Error("Failed to fetch container")
-							}
-
-							if err = restartContainer(docker, ctx, containers[0]); err != nil {
-								log.WithField("component", APIContainerName).Debug(err)
-								log.WithField("component", APIContainerName).Error("Failed to restart container")
-							}
-						}
-					case err, ok := <-watcher.Errors:
-						if !ok {
-							return
-						}
-						log.Error(err)
+		done := make(chan bool)
+		go func() {
+			for {
+				select {
+				case event, ok := <-watcher.Events:
+					if !ok {
+						log.Error("Watcher not okay")
+						return
 					}
+					log.Infoln("event:", event)
+					if event.Op&fsnotify.Write == fsnotify.Write {
+						log.Infoln("modified file: ", event.Name)
+
+						APIContainerName := "nhost_api"
+
+						// fetch list of all running containers
+						containers, err := getContainers(docker, ctx, APIContainerName)
+						if err != nil {
+							log.WithField("component", APIContainerName).Debug(err)
+							log.WithField("component", APIContainerName).Error("Failed to fetch container")
+						}
+
+						if err = restartContainer(docker, ctx, containers[0]); err != nil {
+							log.WithField("component", APIContainerName).Debug(err)
+							log.WithField("component", APIContainerName).Error("Failed to restart container")
+						}
+					}
+				case err, ok := <-watcher.Errors:
+					if !ok {
+						return
+					}
+					log.Error(err)
 				}
-			}()
-
-			err = watcher.Add(path.Join(workingDir, "api", "package.json"))
-			if err != nil {
-				log.Debug(err)
-				log.WithField("component", "package.json").Error("Failed to add to live reload watcher")
 			}
-			<-done
-		}
+		}()
 
-		// wait for user input infinitely to keep the utility running
-		var input []byte
-		reader := bufio.NewReader(os.Stdin)
-		// disables input buffering
-		for {
-			b, err := reader.ReadByte()
-			if err != nil {
-				log.Error(err)
-			}
-			_ = append(input, b)
+		err = watcher.Add(path.Join(nhost.API_DIR, "package.json"))
+		if err != nil {
+			log.Debug(err)
+			log.WithField("component", "package.json").Error("Failed to add to live reload watcher")
 		}
-		//scanner.Scan()
-	},
+		<-done
+	}
+
+	// wait for user input infinitely to keep the utility running
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
 }
 
 func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
@@ -342,7 +341,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	execute = exec.Cmd{
 		Path: hasuraCLI,
 		Args: cmdArgs,
-		Dir:  nhostDir,
+		Dir:  nhost.NHOST_DIR,
 	}
 
 	output, err := execute.CombinedOutput()
@@ -352,7 +351,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		return err
 	}
 
-	seed_files, err := ioutil.ReadDir(seedsDir)
+	seed_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
 	if err != nil {
 		log.Error("Failed to read seeds directory")
 		return err
@@ -369,7 +368,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		execute = exec.Cmd{
 			Path: hasuraCLI,
 			Args: cmdArgs,
-			Dir:  nhostDir,
+			Dir:  nhost.NHOST_DIR,
 		}
 
 		output, err = execute.CombinedOutput()
@@ -380,7 +379,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		}
 	}
 
-	metaFiles, err := os.ReadDir(metadataDir)
+	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
 	if err != nil {
 		log.Debug(string(output))
 		log.Error("Failed to traverse metadata directory")
@@ -396,7 +395,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		execute = exec.Cmd{
 			Path: hasuraCLI,
 			Args: cmdArgs,
-			Dir:  nhostDir,
+			Dir:  nhost.NHOST_DIR,
 		}
 
 		output, err = execute.CombinedOutput()
@@ -418,7 +417,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	execute = exec.Cmd{
 		Path: hasuraCLI,
 		Args: cmdArgs,
-		Dir:  nhostDir,
+		Dir:  nhost.NHOST_DIR,
 	}
 
 	output, err = execute.CombinedOutput()
@@ -551,17 +550,6 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-// read YAML files
-func readConfiguration(path string) (Configuration, error) {
-
-	f, err := ioutil.ReadFile(path)
-
-	var data Configuration
-	yaml.Unmarshal(f, &data)
-
-	return data, err
-}
-
 func getFreePorts(ports []string) []string {
 
 	var freePorts []string
@@ -597,7 +585,7 @@ ENTRYPOINT ["./entrypoint-dev.sh"]
 `
 }
 */
-func getContainerConfigs(client *client.Client, options Configuration, cwd string) ([]map[string]interface{}, error) {
+func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd string) ([]map[string]interface{}, error) {
 
 	log.Debug("Preparing Nhost container configurations")
 
@@ -611,7 +599,7 @@ func getContainerConfigs(client *client.Client, options Configuration, cwd strin
 	minioConfig := options.Services["minio"]
 	apiConfig := options.Services["api"]
 
-	startAPI := pathExists(path.Join(workingDir, "api"))
+	startAPI := pathExists(nhost.API_DIR)
 
 	// check if a required image already exists
 	// if it doesn't which case -> then pull it
@@ -647,7 +635,7 @@ func getContainerConfigs(client *client.Client, options Configuration, cwd strin
 
 		// if it NOT available, then pull the image
 		if !available {
-			if err = pullImage(requiredImage); err != nil {
+			if err = pullImage(client, requiredImage); err != nil {
 				log.Debug(err)
 				log.WithField("component", requiredImage).Fatal("Failed to pull image. Pull it manually and re-run `nhost dev`")
 			}
@@ -751,12 +739,12 @@ func getContainerConfigs(client *client.Client, options Configuration, cwd strin
 	mountPoints = []mount.Mount{
 		{
 			Type:   mount.TypeBind,
-			Source: migrationsDir,
+			Source: nhost.MIGRATIONS_DIR,
 			Target: "/hasura-migrations",
 		},
 		{
 			Type:   mount.TypeBind,
-			Source: metadataDir,
+			Source: nhost.METADATA_DIR,
 			Target: "/hasura-metadata",
 		},
 	}
@@ -977,9 +965,9 @@ func getContainerConfigs(client *client.Client, options Configuration, cwd strin
 }
 
 func getAPIContainerConfig(
-	apiConfig Service,
-	hbpConfig Service,
-	hasuraConfig Service,
+	apiConfig nhost.Service,
+	hbpConfig nhost.Service,
+	hasuraConfig nhost.Service,
 	envVars []string,
 	graphql_jwt_key string,
 ) (map[string]interface{}, error) {
@@ -998,7 +986,7 @@ func getAPIContainerConfig(
 	containerVariables = append(containerVariables, envVars...)
 
 	// change directory and file access permissions
-	if err := filepath.Walk(path.Join(workingDir, "api"), func(path string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(nhost.API_DIR, func(path string, info os.FileInfo, err error) error {
 		return os.Chmod(path, 0777)
 	}); err != nil {
 		log.Error(err)
@@ -1068,7 +1056,7 @@ func getAPIContainerConfig(
 			Cmd:          []string{"./install.sh"},
 		},
 		"host_config": &container.HostConfig{
-			Binds: []string{path.Join(workingDir, "api")},
+			Binds: []string{nhost.API_DIR},
 			// AutoRemove: true,
 			//Links: []string{"nhost_hasura:nhost-hasura", "nhost_hbp:nhost-hbp", "nhost_minio:nhost-minio"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
@@ -1080,7 +1068,7 @@ func getAPIContainerConfig(
 			Mounts: []mount.Mount{
 				{
 					Type:   mount.TypeBind,
-					Source: path.Join(workingDir, "api"),
+					Source: nhost.API_DIR,
 					Target: "/usr/src/app",
 				},
 			},
@@ -1095,16 +1083,15 @@ func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageS
 	return images, err
 }
 
-func pullImage(tag string) error {
+func pullImage(cli *client.Client, tag string) error {
 
 	log.WithField("component", tag).Debug("Pulling container image")
+	out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
+	out.Close()
 	/*
-		out, err := cli.ImagePull(ctx, tag, types.ImagePullOptions{})
-		out.Close()
+		dockerCLI, _ := exec.LookPath("docker")
+		err := exec.Command(dockerCLI, "image", "pull", tag).Run()
 	*/
-
-	dockerCLI, _ := exec.LookPath("docker")
-	err := exec.Command(dockerCLI, "image", "pull", tag).Run()
 	return err
 }
 
