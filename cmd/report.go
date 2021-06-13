@@ -17,6 +17,8 @@ package cmd
 
 import (
 	"fmt"
+	"os/exec"
+	"runtime"
 
 	"github.com/spf13/cobra"
 )
@@ -24,16 +26,39 @@ import (
 // reportCmd represents the report command
 var reportCmd = &cobra.Command{
 	Use:   "report",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Report issues and bugs",
+	Long: `Launches URL in browser to allow
+you to open issues and submit bug reports
+in case you encounter something broken with this CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("report called")
+
+		url := "https://github.com/nhost/cli/issues"
+
+		// launch browser
+		if err := openbrowser(url); err != nil {
+			log.Debug(err)
+			log.Error("Failed to launch browser")
+			log.Info("Please visit manually: ", Bold, url, Reset)
+		}
 	},
+}
+
+func openbrowser(url string) error {
+
+	var err error
+
+	switch runtime.GOOS {
+	case "linux":
+		err = exec.Command("xdg-open", url).Start()
+	case "windows":
+		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		err = exec.Command("open", url).Start()
+	default:
+		err = fmt.Errorf("unsupported platform")
+	}
+
+	return err
 }
 
 func init() {
