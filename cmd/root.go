@@ -69,10 +69,6 @@ var (
  
   Or simply put, it's an open source firebase alternative with GraphQL, which allows 
   passionate developers to build apps fast without managing infrastructure - from MVP to global scale.
-	
-  Ask your questions: https://github.com/nhost/nhost/discussions/new
-  Chat with our team: https://discord.com/invite/9V7Qb2U
-  Open feature requests or report bugs: https://github.com/nhost/cli/issues
   `,
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 
