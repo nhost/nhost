@@ -365,7 +365,6 @@ func getMigration(endpoint, secret string, options []string) (string, error) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(body))
 	return string(body), nil
 }
 

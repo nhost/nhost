@@ -131,7 +131,6 @@ var (
 
 			// check if project is already initialized
 			if pathExists(nhost.NHOST_DIR) {
-				log.Info("Nhost project detected in current directory")
 
 				// start the "dev" command
 				devCmd.Run(cmd, args)

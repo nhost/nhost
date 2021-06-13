@@ -144,6 +144,14 @@ var linkCmd = &cobra.Command{
 				log.Fatal("Failed to fetch list of servers")
 			}
 
+			// configure interactive prompt template
+			templates := promptui.SelectTemplates{
+				//Label:    "{{ . }}?",
+				Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }}`,
+				Inactive: `   {{ .Name | cyan }}`,
+				Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
+			}
+
 			// configure interative prompt for selecting server
 			prompt := promptui.Select{
 				Label:     "Select server location",

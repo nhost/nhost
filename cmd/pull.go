@@ -65,6 +65,11 @@ and sync them with your local project.`,
 			loginCmd.Run(cmd, args)
 		}
 
+		var projects []nhost.Project
+		for _, item := range user.Teams {
+			projects = append(projects, item.Team.Projects...)
+		}
+
 		info, err := nhost.Info()
 		if err != nil {
 			log.Debug(err)
@@ -73,7 +78,7 @@ and sync them with your local project.`,
 
 		var linkedProject nhost.Project
 
-		for _, project := range user.Projects {
+		for _, project := range projects {
 			if project.ID == info.ProjectID {
 				linkedProject = project
 			}
