@@ -25,6 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -37,7 +38,7 @@ var versionCmd = &cobra.Command{
 
 		log.WithField("component", "version").Info(Version)
 
-		release, err := getLatestRelease(repository)
+		release, err := nhost.LatestRelease()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch latest release")

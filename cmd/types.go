@@ -39,26 +39,4 @@ type (
 		StdErr   string
 		ExitCode int
 	}
-
-	// GitHub Release API reponse structure
-	Release struct {
-		URL         string  `json:",omitempty"`
-		Name        string  `json:",omitempty"`
-		TagName     string  `json:"tag_name,omitempty"`
-		Prerelease  string  `json:",omitempty"`
-		CreatedAt   string  `json:",omitempty"`
-		PublishedAt string  `json:",omitempty"`
-		Body        string  `json:",omitempty"`
-		Assets      []Asset `json:",omitempty"`
-	}
-
-	// GitHub Release API Assets structure
-	Asset struct {
-		URL                string `json:",omitempty"`
-		Name               string `json:",omitempty"`
-		ID                 string `json:",omitempty"`
-		Label              string `json:",omitempty"`
-		BrowserDownloadURL string `json:"browser_download_url,omitempty"`
-		Size               int    `json:",omitempty"`
-	}
 )

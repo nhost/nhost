@@ -50,8 +50,8 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/fsnotify/fsnotify"
-	"github.com/nhost/cli/hasura"
-	"github.com/nhost/cli/nhost"
+	"github.com/mrinalwahal/cli/hasura"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -226,7 +226,7 @@ func execute(cmd *cobra.Command, args []string) {
 	fmt.Println()
 
 	log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
-	log.Infof("Auth & Storage: http://localhost:%v", nhostConfig.Services["hasura_backend_plus"].Port)
+	log.Infof("Hasura Backend Plus: http://localhost:%v", nhostConfig.Services["hasura_backend_plus"].Port)
 	fmt.Println()
 
 	log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)

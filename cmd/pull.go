@@ -26,8 +26,8 @@ import (
 	"strings"
 
 	"github.com/manifoldco/promptui"
-	"github.com/nhost/cli/hasura"
-	"github.com/nhost/cli/nhost"
+	"github.com/mrinalwahal/cli/hasura"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 

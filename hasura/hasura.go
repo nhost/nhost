@@ -10,7 +10,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/nhost/cli/nhost"
+	"github.com/mrinalwahal/cli/nhost"
 )
 
 // initialize the binary path
