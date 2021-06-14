@@ -50,8 +50,8 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/fsnotify/fsnotify"
-	"github.com/mrinalwahal/cli/cmd/hasura"
-	"github.com/mrinalwahal/cli/cmd/nhost"
+	"github.com/mrinalwahal/cli/hasura"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 

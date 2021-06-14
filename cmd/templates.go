@@ -21,7 +21,7 @@ import (
 
 	"github.com/hashicorp/go-getter"
 	"github.com/manifoldco/promptui"
-	"github.com/mrinalwahal/cli/cmd/nhost"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 

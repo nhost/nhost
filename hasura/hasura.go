@@ -14,7 +14,7 @@ import (
 )
 
 // initialize the binary path
-var binaryPath = path.Join(nhost.NHOST_DIR, "hasura")
+var binaryPath = path.Join(nhost.ROOT, "hasura")
 
 // if the required binary exists in $HOME/.nhost
 // this function returns it's exact path

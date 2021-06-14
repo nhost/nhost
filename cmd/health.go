@@ -28,7 +28,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
-	"github.com/mrinalwahal/cli/cmd/nhost"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 

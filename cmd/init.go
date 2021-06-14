@@ -34,8 +34,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mrinalwahal/cli/cmd/hasura"
-	"github.com/mrinalwahal/cli/cmd/nhost"
+	"github.com/mrinalwahal/cli/hasura"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
