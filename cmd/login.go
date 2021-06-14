@@ -255,10 +255,13 @@ func verify(url, email, token string) (string, error) {
 	}
 
 	//Handle Error
+	// Empty body means unconfirmed email, no error and no result
 	if response.Error.Code == "invalid_verification_token" {
 		return "", errors.New("your verification token is invalid")
 	} else if response.Error.Code == "server_not_available" {
 		return "", errors.New("service unavailable")
+	} else if len(body) == 0 {
+		return "", nil
 	}
 
 	return "", err
