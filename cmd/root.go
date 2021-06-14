@@ -40,8 +40,8 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/mattn/go-colorable"
+	"github.com/mrinalwahal/cli/cmd/nhost"
 	"github.com/mrinalwahal/cli/formatter"
-	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"

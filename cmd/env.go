@@ -31,7 +31,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/cmd/nhost"
 	"github.com/spf13/cobra"
 )
 
