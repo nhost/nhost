@@ -27,21 +27,22 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// reverseCmd represents the reverse command
-var reverseCmd = &cobra.Command{
-	Use:   "reverse",
-	Short: "Go back to a previous migration",
-	Long: `Presents you with a list of all locally saved
-migrations and will permanently delete all migrations
-that came AFTER the one you have chosen, but NOT the one that you chose
+// recoverCmd represents the recover command
+var recoverCmd = &cobra.Command{
+	Use:   "recover",
+	Short: "A brief description of your command",
+	Long: `A longer description that spans multiple lines and likely contains examples
+and usage of using your command. For example:
 
-Basically rendering your selected migration as the latest one.`,
+Cobra is a CLI library for Go that empowers applications.
+This application is a tool to generate the needed files
+to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		migrations, err := os.ReadDir(nhost.MIGRATIONS_DIR)
+		migrations, err := os.ReadDir(nhost.LEGACY_DIR)
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to traverse migrations directory")
+			log.Fatal("Failed to traverse legacy migrations directory")
 		}
 
 		migrations_payload := []map[string]string{}
@@ -77,60 +78,51 @@ Basically rendering your selected migration as the latest one.`,
 
 		migration := migrations[index]
 
-		// warn the user of upcoming dangers
-		log.Info("It will delete all migrations that came AFTER the one you have chosen, but NOT the one you have chosen")
-		log.Info("Basically rendering your chosen migration as the latest one")
+		src := path.Join(nhost.LEGACY_DIR, migration.Name())
+		dest := path.Join(nhost.MIGRATIONS_DIR, migration.Name())
 
-		// configure interative prompt
-		confirmationPrompt := promptui.Prompt{
-			Label:     "Are you sure you want to continue",
-			IsConfirm: true,
-		}
-
-		_, err = confirmationPrompt.Run()
-		if err != nil {
+		// create destination if it doesn't exist
+		if err = os.MkdirAll(dest, os.ModePerm); err != nil {
 			log.Debug(err)
-			log.Fatal("Aborted")
+			log.WithField("component", migration.Name()).Error("Failed to recover")
 		}
 
-		for _, item := range migrations {
+		// transfer migrations to legacy directory
+		if err = movePath(src, dest); err != nil {
+			log.Debug(err)
+			log.WithField("component", migration.Name()).Error("Failed to recover")
+		}
 
-			i, _ := strconv.ParseInt(strings.Split(item.Name(), "_")[0], 10, 64)
-			current_time := time.Unix(i, 0)
-			i, _ = strconv.ParseInt(strings.Split(migration.Name(), "_")[0], 10, 64)
-			selected_time := time.Unix(i, 0)
+		/*
+			for _, item := range migrations {
 
-			if current_time.After(selected_time) {
+				i, _ := strconv.ParseInt(strings.Split(item.Name(), "_")[0], 10, 64)
+				current_time := time.Unix(i, 0)
+				i, _ = strconv.ParseInt(strings.Split(migration.Name(), "_")[0], 10, 64)
+				selected_time := time.Unix(i, 0)
 
-				src := path.Join(nhost.MIGRATIONS_DIR, item.Name())
-				dest := path.Join(nhost.LEGACY_DIR, item.Name())
+				if current_time.After(selected_time) {
 
-				// create destination if it doesn't exist
-				if err = os.MkdirAll(dest, os.ModePerm); err != nil {
-					log.Debug(err)
-					log.WithField("component", item.Name()).Error("Failed to remove")
-				}
-
-				// transfer migrations to legacy directory
-				if err = movePath(src, dest); err != nil {
-					log.Debug(err)
-					log.WithField("component", item.Name()).Error("Failed to remove")
+					// transfer migrations to legacy directory
+					if err = movePath(path.Join(nhost.LEGACY_DIR, item.Name()), path.Join(nhost.MIGRATIONS_DIR, item.Name())); err != nil {
+						log.WithField("component", migration.Name()).Error("Failed to remove")
+					}
 				}
 			}
-		}
+		*/
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(reverseCmd)
+	rootCmd.AddCommand(recoverCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// reverseCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// recoverCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// reverseCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// recoverCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -36,7 +36,7 @@ var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
 	Short: "Upgrade this utility to latest version",
 	Long: `Automatically check for the latest available version of this
-	utility and upgrade to it.`,
+utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		release, err := nhost.LatestRelease()

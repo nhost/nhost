@@ -251,15 +251,18 @@ func pathExists(filePath string) bool {
 // deletes the given file/folder path and unlink from filesystem
 func deletePath(path string) error {
 	os.Chmod(path, 0777)
-	err := os.Remove(path)
-	return err
+	return os.Remove(path)
+}
+
+// moves the given file/folder path to new location
+func movePath(source, destination string) error {
+	return os.Rename(source, destination)
 }
 
 // deletes all the paths leading to the given file/folder and unlink from filesystem
 func deleteAllPaths(path string) error {
 	os.Chmod(path, 0777)
-	err := os.RemoveAll(path)
-	return err
+	return os.RemoveAll(path)
 }
 
 func writeToFile(filePath, data, position string) error {
