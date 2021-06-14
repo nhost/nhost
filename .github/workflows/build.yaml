@@ -15,6 +15,9 @@ jobs:
         with:
           go-version: 1.16
 
+      - name: Install
+        run: go get -v ./...
+
       - name: Build
         run: go build -v ./...
 
