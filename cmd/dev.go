@@ -24,7 +24,6 @@ SOFTWARE.
 package cmd
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"crypto/rand"
@@ -42,6 +41,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"syscall"
 
 	"github.com/docker/docker/api/types"
@@ -67,6 +67,9 @@ var devCmd = &cobra.Command{
 	Long:  `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		var end_waiter sync.WaitGroup
+		end_waiter.Add(1)
+
 		// add cleanup action in case of signal interruption
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -77,6 +80,9 @@ var devCmd = &cobra.Command{
 
 		// being the execution
 		execute(cmd, args)
+
+		// wait for Ctrl+C
+		end_waiter.Wait()
 	},
 }
 
@@ -258,7 +264,7 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	if err = hasuraConsoleSpawnCmd.Run(); err != nil {
-		log.Error("Hasura console has been interrupted")
+		log.Debug("Hasura console has been interrupted")
 	}
 
 	// attach a watcher to the API conatiner's package.json
@@ -316,10 +322,6 @@ func execute(cmd *cobra.Command, args []string) {
 		}
 		<-done
 	}
-
-	// wait for user input infinitely to keep the utility running
-	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
 }
 
 func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
