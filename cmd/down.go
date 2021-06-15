@@ -39,8 +39,8 @@ import (
 // downCmd represents the down command
 var downCmd = &cobra.Command{
 	Use:   "down",
-	Short: "Stop and remove local Nhost backend started by \"nhost dev\"",
-	Long:  "Stop and remove local Nhost backend started by \"nhost dev\".",
+	Short: "Stop local Nhost backend started by `nhost dev`",
+	Long:  "Stop and remove local Nhost backend started by `nhost dev`.",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// connect to docker client
@@ -72,7 +72,7 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 	}
 
 	if len(containers) > 0 {
-		log.Info("Running Nhost services detected. Shutting them down.")
+		log.Info("Shutting down running Nhost services")
 	}
 
 	for _, container := range containers {

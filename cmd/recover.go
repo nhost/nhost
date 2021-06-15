@@ -48,10 +48,12 @@ to quickly create a Cobra application.`,
 		migrations_payload := []map[string]string{}
 
 		for _, item := range migrations {
-			i, _ := strconv.ParseInt(strings.Split(item.Name(), "_")[0], 10, 64)
+			version := strings.Split(item.Name(), "_")[0]
+			name := strings.Split(item.Name(), "_")[1:]
+			i, _ := strconv.ParseInt(version, 10, 64)
 			migrations_payload = append(migrations_payload, map[string]string{
-				"version": strings.Split(item.Name(), "_")[0],
-				"name":    strings.Join(strings.Split(strings.Split(item.Name(), "_")[1], "_"), " "),
+				"version": version,
+				"name":    strings.Join(name, " "),
 				"time":    time.Unix(i, 0).Local().Format("Mon Jan 2 15:04:05"),
 			})
 		}
@@ -81,17 +83,13 @@ to quickly create a Cobra application.`,
 		src := path.Join(nhost.LEGACY_DIR, migration.Name())
 		dest := path.Join(nhost.MIGRATIONS_DIR, migration.Name())
 
-		// create destination if it doesn't exist
-		if err = os.MkdirAll(dest, os.ModePerm); err != nil {
-			log.Debug(err)
-			log.WithField("component", migration.Name()).Error("Failed to recover")
-		}
-
 		// transfer migrations to legacy directory
 		if err = movePath(src, dest); err != nil {
 			log.Debug(err)
 			log.WithField("component", migration.Name()).Error("Failed to recover")
 		}
+
+		log.WithField("component", migration.Name()).Info("Recovered successfully")
 
 		/*
 			for _, item := range migrations {

@@ -23,13 +23,10 @@ import (
 // whoamiCmd represents the whoami command
 var whoamiCmd = &cobra.Command{
 	Use:   "whoami",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Credentials with which you are logged in",
+	Long: `Reads authentication credentials and displays
+the email/username with which you are currently logged in
+to your Nhost account from CLI.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		credentials, err := nhost.LoadCredentials()

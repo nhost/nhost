@@ -32,8 +32,8 @@ import (
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
 	Use:   "version",
-	Short: "Print the installed version of Nhost CLI",
-	Long:  `All softwares has versions. This is Nhost's.`,
+	Short: "Print the installed version of CLI",
+	Long:  `All softwares have versions. This is Nhost's.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.WithField("component", "version").Info(Version)
