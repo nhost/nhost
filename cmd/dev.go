@@ -235,7 +235,7 @@ func execute(cmd *cobra.Command, args []string) {
 	log.Infof("Hasura Backend Plus: http://localhost:%v", nhostConfig.Services["hasura_backend_plus"].Port)
 	fmt.Println()
 
-	log.WithField("component", "background").Infof("Minio Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
+	log.WithField("component", "background").Infof("Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
 	log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig.Services["postgres"].Port)
 	fmt.Println()
 

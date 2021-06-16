@@ -26,22 +26,19 @@ package cmd
 
 import (
 	"bytes"
-	_ "embed"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"regexp"
-	"runtime"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/manifoldco/promptui"
 	"github.com/mattn/go-colorable"
-	"github.com/mrinalwahal/cli/nhost"
 	"github.com/mrinalwahal/cli/formatter"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
@@ -74,7 +71,7 @@ var (
 
 			// reset the umask before creating directories anywhere in this program
 			// otherwise applied permissions, might get affected
-			resetUmask()
+			// resetUmask()
 
 			// initialize the logger for all commands,
 			// including subcommands
@@ -233,6 +230,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&DEBUG, "debug", "d", false, "Show debugging level logs")
 }
 
+/*
 func resetUmask() {
 
 	// windows doesn't use umask for applying permissions,
@@ -241,6 +239,7 @@ func resetUmask() {
 		syscall.Umask(0)
 	}
 }
+*/
 
 // validates whether a given folder/file path exists or not
 func pathExists(filePath string) bool {

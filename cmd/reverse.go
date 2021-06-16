@@ -38,9 +38,6 @@ that came AFTER the one you have chosen, but NOT the one that you chose
 Basically rendering your selected migration as the latest one.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.Info("This command is work in progress")
-		os.Exit(0)
-
 		migrations, err := os.ReadDir(nhost.MIGRATIONS_DIR)
 		if err != nil {
 			log.Debug(err)
@@ -121,7 +118,7 @@ Basically rendering your selected migration as the latest one.`,
 }
 
 func init() {
-	rootCmd.AddCommand(reverseCmd)
+	// rootCmd.AddCommand(reverseCmd)
 
 	// Here you will define your flags and configuration settings.
 
