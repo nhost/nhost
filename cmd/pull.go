@@ -16,6 +16,7 @@ limitations under the License.
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
@@ -261,6 +262,19 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 		return migration, err
 	}
 
+	var migrationFile fs.DirEntry
+
+	// we only need the migration file if number of enum tables isn't 0
+	if len(tables) > 0 {
+
+		// search for the newly created migration file to append the enum seed data to it
+		migrationFile, err = searchFile(name, nhost.MIGRATIONS_DIR)
+		if err != nil {
+			log.Debug(err)
+			log.WithField("component", name).Error("Failed to search for freshly created migration file")
+		}
+	}
+
 	// only add seeds if enum tables exist, otherwise skip this step
 	for _, table := range tables {
 
@@ -288,13 +302,66 @@ func pullMigration(hasuraCLI, name, hasuraEndpoint, adminSecret string, commonOp
 			if err != nil {
 				log.Debug(string(output))
 				log.Debug(err)
-				log.Error("Failed to create seeds for enum tables")
+				log.WithField("component", table.Table.Name).Error("Failed to create seeds for enum table")
+				log.Warn("Skipping seed creation")
+			}
+
+			// append the insert data of new seeds for enum tables
+			// to the relevant migration file
+			// explain reason...
+
+			if err = copySeedToMigration(table.Table.Name, path.Join(migrationFile.Name(), "up.sql")); err != nil {
+				log.Debug(err)
+				log.WithField("component", table.Table.Name).Errorf("Failed to append table seed data to migration: %v", name)
 				log.Warn("Skipping seed creation")
 			}
 		}
 	}
 
 	return migration, nil
+}
+
+func copySeedToMigration(seed, migration string) error {
+
+	// first, search for the newly created seed file
+	seedFile, err := searchFile(seed, nhost.SEEDS_DIR)
+	if err != nil {
+		return err
+	}
+
+	// now read it's data
+	data, err := os.ReadFile(path.Join(nhost.SEEDS_DIR, seedFile.Name()))
+	if err != nil {
+		return err
+	}
+
+	// finally append the seed data to migration file
+	if err = writeToFile(path.Join(nhost.MIGRATIONS_DIR, migration), string(data), "end"); err != nil {
+		return err
+	}
+
+	// delete the seed file so that it's not applied again
+	if err = deleteAllPaths(path.Join(nhost.SEEDS_DIR, seedFile.Name())); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func searchFile(name, directory string) (fs.DirEntry, error) {
+
+	migrations, err := os.ReadDir(directory)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, item := range migrations {
+		if strings.Contains(item.Name(), name) {
+			return item, nil
+		}
+	}
+
+	return nil, errors.New("failed to find file %v in %v")
 }
 
 func getFormattedSchemas(list []string) []string {
@@ -308,6 +375,7 @@ func getFormattedSchemas(list []string) []string {
 	return response
 }
 
+/*
 func getSeedTables(tables []hasura.TableEntry) []string {
 
 	var fromTables []string
@@ -324,6 +392,7 @@ func getSeedTables(tables []hasura.TableEntry) []string {
 	}
 	return fromTables
 }
+*/
 
 func formatMigration(sqlPath string) error {
 
@@ -422,10 +491,6 @@ func addExtensionstoMigration(sqlPath, hasuraEndpoint, adminSecret string) error
 
 	// add an additional line break to efficiently shift the buffer
 	extensionsWriteToFile += "\n"
-
-	// concat extensions
-	// extensionsWriteToFile.concat("\n\n");
-	// create or append to .gitignore
 
 	// write extensions to beginning of SQL file of init migration
 	if err = writeToFile(sqlPath, extensionsWriteToFile, "start"); err != nil {

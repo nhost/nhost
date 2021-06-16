@@ -359,6 +359,8 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		return err
 	}
 
+	// if there are more seeds than just enum tables,
+	// apply them too
 	if firstRun && len(seed_files) > 0 {
 
 		log.Debug("Applying seeds on first run")
