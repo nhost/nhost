@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"os"
+	"net/http"
 
 	"github.com/sirupsen/logrus"
 )
@@ -31,7 +31,5 @@ var (
 
 	LOG_FILE = ""
 
-	// store Hasura console session command,
-	// to kill it later while shutting down dev environment
-	hasuraConsoleSpawnProcess *os.Process
+	Client = http.Client{}
 )

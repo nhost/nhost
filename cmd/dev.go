@@ -24,16 +24,12 @@ SOFTWARE.
 package cmd
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
-	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -336,22 +332,24 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	// then Hasura must be auto-applying migrations
 	// hence, manually applying migrations doesn't make sense
 
-	// create migrations
-	cmdArgs = []string{hasuraCLI, "migrate", "apply"}
-	cmdArgs = append(cmdArgs, commandOptions...)
+	/*
+		// create migrations
+		cmdArgs = []string{hasuraCLI, "migrate", "apply"}
+		cmdArgs = append(cmdArgs, commandOptions...)
 
-	execute = exec.Cmd{
-		Path: hasuraCLI,
-		Args: cmdArgs,
-		Dir:  nhost.NHOST_DIR,
-	}
+		execute = exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhost.NHOST_DIR,
+		}
 
-	output, err := execute.CombinedOutput()
-	if err != nil {
-		log.Debug(string(output))
-		log.Error("Failed to apply migrations")
-		return err
-	}
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to apply migrations")
+			return err
+		}
+	*/
 
 	seed_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
 	if err != nil {
@@ -414,26 +412,29 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	// then Hasura must be auto-applying metadata
 	// hence, manually applying metadata doesn't make sense
 
-	// apply metadata
-	cmdArgs = []string{hasuraCLI, "metadata", "apply"}
-	cmdArgs = append(cmdArgs, commandOptions...)
+	/*
+		// apply metadata
+		cmdArgs = []string{hasuraCLI, "metadata", "apply"}
+		cmdArgs = append(cmdArgs, commandOptions...)
 
-	execute = exec.Cmd{
-		Path: hasuraCLI,
-		Args: cmdArgs,
-		Dir:  nhost.NHOST_DIR,
-	}
+		execute = exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhost.NHOST_DIR,
+		}
 
-	output, err = execute.CombinedOutput()
-	if err != nil {
-		log.Debug(string(output))
-		log.Error("Failed to apply metadata")
-		return err
-	}
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to apply metadata")
+			return err
+		}
+	*/
 
 	return nil
 }
 
+/*
 func trackTable(endpoint, secret string, table hasura.TableEntry) error {
 
 	//Encode the data
@@ -485,6 +486,7 @@ func trackTable(endpoint, secret string, table hasura.TableEntry) error {
 
 	return errors.New(response.Error)
 }
+*/
 
 func createNetwork(client *client.Client, name string) (string, error) {
 
@@ -787,6 +789,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		"host_config": &container.HostConfig{
 			// AutoRemove: true,
 			//Links: links,
+			// Binds: []string{nhost.METADATA_DIR, nhost.MIGRATIONS_DIR},
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(hasuraConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hasuraConfig.Port)}},

@@ -25,11 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"strings"
@@ -205,11 +201,15 @@ var initCmd = &cobra.Command{
 			hasuraEndpoint := "https://" + selectedProject.ProjectDomains.Hasura
 			adminSecret := selectedProject.HasuraGQEAdminSecret
 
-			// const remoteHasuraVersion = project.hasura_gqe_version
-			// const dockerImage = `nhost/hasura-cli-docker:${remoteHasuraVersion}`
+			// create new hasura client
+			hasuraClient := hasura.Client{
+				Endpoint:    hasuraEndpoint,
+				AdminSecret: adminSecret,
+				Client:      &Client,
+			}
 
 			// clear current migration information from remote
-			if err := clearMigration(hasuraEndpoint, adminSecret); err != nil {
+			if err := hasuraClient.ClearMigration(); err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to clear migrations from remote")
 			}
@@ -220,36 +220,39 @@ var initCmd = &cobra.Command{
 			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
 			// create migrations from remote
-			migration, err := pullMigration(hasuraCLI, "init", hasuraEndpoint, adminSecret, commonOptions)
+			_, err = pullMigration(hasuraClient, hasuraCLI, "init", commonOptions)
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to create migration from remote")
 			}
 
-			sqlFiles, err := ioutil.ReadDir(path.Join(nhost.MIGRATIONS_DIR, migration.Name()))
-			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to traverse migrations directory")
-			}
+			/*
 
-			for _, file := range sqlFiles {
-
-				sqlPath := path.Join(nhost.MIGRATIONS_DIR, migration.Name(), file.Name())
-
-				// format the new migration
-				// so that it doesn't conflicts with existing migrations
-				if err = formatMigration(sqlPath); err != nil {
+				sqlFiles, err := ioutil.ReadDir(migration.Location)
+				if err != nil {
 					log.Debug(err)
-					log.Fatal("Failed to format migration")
+					log.Fatal("Failed to traverse migrations directory")
 				}
 
-				// add or update extensions to new migration
-				if err = addExtensionstoMigration(sqlPath, hasuraEndpoint, adminSecret); err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to format migration")
-				}
+				for _, file := range sqlFiles {
 
-			}
+					sqlPath := path.Join(migration.Location, file.Name())
+
+					// format the new migration
+					// so that it doesn't conflicts with existing migrations
+					if err = formatMigration(sqlPath); err != nil {
+						log.Debug(err)
+						log.Fatal("Failed to format migration")
+					}
+
+					// add or update extensions to new migration
+					if err = addExtensionstoMigration(sqlPath, hasuraEndpoint, adminSecret); err != nil {
+						log.Debug(err)
+						log.Fatal("Failed to format migration")
+					}
+
+				}
+			*/
 
 			/*
 					// avoid adding auth and providers to migration
@@ -332,154 +335,6 @@ var initCmd = &cobra.Command{
 
 		log.Info("Nhost backend successfully initialized")
 	},
-}
-
-// fetches migrations from remote Hasura server to be applied manually
-func getMigration(endpoint, secret string, options []string) (string, error) {
-
-	log.Info("Fetching migration from remote")
-
-	//Encode the data
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"opts":         options,
-		"clean_output": true,
-	})
-
-	req, _ := http.NewRequest(
-		http.MethodPost,
-		endpoint+"/v1alpha1/pg_dump",
-		bytes.NewBuffer(postBody),
-	)
-
-	req.Header.Set("X-Hasura-Admin-Secret", secret)
-	req.Header.Set("X-Hasura-Role", "admin")
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-	return string(body), nil
-}
-
-func getSchemaList(endpoint, secret string) ([]string, error) {
-
-	log.Debug("Fetching schema list from remote")
-
-	var list []string
-
-	//Encode the data
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"type": "run_sql",
-		"args": map[string]interface{}{
-			"sql": "SELECT schema_name FROM information_schema.schemata;",
-		},
-	})
-
-	req, _ := http.NewRequest(
-		http.MethodPost,
-		endpoint+"/v1/query",
-		bytes.NewBuffer(postBody),
-	)
-
-	req.Header.Set("X-Hasura-Admin-Secret", secret)
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		return list, err
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	var responseData map[string]interface{}
-	json.Unmarshal(body, &responseData)
-
-	// Remove the first row/head and filter schemas from following rows
-	// Following is a sample result:
-	// From the list: [schema_name] [pg_toast] [pg_temp_1] [pg_toast_temp_1] [pg_catalog] [public] [information_schema] [hdb_catalog] [hdb_views] [auth]
-	// Only output: [public]
-	result := responseData["result"].([]interface{})[1:]
-
-	schemasToBeExcluded := []string{"information_schema", "auth", "storage"}
-
-	for _, value := range result {
-
-		parsedValue := value.([]interface{})[0].(string)
-
-		if !strings.Contains(parsedValue, "pg_") &&
-			!strings.Contains(parsedValue, "hdb_") &&
-			!contains(schemasToBeExcluded, parsedValue) {
-			list = append(list, value.([]interface{})[0].(string))
-		}
-	}
-
-	return list, nil
-}
-
-func getExtensions(endpoint, secret string) ([]string, error) {
-
-	log.Debug("Fetching extensions")
-
-	var extensions []string
-
-	//Encode the data
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"type": "run_sql",
-		"args": map[string]interface{}{
-			"sql": "SELECT * FROM pg_extension;",
-		},
-	})
-
-	req, _ := http.NewRequest(
-		http.MethodPost,
-		endpoint+"/v1/query",
-		bytes.NewBuffer(postBody),
-	)
-
-	req.Header.Set("X-Hasura-Admin-Secret", secret)
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		return extensions, err
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	var responseData map[string]interface{}
-	json.Unmarshal(body, &responseData)
-
-	// Remove the first row/head and filter extensions from following rows
-	// Following is a sample result:
-	// [plpgsql pgcrypto citext]
-	result := responseData["result"].([]interface{})[1:]
-
-	// convert from []interface{} to []string before returning
-	for _, value := range result {
-		enumerable_value := value.([]interface{})
-		for index, ext := range enumerable_value {
-			if index == 1 {
-				extensions = append(extensions, fmt.Sprint(ext))
-			}
-		}
-	}
-
-	return extensions, nil
 }
 
 /*
@@ -631,6 +486,7 @@ func filterEnumTables(tables []hasura.TableEntry) []hasura.TableEntry {
 	return fromTables
 }
 
+/*
 func getMetadata(endpoint, secret string) (hasura.HasuraMetadataV2, error) {
 
 	log.Debug("Fetching metadata from remote")
@@ -694,6 +550,7 @@ func clearMigration(endpoint, secret string) error {
 	_, err := client.Do(req)
 	return err
 }
+*/
 
 func init() {
 	rootCmd.AddCommand(initCmd)
