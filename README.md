@@ -16,6 +16,8 @@ Simply, Nhost is the fastest and easiest way to build modern web and mobile apps
 
 ![Nhost](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/820616b1-2c55-4c01-b026-d03ee971363b/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210617%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210617T061554Z&X-Amz-Expires=86400&X-Amz-Signature=1da1ee0f26c5a1ff8b10c6a825accfab330c502868a1d68e78cfe3679fb8f146&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22)
 
+## Follow to stay up to date
+
 ![Stargazers repo roster for @nhost/nhost](https://reporoster.com/stars/nhost/nhost)
 
 ## Services
