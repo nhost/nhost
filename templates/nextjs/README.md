@@ -1,3 +1,13 @@
+# Getting started with Nhost
+
+This project was bootstrapped with the basic Next.js configuration (see below).
+
+To connect this app to the nhost backend, substitute in the backend and graphql endpoints in the .env file.
+
+For more instructions on how to get started with Next.js, go to [the React guide](https://docs.nhost.io/quick-start/frontend-web-app). Nhost is implemented in Next.js in the same way as React.
+
+# Next.js
+
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
