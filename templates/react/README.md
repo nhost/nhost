@@ -1,8 +1,11 @@
 # Getting started with Nhost
 
 This project was bootstrap with the basic Create React App configuration (see below). \
-To connect this app to the nhost backend, go to **src/utils/nhost.js** and substitute in your backend url. Import auth and storage from that file as needed. \
+To connect this app to the nhost backend, go to **src/utils/nhost.js** and substitute in your backend url. Import auth and storage from that file as needed.
+
 Also, in **src/index.js**, substitute in your graphql endpoint.
+
+For more instructions on how to get started with react, go to [the React guide](https://docs.nhost.io/quick-start/frontend-web-app).
 
 
 

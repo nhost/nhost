@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@apollo/client": "^3.3.20",
     "@nhost/react-apollo": "^1.1.0",
     "@nhost/react-auth": "^1.0.5",
     "@testing-library/jest-dom": "^5.11.4",
