@@ -47,6 +47,9 @@ func Binary() (string, error) {
 	}
 
 	// create the binary path
+	if err = os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {
+		return "", err
+	}
 	out, err := os.Create(binaryPath)
 	if err != nil {
 		return "", err
