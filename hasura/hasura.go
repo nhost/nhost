@@ -361,7 +361,7 @@ func (c *ClientCommonMetadataOps) GetInconsistentMetadataReader() (io.Reader, er
 
 func (c *Client) Migration(options []string) ([]byte, error) {
 
-	pgDumpOpts := []string{"-x", "-O", "--inserts"}
+	pgDumpOpts := []string{"-x", "-O", "--schema-only"}
 	pgDumpOpts = append(pgDumpOpts, options...)
 
 	return c.PGDump(pgDumpOpts)

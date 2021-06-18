@@ -187,7 +187,7 @@ func GenerateConfig(options Project) Configuration {
 	}
 
 	// use special Hasura image which automatically loads migrations and metadata
-	hasura.Version = fmt.Sprintf("%v.cli-migrations-v2", hasura.Version)
+	// hasura.Version = fmt.Sprintf("%v.cli-migrations-v2", hasura.Version)
 
 	postgres := Service{
 		Version:  12,

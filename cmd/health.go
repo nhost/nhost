@@ -235,7 +235,7 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 
 func checkServiceHealth(name, url string) bool {
 
-	for i := 1; i <= 10; i++ {
+	for i := 1; i <= 15; i++ {
 		if valid := validateEndpointHealth(url); valid {
 			log.WithField("component", name).Debugf("Service specific health check attempt #%v successful", i)
 			return true

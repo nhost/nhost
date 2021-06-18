@@ -7,11 +7,6 @@
 # Application Binaries
 bin/
 bin/*
-<<<<<<< HEAD
-
-=======
-test.json
->>>>>>> gamma
 TODO*
 app.zip
 __debug*
@@ -21,15 +16,16 @@ requests.*
 .vercel
 *.zip
 .vscode/*
-<<<<<<< HEAD
-=======
-.vscode/
->>>>>>> gamma
 
 enum.json
 test.json
-nhost/*
+release.json
 .nhost*
 .env*
 test/*
 test/
+
+static/
+static/*
+
+generate-changelog.sh

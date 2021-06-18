@@ -168,7 +168,7 @@ func validateAuth(authFile string) (nhost.User, error) {
 
 	// read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
-	//fmt.Println(string(body))
+	// fmt.Println(string(body))
 
 	//var res map[string]interface{}
 	// we unmarshal our body byteArray which contains our
@@ -289,7 +289,6 @@ func login(url, email string) (string, error) {
 	defer resp.Body.Close()
 
 	body, _ := ioutil.ReadAll(resp.Body)
-
 	json.Unmarshal(body, &response)
 
 	//Handle Error

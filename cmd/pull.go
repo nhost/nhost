@@ -16,9 +16,11 @@ limitations under the License.
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/hasura"
@@ -146,6 +148,11 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 
 	migration = migration.Init()
 
+	metadata, err := client.GetMetadata()
+	if err != nil {
+		return migration, err
+	}
+
 	// Fetch list of all ALLOWED schemas before applying
 	schemas, err := client.GetSchemas()
 	if err != nil {
@@ -153,85 +160,114 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 		return migration, err
 	}
 
-	// fetch migrations
+	migrationTables := getMigrationTables(schemas, metadata.Tables)
+
 	/*
+		// fetch migrations
 		migrationArgs := []string{hasuraCLI, "migrate", "create", name, "--from-server"}
-		migrationArgs = append(migrationArgs, getFormattedSchemas(schemas)...)
+		migrationArgs = append(migrationArgs, getMigrationTables(schemas, tables)...)
 		migrationArgs = append(migrationArgs, commonOptions...)
 
-		execute := exec.Cmd{
+		execute = exec.Cmd{
 			Path: hasuraCLI,
 			Args: migrationArgs,
 			Dir:  nhost.NHOST_DIR,
 		}
 
-		output, err := execute.CombinedOutput()
+		output, err = execute.CombinedOutput()
 		if err != nil {
 			log.Debug(string(output))
 			return migration, err
 		}
 	*/
 
-	migration.Data, err = client.Migration(getFormattedSchemas(schemas))
-	if err != nil {
-		log.Debug("Failed to get migration data")
-		return migration, err
-	}
+	if len(migrationTables) > 0 {
 
-	// create migration file
-	if err := os.MkdirAll(migration.Location, os.ModePerm); err != nil {
-		log.Debug("Failed to create migration directory")
-		return migration, err
-	}
+		log.Debug("Creating initial migration")
 
-	f, err := os.Create(path.Join(migration.Location, "up.sql"))
-	if err != nil {
-		log.Debug("Failed to create migration file")
-		return migration, err
-	}
-
-	// format migration data before writing it
-	migration.Data = []byte(migration.Format(string(migration.Data)))
-
-	// prepend extensions to migration data
-	// add or update extensions to new migration
-	// add extensions to init migration
-	extensions, err := client.GetExtensions()
-	if err != nil {
-		log.Debug("Failed to fetch migration extensions")
-		return migration, err
-	}
-
-	// prepend the fetched extensions
-	migration.Data = migration.AddExtensions(extensions)
-
-	if _, err = f.Write(migration.Data); err != nil {
-		log.Debug("Failed to write migration file")
-		return migration, err
-	}
-
-	f.Sync()
-	f.Close()
-
-	/*
-		// search and load created migration
-		files, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
+		migration.Data, err = client.Migration(migrationTables)
 		if err != nil {
+			log.Debug("Failed to get migration data")
 			return migration, err
 		}
 
-		for _, file := range files {
-			if strings.Contains(file.Name(), name) {
-				migration = file
-			}
+		fmt.Println(string(migration.Data))
+
+		// create migration file
+		if err := os.MkdirAll(migration.Location, os.ModePerm); err != nil {
+			log.Debug("Failed to create migration directory")
+			return migration, err
 		}
-	*/
 
-	// If migrations directory is already mounted to nhost_hasura container,
-	// then Hasura must be auto-applying migrations
-	// hence, manually applying migrations doesn't make sense
+		f, err := os.Create(path.Join(migration.Location, "up.sql"))
+		if err != nil {
+			log.Debug("Failed to create migration file")
+			return migration, err
+		}
 
-	/*
+		// add enum seeds
+		enumTables := filterEnumTables(metadata.Tables)
+
+		if len(enumTables) > 0 {
+
+			log.Debug("Appending enum table seeds to initial migration")
+			seeds, err := client.Seeds(enumTables)
+			if err != nil {
+				log.Debug("Failed to fetch seeds for enum tables")
+				return migration, err
+			}
+
+			// append the fetched seed data
+			migration.Data = append(migration.Data, seeds...)
+		}
+
+		/*
+			// format migration data before writing it
+			migration.Data = []byte(migration.Format(string(migration.Data)))
+
+			// prepend extensions to migration data
+			// add or update extensions to new migration
+			// add extensions to init migration
+			extensions, err := client.GetExtensions()
+			if err != nil {
+				log.Debug("Failed to fetch migration extensions")
+				return migration, err
+			}
+
+			// prepend the fetched extensions
+			migration.Data = migration.AddExtensions(extensions)
+		*/
+
+		if _, err = f.Write(migration.Data); err != nil {
+			log.Debug("Failed to write migration file")
+			return migration, err
+		}
+
+		f.Sync()
+		f.Close()
+
+		/*
+			var mig fs.FileInfo
+
+			// search and load created migration
+			files, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
+			if err != nil {
+				return migration, err
+			}
+
+			for _, file := range files {
+				if strings.Contains(file.Name(), name) {
+					mig = file
+				}
+			}
+
+			v := strings.Split(mig.Name(), "_")[0]
+		*/
+
+		// If migrations directory is already mounted to nhost_hasura container,
+		// then Hasura must be auto-applying migrations
+		// hence, manually applying migrations doesn't make sense
+
 		// apply init migration on remote
 		// to prevent this init migration being run again
 		// in production
@@ -249,8 +285,8 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 			log.Debug(string(output))
 			return migration, err
 		}
-	*/
 
+	}
 	/*
 		// save metadata
 		metadataToBeSaved := []map[string]interface{}{
@@ -285,20 +321,6 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 			}
 		}
 	*/
-	metadataArgs := []string{hasuraCLI, "metadata", "export"}
-	metadataArgs = append(metadataArgs, commonOptions...)
-
-	execute := exec.Cmd{
-		Path: hasuraCLI,
-		Args: metadataArgs,
-		Dir:  nhost.NHOST_DIR,
-	}
-
-	output, err := execute.CombinedOutput()
-	if err != nil {
-		log.Debug(string(output))
-		return migration, err
-	}
 
 	// any enum compatible tables that might exist
 	// all enum compatible tables must contain at least one row
@@ -313,6 +335,21 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 			return migration, err
 		}
 	*/
+	// fetch metadata
+	metadataArgs := []string{hasuraCLI, "metadata", "export"}
+	metadataArgs = append(metadataArgs, commonOptions...)
+
+	execute := exec.Cmd{
+		Path: hasuraCLI,
+		Args: metadataArgs,
+		Dir:  nhost.NHOST_DIR,
+	}
+
+	output, err := execute.CombinedOutput()
+	if err != nil {
+		log.Debug(string(output))
+		return migration, err
+	}
 
 	/*
 		// LEGACY CODE
@@ -416,6 +453,7 @@ func searchFile(name, directory string) (fs.DirEntry, error) {
 
 	return nil, errors.New("failed to find file %v in %v")
 }
+
 */
 
 func getFormattedSchemas(list []string) []string {
@@ -429,23 +467,33 @@ func getFormattedSchemas(list []string) []string {
 	return response
 }
 
-/*
-func getSeedTables(tables []hasura.TableEntry) []string {
+func getMigrationTables(schemas []string, tables []hasura.TableEntry) []string {
 
 	var fromTables []string
+	var filteredValues []string
 
 	for _, table := range tables {
+		for _, schema := range schemas {
+			if table.Table.Schema == schema {
+				filteredValues = append(filteredValues, fmt.Sprintf(
+					`%s.%s`,
+					schema,
+					table.Table.Name,
+				))
+			}
+		}
+	}
 
-		// append to seed tables if true
-		fromTables = append(fromTables, "--from-table")
-		fromTables = append(fromTables, fmt.Sprintf(
-			`%s.%s`,
-			table.Table.Schema,
-			table.Table.Name,
-		))
+	for _, value := range filteredValues {
+		if value != "public.users" {
+			fromTables = append(fromTables, "--table")
+			fromTables = append(fromTables, value)
+		}
 	}
 	return fromTables
 }
+
+/*
 
 func formatMigration(sqlPath string) error {
 

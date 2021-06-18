@@ -332,24 +332,22 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	// then Hasura must be auto-applying migrations
 	// hence, manually applying migrations doesn't make sense
 
-	/*
-		// create migrations
-		cmdArgs = []string{hasuraCLI, "migrate", "apply"}
-		cmdArgs = append(cmdArgs, commandOptions...)
+	// create migrations
+	cmdArgs = []string{hasuraCLI, "migrate", "apply"}
+	cmdArgs = append(cmdArgs, commandOptions...)
 
-		execute = exec.Cmd{
-			Path: hasuraCLI,
-			Args: cmdArgs,
-			Dir:  nhost.NHOST_DIR,
-		}
+	execute = exec.Cmd{
+		Path: hasuraCLI,
+		Args: cmdArgs,
+		Dir:  nhost.NHOST_DIR,
+	}
 
-		output, err := execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Error("Failed to apply migrations")
-			return err
-		}
-	*/
+	output, err := execute.CombinedOutput()
+	if err != nil {
+		log.Debug(string(output))
+		log.Error("Failed to apply migrations")
+		return err
+	}
 
 	seed_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
 	if err != nil {
@@ -412,24 +410,22 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	// then Hasura must be auto-applying metadata
 	// hence, manually applying metadata doesn't make sense
 
-	/*
-		// apply metadata
-		cmdArgs = []string{hasuraCLI, "metadata", "apply"}
-		cmdArgs = append(cmdArgs, commandOptions...)
+	// apply metadata
+	cmdArgs = []string{hasuraCLI, "metadata", "apply"}
+	cmdArgs = append(cmdArgs, commandOptions...)
 
-		execute = exec.Cmd{
-			Path: hasuraCLI,
-			Args: cmdArgs,
-			Dir:  nhost.NHOST_DIR,
-		}
+	execute = exec.Cmd{
+		Path: hasuraCLI,
+		Args: cmdArgs,
+		Dir:  nhost.NHOST_DIR,
+	}
 
-		output, err = execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			log.Error("Failed to apply metadata")
-			return err
-		}
-	*/
+	output, err = execute.CombinedOutput()
+	if err != nil {
+		log.Debug(string(output))
+		log.Error("Failed to apply metadata")
+		return err
+	}
 
 	return nil
 }
@@ -865,7 +861,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		fmt.Sprintf("PORT=%v", hbpConfig.Port),
 		"USER_FIELDS=''",
 		"USER_REGISTRATION_AUTO_ACTIVE=true",
-		"PG_OPTIONS='-c search_path=auth'",
+		"PGOPTIONS='-c search_path=auth'",
 		fmt.Sprintf("DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost_postgres:%v/postgres`, postgresConfig.User, postgresConfig.Password, postgresConfig.Port)),
 		fmt.Sprintf("HASURA_GRAPHQL_ENDPOINT=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig.Port)),
 		fmt.Sprintf("HASURA_ENDPOINT=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig.Port)),
@@ -954,8 +950,8 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	containers = append(containers, minioContainer)
 
 	// add depends_on for following containers
-	containers = append(containers, hasuraContainer)
 	containers = append(containers, hasuraBackendPlusContainer)
+	containers = append(containers, hasuraContainer)
 
 	// if API directory is generated,
 	// generate it's container configuration too
@@ -1092,13 +1088,11 @@ func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageS
 
 func pullImage(cli *client.Client, tag string) error {
 
-	log.WithField("component", tag).Debug("Pulling container image")
-	out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
-	out.Close()
-	/*
-		dockerCLI, _ := exec.LookPath("docker")
-		err := exec.Command(dockerCLI, "image", "pull", tag).Run()
-	*/
+	log.WithField("component", tag).Info("Pulling container image")
+	//out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
+	//out.Close()
+	dockerCLI, _ := exec.LookPath("docker")
+	err := exec.Command(dockerCLI, "image", "pull", tag).Run()
 	return err
 }
 

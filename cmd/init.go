@@ -30,13 +30,14 @@ import (
 	"path"
 	"strings"
 
+	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
 var (
-
+	remote bool
 	// project to initialize
 	remoteProject string
 )
@@ -60,7 +61,7 @@ var initCmd = &cobra.Command{
 		// if user has already passed remote_project as a flag,
 		// then fetch list of remote projects,
 		// iterate through those projects and filter that project
-		if len(remoteProject) > 0 {
+		if remote {
 
 			// check if auth file exists
 			if !pathExists(nhost.AUTH_PATH) {
@@ -99,19 +100,45 @@ var initCmd = &cobra.Command{
 				}
 			}
 
-			for _, project := range projects {
-				if project.Name == remoteProject {
-					selectedProject = project
+			// if flag is empty, present selection list
+			if len(remoteProject) > 0 {
+
+				for _, project := range projects {
+					if project.Name == remoteProject {
+						selectedProject = project
+					}
 				}
+
+				if selectedProject.ID == "" {
+					log.Errorf("Remote project with name %v not found", remoteProject)
+
+					// reset the created directories
+					resetCmd.Run(cmd, []string{"exit"})
+				}
+			} else {
+
+				// configure interactive prompt template
+				templates := promptui.SelectTemplates{
+					//Label:    "{{ . }}?",
+					Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Team.Name | faint }}`,
+					Inactive: `   {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
+					Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
+				}
+
+				// configure interative prompt
+				prompt := promptui.Select{
+					Label:     "Select project",
+					Items:     projects,
+					Templates: &templates,
+				}
+
+				index, _, err := prompt.Run()
+				if err != nil {
+					log.Fatal("Aborted")
+				}
+
+				selectedProject = projects[index]
 			}
-
-			if selectedProject.ID == "" {
-				log.Errorf("Remote project with name %v not found", remoteProject)
-
-				// reset the created directories
-				resetCmd.Run(cmd, []string{"exit"})
-			}
-
 		}
 
 		// signify initialization is starting
@@ -183,7 +210,7 @@ var initCmd = &cobra.Command{
 		}
 		f.Close()
 
-		if len(remoteProject) > 0 {
+		if remote {
 
 			f, err := os.Create(path.Join(nhost.DOT_NHOST, "nhost.yaml"))
 			if err != nil {
@@ -560,7 +587,8 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	initCmd.PersistentFlags().StringVarP(&remoteProject, "remote", "r", "", "Project name")
+	initCmd.Flags().StringVarP(&remoteProject, "project", "p", "", "Project name")
+	initCmd.Flags().BoolVarP(&remote, "remote", "r", false, "Use a remote project")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

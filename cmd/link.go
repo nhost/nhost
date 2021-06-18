@@ -62,12 +62,8 @@ var linkCmd = &cobra.Command{
 		teams := userData.Teams
 
 		for _, team := range teams {
-
-			// check if particular team has projects
-			if len(team.Team.Projects) > 0 {
-				// append the projects
-				projects = append(projects, team.Team.Projects...)
-			}
+			// append the projects
+			projects = append(projects, team.Team.Projects...)
 		}
 
 		// add the option of a new project to the existing selection payload
@@ -262,14 +258,17 @@ var linkCmd = &cobra.Command{
 func updateNhostProject(ID string) error {
 
 	// create .nhost, if it doesn't exists
-	if !pathExists(nhost.INFO_PATH) {
-		if err := os.MkdirAll(nhost.INFO_PATH, os.ModePerm); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to initialize nhost specific directory")
-		}
-	} else {
+	if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
+		log.Debug(err)
+		log.Fatal("Failed to initialize nhost specific directory")
+	}
+
+	if pathExists(nhost.INFO_PATH) {
+
 		// first delete any existing nhost.yaml file
-		deletePath(nhost.INFO_PATH)
+		if err := deletePath(nhost.INFO_PATH); err != nil {
+			return err
+		}
 	}
 
 	// create nhost.yaml to write it
