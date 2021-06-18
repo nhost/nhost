@@ -89,7 +89,7 @@ func cleanup(cmd *cobra.Command) {
 }
 
 func execute(cmd *cobra.Command, args []string) {
-	log.Info("Initializing dev environment")
+	log.WithField("component", "development").Info("Initializing environment")
 
 	// check if /nhost exists
 	if !pathExists(nhost.NHOST_DIR) {
@@ -224,7 +224,7 @@ func execute(cmd *cobra.Command, args []string) {
 		downCmd.Run(cmd, []string{"exit"})
 	}
 
-	log.Info("Local Nhost development environment is now active")
+	log.WithField("component", "development").Info("Environment is now active")
 	fmt.Println()
 
 	log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
@@ -616,6 +616,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	// if API container is going to be launched,
 	// validate it's image too
 	if startAPI {
+		log.Debug("API detected")
 		requiredImages = append(requiredImages, fmt.Sprintf("nhost/nodeapi:%v", "latest"))
 	}
 
@@ -639,7 +640,8 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		if !available {
 			if err = pullImage(client, requiredImage); err != nil {
 				log.Debug(err)
-				log.WithField("component", requiredImage).Fatal("Failed to pull image. Pull it manually and re-run `nhost dev`")
+				log.WithField("component", requiredImage).Error("Failed to pull image")
+				log.WithField("component", requiredImage).Infof("Pull it manually with %vdocker image pull %v && nhost dev%v", Bold, requiredImage, Reset)
 			}
 		}
 	}
@@ -831,10 +833,8 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 			Image: fmt.Sprintf(`minio/minio:%v`, minioConfig.Version),
 			//User:  "999:1001",
 			Env: []string{
-				"MINIO_ACCESS_KEY=minioaccesskey123123",
-				"MINIO_SECRET_KEY=minioaccesskey123123",
-				//"MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE",
-				//"MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+				"MINIO_ROOT_USER=minioaccesskey123123",
+				"MINIO_ROOT_PASSWORD=minioaccesskey123123",
 			},
 			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(minioConfig.Port)): struct{}{}},
 			Entrypoint:   []string{"sh"},
@@ -861,7 +861,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		fmt.Sprintf("PORT=%v", hbpConfig.Port),
 		"USER_FIELDS=''",
 		"USER_REGISTRATION_AUTO_ACTIVE=true",
-		"PGOPTIONS='-c search_path=auth'",
+		`PGOPTIONS=-c search_path=auth`,
 		fmt.Sprintf("DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@nhost_postgres:%v/postgres`, postgresConfig.User, postgresConfig.Password, postgresConfig.Port)),
 		fmt.Sprintf("HASURA_GRAPHQL_ENDPOINT=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig.Port)),
 		fmt.Sprintf("HASURA_ENDPOINT=%v", fmt.Sprintf(`http://nhost_hasura:%v/v1/graphql`, hasuraConfig.Port)),
@@ -869,7 +869,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		"AUTH_ACTIVE=true",
 		"AUTH_LOCAL_ACTIVE=true",
 		"REFRESH_TOKEN_EXPIRES=43200",
-		fmt.Sprintf("S3_ENDPOINT=%v", fmt.Sprintf(`nhost-minio:%v`, minioConfig.Port)),
+		fmt.Sprintf("S3_ENDPOINT=%v", fmt.Sprintf(`nhost_minio:%v`, minioConfig.Port)),
 		"S3_SSL_ENABLED=false",
 		"S3_BUCKET=nhost",
 		"S3_ACCESS_KEY_ID=minioaccesskey123123",
@@ -1059,7 +1059,7 @@ func getAPIContainerConfig(
 			Cmd:          []string{"./install.sh"},
 		},
 		"host_config": &container.HostConfig{
-			Binds: []string{nhost.API_DIR},
+			// Binds: []string{nhost.API_DIR},
 			// AutoRemove: true,
 			//Links: []string{"nhost_hasura:nhost-hasura", "nhost_hbp:nhost-hbp", "nhost_minio:nhost-minio"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
@@ -1089,10 +1089,14 @@ func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageS
 func pullImage(cli *client.Client, tag string) error {
 
 	log.WithField("component", tag).Info("Pulling container image")
-	//out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
-	//out.Close()
+	/*
+		out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
+		out.Close()
+	*/
+
 	dockerCLI, _ := exec.LookPath("docker")
 	err := exec.Command(dockerCLI, "image", "pull", tag).Run()
+
 	return err
 }
 

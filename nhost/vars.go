@@ -35,7 +35,7 @@ var (
 	WED_DIR = path.Join(NHOST_DIR, "web")
 
 	// generate path for API code
-	API_DIR = path.Join(NHOST_DIR, "api")
+	API_DIR = path.Join(WORKING_DIR, "api")
 
 	// generate path for legacy migrations
 	LEGACY_DIR = path.Join(DOT_NHOST, "legacy")

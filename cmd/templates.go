@@ -41,7 +41,8 @@ And you can immediately start developing on that template.`,
 
 		templates := []map[string]string{
 			{"key": "NuxtJs", "value": "nuxt"},
-			//{"key": "NextJs", "value": "next"},
+			{"key": "NextJs", "value": "next"},
+			{"key": "ReactJs", "value": "react"},
 		}
 
 		// configure interactive prompt template

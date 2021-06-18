@@ -135,7 +135,7 @@ func readEmail() (string, error) {
 
 	// configure interative prompt
 	prompt := promptui.Prompt{
-		Label: "Email",
+		Label: "Nhost Email",
 	}
 
 	email, err := prompt.Run()

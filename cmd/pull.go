@@ -191,8 +191,6 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 			return migration, err
 		}
 
-		fmt.Println(string(migration.Data))
-
 		// create migration file
 		if err := os.MkdirAll(migration.Location, os.ModePerm); err != nil {
 			log.Debug("Failed to create migration directory")
@@ -454,7 +452,6 @@ func searchFile(name, directory string) (fs.DirEntry, error) {
 	return nil, errors.New("failed to find file %v in %v")
 }
 
-*/
 
 func getFormattedSchemas(list []string) []string {
 
@@ -466,6 +463,7 @@ func getFormattedSchemas(list []string) []string {
 	}
 	return response
 }
+*/
 
 func getMigrationTables(schemas []string, tables []hasura.TableEntry) []string {
 
