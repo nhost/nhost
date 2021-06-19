@@ -165,7 +165,7 @@ func Execute() {
 	}
 
 	// un-comment the following to auto-generate documentation
-	//generateDocumentation()
+	// generateDocumentation()
 
 }
 
@@ -175,33 +175,10 @@ func generateDocumentation() {
 	docsDir := path.Join(nhost.WORKING_DIR, "docs")
 
 	// Generate Markdown docs
-	err := doc.GenMarkdownTree(rootCmd, path.Join(docsDir, "markdown"))
+	err := doc.GenMarkdownTree(rootCmd, docsDir)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	// Generate REST docs
-	err = doc.GenReSTTree(rootCmd, path.Join(docsDir, "rest"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Generate YAML docs
-	err = doc.GenYamlTree(rootCmd, path.Join(docsDir, "yaml"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Generate MAN pages
-	header := &doc.GenManHeader{
-		Title:   "MINE",
-		Section: "3",
-	}
-	err = doc.GenManTree(rootCmd, header, path.Join(docsDir, "man"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
 }
 
 func init() {
