@@ -17,6 +17,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"runtime"
 
@@ -25,7 +26,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var noBrowser bool
+var (
+
+	// initialize flags for every choice
+	issue   bool
+	chat    bool
+	discuss bool
+	wiki    bool
+
+	noBrowser bool
+)
 
 // reportCmd represents the report command
 var reportCmd = &cobra.Command{
@@ -38,23 +48,51 @@ in case you encounter something broken with this CLI.
 Or even chat with our team and start a new discussion.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		options := []map[string]string{
+		options := []map[string]interface{}{
 			{
 				"text":  "Report bugs & open feature requests",
 				"value": fmt.Sprintf("https://github.com/%v/issues", nhost.REPOSITORY),
+				"flag":  issue,
 			},
 			{
 				"text":  "Chat with our team",
 				"value": "https://discord.com/invite/9V7Qb2U",
+				"flag":  chat,
 			},
 			{
 				"text":  "Start a new discussion",
 				"value": fmt.Sprintf("https://github.com/%v/discussions/new", nhost.REPOSITORY),
+				"flag":  discuss,
 			},
 			{
 				"text":  "Advanced usage, deployment help, example apps & more",
 				"value": fmt.Sprintf("https://github.com/%v/wiki", nhost.REPOSITORY),
+				"flag":  wiki,
 			},
+		}
+
+		// if the user has passed the flag for any option,
+		// launch those directly
+		// bypassing selection prompt
+
+		ok := false
+		for _, item := range options {
+
+			if item["flag"].(bool) {
+
+				ok = true
+				if noBrowser {
+					log.Info(item["text"], " @ ", Bold, item["value"], Reset)
+				} else if err := openbrowser(item["value"].(string)); err != nil {
+					log.Debug(err)
+					log.Error("Failed to launch browser")
+					log.Info(item["text"], " @ ", item["value"])
+				}
+			}
+		}
+
+		if ok {
+			os.Exit(0)
 		}
 
 		// configure interactive prompt template
@@ -73,7 +111,6 @@ Or even chat with our team and start a new discussion.`,
 
 		index, _, err := prompt.Run()
 		if err != nil {
-			log.Debug(err)
 			log.Fatal("Aborted")
 		}
 
@@ -83,7 +120,7 @@ Or even chat with our team and start a new discussion.`,
 			log.Info(selected["text"], " @ ", Bold, selected["value"], Reset)
 		} else {
 			// launch browser
-			if err := openbrowser(selected["value"]); err != nil {
+			if err := openbrowser(selected["value"].(string)); err != nil {
 				log.Debug(err)
 				log.Error("Failed to launch browser")
 				log.Info(selected["text"], " @ ", selected["value"])
@@ -121,5 +158,9 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	reportCmd.Flags().BoolVarP(&noBrowser, "no-browser", "n", false, "Don't open in browser")
+	reportCmd.Flags().BoolVar(&noBrowser, "no-browser", false, "Don't open in browser")
+	reportCmd.Flags().BoolVar(&issue, "issue", false, "Open Issue on GitHub")
+	reportCmd.Flags().BoolVar(&chat, "chat", false, "Launch Nhost Discord Server")
+	reportCmd.Flags().BoolVar(&discuss, "discuss", false, "Launch GitHub Discussions")
+	reportCmd.Flags().BoolVar(&wiki, "wiki", false, "Launch wiki in browser")
 }
