@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"gopkg.in/yaml.v2"
 )
 
@@ -75,6 +77,8 @@ func pathExists(filePath string) bool {
 
 func Info() (Information, error) {
 
+	log.Debug("Fetching project information")
+
 	var response Information
 
 	file, err := ioutil.ReadFile(INFO_PATH)
@@ -108,6 +112,8 @@ func (release *Release) Asset() Asset {
 // fetches the details of latest binary release
 func LatestRelease() (Release, error) {
 
+	log.Debug("Fetching latest release")
+
 	var response Release
 
 	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", REPOSITORY))
@@ -127,6 +133,8 @@ func LatestRelease() (Release, error) {
 
 // fetches the list of Nhost production servers
 func Servers() ([]Server, error) {
+
+	log.Debug("Fetching Nhost server locations")
 
 	var response []Server
 
@@ -159,6 +167,8 @@ func Servers() ([]Server, error) {
 
 func Config() (Configuration, error) {
 
+	log.Debug("Fetching project configuration")
+
 	var response Configuration
 
 	data, err := ioutil.ReadFile(CONFIG_PATH)
@@ -172,6 +182,8 @@ func Config() (Configuration, error) {
 
 // generates fresh config.yaml for /nhost dir
 func GenerateConfig(options Project) Configuration {
+
+	log.Debug("Generating project configuration")
 
 	hasura := Service{
 		Version:     "v1.3.3",
@@ -320,6 +332,8 @@ func generateProviders() map[string]interface{} {
 
 // fetches saved credentials from auth file
 func LoadCredentials() (Credentials, error) {
+
+	log.Debug("Fetching saved auth credentials")
 
 	// we initialize our credentials array
 	var credentials Credentials

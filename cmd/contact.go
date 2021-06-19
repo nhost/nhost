@@ -29,7 +29,7 @@ var noBrowser bool
 
 // reportCmd represents the report command
 var reportCmd = &cobra.Command{
-	Use:   "contact",
+	Use:   "support",
 	Short: "Reach out to us",
 	Long: `Launches URL in browser to allow
 you to open issues and submit bug reports
@@ -50,6 +50,10 @@ Or even chat with our team and start a new discussion.`,
 			{
 				"text":  "Start a new discussion",
 				"value": fmt.Sprintf("https://github.com/%v/discussions/new", nhost.REPOSITORY),
+			},
+			{
+				"text":  "Advanced usage, deployment help, example apps & more",
+				"value": fmt.Sprintf("https://github.com/%v/wiki", nhost.REPOSITORY),
 			},
 		}
 

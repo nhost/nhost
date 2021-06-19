@@ -25,4 +25,4 @@ Changes:
 1. Improved support for those specific uses cases where user may not have direct manual access to host machine where the utility might have to be run. For example, if the `nhost login` command prompts the user to enter their email for authentication, the user may directly insert email with a `-e` or `--email` flag, like `nhost login -e my_email@gmail.com`.
 1. Similar flags have been added to other commands to bypass input prompts as much as possible by directly passing validation inputs using flags.
 1. Added live reloading for API container if `package.json` file is changed/modified.
-1. Added `nhost contact` command giving selection prompt to user to allow them to directly launch discord server or github discussions endpoints from terminal.
+1. Added `nhost support` command giving selection prompt to user to allow them to directly launch discord server or github discussions endpoints from terminal.

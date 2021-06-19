@@ -1,24 +1,20 @@
-## nhost contact
+## nhost list
 
-Reach out to us
+List the projects
 
 ### Synopsis
 
-Launches URL in browser to allow
-you to open issues and submit bug reports
-in case you encounter something broken with this CLI.
-
-Or even chat with our team and start a new discussion.
+Fetch the list of personal and team projects
+for the logged in user from Nhost console and present them.
 
 ```
-nhost contact [flags]
+nhost list [flags]
 ```
 
 ### Options
 
 ```
-  -h, --help         help for contact
-  -n, --no-browser   Don't open in browser
+  -h, --help   help for list
 ```
 
 ### Options inherited from parent commands

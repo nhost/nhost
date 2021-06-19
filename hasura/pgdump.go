@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
 type PGDumpRequest struct {
@@ -19,6 +21,8 @@ func (r *PGDumpRequest) Marshal() ([]byte, error) {
 
 // fetches migrations from remote Hasura server to be applied manually
 func (c *Client) PGDump(options []string) ([]byte, error) {
+
+	log.Debug("Executing pg_dump")
 
 	var response []byte
 

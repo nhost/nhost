@@ -39,9 +39,10 @@
 - [Overview](#overview)
 - [Design](#design)
 - [Installation](#installation)
-  * [Installing On Windows](installing-on-windows)
+  * [Installing On Windows](#installing-on-windows)
   * [Installing Using Go](#installing-using-go)
-  * [OS & Platform Support](#os-and-platform-support)
+  * [OS & Platform Support](#os--platform-support)
+      * [Apple Silicon (M1)](#apple-silicon-m1)
 - [Getting Started](#getting-started)
 - [Usage](#usage)
   * [Blank Local Project](#blank-local-project)
@@ -181,13 +182,13 @@ along with its dependencies.
 
 ### Apple Silicon (M1)
 
-You can use the CLI binary without any issues on M1, except after your project is initialized, then change the GraphQL Engine image in your `{project_root}/nhost/config.yaml` to `fedormelexin/graphql-engine-arm64`.
+You can use the CLI binary without any issues on M1 chip, except after your project is initialized, then change the `hasura` GraphQL Engine image in your `{project_root}/nhost/config.yaml` to `fedormelexin/graphql-engine-arm64`.
 
 This is because Hasura has still not released an M1 optimized version for their GraphQL engine image, and the current one has some issues running natively on M1.
 
-The `fedormelexin/graphql-engine-arm64` will temporarily resolve the issue and run Hasura GraphQL engine using Rosetta on your machine, until Hasura launched an M1 optimized image.
+The `fedormelexin/graphql-engine-arm64` will temporarily resolve the issue and run Hasura GraphQL engine using Rosetta on your machine, until Hasura launches an M1 optimized image.
 
-This will not cause any issues/changes in your project's production environment since the `nhost/config.yaml` file is only used for local development. This workaround is only to ease out the pain in your local development environment.
+This will not cause any issues/changes in your project's production environment since the `nhost/config.yaml` file is only used for local development. This workaround is only to ease out the pain in your local development experience.
 
 # Getting Started
 
