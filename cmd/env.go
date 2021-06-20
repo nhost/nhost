@@ -37,8 +37,9 @@ import (
 
 // envCmd represents the env command
 var envCmd = &cobra.Command{
-	Use:   "env",
-	Short: "Handle your Nhost env vars",
+	Use:     "env",
+	Aliases: []string{"e"},
+	Short:   "Handle your Nhost env vars",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -54,9 +55,10 @@ to quickly create a Cobra application.`,
 
 // lsCmd getches env vars from remote
 var lsCmd = &cobra.Command{
-	Use:   "ls",
-	Short: "Fetch env vars from remote",
-	Long:  `List your environment variables stored on remote.`,
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "Fetch env vars from remote",
+	Long:    `List your environment variables stored on remote.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.Info("Fetching env vars from remote")
@@ -121,9 +123,10 @@ var lsCmd = &cobra.Command{
 
 // pullCmd syncs env vars from remote with local environment
 var envPullCmd = &cobra.Command{
-	Use:   "pull",
-	Short: "Sync env vars from remote with local env",
-	Long:  `Pull and sync environment variables stored at remote with local environment.`,
+	Use:     "pull",
+	Aliases: []string{"p"},
+	Short:   "Sync env vars from remote with local env",
+	Long:    `Pull and sync environment variables stored at remote with local environment.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.Info("Overwriting existing .env.development file")

@@ -31,8 +31,9 @@ import (
 
 // listCmd fetches and lists the user's projects
 var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List the projects",
+	Use:     "list",
+	Aliases: []string{"ls"},
+	Short:   "List the projects",
 	Long: `Fetch the list of personal and team projects
 for the logged in user from Nhost console and present them.`,
 	Run: func(cmd *cobra.Command, args []string) {

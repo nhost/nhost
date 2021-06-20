@@ -29,8 +29,9 @@ var framework string
 
 // templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
-	Use:   "templates",
-	Short: "Generate Nhost compatible front-end templates",
+	Use:     "templates",
+	Aliases: []string{"t"},
+	Short:   "Generate Nhost compatible front-end templates",
 	Long: `Choose from the provided list of front-end frameworks
 and we will automatically initialize an Nhost compatible
 template in that framework for you with all the required

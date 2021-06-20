@@ -67,25 +67,7 @@ Nhost's CLI is a powerful utility that allows [Nhost](https://nhost.io) users la
 
 # Design
 
-This utility was designed on interface principles laid out in [clig.dev](https://clig.dev/).
-Nhost's CLI is built on a structure of commands, arguments & flags.
-**Commands** represent actions, **Args** are things and **Flags** are inputs for those actions.
-
-## Suggestions on unknown commands
-
-CLI will print automatic suggestions when "unknown command" errors happen. This allows the CLI to behave similarly to the `git` command when a typo happens. For example:
-
-```
-$ nhost vresion
-Error: unknown command "vresion" for "nhost"
-
-Did you mean this?
-        version
-
-Run 'nhost --help' for usage.
-```
-
-Suggestions are automatic based on every subcommand registered and use an implementation of [Levenshtein distance](http://en.wikipedia.org/wiki/Levenshtein_distance). Every registered command that matches a minimum distance of 2 (ignoring case) will be displayed as a suggestion.
+To properly understand the design philosophy adopted by Nhost for this CLI, [read this](https://github.com/mrinalwahal/cli/wiki/Design-Philosphy).
 
 ## All-powerful `nhost` command
 
@@ -116,24 +98,6 @@ Example with flag:
     nhost templates --framework nuxt
 
 This will clone the Nhost compatible template for NuxtJs framework in the `web/` directory of your project root.
-
-## Projects
-
-Projects are the central point of the Nhost CLI. Entire utility only revolves around performing operations either directly on your projects or the environments they are contained in.
-
-You can create blank local projects from scratch, or create projects directly on [Nhost console](https://console.nhost.io), both directly from the CLI or by manually visting the console in your browser, and then link them your local environments.
-
-## Configuration
-
-The utility generates a configuration for your Nhost project in `nhost/config.yaml` file in your project folder after initialization. 
-
-This configuration is only meant to be used by your local development environment and is not used for your Nhost projects in production.
-
-This configuration is freshly generated for every Nhost project you initialize in your system and contains fundamental network and host settings for your local Nhost conatiners/services, like port numbers and container images to be used for your Nhost specific services.
-
-For example, if your postgres port 5432 is already busy, then you can change this port from `config.yaml` file for that specific project, and subequently `nhost` or `nhost dev` command will automatically run your postgres container on the new port number, and connect other Nhost services for that project too with postgres launched on new port automatically.
-
-It's format is designed in a human (read: developer) readable YAML format, much alike docker-compose, so that developers can easily figure their way around the configuration should they need to modify some basic/fundamental settings for their local environments.
 
 # Installation
 

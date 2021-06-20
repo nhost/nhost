@@ -39,8 +39,9 @@ var (
 
 // reportCmd represents the report command
 var reportCmd = &cobra.Command{
-	Use:   "support",
-	Short: "Reach out to us",
+	Use:     "support",
+	Aliases: []string{"sp"},
+	Short:   "Reach out to us",
 	Long: `Launches URL in browser to allow
 you to open issues and submit bug reports
 in case you encounter something broken with this CLI.

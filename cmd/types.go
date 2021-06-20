@@ -2,13 +2,6 @@ package cmd
 
 type (
 
-	// Authentication validation response
-	HasuraResponse struct {
-		Path  string `json:"path"`
-		Error string `json:"error"`
-		Code  string `json:"code"`
-	}
-
 	// Container service
 	Container struct {
 		Image               string

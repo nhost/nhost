@@ -30,8 +30,9 @@ import (
 
 // pullCmd represents the pull command
 var pullCmd = &cobra.Command{
-	Use:   "pull",
-	Short: "Pull migrations from remote",
+	Use:     "pull",
+	Aliases: []string{"p"},
+	Short:   "Pull migrations from remote",
 	Long: `Pull latest migrations and metadata changes from remote
 and sync them with your local project.`,
 	Run: func(cmd *cobra.Command, args []string) {

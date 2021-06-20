@@ -41,9 +41,10 @@ var email string
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Login to your Nhost account",
-	Long:  `Login to your existing Nhost account.`,
+	Use:     "login",
+	Aliases: []string{"ln"},
+	Short:   "Login to your Nhost account",
+	Long:    `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if pathExists(nhost.AUTH_PATH) {

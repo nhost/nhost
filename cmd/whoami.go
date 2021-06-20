@@ -22,8 +22,9 @@ import (
 
 // whoamiCmd represents the whoami command
 var whoamiCmd = &cobra.Command{
-	Use:   "whoami",
-	Short: "Credentials with which you are logged in",
+	Use:     "whoami",
+	Aliases: []string{"who", "me"},
+	Short:   "Credentials with which you are logged in",
 	Long: `Reads authentication credentials and displays
 the email/username with which you are currently logged in
 to your Nhost account from CLI.`,

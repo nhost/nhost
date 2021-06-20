@@ -29,8 +29,9 @@ import (
 
 // prepareCmd represents the prepare command
 var prepareCmd = &cobra.Command{
-	Use:   "prepare",
-	Short: "Prepare your project for deployment",
+	Use:     "prepare",
+	Aliases: []string{"pre"},
+	Short:   "Prepare your project for deployment",
 	Long: `Run validation checks on your codebase,
 ensure seed data for all enum tables is ready inside migrations,
 and just in general run extra checks to prepare your project for deployment.`,

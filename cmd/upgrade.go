@@ -33,8 +33,9 @@ import (
 
 // upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
-	Use:   "upgrade",
-	Short: "Upgrade this utility to latest version",
+	Use:     "upgrade",
+	Aliases: []string{"up"},
+	Short:   "Upgrade this utility to latest version",
 	Long: `Automatically check for the latest available version of this
 utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {

@@ -34,8 +34,9 @@ import (
 
 // healthCmd represents the health command
 var healthCmd = &cobra.Command{
-	Use:   "health",
-	Short: "Checks the health of running Nhost services",
+	Use:     "health",
+	Aliases: []string{"h"},
+	Short:   "Checks the health of running Nhost services",
 	Long: `Scans for any running Nhost services, validates the health of their
 respective containers and service-exclusive health endpoints.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -101,7 +102,7 @@ respective containers and service-exclusive health endpoints.`,
 		defer docker.Close()
 
 		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, "nhost")
+		containers, err := getContainers(docker, ctx, nhost.PROJECT)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
@@ -150,15 +151,15 @@ respective containers and service-exclusive health endpoints.`,
 
 			// log the output
 			if containerValidated {
-				log.WithField("component", service.Name).Info("Container is active and responding")
+				log.WithField("container", service.Name).Info("Container is active and responding")
 			} else {
-				log.WithField("component", service.Name).Error("Container is not responding")
+				log.WithField("container", service.Name).Error("Container is not responding")
 				ok = false
 			}
 			if serviceValidated {
-				log.WithField("component", service.Name).Info("Service specific health check successful")
+				log.WithField("container", service.Name).Info("Service specific health check successful")
 			} else {
-				log.WithField("component", service.Name).Error("Service specific health check failed")
+				log.WithField("container", service.Name).Error("Service specific health check failed")
 				ok = false
 			}
 		}
@@ -235,16 +236,16 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 
 func checkServiceHealth(name, url string) bool {
 
-	for i := 1; i <= 15; i++ {
+	for i := 1; i <= 20; i++ {
 		if valid := validateEndpointHealth(url); valid {
-			log.WithField("component", name).Debugf("Service specific health check attempt #%v successful", i)
+			log.WithField("container", name).Debugf("Service specific health check attempt #%v successful", i)
 			return true
 		}
 		time.Sleep(2 * time.Second)
-		log.WithField("component", name).Debugf("Service specific health check attempt #%v unsuccessful", i)
+		log.WithField("container", name).Debugf("Service specific health check attempt #%v unsuccessful", i)
 	}
 
-	log.WithField("component", name).Error("Service specific health check timed out")
+	log.WithField("container", name).Error("Service specific health check timed out")
 	return false
 }
 

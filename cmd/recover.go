@@ -29,8 +29,9 @@ import (
 
 // recoverCmd represents the recover command
 var recoverCmd = &cobra.Command{
-	Use:   "recover",
-	Short: "A brief description of your command",
+	Use:     "recover",
+	Aliases: []string{"rc"},
+	Short:   "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 

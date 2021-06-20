@@ -38,8 +38,9 @@ var approval bool
 
 // resetCmd represents the reset command
 var resetCmd = &cobra.Command{
-	Use:   "reset",
-	Short: "Delete all saved Nhost configuration from this project",
+	Use:     "reset",
+	Aliases: []string{"rs"},
+	Short:   "Delete all saved Nhost configuration from this project",
 	Long: `This is an irreversible action, and should always be avoided
 	unless absolutely necesarry.
 	

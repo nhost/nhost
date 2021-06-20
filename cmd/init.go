@@ -44,9 +44,10 @@ var (
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize current directory as Nhost project",
-	Long:  `Initialize current working directory as an Nhost project.`,
+	Use:     "init",
+	Aliases: []string{"i"},
+	Short:   "Initialize current directory as Nhost project",
+	Long:    `Initialize current working directory as an Nhost project.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if pathExists(nhost.NHOST_DIR) {

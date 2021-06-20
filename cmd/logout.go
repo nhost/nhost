@@ -30,9 +30,10 @@ import (
 
 // logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
-	Use:   "logout",
-	Short: "Logout from your Nhost account",
-	Long:  "Remove locally installed authentication configuration, and logout from your Nhost account.",
+	Use:     "logout",
+	Aliases: []string{"lt"},
+	Short:   "Logout from your Nhost account",
+	Long:    "Remove locally installed authentication configuration, and logout from your Nhost account.",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// check if auth file exists

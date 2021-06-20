@@ -31,16 +31,21 @@ import (
 	"strings"
 
 	"github.com/docker/docker/api/types"
+	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
+// intialise variable to remove containers and network
+var purge bool
+
 // downCmd represents the down command
 var downCmd = &cobra.Command{
-	Use:   "down",
-	Short: "Stop local Nhost backend started by `nhost dev`",
-	Long:  "Stop and remove local Nhost backend started by `nhost dev`.",
+	Use:     "down",
+	Aliases: []string{"dn"},
+	Short:   "Stop local Nhost backend started by `nhost dev`",
+	Long:    "Stop and remove local Nhost backend started by `nhost dev`.",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// connect to docker client
@@ -63,10 +68,10 @@ var downCmd = &cobra.Command{
 	},
 }
 
-func shutdownServices(client *client.Client, ctx context.Context, logFile string) error {
+func shutdownServices(cli *client.Client, ctx context.Context, logFile string) error {
 
 	// get running containers with prefix "nhost_"
-	containers, err := getContainers(client, ctx, "nhost")
+	containers, err := getContainers(cli, ctx, nhost.PROJECT)
 	if err != nil {
 		return err
 	}
@@ -80,34 +85,33 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 		if logFile != "" {
 
 			// generate container logs and write them to logFile
-			if err = writeContainerLogs(client, ctx, logFile, container); err != nil {
+			if err = writeContainerLogs(cli, ctx, logFile, container); err != nil {
 				return err
 			}
 		}
 
 		// stop the container
-		if err = stopContainer(client, ctx, container); err != nil {
+		if err = stopContainer(cli, ctx, container); err != nil {
 			return err
 		}
 
-		// remove all running containers with prefix "nhost_"
-		if err = removeContainer(client, ctx, container); err != nil {
+		if err = removeContainer(cli, ctx, container); err != nil {
 			return err
 		}
 	}
 
-	// search and delete Nhost network too,
-	// if you don't do this,
-	// docker will get confused about ambigous network names
+	// if purge, delete the network too
+	if purge {
 
-	network, err := getNetwork(client, ctx, "nhost")
-	if err != nil {
-		return err
-	}
+		network, err := getNetwork(cli, ctx, nhost.PROJECT)
+		if err != nil {
+			return err
+		}
 
-	if network != "" {
-		err = removeNetwork(client, ctx, network)
-		return err
+		if network != "" {
+			err = removeNetwork(cli, ctx, network)
+			return err
+		}
 
 	}
 	return err
@@ -116,7 +120,7 @@ func shutdownServices(client *client.Client, ctx context.Context, logFile string
 // returns the list of running containers whose names have specified prefix
 func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]types.Container, error) {
 
-	log.Debug("Fetching running containers with names having the prefix: ", prefix)
+	log.WithField("prefix", prefix).Debug("Fetching containers")
 
 	var response []types.Container
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
@@ -132,28 +136,54 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 // removes a given network by ID
 func removeNetwork(cli *client.Client, ctx context.Context, ID string) error {
 
-	log.Debug("Removing network: ", ID)
+	log.WithField("network", ID).Debug("Removing network")
 
 	err := cli.NetworkRemove(ctx, ID)
 	return err
 }
 
 // fetches ID of docker network by name
-func getNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
+func prepareNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
 
-	log.WithField("component", name).Debug("Fetching network")
+	log.WithField("network", name).Debug("Preparing network")
 
-	response, err := cli.NetworkList(ctx, types.NetworkListOptions{})
+	response, err := getNetwork(cli, ctx, name)
 	if err != nil {
 		return "", err
 	}
+	if response != "" {
 
-	for _, network := range response {
-		if network.Name == name {
-			return network.ID, nil
+		log.WithField("network", name).Debug("Existing network found")
+		return response, nil
+
+	} else {
+		log.WithField("network", name).Debug("Creating new network")
+
+		// create new network if no network such exists
+		net, err := cli.NetworkCreate(ctx, name, types.NetworkCreate{})
+		if err != nil {
+			log.WithField("network", name).Debug("Failed to create network")
 		}
+		return net.ID, nil
 	}
+}
 
+// fetches ID of docker network by name
+func getNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
+
+	log.WithField("network", name).Debug("Fetching network")
+
+	f := filters.NewArgs(filters.KeyValuePair{
+		Key:   "name",
+		Value: name,
+	})
+
+	response, err := cli.NetworkList(ctx, types.NetworkListOptions{
+		Filters: f,
+	})
+	if len(response) > 0 && err == nil {
+		return response[0].ID, err
+	}
 	return "", err
 }
 
@@ -161,9 +191,7 @@ func getNetwork(cli *client.Client, ctx context.Context, name string) (string, e
 func restartContainer(cli *client.Client, ctx context.Context, container types.Container) error {
 
 	log.WithField("component", container.Names[0]).Debug("Restarting container")
-
-	err := cli.ContainerStop(ctx, container.ID, nil)
-	return err
+	return cli.ContainerRestart(ctx, container.ID, nil)
 }
 
 // stops given container
@@ -171,8 +199,7 @@ func stopContainer(cli *client.Client, ctx context.Context, container types.Cont
 
 	log.WithField("component", container.Names[0]).Debug("Stopping container")
 
-	err := cli.ContainerStop(ctx, container.ID, nil)
-	return err
+	return cli.ContainerStop(ctx, container.ID, nil)
 }
 
 // fetches the logs of a specific container
@@ -226,5 +253,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// downCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	downCmd.Flags().BoolVarP(&purge, "purge", "p", false, "Delete project containers & network")
 }

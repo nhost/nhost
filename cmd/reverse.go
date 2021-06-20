@@ -29,8 +29,9 @@ import (
 
 // reverseCmd represents the reverse command
 var reverseCmd = &cobra.Command{
-	Use:   "reverse",
-	Short: "Go back to a previous migration",
+	Use:     "reverse",
+	Aliases: []string{"rv"},
+	Short:   "Go back to a previous migration",
 	Long: `Presents you with a list of all locally saved
 migrations and will permanently delete all migrations
 that came AFTER the one you have chosen, but NOT the one that you chose

@@ -40,9 +40,10 @@ import (
 
 // linkCmd represents the link command
 var linkCmd = &cobra.Command{
-	Use:   "link",
-	Short: "Link local project to a remote one",
-	Long:  `Connect your already hosted Nhost Project to local environment and start development or testings.`,
+	Use:     "link",
+	Aliases: []string{"lk"},
+	Short:   "Link local project to a remote one",
+	Long:    `Connect your already hosted Nhost Project to local environment and start development or testings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// validate authentication

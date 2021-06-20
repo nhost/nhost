@@ -25,18 +25,25 @@ SOFTWARE.
 package cmd
 
 import (
+	"runtime"
+
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 // versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the installed version of CLI",
-	Long:  `All softwares have versions. This is Nhost's.`,
+	Use:     "version",
+	Aliases: []string{"v"},
+	Short:   "Print the installed version of CLI",
+	Long:    `All softwares have versions. This is Nhost's.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.WithField("component", "version").Info(Version)
+		log.WithFields(logrus.Fields{
+			"os":   runtime.GOOS,
+			"arch": runtime.GOARCH,
+		}).Info(Version)
 
 		release, err := nhost.LatestRelease()
 		if err != nil {

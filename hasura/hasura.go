@@ -256,6 +256,48 @@ func (c *Client) GetExtensions() ([]string, error) {
 	return response, nil
 }
 
+func (c *Client) Track(table TableEntry) error {
+
+	//Encode the data
+	args := map[string]interface{}{
+		"schema": table.Table.Schema,
+		"name":   table.Table.Name,
+	}
+
+	if table.IsEnum != nil {
+		args["is_enum"] = true
+	}
+
+	//Encode the data
+	reqBody := RequestBody{
+		Type: "track_table",
+		Args: args,
+	}
+	marshalledBody, err := reqBody.Marshal()
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.Request(marshalledBody)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	body, _ := ioutil.ReadAll(resp.Body)
+
+	var response Response
+	json.Unmarshal(body, &response)
+
+	if response.Code == "already-tracked" {
+		log.WithField("component", table.Table.Name).Debug("Table is already tracked")
+		return nil
+	}
+
+	return errors.New(response.Error)
+}
+
 /*
 func (c *ClientCommonMetadataOps) ClearMetadata() (io.Reader, error) {
 	request := hasura.RequestBody{

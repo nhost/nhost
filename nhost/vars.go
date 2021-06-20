@@ -51,4 +51,7 @@ var (
 
 	// package repository to download latest release from
 	REPOSITORY = "mrinalwahal/cli"
+
+	// initialize the project prefix
+	PROJECT = path.Base(WORKING_DIR)
 )
