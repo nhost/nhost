@@ -1,0 +1,15 @@
+{
+  "configurations": [
+    {
+      "name": "Attach",
+      "type": "node",
+      "request": "attach",
+      "port": 9229,
+      "sourceMaps": true,
+      "remoteRoot": "/app",
+      "skipFiles": [
+        "<node_internals>/**"
+      ]
+    }
+  ]
+}

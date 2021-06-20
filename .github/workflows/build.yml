@@ -1,0 +1,76 @@
+name: Build
+on:
+  pull_request:
+    branches: [master]
+    paths:
+      - '**'
+      - '!docs/**'
+      - '!examples/**'
+      - '!*.md'
+  push:
+    branches: [master]
+    paths:
+      - '**'
+      - '!docs/**'
+      - '!examples/**'
+      - '!*.md'
+  release:
+    types: [published]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
+      - name: Cache dependencies
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+      - name: Install dependencies
+        run: yarn
+      - name: Lint files
+        run: yarn run lint
+      - name: Run Jest tests
+        run: yarn run test
+      - name: Upload test results
+        uses: actions/upload-artifact@v1
+        with:
+          name: coverage
+          path: coverage
+  coverage:
+    needs: test
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download coverage results
+        uses: actions/download-artifact@v1
+        with:
+          name: coverage
+      - name: Publish to CodeCov
+        uses: codecov/codecov-action@v1
+        with:
+          file: ./coverage/clover.xml
+  publish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build and publish to Docker Hub
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: nhost/hasura-auth
+          tag_with_ref: true
+          tag_with_sha: true

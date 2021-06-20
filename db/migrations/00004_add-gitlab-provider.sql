@@ -1,0 +1,1 @@
+INSERT INTO auth.providers (provider) VALUES ('gitlab') ON CONFLICT DO NOTHING;

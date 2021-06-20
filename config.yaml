@@ -1,0 +1,3 @@
+version: 2
+endpoint: http://localhost:8080
+admin_secret: a_long_secret_that_should_never_be_used_in_production

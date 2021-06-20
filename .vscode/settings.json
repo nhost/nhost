@@ -1,0 +1,13 @@
+{
+  "eslint.validate": [
+    "javascript",
+    "typescript",
+  ],
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.formatOnSave": false,
+  },
+  "[typescript]": {
+    "editor.formatOnSave": false,
+  }
+}
