@@ -33,11 +33,19 @@ var reverseCmd = &cobra.Command{
 	Aliases: []string{"rv"},
 	Short:   "Go back to a previous migration",
 	Long: `Presents you with a list of all locally saved
-migrations and will permanently delete all migrations
-that came AFTER the one you have chosen, but NOT the one that you chose
+migrations and will separate and move all migrations
+that came AFTER the one you have chosen, but NOT the one that you chose.
+Basically rendering your selected migration as the latest one.
 
-Basically rendering your selected migration as the latest one.`,
+Don't worry, the deleted migrations can be retrieved back.
+
+Note: Only the migrations removed using this command can be reversed
+back with 'nhost reverse' command.
+
+Not the ones manually deleted form GraphQL engine.`,
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// make sure no local environments are running
 
 		migrations, err := os.ReadDir(nhost.MIGRATIONS_DIR)
 		if err != nil {
@@ -81,8 +89,9 @@ Basically rendering your selected migration as the latest one.`,
 		migration := migrations[index]
 
 		// warn the user of upcoming dangers
-		log.Info("It will delete all migrations that came AFTER the one you have chosen, but NOT the one you have chosen")
+		log.Warning("This will temporarily remove all migrations that came AFTER the one you have chosen, but NOT the one you have chosen")
 		log.Info("Basically rendering your chosen migration as the latest one")
+		log.Info("Removed migrations can be recovered using `nhost recover`")
 
 		// configure interative prompt
 		confirmationPrompt := promptui.Prompt{
@@ -96,6 +105,9 @@ Basically rendering your selected migration as the latest one.`,
 			log.Fatal("Aborted")
 		}
 
+		// initialize the snapshot directory
+		snapshot := path.Join(nhost.LEGACY_DIR, strconv.FormatInt(getTime(), 10))
+
 		for _, item := range migrations {
 
 			i, _ := strconv.ParseInt(strings.Split(item.Name(), "_")[0], 10, 64)
@@ -106,7 +118,7 @@ Basically rendering your selected migration as the latest one.`,
 			if current_time.After(selected_time) {
 
 				src := path.Join(nhost.MIGRATIONS_DIR, item.Name())
-				dest := path.Join(nhost.LEGACY_DIR, item.Name())
+				dest := path.Join(snapshot, item.Name())
 
 				// transfer migrations to legacy directory
 				if err = movePath(src, dest); err != nil {
@@ -116,6 +128,11 @@ Basically rendering your selected migration as the latest one.`,
 			}
 		}
 	},
+}
+
+func getTime() int64 {
+	startTime := time.Now()
+	return startTime.UnixNano() / int64(time.Millisecond)
 }
 
 func init() {
