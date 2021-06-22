@@ -29,7 +29,7 @@ With just a few clicks, Nhost gives you a real-time database, authentication, fi
 
 ![Nhost](assets/get-started.png)
 
-Then connect to your new Nhost app using the [JavaScript/TypeScript SDK]() or [Flutter SDK]().
+Then connect to your new Nhost app using the [JavaScript/TypeScript SDK](https://docs.nhost.io/libraries/nhost-js-sdk) or [Flutter SDK](https://github.com/nhost/nhost-dart).
 
 ```
 $ npm install nhost-js-sdk
@@ -62,20 +62,21 @@ Follow this repository to stay-up-to-date with new releases.
 
 Now you're ready to use these fundamental building blocks to build a unique experince:
 
-- [Quick Start](): Create an app with Readt
-- [Authentication]() with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
-- [Real-time database]() with GraphQL and Postgres to keep your data in sync.
-- [File Storage]() with image transformation.
-- [Email Templates]() for your users.
-- [Payment]() powered by Stripe.
+- [Quick Start](https://docs.nhost.io/quick-start): Create an app with Readt
+- [Authentication](https://docs.nhost.io/auth) with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
+- [Real-time database](https://docs.nhost.io/hasura) with GraphQL and Postgres to keep your data in sync.
+- [File Storage](https://docs.nhost.io/storage) with image transformation.
+- [Email Templates](https://docs.nhost.io/auth/email-templates) for your users.
+- [Payment]() powered by Stripe _(coming soon)_.
 
 [Full Documentation](https://docs.nhost.io)
 
 ### Exampls and tutorials
 
-- [Todo App]() with React
-- [Full App Template]() with Next.js
-- [Native Mobile App]() with Dart and Flutlter
+- [Todo App](https://github.com/nhost/nhost/tree/main/examples/create-react-app-apollo) with React
+- [Full App Template](https://github.com/nhost/nhost/tree/main/examples/nextjs-apollo) with Next.js
+- [Native Mobile App](https://github.com/nhost/nhost-dart/tree/main/packages/nhost_flutter_graphql/example) with Dart and Flutlter
+- [Nuxt](https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo) with Apollo.
 
 # Backend development
 
