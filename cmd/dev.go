@@ -34,7 +34,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"path"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -45,15 +44,9 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	client "github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/fsnotify/fsnotify"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
-)
-
-const (
-	exitCodeErr       = 1
-	exitCodeInterrupt = 2
 )
 
 // devCmd represents the dev command
@@ -78,6 +71,9 @@ var devCmd = &cobra.Command{
 		// being the execution
 		execute(cmd, args)
 
+		fmt.Println()
+		log.Warn("Use Ctrl + C to stop running evironment")
+
 		// wait for Ctrl+C
 		end_waiter.Wait()
 	},
@@ -86,7 +82,6 @@ var devCmd = &cobra.Command{
 func cleanup(cmd *cobra.Command) {
 	log.Warn("Please wait while we cleanup")
 	downCmd.Run(cmd, []string{"exit"})
-	os.Exit(exitCodeInterrupt)
 }
 
 func execute(cmd *cobra.Command, args []string) {
@@ -140,26 +135,6 @@ func execute(cmd *cobra.Command, args []string) {
 		nhostConfig.Environment["graphql_jwt_key"] = generateRandomKey()
 	}
 
-	/*
-		if nhostConfig["startAPI"].(bool) {
-
-			// write docker api file
-			_, err = os.Create(path.Join(dotNhost, "Dockerfile-api"))
-			if err != nil {
-				log.Debug(err)
-				log.Error("Failed to create docker api config")
-				downCmd.Run(cmd, []string{"exit"})
-			}
-
-			err = writeToFile(path.Join(dotNhost, "Dockerfile-api"), getDockerApiTemplate(), "start")
-			if err != nil {
-				log.Debug(err)
-				log.Error("Failed to write backend docker-compose config")
-				downCmd.Run(cmd, []string{"exit"})
-			}
-		}
-	*/
-
 	// generate Nhost service containers' configurations
 	nhostServices, err := getContainerConfigs(docker, nhostConfig, nhost.DOT_NHOST)
 	if err != nil {
@@ -180,7 +155,7 @@ func execute(cmd *cobra.Command, args []string) {
 		if err := runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string), networkID); err != nil {
 			log.Debug(err)
 			log.WithField("component", item["name"]).Error("Failed to start container")
-			downCmd.Run(cmd, []string{"exit"})
+			cleanup(cmd)
 		}
 		log.WithField("component", item["name"]).Debug("Container created")
 	}
@@ -214,7 +189,7 @@ func execute(cmd *cobra.Command, args []string) {
 	// arpply migrations and metadata
 	if err = prepareData(hasuraCLI, commandOptions, firstRun); err != nil {
 		log.Debug(err)
-		downCmd.Run(cmd, []string{"exit"})
+		cleanup(cmd)
 	}
 
 	log.WithField("component", "development").Info("Environment is now active")
@@ -249,77 +224,71 @@ func execute(cmd *cobra.Command, args []string) {
 		Dir: nhost.NHOST_DIR,
 	}
 
-	// attach a watcher to the API conatiner's package.json
-	// to provide live reload functionality
+	go hasuraConsoleSpawnCmd.Run()
 
-	if pathExists(nhost.API_DIR) {
+	/*
 
-		watcher, err := fsnotify.NewWatcher()
-		if err != nil {
-			log.Debug(err)
-			log.WithField("component", "watcher").Error("Failed to initialize live reload watcher")
-		}
-		defer watcher.Close()
+		// attach a watcher to the API conatiner's package.json
+		// to provide live reload functionality
 
-		// fetch the API container
-		APIContainerName := getContainerName("api")
-		containers, err := getContainers(docker, ctx, APIContainerName)
-		if err != nil {
-			log.WithField("component", APIContainerName).Debug(err)
-			log.WithField("component", APIContainerName).Error("Failed to fetch container")
-		}
+		if pathExists(nhost.API_DIR) {
 
-		container := containers[0]
-
-		done := make(chan bool)
-		go func() {
-			for {
-				select {
-				case event, ok := <-watcher.Events:
-					if !ok {
-						log.Error("Watcher not okay")
-						return
-					}
-					if event.Op&fsnotify.Write == fsnotify.Write {
-						log.WithField("file", path.Base(event.Name)).Debug("File modifed")
-
-						if err = restartContainer(docker, ctx, container); err != nil {
-							log.WithField("component", APIContainerName).Debug(err)
-							log.WithField("component", APIContainerName).Error("Failed to restart container")
-						}
-					}
-				case err, ok := <-watcher.Errors:
-					if !ok {
-						return
-					}
-					log.Error(err)
-				}
-			}
-		}()
-
-		// initialize locations to start watching
-		targets := []string{
-			path.Join(nhost.API_DIR, "package.json"),
-		}
-
-		for _, item := range targets {
-			err = watcher.Add(item)
+			watcher, err := fsnotify.NewWatcher()
 			if err != nil {
 				log.Debug(err)
-				log.WithField("target", path.Base(item)).Error("Failed to attach target for live reload")
+				log.WithField("component", "watcher").Error("Failed to initialize live reload watcher")
 			}
-			log.WithField("target", path.Base(item)).Info("Target being watched")
+			defer watcher.Close()
+
+			// fetch the API container
+			APIContainerName := getContainerName("api")
+			containers, err := getContainers(docker, ctx, APIContainerName)
+			if err != nil {
+				log.WithField("container", APIContainerName).Debug(err)
+				log.WithField("container", APIContainerName).Error("Failed to fetch container")
+			}
+
+			container := containers[0]
+
+			go func() {
+				for {
+					select {
+					case event, ok := <-watcher.Events:
+						if !ok {
+							return
+						}
+						if event.Op&fsnotify.Write == fsnotify.Write {
+							log.WithField("file", path.Base(event.Name)).Debug("File modifed")
+							log.WithField("container", APIContainerName).Info("Restarting container")
+							if err = docker.ContainerRestart(ctx, container.ID, nil); err != nil {
+								log.WithField("container", APIContainerName).Debug(err)
+								log.WithField("container", APIContainerName).Error("Failed to restart container")
+							}
+						}
+					case err, ok := <-watcher.Errors:
+						if !ok {
+							return
+						}
+						log.WithField("container", APIContainerName).Error(err)
+					}
+				}
+			}()
+
+			// initialize locations to start watching
+			targets := map[string]string{
+				"api/package.json": path.Join(nhost.API_DIR, "package.json"),
+			}
+
+			for key, value := range targets {
+				err = watcher.Add(value)
+				if err != nil {
+					log.Debug(err)
+					log.WithField("target", key).Error("Failed to attach target for live reload")
+				}
+				log.WithField("target", key).Info("Target being watched for live reload")
+			}
 		}
-		<-done
-	}
-
-	if err = hasuraConsoleSpawnCmd.Run(); err != nil {
-		log.Debug("Hasura console has been interrupted")
-	}
-
-	fmt.Println()
-	log.Warn("Use Ctrl + C to stop running evironment")
-
+	*/
 }
 
 func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
@@ -534,18 +503,6 @@ func portAvaiable(port string) bool {
 	ln.Close()
 	return true
 }
-
-/*
-func getDockerApiTemplate() string {
-	return `
-FROM nhost/nodeapi:latest
-WORKDIR /usr/src/app
-COPY api ./api
-RUN ./install.sh
-ENTRYPOINT ["./entrypoint-dev.sh"]
-`
-}
-*/
 func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd string) ([]map[string]interface{}, error) {
 
 	log.Debug("Preparing Nhost container configurations")
@@ -947,82 +904,28 @@ func getAPIContainerConfig(
 	}
 	containerVariables = append(containerVariables, envVars...)
 
-	// change directory and file access permissions
-	if err := filepath.Walk(nhost.API_DIR, func(path string, info os.FileInfo, err error) error {
-		return os.Chmod(path, 0777)
-	}); err != nil {
-		log.Error(err)
-	}
-
-	/*
-				// create the docker image for API container
-				imageName := "nhost_api"
-				tarHeader := &tar.Header{
-					Name: "Dockerfile-Api",
-					Size: int64(len([]byte(getDockerApiTemplate()))),
-				}
-
-				buf := new(bytes.Buffer)
-				tw := tar.NewWriter(buf)
-				defer tw.Close()
-
-				err = tw.WriteHeader(tarHeader)
-				if err != nil {
-					return containers, err
-				}
-				_, err = tw.Write([]byte(getDockerApiTemplate()))
-				if err != nil {
-					return containers, err
-				}
-				dockerFileTarReader := bytes.NewReader(buf.Bytes())
-
-				_, err := client.ImageBuild(
-					context.Background(),
-					dockerFileTarReader,
-					types.ImageBuildOptions{
-						Context:    dockerFileTarReader,
-						Dockerfile: "Dockerfile-Api",
-						Tags:       []string{imageName, "latest"},
-						Remove:     true})
-				if err != nil {
-					log.Errorf("Failed to build docker image %s", imageName)
-					return containers, err
-				}
-
-				FROM nhost/nodeapi:latest
-		WORKDIR /usr/src/app
-		COPY api ./api
-		RUN ./install.sh
-		ENTRYPOINT ["./entrypoint-dev.sh"]
-	*/
-
 	APIContainer := map[string]interface{}{
 		"name": getContainerName("api"),
 		"config": &container.Config{
 			WorkingDir: "/usr/src/app",
-			/*
-				Healthcheck: &container.HealthConfig{
-					Test: []string{
-						"CMD-SHELL",
-						"curl",
-						fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
-					},
-					Interval:    1000000000,
-					Timeout:     10000000000,
-					Retries:     10,
-					StartPeriod: 60000000000,
+			Healthcheck: &container.HealthConfig{
+				Test: []string{
+					"CMD-SHELL",
+					"curl",
+					fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
 				},
-			*/
+				Interval:    1000000000,
+				Timeout:     10000000000,
+				Retries:     10,
+				StartPeriod: 60000000000,
+			},
 			Env:          containerVariables,
 			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(apiConfig.Port)): struct{}{}},
-			Image:        "nhost/nodeapi:latest",
-			Entrypoint:   []string{"sh", "-c", "./entrypoint-dev.sh"},
-			Cmd:          []string{"./install.sh"},
+			Image:        "nhost_api",
+			Cmd:          []string{"sh", "-c", "./install.sh && ./entrypoint-dev.sh"},
 		},
 		"host_config": &container.HostConfig{
-			// Binds: []string{nhost.API_DIR},
 			// AutoRemove: true,
-			//Links: []string{"nhost_hasura:nhost-hasura", "nhost_hbp:nhost-hbp", "nhost_minio:nhost-minio"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(apiConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(apiConfig.Port)}}},
@@ -1033,7 +936,7 @@ func getAPIContainerConfig(
 				{
 					Type:   mount.TypeBind,
 					Source: nhost.API_DIR,
-					Target: "/usr/src/app",
+					Target: "/usr/src/app/api",
 				},
 			},
 		},

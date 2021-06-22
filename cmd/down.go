@@ -172,11 +172,11 @@ func prepareNetwork(cli *client.Client, ctx context.Context, name string) (strin
 	}
 	if response != "" {
 
-		log.WithField("network", name).Debug("Existing network found")
+		log.WithField("network", name).Debug("Network found")
 		return response, nil
 
 	} else {
-		log.WithField("network", name).Debug("Creating new network")
+		log.WithField("network", name).Debug("Creating network")
 
 		// create new network if no network such exists
 		net, err := cli.NetworkCreate(ctx, name, types.NetworkCreate{})
@@ -204,13 +204,6 @@ func getNetwork(cli *client.Client, ctx context.Context, name string) (string, e
 		return response[0].ID, err
 	}
 	return "", err
-}
-
-// restarts given container
-func restartContainer(cli *client.Client, ctx context.Context, container types.Container) error {
-
-	log.WithField("component", container.Names[0]).Debug("Restarting container")
-	return cli.ContainerRestart(ctx, container.ID, nil)
 }
 
 // stops given container

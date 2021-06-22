@@ -52,7 +52,7 @@ respective containers and service-exclusive health endpoints.`,
 		hasuraConfig := options.Services["hasura"]
 		hbpConfig := options.Services["hasura_backend_plus"]
 		minioConfig := options.Services["minio"]
-		// apiConfig := options.Services["api"]
+		apiConfig := options.Services["api"]
 
 		// initialize all Nhost service structures
 		// and their respective service specific health check
@@ -84,15 +84,13 @@ respective containers and service-exclusive health endpoints.`,
 			},
 		}
 
-		/*
-			// Add API container if it's activated in config
-			if pathExists(nhost.API_DIR) {
-				services = append(services, Container{
-					Name:                getContainerName("api"),
-					HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
-				})
-			}
-		*/
+		// Add API container if it's activated in config
+		if pathExists(nhost.API_DIR) {
+			services = append(services, Container{
+				Name:                getContainerName("api"),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
+			})
+		}
 
 		// connect to docker client
 		ctx := context.Background()
@@ -234,7 +232,7 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 
 func checkServiceHealth(name, url string) bool {
 
-	for i := 1; i <= 20; i++ {
+	for i := 1; i <= 30; i++ {
 		if valid := validateEndpointHealth(url); valid {
 			return true
 		}
