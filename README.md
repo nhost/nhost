@@ -1,20 +1,19 @@
-🎉🎉🎉 [LATEST UPDATE: Flutter and Dart SDK has been released](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost) 🎉🎉🎉
-
 <div align="center">
 
 ![Nhost](assets/logo.png)
 
+  <p>
+    <!-- <div style="padding: 5px"><img src="https://img.shields.io/github/stars/nhost/nhost?colorB=7289da" /></div> -->
+    <img src="https://img.shields.io/discord/552499021260914688?label=Discord&logo=Discord&colorB=7289da" />
+    <img src="https://img.shields.io/github/license/Naereen/StrapDown.js.svg" />
+    <img src="https://img.shields.io/docker/pulls/nhost/hasura-backend-plus" />
+    <img src="https://img.shields.io/twitter/follow/nhostio?style=social" />
+    <img src="https://badgen.net/badge/Open%20Source%3F/Yes%21/blue?icon=github" />
+    <img src="https://img.shields.io/github/contributors/nhost/nhost" />
+  </p>
 </div>
 
-<p>
-  <!-- <div style="padding: 5px"><img src="https://img.shields.io/github/stars/nhost/nhost?colorB=7289da" /></div> -->
-  <img src="https://img.shields.io/discord/552499021260914688?label=Discord&logo=Discord&colorB=7289da" />
-  <img src="https://img.shields.io/github/license/Naereen/StrapDown.js.svg" />
-  <img src="https://img.shields.io/docker/pulls/nhost/hasura-backend-plus" />
-  <img src="https://img.shields.io/twitter/follow/nhostio?style=social" />
-  <img src="https://badgen.net/badge/Open%20Source%3F/Yes%21/blue?icon=github" />
-  <img src="https://img.shields.io/github/contributors/nhost/nhost" />
-</p>
+[LATEST UPDATE: Flutter and Dart SDK has been released 🎉](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost)
 
 **Nhost is an easy-to-use, full-featured backend-as-a-service (Baas) for your web and mobile apps.** Use GraphQL and our JS/TS or Flutter SDKs to build modern web and mobile apps that scale.
 
