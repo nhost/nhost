@@ -21,7 +21,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/manifoldco/promptui"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
@@ -40,11 +43,27 @@ var executeCmd = &cobra.Command{
 already running Nhost service containers.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if command == "" || service == "" {
+		if command == "" {
 			log.Error("Invalid arguments")
 			log.Info("Run `nhost execute --help` to understand how to use this command")
 			os.Exit(0)
 		}
+
+		// load the saved Nhost configuration
+		type Option struct {
+			Key   string
+			Value string
+		}
+
+		services := []Option{
+			{Key: "Database", Value: "postgres"},
+			{Key: "GraphQL Engine", Value: "hasura"},
+			{Key: "Hasura Backend Plus", Value: "hbp"},
+			{Key: "Storage", Value: "minio"},
+			{Key: "API", Value: "api"},
+		}
+
+		var options []types.Container
 
 		// connect to docker client
 		ctx := context.Background()
@@ -56,57 +75,109 @@ already running Nhost service containers.`,
 		defer docker.Close()
 
 		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, "nhost")
+		containers, err := getContainers(docker, ctx, nhost.PROJECT)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
 		}
 
-		// initialize execution flag to record
-		// whether command has been exuted or not
+		// if no containers found - abort the execution
+		if len(containers) == 0 {
+			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
+		}
 
-		serviceFound := false
+		log.WithField("docker", docker.ClientVersion()).Debug("Docker client version")
 
-		for _, container := range containers {
-			if contains(container.Names, "/"+service) || contains(container.Names, "/nhost_"+service) {
-				serviceFound = true
-				log.Debugf("Service %v found. Executing command.", service)
-				// create the command execution skeleton
-				response, err := Exec(docker, ctx, container.ID, strings.Split(command, " "))
-				if err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to prepare execution shell")
+		for _, service := range services {
+			for _, container := range containers {
+				if strings.Contains(container.Names[0], service.Value) {
+					options = append(options, container)
 				}
-
-				// execute the command
-				// and inspect the response
-				result, err := InspectExecResp(docker, ctx, response.ID)
-				if err != nil {
-					log.Debug(err)
-					log.Error("Failed to execute the command.")
-
-					if len(result.StdErr) > 0 {
-						log.Warn("Command execution error is as followed:")
-						fmt.Println(result.StdErr)
-					}
-				}
-
-				if len(result.StdOut) > 0 {
-					log.Info("Command execution result is as followed:")
-					fmt.Println(result.StdOut)
-				}
-				break
 			}
 		}
 
-		if !serviceFound {
-			log.Errorf("Service %v not found", service)
+		var selectedContainer types.Container
+
+		if service != "" {
+			for _, item := range services {
+				if service == item.Value {
+					for _, container := range containers {
+						if strings.Contains(container.Names[0], item.Value) {
+							selectedContainer = container
+						}
+					}
+				}
+			}
+
+			if selectedContainer.ID == "" {
+				log.WithField("service", service).Fatal("No such running service")
+			}
+		} else {
+
+			// configure interactive prompt template
+			templates := promptui.SelectTemplates{
+				Active:   `{{ "✔" | green | bold }} {{ .Key | cyan | bold }}`,
+				Inactive: `   {{ .Key | cyan }}`,
+				Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Key | cyan }}`,
+			}
+
+			// configure interative prompt
+			prompt := promptui.Select{
+				Label:     "Select Service",
+				Items:     services,
+				Templates: &templates,
+			}
+
+			index, _, err := prompt.Run()
+			if err != nil {
+				os.Exit(0)
+			}
+
+			selectedContainer = options[index]
+
+		}
+
+		// create the command execution skeleton
+		response, err := Exec(docker, ctx, selectedContainer.ID, strings.Split(command, " "))
+		if err != nil {
+			log.WithField("service", service).Debug(err)
+			log.WithField("service", service).Fatal("Failed to prepare execution shell")
+		}
+
+		// execute the command
+		// and inspect the response
+		result, err := InspectExecResp(docker, ctx, response.ID)
+		if err != nil {
+			log.WithField("service", service).Debug(err)
+			log.WithField("service", service).Error("Failed to execute the command.")
+
+			if len(result.StdErr) > 0 {
+				fmt.Println(result.StdErr)
+
+				// if log file is passed - save the output
+				if LOG_FILE != "" {
+					if err = writeToFile(LOG_FILE, result.StdErr, "end"); err != nil {
+						log.WithField("service", service).Error("Failed to save the error logs")
+					}
+				}
+			}
+		}
+
+		if len(result.StdOut) > 0 {
+			fmt.Println(result.StdOut)
+
+			// if log file is passed - save the output
+			if LOG_FILE != "" {
+				if err = writeToFile(LOG_FILE, result.StdOut, "end"); err != nil {
+					log.WithField("service", service).Error("Failed to save the output logs")
+				}
+			}
 		}
 	},
 }
 
 func init() {
-	//rootCmd.AddCommand(executeCmd)
+	rootCmd.AddCommand(executeCmd)
 
 	// Here you will define your flags and configuration settings.
 
@@ -116,5 +187,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	executeCmd.Flags().StringVarP(&command, "command", "c", "", "Command to run inside container")
+	executeCmd.Flags().StringVarP(&command, "command", "c", "", "Command to run inside service")
+	executeCmd.Flags().StringVarP(&service, "service", "s", "", "Service to run the command inside")
 }

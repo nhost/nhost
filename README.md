@@ -1,12 +1,4 @@
 <div align="center">
-
-![Nhost](https://raw.githubusercontent.com/nhost/nhost/main/assets/nhost-logo.svg)
-
-</div>
-
-<hr />
-
-<div align="center">
   <h1>Nhost CLI</h1>
   <a href="https://docs.nhost.io/cli">Website</a>
     <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -20,6 +12,8 @@
 </div>
 
 <div align="center">
+
+Launch Blazingly Fast Development Environments For Your Nhost Stack
 
 [![Build](https://github.com/mrinalwahal/cli/actions/workflows/build.yaml/badge.svg)](https://github.com/mrinalwahal/cli/actions/workflows/build.yaml)
 [![Release](https://github.com/mrinalwahal/cli/actions/workflows/release.yaml/badge.svg)](https://github.com/mrinalwahal/cli/actions/workflows/release.yaml)
@@ -36,7 +30,6 @@
 
 # Contents
 
-- [Overview](#overview)
 - [Design](#design)
 - [Installation](#installation)
   * [Installing On Windows](#installing-on-windows)
@@ -61,13 +54,9 @@
 
 <br>
 
-# Overview
-
-Nhost's CLI is a powerful utility that allows [Nhost](https://nhost.io) users launch blazingly fast local development environments using Nhost stack as a backend, for both new projects as well as existing ones.
-
 # Design
 
-To properly understand the design philosophy adopted by Nhost for this CLI, [read this](https://github.com/mrinalwahal/cli/wiki/Design-Philosphy).
+To properly understand the design philosophy adopted by Nhost for this CLI, [read this](https://github.com/mrinalwahal/cli/wiki/Design-Philosophy).
 
 ## All-powerful `nhost` command
 
@@ -210,6 +199,14 @@ Example:
     nhost dev -d
 
 This will print the debug logs along with the standard information, warning and error logs while the `dev` command is under execution.
+
+### ProTip 1
+
+Supplying the global `-f` or `--log-file` flag to `nhost dev` will automatically append the logs of all service containers to your supplied file before exiting the command.
+
+### ProTip 2
+
+You can also parallely run `nhost logs` to check real time logs of any service container of your choice, while your local environment is already running. And you can also save it's output, again, by using `f` or `--log-file` flag.
 
 # Migration
 

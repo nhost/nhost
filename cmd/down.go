@@ -29,6 +29,7 @@ import (
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -76,29 +77,46 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 		return err
 	}
 
-	if len(containers) > 0 {
-		log.Info("Shutting down running Nhost services")
+	if len(containers) == 0 {
+		return nil
 	}
+
+	log.Info("Shutting down running Nhost services")
+
+	var end_waiter sync.WaitGroup
+	end_waiter.Add(len(containers))
 
 	for _, container := range containers {
 
-		if logFile != "" {
+		// prepare container name for better logging
+		name := strings.Split(container.Names[0], "/")[1]
+
+		if LOG_FILE != "" {
 
 			// generate container logs and write them to logFile
-			if err = writeContainerLogs(cli, ctx, logFile, container); err != nil {
+			_, err = getContainerLogs(cli, ctx, container)
+			if err != nil {
 				return err
 			}
 		}
 
-		// stop the container
-		if err = stopContainer(cli, ctx, container); err != nil {
-			return err
-		}
-
-		if err = removeContainer(cli, ctx, container); err != nil {
-			return err
-		}
+		go func(cli *client.Client, ctx context.Context, container types.Container) {
+			if err := stopContainer(cli, ctx, container); err == nil {
+				go func(cli *client.Client, ctx context.Context, container types.Container) {
+					if err := removeContainer(cli, ctx, container); err != nil {
+						log.Debug(err)
+						log.WithField("container", name).Error("Failed to remove container")
+					}
+					end_waiter.Done()
+				}(cli, ctx, container)
+			} else {
+				log.Debug(err)
+				log.WithField("container", name).Error("Failed to stop container")
+			}
+		}(cli, ctx, container)
 	}
+
+	end_waiter.Wait()
 
 	// if purge, delete the network too
 	if purge {
@@ -204,28 +222,32 @@ func stopContainer(cli *client.Client, ctx context.Context, container types.Cont
 
 // fetches the logs of a specific container
 // and writes them to a log file
-func writeContainerLogs(cli *client.Client, ctx context.Context, filePath string, container types.Container) error {
+func getContainerLogs(cli *client.Client, ctx context.Context, container types.Container) ([]byte, error) {
 
-	log.WithField("component", container.Names[0]).Debug("Writing container logs to ", filePath)
+	log.WithField("component", container.Names[0]).Debug("Fetching container logs")
+
+	var response []byte
 
 	options := types.ContainerLogsOptions{ShowStdout: true}
 
 	out, err := cli.ContainerLogs(ctx, container.ID, options)
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	// write the fetched logs to a file
-	f, err := os.Create(filePath)
+	response, err = io.ReadAll(out)
 	if err != nil {
-		return err
+		return response, err
 	}
 
-	// handle error
-	defer f.Close()
+	if LOG_FILE != "" {
+		// write the fetched logs to a file
+		if err = writeToFile(LOG_FILE, string(response), "end"); err != nil {
+			return response, err
+		}
+	}
 
-	_, err = io.Copy(f, out)
-	return err
+	return response, nil
 }
 
 // removes given container
@@ -234,8 +256,8 @@ func removeContainer(cli *client.Client, ctx context.Context, container types.Co
 	log.WithField("component", container.Names[0]).Debug("Removing container")
 
 	removeOptions := types.ContainerRemoveOptions{
-		RemoveVolumes: true,
-		Force:         true,
+		//RemoveVolumes: true,
+		Force: true,
 	}
 
 	err := cli.ContainerRemove(ctx, container.ID, removeOptions)

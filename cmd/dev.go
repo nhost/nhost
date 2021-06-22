@@ -113,6 +113,8 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 	defer docker.Close()
 
+	log.WithField("docker", docker.ClientVersion()).Debug("Docker client version")
+
 	// check if this is the first time dev env is running
 	firstRun := !pathExists(path.Join(nhost.DOT_NHOST, "db_data"))
 	if firstRun {
@@ -986,17 +988,19 @@ func getAPIContainerConfig(
 		"name": getContainerName("api"),
 		"config": &container.Config{
 			WorkingDir: "/usr/src/app",
-			Healthcheck: &container.HealthConfig{
-				Test: []string{
-					"CMD-SHELL",
-					"curl",
-					fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
+			/*
+				Healthcheck: &container.HealthConfig{
+					Test: []string{
+						"CMD-SHELL",
+						"curl",
+						fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
+					},
+					Interval:    1000000000,
+					Timeout:     10000000000,
+					Retries:     10,
+					StartPeriod: 60000000000,
 				},
-				Interval:    1000000000,
-				Timeout:     10000000000,
-				Retries:     10,
-				StartPeriod: 60000000000,
-			},
+			*/
 			Env:          containerVariables,
 			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(apiConfig.Port)): struct{}{}},
 			Image:        "nhost/nodeapi:latest",

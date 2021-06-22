@@ -203,7 +203,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.PersistentFlags().StringVarP(&LOG_FILE, "log-file", "l", "", "Write logs to given file")
+	rootCmd.PersistentFlags().StringVarP(&LOG_FILE, "log-file", "f", "", "Write logs to given file")
 	rootCmd.PersistentFlags().BoolVarP(&DEBUG, "debug", "d", false, "Show debugging level logs")
 }
 
