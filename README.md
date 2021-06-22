@@ -1,21 +1,10 @@
 🎉🎉🎉 [LATEST UPDATE: Flutter and Dart SDK has been released](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost) 🎉🎉🎉
 
-<table>
-  <tr>
-    <td valign="top">
-    <img src="https://reporoster.com/stars/nhost/nhost" />
-    </td>
-    <td valign="top">
-      <img src="assets/follow-us-banner.png" />
-    </td>
-  </tr>
-</table>
-
-<hr />
-
 <div align="center">
 
 ![Nhost](assets/logo.png)
+
+</div>
 
 <p>
   <!-- <div style="padding: 5px"><img src="https://img.shields.io/github/stars/nhost/nhost?colorB=7289da" /></div> -->
@@ -62,6 +51,13 @@ export { nhost };
 ```
 
 Now you're ready to develop your app.
+
+# Stay up-to-date
+
+Follow this repository to stay-up-to-date with new releases.
+
+![Followers](https://reporoster.com/stars/nhost/nhost)
+![Follow Us](assets/follow-us-banner.png)
 
 # Develop Your App
 
