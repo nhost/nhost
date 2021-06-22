@@ -31,7 +31,7 @@ With just a few clicks, Nhost gives you a real-time database, authentication, fi
 
 Then connect to your new Nhost app using the [JavaScript/TypeScript SDK](https://docs.nhost.io/libraries/nhost-js-sdk) or [Flutter SDK](https://github.com/nhost/nhost-dart).
 
-```
+```bash
 $ npm install nhost-js-sdk
 # or
 $ flutter i nhost-dart-sdk
@@ -39,7 +39,7 @@ $ flutter i nhost-dart-sdk
 
 In your project, initialize the SDK with the endpoint of your new Nhost App:
 
-```
+```js
 import { createClient } from "nhost-js-sdk";
 
 const nhost = createClient({
