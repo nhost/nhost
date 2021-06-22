@@ -184,18 +184,20 @@ func execute(cmd *cobra.Command, args []string) {
 		log.WithField("component", item["name"]).Debug("Container created")
 	}
 
-	// log.Info("Conducting a quick health check on all freshly created services")
-	// healthCmd.Run(cmd, args)
+	log.Info("Running a quick health check on services")
+	healthCmd.Run(cmd, args)
 
 	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
 
-	// wait for graphQL engine to become healthy
-	hasuraContainerName := getContainerName("hasura")
-	log.WithField("container", hasuraContainerName).Info("Waiting for GraphQL engine to become active")
-	if ok := checkServiceHealth(hasuraContainerName, fmt.Sprintf("%v/healthz", hasuraEndpoint)); !ok {
-		log.WithField("container", hasuraContainerName).Error("GraphQL engine health check failed")
-		downCmd.Run(cmd, []string{"exit"})
-	}
+	/*
+		// wait for graphQL engine to become healthy
+		hasuraContainerName := getContainerName("hasura")
+		log.WithField("container", hasuraContainerName).Info("Waiting for GraphQL engine to become active")
+		if ok := checkServiceHealth(hasuraContainerName, fmt.Sprintf("%v/healthz", hasuraEndpoint)); !ok {
+			log.WithField("container", hasuraContainerName).Error("GraphQL engine health check failed")
+			downCmd.Run(cmd, []string{"exit"})
+		}
+	*/
 
 	// prepare and load hasura binary
 	hasuraCLI, _ := hasura.Binary()

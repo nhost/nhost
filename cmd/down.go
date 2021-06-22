@@ -43,10 +43,11 @@ var purge bool
 
 // downCmd represents the down command
 var downCmd = &cobra.Command{
-	Use:     "down",
-	Aliases: []string{"dn"},
-	Short:   "Stop local Nhost backend started by `nhost dev`",
-	Long:    "Stop and remove local Nhost backend started by `nhost dev`.",
+	Use:        "down",
+	Aliases:    []string{"dn"},
+	SuggestFor: []string{"health"},
+	Short:      "Stop local Nhost backend started by `nhost dev`",
+	Long:       "Stop and remove local Nhost backend started by `nhost dev`.",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// connect to docker client
@@ -84,9 +85,9 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 	log.Info("Shutting down running Nhost services")
 
 	var end_waiter sync.WaitGroup
-	end_waiter.Add(len(containers))
 
 	for _, container := range containers {
+		end_waiter.Add(1)
 
 		// prepare container name for better logging
 		name := strings.Split(container.Names[0], "/")[1]
@@ -100,20 +101,20 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 			}
 		}
 
-		go func(cli *client.Client, ctx context.Context, container types.Container) {
+		go func(cli *client.Client, ctx context.Context, container types.Container, wg *sync.WaitGroup) {
 			if err := stopContainer(cli, ctx, container); err == nil {
-				go func(cli *client.Client, ctx context.Context, container types.Container) {
+				go func(cli *client.Client, ctx context.Context, container types.Container, wg *sync.WaitGroup) {
 					if err := removeContainer(cli, ctx, container); err != nil {
 						log.Debug(err)
 						log.WithField("container", name).Error("Failed to remove container")
 					}
-					end_waiter.Done()
-				}(cli, ctx, container)
+					wg.Done()
+				}(cli, ctx, container, &end_waiter)
 			} else {
 				log.Debug(err)
 				log.WithField("container", name).Error("Failed to stop container")
 			}
-		}(cli, ctx, container)
+		}(cli, ctx, container, &end_waiter)
 	}
 
 	end_waiter.Wait()
