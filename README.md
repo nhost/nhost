@@ -1,82 +1,126 @@
-<div align="center">
+🎉🎉🎉 [LATEST UPDATE: Flutter and Dart SDK has been released](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost) 🎉🎉🎉
 
-![Nhost](assets/nhost-logo.svg)
-
+<div style="display: flex;">
+  <div>
+    <img src="https://reporoster.com/stars/nhost/nhost" />
+  </div>
+  <div>
+  <img src="assets/follow-us-banner.png" />
+  </div>
 </div>
 
 <hr />
 
-[Nhost](https://nhost.io) is the open source Firebase alternative with GraphQL.
+<div align="center">
 
-> NEWS: Support for Flutter and Dart is now available ([blog post](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost)).
+![Nhost](assets/logo.png)
 
-Nhost is a backend as a service (BaaS) that provides the generic building block every modern app need: Database, GraphQL API, Authentication, Storage, Serverless Functions.
+<div style="display: flex; justify-content: center; ">
+  <!-- <div style="padding: 5px"><img src="https://img.shields.io/github/stars/nhost/nhost?colorB=7289da" /></div> -->
+  <div style="padding: 5px"><img src="https://img.shields.io/discord/552499021260914688?label=Discord&logo=Discord&colorB=7289da" /></div>
+  <div style="padding: 5px"><img src="https://img.shields.io/github/license/Naereen/StrapDown.js.svg" /></div>
+  <div style="padding: 5px"><img src="https://img.shields.io/docker/pulls/nhost/hasura-backend-plus" /></div>
+  <div style="padding: 5px"><img src="https://img.shields.io/twitter/follow/nhostio?style=social" /></div>
+  <div style="padding: 5px"><img src="https://badgen.net/badge/Open%20Source%3F/Yes%21/blue?icon=github" /></div>
+  <div style="padding: 5px"><img src="https://img.shields.io/github/contributors/nhost/nhost" /></div>
+</div>
+</div>
 
-Simply, Nhost is the fastest and easiest way to build modern web and mobile apps that scale.
+**Nhost is an easy-to-use, full-featured backend-as-a-service (Baas) for your web and mobile apps.** Use GraphQL and our JS/TS or Flutter SDKs to build modern web and mobile apps that scale.
 
-![Nhost](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/820616b1-2c55-4c01-b026-d03ee971363b/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAT73L2G45O3KS52Y5%2F20210617%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20210617T061554Z&X-Amz-Expires=86400&X-Amz-Signature=1da1ee0f26c5a1ff8b10c6a825accfab330c502868a1d68e78cfe3679fb8f146&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22)
+With just a few clicks, Nhost gives you a real-time database, authentication, file storage, transactional emails and payments. You can build advanced backend functionallity with serverless cloud functions, database events and webhooks.
 
-## Follow to stay up to date
+![Nhost](assets/hero-image.png)
 
-![Stargazers repo roster for @nhost/nhost](https://reporoster.com/stars/nhost/nhost)
+<hr />
 
-## Services
+# Get Started
 
-- [PostgreSQL](https://github.com/postgres/postgres) (database) - The worlds most advanced relational database.
-- [Hasura](https://github.com/hasura/graphql-engine) (GraphQL API) - Blazing fast, instant realtime GraphQL APIs on your DB with fine grained access control, also trigger webhooks on database events.
-- [Hasura Auth](https://github.com/nhost/hasura-auth) (Authentication) - Complete authentication solution for Hasura
-- [Hasura Storage](https://github.com/nhost/hasura-storage) - Serve files at scale.
-- [AWS Lambda](https://aws.amazon.com/lambda/) (Serverless Functions) - pieces of code written with backend languages that take an HTTP request and provide a response.
-- [CLI](https://github.com/nhost/cli) - Develop locally with a complete Nhost backend.
-- GitHub integration - Push your changes to your GitHub repository for automatic deployment to production. Just like Netlify and Vercel, but for your backend.
+[Sign up](https://console.nhost.io) and create your first app on [https://console.nhost.io](https://console.nhost.io).
 
-## Get started
+![Nhost](assets/get-started.png)
 
-Either create a project on [Nhost](https://nhost.io) or use our CLI:
+Then connect to your new Nhost app using the [JavaScript/TypeScript SDK]() or [Flutter SDK]().
 
 ```
-$ npm install -g nhost
-
-$ nhost init
-
-✔ Local Nhost backend is up!
-GraphQL API:	http://localhost:8080/v1/graphql
-Hasura Console:	http://localhost:9695
-Auth & Storage:	http://localhost:9001
-Custom API:	    http://localhost:4000
+$ npm install nhost-js-sdk
+# or
+$ flutter i nhost-dart-sdk
 ```
 
-## How it works
+In your project, initialize the SDK with the endpoint of your new Nhost App:
 
-## SDKs
+```
+import { createClient } from "nhost-js-sdk";
 
-- [Nhost JS SDK](https://github.com/nhost/nhost-js-sdk) - Client SDK that Works with all frontend web frameowrk such as React, Next.js, Nuxt, Angular, Vue. Also works with React Native.
-- [Dart & Flutter](https://github.com/nhost/nhost-dart) - Client SDK for Dart & Flutter.
-- [React Apollo](https://github.com/nhost/react-apollo) - Integrates the [Apollo Client](https://www.apollographql.com/docs/react/) and React with Nhost
-- [React Auth](https://github.com/nhost/react-auth) - Integrates authentication with Nhost.
+const nhost = createClient({
+  baseURL: "https://project-id.nhost.app"
+})
 
-## Examples
+export { nhost };
+```
 
-Complete examples of applications with Nhost and different frontend frameworks.
+Now you're ready to develop your app.
 
-- [React](https://github.com/nhost/nhost/tree/main/examples/create-react-app-apollo)
-- [Next.js](https://github.com/nhost/nhost/tree/main/examples/nextjs-apollo)
-- [Nuxt](https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo)
+# Develop Your App
 
-## 🙌 Contributing
+Now you're ready to use these fundamental building blocks to build a unique experince:
 
-let's do it!
+- [Quick Start](): Create an app with Readt
+- [Authentication]() with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
+- [Real-time database]() with GraphQL and Postgres to keep your data in sync.
+- [File Storage]() with image transformation.
+- [Email Templates]() for your users.
+- [Payment]() powered by Stripe.
 
-## 🛡️ Security
+[Full Documentation](https://docs.nhost.io)
 
-If you discover a security vulnerability within Nhost, please send an e-mail to [security@nhost.io](mailto:security@nhost.io). All security vulnerabilities will be promptly addressed.
+### Exampls and tutorials
 
-## 🥰 Follow us
+- [Todo App]() with React
+- [Full App Template]() with Next.js
+- [Native Mobile App]() with Dart and Flutlter
 
-Follow this repository to stay up-to-date!
+# Backend development
 
-Other platforms to follow Nhost on: [GitHub Discussions](https://github.com/nhost/nhost/discussions), [Blog](https://nhost.io/blog), [Twitter](https://twitter.com/nhostio), [Discord](https://discord.com/invite/9V7Qb2U), [YouTube](https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg?view_as=subscriber).
+To further develop your backend, deep dive into these topics:
 
-## 📝 License
+- [Serverless Functions](https://docs.nhost.io/custom-api)
+- [User Permissions](https://docs.nhost.io/hasura/permissions)
+- [Database events and webhooks](https://docs.nhost.io/hasura/event-triggers)
+- [Local development with the Nhost CLI](https://docs.nhost.io/cli)
+
+[Full Documentation](https://docs.nhost.io)
+
+# Resources
+
+Nhost libraries and tools
+
+- [JavaScript/TypeScript SDK](https://docs.nhost.io/libraries/nhost-js-sdk)
+- [Dart and Flutter SDK](https://github.com/nhost/nhost-dart)
+- [Nhost CLI](https://docs.nhost.io/cli)
+- [Nhost React Auth](https://docs.nhost.io/libraries/react-auth)
+- [Nhost React Apollo](https://docs.nhost.io/libraries/react-apollo)
+- [Nhost Nuxt](https://docs.nhost.io/libraries/nhost-nuxt)
+
+## Community ❤️
+
+First and foremost: **Star and watch this repository** to stay up-to-date.
+
+Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discussions), our [Blog](https://nhost.io/blog), and on [Twitter](https://twitter.com/nhostio). You can chat with the team and other members on [Discord](https://discord.com/invite/9V7Qb2U), and follow our tutorials and other video material at [YouTube](https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg?view_as=subscriber).
+
+## Nhost is Open Source
 
 This repository, and most of our other open source projects, are licensed under the MIT license.
+
+### How to contribute
+
+Here are some ways of contributing to making Nhost better:
+
+- **[Try out Nhost]()**, and think of ways of how you can make the service better.
+- Join our [Discord]() and connect with other members to share and learn from.
+- Send a pull request to any our [open source repositories](https://github.com/nhost) on Github. We're looking forward to your contribution!
+
+## Security
+
+If you discover a security vulnerability within Nhost, please send an e-mail to [security@nhost.io](mailto:security@nhost.io). All security vulnerabilities will be promptly addressed.
