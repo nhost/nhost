@@ -1,6 +1,6 @@
 🎉🎉🎉 [LATEST UPDATE: Flutter and Dart SDK has been released](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost) 🎉🎉🎉
 
-<div style="display: flex;">
+<div style="display: grid; grid-template-columns: 1fr 1fr; padding: 20px; background: #fff;">
   <div>
     <img src="https://reporoster.com/stars/nhost/nhost" />
   </div>
