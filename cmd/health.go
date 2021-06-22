@@ -52,7 +52,7 @@ respective containers and service-exclusive health endpoints.`,
 		hasuraConfig := options.Services["hasura"]
 		hbpConfig := options.Services["hasura_backend_plus"]
 		minioConfig := options.Services["minio"]
-		apiConfig := options.Services["api"]
+		// apiConfig := options.Services["api"]
 
 		// initialize all Nhost service structures
 		// and their respective service specific health check
@@ -84,13 +84,15 @@ respective containers and service-exclusive health endpoints.`,
 			},
 		}
 
-		// Add API container if it's activated in config
-		if pathExists(nhost.API_DIR) {
-			services = append(services, Container{
-				Name:                getContainerName("api"),
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
-			})
-		}
+		/*
+			// Add API container if it's activated in config
+			if pathExists(nhost.API_DIR) {
+				services = append(services, Container{
+					Name:                getContainerName("api"),
+					HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
+				})
+			}
+		*/
 
 		// connect to docker client
 		ctx := context.Background()
@@ -99,6 +101,7 @@ respective containers and service-exclusive health endpoints.`,
 			log.Debug(err)
 			log.Fatal("Failed to connect to docker client")
 		}
+
 		defer docker.Close()
 
 		// fetch list of all running containers
@@ -107,10 +110,6 @@ respective containers and service-exclusive health endpoints.`,
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
 		}
-
-		// use a flag to determine whether all
-		// health checks have been passed or not
-		ok := true
 
 		var wg sync.WaitGroup
 
@@ -169,12 +168,6 @@ respective containers and service-exclusive health endpoints.`,
 		}
 
 		wg.Wait()
-
-		// if even a single health check has failed,
-		// initiate cleanup
-		if !ok {
-			log.Error("Overall health checks failed")
-		}
 	},
 }
 

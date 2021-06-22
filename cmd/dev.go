@@ -176,6 +176,7 @@ func execute(cmd *cobra.Command, args []string) {
 
 	// create and start the conatiners
 	for _, item := range nhostServices {
+
 		if err := runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string), networkID); err != nil {
 			log.Debug(err)
 			log.WithField("component", item["name"]).Error("Failed to start container")
@@ -232,9 +233,6 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	log.Infof("Launching Hasura console at: http://localhost:%v", nhostConfig.Services["hasura"].ConsolePort)
-	fmt.Println()
-
-	log.Warn("Use Ctrl + C to stop running evironment")
 
 	//spawn hasura console
 	hasuraConsoleSpawnCmd := exec.Cmd{
@@ -251,10 +249,6 @@ func execute(cmd *cobra.Command, args []string) {
 		Dir: nhost.NHOST_DIR,
 	}
 
-	if err = hasuraConsoleSpawnCmd.Run(); err != nil {
-		log.Debug("Hasura console has been interrupted")
-	}
-
 	// attach a watcher to the API conatiner's package.json
 	// to provide live reload functionality
 
@@ -267,6 +261,16 @@ func execute(cmd *cobra.Command, args []string) {
 		}
 		defer watcher.Close()
 
+		// fetch the API container
+		APIContainerName := getContainerName("api")
+		containers, err := getContainers(docker, ctx, APIContainerName)
+		if err != nil {
+			log.WithField("component", APIContainerName).Debug(err)
+			log.WithField("component", APIContainerName).Error("Failed to fetch container")
+		}
+
+		container := containers[0]
+
 		done := make(chan bool)
 		go func() {
 			for {
@@ -276,20 +280,10 @@ func execute(cmd *cobra.Command, args []string) {
 						log.Error("Watcher not okay")
 						return
 					}
-					log.Infoln("event:", event)
 					if event.Op&fsnotify.Write == fsnotify.Write {
-						log.Infoln("modified file: ", event.Name)
+						log.WithField("file", path.Base(event.Name)).Debug("File modifed")
 
-						APIContainerName := getContainerName("api")
-
-						// fetch list of all running containers
-						containers, err := getContainers(docker, ctx, APIContainerName)
-						if err != nil {
-							log.WithField("component", APIContainerName).Debug(err)
-							log.WithField("component", APIContainerName).Error("Failed to fetch container")
-						}
-
-						if err = restartContainer(docker, ctx, containers[0]); err != nil {
+						if err = restartContainer(docker, ctx, container); err != nil {
 							log.WithField("component", APIContainerName).Debug(err)
 							log.WithField("component", APIContainerName).Error("Failed to restart container")
 						}
@@ -303,13 +297,29 @@ func execute(cmd *cobra.Command, args []string) {
 			}
 		}()
 
-		err = watcher.Add(path.Join(nhost.API_DIR, "package.json"))
-		if err != nil {
-			log.Debug(err)
-			log.WithField("component", "package.json").Error("Failed to add to live reload watcher")
+		// initialize locations to start watching
+		targets := []string{
+			path.Join(nhost.API_DIR, "package.json"),
+		}
+
+		for _, item := range targets {
+			err = watcher.Add(item)
+			if err != nil {
+				log.Debug(err)
+				log.WithField("target", path.Base(item)).Error("Failed to attach target for live reload")
+			}
+			log.WithField("target", path.Base(item)).Info("Target being watched")
 		}
 		<-done
 	}
+
+	if err = hasuraConsoleSpawnCmd.Run(); err != nil {
+		log.Debug("Hasura console has been interrupted")
+	}
+
+	fmt.Println()
+	log.Warn("Use Ctrl + C to stop running evironment")
+
 }
 
 func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
