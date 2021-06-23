@@ -2,7 +2,7 @@ import 'jest-extended'
 
 import { request } from 'test/server'
 import { mailHogSearch, deleteMailHogEmail, withEnv, registerAccount, generateRandomString } from 'test/utils'
-import { end } from 'test/supertest-shared-utils'
+import { end, statusCode } from 'test/supertest-shared-utils'
 
 
 describe('Reset lost password', () => {
@@ -17,7 +17,7 @@ describe('Reset lost password', () => {
         request
           .post('/change-password/request')
           .send({ email: email })
-          .expect(204)
+          .expect(statusCode(204))
           .end(end(done))
       })
     }, done)
@@ -31,7 +31,7 @@ describe('Reset lost password', () => {
         request
           .post('/change-password/request')
           .send({ email: email })
-          .expect(204)
+          .expect(statusCode(204))
           .end(async (err) => {
             if(err) return done(err)
 
@@ -56,7 +56,7 @@ describe('Reset lost password', () => {
         request
           .post('/change-password/request')
           .send({ email: email })
-          .expect(204)
+          .expect(statusCode(204))
           .end(async (err) => {
             if(err) return done(err)
 
@@ -73,7 +73,7 @@ describe('Reset lost password', () => {
                 ticket,
                 new_password: generateRandomString()
               })
-              .expect(204)
+              .expect(statusCode(204))
               .end(end(done))
           })
       })

@@ -1,11 +1,10 @@
-import { Response, Router } from 'express'
+import { Request, Response, Router } from 'express'
 
-import { getJwkStore } from 'src/jwt'
-import { RequestExtended } from 'src/types'
+import { getJwkStore } from '@/jwt'
 import { JSONWebKeySet } from 'jose'
-import { asyncWrapper } from 'src/helpers'
+import { asyncWrapper } from '@/helpers'
 
-const getJwks = async (_req: RequestExtended, res: Response) => {
+const getJwks = async (_req: Request, res: Response) => {
   let jwks: JSONWebKeySet;
   try {
     jwks = getJwkStore().toJWKS(false)

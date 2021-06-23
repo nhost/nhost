@@ -9,6 +9,7 @@ import { limiter } from './limiter'
 import router from './routes'
 import passport from 'passport'
 import baseMiddleware from './middleware/base'
+import logger from './logger'
 
 const app = express()
 
@@ -19,8 +20,19 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(
   morgan(
-    ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]'
+    ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]',
+    {
+      stream: {
+        write: (msg) => logger.verbose(msg.slice(0, -1) /* Removes morgan newline at end */)
+      }
+    }
   )
+)
+app.use(
+  (req, res, next) => {
+    req.logger = logger
+    return next()
+  }
 )
 app.use(helmet())
 app.use(json())

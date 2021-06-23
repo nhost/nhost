@@ -3,7 +3,7 @@ import { SuperTest, Test } from 'supertest'
 
 import { APPLICATION } from '@config/index'
 
-import { getClaims } from 'src/jwt'
+import { getClaims } from '@/jwt'
 
 export interface AccountLoginData {
   email: string

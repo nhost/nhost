@@ -1,5 +1,5 @@
 import { APPLICATION } from '@config/index'
-import { app } from 'src/server'
+import { app } from '@/server'
 import { SuperTest, Test, agent } from 'supertest'
 import { Server } from 'http'
 import getPort from 'get-port'

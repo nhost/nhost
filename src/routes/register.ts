@@ -1,13 +1,13 @@
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
 import { NextFunction, Response, Router } from 'express'
-import { asyncWrapper, checkHibp, hashPassword, selectAccount, setRefreshToken, getGravatarUrl, isAllowedEmail } from 'src/helpers'
-import { newJwtExpiry, createHasuraJwt } from 'src/jwt'
-import { emailClient } from 'src/email'
-import { insertAccount } from 'src/queries'
-import { isMagicLinkLogin, isMagicLinkRegister, isRegularLogin, RegisterSchema, registerSchema } from 'src/validation'
-import { request } from 'src/request'
+import { asyncWrapper, checkHibp, hashPassword, selectAccount, setRefreshToken, getGravatarUrl, isAllowedEmail } from '@/helpers'
+import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { emailClient } from '@/email'
+import { insertAccount } from '@/queries'
+import { isMagicLinkLogin, isMagicLinkRegister, isRegularLogin, RegisterSchema, registerSchema } from '@/validation'
+import { request } from '@/request'
 import { v4 as uuidv4 } from 'uuid'
-import { InsertAccountData, UserData, Session } from 'src/types'
+import { InsertAccountData, UserData, Session } from '@/types'
 import { ValidatedRequest, ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
 
 async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
@@ -118,42 +118,10 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     const display_name = 'display_name' in user_data ? user_data.display_name : email
 
     if (isMagicLinkLogin(body)) {
-      try {
-        await emailClient.send({
-          template: 'magic-link',
-          message: {
-            to: user.email,
-            headers: {
-              'x-ticket': {
-                prepared: true,
-                value: ticket
-              }
-            }
-          },
-          locals: {
-            display_name,
-            token: ticket,
-            url: APPLICATION.SERVER_URL,
-            locale: account.locale,
-            app_url: APPLICATION.APP_URL,
-            action: 'register',
-            action_url: 'register'
-          }
-        })
-      } catch (err) {
-        console.error(err)
-        return res.boom.badRequest('dfdsf' + JSON.stringify(err, null, 2))
-      }
-
-      const session: Session = { jwt_token: null, jwt_expires_in: null, user }
-      return res.send(session)
-    }
-
-    try {
       await emailClient.send({
-        template: 'activate-account',
+        template: 'magic-link',
         message: {
-          to: email,
+          to: user.email,
           headers: {
             'x-ticket': {
               prepared: true,
@@ -163,17 +131,51 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
         },
         locals: {
           display_name,
-          ticket,
+          token: ticket,
           url: APPLICATION.SERVER_URL,
-          locale: account.locale
+          locale: account.locale,
+          app_url: APPLICATION.APP_URL,
+          action: 'register',
+          action_url: 'register'
         }
       })
-    } catch (err) {
-      console.error('eml', err)
-      return res.boom.badRequest('eewe' + JSON.stringify(err, null, 2))
+
+      const session: Session = { jwt_token: null, jwt_expires_in: null, user }
+
+      req.logger.verbose(`New magic link user registration with id ${user.id} and email ${email}`, {
+        user_id: user.id,
+        email,
+      })
+
+      return res.send(session)
     }
 
+    await emailClient.send({
+      template: 'activate-account',
+      message: {
+        to: email,
+        headers: {
+          'x-ticket': {
+            prepared: true,
+            value: ticket
+          }
+        }
+      },
+      locals: {
+        display_name,
+        ticket,
+        url: APPLICATION.SERVER_URL,
+        locale: account.locale
+      }
+    })
+
     const session: Session = { jwt_token: null, jwt_expires_in: null, user }
+
+    req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
+      user_id: user.id,
+      email,
+    })
+
     return res.send(session)
   }
 
@@ -184,6 +186,11 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   const jwt_expires_in = newJwtExpiry
 
   const session: Session = { jwt_token, jwt_expires_in, user, refresh_token }
+
+  req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
+    user_id: user.id,
+    email,
+  })
 
   return res.send(session)
 }

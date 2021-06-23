@@ -1,7 +1,7 @@
 import 'jest-extended'
 
 import { request } from 'test/server'
-import { end, saveJwt, saveRefreshToken, validJwt, validRefreshToken } from 'test/supertest-shared-utils'
+import { end, saveJwt, saveRefreshToken, validJwt, validRefreshToken, statusCode } from 'test/supertest-shared-utils'
 import { registerAccount } from 'test/utils'
 
 it('should refresh the token', (done) => {
@@ -11,7 +11,7 @@ it('should refresh the token', (done) => {
     request
       .post('/login')
       .send({ email, password })
-      .expect(200)
+      .expect(statusCode(200))
       .expect(validRefreshToken())
       .expect(saveRefreshToken(r => refreshToken = r))
       .end((err) => {
@@ -20,7 +20,7 @@ it('should refresh the token', (done) => {
         request
           .get('/token/refresh')
           .query({ refresh_token: refreshToken })
-          .expect(200)
+          .expect(statusCode(200))
           .expect(validJwt())
           .expect(validRefreshToken())
           .end(end(done))
@@ -35,7 +35,7 @@ it('should revoke the token', (done) => {
     request
       .post('/login')
       .send({ email, password })
-      .expect(200)
+      .expect(statusCode(200))
       .expect(validJwt())
       .expect(saveJwt(j => jwtToken = j))
       .end((err) => {
@@ -44,7 +44,7 @@ it('should revoke the token', (done) => {
         request
           .post('/token/revoke')
           .set({ Authorization: `Bearer ${jwtToken}` })
-          .expect(204)
+          .expect(statusCode(204))
           .end(end(done))
       })
   })

@@ -3,9 +3,10 @@ import requestVerification from './request-verification'
 import directChange from './direct-change'
 import changeVerified from './verify-and-change'
 import { APPLICATION, AUTHENTICATION } from '@config/index'
+import logger from '@/logger'
 
 if (AUTHENTICATION.NOTIFY_EMAIL_CHANGE && !APPLICATION.EMAILS_ENABLED)
-  console.warn(
+  logger.warn(
     "NOTIFY_EMAIL_CHANGE has been enabled but SMTP is not enabled. Email change notifications won't be sent."
   )
 

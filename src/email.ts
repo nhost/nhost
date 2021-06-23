@@ -1,11 +1,11 @@
 import { APPLICATION } from '@config/index'
 
 import Email from 'email-templates'
-import { request } from 'src/request'
+import { request } from '@/request'
 import nodemailer from 'nodemailer'
 import ejs from 'ejs'
-import { getEmailTemplate } from 'src/queries'
-import { QueryEmailTemplate } from 'src/types'
+import { getEmailTemplate } from '@/queries'
+import { QueryEmailTemplate } from '@/types'
 
 /**
  * SMTP transport.

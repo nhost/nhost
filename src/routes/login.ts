@@ -1,13 +1,13 @@
 import { NextFunction, Response, Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
-import { asyncWrapper, selectAccount, setRefreshToken } from 'src/helpers'
-import { newJwtExpiry, createHasuraJwt } from 'src/jwt'
-import { isAnonymousLogin, isMagicLinkLogin, LoginSchema, loginSchema } from 'src/validation'
-import { insertAccount, setNewTicket } from 'src/queries'
-import { request } from 'src/request'
-import { AccountData, UserData, Session } from 'src/types'
-import { emailClient } from 'src/email'
+import { asyncWrapper, selectAccount, setRefreshToken } from '@/helpers'
+import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { isAnonymousLogin, isMagicLinkLogin, LoginSchema, loginSchema } from '@/validation'
+import { insertAccount, setNewTicket } from '@/queries'
+import { request } from '@/request'
+import { AccountData, UserData, Session } from '@/types'
+import { emailClient } from '@/email'
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
@@ -18,7 +18,9 @@ interface HasuraData {
   }
 }
 
-async function loginAccount({ body, headers }: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
+async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
+  const { body, headers } = req
+
   if (isAnonymousLogin(body)) {
     let hasura_data: HasuraData
 
@@ -59,6 +61,10 @@ async function loginAccount({ body, headers }: ValidatedRequest<Schema>, res: Re
     const jwt_expires_in = newJwtExpiry
 
     const session: Session = { jwt_token, jwt_expires_in, user: account.user, refresh_token }
+
+    req.logger.verbose(`User ${account.user.id} logged in anonymously`, {
+      user_id: account.user.id
+    })
 
     return res.send(session)
   }
@@ -106,6 +112,11 @@ async function loginAccount({ body, headers }: ValidatedRequest<Schema>, res: Re
         }
       })
 
+      req.logger.verbose(`User ${account.user.id} logged in with magic link to email ${email}`, {
+        user_id: account.user.id,
+        email
+      })
+
       return res.send({ magicLink: true });
     } catch (err) {
       console.error(err)
@@ -143,6 +154,10 @@ async function loginAccount({ body, headers }: ValidatedRequest<Schema>, res: Re
       ticket_expires_at
     })
 
+    req.logger.verbose(`User ${account.user.id} logged in with MFA`, {
+      user_id: account.user.id
+    })
+
     return res.send({ mfa: true, ticket })
   }
 
@@ -159,6 +174,10 @@ async function loginAccount({ body, headers }: ValidatedRequest<Schema>, res: Re
     avatar_url: account.user.avatar_url
   }
   const session: Session = { jwt_token, jwt_expires_in, user, refresh_token }
+
+  req.logger.verbose(`User ${user.id} logged in`, {
+    user_id: user.id
+  })
 
   res.send(session)
 }

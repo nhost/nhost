@@ -1,10 +1,12 @@
+import logger from "./logger"
+
 export const enabledDeprecationWarning = (envVar: string) => {
   const oldVersion = `${envVar}_ENABLE`
   const newVersion = `${envVar}_ENABLED`
 
   // eslint-disable-next-line
   if(process.env.hasOwnProperty(oldVersion))
-    console.warn(`Deprecation warning: '${oldVersion}' env var will be removed in the next major release. Please use '${newVersion}' instead`)
+    logger.warn(`Deprecation warning: '${oldVersion}' env var will be removed in the next major release. Please use '${newVersion}' instead`)
 }
 
 [

@@ -1,4 +1,5 @@
 import { APPLICATION, PROVIDERS } from "@config/index";
+import logger from "./logger";
 
 function isUnset(val: any) {
   return typeof val === 'undefined' || typeof val === 'string' && val.length === 0
@@ -146,6 +147,6 @@ if(APPLICATION.EMAILS_ENABLED) {
 }
 
 if(errors.length) {
-  console.log(errors.join('\n'))
+  logger.error(errors.join('\n'))
   throw new Error('Invalid configuration')
 }

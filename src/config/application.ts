@@ -85,4 +85,10 @@ export const APPLICATION = {
   get RATING() {
     return process.env.GRAVATAR_RATING || 'g'
   },
+  get LOGGER_ENABLED() {
+    return castBooleanEnv('LOGGER_ENABLED') || castBooleanEnv('LOGGER_ENABLE') || true
+  },
+  get LOGGER_LEVEL() {
+    return process.env.LOGGER_LEVEL || 'info'
+  }
 }

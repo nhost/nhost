@@ -260,7 +260,7 @@ export type LoginSchema = RegularLogin | MagicLinkLogin | AnonymousLogin
 export const forgotSchema = Joi.object({ email: emailRule })
 
 export type ForgotSchema = {
-  email?: string
+  email: string
 }
 
 export const verifySchema = Joi.object({ ...ticketFields })

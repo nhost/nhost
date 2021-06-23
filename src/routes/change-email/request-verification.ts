@@ -1,17 +1,16 @@
 import { Response, Router } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 
-import { setNewTicket, setNewEmail } from 'src/queries'
+import { setNewTicket, setNewEmail } from '@/queries'
 import { APPLICATION, AUTHENTICATION } from '@config/index'
-import { emailClient } from 'src/email'
-import { request } from 'src/request'
-import { SetNewEmailData } from 'src/types'
-import { RequestExtended } from 'src/types'
-import { EmailResetSchema, emailResetSchema } from 'src/validation'
-import { ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
-import { accountWithEmailExists, asyncWrapper, selectAccountByUserId } from 'src/helpers'
+import { emailClient } from '@/email'
+import { request } from '@/request'
+import { SetNewEmailData } from '@/types'
+import { EmailResetSchema, emailResetSchema } from '@/validation'
+import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import { accountWithEmailExists, asyncWrapper, selectAccountByUserId } from '@/helpers'
 
-async function requestChangeEmail(req: RequestExtended<Schema>, res: Response): Promise<any> {
+async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<any> {
   if(!AUTHENTICATION.VERIFY_EMAILS) {
     return res.boom.badImplementation(`Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/request route.`)
   }
@@ -84,6 +83,11 @@ async function requestChangeEmail(req: RequestExtended<Schema>, res: Response): 
     console.error(err)
     return res.boom.badImplementation()
   }
+
+  req.logger.verbose(`User ${user_id} requested to change his email to ${new_email}`, {
+    user_id,
+    new_email
+  })
 
   return res.status(204).send()
 }
