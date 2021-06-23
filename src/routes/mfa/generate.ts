@@ -1,12 +1,12 @@
-import { Response, Router } from 'express'
+import { Request, Response, Router } from 'express'
 import { authenticator } from 'otplib'
-import { asyncWrapper, createQR, selectAccountByUserId } from 'src/helpers'
+import { asyncWrapper, createQR, selectAccountByUserId } from '@/helpers'
 import { MFA } from '@config/index'
-import { request } from 'src/request'
-import { updateOtpSecret } from 'src/queries'
-import { RequestExtended, AccountData } from 'src/types'
+import { request } from '@/request'
+import { updateOtpSecret } from '@/queries'
+import { AccountData } from '@/types'
 
-async function generateMfa(req: RequestExtended, res: Response): Promise<unknown> {
+async function generateMfa(req: Request, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
@@ -39,6 +39,10 @@ async function generateMfa(req: RequestExtended, res: Response): Promise<unknown
   } catch (err) {
     return res.boom.internal(err.message)
   }
+
+  req.logger.verbose(`User ${user_id} generated an OTP sercret to enable MFA`, {
+    user_id,
+  })
 
   return res.send({ image_url, otp_secret })
 }

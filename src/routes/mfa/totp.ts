@@ -1,10 +1,10 @@
 import { Response, Router } from 'express'
-import { asyncWrapper, rotateTicket, selectAccount, setRefreshToken } from 'src/helpers'
-import { newJwtExpiry, createHasuraJwt } from 'src/jwt'
-import { UserData, Session } from 'src/types'
+import { asyncWrapper, rotateTicket, selectAccount, setRefreshToken } from '@/helpers'
+import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { UserData, Session } from '@/types'
 
 import { authenticator } from 'otplib'
-import { TotpSchema, totpSchema } from 'src/validation'
+import { TotpSchema, totpSchema } from '@/validation'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
 // Increase the authenticator window so that TOTP codes from the previous 30 seconds are also valid
@@ -12,9 +12,10 @@ authenticator.options = {
   window: [1, 0]
 }
 
-async function totpLogin({ body }: ValidatedRequest<Schema>, res: Response): Promise<any> {
-  const { ticket, code } = body
-  const account = await selectAccount(body)
+async function totpLogin(req: ValidatedRequest<Schema>, res: Response): Promise<any> {
+  const { ticket, code } = req.body
+
+  const account = await selectAccount(req.body)
 
   if (!account) {
     return res.boom.unauthorized('Invalid or expired ticket.')
@@ -50,6 +51,10 @@ async function totpLogin({ body }: ValidatedRequest<Schema>, res: Response): Pro
   }
 
   const session: Session = { jwt_token, jwt_expires_in, user, refresh_token }
+
+  req.logger.verbose(`User ${account.user.id} logged in via a TOTP code`, {
+    user_id: account.user.id,
+  })
 
   res.send(session)
 }

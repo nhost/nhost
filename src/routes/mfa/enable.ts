@@ -1,14 +1,14 @@
-import { asyncWrapper, selectAccountByUserId } from 'src/helpers'
+import { asyncWrapper, selectAccountByUserId } from '@/helpers'
 import { Response, Router } from 'express'
-import { updateOtpStatus } from 'src/queries'
+import { updateOtpStatus } from '@/queries'
 
 import { authenticator } from 'otplib'
-import { MfaSchema, mfaSchema } from 'src/validation'
-import { request } from 'src/request'
-import { AccountData, RequestExtended } from 'src/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
+import { MfaSchema, mfaSchema } from '@/validation'
+import { request } from '@/request'
+import { AccountData } from '@/types'
+import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
-async function enableMfa(req: RequestExtended<Schema>, res: Response): Promise<unknown> {
+async function enableMfa(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
@@ -39,6 +39,10 @@ async function enableMfa(req: RequestExtended<Schema>, res: Response): Promise<u
   }
 
   await request(updateOtpStatus, { user_id, mfa_enabled: true })
+
+  req.logger.verbose(`User ${user_id} enabled MFA`, {
+    user_id,
+  })
 
   return res.status(204).send()
 }

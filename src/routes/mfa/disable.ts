@@ -1,14 +1,14 @@
-import { asyncWrapper, selectAccountByUserId } from 'src/helpers'
+import { asyncWrapper, selectAccountByUserId } from '@/helpers'
 import { Response, Router } from 'express'
-import { deleteOtpSecret } from 'src/queries'
+import { deleteOtpSecret } from '@/queries'
 
 import { authenticator } from 'otplib'
-import { MfaSchema, mfaSchema } from 'src/validation'
-import { request } from 'src/request'
-import { AccountData, RequestExtended } from 'src/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
+import { MfaSchema, mfaSchema } from '@/validation'
+import { request } from '@/request'
+import { AccountData } from '@/types'
+import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
-async function disableMfa(req: RequestExtended<Schema>, res: Response): Promise<unknown> {
+async function disableMfa(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
@@ -37,6 +37,10 @@ async function disableMfa(req: RequestExtended<Schema>, res: Response): Promise<
   }
 
   await request(deleteOtpSecret, { user_id })
+
+  req.logger.verbose(`User ${user_id} disabled MFA`, {
+    user_id,
+  })
 
   return res.status(204).send()
 }

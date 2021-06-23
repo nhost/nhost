@@ -1,8 +1,9 @@
 import { migrate } from 'postgres-migrations'
 import { Client } from 'pg'
+import logger from './logger'
 
 export async function applyMigrations(): Promise<void> {
-  console.log('Applying migrations')
+  logger.info('Applying migrations')
 
   const dbConfig = {
     connectionString: process.env.DATABASE_URL
@@ -15,5 +16,5 @@ export async function applyMigrations(): Promise<void> {
   } finally {
     await client.end()
   }
-  console.log('Finished applying migrations')
+  logger.info('Finished applying migrations')
 }

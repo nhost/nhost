@@ -1,14 +1,13 @@
 import { Response, Router } from 'express'
 
-import { changeEmailByUserId } from 'src/queries'
-import { request } from 'src/request'
-import { RequestExtended } from 'src/types'
+import { changeEmailByUserId } from '@/queries'
+import { request } from '@/request'
 import { AUTHENTICATION } from '@config/index'
-import { ContainerTypes, createValidator, ValidatedRequestSchema } from 'express-joi-validation'
-import { emailResetSchema, EmailResetSchema } from 'src/validation'
-import { accountWithEmailExists, asyncWrapper } from 'src/helpers'
+import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
+import { emailResetSchema, EmailResetSchema } from '@/validation'
+import { accountWithEmailExists, asyncWrapper } from '@/helpers'
 
-async function directChange(req: RequestExtended<Schema>, res: Response): Promise<unknown> {
+async function directChange(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(AUTHENTICATION.VERIFY_EMAILS) {
     return res.boom.badImplementation(`Please set the VERIFY_EMAILS env variable to false to use the auth/change-email route.`)
   }
@@ -23,6 +22,11 @@ async function directChange(req: RequestExtended<Schema>, res: Response): Promis
 
   // * Email verification is not activated - change email straight away
   await request(changeEmailByUserId, { user_id, new_email })
+
+  req.logger.verbose(`User ${user_id} directly changed his email to ${new_email}`, {
+    user_id,
+    new_email
+  })
 
   return res.status(204).send()
 }

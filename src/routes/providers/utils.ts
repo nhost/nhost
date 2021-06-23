@@ -3,23 +3,22 @@ import passport, { Profile } from 'passport'
 import { VerifyCallback } from 'passport-oauth2'
 import { Strategy } from 'passport'
 
-import { APPLICATION, PROVIDERS, REGISTRATION } from '@config/index'
-import { addProviderRequest, deleteProviderRequest, getProviderRequest, insertAccount, insertAccountProviderToUser, selectAccountProvider } from 'src/queries'
-import { asyncWrapper, selectAccountByEmail, setRefreshToken, getGravatarUrl, isAllowedEmail, selectAccountByUserId } from 'src/helpers'
-import { request } from 'src/request'
+import { PROVIDERS, REGISTRATION } from '@config/index'
+import { addProviderRequest, deleteProviderRequest, getProviderRequest, insertAccount, insertAccountProviderToUser, selectAccountProvider } from '@/queries'
+import { asyncWrapper, selectAccountByEmail, setRefreshToken, getGravatarUrl, isAllowedEmail, selectAccountByUserId } from '@/helpers'
+import { request } from '@/request'
 import {
   InsertAccountData,
   QueryAccountProviderData,
   AccountData,
   UserData,
-  RequestExtended,
   InsertAccountProviderToUser,
   QueryProviderRequests,
   PermissionVariables
-} from 'src/types'
-import { providerCallbackQuery, providerQuery } from 'src/validation'
+} from '@/types'
+import { providerCallbackQuery, providerQuery } from '@/validation'
 import { v4 as uuidv4 } from 'uuid'
-import { getClaims, getPermissionVariablesFromClaims } from 'src/jwt'
+import { getClaims, getPermissionVariablesFromClaims } from '@/jwt'
 
 interface RequestWithState extends Request {
   state: string
@@ -41,13 +40,13 @@ const manageProviderStrategy = (
   provider: string,
   transformProfile: TransformProfileFunction
 ) => async (
-  _req: RequestExtended & RequestWithState,
+  req: RequestWithState,
   _accessToken: string,
   _refreshToken: string,
   profile: Profile,
   done: VerifyCallback
 ): Promise<void> => {
-    _req.state = _req.query.state as string
+    req.state = req.query.state as string
 
     // TODO How do we handle REGISTRATION_CUSTOM_FIELDS with OAuth?
 
@@ -99,7 +98,7 @@ const manageProviderStrategy = (
 
     // Check whether logged in user is trying to add a provider
     const { jwt_token } = await request<QueryProviderRequests>(getProviderRequest, {
-      state: _req.state
+      state: req.state
     }).then(query => query.auth_provider_requests_by_pk)
 
     if(jwt_token) {
@@ -127,6 +126,12 @@ const manageProviderStrategy = (
         }
       )
 
+      req.logger.verbose(`User ${account.user.id} added a ${provider} provider(${id})`, {
+        user_id: account.user.id,
+        auth_provider: provider,
+        auth_provider_unique_id: id
+      })
+
       return done(null, insertAccountProviderToUserData.insert_auth_account_providers_one.account)
     }
 
@@ -144,7 +149,7 @@ const manageProviderStrategy = (
         data: [
           {
             auth_provider: provider,
-            auth_provider_unique_id: id.toString()
+            auth_provider_unique_id: id
           }
         ]
       }
@@ -154,10 +159,19 @@ const manageProviderStrategy = (
       account: account_data
     })
 
+    const user_id = hasura_account_provider_data.insert_auth_accounts.returning[0].user.id
+
+    req.logger.verbose(`New user registration with id ${user_id}, email ${email} and provider ${provider}(${id})`, {
+      user_id,
+      email,
+      auth_provider: provider,
+      auth_provider_unique_id: id
+    })
+
     return done(null, hasura_account_provider_data.insert_auth_accounts.returning[0])
   }
 
-const providerCallback = asyncWrapper(async (req: RequestExtended & RequestWithState, res: Response): Promise<void> => {
+const providerCallback = asyncWrapper(async (req: RequestWithState, res: Response): Promise<void> => {
   // Successful authentication, redirect home.
   // generate tokens and redirect back home
 

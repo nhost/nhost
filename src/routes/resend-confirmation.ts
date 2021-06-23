@@ -1,12 +1,12 @@
 import { APPLICATION, REGISTRATION } from '@config/index'
 import { Response, Router } from 'express'
-import { asyncWrapper, selectAccount, updateLastSentConfirmation } from 'src/helpers'
+import { asyncWrapper, selectAccount, updateLastSentConfirmation } from '@/helpers'
 
-import { emailClient } from 'src/email'
+import { emailClient } from '@/email'
 import { v4 as uuidv4 } from 'uuid'
-import { UserData, Session } from 'src/types'
+import { UserData, Session } from '@/types'
 import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
-import { ResendConfirmationSchema, resendConfirmationSchema } from 'src/validation'
+import { ResendConfirmationSchema, resendConfirmationSchema } from '@/validation'
 
 async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
@@ -73,6 +73,12 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
   await updateLastSentConfirmation(account.user.id)
 
   const session: Session = { jwt_token: null, jwt_expires_in: null, user }
+
+  req.logger.verbose(`User ${user.id} requested a confirmation email reset to ${user.email}`, {
+    user_id: user.id,
+    email: user.email,
+  })
+
   return res.send(session)
 }
 

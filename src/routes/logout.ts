@@ -1,20 +1,19 @@
 import { Response, Router } from 'express'
-import { asyncWrapper } from 'src/helpers'
-import { request } from 'src/request'
+import { asyncWrapper } from '@/helpers'
+import { request } from '@/request'
 import {
   selectRefreshToken,
   deleteAllAccountRefreshTokens,
   deleteRefreshToken
-} from 'src/queries'
-import { LogoutSchema, logoutSchema } from 'src/validation'
-import { AccountData, RequestExtended } from 'src/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
-
+} from '@/queries'
+import { LogoutSchema, logoutSchema } from '@/validation'
+import { AccountData } from '@/types'
+import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 interface HasuraData {
   auth_refresh_tokens: { account: AccountData }[]
 }
 
-async function logout({ body, refresh_token }: RequestExtended<Schema>, res: Response): Promise<unknown> {
+async function logout({ body, refresh_token }: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (!refresh_token) {
     return res.boom.unauthorized('Invalid or expired refresh token.')
   }

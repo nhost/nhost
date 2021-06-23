@@ -1,15 +1,14 @@
 import { Response, Router } from 'express'
 import { APPLICATION, AUTHENTICATION, REGISTRATION } from "@config/index";
-import { accountIsAnonymous, accountWithEmailExists, asyncWrapper, checkHibp, hashPassword, deanonymizeAccount as deanonymizeAccountHelper, selectAccountByUserId } from "src/helpers";
-import { DeanonymizeSchema, deanonymizeSchema } from 'src/validation';
-import { RequestExtended } from 'src/types';
-import { request } from 'src/request';
-import { changeEmailByUserId, changePasswordHashByUserId, deactivateAccount, setNewTicket } from 'src/queries';
-import { emailClient } from 'src/email';
+import { accountIsAnonymous, accountWithEmailExists, asyncWrapper, checkHibp, hashPassword, deanonymizeAccount as deanonymizeAccountHelper, selectAccountByUserId } from '@/helpers';
+import { DeanonymizeSchema, deanonymizeSchema } from '@/validation';
+import { request } from '@/request';
+import { changeEmailByUserId, changePasswordHashByUserId, deactivateAccount, setNewTicket } from '@/queries';
+import { emailClient } from '@/email';
 import { v4 as uuid4 } from 'uuid'
-import { ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation';
+import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation';
 
-async function deanonymizeAccount(req: RequestExtended<Schema>, res: Response): Promise<unknown> {
+async function deanonymizeAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const { email, password } = req.body
 
   if(!AUTHENTICATION.ANONYMOUS_USERS_ENABLED) {
@@ -53,6 +52,11 @@ async function deanonymizeAccount(req: RequestExtended<Schema>, res: Response): 
     await deanonymizeAccountHelper(
       await selectAccountByUserId(user_id),
     )
+
+    req.logger.verbose(`User ${user_id} deanonymized his account with email ${email}`, {
+      user_id,
+      email
+    })
   } else {
     const ticket = uuid4() // will be decrypted on the auth/activate call
     const ticket_expires_at = new Date(+new Date() + 60 * 60 * 1000) // active for 60 minutes

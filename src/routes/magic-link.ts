@@ -1,17 +1,17 @@
 import { APPLICATION } from '@config/index'
 import { Response, Router } from 'express'
 import Boom from '@hapi/boom'
-import { accountOfRefreshToken, activateAccount } from 'src/queries'
-import { asyncWrapper } from 'src/helpers'
-import { request } from 'src/request'
+import { accountOfRefreshToken, activateAccount } from '@/queries'
+import { asyncWrapper } from '@/helpers'
+import { request } from '@/request'
 import { v4 as uuidv4 } from 'uuid'
-import { MagicLinkQuery, magicLinkQuery } from 'src/validation'
-import { AccountData, UpdateAccountData } from 'src/types'
-import { setRefreshToken } from 'src/helpers'
+import { MagicLinkQuery, magicLinkQuery } from '@/validation'
+import { AccountData, UpdateAccountData } from '@/types'
+import { setRefreshToken } from '@/helpers'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
-async function magicLink({ query }: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  const { token, action } = query;
+async function magicLink(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
+  const { token, action } = req.query;
 
   let refresh_token = token;
   if (action === 'register') {
@@ -51,6 +51,10 @@ async function magicLink({ query }: ValidatedRequest<Schema>, res: Response): Pr
   if (!account) {
     throw Boom.unauthorized('Invalid or expired token.')
   }
+
+  req.logger.verbose(`User ${account.user.id} completed magic link ${action === 'register' ? 'registration' : 'login'}`, {
+    user_id: account.user.id
+  })
 
   // Redirect user with refresh token.
   // This is both for when users log in and register.

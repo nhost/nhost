@@ -1,10 +1,9 @@
-import { Response, Router } from 'express'
-import { deleteAllAccountRefreshTokens } from 'src/queries'
-import { request } from 'src/request'
-import { RequestExtended } from 'src/types'
-import { asyncWrapper } from 'src/helpers'
+import { Response, Router, Request } from 'express'
+import { deleteAllAccountRefreshTokens } from '@/queries'
+import { request } from '@/request'
+import { asyncWrapper } from '@/helpers'
 
-async function revokeToken(req: RequestExtended, res: Response): Promise<unknown> {
+async function revokeToken(req: Request, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }

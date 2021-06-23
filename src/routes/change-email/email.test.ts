@@ -4,7 +4,7 @@ import { mailHogSearch, deleteMailHogEmail, generateRandomEmail, withEnv } from 
 import { registerAndLoginAccount } from 'test/utils'
 
 import { request } from 'test/server'
-import { end } from 'test/supertest-shared-utils'
+import { end, statusCode } from 'test/supertest-shared-utils'
 
 it('should request to change email and receive a ticket by email', (done) => {
   withEnv({
@@ -19,7 +19,7 @@ it('should request to change email and receive a ticket by email', (done) => {
         .post(`/change-email/request`)
         .set({ Authorization: `Bearer ${jwtToken}` })
         .send({ new_email })
-        .expect(204)
+        .expect(statusCode(204))
         .end(async (err) => {
           if(err) return done(err)
 
@@ -49,7 +49,7 @@ it('should change the email from a ticket', (done) => {
         .post(`/change-email/request`)
         .set({ Authorization: `Bearer ${jwtToken}` })
         .send({ new_email })
-        .expect(204)
+        .expect(statusCode(204))
         .end(async (err) => {
           if(err) return done(err)
 
@@ -66,7 +66,7 @@ it('should change the email from a ticket', (done) => {
             .post(`/change-email/change`)
             .set({ Authorization: `Bearer ${jwtToken}` })
             .send({ ticket })
-            .expect(204)
+            .expect(statusCode(204))
             .end(end(done))
         })
     })
@@ -87,7 +87,7 @@ it('should reconnect using the new email', (done) => {
         .post(`/change-email/request`)
         .set({ Authorization: `Bearer ${jwtToken}` })
         .send({ new_email })
-        .expect(204)
+        .expect(statusCode(204))
         .end(async (err) => {
           if(err) return done(err)
 
@@ -102,14 +102,14 @@ it('should reconnect using the new email', (done) => {
             .post(`/change-email/change`)
             .set({ Authorization: `Bearer ${jwtToken}` })
             .send({ ticket })
-            .expect(204)
+            .expect(statusCode(204))
             .end((err) => {
               if(err) return done(err)
 
               request
                 .post('/login')
                 .send({ email: new_email, password })
-                .expect(200)
+                .expect(statusCode(200))
                 .end(end(done))
             })
         })

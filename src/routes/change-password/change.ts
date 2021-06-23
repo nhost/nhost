@@ -1,17 +1,17 @@
 import { Response, Router } from 'express'
 import bcrypt from 'bcryptjs'
 
-import { asyncWrapper, checkHibp, hashPassword, selectAccountByUserId } from 'src/helpers'
-import { ChangePasswordFromOldSchema, changePasswordFromOldSchema } from 'src/validation'
-import { updatePasswordWithUserId } from 'src/queries'
-import { request } from 'src/request'
-import { AccountData, RequestExtended } from 'src/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
+import { asyncWrapper, checkHibp, hashPassword, selectAccountByUserId } from '@/helpers'
+import { ChangePasswordFromOldSchema, changePasswordFromOldSchema } from '@/validation'
+import { updatePasswordWithUserId } from '@/queries'
+import { request } from '@/request'
+import { AccountData } from '@/types'
+import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
 /**
  * Change the password from the current one
  */
-async function basicPasswordChange(req: RequestExtended<Schema>, res: Response): Promise<unknown> {
+async function basicPasswordChange(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
@@ -50,6 +50,11 @@ async function basicPasswordChange(req: RequestExtended<Schema>, res: Response):
   await request(updatePasswordWithUserId, {
     user_id,
     password_hash: newPasswordHash
+  })
+
+  req.logger.verbose(`User ${user_id} directly changed his password to ${password_hash}`, {
+    user_id,
+    password_hash
   })
 
   return res.status(204).send()

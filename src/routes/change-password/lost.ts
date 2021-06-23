@@ -1,20 +1,20 @@
 import { Response, Router } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 
-import { asyncWrapper, selectAccountByEmail } from 'src/helpers'
+import { asyncWrapper, selectAccountByEmail } from '@/helpers'
 import { APPLICATION, AUTHENTICATION } from '@config/index'
-import { emailClient } from 'src/email'
-import { ForgotSchema, forgotSchema } from 'src/validation'
-import { setNewTicket } from 'src/queries'
-import { request } from 'src/request'
-import { AccountData } from 'src/types'
+import { emailClient } from '@/email'
+import { ForgotSchema, forgotSchema } from '@/validation'
+import { setNewTicket } from '@/queries'
+import { request } from '@/request'
+import { AccountData } from '@/types'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
 /**
  * * Creates a new temporary ticket in the account, and optionnaly send the link by email
  * Always return status code 204 in order to not leak information about emails in the database
  */
-async function requestChangePassword({ body }: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
+async function requestChangePassword(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.LOST_PASSWORD_ENABLED) {
     return res.boom.badImplementation(`Please set the LOST_PASSWORD_ENABLE env variable to true to use the auth/change-password/request route.`)
   }
@@ -24,7 +24,7 @@ async function requestChangePassword({ body }: ValidatedRequest<Schema>, res: Re
     return res.boom.badImplementation('SMTP settings unavailable')
   }
 
-  const { email } = await forgotSchema.validateAsync(body)
+  const { email } = req.body
 
   let account: AccountData;
 
@@ -90,6 +90,10 @@ async function requestChangePassword({ body }: ValidatedRequest<Schema>, res: Re
     console.error(err)
     return res.status(204).send()
   }
+
+  req.logger.verbose(`User ${account.user.id} forgot his password`, {
+    user_id: account.user.id,
+  })
 
   return res.status(204).send()
 }

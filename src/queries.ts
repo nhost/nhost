@@ -71,6 +71,10 @@ export const updatePasswordWithTicket = gql`
       _set: { password_hash: $password_hash, ticket: $new_ticket, ticket_expires_at: $now }
     ) {
       affected_rows
+      returning {
+        id,
+        user_id
+      }
     }
   }
 `
@@ -220,6 +224,7 @@ export const activateAccount = gql`
       affected_rows
       returning {
         id
+        user_id
       }
     }
   }
@@ -284,6 +289,10 @@ export const changeEmailByTicket = gql`
       _set: { email: $new_email, new_email: null, ticket: $new_ticket, ticket_expires_at: $now }
     ) {
       affected_rows
+      returning {
+        id,
+        user_id
+      }
     }
   }
 `

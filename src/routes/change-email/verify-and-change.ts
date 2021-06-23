@@ -1,21 +1,21 @@
 import { Response, Router } from 'express'
-import { asyncWrapper, rotateTicket, selectAccountByTicket } from 'src/helpers'
-import { changeEmailByTicket } from 'src/queries'
+import { asyncWrapper, rotateTicket, selectAccountByTicket } from '@/helpers'
+import { changeEmailByTicket } from '@/queries'
 
-import { request } from 'src/request'
-import { VerifySchema, verifySchema } from 'src/validation'
-import { AccountData, UpdateAccountData } from 'src/types'
+import { request } from '@/request'
+import { VerifySchema, verifySchema } from '@/validation'
+import { AccountData, UpdateAccountData } from '@/types'
 import { v4 as uuidv4 } from 'uuid'
 import { APPLICATION, AUTHENTICATION } from '@config/index'
-import { emailClient } from 'src/email'
+import { emailClient } from '@/email'
 import { ValidatedRequest, ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
 
-async function changeEmail({ body }: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
+async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.VERIFY_EMAILS) {
     return res.boom.badImplementation(`Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/change route.`)
   }
 
-  const { ticket } = body
+  const { ticket } = req.body
 
   let email: AccountData['email']
   let new_email: AccountData['new_email']
@@ -63,6 +63,13 @@ async function changeEmail({ body }: ValidatedRequest<Schema>, res: Response): P
     }
   }
   await rotateTicket(ticket)
+
+  req.logger.verbose(`User ${user.id}(ticket: ${ticket}) changed his email to ${new_email}`, {
+    user_id: user.id,
+    new_email,
+    ticket
+  })
+
 
   return res.status(204).send()
 }

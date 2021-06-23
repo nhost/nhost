@@ -12,7 +12,7 @@
     "check-dev-env": "path-exists .env.development || (echo 'No .env.development file found' && return 1)",
     "check-prod-env": "path-exists .env || (echo 'No .env file found' && return 1)",
     "dev": "run-s check-dev-env && dotenv -e .env.development -- docker-compose -p \"hbp_development\" -f docker-compose.yaml -f docker-compose.development.yaml build hasura-auth && dotenv -e .env.development -- docker-compose -p \"hbp_development\" -f docker-compose.yaml -f docker-compose.development.yaml run --service-ports --use-aliases --entrypoint \"npm run dev-command\" hasura-auth",
-    "dev-command": "ts-node-dev -r tsconfig-paths/register --no-deps --respawn --poll --interval 1000 --no-notify src/ts-start.ts",
+    "dev-command": "ts-node-dev -r tsconfig-paths/register --no-deps --files --watch src,test,types --respawn --poll --interval 1000 --no-notify src/ts-start.ts",
     "dev:debug": "run-s check-dev-env && dotenv -e .env.development -- docker-compose -p \"hbp_development\" -f docker-compose.yaml -f docker-compose.development.yaml build hasura-auth && dotenv -e .env.development -- docker-compose -p \"hbp_development\" -f docker-compose.yaml -f docker-compose.development.yaml run --service-ports --use-aliases --entrypoint \"npm run dev:debug-command\" hasura-auth",
     "dev:debug-command": "node -r ts-node/register -r tsconfig-paths/register --inspect-brk=0.0.0.0 src/ts-start.ts",
     "test": "run-s check-test-env && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml build hasura-auth && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --use-aliases --entrypoint \"npm run test-command\" hasura-auth",
@@ -21,7 +21,7 @@
     "test:watch": "run-s check-test-env && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml build hasura-auth && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --use-aliases --entrypoint \"npm run test:watch-command\" hasura-auth",
     "test:watch-command": "jest --watchAll",
     "test:debug": "run-s check-test-env && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml build hasura-auth && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --use-aliases --entrypoint \"npm run test:debug-command\" hasura-auth",
-    "test:debug-command": "node --inspect-brk=0.0.0.0 ./node_modules/jest/bin/jest.js --testTimeout=999999999 --runInBand",
+    "test:debug-command": "LOGGER_ENABLED=true LOGGER_LEVEL=debug node --inspect-brk=0.0.0.0 ./node_modules/jest/bin/jest.js --testTimeout=999999999 --runInBand",
     "report-coverage": "codecov",
     "docs:build": "vuepress build docs",
     "docs:dev": "vuepress dev docs",
@@ -40,7 +40,7 @@
     "@riderize/passport-strava-oauth2": "^1.1.1",
     "@types/sharp": "^0.27.1",
     "archiver": "4.0.1",
-    "aws-sdk": "2.656.0",
+    "axios": "0.21.1",
     "bcryptjs": "^2.4.3",
     "body-parser": "1.19.0",
     "compare-urls": "^2.0.0",
@@ -89,7 +89,7 @@
     "sharp": "^0.27.0",
     "temp-dir": "^2.0.0",
     "uuid": "7.0.3",
-    "axios": "0.21.1"
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "@types/archiver": "3.1.0",
@@ -111,7 +111,7 @@
     "@types/jest": "25.2.1",
     "@types/js-yaml": "3.12.3",
     "@types/lodash.kebabcase": "4.1.6",
-    "@types/morgan": "^1.9.0",
+    "@types/morgan": "^1.9.2",
     "@types/node": "^13.11.1",
     "@types/node-fetch": "^2.5.7",
     "@types/nodemailer": "6.4.0",
@@ -157,7 +157,8 @@
   "_moduleAliases": {
     "@middleware": "./dist/middleware",
     "@routes": "./dist/routes",
-    "@config": "./dist/config"
+    "@config": "./dist/config",
+    "@": "./dist"
   },
   "husky": {
     "hooks": {

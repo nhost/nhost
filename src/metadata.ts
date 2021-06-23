@@ -1,5 +1,6 @@
 import { APPLICATION } from '@config/index'
 import axios from 'axios'
+import logger from './logger'
 
 /**
  * https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/relationship.html
@@ -84,7 +85,7 @@ function trackRelationship(relationship: Relationship) {
 }
 
 export async function applyMetadata(): Promise<void> {
-  console.log('Applying metadata')
+  logger.info('Applying metadata')
 
   await Promise.allSettled([
     trackTable({ name: 'account_providers', schema: 'auth' }),
@@ -175,5 +176,5 @@ export async function applyMetadata(): Promise<void> {
     })
   ])
 
-  console.log('Finished applying metadata')
+  logger.info('Finished applying metadata')
 }

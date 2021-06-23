@@ -85,6 +85,7 @@ export interface UpdateAccountData {
     affected_rows: number
     returning: {
       id: string
+      user_id: string
     }[]
   }
 }
@@ -118,13 +119,6 @@ export interface QueryProviderRequests {
     redirect_url_failure: string,
     jwt_token?: string
   }
-}
-
-export type RefreshTokenMiddleware = string | null
-
-export interface RequestExtended<T extends ValidatedRequestSchema = ValidatedRequestSchema> extends ValidatedRequest<T> {
-  refresh_token?: RefreshTokenMiddleware
-  permission_variables?: PermissionVariables
 }
 
 export interface SetNewEmailData {

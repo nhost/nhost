@@ -2,8 +2,8 @@ import { Router } from 'express'
 import { Strategy, Profile } from '@nicokaiser/passport-apple'
 import { PROVIDERS } from '@config/index'
 import { initProvider } from './utils'
-import { UserData } from 'src/types'
-import { getGravatarUrl } from 'src/helpers'
+import { UserData } from '@/types'
+import { getGravatarUrl } from '@/helpers'
 
 const transformProfile = ({ id, name, email, photos }: Profile): UserData => ({
   id,

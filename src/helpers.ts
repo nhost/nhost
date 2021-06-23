@@ -1,5 +1,5 @@
 import { APPLICATION, JWT, REGISTRATION } from '@config/index'
-import { NextFunction, Response } from 'express'
+import { NextFunction, Response, Request } from 'express'
 import {
   deanonymizeAccount as deanonymizeAccountQuery,
   insertRefreshToken,
@@ -16,7 +16,7 @@ import bcrypt from 'bcryptjs'
 import { pwnedPassword } from 'hibp'
 import { request } from './request'
 import { v4 as uuidv4 } from 'uuid'
-import { AccountData, IsAllowedEmail, QueryAccountData, RequestExtended } from './types'
+import { AccountData, IsAllowedEmail, QueryAccountData } from './types'
 
 /**
  * Create QR code.
@@ -35,7 +35,7 @@ export async function createQR(secret: string): Promise<string> {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function asyncWrapper(fn: any) {
-  return function (req: RequestExtended, res: Response, next: NextFunction): void {
+  return function (req: Request, res: Response, next: NextFunction): void {
     fn(req, res, next).catch(next)
   }
 }

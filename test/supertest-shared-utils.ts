@@ -1,9 +1,17 @@
 import { Response } from 'superagent'
 
 export function end(done: any) {
-  return (err: Response) => {
+  return (err: any, res: Response) => {
     if (err) return done(err);
     else return done();
+  }
+}
+
+export function statusCode(status: number) {
+  return (res: Response) => {
+    if(res.status !== status) {
+      throw new Error(`Expected status code ${status} but instead received ${res.status} ${res.body.message}`)
+    }
   }
 }
 

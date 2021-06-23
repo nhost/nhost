@@ -3,7 +3,7 @@ import 'jest-extended'
 import { request } from 'test/server'
 
 import { authenticator } from 'otplib'
-import { end, saveJwt, validJwt, validRefreshToken } from 'test/supertest-shared-utils'
+import { end, saveJwt, validJwt, validRefreshToken, statusCode } from 'test/supertest-shared-utils'
 
 import { Response } from 'superagent'
 import { registerAccount, registerAndLoginAccount } from 'test/utils'
@@ -41,7 +41,7 @@ it('should generate a secret', (done) => {
     request
       .post('/login')
       .send({ email, password })
-      .expect(200)
+      .expect(statusCode(200))
       .expect(saveJwt((j) => (jwtToken = j)))
       .end((err) => {
         if (err) return done(err)
@@ -49,7 +49,7 @@ it('should generate a secret', (done) => {
         request
           .post('/mfa/generate')
           .set({ Authorization: `Bearer ${jwtToken}` })
-          .expect(200)
+          .expect(statusCode(200))
           .expect(validOtpSecret())
           .end(end(done))
       })
@@ -64,7 +64,7 @@ it('should enable mfa for account', (done) => {
     request
       .post('/login')
       .send({ email, password })
-      .expect(200)
+      .expect(statusCode(200))
       .expect(saveJwt((j) => (jwtToken = j)))
       .end((err) => {
         if (err) return done(err)
@@ -72,7 +72,7 @@ it('should enable mfa for account', (done) => {
         request
           .post('/mfa/generate')
           .set({ Authorization: `Bearer ${jwtToken}` })
-          .expect(200)
+          .expect(statusCode(200))
           .expect(validOtpSecret())
           .expect(saveOtpSecret((o) => (otpSecret = o)))
           .end((err) => {
@@ -82,7 +82,7 @@ it('should enable mfa for account', (done) => {
               .post('/mfa/enable')
               .set({ Authorization: `Bearer ${jwtToken}` })
               .send({ code: authenticator.generate(otpSecret) })
-              .expect(204)
+              .expect(statusCode(204))
               .end(end(done))
           })
       })
@@ -97,7 +97,7 @@ it('should sign the account in (mfa)', (done) => {
     request
       .post('/mfa/generate')
       .set({ Authorization: `Bearer ${jwtToken}` })
-      .expect(200)
+      .expect(statusCode(200))
       .expect(validOtpSecret())
       .expect(saveOtpSecret((o) => (otpSecret = o)))
       .end((err) => {
@@ -107,14 +107,14 @@ it('should sign the account in (mfa)', (done) => {
           .post('/mfa/enable')
           .set({ Authorization: `Bearer ${jwtToken}` })
           .send({ code: authenticator.generate(otpSecret) })
-          .expect(204)
+          .expect(statusCode(204))
           .end((err) => {
             if (err) return done(err)
 
             request
               .post('/login')
               .send({ email, password })
-              .expect(200)
+              .expect(statusCode(200))
               .expect(validTicket())
               .expect(saveTicket((t) => (ticket = t)))
               .end((err) => {
@@ -126,7 +126,7 @@ it('should sign the account in (mfa)', (done) => {
                     ticket,
                     code: authenticator.generate(otpSecret)
                   })
-                  .expect(200)
+                  .expect(statusCode(200))
                   .expect(validJwt())
                   .expect(validRefreshToken())
                   .end(end(done))
@@ -145,7 +145,7 @@ it('should disable mfa for account', (done) => {
     request
       .post('/mfa/generate')
       .set({ Authorization: `Bearer ${jwtToken}` })
-      .expect(200)
+      .expect(statusCode(200))
       .expect(validOtpSecret())
       .expect(saveOtpSecret((o) => (otpSecret = o)))
       .end((err) => {
@@ -155,14 +155,14 @@ it('should disable mfa for account', (done) => {
           .post('/mfa/enable')
           .send({ code: authenticator.generate(otpSecret) })
           .set({ Authorization: `Bearer ${jwtToken}` })
-          .expect(204)
+          .expect(statusCode(204))
           .end((err) => {
             if (err) return done(err)
 
             request
               .post('/login')
               .send({ email, password })
-              .expect(200)
+              .expect(statusCode(200))
               .expect(validTicket())
               .expect(saveTicket((t) => (ticket = t)))
               .end((err) => {
@@ -174,7 +174,7 @@ it('should disable mfa for account', (done) => {
                     ticket,
                     code: authenticator.generate(otpSecret)
                   })
-                  .expect(200)
+                  .expect(statusCode(200))
                   .expect(validJwt())
                   .expect(saveJwt((j) => (secondJwtToken = j)))
                   .expect(validRefreshToken())
@@ -185,7 +185,7 @@ it('should disable mfa for account', (done) => {
                       .post('/mfa/disable')
                       .set({ Authorization: `Bearer ${secondJwtToken}` })
                       .send({ code: authenticator.generate(otpSecret) })
-                      .expect(204)
+                      .expect(statusCode(204))
                       .end(end(done))
                   })
               })
@@ -201,7 +201,7 @@ it('should not generate mfa qr if mfa enabled for account', (done) => {
     request
       .post('/mfa/generate')
       .set({ Authorization: `Bearer ${jwtToken}` })
-      .expect(200)
+      .expect(statusCode(200))
       .expect(validOtpSecret())
       .expect(saveOtpSecret((o) => (otpSecret = o)))
       .end((err) => {
@@ -211,14 +211,14 @@ it('should not generate mfa qr if mfa enabled for account', (done) => {
           .post('/mfa/enable')
           .send({ code: authenticator.generate(otpSecret) })
           .set({ Authorization: `Bearer ${jwtToken}` })
-          .expect(204)
+          .expect(statusCode(204))
           .end((err) => {
             if (err) return done(err)
 
             request
               .post('/login')
               .send({ email, password })
-              .expect(200)
+              .expect(statusCode(200))
               .expect(validTicket())
               .end((err) => {
                 if (err) return done(err)
@@ -226,7 +226,7 @@ it('should not generate mfa qr if mfa enabled for account', (done) => {
                 request
                   .post('/mfa/generate')
                   .set({ Authorization: `Bearer ${jwtToken}` })
-                  .expect(400)
+                  .expect(statusCode(400))
                   .end(end(done))
               })
           })

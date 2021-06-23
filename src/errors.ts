@@ -1,5 +1,5 @@
-import { NextFunction, Response } from 'express'
-import { RequestExtended } from 'src/types'
+import { NextFunction, Response, Request } from 'express'
+import logger from './logger'
 
 interface Error {
   output?: {
@@ -19,7 +19,7 @@ interface Error {
  */
 export async function errors(
   err: Error,
-  _req: RequestExtended,
+  _req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
@@ -27,7 +27,7 @@ export async function errors(
   const code = err?.output?.statusCode || 400
 
   // log error
-  console.error(err)
+  logger.error(err)
 
   /**
    * The default error message looks like this.

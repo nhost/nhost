@@ -1,17 +1,17 @@
-import { Response, Router } from 'express'
-import { selectRefreshToken, updateRefreshToken } from 'src/queries'
+import { Response, Router, Request } from 'express'
+import { selectRefreshToken, updateRefreshToken } from '@/queries'
 
-import { newJwtExpiry, createHasuraJwt } from 'src/jwt'
-import { request } from 'src/request'
+import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { request } from '@/request'
 import { v4 as uuidv4 } from 'uuid'
-import { AccountData, UserData, Session, RequestExtended } from 'src/types'
-import { asyncWrapper, newRefreshExpiry } from 'src/helpers'
+import { AccountData, UserData, Session } from '@/types'
+import { asyncWrapper, newRefreshExpiry } from '@/helpers'
 
 interface HasuraData {
   auth_refresh_tokens: { account: AccountData }[]
 }
 
-async function refreshToken({ refresh_token }: RequestExtended, res: Response): Promise<any> {
+async function refreshToken({ refresh_token }: Request, res: Response): Promise<any> {
   if (!refresh_token) {
     return res.boom.unauthorized('Invalid or expired refresh token.')
   }

@@ -1,12 +1,11 @@
 import { Response, Router } from 'express'
-import { RequestExtended } from 'src/types';
-import { request } from 'src/request';
-import { asyncWrapper } from 'src/helpers';
-import { changeLocaleByUserId } from 'src/queries';
-import { LocaleQuery, localeQuery } from 'src/validation';
-import { ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation';
+import { request } from '@/request';
+import { asyncWrapper } from '@/helpers';
+import { changeLocaleByUserId } from '@/queries';
+import { LocaleQuery, localeQuery } from '@/validation';
+import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation';
 
-async function changeLocale(req: RequestExtended<Schema>, res: Response): Promise<unknown> {
+async function changeLocale(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
@@ -14,6 +13,11 @@ async function changeLocale(req: RequestExtended<Schema>, res: Response): Promis
   const { locale } = req.query
 
   await request(changeLocaleByUserId, {
+    user_id: req.permission_variables['user-id'],
+    locale
+  })
+
+  req.logger.verbose(`User ${req.permission_variables['user-id']} changed his locale to ${locale}`, {
     user_id: req.permission_variables['user-id'],
     locale
   })
