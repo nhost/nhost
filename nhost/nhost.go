@@ -213,7 +213,7 @@ func GenerateConfig(options Project) Configuration {
 	}
 
 	hbp := Service{
-		Version: "v2.5.0",
+		Version: "v2.6.0",
 		Port:    9001,
 	}
 

@@ -46,6 +46,7 @@ import (
 	"github.com/docker/go-connections/nat"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -85,18 +86,17 @@ func cleanup(cmd *cobra.Command) {
 }
 
 func execute(cmd *cobra.Command, args []string) {
-	log.WithField("component", "development").Info("Initializing environment")
 
 	// check if /nhost exists
 	if !pathExists(nhost.NHOST_DIR) {
-		log.Error("Initialize a project by running 'nhost' or 'nhost init'")
+		log.Info("Initialize a project by running 'nhost' or 'nhost init'")
 		log.Fatal("Project not found in this directory")
 	}
 
 	// create /.nhost if it doesn't exist
 	if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
 		log.Debug(err)
-		log.Fatal("Failed to initialize nhost specific directory")
+		log.Fatal("Failed to initialize nhost data directory")
 	}
 
 	// connect to docker client
@@ -108,7 +108,13 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 	defer docker.Close()
 
-	log.WithField("docker", docker.ClientVersion()).Debug("Docker client version")
+	// break execution if docker deamon is not running
+	_, err = docker.Info(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.WithField("component", "development").Info("Initializing environment")
 
 	// check if this is the first time dev env is running
 	firstRun := !pathExists(path.Join(nhost.DOT_NHOST, "db_data"))
@@ -146,7 +152,10 @@ func execute(cmd *cobra.Command, args []string) {
 	networkID, err := prepareNetwork(docker, ctx, nhost.PROJECT)
 	if err != nil {
 		log.Debug(err)
-		log.WithField("network", nhost.PROJECT).Fatal("Failed to prepare network for Nhost stack")
+		log.WithFields(logrus.Fields{
+			"network": nhost.PROJECT,
+			"type":    "network",
+		}).Debug("Failed to prepare network")
 	}
 
 	// create and start the conatiners
@@ -154,10 +163,16 @@ func execute(cmd *cobra.Command, args []string) {
 
 		if err := runContainer(docker, ctx, item["config"].(*container.Config), item["host_config"].(*container.HostConfig), item["name"].(string), networkID); err != nil {
 			log.Debug(err)
-			log.WithField("component", item["name"]).Error("Failed to start container")
+			log.WithFields(logrus.Fields{
+				"container": item["name"],
+				"type":      "container",
+			}).Error("Failed to start")
 			cleanup(cmd)
 		}
-		log.WithField("component", item["name"]).Debug("Container created")
+		log.WithFields(logrus.Fields{
+			"container": item["name"],
+			"type":      "container",
+		}).Debug("Created")
 	}
 
 	log.Info("Running a quick health check on services")
@@ -197,11 +212,8 @@ func execute(cmd *cobra.Command, args []string) {
 
 	log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
 	log.Infof("Hasura Backend Plus: http://localhost:%v", nhostConfig.Services["hasura_backend_plus"].Port)
-	fmt.Println()
-
-	log.WithField("component", "background").Infof("Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
-	log.WithField("component", "background").Infof("Postgres: http://localhost:%v", nhostConfig.Services["postgres"].Port)
-	fmt.Println()
+	log.Infof("Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
+	log.Infof("Postgres: http://localhost:%v", nhostConfig.Services["postgres"].Port)
 
 	if pathExists(nhost.API_DIR) {
 		log.Infof("Custom API: http://localhost:%v", nhostConfig.Services["api"].Port)
@@ -292,6 +304,8 @@ func execute(cmd *cobra.Command, args []string) {
 }
 
 func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
+
+	log.Debug("Prearing migrations and metadata")
 
 	var (
 		cmdArgs []string
@@ -532,7 +546,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	// if API container is going to be launched,
 	// validate it's image too
 	if startAPI {
-		log.Debug("API detected")
 		requiredImages = append(requiredImages, fmt.Sprintf("nhost/nodeapi:%v", "latest"))
 	}
 
@@ -557,7 +570,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 			if err = pullImage(client, requiredImage); err != nil {
 				log.Debug(err)
 				log.WithField("component", requiredImage).Error("Failed to pull image")
-				log.WithField("component", requiredImage).Infof("Pull it manually with %vdocker image pull %v && nhost dev%v", Bold, requiredImage, Reset)
+				log.WithField("component", requiredImage).Infof("Pull it manually with `docker image pull %v && nhost dev`", requiredImage)
 			}
 		}
 	}
@@ -626,11 +639,13 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 			},
 		},
 		"host_config": &container.HostConfig{
-			// AutoRemove:   true,
+			AutoRemove:   true,
 			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", postgresConfig.Port)): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", postgresConfig.Port)}}},
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
+			/*
+				RestartPolicy: container.RestartPolicy{
+					Name: "always",
+				},
+			*/
 			Mounts: mountPoints,
 		},
 	}
@@ -701,7 +716,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		},
 
 		"host_config": &container.HostConfig{
-			// AutoRemove: true,
+			AutoRemove: true,
 			//Links: links,
 			// Binds: []string{nhost.METADATA_DIR, nhost.MIGRATIONS_DIR},
 			PortBindings: map[nat.Port][]nat.PortBinding{
@@ -761,13 +776,15 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		},
 
 		"host_config": &container.HostConfig{
-			// AutoRemove: true,
+			AutoRemove: true,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(minioConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(minioConfig.Port)}}},
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
+			/*
+				RestartPolicy: container.RestartPolicy{
+					Name: "always",
+				},
+			*/
 			Mounts: mountPoints,
 		},
 	}
@@ -844,14 +861,16 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		"host_config": &container.HostConfig{
-			// AutoRemove: true,
+			AutoRemove: true,
 			//Links: []string{"nhost_hasura:nhost_hasura", "nhost_minio:nhost-minio", "nhost_postgres:nhost-postgres"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(hbpConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hbpConfig.Port)}}},
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
+			/*
+						RestartPolicy: container.RestartPolicy{
+					Name: "always",
+				},
+			*/
 			Mounts: []mount.Mount{
 				{
 					Type:   mount.TypeBind,
@@ -872,6 +891,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	// if API directory is generated,
 	// generate it's container configuration too
 	if startAPI {
+		log.WithField("container", getContainerName("api")).Warn("Starting the API container will take a little extra time. Hang on!")
 		APIContainer, err := getAPIContainerConfig(apiConfig, hbpConfig, hasuraConfig, envVars, options.Environment["graphql_jwt_key"].(string))
 		if err != nil {
 			log.Errorf("Failed to create %s conatiner", "API")
@@ -925,13 +945,15 @@ func getAPIContainerConfig(
 			Cmd:          []string{"sh", "-c", "./install.sh && ./entrypoint-dev.sh"},
 		},
 		"host_config": &container.HostConfig{
-			// AutoRemove: true,
+			AutoRemove: true,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(apiConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(apiConfig.Port)}}},
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
+			/*
+				RestartPolicy: container.RestartPolicy{
+					Name: "always",
+				},
+			*/
 			Mounts: []mount.Mount{
 				{
 					Type:   mount.TypeBind,
@@ -959,9 +981,7 @@ func pullImage(cli *client.Client, tag string) error {
 	*/
 
 	dockerCLI, _ := exec.LookPath("docker")
-	err := exec.Command(dockerCLI, "image", "pull", tag).Run()
-
-	return err
+	return exec.Command(dockerCLI, "image", "pull", tag).Run()
 }
 
 func getContainerName(name string) string {

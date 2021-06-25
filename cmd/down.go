@@ -27,7 +27,6 @@ import (
 	"context"
 	"io"
 	"os"
-	"path"
 	"strings"
 	"sync"
 
@@ -35,6 +34,7 @@ import (
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -54,14 +54,20 @@ var downCmd = &cobra.Command{
 		ctx := context.Background()
 		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
+			log.Debug(err)
 			log.Fatal("Failed to connect to docker client")
 		}
 
-		if err := shutdownServices(docker, ctx, LOG_FILE); err != nil {
-			log.Error("Failed to shut down Nhost services")
+		// break execution if docker deamon is not running
+		_, err = docker.Info(ctx)
+		if err != nil {
+			log.Fatal(err)
 		}
 
-		deletePath(path.Join(nhost.DOT_NHOST, "Dockerfile-api"))
+		if err := shutdownServices(docker, ctx, LOG_FILE); err != nil {
+			log.Debug(err)
+			log.Error("Failed to shut down Nhost services")
+		}
 
 		if contains(args, "exit") {
 			log.Info("Cleanup complete. See you later, grasshopper!")
@@ -102,18 +108,14 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 		}
 
 		go func(cli *client.Client, ctx context.Context, container types.Container, wg *sync.WaitGroup) {
-			if err := stopContainer(cli, ctx, container); err == nil {
-				go func(cli *client.Client, ctx context.Context, container types.Container, wg *sync.WaitGroup) {
-					if err := removeContainer(cli, ctx, container); err != nil {
-						log.Debug(err)
-						log.WithField("container", name).Error("Failed to remove container")
-					}
-					wg.Done()
-				}(cli, ctx, container, &end_waiter)
-			} else {
+			if err := stopContainer(cli, ctx, container); err != nil {
 				log.Debug(err)
-				log.WithField("container", name).Error("Failed to stop container")
+				log.WithFields(logrus.Fields{
+					"container": name,
+					"type":      "container",
+				}).Error("Failed to stop")
 			}
+			wg.Done()
 		}(cli, ctx, container, &end_waiter)
 	}
 
@@ -155,7 +157,10 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 // removes a given network by ID
 func removeNetwork(cli *client.Client, ctx context.Context, ID string) error {
 
-	log.WithField("network", ID).Debug("Removing network")
+	log.WithFields(logrus.Fields{
+		"network": ID,
+		"type":    "network",
+	}).Debug("Removing")
 
 	err := cli.NetworkRemove(ctx, ID)
 	return err
@@ -164,7 +169,10 @@ func removeNetwork(cli *client.Client, ctx context.Context, ID string) error {
 // fetches ID of docker network by name
 func prepareNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
 
-	log.WithField("network", name).Debug("Preparing network")
+	log.WithFields(logrus.Fields{
+		"network": name,
+		"type":    "network",
+	}).Debug("Preparing")
 
 	response, err := getNetwork(cli, ctx, name)
 	if err != nil {
@@ -172,16 +180,22 @@ func prepareNetwork(cli *client.Client, ctx context.Context, name string) (strin
 	}
 	if response != "" {
 
-		log.WithField("network", name).Debug("Network found")
+		log.WithFields(logrus.Fields{
+			"network": name,
+			"type":    "network",
+		}).Debug("Found")
 		return response, nil
 
 	} else {
-		log.WithField("network", name).Debug("Creating network")
+		log.WithFields(logrus.Fields{
+			"network": name,
+			"type":    "network",
+		}).Debug("Creating")
 
 		// create new network if no network such exists
 		net, err := cli.NetworkCreate(ctx, name, types.NetworkCreate{})
 		if err != nil {
-			log.WithField("network", name).Debug("Failed to create network")
+			return "", err
 		}
 		return net.ID, nil
 	}
@@ -190,7 +204,10 @@ func prepareNetwork(cli *client.Client, ctx context.Context, name string) (strin
 // fetches ID of docker network by name
 func getNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
 
-	log.WithField("network", name).Debug("Fetching network")
+	log.WithFields(logrus.Fields{
+		"network": name,
+		"type":    "network",
+	}).Debug("Fetching")
 
 	f := filters.NewArgs(filters.KeyValuePair{
 		Key:   "name",
@@ -209,7 +226,10 @@ func getNetwork(cli *client.Client, ctx context.Context, name string) (string, e
 // stops given container
 func stopContainer(cli *client.Client, ctx context.Context, container types.Container) error {
 
-	log.WithField("component", container.Names[0]).Debug("Stopping container")
+	log.WithFields(logrus.Fields{
+		"component": container.Names[0],
+		"type":      "container",
+	}).Debug("Stopping")
 
 	return cli.ContainerStop(ctx, container.ID, nil)
 }
@@ -218,7 +238,10 @@ func stopContainer(cli *client.Client, ctx context.Context, container types.Cont
 // and writes them to a log file
 func getContainerLogs(cli *client.Client, ctx context.Context, container types.Container) ([]byte, error) {
 
-	log.WithField("component", container.Names[0]).Debug("Fetching container logs")
+	log.WithFields(logrus.Fields{
+		"component": container.Names[0],
+		"type":      "container",
+	}).Debug("Fetching logs")
 
 	var response []byte
 
@@ -247,7 +270,10 @@ func getContainerLogs(cli *client.Client, ctx context.Context, container types.C
 // removes given container
 func removeContainer(cli *client.Client, ctx context.Context, container types.Container) error {
 
-	log.WithField("component", container.Names[0]).Debug("Removing container")
+	log.WithFields(logrus.Fields{
+		"component": container.Names[0],
+		"type":      "container",
+	}).Debug("Removing")
 
 	removeOptions := types.ContainerRemoveOptions{
 		//RemoveVolumes: true,

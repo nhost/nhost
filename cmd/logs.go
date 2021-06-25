@@ -71,7 +71,11 @@ for the logged in user from Nhost console and present them.`,
 		}
 		defer docker.Close()
 
-		log.WithField("docker", docker.ClientVersion()).Debug("Docker client version")
+		// break execution if docker deamon is not running
+		_, err = docker.Info(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		// fetch list of all running containers
 		containers, err := getContainers(docker, ctx, nhost.PROJECT)

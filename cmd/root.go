@@ -160,8 +160,10 @@ var (
 func Execute() {
 
 	if err := rootCmd.Execute(); err != nil {
-		log.Println(err)
-		os.Exit(1)
+		if !DEBUG {
+			log.Info("Use `--debug` flag to trace the logs next time")
+		}
+		log.Fatal(err)
 	}
 
 	// un-comment the following to auto-generate documentation

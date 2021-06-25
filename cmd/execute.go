@@ -74,6 +74,12 @@ already running Nhost service containers.`,
 		}
 		defer docker.Close()
 
+		// break execution if docker deamon is not running
+		_, err = docker.Info(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		// fetch list of all running containers
 		containers, err := getContainers(docker, ctx, nhost.PROJECT)
 		if err != nil {

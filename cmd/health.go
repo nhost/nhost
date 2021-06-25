@@ -29,6 +29,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -102,6 +103,12 @@ respective containers and service-exclusive health endpoints.`,
 
 		defer docker.Close()
 
+		// break execution if docker deamon is not running
+		_, err = docker.Info(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		// fetch list of all running containers
 		containers, err := getContainers(docker, ctx, nhost.PROJECT)
 		if err != nil {
@@ -121,16 +128,27 @@ respective containers and service-exclusive health endpoints.`,
 				// first check whether the service container is at least active and responding
 				go func(container types.Container, service Container, containerValidated *bool, serviceValidated *bool, wg *sync.WaitGroup) {
 					if strings.Contains(container.Names[0], service.Name) {
-						log.WithField("container", service.Name).Info("Container is active and responding")
+						/*
+							log.WithFields(logrus.Fields{
+								"container": service.Name,
+								"type":      "container",
+							}).Info("Active and responding")
+						*/
 
 						// validate their corresponding health check endpoints
 						if service.HealthCheckEndpoint != "" {
 
 							valid := checkServiceHealth(service.Name, service.HealthCheckEndpoint)
 							if valid {
-								log.WithField("container", service.Name).Info("Service specific health check successful")
+								log.WithFields(logrus.Fields{
+									"container": service.Name,
+									"type":      "service",
+								}).Info("Health check successful")
 							} else {
-								log.WithField("container", service.Name).Error("Service specific health check timed out")
+								log.WithFields(logrus.Fields{
+									"container": service.Name,
+									"type":      "service",
+								}).Error("Health check timed out")
 							}
 							wg.Done()
 
@@ -140,7 +158,10 @@ respective containers and service-exclusive health endpoints.`,
 							response, err := Exec(docker, ctx, container.ID, service.Command)
 							if err != nil {
 								log.Debug(err)
-								log.WithField("container", service.Name).Error("Service specific health check unsuccessful")
+								log.WithFields(logrus.Fields{
+									"container": service.Name,
+									"type":      "service",
+								}).Error("Health check unsuccessful")
 								wg.Done()
 								return
 							}
@@ -150,12 +171,18 @@ respective containers and service-exclusive health endpoints.`,
 							result, err := InspectExecResp(docker, ctx, response.ID)
 							if err != nil {
 								log.Debug(err)
-								log.WithField("container", service.Name).Error("Service specific health check unsuccessful")
+								log.WithFields(logrus.Fields{
+									"container": service.Name,
+									"type":      "service",
+								}).Error("Health check unsuccessful")
 								wg.Done()
 								return
 							}
 							if valid := strings.Contains(result.StdOut, "accepting connections"); valid {
-								log.WithField("container", service.Name).Info("Service specific health check successful")
+								log.WithFields(logrus.Fields{
+									"container": service.Name,
+									"type":      "service",
+								}).Info("Health check successful")
 							}
 
 							wg.Done()
@@ -232,12 +259,15 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 
 func checkServiceHealth(name, url string) bool {
 
-	for i := 1; i <= 30; i++ {
+	for x := 1; x <= 30; x++ {
 		if valid := validateEndpointHealth(url); valid {
 			return true
 		}
 		time.Sleep(2 * time.Second)
-		log.WithField("container", name).Debugf("Service specific health check attempt #%v unsuccessful", i)
+		log.WithFields(logrus.Fields{
+			"container": name,
+			"type":      "service",
+		}).Debugf("Health check attempt #%v unsuccessful", x)
 	}
 	return false
 }

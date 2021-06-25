@@ -236,7 +236,9 @@ For versions less than `v1.0.0`:
 - [Docker](https://www.docker.com/get-started)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 - [curl](https://curl.se/)
+- [Git](https://git-scm.com/downloads)
 
 For versions >= `v1.0.0`:
 
 - [Docker](https://www.docker.com/get-started)
+- [Git](https://git-scm.com/downloads)
