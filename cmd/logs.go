@@ -114,7 +114,7 @@ for the logged in user from Nhost console and present them.`,
 			}
 
 			if selectedContainer.ID == "" {
-				log.WithField("service", service).Fatal("No such running service")
+				log.WithField("service", service).Fatal("No such running service found")
 			}
 		} else {
 

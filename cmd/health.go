@@ -116,9 +116,29 @@ respective containers and service-exclusive health endpoints.`,
 			log.Fatal("Failed to fetch running containers")
 		}
 
+		var targets []Container
+
+		if service != "" {
+			for _, item := range services {
+				if service == item.Name {
+					for _, container := range containers {
+						if strings.Contains(container.Names[0], item.Name) {
+							targets = append(targets, item)
+						}
+					}
+				}
+			}
+
+			if len(targets) == 0 {
+				log.WithField("service", service).Fatal("No such running service found")
+			}
+		} else {
+			targets = services
+		}
+
 		var wg sync.WaitGroup
 
-		for _, service := range services {
+		for _, service := range targets {
 			wg.Add(1)
 
 			containerValidated := false
@@ -299,4 +319,5 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// healthCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	healthCmd.Flags().StringVarP(&service, "service", "s", "", "Service to check health of")
 }

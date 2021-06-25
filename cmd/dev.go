@@ -169,14 +169,27 @@ func execute(cmd *cobra.Command, args []string) {
 			}).Error("Failed to start")
 			cleanup(cmd)
 		}
+
+		// run health check to ensure this container is active before launching next one
+		// this is done to ensure required services by future containers are already active
+		// especially required for GraphQL engine to become active before HBP
+		service = item["name"].(string)
+		healthCmd.Run(cmd, args)
+
+		// notify the user
 		log.WithFields(logrus.Fields{
 			"container": item["name"],
 			"type":      "container",
 		}).Debug("Created")
 	}
 
-	log.Info("Running a quick health check on services")
-	healthCmd.Run(cmd, args)
+	// reset service flag for future use
+	service = ""
+
+	/*
+		log.Info("Running a quick health check on services")
+		healthCmd.Run(cmd, args)
+	*/
 
 	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
 
@@ -885,8 +898,8 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	containers = append(containers, minioContainer)
 
 	// add depends_on for following containers
-	containers = append(containers, hasuraBackendPlusContainer)
 	containers = append(containers, hasuraContainer)
+	containers = append(containers, hasuraBackendPlusContainer)
 
 	// if API directory is generated,
 	// generate it's container configuration too
