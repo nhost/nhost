@@ -13,7 +13,7 @@
   </p>
 </div>
 
-[LATEST UPDATE: Flutter and Dart SDK has been released 🎉](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost)
+[LATEST UPDATE: Flutter and Dart SDK have been released 🎉](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost)
 
 **Nhost is an easy-to-use, full-featured backend-as-a-service (Baas) for your web and mobile apps.** Use GraphQL and our JS/TS or Flutter SDKs to build modern web and mobile apps that scale.
 
