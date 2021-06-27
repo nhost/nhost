@@ -9,7 +9,7 @@
 ## Connect to Hasura
 
 In order to connect HBP to Hasura, you need to provide the Hasura GraphQL endpoint in the `HASURA_ENDPOINT` environment variable. Note that this should include the full path of the GraphQL endpoint, usually ending with `/v1/graphql`.
-For example, in the [default docker-compose file of the HBP repository](https://github.com/nhost/hasura-auth/blob/master/docker-compose.yaml), `HASURA_ENDPOINT` equals `http://graphql-engine:8080/v1/graphql`.
+For example, in the [default docker-compose file of the HBP repository](https://github.com/nhost/hasura-auth/blob/main/docker-compose.yaml), `HASURA_ENDPOINT` equals `http://graphql-engine:8080/v1/graphql`.
 
 You also need to provide a valid Hasura admin secret key in the `HASURA_GRAPHQL_ADMIN_SECRET` environment variable. Note that this variable is mandatory for HBP to work, i.e. HBP won't work if your Hasura instance is not secured with such an admin key. You can find further reading about admin secret keys in the [Hasura documentation](https://hasura.io/docs/1.0/graphql/manual/deployment/production-checklist.html#set-an-admin-secret).
 
@@ -130,7 +130,7 @@ In addition to this, you can send a verification email with an activation link. 
 
 If SMTP is enabled, then the user will receive an email with an activation link. If the activation succeeds, the user is redirected to the url found in the `REDIRECT_URL_SUCCESS` environment variable. If it fails, they will redirected to the url given by the `REDIRECT_URL_ERROR` environment variable.
 
-You can change the default email templates. In order to do so, you can mount [custom configuration files](#custom-configuration-files) when using docker, or change files in the [custom directory](https://github.com/nhost/hasura-auth/tree/master/custom) when running HBP from the source code.
+You can change the default email templates. In order to do so, you can mount [custom configuration files](#custom-configuration-files) when using docker, or change files in the [custom directory](https://github.com/nhost/hasura-auth/tree/main/custom) when running HBP from the source code.
 Other email templates are available and described [here](#email-templates)
 
 ### Limit email domains
@@ -189,7 +189,7 @@ Any given field must exist in the `users` GraphQL type that corresponds to the `
 
 File authorization is tricky to manage, and means developers need to spend a lot of time on authentication and authorization. Using Hasura Backend Plus means all this complex code is done for you! All you need to do is set out file access rules, which makes creating and updating rules easy to manage.
 
-The rules are set in a `yaml` file, and let you control granular access to files and folders. Hasura Backend Plus comes with a [rules template](https://github.com/nhost/hasura-auth/blob/master/custom/storage-rules/rules.yaml), which you can change for your specific project:
+The rules are set in a `yaml` file, and let you control granular access to files and folders. Hasura Backend Plus comes with a [rules template](https://github.com/nhost/hasura-auth/blob/main/custom/storage-rules/rules.yaml), which you can change for your specific project:
 
 ```yaml
 functions:

@@ -17,11 +17,11 @@
   <a href="https://prettier.io">
     <img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg" alt="code style: prettier" />
   </a>
-  <a href="https://github.com/nhost/hasura-auth/actions?query=workflow%Build+branch%3Amaster+event%3Apush">
-    <img src="https://github.com/nhost/hasura-auth/workflows/Build/badge.svg?branch=master"/>
+  <a href="https://github.com/nhost/hasura-auth/actions?query=workflow%Build+branch%3Amain+event%3Apush">
+    <img src="https://github.com/nhost/hasura-auth/workflows/Build/badge.svg?branch=main"/>
   </a>
-  <a href="https://codecov.io/gh/nhost/hasura-auth/branch/master">
-    <img src="https://codecov.io/gh/nhost/hasura-auth/branch/master/graph/badge.svg"
+  <a href="https://codecov.io/gh/nhost/hasura-auth/branch/main">
+    <img src="https://codecov.io/gh/nhost/hasura-auth/branch/main/graph/badge.svg"
     />
   </a>
 </p>

@@ -10,7 +10,7 @@ All [Nhost](https://nhost.io) projects are built on open source software so you 
 
 <div style="text-align:center;">
   <a href="https://nhost.io/register" target="_blank" >
-    <img src="https://github.com/nhost/hasura-auth/raw/master/docs/.vuepress/public/nhost-register-button.png" width="200px" />
+    <img src="https://github.com/nhost/hasura-auth/raw/main/docs/.vuepress/public/nhost-register-button.png" width="200px" />
   </a>
 </div>
 
