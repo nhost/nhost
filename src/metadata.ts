@@ -98,7 +98,7 @@ export async function applyMetadata(): Promise<void> {
     trackTable({ name: 'provider_requests', schema: 'auth' }),
     trackTable({ name: 'migrations', schema: 'auth' }),
     trackTable({ name: 'whitelist', schema: 'auth' }),
-    trackTable({ name: 'users', schema: 'public' })
+    trackTable({ name: 'users', schema: 'auth' })
   ])
 
   await Promise.allSettled([
@@ -131,7 +131,7 @@ export async function applyMetadata(): Promise<void> {
       name: 'account'
     }),
     trackRelationship({
-      source: { name: 'users', schema: 'public' },
+      source: { name: 'users', schema: 'auth' },
       destination: { name: 'accounts', schema: 'auth', foreignKey: 'user_id' },
       name: 'account'
     })

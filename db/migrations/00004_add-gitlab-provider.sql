@@ -1,1 +1,2 @@
-INSERT INTO auth.providers (provider) VALUES ('gitlab') ON CONFLICT DO NOTHING;
+INSERT INTO auth.providers (code, name)
+  VALUES ('gitlab', 'GitLab')
