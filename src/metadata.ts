@@ -144,22 +144,16 @@ export async function applyMetadata(): Promise<void> {
   logger.info('Applying metadata')
 
   // track tables
-  try {
-    await trackTable({ schema: 'auth', name: 'users' })
-    await trackTable({ schema: 'auth', name: 'user_roles' })
-    await trackTable({ schema: 'auth', name: 'user_providers' })
-    await trackTable({ schema: 'auth', name: 'providers' })
-    await trackTable({ schema: 'auth', name: 'refresh_tokens' })
-    await trackTable({ schema: 'auth', name: 'roles' })
-    await trackTable({ schema: 'auth', name: 'email_templates' })
-    await trackTable({ schema: 'auth', name: 'provider_requests' })
-    await trackTable({ schema: 'auth', name: 'migrations' })
-    await trackTable({ schema: 'auth', name: 'whitelist' })
-  } catch (error) {
-    console.log({ error })
-    console.log(error.response.data)
-    throw new Error('Failed tracking tables')
-  }
+  await trackTable({ schema: 'auth', name: 'users' })
+  await trackTable({ schema: 'auth', name: 'user_roles' })
+  await trackTable({ schema: 'auth', name: 'user_providers' })
+  await trackTable({ schema: 'auth', name: 'providers' })
+  await trackTable({ schema: 'auth', name: 'refresh_tokens' })
+  await trackTable({ schema: 'auth', name: 'roles' })
+  await trackTable({ schema: 'auth', name: 'email_templates' })
+  await trackTable({ schema: 'auth', name: 'provider_requests' })
+  await trackTable({ schema: 'auth', name: 'migrations' })
+  await trackTable({ schema: 'auth', name: 'whitelist' })
 
   // set custom root fields + custom column names
   await setTableCustomization({
