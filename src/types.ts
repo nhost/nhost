@@ -1,4 +1,5 @@
 import { ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
+import { Maybe } from './utils/__generated__/graphql-request'
 
 export type ClaimValueType =
   | string
@@ -45,9 +46,9 @@ export type Token = {
 }
 
 export interface Session {
-  jwt_token: string | null;
-  jwt_expires_in: number | null;
-  refresh_token?: string
+  JWTToken: string | null;
+  JWTExpiresIn: number | null;
+  refreshToken?: string
   user: UserData;
 }
 
@@ -55,8 +56,8 @@ export interface UserData {
   [key: string]: ClaimValueType
   id: string
   email?: string
-  display_name: string
-  avatar_url?: string
+  displayName: Maybe<string> | undefined;
+  avatarURL: Maybe<string> | undefined;
 }
 
 export interface AccountData {
