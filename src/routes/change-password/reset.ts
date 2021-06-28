@@ -1,57 +1,56 @@
 import { Response, Router } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 
-import { asyncWrapper, checkHibp, hashPassword, selectAccountByTicket } from '@/helpers'
+import { asyncWrapper, checkHibp, getUserByTicket, hashPassword } from '@/helpers'
 import { ResetPasswordWithTicketSchema, resetPasswordWithTicketSchema } from '@/validation'
-import { updatePasswordWithTicket } from '@/queries'
-import { request } from '@/request'
-import { UpdateAccountData } from '@/types'
 import { AUTHENTICATION } from '@config/index'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest
+} from 'express-joi-validation'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 /**
  * Reset the password, either from a valid ticket or from a valid JWT and a valid password
  */
 async function resetPassword(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  if(!AUTHENTICATION.LOST_PASSWORD_ENABLED) {
-    return res.boom.badImplementation(`Please set the LOST_PASSWORD_ENABLE env variable to true to use the auth/change-password/change route.`)
+  if (!AUTHENTICATION.LOST_PASSWORD_ENABLED) {
+    return res.boom.badImplementation(
+      `Please set the LOST_PASSWORD_ENABLE env variable to true to use the auth/change-password/change route.`
+    )
   }
 
   // Reset the password from { ticket, new_password }
-  const { ticket, new_password } = req.body
+  const { ticket, newPassword } = req.body
+
+  const user = await getUserByTicket(ticket)
+
+  if (!user) {
+    return res.boom.badRequest('Invalid or expired ticket')
+  }
 
   try {
-    await checkHibp(new_password)
+    await checkHibp(newPassword)
   } catch (err) {
     return res.boom.badRequest(err.message)
   }
 
-  let password_hash: string
-  try {
-    password_hash = await hashPassword(new_password)
-  } catch (err) {
-    return res.boom.internal(err.message)
-  }
+  const passwordHash = await hashPassword(newPassword)
 
-  const new_ticket = uuidv4();
-
-  const hasuraData = await request<UpdateAccountData>(updatePasswordWithTicket, {
-    ticket,
-    password_hash,
-    now: new Date(),
-    new_ticket
+  await gqlSDK.updateUser({
+    id: user.id,
+    user: {
+      ticket: uuidv4(),
+      ticketExpiresAt: new Date(),
+      passwordHash
+    }
   })
 
-  const { affected_rows, returning } = hasuraData.update_auth_accounts
-  if (!affected_rows) {
-    return res.boom.unauthorized('Invalid or expired ticket.')
-  }
-
-  const user_id = returning[0].user_id
-
-  req.logger.verbose(`User ${user_id} reset his password to ${password_hash}`, {
-    user_id,
-    password_hash
+  req.logger.verbose(`User ${user.id} reset password to ${passwordHash} (hashed)`, {
+    userId: user.id,
+    passwordHash
   })
 
   return res.status(204).send()
@@ -62,5 +61,9 @@ interface Schema extends ValidatedRequestSchema {
 }
 
 export default (router: Router) => {
-  router.post('/change', createValidator().body(resetPasswordWithTicketSchema), asyncWrapper(resetPassword))
+  router.post(
+    '/change',
+    createValidator().body(resetPasswordWithTicketSchema),
+    asyncWrapper(resetPassword)
+  )
 }

@@ -3120,7 +3120,7 @@ export type InsertAuthRefreshTokenMutation = (
 
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'displayName' | 'avatarURL' | 'email' | 'active' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'OTPSecret' | 'MFAEnabled' | 'passwordHash' | 'newEmail' | 'lastConfirmationEmailSentAt' | 'locale'>
+  & Pick<Users, 'id' | 'displayName' | 'avatarURL' | 'email' | 'passwordHash' | 'active' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'OTPSecret' | 'MFAEnabled' | 'newEmail' | 'lastConfirmationEmailSentAt' | 'locale'>
   & { roles: Array<(
     { __typename?: 'authUserRoles' }
     & Pick<AuthUserRoles, 'role'>
@@ -3182,6 +3182,37 @@ export type RotateUserTicketMutation = (
   )> }
 );
 
+export type ActivateUserMutationVariables = Exact<{
+  ticket: Scalars['uuid'];
+  newTicket: Scalars['uuid'];
+  newTicketExpiresAt: Scalars['timestamptz'];
+}>;
+
+
+export type ActivateUserMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateUsers?: Maybe<(
+    { __typename?: 'users_mutation_response' }
+    & Pick<Users_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
+export type ChangeEmailByTicketMutationVariables = Exact<{
+  ticket: Scalars['uuid'];
+  email?: Maybe<Scalars['citext']>;
+  newTicket: Scalars['uuid'];
+  now: Scalars['timestamptz'];
+}>;
+
+
+export type ChangeEmailByTicketMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateUsers?: Maybe<(
+    { __typename?: 'users_mutation_response' }
+    & Pick<Users_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
 export type InsertUserMutationVariables = Exact<{
   user: Users_Insert_Input;
 }>;
@@ -3235,6 +3266,7 @@ export const UserFieldsFragmentDoc = gql`
   displayName
   avatarURL
   email
+  passwordHash
   active
   defaultRole
   roles {
@@ -3281,6 +3313,20 @@ export const UpdateUserDocument = gql`
 export const RotateUserTicketDocument = gql`
     mutation rotateUserTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
   updateUsers(_set: {ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {ticket: {_eq: $oldTicket}}) {
+    affected_rows
+  }
+}
+    `;
+export const ActivateUserDocument = gql`
+    mutation activateUser($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+  updateUsers(_set: {active: true, ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {_and: [{active: {_eq: false}}, {ticket: {_eq: $ticket}}]}) {
+    affected_rows
+  }
+}
+    `;
+export const ChangeEmailByTicketDocument = gql`
+    mutation changeEmailByTicket($ticket: uuid!, $email: citext, $newTicket: uuid!, $now: timestamptz!) {
+  updateUsers(where: {_and: [{ticket: {_eq: $ticket}}, {ticketExpiresAt: {_gt: $now}}]}, _set: {email: $email, newEmail: null, ticket: $newTicket, ticketExpiresAt: $now}) {
     affected_rows
   }
 }
@@ -3334,6 +3380,12 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     rotateUserTicket(variables: RotateUserTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RotateUserTicketMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<RotateUserTicketMutation>(RotateUserTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'rotateUserTicket');
+    },
+    activateUser(variables: ActivateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ActivateUserMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ActivateUserMutation>(ActivateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'activateUser');
+    },
+    changeEmailByTicket(variables: ChangeEmailByTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ChangeEmailByTicketMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ChangeEmailByTicketMutation>(ChangeEmailByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'changeEmailByTicket');
     },
     insertUser(variables: InsertUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertUserMutation>(InsertUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUser');

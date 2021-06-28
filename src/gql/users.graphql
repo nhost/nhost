@@ -3,6 +3,7 @@ fragment userFields on users {
   displayName
   avatarURL
   email
+  passwordHash
   active
   defaultRole
   roles {
@@ -40,6 +41,29 @@ mutation rotateUserTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpire
   updateUsers(
     _set: { ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
     where: { ticket: { _eq: $oldTicket } }
+  ) {
+    affected_rows
+  }
+}
+
+mutation activateUser($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+  updateUsers(
+    _set: { active: true, ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
+    where: { _and: [{ active: { _eq: false } }, { ticket: { _eq: $ticket } }] }
+  ) {
+    affected_rows
+  }
+}
+
+mutation changeEmailByTicket(
+  $ticket: uuid!
+  $email: citext
+  $newTicket: uuid!
+  $now: timestamptz!
+) {
+  updateUsers(
+    where: { _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: $now } }] }
+    _set: { email: $email, newEmail: null, ticket: $newTicket, ticketExpiresAt: $now }
   ) {
     affected_rows
   }

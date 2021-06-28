@@ -34,7 +34,7 @@ export const getUserByEmail = async (email: string) => {
   const { users } = await gqlSDK.users({
     where: {
       email: {
-        _eq: email,
+        _eq: email
       }
     }
   })
@@ -47,12 +47,22 @@ export const getUserByEmail = async (email: string) => {
 }
 
 export const getUserByTicket = async (ticket: string) => {
+  const now = new Date()
 
   const { users } = await gqlSDK.users({
     where: {
-      ticket: {
-        _eq: ticket,
-      }
+      _and: [
+        {
+          ticket: {
+            _eq: ticket
+          }
+        },
+        {
+          ticketExpiresAt: {
+            _gt: now
+          }
+        }
+      ]
     }
   })
 
@@ -66,31 +76,26 @@ export const getUserByTicket = async (ticket: string) => {
 // TODO await request returns undefined if no user found!
 export const getUser = async (userId: string | undefined) => {
   if (!userId) {
-    throw new Error("User does not exists");
+    throw new Error('User does not exists')
   }
 
   const { user } = await gqlSDK.user({
-    id: userId,
+    id: userId
   })
 
   if (!user) {
-    throw new Error("User does not exists");
+    throw new Error('User does not exists')
   }
 
-  return user;
+  return user
 }
-
 
 /**
  * Password hashing function.
  * @param password Password to hash.
  */
 export const hashPassword = async (password: string): Promise<string> => {
-  try {
-    return await bcrypt.hash(password, 10)
-  } catch (err) {
-    throw new Error('Could not hash password')
-  }
+  return await bcrypt.hash(password, 10)
 }
 
 /**
@@ -109,8 +114,8 @@ export const rotateTicket = async (oldTicket: string): Promise<string> => {
   await gqlSDK.rotateUserTicket({
     oldTicket,
     newTicket,
-    newTicketExpiresAt: new Date(),
-  });
+    newTicketExpiresAt: new Date()
+  })
 
   return newTicket
 }
@@ -124,15 +129,12 @@ export function newRefreshExpiry(): number {
 }
 
 export const setRefreshToken = async ({
-
   userId,
   refreshToken = uuidv4()
 }: {
-  userId: string;
+  userId: string
   refreshToken: string
 }) => {
-
-
   await gqlSDK.insertAuthRefreshToken({
     refreshToken: {
       userId,
@@ -145,16 +147,15 @@ export const setRefreshToken = async ({
 }
 
 export const userIsAnonymous = async (userId: string) => {
-
   const { user } = await gqlSDK.user({
-    id: userId,
+    id: userId
   })
 
-  return user?.isAnonymous;
+  return user?.isAnonymous
 }
 
 export const getGravatarUrl = (email?: string) => {
-  if(APPLICATION.GRAVATAR_ENABLED && email) {
+  if (APPLICATION.GRAVATAR_ENABLED && email) {
     return gravatar.url(email, {
       r: APPLICATION.RATING,
       protocol: 'https',
@@ -164,18 +165,17 @@ export const getGravatarUrl = (email?: string) => {
 }
 
 export const deanonymizeUser = async (user: UserFieldsFragment) => {
-
   // Gravatar is enabled and anonymous user has not added
   // an avatar yet
-  const useGravatar = APPLICATION.GRAVATAR_ENABLED && !user.avatarURL;
+  const useGravatar = APPLICATION.GRAVATAR_ENABLED && !user.avatarURL
 
   // update user
-  user.avatarURL = !useGravatar ? user.avatarURL : getGravatarUrl(user.email);
-  user.defaultRole = REGISTRATION.DEFAULT_USER_ROLE;
+  user.avatarURL = !useGravatar ? user.avatarURL : getGravatarUrl(user.email)
+  user.defaultRole = REGISTRATION.DEFAULT_USER_ROLE
 
-      user.active = true;
+  user.active = true
 
-  const userRoles = REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map(role => ({
+  const userRoles = REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({
     userId: user.id,
     createdAt: new Date(),
     role
@@ -184,14 +184,14 @@ export const deanonymizeUser = async (user: UserFieldsFragment) => {
   await gqlSDK.deanonymizeUser({
     userId: user.id,
     user,
-    userRoles,
-  });
+    userRoles
+  })
 }
 
 export const isAllowedEmail = async (email: string) => {
   const { AuthWhitelist } = await gqlSDK.isEmailInWhitelist({
-    email,
+    email
   })
 
-  return !!AuthWhitelist;
+  return !!AuthWhitelist
 }
