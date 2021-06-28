@@ -7,13 +7,13 @@ import logger from './logger'
  * Here we are using the schema-metadata-api to track the relationships between auth tables
  **/
 
-interface TableName {
+interface Table {
   name: string
   schema: string
 }
 
 interface TableArgs {
-  table: TableName
+  table: Table
   configuration?: {
     custom_name?: string
     custom_root_fields?: {
@@ -34,12 +34,12 @@ interface TableArgs {
 }
 
 interface RelationshipArgs {
-  table: TableName
+  table: Table
   name: string
   using: {
     foreign_key_constraint_on:
       | {
-          table: TableName
+          table: Table
           column: string
         }
       | string
