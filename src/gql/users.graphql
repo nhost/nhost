@@ -1,15 +1,13 @@
-mutation insertUser($user: users_insert_input!) {
-  insertUser(object: $user) {
-    id
-    email
-    displayName
-    avatarURL
-    locale
-  }
+fragment userFields on users {
+  id
+  email
+  displayName
+  avatarURL
+  locale
 }
 
-mutation deleteUser($id: uuid!) {
-  deleteUser(id: $id) {
-    id
+mutation insertUser($user: users_insert_input!) {
+  insertUser(object: $user) {
+    ...userFields
   }
 }

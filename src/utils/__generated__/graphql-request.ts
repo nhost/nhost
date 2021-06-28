@@ -3105,6 +3105,11 @@ export type Uuid_Comparison_Exp = {
   _nin?: Maybe<Array<Scalars['uuid']>>;
 };
 
+export type UserFieldsFragment = (
+  { __typename?: 'users' }
+  & Pick<Users, 'id' | 'email' | 'displayName' | 'avatarURL' | 'locale'>
+);
+
 export type InsertUserMutationVariables = Exact<{
   user: Users_Insert_Input;
 }>;
@@ -3114,42 +3119,26 @@ export type InsertUserMutation = (
   { __typename?: 'mutation_root' }
   & { insertUser?: Maybe<(
     { __typename?: 'users' }
-    & Pick<Users, 'id' | 'email' | 'displayName' | 'avatarURL' | 'locale'>
+    & UserFieldsFragment
   )> }
 );
 
-export type DeleteUserMutationVariables = Exact<{
-  id: Scalars['uuid'];
-}>;
-
-
-export type DeleteUserMutation = (
-  { __typename?: 'mutation_root' }
-  & { deleteUser?: Maybe<(
-    { __typename?: 'users' }
-    & Pick<Users, 'id'>
-  )> }
-);
-
-
+export const UserFieldsFragmentDoc = gql`
+    fragment userFields on users {
+  id
+  email
+  displayName
+  avatarURL
+  locale
+}
+    `;
 export const InsertUserDocument = gql`
     mutation insertUser($user: users_insert_input!) {
   insertUser(object: $user) {
-    id
-    email
-    displayName
-    avatarURL
-    locale
+    ...userFields
   }
 }
-    `;
-export const DeleteUserDocument = gql`
-    mutation deleteUser($id: uuid!) {
-  deleteUser(id: $id) {
-    id
-  }
-}
-    `;
+    ${UserFieldsFragmentDoc}`;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string) => Promise<T>;
 
@@ -3160,9 +3149,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
   return {
     insertUser(variables: InsertUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertUserMutation>(InsertUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUser');
-    },
-    deleteUser(variables: DeleteUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserMutation>(DeleteUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUser');
     }
   };
 }
