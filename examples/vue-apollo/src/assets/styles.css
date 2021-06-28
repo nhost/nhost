@@ -1,0 +1,17 @@
+.login-container {
+    background-color: darkgrey;
+    margin-top: 1rem;
+    padding: 2rem;
+    border-radius: 10px;
+    display: inline-block;
+    margin-bottom: 10px;
+    width: 300px;
+}
+
+.login-container > h1, .login-container > h2 {
+    margin-top: 0px;
+}
+
+body {
+    padding-bottom: 10px;
+}
