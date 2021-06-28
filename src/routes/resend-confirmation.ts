@@ -1,12 +1,13 @@
 import { APPLICATION, REGISTRATION } from '@config/index'
 import { Response, Router } from 'express'
-import { asyncWrapper, selectAccount, updateLastSentConfirmation } from '@/helpers'
+import { asyncWrapper, selectAccount, } from '@/helpers'
 
 import { emailClient } from '@/email'
 import { v4 as uuidv4 } from 'uuid'
 import { UserData, Session } from '@/types'
 import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
 import { ResendConfirmationSchema, resendConfirmationSchema } from '@/validation'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
@@ -70,7 +71,13 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
     return res.boom.badImplementation()
   }
 
-  await updateLastSentConfirmation(account.user.id)
+  // update last sent confirmation
+  await gqlSDK.updateUser({
+    id: user.id,
+    user: {
+      lastConfirmationEmailSentAt: new Date(+Date.now() + REGISTRATION.CONFIRMATION_RESET_TIMEOUT)
+    }
+  })
 
   const session: Session = { jwt_token: null, jwt_expires_in: null, user }
 

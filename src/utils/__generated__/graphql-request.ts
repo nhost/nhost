@@ -2701,7 +2701,7 @@ export type Users = {
   email?: Maybe<Scalars['citext']>;
   id: Scalars['uuid'];
   isAnonymous: Scalars['Boolean'];
-  last_confirmation_email_sent_at: Scalars['timestamptz'];
+  lastConfirmationEmailSentAt: Scalars['timestamptz'];
   locale: Scalars['String'];
   newEmail?: Maybe<Scalars['citext']>;
   passwordHash?: Maybe<Scalars['String']>;
@@ -2831,7 +2831,7 @@ export type Users_Bool_Exp = {
   email?: Maybe<Citext_Comparison_Exp>;
   id?: Maybe<Uuid_Comparison_Exp>;
   isAnonymous?: Maybe<Boolean_Comparison_Exp>;
-  last_confirmation_email_sent_at?: Maybe<Timestamptz_Comparison_Exp>;
+  lastConfirmationEmailSentAt?: Maybe<Timestamptz_Comparison_Exp>;
   locale?: Maybe<String_Comparison_Exp>;
   newEmail?: Maybe<Citext_Comparison_Exp>;
   passwordHash?: Maybe<String_Comparison_Exp>;
@@ -2881,7 +2881,7 @@ export type Users_Insert_Input = {
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
   isAnonymous?: Maybe<Scalars['Boolean']>;
-  last_confirmation_email_sent_at?: Maybe<Scalars['timestamptz']>;
+  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   passwordHash?: Maybe<Scalars['String']>;
@@ -2903,7 +2903,7 @@ export type Users_Max_Fields = {
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
-  last_confirmation_email_sent_at?: Maybe<Scalars['timestamptz']>;
+  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   passwordHash?: Maybe<Scalars['String']>;
@@ -2922,7 +2922,7 @@ export type Users_Min_Fields = {
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
-  last_confirmation_email_sent_at?: Maybe<Scalars['timestamptz']>;
+  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   passwordHash?: Maybe<Scalars['String']>;
@@ -2967,7 +2967,7 @@ export type Users_Order_By = {
   email?: Maybe<Order_By>;
   id?: Maybe<Order_By>;
   isAnonymous?: Maybe<Order_By>;
-  last_confirmation_email_sent_at?: Maybe<Order_By>;
+  lastConfirmationEmailSentAt?: Maybe<Order_By>;
   locale?: Maybe<Order_By>;
   newEmail?: Maybe<Order_By>;
   passwordHash?: Maybe<Order_By>;
@@ -3014,7 +3014,7 @@ export enum Users_Select_Column {
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  LastConfirmationEmailSentAt = 'last_confirmation_email_sent_at',
+  LastConfirmationEmailSentAt = 'lastConfirmationEmailSentAt',
   /** column name */
   Locale = 'locale',
   /** column name */
@@ -3042,7 +3042,7 @@ export type Users_Set_Input = {
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
   isAnonymous?: Maybe<Scalars['Boolean']>;
-  last_confirmation_email_sent_at?: Maybe<Scalars['timestamptz']>;
+  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   passwordHash?: Maybe<Scalars['String']>;
@@ -3076,7 +3076,7 @@ export enum Users_Update_Column {
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  LastConfirmationEmailSentAt = 'last_confirmation_email_sent_at',
+  LastConfirmationEmailSentAt = 'lastConfirmationEmailSentAt',
   /** column name */
   Locale = 'locale',
   /** column name */
@@ -3105,9 +3105,81 @@ export type Uuid_Comparison_Exp = {
   _nin?: Maybe<Array<Scalars['uuid']>>;
 };
 
+export type InsertAuthRefreshTokenMutationVariables = Exact<{
+  refreshToken: AuthRefreshTokens_Insert_Input;
+}>;
+
+
+export type InsertAuthRefreshTokenMutation = (
+  { __typename?: 'mutation_root' }
+  & { insertAuthRefreshToken?: Maybe<(
+    { __typename?: 'authRefreshTokens' }
+    & Pick<AuthRefreshTokens, 'refreshToken'>
+  )> }
+);
+
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'email' | 'displayName' | 'avatarURL' | 'locale'>
+  & Pick<Users, 'id' | 'displayName' | 'avatarURL' | 'email' | 'active' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'OTPSecret' | 'MFAEnabled' | 'passwordHash' | 'newEmail' | 'lastConfirmationEmailSentAt' | 'locale'>
+  & { roles: Array<(
+    { __typename?: 'authUserRoles' }
+    & Pick<AuthUserRoles, 'role'>
+  )> }
+);
+
+export type UserQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type UserQuery = (
+  { __typename?: 'query_root' }
+  & { user?: Maybe<(
+    { __typename?: 'users' }
+    & UserFieldsFragment
+  )> }
+);
+
+export type UsersQueryVariables = Exact<{
+  where: Users_Bool_Exp;
+}>;
+
+
+export type UsersQuery = (
+  { __typename?: 'query_root' }
+  & { users: Array<(
+    { __typename?: 'users' }
+    & UserFieldsFragment
+  )> }
+);
+
+export type UpdateUserMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  user?: Maybe<Users_Set_Input>;
+}>;
+
+
+export type UpdateUserMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateUser?: Maybe<(
+    { __typename?: 'users' }
+    & UserFieldsFragment
+  )> }
+);
+
+export type RotateUserTicketMutationVariables = Exact<{
+  oldTicket: Scalars['uuid'];
+  newTicket: Scalars['uuid'];
+  newTicketExpiresAt: Scalars['timestamptz'];
+}>;
+
+
+export type RotateUserTicketMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateUsers?: Maybe<(
+    { __typename?: 'users_mutation_response' }
+    & Pick<Users_Mutation_Response, 'affected_rows'>
+  )> }
 );
 
 export type InsertUserMutationVariables = Exact<{
@@ -3123,13 +3195,94 @@ export type InsertUserMutation = (
   )> }
 );
 
+export type DeanonymizeUserMutationVariables = Exact<{
+  userId: Scalars['uuid'];
+  user: Users_Set_Input;
+  userRoles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
+}>;
+
+
+export type DeanonymizeUserMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateUser?: Maybe<(
+    { __typename?: 'users' }
+    & Pick<Users, 'id'>
+  )>, deleteAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )>, insertAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
+export type IsEmailInWhitelistQueryVariables = Exact<{
+  email: Scalars['String'];
+}>;
+
+
+export type IsEmailInWhitelistQuery = (
+  { __typename?: 'query_root' }
+  & { AuthWhitelist?: Maybe<(
+    { __typename?: 'authWhitelist' }
+    & Pick<AuthWhitelist, 'email'>
+  )> }
+);
+
 export const UserFieldsFragmentDoc = gql`
     fragment userFields on users {
   id
-  email
   displayName
   avatarURL
+  email
+  active
+  defaultRole
+  roles {
+    role
+  }
+  isAnonymous
+  ticket
+  OTPSecret
+  MFAEnabled
+  passwordHash
+  newEmail
+  lastConfirmationEmailSentAt
   locale
+}
+    `;
+export const InsertAuthRefreshTokenDocument = gql`
+    mutation insertAuthRefreshToken($refreshToken: authRefreshTokens_insert_input!) {
+  insertAuthRefreshToken(object: $refreshToken) {
+    refreshToken
+  }
+}
+    `;
+export const UserDocument = gql`
+    query user($id: uuid!) {
+  user(id: $id) {
+    ...userFields
+  }
+}
+    ${UserFieldsFragmentDoc}`;
+export const UsersDocument = gql`
+    query users($where: users_bool_exp!) {
+  users(where: $where) {
+    ...userFields
+  }
+}
+    ${UserFieldsFragmentDoc}`;
+export const UpdateUserDocument = gql`
+    mutation updateUser($id: uuid!, $user: users_set_input) {
+  updateUser(pk_columns: {id: $id}, _set: $user) {
+    ...userFields
+  }
+}
+    ${UserFieldsFragmentDoc}`;
+export const RotateUserTicketDocument = gql`
+    mutation rotateUserTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+  updateUsers(_set: {ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {ticket: {_eq: $oldTicket}}) {
+    affected_rows
+  }
 }
     `;
 export const InsertUserDocument = gql`
@@ -3139,6 +3292,26 @@ export const InsertUserDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
+export const DeanonymizeUserDocument = gql`
+    mutation deanonymizeUser($userId: uuid!, $user: users_set_input!, $userRoles: [authUserRoles_insert_input!]!) {
+  updateUser(pk_columns: {id: $userId}, _set: $user) {
+    id
+  }
+  deleteAuthUserRoles(where: {userId: {_eq: $userId}}) {
+    affected_rows
+  }
+  insertAuthUserRoles(objects: $userRoles) {
+    affected_rows
+  }
+}
+    `;
+export const IsEmailInWhitelistDocument = gql`
+    query isEmailInWhitelist($email: String!) {
+  AuthWhitelist(email: $email) {
+    email
+  }
+}
+    `;
 
 export type SdkFunctionWrapper = <T>(action: (requestHeaders?:Record<string, string>) => Promise<T>, operationName: string) => Promise<T>;
 
@@ -3147,8 +3320,29 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName) => action();
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
+    insertAuthRefreshToken(variables: InsertAuthRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertAuthRefreshTokenMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertAuthRefreshTokenMutation>(InsertAuthRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertAuthRefreshToken');
+    },
+    user(variables: UserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UserQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UserQuery>(UserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'user');
+    },
+    users(variables: UsersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UsersQuery>(UsersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'users');
+    },
+    updateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUser');
+    },
+    rotateUserTicket(variables: RotateUserTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RotateUserTicketMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RotateUserTicketMutation>(RotateUserTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'rotateUserTicket');
+    },
     insertUser(variables: InsertUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertUserMutation>(InsertUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUser');
+    },
+    deanonymizeUser(variables: DeanonymizeUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeanonymizeUserMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeanonymizeUserMutation>(DeanonymizeUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deanonymizeUser');
+    },
+    isEmailInWhitelist(variables: IsEmailInWhitelistQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<IsEmailInWhitelistQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<IsEmailInWhitelistQuery>(IsEmailInWhitelistDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'isEmailInWhitelist');
     }
   };
 }

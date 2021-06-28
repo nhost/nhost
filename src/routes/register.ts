@@ -4,14 +4,13 @@ import {
   asyncWrapper,
   checkHibp,
   hashPassword,
-  selectAccount,
   setRefreshToken,
   getGravatarUrl,
-  isAllowedEmail
+  isAllowedEmail,
+  getUserByEmail
 } from '@/helpers'
-import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { newJwtExpiry, createHasuraJWTToken } from '@/jwt'
 import { emailClient } from '@/email'
-import { insertAccount } from '@/queries'
 import {
   isMagicLinkLogin,
   isMagicLinkRegister,
@@ -19,9 +18,8 @@ import {
   RegisterSchema,
   registerSchema
 } from '@/validation'
-import { request } from '@/request'
 import { v4 as uuidv4 } from 'uuid'
-import { InsertAccountData, UserData, Session } from '@/types'
+import { Session } from '@/types'
 import {
   ValidatedRequest,
   ValidatedRequestSchema,
@@ -29,7 +27,6 @@ import {
   createValidator
 } from 'express-joi-validation'
 import { gqlSDK } from '@/utils/gqlSDK'
-import { gql } from 'graphql-request'
 
 async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const body = req.body
@@ -48,7 +45,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     return res.boom.unauthorized('Email not allowed')
   }
 
-  if (await selectAccount(body)) {
+  if (await getUserByEmail(body.email)) {
     return res.boom.badRequest('Account already exists.')
   }
 
@@ -89,6 +86,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
 
   const avatarURL = getGravatarUrl(email)
 
+  // insert new user
   const { insertUser: user } = await gqlSDK.insertUser({
     user: {
       displayName: email,
@@ -110,14 +108,13 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     return res.boom.badImplementation('Unable to insert new user')
   }
 
+  // create session user
   const sessionUser = {
     id: user.id,
     email: user.email,
     displayName: user.displayName,
     avatarURL: user.avatarURL
   }
-
-  console.log(user)
 
   // const user: UserData = {
   //   id: account.user.id,
@@ -205,7 +202,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   const refreshToken= await setRefreshToken(user.id)
 
   // generate JWT
-  const JWTToken= createHasuraJwt(account)
+  const JWTToken= createHasuraJWTToken(user)
   const JWTExpiresIn = newJwtExpiry
 
   const session: Session = {JWTToken, JWTExpiresIn, user: sessionUser, refreshToken}

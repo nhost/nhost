@@ -1,0 +1,5 @@
+query isEmailInWhitelist($email: String!) {
+  AuthWhitelist(email: $email) {
+    email
+  }
+}

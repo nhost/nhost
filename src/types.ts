@@ -49,10 +49,10 @@ export interface Session {
   JWTToken: string | null;
   JWTExpiresIn: number | null;
   refreshToken?: string
-  user: UserData;
+  user: SessionUser;
 }
 
-export interface UserData {
+export interface SessionUser {
   [key: string]: ClaimValueType
   id: string
   email?: string
@@ -60,20 +60,20 @@ export interface UserData {
   avatarURL: Maybe<string> | undefined;
 }
 
-export interface AccountData {
+export interface UserData {
   id: string
   user: UserData
   active: boolean
-  default_role: string
-  account_roles: { role: string }[]
-  is_anonymous: boolean
+  defaultRole: string
+  roles: { role: string }[]
+  isAnonymous: boolean
   ticket?: string
-  otp_secret?: string
-  mfa_enabled: boolean
-  password_hash: string
+  OTPSecret?: string
+  MFAEnabled: boolean
+  passwordHash: string
   email: string
-  new_email?: string
-  last_confirmation_email_sent_at: string
+  newEmail?: string
+  lastConfirmationEmailSentAt: string
   locale: string
 }
 

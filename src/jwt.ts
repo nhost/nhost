@@ -3,7 +3,8 @@ import { JWK, JWKS, JWT } from 'jose'
 
 import fs from 'fs'
 import kebabCase from 'lodash.kebabcase'
-import { Claims, Token, AccountData, ClaimValueType, PermissionVariables } from './types'
+import { Claims, Token, AccountData, UserData, ClaimValueType, PermissionVariables } from './types'
+import { UserFieldsFragment } from './utils/__generated__/graphql-request'
 
 const RSA_TYPES = ['RS256', 'RS384', 'RS512']
 const SHA_TYPES = ['HS256', 'HS384', 'HS512']
@@ -58,41 +59,46 @@ function toPgArray(arr: string[]): string {
  * of the public.tables columns defined in JWT_CUSTOM_FIELDS
  * @param jwt if true, add a 'x-hasura-' prefix to the property names, and stringifies the values (required by Hasura)
  */
-export function generatePermissionVariables(
-  { default_role, account_roles = [], user }: AccountData,
-  jwt = false
-): { [key: string]: ClaimValueType } {
-  const prefix = jwt ? 'x-hasura-' : ''
-  const role = user.is_anonymous
+export function generatePermissionVariables({
+  user,
+  JWTPrefix = false
+}: {
+  user: UserFieldsFragment
+  JWTPrefix: boolean | string
+}): { [key: string]: ClaimValueType } {
+  const prefix = JWTPrefix ? 'x-hasura-' : ''
+  const role = user.isAnonymous
     ? REGISTRATION.DEFAULT_ANONYMOUS_ROLE
-    : default_role || REGISTRATION.DEFAULT_USER_ROLE
-  const accountRoles = account_roles.map(({ role: roleName }) => roleName)
+    : user.defaultRole || REGISTRATION.DEFAULT_USER_ROLE
+  const userRoles = user.roles.map((role) => role.role)
 
-  if (!accountRoles.includes(role)) {
-    accountRoles.push(role)
+  if (!userRoles.includes(role)) {
+    userRoles.push(role)
   }
 
   return {
     [`${prefix}user-id`]: user.id,
-    [`${prefix}allowed-roles`]: accountRoles,
-    [`${prefix}default-role`]: role,
+    [`${prefix}allowed-roles`]: userRoles,
+    [`${prefix}default-role`]: role
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ...CONFIG_JWT.CUSTOM_FIELDS.reduce<{ [key: string]: ClaimValueType }>((aggr: any, cursor) => {
-      const type = typeof user[cursor] as ClaimValueType
+    // TODO: Get user.profile data + custom fields (config )
+    // TODO: and populate this...
+    // ...CONFIG_JWT.CUSTOM_FIELDS.reduce<{ [key: string]: ClaimValueType }>((aggr: any, cursor) => {
+    //   const type = typeof user[cursor] as ClaimValueType
 
-      let value
-      if (type === 'string') {
-        value = user[cursor]
-      } else if (Array.isArray(user[cursor])) {
-        value = toPgArray(user[cursor] as string[])
-      } else {
-        value = JSON.stringify(user[cursor] ?? null)
-      }
+    //   let value
+    //   if (type === 'string') {
+    //     value = user[cursor]
+    //   } else if (Array.isArray(user[cursor])) {
+    //     value = toPgArray(user[cursor] as string[])
+    //   } else {
+    //     value = JSON.stringify(user[cursor] ?? null)
+    //   }
 
-      aggr[`${prefix}${kebabCase(cursor)}`] = value
+    //   aggr[`${prefix}${kebabCase(cursor)}`] = value
 
-      return aggr
-    }, {})
+    //   return aggr
+    // }, {})
   }
 }
 
@@ -112,13 +118,14 @@ export const getJwkStore = (): JWKS.KeyStore => {
 /**
  * * Signs a payload with the existing JWT configuration
  */
-export const sign = (payload: object, accountData: AccountData): string =>
-  JWT.sign(payload, jwtKey, {
+export const sign = ({ payload, user }: { payload: object; user: UserFieldsFragment }) => {
+  return JWT.sign(payload, jwtKey, {
     algorithm: CONFIG_JWT.ALGORITHM,
     expiresIn: `${CONFIG_JWT.EXPIRES_IN}m`,
-    subject: accountData.user.id,
+    subject: user.id,
     issuer: 'nhost'
   })
+}
 
 /**
  * Verify JWT token and return the Hasura claims.
@@ -149,10 +156,11 @@ export const getPermissionVariablesFromClaims = (claims: Claims): PermissionVari
 /**
  * Create JWT token.
  */
-export const createHasuraJwt = (accountData: AccountData): string =>
-  sign(
-    {
-      [CONFIG_JWT.CLAIMS_NAMESPACE]: generatePermissionVariables(accountData, true)
+export const createHasuraJWTToken = (user: UserFieldsFragment): string => {
+  return sign({
+    payload: {
+      [CONFIG_JWT.CLAIMS_NAMESPACE]: generatePermissionVariables({ user, JWTPrefix: true })
     },
-    accountData
-  )
+    user
+  })
+}

@@ -196,7 +196,8 @@ export async function applyMetadata(): Promise<void> {
         mfa_enabled: 'MFAEnabled',
         ticket: 'ticket',
         ticket_expires_at: 'ticketExpiresAt',
-        locale: 'locale'
+        locale: 'locale',
+        last_confirmation_email_sent_at: 'lastConfirmationEmailSentAt',
       }
     }
   })

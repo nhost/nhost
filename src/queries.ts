@@ -393,17 +393,6 @@ export const isAllowedEmail = gql`
   }
 `
 
-export const updateLastSentConfirmation = gql`
-  mutation($user_id: uuid!, $last_confirmation_email_sent_at: timestamptz!) {
-    update_auth_accounts(
-      where: { user: { id: { _eq: $user_id } } }
-      _set: { last_confirmation_email_sent_at: $last_confirmation_email_sent_at }
-    ) {
-      affected_rows
-    }
-  }
-`
-
 export const insertAllowedEmail = gql`
   mutation($email: String!) {
     insert_auth_whitelist_one(object: { email: $email }) {
