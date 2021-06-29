@@ -14,7 +14,7 @@ const router = Router()
 
 router.use((req, res, next) => {
   if(!AUTHENTICATION.CHANGE_EMAIL_ENABLED) {
-    return res.boom.badImplementation(`Please set the CHANGE_EMAIL_ENABLED env variable to true to use the auth/change-email routes.`)
+    return res.boom.notImplemented(`Please set the CHANGE_EMAIL_ENABLED env variable to true to use the auth/change-email routes`)
   } else {
     return next();
   }

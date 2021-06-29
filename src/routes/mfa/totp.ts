@@ -1,5 +1,5 @@
 import { Response, Router } from 'express'
-import { asyncWrapper, rotateTicket, selectAccount, setRefreshToken } from '@/helpers'
+import { asyncWrapper, rotateTicket, selectAccountByTicket, setRefreshToken } from '@/helpers'
 import { newJwtExpiry, createHasuraJwt } from '@/jwt'
 import { UserData, Session } from '@/types'
 
@@ -15,28 +15,42 @@ authenticator.options = {
 async function totpLogin(req: ValidatedRequest<Schema>, res: Response): Promise<any> {
   const { ticket, code } = req.body
 
-  const account = await selectAccount(req.body)
+  const account = await selectAccountByTicket(req.body.ticket)
 
   if (!account) {
-    return res.boom.unauthorized('Invalid or expired ticket.')
+    return res.boom.unauthorized('Invalid or expired ticket')
   }
 
   const { id, otp_secret, mfa_enabled, active } = account
 
+  const user_id = account.user.id
+
   if (!mfa_enabled) {
-    return res.boom.badRequest('MFA is not enabled.')
+    req.logger.verbose(`User ${user_id} tried using totp but MFA was not enabled`, {
+      user_id
+    })
+    return res.boom.badRequest('MFA is not enabled')
   }
 
   if (!active) {
-    return res.boom.badRequest('Account is not activated.')
+    req.logger.verbose(`User ${user_id} tried using totp but his account is not activated`, {
+      user_id
+    })
+    return res.boom.badRequest('Account is not activated')
   }
 
   if (!otp_secret) {
-    return res.boom.badRequest('OTP secret is not set.')
+    req.logger.verbose(`User ${user_id} tried using totp but the OTP secret was not set`, {
+      user_id
+    })
+    return res.boom.badRequest('OTP secret is not set')
   }
 
   if (!authenticator.check(code, otp_secret)) {
-    return res.boom.unauthorized('Invalid two-factor code.')
+    req.logger.verbose(`User ${user_id} tried using totp but provided an invalid code`, {
+      user_id
+    })
+    return res.boom.unauthorized('Invalid two-factor code')
   }
 
   const refresh_token = await setRefreshToken(id)

@@ -26,7 +26,7 @@ async function whitelist(req: ValidatedRequest<Schema>, res: Response): Promise<
 
     if(invite) {
       if(!APPLICATION.EMAILS_ENABLED) {
-        return res.boom.badImplementation('Emails have to be enabled when invite=true')
+        throw new Error('Emails have to be enabled when invite=true')
       }
 
       await emailClient.send({

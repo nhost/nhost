@@ -22,7 +22,7 @@ if (RSA_TYPES.includes(CONFIG_JWT.ALGORITHM)) {
       jwtKey = JWK.asKey(jwtKey, { alg: CONFIG_JWT.ALGORITHM })
       jwtKey.toPEM(true)
     } catch (error) {
-      throw new Error('Invalid RSA private key in the JWT_KEY environment variable.')
+      throw new Error('Invalid RSA private key in the JWT_KEY environment variable')
     }
   } else {
     try {
@@ -35,7 +35,7 @@ if (RSA_TYPES.includes(CONFIG_JWT.ALGORITHM)) {
   }
 } else if (SHA_TYPES.includes(CONFIG_JWT.ALGORITHM)) {
   if (!jwtKey) {
-    throw new Error('Empty JWT secret key.')
+    throw new Error('Empty JWT secret key')
   }
 } else {
   throw new Error(`Invalid JWT algorithm: ${CONFIG_JWT.ALGORITHM}`)
@@ -106,7 +106,7 @@ export const getJwkStore = (): JWKS.KeyStore => {
     keyStore.add(jwtKey as JWK.RSAKey)
     return keyStore
   }
-  throw new Error('JWKS is not implemented on this server.')
+  throw new Error('JWKS is not implemented on this server')
 }
 
 /**
@@ -125,14 +125,14 @@ export const sign = (payload: object, accountData: AccountData): string =>
  * @param authorization Authorization header.
  */
 export const getClaims = (authorization: string | undefined): Claims => {
-  if (!authorization) throw new Error('Missing Authorization header.')
+  if (!authorization) throw new Error('Missing Authorization header')
   const token = authorization.replace('Bearer ', '')
   try {
     const decodedToken = JWT.verify(token, jwtKey) as Token
-    if (!decodedToken[CONFIG_JWT.CLAIMS_NAMESPACE]) throw new Error('Claims namespace not found.')
+    if (!decodedToken[CONFIG_JWT.CLAIMS_NAMESPACE]) throw new Error('Claims namespace not found')
     return decodedToken[CONFIG_JWT.CLAIMS_NAMESPACE]
   } catch (err) {
-    throw new Error('Invalid or expired JWT token.')
+    throw new Error('Invalid or expired JWT token')
   }
 }
 

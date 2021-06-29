@@ -9,7 +9,7 @@ const router = Router()
 
 router.use((req, res, next) => {
   if(!MFA.ENABLED) {
-    return res.boom.badImplementation(`Please set the MFA_ENABLED env variable to true to use the auth/mfa routes.`)
+    return res.boom.notImplemented(`Please set the MFA_ENABLED env variable to true to use the auth/mfa routes`)
   } else {
     return next()
   }

@@ -24,9 +24,5 @@ export async function request<T extends unknown>(
   query: ASTNode,
   variables?: Variables
 ): Promise<T> {
-  try {
-    return (await client.request(print(query), variables)) as T
-  } catch (err) {
-    throw new Error('Could not perform request')
-  }
+  return (await client.request(print(query), variables)) as T
 }

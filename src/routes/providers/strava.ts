@@ -8,9 +8,9 @@ export default (router: Router): void => {
 
   initProvider(router, 'strava', Strategy, { scope: options?.scope }, (req, res, next) => {
     if(!PROVIDERS.strava) {
-      return res.boom.badImplementation(`Please set the STRAVA_ENABLE env variable to true to use the auth/providers/strava routes.`)
+      return res.boom.notImplemented(`Please set the STRAVA_ENABLE env variable to true to use the auth/providers/strava routes`)
     } else if (!options?.clientID || !options?.clientSecret) {
-      return res.boom.badImplementation(`Missing environment variables for Strava OAuth.`)
+      throw new Error(`Missing environment variables for Strava OAuth`)
     } else {
       return next();
     }

@@ -13,16 +13,15 @@ async function generateMfa(req: Request, res: Response): Promise<unknown> {
 
   const { 'user-id': user_id } = req.permission_variables
 
-  let mfa_enabled: AccountData['mfa_enabled']
-  try {
-    const account = await selectAccountByUserId(user_id)
-    mfa_enabled = account.mfa_enabled
-  } catch (err) {
-    return res.boom.badRequest(err.message)
-  }
+  const account = await selectAccountByUserId(user_id)
+
+  const { mfa_enabled } = account
 
   if (mfa_enabled) {
-    return res.boom.badRequest('MFA is already enabled.')
+    req.logger.verbose(`User ${user_id} tried generating MFA but it was already enabled`, {
+      user_id
+    })
+    return res.boom.badRequest('MFA is already enabled')
   }
 
   /**
@@ -33,12 +32,7 @@ async function generateMfa(req: Request, res: Response): Promise<unknown> {
 
   await request(updateOtpSecret, { user_id, otp_secret })
 
-  let image_url: string
-  try {
-    image_url = await createQR(otpAuth)
-  } catch (err) {
-    return res.boom.internal(err.message)
-  }
+  const image_url = await createQR(otpAuth)
 
   req.logger.verbose(`User ${user_id} generated an OTP sercret to enable MFA`, {
     user_id,

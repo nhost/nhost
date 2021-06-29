@@ -10,9 +10,9 @@ export default (router: Router): void => {
       scope: PROVIDERS.spotify?.scope
   }, (req, res, next) => {
     if(!PROVIDERS.spotify) {
-      return res.boom.badImplementation(`Please set the SPOTIFY_ENABLED env variable to true to use the auth/providers/spotify routes.`)
+      return res.boom.notImplemented(`Please set the SPOTIFY_ENABLED env variable to true to use the auth/providers/spotify routes`)
     } else if (!options?.clientID || !options?.clientSecret) {
-      return res.boom.badImplementation(`Missing environment variables for Spotify OAuth.`)
+      throw new Error(`Missing environment variables for Spotify OAuth`)
     } else {
       return next();
     }

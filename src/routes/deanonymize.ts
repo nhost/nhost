@@ -1,6 +1,6 @@
 import { Response, Router } from 'express'
 import { APPLICATION, AUTHENTICATION, REGISTRATION } from "@config/index";
-import { accountIsAnonymous, accountWithEmailExists, asyncWrapper, checkHibp, hashPassword, deanonymizeAccount as deanonymizeAccountHelper, selectAccountByUserId } from '@/helpers';
+import { accountIsAnonymous, accountWithEmailExists, asyncWrapper, isCompromisedPassword, hashPassword, deanonymizeAccount as deanonymizeAccountHelper, selectAccountByUserId } from '@/helpers';
 import { DeanonymizeSchema, deanonymizeSchema } from '@/validation';
 import { request } from '@/request';
 import { changeEmailByUserId, changePasswordHashByUserId, deactivateAccount, setNewTicket } from '@/queries';
@@ -12,31 +12,32 @@ async function deanonymizeAccount(req: ValidatedRequest<Schema>, res: Response):
   const { email, password } = req.body
 
   if(!AUTHENTICATION.ANONYMOUS_USERS_ENABLED) {
-    return res.boom.badImplementation(`Please set the ANONYMOUS_USERS_ENABLED env variable to true to use the auth/deanonymize route.`)
+    return res.boom.notImplemented(`Please set the ANONYMOUS_USERS_ENABLED env variable to true to use the auth/deanonymize route`)
   }
 
   if (!req.permission_variables || !await accountIsAnonymous(req.permission_variables['user-id'])) {
     return res.boom.unauthorized('Unable to deanonymize account')
   }
 
-  try {
-    await checkHibp(password)
-  } catch (err) {
-    return res.boom.badRequest(err.message)
+  const user_id = req.permission_variables['user-id']
+
+  if(await isCompromisedPassword(password)) {
+    req.logger.verbose(`User ${user_id} tried deanonymizing his account with email ${email} but provided too weak of a password`, {
+      user_id,
+      email
+    })
+    return res.boom.badRequest('Password is too weak')
   }
 
-  let passwordHash: string
-  try {
-    passwordHash = await hashPassword(password)
-  } catch (err) {
-    return res.boom.internal(err.message)
-  }
+  const passwordHash = await hashPassword(password)
 
   if (await accountWithEmailExists(email)) {
-    return res.boom.badRequest('Cannot use this email.')
+    req.logger.verbose(`User ${user_id} tried deanonymizing his account with email ${email} but an account with such email already existed`, {
+      user_id,
+      email
+    })
+    return res.boom.badRequest('Cannot use this email')
   }
-
-  const user_id = req.permission_variables['user-id']
 
   await request(changeEmailByUserId, {
     user_id,

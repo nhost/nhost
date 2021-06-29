@@ -22,12 +22,8 @@ import { AccountData, IsAllowedEmail, QueryAccountData } from './types'
  * Create QR code.
  * @param secret Required OTP secret.
  */
-export async function createQR(secret: string): Promise<string> {
-  try {
-    return await QRCode.toDataURL(secret)
-  } catch (err) {
-    throw new Error('Could not create QR code')
-  }
+export function createQR(secret: string): Promise<string> {
+  return QRCode.toDataURL(secret)
 }
 
 /**
@@ -40,49 +36,29 @@ export function asyncWrapper(fn: any) {
   }
 }
 
-export const selectAccountByEmail = async (email: string): Promise<AccountData> => {
+export const selectAccountByEmail = async (email: string): Promise<AccountData|null> => {
   const hasuraData = await request<QueryAccountData>(selectAccountByEmailQuery, { email })
-  if (!hasuraData.auth_accounts[0]) throw new Error('Account does not exist.')
+  if (!hasuraData.auth_accounts[0]) return null
   return hasuraData.auth_accounts[0]
 }
 
-export const selectAccountByTicket = async (ticket: string): Promise<AccountData> => {
+export const selectAccountByTicket = async (ticket: string): Promise<AccountData|null> => {
   const hasuraData = await request<QueryAccountData>(selectAccountByTicketQuery, {
     ticket,
     now: new Date()
   })
-  if (!hasuraData.auth_accounts[0]) throw new Error('Account does not exist.')
+  if (!hasuraData.auth_accounts[0]) return null
   return hasuraData.auth_accounts[0]
 }
 
 // TODO await request returns undefined if no user found!
 export const selectAccountByUserId = async (user_id: string | undefined): Promise<AccountData> => {
   if (!user_id) {
-    throw new Error('Invalid User Id.')
+    throw new Error('Invalid User Id')
   }
   const hasuraData = await request<QueryAccountData>(selectAccountByUserIdQuery, { user_id })
-  if (!hasuraData.auth_accounts[0]) throw new Error('Account does not exist.')
+  if (!hasuraData.auth_accounts[0]) throw new Error('Account does not exist')
   return hasuraData.auth_accounts[0]
-}
-
-/**
- * Looks for an account in the database, first by email, second by ticket
- * @param httpBody
- * @return account data, null if account is not found
- */
-export const selectAccount = async ({ email = '', ticket = '' }: { email?: string, ticket?: string }): Promise<AccountData | undefined> => {
-  try {
-    return await selectAccountByEmail(email)
-  } catch {
-    if (!ticket) {
-      return undefined
-    }
-    try {
-      return await selectAccountByTicket(ticket)
-    } catch {
-      return undefined
-    }
-  }
 }
 
 /**
@@ -90,21 +66,15 @@ export const selectAccount = async ({ email = '', ticket = '' }: { email?: strin
  * @param password Password to hash.
  */
 export const hashPassword = async (password: string): Promise<string> => {
-  try {
-    return await bcrypt.hash(password, 10)
-  } catch (err) {
-    throw new Error('Could not hash password')
-  }
+  return await bcrypt.hash(password, 10)
 }
 
 /**
  * Checks password against the HIBP API.
  * @param password Password to check.
  */
-export const checkHibp = async (password: string): Promise<void> => {
-  if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password))) {
-    throw new Error('Password is too weak.')
-  }
+export const isCompromisedPassword = async (password: string): Promise<boolean> => {
+  return !!(REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password)))
 }
 
 export const rotateTicket = async (ticket: string): Promise<string> => {
@@ -148,16 +118,7 @@ export const setRefreshToken = async (
 }
 
 export const accountWithEmailExists = async (email: string) => {
-  let account_exists = true
-  try {
-    await selectAccountByEmail(email)
-    // Account using email already exists - pass
-  } catch {
-    // No existing account is using the email address. Good!
-    account_exists = false
-  }
-
-  return account_exists
+  return !!await selectAccountByEmail(email)
 }
 
 export const accountIsAnonymous = async (user_id: string) => {

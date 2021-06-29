@@ -3,7 +3,7 @@ import passport, { Profile } from 'passport'
 import { VerifyCallback } from 'passport-oauth2'
 import { Strategy } from 'passport'
 
-import { PROVIDERS, REGISTRATION } from '@config/index'
+import { APPLICATION, PROVIDERS, REGISTRATION } from '@config/index'
 import { addProviderRequest, deleteProviderRequest, getProviderRequest, insertAccount, insertAccountProviderToUser, selectAccountProvider } from '@/queries'
 import { asyncWrapper, selectAccountByEmail, setRefreshToken, getGravatarUrl, isAllowedEmail, selectAccountByUserId } from '@/helpers'
 import { request } from '@/request'
@@ -16,11 +16,12 @@ import {
   QueryProviderRequests,
   PermissionVariables
 } from '@/types'
-import { providerCallbackQuery, providerQuery } from '@/validation'
+import { ProviderCallbackQuery, providerCallbackQuery, ProviderQuery, providerQuery } from '@/validation'
 import { v4 as uuidv4 } from 'uuid'
 import { getClaims, getPermissionVariablesFromClaims } from '@/jwt'
+import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
 
-interface RequestWithState extends Request {
+interface RequestWithState<T extends ValidatedRequestSchema> extends ValidatedRequest<T> {
   state: string
 }
 
@@ -40,7 +41,7 @@ const manageProviderStrategy = (
   provider: string,
   transformProfile: TransformProfileFunction
 ) => async (
-  req: RequestWithState,
+  req: RequestWithState<ProviderCallbackQuerySchema>,
   _accessToken: string,
   _refreshToken: string,
   profile: Profile,
@@ -68,32 +69,24 @@ const manageProviderStrategy = (
       return done(null, hasuraData.auth_account_providers[0].account)
     }
 
-    // See if email already exist.
-    // if email exist, merge this provider with the current user.
-    try {
-      // try fetching the account using email
-      // if we're unable to fetch the account using the email
-      // we'll throw out of this try/catch
-      const account = await selectAccountByEmail(email as string)
+    if(email) {
+      const account = await selectAccountByEmail(email)
 
-      // account was successfully fetched
-      // add provider and activate account
-      const insertAccountProviderToUserData = await request<InsertAccountProviderToUser>(
-        insertAccountProviderToUser,
-        {
-          account_provider: {
-            account_id: account.id,
-            auth_provider: provider,
-            auth_provider_unique_id: id.toString()
-          },
-          account_id: account.id
-        }
-      )
-
-      return done(null, insertAccountProviderToUserData.insert_auth_account_providers_one.account)
-    } catch (error) {
-      // We were unable to fetch the account
-      // noop continue to register user
+      if(account) {
+        const insertAccountProviderToUserData = await request<InsertAccountProviderToUser>(
+          insertAccountProviderToUser,
+          {
+            account_provider: {
+              account_id: account.id,
+              auth_provider: provider,
+              auth_provider_unique_id: id.toString()
+            },
+            account_id: account.id
+          }
+        )
+  
+        return done(null, insertAccountProviderToUserData.insert_auth_account_providers_one.account)
+      }
     }
 
     // Check whether logged in user is trying to add a provider
@@ -171,15 +164,13 @@ const manageProviderStrategy = (
     return done(null, hasura_account_provider_data.insert_auth_accounts.returning[0])
   }
 
-const providerCallback = asyncWrapper(async (req: RequestWithState, res: Response): Promise<void> => {
+const providerCallback = asyncWrapper(async (req: RequestWithState<ProviderCallbackQuerySchema>, res: Response): Promise<void> => {
   // Successful authentication, redirect home.
   // generate tokens and redirect back home
 
-  await providerCallbackQuery.validateAsync(req.query)
-
   req.state = req.query.state as string
 
-  const { redirect_url_success, redirect_url_failure } = await request<QueryProviderRequests>(getProviderRequest, {
+  const { redirect_url_success } = await request<QueryProviderRequests>(getProviderRequest, {
     state: req.state
   }).then(query => query.auth_provider_requests_by_pk)
 
@@ -191,12 +182,7 @@ const providerCallback = asyncWrapper(async (req: RequestWithState, res: Respons
   // However, we send account data.
   const account = req.user as AccountData
 
-  let refresh_token = ''
-  try {
-    refresh_token = await setRefreshToken(account.id)
-  } catch (e) {
-    res.redirect(redirect_url_failure)
-  }
+  const refresh_token = await setRefreshToken(account.id)
 
   // redirect back user to app url
   res.redirect(`${redirect_url_success}?refresh_token=${refresh_token}`)
@@ -236,9 +222,10 @@ export const initProvider = <T extends Strategy>(
           {
             ...PROVIDERS[strategyName],
             ...options,
-            callbackURL: `http://localhost/providers/${strategyName}/callback`,
+            callbackURL: new URL(`/providers/${strategyName}/callback`, APPLICATION.SERVER_URL).href,
             passReqToCallback: true
           },
+          createValidator().query(providerCallbackQuery),
           manageProviderStrategy(strategyName, transformProfile)
         )
       )
@@ -255,10 +242,11 @@ export const initProvider = <T extends Strategy>(
       }
       await next()
     },
-    asyncWrapper(async (req: RequestWithState, res: Response, next: NextFunction) => {
+    createValidator().query(providerQuery),
+    asyncWrapper(async (req: RequestWithState<ProviderQuerySchema>, res: Response, next: NextFunction) => {
       req.state = uuidv4()
 
-      const { redirect_url_success, redirect_url_failure, jwt_token } = await providerQuery.validateAsync(req.query)
+      const { redirect_url_success, redirect_url_failure, jwt_token } = req.query
 
       await request(addProviderRequest, {
         state: req.state,
@@ -269,7 +257,7 @@ export const initProvider = <T extends Strategy>(
 
       await next()
     }),
-    (req: RequestWithState, ...rest: any) => {
+    (req: RequestWithState<ProviderQuerySchema>, ...rest: any) => {
       return passport.authenticate(strategyName, { session: false, state: req.state })(req, ...rest)
     },
     passport.authenticate(strategyName, { session: false, scope })
@@ -280,6 +268,7 @@ export const initProvider = <T extends Strategy>(
       failureRedirect: PROVIDERS.REDIRECT_FAILURE,
       session: false
     }),
+    createValidator().query(providerCallbackQuery),
     providerCallback
   ]
   if (callbackMethod === 'POST') {
@@ -290,4 +279,12 @@ export const initProvider = <T extends Strategy>(
   }
 
   router.use(`/${strategyName}`, subRouter)
+}
+
+interface ProviderQuerySchema extends ValidatedRequestSchema {
+  [ContainerTypes.Query]: ProviderQuery
+}
+
+interface ProviderCallbackQuerySchema extends ValidatedRequestSchema {
+  [ContainerTypes.Query]: ProviderCallbackQuery
 }

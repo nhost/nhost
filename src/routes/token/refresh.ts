@@ -13,7 +13,7 @@ interface HasuraData {
 
 async function refreshToken({ refresh_token }: Request, res: Response): Promise<any> {
   if (!refresh_token) {
-    return res.boom.unauthorized('Invalid or expired refresh token.')
+    return res.boom.unauthorized('Invalid or expired refresh token')
   }
 
   // get account based on refresh token
@@ -22,28 +22,20 @@ async function refreshToken({ refresh_token }: Request, res: Response): Promise<
     current_timestamp: new Date()
   })
 
-  if (!auth_refresh_tokens?.length) {
-    return res.boom.unauthorized('Invalid or expired refresh token.')
-  }
-
   // create a new refresh token
   const new_refresh_token = uuidv4()
   const { account } = auth_refresh_tokens[0]
 
   // delete old refresh token
   // and insert new refresh token
-  try {
-    await request(updateRefreshToken, {
-      old_refresh_token: refresh_token,
-      new_refresh_token_data: {
-        account_id: account.id,
-        refresh_token: new_refresh_token,
-        expires_at: new Date(newRefreshExpiry())
-      }
-    })
-  } catch (error) {
-    return res.boom.badImplementation('Unable to set new refresh token')
-  }
+  await request(updateRefreshToken, {
+    old_refresh_token: refresh_token,
+    new_refresh_token_data: {
+      account_id: account.id,
+      refresh_token: new_refresh_token,
+      expires_at: new Date(newRefreshExpiry())
+    }
+  })
 
   const jwt_token = createHasuraJwt(account)
   const jwt_expires_in = newJwtExpiry

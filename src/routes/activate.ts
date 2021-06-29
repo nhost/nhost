@@ -6,19 +6,18 @@ import { asyncWrapper, deanonymizeAccount, selectAccountByTicket } from '@/helpe
 import { request } from '@/request'
 import { v4 as uuidv4 } from 'uuid'
 import { VerifySchema, verifySchema } from '@/validation'
-import { AccountData, UpdateAccountData } from '@/types'
+import { UpdateAccountData } from '@/types'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 
 async function activateUser(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
-    return res.boom.badImplementation(`Please set the AUTO_ACTIVATE_NEW_USERS env variable to false to use the auth/activate route.`)
+    return res.boom.notImplemented(`Please set the AUTO_ACTIVATE_NEW_USERS env variable to false to use the auth/activate route`)
   }
 
-  let account: AccountData
-  try {
-    account = await selectAccountByTicket(req.query.ticket)
-  } catch {
-    return res.boom.unauthorized('Invalid or expired ticket.')
+  const account = await selectAccountByTicket(req.query.ticket)
+
+  if(!account) {
+    return res.boom.unauthorized('Invalid or expired ticket')
   }
 
   const new_ticket = uuidv4()
@@ -39,19 +38,11 @@ async function activateUser(req: ValidatedRequest<Schema>, res: Response): Promi
       email: account.user.email
     })
   } else {
-    try {
-      await request<UpdateAccountData>(activateAccount, {
-        ticket: req.query.ticket,
-        new_ticket,
-        now: new Date()
-      })
-    } catch (err) /* istanbul ignore next */ {
-      console.error(err)
-      if (APPLICATION.REDIRECT_URL_ERROR) {
-        return res.redirect(302, APPLICATION.REDIRECT_URL_ERROR)
-      }
-      throw err
-    }
+    await request<UpdateAccountData>(activateAccount, {
+      ticket: req.query.ticket,
+      new_ticket,
+      now: new Date()
+    })
   }
 
   req.logger.verbose(`User ${account.user.id} activated his account`, {
