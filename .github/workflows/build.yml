@@ -1,14 +1,14 @@
 name: Build
 on:
   pull_request:
-    branches: [master]
+    branches: [main]
     paths:
       - '**'
       - '!docs/**'
       - '!examples/**'
       - '!*.md'
   push:
-    branches: [master]
+    branches: [main]
     paths:
       - '**'
       - '!docs/**'
