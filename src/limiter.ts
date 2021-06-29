@@ -30,6 +30,6 @@ export const limiter = rateLimit({
   message: ({
     statusCode: 429,
     error: 'Too Many Requests',
-    message: 'You are being rate limited.'
+    message: 'You are being rate limited'
   } as unknown) as LimitMessage
 })

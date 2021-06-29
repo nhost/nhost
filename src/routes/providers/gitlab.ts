@@ -11,9 +11,9 @@ export default (router: Router): void => {
     ...(options?.baseUrl && { baseURL: options.baseUrl })
   }, (req, res, next) => {
     if(!PROVIDERS.gitlab) {
-      return res.boom.badImplementation(`Please set the GITLAB_ENABLED env variable to true to use the auth/providers/gitlab routes.`)
+      return res.boom.notImplemented(`Please set the GITLAB_ENABLED env variable to true to use the auth/providers/gitlab routes`)
     } else if (!options?.clientID || !options?.clientSecret) {
-      return res.boom.badImplementation(`Missing environment variables for Gitlab OAuth.`)
+      throw new Error(`Missing environment variables for Gitlab OAuth`)
     } else {
       return next();
     }

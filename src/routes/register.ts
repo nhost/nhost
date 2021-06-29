@@ -1,6 +1,6 @@
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
 import { NextFunction, Response, Router } from 'express'
-import { asyncWrapper, checkHibp, hashPassword, selectAccount, setRefreshToken, getGravatarUrl, isAllowedEmail } from '@/helpers'
+import { asyncWrapper, isCompromisedPassword, hashPassword, setRefreshToken, getGravatarUrl, isAllowedEmail, selectAccountByEmail } from '@/helpers'
 import { newJwtExpiry, createHasuraJwt } from '@/jwt'
 import { emailClient } from '@/email'
 import { insertAccount } from '@/queries'
@@ -32,8 +32,8 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     return res.boom.unauthorized('Email not allowed')
   }
 
-  if (await selectAccount(body)) {
-    return res.boom.badRequest('Account already exists.')
+  if (await selectAccountByEmail(body.email)) {
+    return res.boom.badRequest('Account already exists')
   }
 
   let password_hash: string | null = null
@@ -42,17 +42,11 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   const ticket_expires_at = new Date(+new Date() + 60 * 60 * 1000).toISOString() // active for 60 minutes
 
   if (isRegularLogin(body)) {
-    try {
-      await checkHibp(body.password)
-    } catch (err) {
-      return res.boom.badRequest(err.message)
+    if(await isCompromisedPassword(body.password)) {
+      return res.boom.badRequest('Password is too weak')
     }
 
-    try {
-      password_hash = await hashPassword(body.password)
-    } catch (err) {
-      return res.boom.internal(err.message)
-    }
+    password_hash = await hashPassword(body.password)
   }
 
   const defaultRole = register_options.default_role ?? REGISTRATION.DEFAULT_USER_ROLE
@@ -60,46 +54,49 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
 
   // check if default role is part of allowedRoles
   if (!allowedRoles.includes(defaultRole)) {
-    return res.boom.badRequest('Default role must be part of allowed roles.')
+    req.logger.verbose(`User tried registering with email ${email} but used an invalid default role ${defaultRole}`, {
+      email,
+      default_role: defaultRole,
+      allowed_roles: allowedRoles
+    })
+    return res.boom.badRequest('Default role must be part of allowed roles')
   }
 
   // check if allowed roles is a subset of ALLOWED_ROLES
   if (!allowedRoles.every((role: string) => REGISTRATION.ALLOWED_USER_ROLES.includes(role))) {
-    return res.boom.badRequest('allowed roles must be a subset of ALLOWED_ROLES')
+    req.logger.verbose(`User tried registering with email ${email} but used an invalid role`, {
+      email,
+      allowed_roles: allowedRoles,
+      app_allowed_roles: REGISTRATION.ALLOWED_USER_ROLES
+    })
+    return res.boom.badRequest('Allowed roles must be a subset of ALLOWED_ROLES')
   }
 
   const accountRoles = allowedRoles.map((role: string) => ({ role }))
 
   const avatarUrl = getGravatarUrl(email)
 
-  let accounts: InsertAccountData
-  try {
-    accounts = await request<InsertAccountData>(insertAccount, {
-      account: {
-        email,
-        password_hash,
-        ticket,
-        ticket_expires_at,
-        active: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
-        locale,
-        default_role: defaultRole,
-        account_roles: {
-          data: accountRoles
-        },
-        user: {
-          data: {
-            display_name: email,
-            avatar_url: avatarUrl,
-            ...user_data
-          }
+  const accounts = await request<InsertAccountData>(insertAccount, {
+    account: {
+      email,
+      password_hash,
+      ticket,
+      ticket_expires_at,
+      active: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
+      locale,
+      default_role: defaultRole,
+      account_roles: {
+        data: accountRoles
+      },
+      user: {
+        data: {
+          display_name: email,
+          avatar_url: avatarUrl,
+          ...user_data
         }
       }
-    })
-  } catch (e) {
-    console.error('Error inserting user account')
-    console.error(e)
-    return res.boom.badRequest('Error inserting user account ' + JSON.stringify(e, null, 2))
-  }
+    }
+  })
 
   const account = accounts.insert_auth_accounts.returning[0]
   const user: UserData = {
@@ -111,7 +108,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
 
   if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
     if (!APPLICATION.EMAILS_ENABLED) {
-      return res.boom.badImplementation('SMTP settings unavailable')
+      throw new Error('SMTP settings unavailable')
     }
 
     // use display name from `user_data` if available

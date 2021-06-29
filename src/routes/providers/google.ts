@@ -8,9 +8,9 @@ export default (router: Router): void => {
 
   initProvider(router, 'google', Strategy, { scope: PROVIDERS.google?.scope }, (req, res, next) => {
     if(!PROVIDERS.google) {
-      return res.boom.badImplementation(`Please set the GOOGLE_ENABLED env variable to true to use the auth/providers/google routes.`)
+      return res.boom.notImplemented(`Please set the GOOGLE_ENABLED env variable to true to use the auth/providers/google routes`)
     } else if (!options?.clientID || !options?.clientSecret) {
-      return res.boom.badImplementation(`Missing environment variables for Google OAuth.`)
+      throw new Error(`Missing environment variables for Google OAuth`)
     } else {
       return next();
     }

@@ -21,9 +21,9 @@ export default (router: Router): void => {
     callbackMethod: 'POST'
   }, (req, res, next) => {
     if(!PROVIDERS.apple) {
-      return res.boom.badImplementation(`Please set the APPLE_ENABLED env variable to true to use the auth/providers/apple routes.`)
+      return res.boom.notImplemented(`Please set the APPLE_ENABLED env variable to true to use the auth/providers/apple routes`)
     } else if (!options?.clientID || !options?.teamID || !options?.keyID || !options?.key) {
-      return res.boom.badImplementation(`Missing environment variables for Apple OAuth.`)
+      throw new Error(`Missing environment variables for Apple OAuth`)
     } else {
       return next();
     }

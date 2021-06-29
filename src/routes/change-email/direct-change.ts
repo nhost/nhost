@@ -9,7 +9,7 @@ import { accountWithEmailExists, asyncWrapper } from '@/helpers'
 
 async function directChange(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(AUTHENTICATION.VERIFY_EMAILS) {
-    return res.boom.badImplementation(`Please set the VERIFY_EMAILS env variable to false to use the auth/change-email route.`)
+    return res.boom.notImplemented(`Please set the VERIFY_EMAILS env variable to false to use the auth/change-email route`)
   }
 
   const user_id = req.permission_variables?.['user-id']
@@ -17,6 +17,10 @@ async function directChange(req: ValidatedRequest<Schema>, res: Response): Promi
   const new_email = req.body.new_email
 
   if(await accountWithEmailExists(new_email)) {
+    req.logger.verbose(`User ${user_id} tried directly changing his email to ${new_email} but an account with such email already exists`, {
+      user_id,
+      email: new_email,
+    })
     return res.boom.badRequest('Cannot use this email')
   }
 

@@ -1,7 +1,7 @@
 import { Response, Router } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 
-import { asyncWrapper, checkHibp, hashPassword, selectAccountByTicket } from '@/helpers'
+import { asyncWrapper, isCompromisedPassword, hashPassword, selectAccountByTicket } from '@/helpers'
 import { ResetPasswordWithTicketSchema, resetPasswordWithTicketSchema } from '@/validation'
 import { updatePasswordWithTicket } from '@/queries'
 import { request } from '@/request'
@@ -14,24 +14,20 @@ import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedReque
  */
 async function resetPassword(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.LOST_PASSWORD_ENABLED) {
-    return res.boom.badImplementation(`Please set the LOST_PASSWORD_ENABLE env variable to true to use the auth/change-password/change route.`)
+    return res.boom.notImplemented(`Please set the LOST_PASSWORD_ENABLE env variable to true to use the auth/change-password/change route`)
   }
 
   // Reset the password from { ticket, new_password }
   const { ticket, new_password } = req.body
 
-  try {
-    await checkHibp(new_password)
-  } catch (err) {
-    return res.boom.badRequest(err.message)
+  if(await isCompromisedPassword(new_password)) {
+    req.logger.verbose(`User with ticket ${ticket} tried changing his password but it was too weak`, {
+      ticket,
+    })
+    return res.boom.badRequest('Password is too weak')
   }
 
-  let password_hash: string
-  try {
-    password_hash = await hashPassword(new_password)
-  } catch (err) {
-    return res.boom.internal(err.message)
-  }
+  const password_hash = await hashPassword(new_password)
 
   const new_ticket = uuidv4();
 
@@ -44,7 +40,7 @@ async function resetPassword(req: ValidatedRequest<Schema>, res: Response): Prom
 
   const { affected_rows, returning } = hasuraData.update_auth_accounts
   if (!affected_rows) {
-    return res.boom.unauthorized('Invalid or expired ticket.')
+    return res.boom.unauthorized('Invalid or expired ticket')
   }
 
   const user_id = returning[0].user_id

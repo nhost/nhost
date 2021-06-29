@@ -1,7 +1,7 @@
 import { NextFunction, Response, Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
-import { asyncWrapper, selectAccount, setRefreshToken } from '@/helpers'
+import { asyncWrapper, selectAccountByEmail, setRefreshToken } from '@/helpers'
 import { newJwtExpiry, createHasuraJwt } from '@/jwt'
 import { isAnonymousLogin, isMagicLinkLogin, LoginSchema, loginSchema } from '@/validation'
 import { insertAccount, setNewTicket } from '@/queries'
@@ -22,35 +22,29 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promi
   const { body, headers } = req
 
   if (isAnonymousLogin(body)) {
-    let hasura_data: HasuraData
-
     const { locale } = body
 
-    try {
-      const ticket = uuidv4()
-      hasura_data = await request(insertAccount, {
-        account: {
-          email: null,
-          password_hash: null,
-          ticket,
-          active: true,
-          is_anonymous: true,
-          locale,
-          default_role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE,
-          account_roles: {
-            data: [{ role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE }]
-          },
-          user: {
-            data: { display_name: 'Anonymous user' }
-          }
+    const ticket = uuidv4()
+    const hasura_data = await request<HasuraData>(insertAccount, {
+      account: {
+        email: null,
+        password_hash: null,
+        ticket,
+        active: true,
+        is_anonymous: true,
+        locale,
+        default_role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE,
+        account_roles: {
+          data: [{ role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE }]
+        },
+        user: {
+          data: { display_name: 'Anonymous user' }
         }
-      })
-    } catch (error) {
-      return res.boom.badImplementation('Unable to create user and sign in user anonymously')
-    }
+      }
+    })
 
     if (!hasura_data.insert_auth_accounts.returning.length) {
-      return res.boom.badImplementation('Unable to create user and sign in user anonymously')
+      throw new Error('Unable to create user and sign in user anonymously')
     }
 
     const account = hasura_data.insert_auth_accounts.returning[0]
@@ -69,10 +63,12 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promi
     return res.send(session)
   }
 
-  const account = await selectAccount(body)
+  const account = await selectAccountByEmail(body.email)
 
   if (!account) {
-    // Undefined password = magic link login
+    req.logger.verbose(`User tried logged in with email ${body.email} but no account with such email exists`, {
+      email: body.email
+    })
     if(isMagicLinkLogin(body)) {
       return res.boom.badRequest('Invalid email')
     } else {
@@ -83,45 +79,44 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promi
   const { id, mfa_enabled, password_hash, active, email } = account
 
   if (!active) {
-    return res.boom.badRequest('Account is not activated.')
+    req.logger.verbose(`User ${account.user.id} tried logging in with email ${email} but his account is inactive`, {
+      user_id: account.user.id,
+      email
+    })
+    return res.boom.badRequest('Account is not activated')
   }
 
   if (isMagicLinkLogin(body)) {
     const refresh_token = await setRefreshToken(id)
 
-    try {
-      await emailClient.send({
-        template: 'magic-link',
-        message: {
-          to: email,
-          headers: {
-            'x-ticket': {
-              prepared: true,
-              value: refresh_token
-            }
+    await emailClient.send({
+      template: 'magic-link',
+      message: {
+        to: email,
+        headers: {
+          'x-ticket': {
+            prepared: true,
+            value: refresh_token
           }
-        },
-        locals: {
-          display_name: account.user.display_name,
-          token: refresh_token,
-          url: APPLICATION.SERVER_URL,
-          locale: account.locale,
-          app_url: APPLICATION.APP_URL,
-          action: 'log in',
-          action_url: 'log-in'
         }
-      })
+      },
+      locals: {
+        display_name: account.user.display_name,
+        token: refresh_token,
+        url: APPLICATION.SERVER_URL,
+        locale: account.locale,
+        app_url: APPLICATION.APP_URL,
+        action: 'log in',
+        action_url: 'log-in'
+      }
+    })
 
-      req.logger.verbose(`User ${account.user.id} logged in with magic link to email ${email}`, {
-        user_id: account.user.id,
-        email
-      })
+    req.logger.verbose(`User ${account.user.id} logged in with magic link to email ${email}`, {
+      user_id: account.user.id,
+      email
+    })
 
-      return res.send({ magicLink: true });
-    } catch (err) {
-      console.error(err)
-      return res.boom.badImplementation()
-    }
+    return res.send({ magicLink: true });
   }
 
   const { password } = body
@@ -131,6 +126,7 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promi
   const hasAdminSecret = Boolean(adminSecret)
   const isAdminSecretCorrect = adminSecret === APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET
   let userImpersonationValid = false;
+
   if (AUTHENTICATION.USER_IMPERSONATION_ENABLED && hasAdminSecret && !isAdminSecretCorrect) {
     return res.boom.unauthorized('Invalid x-admin-secret')
   } else if (AUTHENTICATION.USER_IMPERSONATION_ENABLED && hasAdminSecret && isAdminSecretCorrect) {
@@ -175,8 +171,9 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promi
   }
   const session: Session = { jwt_token, jwt_expires_in, user, refresh_token }
 
-  req.logger.verbose(`User ${user.id} logged in`, {
-    user_id: user.id
+  req.logger.verbose(`User ${user.id} logged in with email ${email}`, {
+    user_id: user.id,
+    email
   })
 
   res.send(session)

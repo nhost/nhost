@@ -16,26 +16,27 @@ async function enableMfa(req: ValidatedRequest<Schema>, res: Response): Promise<
   const { 'user-id': user_id } = req.permission_variables
   const { code } = req.body
 
-  let otp_secret: AccountData['otp_secret']
-  let mfa_enabled: AccountData['mfa_enabled']
-  try {
-    const account = await selectAccountByUserId(user_id)
-    otp_secret = account.otp_secret
-    mfa_enabled = account.mfa_enabled
-  } catch (err) {
-    return res.boom.badRequest(err.message)
-  }
+  const account = await selectAccountByUserId(user_id)
+
+  const { otp_secret, mfa_enabled } = account
 
   if (mfa_enabled) {
-    return res.boom.badRequest('MFA is already enabled.')
+    req.logger.verbose(`User ${user_id} tried enabling MFA but it was already enabled`, {
+      user_id
+    })
+    return res.boom.badRequest('MFA is already enabled')
   }
 
   if (!otp_secret) {
-    return res.boom.badRequest('OTP secret is not set.')
+    req.logger.verbose(`User ${user_id} tried enabling MFA but the OTP secret was not set ${otp_secret}`, {
+      user_id,
+      otp_secret
+    })
+    return res.boom.badRequest('OTP secret is not set')
   }
 
   if (!authenticator.check(code, otp_secret)) {
-    return res.boom.unauthorized('Invalid two-factor code.')
+    return res.boom.unauthorized('Invalid two-factor code')
   }
 
   await request(updateOtpStatus, { user_id, mfa_enabled: true })

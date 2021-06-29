@@ -108,7 +108,7 @@ const PROVIDERS = {
         }
       }
     } catch (e) {
-      throw new Error(`Invalid Apple OAuth Key file.`)
+      throw new Error(`Invalid Apple OAuth Key file`)
     }
   },
 

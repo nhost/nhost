@@ -1,6 +1,6 @@
 import { APPLICATION, REGISTRATION } from '@config/index'
 import { Response, Router } from 'express'
-import { asyncWrapper, selectAccount, updateLastSentConfirmation } from '@/helpers'
+import { asyncWrapper, selectAccountByEmail, updateLastSentConfirmation } from '@/helpers'
 
 import { emailClient } from '@/email'
 import { v4 as uuidv4 } from 'uuid'
@@ -10,21 +10,34 @@ import { ResendConfirmationSchema, resendConfirmationSchema } from '@/validation
 
 async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
-    return res.boom.badImplementation(`Please set the AUTO_ACTIVATE_NEW_USERS env variable to false to use the auth/resend-confirmation route.`)
+    return res.boom.notImplemented(`Please set the AUTO_ACTIVATE_NEW_USERS env variable to false to use the auth/resend-confirmation route`)
   }
 
-  const body = req.body
+  const { email } = req.body
 
-  const account = await selectAccount(body)
+  const account = await selectAccountByEmail(email)
 
   if (!account) {
-    return res.boom.badRequest('Account does not exist.')
+    req.logger.verbose(`User tried resending confirmation email to ${email} but no account with such email exists`, {
+      email,
+    })
+    return res.boom.badRequest('Account does not exist')
   } else if (account.active) {
-    return res.boom.badRequest('Account already activated.')
+    req.logger.verbose(`User ${account.user.id} tried resending confirmation email to ${email} but his account is already active`, {
+      user_id: account.user.id,
+      email,
+    })
+    return res.boom.badRequest('Account already activated')
   } else if (
     +new Date(account.last_confirmation_email_sent_at) + REGISTRATION.CONFIRMATION_RESET_TIMEOUT > +new Date()
   ) {
-    return res.boom.badRequest('Please wait before resending the confirmation email.')
+    req.logger.verbose(`User ${account.user.id} tried resending confirmation email to ${email} but he is timed out`, {
+      user_id: account.user.id,
+      email,
+      last_confirmation_email_sent_at: account.last_confirmation_email_sent_at,
+      timeout: REGISTRATION.CONFIRMATION_RESET_TIMEOUT
+    })
+    return res.boom.badRequest('Please wait before resending the confirmation email')
   }
 
   const ticket = uuidv4()
@@ -40,35 +53,30 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
   }
 
   if (!APPLICATION.EMAILS_ENABLED) {
-    return res.boom.badImplementation('SMTP settings unavailable')
+    throw new Error('SMTP settings unavailable')
   }
 
   // use display name from `user_data` if available
   const display_name = user.display_name || user.email;
 
-  try {
-    await emailClient.send({
-      template: 'activate-account',
-      message: {
-        to: user.email,
-        headers: {
-          'x-ticket': {
-            prepared: true,
-            value: ticket
-          }
+  await emailClient.send({
+    template: 'activate-account',
+    message: {
+      to: user.email,
+      headers: {
+        'x-ticket': {
+          prepared: true,
+          value: ticket
         }
-      },
-      locals: {
-        display_name,
-        ticket,
-        url: APPLICATION.SERVER_URL,
-        locale: account.locale
       }
-    })
-  } catch (err) {
-    console.error(err)
-    return res.boom.badImplementation()
-  }
+    },
+    locals: {
+      display_name,
+      ticket,
+      url: APPLICATION.SERVER_URL,
+      locale: account.locale
+    }
+  })
 
   await updateLastSentConfirmation(account.user.id)
 

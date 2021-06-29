@@ -1,7 +1,7 @@
 import { Response, Router } from 'express'
 import bcrypt from 'bcryptjs'
 
-import { asyncWrapper, checkHibp, hashPassword, selectAccountByUserId } from '@/helpers'
+import { asyncWrapper, isCompromisedPassword, hashPassword, selectAccountByUserId } from '@/helpers'
 import { ChangePasswordFromOldSchema, changePasswordFromOldSchema } from '@/validation'
 import { updatePasswordWithUserId } from '@/queries'
 import { request } from '@/request'
@@ -20,32 +20,23 @@ async function basicPasswordChange(req: ValidatedRequest<Schema>, res: Response)
 
   const { old_password, new_password } = req.body
 
-  try {
-    await checkHibp(new_password)
-  } catch (err) {
-    return res.boom.badRequest(err.message)
+  if(await isCompromisedPassword(new_password)) {
+    req.logger.verbose(`User ${user_id} tried changing his password but it was too weak`, {
+      user_id,
+    })
+    return res.boom.badRequest('Password is too weak')
   }
 
-  // Search the account from the JWT's account id
-  let password_hash: AccountData['password_hash']
-  try {
-    const account = await selectAccountByUserId(user_id)
-    password_hash = account.password_hash
-  } catch (err) {
-    return res.boom.badRequest(err.message)
-  }
+  const account = await selectAccountByUserId(user_id)
+
+  const password_hash = account.password_hash
 
   // Check the old (current) password
   if (!(await bcrypt.compare(old_password, password_hash))) {
-    return res.boom.unauthorized('Incorrect current password.')
+    return res.boom.unauthorized('Incorrect current password')
   }
 
-  let newPasswordHash: string
-  try {
-    newPasswordHash = await hashPassword(new_password)
-  } catch (err) {
-    return res.boom.internal(err.message)
-  }
+  const newPasswordHash = await hashPassword(new_password)
 
   await request(updatePasswordWithUserId, {
     user_id,

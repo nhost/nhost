@@ -45,7 +45,7 @@ it('should tell the password has been pwned', (done) => {
         .post('/register')
         .send({ email: generateRandomEmail(), password: '123456' })
         .expect(statusCode(400))
-        .expect(errorMessageEqual('Password is too weak.'))
+        .expect(errorMessageEqual('Password is too weak'))
         .end(end(done))
     },
     done
@@ -215,7 +215,7 @@ it('should tell the account already exists', (done) => {
         .post('/register')
         .send({ email, password })
         .expect(statusCode(400))
-        .expect(errorMessageEqual('Account already exists.'))
+        .expect(errorMessageEqual('Account already exists'))
         .end(end(done))
     })
 })

@@ -9,7 +9,7 @@ import { Request } from 'express'
 
 async function deleteUser(req: Request, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.ALLOW_USER_SELF_DELETE) {
-    return res.boom.badImplementation(`Please set the ALLOW_USER_SELF_DELETE env variable to true to use the auth/delete route.`)
+    return res.boom.notImplemented(`Please set the ALLOW_USER_SELF_DELETE env variable to true to use the auth/delete route`)
   }
 
   if (!req.permission_variables) {

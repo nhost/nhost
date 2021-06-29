@@ -12,24 +12,21 @@ import { ValidatedRequest, ValidatedRequestSchema, ContainerTypes, createValidat
 
 async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.VERIFY_EMAILS) {
-    return res.boom.badImplementation(`Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/change route.`)
+    return res.boom.notImplemented(`Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/change route`)
   }
 
   const { ticket } = req.body
 
-  let email: AccountData['email']
-  let new_email: AccountData['new_email']
-  let user: AccountData['user']
-  let account: AccountData
+  const account = await selectAccountByTicket(ticket)
 
-  try {
-    account = await selectAccountByTicket(ticket)
-    email = account.email
-    new_email = account.new_email
-    user = account.user
-  } catch(err) {
-    return res.boom.badRequest(err.message);
+  if(!account) {
+    req.logger.verbose(`User tried changing his email but provided an invalid ticket ${ticket}`, {
+      ticket
+    })
+    return res.boom.badRequest('Account with such ticket does not exist')
   }
+
+  const { email, new_email, user } = account
 
   const hasuraData = await request<UpdateAccountData>(changeEmailByTicket, {
     ticket,
@@ -39,28 +36,22 @@ async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promis
   })
 
   if (!hasuraData.update_auth_accounts.affected_rows) {
-    return res.boom.unauthorized('Invalid or expired ticket.')
+    return res.boom.unauthorized('Invalid or expired ticket')
   }
 
   if (AUTHENTICATION.NOTIFY_EMAIL_CHANGE && APPLICATION.EMAILS_ENABLED) {
-    try {
-      await emailClient.send({
-        template: 'notify-email-change',
-        locals: {
-          url: APPLICATION.SERVER_URL,
-          locale: account.locale,
-          app_url: APPLICATION.APP_URL,
-          display_name: user.display_name
-        },
-        message: {
-          to: email
-        }
-      })
-    } catch (err) {
-      console.error('Unable to send email')
-      console.error(err)
-      return res.boom.badImplementation()
-    }
+    await emailClient.send({
+      template: 'notify-email-change',
+      locals: {
+        url: APPLICATION.SERVER_URL,
+        locale: account.locale,
+        app_url: APPLICATION.APP_URL,
+        display_name: user.display_name
+      },
+      message: {
+        to: email
+      }
+    })
   }
   await rotateTicket(ticket)
 
