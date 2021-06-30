@@ -30,7 +30,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -174,7 +174,7 @@ func Execute() {
 // auto-generate utility documentation in all required formats
 func generateDocumentation() {
 
-	docsDir := path.Join(nhost.WORKING_DIR, "docs")
+	docsDir := filepath.Join(nhost.WORKING_DIR, "docs")
 
 	// Generate Markdown docs
 	err := doc.GenMarkdownTree(rootCmd, docsDir)

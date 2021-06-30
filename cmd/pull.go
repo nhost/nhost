@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strconv"
 
 	"github.com/manifoldco/promptui"
@@ -109,7 +109,7 @@ and sync them with your local project.`,
 
 		/*
 
-			sqlFiles, err := ioutil.ReadDir(path.Join(nhost.MIGRATIONS_DIR, migration.Name))
+			sqlFiles, err := ioutil.ReadDir(filepath.Join(nhost.MIGRATIONS_DIR, migration.Name))
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to traverse migrations directory")
@@ -117,7 +117,7 @@ and sync them with your local project.`,
 
 			for _, file := range sqlFiles {
 
-				sqlPath := path.Join(nhost.MIGRATIONS_DIR, migration.Name, file.Name())
+				sqlPath := filepath.Join(nhost.MIGRATIONS_DIR, migration.Name, file.Name())
 
 				// format the new migration
 				// so that it doesn't conflicts with existing migrations
@@ -198,7 +198,7 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 			return migration, err
 		}
 
-		f, err := os.Create(path.Join(migration.Location, "up.sql"))
+		f, err := os.Create(filepath.Join(migration.Location, "up.sql"))
 		if err != nil {
 			log.Debug("Failed to create migration file")
 			return migration, err
@@ -301,7 +301,7 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 
 		for _, item := range metadataToBeSaved {
 
-			file, err := os.Create(path.Join(nhost.METADATA_DIR, fmt.Sprintf("%s.yaml", item["key"])))
+			file, err := os.Create(filepath.Join(nhost.METADATA_DIR, fmt.Sprintf("%s.yaml", item["key"])))
 			if err != nil {
 				return migration, err
 			}
@@ -397,7 +397,7 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 					// to the relevant migration file
 					// explain reason...
 
-					if err = copySeedToMigration(table.Table.Name, path.Join(migrationFile.Name(), "up.sql")); err != nil {
+					if err = copySeedToMigration(table.Table.Name, filepath.Join(migrationFile.Name(), "up.sql")); err != nil {
 						log.Debug(err)
 						log.WithField("component", table.Table.Name).Errorf("Failed to append table seed data to migration: %v", name)
 						log.Warn("Skipping seed creation")
@@ -419,18 +419,18 @@ func copySeedToMigration(seed, migration string) error {
 	}
 
 	// now read it's data
-	data, err := os.ReadFile(path.Join(nhost.SEEDS_DIR, seedFile.Name()))
+	data, err := os.ReadFile(filepath.Join(nhost.SEEDS_DIR, seedFile.Name()))
 	if err != nil {
 		return err
 	}
 
 	// finally append the seed data to migration file
-	if err = writeToFile(path.Join(nhost.MIGRATIONS_DIR, migration), string(data), "end"); err != nil {
+	if err = writeToFile(filepath.Join(nhost.MIGRATIONS_DIR, migration), string(data), "end"); err != nil {
 		return err
 	}
 
 	// delete the seed file so that it's not applied again
-	if err = deleteAllPaths(path.Join(nhost.SEEDS_DIR, seedFile.Name())); err != nil {
+	if err = deleteAllPaths(filepath.Join(nhost.SEEDS_DIR, seedFile.Name())); err != nil {
 		return err
 	}
 

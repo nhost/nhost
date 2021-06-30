@@ -108,12 +108,15 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 		}
 
 		go func(cli *client.Client, ctx context.Context, container types.Container, wg *sync.WaitGroup) {
-			if err := stopContainer(cli, ctx, container); err != nil {
+			err := stopContainer(cli, ctx, container)
+			if err != nil {
 				log.Debug(err)
 				log.WithFields(logrus.Fields{
 					"container": name,
 					"type":      "container",
 				}).Error("Failed to stop")
+			} else {
+				go removeContainer(cli, ctx, container)
 			}
 			wg.Done()
 		}(cli, ctx, container, &end_waiter)
@@ -193,7 +196,9 @@ func prepareNetwork(cli *client.Client, ctx context.Context, name string) (strin
 		}).Debug("Creating")
 
 		// create new network if no network such exists
-		net, err := cli.NetworkCreate(ctx, name, types.NetworkCreate{})
+		net, err := cli.NetworkCreate(ctx, name, types.NetworkCreate{
+			CheckDuplicate: true,
+		})
 		if err != nil {
 			return "", err
 		}
@@ -276,8 +281,8 @@ func removeContainer(cli *client.Client, ctx context.Context, container types.Co
 	}).Debug("Removing")
 
 	removeOptions := types.ContainerRemoveOptions{
-		//RemoveVolumes: true,
-		Force: true,
+		RemoveVolumes: true,
+		Force:         true,
 	}
 
 	err := cli.ContainerRemove(ctx, container.ID, removeOptions)

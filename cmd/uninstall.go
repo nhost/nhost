@@ -26,7 +26,7 @@ package cmd
 
 import (
 	"os/exec"
-	"path"
+	"path/filepath"
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
@@ -67,7 +67,7 @@ but without hurting existing Nhost projects on the system and their data.`,
 		// first delete the Nhost Root directory
 		if err := deleteAllPaths(nhost.ROOT); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to delete ", path.Base(nhost.ROOT))
+			log.Fatal("Failed to delete ", filepath.Base(nhost.ROOT))
 		}
 
 		// now delete the installed binary

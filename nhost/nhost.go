@@ -263,30 +263,30 @@ func generateProviders() map[string]interface{} {
 
 	payload := map[string]interface{}{
 		"google": map[string]interface{}{
-			"enable":        false,
+			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "email,profile",
 		},
 		"facebook": map[string]interface{}{
-			"enable":        false,
+			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "email,photos,displayName",
 		},
 		"twitter": map[string]interface{}{
-			"enable":          false,
+			"enabled":         false,
 			"consumer_key":    "",
 			"consumer_secret": "",
 		},
 		"linkedin": map[string]interface{}{
-			"enable":        false,
+			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "r_emailaddress,r_liteprofile",
 		},
 		"apple": map[string]interface{}{
-			"enable":      false,
+			"enabled":     false,
 			"client_id":   "",
 			"key_id":      "",
 			"private_key": "",
@@ -294,7 +294,7 @@ func generateProviders() map[string]interface{} {
 			"scope":       "name,email",
 		},
 		"github": map[string]interface{}{
-			"enable":           false,
+			"enabled":          false,
 			"client_id":        "",
 			"client_secret":    "",
 			"token_url":        "",
@@ -302,26 +302,26 @@ func generateProviders() map[string]interface{} {
 			"scope":            "user:email",
 		},
 		"windows_live": map[string]interface{}{
-			"enable":        false,
+			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "wl.basic,wl.emails,wl.contacts_emails",
 		},
 		"spotify": map[string]interface{}{
-			"enable":        false,
+			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "user-read-email,user-read-private",
 		},
 		"gitlab": map[string]interface{}{
-			"enable":        false,
+			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"base_url":      "",
 			"scope":         "read_user",
 		},
 		"bitbucket": map[string]interface{}{
-			"enable":        false,
+			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 		},

@@ -27,7 +27,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
@@ -117,7 +117,7 @@ var lsCmd = &cobra.Command{
 		w.Flush()
 		fmt.Println()
 
-		log.Info("You can edit these variables in ", path.Base(nhost.ENV_FILE))
+		log.Info("You can edit these variables in ", filepath.Base(nhost.ENV_FILE))
 	},
 }
 

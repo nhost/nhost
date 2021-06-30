@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -106,7 +106,7 @@ Not the ones manually deleted form GraphQL engine.`,
 		}
 
 		// initialize the snapshot directory
-		snapshot := path.Join(nhost.LEGACY_DIR, strconv.FormatInt(getTime(), 10))
+		snapshot := filepath.Join(nhost.LEGACY_DIR, strconv.FormatInt(getTime(), 10))
 
 		for _, item := range migrations {
 
@@ -117,8 +117,8 @@ Not the ones manually deleted form GraphQL engine.`,
 
 			if current_time.After(selected_time) {
 
-				src := path.Join(nhost.MIGRATIONS_DIR, item.Name())
-				dest := path.Join(snapshot, item.Name())
+				src := filepath.Join(nhost.MIGRATIONS_DIR, item.Name())
+				dest := filepath.Join(snapshot, item.Name())
 
 				// transfer migrations to legacy directory
 				if err = movePath(src, dest); err != nil {

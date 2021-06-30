@@ -25,16 +25,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var framework string
+var choice string
 
 // templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
 	Use:     "templates",
 	Aliases: []string{"t"},
 	Short:   "Generate Nhost compatible front-end templates",
-	Long: `Choose from the provided list of front-end frameworks
+	Long: `Choose from the provided list of front-end choices
 and we will automatically initialize an Nhost compatible
-template in that framework for you with all the required
+template in that choice for you with all the required
 Nhost modules and plugins.
 
 And you can immediately start developing on that template.`,
@@ -48,10 +48,10 @@ And you can immediately start developing on that template.`,
 			{"key": "ReactJs", "value": "react"},
 		}
 
-		// if the use has specified framework flag,
+		// if the use has specified choice flag,
 		// then skip the selection prompt
 
-		if len(framework) == 0 {
+		if len(choice) == 0 {
 			// configure interactive prompt template
 			promptTemplate := promptui.SelectTemplates{
 				Active:   `✔ {{ .key | cyan | bold }}`,
@@ -72,16 +72,16 @@ And you can immediately start developing on that template.`,
 				log.Fatal("Input prompt failed")
 			}
 
-			framework = templates[index]["value"]
+			choice = templates[index]["value"]
 		} else {
 			ok := false
 			for _, item := range templates {
-				if item["value"] == framework {
+				if item["value"] == choice {
 					ok = true
 				}
 			}
 			if !ok {
-				log.WithField("component", framework).Fatal("No such framework found")
+				log.WithField("component", choice).Fatal("No such framework found")
 			}
 		}
 
@@ -100,14 +100,14 @@ And you can immediately start developing on that template.`,
 		}
 
 		// append the chosen result template to source URL
-		client.Src += framework
+		client.Src += choice
 
 		//download the files
 		if err := client.Get(); err != nil {
-			log.WithField("compnent", framework).Debug(err)
-			log.WithField("compnent", framework).Fatal("Failed to clone template")
+			log.WithField("compnent", choice).Debug(err)
+			log.WithField("compnent", choice).Fatal("Failed to clone template")
 		}
-		log.WithField("compnent", framework).Debug("Template skeleton download complete")
+		log.WithField("compnent", choice).Debug("Template skeleton download complete")
 
 		/*
 			// create nuxt project by invoking npm
@@ -125,17 +125,17 @@ And you can immediately start developing on that template.`,
 				Dir:  webDir,
 			}
 
-			log.WithField("compnent", result).Info("Installing the framework inside your downloaded template")
+			log.WithField("compnent", result).Info("Installing the choice inside your downloaded template")
 
 			if err = execute.Run(); err != nil {
 				log.WithField("compnent", result).Debug(err)
-				log.WithField("compnent", result).Error("Failed to install framework inside your downloaded template")
-				log.WithField("compnent", result).Info("Please install the framework manually with: npm ", execute.Args)
+				log.WithField("compnent", result).Error("Failed to install choice inside your downloaded template")
+				log.WithField("compnent", result).Info("Please install the choice manually with: npm ", execute.Args)
 				os.Exit(1)
 			}
 		*/
 
-		log.WithField("compnent", framework).Info("Template cloned successfully")
+		log.WithField("compnent", choice).Info("Template cloned successfully")
 		fmt.Println()
 
 		log.Infof("Do: %vcd web && npm install --save-dev%v", Bold, Reset)
@@ -154,5 +154,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	templatesCmd.Flags().StringVarP(&framework, "framework", "f", "", "Framework template to clone")
+	templatesCmd.Flags().StringVarP(&choice, "choice", "c", "", "Choice of choice template to clone")
 }

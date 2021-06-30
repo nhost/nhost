@@ -33,7 +33,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -117,7 +117,7 @@ func execute(cmd *cobra.Command, args []string) {
 	log.WithField("component", "development").Info("Initializing environment")
 
 	// check if this is the first time dev env is running
-	firstRun := !pathExists(path.Join(nhost.DOT_NHOST, "db_data"))
+	firstRun := !pathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
 	if firstRun {
 		log.Info("First run takes longer, please be patient")
 	}
@@ -142,7 +142,7 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	// generate Nhost service containers' configurations
-	nhostServices, err := getContainerConfigs(docker, nhostConfig, nhost.DOT_NHOST)
+	nhostServices, err := getContainerConfigs(docker, nhostConfig)
 	if err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to generate container configurations")
@@ -170,11 +170,13 @@ func execute(cmd *cobra.Command, args []string) {
 			cleanup(cmd)
 		}
 
-		// run health check to ensure this container is active before launching next one
-		// this is done to ensure required services by future containers are already active
-		// especially required for GraphQL engine to become active before HBP
-		service = item["name"].(string)
-		healthCmd.Run(cmd, args)
+		/*
+			// run health check to ensure this container is active before launching next one
+			// this is done to ensure required services by future containers are already active
+			// especially required for GraphQL engine to become active before HBP
+			service = item["name"].(string)
+			healthCmd.Run(cmd, args)
+		*/
 
 		// notify the user
 		log.WithFields(logrus.Fields{
@@ -184,12 +186,10 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	// reset service flag for future use
-	service = ""
+	// service = ""
 
-	/*
-		log.Info("Running a quick health check on services")
-		healthCmd.Run(cmd, args)
-	*/
+	log.Info("Running a quick health check on services")
+	healthCmd.Run(cmd, args)
 
 	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
 
@@ -283,7 +283,7 @@ func execute(cmd *cobra.Command, args []string) {
 							return
 						}
 						if event.Op&fsnotify.Write == fsnotify.Write {
-							log.WithField("file", path.Base(event.Name)).Debug("File modifed")
+							log.WithField("file", filepath.Join(event.Name)).Debug("File modifed")
 							log.WithField("container", APIContainerName).Info("Restarting container")
 							if err = docker.ContainerRestart(ctx, container.ID, nil); err != nil {
 								log.WithField("container", APIContainerName).Debug(err)
@@ -301,7 +301,7 @@ func execute(cmd *cobra.Command, args []string) {
 
 			// initialize locations to start watching
 			targets := map[string]string{
-				"api/package.json": path.Join(nhost.API_DIR, "package.json"),
+				"api/package.json": filepath.Join(nhost.API_DIR, "package.json"),
 			}
 
 			for key, value := range targets {
@@ -530,7 +530,7 @@ func portAvaiable(port string) bool {
 	ln.Close()
 	return true
 }
-func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd string) ([]map[string]interface{}, error) {
+func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]map[string]interface{}, error) {
 
 	log.Debug("Preparing Nhost container configurations")
 
@@ -552,7 +552,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	requiredImages := []string{
 		fmt.Sprintf("nhost/postgres:%v", postgresConfig.Version),
 		fmt.Sprintf("%s:%v", hasuraConfig.Image, hasuraConfig.Version),
-		fmt.Sprintf("nhost/hasura-backend-plus:%v", hbpConfig.Version),
+		fmt.Sprintf("nhost/hbp-mrinal:%v", hbpConfig.Version),
 		fmt.Sprintf("minio/minio:%v", minioConfig.Version),
 	}
 
@@ -591,7 +591,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	// read env_file
 	envFile, err := ioutil.ReadFile(options.Environment["env_file"].(string))
 	if err != nil {
-		log.Warnf("Failed to read %v file", path.Base(options.Environment["env_file"].(string)))
+		log.Warnf("Failed to read %v file", filepath.Join(options.Environment["env_file"].(string)))
 		return containers, err
 	}
 
@@ -608,7 +608,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	mountPoints := []mount.Mount{
 		{
 			Type:   mount.TypeBind,
-			Source: path.Join(cwd, "db_data"),
+			Source: filepath.Join(nhost.DOT_NHOST, "db_data"),
 			Target: "/var/lib/postgresql/data",
 		},
 	}
@@ -652,13 +652,11 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 			},
 		},
 		"host_config": &container.HostConfig{
-			AutoRemove:   true,
+			// AutoRemove:   true,
 			PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", postgresConfig.Port)): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", postgresConfig.Port)}}},
-			/*
-				RestartPolicy: container.RestartPolicy{
-					Name: "always",
-				},
-			*/
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
 			Mounts: mountPoints,
 		},
 	}
@@ -729,9 +727,12 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		},
 
 		"host_config": &container.HostConfig{
-			AutoRemove: true,
+			// AutoRemove: true,
 			//Links: links,
 			// Binds: []string{nhost.METADATA_DIR, nhost.MIGRATIONS_DIR},
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(hasuraConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hasuraConfig.Port)}},
@@ -744,12 +745,12 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	mountPoints = []mount.Mount{
 		{
 			Type:   mount.TypeBind,
-			Source: path.Join(cwd, "minio", "data"),
+			Source: filepath.Join(nhost.DOT_NHOST, "minio", "data"),
 			Target: "/data",
 		},
 		{
 			Type:   mount.TypeBind,
-			Source: path.Join(cwd, "minio", "config"),
+			Source: filepath.Join(nhost.DOT_NHOST, "minio", "config"),
 			Target: "/.minio",
 		},
 	}
@@ -789,15 +790,13 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		},
 
 		"host_config": &container.HostConfig{
-			AutoRemove: true,
+			// AutoRemove: true,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(minioConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(minioConfig.Port)}}},
-			/*
-				RestartPolicy: container.RestartPolicy{
-					Name: "always",
-				},
-			*/
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
 			Mounts: mountPoints,
 		},
 	}
@@ -805,6 +804,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	// prepare env variables for following container
 	containerVariables = []string{
 		fmt.Sprintf("PORT=%v", hbpConfig.Port),
+		fmt.Sprintf("SERVER_URL=http://localhost:%v", hbpConfig.Port),
 		"USER_FIELDS=''",
 		"USER_REGISTRATION_AUTO_ACTIVE=true",
 		`PGOPTIONS=-c search_path=auth`,
@@ -820,11 +820,13 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 		"S3_BUCKET=nhost",
 		"S3_ACCESS_KEY_ID=minioaccesskey123123",
 		"S3_SECRET_ACCESS_KEY=miniosecretkey123123",
-		"LOST_PASSWORD_ENABLE=true",
+		"LOST_PASSWORD_ENABLED=true",
 		"JWT_ALGORITHM=HS256",
 		"JWT_TOKEN_EXPIRES=15",
 		fmt.Sprintf("PROVIDER_SUCCESS_REDIRECT=%v", options.Authentication.Endpoints.Success),
+		fmt.Sprintf("REDIRECT_URL_SUCCESS=%v", options.Authentication.Endpoints.Success),
 		fmt.Sprintf("PROVIDER_FAILURE_REDIRECT=%v", options.Authentication.Endpoints.Failure),
+		fmt.Sprintf("REDIRECT_URL_ERROR=%v", options.Authentication.Endpoints.Failure),
 	}
 	containerVariables = append(containerVariables, envVars...)
 
@@ -845,7 +847,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 	containerVariables = append(containerVariables, credentials...)
 
 	// create mount point if it doesn't exit
-	customMountPoint := path.Join(cwd, "custom", "keys")
+	customMountPoint := filepath.Join(nhost.DOT_NHOST, "custom", "keys")
 	if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
 		log.Errorf("Failed to create %s directory", customMountPoint)
 		return containers, err
@@ -865,7 +867,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 				Retries:     10,
 				StartPeriod: 60000000000,
 			},
-			Image:        fmt.Sprintf(`nhost/hasura-backend-plus:%v`, hbpConfig.Version),
+			Image:        fmt.Sprintf(`nhost/hbp-mrinal:%v`, hbpConfig.Version),
 			Env:          containerVariables,
 			ExposedPorts: nat.PortSet{nat.Port(strconv.Itoa(hbpConfig.Port)): struct{}{}},
 
@@ -874,20 +876,18 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration, cwd
 			//Cmd:          []string{"graphql-engine", "serve"},
 		},
 		"host_config": &container.HostConfig{
-			AutoRemove: true,
+			// AutoRemove: true,
 			//Links: []string{"nhost_hasura:nhost_hasura", "nhost_minio:nhost-minio", "nhost_postgres:nhost-postgres"},
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(hbpConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(hbpConfig.Port)}}},
-			/*
-						RestartPolicy: container.RestartPolicy{
-					Name: "always",
-				},
-			*/
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
 			Mounts: []mount.Mount{
 				{
 					Type:   mount.TypeBind,
-					Source: path.Join(cwd, "custom"),
+					Source: filepath.Join(nhost.DOT_NHOST, "custom"),
 					Target: "/app/custom",
 				},
 			},
@@ -958,15 +958,13 @@ func getAPIContainerConfig(
 			Cmd:          []string{"sh", "-c", "./install.sh && ./entrypoint-dev.sh"},
 		},
 		"host_config": &container.HostConfig{
-			AutoRemove: true,
+			// AutoRemove: true,
 			PortBindings: map[nat.Port][]nat.PortBinding{
 				nat.Port(strconv.Itoa(apiConfig.Port)): {{HostIP: "127.0.0.1",
 					HostPort: strconv.Itoa(apiConfig.Port)}}},
-			/*
-				RestartPolicy: container.RestartPolicy{
-					Name: "always",
-				},
-			*/
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
 			Mounts: []mount.Mount{
 				{
 					Type:   mount.TypeBind,

@@ -25,7 +25,7 @@ package cmd
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/manifoldco/promptui"
@@ -86,7 +86,7 @@ var resetCmd = &cobra.Command{
 			for _, item := range paths {
 				if err := deleteAllPaths(item); err != nil {
 					log.Debug(err)
-					log.Warnf("Please delete %s manually", path.Base(item))
+					log.Warnf("Please delete %s manually", filepath.Base(item))
 				}
 			}
 		}

@@ -138,6 +138,9 @@ respective containers and service-exclusive health endpoints.`,
 
 		var wg sync.WaitGroup
 
+		// flag to ensure all checks have cleared
+		ok := true
+
 		for _, service := range targets {
 			wg.Add(1)
 
@@ -169,6 +172,7 @@ respective containers and service-exclusive health endpoints.`,
 									"container": service.Name,
 									"type":      "service",
 								}).Error("Health check timed out")
+								ok = false
 							}
 							wg.Done()
 
@@ -183,7 +187,7 @@ respective containers and service-exclusive health endpoints.`,
 									"type":      "service",
 								}).Error("Health check unsuccessful")
 								wg.Done()
-								return
+								ok = false
 							}
 
 							// execute the command
@@ -196,7 +200,7 @@ respective containers and service-exclusive health endpoints.`,
 									"type":      "service",
 								}).Error("Health check unsuccessful")
 								wg.Done()
-								return
+								ok = false
 							}
 							if valid := strings.Contains(result.StdOut, "accepting connections"); valid {
 								log.WithFields(logrus.Fields{
@@ -213,6 +217,10 @@ respective containers and service-exclusive health endpoints.`,
 		}
 
 		wg.Wait()
+
+		if !ok && contains(args, "exit") {
+			downCmd.Run(cmd, args)
+		}
 	},
 }
 
@@ -279,7 +287,7 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 
 func checkServiceHealth(name, url string) bool {
 
-	for x := 1; x <= 30; x++ {
+	for x := 1; x <= 60; x++ {
 		if valid := validateEndpointHealth(url); valid {
 			return true
 		}

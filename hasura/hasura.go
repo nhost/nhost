@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"path"
+	"path/filepath"
 	"runtime"
 	"strings"
 
@@ -19,7 +19,16 @@ import (
 )
 
 // initialize the binary path
-var binaryPath = path.Join(nhost.ROOT, "hasura")
+var binaryPath = getBinary()
+
+func getBinary() string {
+	switch runtime.GOOS {
+	case "windows":
+		return filepath.Join(nhost.ROOT, "hasura.exe")
+	default:
+		return filepath.Join(nhost.ROOT, "hasura")
+	}
+}
 
 // if the required binary exists in $HOME/.nhost
 // this function returns it's exact path
@@ -426,7 +435,7 @@ func GetTablesFromLocalMetadata() ([]TableEntry, error) {
 
 	var response []TableEntry
 
-	data, err := os.ReadFile(path.Join(nhost.METADATA_DIR, "tables.yaml"))
+	data, err := os.ReadFile(filepath.Join(nhost.METADATA_DIR, "tables.yaml"))
 	if err != nil {
 		return response, err
 	}

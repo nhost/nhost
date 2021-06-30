@@ -17,7 +17,7 @@ package cmd
 
 import (
 	"os"
-	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -81,8 +81,8 @@ to quickly create a Cobra application.`,
 
 		migration := migrations[index]
 
-		src := path.Join(nhost.LEGACY_DIR, migration.Name())
-		dest := path.Join(nhost.MIGRATIONS_DIR, migration.Name())
+		src := filepath.Join(nhost.LEGACY_DIR, migration.Name())
+		dest := filepath.Join(nhost.MIGRATIONS_DIR, migration.Name())
 
 		// transfer migrations to legacy directory
 		if err = movePath(src, dest); err != nil {
@@ -103,7 +103,7 @@ to quickly create a Cobra application.`,
 				if current_time.After(selected_time) {
 
 					// transfer migrations to legacy directory
-					if err = movePath(path.Join(nhost.LEGACY_DIR, item.Name()), path.Join(nhost.MIGRATIONS_DIR, item.Name())); err != nil {
+					if err = movePath(filepath.Join(nhost.LEGACY_DIR, item.Name()), filepath.Join(nhost.MIGRATIONS_DIR, item.Name())); err != nil {
 						log.WithField("component", migration.Name()).Error("Failed to remove")
 					}
 				}

@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/mrinalwahal/cli/hasura"
@@ -89,7 +89,7 @@ and just in general run extra checks to prepare your project for deployment.`,
 					// first check whether the migration already contains the seed data or not
 					// if yes, then skip writing to file
 
-					SQLPath := path.Join(nhost.MIGRATIONS_DIR, file.Name(), "up.sql")
+					SQLPath := filepath.Join(nhost.MIGRATIONS_DIR, file.Name(), "up.sql")
 					migrationData, err := os.ReadFile(SQLPath)
 					if err != nil {
 						log.Debug(err)

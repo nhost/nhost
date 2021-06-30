@@ -27,7 +27,7 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/manifoldco/promptui"
@@ -179,12 +179,12 @@ var initCmd = &cobra.Command{
 		for _, dir := range requiredDirs {
 			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
 				log.Debug(err)
-				log.WithField("component", path.Base(dir)).Fatal("Failed to create directory")
+				log.WithField("component", filepath.Base(dir)).Fatal("Failed to create directory")
 			}
 		}
 
 		// create or append to .gitignore
-		ignoreFile := path.Join(nhost.WORKING_DIR, ".gitignore")
+		ignoreFile := filepath.Join(nhost.WORKING_DIR, ".gitignore")
 
 		f, err := os.Create(ignoreFile)
 		if err != nil {
@@ -195,9 +195,9 @@ var initCmd = &cobra.Command{
 		defer f.Close()
 		if _, err = f.WriteString(
 			fmt.Sprintf("%v\n%v\n%v",
-				path.Base(nhost.DOT_NHOST),
-				path.Join("api", "node_modules"),
-				path.Join("web", "node_modules"))); err != nil {
+				filepath.Base(nhost.DOT_NHOST),
+				filepath.Join("api", "node_modules"),
+				filepath.Join("web", "node_modules"))); err != nil {
 			log.Debug(err)
 			log.Error("Failed to write to .gitignore file")
 		}
@@ -213,7 +213,7 @@ var initCmd = &cobra.Command{
 
 		if remote {
 
-			f, err := os.Create(path.Join(nhost.DOT_NHOST, "nhost.yaml"))
+			f, err := os.Create(filepath.Join(nhost.DOT_NHOST, "nhost.yaml"))
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to write nHost configuration")
@@ -264,7 +264,7 @@ var initCmd = &cobra.Command{
 
 				for _, file := range sqlFiles {
 
-					sqlPath := path.Join(migration.Location, file.Name())
+					sqlPath := filepath.Join(migration.Location, file.Name())
 
 					// format the new migration
 					// so that it doesn't conflicts with existing migrations
