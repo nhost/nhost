@@ -2,14 +2,14 @@ import { Router } from 'express'
 import { Strategy, Profile } from '@nicokaiser/passport-apple'
 import { PROVIDERS } from '@config/index'
 import { initProvider } from './utils'
-import { UserData } from '@/types'
+import { SessionUser } from '@/types'
 import { getGravatarUrl } from '@/helpers'
 
-const transformProfile = ({ id, name, email, photos }: Profile): UserData => ({
+const transformProfile = ({ id, name, email, photos }: Profile): SessionUser => ({
   id,
   email,
-  display_name: name ? `${name.firstName} ${name.lastName}` : email,
-  avatar_url: photos?.[0].value || getGravatarUrl(email)
+  displayName: name ? `${name.firstName} ${name.lastName}` : email,
+  avatarUrl: photos?.[0].value || getGravatarUrl(email) || ''
 })
 
 export default (router: Router): void => {

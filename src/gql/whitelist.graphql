@@ -1,0 +1,11 @@
+query isWhitelistedEmail($email: String!) {
+  AuthWhitelist(email: $email) {
+    email
+  }
+}
+
+mutation insertWhitelistedEmail($email: String!) {
+  insertAuthWhitelist(object: { email: $email }) {
+    email
+  }
+}

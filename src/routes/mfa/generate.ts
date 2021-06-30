@@ -1,25 +1,24 @@
 import { Request, Response, Router } from 'express'
 import { authenticator } from 'otplib'
-import { asyncWrapper, createQR, selectAccountByUserId } from '@/helpers'
+import { asyncWrapper, createQR, getUser } from '@/helpers'
 import { MFA } from '@config/index'
 import { request } from '@/request'
 import { updateOtpSecret } from '@/queries'
-import { AccountData } from '@/types'
 
 async function generateMfa(req: Request, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
 
-  const { 'user-id': user_id } = req.permission_variables
+  const { 'user-id': userId } = req.permission_variables
 
-  const account = await selectAccountByUserId(user_id)
+  const user = await getUser(userId)
 
-  const { mfa_enabled } = account
+  const { mfaEnabled } = user
 
-  if (mfa_enabled) {
-    req.logger.verbose(`User ${user_id} tried generating MFA but it was already enabled`, {
-      user_id
+  if (mfaEnabled) {
+    req.logger.verbose(`User ${userId} tried generating MFA but it was already enabled`, {
+      userId
     })
     return res.boom.badRequest('MFA is already enabled')
   }
@@ -28,14 +27,14 @@ async function generateMfa(req: Request, res: Response): Promise<unknown> {
    * Generate OTP secret and key URI.
    */
   const otp_secret = authenticator.generateSecret()
-  const otpAuth = authenticator.keyuri(user_id, MFA.OTP_ISSUER, otp_secret)
+  const otpAuth = authenticator.keyuri(userId, MFA.OTP_ISSUER, otp_secret)
 
-  await request(updateOtpSecret, { user_id, otp_secret })
+  await request(updateOtpSecret, { userId, otp_secret })
 
   const image_url = await createQR(otpAuth)
 
-  req.logger.verbose(`User ${user_id} generated an OTP sercret to enable MFA`, {
-    user_id,
+  req.logger.verbose(`User ${userId} generated an OTP sercret to enable MFA`, {
+    userId,
   })
 
   return res.send({ image_url, otp_secret })

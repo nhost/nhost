@@ -1,11 +1,11 @@
 import { Request, Response, NextFunction } from 'express'
 import { getClaims, getPermissionVariablesFromClaims } from '@/jwt'
 import { selectRefreshToken } from '@/queries'
-import { AccountData } from '@/types'
 import { request } from '@/request'
+import { UserFieldsFragment } from '@/utils/__generated__/graphql-request'
 
 interface HasuraData {
-  auth_refresh_tokens: { account: AccountData }[]
+  auth_refresh_tokens: { account: UserFieldsFragment }[]
 }
 
 export default async function (req: Request, res: Response, next: NextFunction) {

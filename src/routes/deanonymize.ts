@@ -1,29 +1,28 @@
 import { Response, Router } from 'express'
 import { APPLICATION, AUTHENTICATION, REGISTRATION } from "@config/index";
-import { accountIsAnonymous, accountWithEmailExists, asyncWrapper, isCompromisedPassword, hashPassword, deanonymizeAccount as deanonymizeAccountHelper, selectAccountByUserId } from '@/helpers';
+import { asyncWrapper, isCompromisedPassword, hashPassword, userIsAnonymous, userWithEmailExists, deanonymizeUser } from '@/helpers';
 import { DeanonymizeSchema, deanonymizeSchema } from '@/validation';
-import { request } from '@/request';
-import { changeEmailByUserId, changePasswordHashByUserId, deactivateAccount, setNewTicket } from '@/queries';
 import { emailClient } from '@/email';
 import { v4 as uuid4 } from 'uuid'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation';
+import { gqlSDK } from '@/utils/gqlSDK';
 
-async function deanonymizeAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
+async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const { email, password } = req.body
 
   if(!AUTHENTICATION.ANONYMOUS_USERS_ENABLED) {
     return res.boom.notImplemented(`Please set the ANONYMOUS_USERS_ENABLED env variable to true to use the auth/deanonymize route`)
   }
 
-  if (!req.permission_variables || !await accountIsAnonymous(req.permission_variables['user-id'])) {
+  if (!req.permission_variables || !await userIsAnonymous(req.permission_variables['user-id'])) {
     return res.boom.unauthorized('Unable to deanonymize account')
   }
 
-  const user_id = req.permission_variables['user-id']
+  const userId = req.permission_variables['user-id']
 
   if(await isCompromisedPassword(password)) {
-    req.logger.verbose(`User ${user_id} tried deanonymizing his account with email ${email} but provided too weak of a password`, {
-      user_id,
+    req.logger.verbose(`User ${userId} tried deanonymizing his account with email ${email} but provided too weak of a password`, {
+      userId,
       email
     })
     return res.boom.badRequest('Password is too weak')
@@ -31,53 +30,50 @@ async function deanonymizeAccount(req: ValidatedRequest<Schema>, res: Response):
 
   const passwordHash = await hashPassword(password)
 
-  if (await accountWithEmailExists(email)) {
-    req.logger.verbose(`User ${user_id} tried deanonymizing his account with email ${email} but an account with such email already existed`, {
-      user_id,
+  if (await userWithEmailExists(email)) {
+    req.logger.verbose(`User ${userId} tried deanonymizing his account with email ${email} but an account with such email already existed`, {
+      userId,
       email
     })
     return res.boom.badRequest('Cannot use this email')
   }
 
-  await request(changeEmailByUserId, {
-    user_id,
-    new_email: email
+  const {updateUser: user} = await gqlSDK.updateUser({
+    id: userId,
+    user: {
+      email,
+      passwordHash
+    }
   })
 
-  await request(changePasswordHashByUserId, {
-    user_id,
-    new_password_hash: passwordHash
-  })
+  if(!user) {
+    throw new Error('Unable to update user')
+  }
 
   if(REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
-    await deanonymizeAccountHelper(
-      await selectAccountByUserId(user_id),
-    )
+    await deanonymizeUser(user)
 
-    req.logger.verbose(`User ${user_id} deanonymized his account with email ${email}`, {
-      user_id,
+    req.logger.verbose(`User ${userId} deanonymized their account with email ${email}`, {
+      userId,
       email
     })
   } else {
-    const ticket = uuid4() // will be decrypted on the auth/activate call
-    const ticket_expires_at = new Date(+new Date() + 60 * 60 * 1000) // active for 60 minutes
+    const ticket = uuid4()
+    const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000) // active for 60 minutes
 
-    await request(setNewTicket, {
-      user_id,
-      ticket,
-      ticket_expires_at
+    await gqlSDK.updateUser({
+      id: userId,
+      user: {
+        ticket,
+        ticketExpiresAt,
+        active: false,
+      }
     })
-
-    await request(deactivateAccount, {
-      user_id
-    })
-
-    const account = await selectAccountByUserId(user_id)
 
     await emailClient.send({
       template: 'activate-account',
       message: {
-        to: email,
+        to: user.newEmail,
         headers: {
           'x-ticket': {
             prepared: true,
@@ -86,10 +82,10 @@ async function deanonymizeAccount(req: ValidatedRequest<Schema>, res: Response):
         }
       },
       locals: {
-        display_name: email,
+        display_name: user.displayName,
         ticket,
         url: APPLICATION.SERVER_URL,
-        locale: account.locale
+        locale: user.locale
       }
     })
   }
@@ -102,5 +98,5 @@ interface Schema extends ValidatedRequestSchema {
 }
 
 export default (router: Router) => {
-  router.post('/deanonymize', createValidator().body(deanonymizeSchema), asyncWrapper(deanonymizeAccount))
+  router.post('/deanonymize', createValidator().body(deanonymizeSchema), asyncWrapper(deanonymizeUserHandler))
 }

@@ -1,1 +1,2 @@
-INSERT INTO auth.providers (provider) VALUES ('bitbucket') ON CONFLICT DO NOTHING;
+INSERT INTO auth.providers (code, name)
+  VALUES ('bitbucket', 'Bitbucket')

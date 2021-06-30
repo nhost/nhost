@@ -1,35 +1,35 @@
 import { Response, Router } from 'express'
 
-import { changeEmailByUserId } from '@/queries'
-import { request } from '@/request'
 import { AUTHENTICATION } from '@config/index'
 import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
 import { emailResetSchema, EmailResetSchema } from '@/validation'
-import { accountWithEmailExists, asyncWrapper } from '@/helpers'
+import { asyncWrapper, getUserByEmail} from '@/helpers'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 async function directChange(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(AUTHENTICATION.VERIFY_EMAILS) {
     return res.boom.notImplemented(`Please set the VERIFY_EMAILS env variable to false to use the auth/change-email route`)
   }
 
-  const user_id = req.permission_variables?.['user-id']
+  const userId = req.permission_variables?.['user-id']
 
-  const new_email = req.body.new_email
+  const newEmail = req.body.new_email
 
-  if(await accountWithEmailExists(new_email)) {
-    req.logger.verbose(`User ${user_id} tried directly changing his email to ${new_email} but an account with such email already exists`, {
-      user_id,
-      email: new_email,
-    })
+  if(await getUserByEmail(newEmail)) {
     return res.boom.badRequest('Cannot use this email')
   }
 
   // * Email verification is not activated - change email straight away
-  await request(changeEmailByUserId, { user_id, new_email })
+  await gqlSDK.updateUser({
+    id: userId,
+    user: {
+      email: newEmail,
+    }
+  })
 
-  req.logger.verbose(`User ${user_id} directly changed his email to ${new_email}`, {
-    user_id,
-    new_email
+  req.logger.verbose(`User id ${userId} directly changed his email to ${newEmail}`, {
+    userId,
+    newEmail
   })
 
   return res.status(204).send()

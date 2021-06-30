@@ -2,7 +2,7 @@ import { APPLICATION } from '@config/index'
 
 import { ASTNode } from 'graphql'
 import { GraphQLClient } from 'graphql-request'
-import { Variables } from 'graphql-request/dist/src/types'
+import { Variables } from 'graphql-request/dist/types'
 import { print } from 'graphql/language/printer'
 
 const client = new GraphQLClient(APPLICATION.HASURA_ENDPOINT, {

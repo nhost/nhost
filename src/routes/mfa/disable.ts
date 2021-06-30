@@ -1,46 +1,55 @@
-import { asyncWrapper, selectAccountByUserId } from '@/helpers'
+import { asyncWrapper, getUser } from '@/helpers'
 import { Response, Router } from 'express'
-import { deleteOtpSecret } from '@/queries'
 
 import { authenticator } from 'otplib'
 import { MfaSchema, mfaSchema } from '@/validation'
-import { request } from '@/request'
-import { AccountData } from '@/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest
+} from 'express-joi-validation'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 async function disableMfa(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
 
-  const { 'user-id': user_id } = req.permission_variables
+  const { 'user-id': userId } = req.permission_variables
 
   const { code } = req.body
 
-  const account = await selectAccountByUserId(user_id)
+  const user = await getUser(userId)
 
-  const { otp_secret, mfa_enabled } = account
+  const { otpSecret, mfaEnabled } = user
 
-  if (!mfa_enabled) {
-    req.logger.verbose(`User ${user_id} tried disabling MFA but it was already disabled`, {
-      user_id
+  if (!mfaEnabled) {
+    req.logger.verbose(`User ${userId} tried disabling MFA but it was already disabled`, {
+      userId
     })
     return res.boom.badRequest('MFA is already disabled')
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  if (!authenticator.check(code, otp_secret!)) {
-    req.logger.verbose(`User ${user_id} tried disabling MFA but provided an invalid two-factor code ${code}`, {
-      user_id,
+  if (!authenticator.check(code, otpSecret!)) {
+    req.logger.verbose(`User ${userId} tried disabling MFA but provided an invalid two-factor code ${code}`, {
+      userId,
       code
     })
     return res.boom.unauthorized('Invalid two-factor code')
   }
 
-  await request(deleteOtpSecret, { user_id })
+  await gqlSDK.updateUser({
+    id: user.id,
+    user: {
+      otpSecret: null,
+      mfaEnabled: false
+    }
+  })
 
-  req.logger.verbose(`User ${user_id} disabled MFA`, {
-    user_id,
+  req.logger.verbose(`User ${userId} disabled MFA`, {
+    userId
   })
 
   return res.status(204).send()

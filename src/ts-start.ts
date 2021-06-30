@@ -11,7 +11,6 @@ const start = async (): Promise<void> => {
   await applyMetadata()
 
   app.listen(APPLICATION.PORT, APPLICATION.HOST, () => {
-
     if (APPLICATION.HOST) {
       logger.info(`Running on http://${APPLICATION.HOST}:${APPLICATION.PORT}`)
     } else {

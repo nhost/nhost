@@ -1,0 +1,17 @@
+mutation insertProviderRequest($providerRequest: authProviderRequests_insert_input!) {
+  insertAuthProviderRequest(object: $providerRequest ) {
+    id,
+    jwtToken,
+    redirectUrlFailure,
+    redirectUrlSuccess
+  }
+}
+
+mutation deleteProviderRequest($providerRequestId: uuid!) {
+  deleteAuthProviderRequest(id: $providerRequestId) {
+    id,
+    jwtToken,
+    redirectUrlFailure,
+    redirectUrlSuccess
+  }
+}

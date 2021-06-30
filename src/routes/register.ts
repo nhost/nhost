@@ -1,14 +1,24 @@
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
 import { NextFunction, Response, Router } from 'express'
-import { asyncWrapper, isCompromisedPassword, hashPassword, setRefreshToken, getGravatarUrl, isAllowedEmail, selectAccountByEmail } from '@/helpers'
-import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { asyncWrapper, isCompromisedPassword, hashPassword, setRefreshToken, getGravatarUrl, isAllowedEmail, getUserByEmail } from '@/helpers'
+import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
 import { emailClient } from '@/email'
-import { insertAccount } from '@/queries'
-import { isMagicLinkLogin, isMagicLinkRegister, isRegularLogin, RegisterSchema, registerSchema } from '@/validation'
-import { request } from '@/request'
+import {
+  isMagicLinkLogin,
+  isMagicLinkRegister,
+  isRegularLogin,
+  RegisterSchema,
+  registerSchema
+} from '@/validation'
 import { v4 as uuidv4 } from 'uuid'
-import { InsertAccountData, UserData, Session } from '@/types'
-import { ValidatedRequest, ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
+import { Session } from '@/types'
+import {
+  ValidatedRequest,
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator
+} from 'express-joi-validation'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const body = req.body
@@ -21,32 +31,28 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     }
   }
 
-  const {
-    email,
-    user_data = {},
-    register_options = {},
-    locale
-  } = body
+  const { email, user_data = {}, register_options = {}, locale } = body
 
   if (REGISTRATION.WHITELIST && !(await isAllowedEmail(email))) {
     return res.boom.unauthorized('Email not allowed')
   }
 
-  if (await selectAccountByEmail(body.email)) {
-    return res.boom.badRequest('Account already exists')
+  if (await getUserByEmail(body.email)) {
+    return res.boom.badRequest('Account already exists.')
   }
 
-  let password_hash: string | null = null
+  let passwordHash: string | null = null
 
   const ticket = uuidv4()
-  const ticket_expires_at = new Date(+new Date() + 60 * 60 * 1000).toISOString() // active for 60 minutes
+  // Ticket expires after 60 min
+  const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString()
 
   if (isRegularLogin(body)) {
     if(await isCompromisedPassword(body.password)) {
       return res.boom.badRequest('Password is too weak')
     }
 
-    password_hash = await hashPassword(body.password)
+    passwordHash = await hashPassword(body.password)
   }
 
   const defaultRole = register_options.default_role ?? REGISTRATION.DEFAULT_USER_ROLE
@@ -76,34 +82,33 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
 
   const avatarUrl = getGravatarUrl(email)
 
-  const accounts = await request<InsertAccountData>(insertAccount, {
-    account: {
+  const { insertUser: user } = await gqlSDK.insertUser({
+    user: {
+      displayName: email,
+      avatarUrl,
       email,
-      password_hash,
+      passwordHash,
       ticket,
-      ticket_expires_at,
+      ticketExpiresAt,
       active: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
       locale,
-      default_role: defaultRole,
-      account_roles: {
+      defaultRole,
+      roles: {
         data: accountRoles
-      },
-      user: {
-        data: {
-          display_name: email,
-          avatar_url: avatarUrl,
-          ...user_data
-        }
       }
     }
   })
 
-  const account = accounts.insert_auth_accounts.returning[0]
-  const user: UserData = {
-    id: account.user.id,
-    display_name: account.user.display_name,
-    email: account.email,
-    avatar_url: account.user.avatar_url
+  if (!user) {
+    throw new Error('Unable to insert new user')
+  }
+
+  // create session user
+  const sessionUser = {
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName,
+    avatarUrl: user.avatarUrl
   }
 
   if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
@@ -130,18 +135,22 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
           display_name,
           token: ticket,
           url: APPLICATION.SERVER_URL,
-          locale: account.locale,
+          locale: user.locale,
           app_url: APPLICATION.APP_URL,
           action: 'register',
           action_url: 'register'
         }
       })
 
-      const session: Session = { jwt_token: null, jwt_expires_in: null, user }
+      const session: Session = {
+        jwtToken: null,
+        jwtExpiresIn: null,
+        user: sessionUser,
+      }
 
       req.logger.verbose(`New magic link user registration with id ${user.id} and email ${email}`, {
-        user_id: user.id,
-        email,
+        userId: user.id,
+        email
       })
 
       return res.send(session)
@@ -162,31 +171,33 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
         display_name,
         ticket,
         url: APPLICATION.SERVER_URL,
-        locale: account.locale
+        locale: user.locale
       }
     })
 
-    const session: Session = { jwt_token: null, jwt_expires_in: null, user }
+    const session: Session = { jwtToken: null, jwtExpiresIn: null, user: sessionUser }
 
     req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
       user_id: user.id,
-      email,
+      email
     })
 
     return res.send(session)
   }
 
-  const refresh_token = await setRefreshToken(account.id)
+  // continue here if auto activate users
+
+  const refreshToken = await setRefreshToken(user.id)
 
   // generate JWT
-  const jwt_token = createHasuraJwt(account)
-  const jwt_expires_in = newJwtExpiry
+  const jwtToken = createHasuraJwtToken(user)
+  const jwtExpiresIn = newJwtExpiry
 
-  const session: Session = { jwt_token, jwt_expires_in, user, refresh_token }
+  const session: Session = {jwtToken, jwtExpiresIn, user: sessionUser, refreshToken}
 
   req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
     user_id: user.id,
-    email,
+    email
   })
 
   return res.send(session)
@@ -201,7 +212,7 @@ export default (router: Router) => {
     '/register',
     createValidator().body(registerSchema),
     (req: ValidatedRequest<Schema>, res: Response, next: NextFunction) => {
-      if(isMagicLinkRegister(req.body) && !AUTHENTICATION.MAGIC_LINK_ENABLED) {
+      if (isMagicLinkRegister(req.body) && !AUTHENTICATION.MAGIC_LINK_ENABLED) {
         return res.boom.badRequest('Magic link registration is disabled')
       } else {
         return next()

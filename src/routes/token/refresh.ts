@@ -1,14 +1,15 @@
 import { Response, Router, Request } from 'express'
 import { selectRefreshToken, updateRefreshToken } from '@/queries'
 
-import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
 import { request } from '@/request'
 import { v4 as uuidv4 } from 'uuid'
-import { AccountData, UserData, Session } from '@/types'
+import { SessionUser, Session } from '@/types'
 import { asyncWrapper, newRefreshExpiry } from '@/helpers'
+import { UserFieldsFragment } from '@/utils/__generated__/graphql-request'
 
 interface HasuraData {
-  auth_refresh_tokens: { account: AccountData }[]
+  auth_refresh_tokens: { account: UserFieldsFragment }[]
 }
 
 async function refreshToken({ refresh_token }: Request, res: Response): Promise<any> {
@@ -37,15 +38,15 @@ async function refreshToken({ refresh_token }: Request, res: Response): Promise<
     }
   })
 
-  const jwt_token = createHasuraJwt(account)
-  const jwt_expires_in = newJwtExpiry
-  const user: UserData = {
-    id: account.user.id,
-    display_name: account.user.display_name,
+  const jwtToken = createHasuraJwtToken(account)
+  const jwtExpiresIn = newJwtExpiry
+  const sessionUser: SessionUser = {
+    id: account.id,
+    displayName: account.displayName,
     email: account.email,
-    avatar_url: account.user.avatar_url
+    avatarUrl: account.avatarUrl
   }
-  const session: Session = { jwt_token, jwt_expires_in, user, refresh_token: new_refresh_token }
+  const session: Session = { jwtToken, jwtExpiresIn, user: sessionUser, refreshToken: new_refresh_token }
   res.send(session)
 }
 

@@ -1,29 +1,23 @@
 import { Response, Router } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 
-import { setNewTicket, setNewEmail } from '@/queries'
 import { APPLICATION, AUTHENTICATION } from '@config/index'
 import { emailClient } from '@/email'
-import { request } from '@/request'
-import { SetNewEmailData } from '@/types'
 import { EmailResetSchema, emailResetSchema } from '@/validation'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
-import { accountWithEmailExists, asyncWrapper, selectAccountByUserId } from '@/helpers'
+import { asyncWrapper, getUserByEmail } from '@/helpers'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<any> {
   if(!AUTHENTICATION.VERIFY_EMAILS) {
     return res.boom.notImplemented(`Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/request route`)
   }
 
-  const user_id = req.permission_variables?.['user-id']
+  const userId = req.permission_variables?.['user-id']
 
-  const new_email = req.body.new_email
+  const newEmail = req.body.new_email
 
-  if(await accountWithEmailExists(new_email)) {
-    req.logger.verbose(`User ${user_id} tried directly changing his email to ${new_email} but an account with such email already exists`, {
-      user_id,
-      email: new_email,
-    })
+  if(await getUserByEmail(newEmail)) {
     return res.boom.badRequest('Cannot use this email')
   }
 
@@ -34,34 +28,35 @@ async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response):
 
   const ticket = uuidv4()
   const now = new Date()
-  const ticket_expires_at = new Date()
-
+  const ticketExpiresAt = new Date()
   // ticket active for 60 minutes
-  ticket_expires_at.setTime(now.getTime() + 60 * 60 * 1000)
+  ticketExpiresAt.setTime(now.getTime() + 60 * 60 * 1000)
+  // set new ticket
 
-
-  await request(setNewTicket, {
-    user_id,
-    ticket,
-    ticket_expires_at
+  const { updateUser: user } = await gqlSDK.updateUser({
+    id: userId,
+    user: {
+      ticket,
+      ticketExpiresAt,
+      newEmail
+    }
   })
 
-  const setNewEmailReturn = await request<SetNewEmailData>(setNewEmail, { user_id, new_email })
-  const display_name = setNewEmailReturn.update_auth_accounts.returning[0].user.display_name
-
-  const account = await selectAccountByUserId(user_id)
+  if (!user) {
+    throw new Error('Could not update user');
+  }
 
   await emailClient.send({
     template: 'change-email',
     locals: {
       ticket,
       url: APPLICATION.SERVER_URL,
-      locale: account.locale,
+      locale: user.locale,
       app_url: APPLICATION.APP_URL,
-      display_name
+      displayName: user.displayName,
     },
     message: {
-      to: new_email,
+      to: newEmail,
       headers: {
         'x-ticket': {
           prepared: true,
@@ -71,9 +66,9 @@ async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response):
     }
   })
 
-  req.logger.verbose(`User ${user_id} requested to change his email to ${new_email}`, {
-    user_id,
-    new_email
+  req.logger.verbose(`User ${userId} requested to change his email to ${newEmail}`, {
+    userId,
+    newEmail
   })
 
   return res.status(204).send()

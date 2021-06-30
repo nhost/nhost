@@ -5,21 +5,21 @@ import { Strategy } from 'passport'
 
 import { APPLICATION, PROVIDERS, REGISTRATION } from '@config/index'
 import { addProviderRequest, deleteProviderRequest, getProviderRequest, insertAccount, insertAccountProviderToUser, selectAccountProvider } from '@/queries'
-import { asyncWrapper, selectAccountByEmail, setRefreshToken, getGravatarUrl, isAllowedEmail, selectAccountByUserId } from '@/helpers'
+import { asyncWrapper, getUser, setRefreshToken, getGravatarUrl, isAllowedEmail, getUserByEmail } from '@/helpers'
 import { request } from '@/request'
 import {
   InsertAccountData,
   QueryAccountProviderData,
-  AccountData,
-  UserData,
   InsertAccountProviderToUser,
   QueryProviderRequests,
-  PermissionVariables
+  PermissionVariables,
+  SessionUser
 } from '@/types'
 import { ProviderCallbackQuery, providerCallbackQuery, ProviderQuery, providerQuery } from '@/validation'
 import { v4 as uuidv4 } from 'uuid'
 import { getClaims, getPermissionVariablesFromClaims } from '@/jwt'
 import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
+import { UserFieldsFragment } from '@/utils/__generated__/graphql-request'
 
 interface RequestWithState<T extends ValidatedRequestSchema> extends ValidatedRequest<T> {
   state: string
@@ -31,7 +31,7 @@ interface Constructable<T> {
   prototype: T
 }
 
-export type TransformProfileFunction = <T extends Profile>(profile: T) => UserData
+export type TransformProfileFunction = <T extends Profile>(profile: T) => SessionUser
 interface InitProviderSettings {
   transformProfile: TransformProfileFunction
   callbackMethod: 'GET' | 'POST'
@@ -53,7 +53,7 @@ const manageProviderStrategy = (
 
     // find or create the user
     // check if user exists, using profile.id
-    const { id, email, display_name, avatar_url } = transformProfile(profile)
+    const { id, email, displayName, avatarUrl } = transformProfile(profile)
 
     if(REGISTRATION.WHITELIST && (!email || !isAllowedEmail(email))) {
       return done(new Error('Email not allowed'))
@@ -70,18 +70,18 @@ const manageProviderStrategy = (
     }
 
     if(email) {
-      const account = await selectAccountByEmail(email)
+      const user = await getUserByEmail(email)
 
-      if(account) {
+      if(user) {
         const insertAccountProviderToUserData = await request<InsertAccountProviderToUser>(
           insertAccountProviderToUser,
           {
             account_provider: {
-              account_id: account.id,
+              account_id: user.id,
               auth_provider: provider,
               auth_provider_unique_id: id.toString()
             },
-            account_id: account.id
+            account_id: user.id
           }
         )
   
@@ -105,31 +105,31 @@ const manageProviderStrategy = (
         return done(new Error('Invalid JWT Token'))
       }
 
-      const account = await selectAccountByUserId(permissionVariables['user-id'])
+      const user = await getUser(permissionVariables['user-id'])
 
       const insertAccountProviderToUserData = await request<InsertAccountProviderToUser>(
         insertAccountProviderToUser,
         {
           account_provider: {
-            account_id: account.id,
+            account_id: user.id,
             auth_provider: provider,
             auth_provider_unique_id: id
           },
-          account_id: account.id
+          account_id: user.id
         }
       )
 
-      req.logger.verbose(`User ${account.user.id} added a ${provider} provider(${id})`, {
-        user_id: account.user.id,
-        auth_provider: provider,
-        auth_provider_unique_id: id
+      req.logger.verbose(`User ${user.id} added a ${provider} provider(${id})`, {
+        userId: user.id,
+        authProvider: provider,
+        authProviderUniqueId: id
       })
 
       return done(null, insertAccountProviderToUserData.insert_auth_account_providers_one.account)
     }
 
     // register useruser, account, account_provider
-    const account_data = {
+    const userData = {
       email,
       password_hash: null,
       active: true,
@@ -137,7 +137,7 @@ const manageProviderStrategy = (
       account_roles: {
         data: REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({ role }))
       },
-      user: { data: { display_name: display_name || email, avatar_url } },
+      user: { data: { display_name: displayName || email, avatarUrl } },
       account_providers: {
         data: [
           {
@@ -149,7 +149,7 @@ const manageProviderStrategy = (
     }
 
     const hasura_account_provider_data = await request<InsertAccountData>(insertAccount, {
-      account: account_data
+      account: userData
     })
 
     const user_id = hasura_account_provider_data.insert_auth_accounts.returning[0].user.id
@@ -178,11 +178,9 @@ const providerCallback = asyncWrapper(async (req: RequestWithState<ProviderCallb
     state: req.state
   })
 
-  // passport js defaults data to req.user.
-  // However, we send account data.
-  const account = req.user as AccountData
+  const user = req.user as UserFieldsFragment
 
-  const refresh_token = await setRefreshToken(account.id)
+  const refresh_token = await setRefreshToken(user.id)
 
   // redirect back user to app url
   res.redirect(`${redirect_url_success}?refresh_token=${refresh_token}`)
@@ -196,11 +194,11 @@ export const initProvider = <T extends Strategy>(
   middleware?: RequestHandler
 ): void => {
   const {
-    transformProfile = ({ id, emails, displayName, photos }: Profile): UserData => ({
+    transformProfile = ({ id, emails, displayName, photos }: Profile): SessionUser => ({
       id,
-      email: emails?.[0].value,
-      display_name: displayName,
-      avatar_url: photos?.[0].value || getGravatarUrl(emails?.[0].value)
+      email: emails?.[0].value!,
+      displayName: displayName,
+      avatarUrl: photos?.[0].value || getGravatarUrl(emails?.[0].value)
     }),
     callbackMethod = 'GET',
     scope,

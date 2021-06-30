@@ -1,0 +1,57 @@
+mutation insertRefreshToken($refreshToken: authRefreshTokens_insert_input!) {
+  insertAuthRefreshToken(object: $refreshToken) {
+    refreshToken
+  }
+}
+
+# WHERE
+#   refreshToken = $refreshToken
+#   AND (
+#     user.active = true
+#     OR (
+#       user.active =  false
+#       AND user.isAnonymous
+#     )
+#   )
+# The reason is, we don't want users to select a refresh token if the user
+# is not active. Except if the user anonymous. Then we can allow it.
+# A user can be anonymous but with active = false when the user converts their
+# account to a real account but has not yet activated it aka verified their email.
+query selectRefreshToken($refreshToken: uuid!) {
+  authRefreshTokens(
+    where: {
+      _and: [
+        { refreshToken: { _eq: $refreshToken } },
+        {
+          _or: [
+            { user: { active: { _eq: true }}}, {
+              _and: [
+                { user: { active: { _eq: false }}},
+                { user: { isAnonymous: { _eq: true }}}
+              ]
+            }
+          ]
+        },
+        { expiresAt: { _gte: now }}
+      ]
+    }) {
+    user {
+      ...userFields
+    }
+  }
+}
+
+mutation updateRefreshToken($refreshTokenId: uuid!, $refreshToken: authRefreshTokens_insert_input!) {
+  deleteAuthRefreshTokens(where: { refreshToken: { _eq: $refreshTokenId } }) {
+    affected_rows
+  }
+  insertAuthRefreshTokens(objects: [$refreshToken]) {
+    affected_rows
+  }
+}
+
+mutation deleteRefreshToken($refreshTokenId: uuid!) {
+  deleteAuthRefreshTokens(where: { refreshToken: { _eq: $refreshTokenId } }) {
+    affected_rows
+  }
+}

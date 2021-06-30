@@ -1,48 +1,56 @@
-import { asyncWrapper, selectAccountByUserId } from '@/helpers'
+import { asyncWrapper, getUser } from '@/helpers'
 import { Response, Router } from 'express'
-import { updateOtpStatus } from '@/queries'
 
 import { authenticator } from 'otplib'
 import { MfaSchema, mfaSchema } from '@/validation'
-import { request } from '@/request'
-import { AccountData } from '@/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest
+} from 'express-joi-validation'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 async function enableMfa(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (!req.permission_variables) {
     return res.boom.unauthorized('Not logged in')
   }
 
-  const { 'user-id': user_id } = req.permission_variables
+  const { 'user-id': userId } = req.permission_variables
   const { code } = req.body
 
-  const account = await selectAccountByUserId(user_id)
+  const user = await getUser(userId)
 
-  const { otp_secret, mfa_enabled } = account
+  const { otpSecret, mfaEnabled } = user
 
-  if (mfa_enabled) {
-    req.logger.verbose(`User ${user_id} tried enabling MFA but it was already enabled`, {
-      user_id
+  if (mfaEnabled) {
+    req.logger.verbose(`User ${userId} tried enabling MFA but it was already enabled`, {
+      userId
     })
     return res.boom.badRequest('MFA is already enabled')
   }
 
-  if (!otp_secret) {
-    req.logger.verbose(`User ${user_id} tried enabling MFA but the OTP secret was not set ${otp_secret}`, {
-      user_id,
-      otp_secret
+  if (!otpSecret) {
+    req.logger.verbose(`User ${userId} tried enabling MFA but the OTP secret was not set ${otpSecret}`, {
+      userId,
+      otpSecret
     })
     return res.boom.badRequest('OTP secret is not set')
   }
 
-  if (!authenticator.check(code, otp_secret)) {
+  if (!authenticator.check(code, otpSecret)) {
     return res.boom.unauthorized('Invalid two-factor code')
   }
 
-  await request(updateOtpStatus, { user_id, mfa_enabled: true })
+  await gqlSDK.updateUser({
+    id: user.id,
+    user: {
+      mfaEnabled: true
+    }
+  })
 
-  req.logger.verbose(`User ${user_id} enabled MFA`, {
-    user_id,
+  req.logger.verbose(`User ${userId} enabled MFA`, {
+    userId
   })
 
   return res.status(204).send()

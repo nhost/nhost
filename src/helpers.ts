@@ -1,22 +1,12 @@
 import { APPLICATION, JWT, REGISTRATION } from '@config/index'
 import { NextFunction, Response, Request } from 'express'
-import {
-  deanonymizeAccount as deanonymizeAccountQuery,
-  insertRefreshToken,
-  rotateTicket as rotateTicketQuery,
-  selectAccountByEmail as selectAccountByEmailQuery,
-  selectAccountByTicket as selectAccountByTicketQuery,
-  selectAccountByUserId as selectAccountByUserIdQuery,
-  isAllowedEmail as isAllowedEmailQuery,
-  updateLastSentConfirmation as updateLastSentConfirmationQuery,
-} from './queries'
 import * as gravatar from 'gravatar'
 import QRCode from 'qrcode'
 import bcrypt from 'bcryptjs'
 import { pwnedPassword } from 'hibp'
-import { request } from './request'
 import { v4 as uuidv4 } from 'uuid'
-import { AccountData, IsAllowedEmail, QueryAccountData } from './types'
+import { gqlSDK } from './utils/gqlSDK'
+import { UserFieldsFragment } from './utils/__generated__/graphql-request'
 
 /**
  * Create QR code.
@@ -36,29 +26,64 @@ export function asyncWrapper(fn: any) {
   }
 }
 
-export const selectAccountByEmail = async (email: string): Promise<AccountData|null> => {
-  const hasuraData = await request<QueryAccountData>(selectAccountByEmailQuery, { email })
-  if (!hasuraData.auth_accounts[0]) return null
-  return hasuraData.auth_accounts[0]
+export const getUserByEmail = async (email: string) => {
+  const { users } = await gqlSDK.users({
+    where: {
+      email: {
+        _eq: email
+      }
+    }
+  })
+
+  if (users.length !== 1) {
+    throw new Error('User does not exist.')
+  }
+
+  return users[0]
 }
 
-export const selectAccountByTicket = async (ticket: string): Promise<AccountData|null> => {
-  const hasuraData = await request<QueryAccountData>(selectAccountByTicketQuery, {
-    ticket,
-    now: new Date()
+export const getUserByTicket = async (ticket: string) => {
+  const now = new Date()
+
+  const { users } = await gqlSDK.users({
+    where: {
+      _and: [
+        {
+          ticket: {
+            _eq: ticket
+          }
+        },
+        {
+          ticketExpiresAt: {
+            _gt: now
+          }
+        }
+      ]
+    }
   })
-  if (!hasuraData.auth_accounts[0]) return null
-  return hasuraData.auth_accounts[0]
+
+  if (users.length !== 1) {
+    return null
+  }
+
+  return users[0]
 }
 
 // TODO await request returns undefined if no user found!
-export const selectAccountByUserId = async (user_id: string | undefined): Promise<AccountData> => {
-  if (!user_id) {
-    throw new Error('Invalid User Id')
+export const getUser = async (userId: string | undefined) => {
+  if (!userId) {
+    throw new Error('User does not exists')
   }
-  const hasuraData = await request<QueryAccountData>(selectAccountByUserIdQuery, { user_id })
-  if (!hasuraData.auth_accounts[0]) throw new Error('Account does not exist')
-  return hasuraData.auth_accounts[0]
+
+  const { user } = await gqlSDK.user({
+    id: userId
+  })
+
+  if (!user) {
+    throw new Error('User does not exists')
+  }
+
+  return user
 }
 
 /**
@@ -77,14 +102,16 @@ export const isCompromisedPassword = async (password: string): Promise<boolean> 
   return !!(REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password)))
 }
 
-export const rotateTicket = async (ticket: string): Promise<string> => {
-  const new_ticket = uuidv4()
-  await request(rotateTicketQuery, {
-    ticket,
-    now: new Date(),
-    new_ticket
+export const rotateTicket = async (oldTicket: string): Promise<string> => {
+  const newTicket = uuidv4()
+
+  await gqlSDK.rotateUserTicket({
+    oldTicket,
+    newTicket,
+    newTicketExpiresAt: new Date()
   })
-  return new_ticket
+
+  return newTicket
 }
 
 export function newRefreshExpiry(): number {
@@ -95,40 +122,32 @@ export function newRefreshExpiry(): number {
   return now.setDate(now.getDate() + days)
 }
 
-interface InsertRefreshTokenData {
-  insert_auth_refresh_tokens_one: {
-    account: AccountData
-  }
-}
-
-export const setRefreshToken = async (
-  accountId: string,
-  refresh_token = uuidv4()
-): Promise<string> => {
-
-  await request<InsertRefreshTokenData>(insertRefreshToken, {
-    refresh_token_data: {
-      account_id: accountId,
-      refresh_token,
-      expires_at: new Date(newRefreshExpiry())
+export const setRefreshToken = async (userId: string, refreshToken = uuidv4()) => {
+  await gqlSDK.insertAuthRefreshToken({
+    refreshToken: {
+      userId,
+      refreshToken,
+      expiresAt: new Date(newRefreshExpiry())
     }
   })
 
-  return refresh_token
+  return refreshToken
 }
 
-export const accountWithEmailExists = async (email: string) => {
-  return !!await selectAccountByEmail(email)
+export const userWithEmailExists = async (email: string) => {
+  return !!await getUserByEmail(email)
 }
 
-export const accountIsAnonymous = async (user_id: string) => {
-  const account = await selectAccountByUserId(user_id)
+export const userIsAnonymous = async (userId: string) => {
+  const { user } = await gqlSDK.user({
+    id: userId
+  })
 
-  return account.is_anonymous
+  return user?.isAnonymous
 }
 
 export const getGravatarUrl = (email?: string) => {
-  if(APPLICATION.GRAVATAR_ENABLED && email) {
+  if (APPLICATION.GRAVATAR_ENABLED && email) {
     return gravatar.url(email, {
       r: APPLICATION.RATING,
       protocol: 'https',
@@ -137,40 +156,34 @@ export const getGravatarUrl = (email?: string) => {
   }
 }
 
-export const deanonymizeAccount = async (account: AccountData) => {
+export const deanonymizeUser = async (user: UserFieldsFragment) => {
   // Gravatar is enabled and anonymous user has not added
   // an avatar yet
-  const useGravatar = APPLICATION.GRAVATAR_ENABLED && !account.user.avatar_url
+  const useGravatar = APPLICATION.GRAVATAR_ENABLED && !user.avatarUrl
 
-  await request(deanonymizeAccountQuery, {
-    account_id: account.id,
-    account: {
-      default_role: REGISTRATION.DEFAULT_USER_ROLE,
-      active: true
-    },
-    ...(useGravatar && {
-      user_id: account.user.id,
-      user: {
-        avatar_url: getGravatarUrl(account.email)
-      }
-    }),
-    roles: REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map(role => ({
-      account_id: account.id,
-      created_at: new Date(),
-      role
-    }))
-  })
-}
+  // update user
+  user.avatarUrl = !useGravatar ? user.avatarUrl : getGravatarUrl(user.email)
+  user.defaultRole = REGISTRATION.DEFAULT_USER_ROLE
 
-export const updateLastSentConfirmation = async (user_id: string): Promise<void> => {
-  await request(updateLastSentConfirmationQuery, {
-    user_id,
-    last_confirmation_email_sent_at: new Date(+Date.now() + REGISTRATION.CONFIRMATION_RESET_TIMEOUT)
+  user.active = true
+
+  const userRoles = REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({
+    userId: user.id,
+    createdAt: new Date(),
+    role
+  }))
+
+  await gqlSDK.deanonymizeUser({
+    userId: user.id,
+    user,
+    userRoles
   })
 }
 
 export const isAllowedEmail = async (email: string) => {
-  return request<IsAllowedEmail>(isAllowedEmailQuery, {
+  const { AuthWhitelist } = await gqlSDK.isEmailInWhitelist({
     email
-  }).then(q => !!q.auth_whitelist_by_pk)
+  })
+
+  return !!AuthWhitelist
 }

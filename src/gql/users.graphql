@@ -1,0 +1,123 @@
+fragment userFields on users {
+  id
+  displayName
+  avatarUrl
+  email
+  passwordHash
+  active
+  defaultRole
+  roles {
+    role
+  }
+  isAnonymous
+  ticket
+  otpSecret
+  mfaEnabled
+  passwordHash
+  newEmail
+  lastConfirmationEmailSentAt
+  locale
+}
+
+query user($id: uuid!) {
+  user(id: $id) {
+    ...userFields
+  }
+}
+
+query users($where: users_bool_exp!) {
+  users(where: $where) {
+    ...userFields
+  }
+}
+
+mutation updateUser($id: uuid!, $user: users_set_input!) {
+  updateUser(pk_columns: { id: $id }, _set: $user) {
+    ...userFields
+  }
+}
+
+
+mutation rotateUserTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+  updateUsers(
+    _set: { ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
+    where: { ticket: { _eq: $oldTicket } }
+  ) {
+    affected_rows
+  }
+}
+
+mutation activateUser($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+  updateUsers(
+    _set: { active: true, ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
+    where: { _and: [{ active: { _eq: false } }, { ticket: { _eq: $ticket } }] }
+  ) {
+    affected_rows
+  }
+}
+
+mutation changeEmailByTicket(
+  $ticket: uuid!
+  $email: citext
+  $newTicket: uuid!
+  $now: timestamptz!
+) {
+  updateUsers(
+    where: { _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: $now } }] }
+    _set: { email: $email, newEmail: null, ticket: $newTicket, ticketExpiresAt: $now }
+  ) {
+    affected_rows
+  }
+}
+
+mutation insertUser($user: users_insert_input!) {
+  insertUser(object: $user) {
+    ...userFields
+  }
+}
+
+mutation deleteUser($userId: uuid!) {
+  deleteUser(id: $userId) {
+    ...userFields
+  }
+}
+
+mutation deanonymizeUser(
+  $userId: uuid!
+  $user: users_set_input!
+  $userRoles: [authUserRoles_insert_input!]!
+) {
+  updateUser(pk_columns: { id: $userId }, _set: $user) {
+    id
+  }
+
+  deleteAuthUserRoles(where: { userId: { _eq: $userId } }) {
+    affected_rows
+  }
+
+  insertAuthUserRoles(objects: $userRoles) {
+    affected_rows
+  }
+}
+
+mutation insertProviderToUser($provider: authProviders_insert_input!, $userId: uuid!) {
+  insertAuthProvider(object: $provider) {
+    name
+    code
+  }
+  updateUser(_set: { active: true }, pk_columns: { id: $userId }) {
+    ...userFields
+  }
+}
+
+mutation updateUsersByTicket($ticket: uuid!, $user: users_set_input!) {
+  updateUsers(
+    where: { _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: now } }] }
+    _set: $user
+  ) {
+    affected_rows
+    returning {
+      ...userFields
+    }
+  }
+}

@@ -5,9 +5,10 @@ import { asyncWrapper } from '@/helpers'
 import { request } from '@/request'
 import { v4 as uuidv4 } from 'uuid'
 import { MagicLinkQuery, magicLinkQuery } from '@/validation'
-import { AccountData, UpdateAccountData } from '@/types'
+import { UpdateAccountData } from '@/types'
 import { setRefreshToken } from '@/helpers'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import { UserFieldsFragment } from '@/utils/__generated__/graphql-request'
 
 async function magicLink(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const { token, action } = req.query;
@@ -32,7 +33,7 @@ async function magicLink(req: ValidatedRequest<Schema>, res: Response): Promise<
   }
 
   const hasura_data = await request<{
-    auth_refresh_tokens: { account: AccountData }[]
+    auth_refresh_tokens: { account: UserFieldsFragment }[]
   }>(accountOfRefreshToken, {
     refresh_token,
   })
@@ -44,8 +45,8 @@ async function magicLink(req: ValidatedRequest<Schema>, res: Response): Promise<
     return res.boom.unauthorized('Invalid or expired token')
   }
 
-  req.logger.verbose(`User ${account.user.id} completed magic link ${action === 'register' ? 'registration' : 'login'}`, {
-    user_id: account.user.id
+  req.logger.verbose(`User ${account.id} completed magic link ${action === 'register' ? 'registration' : 'login'}`, {
+    user_id: account.id
   })
 
   // Redirect user with refresh token.

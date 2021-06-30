@@ -1,4 +1,3 @@
-INSERT INTO
-  auth.providers (provider)
-VALUES
-  ('strava');
+INSERT INTO auth.providers (code, name)
+  VALUES ('strava', 'Strava');
+

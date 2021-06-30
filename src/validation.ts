@@ -175,7 +175,7 @@ export const resetPasswordWithTicketSchema = Joi.object({
 })
 
 export type ResetPasswordWithTicketSchema = TicketFields & {
-  new_password: string
+  newPassword: string
 }
 
 export const changePasswordFromOldSchema = Joi.object({
@@ -184,8 +184,8 @@ export const changePasswordFromOldSchema = Joi.object({
 })
 
 export type ChangePasswordFromOldSchema = {
-  old_password: string
-  new_password: string
+  oldPassword: string
+  newPassword: string
 }
 
 export const emailResetSchema = Joi.object({

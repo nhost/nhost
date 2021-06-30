@@ -1,12 +1,15 @@
 import { Response, Router } from 'express'
 import bcrypt from 'bcryptjs'
 
-import { asyncWrapper, isCompromisedPassword, hashPassword, selectAccountByUserId } from '@/helpers'
+import { asyncWrapper, isCompromisedPassword, getUser, hashPassword } from '@/helpers'
 import { ChangePasswordFromOldSchema, changePasswordFromOldSchema } from '@/validation'
-import { updatePasswordWithUserId } from '@/queries'
-import { request } from '@/request'
-import { AccountData } from '@/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest
+} from 'express-joi-validation'
+import { gqlSDK } from '@/utils/gqlSDK'
 
 /**
  * Change the password from the current one
@@ -16,36 +19,35 @@ async function basicPasswordChange(req: ValidatedRequest<Schema>, res: Response)
     return res.boom.unauthorized('Not logged in')
   }
 
-  const { 'user-id': user_id } = req.permission_variables
+  const { 'user-id': userId } = req.permission_variables
 
-  const { old_password, new_password } = req.body
+  const { oldPassword, newPassword } = req.body
 
-  if(await isCompromisedPassword(new_password)) {
-    req.logger.verbose(`User ${user_id} tried changing his password but it was too weak`, {
-      user_id,
+  if(await isCompromisedPassword(newPassword)) {
+    req.logger.verbose(`User ${userId} tried changing his password but it was too weak`, {
+      userId,
     })
     return res.boom.badRequest('Password is too weak')
   }
 
-  const account = await selectAccountByUserId(user_id)
+  const user = await getUser(userId)
 
-  const password_hash = account.password_hash
-
-  // Check the old (current) password
-  if (!(await bcrypt.compare(old_password, password_hash))) {
+  if (user.passwordHash && !await bcrypt.compare(oldPassword, user.passwordHash)) {
     return res.boom.unauthorized('Incorrect current password')
   }
 
-  const newPasswordHash = await hashPassword(new_password)
+  const newPasswordHash = await hashPassword(newPassword)
 
-  await request(updatePasswordWithUserId, {
-    user_id,
-    password_hash: newPasswordHash
+  await gqlSDK.updateUser({
+    id: userId,
+    user: {
+      passwordHash: newPasswordHash
+    }
   })
 
-  req.logger.verbose(`User ${user_id} directly changed his password to ${password_hash}`, {
-    user_id,
-    password_hash
+  req.logger.verbose(`User ${userId} directly changed password to ${newPasswordHash}`, {
+    userId,
+    newPasswordHash
   })
 
   return res.status(204).send()
@@ -56,6 +58,9 @@ interface Schema extends ValidatedRequestSchema {
 }
 
 export default (router: Router) => {
-  router.post('/', createValidator().body(changePasswordFromOldSchema), asyncWrapper(basicPasswordChange))
+  router.post(
+    '/',
+    createValidator().body(changePasswordFromOldSchema),
+    asyncWrapper(basicPasswordChange)
+  )
 }
-

@@ -1,4 +1,3 @@
-CREATE TABLE IF NOT EXISTS auth.whitelist(
+CREATE TABLE IF NOT EXISTS auth.whitelist (
   email text NOT NULL,
-  PRIMARY KEY(email)
-)
+  PRIMARY KEY (email))
