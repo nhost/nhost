@@ -18,6 +18,9 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/manifoldco/promptui"
@@ -25,7 +28,24 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var entity string
 var choice string
+
+type Entity struct {
+	Name      string
+	Value     string
+	Source    string
+	Command   []string
+	Templates []Template
+	NextSteps string
+	Manual    string
+	Ignore    []string
+}
+
+type Template struct {
+	Name  string
+	Value string
+}
 
 // templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
@@ -40,106 +60,178 @@ Nhost modules and plugins.
 And you can immediately start developing on that template.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// initialize templates
-
-		templates := []map[string]string{
-			{"key": "NuxtJs", "value": "nuxt"},
-			{"key": "NextJs", "value": "next"},
-			{"key": "ReactJs", "value": "react"},
+		samCLI, err := exec.LookPath("sam")
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to find AWS SAM utility. Is it properly installed?")
 		}
 
-		// if the use has specified choice flag,
-		// then skip the selection prompt
+		var selected Entity
 
-		if len(choice) == 0 {
-			// configure interactive prompt template
-			promptTemplate := promptui.SelectTemplates{
-				Active:   `✔ {{ .key | cyan | bold }}`,
-				Inactive: `   {{ .key | cyan }}`,
-				Selected: `{{ "✔" | green | bold }} {{ "Selected Template" | bold }}: {{ .key | cyan }}`,
-			}
+		entities := []Entity{
+			{
+				Name:   "Web or Front-end",
+				Value:  "web",
+				Source: "github.com/nhost/nhost/templates/",
+				Templates: []Template{
+					{Name: "NuxtJs", Value: "nuxt"},
+					{Name: "NextJs", Value: "next"},
+					{Name: "ReactJs", Value: "react"},
+				},
+				NextSteps: "Use `cd web && npm install --save-dev`",
+				Manual:    "git clone github.com/nhost/nhost/templates/" + choice,
+			},
+			{
+				Name:      "API or Nhost Functions",
+				Value:     "api",
+				Command:   []string{samCLI, "init", "-o", nhost.WORKING_DIR, "-n", "api", "--app-template", "hello-world", "-p", "Zip"},
+				NextSteps: "Start testing API with `nhost dev`",
+
+				// Sample SAM initialization command
+				Manual: "sam init -o . -n api --app-template hello-world -p Zip",
+				Ignore: []string{".aws-sam"},
+			},
+		}
+
+		// configure interactive prompt template
+		promptTemplate := promptui.SelectTemplates{
+			Active:   `✔ {{ .Name | cyan | bold }}`,
+			Inactive: `   {{ .Name | cyan }}`,
+			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
+		}
+
+		// if the user hasn't supplied an entity,
+		// provide a prompt for it
+		if len(entity) == 0 {
 
 			// propose boilerplate options
 			boilerplatePrompt := promptui.Select{
-				Label:     "Choose Preferred Template",
-				Items:     templates,
+				Label:     "Choose Entity",
+				Items:     entities,
 				Templates: &promptTemplate,
 			}
 
 			index, _, err := boilerplatePrompt.Run()
 			if err != nil {
-				log.Debug(err)
-				log.Fatal("Input prompt failed")
+				log.Fatal("Aborted")
 			}
 
-			choice = templates[index]["value"]
+			selected = entities[index]
+
 		} else {
+
 			ok := false
-			for _, item := range templates {
-				if item["value"] == choice {
+			for _, item := range entities {
+				if item.Value == entity {
+					selected = item
 					ok = true
+					break
 				}
 			}
 			if !ok {
-				log.WithField("component", choice).Fatal("No such framework found")
+				log.WithField("component", choice).Fatal("No such entity available")
 			}
 		}
 
-		// initialize hashicorp go-getter client
-		client := &getter.Client{
-			Ctx: context.Background(),
-			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-			Dst:  nhost.WED_DIR,
-			Dir:  true,
-			Src:  "github.com/nhost/nhost/templates/",
-			Mode: getter.ClientModeDir,
-			//define the type of detectors go getter should use, in this case only github is needed
-			Detectors: []getter.Detector{
-				&getter.GitHubDetector{},
-			},
-		}
+		if selected.Source != "" {
 
-		// append the chosen result template to source URL
-		client.Src += choice
+			// if the use has specified choice flag,
+			// then skip the selection prompt
 
-		//download the files
-		if err := client.Get(); err != nil {
-			log.WithField("compnent", choice).Debug(err)
-			log.WithField("compnent", choice).Fatal("Failed to clone template")
-		}
-		log.WithField("compnent", choice).Debug("Template skeleton download complete")
+			if len(choice) == 0 {
 
-		/*
-			// create nuxt project by invoking npm
-			npmCLI, err := exec.LookPath("npm")
+				// propose boilerplate options
+				boilerplatePrompt := promptui.Select{
+					Label:     "Choose Preferred Template",
+					Items:     selected.Templates,
+					Templates: &promptTemplate,
+				}
+
+				index, _, err := boilerplatePrompt.Run()
+				if err != nil {
+					log.Fatal("Aborted")
+				}
+
+				choice = selected.Templates[index].Value
+
+			} else {
+
+				ok := false
+				for _, item := range selected.Templates {
+					if item.Value == choice {
+						ok = true
+					}
+				}
+				if !ok {
+					log.WithField("component", choice).Fatal("No such framework found")
+				}
+			}
+
+			destination, err := filepath.Abs(selected.Value)
 			if err != nil {
-				log.WithField("compnent", result).Debug(err)
-				log.WithField("compnent", result).Fatal("Failed to find npm. Is it properly installed?")
+				log.Debug(err)
+				log.Fatal("Failed to parse clone destionation")
 			}
 
-			args = []string{npmCLI, "install", "--save-dev"}
-
-			execute := exec.Cmd{
-				Path: npmCLI,
-				Args: args,
-				Dir:  webDir,
+			// initialize hashicorp go-getter client
+			client := &getter.Client{
+				Ctx: context.Background(),
+				//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
+				Dst:  destination,
+				Dir:  true,
+				Src:  selected.Source,
+				Mode: getter.ClientModeDir,
+				//define the type of detectors go getter should use, in this case only github is needed
+				Detectors: []getter.Detector{
+					&getter.GitHubDetector{},
+				},
 			}
 
-			log.WithField("compnent", result).Info("Installing the choice inside your downloaded template")
+			// append the chosen result template to source URL
+			client.Src += choice
 
-			if err = execute.Run(); err != nil {
-				log.WithField("compnent", result).Debug(err)
-				log.WithField("compnent", result).Error("Failed to install choice inside your downloaded template")
-				log.WithField("compnent", result).Info("Please install the choice manually with: npm ", execute.Args)
+			//download the files
+			if err := client.Get(); err != nil {
+				log.WithField("compnent", selected.Value).Debug(err)
+				log.WithField("compnent", selected.Value).Error("Failed to clone template")
+				log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
 				os.Exit(1)
 			}
-		*/
 
-		log.WithField("compnent", choice).Info("Template cloned successfully")
+		} else {
+
+			execute := exec.Cmd{
+				Path:   samCLI,
+				Args:   selected.Command,
+				Dir:    nhost.WORKING_DIR,
+				Stdin:  os.Stdin,
+				Stdout: os.Stdout,
+			}
+
+			if err := execute.Run(); err != nil {
+				log.WithField("compnent", selected.Value).Debug(err)
+				log.WithField("compnent", selected.Value).Error("Failed to clone template")
+				log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
+				os.Exit(1)
+			}
+		}
+
+		// if there are any ignore files,
+		// append them to .gitignore
+
+		for _, file := range selected.Ignore {
+
+			if err = writeToFile(filepath.Join(nhost.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
+				log.Debug(err)
+				log.Warnf("Failed to add `%s` to .gitignore", file)
+			}
+		}
+
+		log.WithField("compnent", selected.Value).Info("Template generated successfully")
 		fmt.Println()
 
-		log.Infof("Do: %vcd web && npm install --save-dev%v", Bold, Reset)
-		fmt.Println()
+		// advise the user about next steps
+		log.Info(selected.NextSteps)
 	},
 }
 
@@ -154,5 +246,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	templatesCmd.Flags().StringVarP(&choice, "choice", "c", "", "Choice of choice template to clone")
+	templatesCmd.Flags().StringVarP(&choice, "choice", "c", "", "Choice of template to clone")
+	templatesCmd.Flags().StringVarP(&entity, "entity", "e", "", "Entity to clone the template for [web/api]")
 }

@@ -212,13 +212,9 @@ func GenerateConfig(options Project) Configuration {
 		postgres.Version = options.PostgresVersion
 	}
 
-	hbp := Service{
-		Version: "v2.6.1",
-		Port:    9001,
-	}
-
-	if options.BackendVersion != "" {
-		hbp.Version = options.BackendVersion
+	auth := Service{
+		Version: "v0.0.1",
+		Port:    9002,
 	}
 
 	authentication := map[string]interface{}{
@@ -231,15 +227,15 @@ func GenerateConfig(options Project) Configuration {
 
 	authPayload, _ := yaml.Marshal(authentication)
 
-	var auth Authentication
-	yaml.Unmarshal(authPayload, &auth)
+	var authYAML Authentication
+	yaml.Unmarshal(authPayload, &authYAML)
 
 	payload := Configuration{
 		Version: 2,
 		Services: map[string]Service{
-			"postgres":            postgres,
-			"hasura":              hasura,
-			"hasura_backend_plus": hbp,
+			"postgres": postgres,
+			"hasura":   hasura,
+			"auth":     auth,
 			"minio": {
 				Version: "latest",
 				Port:    9000,
@@ -253,7 +249,7 @@ func GenerateConfig(options Project) Configuration {
 			"hasura_cli_version": "v2.0.0-alpha.11",
 		},
 		MetadataDirectory: "metadata",
-		Authentication:    auth,
+		Authentication:    authYAML,
 	}
 
 	return payload

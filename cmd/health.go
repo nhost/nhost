@@ -51,9 +51,9 @@ respective containers and service-exclusive health endpoints.`,
 
 		postgresConfig := options.Services["postgres"]
 		hasuraConfig := options.Services["hasura"]
-		hbpConfig := options.Services["hasura_backend_plus"]
+		authConfig := options.Services["auth"]
 		minioConfig := options.Services["minio"]
-		apiConfig := options.Services["api"]
+		// apiConfig := options.Services["api"]
 
 		// initialize all Nhost service structures
 		// and their respective service specific health check
@@ -72,8 +72,8 @@ respective containers and service-exclusive health endpoints.`,
 				},
 			},
 			{
-				Name:                getContainerName("hbp"),
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hbpConfig.Port),
+				Name:                getContainerName("auth"),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", authConfig.Port),
 			},
 			{
 				Name:                getContainerName("hasura"),
@@ -85,13 +85,15 @@ respective containers and service-exclusive health endpoints.`,
 			},
 		}
 
-		// Add API container if it's activated in config
-		if pathExists(nhost.API_DIR) {
-			services = append(services, Container{
-				Name:                getContainerName("api"),
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
-			})
-		}
+		/*
+			// Add API container if it's activated in config
+			if pathExists(nhost.API_DIR) {
+				services = append(services, Container{
+					Name:                getContainerName("api"),
+					HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
+				})
+			}
+		*/
 
 		// connect to docker client
 		ctx := context.Background()

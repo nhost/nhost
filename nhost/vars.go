@@ -32,7 +32,7 @@ var (
 	SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds")
 
 	// generate path for frontend
-	WED_DIR = filepath.Join(WORKING_DIR, "web")
+	WEB_DIR = filepath.Join(WORKING_DIR, "web")
 
 	// generate path for API code
 	API_DIR = filepath.Join(WORKING_DIR, "api")

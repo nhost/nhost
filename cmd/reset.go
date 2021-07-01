@@ -79,7 +79,7 @@ var resetCmd = &cobra.Command{
 				nhost.NHOST_DIR,
 				nhost.ENV_FILE,
 				nhost.API_DIR,
-				nhost.WED_DIR,
+				nhost.WEB_DIR,
 				nhost.DOT_NHOST,
 			}
 

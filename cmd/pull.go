@@ -468,13 +468,13 @@ func getFormattedSchemas(list []string) []string {
 
 func getMigrationTables(schemas []string, tables []hasura.TableEntry) []string {
 
-	var fromTables []string
-	var filteredValues []string
+	var response []string
 
 	for _, table := range tables {
 		for _, schema := range schemas {
 			if table.Table.Schema == schema {
-				filteredValues = append(filteredValues, fmt.Sprintf(
+				response = append(response, "--table")
+				response = append(response, fmt.Sprintf(
 					`%s.%s`,
 					schema,
 					table.Table.Name,
@@ -483,13 +483,15 @@ func getMigrationTables(schemas []string, tables []hasura.TableEntry) []string {
 		}
 	}
 
-	for _, value := range filteredValues {
-		if value != "public.users" {
-			fromTables = append(fromTables, "--table")
-			fromTables = append(fromTables, value)
+	/*
+		for _, value := range filteredValues {
+			if value != "public.users" {
+				fromTables = append(fromTables, "--table")
+				fromTables = append(fromTables, value)
+			}
 		}
-	}
-	return fromTables
+	*/
+	return response
 }
 
 /*
