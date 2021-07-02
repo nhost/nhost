@@ -59,31 +59,31 @@ const emailRule = extendedJoi.string().email().required().allowedDomains()
 const localeRule = Joi.string().length(2)
 const localeRuleWithDefault = localeRule.default(APPLICATION.EMAILS_DEFAULT_LOCALE)
 
-const accountFields = {
+const userFields = {
   email: emailRule,
   password: passwordRuleRequired,
   locale: localeRuleWithDefault
 }
 
-type AccountFields = {
+type UserFields = {
   email: string
-  password?: string
+  password: string
   locale: string
 }
 
-const accountFieldsMagicLink = {
+const userFieldsMagicLink = {
   email: emailRule,
   locale: localeRuleWithDefault
 }
 
 
-type AccountFieldsMagicLink = {
+type UserFieldsMagicLink = {
   email: string
   locale: string
 }
 
 export const userDataFields = {
-  user_data: Joi.object(
+  custom_register_data: Joi.object(
     REGISTRATION.CUSTOM_FIELDS.reduce<{ [k: string]: Joi.Schema[] }>(
       (aggr, key) => ({
         ...aggr,
@@ -98,29 +98,25 @@ export const userDataFields = {
       {}
     )
   ),
-  register_options: Joi.object({
-    allowed_roles: Joi.array().items(Joi.string()),
-    default_role: Joi.string()
-  })
+  allowedRoles: Joi.array().items(Joi.string()),
+  defaultRole: Joi.string()
 }
 
 export type UserDataFields = {
-  user_data: any,
-  register_options?: {
-    allowed_roles?: string[],
-    default_role?: string
-  }
+  allowedRoles?: string[],
+  defaultRole?: string
+  customRegisterData?: any
 }
 
 export const registerSchema = Joi.alternatives().try(
   // Regular register
   Joi.object({
-    ...accountFields,
+    ...userFields,
     ...userDataFields,
   }),
   // Magic link register
   Joi.object({
-    ...accountFieldsMagicLink,
+    ...userFieldsMagicLink,
     ...userDataFields,
   })
 )
@@ -133,9 +129,9 @@ export function isMagicLinkRegister(body: RegisterSchema): body is MagicLinkRegi
   return body.email !== undefined && (body as RegularRegister).password === undefined
 }
 
-export type RegularRegister = AccountFields & UserDataFields
+export type RegularRegister = UserFields & UserDataFields
 
-export type MagicLinkRegister = AccountFieldsMagicLink & UserDataFields
+export type MagicLinkRegister = UserFieldsMagicLink & UserDataFields
 
 export type RegisterSchema = RegularRegister | MagicLinkRegister
 
@@ -171,7 +167,7 @@ type CodeFields = {
 
 export const resetPasswordWithTicketSchema = Joi.object({
   ...ticketFields,
-  new_password: passwordRule
+  newPassword: passwordRule
 })
 
 export type ResetPasswordWithTicketSchema = TicketFields & {
@@ -179,8 +175,8 @@ export type ResetPasswordWithTicketSchema = TicketFields & {
 }
 
 export const changePasswordFromOldSchema = Joi.object({
-  old_password: passwordRule,
-  new_password: passwordRule
+  oldPassword: passwordRule,
+  newPassword: passwordRule
 })
 
 export type ChangePasswordFromOldSchema = {
@@ -189,11 +185,11 @@ export type ChangePasswordFromOldSchema = {
 }
 
 export const emailResetSchema = Joi.object({
-  new_email: emailRule
+  newEmail: emailRule
 })
 
 export type EmailResetSchema = {
-  new_email: string
+  newEmail: string
 }
 
 export const logoutSchema = Joi.object({
@@ -297,15 +293,15 @@ export type WhitelistQuery = {
 }
 
 export const providerQuery = Joi.object({
-  redirect_url_success: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_SUCCESS),
-  redirect_url_failure: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_ERROR),
-  jwt_token: Joi.string()
+  redirectUrlSuccess: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_SUCCESS),
+  redirectUrlFailure: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_ERROR),
+  jwtToken: Joi.string()
 });
 
 export type ProviderQuery = {
-  redirect_url_success?: string
-  redirect_url_failure?: string
-  jwt_token?: string
+  redirectUrlSuccess?: string
+  redirectUrlFailure?: string
+  jwtToken?: string
 }
 
 export const providerCallbackQuery = Joi.object({

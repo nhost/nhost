@@ -5,8 +5,9 @@ import QRCode from 'qrcode'
 import bcrypt from 'bcryptjs'
 import { pwnedPassword } from 'hibp'
 import { v4 as uuidv4 } from 'uuid'
-import { gqlSDK } from './utils/gqlSDK'
+import { gqlSdk } from './utils/gqlSDK'
 import { UserFieldsFragment } from './utils/__generated__/graphql-request'
+import { SessionUser } from './types'
 
 /**
  * Create QR code.
@@ -27,7 +28,7 @@ export function asyncWrapper(fn: any) {
 }
 
 export const getUserByEmail = async (email: string) => {
-  const { users } = await gqlSDK.users({
+  const { users } = await gqlSdk.users({
     where: {
       email: {
         _eq: email
@@ -45,7 +46,7 @@ export const getUserByEmail = async (email: string) => {
 export const getUserByTicket = async (ticket: string) => {
   const now = new Date()
 
-  const { users } = await gqlSDK.users({
+  const { users } = await gqlSdk.users({
     where: {
       _and: [
         {
@@ -75,7 +76,7 @@ export const getUser = async (userId: string | undefined) => {
     throw new Error('User does not exists')
   }
 
-  const { user } = await gqlSDK.user({
+  const { user } = await gqlSdk.user({
     id: userId
   })
 
@@ -105,7 +106,7 @@ export const isCompromisedPassword = async (password: string): Promise<boolean> 
 export const rotateTicket = async (oldTicket: string): Promise<string> => {
   const newTicket = uuidv4()
 
-  await gqlSDK.rotateUserTicket({
+  await gqlSdk.rotateUsersTicket({
     oldTicket,
     newTicket,
     newTicketExpiresAt: new Date()
@@ -123,7 +124,7 @@ export function newRefreshExpiry(): number {
 }
 
 export const setRefreshToken = async (userId: string, refreshToken = uuidv4()) => {
-  await gqlSDK.insertAuthRefreshToken({
+  await gqlSdk.insertRefreshToken({
     refreshToken: {
       userId,
       refreshToken,
@@ -139,7 +140,7 @@ export const userWithEmailExists = async (email: string) => {
 }
 
 export const userIsAnonymous = async (userId: string) => {
-  const { user } = await gqlSDK.user({
+  const { user } = await gqlSdk.user({
     id: userId
   })
 
@@ -173,17 +174,26 @@ export const deanonymizeUser = async (user: UserFieldsFragment) => {
     role
   }))
 
-  await gqlSDK.deanonymizeUser({
+  await gqlSdk.deanonymizeUser({
     userId: user.id,
     user,
     userRoles
   })
 }
 
-export const isAllowedEmail = async (email: string) => {
-  const { AuthWhitelist } = await gqlSDK.isEmailInWhitelist({
+export const isWhitelistedEmail = async (email: string) => {
+  const { AuthWhitelist } = await gqlSdk.isWhitelistedEmail({
     email
   })
 
   return !!AuthWhitelist
+}
+
+export function userToSessionUser(user: UserFieldsFragment): SessionUser {
+  return {
+    id: user.id,
+    email: user.email,
+    displayName: user.displayName,
+    avatarUrl: user.avatarUrl
+  }
 }

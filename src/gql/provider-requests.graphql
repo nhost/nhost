@@ -7,11 +7,19 @@ mutation insertProviderRequest($providerRequest: authProviderRequests_insert_inp
   }
 }
 
-mutation deleteProviderRequest($providerRequestId: uuid!) {
-  deleteAuthProviderRequest(id: $providerRequestId) {
+mutation deleteProviderRequest($id: uuid!) {
+  deleteAuthProviderRequest(id: $id) {
     id,
     jwtToken,
     redirectUrlFailure,
     redirectUrlSuccess
+  }
+}
+
+query providerRequest($id: uuid!) {
+  AuthProviderRequest(id: $id) {
+    redirectUrlSuccess,
+    redirectUrlFailure,
+    jwtToken
   }
 }

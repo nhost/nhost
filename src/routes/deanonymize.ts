@@ -5,7 +5,7 @@ import { DeanonymizeSchema, deanonymizeSchema } from '@/validation';
 import { emailClient } from '@/email';
 import { v4 as uuid4 } from 'uuid'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation';
-import { gqlSDK } from '@/utils/gqlSDK';
+import { gqlSdk } from '@/utils/gqlSDK';
 
 async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const { email, password } = req.body
@@ -14,14 +14,14 @@ async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Respon
     return res.boom.notImplemented(`Please set the ANONYMOUS_USERS_ENABLED env variable to true to use the auth/deanonymize route`)
   }
 
-  if (!req.permission_variables || !await userIsAnonymous(req.permission_variables['user-id'])) {
-    return res.boom.unauthorized('Unable to deanonymize account')
+  if (!req.permissionVariables || !await userIsAnonymous(req.permissionVariables['user-id'])) {
+    return res.boom.unauthorized('Unable to deanonymize user')
   }
 
-  const userId = req.permission_variables['user-id']
+  const userId = req.permissionVariables['user-id']
 
   if(await isCompromisedPassword(password)) {
-    req.logger.verbose(`User ${userId} tried deanonymizing his account with email ${email} but provided too weak of a password`, {
+    req.logger.verbose(`User ${userId} tried deanonymizing his user with email ${email} but provided too weak of a password`, {
       userId,
       email
     })
@@ -31,14 +31,14 @@ async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Respon
   const passwordHash = await hashPassword(password)
 
   if (await userWithEmailExists(email)) {
-    req.logger.verbose(`User ${userId} tried deanonymizing his account with email ${email} but an account with such email already existed`, {
+    req.logger.verbose(`User ${userId} tried deanonymizing his user with email ${email} but an user with such email already existed`, {
       userId,
       email
     })
     return res.boom.badRequest('Cannot use this email')
   }
 
-  const {updateUser: user} = await gqlSDK.updateUser({
+  const {updateUser: user} = await gqlSdk.updateUser({
     id: userId,
     user: {
       email,
@@ -53,7 +53,7 @@ async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Respon
   if(REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
     await deanonymizeUser(user)
 
-    req.logger.verbose(`User ${userId} deanonymized their account with email ${email}`, {
+    req.logger.verbose(`User ${userId} deanonymized their user with email ${email}`, {
       userId,
       email
     })
@@ -61,7 +61,7 @@ async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Respon
     const ticket = uuid4()
     const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000) // active for 60 minutes
 
-    await gqlSDK.updateUser({
+    await gqlSdk.updateUser({
       id: userId,
       user: {
         ticket,
@@ -71,7 +71,7 @@ async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Respon
     })
 
     await emailClient.send({
-      template: 'activate-account',
+      template: 'activate-user',
       message: {
         to: user.newEmail,
         headers: {
@@ -82,7 +82,7 @@ async function deanonymizeUserHandler(req: ValidatedRequest<Schema>, res: Respon
         }
       },
       locals: {
-        display_name: user.displayName,
+        displayName: user.displayName,
         ticket,
         url: APPLICATION.SERVER_URL,
         locale: user.locale

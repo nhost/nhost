@@ -11,7 +11,7 @@ import {
   ContainerTypes,
   createValidator
 } from 'express-joi-validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.VERIFY_EMAILS) {
@@ -27,14 +27,14 @@ async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promis
   }
 
   // set newEmail to email for user
-  const { updateUsers } = await gqlSDK.changeEmailByTicket({
+  const updateUser = await gqlSdk.changeEmailsByTicket({
     ticket,
     email: user.newEmail,
     newTicket: uuidv4(),
     now: new Date()
-  })
+  }).then(res => res.updateUsers?.returning[0])
 
-  if (!updateUsers?.affected_rows) {
+  if (!updateUser) {
     return res.boom.unauthorized('Invalid or expired ticket.')
   }
 
@@ -44,8 +44,8 @@ async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promis
       locals: {
         url: APPLICATION.SERVER_URL,
         locale: user.locale,
-        app_url: APPLICATION.APP_URL,
-        display_name: user.displayName
+        appUrl: APPLICATION.APP_URL,
+        displayName: user.displayName
       },
       message: {
         to: user.email
@@ -56,7 +56,7 @@ async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promis
   await rotateTicket(ticket)
 
   req.logger.verbose(`User ${user.id}(ticket: ${ticket}) changed email to ${user.newEmail}`, {
-    user_id: user.id,
+    userId: user.id,
     newEmail: user.newEmail,
     ticket
   })

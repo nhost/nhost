@@ -31,6 +31,43 @@ query users($where: users_bool_exp!) {
   }
 }
 
+# WHERE
+#   refreshToken = $refreshToken
+#   AND (
+#     user.active = true
+#     OR (
+#       user.active =  false
+#       AND user.isAnonymous
+#     )
+#   )
+# The reason is, we don't want users to select a refresh token if the user
+# is not active. Except if the user anonymous. Then we can allow it.
+# A user can be anonymous but with active = false when the user converts their
+# account to a real account but has not yet activated it aka verified their email.
+query usersByRefreshToken($refreshToken: uuid!) {
+  authRefreshTokens(
+    where: {
+      _and: [
+        { refreshToken: { _eq: $refreshToken } },
+        {
+          _or: [
+            { user: { active: { _eq: true }}}, {
+              _and: [
+                { user: { active: { _eq: false }}},
+                { user: { isAnonymous: { _eq: true }}}
+              ]
+            }
+          ]
+        },
+        { expiresAt: { _gte: now }}
+      ]
+    }) {
+    user {
+      ...userFields
+    }
+  }
+}
+
 mutation updateUser($id: uuid!, $user: users_set_input!) {
   updateUser(pk_columns: { id: $id }, _set: $user) {
     ...userFields
@@ -38,7 +75,7 @@ mutation updateUser($id: uuid!, $user: users_set_input!) {
 }
 
 
-mutation rotateUserTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+mutation rotateUsersTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
   updateUsers(
     _set: { ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
     where: { ticket: { _eq: $oldTicket } }
@@ -47,18 +84,20 @@ mutation rotateUserTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpire
   }
 }
 
-mutation activateUser($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+mutation activateUsers($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
   updateUsers(
     _set: { active: true, ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
     where: { _and: [{ active: { _eq: false } }, { ticket: { _eq: $ticket } }] }
   ) {
-    affected_rows
+    returning {
+      ...userFields
+    }
   }
 }
 
-mutation changeEmailByTicket(
+mutation changeEmailsByTicket(
   $ticket: uuid!
-  $email: citext
+  $email: citext!
   $newTicket: uuid!
   $now: timestamptz!
 ) {
@@ -66,7 +105,9 @@ mutation changeEmailByTicket(
     where: { _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: $now } }] }
     _set: { email: $email, newEmail: null, ticket: $newTicket, ticketExpiresAt: $now }
   ) {
-    affected_rows
+    returning {
+      ...userFields
+    }
   }
 }
 
@@ -105,7 +146,7 @@ mutation insertProviderToUser($provider: authProviders_insert_input!, $userId: u
     name
     code
   }
-  updateUser(_set: { active: true }, pk_columns: { id: $userId }) {
+  updateUser(pk_columns: { id: $userId }, _set: { active: true }) {
     ...userFields
   }
 }

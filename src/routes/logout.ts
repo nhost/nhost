@@ -1,45 +1,35 @@
 import { Response, Router } from 'express'
 import { asyncWrapper } from '@/helpers'
-import { request } from '@/request'
-import {
-  selectRefreshToken,
-  deleteAllAccountRefreshTokens,
-  deleteRefreshToken
-} from '@/queries'
 import { LogoutSchema, logoutSchema } from '@/validation'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import { gqlSdk } from '@/utils/gqlSDK'
 
-async function logout({ body, refresh_token }: ValidatedRequest<Schema>, res: Response) {
-  // if (!refresh_token) {
-  //   return res.boom.unauthorized('Invalid or expired refresh token')
-  // }
+async function logout({ body, refreshToken }: ValidatedRequest<Schema>, res: Response) {
+  if (!refreshToken) {
+    return res.boom.unauthorized('Invalid or expired refresh token')
+  }
 
-  // // should we delete all refresh tokens to this user or not
-  // const { all } = body
+  // should we delete all refresh tokens to this user or not
+  const { all } = body
 
-  // if (all) {
-  //   // get user based on refresh token
-  //   let hasura_data: HasuraData | null = null
+  if (all) {
+    // get user based on refresh token
+    const user = await gqlSdk.usersByRefreshToken({
+      refreshToken
+    }).then(res => res.authRefreshTokens[0].user)
 
-  //   hasura_data = await request<HasuraData>(selectRefreshToken, {
-  //     refresh_token,
-  //     current_timestamp: new Date()
-  //   })
+    // delete all refresh tokens for user
+    await gqlSdk.deleteUserRefreshTokens({
+      userId: user.id
+    })      
+  } else {
+    // if only to delete single refresh token
+    await gqlSdk.deleteRefreshToken({
+      id: refreshToken
+    })
+  }
 
-  //   const account = hasura_data?.auth_refresh_tokens?.[0]?.account
-
-  //   // delete all refresh tokens for user
-  //   await request(deleteAllAccountRefreshTokens, {
-  //     user_id: account.user.id
-  //   })
-  // } else {
-  //   // if only to delete single refresh token
-  //   await request(deleteRefreshToken, {
-  //     refresh_token
-  //   })
-  // }
-
-  // return res.status(204).send()
+  return res.status(204).send()
 }
 
 interface Schema extends ValidatedRequestSchema {

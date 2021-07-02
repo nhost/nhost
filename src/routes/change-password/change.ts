@@ -9,17 +9,17 @@ import {
   createValidator,
   ValidatedRequest
 } from 'express-joi-validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 /**
  * Change the password from the current one
  */
 async function basicPasswordChange(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  if (!req.permission_variables) {
+  if (!req.permissionVariables) {
     return res.boom.unauthorized('Not logged in')
   }
 
-  const { 'user-id': userId } = req.permission_variables
+  const { 'user-id': userId } = req.permissionVariables
 
   const { oldPassword, newPassword } = req.body
 
@@ -38,7 +38,7 @@ async function basicPasswordChange(req: ValidatedRequest<Schema>, res: Response)
 
   const newPasswordHash = await hashPassword(newPassword)
 
-  await gqlSDK.updateUser({
+  await gqlSdk.updateUser({
     id: userId,
     user: {
       passwordHash: newPasswordHash

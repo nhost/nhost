@@ -1,24 +1,27 @@
 import { Response, Router } from 'express'
-import { request } from '@/request';
 import { asyncWrapper } from '@/helpers';
-import { changeLocaleByUserId } from '@/queries';
 import { LocaleQuery, localeQuery } from '@/validation';
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation';
+import { gqlSdk } from '@/utils/gqlSDK';
 
 async function changeLocale(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  if(!req.permission_variables) {
+  if(!req.permissionVariables) {
     return res.boom.unauthorized('Not logged in')
   }
 
   const { locale } = req.query
 
-  await request(changeLocaleByUserId, {
-    user_id: req.permission_variables['user-id'],
-    locale
+  const userId = req.permissionVariables['user-id']
+
+  await gqlSdk.updateUser({
+    id: userId,
+    user: {
+      locale
+    }
   })
 
-  req.logger.verbose(`User ${req.permission_variables['user-id']} changed his locale to ${locale}`, {
-    user_id: req.permission_variables['user-id'],
+  req.logger.verbose(`User ${userId} changed his locale to ${locale}`, {
+    userId,
     locale
   })
 

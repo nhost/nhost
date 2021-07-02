@@ -1,4 +1,3 @@
-import { ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
 import { Maybe } from './utils/__generated__/graphql-request'
 
 export type ClaimValueType =
@@ -58,71 +57,4 @@ export interface SessionUser {
   email?: string
   displayName?: Maybe<string>;
   avatarUrl?: Maybe<string>;
-}
-
-export interface QueryAccountData {
-  auth_accounts: AccountData[]
-}
-
-export interface UpdateAccountData {
-  update_auth_accounts: {
-    affected_rows: number
-    returning: {
-      id: string
-      user_id: string
-    }[]
-  }
-}
-
-export interface DeleteAccountData {
-  delete_auth_accounts: { affected_rows: number }
-}
-interface AccountProvider {
-  account: AccountData
-}
-
-export interface QueryAccountProviderData {
-  auth_account_providers: AccountProvider[]
-}
-
-export interface InsertAccountData {
-  insert_auth_accounts: {
-    returning: AccountData[]
-  }
-}
-
-export interface InsertAccountProviderToUser {
-  insert_auth_account_providers_one: {
-    account: AccountData
-  }
-}
-
-export interface QueryProviderRequests {
-  auth_provider_requests_by_pk: {
-    redirect_url_success: string,
-    redirect_url_failure: string,
-    jwt_token?: string
-  }
-}
-
-export interface SetNewEmailData {
-  update_auth_accounts: {
-    returning: {
-      user: UserFieldsFragment
-    }[]
-    affected_rows: number
-  }
-}
-
-export interface IsAllowedEmail {
-  auth_whitelist_by_pk: {
-    email: string
-  } | null
-}
-export interface QueryEmailTemplate {
-  auth_email_templates_by_pk: {
-    title: string
-    html: string
-    no_html: string
-  }
 }

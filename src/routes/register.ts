@@ -1,12 +1,12 @@
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
 import { NextFunction, Response, Router } from 'express'
-import { asyncWrapper, isCompromisedPassword, hashPassword, setRefreshToken, getGravatarUrl, isAllowedEmail, getUserByEmail } from '@/helpers'
+import { asyncWrapper, isCompromisedPassword, hashPassword, setRefreshToken, getGravatarUrl, isWhitelistedEmail, getUserByEmail } from '@/helpers'
 import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
 import { emailClient } from '@/email'
 import {
   isMagicLinkLogin,
   isMagicLinkRegister,
-  isRegularLogin,
+  isRegularRegister,
   RegisterSchema,
   registerSchema
 } from '@/validation'
@@ -18,7 +18,7 @@ import {
   ContainerTypes,
   createValidator
 } from 'express-joi-validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const body = req.body
@@ -31,9 +31,9 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     }
   }
 
-  const { email, user_data = {}, register_options = {}, locale } = body
+  const { email, locale } = body
 
-  if (REGISTRATION.WHITELIST && !(await isAllowedEmail(email))) {
+  if (REGISTRATION.WHITELIST && !(await isWhitelistedEmail(email))) {
     return res.boom.unauthorized('Email not allowed')
   }
 
@@ -47,7 +47,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   // Ticket expires after 60 min
   const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString()
 
-  if (isRegularLogin(body)) {
+  if (isRegularRegister(body)) {
     if(await isCompromisedPassword(body.password)) {
       return res.boom.badRequest('Password is too weak')
     }
@@ -55,34 +55,34 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     passwordHash = await hashPassword(body.password)
   }
 
-  const defaultRole = register_options.default_role ?? REGISTRATION.DEFAULT_USER_ROLE
-  const allowedRoles = register_options.allowed_roles ?? REGISTRATION.DEFAULT_ALLOWED_USER_ROLES
+  const defaultRole = body.defaultRole ?? REGISTRATION.DEFAULT_USER_ROLE
+  const allowedRoles = body.allowedRoles ?? REGISTRATION.DEFAULT_ALLOWED_USER_ROLES
 
   // check if default role is part of allowedRoles
   if (!allowedRoles.includes(defaultRole)) {
     req.logger.verbose(`User tried registering with email ${email} but used an invalid default role ${defaultRole}`, {
       email,
-      default_role: defaultRole,
-      allowed_roles: allowedRoles
+      defaultRole: defaultRole,
+      allowedRoles: allowedRoles
     })
     return res.boom.badRequest('Default role must be part of allowed roles')
   }
 
-  // check if allowed roles is a subset of ALLOWED_ROLES
+  // check if allowed roles is a subset of allowedRoles
   if (!allowedRoles.every((role: string) => REGISTRATION.ALLOWED_USER_ROLES.includes(role))) {
     req.logger.verbose(`User tried registering with email ${email} but used an invalid role`, {
       email,
-      allowed_roles: allowedRoles,
-      app_allowed_roles: REGISTRATION.ALLOWED_USER_ROLES
+      allowedRoles: allowedRoles,
+      appAllowedRoles: REGISTRATION.ALLOWED_USER_ROLES
     })
-    return res.boom.badRequest('Allowed roles must be a subset of ALLOWED_ROLES')
+    return res.boom.badRequest('Allowed roles must be a subset of allowedRoles')
   }
 
-  const accountRoles = allowedRoles.map((role: string) => ({ role }))
+  const userRoles = allowedRoles.map((role: string) => ({ role }))
 
   const avatarUrl = getGravatarUrl(email)
 
-  const { insertUser: user } = await gqlSDK.insertUser({
+  const user = await gqlSdk.insertUser({
     user: {
       displayName: email,
       avatarUrl,
@@ -94,10 +94,10 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
       locale,
       defaultRole,
       roles: {
-        data: accountRoles
+        data: userRoles
       }
     }
-  })
+  }).then(res => res.insertUser)
 
   if (!user) {
     throw new Error('Unable to insert new user')
@@ -116,8 +116,8 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
       throw new Error('SMTP settings unavailable')
     }
 
-    // use display name from `user_data` if available
-    const display_name = 'display_name' in user_data ? user_data.display_name : email
+    // use display name from body
+    const displayName = body.customRegisterData?.displayName || email
 
     if (isMagicLinkLogin(body)) {
       await emailClient.send({
@@ -132,13 +132,13 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
           }
         },
         locals: {
-          display_name,
+          displayName,
           token: ticket,
           url: APPLICATION.SERVER_URL,
           locale: user.locale,
-          app_url: APPLICATION.APP_URL,
+          appUrl: APPLICATION.APP_URL,
           action: 'register',
-          action_url: 'register'
+          actionUrl: 'register'
         }
       })
 
@@ -157,7 +157,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     }
 
     await emailClient.send({
-      template: 'activate-account',
+      template: 'activate-user',
       message: {
         to: email,
         headers: {
@@ -168,7 +168,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
         }
       },
       locals: {
-        display_name,
+        displayName,
         ticket,
         url: APPLICATION.SERVER_URL,
         locale: user.locale
@@ -178,7 +178,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     const session: Session = { jwtToken: null, jwtExpiresIn: null, user: sessionUser }
 
     req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
-      user_id: user.id,
+      userId: user.id,
       email
     })
 
@@ -196,7 +196,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   const session: Session = {jwtToken, jwtExpiresIn, user: sessionUser, refreshToken}
 
   req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
-    user_id: user.id,
+    userId: user.id,
     email
   })
 

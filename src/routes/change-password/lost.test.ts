@@ -71,7 +71,7 @@ describe('Reset lost password', () => {
               .post('/change-password/change')
               .send({
                 ticket,
-                new_password: generateRandomString()
+                newPassword: generateRandomString()
               })
               .expect(statusCode(204))
               .end(end(done))

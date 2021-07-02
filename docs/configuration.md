@@ -313,7 +313,7 @@ paths:
 
 Storage functions allow you to define permissions which can be used by any rules. Storage functions have access to the query string of the request, and the permission variables returned by the [login](../api.md#login) or [refresh](../api.md#refresh-token) endpoints.
 
-You can have a look at the permission variables by examining the `permission_variables`. This is a URL-encoded string, in the following template:
+You can have a look at the permission variables by examining the `permissionVariables`. This is a URL-encoded string, in the following template:
 
 ```txt
 s:<request.auth>.<checksum>
@@ -402,7 +402,7 @@ paths:
 ```
 
 How does this work? The `:companyId` path creates a variable called `companyId`, which can be passed into a function.
-This gets passed into the `employedBy()` function, (called `companyId`), and can be compared to `request.auth['company-id']` from the `permission_variables`.
+This gets passed into the `employedBy()` function, (called `companyId`), and can be compared to `request.auth['company-id']` from the `permissionVariables`.
 
 ### Email templates
 

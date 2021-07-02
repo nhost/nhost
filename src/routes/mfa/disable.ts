@@ -9,14 +9,14 @@ import {
   createValidator,
   ValidatedRequest
 } from 'express-joi-validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function disableMfa(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  if (!req.permission_variables) {
+  if (!req.permissionVariables) {
     return res.boom.unauthorized('Not logged in')
   }
 
-  const { 'user-id': userId } = req.permission_variables
+  const { 'user-id': userId } = req.permissionVariables
 
   const { code } = req.body
 
@@ -40,7 +40,7 @@ async function disableMfa(req: ValidatedRequest<Schema>, res: Response): Promise
     return res.boom.unauthorized('Invalid two-factor code')
   }
 
-  await gqlSDK.updateUser({
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
       otpSecret: null,

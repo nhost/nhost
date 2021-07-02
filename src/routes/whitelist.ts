@@ -1,11 +1,10 @@
 import { APPLICATION, HEADERS, REGISTRATION } from '@config/index'
 import { Response, Router } from 'express'
-import { asyncWrapper, isAllowedEmail } from '@/helpers'
+import { asyncWrapper, isWhitelistedEmail } from '@/helpers'
 import { WhitelistQuery, whitelistQuery } from '@/validation'
-import { insertAllowedEmail } from '@/queries'
-import { request } from '@/request'
 import { emailClient } from '@/email'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function whitelist(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
 
@@ -19,9 +18,9 @@ async function whitelist(req: ValidatedRequest<Schema>, res: Response): Promise<
     return res.boom.unauthorized('Incorrect admin secret')
   }
 
-  if(!await isAllowedEmail(email)) {
-    await request(insertAllowedEmail, {
-      email: email
+  if(!await isWhitelistedEmail(email)) {
+    await gqlSdk.insertWhitelistedEmail({
+      email
     })
 
     if(invite) {
@@ -36,8 +35,8 @@ async function whitelist(req: ValidatedRequest<Schema>, res: Response): Promise<
         },
         locals: {
           url: APPLICATION.SERVER_URL,
-          app_url: APPLICATION.APP_URL,
-          app_name: APPLICATION.APP_NAME,
+          appUrl: APPLICATION.APP_URL,
+          appName: APPLICATION.APP_NAME,
           locale,
           email: email
         }

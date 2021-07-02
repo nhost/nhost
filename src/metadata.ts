@@ -91,7 +91,7 @@ async function setTableCustomization(args: TableArgs) {
     )
   } catch (error) {
     logger.error(error)
-    throw new Error('error setting customization for table')
+    throw new Error('error setting customization for table ' + args.table.name)
   }
 }
 

@@ -129,12 +129,12 @@ export const getClaims = (authorization: string | undefined): Claims => {
 
 export const getPermissionVariablesFromClaims = (claims: Claims): PermissionVariables => {
   // remove `x-hasura-` from claim props
-  const claims_sanatized: { [k: string]: any } = {}
+  const claimsSanitized: { [k: string]: any } = {}
   for (const claimKey in claims) {
-    claims_sanatized[claimKey.replace('x-hasura-', '') as string] = claims[claimKey]
+    claimsSanitized[claimKey.replace('x-hasura-', '') as string] = claims[claimKey]
   }
 
-  return claims_sanatized as PermissionVariables
+  return claimsSanitized as PermissionVariables
 }
 
 /**

@@ -4,14 +4,8 @@ import { VerifyCallback } from 'passport-oauth2'
 import { Strategy } from 'passport'
 
 import { APPLICATION, PROVIDERS, REGISTRATION } from '@config/index'
-import { addProviderRequest, deleteProviderRequest, getProviderRequest, insertAccount, insertAccountProviderToUser, selectAccountProvider } from '@/queries'
-import { asyncWrapper, getUser, setRefreshToken, getGravatarUrl, isAllowedEmail, getUserByEmail } from '@/helpers'
-import { request } from '@/request'
+import { asyncWrapper, getUser, setRefreshToken, getGravatarUrl, isWhitelistedEmail, getUserByEmail } from '@/helpers'
 import {
-  InsertAccountData,
-  QueryAccountProviderData,
-  InsertAccountProviderToUser,
-  QueryProviderRequests,
   PermissionVariables,
   SessionUser
 } from '@/types'
@@ -20,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { getClaims, getPermissionVariablesFromClaims } from '@/jwt'
 import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
 import { UserFieldsFragment } from '@/utils/__generated__/graphql-request'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 interface RequestWithState<T extends ValidatedRequestSchema> extends ValidatedRequest<T> {
   state: string
@@ -55,69 +50,69 @@ const manageProviderStrategy = (
     // check if user exists, using profile.id
     const { id, email, displayName, avatarUrl } = transformProfile(profile)
 
-    if(REGISTRATION.WHITELIST && (!email || !isAllowedEmail(email))) {
+    if(REGISTRATION.WHITELIST && (!email || !isWhitelistedEmail(email))) {
       return done(new Error('Email not allowed'))
     }
 
-    const hasuraData = await request<QueryAccountProviderData>(selectAccountProvider, {
+    const user = await gqlSdk.providers({
       provider,
-      profile_id: id.toString()
-    })
+      profileId: id
+    }).then(res => res.authProviders[0]?.userProviders)
 
-    // IF user is already registered
-    if (hasuraData.auth_account_providers.length > 0) {
-      return done(null, hasuraData.auth_account_providers[0].account)
+    // User is already registered
+    if (user) {
+      return done(null, user)
     }
 
     if(email) {
       const user = await getUserByEmail(email)
 
       if(user) {
-        const insertAccountProviderToUserData = await request<InsertAccountProviderToUser>(
-          insertAccountProviderToUser,
-          {
-            account_provider: {
-              account_id: user.id,
-              auth_provider: provider,
-              auth_provider_unique_id: id.toString()
-            },
-            account_id: user.id
+        const user = await gqlSdk.insertProviderToUser({
+          userId: id,
+          provider: {
+            name: provider,
+            code: id,
           }
-        )
+        }).then(res => res.updateUser)
+
+        if(!user) {
+          throw new Error('Could not insert provider to user')
+        }
   
-        return done(null, insertAccountProviderToUserData.insert_auth_account_providers_one.account)
+        return done(null, user)
       }
     }
 
     // Check whether logged in user is trying to add a provider
-    const { jwt_token } = await request<QueryProviderRequests>(getProviderRequest, {
-      state: req.state
-    }).then(query => query.auth_provider_requests_by_pk)
+    const jwtToken = await gqlSdk.providerRequest({
+      id: req.state
+    }).then(res => res.AuthProviderRequest?.jwtToken)
 
-    if(jwt_token) {
+    if(jwtToken) {
       let permissionVariables: PermissionVariables
 
       try {
         permissionVariables = getPermissionVariablesFromClaims(
-          getClaims(jwt_token)
+          getClaims(jwtToken)
         )
       } catch(err) {
         return done(new Error('Invalid JWT Token'))
       }
 
-      const user = await getUser(permissionVariables['user-id'])
+      const id = permissionVariables['user-id']
 
-      const insertAccountProviderToUserData = await request<InsertAccountProviderToUser>(
-        insertAccountProviderToUser,
-        {
-          account_provider: {
-            account_id: user.id,
-            auth_provider: provider,
-            auth_provider_unique_id: id
-          },
-          account_id: user.id
+      const user = await gqlSdk.insertProviderToUser({
+        userId: id,
+        provider: {
+          name: provider,
+          code: id,
         }
-      )
+      }).then(res => res.updateUser)
+
+      if(!user) {
+        throw new Error('Could not insert provider to user')
+      }
 
       req.logger.verbose(`User ${user.id} added a ${provider} provider(${id})`, {
         userId: user.id,
@@ -125,43 +120,45 @@ const manageProviderStrategy = (
         authProviderUniqueId: id
       })
 
-      return done(null, insertAccountProviderToUserData.insert_auth_account_providers_one.account)
+      return done(null, user)
     }
 
-    // register useruser, account, account_provider
-    const userData = {
-      email,
-      password_hash: null,
-      active: true,
-      default_role: REGISTRATION.DEFAULT_USER_ROLE,
-      account_roles: {
-        data: REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({ role }))
-      },
-      user: { data: { display_name: displayName || email, avatarUrl } },
-      account_providers: {
-        data: [
-          {
-            auth_provider: provider,
-            auth_provider_unique_id: id
-          }
-        ]
+    const insertUser = await gqlSdk.insertUser({
+      user: {
+        email,
+        passwordHash: null,
+        active: true,
+        defaultRole: REGISTRATION.DEFAULT_USER_ROLE,
+        roles: {
+          data: REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({ role })),
+        },
+        displayName: displayName || email,
+        avatarUrl,
+        userProviders: {
+          data: [
+            {
+              userProviderCode: provider,
+              userProviderUniqueId: id
+            }
+          ]
+        }
       }
+    }).then(res => res.insertUser)
+
+    if(!insertUser) {
+      throw new Error('Could not insert user')
     }
 
-    const hasura_account_provider_data = await request<InsertAccountData>(insertAccount, {
-      account: userData
-    })
+    const userId = insertUser.id
 
-    const user_id = hasura_account_provider_data.insert_auth_accounts.returning[0].user.id
-
-    req.logger.verbose(`New user registration with id ${user_id}, email ${email} and provider ${provider}(${id})`, {
-      user_id,
+    req.logger.verbose(`New user registration with id ${userId}, email ${email} and provider ${provider}(${id})`, {
+       userId,
       email,
-      auth_provider: provider,
-      auth_provider_unique_id: id
+      userProviderCode: provider,
+      userProviderUniqueId: id
     })
 
-    return done(null, hasura_account_provider_data.insert_auth_accounts.returning[0])
+    return done(null, insertUser)
   }
 
 const providerCallback = asyncWrapper(async (req: RequestWithState<ProviderCallbackQuerySchema>, res: Response): Promise<void> => {
@@ -170,20 +167,16 @@ const providerCallback = asyncWrapper(async (req: RequestWithState<ProviderCallb
 
   req.state = req.query.state as string
 
-  const { redirect_url_success } = await request<QueryProviderRequests>(getProviderRequest, {
-    state: req.state
-  }).then(query => query.auth_provider_requests_by_pk)
-
-  await request(deleteProviderRequest, {
-    state: req.state
-  })
+  const redirectUrlSuccess = await gqlSdk.deleteProviderRequest({
+    id: req.state
+  }).then(res => res.deleteAuthProviderRequest?.redirectUrlSuccess)
 
   const user = req.user as UserFieldsFragment
 
-  const refresh_token = await setRefreshToken(user.id)
+  const refreshToken = await setRefreshToken(user.id)
 
   // redirect back user to app url
-  res.redirect(`${redirect_url_success}?refresh_token=${refresh_token}`)
+  res.redirect(`${redirectUrlSuccess}?refreshToken=${refreshToken}`)
 })
 
 export const initProvider = <T extends Strategy>(
@@ -244,13 +237,15 @@ export const initProvider = <T extends Strategy>(
     asyncWrapper(async (req: RequestWithState<ProviderQuerySchema>, res: Response, next: NextFunction) => {
       req.state = uuidv4()
 
-      const { redirect_url_success, redirect_url_failure, jwt_token } = req.query
+      const { redirectUrlSuccess, redirectUrlFailure, jwtToken } = req.query
 
-      await request(addProviderRequest, {
-        state: req.state,
-        redirect_url_success,
-        redirect_url_failure,
-        jwt_token
+      await gqlSdk.insertProviderRequest({
+        providerRequest: {
+          id: req.state,
+          redirectUrlSuccess: redirectUrlSuccess as string,
+          redirectUrlFailure: redirectUrlFailure as string,
+          jwtToken: jwtToken as string
+        }
       })
 
       await next()

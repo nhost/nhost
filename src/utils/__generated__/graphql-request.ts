@@ -3133,7 +3133,7 @@ export type InsertProviderRequestMutation = (
 );
 
 export type DeleteProviderRequestMutationVariables = Exact<{
-  providerRequestId: Scalars['uuid'];
+  id: Scalars['uuid'];
 }>;
 
 
@@ -3145,13 +3145,26 @@ export type DeleteProviderRequestMutation = (
   )> }
 );
 
-export type SelectProviderQueryVariables = Exact<{
+export type ProviderRequestQueryVariables = Exact<{
+  id: Scalars['uuid'];
+}>;
+
+
+export type ProviderRequestQuery = (
+  { __typename?: 'query_root' }
+  & { AuthProviderRequest?: Maybe<(
+    { __typename?: 'authProviderRequests' }
+    & Pick<AuthProviderRequests, 'redirectUrlSuccess' | 'redirectUrlFailure' | 'jwtToken'>
+  )> }
+);
+
+export type ProvidersQueryVariables = Exact<{
   provider: Scalars['String'];
   profileId: Scalars['String'];
 }>;
 
 
-export type SelectProviderQuery = (
+export type ProvidersQuery = (
   { __typename?: 'query_root' }
   & { authProviders: Array<(
     { __typename?: 'authProviders' }
@@ -3178,22 +3191,6 @@ export type InsertRefreshTokenMutation = (
   )> }
 );
 
-export type SelectRefreshTokenQueryVariables = Exact<{
-  refreshToken: Scalars['uuid'];
-}>;
-
-
-export type SelectRefreshTokenQuery = (
-  { __typename?: 'query_root' }
-  & { authRefreshTokens: Array<(
-    { __typename?: 'authRefreshTokens' }
-    & { user: (
-      { __typename?: 'users' }
-      & UserFieldsFragment
-    ) }
-  )> }
-);
-
 export type UpdateRefreshTokenMutationVariables = Exact<{
   refreshTokenId: Scalars['uuid'];
   refreshToken: AuthRefreshTokens_Insert_Input;
@@ -3212,11 +3209,24 @@ export type UpdateRefreshTokenMutation = (
 );
 
 export type DeleteRefreshTokenMutationVariables = Exact<{
-  refreshTokenId: Scalars['uuid'];
+  id: Scalars['uuid'];
 }>;
 
 
 export type DeleteRefreshTokenMutation = (
+  { __typename?: 'mutation_root' }
+  & { deleteAuthRefreshToken?: Maybe<(
+    { __typename?: 'authRefreshTokens' }
+    & Pick<AuthRefreshTokens, 'refreshToken'>
+  )> }
+);
+
+export type DeleteUserRefreshTokensMutationVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type DeleteUserRefreshTokensMutation = (
   { __typename?: 'mutation_root' }
   & { deleteAuthRefreshTokens?: Maybe<(
     { __typename?: 'authRefreshTokens_mutation_response' }
@@ -3259,6 +3269,22 @@ export type UsersQuery = (
   )> }
 );
 
+export type UsersByRefreshTokenQueryVariables = Exact<{
+  refreshToken: Scalars['uuid'];
+}>;
+
+
+export type UsersByRefreshTokenQuery = (
+  { __typename?: 'query_root' }
+  & { authRefreshTokens: Array<(
+    { __typename?: 'authRefreshTokens' }
+    & { user: (
+      { __typename?: 'users' }
+      & UserFieldsFragment
+    ) }
+  )> }
+);
+
 export type UpdateUserMutationVariables = Exact<{
   id: Scalars['uuid'];
   user: Users_Set_Input;
@@ -3273,14 +3299,14 @@ export type UpdateUserMutation = (
   )> }
 );
 
-export type RotateUserTicketMutationVariables = Exact<{
+export type RotateUsersTicketMutationVariables = Exact<{
   oldTicket: Scalars['uuid'];
   newTicket: Scalars['uuid'];
   newTicketExpiresAt: Scalars['timestamptz'];
 }>;
 
 
-export type RotateUserTicketMutation = (
+export type RotateUsersTicketMutation = (
   { __typename?: 'mutation_root' }
   & { updateUsers?: Maybe<(
     { __typename?: 'users_mutation_response' }
@@ -3288,34 +3314,40 @@ export type RotateUserTicketMutation = (
   )> }
 );
 
-export type ActivateUserMutationVariables = Exact<{
+export type ActivateUsersMutationVariables = Exact<{
   ticket: Scalars['uuid'];
   newTicket: Scalars['uuid'];
   newTicketExpiresAt: Scalars['timestamptz'];
 }>;
 
 
-export type ActivateUserMutation = (
+export type ActivateUsersMutation = (
   { __typename?: 'mutation_root' }
   & { updateUsers?: Maybe<(
     { __typename?: 'users_mutation_response' }
-    & Pick<Users_Mutation_Response, 'affected_rows'>
+    & { returning: Array<(
+      { __typename?: 'users' }
+      & UserFieldsFragment
+    )> }
   )> }
 );
 
-export type ChangeEmailByTicketMutationVariables = Exact<{
+export type ChangeEmailsByTicketMutationVariables = Exact<{
   ticket: Scalars['uuid'];
-  email?: Maybe<Scalars['citext']>;
+  email: Scalars['citext'];
   newTicket: Scalars['uuid'];
   now: Scalars['timestamptz'];
 }>;
 
 
-export type ChangeEmailByTicketMutation = (
+export type ChangeEmailsByTicketMutation = (
   { __typename?: 'mutation_root' }
   & { updateUsers?: Maybe<(
     { __typename?: 'users_mutation_response' }
-    & Pick<Users_Mutation_Response, 'affected_rows'>
+    & { returning: Array<(
+      { __typename?: 'users' }
+      & UserFieldsFragment
+    )> }
   )> }
 );
 
@@ -3471,8 +3503,8 @@ export const InsertProviderRequestDocument = gql`
 }
     `;
 export const DeleteProviderRequestDocument = gql`
-    mutation deleteProviderRequest($providerRequestId: uuid!) {
-  deleteAuthProviderRequest(id: $providerRequestId) {
+    mutation deleteProviderRequest($id: uuid!) {
+  deleteAuthProviderRequest(id: $id) {
     id
     jwtToken
     redirectUrlFailure
@@ -3480,8 +3512,17 @@ export const DeleteProviderRequestDocument = gql`
   }
 }
     `;
-export const SelectProviderDocument = gql`
-    query selectProvider($provider: String!, $profileId: String!) {
+export const ProviderRequestDocument = gql`
+    query providerRequest($id: uuid!) {
+  AuthProviderRequest(id: $id) {
+    redirectUrlSuccess
+    redirectUrlFailure
+    jwtToken
+  }
+}
+    `;
+export const ProvidersDocument = gql`
+    query providers($provider: String!, $profileId: String!) {
   authProviders(where: {_and: {userProviders: {userProviderUniqueId: {_eq: $profileId}, provider: {name: {_eq: $provider}}}}}) {
     userProviders {
       user {
@@ -3498,15 +3539,6 @@ export const InsertRefreshTokenDocument = gql`
   }
 }
     `;
-export const SelectRefreshTokenDocument = gql`
-    query selectRefreshToken($refreshToken: uuid!) {
-  authRefreshTokens(where: {_and: [{refreshToken: {_eq: $refreshToken}}, {_or: [{user: {active: {_eq: true}}}, {_and: [{user: {active: {_eq: false}}}, {user: {isAnonymous: {_eq: true}}}]}]}, {expiresAt: {_gte: now}}]}) {
-    user {
-      ...userFields
-    }
-  }
-}
-    ${UserFieldsFragmentDoc}`;
 export const UpdateRefreshTokenDocument = gql`
     mutation updateRefreshToken($refreshTokenId: uuid!, $refreshToken: authRefreshTokens_insert_input!) {
   deleteAuthRefreshTokens(where: {refreshToken: {_eq: $refreshTokenId}}) {
@@ -3518,8 +3550,15 @@ export const UpdateRefreshTokenDocument = gql`
 }
     `;
 export const DeleteRefreshTokenDocument = gql`
-    mutation deleteRefreshToken($refreshTokenId: uuid!) {
-  deleteAuthRefreshTokens(where: {refreshToken: {_eq: $refreshTokenId}}) {
+    mutation deleteRefreshToken($id: uuid!) {
+  deleteAuthRefreshToken(refreshToken: $id) {
+    refreshToken
+  }
+}
+    `;
+export const DeleteUserRefreshTokensDocument = gql`
+    mutation deleteUserRefreshTokens($userId: uuid!) {
+  deleteAuthRefreshTokens(where: {user: {id: {_eq: $userId}}}) {
     affected_rows
   }
 }
@@ -3538,6 +3577,15 @@ export const UsersDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
+export const UsersByRefreshTokenDocument = gql`
+    query usersByRefreshToken($refreshToken: uuid!) {
+  authRefreshTokens(where: {_and: [{refreshToken: {_eq: $refreshToken}}, {_or: [{user: {active: {_eq: true}}}, {_and: [{user: {active: {_eq: false}}}, {user: {isAnonymous: {_eq: true}}}]}]}, {expiresAt: {_gte: now}}]}) {
+    user {
+      ...userFields
+    }
+  }
+}
+    ${UserFieldsFragmentDoc}`;
 export const UpdateUserDocument = gql`
     mutation updateUser($id: uuid!, $user: users_set_input!) {
   updateUser(pk_columns: {id: $id}, _set: $user) {
@@ -3545,27 +3593,31 @@ export const UpdateUserDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
-export const RotateUserTicketDocument = gql`
-    mutation rotateUserTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+export const RotateUsersTicketDocument = gql`
+    mutation rotateUsersTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
   updateUsers(_set: {ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {ticket: {_eq: $oldTicket}}) {
     affected_rows
   }
 }
     `;
-export const ActivateUserDocument = gql`
-    mutation activateUser($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+export const ActivateUsersDocument = gql`
+    mutation activateUsers($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
   updateUsers(_set: {active: true, ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {_and: [{active: {_eq: false}}, {ticket: {_eq: $ticket}}]}) {
-    affected_rows
+    returning {
+      ...userFields
+    }
   }
 }
-    `;
-export const ChangeEmailByTicketDocument = gql`
-    mutation changeEmailByTicket($ticket: uuid!, $email: citext, $newTicket: uuid!, $now: timestamptz!) {
+    ${UserFieldsFragmentDoc}`;
+export const ChangeEmailsByTicketDocument = gql`
+    mutation changeEmailsByTicket($ticket: uuid!, $email: citext!, $newTicket: uuid!, $now: timestamptz!) {
   updateUsers(where: {_and: [{ticket: {_eq: $ticket}}, {ticketExpiresAt: {_gt: $now}}]}, _set: {email: $email, newEmail: null, ticket: $newTicket, ticketExpiresAt: $now}) {
-    affected_rows
+    returning {
+      ...userFields
+    }
   }
 }
-    `;
+    ${UserFieldsFragmentDoc}`;
 export const InsertUserDocument = gql`
     mutation insertUser($user: users_insert_input!) {
   insertUser(object: $user) {
@@ -3599,7 +3651,7 @@ export const InsertProviderToUserDocument = gql`
     name
     code
   }
-  updateUser(_set: {active: true}, pk_columns: {id: $userId}) {
+  updateUser(pk_columns: {id: $userId}, _set: {active: true}) {
     ...userFields
   }
 }
@@ -3645,14 +3697,14 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     deleteProviderRequest(variables: DeleteProviderRequestMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteProviderRequestMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteProviderRequestMutation>(DeleteProviderRequestDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteProviderRequest');
     },
-    selectProvider(variables: SelectProviderQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<SelectProviderQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<SelectProviderQuery>(SelectProviderDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'selectProvider');
+    providerRequest(variables: ProviderRequestQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProviderRequestQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ProviderRequestQuery>(ProviderRequestDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'providerRequest');
+    },
+    providers(variables: ProvidersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProvidersQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ProvidersQuery>(ProvidersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'providers');
     },
     insertRefreshToken(variables: InsertRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertRefreshTokenMutation>(InsertRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertRefreshToken');
-    },
-    selectRefreshToken(variables: SelectRefreshTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<SelectRefreshTokenQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<SelectRefreshTokenQuery>(SelectRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'selectRefreshToken');
     },
     updateRefreshToken(variables: UpdateRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateRefreshTokenMutation>(UpdateRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateRefreshToken');
@@ -3660,23 +3712,29 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     deleteRefreshToken(variables: DeleteRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteRefreshTokenMutation>(DeleteRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteRefreshToken');
     },
+    deleteUserRefreshTokens(variables: DeleteUserRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRefreshTokensMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRefreshTokensMutation>(DeleteUserRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRefreshTokens');
+    },
     user(variables: UserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UserQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UserQuery>(UserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'user');
     },
     users(variables: UsersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UsersQuery>(UsersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'users');
     },
+    usersByRefreshToken(variables: UsersByRefreshTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersByRefreshTokenQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UsersByRefreshTokenQuery>(UsersByRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'usersByRefreshToken');
+    },
     updateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUser');
     },
-    rotateUserTicket(variables: RotateUserTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RotateUserTicketMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<RotateUserTicketMutation>(RotateUserTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'rotateUserTicket');
+    rotateUsersTicket(variables: RotateUsersTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RotateUsersTicketMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<RotateUsersTicketMutation>(RotateUsersTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'rotateUsersTicket');
     },
-    activateUser(variables: ActivateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ActivateUserMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<ActivateUserMutation>(ActivateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'activateUser');
+    activateUsers(variables: ActivateUsersMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ActivateUsersMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ActivateUsersMutation>(ActivateUsersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'activateUsers');
     },
-    changeEmailByTicket(variables: ChangeEmailByTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ChangeEmailByTicketMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<ChangeEmailByTicketMutation>(ChangeEmailByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'changeEmailByTicket');
+    changeEmailsByTicket(variables: ChangeEmailsByTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ChangeEmailsByTicketMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<ChangeEmailsByTicketMutation>(ChangeEmailsByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'changeEmailsByTicket');
     },
     insertUser(variables: InsertUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertUserMutation>(InsertUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUser');

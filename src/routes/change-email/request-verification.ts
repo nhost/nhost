@@ -6,16 +6,16 @@ import { emailClient } from '@/email'
 import { EmailResetSchema, emailResetSchema } from '@/validation'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
 import { asyncWrapper, getUserByEmail } from '@/helpers'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<any> {
   if(!AUTHENTICATION.VERIFY_EMAILS) {
     return res.boom.notImplemented(`Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/request route`)
   }
 
-  const userId = req.permission_variables?.['user-id']
+  const userId = req.permissionVariables?.['user-id']
 
-  const newEmail = req.body.new_email
+  const newEmail = req.body.newEmail
 
   if(await getUserByEmail(newEmail)) {
     return res.boom.badRequest('Cannot use this email')
@@ -33,14 +33,14 @@ async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response):
   ticketExpiresAt.setTime(now.getTime() + 60 * 60 * 1000)
   // set new ticket
 
-  const { updateUser: user } = await gqlSDK.updateUser({
+  const user = await gqlSdk.updateUser({
     id: userId,
     user: {
       ticket,
       ticketExpiresAt,
       newEmail
     }
-  })
+  }).then(res => res.updateUser)
 
   if (!user) {
     throw new Error('Could not update user');
@@ -52,7 +52,7 @@ async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response):
       ticket,
       url: APPLICATION.SERVER_URL,
       locale: user.locale,
-      app_url: APPLICATION.APP_URL,
+      appUrl: APPLICATION.APP_URL,
       displayName: user.displayName,
     },
     message: {

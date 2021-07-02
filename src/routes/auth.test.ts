@@ -5,7 +5,6 @@ import { APPLICATION, JWT as CONFIG_JWT, HEADERS } from '@config/index'
 import {
   generateRandomEmail,
   generateRandomString,
-  deleteMailHogEmail,
   mailHogSearch,
   registerAccount,
   registerAndLoginAccount,
@@ -52,19 +51,21 @@ it('should tell the password has been pwned', (done) => {
   )
 })
 
-it('should create an account', (done) => {
+it('should create an user', (done) => {
   request
     .post('/register')
     .send({
       email: generateRandomEmail(),
       password: generateRandomString(),
-      user_data: { name: 'Test name' }
+      customRegisterData: {
+        name: 'Test name'
+      }
     })
     .expect(statusCode(200))
     .end(end(done))
 })
 
-it('should create an account without a password when magic link login is enabled', (done) => {
+it('should create an user without a password when magic link login is enabled', (done) => {
   withEnv(
     {
       MAGIC_LINK_ENABLED: 'true',
@@ -81,8 +82,8 @@ it('should create an account without a password when magic link login is enabled
         .send({ email })
         .expect(statusCode(200))
         .expect((res) => {
-          expect(res.body.jwt_token).toBeNull()
-          expect(res.body.jwt_expires_in).toBeNull()
+          expect(res.body.jwtToken).toBeNull()
+          expect(res.body.jwtExpiresIn).toBeNull()
           expect(res.body.user).toBeTruthy()
         })
         .end(async (err) => {
@@ -102,7 +103,7 @@ it('should create an account without a password when magic link login is enabled
   )
 })
 
-it('should not create an account without a password when magic link login is disabled', (done) => {
+it('should not create an user without a password when magic link login is disabled', (done) => {
   withEnv(
     {
       MAGIC_LINK_ENABLED: 'false'
@@ -111,7 +112,7 @@ it('should not create an account without a password when magic link login is dis
     (done) => {
       request
         .post('/register')
-        .send({ email: generateRandomEmail(), user_data: { name: 'Test name' } })
+        .send({ email: generateRandomEmail() })
         .expect(statusCode(400))
         .end(end(done))
     },
@@ -119,23 +120,23 @@ it('should not create an account without a password when magic link login is dis
   )
 })
 
-it('should fail to create account with unallowed role', (done) => {
+it('should fail to create user with unallowed role', (done) => {
   request
     .post('/register')
     .send({
       email: generateRandomEmail(),
       password: generateRandomString(),
-      user_data: { name: 'Test name' },
-      register_options: {
-        default_role: 'invalid_role',
-        allowed_roles: ['user', 'me', 'super-admin']
-      }
+      customRegisterData: {
+        name: 'Test name',
+      },
+      defaultRole: 'invalid role',
+      allowedRoles: ['user', 'me', 'super-admin']
     })
     .expect(statusCode(400))
     .end(end(done))
 })
 
-it('should fail to create account with default_role that does not overlap allowed_roles', (done) => {
+it('should fail to create user with defaultRole that does not overlap allowedRoles', (done) => {
   withEnv(
     {
       AUTO_ACTIVATE_NEW_USERS: 'true',
@@ -148,11 +149,11 @@ it('should fail to create account with default_role that does not overlap allowe
         .send({
           email: generateRandomEmail(),
           password: generateRandomString(),
-          user_data: { name: 'Test name' },
-          register_options: {
-            default_role: 'editor',
-            allowed_roles: ['user', 'me']
-          }
+          customRegisterData: {
+            name: 'Test name',
+          },
+          defaultRole: 'editor',
+          allowedRoles: ['user', 'me']
         })
         .expect(statusCode(400))
         .end(end(done))
@@ -161,7 +162,7 @@ it('should fail to create account with default_role that does not overlap allowe
   )
 })
 
-it('should create account with default_role that is in the ALLOWED_USER_ROLES variable', (done) => {
+it('should create user with defaultRole that is in the ALLOWED_USER_ROLES variable', (done) => {
   withEnv(
     {
       AUTO_ACTIVATE_NEW_USERS: 'true',
@@ -174,10 +175,10 @@ it('should create account with default_role that is in the ALLOWED_USER_ROLES va
         .send({
           email: generateRandomEmail(),
           password: generateRandomString(),
-          user_data: { name: 'Test name' },
-          register_options: {
-            default_role: 'editor'
-          }
+          customRegisterData: {
+            name: 'Test name',
+          },
+          defaultRole: 'editor',
         })
         .expect(statusCode(200))
         .end(end(done))
@@ -186,23 +187,23 @@ it('should create account with default_role that is in the ALLOWED_USER_ROLES va
   )
 })
 
-it('should register account with default_role and allowed_roles set', (done) => {
+it('should register user with defaultRole and allowedRoles set', (done) => {
   request
     .post('/register')
     .send({
       email: generateRandomEmail(),
       password: generateRandomString(),
-      user_data: { name: 'Test name' },
-      register_options: {
-        default_role: 'user',
-        allowed_roles: ['user', 'me']
-      }
+      customRegisterData: {
+        name: 'Test name',
+      },
+      defaultRole: 'user',
+      allowedRoles: ['user', 'me']
     })
     .expect(statusCode(200))
     .end(end(done))
 })
 
-it('should tell the account already exists', (done) => {
+it('should tell the user already exists', (done) => {
   const email = generateRandomEmail()
   const password = generateRandomString()
 
@@ -235,7 +236,7 @@ it('should fail to activate an user from a wrong ticket', (done) => {
   )
 })
 
-it('should activate the account from a valid ticket', (done) => {
+it('should activate the user from a valid ticket', (done) => {
   withEnv(
     {
       AUTO_ACTIVATE_NEW_USERS: 'false',
@@ -322,11 +323,11 @@ it('should sign the user in without password when magic link is enabled', (done)
 
       request
         .post('/register')
-        .send({ email, user_data: { name: 'Test name' } })
+        .send({ email })
         .expect(statusCode(200))
         .expect((res) => {
-          expect(res.body.jwt_token).toBeNull()
-          expect(res.body.jwt_expires_in).toBeNull()
+          expect(res.body.jwtToken).toBeNull()
+          expect(res.body.jwtExpiresIn).toBeNull()
           expect(res.body.user).toBeTruthy()
         })
         .end(async (err) => {
@@ -409,7 +410,7 @@ it('should sign in user with valid admin secret', (done) => {
 it('should decode a valid custom user claim', (done) => {
   let jwtToken = ''
   withEnv({ REGISTRATION_CUSTOM_FIELDS: 'name', JWT_CUSTOM_FIELDS: 'name' }, request, (done) => {
-    registerAccount(request, { name: 'Test name' }).then(({ email, password }) => {
+    registerAccount(request, { customRegisterData: { name: 'Test name' } }).then(({ email, password }) => {
       request
         .post('/login')
         .send({ email, password })
@@ -429,12 +430,12 @@ it('should decode a valid custom user claim', (done) => {
 })
 
 it('should logout', (done) => {
-  registerAndLoginAccount(request).then(({ refresh_token }) => {
-    request.post(`/logout`).query({ refresh_token }).send().expect(statusCode(204)).end(end(done))
+  registerAndLoginAccount(request).then(({ refreshToken }) => {
+    request.post(`/logout`).query({ refreshToken }).send().expect(statusCode(204)).end(end(done))
   })
 })
 
-it('should delete an account', (done) => {
+it('should delete an user', (done) => {
   withEnv({
     ALLOW_USER_SELF_DELETE: 'true'
   }, request, (done) => {
@@ -591,7 +592,7 @@ it('should be able to deanonymize anonymous user without auto activation', (done
   )
 }, 10000)
 
-it('should not be able to deanonymize normal account', (done) => {
+it('should not be able to deanonymize normal user', (done) => {
   const anonymousRole = 'anonymous'
   let jwtToken = ''
 
@@ -775,7 +776,7 @@ it('should resend the confirmation email after the timeout', (done) => {
   )
 })
 
-it('should not resend the confirmation email on an activated account', (done) => {
+it('should not resend the confirmation email on an activated user', (done) => {
   withEnv(
     {
       CONFIRMATION_RESET_TIMEOUT: '0',
@@ -798,7 +799,7 @@ it('should not resend the confirmation email on an activated account', (done) =>
   )
 })
 
-it('should not resend the confirmation email on a non-existant account', (done) => {
+it('should not resend the confirmation email on a non-existant user', (done) => {
   withEnv(
     {
       CONFIRMATION_RESET_TIMEOUT: '0',
@@ -961,7 +962,7 @@ it('Should disable the whitelist endpoint when the whitelist is disabled', (done
   )
 })
 
-it('should be able to change account locale', (done) => {
+it('should be able to change user locale', (done) => {
   registerAndLoginAccount(request).then(({ jwtToken }) => {
     request
       .post('/change-locale')

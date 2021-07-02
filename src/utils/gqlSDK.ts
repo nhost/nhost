@@ -7,4 +7,4 @@ const client = new GraphQLClient(APPLICATION.HASURA_ENDPOINT, {
     "x-hasura-admin-secret": APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET,
   },
 });
-export const gqlSDK = getSdk(client);
+export const gqlSdk = getSdk(client);

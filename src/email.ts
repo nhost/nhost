@@ -1,11 +1,9 @@
 import { APPLICATION } from '@config/index'
 
 import Email from 'email-templates'
-import { request } from '@/request'
 import nodemailer from 'nodemailer'
 import ejs from 'ejs'
-import { getEmailTemplate } from '@/queries'
-import { QueryEmailTemplate } from '@/types'
+import { gqlSdk } from './utils/gqlSDK'
 
 /**
  * SMTP transport.
@@ -36,14 +34,18 @@ export const emailClient: Email<any> = new Email({
       throw new Error('Cannot send email without locale')
     }
 
-    const email = await request<QueryEmailTemplate>(getEmailTemplate, {
+    const email = await gqlSdk.emailTemplate({
       id,
       locale
-    }).then(query => query.auth_email_templates_by_pk)
+    }).then(res => res.AuthEmailTemplate)
+
+    if(!email) {
+      throw new Error(`Cannot find email ${id}(${locale})`)
+    }
 
     if(field === 'subject') return email.title
     else if(field === 'html') return await emailClient.juiceResources(ejs.render(email.html, locals))
-    else if(field === 'text') return email.no_html
+    else if(field === 'text') return email.noHtml
     else throw new Error(`Unknown field ${field}`)
   },
 })

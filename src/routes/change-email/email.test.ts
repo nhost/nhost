@@ -13,17 +13,17 @@ it('should request to change email and receive a ticket by email', (done) => {
     AUTO_ACTIVATE_NEW_USERS: 'true'
   }, request, (done) => {
     registerAndLoginAccount(request).then(({ jwtToken }) => {
-      const new_email = generateRandomEmail()
+      const newEmail = generateRandomEmail()
 
       request
         .post(`/change-email/request`)
         .set({ Authorization: `Bearer ${jwtToken}` })
-        .send({ new_email })
+        .send({ newEmail })
         .expect(statusCode(204))
         .end(async (err) => {
           if(err) return done(err)
 
-          const [message] = await mailHogSearch(new_email)
+          const [message] = await mailHogSearch(newEmail)
           expect(message).toBeTruthy()
           expect(message.Content.Headers.Subject).toInclude('Change your email address')
           expect(message.Content.Headers['X-Ticket'][0]).toBeString()
@@ -42,18 +42,18 @@ it('should change the email from a ticket', (done) => {
     AUTO_ACTIVATE_NEW_USERS: 'true'
   }, request, (done) => {
     registerAndLoginAccount(request).then(({ jwtToken }) => {
-      const new_email = generateRandomEmail()
+      const newEmail = generateRandomEmail()
       let ticket = ''
 
       request
         .post(`/change-email/request`)
         .set({ Authorization: `Bearer ${jwtToken}` })
-        .send({ new_email })
+        .send({ newEmail })
         .expect(statusCode(204))
         .end(async (err) => {
           if(err) return done(err)
 
-          const [message] = await mailHogSearch(new_email)
+          const [message] = await mailHogSearch(newEmail)
           expect(message).toBeTruthy()
           expect(message.Content.Headers.Subject).toInclude('Change your email address')
           ticket = message.Content.Headers['X-Ticket'][0]
@@ -80,18 +80,18 @@ it('should reconnect using the new email', (done) => {
     AUTO_ACTIVATE_NEW_USERS: 'true'
   }, request, (done) => {
     registerAndLoginAccount(request).then(({ email, password, jwtToken }) => {
-      const new_email = generateRandomEmail()
+      const newEmail = generateRandomEmail()
       let ticket = ''
 
       request
         .post(`/change-email/request`)
         .set({ Authorization: `Bearer ${jwtToken}` })
-        .send({ new_email })
+        .send({ newEmail })
         .expect(statusCode(204))
         .end(async (err) => {
           if(err) return done(err)
 
-          const [message] = await mailHogSearch(new_email)
+          const [message] = await mailHogSearch(newEmail)
           expect(message).toBeTruthy()
           expect(message.Content.Headers.Subject).toInclude('Change your email address')
           ticket = message.Content.Headers['X-Ticket'][0]
@@ -108,7 +108,7 @@ it('should reconnect using the new email', (done) => {
 
               request
                 .post('/login')
-                .send({ email: new_email, password })
+                .send({ email: newEmail, password })
                 .expect(statusCode(200))
                 .end(end(done))
             })

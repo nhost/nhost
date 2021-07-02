@@ -6,10 +6,10 @@ import { APPLICATION, AUTHENTICATION } from '@config/index'
 import { emailClient } from '@/email'
 import { ForgotSchema, forgotSchema } from '@/validation'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 /**
- * * Creates a new temporary ticket in the account, and optionnaly send the link by email
+ * * Creates a new temporary ticket in the user, and optionnaly send the link by email
  */
 async function requestChangePassword(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.LOST_PASSWORD_ENABLED) {
@@ -26,10 +26,10 @@ async function requestChangePassword(req: ValidatedRequest<Schema>, res: Respons
   const user = await getUserByEmail(email)
 
   if (!user || !user.active) {
-    req.logger.verbose(`User tried requesting email change for ${email} but no account with such email exists`, {
+    req.logger.verbose(`User tried requesting email change for ${email} but no user with such email exists`, {
       email
     })
-    return res.boom.badRequest('No active account with such email exists')
+    return res.boom.badRequest('No active user with such email exists')
   }
 
   const ticket = uuidv4()
@@ -39,7 +39,7 @@ async function requestChangePassword(req: ValidatedRequest<Schema>, res: Respons
   // ticket active for 60 minutes
   ticketExpiresAt.setTime(now.getTime() + 60 * 60 * 1000)
 
-  await gqlSDK.updateUser({
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
       ticket,
@@ -53,8 +53,8 @@ async function requestChangePassword(req: ValidatedRequest<Schema>, res: Respons
       ticket,
       url: APPLICATION.SERVER_URL,
       locale: user.locale,
-      app_url: APPLICATION.APP_URL,
-      display_name: user.displayName
+      appUrl: APPLICATION.APP_URL,
+      displayName: user.displayName
     },
     message: {
       to: email,

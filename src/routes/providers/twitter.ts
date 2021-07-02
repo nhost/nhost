@@ -8,7 +8,7 @@ export default (router: Router): void => {
 
   initProvider(router, 'twitter', Strategy, {
     userProfileURL:
-      'https://api.twitter.com/1.1/account/verify_credentials.json?include_email=true',
+      'https://api.twitter.com/1.1/user/verify_credentials.json?include_email=true',
     includeEmail: true,
   }, (req, res, next) => {
     if(!PROVIDERS.twitter) {

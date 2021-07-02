@@ -2,15 +2,14 @@ import { Request, Response, Router } from 'express'
 import { authenticator } from 'otplib'
 import { asyncWrapper, createQR, getUser } from '@/helpers'
 import { MFA } from '@config/index'
-import { request } from '@/request'
-import { updateOtpSecret } from '@/queries'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function generateMfa(req: Request, res: Response): Promise<unknown> {
-  if (!req.permission_variables) {
+  if (!req.permissionVariables) {
     return res.boom.unauthorized('Not logged in')
   }
 
-  const { 'user-id': userId } = req.permission_variables
+  const { 'user-id': userId } = req.permissionVariables
 
   const user = await getUser(userId)
 
@@ -26,18 +25,23 @@ async function generateMfa(req: Request, res: Response): Promise<unknown> {
   /**
    * Generate OTP secret and key URI.
    */
-  const otp_secret = authenticator.generateSecret()
-  const otpAuth = authenticator.keyuri(userId, MFA.OTP_ISSUER, otp_secret)
+  const otpSecret = authenticator.generateSecret()
+  const otpAuth = authenticator.keyuri(userId, MFA.OTP_ISSUER, otpSecret)
 
-  await request(updateOtpSecret, { userId, otp_secret })
+  await gqlSdk.updateUser({
+    id: userId,
+    user: {
+      otpSecret
+    }
+  })
 
-  const image_url = await createQR(otpAuth)
+  const imageUrl = await createQR(otpAuth)
 
   req.logger.verbose(`User ${userId} generated an OTP sercret to enable MFA`, {
     userId,
   })
 
-  return res.send({ image_url, otp_secret })
+  return res.send({ imageUrl, otpSecret: otpSecret })
 }
 
 export default (router: Router) => {

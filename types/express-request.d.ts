@@ -5,8 +5,8 @@ declare global {
   namespace Express {
     export interface Request {
       logger: winston.Logger
-      refresh_token?: string
-      permission_variables?: PermissionVariables
+      refreshToken?: string
+      permissionVariables?: PermissionVariables
     }
   }
 }

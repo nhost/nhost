@@ -4,9 +4,8 @@ import { Response, Router } from 'express'
 import { asyncWrapper, deanonymizeUser, getUserByTicket } from '@/helpers'
 import { v4 as uuidv4 } from 'uuid'
 import { VerifySchema, verifySchema } from '@/validation'
-import { UpdateAccountData } from '@/types'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function activateUser(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
@@ -27,7 +26,7 @@ async function activateUser(req: ValidatedRequest<Schema>, res: Response): Promi
   if (user.isAnonymous) {
     await deanonymizeUser(user)
 
-    await gqlSDK.rotateUserTicket({
+    await gqlSdk.rotateUsersTicket({
       oldTicket: ticket,
       newTicket,
       newTicketExpiresAt
@@ -38,7 +37,7 @@ async function activateUser(req: ValidatedRequest<Schema>, res: Response): Promi
       email: user.email
     })
   } else {
-    await gqlSDK.activateUser({
+    await gqlSdk.activateUsers({
       ticket,
       newTicket,
       newTicketExpiresAt

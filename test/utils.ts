@@ -5,15 +5,15 @@ import { APPLICATION } from '@config/index'
 
 import { getClaims } from '@/jwt'
 
-export interface AccountLoginData {
+export interface UserLoginData {
   email: string
   password: string
 }
 
-export type AccountData = AccountLoginData & {
+export type UserData = UserLoginData & {
   id: string
   token: string
-  refresh_token: string
+  refreshToken: string
   jwtToken: string
 }
 
@@ -36,24 +36,24 @@ export function withEnv(
   })
 }
 
-export const createAccountLoginData = (): AccountLoginData => ({
+export const createAccountLoginData = (): UserLoginData => ({
   email: `${generateRandomString()}@${generateRandomString()}.com`,
   password: generateRandomString()
 })
 
 export const registerAccount = async (
   agent: SuperTest<Test>,
-  user_data: Record<string, unknown> = {}
-): Promise<AccountLoginData> => {
-  const accountLoginData = createAccountLoginData()
+  customRegisterData: Record<string, unknown> = {}
+): Promise<UserLoginData> => {
+  const userLoginData = createAccountLoginData()
 
   return new Promise((resolve, reject) => {
     withEnv(
       {
         AUTO_ACTIVATE_NEW_USERS: 'true',
         EMAILS_ENABLED: 'false',
-        REGISTRATION_CUSTOM_FIELDS: Object.keys(user_data).join(','),
-        JWT_CUSTOM_FIELDS: Object.keys(user_data).join(','),
+        REGISTRATION_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
+        JWT_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
         MAGIC_LINK_ENABLED: 'false',
         WHITELIST_ENABLED: 'false',
         ADMIN_ONLY_REGISTRATION: 'false'
@@ -63,10 +63,10 @@ export const registerAccount = async (
         await agent
           .post('/register')
           .send({
-            ...accountLoginData,
-            user_data
+            ...userLoginData,
+            customRegisterData
           })
-          .then(() => done(accountLoginData))
+          .then(() => done(userLoginData))
           .catch(reject)
       },
       resolve
@@ -76,22 +76,22 @@ export const registerAccount = async (
 
 export const loginAccount = async (
   agent: SuperTest<Test>,
-  accountLoginData: AccountLoginData
-): Promise<AccountData> => {
-  const login = await agent.post('/login').send(accountLoginData)
+  userLoginData: UserLoginData
+): Promise<UserData> => {
+  const login = await agent.post('/login').send(userLoginData)
 
-  getUserId(login.body.jwt_token)
+  getUserId(login.body.jwtToken)
 
   if (login.body.error) {
     throw new Error(`${login.body.statusCode} ${login.body.error}: ${login.body.message}`)
   }
 
   return {
-    ...accountLoginData,
-    token: login.body.jwt_token as string,
-    refresh_token: login.body.refresh_token as string,
-    jwtToken: login.body.jwt_token as string,
-    id: getUserId(login.body.jwt_token)
+    ...userLoginData,
+    token: login.body.jwtToken as string,
+    refreshToken: login.body.refreshToken as string,
+    jwtToken: login.body.jwtToken as string,
+    id: getUserId(login.body.jwtToken)
   }
 }
 
@@ -165,12 +165,12 @@ export const getHeaderFromLatestEmailAndDelete = async (email: string, header: s
   return headerValue
 }
 
-export const deleteAccount = async (
+export const deleteUser = async (
   agent: SuperTest<Test>,
-  account: AccountLoginData
+  user: UserLoginData
 ): Promise<void> => {
-  // * Delete the account
+  // * Delete the user
   await agent.post('/delete')
-  // * Remove any message sent to this account
-  await deleteEmailsOfAccount(account.email)
+  // * Remove any message sent to this user
+  await deleteEmailsOfAccount(user.email)
 }

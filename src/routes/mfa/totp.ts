@@ -1,5 +1,5 @@
 import { Response, Router } from 'express'
-import { asyncWrapper, rotateTicket, getUserByTicket, setRefreshToken } from '@/helpers'
+import { asyncWrapper, rotateTicket, getUserByTicket, setRefreshToken, userToSessionUser } from '@/helpers'
 import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
 import { Session, SessionUser } from '@/types'
 
@@ -27,28 +27,28 @@ async function totpLogin(req: ValidatedRequest<Schema>, res: Response): Promise<
 
   if (!mfaEnabled) {
     req.logger.verbose(`User ${userId} tried using totp but MFA was not enabled`, {
-      user_id: userId
+      userId
     })
     return res.boom.badRequest('MFA is not enabled')
   }
 
   if (!active) {
-    req.logger.verbose(`User ${userId} tried using totp but his account is not activated`, {
-      user_id: userId
+    req.logger.verbose(`User ${userId} tried using totp but his user is not activated`, {
+       userId
     })
     return res.boom.badRequest('Account is not activated')
   }
 
   if (!otpSecret) {
     req.logger.verbose(`User ${userId} tried using totp but the OTP secret was not set`, {
-      user_id: userId
+      userId
     })
     return res.boom.badRequest('OTP secret is not set')
   }
 
   if (!authenticator.check(code, otpSecret)) {
     req.logger.verbose(`User ${userId} tried using totp but provided an invalid code`, {
-      user_id: userId
+      userId
     })
     return res.boom.unauthorized('Invalid two-factor code')
   }
@@ -57,12 +57,7 @@ async function totpLogin(req: ValidatedRequest<Schema>, res: Response): Promise<
   await rotateTicket(ticket)
   const jwtToken = createHasuraJwtToken(user)
   const jwtExpiresIn = newJwtExpiry
-  const sessionUser: SessionUser = {
-    id: user.id,
-    displayName: user.displayName,
-    email: user.email,
-    avatarUrl: user.avatarUrl
-  }
+  const sessionUser: SessionUser = userToSessionUser(user)
 
   const session: Session = { jwtToken, jwtExpiresIn, user: sessionUser, refreshToken }
 

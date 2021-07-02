@@ -10,7 +10,7 @@ import {
   createValidator,
   ValidatedRequest
 } from 'express-joi-validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 /**
  * Reset the password, either from a valid ticket or from a valid JWT and a valid password
@@ -20,7 +20,7 @@ async function resetPassword(req: ValidatedRequest<Schema>, res: Response): Prom
     return res.boom.notImplemented(`Please set the LOST_PASSWORD_ENABLE env variable to true to use the auth/change-password/change route`)
   }
 
-  // Reset the password from { ticket, new_password }
+  // Reset the password from { ticket, newPassword }
   const { ticket, newPassword } = req.body
 
   const user = await getUserByTicket(ticket)
@@ -38,7 +38,7 @@ async function resetPassword(req: ValidatedRequest<Schema>, res: Response): Prom
 
   const passwordHash = await hashPassword(newPassword)
 
-  await gqlSDK.updateUser({
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
       ticket: uuidv4(),

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { Session } from '@/types'
 import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
 import { ResendConfirmationSchema, resendConfirmationSchema } from '@/validation'
-import { gqlSDK } from '@/utils/gqlSDK'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
@@ -19,12 +19,12 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
   const user = await getUser(email)
 
   if (!user) {
-    req.logger.verbose(`User tried resending confirmation email to ${email} but no account with such email exists`, {
+    req.logger.verbose(`User tried resending confirmation email to ${email} but no user with such email exists`, {
       email,
     })
     return res.boom.badRequest('Account does not exist')
   } else if (user.active) {
-    req.logger.verbose(`User ${user.id} tried resending confirmation email to ${email} but his account is already active`, {
+    req.logger.verbose(`User ${user.id} tried resending confirmation email to ${email} but his user is already active`, {
       userId: user.id,
       email,
     })
@@ -43,8 +43,8 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
 
   const ticket = uuidv4()
   const now = new Date()
-  const ticket_expires_at = new Date()
-  ticket_expires_at.setTime(now.getTime() + 60 * 60 * 1000) // active for 60 minutes
+  const ticketExpiresAt = new Date()
+  ticketExpiresAt.setTime(now.getTime() + 60 * 60 * 1000) // active for 60 minutes
 
   if (!APPLICATION.EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable')
@@ -53,7 +53,7 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
   const displayName = user.displayName || user.email
 
   await emailClient.send({
-    template: 'activate-account',
+    template: 'activate-user',
     message: {
       to: user.email,
       headers: {
@@ -71,11 +71,13 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
     }
   })
 
-  // update last sent confirmation
-  await gqlSDK.updateUser({
+  // update last sent confirmation, ticket
+  await gqlSdk.updateUser({
     id: user.id,
     user: {
-      lastConfirmationEmailSentAt: new Date(+Date.now() + REGISTRATION.CONFIRMATION_RESET_TIMEOUT)
+      lastConfirmationEmailSentAt: new Date(+Date.now() + REGISTRATION.CONFIRMATION_RESET_TIMEOUT),
+      ticket,
+      ticketExpiresAt
     }
   })
 
@@ -91,7 +93,7 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
   }
 
   req.logger.verbose(`User ${user.id} requested a confirmation email reset to ${user.email}`, {
-    user_id: user.id,
+    userId: user.id,
     email: user.email,
   })
 

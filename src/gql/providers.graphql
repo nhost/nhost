@@ -1,4 +1,4 @@
-query selectProvider($provider: String!, $profileId: String!) {
+query providers($provider: String!, $profileId: String!) {
   authProviders(
     where: {
       _and: {
