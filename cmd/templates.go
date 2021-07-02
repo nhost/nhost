@@ -235,6 +235,47 @@ And you can immediately start developing on that template.`,
 	},
 }
 
+/*
+// fetches list of templates from nhost/nhost/templates
+func getTemplates(url string) ([]string, error) {
+
+	var response []string
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return response, err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return response, err
+	}
+
+	var raw map[string]interface{}
+	if err = json.Unmarshal(body, &raw); err != nil {
+		return response, err
+	}
+
+	var list []map[string]interface{}
+	tree, err := json.Marshal(raw["tree"])
+	if err != nil {
+		return response, err
+	}
+
+	if err = json.Unmarshal(tree, &list); err != nil {
+		return response, err
+	}
+
+	for _, item := range list {
+		response = append(response, item["path"].(string))
+	}
+
+	return response, nil
+}
+*/
+
 func init() {
 	rootCmd.AddCommand(templatesCmd)
 
