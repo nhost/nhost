@@ -1,7 +1,7 @@
 version: '3.6'
 services:
   postgres:
-    image: nhost/postgres:12-v0.0.4
+    image: nhost/postgres:12-v0.0.5
     restart: always
     volumes:
       - ./data/db:/var/lib/postgresql/data
