@@ -1,6 +1,14 @@
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
 import { NextFunction, Response, Router } from 'express'
-import { asyncWrapper, isCompromisedPassword, hashPassword, setRefreshToken, getGravatarUrl, isWhitelistedEmail, getUserByEmail } from '@/helpers'
+import {
+  asyncWrapper,
+  isCompromisedPassword,
+  hashPassword,
+  setRefreshToken,
+  getGravatarUrl,
+  isWhitelistedEmail,
+  getUserByEmail
+} from '@/helpers'
 import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
 import { emailClient } from '@/email'
 import {
@@ -37,7 +45,11 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     return res.boom.unauthorized('Email not allowed')
   }
 
-  if (await getUserByEmail(body.email)) {
+  const userAlreadyExist = await getUserByEmail(body.email).catch(() => {
+    return null
+  })
+
+  if (userAlreadyExist) {
     return res.boom.badRequest('Account already exists.')
   }
 
@@ -48,7 +60,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString()
 
   if (isRegularRegister(body)) {
-    if(await isCompromisedPassword(body.password)) {
+    if (await isCompromisedPassword(body.password)) {
       return res.boom.badRequest('Password is too weak')
     }
 
@@ -60,11 +72,14 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
 
   // check if default role is part of allowedRoles
   if (!allowedRoles.includes(defaultRole)) {
-    req.logger.verbose(`User tried registering with email ${email} but used an invalid default role ${defaultRole}`, {
-      email,
-      defaultRole: defaultRole,
-      allowedRoles: allowedRoles
-    })
+    req.logger.verbose(
+      `User tried registering with email ${email} but used an invalid default role ${defaultRole}`,
+      {
+        email,
+        defaultRole: defaultRole,
+        allowedRoles: allowedRoles
+      }
+    )
     return res.boom.badRequest('Default role must be part of allowed roles')
   }
 
@@ -82,22 +97,24 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
 
   const avatarUrl = getGravatarUrl(email)
 
-  const user = await gqlSdk.insertUser({
-    user: {
-      displayName: email,
-      avatarUrl,
-      email,
-      passwordHash,
-      ticket,
-      ticketExpiresAt,
-      active: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
-      locale,
-      defaultRole,
-      roles: {
-        data: userRoles
+  const user = await gqlSdk
+    .insertUser({
+      user: {
+        displayName: email,
+        avatarUrl,
+        email,
+        passwordHash,
+        ticket,
+        ticketExpiresAt,
+        active: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
+        locale,
+        defaultRole,
+        roles: {
+          data: userRoles
+        }
       }
-    }
-  }).then(res => res.insertUser)
+    })
+    .then((res) => res.insertUser)
 
   if (!user) {
     throw new Error('Unable to insert new user')
@@ -145,7 +162,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
       const session: Session = {
         jwtToken: null,
         jwtExpiresIn: null,
-        user: sessionUser,
+        user: sessionUser
       }
 
       req.logger.verbose(`New magic link user registration with id ${user.id} and email ${email}`, {
@@ -193,7 +210,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   const jwtToken = createHasuraJwtToken(user)
   const jwtExpiresIn = newJwtExpiry
 
-  const session: Session = {jwtToken, jwtExpiresIn, user: sessionUser, refreshToken}
+  const session: Session = { jwtToken, jwtExpiresIn, user: sessionUser, refreshToken }
 
   req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
     userId: user.id,
