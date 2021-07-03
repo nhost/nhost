@@ -21,7 +21,7 @@ services:
     depends_on:
       - 'graphql-engine'
     ports:
-      - '3000:3000'
+      - '4000:4000'
     environment:
       HASURA_GRAPHQL_ADMIN_SECRET: '${HASURA_GRAPHQL_ADMIN_SECRET:?HASURA_GRAPHQL_ADMIN_SECRET}'
       HASURA_ENDPOINT: http://graphql-engine:8080/v1/graphql
