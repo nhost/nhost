@@ -41,7 +41,9 @@ const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
         return this.$_addRule({ name: 'allowedRedirectUrls' })
       },
       validate(value: string, helpers): unknown {
-        if(APPLICATION.ALLOWED_REDIRECT_URLS.some(allowedUrl => compareUrls(value, allowedUrl))) {
+        if (
+          APPLICATION.ALLOWED_REDIRECT_URLS.some((allowedUrl) => compareUrls(value, allowedUrl))
+        ) {
           return value
         } else {
           return helpers.error('string.allowedRedirectUrls')
@@ -51,8 +53,8 @@ const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
   }
 }))
 
-const passwordRule = Joi.string().min(REGISTRATION.MIN_PASSWORD_LENGTH).max(128);
-const passwordRuleRequired = passwordRule.required();
+const passwordRule = Joi.string().min(REGISTRATION.MIN_PASSWORD_LENGTH).max(128)
+const passwordRuleRequired = passwordRule.required()
 
 const emailRule = extendedJoi.string().email().required().allowedDomains()
 
@@ -75,7 +77,6 @@ const userFieldsMagicLink = {
   email: emailRule,
   locale: localeRuleWithDefault
 }
-
 
 type UserFieldsMagicLink = {
   email: string
@@ -103,7 +104,7 @@ export const userDataFields = {
 }
 
 export type UserDataFields = {
-  allowedRoles?: string[],
+  allowedRoles?: string[]
   defaultRole?: string
   customRegisterData?: any
 }
@@ -112,12 +113,12 @@ export const registerSchema = Joi.alternatives().try(
   // Regular register
   Joi.object({
     ...userFields,
-    ...userDataFields,
+    ...userDataFields
   }),
   // Magic link register
   Joi.object({
     ...userFieldsMagicLink,
-    ...userDataFields,
+    ...userDataFields
   })
 )
 
@@ -141,7 +142,7 @@ export const deanonymizeSchema = Joi.object({
 })
 
 export type DeanonymizeSchema = {
-  email: string,
+  email: string
   password: string
 }
 
@@ -220,7 +221,7 @@ export const loginSchema = Joi.alternatives().try(
   Joi.object({
     anonymous: Joi.boolean().invalid(false), // anonymous: true
     locale: localeRuleWithDefault
-  }),
+  })
 )
 
 export function isRegularLogin(body: LoginSchema): body is RegularLogin {
@@ -265,15 +266,15 @@ export type VerifySchema = TicketFields
 
 export const totpSchema = Joi.object({
   ...codeFields,
-  ...ticketFields,
+  ...ticketFields
 })
 
 export type TotpSchema = CodeFields & TicketFields
 
 export const magicLinkQuery = Joi.object({
   token: Joi.string().required(),
-  action: Joi.string().valid('log-in', 'register').required(),
-});
+  action: Joi.string().valid('log-in', 'register').required()
+})
 
 export type MagicLinkQuery = {
   token: string
@@ -293,10 +294,16 @@ export type WhitelistQuery = {
 }
 
 export const providerQuery = Joi.object({
-  redirectUrlSuccess: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_SUCCESS),
-  redirectUrlFailure: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_ERROR),
+  redirectUrlSuccess: extendedJoi
+    .string()
+    .allowedRedirectUrls()
+    .default(APPLICATION.REDIRECT_URL_SUCCESS),
+  redirectUrlFailure: extendedJoi
+    .string()
+    .allowedRedirectUrls()
+    .default(APPLICATION.REDIRECT_URL_ERROR),
   jwtToken: Joi.string()
-});
+})
 
 export type ProviderQuery = {
   redirectUrlSuccess?: string
@@ -313,11 +320,11 @@ export type ProviderCallbackQuery = {
   [key: string]: any
 }
 
-export const localeQuery = Joi.object({
+export const localeSchema = Joi.object({
   locale: localeRuleWithDefault
 })
 
-export type LocaleQuery = {
+export type LocaleSchema = {
   locale: string
 }
 

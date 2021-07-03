@@ -82,8 +82,8 @@ export const loginAccount = async (
 ): Promise<UserData> => {
   const login = await agent.post('/login').send(userLoginData)
 
-  console.log('login body in login Account (utils):')
-  console.log(login.body)
+  // console.log('login body in login Account (utils):')
+  // console.log(login.body)
 
   getUserId(login.body.jwtToken)
 
