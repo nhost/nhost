@@ -36,9 +36,9 @@ export const getUserByEmail = async (email: string) => {
     }
   })
 
-  if (users.length !== 1) {
-    throw new Error('User does not exist.')
-  }
+  // if (users.length !== 1) {
+  //   throw new Error('User does not exist.')
+  // }
 
   return users[0]
 }
