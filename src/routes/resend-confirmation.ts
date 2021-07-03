@@ -89,7 +89,7 @@ async function resendConfirmation(req: ValidatedRequest<Schema>, res: Response):
       }
     },
     locals: {
-      displayName,
+      displayName: user.displayName,
       ticket,
       url: APPLICATION.SERVER_URL,
       locale: user.locale
