@@ -1,4 +1,6 @@
-mutation insertProviderRequest($providerRequest: authProviderRequests_insert_input!) {
+mutation insertProviderRequest(
+  $providerRequest: authProviderRequests_insert_input!
+) {
   insertAuthProviderRequest(object: $providerRequest) {
     id
     jwtToken

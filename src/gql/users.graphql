@@ -53,7 +53,10 @@ query usersByRefreshToken($refreshToken: uuid!) {
           _or: [
             { user: { active: { _eq: true } } }
             {
-              _and: [{ user: { active: { _eq: false } } }, { user: { isAnonymous: { _eq: true } } }]
+              _and: [
+                { user: { active: { _eq: false } } }
+                { user: { isAnonymous: { _eq: true } } }
+              ]
             }
           ]
         }
@@ -86,9 +89,17 @@ mutation rotateUsersTicket(
   }
 }
 
-mutation activateUsers($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+mutation activateUsers(
+  $ticket: uuid!
+  $newTicket: uuid!
+  $newTicketExpiresAt: timestamptz!
+) {
   updateUsers(
-    _set: { active: true, ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
+    _set: {
+      active: true
+      ticket: $newTicket
+      ticketExpiresAt: $newTicketExpiresAt
+    }
     where: { _and: [{ active: { _eq: false } }, { ticket: { _eq: $ticket } }] }
   ) {
     returning {
@@ -104,8 +115,15 @@ mutation changeEmailsByTicket(
   $now: timestamptz!
 ) {
   updateUsers(
-    where: { _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: $now } }] }
-    _set: { email: $email, newEmail: null, ticket: $newTicket, ticketExpiresAt: $now }
+    where: {
+      _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: $now } }]
+    }
+    _set: {
+      email: $email
+      newEmail: null
+      ticket: $newTicket
+      ticketExpiresAt: $now
+    }
   ) {
     returning {
       ...userFields
@@ -143,7 +161,10 @@ mutation deanonymizeUser(
   }
 }
 
-mutation insertProviderToUser($provider: authProviders_insert_input!, $userId: uuid!) {
+mutation insertProviderToUser(
+  $provider: authProviders_insert_input!
+  $userId: uuid!
+) {
   insertAuthProvider(object: $provider) {
     name
     code
@@ -155,7 +176,9 @@ mutation insertProviderToUser($provider: authProviders_insert_input!, $userId: u
 
 mutation updateUsersByTicket($ticket: uuid!, $user: users_set_input!) {
   updateUsers(
-    where: { _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: now } }] }
+    where: {
+      _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: now } }]
+    }
     _set: $user
   ) {
     affected_rows
