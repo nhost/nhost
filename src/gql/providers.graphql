@@ -3,10 +3,8 @@ query providers($provider: String!, $profileId: String!) {
     where: {
       _and: {
         userProviders: {
-          userProviderUniqueId: { _eq: $profileId },
-          provider: {
-            name: { _eq: $provider }
-          }
+          userProviderUniqueId: { _eq: $profileId }
+          provider: { name: { _eq: $provider } }
         }
       }
     }

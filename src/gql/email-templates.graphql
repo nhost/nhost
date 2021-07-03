@@ -1,9 +1,9 @@
 query emailTemplate($id: String!, $locale: String!) {
   AuthEmailTemplate(id: $id, locale: $locale) {
-    id,
-    title,
-    html,
-    noHtml,
+    id
+    title
+    html
+    noHtml
     locale
   }
 }

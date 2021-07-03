@@ -48,20 +48,19 @@ query usersByRefreshToken($refreshToken: uuid!) {
   authRefreshTokens(
     where: {
       _and: [
-        { refreshToken: { _eq: $refreshToken } },
+        { refreshToken: { _eq: $refreshToken } }
         {
           _or: [
-            { user: { active: { _eq: true }}}, {
-              _and: [
-                { user: { active: { _eq: false }}},
-                { user: { isAnonymous: { _eq: true }}}
-              ]
+            { user: { active: { _eq: true } } }
+            {
+              _and: [{ user: { active: { _eq: false } } }, { user: { isAnonymous: { _eq: true } } }]
             }
           ]
-        },
-        { expiresAt: { _gte: now }}
+        }
+        { expiresAt: { _gte: now } }
       ]
-    }) {
+    }
+  ) {
     user {
       ...userFields
     }
@@ -74,8 +73,11 @@ mutation updateUser($id: uuid!, $user: users_set_input!) {
   }
 }
 
-
-mutation rotateUsersTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+mutation rotateUsersTicket(
+  $oldTicket: uuid!
+  $newTicket: uuid!
+  $newTicketExpiresAt: timestamptz!
+) {
   updateUsers(
     _set: { ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt }
     where: { ticket: { _eq: $oldTicket } }
