@@ -8,6 +8,8 @@ import { v4 as uuidv4 } from 'uuid'
 import { gqlSdk } from './utils/gqlSDK'
 import { UserFieldsFragment } from './utils/__generated__/graphql-request'
 import { SessionUser } from './types'
+import logger from './logger'
+import { date } from 'joi'
 
 /**
  * Create QR code.
@@ -115,12 +117,17 @@ export const rotateTicket = async (oldTicket: string): Promise<string> => {
   return newTicket
 }
 
-export function newRefreshExpiry(): number {
-  const now = new Date()
+export function newRefreshExpiry() {
+  const date = new Date()
+
   // 1 day = 1440 minutes
   const days = JWT.REFRESH_EXPIRES_IN / 1440
 
-  return now.setDate(now.getDate() + days)
+  // cant return this becuase this will return a unix timestamp directly
+  date.setDate(date.getDate() + days)
+
+  // instead we must return the js date object
+  return date
 }
 
 export const setRefreshToken = async (userId: string, refreshToken = uuidv4()) => {
@@ -136,7 +143,7 @@ export const setRefreshToken = async (userId: string, refreshToken = uuidv4()) =
 }
 
 export const userWithEmailExists = async (email: string) => {
-  return !!await getUserByEmail(email)
+  return !!(await getUserByEmail(email))
 }
 
 export const userIsAnonymous = async (userId: string) => {

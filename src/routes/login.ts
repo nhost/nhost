@@ -7,7 +7,12 @@ import { isAnonymousLogin, isMagicLinkLogin, LoginSchema, loginSchema } from '@/
 import { Session } from '@/types'
 import { emailClient } from '@/email'
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest
+} from 'express-joi-validation'
 import { gqlSdk } from '@/utils/gqlSDK'
 
 async function loginAccount(req: ValidatedRequest<Schema>, res: Response) {
@@ -17,21 +22,23 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response) {
     const { locale } = body
 
     const ticket = uuidv4()
-    const user = await gqlSdk.insertUser({
-      user: {
-        email: null,
-        passwordHash: null,
-        ticket,
-        active: true,
-        isAnonymous: true,
-        locale,
-        defaultRole: REGISTRATION.DEFAULT_ANONYMOUS_ROLE,
-        roles: {
-          data: [{ role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE }]
-        },
-        displayName: 'Anonymous user'
-      }
-    }).then(res => res.insertUser)
+    const user = await gqlSdk
+      .insertUser({
+        user: {
+          email: null,
+          passwordHash: null,
+          ticket,
+          active: true,
+          isAnonymous: true,
+          locale,
+          defaultRole: REGISTRATION.DEFAULT_ANONYMOUS_ROLE,
+          roles: {
+            data: [{ role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE }]
+          },
+          displayName: 'Anonymous user'
+        }
+      })
+      .then((res) => res.insertUser)
 
     if (!user) {
       throw new Error('Unable to create user and sign in user anonymously')
@@ -54,23 +61,29 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response) {
   const user = await getUserByEmail(body.email)
 
   if (!user) {
-    req.logger.verbose(`User tried logged in with email ${body.email} but no user with such email exists`, {
-      email: body.email
-    })
-    if(isMagicLinkLogin(body)) {
+    req.logger.verbose(
+      `User tried logged in with email ${body.email} but no user with such email exists`,
+      {
+        email: body.email
+      }
+    )
+    if (isMagicLinkLogin(body)) {
       return res.boom.badRequest('Invalid email')
     } else {
-      return res.boom.badRequest('Invalid email or password')
+      return res.boom.unauthorized('Invalid email or password')
     }
   }
 
   const { id, mfaEnabled, passwordHash, active, email } = user
 
   if (!active) {
-    req.logger.verbose(`User ${user.id} tried logging in with email ${email} but his user is inactive`, {
-      userId: user.id,
-      email
-    })
+    req.logger.verbose(
+      `User ${user.id} tried logging in with email ${email} but his user is inactive`,
+      {
+        userId: user.id,
+        email
+      }
+    )
     return res.boom.badRequest('User is not activated')
   }
 
@@ -104,7 +117,7 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response) {
       email
     })
 
-    return res.send({ magicLink: true });
+    return res.send({ magicLink: true })
   }
 
   const { password } = body
@@ -113,16 +126,16 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response) {
   const adminSecret = headers[HEADERS.ADMIN_SECRET_HEADER]
   const hasAdminSecret = Boolean(adminSecret)
   const isAdminSecretCorrect = adminSecret === APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET
-  let userImpersonationValid = false;
+  let userImpersonationValid = false
 
   if (AUTHENTICATION.USER_IMPERSONATION_ENABLED && hasAdminSecret && !isAdminSecretCorrect) {
     return res.boom.unauthorized('Invalid x-admin-secret')
   } else if (AUTHENTICATION.USER_IMPERSONATION_ENABLED && hasAdminSecret && isAdminSecretCorrect) {
-    userImpersonationValid = true;
+    userImpersonationValid = true
   }
 
   // Validate Password
-  const isPasswordCorrect = passwordHash && await bcrypt.compare(password, passwordHash)
+  const isPasswordCorrect = passwordHash && (await bcrypt.compare(password, passwordHash))
   if (!isPasswordCorrect && !userImpersonationValid) {
     return res.boom.unauthorized('Username and password do not match')
   }
@@ -170,9 +183,9 @@ export default (router: Router) => {
     '/login',
     createValidator().body(loginSchema),
     (req: ValidatedRequest<Schema>, res: Response, next: NextFunction) => {
-      if(isAnonymousLogin(req.body) && !AUTHENTICATION.ANONYMOUS_USERS_ENABLED) {
+      if (isAnonymousLogin(req.body) && !AUTHENTICATION.ANONYMOUS_USERS_ENABLED) {
         return res.boom.badRequest('Anonymous login is disabled')
-      } else if(isMagicLinkLogin(req.body) && !AUTHENTICATION.MAGIC_LINK_ENABLED) {
+      } else if (isMagicLinkLogin(req.body) && !AUTHENTICATION.MAGIC_LINK_ENABLED) {
         return res.boom.badRequest('Magic link login is disabled')
       } else {
         return next()

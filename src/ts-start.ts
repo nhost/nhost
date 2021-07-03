@@ -11,10 +11,11 @@ const start = async (): Promise<void> => {
   await applyMetadata()
 
   app.listen(APPLICATION.PORT, APPLICATION.HOST, () => {
+    logger.info('test logger')
     if (APPLICATION.HOST) {
-      logger.info(`Running on http://${APPLICATION.HOST}:${APPLICATION.PORT}`)
+      logger.info(`2 Running on http://${APPLICATION.HOST}:${APPLICATION.PORT}`)
     } else {
-      logger.info(`Running on port ${APPLICATION.PORT}`)
+      logger.info(`2 Running on port ${APPLICATION.PORT}`)
     }
   })
 }

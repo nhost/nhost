@@ -1,7 +1,7 @@
 overwrite: true
 schema: 'http://localhost:8080/v1/graphql'
 headers:
-  x-hasura-admin-secret: a_long_secret_that_should_never_be_used_in_production
+  x-hasura-admin-secret: hello123
 documents: 'src/gql/**/*.graphql'
 generates:
   src/utils/__generated__/graphql-request.ts:

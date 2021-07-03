@@ -49,7 +49,10 @@ export const newJwtExpiry = CONFIG_JWT.EXPIRES_IN * 60 * 1000
  * of the public.tables columns defined in JWT_CUSTOM_FIELDS
  * @param jwt if true, add a 'x-hasura-' prefix to the property names, and stringifies the values (required by Hasura)
  */
-export function generatePermissionVariables(user: UserFieldsFragment, JWTPrefix: boolean | string = false): { [key: string]: ClaimValueType } {
+export function generatePermissionVariables(
+  user: UserFieldsFragment,
+  JWTPrefix: boolean | string = false
+): { [key: string]: ClaimValueType } {
   const prefix = JWTPrefix ? 'x-hasura-' : ''
   const role = user.isAnonymous
     ? REGISTRATION.DEFAULT_ANONYMOUS_ROLE

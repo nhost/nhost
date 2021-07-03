@@ -26,14 +26,20 @@ const getUserId = (token: string): string => getClaims(token)['x-hasura-user-id'
 export function withEnv(
   env: Record<string, string>,
   agent: SuperTest<Test>,
-  cb: (done: (...args: any[]) => any) =>any,
+  cb: (done: (...args: any[]) => any) => any,
   done: (...args: any[]) => any
 ) {
-  agent.post('/change-env').send(env).then(() => {
-    cb((...args: any[]) => {
-      agent.post('/reset-env').then(() => done(...args)).catch(() => done(...args))
+  agent
+    .post('/change-env')
+    .send(env)
+    .then(() => {
+      cb((...args: any[]) => {
+        agent
+          .post('/reset-env')
+          .then(() => done(...args))
+          .catch(() => done(...args))
+      })
     })
-  })
 }
 
 export const createAccountLoginData = (): UserLoginData => ({
@@ -50,13 +56,8 @@ export const registerAccount = async (
   return new Promise((resolve, reject) => {
     withEnv(
       {
-        AUTO_ACTIVATE_NEW_USERS: 'true',
-        EMAILS_ENABLED: 'false',
         REGISTRATION_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
-        JWT_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
-        MAGIC_LINK_ENABLED: 'false',
-        WHITELIST_ENABLED: 'false',
-        ADMIN_ONLY_REGISTRATION: 'false'
+        JWT_CUSTOM_FIELDS: Object.keys(customRegisterData).join(',')
       },
       agent,
       async (done) => {
@@ -79,6 +80,9 @@ export const loginAccount = async (
   userLoginData: UserLoginData
 ): Promise<UserData> => {
   const login = await agent.post('/login').send(userLoginData)
+
+  console.log('login body:')
+  console.log(login.body)
 
   getUserId(login.body.jwtToken)
 
@@ -165,10 +169,7 @@ export const getHeaderFromLatestEmailAndDelete = async (email: string, header: s
   return headerValue
 }
 
-export const deleteUser = async (
-  agent: SuperTest<Test>,
-  user: UserLoginData
-): Promise<void> => {
+export const deleteUser = async (agent: SuperTest<Test>, user: UserLoginData): Promise<void> => {
   // * Delete the user
   await agent.post('/delete')
   // * Remove any message sent to this user

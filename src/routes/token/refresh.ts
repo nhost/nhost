@@ -10,9 +10,11 @@ async function refreshToken({ refreshToken }: Request, res: Response): Promise<a
     return res.boom.unauthorized('Invalid or expired refresh token')
   }
 
-  const user = await gqlSdk.usersByRefreshToken({
-    refreshToken
-  }).then(res => res.authRefreshTokens[0]?.user!)
+  const user = await gqlSdk
+    .usersByRefreshToken({
+      refreshToken
+    })
+    .then((res) => res.authRefreshTokens[0]?.user!)
 
   // create a new refresh token
   const newRefreshToken = uuidv4()
@@ -31,7 +33,12 @@ async function refreshToken({ refreshToken }: Request, res: Response): Promise<a
   const jwtToken = createHasuraJwtToken(user)
   const jwtExpiresIn = newJwtExpiry
   const sessionUser: SessionUser = userToSessionUser(user)
-  const session: Session = { jwtToken, jwtExpiresIn, user: sessionUser, refreshToken: newRefreshToken }
+  const session: Session = {
+    jwtToken,
+    jwtExpiresIn,
+    user: sessionUser,
+    refreshToken: newRefreshToken
+  }
   res.send(session)
 }
 

@@ -50,7 +50,7 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   })
 
   if (userAlreadyExist) {
-    return res.boom.badRequest('Account already exists.')
+    return res.boom.badRequest('Email already in use')
   }
 
   let passwordHash: string | null = null
@@ -95,12 +95,14 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
 
   const userRoles = allowedRoles.map((role: string) => ({ role }))
 
+  // todo allow to set displayName on register
+  const displayName = email
   const avatarUrl = getGravatarUrl(email)
 
   const user = await gqlSdk
     .insertUser({
       user: {
-        displayName: email,
+        displayName,
         avatarUrl,
         email,
         passwordHash,
@@ -124,8 +126,8 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
   const sessionUser = {
     id: user.id,
     email: user.email,
-    displayName: user.displayName,
-    avatarUrl: user.avatarUrl
+    displayName: displayName,
+    avatarUrl: user.avatarUrl || ''
   }
 
   if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
