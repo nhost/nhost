@@ -1,22 +1,36 @@
-import { Response, Router } from 'express'
+import { Response, Router } from "express";
 
-import { AUTHENTICATION } from '@config/index'
-import { ContainerTypes, createValidator, ValidatedRequest, ValidatedRequestSchema } from 'express-joi-validation'
-import { emailResetSchema, EmailResetSchema } from '@/validation'
-import { asyncWrapper, getUserByEmail} from '@/helpers'
-import { gqlSdk } from '@/utils/gqlSDK'
+import { AUTHENTICATION } from "@config/index";
+import {
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest,
+  ValidatedRequestSchema,
+} from "express-joi-validation";
+import { emailResetSchema, EmailResetSchema } from "@/validation";
+import { asyncWrapper, getUserByEmail } from "@/helpers";
+import { gqlSdk } from "@/utils/gqlSDK";
 
-async function directChange(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  if(AUTHENTICATION.VERIFY_EMAILS) {
-    return res.boom.notImplemented(`Please set the VERIFY_EMAILS env variable to false to use the auth/change-email route`)
+async function directChange(
+  req: ValidatedRequest<Schema>,
+  res: Response
+): Promise<unknown> {
+  if (AUTHENTICATION.VERIFY_EMAILS) {
+    return res.boom.notImplemented(
+      `Please set the VERIFY_EMAILS env variable to false to use the auth/change-email route`
+    );
   }
 
-  const userId = req.permissionVariables?.['user-id']
+  if (!req.auth) {
+    return res.boom.unauthorized("Not logged in");
+  }
 
-  const newEmail = req.body.newEmail
+  const { userId } = req.auth;
 
-  if(await getUserByEmail(newEmail)) {
-    return res.boom.badRequest('Cannot use this email')
+  const newEmail = req.body.newEmail;
+
+  if (await getUserByEmail(newEmail)) {
+    return res.boom.badRequest("Cannot use this email");
   }
 
   // * Email verification is not activated - change email straight away
@@ -24,21 +38,28 @@ async function directChange(req: ValidatedRequest<Schema>, res: Response): Promi
     id: userId,
     user: {
       email: newEmail,
+    },
+  });
+
+  req.logger.verbose(
+    `User id ${userId} directly changed his email to ${newEmail}`,
+    {
+      userId,
+      newEmail,
     }
-  })
+  );
 
-  req.logger.verbose(`User id ${userId} directly changed his email to ${newEmail}`, {
-    userId,
-    newEmail
-  })
-
-  return res.status(204).send()
+  return res.status(204).send();
 }
 
 interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: EmailResetSchema
+  [ContainerTypes.Body]: EmailResetSchema;
 }
 
 export default (router: Router) => {
-  router.post('/', createValidator().body(emailResetSchema), asyncWrapper(directChange))
-}
+  router.post(
+    "/",
+    createValidator().body(emailResetSchema),
+    asyncWrapper(directChange)
+  );
+};

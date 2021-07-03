@@ -1,21 +1,21 @@
-import { Response, Router, Request } from 'express'
-import { asyncWrapper } from '@/helpers'
-import { gqlSdk } from '@/utils/gqlSDK'
+import { Response, Router, Request } from "express";
+import { asyncWrapper } from "@/helpers";
+import { gqlSdk } from "@/utils/gqlSDK";
 
 async function revokeToken(req: Request, res: Response): Promise<unknown> {
-  if (!req.permissionVariables) {
-    return res.boom.unauthorized('Not logged in')
+  if (!req.auth) {
+    return res.boom.unauthorized("Not logged in");
   }
 
-  const { 'user-id': userId } = req.permissionVariables
+  const { userId } = req.auth;
 
   await gqlSdk.deleteUserRefreshTokens({
-    userId
-  })
+    userId,
+  });
 
-  return res.status(204).send()
+  return res.status(204).send();
 }
 
 export default (router: Router) => {
-  router.post('/revoke', asyncWrapper(revokeToken))
-}
+  router.post("/revoke", asyncWrapper(revokeToken));
+};

@@ -273,7 +273,7 @@ it('should activate the user from a valid ticket', (done) => {
 it('should not sign user with wrong password', (done) => {
   withEnv(
     {
-      AUTO_ACTIVATE_NEW_USERS: 'true',
+      AUTO_ACTIVATE_NEW_USERS: 'true'
     },
     request,
     (done) => {
@@ -283,7 +283,7 @@ it('should not sign user with wrong password', (done) => {
           .send({ email, password: password + '-incorrect' })
           .expect(statusCode(401))
           .end(end(done))
-      });
+      })
     },
     done
   )
@@ -405,26 +405,65 @@ it('should not sign the user in without password when magic link is disabled', (
 })
 
 it('should not sign user in with invalid admin secret', (done) => {
-  registerAccount(request).then(({ email }) => {
-    request
-      .post('/login')
-      .set(HEADERS.ADMIN_SECRET_HEADER, 'invalidsecret')
-      .send({ email, password: 'invalidpassword' })
-      .expect(statusCode(401))
-      .end(end(done))
-  })
+  withEnv(
+    {
+      USER_IMPERSONATION_ENABLED: 'true'
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email }) => {
+        request
+          .post('/login')
+          .set(HEADERS.ADMIN_SECRET_HEADER, 'invalidsecret')
+          .send({ email, password: 'invalidpassword' })
+          .expect(statusCode(401))
+          .end(end(done))
+      })
+    },
+    done
+  )
+})
+
+it('should not sign in user with valid admin secret if user impersonation is not enabled', (done) => {
+  withEnv(
+    {
+      USER_IMPERSONATION_ENABLED: 'false'
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email, password }) => {
+        request
+          .post('/login')
+          .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
+          .send({ email, password })
+          .expect(statusCode(401))
+          .expect(validJwt())
+          .end(end(done))
+      })
+    },
+    done
+  )
 })
 
 it('should sign in user with valid admin secret', (done) => {
-  registerAccount(request).then(({ email, password }) => {
-    request
-      .post('/login')
-      .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
-      .send({ email, password })
-      .expect(statusCode(200))
-      .expect(validJwt())
-      .end(end(done))
-  })
+  withEnv(
+    {
+      USER_IMPERSONATION_ENABLED: 'true'
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email, password }) => {
+        request
+          .post('/login')
+          .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
+          .send({ email, password })
+          .expect(statusCode(200))
+          .expect(validJwt())
+          .end(end(done))
+      })
+    },
+    done
+  )
 })
 
 it('should decode a valid custom user claim', (done) => {
