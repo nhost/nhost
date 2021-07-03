@@ -4,7 +4,6 @@ import { SuperTest, Test, agent } from 'supertest'
 import { Server } from 'http'
 import getPort from 'get-port'
 
-
 export let request: SuperTest<Test>
 
 export let server: Server

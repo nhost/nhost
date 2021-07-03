@@ -16,7 +16,7 @@ describe('Reset lost password', () => {
   it('should request a reset ticket to be sent by email', (done) => {
     withEnv(
       {
-        AUTO_ACTIVATE_NEW_USERS: 'false',
+        AUTO_ACTIVATE_NEW_USERS: 'true',
         LOST_PASSWORD_ENABLED: 'true'
       },
       request,

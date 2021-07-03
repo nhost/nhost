@@ -271,13 +271,22 @@ it('should activate the user from a valid ticket', (done) => {
 })
 
 it('should not sign user with wrong password', (done) => {
-  registerAccount(request).then(({ email, password }) => {
-    request
-      .post('/login')
-      .send({ email, password: password + '1' })
-      .expect(statusCode(401))
-      .end(end(done))
-  })
+  withEnv(
+    {
+      AUTO_ACTIVATE_NEW_USERS: 'true',
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email, password }) => {
+        request
+          .post('/login')
+          .send({ email, password: password + '-incorrect' })
+          .expect(statusCode(401))
+          .end(end(done))
+      });
+    },
+    done
+  )
 })
 
 it('should not sign in non existing user', (done) => {

@@ -64,10 +64,11 @@ export const registerAccount = async (
         await agent
           .post('/register')
           .send({
-            ...userLoginData,
-            customRegisterData
+            ...userLoginData
           })
-          .then(() => done(userLoginData))
+          .then(() => {
+            done(userLoginData)
+          })
           .catch(reject)
       },
       resolve
@@ -81,7 +82,7 @@ export const loginAccount = async (
 ): Promise<UserData> => {
   const login = await agent.post('/login').send(userLoginData)
 
-  console.log('login body:')
+  console.log('login body in login Account (utils):')
   console.log(login.body)
 
   getUserId(login.body.jwtToken)

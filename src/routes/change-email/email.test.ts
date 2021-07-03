@@ -17,6 +17,7 @@ it('should request to change email and receive a ticket by email', (done) => {
     (done) => {
       registerAndLoginAccount(request).then(({ jwtToken }) => {
         const newEmail = generateRandomEmail()
+        //
 
         request
           .post(`/change-email/request`)
