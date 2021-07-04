@@ -16,8 +16,6 @@ export default async function (
     // noop
   }
 
-  console.log({ permissionVariables });
-
   req.auth = null;
   if (permissionVariables) {
     req.auth = {
@@ -42,6 +40,8 @@ export default async function (
     req.refreshToken = req.query.refreshToken as string;
     delete req.query.refreshToken;
 
+    // TODO: We do this query almost every time
+    // in the routes too. Maybe attach `user` to `req`?
     const user = await gqlSdk
       .usersByRefreshToken({
         refreshToken: req.refreshToken,
