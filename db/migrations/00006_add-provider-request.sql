@@ -4,3 +4,4 @@ CREATE TABLE auth.provider_requests (
   redirect_url_failure text NOT NULL,
   PRIMARY KEY (id)
 );
+

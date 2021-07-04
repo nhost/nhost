@@ -17,25 +17,25 @@ export function statusCode(status: number) {
 
 export function validJwt() {
   return (res: Response) => {
-    expect(res.body.jwt_token).toBeString()
-    expect(res.body.jwt_expires_in).toBeNumber()
+    expect(res.body.jwtToken).toBeString()
+    expect(res.body.jwtExpiresIn).toBeNumber()
   }
 }
 
 export function saveJwt(fn: (jwtToken: string) => any) {
   return (res: Response) => {
-    fn(res.body.jwt_token)
+    fn(res.body.jwtToken)
   }
 }
 
 export function saveRefreshToken(fn: (refreshToken: string) => any) {
   return (res: Response) => {
-    fn(res.body.refresh_token)
+    fn(res.body.refreshToken)
   }
 }
 
 export function validRefreshToken(regex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/) {
   return (res: Response) => {
-    expect(res.body.refresh_token).toMatch(regex)
+    expect(res.body.refreshToken).toMatch(regex)
   }
 }

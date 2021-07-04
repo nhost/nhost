@@ -1,7 +1,7 @@
 import { Response, Router } from 'express'
-import { asyncWrapper, rotateTicket, selectAccountByTicket, setRefreshToken } from '@/helpers'
-import { newJwtExpiry, createHasuraJwt } from '@/jwt'
-import { UserData, Session } from '@/types'
+import { asyncWrapper, rotateTicket, getUserByTicket, setRefreshToken, userToSessionUser } from '@/helpers'
+import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
+import { Session, SessionUser } from '@/types'
 
 import { authenticator } from 'otplib'
 import { TotpSchema, totpSchema } from '@/validation'
@@ -15,59 +15,54 @@ authenticator.options = {
 async function totpLogin(req: ValidatedRequest<Schema>, res: Response): Promise<any> {
   const { ticket, code } = req.body
 
-  const account = await selectAccountByTicket(req.body.ticket)
+  const user = await getUserByTicket(req.body.ticket)
 
-  if (!account) {
+  if (!user) {
     return res.boom.unauthorized('Invalid or expired ticket')
   }
 
-  const { id, otp_secret, mfa_enabled, active } = account
+  const { id, otpSecret, mfaEnabled, active } = user
 
-  const user_id = account.user.id
+  const userId = user.id
 
-  if (!mfa_enabled) {
-    req.logger.verbose(`User ${user_id} tried using totp but MFA was not enabled`, {
-      user_id
+  if (!mfaEnabled) {
+    req.logger.verbose(`User ${userId} tried using totp but MFA was not enabled`, {
+      userId
     })
     return res.boom.badRequest('MFA is not enabled')
   }
 
   if (!active) {
-    req.logger.verbose(`User ${user_id} tried using totp but his account is not activated`, {
-      user_id
+    req.logger.verbose(`User ${userId} tried using totp but his user is not activated`, {
+       userId
     })
     return res.boom.badRequest('Account is not activated')
   }
 
-  if (!otp_secret) {
-    req.logger.verbose(`User ${user_id} tried using totp but the OTP secret was not set`, {
-      user_id
+  if (!otpSecret) {
+    req.logger.verbose(`User ${userId} tried using totp but the OTP secret was not set`, {
+      userId
     })
     return res.boom.badRequest('OTP secret is not set')
   }
 
-  if (!authenticator.check(code, otp_secret)) {
-    req.logger.verbose(`User ${user_id} tried using totp but provided an invalid code`, {
-      user_id
+  if (!authenticator.check(code, otpSecret)) {
+    req.logger.verbose(`User ${userId} tried using totp but provided an invalid code`, {
+      userId
     })
     return res.boom.unauthorized('Invalid two-factor code')
   }
 
-  const refresh_token = await setRefreshToken(id)
+  const refreshToken = await setRefreshToken(id)
   await rotateTicket(ticket)
-  const jwt_token = createHasuraJwt(account)
-  const jwt_expires_in = newJwtExpiry
-  const user: UserData = {
-    id: account.user.id,
-    display_name: account.user.display_name,
-    email: account.email,
-    avatar_url: account.user.avatar_url
-  }
+  const jwtToken = createHasuraJwtToken(user)
+  const jwtExpiresIn = newJwtExpiry
+  const sessionUser: SessionUser = userToSessionUser(user)
 
-  const session: Session = { jwt_token, jwt_expires_in, user, refresh_token }
+  const session: Session = { jwtToken, jwtExpiresIn, user: sessionUser, refreshToken }
 
-  req.logger.verbose(`User ${account.user.id} logged in via a TOTP code`, {
-    user_id: account.user.id,
+  req.logger.verbose(`User ${user.id} logged in via a TOTP code`, {
+    userId: user.id,
   })
 
   res.send(session)

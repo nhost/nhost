@@ -28,12 +28,10 @@ app.use(
     }
   )
 )
-app.use(
-  (req, res, next) => {
-    req.logger = logger
-    return next()
-  }
-)
+app.use((req, res, next) => {
+  req.logger = logger
+  return next()
+})
 app.use(helmet())
 app.use(json())
 app.use(cors({ credentials: true, origin: true }))

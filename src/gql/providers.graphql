@@ -1,0 +1,18 @@
+query providers($provider: String!, $profileId: String!) {
+  authProviders(
+    where: {
+      _and: {
+        userProviders: {
+          userProviderUniqueId: { _eq: $profileId }
+          provider: { name: { _eq: $provider } }
+        }
+      }
+    }
+  ) {
+    userProviders {
+      user {
+        ...userFields
+      }
+    }
+  }
+}

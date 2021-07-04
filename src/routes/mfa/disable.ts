@@ -1,55 +1,77 @@
-import { asyncWrapper, selectAccountByUserId } from '@/helpers'
-import { Response, Router } from 'express'
-import { deleteOtpSecret } from '@/queries'
+import { asyncWrapper, getUser } from "@/helpers";
+import { Response, Router } from "express";
 
-import { authenticator } from 'otplib'
-import { MfaSchema, mfaSchema } from '@/validation'
-import { request } from '@/request'
-import { AccountData } from '@/types'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import { authenticator } from "otplib";
+import { MfaSchema, mfaSchema } from "@/validation";
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest,
+} from "express-joi-validation";
+import { gqlSdk } from "@/utils/gqlSDK";
 
-async function disableMfa(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  if (!req.permission_variables) {
-    return res.boom.unauthorized('Not logged in')
+async function disableMfa(
+  req: ValidatedRequest<Schema>,
+  res: Response
+): Promise<unknown> {
+  if (!req.auth) {
+    return res.boom.unauthorized("Not logged in");
   }
 
-  const { 'user-id': user_id } = req.permission_variables
+  const { userId } = req.auth;
 
-  const { code } = req.body
+  const { code } = req.body;
 
-  const account = await selectAccountByUserId(user_id)
+  const user = await getUser(userId);
 
-  const { otp_secret, mfa_enabled } = account
+  const { otpSecret, mfaEnabled } = user;
 
-  if (!mfa_enabled) {
-    req.logger.verbose(`User ${user_id} tried disabling MFA but it was already disabled`, {
-      user_id
-    })
-    return res.boom.badRequest('MFA is already disabled')
+  if (!mfaEnabled) {
+    req.logger.verbose(
+      `User ${userId} tried disabling MFA but it was already disabled`,
+      {
+        userId,
+      }
+    );
+    return res.boom.badRequest("MFA is already disabled");
   }
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  if (!authenticator.check(code, otp_secret!)) {
-    req.logger.verbose(`User ${user_id} tried disabling MFA but provided an invalid two-factor code ${code}`, {
-      user_id,
-      code
-    })
-    return res.boom.unauthorized('Invalid two-factor code')
+  if (!authenticator.check(code, otpSecret!)) {
+    req.logger.verbose(
+      `User ${userId} tried disabling MFA but provided an invalid two-factor code ${code}`,
+      {
+        userId,
+        code,
+      }
+    );
+    return res.boom.unauthorized("Invalid two-factor code");
   }
 
-  await request(deleteOtpSecret, { user_id })
+  await gqlSdk.updateUser({
+    id: user.id,
+    user: {
+      otpSecret: null,
+      mfaEnabled: false,
+    },
+  });
 
-  req.logger.verbose(`User ${user_id} disabled MFA`, {
-    user_id,
-  })
+  req.logger.verbose(`User ${userId} disabled MFA`, {
+    userId,
+  });
 
-  return res.status(204).send()
+  return res.status(204).send();
 }
 
 interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: MfaSchema
+  [ContainerTypes.Body]: MfaSchema;
 }
 
 export default (router: Router) => {
-  router.post('/disable', createValidator().body(mfaSchema), asyncWrapper(disableMfa))
-}
+  router.post(
+    "/disable",
+    createValidator().body(mfaSchema),
+    asyncWrapper(disableMfa)
+  );
+};

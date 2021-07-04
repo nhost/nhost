@@ -1,41 +1,57 @@
-import { Request, Response, NextFunction } from 'express'
-import { getClaims, getPermissionVariablesFromClaims } from '@/jwt'
-import { selectRefreshToken } from '@/queries'
-import { AccountData } from '@/types'
-import { request } from '@/request'
+import { Request, Response, NextFunction } from "express";
+import { getClaims, getPermissionVariablesFromClaims } from "@/jwt";
+import { gqlSdk } from "@/utils/gqlSDK";
 
-interface HasuraData {
-  auth_refresh_tokens: { account: AccountData }[]
-}
-
-export default async function (req: Request, res: Response, next: NextFunction) {
+export default async function (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) {
+  let permissionVariables = null;
   try {
-    req.permission_variables = getPermissionVariablesFromClaims(
+    permissionVariables = getPermissionVariablesFromClaims(
       getClaims(req.headers.authorization)
-    )
+    );
   } catch (e) {
     // noop
   }
 
-  if ('refresh_token' in req.query) {
-    req.refresh_token = req.query.refresh_token as string
-    delete req.query.refresh_token
+  req.auth = null;
+  if (permissionVariables) {
+    req.auth = {
+      userId: permissionVariables["user-id"],
+      defaultRole: permissionVariables["default-role"],
+    };
 
-    const { auth_refresh_tokens } = await request<HasuraData>(selectRefreshToken, {
-      refresh_token: req.refresh_token,
-      current_timestamp: new Date()
-    })
-  
-    if (!auth_refresh_tokens?.length) {
-      return res.boom.unauthorized('Invalid or expired refresh token')
+    req.logger.debug(
+      `Request from user ${req.auth.userId}(${req.auth.defaultRole})`,
+      {
+        userId: req.auth.userId,
+        defaultRole: req.auth.defaultRole,
+      }
+    );
+  }
+
+  if ("refreshToken" in req.query) {
+    req.logger.debug(`Request with refresh token ${req.refreshToken}`, {
+      refreshToken: req.refreshToken,
+    });
+
+    req.refreshToken = req.query.refreshToken as string;
+    delete req.query.refreshToken;
+
+    // TODO: We do this query almost every time
+    // in the routes too. Maybe attach `user` to `req`?
+    const user = await gqlSdk
+      .usersByRefreshToken({
+        refreshToken: req.refreshToken,
+      })
+      .then((res) => res.authRefreshTokens[0]?.user);
+
+    if (!user) {
+      return res.boom.unauthorized("Invalid or expired refresh token");
     }
   }
 
-  req.logger.debug(`Request from user ${req.permission_variables?.['user-id']}(${req.permission_variables?.['default-role']}) with refresh token ${req.refresh_token}`, {
-    user_id: req.permission_variables?.['user-id'],
-    default_role: req.permission_variables?.['default-role'],
-    refresh_token: req.refresh_token
-  })
-
-  next()
+  next();
 }

@@ -1,88 +1,106 @@
-import { Response, Router } from 'express'
-import { v4 as uuidv4 } from 'uuid'
+import { Response, Router } from "express";
+import { v4 as uuidv4 } from "uuid";
 
-import { setNewTicket, setNewEmail } from '@/queries'
-import { APPLICATION, AUTHENTICATION } from '@config/index'
-import { emailClient } from '@/email'
-import { request } from '@/request'
-import { SetNewEmailData } from '@/types'
-import { EmailResetSchema, emailResetSchema } from '@/validation'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
-import { accountWithEmailExists, asyncWrapper, selectAccountByUserId } from '@/helpers'
+import { APPLICATION, AUTHENTICATION } from "@config/index";
+import { emailClient } from "@/email";
+import { EmailResetSchema, emailResetSchema } from "@/validation";
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest,
+} from "express-joi-validation";
+import { asyncWrapper, getUserByEmail } from "@/helpers";
+import { gqlSdk } from "@/utils/gqlSDK";
 
-async function requestChangeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<any> {
-  if(!AUTHENTICATION.VERIFY_EMAILS) {
-    return res.boom.notImplemented(`Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/request route`)
+async function requestChangeEmail(
+  req: ValidatedRequest<Schema>,
+  res: Response
+): Promise<any> {
+  if (!AUTHENTICATION.VERIFY_EMAILS) {
+    return res.boom.notImplemented(
+      `Please set the VERIFY_EMAILS env variable to true to use the auth/change-email/request route`
+    );
   }
 
-  const user_id = req.permission_variables?.['user-id']
+  if (!req.auth) {
+    return res.boom.unauthorized("Not logged in");
+  }
 
-  const new_email = req.body.new_email
+  const { userId } = req.auth;
 
-  if(await accountWithEmailExists(new_email)) {
-    req.logger.verbose(`User ${user_id} tried directly changing his email to ${new_email} but an account with such email already exists`, {
-      user_id,
-      email: new_email,
-    })
-    return res.boom.badRequest('Cannot use this email')
+  const newEmail = req.body.newEmail;
+
+  if (await getUserByEmail(newEmail)) {
+    return res.boom.badRequest("Cannot use this email");
   }
 
   // smtp must be enabled for request change password to work.
   if (!APPLICATION.EMAILS_ENABLED) {
-    throw Error('SMTP settings unavailable')
+    throw Error("SMTP settings unavailable");
   }
 
-  const ticket = uuidv4()
-  const now = new Date()
-  const ticket_expires_at = new Date()
-
+  const ticket = uuidv4();
+  const now = new Date();
+  const ticketExpiresAt = new Date();
   // ticket active for 60 minutes
-  ticket_expires_at.setTime(now.getTime() + 60 * 60 * 1000)
+  ticketExpiresAt.setTime(now.getTime() + 60 * 60 * 1000);
+  // set new ticket
 
+  const user = await gqlSdk
+    .updateUser({
+      id: userId,
+      user: {
+        ticket,
+        ticketExpiresAt,
+        newEmail,
+      },
+    })
+    .then((res) => res.updateUser);
 
-  await request(setNewTicket, {
-    user_id,
-    ticket,
-    ticket_expires_at
-  })
-
-  const setNewEmailReturn = await request<SetNewEmailData>(setNewEmail, { user_id, new_email })
-  const display_name = setNewEmailReturn.update_auth_accounts.returning[0].user.display_name
-
-  const account = await selectAccountByUserId(user_id)
+  if (!user) {
+    throw new Error("Could not update user");
+  }
 
   await emailClient.send({
-    template: 'change-email',
+    template: "change-email",
     locals: {
       ticket,
       url: APPLICATION.SERVER_URL,
-      locale: account.locale,
-      app_url: APPLICATION.APP_URL,
-      display_name
+      locale: user.locale,
+      appUrl: APPLICATION.APP_URL,
+      displayName: user.displayName,
     },
     message: {
-      to: new_email,
+      to: newEmail,
       headers: {
-        'x-ticket': {
+        "x-ticket": {
           prepared: true,
-          value: ticket
-        }
-      }
+          value: ticket,
+        },
+      },
+    },
+  });
+
+  req.logger.verbose(
+    `User ${userId} requested to change his email to ${newEmail}`,
+    {
+      userId,
+      newEmail,
     }
-  })
+  );
 
-  req.logger.verbose(`User ${user_id} requested to change his email to ${new_email}`, {
-    user_id,
-    new_email
-  })
-
-  return res.status(204).send()
+  return res.status(204).send();
 }
 
 interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: EmailResetSchema
+  [ContainerTypes.Body]: EmailResetSchema;
 }
 
 export default (router: Router) => {
-  router.post('/request', createValidator().body(emailResetSchema), asyncWrapper(requestChangeEmail))
-}
+  router.post(
+    "/request",
+    createValidator().body(emailResetSchema),
+    asyncWrapper(requestChangeEmail)
+  );
+};

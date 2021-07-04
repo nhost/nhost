@@ -1,51 +1,44 @@
 import { Response, Router, Request } from 'express'
-import { selectRefreshToken, updateRefreshToken } from '@/queries'
-
-import { newJwtExpiry, createHasuraJwt } from '@/jwt'
-import { request } from '@/request'
+import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
 import { v4 as uuidv4 } from 'uuid'
-import { AccountData, UserData, Session } from '@/types'
-import { asyncWrapper, newRefreshExpiry } from '@/helpers'
+import { SessionUser, Session } from '@/types'
+import { asyncWrapper, newRefreshExpiry, userToSessionUser } from '@/helpers'
+import { gqlSdk } from '@/utils/gqlSDK'
 
-interface HasuraData {
-  auth_refresh_tokens: { account: AccountData }[]
-}
-
-async function refreshToken({ refresh_token }: Request, res: Response): Promise<any> {
-  if (!refresh_token) {
+async function refreshToken({ refreshToken }: Request, res: Response): Promise<any> {
+  if (!refreshToken) {
     return res.boom.unauthorized('Invalid or expired refresh token')
   }
 
-  // get account based on refresh token
-  const { auth_refresh_tokens } = await request<HasuraData>(selectRefreshToken, {
-    refresh_token,
-    current_timestamp: new Date()
-  })
+  const user = await gqlSdk
+    .usersByRefreshToken({
+      refreshToken
+    })
+    .then((res) => res.authRefreshTokens[0]?.user!)
 
   // create a new refresh token
-  const new_refresh_token = uuidv4()
-  const { account } = auth_refresh_tokens[0]
+  const newRefreshToken = uuidv4()
 
   // delete old refresh token
   // and insert new refresh token
-  await request(updateRefreshToken, {
-    old_refresh_token: refresh_token,
-    new_refresh_token_data: {
-      account_id: account.id,
-      refresh_token: new_refresh_token,
-      expires_at: new Date(newRefreshExpiry())
+  await gqlSdk.updateRefreshToken({
+    refreshTokenId: refreshToken,
+    refreshToken: {
+      userId: user.id,
+      refreshToken: newRefreshToken,
+      expiresAt: new Date(newRefreshExpiry())
     }
   })
 
-  const jwt_token = createHasuraJwt(account)
-  const jwt_expires_in = newJwtExpiry
-  const user: UserData = {
-    id: account.user.id,
-    display_name: account.user.display_name,
-    email: account.email,
-    avatar_url: account.user.avatar_url
+  const jwtToken = createHasuraJwtToken(user)
+  const jwtExpiresIn = newJwtExpiry
+  const sessionUser: SessionUser = userToSessionUser(user)
+  const session: Session = {
+    jwtToken,
+    jwtExpiresIn,
+    user: sessionUser,
+    refreshToken: newRefreshToken
   }
-  const session: Session = { jwt_token, jwt_expires_in, user, refresh_token: new_refresh_token }
   res.send(session)
 }
 

@@ -1,14 +1,17 @@
 import { Response, Router } from 'express'
-import { asyncWrapper, rotateTicket, selectAccountByTicket } from '@/helpers'
-import { changeEmailByTicket } from '@/queries'
+import { asyncWrapper, getUserByTicket, rotateTicket } from '@/helpers'
 
-import { request } from '@/request'
 import { VerifySchema, verifySchema } from '@/validation'
-import { AccountData, UpdateAccountData } from '@/types'
 import { v4 as uuidv4 } from 'uuid'
 import { APPLICATION, AUTHENTICATION } from '@config/index'
 import { emailClient } from '@/email'
-import { ValidatedRequest, ValidatedRequestSchema, ContainerTypes, createValidator } from 'express-joi-validation'
+import {
+  ValidatedRequest,
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator
+} from 'express-joi-validation'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if(!AUTHENTICATION.VERIFY_EMAILS) {
@@ -17,26 +20,22 @@ async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promis
 
   const { ticket } = req.body
 
-  const account = await selectAccountByTicket(ticket)
+  const user = await getUserByTicket(ticket)
 
-  if(!account) {
-    req.logger.verbose(`User tried changing his email but provided an invalid ticket ${ticket}`, {
-      ticket
-    })
-    return res.boom.badRequest('Account with such ticket does not exist')
+  if(!user) {
+    return res.boom.badRequest('Invalid or expired ticket')
   }
 
-  const { email, new_email, user } = account
-
-  const hasuraData = await request<UpdateAccountData>(changeEmailByTicket, {
+  // set newEmail to email for user
+  const updateUser = await gqlSdk.changeEmailsByTicket({
     ticket,
-    new_email,
-    now: new Date(),
-    new_ticket: uuidv4()
-  })
+    email: user.newEmail,
+    newTicket: uuidv4(),
+    now: new Date()
+  }).then(res => res.updateUsers?.returning[0])
 
-  if (!hasuraData.update_auth_accounts.affected_rows) {
-    return res.boom.unauthorized('Invalid or expired ticket')
+  if (!updateUser) {
+    return res.boom.unauthorized('Invalid or expired ticket.')
   }
 
   if (AUTHENTICATION.NOTIFY_EMAIL_CHANGE && APPLICATION.EMAILS_ENABLED) {
@@ -44,23 +43,23 @@ async function changeEmail(req: ValidatedRequest<Schema>, res: Response): Promis
       template: 'notify-email-change',
       locals: {
         url: APPLICATION.SERVER_URL,
-        locale: account.locale,
-        app_url: APPLICATION.APP_URL,
-        display_name: user.display_name
+        locale: user.locale,
+        appUrl: APPLICATION.APP_URL,
+        displayName: user.displayName
       },
       message: {
-        to: email
+        to: user.email
       }
     })
   }
+
   await rotateTicket(ticket)
 
-  req.logger.verbose(`User ${user.id}(ticket: ${ticket}) changed his email to ${new_email}`, {
-    user_id: user.id,
-    new_email,
+  req.logger.verbose(`User ${user.id}(ticket: ${ticket}) changed email to ${user.newEmail}`, {
+    userId: user.id,
+    newEmail: user.newEmail,
     ticket
   })
-
 
   return res.status(204).send()
 }

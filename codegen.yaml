@@ -1,0 +1,11 @@
+overwrite: true
+schema: 'http://localhost:8080/v1/graphql'
+headers:
+  x-hasura-admin-secret: hello123
+documents: 'src/gql/**/*.graphql'
+generates:
+  src/utils/__generated__/graphql-request.ts:
+    plugins:
+      - 'typescript'
+      - 'typescript-operations'
+      - 'typescript-graphql-request'

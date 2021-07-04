@@ -1,58 +1,56 @@
 import { APPLICATION, REGISTRATION } from '@config/index'
 import { Response, Router } from 'express'
 
-import { activateAccount, setNewTicket } from '@/queries'
-import { asyncWrapper, deanonymizeAccount, selectAccountByTicket } from '@/helpers'
-import { request } from '@/request'
+import { asyncWrapper, deanonymizeUser, getUserByTicket } from '@/helpers'
 import { v4 as uuidv4 } from 'uuid'
 import { VerifySchema, verifySchema } from '@/validation'
-import { UpdateAccountData } from '@/types'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function activateUser(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   if (REGISTRATION.AUTO_ACTIVATE_NEW_USERS) {
     return res.boom.notImplemented(`Please set the AUTO_ACTIVATE_NEW_USERS env variable to false to use the auth/activate route`)
   }
 
-  const account = await selectAccountByTicket(req.query.ticket)
+  const { ticket } = req.query
 
-  if(!account) {
+  const user = await getUserByTicket(ticket)
+
+  if(!user) {
     return res.boom.unauthorized('Invalid or expired ticket')
   }
 
-  const new_ticket = uuidv4()
+  const newTicket = uuidv4()
+  const newTicketExpiresAt = new Date()
 
-  if(account.is_anonymous) {
-    await deanonymizeAccount(
-      account,
-    )
+  if (user.isAnonymous) {
+    await deanonymizeUser(user)
 
-    await request(setNewTicket, {
-      user_id: account.user.id,
-      ticket: new_ticket,
-      ticket_expires_at: new Date()
+    await gqlSdk.rotateUsersTicket({
+      oldTicket: ticket,
+      newTicket,
+      newTicketExpiresAt
     })
 
-    req.logger.verbose(`User ${account.user.id} deanonymized his account with email ${account.user.email}`, {
-      user_id: account.user.id,
-      email: account.user.email
+    req.logger.verbose(`User ${user.id} deanonymized with email ${user.email}`, {
+      userId: user.id,
+      email: user.email
     })
   } else {
-    await request<UpdateAccountData>(activateAccount, {
-      ticket: req.query.ticket,
-      new_ticket,
-      now: new Date()
+    await gqlSdk.activateUsers({
+      ticket,
+      newTicket,
+      newTicketExpiresAt
     })
+
+    req.logger.verbose(`User ${user.id} activated`, {
+      userId: user.id
+    })
+
+    // redirect user to app
+    const refreshToken = uuidv4() // setRefreshToken({userId: user.id});
+    res.redirect(`${APPLICATION.REDIRECT_URL_SUCCESS}?refreshToken=${refreshToken}`)
   }
-
-  req.logger.verbose(`User ${account.user.id} activated his account`, {
-    user_id: account.user.id,
-  })
-
-  if(APPLICATION.REDIRECT_URL_SUCCESS) {
-    res.redirect(APPLICATION.REDIRECT_URL_SUCCESS.replace('JWT_TOKEN', req.query.ticket))
-  } else
-    res.status(200).send('Your account has been activated. You can close this window and login')
 }
 
 interface Schema extends ValidatedRequestSchema {

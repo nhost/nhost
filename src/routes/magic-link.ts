@@ -1,56 +1,54 @@
 import { APPLICATION } from '@config/index'
 import { Response, Router } from 'express'
-import { accountOfRefreshToken, activateAccount } from '@/queries'
-import { asyncWrapper } from '@/helpers'
-import { request } from '@/request'
+
+import { asyncWrapper, newRefreshExpiry } from '@/helpers'
 import { v4 as uuidv4 } from 'uuid'
 import { MagicLinkQuery, magicLinkQuery } from '@/validation'
-import { AccountData, UpdateAccountData } from '@/types'
 import { setRefreshToken } from '@/helpers'
 import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import { gqlSdk } from '@/utils/gqlSDK'
 
 async function magicLink(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
   const { token, action } = req.query;
 
-  let refresh_token = token;
+  let refreshToken = token;
   if (action === 'register') {
-    const new_ticket = uuidv4()
-    const { affected_rows, returning } = await request<UpdateAccountData>(activateAccount, {
+    const newTicket = uuidv4()
+    const user = await gqlSdk.activateUsers({
       ticket: token,
-      new_ticket,
-      now: new Date()
-    }).then(hasuraData => hasuraData.update_auth_accounts)
+      newTicket,
+      newTicketExpiresAt: newRefreshExpiry()
+    }).then(res => res.updateUsers?.returning[0])
 
-    if (!affected_rows) {
+    if (!user) {
       if (APPLICATION.REDIRECT_URL_ERROR) {
         return res.redirect(302, APPLICATION.REDIRECT_URL_ERROR)
       }
       return res.boom.unauthorized('Invalid or expired token')
     }
 
-    refresh_token = await setRefreshToken(returning[0].id)
+    refreshToken = await setRefreshToken(user.id)
   }
 
-  const hasura_data = await request<{
-    auth_refresh_tokens: { account: AccountData }[]
-  }>(accountOfRefreshToken, {
-    refresh_token,
-  })
-  const account = hasura_data.auth_refresh_tokens?.[0].account;
-  if (!account) {
+
+  const user = await gqlSdk.usersByRefreshToken({
+    refreshToken
+  }).then(res => res.authRefreshTokens[0]?.user)
+
+  if (!user) {
     if (APPLICATION.REDIRECT_URL_ERROR) {
       return res.redirect(302, APPLICATION.REDIRECT_URL_ERROR)
     }
     return res.boom.unauthorized('Invalid or expired token')
   }
 
-  req.logger.verbose(`User ${account.user.id} completed magic link ${action === 'register' ? 'registration' : 'login'}`, {
-    user_id: account.user.id
+  req.logger.verbose(`User ${user.id} completed magic link ${action === 'register' ? 'registration' : 'login'}`, {
+    userId: user.id
   })
 
   // Redirect user with refresh token.
   // This is both for when users log in and register.
-  return res.redirect(`${APPLICATION.REDIRECT_URL_SUCCESS}?refresh_token=${refresh_token}`)
+  return res.redirect(`${APPLICATION.REDIRECT_URL_SUCCESS}?refreshToken=${refreshToken}`)
 }
 
 interface Schema extends ValidatedRequestSchema {

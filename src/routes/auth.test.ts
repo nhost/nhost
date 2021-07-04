@@ -5,7 +5,6 @@ import { APPLICATION, JWT as CONFIG_JWT, HEADERS } from '@config/index'
 import {
   generateRandomEmail,
   generateRandomString,
-  deleteMailHogEmail,
   mailHogSearch,
   registerAccount,
   registerAndLoginAccount,
@@ -52,19 +51,32 @@ it('should tell the password has been pwned', (done) => {
   )
 })
 
-it('should create an account', (done) => {
+it('should create an user', (done) => {
   request
     .post('/register')
     .send({
       email: generateRandomEmail(),
-      password: generateRandomString(),
-      user_data: { name: 'Test name' }
+      password: generateRandomString()
     })
     .expect(statusCode(200))
     .end(end(done))
 })
 
-it('should create an account without a password when magic link login is enabled', (done) => {
+it('should create an user with custom column', (done) => {
+  request
+    .post('/register')
+    .send({
+      email: generateRandomEmail(),
+      password: generateRandomString(),
+      customRegisterData: {
+        name: 'Test name'
+      }
+    })
+    .expect(statusCode(200))
+    .end(end(done))
+})
+
+it('should create an user without a password when magic link login is enabled', (done) => {
   withEnv(
     {
       MAGIC_LINK_ENABLED: 'true',
@@ -81,14 +93,16 @@ it('should create an account without a password when magic link login is enabled
         .send({ email })
         .expect(statusCode(200))
         .expect((res) => {
-          expect(res.body.jwt_token).toBeNull()
-          expect(res.body.jwt_expires_in).toBeNull()
+          expect(res.body.jwtToken).toBeNull()
+          expect(res.body.jwtExpiresIn).toBeNull()
           expect(res.body.user).toBeTruthy()
         })
         .end(async (err) => {
-          if(err) return done(err)
+          if (err) return done(err)
 
-          if(!await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then(t => ticket = t!)) {
+          if (
+            !(await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then((t) => (ticket = t!)))
+          ) {
             return done(new Error('No ticket received in email'))
           }
 
@@ -102,7 +116,7 @@ it('should create an account without a password when magic link login is enabled
   )
 })
 
-it('should not create an account without a password when magic link login is disabled', (done) => {
+it('should not create an user without a password when magic link login is disabled', (done) => {
   withEnv(
     {
       MAGIC_LINK_ENABLED: 'false'
@@ -111,7 +125,7 @@ it('should not create an account without a password when magic link login is dis
     (done) => {
       request
         .post('/register')
-        .send({ email: generateRandomEmail(), user_data: { name: 'Test name' } })
+        .send({ email: generateRandomEmail() })
         .expect(statusCode(400))
         .end(end(done))
     },
@@ -119,23 +133,20 @@ it('should not create an account without a password when magic link login is dis
   )
 })
 
-it('should fail to create account with unallowed role', (done) => {
+it('should fail to create user with unallowed role', (done) => {
   request
     .post('/register')
     .send({
       email: generateRandomEmail(),
       password: generateRandomString(),
-      user_data: { name: 'Test name' },
-      register_options: {
-        default_role: 'invalid_role',
-        allowed_roles: ['user', 'me', 'super-admin']
-      }
+      defaultRole: 'invalid role',
+      allowedRoles: ['user', 'me', 'super-admin']
     })
     .expect(statusCode(400))
     .end(end(done))
 })
 
-it('should fail to create account with default_role that does not overlap allowed_roles', (done) => {
+it('should fail to create user with defaultRole that does not overlap allowedRoles', (done) => {
   withEnv(
     {
       AUTO_ACTIVATE_NEW_USERS: 'true',
@@ -148,11 +159,8 @@ it('should fail to create account with default_role that does not overlap allowe
         .send({
           email: generateRandomEmail(),
           password: generateRandomString(),
-          user_data: { name: 'Test name' },
-          register_options: {
-            default_role: 'editor',
-            allowed_roles: ['user', 'me']
-          }
+          defaultRole: 'editor',
+          allowedRoles: ['user', 'me']
         })
         .expect(statusCode(400))
         .end(end(done))
@@ -161,7 +169,7 @@ it('should fail to create account with default_role that does not overlap allowe
   )
 })
 
-it('should create account with default_role that is in the ALLOWED_USER_ROLES variable', (done) => {
+it('should create user with defaultRole that is in the ALLOWED_USER_ROLES variable', (done) => {
   withEnv(
     {
       AUTO_ACTIVATE_NEW_USERS: 'true',
@@ -174,10 +182,7 @@ it('should create account with default_role that is in the ALLOWED_USER_ROLES va
         .send({
           email: generateRandomEmail(),
           password: generateRandomString(),
-          user_data: { name: 'Test name' },
-          register_options: {
-            default_role: 'editor'
-          }
+          defaultRole: 'editor'
         })
         .expect(statusCode(200))
         .end(end(done))
@@ -186,23 +191,20 @@ it('should create account with default_role that is in the ALLOWED_USER_ROLES va
   )
 })
 
-it('should register account with default_role and allowed_roles set', (done) => {
+it('should register user with defaultRole and allowedRoles set', (done) => {
   request
     .post('/register')
     .send({
       email: generateRandomEmail(),
       password: generateRandomString(),
-      user_data: { name: 'Test name' },
-      register_options: {
-        default_role: 'user',
-        allowed_roles: ['user', 'me']
-      }
+      defaultRole: 'user',
+      allowedRoles: ['user', 'me']
     })
     .expect(statusCode(200))
     .end(end(done))
 })
 
-it('should tell the account already exists', (done) => {
+it('should tell the email is already in use', (done) => {
   const email = generateRandomEmail()
   const password = generateRandomString()
 
@@ -215,7 +217,7 @@ it('should tell the account already exists', (done) => {
         .post('/register')
         .send({ email, password })
         .expect(statusCode(400))
-        .expect(errorMessageEqual('Account already exists'))
+        .expect(errorMessageEqual('Email already in use'))
         .end(end(done))
     })
 })
@@ -235,7 +237,7 @@ it('should fail to activate an user from a wrong ticket', (done) => {
   )
 })
 
-it('should activate the account from a valid ticket', (done) => {
+it('should activate the user from a valid ticket', (done) => {
   withEnv(
     {
       AUTO_ACTIVATE_NEW_USERS: 'false',
@@ -248,20 +250,20 @@ it('should activate the account from a valid ticket', (done) => {
       const password = generateRandomString()
       let ticket = ''
 
-      request.post('/register')
+      request
+        .post('/register')
         .send({ email, password })
         .expect(statusCode(200))
         .end(async (err) => {
-          if(err) return done(err)
+          if (err) return done(err)
 
-          if(!await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then(t => ticket = t!)) {
+          if (
+            !(await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then((t) => (ticket = t!)))
+          ) {
             return done(new Error('No ticket received in email'))
           }
 
-          request
-            .get(`/activate?ticket=${ticket}`)
-            .expect(statusCode(200))
-            .end(end(done))
+          request.get(`/activate?ticket=${ticket}`).expect(statusCode(302)).end(end(done))
         })
     },
     done
@@ -269,20 +271,29 @@ it('should activate the account from a valid ticket', (done) => {
 })
 
 it('should not sign user with wrong password', (done) => {
-  registerAccount(request).then(({ email, password }) => {
-    request
-      .post('/login')
-      .send({ email, password: password + '1' })
-      .expect(statusCode(401))
-      .end(end(done))
-  })
+  withEnv(
+    {
+      AUTO_ACTIVATE_NEW_USERS: 'true'
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email, password }) => {
+        request
+          .post('/login')
+          .send({ email, password: password + '-incorrect' })
+          .expect(statusCode(401))
+          .end(end(done))
+      })
+    },
+    done
+  )
 })
 
 it('should not sign in non existing user', (done) => {
   request
     .post('/login')
     .send({ email: 'non-existing@nhost.io', password: 'sommar' })
-    .expect(statusCode(400))
+    .expect(statusCode(401))
     .end(end(done))
 })
 
@@ -322,17 +333,19 @@ it('should sign the user in without password when magic link is enabled', (done)
 
       request
         .post('/register')
-        .send({ email, user_data: { name: 'Test name' } })
+        .send({ email })
         .expect(statusCode(200))
         .expect((res) => {
-          expect(res.body.jwt_token).toBeNull()
-          expect(res.body.jwt_expires_in).toBeNull()
+          expect(res.body.jwtToken).toBeNull()
+          expect(res.body.jwtExpiresIn).toBeNull()
           expect(res.body.user).toBeTruthy()
         })
         .end(async (err) => {
-          if(err) return done(err)
+          if (err) return done(err)
 
-          if(!await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then(t => ticket = t!)) {
+          if (
+            !(await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then((t) => (ticket = t!)))
+          ) {
             return done(new Error('No ticket received in email'))
           }
 
@@ -340,7 +353,7 @@ it('should sign the user in without password when magic link is enabled', (done)
             .get(`/magic-link?action=register&token=${ticket}`)
             .expect(statusCode(302))
             .end((err) => {
-              if(err) return done(err)
+              if (err) return done(err)
 
               let ticket = ''
 
@@ -352,9 +365,13 @@ it('should sign the user in without password when magic link is enabled', (done)
                   expect(res.body.magicLink).toBeTrue()
                 })
                 .end(async (err) => {
-                  if(err) return done(err)
+                  if (err) return done(err)
 
-                  if(!await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then(t => ticket = t!)) {
+                  if (
+                    !(await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then(
+                      (t) => (ticket = t!)
+                    ))
+                  ) {
                     return done(new Error('No ticket received in email'))
                   }
 
@@ -377,75 +394,130 @@ it('should not sign the user in without password when magic link is disabled', (
     },
     request,
     (done) => {
-      request.post('/login').send({ email: generateRandomEmail() }).expect(statusCode(400)).end(end(done))
+      request
+        .post('/login')
+        .send({ email: generateRandomEmail() })
+        .expect(statusCode(400))
+        .end(end(done))
     },
     done
   )
 })
 
 it('should not sign user in with invalid admin secret', (done) => {
-  registerAccount(request).then(({ email }) => {
-    request
-      .post('/login')
-      .set(HEADERS.ADMIN_SECRET_HEADER, 'invalidsecret')
-      .send({ email, password: 'invalidpassword' })
-      .expect(statusCode(401))
-      .end(end(done))
-  })
+  withEnv(
+    {
+      USER_IMPERSONATION_ENABLED: 'true'
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email }) => {
+        request
+          .post('/login')
+          .set(HEADERS.ADMIN_SECRET_HEADER, 'invalidsecret')
+          .send({ email, password: 'invalidpassword' })
+          .expect(statusCode(401))
+          .end(end(done))
+      })
+    },
+    done
+  )
+})
+
+it('should not sign in user with valid admin secret if user impersonation is not enabled', (done) => {
+  withEnv(
+    {
+      USER_IMPERSONATION_ENABLED: 'false'
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email, password }) => {
+        request
+          .post('/login')
+          .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
+          .send({ email, password })
+          .expect(statusCode(401))
+          .expect(validJwt())
+          .end(end(done))
+      })
+    },
+    done
+  )
 })
 
 it('should sign in user with valid admin secret', (done) => {
-  registerAccount(request).then(({ email, password }) => {
-    request
-      .post('/login')
-      .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
-      .send({ email, password })
-      .expect(statusCode(200))
-      .expect(validJwt())
-      .end(end(done))
-  })
+  withEnv(
+    {
+      USER_IMPERSONATION_ENABLED: 'true'
+    },
+    request,
+    (done) => {
+      registerAccount(request).then(({ email, password }) => {
+        request
+          .post('/login')
+          .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
+          .send({ email, password })
+          .expect(statusCode(200))
+          .expect(validJwt())
+          .end(end(done))
+      })
+    },
+    done
+  )
 })
 
 it('should decode a valid custom user claim', (done) => {
   let jwtToken = ''
-  withEnv({ REGISTRATION_CUSTOM_FIELDS: 'name', JWT_CUSTOM_FIELDS: 'name' }, request, (done) => {
-    registerAccount(request, { name: 'Test name' }).then(({ email, password }) => {
-      request
-        .post('/login')
-        .send({ email, password })
-        .expect(statusCode(200))
-        .expect(saveJwt((j) => (jwtToken = j)))
-        .end((err) => {
-          if (err) return done(err)
+  withEnv(
+    { REGISTRATION_CUSTOM_FIELDS: 'name', JWT_CUSTOM_FIELDS: 'name' },
+    request,
+    (done) => {
+      registerAccount(request, { customRegisterData: { name: 'Test name' } }).then(
+        ({ email, password }) => {
+          request
+            .post('/login')
+            .send({ email, password })
+            .expect(statusCode(200))
+            .expect(saveJwt((j) => (jwtToken = j)))
+            .end((err) => {
+              if (err) return done(err)
 
-          const decodedJwt = JWT.decode(jwtToken) as Token
-          expect(decodedJwt[CONFIG_JWT.CLAIMS_NAMESPACE]).toBeObject()
-          // Test if the custom claims work
-          expect(decodedJwt[CONFIG_JWT.CLAIMS_NAMESPACE]['x-hasura-name']).toEqual('Test name')
-          done()
-        })
-    })
-  }, done)
+              const decodedJwt = JWT.decode(jwtToken) as Token
+              expect(decodedJwt[CONFIG_JWT.CLAIMS_NAMESPACE]).toBeObject()
+              // Test if the custom claims work
+              expect(decodedJwt[CONFIG_JWT.CLAIMS_NAMESPACE]['x-hasura-name']).toEqual('Test name')
+              done()
+            })
+        }
+      )
+    },
+    done
+  )
 })
 
 it('should logout', (done) => {
-  registerAndLoginAccount(request).then(({ refresh_token }) => {
-    request.post(`/logout`).query({ refresh_token }).send().expect(statusCode(204)).end(end(done))
+  registerAndLoginAccount(request).then(({ refreshToken }) => {
+    request.post(`/logout`).query({ refreshToken }).send().expect(statusCode(204)).end(end(done))
   })
 })
 
-it('should delete an account', (done) => {
-  withEnv({
-    ALLOW_USER_SELF_DELETE: 'true'
-  }, request, (done) => {
-    registerAndLoginAccount(request).then(({ jwtToken }) => {
-      request
-        .post(`/delete`)
-        .set({ Authorization: `Bearer ${jwtToken}` })
-        .expect(statusCode(204))
-        .end(end(done))
-    })
-  }, done)
+it('should delete an user', (done) => {
+  withEnv(
+    {
+      ALLOW_USER_SELF_DELETE: 'true'
+    },
+    request,
+    (done) => {
+      registerAndLoginAccount(request).then(({ jwtToken }) => {
+        request
+          .post(`/delete`)
+          .set({ Authorization: `Bearer ${jwtToken}` })
+          .expect(statusCode(204))
+          .end(end(done))
+      })
+    },
+    done
+  )
 })
 
 it('should log in anonymously', (done) => {
@@ -567,7 +639,11 @@ it('should be able to deanonymize anonymous user without auto activation', (done
               if (err) return done(err)
 
               let ticket = ''
-              if(!await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then(t => ticket = t!)) {
+              if (
+                !(await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket').then(
+                  (t) => (ticket = t!)
+                ))
+              ) {
                 return done(new Error('No ticket email sent'))
               }
 
@@ -591,7 +667,7 @@ it('should be able to deanonymize anonymous user without auto activation', (done
   )
 }, 10000)
 
-it('should not be able to deanonymize normal account', (done) => {
+it('should not be able to deanonymize normal user', (done) => {
   const anonymousRole = 'anonymous'
   let jwtToken = ''
 
@@ -763,8 +839,8 @@ it('should resend the confirmation email after the timeout', (done) => {
             })
             .expect(statusCode(200))
             .end(async (err) => {
-              if(err) return done(err)
-              if(!await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket')) {
+              if (err) return done(err)
+              if (!(await getHeaderFromLatestEmailAndDelete(email, 'X-Ticket'))) {
                 return done(new Error('No ticket sent to email'))
               }
               done()
@@ -775,7 +851,7 @@ it('should resend the confirmation email after the timeout', (done) => {
   )
 })
 
-it('should not resend the confirmation email on an activated account', (done) => {
+it('should not resend the confirmation email on an activated user', (done) => {
   withEnv(
     {
       CONFIRMATION_RESET_TIMEOUT: '0',
@@ -798,7 +874,7 @@ it('should not resend the confirmation email on an activated account', (done) =>
   )
 })
 
-it('should not resend the confirmation email on a non-existant account', (done) => {
+it('should not resend the confirmation email on a non-existant user', (done) => {
   withEnv(
     {
       CONFIRMATION_RESET_TIMEOUT: '0',
@@ -877,19 +953,22 @@ it('should disable login for arbitrary emails when whitelist is enabled', (done)
 it('should enable login for allowed emails when whitelist is enabled', (done) => {
   const email = generateRandomEmail()
 
-  withEnv({
-    WHITELIST_ENABLED: 'true',
-    EMAILS_ENABLED: 'true'
-  }, request, (done) => {
-    request
-      .post('/whitelist')
-      .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
-      .send({
-        email
-      })
-      .expect(statusCode(204))
-      .end((err) => {
-        if(err) return done(err)
+  withEnv(
+    {
+      WHITELIST_ENABLED: 'true',
+      EMAILS_ENABLED: 'true'
+    },
+    request,
+    (done) => {
+      request
+        .post('/whitelist')
+        .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
+        .send({
+          email
+        })
+        .expect(statusCode(204))
+        .end((err) => {
+          if (err) return done(err)
 
           request
             .post('/register')
@@ -908,35 +987,40 @@ it('should enable login for allowed emails when whitelist is enabled', (done) =>
 it('should enable login for allowed emails when whitelist is enabled and send an invite', (done) => {
   const email = generateRandomEmail()
 
-  withEnv({
-    WHITELIST_ENABLED: 'true',
-    EMAILS_ENABLED: 'true'
-  }, request, (done) => {
-    request
-      .post('/whitelist')
-      .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
-      .send({
-        email,
-        invite: true
-      })
-      .expect(statusCode(204))
-      .end(async (err) => {
-        if(err) return done(err)
+  withEnv(
+    {
+      WHITELIST_ENABLED: 'true',
+      EMAILS_ENABLED: 'true'
+    },
+    request,
+    (done) => {
+      request
+        .post('/whitelist')
+        .set(HEADERS.ADMIN_SECRET_HEADER, APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET)
+        .send({
+          email,
+          invite: true
+        })
+        .expect(statusCode(204))
+        .end(async (err) => {
+          if (err) return done(err)
 
-        if(!await mailHogSearch(email).then(messages => messages[0])) {
-          done(new Error('No email was sent'))
-        }
+          if (!(await mailHogSearch(email).then((messages) => messages[0]))) {
+            done(new Error('No email was sent'))
+          }
 
-        request
-          .post('/register')
-          .send({
-            email,
-            password: generateRandomString()
-          })
-          .expect(statusCode(200))
-          .end(end(done))
-      })
-  }, done)
+          request
+            .post('/register')
+            .send({
+              email,
+              password: generateRandomString()
+            })
+            .expect(statusCode(200))
+            .end(end(done))
+        })
+    },
+    done
+  )
 })
 
 it('Should disable the whitelist endpoint when the whitelist is disabled', (done) => {
@@ -961,7 +1045,7 @@ it('Should disable the whitelist endpoint when the whitelist is disabled', (done
   )
 })
 
-it('should be able to change account locale', (done) => {
+it('should be able to change user locale', (done) => {
   registerAndLoginAccount(request).then(({ jwtToken }) => {
     request
       .post('/change-locale')

@@ -23,14 +23,14 @@ function validTicket() {
 
 function saveOtpSecret(saver: (o: string) => any) {
   return (res: Response) => {
-    saver(res.body.otp_secret)
+    saver(res.body.otpSecret)
   }
 }
 
 function validOtpSecret() {
   return (res: Response) => {
-    expect(res.body.image_url).toBeString()
-    expect(res.body.otp_secret).toBeString()
+    expect(res.body.imageUrl).toBeString()
+    expect(res.body.otpSecret).toBeString()
   }
 }
 
@@ -56,7 +56,7 @@ it('should generate a secret', (done) => {
   })
 })
 
-it('should enable mfa for account', (done) => {
+it('should enable mfa for user', (done) => {
   let jwtToken = ''
   let otpSecret = ''
 
@@ -89,7 +89,7 @@ it('should enable mfa for account', (done) => {
   })
 })
 
-it('should sign the account in (mfa)', (done) => {
+it('should sign the user in (mfa)', (done) => {
   let otpSecret = ''
   let ticket = ''
 
@@ -136,7 +136,7 @@ it('should sign the account in (mfa)', (done) => {
   })
 })
 
-it('should disable mfa for account', (done) => {
+it('should disable mfa for user', (done) => {
   let otpSecret = ''
   let ticket = ''
   let secondJwtToken = ''
@@ -194,7 +194,7 @@ it('should disable mfa for account', (done) => {
   })
 })
 
-it('should not generate mfa qr if mfa enabled for account', (done) => {
+it('should not generate mfa qr if mfa enabled for user', (done) => {
   let otpSecret = ''
 
   registerAndLoginAccount(request).then(({ email, password, jwtToken }) => {

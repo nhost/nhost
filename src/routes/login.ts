@@ -1,93 +1,94 @@
 import { NextFunction, Response, Router } from 'express'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
-import { asyncWrapper, selectAccountByEmail, setRefreshToken } from '@/helpers'
-import { newJwtExpiry, createHasuraJwt } from '@/jwt'
+import { asyncWrapper, getUserByEmail, setRefreshToken, userToSessionUser } from '@/helpers'
+import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
 import { isAnonymousLogin, isMagicLinkLogin, LoginSchema, loginSchema } from '@/validation'
-import { insertAccount, setNewTicket } from '@/queries'
-import { request } from '@/request'
-import { AccountData, UserData, Session } from '@/types'
+import { Session } from '@/types'
 import { emailClient } from '@/email'
 import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
-import { ValidatedRequestSchema, ContainerTypes, createValidator, ValidatedRequest } from 'express-joi-validation'
+import {
+  ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest
+} from 'express-joi-validation'
+import { gqlSdk } from '@/utils/gqlSDK'
 
-interface HasuraData {
-  insert_auth_accounts: {
-    affected_rows: number
-    returning: AccountData[]
-  }
-}
-
-async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
+async function loginAccount(req: ValidatedRequest<Schema>, res: Response) {
   const { body, headers } = req
 
   if (isAnonymousLogin(body)) {
     const { locale } = body
 
     const ticket = uuidv4()
-    const hasura_data = await request<HasuraData>(insertAccount, {
-      account: {
-        email: null,
-        password_hash: null,
-        ticket,
-        active: true,
-        is_anonymous: true,
-        locale,
-        default_role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE,
-        account_roles: {
-          data: [{ role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE }]
-        },
+    const user = await gqlSdk
+      .insertUser({
         user: {
-          data: { display_name: 'Anonymous user' }
+          email: null,
+          passwordHash: null,
+          ticket,
+          active: true,
+          isAnonymous: true,
+          locale,
+          defaultRole: REGISTRATION.DEFAULT_ANONYMOUS_ROLE,
+          roles: {
+            data: [{ role: REGISTRATION.DEFAULT_ANONYMOUS_ROLE }]
+          },
+          displayName: 'Anonymous user'
         }
-      }
-    })
+      })
+      .then((res) => res.insertUser)
 
-    if (!hasura_data.insert_auth_accounts.returning.length) {
+    if (!user) {
       throw new Error('Unable to create user and sign in user anonymously')
     }
 
-    const account = hasura_data.insert_auth_accounts.returning[0]
+    const refreshToken = await setRefreshToken(user.id)
 
-    const refresh_token = await setRefreshToken(account.id)
+    const jwtToken = createHasuraJwtToken(user)
+    const jwtExpiresIn = newJwtExpiry
 
-    const jwt_token = createHasuraJwt(account)
-    const jwt_expires_in = newJwtExpiry
+    const session: Session = { jwtToken, jwtExpiresIn, user: userToSessionUser(user), refreshToken }
 
-    const session: Session = { jwt_token, jwt_expires_in, user: account.user, refresh_token }
-
-    req.logger.verbose(`User ${account.user.id} logged in anonymously`, {
-      user_id: account.user.id
+    req.logger.verbose(`User ${user.id} logged in anonymously`, {
+      userId: user.id
     })
 
     return res.send(session)
   }
 
-  const account = await selectAccountByEmail(body.email)
+  const user = await getUserByEmail(body.email)
 
-  if (!account) {
-    req.logger.verbose(`User tried logged in with email ${body.email} but no account with such email exists`, {
-      email: body.email
-    })
-    if(isMagicLinkLogin(body)) {
+  if (!user) {
+    req.logger.verbose(
+      `User tried logged in with email ${body.email} but no user with such email exists`,
+      {
+        email: body.email
+      }
+    )
+    if (isMagicLinkLogin(body)) {
       return res.boom.badRequest('Invalid email')
     } else {
-      return res.boom.badRequest('Invalid email or password')
+      return res.boom.unauthorized('Invalid email or password')
     }
   }
 
-  const { id, mfa_enabled, password_hash, active, email } = account
+  const { id, mfaEnabled, passwordHash, active, email } = user
 
   if (!active) {
-    req.logger.verbose(`User ${account.user.id} tried logging in with email ${email} but his account is inactive`, {
-      user_id: account.user.id,
-      email
-    })
-    return res.boom.badRequest('Account is not activated')
+    req.logger.verbose(
+      `User ${user.id} tried logging in with email ${email} but his user is inactive`,
+      {
+        userId: user.id,
+        email
+      }
+    )
+    return res.boom.badRequest('User is not activated')
   }
 
   if (isMagicLinkLogin(body)) {
-    const refresh_token = await setRefreshToken(id)
+    const refreshToken = await setRefreshToken(id)
 
     await emailClient.send({
       template: 'magic-link',
@@ -96,27 +97,27 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promi
         headers: {
           'x-ticket': {
             prepared: true,
-            value: refresh_token
+            value: refreshToken
           }
         }
       },
       locals: {
-        display_name: account.user.display_name,
-        token: refresh_token,
+        displayName: user.displayName,
+        token: refreshToken,
         url: APPLICATION.SERVER_URL,
-        locale: account.locale,
-        app_url: APPLICATION.APP_URL,
+        locale: user.locale,
+        appUrl: APPLICATION.APP_URL,
         action: 'log in',
-        action_url: 'log-in'
+        actionUrl: 'log-in'
       }
     })
 
-    req.logger.verbose(`User ${account.user.id} logged in with magic link to email ${email}`, {
-      user_id: account.user.id,
+    req.logger.verbose(`User ${user.id} logged in with magic link to email ${email}`, {
+      userId: user.id,
       email
     })
 
-    return res.send({ magicLink: true });
+    return res.send({ magicLink: true })
   }
 
   const { password } = body
@@ -125,54 +126,48 @@ async function loginAccount(req: ValidatedRequest<Schema>, res: Response): Promi
   const adminSecret = headers[HEADERS.ADMIN_SECRET_HEADER]
   const hasAdminSecret = Boolean(adminSecret)
   const isAdminSecretCorrect = adminSecret === APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET
-  let userImpersonationValid = false;
+  let userImpersonationValid = false
 
   if (AUTHENTICATION.USER_IMPERSONATION_ENABLED && hasAdminSecret && !isAdminSecretCorrect) {
     return res.boom.unauthorized('Invalid x-admin-secret')
   } else if (AUTHENTICATION.USER_IMPERSONATION_ENABLED && hasAdminSecret && isAdminSecretCorrect) {
-    userImpersonationValid = true;
+    userImpersonationValid = true
   }
 
   // Validate Password
-  const isPasswordCorrect = await bcrypt.compare(password, password_hash)
+  const isPasswordCorrect = passwordHash && (await bcrypt.compare(password, passwordHash))
   if (!isPasswordCorrect && !userImpersonationValid) {
     return res.boom.unauthorized('Username and password do not match')
   }
 
-  if (mfa_enabled) {
+  if (mfaEnabled) {
     const ticket = uuidv4()
-    const ticket_expires_at = new Date(+new Date() + 60 * 60 * 1000)
+    const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000)
 
     // set new ticket
-    await request(setNewTicket, {
-      user_id: account.user.id,
-      ticket,
-      ticket_expires_at
+    await gqlSdk.updateUser({
+      id: user.id,
+      user: {
+        ticket,
+        ticketExpiresAt
+      }
     })
 
-    req.logger.verbose(`User ${account.user.id} logged in with MFA`, {
-      user_id: account.user.id
+    req.logger.verbose(`User ${user.id} logged in with MFA`, {
+      userId: user.id
     })
 
     return res.send({ mfa: true, ticket })
   }
 
-  // refresh_token
-  const refresh_token = await setRefreshToken(id)
+  const refreshToken = await setRefreshToken(id)
 
-  // generate JWT
-  const jwt_token = createHasuraJwt(account)
-  const jwt_expires_in = newJwtExpiry
-  const user: UserData = {
-    id: account.user.id,
-    display_name: account.user.display_name,
-    email: account.email,
-    avatar_url: account.user.avatar_url
-  }
-  const session: Session = { jwt_token, jwt_expires_in, user, refresh_token }
+  const jwtToken = createHasuraJwtToken(user)
+  const jwtExpiresIn = newJwtExpiry
+  const session: Session = { jwtToken, jwtExpiresIn, user: userToSessionUser(user), refreshToken }
 
   req.logger.verbose(`User ${user.id} logged in with email ${email}`, {
-    user_id: user.id,
+    userId: user.id,
     email
   })
 
@@ -188,9 +183,9 @@ export default (router: Router) => {
     '/login',
     createValidator().body(loginSchema),
     (req: ValidatedRequest<Schema>, res: Response, next: NextFunction) => {
-      if(isAnonymousLogin(req.body) && !AUTHENTICATION.ANONYMOUS_USERS_ENABLED) {
+      if (isAnonymousLogin(req.body) && !AUTHENTICATION.ANONYMOUS_USERS_ENABLED) {
         return res.boom.badRequest('Anonymous login is disabled')
-      } else if(isMagicLinkLogin(req.body) && !AUTHENTICATION.MAGIC_LINK_ENABLED) {
+      } else if (isMagicLinkLogin(req.body) && !AUTHENTICATION.MAGIC_LINK_ENABLED) {
         return res.boom.badRequest('Magic link login is disabled')
       } else {
         return next()

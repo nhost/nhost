@@ -1,0 +1,29 @@
+mutation insertRefreshToken($refreshToken: authRefreshTokens_insert_input!) {
+  insertAuthRefreshToken(object: $refreshToken) {
+    refreshToken
+  }
+}
+
+mutation updateRefreshToken(
+  $refreshTokenId: uuid!
+  $refreshToken: authRefreshTokens_insert_input!
+) {
+  deleteAuthRefreshTokens(where: { refreshToken: { _eq: $refreshTokenId } }) {
+    affected_rows
+  }
+  insertAuthRefreshTokens(objects: [$refreshToken]) {
+    affected_rows
+  }
+}
+
+mutation deleteRefreshToken($id: uuid!) {
+  deleteAuthRefreshToken(refreshToken: $id) {
+    refreshToken
+  }
+}
+
+mutation deleteUserRefreshTokens($userId: uuid!) {
+  deleteAuthRefreshTokens(where: { user: { id: { _eq: $userId } } }) {
+    affected_rows
+  }
+}

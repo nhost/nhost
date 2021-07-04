@@ -19,7 +19,7 @@ it('should refresh the token', (done) => {
 
         request
           .get('/token/refresh')
-          .query({ refresh_token: refreshToken })
+          .query({ refreshToken })
           .expect(statusCode(200))
           .expect(validJwt())
           .expect(validRefreshToken())

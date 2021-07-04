@@ -18,7 +18,7 @@ export const JWT = {
     return path.resolve(process.env.PWD || '.', 'keys/private.pem')
   },
   get EXPIRES_IN() {
-    return castIntEnv('JWT_EXPIRES_IN', 15)
+    return castIntEnv('jwtExpiresIn', 15)
   },
   get REFRESH_EXPIRES_IN() {
     return castIntEnv('JWT_REFRESH_EXPIRES_IN', 43200)

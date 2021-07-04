@@ -41,7 +41,9 @@ const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
         return this.$_addRule({ name: 'allowedRedirectUrls' })
       },
       validate(value: string, helpers): unknown {
-        if(APPLICATION.ALLOWED_REDIRECT_URLS.some(allowedUrl => compareUrls(value, allowedUrl))) {
+        if (
+          APPLICATION.ALLOWED_REDIRECT_URLS.some((allowedUrl) => compareUrls(value, allowedUrl))
+        ) {
           return value
         } else {
           return helpers.error('string.allowedRedirectUrls')
@@ -51,39 +53,38 @@ const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
   }
 }))
 
-const passwordRule = Joi.string().min(REGISTRATION.MIN_PASSWORD_LENGTH).max(128);
-const passwordRuleRequired = passwordRule.required();
+const passwordRule = Joi.string().min(REGISTRATION.MIN_PASSWORD_LENGTH).max(128)
+const passwordRuleRequired = passwordRule.required()
 
 const emailRule = extendedJoi.string().email().required().allowedDomains()
 
 const localeRule = Joi.string().length(2)
 const localeRuleWithDefault = localeRule.default(APPLICATION.EMAILS_DEFAULT_LOCALE)
 
-const accountFields = {
+const userFields = {
   email: emailRule,
   password: passwordRuleRequired,
   locale: localeRuleWithDefault
 }
 
-type AccountFields = {
+type UserFields = {
   email: string
-  password?: string
+  password: string
   locale: string
 }
 
-const accountFieldsMagicLink = {
+const userFieldsMagicLink = {
   email: emailRule,
   locale: localeRuleWithDefault
 }
 
-
-type AccountFieldsMagicLink = {
+type UserFieldsMagicLink = {
   email: string
   locale: string
 }
 
 export const userDataFields = {
-  user_data: Joi.object(
+  custom_register_data: Joi.object(
     REGISTRATION.CUSTOM_FIELDS.reduce<{ [k: string]: Joi.Schema[] }>(
       (aggr, key) => ({
         ...aggr,
@@ -98,30 +99,26 @@ export const userDataFields = {
       {}
     )
   ),
-  register_options: Joi.object({
-    allowed_roles: Joi.array().items(Joi.string()),
-    default_role: Joi.string()
-  })
+  allowedRoles: Joi.array().items(Joi.string()),
+  defaultRole: Joi.string()
 }
 
 export type UserDataFields = {
-  user_data: any,
-  register_options?: {
-    allowed_roles?: string[],
-    default_role?: string
-  }
+  allowedRoles?: string[]
+  defaultRole?: string
+  customRegisterData?: any
 }
 
 export const registerSchema = Joi.alternatives().try(
   // Regular register
   Joi.object({
-    ...accountFields,
-    ...userDataFields,
+    ...userFields,
+    ...userDataFields
   }),
   // Magic link register
   Joi.object({
-    ...accountFieldsMagicLink,
-    ...userDataFields,
+    ...userFieldsMagicLink,
+    ...userDataFields
   })
 )
 
@@ -133,9 +130,9 @@ export function isMagicLinkRegister(body: RegisterSchema): body is MagicLinkRegi
   return body.email !== undefined && (body as RegularRegister).password === undefined
 }
 
-export type RegularRegister = AccountFields & UserDataFields
+export type RegularRegister = UserFields & UserDataFields
 
-export type MagicLinkRegister = AccountFieldsMagicLink & UserDataFields
+export type MagicLinkRegister = UserFieldsMagicLink & UserDataFields
 
 export type RegisterSchema = RegularRegister | MagicLinkRegister
 
@@ -145,7 +142,7 @@ export const deanonymizeSchema = Joi.object({
 })
 
 export type DeanonymizeSchema = {
-  email: string,
+  email: string
   password: string
 }
 
@@ -171,29 +168,29 @@ type CodeFields = {
 
 export const resetPasswordWithTicketSchema = Joi.object({
   ...ticketFields,
-  new_password: passwordRule
+  newPassword: passwordRule
 })
 
 export type ResetPasswordWithTicketSchema = TicketFields & {
-  new_password: string
+  newPassword: string
 }
 
 export const changePasswordFromOldSchema = Joi.object({
-  old_password: passwordRule,
-  new_password: passwordRule
+  oldPassword: passwordRule,
+  newPassword: passwordRule
 })
 
 export type ChangePasswordFromOldSchema = {
-  old_password: string
-  new_password: string
+  oldPassword: string
+  newPassword: string
 }
 
 export const emailResetSchema = Joi.object({
-  new_email: emailRule
+  newEmail: emailRule
 })
 
 export type EmailResetSchema = {
-  new_email: string
+  newEmail: string
 }
 
 export const logoutSchema = Joi.object({
@@ -224,7 +221,7 @@ export const loginSchema = Joi.alternatives().try(
   Joi.object({
     anonymous: Joi.boolean().invalid(false), // anonymous: true
     locale: localeRuleWithDefault
-  }),
+  })
 )
 
 export function isRegularLogin(body: LoginSchema): body is RegularLogin {
@@ -269,15 +266,15 @@ export type VerifySchema = TicketFields
 
 export const totpSchema = Joi.object({
   ...codeFields,
-  ...ticketFields,
+  ...ticketFields
 })
 
 export type TotpSchema = CodeFields & TicketFields
 
 export const magicLinkQuery = Joi.object({
   token: Joi.string().required(),
-  action: Joi.string().valid('log-in', 'register').required(),
-});
+  action: Joi.string().valid('log-in', 'register').required()
+})
 
 export type MagicLinkQuery = {
   token: string
@@ -297,15 +294,21 @@ export type WhitelistQuery = {
 }
 
 export const providerQuery = Joi.object({
-  redirect_url_success: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_SUCCESS),
-  redirect_url_failure: extendedJoi.string().allowedRedirectUrls().default(APPLICATION.REDIRECT_URL_ERROR),
-  jwt_token: Joi.string()
-});
+  redirectUrlSuccess: extendedJoi
+    .string()
+    .allowedRedirectUrls()
+    .default(APPLICATION.REDIRECT_URL_SUCCESS),
+  redirectUrlFailure: extendedJoi
+    .string()
+    .allowedRedirectUrls()
+    .default(APPLICATION.REDIRECT_URL_ERROR),
+  jwtToken: Joi.string()
+})
 
 export type ProviderQuery = {
-  redirect_url_success?: string
-  redirect_url_failure?: string
-  jwt_token?: string
+  redirectUrlSuccess?: string
+  redirectUrlFailure?: string
+  jwtToken?: string
 }
 
 export const providerCallbackQuery = Joi.object({
@@ -317,11 +320,11 @@ export type ProviderCallbackQuery = {
   [key: string]: any
 }
 
-export const localeQuery = Joi.object({
+export const localeSchema = Joi.object({
   locale: localeRuleWithDefault
 })
 
-export type LocaleQuery = {
+export type LocaleSchema = {
   locale: string
 }
 
