@@ -3236,7 +3236,7 @@ export type DeleteUserRefreshTokensMutation = (
 
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'active' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpSecret' | 'mfaEnabled' | 'newEmail' | 'lastConfirmationEmailSentAt' | 'locale'>
+  & Pick<Users, 'id' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'active' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpSecret' | 'mfaEnabled' | 'newEmail' | 'lastConfirmationEmailSentAt' | 'locale' | 'customRegisterData'>
   & { roles: Array<(
     { __typename?: 'authUserRoles' }
     & Pick<AuthUserRoles, 'role'>
@@ -3371,7 +3371,10 @@ export type DeleteUserMutationVariables = Exact<{
 
 export type DeleteUserMutation = (
   { __typename?: 'mutation_root' }
-  & { deleteUser?: Maybe<(
+  & { deleteAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )>, deleteUser?: Maybe<(
     { __typename?: 'users' }
     & UserFieldsFragment
   )> }
@@ -3379,22 +3382,19 @@ export type DeleteUserMutation = (
 
 export type DeanonymizeUserMutationVariables = Exact<{
   userId: Scalars['uuid'];
-  user: Users_Set_Input;
-  userRoles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
+  avatarUrl?: Maybe<Scalars['String']>;
+  role: Scalars['String'];
 }>;
 
 
 export type DeanonymizeUserMutation = (
   { __typename?: 'mutation_root' }
-  & { updateUser?: Maybe<(
+  & { updateAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )>, updateUser?: Maybe<(
     { __typename?: 'users' }
     & Pick<Users, 'id'>
-  )>, deleteAuthUserRoles?: Maybe<(
-    { __typename?: 'authUserRoles_mutation_response' }
-    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
-  )>, insertAuthUserRoles?: Maybe<(
-    { __typename?: 'authUserRoles_mutation_response' }
-    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
   )> }
 );
 
@@ -3479,6 +3479,10 @@ export const UserFieldsFragmentDoc = gql`
   newEmail
   lastConfirmationEmailSentAt
   locale
+  customRegisterData
+  roles {
+    role
+  }
 }
     `;
 export const EmailTemplateDocument = gql`
@@ -3627,21 +3631,21 @@ export const InsertUserDocument = gql`
     ${UserFieldsFragmentDoc}`;
 export const DeleteUserDocument = gql`
     mutation deleteUser($userId: uuid!) {
+  deleteAuthUserRoles(where: {userId: {_eq: $userId}}) {
+    affected_rows
+  }
   deleteUser(id: $userId) {
     ...userFields
   }
 }
     ${UserFieldsFragmentDoc}`;
 export const DeanonymizeUserDocument = gql`
-    mutation deanonymizeUser($userId: uuid!, $user: users_set_input!, $userRoles: [authUserRoles_insert_input!]!) {
-  updateUser(pk_columns: {id: $userId}, _set: $user) {
+    mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
+  updateAuthUserRoles(where: {user: {id: {_eq: $userId}}}, _set: {role: $role}) {
+    affected_rows
+  }
+  updateUser(pk_columns: {id: $userId}, _set: {avatarUrl: $avatarUrl, defaultRole: $role, active: true}) {
     id
-  }
-  deleteAuthUserRoles(where: {userId: {_eq: $userId}}) {
-    affected_rows
-  }
-  insertAuthUserRoles(objects: $userRoles) {
-    affected_rows
   }
 }
     `;

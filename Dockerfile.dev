@@ -21,8 +21,8 @@ ENV PGOPTIONS "-c search_path=auth"
 
 WORKDIR /app
 
-# COPY package.json yarn.lock ./
-# RUN yarn install
+COPY package.json yarn.lock ./
+RUN yarn install
 
 COPY . .
 

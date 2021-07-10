@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 import {
   asyncWrapper,
   isCompromisedPassword,
-  getUser,
+  getUserById,
   hashPassword,
 } from "@/helpers";
 import {
@@ -44,7 +44,7 @@ async function basicPasswordChange(
     return res.boom.badRequest("Password is too weak");
   }
 
-  const user = await getUser(userId);
+  const user = await getUserById(userId);
 
   if (
     user.passwordHash &&

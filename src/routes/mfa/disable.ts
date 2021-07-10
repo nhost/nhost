@@ -1,4 +1,4 @@
-import { asyncWrapper, getUser } from "@/helpers";
+import { asyncWrapper, getUserById } from "@/helpers";
 import { Response, Router } from "express";
 
 import { authenticator } from "otplib";
@@ -23,7 +23,7 @@ async function disableMfa(
 
   const { code } = req.body;
 
-  const user = await getUser(userId);
+  const user = await getUserById(userId);
 
   const { otpSecret, mfaEnabled } = user;
 

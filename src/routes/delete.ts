@@ -18,7 +18,7 @@ async function deleteUser(req: Request, res: Response): Promise<unknown> {
 
   const { userId } = req.auth;
 
-  const user = gqlSdk
+  const user = await gqlSdk
     .deleteUser({
       userId,
     })

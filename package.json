@@ -31,7 +31,7 @@
     "test-command": "jest --runInBand --coverage",
     "test:ci": "NODE_ENV=ci jest --coverage",
     "test:watch:old": "run-s check-test-env && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml build hasura-auth && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --use-aliases --entrypoint \"npm run test:watch-command\" hasura-auth",
-    "test:watch-command": "jest --watchAll",
+    "test:watch-command": "jest --runInBand --watchAll",
     "test:debug": "run-s check-test-env && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml build hasura-auth && dotenv -e .env.test -- docker-compose -p \"hbp_test\" -f docker-compose.yaml -f docker-compose.test.yaml run --service-ports --use-aliases --entrypoint \"npm run test:debug-command\" hasura-auth",
     "test:debug-command": "LOGGER_ENABLED=true LOGGER_LEVEL=debug node --inspect-brk=0.0.0.0 ./node_modules/jest/bin/jest.js --testTimeout=999999999 --runInBand",
     "report-coverage": "codecov",

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import { authenticator } from "otplib";
-import { asyncWrapper, createQR, getUser } from "@/helpers";
+import { asyncWrapper, createQR, getUserById } from "@/helpers";
 import { MFA } from "@config/index";
 import { gqlSdk } from "@/utils/gqlSDK";
 
@@ -11,7 +11,7 @@ async function generateMfa(req: Request, res: Response): Promise<unknown> {
 
   const { userId } = req.auth;
 
-  const user = await getUser(userId);
+  const user = await getUserById(userId);
 
   const { mfaEnabled } = user;
 

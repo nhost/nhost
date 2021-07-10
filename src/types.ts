@@ -45,8 +45,8 @@ export type Token = {
 }
 
 export interface Session {
-  jwtToken: string | null;
-  jwtExpiresIn: number | null;
+  jwtToken: string
+  jwtExpiresIn: number
   refreshToken?: string
   user: SessionUser;
 }

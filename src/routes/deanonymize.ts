@@ -103,7 +103,7 @@ async function deanonymizeUserHandler(
     await emailClient.send({
       template: "activate-user",
       message: {
-        to: user.newEmail,
+        to: user.email,
         headers: {
           "x-ticket": {
             prepared: true,

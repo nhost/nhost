@@ -12,9 +12,6 @@ node_modules
 config.yaml
 docker-compose*
 Dockerfile*
-jest*
 npm-debug.log
 yarn-error.log
-**/*.test.ts
-src/test
 **/*.pem

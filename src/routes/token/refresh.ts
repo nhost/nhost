@@ -1,5 +1,5 @@
 import { Response, Router, Request } from 'express'
-import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
+import { createHasuraJwtToken } from '@/jwt'
 import { v4 as uuidv4 } from 'uuid'
 import { SessionUser, Session } from '@/types'
 import { asyncWrapper, newRefreshExpiry, userToSessionUser } from '@/helpers'
@@ -31,7 +31,7 @@ async function refreshToken({ refreshToken }: Request, res: Response): Promise<a
   })
 
   const jwtToken = createHasuraJwtToken(user)
-  const jwtExpiresIn = newJwtExpiry
+  const jwtExpiresIn = +newRefreshExpiry()
   const sessionUser: SessionUser = userToSessionUser(user)
   const session: Session = {
     jwtToken,
@@ -43,5 +43,5 @@ async function refreshToken({ refreshToken }: Request, res: Response): Promise<a
 }
 
 export default (router: Router) => {
-  router.get('/refresh', asyncWrapper(refreshToken))
+  router.post('/refresh', asyncWrapper(refreshToken))
 }

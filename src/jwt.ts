@@ -1,14 +1,15 @@
-import { JWT as CONFIG_JWT, REGISTRATION } from '@config/index'
-import { JWK, JWKS, JWT } from 'jose'
+import { JWT as CONFIG_JWT, REGISTRATION } from "@config/index";
+import { JWK, JWKS, JWT } from "jose";
 
-import fs from 'fs'
-import { Claims, Token, ClaimValueType, PermissionVariables } from './types'
-import { UserFieldsFragment } from './utils/__generated__/graphql-request'
+import fs from "fs";
+import { Claims, Token, ClaimValueType, PermissionVariables } from "./types";
+import { UserFieldsFragment } from "./utils/__generated__/graphql-request";
 
-const RSA_TYPES = ['RS256', 'RS384', 'RS512']
-const SHA_TYPES = ['HS256', 'HS384', 'HS512']
+const RSA_TYPES = ["RS256", "RS384", "RS512"];
+const SHA_TYPES = ["HS256", "HS384", "HS512"];
 
-let jwtKey: string | JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey = CONFIG_JWT.KEY
+let jwtKey: string | JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey =
+  CONFIG_JWT.KEY;
 
 /**
  * * Sets the JWT Key.
@@ -19,29 +20,36 @@ let jwtKey: string | JWK.RSAKey | JWK.ECKey | JWK.OKPKey | JWK.OctKey = CONFIG_J
 if (RSA_TYPES.includes(CONFIG_JWT.ALGORITHM)) {
   if (jwtKey) {
     try {
-      jwtKey = JWK.asKey(jwtKey, { alg: CONFIG_JWT.ALGORITHM })
-      jwtKey.toPEM(true)
+      jwtKey = JWK.asKey(jwtKey, { alg: CONFIG_JWT.ALGORITHM });
+      jwtKey.toPEM(true);
     } catch (error) {
-      throw new Error('Invalid RSA private key in the JWT_KEY environment variable')
+      throw new Error(
+        "Invalid RSA private key in the JWT_KEY environment variable"
+      );
     }
   } else {
     try {
-      const file = fs.readFileSync(CONFIG_JWT.KEY_FILE_PATH)
-      jwtKey = JWK.asKey(file)
+      const file = fs.readFileSync(CONFIG_JWT.KEY_FILE_PATH);
+      jwtKey = JWK.asKey(file);
     } catch (error) {
-      jwtKey = JWK.generateSync('RSA', 2048, { alg: CONFIG_JWT.ALGORITHM, use: 'sig' }, true)
-      fs.writeFileSync(CONFIG_JWT.KEY_FILE_PATH, jwtKey.toPEM(true))
+      jwtKey = JWK.generateSync(
+        "RSA",
+        2048,
+        { alg: CONFIG_JWT.ALGORITHM, use: "sig" },
+        true
+      );
+      fs.writeFileSync(CONFIG_JWT.KEY_FILE_PATH, jwtKey.toPEM(true));
     }
   }
 } else if (SHA_TYPES.includes(CONFIG_JWT.ALGORITHM)) {
   if (!jwtKey) {
-    throw new Error('Empty JWT secret key')
+    throw new Error("Empty JWT secret key");
   }
 } else {
-  throw new Error(`Invalid JWT algorithm: ${CONFIG_JWT.ALGORITHM}`)
+  throw new Error(`Invalid JWT algorithm: ${CONFIG_JWT.ALGORITHM}`);
 }
 
-export const newJwtExpiry = CONFIG_JWT.EXPIRES_IN * 60 * 1000
+export const newJwtExpiry = CONFIG_JWT.EXPIRES_IN * 60 * 1000;
 
 /**
  * Create an object that contains all the permission variables of the user,
@@ -53,20 +61,31 @@ export function generatePermissionVariables(
   user: UserFieldsFragment,
   JWTPrefix: boolean | string = false
 ): { [key: string]: ClaimValueType } {
-  const prefix = JWTPrefix ? 'x-hasura-' : ''
-  const role = user.isAnonymous
-    ? REGISTRATION.DEFAULT_ANONYMOUS_ROLE
-    : user.defaultRole || REGISTRATION.DEFAULT_USER_ROLE
-  const userRoles = user.roles.map((role) => role.role)
+  const prefix = JWTPrefix ? "x-hasura-" : "";
+  const role =
+    user.defaultRole || user.isAnonymous
+      ? REGISTRATION.DEFAULT_ANONYMOUS_ROLE
+      : REGISTRATION.DEFAULT_USER_ROLE;
+  const userRoles = user.roles.map((role) => role.role);
 
   if (!userRoles.includes(role)) {
-    userRoles.push(role)
+    userRoles.push(role);
   }
+
+  const customRegisterData =
+    user.customRegisterData &&
+    (Object.fromEntries(
+      Object.entries(user.customRegisterData).map(([k, v]) => [
+        `${prefix}${k}`,
+        v,
+      ])
+    ) as { [key: string]: ClaimValueType });
 
   return {
     [`${prefix}user-id`]: user.id,
     [`${prefix}allowed-roles`]: userRoles,
-    [`${prefix}default-role`]: role
+    [`${prefix}default-role`]: role,
+    ...customRegisterData,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     // TODO: Get user.profile data + custom fields (config )
     // TODO: and populate this...
@@ -86,7 +105,7 @@ export function generatePermissionVariables(
 
     //   return aggr
     // }, {})
-  }
+  };
 }
 
 /**
@@ -95,50 +114,60 @@ export function generatePermissionVariables(
  */
 export const getJwkStore = (): JWKS.KeyStore => {
   if (RSA_TYPES.includes(CONFIG_JWT.ALGORITHM)) {
-    const keyStore = new JWKS.KeyStore()
-    keyStore.add(jwtKey as JWK.RSAKey)
-    return keyStore
+    const keyStore = new JWKS.KeyStore();
+    keyStore.add(jwtKey as JWK.RSAKey);
+    return keyStore;
   }
-  throw new Error('JWKS is not implemented on this server')
-}
+  throw new Error("JWKS is not implemented on this server");
+};
 
 /**
  * * Signs a payload with the existing JWT configuration
  */
-export const sign = ({ payload, user }: { payload: object; user: UserFieldsFragment }) => {
+export const sign = ({
+  payload,
+  user,
+}: {
+  payload: object;
+  user: UserFieldsFragment;
+}) => {
   return JWT.sign(payload, jwtKey, {
     algorithm: CONFIG_JWT.ALGORITHM,
     expiresIn: `${CONFIG_JWT.EXPIRES_IN}m`,
     subject: user.id,
-    issuer: 'nhost'
-  })
-}
+    issuer: "nhost",
+  });
+};
 
 /**
  * Verify JWT token and return the Hasura claims.
  * @param authorization Authorization header.
  */
 export const getClaims = (authorization: string | undefined): Claims => {
-  if (!authorization) throw new Error('Missing Authorization header')
-  const token = authorization.replace('Bearer ', '')
+  if (!authorization) throw new Error("Missing Authorization header");
+  const token = authorization.replace("Bearer ", "");
   try {
-    const decodedToken = JWT.verify(token, jwtKey) as Token
-    if (!decodedToken[CONFIG_JWT.CLAIMS_NAMESPACE]) throw new Error('Claims namespace not found')
-    return decodedToken[CONFIG_JWT.CLAIMS_NAMESPACE]
+    const decodedToken = JWT.verify(token, jwtKey) as Token;
+    if (!decodedToken[CONFIG_JWT.CLAIMS_NAMESPACE])
+      throw new Error("Claims namespace not found");
+    return decodedToken[CONFIG_JWT.CLAIMS_NAMESPACE];
   } catch (err) {
-    throw new Error('Invalid or expired JWT token')
+    throw new Error("Invalid or expired JWT token");
   }
-}
+};
 
-export const getPermissionVariablesFromClaims = (claims: Claims): PermissionVariables => {
+export const getPermissionVariablesFromClaims = (
+  claims: Claims
+): PermissionVariables => {
   // remove `x-hasura-` from claim props
-  const claimsSanitized: { [k: string]: any } = {}
+  const claimsSanitized: { [k: string]: any } = {};
   for (const claimKey in claims) {
-    claimsSanitized[claimKey.replace('x-hasura-', '') as string] = claims[claimKey]
+    claimsSanitized[claimKey.replace("x-hasura-", "") as string] =
+      claims[claimKey];
   }
 
-  return claimsSanitized as PermissionVariables
-}
+  return claimsSanitized as PermissionVariables;
+};
 
 /**
  * Create JWT token.
@@ -146,8 +175,8 @@ export const getPermissionVariablesFromClaims = (claims: Claims): PermissionVari
 export const createHasuraJwtToken = (user: UserFieldsFragment): string => {
   return sign({
     payload: {
-      [CONFIG_JWT.CLAIMS_NAMESPACE]: generatePermissionVariables(user, true)
+      [CONFIG_JWT.CLAIMS_NAMESPACE]: generatePermissionVariables(user, true),
     },
-    user
-  })
-}
+    user,
+  });
+};

@@ -1,5 +1,10 @@
-import { AUTHENTICATION, APPLICATION, REGISTRATION, HEADERS } from '@config/index'
-import { NextFunction, Response, Router } from 'express'
+import {
+  AUTHENTICATION,
+  APPLICATION,
+  REGISTRATION,
+  HEADERS,
+} from "@config/index";
+import { NextFunction, Response, Router } from "express";
 import {
   asyncWrapper,
   isCompromisedPassword,
@@ -7,68 +12,72 @@ import {
   setRefreshToken,
   getGravatarUrl,
   isWhitelistedEmail,
-  getUserByEmail
-} from '@/helpers'
-import { newJwtExpiry, createHasuraJwtToken } from '@/jwt'
-import { emailClient } from '@/email'
+  getUserByEmail,
+} from "@/helpers";
+import { newJwtExpiry, createHasuraJwtToken } from "@/jwt";
+import { emailClient } from "@/email";
 import {
   isMagicLinkLogin,
   isMagicLinkRegister,
   isRegularRegister,
   RegisterSchema,
-  registerSchema
-} from '@/validation'
-import { v4 as uuidv4 } from 'uuid'
-import { Session } from '@/types'
+  registerSchema,
+} from "@/validation";
+import { v4 as uuidv4 } from "uuid";
+import { Session } from "@/types";
 import {
   ValidatedRequest,
   ValidatedRequestSchema,
   ContainerTypes,
-  createValidator
-} from 'express-joi-validation'
-import { gqlSdk } from '@/utils/gqlSDK'
+  createValidator,
+} from "express-joi-validation";
+import { gqlSdk } from "@/utils/gqlSDK";
 
-async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Promise<unknown> {
-  const body = req.body
+async function registerAccount(
+  req: ValidatedRequest<Schema>,
+  res: Response
+): Promise<unknown> {
+  const body = req.body;
 
   if (REGISTRATION.ADMIN_ONLY) {
-    const adminSecret = req.headers[HEADERS.ADMIN_SECRET_HEADER]
+    const adminSecret = req.headers[HEADERS.ADMIN_SECRET_HEADER];
 
     if (adminSecret !== APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET) {
-      return res.boom.unauthorized('Invalid x-admin-secret')
+      return res.boom.unauthorized("Invalid x-admin-secret");
     }
   }
 
-  const { email, locale } = body
+  const { email, locale } = body;
 
   if (REGISTRATION.WHITELIST && !(await isWhitelistedEmail(email))) {
-    return res.boom.unauthorized('Email not allowed')
+    return res.boom.unauthorized("Email not allowed");
   }
 
   const userAlreadyExist = await getUserByEmail(body.email).catch(() => {
-    return null
-  })
+    return null;
+  });
 
   if (userAlreadyExist) {
-    return res.boom.badRequest('Email already in use')
+    return res.boom.badRequest("Email already in use");
   }
 
-  let passwordHash: string | null = null
+  let passwordHash: string | null = null;
 
-  const ticket = uuidv4()
+  const ticket = uuidv4();
   // Ticket expires after 60 min
-  const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString()
+  const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString();
 
   if (isRegularRegister(body)) {
     if (await isCompromisedPassword(body.password)) {
-      return res.boom.badRequest('Password is too weak')
+      return res.boom.badRequest("Password is too weak");
     }
 
-    passwordHash = await hashPassword(body.password)
+    passwordHash = await hashPassword(body.password);
   }
 
-  const defaultRole = body.defaultRole ?? REGISTRATION.DEFAULT_USER_ROLE
-  const allowedRoles = body.allowedRoles ?? REGISTRATION.DEFAULT_ALLOWED_USER_ROLES
+  const defaultRole = body.defaultRole ?? REGISTRATION.DEFAULT_USER_ROLE;
+  const allowedRoles =
+    body.allowedRoles ?? REGISTRATION.DEFAULT_ALLOWED_USER_ROLES;
 
   // check if default role is part of allowedRoles
   if (!allowedRoles.includes(defaultRole)) {
@@ -77,27 +86,36 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
       {
         email,
         defaultRole: defaultRole,
-        allowedRoles: allowedRoles
+        allowedRoles: allowedRoles,
       }
-    )
-    return res.boom.badRequest('Default role must be part of allowed roles')
+    );
+    return res.boom.badRequest("Default role must be part of allowed roles");
   }
 
   // check if allowed roles is a subset of allowedRoles
-  if (!allowedRoles.every((role: string) => REGISTRATION.ALLOWED_USER_ROLES.includes(role))) {
-    req.logger.verbose(`User tried registering with email ${email} but used an invalid role`, {
-      email,
-      allowedRoles: allowedRoles,
-      appAllowedRoles: REGISTRATION.ALLOWED_USER_ROLES
-    })
-    return res.boom.badRequest('Allowed roles must be a subset of allowedRoles')
+  if (
+    !allowedRoles.every((role: string) =>
+      REGISTRATION.ALLOWED_USER_ROLES.includes(role)
+    )
+  ) {
+    req.logger.verbose(
+      `User tried registering with email ${email} but used an invalid role`,
+      {
+        email,
+        allowedRoles: allowedRoles,
+        appAllowedRoles: REGISTRATION.ALLOWED_USER_ROLES,
+      }
+    );
+    return res.boom.badRequest(
+      "Allowed roles must be a subset of allowedRoles"
+    );
   }
 
-  const userRoles = allowedRoles.map((role: string) => ({ role }))
+  const userRoles = allowedRoles.map((role: string) => ({ role }));
 
   // todo allow to set displayName on register
-  const displayName = email
-  const avatarUrl = getGravatarUrl(email)
+  const displayName = email;
+  const avatarUrl = getGravatarUrl(email);
 
   const user = await gqlSdk
     .insertUser({
@@ -111,15 +129,16 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
         active: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
         locale,
         defaultRole,
+        customRegisterData: body.customRegisterData,
         roles: {
-          data: userRoles
-        }
-      }
+          data: userRoles,
+        },
+      },
     })
-    .then((res) => res.insertUser)
+    .then((res) => res.insertUser);
 
   if (!user) {
-    throw new Error('Unable to insert new user')
+    throw new Error("Unable to insert new user");
   }
 
   // create session user
@@ -127,28 +146,28 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
     id: user.id,
     email: user.email,
     displayName: displayName,
-    avatarUrl: user.avatarUrl || ''
-  }
+    avatarUrl: user.avatarUrl || "",
+  };
 
   if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
     if (!APPLICATION.EMAILS_ENABLED) {
-      throw new Error('SMTP settings unavailable')
+      throw new Error("SMTP settings unavailable");
     }
 
     // use display name from body
-    const displayName = body.customRegisterData?.displayName || email
+    const displayName = body.customRegisterData?.displayName || email;
 
     if (isMagicLinkLogin(body)) {
       await emailClient.send({
-        template: 'magic-link',
+        template: "magic-link",
         message: {
           to: user.email,
           headers: {
-            'x-ticket': {
+            "x-ticket": {
               prepared: true,
-              value: ticket
-            }
-          }
+              value: ticket,
+            },
+          },
         },
         locals: {
           displayName,
@@ -156,87 +175,93 @@ async function registerAccount(req: ValidatedRequest<Schema>, res: Response): Pr
           url: APPLICATION.SERVER_URL,
           locale: user.locale,
           appUrl: APPLICATION.APP_URL,
-          action: 'register',
-          actionUrl: 'register'
+          action: "register",
+          actionUrl: "register",
+        },
+      });
+
+      req.logger.verbose(
+        `New magic link user registration with id ${user.id} and email ${email}`,
+        {
+          userId: user.id,
+          email,
         }
-      })
+      );
 
-      const session: Session = {
-        jwtToken: null,
-        jwtExpiresIn: null,
-        user: sessionUser
-      }
-
-      req.logger.verbose(`New magic link user registration with id ${user.id} and email ${email}`, {
-        userId: user.id,
-        email
-      })
-
-      return res.send(session)
+      return res.send({ user: sessionUser });
     }
 
     await emailClient.send({
-      template: 'activate-user',
+      template: "activate-user",
       message: {
         to: email,
         headers: {
-          'x-ticket': {
+          "x-ticket": {
             prepared: true,
-            value: ticket
-          }
-        }
+            value: ticket,
+          },
+        },
       },
       locals: {
         displayName,
         ticket,
         url: APPLICATION.SERVER_URL,
-        locale: user.locale
+        locale: user.locale,
+      },
+    });
+
+    req.logger.verbose(
+      `New user registration with id ${user.id} and email ${email}`,
+      {
+        userId: user.id,
+        email,
       }
-    })
+    );
 
-    const session: Session = { jwtToken: null, jwtExpiresIn: null, user: sessionUser }
-
-    req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
-      userId: user.id,
-      email
-    })
-
-    return res.send(session)
+    return res.send({ user: sessionUser });
   }
 
   // continue here if auto activate users
 
-  const refreshToken = await setRefreshToken(user.id)
+  const refreshToken = await setRefreshToken(user.id);
 
   // generate JWT
-  const jwtToken = createHasuraJwtToken(user)
-  const jwtExpiresIn = newJwtExpiry
+  const jwtToken = createHasuraJwtToken(user);
+  const jwtExpiresIn = newJwtExpiry;
 
-  const session: Session = { jwtToken, jwtExpiresIn, user: sessionUser, refreshToken }
+  const session: Session = {
+    jwtToken,
+    jwtExpiresIn,
+    user: sessionUser,
+    refreshToken,
+  };
 
-  req.logger.verbose(`New user registration with id ${user.id} and email ${email}`, {
-    userId: user.id,
-    email
-  })
+  req.logger.verbose(
+    `New user registration with id ${user.id} and email ${email}`,
+    {
+      userId: user.id,
+      email,
+    }
+  );
 
-  return res.send(session)
+  return res.send(session);
 }
 
 interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: RegisterSchema
+  [ContainerTypes.Body]: RegisterSchema;
 }
 
 export default (router: Router) => {
   router.post(
-    '/register',
+    "/register",
     createValidator().body(registerSchema),
     (req: ValidatedRequest<Schema>, res: Response, next: NextFunction) => {
       if (isMagicLinkRegister(req.body) && !AUTHENTICATION.MAGIC_LINK_ENABLED) {
-        return res.boom.badRequest('Magic link registration is disabled')
+        return res.boom.badRequest("Magic link registration is disabled");
       } else {
-        return next()
+        return next();
       }
     },
     asyncWrapper(registerAccount)
-  )
-}
+  );
+};
