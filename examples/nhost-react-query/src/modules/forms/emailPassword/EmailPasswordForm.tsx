@@ -31,9 +31,8 @@ const EmailPasswordForm = ({
 }: EmailPasswordFormProps): ReactElement => {
   const {
     handleSubmit,
-    errors,
     register,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = useForm<FormData>({
     mode: 'onBlur',
     reValidateMode: 'onBlur',
@@ -57,9 +56,8 @@ const EmailPasswordForm = ({
         <FormControl isInvalid={!!errors.email}>
           <FormLabel htmlFor="email">Email</FormLabel>
           <Input
-            name="email"
             placeholder="you@email.com"
-            ref={register({ validate: handleEmailValidation })}
+            {...register('email', { validate: handleEmailValidation })}
           />
           <FormErrorMessage>{errors.email?.message}</FormErrorMessage>
         </FormControl>
@@ -67,9 +65,8 @@ const EmailPasswordForm = ({
         <FormControl isInvalid={!!errors.password}>
           <FormLabel htmlFor="password">Password</FormLabel>
           <Input
-            name="password"
             type="password"
-            ref={register({
+            {...register('password', {
               validate: handlePasswordValidation,
             })}
           />

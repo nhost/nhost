@@ -54,3 +54,11 @@ api/node_modules
 
 .graphqlconfig
 schema.graphql
+
+# Environment files
+.env
+.env.local
+.env.dev
+.env.development
+.env.prod
+.env.production

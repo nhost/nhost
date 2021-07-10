@@ -1,7 +1,6 @@
 import { usePrivateRoute } from '@hooks/usePrivateRoute'
 import Login from '@modules/auth/login/Login'
 import Layout from '@modules/layout/Layout'
-import FullPageLoader from '@modules/loader/FullPageLoader'
 import { useRouter } from 'next/router'
 import { ReactElement, useEffect } from 'react'
 
@@ -16,7 +15,7 @@ export default function LoginPage(): ReactElement {
     return () => {
       removeRedirectTo()
     }
-  }, [removeRedirectTo, user, redirectTo])
+  }, [removeRedirectTo, user, redirectTo, router])
 
   console.warn('user in login')
   // remove this as the login page is never shown
