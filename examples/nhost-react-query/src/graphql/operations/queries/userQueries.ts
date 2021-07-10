@@ -1,4 +1,4 @@
-import { gql } from '@apollo/client'
+import { gql } from 'graphql-tag'
 
 export const GET_USER_BY_ID = gql`
   query GetUserById($id: uuid!) {
