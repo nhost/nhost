@@ -10,9 +10,10 @@ export type Scalars = {
   Int: number
   Float: number
   citext: any
-  jsonb: any
-  timestamptz: any
-  uuid: any
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  jsonb: object
+  timestamptz: string
+  uuid: string
 }
 
 /** columns and relationships of "auth.account_providers" */
