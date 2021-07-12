@@ -356,22 +356,24 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	// then Hasura must be auto-applying migrations
 	// hence, manually applying migrations doesn't make sense
 
-	// create migrations
-	cmdArgs = []string{hasuraCLI, "migrate", "apply"}
-	cmdArgs = append(cmdArgs, commandOptions...)
+	/*
+		// create migrations
+		cmdArgs = []string{hasuraCLI, "migrate", "apply"}
+		cmdArgs = append(cmdArgs, commandOptions...)
 
-	execute = exec.Cmd{
-		Path: hasuraCLI,
-		Args: cmdArgs,
-		Dir:  nhost.NHOST_DIR,
-	}
+		execute = exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhost.NHOST_DIR,
+		}
 
-	output, err := execute.CombinedOutput()
-	if err != nil {
-		log.Debug(string(output))
-		log.Error("Failed to apply migrations")
-		return err
-	}
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to apply migrations")
+			return err
+		}
+	*/
 
 	seed_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
 	if err != nil {
@@ -412,6 +414,8 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 
 	if len(metaFiles) == 0 {
 
+		log.Debug("Exporting metadata")
+
 		// export metadata
 		cmdArgs = []string{hasuraCLI, "metadata", "export"}
 		cmdArgs = append(cmdArgs, commandOptions...)
@@ -425,7 +429,6 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 		output, err = execute.CombinedOutput()
 		if err != nil {
 			log.Debug(string(output))
-			log.Error("Failed to export metadata")
 			return err
 		}
 	}
@@ -434,22 +437,24 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	// then Hasura must be auto-applying metadata
 	// hence, manually applying metadata doesn't make sense
 
-	// apply metadata
-	cmdArgs = []string{hasuraCLI, "metadata", "apply"}
-	cmdArgs = append(cmdArgs, commandOptions...)
+	/*
+		// apply metadata
+		cmdArgs = []string{hasuraCLI, "metadata", "apply"}
+		cmdArgs = append(cmdArgs, commandOptions...)
 
-	execute = exec.Cmd{
-		Path: hasuraCLI,
-		Args: cmdArgs,
-		Dir:  nhost.NHOST_DIR,
-	}
+		execute = exec.Cmd{
+			Path: hasuraCLI,
+			Args: cmdArgs,
+			Dir:  nhost.NHOST_DIR,
+		}
 
-	output, err = execute.CombinedOutput()
-	if err != nil {
-		log.Debug(string(output))
-		log.Error("Failed to apply metadata")
-		return err
-	}
+		output, err = execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to apply metadata")
+			return err
+		}
+	*/
 
 	return nil
 }
@@ -577,7 +582,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 
 	requiredImages := []string{
 		fmt.Sprintf("nhost/postgres:%v", postgresConfig.Version),
-		fmt.Sprintf("%s:%v", hasuraConfig.Image, hasuraConfig.Version),
+		fmt.Sprintf("%s:%v.cli-migrations-v2", hasuraConfig.Image, hasuraConfig.Version),
 		fmt.Sprintf("nhost/hasura-auth:%v", authConfig.Version),
 		fmt.Sprintf("minio/minio:%v", minioConfig.Version),
 	}
@@ -716,11 +721,22 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 			Source: nhost.MIGRATIONS_DIR,
 			Target: "/hasura-migrations",
 		},
-		{
+	}
+
+	// parse the metadata directory tree
+	meta_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
+	if err != nil {
+		log.Error("Failed to parse the tree of metadata directory")
+		return containers, err
+	}
+
+	// mount the metadata directory if meta files exist
+	if len(meta_files) > 0 {
+		mountPoints = append(mountPoints, mount.Mount{
 			Type:   mount.TypeBind,
 			Source: nhost.METADATA_DIR,
 			Target: "/hasura-metadata",
-		},
+		})
 	}
 
 	for _, mountPoint := range mountPoints {
@@ -743,7 +759,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 				Retries:     10,
 				StartPeriod: 60000000000,
 			},
-			Image: fmt.Sprintf(`%s:%v`, hasuraConfig.Image, hasuraConfig.Version),
+			Image: fmt.Sprintf(`%s:%v.cli-migrations-v2`, hasuraConfig.Image, hasuraConfig.Version),
 			Env:   containerVariables,
 			ExposedPorts: nat.PortSet{
 				nat.Port(strconv.Itoa(hasuraConfig.Port)): struct{}{},

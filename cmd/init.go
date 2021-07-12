@@ -236,16 +236,16 @@ var initCmd = &cobra.Command{
 				Client:      &Client,
 			}
 
+			// load hasura binary
+			hasuraCLI, _ := hasura.Binary()
+
+			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
+
 			// clear current migration information from remote
 			if err := hasuraClient.ClearMigration(); err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to clear migrations from remote")
 			}
-
-			// load hasura binary
-			hasuraCLI, _ := hasura.Binary()
-
-			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
 			// create migrations from remote
 			_, err = pullMigration(hasuraClient, hasuraCLI, "init", commonOptions)
