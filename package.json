@@ -8,7 +8,7 @@
   "version": "0.0.0",
   "main": "src/start.ts",
   "scripts": {
-    "dev:docker:up": "cd docker/dev; docker-compose up --build",
+    "dev:docker:up": "cd docker/dev; docker-compose up -d --build",
     "dev:docker:logs": "cd docker/dev; docker-compose logs -f",
     "dev:docker:down": "cd docker/dev; docker-compose down",
     "dev:codegen": "graphql-codegen --config codegen.yaml",
