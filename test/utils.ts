@@ -163,10 +163,26 @@ export const mailHogSearch = async (
 
 export const deleteMailHogEmail = async ({
   ID,
-}: MailhogMessage): Promise<Response> =>
-  await fetch(`http://${APPLICATION.SMTP_HOST}:8025/api/v1/messages/${ID}`, {
-    method: "DELETE",
+}: MailhogMessage): Promise<Response> => {
+  return await fetch(
+    `http://${APPLICATION.SMTP_HOST}:8025/api/v1/messages/${ID}`,
+    {
+      method: "DELETE",
+    }
+  );
+};
+
+export const deleteAllMailHogEmails = async () => {
+  const response = await fetch(
+    `http://${APPLICATION.SMTP_HOST}:8025/api/v2/messages`
+  );
+
+  const emails = ((await response.json()) as MailhogSearchResult).items;
+
+  emails.forEach(async (message: MailhogMessage) => {
+    await deleteMailHogEmail(message);
   });
+};
 
 export const deleteEmailsOfAccount = async (email: string): Promise<void> =>
   (await mailHogSearch(email)).forEach(

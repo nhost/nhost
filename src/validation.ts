@@ -64,18 +64,52 @@ const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
 const passwordRule = Joi.string()
   .min(REGISTRATION.MIN_PASSWORD_LENGTH)
   .max(128);
-const passwordRuleRequired = passwordRule.required();
 
-const emailRule = extendedJoi.string().email().required().allowedDomains();
+const passwordRequiredRule = passwordRule.required();
+
+const emailRule = Joi.string().email(); //.required(); //.allowedDomains();
 
 const localeRule = Joi.string().length(2);
 const localeRuleWithDefault = localeRule.default(
   APPLICATION.EMAILS_DEFAULT_LOCALE
 );
 
+const profileRule = Joi.object(
+  REGISTRATION.CUSTOM_FIELDS.reduce<{ [k: string]: Joi.Schema[] }>(
+    (aggr, key) => ({
+      ...aggr,
+      [key]: [
+        Joi.string(),
+        Joi.number(),
+        Joi.boolean(),
+        Joi.object(),
+        Joi.array().items(
+          Joi.string(),
+          Joi.number(),
+          Joi.boolean(),
+          Joi.object()
+        ),
+      ],
+    }),
+    {}
+  )
+);
+
+export const signUpEmailPasswordSchema = Joi.object({
+  email: emailRule.required(),
+  password: passwordRule.required(),
+  locale: localeRule.default(APPLICATION.EMAILS_DEFAULT_LOCALE),
+  allowedRoles: Joi.array()
+    .items(Joi.string())
+    .default(REGISTRATION.DEFAULT_ALLOWED_USER_ROLES),
+  defaultRole: Joi.string().default(REGISTRATION.DEFAULT_USER_ROLE),
+  displayName: Joi.string(),
+  profile: profileRule,
+});
+
 const userFields = {
   email: emailRule,
-  password: passwordRuleRequired,
+  password: passwordRequiredRule,
   locale: localeRuleWithDefault,
 };
 
@@ -171,7 +205,7 @@ export type RegisterSchema = RegularRegister | MagicLinkRegister;
 
 export const deanonymizeSchema = Joi.object({
   email: emailRule,
-  password: passwordRuleRequired,
+  password: passwordRequiredRule,
 });
 
 export type DeanonymizeSchema = {
@@ -242,7 +276,7 @@ export const loginSchema = Joi.alternatives().try(
   // Regular login
   Joi.object({
     email: emailRule,
-    password: passwordRuleRequired,
+    password: passwordRequiredRule,
   }),
   // Magic link login
   Joi.object({

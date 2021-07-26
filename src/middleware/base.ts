@@ -23,19 +23,19 @@ export default async function (
       defaultRole: permissionVariables["default-role"],
     };
 
-    req.logger.debug(
-      `Request from user ${req.auth.userId}(${req.auth.defaultRole})`,
-      {
-        userId: req.auth.userId,
-        defaultRole: req.auth.defaultRole,
-      }
-    );
+    // req.logger.debug(
+    //   `Request from user ${req.auth.userId}(${req.auth.defaultRole})`,
+    //   {
+    //     userId: req.auth.userId,
+    //     defaultRole: req.auth.defaultRole,
+    //   }
+    // );
   }
 
   if ("refreshToken" in req.query) {
-    req.logger.debug(`Request with refresh token ${req.refreshToken}`, {
-      refreshToken: req.refreshToken,
-    });
+    // req.logger.debug(`Request with refresh token ${req.refreshToken}`, {
+    //   refreshToken: req.refreshToken,
+    // });
 
     req.refreshToken = req.query.refreshToken as string;
     delete req.query.refreshToken;

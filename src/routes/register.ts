@@ -236,14 +236,6 @@ async function registerAccount(
     refreshToken,
   };
 
-  req.logger.verbose(
-    `New user registration with id ${user.id} and email ${email}`,
-    {
-      userId: user.id,
-      email,
-    }
-  );
-
   return res.send(session);
 }
 

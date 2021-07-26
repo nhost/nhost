@@ -19,4 +19,4 @@ RUN yarn install
 
 COPY ../../ .
 
-CMD ["yarn", "run", "dev-command"]
+CMD ["yarn", "run", "dev:in-docker"]

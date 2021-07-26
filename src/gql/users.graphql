@@ -4,7 +4,7 @@ fragment userFields on users {
   avatarUrl
   email
   passwordHash
-  active
+  isActive
   defaultRole
   roles {
     role
@@ -15,9 +15,7 @@ fragment userFields on users {
   mfaEnabled
   passwordHash
   newEmail
-  lastConfirmationEmailSentAt
   locale
-  customRegisterData
   roles {
     role
   }
@@ -55,10 +53,10 @@ query usersByRefreshToken($refreshToken: uuid!) {
         { refreshToken: { _eq: $refreshToken } }
         {
           _or: [
-            { user: { active: { _eq: true } } }
+            { user: { isActive: { _eq: true } } }
             {
               _and: [
-                { user: { active: { _eq: false } } }
+                { user: { isActive: { _eq: false } } }
                 { user: { isAnonymous: { _eq: true } } }
               ]
             }
@@ -81,8 +79,8 @@ mutation updateUser($id: uuid!, $user: users_set_input!) {
 }
 
 mutation rotateUsersTicket(
-  $oldTicket: uuid!
-  $newTicket: uuid!
+  $oldTicket: String!
+  $newTicket: String!
   $newTicketExpiresAt: timestamptz!
 ) {
   updateUsers(
@@ -94,17 +92,19 @@ mutation rotateUsersTicket(
 }
 
 mutation activateUsers(
-  $ticket: uuid!
-  $newTicket: uuid!
+  $ticket: String!
+  $newTicket: String!
   $newTicketExpiresAt: timestamptz!
 ) {
   updateUsers(
     _set: {
-      active: true
+      isActive: true
       ticket: $newTicket
       ticketExpiresAt: $newTicketExpiresAt
     }
-    where: { _and: [{ active: { _eq: false } }, { ticket: { _eq: $ticket } }] }
+    where: {
+      _and: [{ isActive: { _eq: false } }, { ticket: { _eq: $ticket } }]
+    }
   ) {
     returning {
       ...userFields
@@ -113,9 +113,9 @@ mutation activateUsers(
 }
 
 mutation changeEmailsByTicket(
-  $ticket: uuid!
+  $ticket: String!
   $email: citext!
-  $newTicket: uuid!
+  $newTicket: String!
   $now: timestamptz!
 ) {
   updateUsers(
@@ -161,7 +161,7 @@ mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
 
   updateUser(
     pk_columns: { id: $userId }
-    _set: { avatarUrl: $avatarUrl, defaultRole: $role, active: true }
+    _set: { avatarUrl: $avatarUrl, defaultRole: $role, isActive: true }
   ) {
     id
   }
@@ -172,15 +172,14 @@ mutation insertProviderToUser(
   $userId: uuid!
 ) {
   insertAuthProvider(object: $provider) {
-    name
-    code
+    id
   }
-  updateUser(pk_columns: { id: $userId }, _set: { active: true }) {
+  updateUser(pk_columns: { id: $userId }, _set: { isActive: true }) {
     ...userFields
   }
 }
 
-mutation updateUsersByTicket($ticket: uuid!, $user: users_set_input!) {
+mutation updateUsersByTicket($ticket: String!, $user: users_set_input!) {
   updateUsers(
     where: {
       _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: now } }]

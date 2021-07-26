@@ -1,28 +1,28 @@
-import { APPLICATION } from '@config/index'
-import { app } from '@/server'
-import { SuperTest, Test, agent } from 'supertest'
-import { Server } from 'http'
-import getPort from 'get-port'
+import { APPLICATION } from "@config/index";
+import { app } from "@/server";
+import { SuperTest, Test, agent } from "supertest";
+import { Server } from "http";
+import getPort from "get-port";
 
-export let request: SuperTest<Test>
+export let request: SuperTest<Test>;
 
-export let server: Server
+export let server: Server;
 
 const start = async () => {
-  server = app.listen(await getPort(), APPLICATION.HOST)
-  request = agent(server)
-}
+  server = app.listen(await getPort(), APPLICATION.HOST);
+  request = agent(server);
+};
 
 const close = async () => {
-  server.close()
-}
+  server.close();
+};
 
 beforeAll(async () => {
-  await start()
-  request = agent(server)
-})
+  await start();
+  request = agent(server);
+});
 
 // * Code that is executed after any jest test file that imports this file
 afterAll(async () => {
-  await close()
-})
+  await close();
+});

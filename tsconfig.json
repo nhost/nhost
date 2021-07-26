@@ -1,40 +1,22 @@
 {
-  "exclude": [
-    "node_modules",
-    "**/*.test.ts",
-    "test"
-  ],
-  "include": [
-    "src/**/*.ts",
-    "types/**/*.ts"
-  ],
+  "ts-node": {
+    "files": true
+  },
+  "exclude": ["node_modules", "**/*.test.ts", "test"],
+  "include": ["src/**/*.ts", "types/**/*.ts"],
   "compilerOptions": {
-    "lib": [
-      "dom",
-      "es2020"
-    ],
+    "lib": ["dom", "es2020"],
     "paths": {
-      "*": [
-        "types/*"
-      ],
-      "@config/*": [
-        "src/config/*"
-      ],
-      "@middleware/*": [
-        "src/middleware/*"
-      ],
-      "@routes/*": [
-        "src/routes/*"
-      ],
-      "@/*": [
-        "src/*"
-      ],
-      "test/*": [
-        "test/*"
-      ]
+      // "*": ["types/*"],
+      "@config/*": ["src/config/*"],
+      "@middleware/*": ["src/middleware/*"],
+      "@routes/*": ["src/routes/*"],
+      "@/*": ["src/*"],
+      "test/*": ["test/*"],
+      "@test/*": ["test/*"]
     },
-    "module": "commonjs",
     "outDir": "dist",
+    "module": "commonjs",
     "strict": true,
     "target": "es2019",
     "baseUrl": ".",
@@ -42,6 +24,6 @@
     "moduleResolution": "node",
     "strictNullChecks": true,
     "resolveJsonModule": false,
-    "inlineSourceMap": true,
+    "inlineSourceMap": true
   }
 }

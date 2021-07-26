@@ -1,4 +1,3 @@
-import { PermissionVariables } from "@/types";
 import winston from "winston";
 
 interface RequestAuth {
@@ -10,9 +9,8 @@ declare global {
   namespace Express {
     export interface Request {
       logger: winston.Logger;
-      refreshToken?: string;
       auth: RequestAuth | null;
-      permissionVariables?: PermissionVariables;
+      refreshToken?: string;
     }
   }
 }

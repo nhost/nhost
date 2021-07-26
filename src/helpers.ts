@@ -1,4 +1,4 @@
-import { APPLICATION, JWT, REGISTRATION } from "@config/index";
+import { APPLICATION, TOKEN, REGISTRATION } from "@config/index";
 import { NextFunction, Response, Request } from "express";
 import * as gravatar from "gravatar";
 import QRCode from "qrcode";
@@ -35,10 +35,6 @@ export const getUserByEmail = async (email: string) => {
       },
     },
   });
-
-  // if (users.length !== 1) {
-  //   throw new Error('User does not exist.')
-  // }
 
   return users[0];
 };
@@ -121,7 +117,7 @@ export function newRefreshExpiry() {
   const date = new Date();
 
   // 1 day = 1440 minutes
-  const days = JWT.REFRESH_EXPIRES_IN / 1440;
+  const days = TOKEN.REFRESH_TOKEN_EXPIRES_IN / 1440;
 
   // cant return this becuase this will return a unix timestamp directly
   date.setDate(date.getDate() + days);
@@ -130,7 +126,7 @@ export function newRefreshExpiry() {
   return date;
 }
 
-export const setRefreshToken = async (
+export const getNewRefreshToken = async (
   userId: string,
   refreshToken = uuidv4()
 ) => {
