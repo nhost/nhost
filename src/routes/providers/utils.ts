@@ -26,7 +26,7 @@ import {
   providerQuery,
 } from "@/validation";
 import { v4 as uuidv4 } from "uuid";
-import { getClaims, getPermissionVariablesFromClaims } from "@/jwt";
+import { getClaims, getPermissionVariablesFromClaims } from "@/utils/tokens";
 import {
   ContainerTypes,
   createValidator,

@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from "express";
-import { getClaims, getPermissionVariablesFromClaims } from "@/jwt";
+import { getClaims, getPermissionVariablesFromClaims } from "@/utils/tokens";
 import { gqlSdk } from "@/utils/gqlSDK";
 
 export default async function (

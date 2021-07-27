@@ -152,6 +152,7 @@
     "concurrently": "^6.2.0",
     "cz-conventional-changelog": "3.1.0",
     "dotenv-cli": "^4.0.0",
+    "esbuild": "^0.12.16",
     "eslint": "6.8.0",
     "eslint-config-prettier": "6.10.1",
     "eslint-plugin-jest": "23.8.2",

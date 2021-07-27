@@ -20,6 +20,9 @@ export const TOKEN = {
     return castIntEnv("REFRESH_TOKEN_EXPIRES_IN", 43200);
   },
   get CUSTOM_FIELDS() {
-    return castStringArrayEnv("ACCESS_CUSTOM_FIELDS");
+    return castStringArrayEnv("PROFILE_SESSION_VARIABLE_FIELDS");
+  },
+  get PROFILE_SESSION_VARIABLE_FIELDS() {
+    return castStringArrayEnv("PROFILE_SESSION_VARIABLE_FIELDS");
   },
 };

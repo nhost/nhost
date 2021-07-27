@@ -24,7 +24,7 @@ describe("email-password", () => {
 
   it("should sign up user", async () => {
     // set env vars
-    await await request.post("/change-env").send({
+    await request.post("/change-env").send({
       AUTO_ACTIVATE_NEW_USERS: true,
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
@@ -56,7 +56,7 @@ describe("email-password", () => {
       .expect(400);
   });
 
-  it("should fail register if whitelist is enabled and the email is not in whitelist", async () => {
+  it("should fail sign up if whitelist is enabled and the email is not whitelisted", async () => {
     // set env vars
     await await request.post("/change-env").send({
       AUTO_ACTIVATE_NEW_USERS: true,
@@ -141,7 +141,7 @@ describe("email-password", () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
     const ticket = message.Content.Headers["X-Ticket"][0];
-    expect(ticket.startsWith("signUpEmailPassword:")).toBeTruthy();
+    expect(ticket.startsWith("userActivate:")).toBeTruthy();
   });
 
   it("default role must be part of allowed roles", async () => {

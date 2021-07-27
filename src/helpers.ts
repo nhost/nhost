@@ -126,21 +126,6 @@ export function newRefreshExpiry() {
   return date;
 }
 
-export const getNewRefreshToken = async (
-  userId: string,
-  refreshToken = uuidv4()
-) => {
-  await gqlSdk.insertRefreshToken({
-    refreshToken: {
-      userId,
-      refreshToken,
-      expiresAt: new Date(newRefreshExpiry()),
-    },
-  });
-
-  return refreshToken;
-};
-
 export const userWithEmailExists = async (email: string) => {
   return !!(await getUserByEmail(email));
 };

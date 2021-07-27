@@ -18,6 +18,7 @@ import { gqlSdk } from "@/utils/gqlSDK";
 import { AUTHENTICATION } from "@config/authentication";
 import { APPLICATION } from "@config/application";
 import { emailClient } from "@/email";
+import { insertProfile } from "@/utils/profile";
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -89,10 +90,8 @@ export const signUpEmailPasswordHandler = async (
   // hash password
   const passwordHash = await hashPassword(password);
 
-  // generate ticket
-  const ticket = `signUpEmailPassword:${uuidv4()}`;
-
-  // Ticket expires after 60 min
+  // ticket
+  const ticket = `userActivate:${uuidv4()}`;
   const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString();
 
   // restructure user roles to be inserted in GraphQL mutation
@@ -112,6 +111,7 @@ export const signUpEmailPasswordHandler = async (
         ticket,
         ticketExpiresAt,
         isActive: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
+        emailVerified: false,
         locale,
         defaultRole,
         roles: {
@@ -124,6 +124,8 @@ export const signUpEmailPasswordHandler = async (
   if (!user) {
     throw new Error("Unable to insert new user");
   }
+
+  await insertProfile({ userId: user.id, profile });
 
   // user is now inserted. Continue sending out activation email
   if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
@@ -151,5 +153,5 @@ export const signUpEmailPasswordHandler = async (
     });
   }
 
-  res.status(200).send("OK");
+  return res.status(200).send("OK");
 };

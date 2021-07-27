@@ -2694,7 +2694,7 @@ export type Users = {
   roles: Array<AuthUserRoles>;
   /** An aggregate relationship */
   roles_aggregate: AuthUserRoles_Aggregate;
-  ticket: Scalars['String'];
+  ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt: Scalars['timestamptz'];
   updatedAt: Scalars['timestamptz'];
   /** An array relationship */
@@ -3375,6 +3375,19 @@ export type InsertProviderToUserMutation = (
   )> }
 );
 
+export type GetUserByTicketQueryVariables = Exact<{
+  ticket: Scalars['String'];
+}>;
+
+
+export type GetUserByTicketQuery = (
+  { __typename?: 'query_root' }
+  & { users: Array<(
+    { __typename?: 'users' }
+    & UserFieldsFragment
+  )> }
+);
+
 export type UpdateUsersByTicketMutationVariables = Exact<{
   ticket: Scalars['String'];
   user: Users_Set_Input;
@@ -3617,6 +3630,13 @@ export const InsertProviderToUserDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
+export const GetUserByTicketDocument = gql`
+    query getUserByTicket($ticket: String!) {
+  users(where: {ticket: {_eq: $ticket}}) {
+    ...userFields
+  }
+}
+    ${UserFieldsFragmentDoc}`;
 export const UpdateUsersByTicketDocument = gql`
     mutation updateUsersByTicket($ticket: String!, $user: users_set_input!) {
   updateUsers(where: {_and: [{ticket: {_eq: $ticket}}, {ticketExpiresAt: {_gt: now}}]}, _set: $user) {
@@ -3708,6 +3728,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     insertProviderToUser(variables: InsertProviderToUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertProviderToUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertProviderToUserMutation>(InsertProviderToUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertProviderToUser');
+    },
+    getUserByTicket(variables: GetUserByTicketQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserByTicketQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserByTicketQuery>(GetUserByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserByTicket');
     },
     updateUsersByTicket(variables: UpdateUsersByTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUsersByTicketMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUsersByTicketMutation>(UpdateUsersByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUsersByTicket');

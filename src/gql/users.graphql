@@ -179,6 +179,12 @@ mutation insertProviderToUser(
   }
 }
 
+query getUserByTicket($ticket: String!) {
+  users(where: { ticket: { _eq: $ticket } }) {
+    ...userFields
+  }
+}
+
 mutation updateUsersByTicket($ticket: String!, $user: users_set_input!) {
   updateUsers(
     where: {

@@ -57,7 +57,7 @@ CREATE TABLE auth.users (
   is_anonymous boolean DEFAULT FALSE NOT NULL,
   otp_secret text,
   mfa_enabled boolean DEFAULT FALSE NOT NULL,
-  ticket text DEFAULT public.gen_random_uuid () NOT NULL,
+  ticket text,
   ticket_expires_at timestamp with time zone DEFAULT now() NOT NULL,
   UNIQUE (email),
   UNIQUE (new_email)

@@ -2,6 +2,9 @@ import { APPLICATION, REGISTRATION } from "@config/index";
 import Joi from "joi";
 import compareUrls from "compare-urls";
 
+const uuidRegex =
+  /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
+
 interface ExtendedStringSchema extends Joi.StringSchema {
   allowedDomains(): this;
   allowedRedirectUrls(): this;
@@ -105,6 +108,39 @@ export const signUpEmailPasswordSchema = Joi.object({
   defaultRole: Joi.string().default(REGISTRATION.DEFAULT_USER_ROLE),
   displayName: Joi.string(),
   profile: profileRule,
+});
+
+// Sign In
+export const signInEmailPasswordSchema = Joi.object({
+  email: emailRule.required(),
+  password: passwordRule.required(),
+});
+
+export const signInMagicLinkSchema = Joi.object({
+  email: emailRule,
+  locale: localeRule.default(APPLICATION.EMAILS_DEFAULT_LOCALE),
+  allowedRoles: Joi.array()
+    .items(Joi.string())
+    .default(REGISTRATION.DEFAULT_ALLOWED_USER_ROLES),
+  defaultRole: Joi.string().default(REGISTRATION.DEFAULT_USER_ROLE),
+  displayName: Joi.string(),
+  profile: profileRule,
+});
+
+const magicLinkCallbackTicketPattern = new RegExp(
+  `userActivate:${uuidRegex.source}`
+);
+export const signInMagicLinkCallbackSchema = Joi.object({
+  ticket: Joi.string().regex(magicLinkCallbackTicketPattern).required(),
+});
+
+// -- USER --
+
+const userActivateTicketPattern = new RegExp(
+  `userActivate:${uuidRegex.source}`
+);
+export const userActivateSchema = Joi.object({
+  ticket: Joi.string().regex(userActivateTicketPattern).required(),
 });
 
 const userFields = {
