@@ -4,16 +4,9 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from "express-joi-validation";
-import { v4 as uuidv4 } from "uuid";
 
-import { REGISTRATION } from "@config/registration";
-import { getGravatarUrl, getUserByEmail, isWhitelistedEmail } from "@/helpers";
 import { gqlSdk } from "@/utils/gqlSDK";
-import { AUTHENTICATION } from "@config/authentication";
-import { APPLICATION } from "@config/application";
-import { emailClient } from "@/email";
-import { getProfileFieldsForAccessToken, insertProfile } from "@/utils/profile";
-import { getSignInTokens, SignInTokens } from "@/utils/tokens";
+import { getSignInTokens } from "@/utils/tokens";
 
 type Profile = {
   [key: string]: string | number | boolean;

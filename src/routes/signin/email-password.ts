@@ -6,8 +6,6 @@ import {
 } from "express-joi-validation";
 import bcrypt from "bcryptjs";
 
-import { gqlSdk } from "@/utils/gqlSDK";
-import { getProfileFieldsForAccessToken } from "@/utils/profile";
 import { getSignInTokens } from "@/utils/tokens";
 import { getUserByEmail } from "@/helpers";
 

@@ -1,4 +1,4 @@
-import { TOKEN, REGISTRATION } from "@config/index";
+import { TOKEN } from "@config/index";
 import { JWT } from "jose";
 import { v4 as uuidv4 } from "uuid";
 
@@ -7,7 +7,6 @@ import { Claims, Token, ClaimValueType, PermissionVariables } from "../types";
 import { UserFieldsFragment } from "./__generated__/graphql-request";
 import { generateTicketExpiresAt } from "./ticket";
 import { getProfileFieldsForAccessToken } from "./profile";
-import kebabCase from "lodash.kebabcase";
 
 // const RSA_TYPES = ["RS256", "RS384", "RS512"];
 const SHA_TYPES = ["HS256", "HS384", "HS512"];
