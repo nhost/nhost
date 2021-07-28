@@ -16,9 +16,10 @@ mutation updateRefreshToken(
   }
 }
 
-mutation deleteRefreshToken($id: uuid!) {
-  deleteAuthRefreshToken(refreshToken: $id) {
+mutation deleteRefreshToken($refreshToken: uuid!) {
+  deleteAuthRefreshToken(refreshToken: $refreshToken) {
     refreshToken
+    expiresAt
   }
 }
 

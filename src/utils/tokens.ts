@@ -7,6 +7,8 @@ import { Claims, Token, ClaimValueType, PermissionVariables } from "../types";
 import { UserFieldsFragment } from "./__generated__/graphql-request";
 import { generateTicketExpiresAt } from "./ticket";
 import { getProfileFieldsForAccessToken } from "./profile";
+import { KeyObject } from "crypto";
+import { string } from "joi";
 
 // const RSA_TYPES = ["RS256", "RS384", "RS512"];
 const SHA_TYPES = ["HS256", "HS384", "HS512"];
@@ -237,5 +239,28 @@ export const getSignInTokens = async ({
     accessTokenExpiresIn: TOKEN.ACCESS_TOKEN_EXPIRES_IN,
     refreshToken,
     mfa: null,
+  };
+};
+
+type Tokens = {
+  accessToken: string;
+  accessTokenExpiresIn: number;
+  refreshToken: string;
+};
+
+export const getNewTokens = async ({
+  user,
+}: {
+  user: UserFieldsFragment;
+}): Promise<Tokens> => {
+  const profile = await getProfileFieldsForAccessToken({ userId: user.id });
+
+  const accessToken = createHasuraAccessToken(user, profile);
+  const refreshToken = await getNewRefreshToken(user.id);
+
+  return {
+    accessToken,
+    accessTokenExpiresIn: TOKEN.ACCESS_TOKEN_EXPIRES_IN,
+    refreshToken,
   };
 };

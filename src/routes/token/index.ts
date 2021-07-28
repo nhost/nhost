@@ -1,12 +1,13 @@
-import { Router } from 'express'
-import refreshToken from './refresh'
-import revokeToken from './revoke'
+import { Router } from "express";
+import { createValidator } from "express-joi-validation";
 
-const router = Router()
+import { asyncWrapper as aw } from "@/helpers";
+import { tokenSchema } from "@/validation";
+import { tokenHandler } from "./token";
 
-refreshToken(router)
-revokeToken(router)
+const router = Router();
 
-export default (parentRouter: Router) => {
-  parentRouter.use('/token', router)
-}
+router.post("/token", createValidator().body(tokenSchema), aw(tokenHandler));
+
+const tokenRouter = router;
+export { tokenRouter };

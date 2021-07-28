@@ -156,6 +156,14 @@ export const userMFASchema = Joi.object({
   mfaEnabled: Joi.boolean().required(),
 });
 
+// -- TOKEN --
+
+export const tokenSchema = Joi.object({
+  refreshToken: Joi.string().regex(uuidRegex).required(),
+});
+
+// -----------
+
 const userFields = {
   email: emailRule,
   password: passwordRequiredRule,

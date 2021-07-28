@@ -3472,7 +3472,7 @@ export type UpdateRefreshTokenMutation = (
 );
 
 export type DeleteRefreshTokenMutationVariables = Exact<{
-  id: Scalars['uuid'];
+  refreshToken: Scalars['uuid'];
 }>;
 
 
@@ -3480,7 +3480,7 @@ export type DeleteRefreshTokenMutation = (
   { __typename?: 'mutation_root' }
   & { deleteAuthRefreshToken?: Maybe<(
     { __typename?: 'authRefreshTokens' }
-    & Pick<AuthRefreshTokens, 'refreshToken'>
+    & Pick<AuthRefreshTokens, 'refreshToken' | 'expiresAt'>
   )> }
 );
 
@@ -3828,9 +3828,10 @@ export const UpdateRefreshTokenDocument = gql`
 }
     `;
 export const DeleteRefreshTokenDocument = gql`
-    mutation deleteRefreshToken($id: uuid!) {
-  deleteAuthRefreshToken(refreshToken: $id) {
+    mutation deleteRefreshToken($refreshToken: uuid!) {
+  deleteAuthRefreshToken(refreshToken: $refreshToken) {
     refreshToken
+    expiresAt
   }
 }
     `;
