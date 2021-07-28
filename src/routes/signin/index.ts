@@ -6,10 +6,12 @@ import {
   signInEmailPasswordSchema,
   signInMagicLinkSchema,
   signInMagicLinkCallbackSchema,
+  signInMFATOTPSchema,
 } from "@/validation";
 import { signInEmailPasswordHandler } from "./email-password";
 import { signInMagicLinkHandler } from "./magic-link";
 import { signInMagicLinkCallbackHandler } from "./magic-link-callback";
+import { signInMFATOTOPHandler } from "./mfa/totp";
 
 const router = Router();
 
@@ -29,6 +31,12 @@ router.post(
   "/signup/magic-link/callback",
   createValidator().body(signInMagicLinkCallbackSchema),
   aw(signInMagicLinkCallbackHandler)
+);
+
+router.post(
+  "/signup/mfa/totp",
+  createValidator().body(signInMFATOTPSchema),
+  aw(signInMFATOTOPHandler)
 );
 
 // router.post(

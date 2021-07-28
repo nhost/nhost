@@ -46,7 +46,7 @@ query users($where: users_bool_exp!) {
 # is not active. Except if the user anonymous. Then we can allow it.
 # A user can be anonymous but with active = false when the user converts their
 # account to a real account but has not yet activated it aka verified their email.
-query usersByRefreshToken($refreshToken: uuid!) {
+query getUsersByRefreshToken($refreshToken: uuid!) {
   authRefreshTokens(
     where: {
       _and: [

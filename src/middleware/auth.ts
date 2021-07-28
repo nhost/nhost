@@ -2,11 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import { getClaims, getPermissionVariablesFromClaims } from "@/utils/tokens";
 import { gqlSdk } from "@/utils/gqlSDK";
 
-export default async function (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-) {
+) => {
   let permissionVariables = null;
   try {
     permissionVariables = getPermissionVariablesFromClaims(
@@ -17,19 +17,15 @@ export default async function (
   }
 
   req.auth = null;
+
+  console.log("permission variables in auth middleware");
+  console.log(permissionVariables);
+
   if (permissionVariables) {
     req.auth = {
       userId: permissionVariables["user-id"],
       defaultRole: permissionVariables["default-role"],
     };
-
-    // req.logger.debug(
-    //   `Request from user ${req.auth.userId}(${req.auth.defaultRole})`,
-    //   {
-    //     userId: req.auth.userId,
-    //     defaultRole: req.auth.defaultRole,
-    //   }
-    // );
   }
 
   if ("refreshToken" in req.query) {
@@ -38,12 +34,11 @@ export default async function (
     // });
 
     req.refreshToken = req.query.refreshToken as string;
-    delete req.query.refreshToken;
 
     // TODO: We do this query almost every time
     // in the routes too. Maybe attach `user` to `req`?
     const user = await gqlSdk
-      .usersByRefreshToken({
+      .getUsersByRefreshToken({
         refreshToken: req.refreshToken,
       })
       .then((res) => res.authRefreshTokens[0]?.user);
@@ -54,4 +49,4 @@ export default async function (
   }
 
   next();
-}
+};

@@ -8,10 +8,6 @@ import {
 import { gqlSdk } from "@/utils/gqlSDK";
 import { getSignInTokens } from "@/utils/tokens";
 
-type Profile = {
-  [key: string]: string | number | boolean;
-};
-
 type BodyType = {
   ticket: string;
 };

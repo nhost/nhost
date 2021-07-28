@@ -1548,6 +1548,10 @@ export type Mutation_Root = {
   delete_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** delete single row from the table: "auth.migrations" */
   delete_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** delete data from the table: "profiles" */
+  delete_profiles?: Maybe<Profiles_Mutation_Response>;
+  /** delete single row from the table: "profiles" */
+  delete_profiles_by_pk?: Maybe<Profiles>;
   /** insert a single row into the table: "auth.email_templates" */
   insertAuthEmailTemplate?: Maybe<AuthEmailTemplates>;
   /** insert data into the table: "auth.email_templates" */
@@ -1580,6 +1584,8 @@ export type Mutation_Root = {
   insertAuthWhitelist?: Maybe<AuthWhitelist>;
   /** insert data into the table: "auth.whitelist" */
   insertAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
+  /** insert a single row into the table: "profiles" */
+  insertProfile?: Maybe<Profiles>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -1588,6 +1594,8 @@ export type Mutation_Root = {
   insert_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** insert a single row into the table: "auth.migrations" */
   insert_auth_migrations_one?: Maybe<Auth_Migrations>;
+  /** insert data into the table: "profiles" */
+  insert_profiles?: Maybe<Profiles_Mutation_Response>;
   /** update single row of the table: "auth.email_templates" */
   updateAuthEmailTemplate?: Maybe<AuthEmailTemplates>;
   /** update data of the table: "auth.email_templates" */
@@ -1628,6 +1636,10 @@ export type Mutation_Root = {
   update_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** update single row of the table: "auth.migrations" */
   update_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** update data of the table: "profiles" */
+  update_profiles?: Maybe<Profiles_Mutation_Response>;
+  /** update single row of the table: "profiles" */
+  update_profiles_by_pk?: Maybe<Profiles>;
 };
 
 
@@ -1753,6 +1765,18 @@ export type Mutation_RootDelete_Auth_Migrations_By_PkArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDelete_ProfilesArgs = {
+  where: Profiles_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDelete_Profiles_By_PkArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertAuthEmailTemplateArgs = {
   object: AuthEmailTemplates_Insert_Input;
   on_conflict?: Maybe<AuthEmailTemplates_On_Conflict>;
@@ -1865,6 +1889,13 @@ export type Mutation_RootInsertAuthWhitelistsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertProfileArgs = {
+  object: Profiles_Insert_Input;
+  on_conflict?: Maybe<Profiles_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertUserArgs = {
   object: Users_Insert_Input;
   on_conflict?: Maybe<Users_On_Conflict>;
@@ -1889,6 +1920,13 @@ export type Mutation_RootInsert_Auth_MigrationsArgs = {
 export type Mutation_RootInsert_Auth_Migrations_OneArgs = {
   object: Auth_Migrations_Insert_Input;
   on_conflict?: Maybe<Auth_Migrations_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsert_ProfilesArgs = {
+  objects: Array<Profiles_Insert_Input>;
+  on_conflict?: Maybe<Profiles_On_Conflict>;
 };
 
 
@@ -2033,6 +2071,22 @@ export type Mutation_RootUpdate_Auth_Migrations_By_PkArgs = {
   pk_columns: Auth_Migrations_Pk_Columns_Input;
 };
 
+
+/** mutation root */
+export type Mutation_RootUpdate_ProfilesArgs = {
+  _inc?: Maybe<Profiles_Inc_Input>;
+  _set?: Maybe<Profiles_Set_Input>;
+  where: Profiles_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdate_Profiles_By_PkArgs = {
+  _inc?: Maybe<Profiles_Inc_Input>;
+  _set?: Maybe<Profiles_Set_Input>;
+  pk_columns: Profiles_Pk_Columns_Input;
+};
+
 /** column ordering options */
 export enum Order_By {
   /** in ascending order, nulls last */
@@ -2048,6 +2102,192 @@ export enum Order_By {
   /** in descending order, nulls last */
   DescNullsLast = 'desc_nulls_last'
 }
+
+/** columns and relationships of "profiles" */
+export type Profiles = {
+  __typename?: 'profiles';
+  companyId: Scalars['Int'];
+  /** An object relationship */
+  user: Users;
+  userId: Scalars['uuid'];
+};
+
+/** aggregated selection of "profiles" */
+export type Profiles_Aggregate = {
+  __typename?: 'profiles_aggregate';
+  aggregate?: Maybe<Profiles_Aggregate_Fields>;
+  nodes: Array<Profiles>;
+};
+
+/** aggregate fields of "profiles" */
+export type Profiles_Aggregate_Fields = {
+  __typename?: 'profiles_aggregate_fields';
+  avg?: Maybe<Profiles_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Profiles_Max_Fields>;
+  min?: Maybe<Profiles_Min_Fields>;
+  stddev?: Maybe<Profiles_Stddev_Fields>;
+  stddev_pop?: Maybe<Profiles_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Profiles_Stddev_Samp_Fields>;
+  sum?: Maybe<Profiles_Sum_Fields>;
+  var_pop?: Maybe<Profiles_Var_Pop_Fields>;
+  var_samp?: Maybe<Profiles_Var_Samp_Fields>;
+  variance?: Maybe<Profiles_Variance_Fields>;
+};
+
+
+/** aggregate fields of "profiles" */
+export type Profiles_Aggregate_FieldsCountArgs = {
+  columns?: Maybe<Array<Profiles_Select_Column>>;
+  distinct?: Maybe<Scalars['Boolean']>;
+};
+
+/** aggregate avg on columns */
+export type Profiles_Avg_Fields = {
+  __typename?: 'profiles_avg_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** Boolean expression to filter rows from the table "profiles". All fields are combined with a logical 'AND'. */
+export type Profiles_Bool_Exp = {
+  _and?: Maybe<Array<Profiles_Bool_Exp>>;
+  _not?: Maybe<Profiles_Bool_Exp>;
+  _or?: Maybe<Array<Profiles_Bool_Exp>>;
+  companyId?: Maybe<Int_Comparison_Exp>;
+  user?: Maybe<Users_Bool_Exp>;
+  userId?: Maybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "profiles" */
+export enum Profiles_Constraint {
+  /** unique or primary key constraint */
+  ProfilesPkey = 'profiles_pkey'
+}
+
+/** input type for incrementing numeric columns in table "profiles" */
+export type Profiles_Inc_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "profiles" */
+export type Profiles_Insert_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+  user?: Maybe<Users_Obj_Rel_Insert_Input>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Profiles_Max_Fields = {
+  __typename?: 'profiles_max_fields';
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Profiles_Min_Fields = {
+  __typename?: 'profiles_min_fields';
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "profiles" */
+export type Profiles_Mutation_Response = {
+  __typename?: 'profiles_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Profiles>;
+};
+
+/** input type for inserting object relation for remote table "profiles" */
+export type Profiles_Obj_Rel_Insert_Input = {
+  data: Profiles_Insert_Input;
+  /** on conflict condition */
+  on_conflict?: Maybe<Profiles_On_Conflict>;
+};
+
+/** on conflict condition type for table "profiles" */
+export type Profiles_On_Conflict = {
+  constraint: Profiles_Constraint;
+  update_columns?: Array<Profiles_Update_Column>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "profiles". */
+export type Profiles_Order_By = {
+  companyId?: Maybe<Order_By>;
+  user?: Maybe<Users_Order_By>;
+  userId?: Maybe<Order_By>;
+};
+
+/** primary key columns input for table: profiles */
+export type Profiles_Pk_Columns_Input = {
+  userId: Scalars['uuid'];
+};
+
+/** select columns of table "profiles" */
+export enum Profiles_Select_Column {
+  /** column name */
+  CompanyId = 'companyId',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** input type for updating data in table "profiles" */
+export type Profiles_Set_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate stddev on columns */
+export type Profiles_Stddev_Fields = {
+  __typename?: 'profiles_stddev_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Profiles_Stddev_Pop_Fields = {
+  __typename?: 'profiles_stddev_pop_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Profiles_Stddev_Samp_Fields = {
+  __typename?: 'profiles_stddev_samp_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate sum on columns */
+export type Profiles_Sum_Fields = {
+  __typename?: 'profiles_sum_fields';
+  companyId?: Maybe<Scalars['Int']>;
+};
+
+/** update columns of table "profiles" */
+export enum Profiles_Update_Column {
+  /** column name */
+  CompanyId = 'companyId',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** aggregate var_pop on columns */
+export type Profiles_Var_Pop_Fields = {
+  __typename?: 'profiles_var_pop_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate var_samp on columns */
+export type Profiles_Var_Samp_Fields = {
+  __typename?: 'profiles_var_samp_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate variance on columns */
+export type Profiles_Variance_Fields = {
+  __typename?: 'profiles_variance_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
 
 export type Query_Root = {
   __typename?: 'query_root';
@@ -2107,6 +2347,12 @@ export type Query_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** fetch data from the table: "profiles" using primary key columns */
+  profile?: Maybe<Profiles>;
+  /** fetch data from the table: "profiles" */
+  profiles: Array<Profiles>;
+  /** fetch aggregated fields from the table: "profiles" */
+  profiles_aggregate: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -2331,6 +2577,29 @@ export type Query_RootAuth_Migrations_By_PkArgs = {
 };
 
 
+export type Query_RootProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+export type Query_RootProfilesArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
+export type Query_RootProfiles_AggregateArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2402,6 +2671,12 @@ export type Subscription_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** fetch data from the table: "profiles" using primary key columns */
+  profile?: Maybe<Profiles>;
+  /** fetch data from the table: "profiles" */
+  profiles: Array<Profiles>;
+  /** fetch aggregated fields from the table: "profiles" */
+  profiles_aggregate: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -2626,6 +2901,29 @@ export type Subscription_RootAuth_Migrations_By_PkArgs = {
 };
 
 
+export type Subscription_RootProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+export type Subscription_RootProfilesArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
+export type Subscription_RootProfiles_AggregateArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2686,6 +2984,8 @@ export type Users = {
   newEmail?: Maybe<Scalars['citext']>;
   otpSecret?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
+  /** An object relationship */
+  profile?: Maybe<Profiles>;
   /** An array relationship */
   refreshTokens: Array<AuthRefreshTokens>;
   /** An aggregate relationship */
@@ -2806,6 +3106,7 @@ export type Users_Bool_Exp = {
   newEmail?: Maybe<Citext_Comparison_Exp>;
   otpSecret?: Maybe<String_Comparison_Exp>;
   passwordHash?: Maybe<String_Comparison_Exp>;
+  profile?: Maybe<Profiles_Bool_Exp>;
   refreshTokens?: Maybe<AuthRefreshTokens_Bool_Exp>;
   roles?: Maybe<AuthUserRoles_Bool_Exp>;
   ticket?: Maybe<String_Comparison_Exp>;
@@ -2842,6 +3143,7 @@ export type Users_Insert_Input = {
   newEmail?: Maybe<Scalars['citext']>;
   otpSecret?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
+  profile?: Maybe<Profiles_Obj_Rel_Insert_Input>;
   refreshTokens?: Maybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   roles?: Maybe<AuthUserRoles_Arr_Rel_Insert_Input>;
   ticket?: Maybe<Scalars['String']>;
@@ -2931,6 +3233,7 @@ export type Users_Order_By = {
   newEmail?: Maybe<Order_By>;
   otpSecret?: Maybe<Order_By>;
   passwordHash?: Maybe<Order_By>;
+  profile?: Maybe<Profiles_Order_By>;
   refreshTokens_aggregate?: Maybe<AuthRefreshTokens_Aggregate_Order_By>;
   roles_aggregate?: Maybe<AuthUserRoles_Aggregate_Order_By>;
   ticket?: Maybe<Order_By>;
@@ -3229,12 +3532,12 @@ export type UsersQuery = (
   )> }
 );
 
-export type UsersByRefreshTokenQueryVariables = Exact<{
+export type GetUsersByRefreshTokenQueryVariables = Exact<{
   refreshToken: Scalars['uuid'];
 }>;
 
 
-export type UsersByRefreshTokenQuery = (
+export type GetUsersByRefreshTokenQuery = (
   { __typename?: 'query_root' }
   & { authRefreshTokens: Array<(
     { __typename?: 'authRefreshTokens' }
@@ -3552,8 +3855,8 @@ export const UsersDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
-export const UsersByRefreshTokenDocument = gql`
-    query usersByRefreshToken($refreshToken: uuid!) {
+export const GetUsersByRefreshTokenDocument = gql`
+    query getUsersByRefreshToken($refreshToken: uuid!) {
   authRefreshTokens(where: {_and: [{refreshToken: {_eq: $refreshToken}}, {_or: [{user: {isActive: {_eq: true}}}, {_and: [{user: {isActive: {_eq: false}}}, {user: {isAnonymous: {_eq: true}}}]}]}, {expiresAt: {_gte: now}}]}) {
     user {
       ...userFields
@@ -3702,8 +4005,8 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     users(variables: UsersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UsersQuery>(UsersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'users');
     },
-    usersByRefreshToken(variables: UsersByRefreshTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersByRefreshTokenQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UsersByRefreshTokenQuery>(UsersByRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'usersByRefreshToken');
+    getUsersByRefreshToken(variables: GetUsersByRefreshTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUsersByRefreshTokenQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUsersByRefreshTokenQuery>(GetUsersByRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUsersByRefreshToken');
     },
     updateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUser');

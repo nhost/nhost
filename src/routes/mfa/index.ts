@@ -1,26 +1,10 @@
-import { MFA } from '@config/index'
-import { Router } from 'express'
-import disableMfa from './disable'
-import enableMfa from './enable'
-import generateMfa from './generate'
-import totpLogin from './totp'
+import { Router } from "express";
+import { asyncWrapper as aw } from "@/helpers";
+import { mfatotpGenerateHandler } from "./totp-generate";
 
-const router = Router()
+const router = Router();
 
-router.use((req, res, next) => {
-  if(!MFA.ENABLED) {
-    return res.boom.notImplemented(`Please set the MFA_ENABLED env variable to true to use the auth/mfa routes`)
-  } else {
-    return next()
-  }
-})
+router.get("/mfa/totp/generate", aw(mfatotpGenerateHandler));
 
-
-disableMfa(router)
-enableMfa(router)
-generateMfa(router)
-totpLogin(router)
-
-export default (parentRouter: Router) => {
-  parentRouter.use('/mfa', router)
-}
+const mfaRouter = router;
+export { mfaRouter };

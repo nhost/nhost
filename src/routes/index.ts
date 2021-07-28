@@ -7,6 +7,7 @@ import { signUpRouter } from "./signup";
 import { signInRouter } from "./signin";
 import { userRouter } from "./user";
 import env from "./env";
+import { mfaRouter } from "./mfa";
 
 const router = express.Router();
 router.use(boom());
@@ -24,6 +25,7 @@ router.use(express.static(path.join(process.cwd(), "src/public")));
 router.use(signUpRouter);
 router.use(signInRouter);
 router.use(userRouter);
+router.use(mfaRouter);
 
 env(router);
 

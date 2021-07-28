@@ -8,7 +8,7 @@ import morgan from "morgan";
 import { limiter } from "./limiter";
 import router from "./routes";
 import passport from "passport";
-import baseMiddleware from "./middleware/base";
+import { authMiddleware } from "./middleware/auth";
 import logger from "./logger";
 
 const app = express();
@@ -39,9 +39,10 @@ app.use(json());
 app.use(cors({ credentials: true, origin: true }));
 app.use(fileUpload());
 
+app.use(authMiddleware);
+
 app.use(passport.initialize());
 
-app.use(baseMiddleware);
 app.use(router);
 app.use(errors);
 

@@ -1,6 +1,7 @@
 import { APPLICATION, REGISTRATION } from "@config/index";
 import Joi from "joi";
 import compareUrls from "compare-urls";
+import { join } from "path";
 
 const uuidRegex =
   /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
@@ -134,6 +135,12 @@ export const signInMagicLinkCallbackSchema = Joi.object({
   ticket: Joi.string().regex(magicLinkCallbackTicketPattern).required(),
 });
 
+const MFATOTPTicketPattern = new RegExp(`mfaTotp:${uuidRegex.source}`);
+export const signInMFATOTPSchema = Joi.object({
+  ticket: Joi.string().regex(MFATOTPTicketPattern).required(),
+  code: Joi.string().required(),
+});
+
 // -- USER --
 
 const userActivateTicketPattern = new RegExp(
@@ -141,6 +148,12 @@ const userActivateTicketPattern = new RegExp(
 );
 export const userActivateSchema = Joi.object({
   ticket: Joi.string().regex(userActivateTicketPattern).required(),
+});
+
+// MFA
+export const userMFASchema = Joi.object({
+  code: Joi.string().required(),
+  mfaEnabled: Joi.boolean().required(),
 });
 
 const userFields = {
