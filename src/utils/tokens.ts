@@ -204,7 +204,7 @@ export const getSignInTokens = async ({
     console.log("MFA");
 
     // generate new ticket
-    const ticket = `mfa:${uuidv4()}`;
+    const ticket = `mfaTotp:${uuidv4()}`;
 
     // set ticket
     await gqlSdk.updateUser({

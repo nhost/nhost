@@ -28,13 +28,13 @@ router.post(
 );
 
 router.post(
-  "/signup/magic-link/callback",
+  "/signin/magic-link/callback",
   createValidator().body(signInMagicLinkCallbackSchema),
   aw(signInMagicLinkCallbackHandler)
 );
 
 router.post(
-  "/signup/mfa/totp",
+  "/signin/mfa/totp",
   createValidator().body(signInMFATOTPSchema),
   aw(signInMFATOTOPHandler)
 );
