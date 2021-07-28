@@ -78,6 +78,12 @@ mutation updateUser($id: uuid!, $user: users_set_input!) {
   }
 }
 
+mutation updateUserWhere($where: users_bool_exp!, $user: users_set_input!) {
+  updateUsers(where: $where, _set: $user) {
+    affected_rows
+  }
+}
+
 mutation rotateUsersTicket(
   $oldTicket: String!
   $newTicket: String!

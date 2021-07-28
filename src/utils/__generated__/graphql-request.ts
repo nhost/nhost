@@ -3562,6 +3562,20 @@ export type UpdateUserMutation = (
   )> }
 );
 
+export type UpdateUserWhereMutationVariables = Exact<{
+  where: Users_Bool_Exp;
+  user: Users_Set_Input;
+}>;
+
+
+export type UpdateUserWhereMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateUsers?: Maybe<(
+    { __typename?: 'users_mutation_response' }
+    & Pick<Users_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
 export type RotateUsersTicketMutationVariables = Exact<{
   oldTicket: Scalars['String'];
   newTicket: Scalars['String'];
@@ -3872,6 +3886,13 @@ export const UpdateUserDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
+export const UpdateUserWhereDocument = gql`
+    mutation updateUserWhere($where: users_bool_exp!, $user: users_set_input!) {
+  updateUsers(where: $where, _set: $user) {
+    affected_rows
+  }
+}
+    `;
 export const RotateUsersTicketDocument = gql`
     mutation rotateUsersTicket($oldTicket: String!, $newTicket: String!, $newTicketExpiresAt: timestamptz!) {
   updateUsers(_set: {ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {ticket: {_eq: $oldTicket}}) {
@@ -4011,6 +4032,9 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     updateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUser');
+    },
+    updateUserWhere(variables: UpdateUserWhereMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserWhereMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserWhereMutation>(UpdateUserWhereDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUserWhere');
     },
     rotateUsersTicket(variables: RotateUsersTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RotateUsersTicketMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<RotateUsersTicketMutation>(RotateUsersTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'rotateUsersTicket');
