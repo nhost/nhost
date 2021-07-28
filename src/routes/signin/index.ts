@@ -7,11 +7,13 @@ import {
   signInMagicLinkSchema,
   signInMagicLinkCallbackSchema,
   signInMFATOTPSchema,
+  signInAnonymousSchema,
 } from "@/validation";
 import { signInEmailPasswordHandler } from "./email-password";
 import { signInMagicLinkHandler } from "./magic-link";
 import { signInMagicLinkCallbackHandler } from "./magic-link-callback";
 import { signInMFATOTOPHandler } from "./mfa/totp";
+import { signInAnonymousHandler } from "./anonymous";
 
 const router = Router();
 
@@ -37,6 +39,12 @@ router.post(
   "/signin/mfa/totp",
   createValidator().body(signInMFATOTPSchema),
   aw(signInMFATOTOPHandler)
+);
+
+router.post(
+  "/signin/anonymous",
+  createValidator().body(signInAnonymousSchema),
+  aw(signInAnonymousHandler)
 );
 
 // router.post(

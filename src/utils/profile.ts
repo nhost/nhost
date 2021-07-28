@@ -24,12 +24,16 @@ export const insertProfile = async ({
   `;
 
   try {
-    await client.request(insertProfile, {
+    const insertProfileResult = await client.request(insertProfile, {
       profile: {
         userId: userId,
         ...profile,
       },
     });
+
+    console.log("insertProfileResult");
+
+    console.log(insertProfileResult);
   } catch (error) {
     // roll back
     // delete previous inserted user if inserting the profile fails.
