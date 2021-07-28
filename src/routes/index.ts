@@ -9,6 +9,7 @@ import { userRouter } from "./user";
 import env from "./env";
 import { mfaRouter } from "./mfa";
 import { tokenRouter } from "./token";
+import { signOutRouter } from "./signout";
 
 const router = express.Router();
 router.use(boom());
@@ -25,9 +26,11 @@ router.use(express.static(path.join(process.cwd(), "src/public")));
 
 router.use(signUpRouter);
 router.use(signInRouter);
+router.use(signOutRouter);
 router.use(userRouter);
 router.use(mfaRouter);
 router.use(tokenRouter);
+// admin
 
 env(router);
 

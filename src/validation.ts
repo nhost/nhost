@@ -141,6 +141,12 @@ export const signInMFATOTPSchema = Joi.object({
   code: Joi.string().required(),
 });
 
+// -- SIGN OUT--
+export const signOutSchema = Joi.object({
+  refreshToken: Joi.string().regex(uuidRegex).required(),
+  all: Joi.boolean().default(false),
+});
+
 // -- USER --
 
 const userActivateTicketPattern = new RegExp(

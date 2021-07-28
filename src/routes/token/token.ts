@@ -30,12 +30,12 @@ export const tokenHandler = async (
       try {
         return res.authRefreshTokens[0].user;
       } catch (error) {
-        throw new Error("Invalid or expired ticket");
+        throw new Error("Invalid or expired refresh token");
       }
     });
 
   if (!user) {
-    throw new Error("Invalid or expired ticket");
+    throw new Error("Invalid or expired refresh token");
   }
 
   if (!user.isActive) {
