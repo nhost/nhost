@@ -25,6 +25,8 @@ export const userPasswordHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
+  console.log("inside user password handler");
+
   const { ticket, oldPassword, newPassword } = req.body;
 
   if (ticket && oldPassword) {
@@ -46,6 +48,7 @@ export const userPasswordHandler = async (
     const ticketUpdateResponse = await gqlSdk.updateUserWhere({
       user: {
         passwordHash: newPasswordHash,
+        ticket: null,
       },
       where: {
         ticket: {

@@ -149,17 +149,16 @@ export const signOutSchema = Joi.object({
 
 // -- USER --
 
-const passwordTicketPattern = new RegExp(`password:${uuidRegex.source}`);
-export const userPasswordSchema = Joi.alternatives().try(
-  Joi.object({
-    ticket: Joi.string().regex(passwordTicketPattern).required(),
-    newPaassword: Joi.string().required(),
-  }),
-  Joi.object({
-    oldPassword: Joi.string().required(),
-    newPassword: Joi.string().required(),
-  })
-);
+export const userPasswordResetSchema = Joi.object({
+  email: emailRule.required(),
+});
+
+const passwordTicketPattern = new RegExp(`passwordReset:${uuidRegex.source}`);
+export const userPasswordSchema = Joi.object({
+  oldPassword: Joi.string(),
+  ticket: Joi.string().regex(passwordTicketPattern),
+  newPassword: Joi.string().required(),
+});
 
 const userActivateTicketPattern = new RegExp(
   `userActivate:${uuidRegex.source}`
