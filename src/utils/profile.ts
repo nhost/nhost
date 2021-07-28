@@ -52,7 +52,6 @@ export const getProfileFieldsForAccessToken = async ({
   const getProfile = gql`
     query getProfile($userId: uuid!) {
       profile(userId: $userId) {
-        userId
         ${TOKEN.PROFILE_SESSION_VARIABLE_FIELDS.join("\n")}
       }
     }
