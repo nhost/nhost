@@ -62,6 +62,7 @@
     "dotenv": "8.2.0",
     "ejs": "^3.1.6",
     "email-templates": "7.0.4",
+    "email-validator": "^2.0.4",
     "express": "4.17.1",
     "express-boom": "^3.0.0",
     "express-fileupload": "1.1.9",

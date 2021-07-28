@@ -32,6 +32,10 @@ export const signInEmailPasswordHandler = async (
 
   const user = await getUserByEmail(email);
 
+  if (!user) {
+    throw new Error("No user with that email");
+  }
+
   if (!user.isActive) {
     throw new Error("User is not active");
   }

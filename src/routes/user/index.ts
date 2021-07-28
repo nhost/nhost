@@ -4,6 +4,8 @@ import { createValidator } from "express-joi-validation";
 import { asyncWrapper as aw } from "@/helpers";
 import {
   userActivateSchema,
+  userEmailResetSchema,
+  userEmailSchema,
   userMFASchema,
   userPasswordResetSchema,
   userPasswordSchema,
@@ -13,6 +15,8 @@ import { userMFAHandler } from "./mfa";
 import { userHandler } from "./user";
 import { userPasswordHandler } from "./password";
 import { userPasswordResetHandler } from "./password-reset";
+import { userEmailHandler } from "./email";
+import { userEmailReset } from "./email/reset";
 
 const router = Router();
 
@@ -28,6 +32,18 @@ router.post(
   "/user/password",
   createValidator().body(userPasswordSchema),
   aw(userPasswordHandler)
+);
+
+router.post(
+  "/user/email/reset",
+  createValidator().body(userEmailResetSchema),
+  aw(userEmailReset)
+);
+
+router.post(
+  "/user/email",
+  createValidator().body(userEmailSchema),
+  aw(userEmailHandler)
 );
 
 router.post(

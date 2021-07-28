@@ -160,6 +160,16 @@ export const userPasswordSchema = Joi.object({
   newPassword: Joi.string().required(),
 });
 
+export const userEmailResetSchema = Joi.object({
+  newEmail: emailRule,
+});
+
+const emailTicketPattern = new RegExp(`emailReset:${uuidRegex.source}`);
+export const userEmailSchema = Joi.object({
+  ticket: Joi.string().regex(emailTicketPattern),
+  newEmail: emailRule,
+});
+
 const userActivateTicketPattern = new RegExp(
   `userActivate:${uuidRegex.source}`
 );
