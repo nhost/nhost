@@ -49,8 +49,6 @@ type GetProfileFieldsForAccessToken = {
 export const getProfileFieldsForAccessToken = async ({
   userId,
 }: GetProfileFieldsForAccessToken) => {
-  console.log({ userId });
-
   const getProfile = gql`
     query getProfile($userId: uuid!) {
       profile(userId: $userId) {
