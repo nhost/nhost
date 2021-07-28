@@ -105,7 +105,9 @@ export const userDeanonymizeHandler = async (
   // if AUTO_ACTIVATED_NEW_USER is false the user must instead activate their
   // account with the email
   const isActive =
-    signInMethod === "email-password"
+    signInMethod === "magic-link"
+      ? true
+      : signInMethod === "email-password"
       ? REGISTRATION.AUTO_ACTIVATE_NEW_USERS
       : false;
 
@@ -113,6 +115,7 @@ export const userDeanonymizeHandler = async (
     id: userId,
     user: {
       isActive,
+      emailVerified: false,
       email,
       passwordHash,
       defaultRole,

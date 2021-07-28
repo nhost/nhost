@@ -129,7 +129,7 @@ export const signInMagicLinkSchema = Joi.object({
 });
 
 const magicLinkCallbackTicketPattern = new RegExp(
-  `userActivate:${uuidRegex.source}`
+  `magicLink:${uuidRegex.source}`
 );
 export const signInMagicLinkCallbackSchema = Joi.object({
   ticket: Joi.string().regex(magicLinkCallbackTicketPattern).required(),
