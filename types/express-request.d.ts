@@ -3,6 +3,7 @@ import winston from "winston";
 interface RequestAuth {
   userId: string;
   defaultRole: string;
+  isAnonymous: boolean;
 }
 
 declare global {

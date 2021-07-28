@@ -4,6 +4,7 @@ import { createValidator } from "express-joi-validation";
 import { asyncWrapper as aw } from "@/helpers";
 import {
   userActivateSchema,
+  userDeanonymizeSchema,
   userEmailResetSchema,
   userEmailSchema,
   userMFASchema,
@@ -17,6 +18,7 @@ import { userPasswordHandler } from "./password";
 import { userPasswordResetHandler } from "./password-reset";
 import { userEmailHandler } from "./email";
 import { userEmailReset } from "./email/reset";
+import { userDeanonymizeHandler } from "./deanonymize";
 
 const router = Router();
 
@@ -56,6 +58,12 @@ router.post(
   "/user/mfa",
   createValidator().body(userMFASchema),
   aw(userMFAHandler)
+);
+
+router.post(
+  "/user/deanonymize",
+  createValidator().body(userDeanonymizeSchema),
+  aw(userDeanonymizeHandler)
 );
 
 const userRouter = router;

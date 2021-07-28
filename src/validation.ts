@@ -163,7 +163,7 @@ const passwordTicketPattern = new RegExp(`passwordReset:${uuidRegex.source}`);
 export const userPasswordSchema = Joi.object({
   oldPassword: Joi.string(),
   ticket: Joi.string().regex(passwordTicketPattern),
-  newPassword: Joi.string().required(),
+  newPassword: passwordRule,
 });
 
 export const userEmailResetSchema = Joi.object({
@@ -187,6 +187,17 @@ export const userActivateSchema = Joi.object({
 export const userMFASchema = Joi.object({
   code: Joi.string().required(),
   mfaEnabled: Joi.boolean().required(),
+});
+
+// Deanonymize
+export const userDeanonymizeSchema = Joi.object({
+  signInMethod: Joi.string().allow("email-password").allow("magic-link"),
+  email: emailRule.required(),
+  password: passwordRule,
+  allowedRoles: Joi.array()
+    .items(Joi.string())
+    .default(REGISTRATION.DEFAULT_ALLOWED_USER_ROLES),
+  defaultRole: Joi.string().default(REGISTRATION.DEFAULT_USER_ROLE),
 });
 
 // -- TOKEN --

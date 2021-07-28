@@ -55,6 +55,7 @@ export const signInAnonymousHandler = async (
         roles: {
           data: userRoles,
         },
+        isAnonymous: true,
       },
     })
     .then((res) => res.insertUser);

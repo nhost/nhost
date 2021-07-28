@@ -21,6 +21,7 @@ export const authMiddleware = async (
     req.auth = {
       userId: permissionVariables["user-id"],
       defaultRole: permissionVariables["default-role"],
+      isAnonymous: permissionVariables["is-anonymous"] === true,
     };
   }
 

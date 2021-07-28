@@ -77,6 +77,7 @@ export function generatePermissionVariables(
     [`x-hasura-user-id`]: user.id,
     [`x-hasura-allowed-roles`]: allowedRoles,
     [`x-hasura-default-role`]: user.defaultRole,
+    [`x-hasura-is-anonymous`]: user.isAnonymous,
     ...customSessionVariables,
   };
 }

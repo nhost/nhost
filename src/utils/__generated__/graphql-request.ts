@@ -1586,6 +1586,8 @@ export type Mutation_Root = {
   insertAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
   /** insert a single row into the table: "profiles" */
   insertProfile?: Maybe<Profiles>;
+  /** insert data into the table: "profiles" */
+  insertProfiles?: Maybe<Profiles_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -1594,8 +1596,6 @@ export type Mutation_Root = {
   insert_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** insert a single row into the table: "auth.migrations" */
   insert_auth_migrations_one?: Maybe<Auth_Migrations>;
-  /** insert data into the table: "profiles" */
-  insert_profiles?: Maybe<Profiles_Mutation_Response>;
   /** update single row of the table: "auth.email_templates" */
   updateAuthEmailTemplate?: Maybe<AuthEmailTemplates>;
   /** update data of the table: "auth.email_templates" */
@@ -1896,6 +1896,13 @@ export type Mutation_RootInsertProfileArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertProfilesArgs = {
+  objects: Array<Profiles_Insert_Input>;
+  on_conflict?: Maybe<Profiles_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertUserArgs = {
   object: Users_Insert_Input;
   on_conflict?: Maybe<Users_On_Conflict>;
@@ -1920,13 +1927,6 @@ export type Mutation_RootInsert_Auth_MigrationsArgs = {
 export type Mutation_RootInsert_Auth_Migrations_OneArgs = {
   object: Auth_Migrations_Insert_Input;
   on_conflict?: Maybe<Auth_Migrations_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_ProfilesArgs = {
-  objects: Array<Profiles_Insert_Input>;
-  on_conflict?: Maybe<Profiles_On_Conflict>;
 };
 
 
@@ -2985,7 +2985,7 @@ export type Users = {
   otpSecret?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
   /** An object relationship */
-  profile?: Maybe<Profiles>;
+  profile: Profiles;
   /** An array relationship */
   refreshTokens: Array<AuthRefreshTokens>;
   /** An aggregate relationship */
@@ -3497,6 +3497,32 @@ export type DeleteUserRefreshTokensMutation = (
   )> }
 );
 
+export type InsertUserRolesMutationVariables = Exact<{
+  userRoles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
+}>;
+
+
+export type InsertUserRolesMutation = (
+  { __typename?: 'mutation_root' }
+  & { insertAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
+export type DeleteUserRolesByUserIdMutationVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type DeleteUserRolesByUserIdMutation = (
+  { __typename?: 'mutation_root' }
+  & { deleteAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
 export type UserFieldsFragment = (
   { __typename?: 'users' }
   & Pick<Users, 'id' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'isActive' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpSecret' | 'mfaEnabled' | 'newEmail' | 'locale'>
@@ -3856,6 +3882,20 @@ export const DeleteUserRefreshTokensDocument = gql`
   }
 }
     `;
+export const InsertUserRolesDocument = gql`
+    mutation insertUserRoles($userRoles: [authUserRoles_insert_input!]!) {
+  insertAuthUserRoles(objects: $userRoles) {
+    affected_rows
+  }
+}
+    `;
+export const DeleteUserRolesByUserIdDocument = gql`
+    mutation deleteUserRolesByUserId($userId: uuid!) {
+  deleteAuthUserRoles(where: {userId: {_eq: $userId}}) {
+    affected_rows
+  }
+}
+    `;
 export const UserDocument = gql`
     query user($id: uuid!) {
   user(id: $id) {
@@ -4020,6 +4060,12 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     deleteUserRefreshTokens(variables: DeleteUserRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRefreshTokensMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRefreshTokensMutation>(DeleteUserRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRefreshTokens');
+    },
+    insertUserRoles(variables: InsertUserRolesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserRolesMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertUserRolesMutation>(InsertUserRolesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUserRoles');
+    },
+    deleteUserRolesByUserId(variables: DeleteUserRolesByUserIdMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRolesByUserIdMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRolesByUserIdMutation>(DeleteUserRolesByUserIdDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRolesByUserId');
     },
     user(variables: UserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UserQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UserQuery>(UserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'user');
