@@ -72,6 +72,7 @@ var functionsCmd = &cobra.Command{
 
 		// being the execution
 		serve(cmd, args)
+		removeTemp()
 
 		// wait for Ctrl+C
 		end_waiter.Wait()
@@ -98,27 +99,41 @@ based on your file tree.`,
 		}
 
 		// print the output
-		printRoutes()
+		printRoutes(functions)
+
+		if countDuplicates(functions) > 0 {
+			log.Error("Duplicate routes detected")
+		}
 	},
 }
 
-func printRoutes() {
+func printRoutes(list []Function) {
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-
-	fmt.Fprintln(w, "route\t\tfile")
-	fmt.Fprintln(w, "---\t\t-----")
-	for _, item := range functions {
+	fmt.Fprintf(w, "Route\t\t%s%s/%sfile\n", Gray, filepath.Base(nhost.API_DIR), Reset)
+	fmt.Fprintln(w, "-----\t\t-----")
+	for _, item := range list {
 		fmt.Fprintf(w, "%v\t\t%v", item.Route, filepath.Join(item.Base, filepath.Base(item.File)))
 		fmt.Fprintln(w)
 	}
 	w.Flush()
+}
 
+func countDuplicates(dupArr []Function) int {
+	dupcount := 0
+	for i := 0; i < len(dupArr); i++ {
+		for j := i + 1; j < len(dupArr); j++ {
+			if dupArr[i].Route == dupArr[j].Route {
+				dupcount++
+				break
+			}
+		}
+	}
+	return dupcount
 }
 
 func removeTemp() {
 	log.Debug("Removing temporary directory from: ", tempDir)
 	os.RemoveAll(tempDir)
-	log.Info("Server stopped. See you later!")
 	os.Exit(0)
 }
 
@@ -141,6 +156,13 @@ func serve(cmd *cobra.Command, args []string) {
 		return
 	}
 
+	// check for duplicate routes
+	if countDuplicates(functions) > 0 {
+		log.Error("Duplicate routes detected")
+		printRoutes(functions)
+		return
+	}
+
 	// prepare the generated routes
 	for _, item := range functions {
 		if err := item.Prepare(); err != nil {
@@ -154,7 +176,7 @@ func serve(cmd *cobra.Command, args []string) {
 	if err := writeToFile(nodeServerConfig, "\napp.listen(port)", "end"); err != nil {
 		log.WithField("runtime", "NodeJS").Debug(err)
 		log.WithField("runtime", "NodeJS").Error("Failed to complete server configuration")
-		removeTemp()
+		return
 	}
 
 	// start the NodeJS server
@@ -162,7 +184,7 @@ func serve(cmd *cobra.Command, args []string) {
 	if err != nil {
 		log.WithField("runtime", "NodeJS").Debug(err)
 		log.WithField("runtime", "NodeJS").Error("Runtime not installed")
-		removeTemp()
+		return
 	}
 
 	execute := exec.Cmd{
@@ -170,19 +192,26 @@ func serve(cmd *cobra.Command, args []string) {
 		Args: []string{nodeCLI, nodeServerConfig, jsPort},
 	}
 
-	go execute.Run()
+	go func() {
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.WithField("runtime", "NodeJS").Debug(string(output))
+			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
+			removeTemp()
+		}
+	}()
 
 	log.Info("Nhost functions serving at: http://localhost:", port)
 	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.WithField("runtime", "NodeJS").Debug(err)
-		log.WithField("runtime", "NodeJS").Error("Failed to serve the functions")
-		removeTemp()
+		log.WithField("component", "server").Debug(err)
+		log.WithField("component", "server").Error("Failed to serve the functions")
+		return
 	}
 }
 
 func generateRoutes(path string) error {
 
-	// declare the base directory
+	// initialize the base directory
 	base := strings.TrimPrefix(path, nhost.API_DIR)
 
 	files, err := os.ReadDir(path)
@@ -194,12 +223,16 @@ func generateRoutes(path string) error {
 		"node_modules",
 		"package.json",
 		"package-lock.json",
-		"server.js",
+		"yarn.lock",
+		// "server.js",
 	}
 
 	for _, item := range files {
 
-		if !contains(filesToAvoid, item.Name()) {
+		// ignore the files not required
+		// as well as the files which start with a "."
+		// for example: .env should be ignored
+		if !contains(filesToAvoid, item.Name()) && fileNameWithoutExtension(item.Name()) != "" {
 
 			itemPath := filepath.Join(nhost.API_DIR, base, item.Name())
 
@@ -216,42 +249,42 @@ func generateRoutes(path string) error {
 			// if the item is a directory,
 			// recursively initiate the function again
 			if item.IsDir() {
-				return generateRoutes(itemPath)
+				if err := generateRoutes(itemPath); err != nil {
+					return err
+				}
+				continue
 			}
 
+			// since it's not a directory
+			// initialize it's function
+			f := Function{
+				Route: route,
+				File:  itemPath,
+				Base:  base,
+			}
+
+			// attach the required handler subject to file extension
 			switch filepath.Ext(item.Name()) {
-			case ".js":
-				functions = append(functions, Function{
-					Route:     route,
-					File:      itemPath,
-					Handler:   jsHandler,
-					Extension: "js",
-					Base:      base,
-				})
-			case ".go":
-				functions = append(functions, Function{
-					Route:     route,
-					File:      itemPath,
-					Extension: "go",
-					Base:      base,
-				})
+			case ".js", ".ts", ".tsx":
+				f.Handler = jsHandler
 			}
 
+			// add the new function
+			functions = append(functions, f)
 		}
 	}
 	return nil
 }
 
 func (function *Function) Prepare() error {
-	switch function.Extension {
-	case "js":
+	switch filepath.Ext(function.File) {
+	case ".js", ".ts", ".tsx":
 		// add function to NodeJS server config
 		if err := writeToFile(nodeServerConfig, fmt.Sprintf("\napp.use('%s', require('%s'));", function.Route, function.File), "end"); err != nil {
 			log.Errorf("Failed to add %s to server configuration", filepath.Base(function.File))
 			return err
 		}
-	case "go":
-
+	case ".go":
 		pluginPath, err := buildGoPlugin(function.File)
 		if err != nil {
 			log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.File)))

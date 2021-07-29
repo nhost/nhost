@@ -36,10 +36,9 @@ type (
 	}
 
 	Function struct {
-		Route     string
-		File      string
-		Handler   func(http.ResponseWriter, *http.Request)
-		Extension string
-		Base      string
+		Route   string
+		File    string
+		Handler func(http.ResponseWriter, *http.Request)
+		Base    string
 	}
 )

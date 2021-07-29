@@ -16,7 +16,7 @@ const (
 	Yellow = "\033[33m"
 	Cyan   = "\033[36m"
 	Red    = "\033[31m"
-	// Gray = "\033[37m"
+	Gray   = "\033[37;2m"
 	// White = "\033[97m"
 )
 
