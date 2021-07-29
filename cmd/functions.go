@@ -37,6 +37,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"text/tabwriter"
 
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
@@ -47,7 +48,8 @@ var (
 	jsPort           = "9296"
 	tempDir, _       = ioutil.TempDir("", nhost.PROJECT+"_functions_runtime")
 	nodeServerConfig = filepath.Join(tempDir, "server.js")
-	port             = "8080"
+	port             string
+	functions        []Function
 )
 
 // uninstallCmd removed Nhost CLI from system
@@ -77,9 +79,46 @@ var functionsCmd = &cobra.Command{
 	},
 }
 
+// uninstallCmd removed Nhost CLI from system
+var routesCmd = &cobra.Command{
+	Use:   "routes",
+	Short: "Generate routes for Nhost functions",
+	Long: `Quick generate and validate routes for your Nhost functions
+based on your file tree.`,
+	Run: func(cmd *cobra.Command, args []string) {
+
+		if !pathExists(nhost.API_DIR) {
+			log.Fatal("Functions directory not found")
+		}
+
+		// run recursive function to generate routes
+		if err := generateRoutes(nhost.API_DIR); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to generate HTTP routes")
+		}
+
+		// print the output
+		printRoutes()
+	},
+}
+
+func printRoutes() {
+	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+
+	fmt.Fprintln(w, "route\t\tfile")
+	fmt.Fprintln(w, "---\t\t-----")
+	for _, item := range functions {
+		fmt.Fprintf(w, "%v\t\t%v", item.Route, filepath.Join(item.Base, filepath.Base(item.File)))
+		fmt.Fprintln(w)
+	}
+	w.Flush()
+
+}
+
 func removeTemp() {
 	log.Debug("Removing temporary directory from: ", tempDir)
 	os.RemoveAll(tempDir)
+	log.Info("Server stopped. See you later!")
 	os.Exit(0)
 }
 
@@ -88,13 +127,6 @@ func serve(cmd *cobra.Command, args []string) {
 	if !pathExists(nhost.API_DIR) {
 		log.Fatal("Functions directory not found")
 	}
-
-	if len(args) == 1 {
-		port = args[0]
-	}
-
-	// defer the deletion temporary directory
-	defer os.RemoveAll(tempDir)
 
 	if err := buildNodeServer(); err != nil {
 		log.Debug(err)
@@ -106,7 +138,16 @@ func serve(cmd *cobra.Command, args []string) {
 	if err := generateRoutes(nhost.API_DIR); err != nil {
 		log.Debug(err)
 		log.Error("Failed to generate HTTP routes")
-		removeTemp()
+		return
+	}
+
+	// prepare the generated routes
+	for _, item := range functions {
+		if err := item.Prepare(); err != nil {
+			log.WithField("route", item.Route).Debug(err)
+			log.WithField("route", item.Route).Error("Failed to prepare the HTTP route")
+			return
+		}
 	}
 
 	// complete NodeJS server configuration
@@ -160,11 +201,11 @@ func generateRoutes(path string) error {
 
 		if !contains(filesToAvoid, item.Name()) {
 
-			itemPath := filepath.Join(nhost.API_DIR, base, fileNameWithoutExtension(item.Name()))
+			itemPath := filepath.Join(nhost.API_DIR, base, item.Name())
 
 			// generate route
 			route := strings.Join([]string{base, fileNameWithoutExtension(item.Name())}, "/")
-			if strings.Contains(item.Name(), "index") {
+			if fileNameWithoutExtension(item.Name()) == "index" {
 				if filepath.Clean(base) == "." {
 					route = "/"
 				} else {
@@ -180,65 +221,83 @@ func generateRoutes(path string) error {
 
 			switch filepath.Ext(item.Name()) {
 			case ".js":
-
-				// add function to NodeJS server config
-				if err := writeToFile(nodeServerConfig, fmt.Sprintf("\napp.use('%s', require('%s'));", route, itemPath), "end"); err != nil {
-					log.Errorf("Failed to add %s to server configuration", item.Name())
-					return err
-				}
-
-				// add function handler to `dev` environment server
-				http.HandleFunc(route, jsHandler)
-				log.WithField("route", route).Debug("Serving ", filepath.Join(base, item.Name()))
-
+				functions = append(functions, Function{
+					Route:     route,
+					File:      itemPath,
+					Handler:   jsHandler,
+					Extension: "js",
+					Base:      base,
+				})
 			case ".go":
-
-				pluginPath, err := buildGoPlugin(filepath.Join(nhost.API_DIR, base, item.Name()))
-				if err != nil {
-					log.Error("Failed to build Go plugin: ", filepath.Join(base, item.Name()))
-					return err
-				}
-
-				// Glob - Gets the plugin to be loaded
-				plugins, err := filepath.Glob(pluginPath)
-				if err != nil {
-					log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to search for plugin")
-					return err
-				}
-
-				if len(plugins) == 0 {
-					return errors.New("Failed to search for plugin: " + filepath.Base(pluginPath))
-				}
-
-				// Open - Loads the plugin
-				p, err := plugin.Open(plugins[0])
-				if err != nil {
-					log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to load the plugin")
-					return err
-				}
-
-				// Lookup - Searches for a symbol name in the plugin
-				symbol, err := p.Lookup("Handler")
-				if err != nil {
-					log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to lookup handler")
-					return err
-				}
-
-				// symbol - Checks the function signature
-				handler, ok := symbol.(func(http.ResponseWriter, *http.Request))
-				if !ok {
-					log.WithField("plugin", filepath.Base(pluginPath)).Error("Handler function is broken")
-					return err
-				}
-
-				http.HandleFunc(route, handler)
-				log.WithField("route", route).Debug("Serving ", filepath.Join(base, item.Name()))
+				functions = append(functions, Function{
+					Route:     route,
+					File:      itemPath,
+					Extension: "go",
+					Base:      base,
+				})
 			}
+
 		}
 	}
 	return nil
 }
 
+func (function *Function) Prepare() error {
+	switch function.Extension {
+	case "js":
+		// add function to NodeJS server config
+		if err := writeToFile(nodeServerConfig, fmt.Sprintf("\napp.use('%s', require('%s'));", function.Route, function.File), "end"); err != nil {
+			log.Errorf("Failed to add %s to server configuration", filepath.Base(function.File))
+			return err
+		}
+	case "go":
+
+		pluginPath, err := buildGoPlugin(function.File)
+		if err != nil {
+			log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.File)))
+			return err
+		}
+
+		// Glob - Gets the plugin to be loaded
+		plugins, err := filepath.Glob(pluginPath)
+		if err != nil {
+			log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to search for plugin")
+			return err
+		}
+
+		if len(plugins) == 0 {
+			return errors.New("Failed to search for plugin: " + filepath.Base(pluginPath))
+		}
+
+		// Open - Loads the plugin
+		p, err := plugin.Open(plugins[0])
+		if err != nil {
+			log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to load the plugin")
+			return err
+		}
+
+		// Lookup - Searches for a symbol name in the plugin
+		symbol, err := p.Lookup("Handler")
+		if err != nil {
+			log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to lookup handler")
+			return err
+		}
+
+		// symbol - Checks the function signature
+		handler, ok := symbol.(func(http.ResponseWriter, *http.Request))
+		if !ok {
+			log.WithField("plugin", filepath.Base(pluginPath)).Error("Handler function is broken")
+			return err
+		}
+
+		// update the handler for this function
+		function.Handler = handler
+	}
+
+	// add function handler to `dev` environment server
+	http.HandleFunc(function.Route, function.Handler)
+	return nil
+}
 func jsHandler(w http.ResponseWriter, r *http.Request) {
 
 	//Leverage Go's HTTP Post function to make request
@@ -247,6 +306,9 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 		"http://localhost:"+jsPort+r.URL.Path,
 		r.Body,
 	)
+
+	req.Header = r.Header
+	req.URL.RawQuery = r.URL.RawQuery
 
 	client := http.Client{}
 
@@ -323,12 +385,13 @@ func fileNameWithoutExtension(fileName string) string {
 
 func init() {
 	rootCmd.AddCommand(functionsCmd)
+	functionsCmd.AddCommand(routesCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// uninstallCmd.Flags().BoolVarP(&approve, "approve", "a", false, "Approve uninstall")
+	functionsCmd.Flags().StringVarP(&port, "port", "p", "8080", "Custom port to serve functions on")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

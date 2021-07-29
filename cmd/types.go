@@ -1,5 +1,7 @@
 package cmd
 
+import "net/http"
+
 type (
 
 	// Container service
@@ -31,5 +33,13 @@ type (
 		StdOut   string
 		StdErr   string
 		ExitCode int
+	}
+
+	Function struct {
+		Route     string
+		File      string
+		Handler   func(http.ResponseWriter, *http.Request)
+		Extension string
+		Base      string
 	}
 )
