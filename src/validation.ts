@@ -1,7 +1,7 @@
-import { APPLICATION, REGISTRATION } from "@config/index";
-import Joi from "joi";
-import compareUrls from "compare-urls";
-import { join } from "path";
+import { APPLICATION, REGISTRATION } from '@config/index';
+import Joi from 'joi';
+import compareUrls from 'compare-urls';
+import { join } from 'path';
 
 const uuidRegex =
   /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
@@ -16,30 +16,30 @@ interface ExtendedJoi extends Joi.Root {
 }
 
 const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
-  type: "string",
+  type: 'string',
   base: joi.string(),
   messages: {
-    "string.allowedDomains": "{{#label}} is not in an authorised domain",
-    "string.allowedRedirectUrls":
-      "{{#label}} is not an authorised redirect url",
+    'string.allowedDomains': '{{#label}} is not in an authorised domain',
+    'string.allowedRedirectUrls':
+      '{{#label}} is not an authorised redirect url',
   },
   rules: {
     allowedDomains: {
       method(): unknown {
-        return this.$_addRule({ name: "allowedDomains" });
+        return this.$_addRule({ name: 'allowedDomains' });
       },
       validate(value: string, helpers): unknown {
         if (REGISTRATION.ALLOWED_EMAIL_DOMAINS) {
           const lowerValue = value.toLowerCase();
           const allowedEmailDomains =
-            REGISTRATION.ALLOWED_EMAIL_DOMAINS.split(",");
+            REGISTRATION.ALLOWED_EMAIL_DOMAINS.split(',');
 
           if (
             allowedEmailDomains.every(
               (domain) => !lowerValue.endsWith(domain.toLowerCase())
             )
           ) {
-            return helpers.error("string.allowedDomains");
+            return helpers.error('string.allowedDomains');
           }
         }
 
@@ -48,7 +48,7 @@ const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
     },
     allowedRedirectUrls: {
       method(): unknown {
-        return this.$_addRule({ name: "allowedRedirectUrls" });
+        return this.$_addRule({ name: 'allowedRedirectUrls' });
       },
       validate(value: string, helpers): unknown {
         if (
@@ -58,7 +58,7 @@ const extendedJoi: ExtendedJoi = Joi.extend((joi) => ({
         ) {
           return value;
         } else {
-          return helpers.error("string.allowedRedirectUrls");
+          return helpers.error('string.allowedRedirectUrls');
         }
       },
     },
@@ -191,13 +191,19 @@ export const userMFASchema = Joi.object({
 
 // Deanonymize
 export const userDeanonymizeSchema = Joi.object({
-  signInMethod: Joi.string().allow("email-password").allow("magic-link"),
+  signInMethod: Joi.string().allow('email-password').allow('magic-link'),
   email: emailRule.required(),
   password: passwordRule,
   allowedRoles: Joi.array()
     .items(Joi.string())
     .default(REGISTRATION.DEFAULT_ALLOWED_USER_ROLES),
   defaultRole: Joi.string().default(REGISTRATION.DEFAULT_USER_ROLE),
+});
+
+// user provider tokens
+export const userProviderTokensSchema = Joi.object({
+  providerId: Joi.string().required(),
+  userId: Joi.string().regex(uuidRegex),
 });
 
 // -- TOKEN --
@@ -319,7 +325,7 @@ export const registerUserDataSchema = Joi.object(userDataFields);
 export type RegisterUserDataSchema = UserDataFields;
 
 const ticketFields = {
-  ticket: Joi.string().uuid({ version: "uuidv4" }).required(),
+  ticket: Joi.string().uuid({ version: 'uuidv4' }).required(),
 };
 
 type TicketFields = {
@@ -443,7 +449,7 @@ export type TotpSchema = CodeFields & TicketFields;
 
 export const magicLinkQuery = Joi.object({
   token: Joi.string().required(),
-  action: Joi.string().valid("log-in", "register").required(),
+  action: Joi.string().valid('log-in', 'register').required(),
 });
 
 export type MagicLinkQuery = {

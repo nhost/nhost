@@ -3170,6 +3170,34 @@ export type AuthUserProvidersQuery = (
   )> }
 );
 
+export type UserProviderQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+  providerId: Scalars['String'];
+}>;
+
+
+export type UserProviderQuery = (
+  { __typename?: 'query_root' }
+  & { authUserProviders: Array<(
+    { __typename?: 'authUserProviders' }
+    & Pick<AuthUserProviders, 'id' | 'refreshToken'>
+  )> }
+);
+
+export type UpdateAuthUserproviderMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  authUserProvider: AuthUserProviders_Set_Input;
+}>;
+
+
+export type UpdateAuthUserproviderMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateAuthUserProvider?: Maybe<(
+    { __typename?: 'authUserProviders' }
+    & Pick<AuthUserProviders, 'id'>
+  )> }
+);
+
 export type InsertUserRolesMutationVariables = Exact<{
   userRoles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
 }>;
@@ -3549,6 +3577,21 @@ export const AuthUserProvidersDocument = gql`
   }
 }
     `;
+export const UserProviderDocument = gql`
+    query userProvider($userId: uuid!, $providerId: String!) {
+  authUserProviders(where: {_and: [{userId: {_eq: $userId}}, {providerId: {_eq: $providerId}}]}, limit: 1) {
+    id
+    refreshToken
+  }
+}
+    `;
+export const UpdateAuthUserproviderDocument = gql`
+    mutation updateAuthUserprovider($id: uuid!, $authUserProvider: authUserProviders_set_input!) {
+  updateAuthUserProvider(pk_columns: {id: $id}, _set: $authUserProvider) {
+    id
+  }
+}
+    `;
 export const InsertUserRolesDocument = gql`
     mutation insertUserRoles($userRoles: [authUserRoles_insert_input!]!) {
   insertAuthUserRoles(objects: $userRoles) {
@@ -3727,6 +3770,12 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     },
     authUserProviders(variables: AuthUserProvidersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AuthUserProvidersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AuthUserProvidersQuery>(AuthUserProvidersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'authUserProviders');
+    },
+    userProvider(variables: UserProviderQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UserProviderQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UserProviderQuery>(UserProviderDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'userProvider');
+    },
+    updateAuthUserprovider(variables: UpdateAuthUserproviderMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateAuthUserproviderMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateAuthUserproviderMutation>(UpdateAuthUserproviderDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateAuthUserprovider');
     },
     insertUserRoles(variables: InsertUserRolesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserRolesMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertUserRolesMutation>(InsertUserRolesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUserRoles');

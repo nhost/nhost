@@ -7,6 +7,7 @@ import express, {
 } from 'express';
 import passport, { Profile } from 'passport';
 import { VerifyCallback } from 'passport-oauth2';
+import refresh from 'passport-oauth2-refresh';
 import { Strategy } from 'passport';
 
 import { APPLICATION, PROVIDERS, REGISTRATION } from '@config/index';
@@ -88,6 +89,11 @@ const manageProviderStrategy =
     console.log(displayName);
     console.log('avatarUrl');
     console.log(avatarUrl);
+
+    console.log('accessToken');
+    console.log(accessToken);
+    console.log('refreshToken');
+    console.log(refreshToken);
 
     // check if user already exist with `id` (unique id from provider)
     const userProvider = await gqlSdk
@@ -284,30 +290,26 @@ export const initProvider = <T extends Strategy>(
     subRouter.use(middleware);
   }
 
-  console.log('registered = false');
+  console.log({ options });
+  console.log(PROVIDERS[strategyName]);
 
-  let registered = false;
+  if (PROVIDERS[strategyName]) {
+    const strategyToUse = new strategy(
+      {
+        ...PROVIDERS[strategyName],
+        ...options,
+        callbackURL: `${APPLICATION.SERVER_URL}/signin/provider/${strategyName}/callback`,
+        passReqToCallback: true,
+      },
+      manageProviderStrategy(strategyName, transformProfile)
+    );
 
-  subRouter.use((req, res, next) => {
-    if (!registered) {
-      passport.use(
-        new strategy(
-          {
-            ...PROVIDERS[strategyName],
-            ...options,
-            callbackURL: `${APPLICATION.SERVER_URL}/signin/provider/${strategyName}/callback`,
-            passReqToCallback: true,
-          },
-          manageProviderStrategy(strategyName, transformProfile)
-        )
-      );
+    console.log(`register strat name: ${strategyName}`);
 
-      registered = true;
-    }
-
-    console.log('next function after passport use new..');
-    next();
-  });
+    passport.use(strategyName, strategyToUse);
+    // @ts-expect-error
+    refresh.use(strategyToUse);
+  }
 
   subRouter.get('/', [
     async (req: Request, res: Response, next: NextFunction) => {
@@ -358,6 +360,7 @@ export const initProvider = <T extends Strategy>(
       return passport.authenticate(strategyName, {
         session: false,
         state: req.state,
+        ...options,
       })(req, ...rest);
     },
   ]);
