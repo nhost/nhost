@@ -39,17 +39,18 @@ import (
 	"syscall"
 	"text/tabwriter"
 
+	"github.com/evanw/esbuild/pkg/api"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
 var (
-	filesToClean     = []string{}
 	jsPort           = "9296"
 	tempDir, _       = ioutil.TempDir("", nhost.PROJECT+"_functions_runtime")
 	nodeServerConfig = filepath.Join(tempDir, "server.js")
 	port             string
 	functions        []Function
+	nodeServerCode   string
 )
 
 // uninstallCmd removed Nhost CLI from system
@@ -143,11 +144,10 @@ func serve(cmd *cobra.Command, args []string) {
 		log.Fatal("Functions directory not found")
 	}
 
-	if err := buildNodeServer(); err != nil {
-		log.Debug(err)
-		log.Error("Failed to initialize NodeJS server configuration")
-		return
-	}
+	// initialize NodeJS server config
+	nodeServerCode = fmt.Sprintf(`const express = require('%s/express');
+const port = %s;
+const app = express();`, filepath.Join(nhost.API_DIR, "node_modules"), jsPort)
 
 	// run recursive function to generate routes
 	if err := generateRoutes(nhost.API_DIR); err != nil {
@@ -173,11 +173,25 @@ func serve(cmd *cobra.Command, args []string) {
 	}
 
 	// complete NodeJS server configuration
-	if err := writeToFile(nodeServerConfig, "\napp.listen(port)", "end"); err != nil {
+	nodeServerCode += "\napp.listen(port);"
+
+	// save the nodeJS server config
+	f, err := os.Create(nodeServerConfig)
+	if err != nil {
 		log.WithField("runtime", "NodeJS").Debug(err)
-		log.WithField("runtime", "NodeJS").Error("Failed to complete server configuration")
+		log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
 		return
 	}
+
+	defer f.Close()
+
+	if _, err := f.Write([]byte(nodeServerCode)); err != nil {
+		log.WithField("runtime", "NodeJS").Debug(err)
+		log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
+		return
+	}
+
+	f.Sync()
 
 	// start the NodeJS server
 	nodeCLI, err := exec.LookPath("node")
@@ -189,7 +203,7 @@ func serve(cmd *cobra.Command, args []string) {
 
 	execute := exec.Cmd{
 		Path: nodeCLI,
-		Args: []string{nodeCLI, nodeServerConfig, jsPort},
+		Args: []string{nodeCLI, nodeServerConfig},
 	}
 
 	go func() {
@@ -224,7 +238,7 @@ func generateRoutes(path string) error {
 		"package.json",
 		"package-lock.json",
 		"yarn.lock",
-		// "server.js",
+		// "hello.test",
 	}
 
 	for _, item := range files {
@@ -265,7 +279,7 @@ func generateRoutes(path string) error {
 
 			// attach the required handler subject to file extension
 			switch filepath.Ext(item.Name()) {
-			case ".js", ".ts", ".tsx":
+			case ".js", ".ts":
 				f.Handler = jsHandler
 			}
 
@@ -276,16 +290,50 @@ func generateRoutes(path string) error {
 	return nil
 }
 
+func (function *Function) BuildNodePackage(data string) error {
+
+	// initialize path for temporary esbuild output
+	tempFile, err := ioutil.TempFile(tempDir, "*.js")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer tempFile.Close()
+	location := filepath.Join(tempDir, tempFile.Name())
+
+	// build the .js files with esbuild
+	result := api.Build(api.BuildOptions{
+		EntryPoints:      []string{function.File},
+		Outfile:          location,
+		Bundle:           true,
+		Write:            true,
+		Platform:         api.PlatformNode,
+		MinifyWhitespace: true,
+		MinifySyntax:     true,
+	})
+
+	if len(result.Errors) > 0 {
+		log.WithField("file", filepath.Base(function.File)).Error("Failed to run esbuild")
+		return errors.New(result.Errors[0].Text)
+	}
+
+	// add function to NodeJS server config
+	nodeServerCode += fmt.Sprintf(data, function.Route, location)
+	return nil
+}
+
 func (function *Function) Prepare() error {
 	switch filepath.Ext(function.File) {
-	case ".js", ".ts", ".tsx":
-		// add function to NodeJS server config
-		if err := writeToFile(nodeServerConfig, fmt.Sprintf("\napp.use('%s', require('%s'));", function.Route, function.File), "end"); err != nil {
-			log.Errorf("Failed to add %s to server configuration", filepath.Base(function.File))
+	case ".js":
+		if err := function.BuildNodePackage("\napp.all('%s', require('%s'));"); err != nil {
+			return err
+		}
+	case ".ts":
+		if err := function.BuildNodePackage("\napp.all('%s', require('%s').default);"); err != nil {
 			return err
 		}
 	case ".go":
-		pluginPath, err := buildGoPlugin(function.File)
+		pluginPath, err := function.BuildGoPlugin()
 		if err != nil {
 			log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.File)))
 			return err
@@ -331,6 +379,53 @@ func (function *Function) Prepare() error {
 	http.HandleFunc(function.Route, function.Handler)
 	return nil
 }
+
+/*
+// Route wraps echo server into Lambda Handler
+func Route(handler func(http.ResponseWriter, *http.Request)) func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		body := strings.NewReader(request.Body)
+		req := httptest.NewRequest(request.HTTPMethod, request.Path, body)
+		for k, v := range request.Headers {
+			req.Header.Add(k, v)
+		}
+
+		q := req.URL.Query()
+		for k, v := range request.QueryStringParameters {
+			q.Add(k, v)
+		}
+		req.URL.RawQuery = q.Encode()
+
+		rec := httptest.NewRecorder()
+		handler(rec, req)
+
+		res := rec.Result()
+		responseBody, err := ioutil.ReadAll(res.Body)
+
+		responseHeaders := make(map[string]string)
+		for key, value := range res.Header {
+			responseHeaders[key] = ""
+			if len(value) > 0 {
+				responseHeaders[key] = value[0]
+			}
+		}
+		if err != nil {
+			return events.APIGatewayProxyResponse{
+				Body:       err.Error(),
+				Headers:    responseHeaders,
+				StatusCode: http.StatusInternalServerError,
+			}, err
+		}
+
+		return events.APIGatewayProxyResponse{
+			Body:       string(responseBody),
+			Headers:    responseHeaders,
+			StatusCode: res.StatusCode,
+		}, nil
+	}
+}
+*/
+
 func jsHandler(w http.ResponseWriter, r *http.Request) {
 
 	//Leverage Go's HTTP Post function to make request
@@ -341,8 +436,8 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 	)
 
 	req.Header = r.Header
-	req.URL.RawQuery = r.URL.RawQuery
-
+	q := r.URL.Query()
+	req.URL.RawQuery = q.Encode()
 	client := http.Client{}
 
 	//Leverage Go's HTTP Post function to make request
@@ -353,11 +448,10 @@ func jsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	body, _ := ioutil.ReadAll(resp.Body)
-
 	fmt.Fprint(w, string(body))
 }
 
-func buildGoPlugin(path string) (string, error) {
+func (function *Function) BuildGoPlugin() (string, error) {
 
 	tempFile, err := ioutil.TempFile(tempDir, "*.so")
 	if err != nil {
@@ -368,7 +462,7 @@ func buildGoPlugin(path string) (string, error) {
 
 	pluginPath := filepath.Join(tempDir, tempFile.Name())
 
-	log.WithField("plugin", filepath.Base(path)).Debug("Creating plugin at: ", pluginPath)
+	log.WithField("plugin", filepath.Base(function.File)).Debug("Creating plugin at: ", pluginPath)
 
 	CLI, err := exec.LookPath("go")
 	if err != nil {
@@ -377,7 +471,7 @@ func buildGoPlugin(path string) (string, error) {
 
 	execute := exec.Cmd{
 		Path: CLI,
-		Args: []string{CLI, "build", "-buildmode=plugin", "-o", pluginPath, path},
+		Args: []string{CLI, "build", "-buildmode=plugin", "-o", pluginPath, function.File},
 		// Dir:  nhost.API_DIR,
 	}
 
@@ -387,29 +481,6 @@ func buildGoPlugin(path string) (string, error) {
 
 	return pluginPath, nil
 
-}
-
-// prepare the server before serving
-func buildNodeServer() error {
-	serverCode := []byte(fmt.Sprintf(`const express = require('%s/express');
-	const port = parseInt(process.argv[2], 10);
-	const app = express()`, filepath.Join(nhost.API_DIR, "node_modules")))
-
-	f, err := os.Create(nodeServerConfig)
-	if err != nil {
-		return err
-	}
-
-	defer f.Close()
-
-	if _, err := f.Write(serverCode); err != nil {
-		return err
-	}
-
-	f.Sync()
-
-	filesToClean = append(filesToClean, nodeServerConfig)
-	return nil
 }
 
 func fileNameWithoutExtension(fileName string) string {
