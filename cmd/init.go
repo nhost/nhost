@@ -37,9 +37,11 @@ import (
 )
 
 var (
-	remote bool
+	remote string
+
 	// project to initialize
 	remoteProject string
+	showList      bool = false
 )
 
 // initCmd represents the init command
@@ -48,6 +50,9 @@ var initCmd = &cobra.Command{
 	Aliases: []string{"i"},
 	Short:   "Initialize current directory as Nhost project",
 	Long:    `Initialize current working directory as an Nhost project.`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if pathExists(nhost.NHOST_DIR) {
@@ -62,7 +67,7 @@ var initCmd = &cobra.Command{
 		// if user has already passed remote_project as a flag,
 		// then fetch list of remote projects,
 		// iterate through those projects and filter that project
-		if remote {
+		if len(remote) > 0 {
 
 			// check if auth file exists
 			if !pathExists(nhost.AUTH_PATH) {
@@ -211,7 +216,7 @@ var initCmd = &cobra.Command{
 		}
 		f.Close()
 
-		if remote {
+		if len(remote) > 0 {
 
 			f, err := os.Create(filepath.Join(nhost.DOT_NHOST, "nhost.yaml"))
 			if err != nil {
@@ -589,7 +594,7 @@ func init() {
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
 	initCmd.Flags().StringVarP(&remoteProject, "project", "p", "", "Project name")
-	initCmd.Flags().BoolVarP(&remote, "remote", "r", false, "Use a remote project")
+	initCmd.Flags().StringVarP(&remote, "remote", "r", "", "Use a remote project")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

@@ -212,6 +212,17 @@ func execute(cmd *cobra.Command, args []string) {
 	log.WithField("component", "development").Info("Environment is now active")
 	fmt.Println()
 
+	/*
+		log.Info("Nhost Root: http://localhost:8080")
+		fmt.Println()
+
+		log.Info("GraphQL: http://localhost:8080/graphql")
+		log.Info("Console: http://localhost:8080/console")
+		log.Info("Authentication: http://localhost:8080/auth")
+		log.Info("Storage: http://localhost:8080/storage")
+		log.Info("Database: http://localhost:8080/db")
+		log.Info("Functions: http://localhost:8080/functions")
+	*/
 	log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
 	log.Infof("Authentication: http://localhost:%v", nhostConfig.Services["auth"].Port)
 	log.Infof("Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)

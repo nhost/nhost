@@ -99,11 +99,7 @@ Installing the CLI is easy.
 curl -L https://raw.githubusercontent.com/mrinalwahal/cli/canary/get.sh | bash
 ```
 
-This will autoatically detect your **operating system** and **platform/architecture**, and download it's equivalent binary in your current working directory. 
-
-<br>
-
-> Reason why it's installed in current working directory and not $HOME path, is explained [here](#migration) along with steps for permanently migrating to the new CLI.
+This will autoatically detect your **operating system** and **platform/architecture**, and download it's equivalent binary in `/usr/local/bin` directory. 
 
 <br>
 
@@ -163,7 +159,7 @@ From second run onwards, since the directory already contains an Nhost project, 
 
 You can also execute the aforementioned actions using their specific commands:
 
-1. `nhost init` - to intialize a blank local project in current working directory. Or `nhost init --remote` to clone an existing project from Nhost console.
+1. `nhost init` - to intialize a blank local project in current working directory. Or `nhost init --remote --project <remote_project_name>` to clone an existing project from Nhost console.
 2. `nhost dev` - to launch the development environment for your initialized project.
 
 ## **Blank Local Project**
