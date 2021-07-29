@@ -82,6 +82,11 @@ CREATE TABLE IF NOT EXISTS auth.whitelist (
   email auth.email NOT NULL PRIMARY KEY
 );
 
+CREATE TABLE auth.provider_requests (
+  id uuid NOT NULL PRIMARY KEY,
+  redirect_url text NOT NULL
+);
+
 -- FKs
 ALTER TABLE auth.user_providers
   ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES auth.users (id) ON UPDATE CASCADE ON DELETE CASCADE;

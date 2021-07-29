@@ -173,11 +173,11 @@ mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
   }
 }
 
-mutation insertProviderToUser(
-  $provider: authProviders_insert_input!
+mutation insertUserProviderToUser(
+  $userProvider: authUserProviders_insert_input!
   $userId: uuid!
 ) {
-  insertAuthProvider(object: $provider) {
+  insertAuthUserProvider(object: $userProvider) {
     id
   }
   updateUser(pk_columns: { id: $userId }, _set: { isActive: true }) {

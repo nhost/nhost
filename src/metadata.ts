@@ -154,7 +154,7 @@ async function createArrayRelationship(args: RelationshipArgs) {
 }
 
 export async function applyMetadata(): Promise<void> {
-  logger.info("Applying metadata");
+  logger.info("Applying metadata 3");
 
   // track tables
   await trackTable({ table: { schema: "auth", name: "users" } });
@@ -261,7 +261,7 @@ export async function applyMetadata(): Promise<void> {
         user_id: "userId",
         access_token: "accessToken",
         refresh_token: "refreshToken",
-        provider_id: "providerCode",
+        provider_id: "providerId",
         provider_user_id: "providerUserId",
       },
     },
@@ -385,9 +385,7 @@ export async function applyMetadata(): Promise<void> {
       },
       custom_column_names: {
         id: "id",
-        redirect_url_success: "redirectUrlSuccess",
-        redirect_url_failure: "redirectUrlFailure",
-        jwt_token: "jwtToken",
+        redirect_url: "redirectUrl",
       },
     },
   });

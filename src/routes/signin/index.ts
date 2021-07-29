@@ -14,6 +14,7 @@ import { signInMagicLinkHandler } from "./magic-link";
 import { signInMagicLinkCallbackHandler } from "./magic-link-callback";
 import { signInMFATOTOPHandler } from "./mfa/totp";
 import { signInAnonymousHandler } from "./anonymous";
+import providers from "./providers";
 
 const router = Router();
 
@@ -46,6 +47,8 @@ router.post(
   createValidator().body(signInAnonymousSchema),
   aw(signInAnonymousHandler)
 );
+
+providers(router);
 
 // router.post(
 //   "/signup/magic-link/callback",

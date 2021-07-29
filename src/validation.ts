@@ -464,21 +464,14 @@ export type WhitelistQuery = {
 };
 
 export const providerQuery = Joi.object({
-  redirectUrlSuccess: extendedJoi
+  redirectUrl: extendedJoi
     .string()
     .allowedRedirectUrls()
     .default(APPLICATION.REDIRECT_URL_SUCCESS),
-  redirectUrlFailure: extendedJoi
-    .string()
-    .allowedRedirectUrls()
-    .default(APPLICATION.REDIRECT_URL_ERROR),
-  jwtToken: Joi.string(),
 });
 
 export type ProviderQuery = {
-  redirectUrlSuccess?: string;
-  redirectUrlFailure?: string;
-  jwtToken?: string;
+  redirectUrl?: string;
 };
 
 export const providerCallbackQuery = Joi.object({

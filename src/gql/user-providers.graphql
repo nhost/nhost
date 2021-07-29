@@ -1,0 +1,16 @@
+query authUserProviders($provider: String!, $providerUserId: String!) {
+  authUserProviders(
+    where: {
+      _and: {
+        provider: { id: { _eq: $provider } }
+        providerUserId: { _eq: $providerUserId }
+      }
+    }
+    limit: 1
+  ) {
+    id
+    user {
+      id
+    }
+  }
+}
