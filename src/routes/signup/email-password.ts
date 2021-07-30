@@ -1,24 +1,24 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
-import { v4 as uuidv4 } from "uuid";
+} from 'express-joi-validation';
+import { v4 as uuidv4 } from 'uuid';
 
-import { REGISTRATION } from "@config/registration";
+import { REGISTRATION } from '@config/registration';
 import {
   getGravatarUrl,
   getUserByEmail,
   hashPassword,
   isWhitelistedEmail,
-} from "@/helpers";
-import { pwnedPassword } from "hibp";
-import { gqlSdk } from "@/utils/gqlSDK";
-import { AUTHENTICATION } from "@config/authentication";
-import { APPLICATION } from "@config/application";
-import { emailClient } from "@/email";
-import { insertProfile } from "@/utils/profile";
+} from '@/helpers';
+import { pwnedPassword } from 'hibp';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { AUTHENTICATION } from '@config/authentication';
+import { APPLICATION } from '@config/application';
+import { emailClient } from '@/email';
+import { insertProfile } from '@/utils/profile';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -42,26 +42,26 @@ export const signUpEmailPasswordHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log("sign up email password handler");
+  console.log('sign up email password handler');
 
   const { body } = req;
   const { email, password, profile, locale } = body;
 
   // Check if whitelisting is enabled and if email is whitelisted
   if (REGISTRATION.WHITELIST && !(await isWhitelistedEmail(email))) {
-    return res.boom.unauthorized("Email not allowed");
+    return res.boom.unauthorized('Email not allowed');
   }
 
   // check if email already in use by some other user
   const userAlreadyExist = await getUserByEmail(email);
 
   if (userAlreadyExist) {
-    return res.boom.badRequest("Email already in use");
+    return res.boom.badRequest('Email already in use');
   }
 
   // check if password is compromised
   if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password))) {
-    return res.boom.badRequest("Password is too weak");
+    return res.boom.badRequest('Password is too weak');
   }
 
   // set default role
@@ -73,7 +73,7 @@ export const signUpEmailPasswordHandler = async (
 
   // check if default role is part of allowedRoles
   if (!allowedRoles.includes(defaultRole)) {
-    return res.boom.badRequest("Default role must be part of allowed roles");
+    return res.boom.badRequest('Default role must be part of allowed roles');
   }
 
   // check if allowedRoles is a subset of allowed user roles
@@ -83,7 +83,7 @@ export const signUpEmailPasswordHandler = async (
     )
   ) {
     return res.boom.badRequest(
-      "Allowed roles must be a subset of allowedRoles"
+      'Allowed roles must be a subset of allowedRoles'
     );
   }
 
@@ -122,7 +122,7 @@ export const signUpEmailPasswordHandler = async (
     .then((res) => res.insertUser);
 
   if (!user) {
-    throw new Error("Unable to insert new user");
+    throw new Error('Unable to insert new user');
   }
 
   await insertProfile({ userId: user.id, profile });
@@ -130,15 +130,15 @@ export const signUpEmailPasswordHandler = async (
   // user is now inserted. Continue sending out activation email
   if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
     if (!APPLICATION.EMAILS_ENABLED) {
-      throw new Error("SMTP settings unavailable");
+      throw new Error('SMTP settings unavailable');
     }
 
     await emailClient.send({
-      template: "activate-user",
+      template: 'activate-user',
       message: {
         to: email,
         headers: {
-          "x-ticket": {
+          'x-ticket': {
             prepared: true,
             value: ticket,
           },
@@ -153,5 +153,5 @@ export const signUpEmailPasswordHandler = async (
     });
   }
 
-  return res.status(200).send("OK");
+  return res.status(200).send('OK');
 };

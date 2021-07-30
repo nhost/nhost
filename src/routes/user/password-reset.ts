@@ -1,16 +1,16 @@
-import { Response } from "express";
-import { v4 as uuidv4 } from "uuid";
+import { Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
+} from 'express-joi-validation';
 
-import { emailClient } from "@/email";
-import { getUserByEmail } from "@/helpers";
-import { gqlSdk } from "@/utils/gqlSDK";
-import { APPLICATION } from "@config/application";
-import { generateTicketExpiresAt } from "@/utils/ticket";
+import { emailClient } from '@/email';
+import { getUserByEmail } from '@/helpers';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { APPLICATION } from '@config/application';
+import { generateTicketExpiresAt } from '@/utils/ticket';
 
 type BodyType = {
   email: string;
@@ -29,7 +29,7 @@ export const userPasswordResetHandler = async (
   const user = await getUserByEmail(email);
 
   if (!user || !user.isActive) {
-    return res.boom.badRequest("No active user with such email exists");
+    return res.boom.badRequest('No active user with such email exists');
   }
 
   const ticket = `passwordReset:${uuidv4()}`;
@@ -44,7 +44,7 @@ export const userPasswordResetHandler = async (
   });
 
   await emailClient.send({
-    template: "password-reset",
+    template: 'password-reset',
     locals: {
       ticket,
       url: APPLICATION.SERVER_URL,
@@ -55,7 +55,7 @@ export const userPasswordResetHandler = async (
     message: {
       to: email,
       headers: {
-        "x-ticket": {
+        'x-ticket': {
           prepared: true,
           value: ticket as string,
         },
@@ -63,5 +63,5 @@ export const userPasswordResetHandler = async (
     },
   });
 
-  return res.send("OK");
+  return res.send('OK');
 };

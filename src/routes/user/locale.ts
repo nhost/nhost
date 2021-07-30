@@ -1,11 +1,11 @@
-import { gqlSdk } from "@/utils/gqlSDK";
-import { ENV } from "@config/env";
-import { Response } from "express";
+import { gqlSdk } from '@/utils/gqlSDK';
+import { ENV } from '@config/env';
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
+} from 'express-joi-validation';
 
 type BodyType = {
   locale: string;
@@ -21,14 +21,14 @@ export const userMFAHandler = async (
 ): Promise<unknown> => {
   // check if user is logged in
   if (!req.auth?.userId) {
-    return res.status(401).send("Incorrect access token");
+    return res.status(401).send('Incorrect access token');
   }
 
   const { locale } = req.body;
 
   // make sure locale is allowed
   if (!ENV.ALLOWED_LOCALES.includes(locale)) {
-    return res.boom.badRequest("Locale is not part of ALLOWED_LOCALES");
+    return res.boom.badRequest('Locale is not part of ALLOWED_LOCALES');
   }
 
   const { userId } = req.auth;
@@ -40,5 +40,5 @@ export const userMFAHandler = async (
     },
   });
 
-  return res.send("OK");
+  return res.send('OK');
 };

@@ -1,13 +1,13 @@
-import { asyncWrapper as aw } from "@/helpers";
-import { signUpEmailPasswordSchema } from "@/validation";
-import { Router } from "express";
-import { createValidator } from "express-joi-validation";
-import { signUpEmailPasswordHandler } from "./email-password";
+import { asyncWrapper as aw } from '@/helpers';
+import { signUpEmailPasswordSchema } from '@/validation';
+import { Router } from 'express';
+import { createValidator } from 'express-joi-validation';
+import { signUpEmailPasswordHandler } from './email-password';
 
 const router = Router();
 
 router.post(
-  "/signup/email-password",
+  '/signup/email-password',
   createValidator().body(signUpEmailPasswordSchema),
   aw(signUpEmailPasswordHandler)
 );

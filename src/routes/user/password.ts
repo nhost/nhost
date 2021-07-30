@@ -1,15 +1,15 @@
-import { Response } from "express";
-import bcrypt from "bcryptjs";
+import { Response } from 'express';
+import bcrypt from 'bcryptjs';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
-import { pwnedPassword } from "hibp";
+} from 'express-joi-validation';
+import { pwnedPassword } from 'hibp';
 
-import { hashPassword } from "@/helpers";
-import { gqlSdk } from "@/utils/gqlSDK";
-import { REGISTRATION } from "@config/registration";
+import { hashPassword } from '@/helpers';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { REGISTRATION } from '@config/registration';
 
 type BodyType = {
   ticket?: string;
@@ -25,21 +25,21 @@ export const userPasswordHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log("inside user password handler");
+  console.log('inside user password handler');
 
   const { ticket, oldPassword, newPassword } = req.body;
 
   if (ticket && oldPassword) {
-    return res.boom.badRequest("Both ticket and oldPassword can not be set");
+    return res.boom.badRequest('Both ticket and oldPassword can not be set');
   }
 
   if (!ticket && !oldPassword) {
-    return res.boom.badRequest("Either ticket (x)or oldPassword must be set");
+    return res.boom.badRequest('Either ticket (x)or oldPassword must be set');
   }
 
   // check if password is compromised
   if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(newPassword))) {
-    return res.boom.badRequest("Password is too weak");
+    return res.boom.badRequest('Password is too weak');
   }
 
   const newPasswordHash = await hashPassword(newPassword);
@@ -58,13 +58,13 @@ export const userPasswordHandler = async (
     });
 
     if (ticketUpdateResponse.updateUsers?.affected_rows !== 1) {
-      return res.boom.badRequest("Ticket invalid or expired");
+      return res.boom.badRequest('Ticket invalid or expired');
     }
   } else if (oldPassword) {
     // make sure user is signed in
 
     if (!req.auth?.userId) {
-      return res.boom.forbidden("User must be signed in");
+      return res.boom.forbidden('User must be signed in');
     }
 
     const { userId } = req.auth;
@@ -74,7 +74,7 @@ export const userPasswordHandler = async (
     });
 
     if (!user) {
-      throw new Error("Unable to get user");
+      throw new Error('Unable to get user');
     }
 
     // const oldPasswordHash = await hashPassword(oldPassword);
@@ -87,7 +87,7 @@ export const userPasswordHandler = async (
       console.log(user.passwordHash);
       console.log(oldPassword);
 
-      return res.boom.badRequest("Incorrect old password");
+      return res.boom.badRequest('Incorrect old password');
     }
 
     // set new password for user
@@ -99,8 +99,8 @@ export const userPasswordHandler = async (
     });
   } else {
     // should never be able to get to this state
-    return res.boom.badRequest("Either ticket (x)or oldPassword must be set");
+    return res.boom.badRequest('Either ticket (x)or oldPassword must be set');
   }
 
-  return res.send("OK");
+  return res.send('OK');
 };

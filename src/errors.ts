@@ -1,5 +1,5 @@
-import { NextFunction, Response, Request } from 'express'
-import logger from './logger'
+import { NextFunction, Response, Request } from 'express';
+import logger from './logger';
 
 /**
  * This is a custom error middleware for Express.
@@ -12,13 +12,13 @@ export async function errors(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   next: NextFunction
 ): Promise<unknown> {
-  logger.error(error.message)
+  logger.error(error.message);
 
-  if(process.env.NODE_ENV === 'production') {
-    return res.status(500).send() 
+  if (process.env.NODE_ENV === 'production') {
+    return res.status(500).send();
   } else {
     return res.status(500).send({
-      message: error.message
-    })
+      message: error.message,
+    });
   }
 }

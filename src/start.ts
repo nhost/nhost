@@ -1,2 +1,2 @@
-require('module-alias/register')
-import './ts-start'
+require('module-alias/register');
+import './ts-start';

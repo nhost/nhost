@@ -1,10 +1,10 @@
-import { gqlSdk } from "@/utils/gqlSDK";
-import { Response } from "express";
+import { gqlSdk } from '@/utils/gqlSDK';
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
+} from 'express-joi-validation';
 
 type BodyType = {
   ticket: string;
@@ -32,10 +32,10 @@ export const userActivateHandler = async (
     .then((res) => res.updateUsers);
 
   if (user?.affected_rows === 0) {
-    return res.status(401).send("Invalid or expired ticket");
+    return res.status(401).send('Invalid or expired ticket');
   }
 
   console.log(user);
 
-  return res.send("OK");
+  return res.send('OK');
 };

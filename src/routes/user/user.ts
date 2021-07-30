@@ -1,12 +1,12 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
+} from 'express-joi-validation';
 
-import { getProfileFieldsForAccessToken } from "@/utils/profile";
-import { gqlSdk } from "@/utils/gqlSDK";
+import { getProfileFieldsForAccessToken } from '@/utils/profile';
+import { gqlSdk } from '@/utils/gqlSDK';
 
 type BodyType = {};
 
@@ -19,7 +19,7 @@ export const userHandler = async (
   res: Response
 ): Promise<unknown> => {
   if (!req.auth?.userId) {
-    return res.boom.unauthorized("User not signed in");
+    return res.boom.unauthorized('User not signed in');
   }
 
   const { userId } = req.auth;
@@ -29,7 +29,7 @@ export const userHandler = async (
   });
 
   if (!user) {
-    throw new Error("Unable to get suer");
+    throw new Error('Unable to get suer');
   }
 
   const profile = await getProfileFieldsForAccessToken({ userId });

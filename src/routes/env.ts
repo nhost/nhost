@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router } from 'express';
 
 export default (router: Router) => {
   // THESE ENDPOINTS ARE ONLY TO BE USED FOR TESTS!!
@@ -7,10 +7,10 @@ export default (router: Router) => {
 
   const envStack: any[] = [];
 
-  router.post("/change-env", (req, res) => {
-    if (process.env.NODE_ENV === "production") {
+  router.post('/change-env', (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
       return res.boom.badRequest(
-        "This endpoint is only available on test environments"
+        'This endpoint is only available on test environments'
       );
     }
 
@@ -21,25 +21,25 @@ export default (router: Router) => {
     res.json(process.env);
   });
 
-  router.post("/reset-env", (req, res) => {
-    if (process.env.NODE_ENV === "production") {
+  router.post('/reset-env', (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
       return res.boom.badRequest(
-        "This endpoint is only available on test environments"
+        'This endpoint is only available on test environments'
       );
     }
 
     if (!envStack.length) {
-      return res.boom.badRequest("No stored env");
+      return res.boom.badRequest('No stored env');
     }
 
     Object.assign(process.env, envStack.pop());
     res.json(process.env);
   });
 
-  router.get("/env/:id", (req, res) => {
-    if (process.env.NODE_ENV === "production") {
+  router.get('/env/:id', (req, res) => {
+    if (process.env.NODE_ENV === 'production') {
       return res.boom.badRequest(
-        "This endpoint is only available on test environments"
+        'This endpoint is only available on test environments'
       );
     }
 

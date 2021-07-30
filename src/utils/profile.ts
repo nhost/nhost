@@ -1,6 +1,6 @@
-import { gql } from "graphql-request";
-import { client, gqlSdk } from "@/utils/gqlSDK";
-import { TOKEN } from "@config/token";
+import { gql } from 'graphql-request';
+import { client, gqlSdk } from '@/utils/gqlSDK';
+import { TOKEN } from '@config/token';
 
 type InsertProfileParams = {
   userId: string;
@@ -31,7 +31,7 @@ export const insertProfile = async ({
       },
     });
 
-    console.log("insertProfileResult");
+    console.log('insertProfileResult');
 
     console.log(insertProfileResult);
   } catch (error) {
@@ -42,7 +42,7 @@ export const insertProfile = async ({
     });
 
     console.error(error);
-    throw new Error("Could not insert profile");
+    throw new Error('Could not insert profile');
   }
 };
 
@@ -56,7 +56,7 @@ export const getProfileFieldsForAccessToken = async ({
   const getProfile = gql`
     query getProfile($userId: uuid!) {
       profile(userId: $userId) {
-        ${TOKEN.PROFILE_SESSION_VARIABLE_FIELDS.join("\n")}
+        ${TOKEN.PROFILE_SESSION_VARIABLE_FIELDS.join('\n')}
       }
     }
   `;

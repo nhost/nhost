@@ -1,49 +1,49 @@
-import { Router } from "express";
-import { createValidator } from "express-joi-validation";
+import { Router } from 'express';
+import { createValidator } from 'express-joi-validation';
 
-import { asyncWrapper as aw } from "@/helpers";
+import { asyncWrapper as aw } from '@/helpers';
 import {
   signInEmailPasswordSchema,
   signInMagicLinkSchema,
   signInMagicLinkCallbackSchema,
   signInMFATOTPSchema,
   signInAnonymousSchema,
-} from "@/validation";
-import { signInEmailPasswordHandler } from "./email-password";
-import { signInMagicLinkHandler } from "./magic-link";
-import { signInMagicLinkCallbackHandler } from "./magic-link-callback";
-import { signInMFATOTOPHandler } from "./mfa/totp";
-import { signInAnonymousHandler } from "./anonymous";
-import providers from "./providers";
+} from '@/validation';
+import { signInEmailPasswordHandler } from './email-password';
+import { signInMagicLinkHandler } from './magic-link';
+import { signInMagicLinkCallbackHandler } from './magic-link-callback';
+import { signInMFATOTOPHandler } from './mfa/totp';
+import { signInAnonymousHandler } from './anonymous';
+import providers from './providers';
 
 const router = Router();
 
 router.post(
-  "/signin/email-password",
+  '/signin/email-password',
   createValidator().body(signInEmailPasswordSchema),
   aw(signInEmailPasswordHandler)
 );
 
 router.post(
-  "/signin/magic-link",
+  '/signin/magic-link',
   createValidator().body(signInMagicLinkSchema),
   aw(signInMagicLinkHandler)
 );
 
 router.post(
-  "/signin/magic-link/callback",
+  '/signin/magic-link/callback',
   createValidator().body(signInMagicLinkCallbackSchema),
   aw(signInMagicLinkCallbackHandler)
 );
 
 router.post(
-  "/signin/mfa/totp",
+  '/signin/mfa/totp',
   createValidator().body(signInMFATOTPSchema),
   aw(signInMFATOTOPHandler)
 );
 
 router.post(
-  "/signin/anonymous",
+  '/signin/anonymous',
   createValidator().body(signInAnonymousSchema),
   aw(signInAnonymousHandler)
 );

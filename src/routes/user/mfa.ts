@@ -1,11 +1,11 @@
-import { gqlSdk } from "@/utils/gqlSDK";
-import { Response } from "express";
+import { gqlSdk } from '@/utils/gqlSDK';
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
-import { authenticator } from "otplib";
+} from 'express-joi-validation';
+import { authenticator } from 'otplib';
 
 type BodyType = {
   code: string;
@@ -22,7 +22,7 @@ export const userMFAHandler = async (
 ): Promise<unknown> => {
   // check if user is logged in
   if (!req.auth?.userId) {
-    return res.status(401).send("Incorrect access token");
+    return res.status(401).send('Incorrect access token');
   }
 
   const { userId } = req.auth;
@@ -32,17 +32,17 @@ export const userMFAHandler = async (
   });
 
   if (!user) {
-    throw new Error("user could not be fetched");
+    throw new Error('user could not be fetched');
   }
 
   if (!user.otpSecret) {
-    return res.boom.internal("otp secret is not set for user");
+    return res.boom.internal('otp secret is not set for user');
   }
 
   const { code, mfaEnabled } = req.body;
 
   if (!authenticator.check(code, user.otpSecret)) {
-    return res.boom.unauthorized("Invalid code");
+    return res.boom.unauthorized('Invalid code');
   }
 
   await gqlSdk.updateUser({
@@ -52,5 +52,5 @@ export const userMFAHandler = async (
     },
   });
 
-  return res.send("OK");
+  return res.send('OK');
 };

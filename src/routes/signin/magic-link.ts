@@ -1,18 +1,18 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
-import { v4 as uuidv4 } from "uuid";
+} from 'express-joi-validation';
+import { v4 as uuidv4 } from 'uuid';
 
-import { REGISTRATION } from "@config/registration";
-import { getGravatarUrl, getUserByEmail, isWhitelistedEmail } from "@/helpers";
-import { gqlSdk } from "@/utils/gqlSDK";
-import { AUTHENTICATION } from "@config/authentication";
-import { APPLICATION } from "@config/application";
-import { emailClient } from "@/email";
-import { insertProfile } from "@/utils/profile";
+import { REGISTRATION } from '@config/registration';
+import { getGravatarUrl, getUserByEmail, isWhitelistedEmail } from '@/helpers';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { AUTHENTICATION } from '@config/authentication';
+import { APPLICATION } from '@config/application';
+import { emailClient } from '@/email';
+import { insertProfile } from '@/utils/profile';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -36,7 +36,7 @@ export const signInMagicLinkHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log("sign up magic link handler");
+  console.log('sign up magic link handler');
 
   const { body } = req;
   const { email, profile, locale } = body;
@@ -51,7 +51,7 @@ export const signInMagicLinkHandler = async (
 
     // Check if whitelisting is enabled and if email is whitelisted
     if (REGISTRATION.WHITELIST && !(await isWhitelistedEmail(email))) {
-      return res.boom.unauthorized("Email not allowed");
+      return res.boom.unauthorized('Email not allowed');
     }
 
     // set default role
@@ -63,7 +63,7 @@ export const signInMagicLinkHandler = async (
 
     // check if default role is part of allowedRoles
     if (!allowedRoles.includes(defaultRole)) {
-      return res.boom.badRequest("Default role must be part of allowed roles");
+      return res.boom.badRequest('Default role must be part of allowed roles');
     }
 
     // check if allowedRoles is a subset of allowed user roles
@@ -73,7 +73,7 @@ export const signInMagicLinkHandler = async (
       )
     ) {
       return res.boom.badRequest(
-        "Allowed roles must be a subset of allowedRoles"
+        'Allowed roles must be a subset of allowedRoles'
       );
     }
 
@@ -106,7 +106,7 @@ export const signInMagicLinkHandler = async (
       .then((res) => res.insertUser);
 
     if (!insertedUser) {
-      throw new Error("Unable to insert new user");
+      throw new Error('Unable to insert new user');
     }
 
     await insertProfile({ userId: insertedUser.id, profile });
@@ -130,15 +130,15 @@ export const signInMagicLinkHandler = async (
 
   // user is now inserted. Continue sending out activation email
   if (!APPLICATION.EMAILS_ENABLED) {
-    throw new Error("SMTP settings unavailable");
+    throw new Error('SMTP settings unavailable');
   }
 
   await emailClient.send({
-    template: "magic-link",
+    template: 'magic-link',
     message: {
       to: email,
       headers: {
-        "x-ticket": {
+        'x-ticket': {
           prepared: true,
           value: ticket,
         },
@@ -153,5 +153,5 @@ export const signInMagicLinkHandler = async (
     },
   });
 
-  res.status(200).send("OK");
+  res.status(200).send('OK');
 };

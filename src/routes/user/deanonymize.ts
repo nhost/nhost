@@ -1,22 +1,22 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
-import { pwnedPassword } from "hibp";
-import { v4 as uuidv4 } from "uuid";
+} from 'express-joi-validation';
+import { pwnedPassword } from 'hibp';
+import { v4 as uuidv4 } from 'uuid';
 
-import { getUserByEmail, hashPassword } from "@/helpers";
-import { gqlSdk } from "@/utils/gqlSDK";
-import { generateTicketExpiresAt } from "@/utils/ticket";
-import { REGISTRATION } from "@config/registration";
-import { emailClient } from "@/email";
-import { APPLICATION } from "@config/application";
-import { AUTHENTICATION } from "@config/authentication";
+import { getUserByEmail, hashPassword } from '@/helpers';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { generateTicketExpiresAt } from '@/utils/ticket';
+import { REGISTRATION } from '@config/registration';
+import { emailClient } from '@/email';
+import { APPLICATION } from '@config/application';
+import { AUTHENTICATION } from '@config/authentication';
 
 type BodyType = {
-  signInMethod: "email-password" | "magic-link";
+  signInMethod: 'email-password' | 'magic-link';
   email: string;
   password?: string;
   allowedRoles: string[];
@@ -33,7 +33,7 @@ export const userDeanonymizeHandler = async (
 ): Promise<unknown> => {
   // check if user is logged in
   if (!req.auth?.userId) {
-    return res.status(401).send("Incorrect access token");
+    return res.status(401).send('Incorrect access token');
   }
 
   const { signInMethod, email, password, defaultRole } = req.body;
@@ -49,24 +49,24 @@ export const userDeanonymizeHandler = async (
   // we don't use the `isAnonymous` from the middeware because it might be out
   // dated if you make this request multiple times in a short amount of time
   if (user?.isAnonymous !== true) {
-    return res.boom.badRequest("Logged in user is not anonymous");
+    return res.boom.badRequest('Logged in user is not anonymous');
   }
 
   const userAlreadyExist = await getUserByEmail(email);
 
   // check if email is already in use by some other user
   if (userAlreadyExist) {
-    return res.boom.badRequest("Email already in use");
+    return res.boom.badRequest('Email already in use');
   }
 
   // checks for email-password sign in method
-  if (signInMethod === "email-password") {
+  if (signInMethod === 'email-password') {
     if (!password) {
-      return res.boom.badRequest("missing password");
+      return res.boom.badRequest('missing password');
     }
 
     if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password))) {
-      return res.boom.badRequest("Password is too weak");
+      return res.boom.badRequest('Password is too weak');
     }
   }
 
@@ -75,7 +75,7 @@ export const userDeanonymizeHandler = async (
 
   // check if default role is part of allowedRoles
   if (!allowedRoles.includes(defaultRole)) {
-    return res.boom.badRequest("Default role must be part of allowed roles");
+    return res.boom.badRequest('Default role must be part of allowed roles');
   }
 
   // check if allowedRoles is a subset of allowed user roles
@@ -85,7 +85,7 @@ export const userDeanonymizeHandler = async (
     )
   ) {
     return res.boom.badRequest(
-      "Allowed roles must be a subset of allowedRoles"
+      'Allowed roles must be a subset of allowedRoles'
     );
   }
 
@@ -97,7 +97,7 @@ export const userDeanonymizeHandler = async (
 
   //
   const ticketPrefix =
-    signInMethod === "email-password" ? "userActivate" : "magicLink";
+    signInMethod === 'email-password' ? 'userActivate' : 'magicLink';
   const ticket = `${ticketPrefix}:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
@@ -105,9 +105,9 @@ export const userDeanonymizeHandler = async (
   // if AUTO_ACTIVATED_NEW_USER is false the user must instead activate their
   // account with the email
   const isActive =
-    signInMethod === "magic-link"
+    signInMethod === 'magic-link'
       ? true
-      : signInMethod === "email-password"
+      : signInMethod === 'email-password'
       ? REGISTRATION.AUTO_ACTIVATE_NEW_USERS
       : false;
 
@@ -126,7 +126,7 @@ export const userDeanonymizeHandler = async (
   });
 
   if (!user) {
-    throw new Error("Unable to get user");
+    throw new Error('Unable to get user');
   }
 
   // delete existing (anonymous) user roles
@@ -140,27 +140,27 @@ export const userDeanonymizeHandler = async (
   });
 
   // send email
-  if (signInMethod === "email-password") {
-    console.log("login method email password");
+  if (signInMethod === 'email-password') {
+    console.log('login method email password');
 
-    console.log("auto activate new users");
+    console.log('auto activate new users');
     console.log(REGISTRATION.AUTO_ACTIVATE_NEW_USERS);
 
-    console.log("verify emails");
+    console.log('verify emails');
     console.log(AUTHENTICATION.VERIFY_EMAILS);
 
     if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
-      console.log("send email");
+      console.log('send email');
       if (!APPLICATION.EMAILS_ENABLED) {
-        throw new Error("SMTP settings unavailable");
+        throw new Error('SMTP settings unavailable');
       }
 
       await emailClient.send({
-        template: "activate-user",
+        template: 'activate-user',
         message: {
           to: email,
           headers: {
-            "x-ticket": {
+            'x-ticket': {
               prepared: true,
               value: ticket,
             },
@@ -174,18 +174,18 @@ export const userDeanonymizeHandler = async (
         },
       });
     }
-  } else if (signInMethod === "magic-link") {
-    console.log("login method magic link");
+  } else if (signInMethod === 'magic-link') {
+    console.log('login method magic link');
     if (!APPLICATION.EMAILS_ENABLED) {
-      throw new Error("SMTP settings unavailable");
+      throw new Error('SMTP settings unavailable');
     }
 
     await emailClient.send({
-      template: "magic-link",
+      template: 'magic-link',
       message: {
         to: email,
         headers: {
-          "x-ticket": {
+          'x-ticket': {
             prepared: true,
             value: ticket,
           },
@@ -200,8 +200,8 @@ export const userDeanonymizeHandler = async (
       },
     });
   } else {
-    throw new Error("Invalid state");
+    throw new Error('Invalid state');
   }
 
-  return res.send("OK");
+  return res.send('OK');
 };

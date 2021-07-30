@@ -1,12 +1,12 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
+} from 'express-joi-validation';
 
-import { getNewTokens } from "@/utils/tokens";
-import { gqlSdk } from "@/utils/gqlSDK";
+import { getNewTokens } from '@/utils/tokens';
+import { gqlSdk } from '@/utils/gqlSDK';
 
 type BodyType = {
   refreshToken: string;
@@ -30,16 +30,16 @@ export const tokenHandler = async (
       try {
         return res.authRefreshTokens[0].user;
       } catch (error) {
-        throw new Error("Invalid or expired refresh token");
+        throw new Error('Invalid or expired refresh token');
       }
     });
 
   if (!user) {
-    throw new Error("Invalid or expired refresh token");
+    throw new Error('Invalid or expired refresh token');
   }
 
   if (!user.isActive) {
-    return res.boom.badRequest("User is not activated");
+    return res.boom.badRequest('User is not activated');
   }
 
   // delete current refresh token

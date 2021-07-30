@@ -1,24 +1,24 @@
-import { TOKEN } from "@config/index";
-import { JWT } from "jose";
-import { v4 as uuidv4 } from "uuid";
+import { TOKEN } from '@config/index';
+import { JWT } from 'jose';
+import { v4 as uuidv4 } from 'uuid';
 
-import { gqlSdk } from "@/utils/gqlSDK";
-import { Claims, Token, ClaimValueType, PermissionVariables } from "../types";
-import { UserFieldsFragment } from "./__generated__/graphql-request";
-import { generateTicketExpiresAt } from "./ticket";
-import { getProfileFieldsForAccessToken } from "./profile";
-import { KeyObject } from "crypto";
-import { string } from "joi";
+import { gqlSdk } from '@/utils/gqlSDK';
+import { Claims, Token, ClaimValueType, PermissionVariables } from '../types';
+import { UserFieldsFragment } from './__generated__/graphql-request';
+import { generateTicketExpiresAt } from './ticket';
+import { getProfileFieldsForAccessToken } from './profile';
+import { KeyObject } from 'crypto';
+import { string } from 'joi';
 
 // const RSA_TYPES = ["RS256", "RS384", "RS512"];
-const SHA_TYPES = ["HS256", "HS384", "HS512"];
+const SHA_TYPES = ['HS256', 'HS384', 'HS512'];
 
 if (!SHA_TYPES.includes(TOKEN.ALGORITHM)) {
   throw new Error(`Invalid JWT algorithm: ${TOKEN.ALGORITHM}`);
 }
 
 if (!TOKEN.JWT_SECRET) {
-  throw new Error("Empty JWT secret key");
+  throw new Error('Empty JWT secret key');
 }
 
 /**
@@ -26,7 +26,7 @@ if (!TOKEN.JWT_SECRET) {
  * @param arr js array to be converted to Postgres array
  */
 function toPgArray(arr: string[]): string {
-  const m = arr.map((e) => `"${e}"`).join(",");
+  const m = arr.map((e) => `"${e}"`).join(',');
   return `{${m}}`;
 }
 
@@ -44,7 +44,7 @@ export function generatePermissionVariables(
 } {
   const allowedRoles = user.roles.map((role) => role.role);
 
-  console.log("profile inside generate permission variables");
+  console.log('profile inside generate permission variables');
   console.log(profile);
 
   // add user's default role to allowed roles
@@ -55,14 +55,14 @@ export function generatePermissionVariables(
   const customSessionVariables = {} as any;
   TOKEN.PROFILE_SESSION_VARIABLE_FIELDS.forEach((column) => {
     let value;
-    console.log("column:");
+    console.log('column:');
     console.log(column);
 
-    console.log("profile value:");
+    console.log('profile value:');
     console.log(profile[column]);
 
     const type = typeof profile[column] as ClaimValueType;
-    if (type === "string") {
+    if (type === 'string') {
       value = profile[column];
     } else if (Array.isArray(profile[column])) {
       value = toPgArray(profile[column] as string[]);
@@ -96,7 +96,7 @@ export const sign = ({
     algorithm: TOKEN.ALGORITHM,
     expiresIn: `${TOKEN.ACCESS_TOKEN_EXPIRES_IN}s`,
     subject: user.id,
-    issuer: "nhost",
+    issuer: 'nhost',
   });
 };
 
@@ -105,15 +105,15 @@ export const sign = ({
  * @param authorization Authorization header.
  */
 export const getClaims = (authorization: string | undefined): Claims => {
-  if (!authorization) throw new Error("Missing Authorization header");
-  const token = authorization.replace("Bearer ", "");
+  if (!authorization) throw new Error('Missing Authorization header');
+  const token = authorization.replace('Bearer ', '');
   try {
     const decodedToken = JWT.verify(token, TOKEN.JWT_SECRET) as Token;
     if (!decodedToken[TOKEN.CLAIMS_NAMESPACE])
-      throw new Error("Claims namespace not found");
+      throw new Error('Claims namespace not found');
     return decodedToken[TOKEN.CLAIMS_NAMESPACE];
   } catch (err) {
-    throw new Error("Invalid or expired JWT token");
+    throw new Error('Invalid or expired JWT token');
   }
 };
 
@@ -123,7 +123,7 @@ export const getPermissionVariablesFromClaims = (
   // remove `x-hasura-` from claim props
   const claimsSanitized: { [k: string]: any } = {};
   for (const claimKey in claims) {
-    claimsSanitized[claimKey.replace("x-hasura-", "") as string] =
+    claimsSanitized[claimKey.replace('x-hasura-', '') as string] =
       claims[claimKey];
   }
 
@@ -190,21 +190,21 @@ export const getSignInTokens = async ({
   userId: string;
   checkMFA: boolean;
 }): Promise<SignInTokens> => {
-  console.log("inside get sign in tokens");
+  console.log('inside get sign in tokens');
 
   const { user } = await gqlSdk.user({
     id: userId,
   });
 
-  console.log("getting user again");
+  console.log('getting user again');
   console.log(user);
 
   if (!user) {
-    throw new Error("No user");
+    throw new Error('No user');
   }
 
   if (checkMFA && user?.mfaEnabled) {
-    console.log("MFA");
+    console.log('MFA');
 
     // generate new ticket
     const ticket = `mfaTotp:${uuidv4()}`;

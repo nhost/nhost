@@ -1,4 +1,4 @@
 // Headers
 export const HEADERS = {
-  ADMIN_SECRET_HEADER: 'x-admin-secret'
-}
+  ADMIN_SECRET_HEADER: 'x-admin-secret',
+};

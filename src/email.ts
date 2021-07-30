@@ -1,9 +1,9 @@
-import { APPLICATION } from "@config/index";
+import { APPLICATION } from '@config/index';
 
-import Email from "email-templates";
-import nodemailer from "nodemailer";
-import ejs from "ejs";
-import { gqlSdk } from "./utils/gqlSDK";
+import Email from 'email-templates';
+import nodemailer from 'nodemailer';
+import ejs from 'ejs';
+import { gqlSdk } from './utils/gqlSDK';
 
 /**
  * SMTP transport.
@@ -27,11 +27,11 @@ export const emailClient: Email<any> = new Email({
   message: { from: APPLICATION.SMTP_SENDER },
   send: true,
   render: async (view, locals) => {
-    const [id, field] = view.split("/");
+    const [id, field] = view.split('/');
     const locale = locals.locale;
 
     if (!locale) {
-      throw new Error("Cannot send email without locale");
+      throw new Error('Cannot send email without locale');
     }
 
     const email = await gqlSdk
@@ -45,10 +45,10 @@ export const emailClient: Email<any> = new Email({
       throw new Error(`Cannot find email ${id}(${locale})`);
     }
 
-    if (field === "subject") return email.title;
-    else if (field === "html")
+    if (field === 'subject') return email.title;
+    else if (field === 'html')
       return await emailClient.juiceResources(ejs.render(email.html, locals));
-    else if (field === "text") return email.noHtml;
+    else if (field === 'text') return email.noHtml;
     else throw new Error(`Unknown field ${field}`);
   },
 });

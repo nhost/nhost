@@ -1,20 +1,19 @@
-import cors from "cors";
-import { errors } from "./errors";
-import express from "express";
-import fileUpload from "express-fileupload";
-import helmet from "helmet";
-import { json } from "body-parser";
-import morgan from "morgan";
-import { limiter } from "./limiter";
-import router from "./routes";
-import passport from "passport";
-import { authMiddleware } from "./middleware/auth";
-import logger from "./logger";
+import cors from 'cors';
+import { errors } from './errors';
+import express from 'express';
+import helmet from 'helmet';
+import { json } from 'body-parser';
+import morgan from 'morgan';
+import { limiter } from './limiter';
+import router from './routes';
+import passport from 'passport';
+import { authMiddleware } from './middleware/auth';
+import logger from './logger';
 
 const app = express();
 
-if (process.env.NODE_ENV === "production") {
-  app.set("trust proxy", 1);
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
   app.use(limiter);
 }
 
@@ -37,7 +36,6 @@ app.use(
 app.use(helmet());
 app.use(json());
 app.use(cors({ credentials: true, origin: true }));
-app.use(fileUpload());
 
 app.use(authMiddleware);
 

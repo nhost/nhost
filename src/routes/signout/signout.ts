@@ -1,12 +1,12 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
+} from 'express-joi-validation';
 
-import { getNewTokens } from "@/utils/tokens";
-import { gqlSdk } from "@/utils/gqlSDK";
+import { getNewTokens } from '@/utils/tokens';
+import { gqlSdk } from '@/utils/gqlSDK';
 
 type BodyType = {
   refreshToken: string;
@@ -32,12 +32,12 @@ export const signOutHandler = async (
         try {
           return res.authRefreshTokens[0].user;
         } catch (error) {
-          throw new Error("Invalid or expired ticket");
+          throw new Error('Invalid or expired ticket');
         }
       });
 
     if (!user) {
-      throw new Error("Invalid or expired ticket");
+      throw new Error('Invalid or expired ticket');
     }
 
     await gqlSdk.deleteUserRefreshTokens({
@@ -50,5 +50,5 @@ export const signOutHandler = async (
     });
   }
 
-  return res.send("OK");
+  return res.send('OK');
 };

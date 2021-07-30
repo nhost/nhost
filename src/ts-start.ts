@@ -1,12 +1,11 @@
-import { APPLICATION } from "@config/index";
-import axios from "axios";
+import { APPLICATION } from '@config/index';
+import axios from 'axios';
 
-import { app } from "./server";
-import { applyMigrations } from "@/migrations";
-import { applyMetadata } from "@/metadata";
-import "./env-vars-check";
-import "./enabled-deprecation-warning";
-import logger from "./logger";
+import { app } from './server';
+import { applyMigrations } from '@/migrations';
+import { applyMetadata } from '@/metadata';
+import './env-vars-check';
+import logger from './logger';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -15,17 +14,17 @@ function delay(ms: number) {
 const isHasuraReady = async () => {
   try {
     await axios.get(
-      `${APPLICATION.HASURA_ENDPOINT.replace("/v1/graphql", "/healthz")}`
+      `${APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/healthz')}`
     );
   } catch (err) {
     console.log(
       `Couldn't find an hasura instance running on ${APPLICATION.HASURA_ENDPOINT}`
     );
-    console.log("wait 10 seconds");
+    console.log('wait 10 seconds');
     await delay(10000);
-    console.log("exit 1");
+    console.log('exit 1');
     process.exit(1);
-    console.log("exit 1 completed");
+    console.log('exit 1 completed');
   }
 };
 

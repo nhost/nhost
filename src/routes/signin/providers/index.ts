@@ -1,16 +1,16 @@
-import { Router } from "express";
+import { Router } from 'express';
 
-import github from "./github";
-import google from "./google";
-import facebook from "./facebook";
-import twitter from "./twitter";
-import apple from "./apple";
-import windowslive from "./windowslive";
-import linkedin from "./linkedin";
-import spotify from "./spotify";
-import strava from "./strava";
-import gitlab from "./gitlab";
-import bitbucket from "./bitbucket";
+import github from './github';
+import google from './google';
+import facebook from './facebook';
+import twitter from './twitter';
+import apple from './apple';
+import windowslive from './windowslive';
+import linkedin from './linkedin';
+import spotify from './spotify';
+import strava from './strava';
+import gitlab from './gitlab';
+import bitbucket from './bitbucket';
 
 const router = Router();
 
@@ -27,5 +27,5 @@ gitlab(router);
 bitbucket(router);
 
 export default (parentRouter: Router) => {
-  parentRouter.use("/signin/provider", router);
+  parentRouter.use('/signin/provider', router);
 };

@@ -1,16 +1,14 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
-import * as EmailValidator from "email-validator";
+} from 'express-joi-validation';
+import * as EmailValidator from 'email-validator';
 
-import { getUserByTicket } from "@/helpers";
-import { gqlSdk } from "@/utils/gqlSDK";
-import { AUTHENTICATION } from "@config/authentication";
-import resendConfirmation from "@routes/resend-confirmation";
-import { ESRCH } from "constants";
+import { getUserByTicket } from '@/helpers';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { AUTHENTICATION } from '@config/authentication';
 
 type BodyType = {
   ticket?: string;
@@ -25,7 +23,7 @@ export const userEmailHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log("inside user password handler");
+  console.log('inside user password handler');
 
   const { ticket, newEmail } = req.body;
 
@@ -37,14 +35,14 @@ export const userEmailHandler = async (
     }
 
     if (!req.auth?.userId) {
-      return res.boom.forbidden("User must be signed in");
+      return res.boom.forbidden('User must be signed in');
     }
 
     const { userId } = req.auth;
 
     if (!EmailValidator.validate(newEmail)) {
       return res.boom.badRequest(
-        "Invalid: newEmail is not a valid email address"
+        'Invalid: newEmail is not a valid email address'
       );
     }
 
@@ -55,18 +53,18 @@ export const userEmailHandler = async (
       },
     });
 
-    return res.send("ok");
+    return res.send('ok');
   }
 
   if (!ticket) {
-    return res.boom.badRequest("Missing ticket");
+    return res.boom.badRequest('Missing ticket');
   }
 
   // get user using ticket
   const user = await getUserByTicket(ticket);
 
   if (!user) {
-    return res.boom.badRequest("Invalid or expired ticket");
+    return res.boom.badRequest('Invalid or expired ticket');
   }
 
   // set new email for user
@@ -79,5 +77,5 @@ export const userEmailHandler = async (
     },
   });
 
-  return res.send("ok");
+  return res.send('ok');
 };

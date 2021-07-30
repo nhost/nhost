@@ -26,21 +26,15 @@ const rotate = async ({ providerId, userId }: BodyType) => {
     throw new Error('No refresh token found for provider id for user');
   }
 
-  console.log({ authUserProvider });
-
   refresh.requestNewAccessToken(
     providerId,
     authUserProvider.refreshToken,
     async (err: unknown, accessToken: string, refreshToken: string) => {
       if (err) {
-        console.log('error:');
-        console.log(err);
+        console.error('error:');
+        console.error(err);
         throw new Error('error refreshing tokens');
       }
-
-      console.log('new tokens');
-      console.log({ accessToken });
-      console.log({ refreshToken });
 
       // save new token(s)
       // possibly reuse old refresh token

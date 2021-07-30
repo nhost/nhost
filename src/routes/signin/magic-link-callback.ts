@@ -1,12 +1,12 @@
-import { Response } from "express";
+import { Response } from 'express';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
-} from "express-joi-validation";
+} from 'express-joi-validation';
 
-import { gqlSdk } from "@/utils/gqlSDK";
-import { getSignInTokens } from "@/utils/tokens";
+import { gqlSdk } from '@/utils/gqlSDK';
+import { getSignInTokens } from '@/utils/tokens';
 
 type BodyType = {
   ticket: string;
@@ -20,7 +20,7 @@ export const signInMagicLinkCallbackHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log("sign up magic link callback handler");
+  console.log('sign up magic link callback handler');
 
   const { ticket } = req.body;
 
@@ -31,7 +31,7 @@ export const signInMagicLinkCallbackHandler = async (
     .then((res) => res.users[0]);
 
   if (!user.isActive) {
-    throw new Error("User is not active");
+    throw new Error('User is not active');
   }
 
   const updatedUser = await gqlSdk
@@ -45,7 +45,7 @@ export const signInMagicLinkCallbackHandler = async (
     .then((res) => res.updateUsers);
 
   if (!updatedUser || updatedUser.affected_rows === 0) {
-    return res.status(401).send("Invalid or expired ticket");
+    return res.status(401).send('Invalid or expired ticket');
   }
 
   const signInTokens = await getSignInTokens({

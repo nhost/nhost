@@ -67,8 +67,6 @@ const manageProviderStrategy =
     profile: Profile,
     done: VerifyCallback
   ): Promise<void> => {
-    console.log('manage provider strategy');
-
     req.state = req.query.state as string;
 
     // TODO How do we handle REGISTRATION_CUSTOM_FIELDS with OAuth?
@@ -81,20 +79,6 @@ const manageProviderStrategy =
       return done(new Error('Email not allowed'));
     }
 
-    console.log('id');
-    console.log(id);
-    console.log('email');
-    console.log(email);
-    console.log('displayName');
-    console.log(displayName);
-    console.log('avatarUrl');
-    console.log(avatarUrl);
-
-    console.log('accessToken');
-    console.log(accessToken);
-    console.log('refreshToken');
-    console.log(refreshToken);
-
     // check if user already exist with `id` (unique id from provider)
     const userProvider = await gqlSdk
       .authUserProviders({
@@ -102,8 +86,6 @@ const manageProviderStrategy =
         providerUserId: id.toString(),
       })
       .then((res) => {
-        console.log(res);
-
         return res.authUserProviders[0];
       });
 
@@ -280,18 +262,9 @@ export const initProvider = <T extends Strategy>(
 
   const subRouter = Router();
 
-  console.log('strategy name:');
-  console.log(strategyName);
-
-  console.log({ middleware });
-
   if (middleware) {
-    console.log('middleware exist');
     subRouter.use(middleware);
   }
-
-  console.log({ options });
-  console.log(PROVIDERS[strategyName]);
 
   if (PROVIDERS[strategyName]) {
     const strategyToUse = new strategy(
@@ -304,8 +277,6 @@ export const initProvider = <T extends Strategy>(
       manageProviderStrategy(strategyName, transformProfile)
     );
 
-    console.log(`register strat name: ${strategyName}`);
-
     passport.use(strategyName, strategyToUse);
     // @ts-expect-error
     refresh.use(strategyToUse);
@@ -313,14 +284,11 @@ export const initProvider = <T extends Strategy>(
 
   subRouter.get('/', [
     async (req: Request, res: Response, next: NextFunction) => {
-      console.log('in second sub route');
-
       if (REGISTRATION.ADMIN_ONLY) {
         return res.boom.notImplemented(
           'Provider authentication cannot be used when registration when ADMIN_ONLY_REGISTRATION=true'
         );
       }
-      console.log('next function 2');
       await next();
     },
     createValidator().query(providerQuery),
@@ -330,8 +298,6 @@ export const initProvider = <T extends Strategy>(
         res: Response,
         next: NextFunction
       ) => {
-        console.log(' req uuidv4');
-
         req.state = uuidv4();
 
         // get redirect Url
@@ -343,8 +309,6 @@ export const initProvider = <T extends Strategy>(
         // - rename REDIRECT_URL_SUCCESS to REDIRECT_URL
         // - place all env vars under `ENV`
 
-        console.log('insert provider request');
-
         await gqlSdk.insertProviderRequest({
           providerRequest: {
             id: req.state,
@@ -352,7 +316,6 @@ export const initProvider = <T extends Strategy>(
           },
         });
 
-        console.log('next function 3');
         await next();
       }
     ),
@@ -383,12 +346,6 @@ export const initProvider = <T extends Strategy>(
   } else {
     subRouter.get('/callback', ...handlers);
   }
-
-  subRouter.stack.forEach(function (r) {
-    if (r.route && r.route.path) {
-      console.log(r.route.path);
-    }
-  });
 
   router.use(`/${strategyName}`, subRouter);
 };
