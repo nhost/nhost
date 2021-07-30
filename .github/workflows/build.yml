@@ -16,10 +16,83 @@ on:
       - '!*.md'
   release:
     types: [published]
+env:
+  HASURA_GRAPHQL_ADMIN_SECRET: test_secret_key
+  JWT_ALGORITHM: HS256
+  JWT_KEY: never_use_this_secret_key_in_production_this_is_only_for_CI_testing_098hu32r4389ufb4n38994321
+  POSTGRES_PASSWORD: postgrespassword
 jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    services:
+      postgres:
+        image: nhost/postgres:12-v0.0.6
+        env:
+          POSTGRES_PASSWORD: ${{ env.POSTGRES_PASSWORD }}
+        options: --restart always --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      graphql-engine:
+        image: hasura/graphql-engine:v2.0.1
+        env:
+          HASURA_GRAPHQL_ENABLE_TELEMETRY: 'false'
+          HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
+          HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${{ env.POSTGRES_PASSWORD }}@postgres:5432/postgres
+          HASURA_GRAPHQL_JWT_SECRET: '{"type": "${{ env.JWT_ALGORITHM }}", "key": "${{ env.JWT_KEY }}"}'
+        options: >-
+          --restart always
+      minio:
+        image: bitnami/minio:2020.7.31
+        env:
+          MINIO_ACCESS_KEY: ${{ env.S3_ACCESS_KEY_ID }}
+          MINIO_SECRET_KEY: ${{ env.S3_SECRET_ACCESS_KEY }}
+          MINIO_DEFAULT_BUCKETS: ${{ env.S3_BUCKET }}
+        options: --restart always
+        ports:
+          - 9000:9000
+      mailhog:
+        image: mailhog/mailhog
+        env:
+          SMTP_HOST: mailhog
+          SMTP_PORT: 1025
+          SMTP_PASS: password
+          SMTP_USER: user
+          SMTP_SECURE: 'false'
+          SMTP_SENDER: hbp@hbp.com
+    container:
+      image: node:14
+      env:
+        HOST: 0.0.0.0
+        PORT: 4000
+        HASURA_ENDPOINT: http://graphql-engine:8080/v1/graphql
+        HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
+        JWT_ALGORITHM: ${{ env.JWT_ALGORITHM }}
+        JWT_SECRET: ${{ env.JWT_KEY }}
+        DATABASE_URL: postgres://postgres:${{ env.POSTGRES_PASSWORD }}@postgres:5432/postgres
+        PGOPTIONS: '-c search_path=auth'
+        AUTH_ENABLED: 'true'
+        MAGIC_LINK_ENABLED: 'true'
+        AUTH_LOCAL_USERS_ENABLED: 'true'
+        AUTO_ACTIVATE_NEW_USERS: 'true'
+        AUTH_ANONYMOUS_USERS_ACTIVE: 'false'
+        PROVIDER_SUCCESS_REDIRECT: 'http://localhost:3001/success'
+        PROVIDER_FAILURE_REDIRECT: 'http://localhost:3001/failed'
+        ALLOW_USER_SELF_DELETE: 'false'
+        LOST_PASSWORD_ENABLED: 'true'
+        MIN_PASSWORD_LENGTH: 4
+        CHANGE_EMAIL_ENABLED: 'true'
+        VERIFY_EMAILS: 'true'
+        NOTIFY_EMAIL_CHANGE: 'true'
+        EMAILS_ENABLED: 'true'
+        HIBP_ENABLED: 'false'
+        SMTP_HOST: mailhog
+        SMTP_PORT: 1025
+        SMTP_PASS: password
+        SMTP_USER: user
+        SMTP_SECURE: 'false'
+        SMTP_SENDER: hbp@hbp.com
+        REDIRECT_URL_SUCCESS: 'http://localhost:3000'
+        REDIRECT_URL_ERROR: 'http://localhost:3000/fail'
+      options: --hostname hasura-backend-plus
     steps:
       - uses: actions/checkout@v2
       - name: Setup Node
@@ -61,16 +134,3 @@ jobs:
         uses: codecov/codecov-action@v1
         with:
           file: ./coverage/clover.xml
-  publish:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Build and publish to Docker Hub
-        uses: docker/build-push-action@v1
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          repository: nhost/hasura-auth
-          tag_with_ref: true
-          tag_with_sha: true
