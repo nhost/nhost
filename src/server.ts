@@ -19,11 +19,11 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 // app.use(morgan('combined'))
-// app.use(
-//   morgan(
-//     ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] :body'
-//   )
-// );
+app.use(
+  morgan(
+    ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]'
+  )
+);
 // app.use((req, res, next) => {
 //   req.logger = logger;
 //   return next();
@@ -33,7 +33,9 @@ app.use(helmet());
 app.use(json());
 app.use(cors({ credentials: true, origin: true }));
 
-morganBody(app);
+if (process.env.CI || process.env.NODE_ENV === 'development') {
+  morganBody(app);
+}
 
 app.use(authMiddleware);
 

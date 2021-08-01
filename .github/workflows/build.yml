@@ -83,7 +83,7 @@ jobs:
         SMTP_SENDER: hbp@hbp.com
         REDIRECT_URL_SUCCESS: 'http://localhost:3000'
         REDIRECT_URL_ERROR: 'http://localhost:3000/fail'
-      options: --hostname hasura-backend-plus
+      options: --hostname hasura-auth
     steps:
       - uses: actions/checkout@v2
       - name: Setup Node

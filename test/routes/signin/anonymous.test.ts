@@ -5,7 +5,7 @@ import { isValidAccessToken } from '../../utils';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { trackTable, setTableCustomization } from '../../../src/metadata';
 
-describe('email-password', () => {
+describe('anonymous', () => {
   let client: any;
 
   beforeAll(async () => {
@@ -70,7 +70,7 @@ describe('email-password', () => {
   });
 });
 
-describe('email-password with profile table', () => {
+describe('anonymous with profile table', () => {
   let client: any;
 
   beforeAll(async () => {
@@ -80,7 +80,9 @@ describe('email-password with profile table', () => {
     await client.connect();
 
     // create profile table
+    console.log('drop table if exist');
     await client.query(`DROP TABLE IF EXISTS public.profiles;`);
+    console.log('create profiles table');
     await client.query(`
     CREATE TABLE public.profiles (
       user_id uuid PRIMARY KEY,
@@ -89,9 +91,11 @@ describe('email-password with profile table', () => {
     );
     `);
 
+    console.log('track table');
     // track table
     await trackTable({ table: { schema: 'public', name: 'profiles' } });
 
+    console.log('customize table');
     // set profile customization
     await setTableCustomization({
       table: {
