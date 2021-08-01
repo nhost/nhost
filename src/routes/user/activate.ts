@@ -35,7 +35,5 @@ export const userActivateHandler = async (
     return res.status(401).send('Invalid or expired ticket');
   }
 
-  console.log(user);
-
   return res.send('OK');
 };
