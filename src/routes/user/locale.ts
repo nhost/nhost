@@ -1,5 +1,5 @@
 import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@config/env';
+import { ENV } from '@/utils/env';
 import { Response } from 'express';
 import {
   ContainerTypes,

@@ -21,11 +21,5 @@ router.post(
   aw(signInMagicLinkHandler)
 );
 
-// router.post(
-//   "/signup/send-activation-email",
-//   createValidator().body(registerSchema),
-//   aw(signUpSendActivationEmail)
-// );
-
 const signUpRouter = router;
 export { signUpRouter };

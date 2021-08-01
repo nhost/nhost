@@ -50,17 +50,5 @@ router.post(
 
 providers(router);
 
-// router.post(
-//   "/signup/magic-link/callback",
-//   createValidator().body(registerSchema),
-//   aw(signUpMagicLinkCallbackHandler)
-// );
-
-// router.post(
-//   "/signup/send-activation-email",
-//   createValidator().body(registerSchema),
-//   aw(signUpSendActivationEmail)
-// );
-
 const signInRouter = router;
 export { signInRouter };

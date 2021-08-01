@@ -1,4 +1,4 @@
-import { castBooleanEnv, castStringArrayEnv } from './utils';
+import { castBooleanEnv, castStringArrayEnv } from '../config/utils';
 
 export const ENV = {
   get DEFAULT_LOCALE() {

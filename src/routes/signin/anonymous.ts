@@ -7,7 +7,7 @@ import {
 
 import { gqlSdk } from '@/utils/gqlSDK';
 import { insertProfile } from '@/utils/profile';
-import { ENV } from '@config/env';
+import { ENV } from '@/utils/env';
 import { getSignInTokens } from '@/utils/tokens';
 import { APPLICATION } from '@config/application';
 
