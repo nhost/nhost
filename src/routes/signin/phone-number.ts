@@ -6,7 +6,7 @@ import {
 } from 'express-joi-validation';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getGravatarUrl, getUserByEmail } from '@/helpers';
+import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
@@ -15,16 +15,15 @@ import { AUTHENTICATION } from '@config/authentication';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
+import { getUserByPhoneNumber } from '@/utils/user';
 import { generateTicketExpiresAt } from '@/utils/ticket';
-import { getOtpData } from '@/utils/otp';
 
 type Profile = {
   [key: string]: string | number | boolean;
 };
 
 type BodyType = {
-  email: string;
-  password: string;
+  phoneNumber: string;
   locale: string;
   allowedRoles: string[];
   defaultRole: string;
@@ -36,35 +35,27 @@ interface Schema extends ValidatedRequestSchema {
   [ContainerTypes.Body]: BodyType;
 }
 
-export const signInMagicLinkHandler = async (
+export const signInSmsHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (!AUTHENTICATION.MAGIC_LINK_ENABLED) {
-    return res.boom.notFound('Magic link is not enabled');
-  }
-
-  // EMAIL must be enabled
-  if (!APPLICATION.EMAILS_ENABLED) {
-    throw new Error('SMTP settings unavailable');
+  if (!ENV.PHONE_NUMBER_AUTH_ENABLED) {
+    return res.boom.notFound('Phone number sign in is not enabled');
   }
 
   const { body } = req;
-  const { email, profile, locale = ENV.DEFAULT_LOCALE } = body;
+  const { phoneNumber, profile, locale = ENV.DEFAULT_LOCALE } = body;
 
   // check if email already exist
-  const user = await getUserByEmail(email);
+  const user = await getUserByPhoneNumber({ phoneNumber });
 
   let userId = user ? user.id : undefined;
 
   if (!user) {
     // create user is user not already exists
 
-    // check email
-    if (!(await isValidEmail({ email, res }))) {
-      // function send potential error via `res`
-      return;
-    }
+    // check phone number
+    // TODO: Check valid phone number
 
     // check profile
     if (!(await isProfileValid({ profile, res }))) {
@@ -84,8 +75,7 @@ export const signInMagicLinkHandler = async (
     // restructure user roles to be inserted in GraphQL mutation
     const userRoles = allowedRoles.map((role: string) => ({ role }));
 
-    const displayName = body.displayName ?? email;
-    const avatarUrl = getGravatarUrl(email);
+    const displayName = body.displayName;
 
     // insert user
     // alawys set user as active = true here
@@ -95,11 +85,12 @@ export const signInMagicLinkHandler = async (
       .insertUser({
         user: {
           displayName,
-          avatarUrl,
-          email,
-          isActive: true,
+          phoneNumber,
+          isActive: ENV.AUTO_ACTIVATE_NEW_USERS,
+          emailVerified: false,
           locale,
           defaultRole,
+          lastVerifyPhoneNumberSentAt: new Date(),
           roles: {
             data: userRoles,
           },
@@ -116,8 +107,10 @@ export const signInMagicLinkHandler = async (
     userId = insertedUser.id;
   }
 
-  // OTP
-  const { otpHash, otpHashExpiresAt } = await getOtpData();
+  // generate OTP
+  const otp = '123456';
+  const otpHash = await hashPassword(otp);
+  const otpHashExpiresAt = generateTicketExpiresAt(5 * 60);
 
   gqlSdk.updateUser({
     id: userId,
@@ -127,26 +120,7 @@ export const signInMagicLinkHandler = async (
     },
   });
 
-  // Send magic link
-  await emailClient.send({
-    template: 'magic-link',
-    message: {
-      to: email,
-      headers: {
-        'x-otp-hash': {
-          prepared: true,
-          value: otpHash,
-        },
-      },
-    },
-    locals: {
-      email,
-      locale,
-      otpHash,
-      url: APPLICATION.SERVER_URL,
-      appUrl: APPLICATION.APP_URL,
-    },
-  });
+  // send sms to `phoneNumber` with `otp`
 
   res.status(200).send('OK');
 };

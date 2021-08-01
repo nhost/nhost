@@ -14,6 +14,14 @@ export const ENV = {
     return castStringArrayEnv('ALLOWED_LOCALES') || ['en'];
   },
 
+  get PHONE_NUMBER_AUTH_ENABLED() {
+    return castBooleanEnv('PHONE_NUMBER_AUTH_ENABLED', false);
+  },
+
+  get AUTO_ACTIVATE_NEW_USERS() {
+    return castBooleanEnv('AUTO_ACTIVATE_NEW_USERS', false);
+  },
+
   get REGISTRATION_PROFILE_FIELDS() {
     return castStringArrayEnv('REGISTRATION_PROFILE_FIELDS', []);
   },

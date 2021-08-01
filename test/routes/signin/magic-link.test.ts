@@ -162,7 +162,7 @@ describe('magic link', () => {
       .expect(400);
   });
 
-  it('should fail if emails is not enabled', async () => {
+  it('should fail if sending emails is not enabled', async () => {
     // set env vars
     await request.post('/change-env').send({
       AUTO_ACTIVATE_NEW_USERS: false,

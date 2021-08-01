@@ -45,7 +45,7 @@ export const signInEmailPasswordHandler = async (
   const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordCorrect) {
-    throw new Error('Incorrect password');
+    return res.boom.unauthorized('Incorrect password');
   }
 
   const signInTokens = await getSignInTokens({
