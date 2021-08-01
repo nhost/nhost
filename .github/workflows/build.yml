@@ -105,7 +105,7 @@ jobs:
       - name: Lint files
         run: yarn run lint
       - name: Run Jest tests
-        run: yarn run test
+        run: yarn run test --coverage
       - name: Upload test results
         uses: actions/upload-artifact@v1
         with:
