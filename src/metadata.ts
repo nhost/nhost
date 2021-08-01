@@ -16,6 +16,7 @@ interface TableArgs {
   table: Table;
   configuration?: {
     custom_name?: string;
+    identifier?: string;
     custom_root_fields?: {
       select?: string;
       select_by_pk?: string;
@@ -47,7 +48,7 @@ interface RelationshipArgs {
 }
 
 // https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/table-view.html#track-table-v2
-async function trackTable(args: TableArgs) {
+export const trackTable = async (args: TableArgs) => {
   logger.info(`Tracking table ${args.table.name}`);
   try {
     await axios.post(
@@ -71,9 +72,9 @@ async function trackTable(args: TableArgs) {
       logger.debug(`Table ${args.table.name} already tracked`);
     }
   }
-}
+};
 
-async function setTableCustomization(args: TableArgs) {
+export const setTableCustomization = async (args: TableArgs) => {
   logger.info(`Set table customization for ${args.table.name}`);
 
   try {
@@ -93,9 +94,9 @@ async function setTableCustomization(args: TableArgs) {
     logger.error(error);
     throw new Error('error setting customization for table ' + args.table.name);
   }
-}
+};
 
-async function createObjectRelationship(args: RelationshipArgs) {
+export const createObjectRelationship = async (args: RelationshipArgs) => {
   logger.info(`create object relationship ${args.name} for ${args.table.name}`);
   try {
     await axios.post(
@@ -122,9 +123,9 @@ async function createObjectRelationship(args: RelationshipArgs) {
       );
     }
   }
-}
+};
 
-async function createArrayRelationship(args: RelationshipArgs) {
+export const createArrayRelationship = async (args: RelationshipArgs) => {
   logger.info(`create array relationship ${args.name} for ${args.table.name}`);
   try {
     await axios.post(
@@ -151,7 +152,7 @@ async function createArrayRelationship(args: RelationshipArgs) {
       );
     }
   }
-}
+};
 
 export async function applyMetadata(): Promise<void> {
   logger.info('Applying metadata 3');
@@ -200,11 +201,14 @@ export async function applyMetadata(): Promise<void> {
         last_verify_email_sent_at: 'lastVerifyEmailSentAt',
         email: 'email',
         new_email: 'newEmail',
+        phone: 'phone',
         password_hash: 'passwordHash',
+        otp_hash: 'otpHash',
+        otp_hash_expires_at: 'otpHashExpiresAt',
         default_role: 'defaultRole',
         is_anonymous: 'isAnonymous',
-        otp_secret: 'otpSecret',
-        mfa_enabled: 'mfaEnabled',
+        totp_secret: 'totpSecret',
+        active_mfa_type: 'activeMfaType',
         ticket: 'ticket',
         ticket_expires_at: 'ticketExpiresAt',
       },

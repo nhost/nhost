@@ -32,15 +32,15 @@ export const signInMFATOTOPHandler = async (
     throw new Error('Invalid or expired ticket');
   }
 
-  if (!user.mfaEnabled) {
-    return res.boom.badRequest('MFA is not enabled for this user');
+  if (user.activeMfaType !== 'totp') {
+    return res.boom.badRequest('MFA TOTP is not enabled for this user');
   }
 
   if (!user.isActive) {
     return res.boom.badRequest('User is not activated');
   }
 
-  if (!user.otpSecret) {
+  if (!user.totpSecret) {
     return res.boom.badRequest('OTP secret is not set for user');
   }
 
@@ -48,7 +48,7 @@ export const signInMFATOTOPHandler = async (
   authenticator.options = {
     window: 1,
   };
-  if (!authenticator.check(code, user.otpSecret)) {
+  if (!authenticator.check(code, user.totpSecret)) {
     return res.boom.unauthorized('Invalid code');
   }
 

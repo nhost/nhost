@@ -9,10 +9,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { REGISTRATION } from '@config/registration';
 import { getGravatarUrl, getUserByEmail, isWhitelistedEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { AUTHENTICATION } from '@config/authentication';
 import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
 import { insertProfile } from '@/utils/profile';
+import { AUTHENTICATION } from '@config/authentication';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -37,6 +37,15 @@ export const signInMagicLinkHandler = async (
   res: Response
 ): Promise<unknown> => {
   console.log('sign up magic link handler');
+
+  if (!AUTHENTICATION.MAGIC_LINK_ENABLED) {
+    return res.boom.notFound('Magic link is not enabled');
+  }
+
+  // EMAIL must be enabled
+  if (!APPLICATION.EMAILS_ENABLED) {
+    throw new Error('SMTP settings unavailable');
+  }
 
   const { body } = req;
   const { email, profile, locale } = body;
@@ -66,12 +75,19 @@ export const signInMagicLinkHandler = async (
       return res.boom.badRequest('Default role must be part of allowed roles');
     }
 
+    console.log('check allowed roles subset');
+
+    console.log(allowedRoles);
+    console.log(REGISTRATION.DEFAULT_ALLOWED_USER_ROLES);
+
     // check if allowedRoles is a subset of allowed user roles
     if (
       !allowedRoles.every((role: string) =>
         REGISTRATION.ALLOWED_USER_ROLES.includes(role)
       )
     ) {
+      console.error('allowed roles is not a subset');
+
       return res.boom.badRequest(
         'Allowed roles must be a subset of allowedRoles'
       );
@@ -129,10 +145,6 @@ export const signInMagicLinkHandler = async (
   });
 
   // user is now inserted. Continue sending out activation email
-  if (!APPLICATION.EMAILS_ENABLED) {
-    throw new Error('SMTP settings unavailable');
-  }
-
   await emailClient.send({
     template: 'magic-link',
     message: {

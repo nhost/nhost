@@ -1,7 +1,8 @@
 // import { request } from "@/test/server";
-import { request } from '../../../test/server';
+import { request } from '../../server';
 import { Client } from 'pg';
-import { mailHogSearch, deleteAllMailHogEmails } from '../../../test/utils';
+import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
+import { trackTable, setTableCustomization } from '../../../src/metadata';
 
 describe('email-password', () => {
   let client: any;
@@ -185,5 +186,175 @@ describe('email-password', () => {
         allowedRoles: ['user', 'some-other-role'],
       })
       .expect(400);
+  });
+});
+
+describe('email-password with profile table', () => {
+  let client: any;
+
+  beforeAll(async () => {
+    client = new Client({
+      connectionString: process.env.DATABASE_URL,
+    });
+    await client.connect();
+    await deleteAllMailHogEmails();
+
+    // create profile table
+    await client.query(`DROP TABLE IF EXISTS public.profiles;`);
+    await client.query(`
+    CREATE TABLE public.profiles (
+      user_id uuid PRIMARY KEY,
+      company_id int NOT NULL,
+      foreign key(user_id) references auth.users(id) on delete cascade
+    );
+    `);
+
+    // track table
+    await trackTable({ table: { schema: 'public', name: 'profiles' } });
+
+    // set profile customization
+    await setTableCustomization({
+      table: {
+        schema: 'public',
+        name: 'profiles',
+      },
+      configuration: {
+        identifier: 'profile',
+        custom_root_fields: {
+          select: 'profiles',
+          select_by_pk: 'profile',
+          select_aggregate: 'profilesAggregat',
+          insert: 'insertProfiles',
+          insert_one: 'insertProfile',
+          update: 'updateProfiles',
+          update_by_pk: 'updateProfile',
+          delete: 'deleteProfiles',
+          delete_by_pk: 'deleteProfile',
+        },
+        custom_column_names: {
+          user_id: 'userId',
+          company_id: 'companyId',
+        },
+      },
+    });
+  });
+
+  afterAll(() => {
+    client.end();
+  });
+
+  beforeEach(async () => {
+    // clear database
+    await client.query(`DELETE FROM auth.users;`);
+    await client.query(`DELETE FROM public.profiles;`);
+  });
+
+  it('should sign up user with profile data', async () => {
+    // set env vars
+    await request.post('/change-env').send({
+      AUTO_ACTIVATE_NEW_USERS: true,
+      VERIFY_EMAILS: false,
+      WHITELIST_ENABLED: false,
+      REGISTRATION_PROFILE_REQUIRED: true,
+      REGISTRATION_CUSTOM_FIELDS: 'companyId',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({
+        email: 'joedoe@example.com',
+        password: '123456',
+        profile: { companyId: 1337 },
+      })
+      .expect(200);
+  });
+
+  it('should fail to sign up user with extra profile data', async () => {
+    await request.post('/change-env').send({
+      AUTO_ACTIVATE_NEW_USERS: true,
+      VERIFY_EMAILS: false,
+      WHITELIST_ENABLED: false,
+      REGISTRATION_PROFILE_REQUIRED: true,
+      REGISTRATION_CUSTOM_FIELDS: 'companyId',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({
+        email: 'joedoe@example.com',
+        password: '123456',
+        profile: { extra: true, companyId: 1337 },
+      })
+      .expect(400);
+  });
+
+  it('should fail to sign up because registration custom fields does not match', async () => {
+    // set env vars
+    await request.post('/change-env').send({
+      AUTO_ACTIVATE_NEW_USERS: true,
+      VERIFY_EMAILS: false,
+      WHITELIST_ENABLED: false,
+      REGISTRATION_PROFILE_REQUIRED: true,
+      REGISTRATION_CUSTOM_FIELDS: 'incorrect',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({
+        email: 'joedoe@example.com',
+        password: '123456',
+        profile: { incorrect: 1337 },
+      })
+      .expect(
+        400,
+        'Error validating request body. "profile.incorrect" is not allowed.'
+      );
+  });
+
+  it('should fail to sign up user with no profile data', async () => {
+    // set env vars
+    await request.post('/change-env').send({
+      AUTO_ACTIVATE_NEW_USERS: true,
+      VERIFY_EMAILS: false,
+      WHITELIST_ENABLED: false,
+      REGISTRATION_PROFILE_REQUIRED: true,
+      REGISTRATION_CUSTOM_FIELDS: 'incorrect',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({
+        email: 'joedoe@example.com',
+        password: '123456',
+      })
+      .expect(400, {
+        statusCode: 400,
+        error: 'Bad Request',
+        message: 'Profile required',
+      });
+  });
+
+  it('should fail to insert profile', async () => {
+    await client.query(`ALTER TABLE public.profiles DROP COLUMN company_id`);
+
+    // set env vars
+    await request.post('/change-env').send({
+      AUTO_ACTIVATE_NEW_USERS: true,
+      VERIFY_EMAILS: false,
+      WHITELIST_ENABLED: false,
+      REGISTRATION_PROFILE_REQUIRED: true,
+      REGISTRATION_CUSTOM_FIELDS: 'companyId',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({
+        email: 'joedoe@example.com',
+        password: '123456',
+        profile: {
+          companyId: 1336,
+        },
+      })
+      .expect(500);
   });
 });

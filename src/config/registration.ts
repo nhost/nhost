@@ -22,6 +22,12 @@ export const REGISTRATION = {
   get CUSTOM_FIELDS() {
     return castStringArrayEnv('REGISTRATION_CUSTOM_FIELDS');
   },
+  get REGISTRATION_PROFILE_REQUIRED() {
+    return castBooleanEnv('REGISTRATION_PROFILE_REQUIRED', false);
+  },
+  get REGISTRATION_PROFILE_FIELDS() {
+    return castStringArrayEnv('REGISTRATION_CUSTOM_FIELDS');
+  },
   get MIN_PASSWORD_LENGTH() {
     return castIntEnv('MIN_PASSWORD_LENGTH', 3);
   },

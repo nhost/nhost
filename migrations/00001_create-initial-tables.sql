@@ -43,24 +43,25 @@ CREATE TABLE auth.users (
   id uuid DEFAULT public.gen_random_uuid () NOT NULL PRIMARY KEY,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   updated_at timestamp with time zone DEFAULT now() NOT NULL,
-  display_name text,
-  avatar_url text,
-  locale varchar(2),
+  display_name text DEFAULT '' NOT NULl,
+  avatar_url text DEFAULT '' NOT NULL,
+  locale varchar(2) NOT NULL,
   is_active boolean DEFAULT FALSE NOT NULL,
   last_activate_email_sent_at timestamp with time zone DEFAULT now() NOT NULL,
   email_verified boolean DEFAULT FALSE NOT NULL,
   last_verify_email_sent_at timestamp with time zone DEFAULT now() NOT NULL,
   email auth.email UNIQUE,
-  new_email auth.email UNIQUE,
+  new_email auth.email,
+  phone text UNIQUE,
   password_hash text,
-  default_role text DEFAULT 'user' ::text NOT NULL,
+  otp_hash text,
+  otp_hash_expires_at timestamp with time zone DEFAULT now() NOT NULL,
+  default_role text DEFAULT 'user' NOT NULL,
   is_anonymous boolean DEFAULT FALSE NOT NULL,
-  otp_secret text,
-  mfa_enabled boolean DEFAULT FALSE NOT NULL,
+  totp_secret text,
+  active_mfa_type text, -- sms or totp
   ticket text,
-  ticket_expires_at timestamp with time zone DEFAULT now() NOT NULL,
-  UNIQUE (email),
-  UNIQUE (new_email)
+  ticket_expires_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 CREATE TABLE auth.providers (
@@ -117,6 +118,15 @@ CREATE TRIGGER set_auth_users_updated_at
   BEFORE UPDATE ON auth.users
   FOR EACH ROW
   EXECUTE FUNCTION auth.set_current_timestamp_updated_at ();
+
+-- checks
+
+ALTER TABLE auth.users
+ADD CONSTRAINT active_mfa_types_check
+CHECK (
+	active_mfa_type = 'totp'
+	OR active_mfa_type = 'sms'
+);
 
 -- data
 

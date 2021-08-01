@@ -6,31 +6,28 @@
     "type": "git"
   },
   "version": "0.0.0",
-  "main": "src/start.ts",
+  "main": "dist/start.js",
   "scripts": {
-    "test": "jest",
-    "test:in-docker": "cd docker/dev; docker exec -it hasura-auth yarn test --runInBand",
+    "test": "jest --runInBand",
+    "test:in-docker": "docker exec -it hasura-auth yarn test",
     "dev:docker:up": "cd docker/dev; docker-compose up -d --build",
     "dev:docker:logs": "cd docker/dev; docker-compose logs -f",
     "dev:docker:down": "cd docker/dev; docker-compose down",
     "dev:codegen": "graphql-codegen --config codegen.yaml",
     "dev:in-docker": "node-dev -r tsconfig-paths/register --respawn --clear  --unhandled-rejections=strict  src/ts-start.ts",
     "dev": "concurrently --restart-tries 5 --restart-after 5000 \"yarn dev:docker:up\" \"yarn dev:codegen -w\"",
-    "test:docker:up": "cd docker/test; docker-compose -f docker-compose.watch.yaml up --build && docker-compose -f docker-compose.watch.yaml rm -fsv",
-    "test:docker:logs": "cd docker/test; docker-compose -f docker-compose.watch.yaml logs -f",
-    "test:docker:down": "cd docker/test; docker-compose -f docker-compose.watch.yaml down",
+    "test:docker:up": "cd docker/test; docker-compose -f docker-compose.yaml up --build",
+    "test:docker:logs": "cd docker/test; docker-compose -f docker-compose.yaml logs -f",
+    "test:docker:down": "cd docker/test; docker-compose -f docker-compose.yaml down",
     "test:watch": "concurrently --restart-tries 5 --restart-after 5000 \"yarn test:docker:up\" \"yarn dev:codegen -w\"",
-    "build": "tsc",
+    "build": "tsc --project tsconfig.json",
+    "build:docker": "docker build -t nhost/hasura-auth:local -f docker/prod/Dockerfile .",
     "start": "node -r ./dist/start.js",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint --fix"
   },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
   "dependencies": {
+    "@aaronhayes/hasura-sdk": "^1.4.0",
     "@nicokaiser/passport-apple": "^0.2.1",
     "@riderize/passport-strava-oauth2": "^1.1.1",
     "axios": "0.21.1",
@@ -151,16 +148,5 @@
     "@routes": "./dist/routes",
     "@config": "./dist/config",
     "@": "./dist"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.js,*.ts,*.md,*.json": [
-      "eslint --fix",
-      "prettier --write"
-    ]
   }
 }

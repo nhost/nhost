@@ -42,10 +42,12 @@ export const signUpEmailPasswordHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('sign up email password handler');
-
   const { body } = req;
   const { email, password, profile, locale } = body;
+
+  if (REGISTRATION.REGISTRATION_PROFILE_REQUIRED && !profile) {
+    return res.boom.badRequest('Profile required');
+  }
 
   // Check if whitelisting is enabled and if email is whitelisted
   if (REGISTRATION.WHITELIST && !(await isWhitelistedEmail(email))) {

@@ -22,24 +22,29 @@ export const tokenHandler = async (
 ): Promise<unknown> => {
   const { refreshToken } = req.body;
 
-  const user = await gqlSdk
+  console.log({ refreshToken });
+
+  const refreshTokens = await gqlSdk
     .getUsersByRefreshToken({
       refreshToken,
     })
-    .then((res) => {
-      try {
-        return res.authRefreshTokens[0].user;
-      } catch (error) {
-        throw new Error('Invalid or expired refresh token');
-      }
+    .then((gqlres) => {
+      return gqlres.authRefreshTokens;
     });
 
+  console.log({ refreshTokens });
+  if (refreshTokens.length === 0) {
+    return res.boom.unauthorized('Invalid or expired refresh token');
+  }
+
+  const user = refreshTokens[0].user;
+
   if (!user) {
-    throw new Error('Invalid or expired refresh token');
+    return res.boom.unauthorized('Invalid or expired refresh token');
   }
 
   if (!user.isActive) {
-    return res.boom.badRequest('User is not activated');
+    return res.boom.unauthorized('User is not activated');
   }
 
   // delete current refresh token

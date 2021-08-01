@@ -11,9 +11,8 @@ fragment userFields on users {
   }
   isAnonymous
   ticket
-  otpSecret
-  mfaEnabled
-  passwordHash
+  totpSecret
+  activeMfaType
   newEmail
   locale
   roles {
@@ -66,6 +65,7 @@ query getUsersByRefreshToken($refreshToken: uuid!) {
       ]
     }
   ) {
+    refreshToken
     user {
       ...userFields
     }

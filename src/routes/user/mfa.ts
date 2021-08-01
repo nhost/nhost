@@ -35,20 +35,20 @@ export const userMFAHandler = async (
     throw new Error('user could not be fetched');
   }
 
-  if (!user.otpSecret) {
+  if (!user.totpSecret) {
     return res.boom.internal('otp secret is not set for user');
   }
 
   const { code, mfaEnabled } = req.body;
 
-  if (!authenticator.check(code, user.otpSecret)) {
+  if (!authenticator.check(code, user.totpSecret)) {
     return res.boom.unauthorized('Invalid code');
   }
 
   await gqlSdk.updateUser({
     id: userId,
     user: {
-      mfaEnabled,
+      activeMfaType: 'totp',
     },
   });
 

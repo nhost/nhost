@@ -44,9 +44,6 @@ export function generatePermissionVariables(
 } {
   const allowedRoles = user.roles.map((role) => role.role);
 
-  console.log('profile inside generate permission variables');
-  console.log(profile);
-
   // add user's default role to allowed roles
   if (!allowedRoles.includes(user.defaultRole)) {
     allowedRoles.push(user.defaultRole);
@@ -55,11 +52,6 @@ export function generatePermissionVariables(
   const customSessionVariables = {} as any;
   TOKEN.PROFILE_SESSION_VARIABLE_FIELDS.forEach((column) => {
     let value;
-    console.log('column:');
-    console.log(column);
-
-    console.log('profile value:');
-    console.log(profile[column]);
 
     const type = typeof profile[column] as ClaimValueType;
     if (type === 'string') {
@@ -190,22 +182,15 @@ export const getSignInTokens = async ({
   userId: string;
   checkMFA: boolean;
 }): Promise<SignInTokens> => {
-  console.log('inside get sign in tokens');
-
   const { user } = await gqlSdk.user({
     id: userId,
   });
-
-  console.log('getting user again');
-  console.log(user);
 
   if (!user) {
     throw new Error('No user');
   }
 
-  if (checkMFA && user?.mfaEnabled) {
-    console.log('MFA');
-
+  if (checkMFA && user?.activeMfaType === 'totp') {
     // generate new ticket
     const ticket = `mfaTotp:${uuidv4()}`;
 
@@ -229,8 +214,12 @@ export const getSignInTokens = async ({
     };
   }
 
-  const profile = await getProfileFieldsForAccessToken({ userId: user.id });
-  console.log({ profile });
+  const profile = await getProfileFieldsForAccessToken({
+    userId: user.id,
+  }).catch((err) => {
+    // noop
+    // profile is not available
+  });
 
   const accessToken = createHasuraAccessToken(user, profile);
   const refreshToken = await getNewRefreshToken(userId);

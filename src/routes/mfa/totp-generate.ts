@@ -35,17 +35,17 @@ export const mfatotpGenerateHandler = async (
 
   const { userId } = req.auth;
 
-  const otpSecret = authenticator.generateSecret();
-  const otpAuth = authenticator.keyuri(userId, MFA.OTP_ISSUER, otpSecret);
+  const totpSecret = authenticator.generateSecret();
+  const otpAuth = authenticator.keyuri(userId, MFA.OTP_ISSUER, totpSecret);
 
   await gqlSdk.updateUser({
     id: userId,
     user: {
-      otpSecret,
+      totpSecret,
     },
   });
 
   const imageUrl = await createQR(otpAuth);
 
-  return res.send({ imageUrl, otpSecret });
+  return res.send({ imageUrl, totpSecret });
 };

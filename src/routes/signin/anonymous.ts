@@ -28,8 +28,6 @@ export const signInAnonymousHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('sign up email password handler');
-
   if (!ENV.ANONYMOUS_USERS_ENABLED) {
     return res.boom.notFound('Anonymous users are not enabled');
   }

@@ -38,13 +38,17 @@ export const userDeanonymizeHandler = async (
 
   const { signInMethod, email, password, defaultRole } = req.body;
 
+  if (!['email-password', 'magic-link'].includes(signInMethod)) {
+    return res.boom.badRequest(
+      'Incorrect sign in method. Must be one of [email-password, magic-link].'
+    );
+  }
+
   const { userId } = req.auth;
 
   const { user } = await gqlSdk.user({
     id: userId,
   });
-
-  console.log({ user });
 
   // we don't use the `isAnonymous` from the middeware because it might be out
   // dated if you make this request multiple times in a short amount of time
@@ -56,7 +60,7 @@ export const userDeanonymizeHandler = async (
 
   // check if email is already in use by some other user
   if (userAlreadyExist) {
-    return res.boom.badRequest('Email already in use');
+    return res.boom.forbidden('Email already in use');
   }
 
   // checks for email-password sign in method
@@ -66,7 +70,7 @@ export const userDeanonymizeHandler = async (
     }
 
     if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password))) {
-      return res.boom.badRequest('Password is too weak');
+      return res.boom.forbidden('Password is too weak');
     }
   }
 
@@ -139,6 +143,11 @@ export const userDeanonymizeHandler = async (
     userRoles,
   });
 
+  // delete all pervious refresh tokens for user
+  await gqlSdk.deleteUserRefreshTokens({
+    userId,
+  });
+
   // send email
   if (signInMethod === 'email-password') {
     console.log('login method email password');
@@ -163,6 +172,10 @@ export const userDeanonymizeHandler = async (
             'x-ticket': {
               prepared: true,
               value: ticket,
+            },
+            'x-email-type': {
+              prepared: true,
+              value: 'activate-user',
             },
           },
         },
@@ -189,6 +202,10 @@ export const userDeanonymizeHandler = async (
             prepared: true,
             value: ticket,
           },
+          'x-email-type': {
+            prepared: true,
+            value: 'magic-link',
+          },
         },
       },
       locals: {
@@ -200,7 +217,7 @@ export const userDeanonymizeHandler = async (
       },
     });
   } else {
-    throw new Error('Invalid state');
+    throw new Error('Invalid state.');
   }
 
   return res.send('OK');

@@ -11,25 +11,37 @@ function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const isHasuraReady = async () => {
+const getHasuraReadyState = async () => {
   try {
     await axios.get(
       `${APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/healthz')}`
     );
+    return true;
   } catch (err) {
-    console.log(
-      `Couldn't find an hasura instance running on ${APPLICATION.HASURA_ENDPOINT}`
-    );
-    console.log('wait 10 seconds');
-    await delay(10000);
-    console.log('exit 1');
-    process.exit(1);
-    console.log('exit 1 completed');
+    return false;
+  }
+};
+
+const waitForHasura = async () => {
+  let hasuraIsReady = false;
+
+  while (!hasuraIsReady) {
+    hasuraIsReady = await getHasuraReadyState();
+
+    if (hasuraIsReady) {
+      console.log('Hasura is ready');
+    } else {
+      console.log('Hasura is not ready. Retry in 5 seconds.');
+      await delay(5000);
+    }
   }
 };
 
 const start = async (): Promise<void> => {
-  await isHasuraReady();
+  // wait for hasura to be ready
+  await waitForHasura();
+
+  // apply migrations and metadata
   await applyMigrations();
   await applyMetadata();
 

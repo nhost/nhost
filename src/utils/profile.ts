@@ -1,48 +1,52 @@
 import { gql } from 'graphql-request';
 import { client, gqlSdk } from '@/utils/gqlSDK';
 import { TOKEN } from '@config/token';
+import { REGISTRATION } from '@config/registration';
 
 type InsertProfileParams = {
   userId: string;
-  profile: object | null;
+  profile: null | { [key: string]: unknown };
 };
 
 export const insertProfile = async ({
   userId,
   profile,
 }: InsertProfileParams) => {
-  if (!profile) {
-    return;
-  }
+  try {
+    if (!profile) {
+      return;
+    }
 
-  const insertProfile = gql`
-    mutation insertProfile($profile: profiles_insert_input!) {
-      insertProfile(object: $profile) {
-        userId
+    const insertProfile = gql`
+      mutation insertProfile($profile: profiles_insert_input!) {
+        insertProfile(object: $profile) {
+          userId
+        }
+      }
+    `;
+
+    // check profile keys
+    for (const key in profile) {
+      if (!REGISTRATION.REGISTRATION_PROFILE_FIELDS.includes(key)) {
+        console.error(`profile key ${key} is not allowed`);
+        throw new Error(`profile key ${key} is not allowed`);
       }
     }
-  `;
 
-  try {
-    const insertProfileResult = await client.request(insertProfile, {
+    await client.request(insertProfile, {
       profile: {
         userId: userId,
         ...profile,
       },
     });
-
-    console.log('insertProfileResult');
-
-    console.log(insertProfileResult);
   } catch (error) {
-    // roll back
-    // delete previous inserted user if inserting the profile fails.
-    gqlSdk.deleteUser({
+    // delete previously inserted user if unable to insert profile
+    await gqlSdk.deleteUser({
       userId,
     });
 
-    console.error(error);
-    throw new Error('Could not insert profile');
+    console.error(`Unable to insert profile`);
+    throw new Error('Unable to insert profile');
   }
 };
 

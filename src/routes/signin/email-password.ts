@@ -26,22 +26,20 @@ export const signInEmailPasswordHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('sign up magic link callback handler');
-
   const { email, password } = req.body;
 
   const user = await getUserByEmail(email);
 
   if (!user) {
-    throw new Error('No user with that email');
+    return res.boom.unauthorized('No user with that email');
   }
 
   if (!user.isActive) {
-    throw new Error('User is not active');
+    return res.boom.unauthorized('User is not active');
   }
 
   if (!user.passwordHash) {
-    throw new Error('No password hash');
+    return res.boom.unauthorized('User has no password set');
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
