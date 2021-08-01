@@ -1,9 +1,18 @@
 // import { request } from "@/test/server";
-import { request } from '../../server';
+// import { request } from '../../server';
+import { APPLICATION } from '../../../src/config/application';
+import { app } from '../../../src/server';
+import { SuperTest, Test, agent } from 'supertest';
+import { Server } from 'http';
+import getPort from 'get-port';
 import { Client } from 'pg';
 import { isValidAccessToken } from '../../utils';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { trackTable, setTableCustomization } from '../../../src/metadata';
+
+let request: SuperTest<Test>;
+
+let server: Server;
 
 describe('anonymous', () => {
   let client: any;
@@ -21,6 +30,13 @@ describe('anonymous', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
+    server = app.listen(await getPort(), APPLICATION.HOST);
+    request = agent(server);
+    request = agent(server);
+  });
+
+  afterEach(async () => {
+    server.close();
   });
 
   it('should sign in as anonymous', async () => {
@@ -131,6 +147,14 @@ describe('anonymous with profile table', () => {
     // clear database
     await client.query(`DELETE FROM auth.users;`);
     await client.query(`DELETE FROM public.profiles;`);
+
+    server = app.listen(await getPort(), APPLICATION.HOST);
+    request = agent(server);
+    request = agent(server);
+  });
+
+  afterEach(async () => {
+    server.close();
   });
 
   it('should sign up anonymous user with profile data', async () => {
