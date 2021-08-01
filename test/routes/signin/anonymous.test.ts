@@ -166,8 +166,7 @@ describe('anonymous with profile table', () => {
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
       ANONYMOUS_USERS_ENABLED: true,
-      REGISTRATION_PROFILE_REQUIRED: true,
-      REGISTRATION_CUSTOM_FIELDS: 'companyId',
+      REGISTRATION_PROFILE_FIELDS: 'companyId',
     });
 
     await request

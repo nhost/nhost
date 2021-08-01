@@ -7,18 +7,16 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 
 import { REGISTRATION } from '@config/registration';
-import {
-  getGravatarUrl,
-  getUserByEmail,
-  hashPassword,
-  isWhitelistedEmail,
-} from '@/helpers';
-import { pwnedPassword } from 'hibp';
+import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { AUTHENTICATION } from '@config/authentication';
 import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
-import { insertProfile } from '@/utils/profile';
+import { insertProfile, isProfileValid } from '@/utils/profile';
+import { isValidEmail } from '@/utils/email';
+import { isPasswordValid } from '@/utils/password';
+import { isRolesValid } from '@/utils/roles';
+import { ENV } from '@/utils/env';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -28,9 +26,9 @@ type BodyType = {
   email: string;
   password: string;
   locale: string;
-  allowedRoles: string[];
-  defaultRole: string;
-  displayName: string;
+  allowedRoles: string[] | null;
+  defaultRole: string | null;
+  displayName: string | null;
   profile: Profile | null;
 };
 
@@ -43,56 +41,42 @@ export const signUpEmailPasswordHandler = async (
   res: Response
 ): Promise<unknown> => {
   const { body } = req;
-  const { email, password, profile, locale } = body;
+  const { email, password, profile, locale = ENV.DEFAULT_LOCALE } = body;
 
-  if (REGISTRATION.REGISTRATION_PROFILE_REQUIRED && !profile) {
-    return res.boom.badRequest('Profile required');
+  // check email
+  if (!(await isValidEmail({ email, res }))) {
+    // function send potential error via `res`
+    return;
   }
 
-  // Check if whitelisting is enabled and if email is whitelisted
-  if (REGISTRATION.WHITELIST && !(await isWhitelistedEmail(email))) {
-    return res.boom.unauthorized('Email not allowed');
+  // check password
+  if (!(await isPasswordValid({ password, res }))) {
+    // function send potential error via `res`
+    return;
+  }
+
+  // check profile
+  if (!(await isProfileValid({ profile, res }))) {
+    // function send potential error via `res`
+    return;
+  }
+
+  // check roles
+  const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
+  const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
+  if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
+    return;
   }
 
   // check if email already in use by some other user
-  const userAlreadyExist = await getUserByEmail(email);
-
-  if (userAlreadyExist) {
-    return res.boom.badRequest('Email already in use');
-  }
-
-  // check if password is compromised
-  if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password))) {
-    return res.boom.badRequest('Password is too weak');
-  }
-
-  // set default role
-  const defaultRole = body.defaultRole ?? REGISTRATION.DEFAULT_USER_ROLE;
-
-  // set allowed roles
-  const allowedRoles =
-    body.allowedRoles ?? REGISTRATION.DEFAULT_ALLOWED_USER_ROLES;
-
-  // check if default role is part of allowedRoles
-  if (!allowedRoles.includes(defaultRole)) {
-    return res.boom.badRequest('Default role must be part of allowed roles');
-  }
-
-  // check if allowedRoles is a subset of allowed user roles
-  if (
-    !allowedRoles.every((role: string) =>
-      REGISTRATION.ALLOWED_USER_ROLES.includes(role)
-    )
-  ) {
-    return res.boom.badRequest(
-      'Allowed roles must be a subset of allowedRoles'
-    );
+  if (await getUserByEmail(email)) {
+    return res.boom.conflict('Email already in use');
   }
 
   // hash password
   const passwordHash = await hashPassword(password);
 
-  // ticket
+  // create ticket
   const ticket = `userActivate:${uuidv4()}`;
   const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString();
 

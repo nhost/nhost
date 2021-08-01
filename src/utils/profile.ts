@@ -1,7 +1,39 @@
+import { Response } from 'express';
 import { gql } from 'graphql-request';
+
 import { client, gqlSdk } from '@/utils/gqlSDK';
 import { TOKEN } from '@config/token';
-import { REGISTRATION } from '@config/registration';
+import { ENV } from './env';
+
+type Profile = {
+  [key: string]: string | number | boolean;
+};
+
+type IsProfileValidParams = {
+  profile: Profile | null;
+  res: Response;
+};
+
+export const isProfileValid = async ({
+  profile,
+  res,
+}: IsProfileValidParams): Promise<boolean> => {
+  if (ENV.REGISTRATION_PROFILE_FIELDS.length && !profile) {
+    res.boom.badRequest('Profile required');
+    return false;
+  }
+
+  // check profile keys
+
+  for (const key in profile) {
+    if (!ENV.REGISTRATION_PROFILE_FIELDS.includes(key)) {
+      res.boom.badRequest(`profile key ${key} is not allowed`);
+      return false;
+    }
+  }
+
+  return true;
+};
 
 type InsertProfileParams = {
   userId: string;
@@ -25,14 +57,6 @@ export const insertProfile = async ({
       }
     `;
 
-    // check profile keys
-    for (const key in profile) {
-      if (!REGISTRATION.REGISTRATION_PROFILE_FIELDS.includes(key)) {
-        console.error(`profile key ${key} is not allowed`);
-        throw new Error(`profile key ${key} is not allowed`);
-      }
-    }
-
     await client.request(insertProfile, {
       profile: {
         userId: userId,
@@ -45,7 +69,6 @@ export const insertProfile = async ({
       userId,
     });
 
-    console.error(`Unable to insert profile`);
     throw new Error('Unable to insert profile');
   }
 };

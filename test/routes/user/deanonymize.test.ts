@@ -193,6 +193,6 @@ describe('email-password', () => {
         email,
         password,
       })
-      .expect(403);
+      .expect(409);
   });
 });

@@ -6,10 +6,9 @@ import {
 } from 'express-joi-validation';
 
 import { gqlSdk } from '@/utils/gqlSDK';
-import { insertProfile } from '@/utils/profile';
+import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
 import { getSignInTokens } from '@/utils/tokens';
-import { APPLICATION } from '@config/application';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -33,10 +32,13 @@ export const signInAnonymousHandler = async (
     return res.boom.notFound('Anonymous users are not enabled');
   }
 
-  const { profile } = req.body;
+  const { profile, locale = ENV.DEFAULT_LOCALE } = req.body;
 
-  // set potential default values
-  const locale = req.body.locale || APPLICATION.EMAILS_DEFAULT_LOCALE;
+  // check profile
+  if (!(await isProfileValid({ profile, res }))) {
+    // function send potential error via `res`
+    return;
+  }
 
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = [{ role: 'anonymous' }];

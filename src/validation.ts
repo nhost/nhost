@@ -1,17 +1,9 @@
-import { APPLICATION, REGISTRATION } from '@config/index';
 import Joi from 'joi';
 
 const uuidRegex =
   /\b[0-9a-f]{8}\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\b[0-9a-f]{12}\b/;
 
-interface ExtendedStringSchema extends Joi.StringSchema {
-  allowedDomains(): this;
-  allowedRedirectUrls(): this;
-}
-
-const passwordRule = Joi.string()
-  .min(REGISTRATION.MIN_PASSWORD_LENGTH)
-  .max(128);
+const passwordRule = Joi.string();
 
 const emailRule = Joi.string().email(); //.required(); //.allowedDomains();
 

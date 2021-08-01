@@ -14,6 +14,10 @@ import { REGISTRATION } from '@config/registration';
 import { emailClient } from '@/email';
 import { APPLICATION } from '@config/application';
 import { AUTHENTICATION } from '@config/authentication';
+import { isPasswordValid } from '@/utils/password';
+import { isValidEmail } from '@/utils/email';
+import { ENV } from '@/utils/env';
+import { isRolesValid } from '@/utils/roles';
 
 type BodyType = {
   signInMethod: 'email-password' | 'magic-link';
@@ -33,10 +37,11 @@ export const userDeanonymizeHandler = async (
 ): Promise<unknown> => {
   // check if user is logged in
   if (!req.auth?.userId) {
-    return res.status(401).send('Incorrect access token');
+    return res.boom.unauthorized('User not logged in');
   }
 
-  const { signInMethod, email, password, defaultRole } = req.body;
+  const { body } = req;
+  const { signInMethod, email, password } = req.body;
 
   if (!['email-password', 'magic-link'].includes(signInMethod)) {
     return res.boom.badRequest(
@@ -51,46 +56,36 @@ export const userDeanonymizeHandler = async (
   });
 
   // we don't use the `isAnonymous` from the middeware because it might be out
-  // dated if you make this request multiple times in a short amount of time
+  // dated (old jwt token) if you make this request multiple times in a short amount of time
   if (user?.isAnonymous !== true) {
     return res.boom.badRequest('Logged in user is not anonymous');
   }
 
-  const userAlreadyExist = await getUserByEmail(email);
+  // check email
+  if (!(await isValidEmail({ email, res }))) {
+    // function send potential error via `res`
+    return;
+  }
 
-  // check if email is already in use by some other user
-  if (userAlreadyExist) {
-    return res.boom.forbidden('Email already in use');
+  // check if email already in use by some other user
+  if (await getUserByEmail(email)) {
+    return res.boom.conflict('Email already in use');
   }
 
   // checks for email-password sign in method
   if (signInMethod === 'email-password') {
-    if (!password) {
-      return res.boom.badRequest('missing password');
-    }
-
-    if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password))) {
-      return res.boom.forbidden('Password is too weak');
+    // check password
+    if (!(await isPasswordValid({ password, res }))) {
+      // function send potential error via `res`
+      return;
     }
   }
 
-  const allowedRoles =
-    req.body.allowedRoles ?? REGISTRATION.DEFAULT_ALLOWED_USER_ROLES;
-
-  // check if default role is part of allowedRoles
-  if (!allowedRoles.includes(defaultRole)) {
-    return res.boom.badRequest('Default role must be part of allowed roles');
-  }
-
-  // check if allowedRoles is a subset of allowed user roles
-  if (
-    !allowedRoles.every((role: string) =>
-      REGISTRATION.ALLOWED_USER_ROLES.includes(role)
-    )
-  ) {
-    return res.boom.badRequest(
-      'Allowed roles must be a subset of allowedRoles'
-    );
+  // check roles
+  const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
+  const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
+  if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
+    return;
   }
 
   // password is null if password is not set

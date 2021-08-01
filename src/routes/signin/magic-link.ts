@@ -6,13 +6,15 @@ import {
 } from 'express-joi-validation';
 import { v4 as uuidv4 } from 'uuid';
 
-import { REGISTRATION } from '@config/registration';
-import { getGravatarUrl, getUserByEmail, isWhitelistedEmail } from '@/helpers';
+import { getGravatarUrl, getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
-import { insertProfile } from '@/utils/profile';
+import { insertProfile, isProfileValid } from '@/utils/profile';
 import { AUTHENTICATION } from '@config/authentication';
+import { ENV } from '@/utils/env';
+import { isValidEmail } from '@/utils/email';
+import { isRolesValid } from '@/utils/roles';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -46,7 +48,7 @@ export const signInMagicLinkHandler = async (
   }
 
   const { body } = req;
-  const { email, profile, locale } = body;
+  const { email, profile, locale = ENV.DEFAULT_LOCALE } = body;
 
   // check if email already exist
   const user = await getUserByEmail(email);
@@ -56,33 +58,26 @@ export const signInMagicLinkHandler = async (
   if (!user) {
     // create user is user not already exists
 
-    // Check if whitelisting is enabled and if email is whitelisted
-    if (REGISTRATION.WHITELIST && !(await isWhitelistedEmail(email))) {
-      return res.boom.unauthorized('Email not allowed');
+    // check email
+    if (!(await isValidEmail({ email, res }))) {
+      // function send potential error via `res`
+      return;
+    }
+
+    // check profile
+    if (!(await isProfileValid({ profile, res }))) {
+      // function send potential error via `res`
+      return;
+    }
+
+    // check roles
+    const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
+    const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
+    if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
+      return;
     }
 
     // set default role
-    const defaultRole = body.defaultRole ?? REGISTRATION.DEFAULT_USER_ROLE;
-
-    // set allowed roles
-    const allowedRoles =
-      body.allowedRoles ?? REGISTRATION.DEFAULT_ALLOWED_USER_ROLES;
-
-    // check if default role is part of allowedRoles
-    if (!allowedRoles.includes(defaultRole)) {
-      return res.boom.badRequest('Default role must be part of allowed roles');
-    }
-
-    // check if allowedRoles is a subset of allowed user roles
-    if (
-      !allowedRoles.every((role: string) =>
-        REGISTRATION.ALLOWED_USER_ROLES.includes(role)
-      )
-    ) {
-      return res.boom.badRequest(
-        'Allowed roles must be a subset of allowedRoles'
-      );
-    }
 
     // restructure user roles to be inserted in GraphQL mutation
     const userRoles = allowedRoles.map((role: string) => ({ role }));

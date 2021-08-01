@@ -27,6 +27,7 @@ describe('email-password', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTO_ACTIVATE_NEW_USERS: true,
+      REGISTRATION_PROFILE_FIELDS: '',
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
     });
@@ -54,7 +55,7 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email: 'joedoe@example.com', password: '123456' })
-      .expect(400);
+      .expect(409);
   });
 
   it('should fail sign up if whitelist is enabled and the email is not whitelisted', async () => {
@@ -258,8 +259,7 @@ describe('email-password with profile table', () => {
       AUTO_ACTIVATE_NEW_USERS: true,
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_REQUIRED: true,
-      REGISTRATION_CUSTOM_FIELDS: 'companyId',
+      REGISTRATION_PROFILE_FIELDS: 'companyId',
     });
 
     await request
@@ -277,8 +277,7 @@ describe('email-password with profile table', () => {
       AUTO_ACTIVATE_NEW_USERS: true,
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_REQUIRED: true,
-      REGISTRATION_CUSTOM_FIELDS: 'companyId',
+      REGISTRATION_PROFILE_FIELDS: 'companyId',
     });
 
     await request
@@ -291,14 +290,13 @@ describe('email-password with profile table', () => {
       .expect(400);
   });
 
-  it('should fail to sign up because registration custom fields does not match', async () => {
+  it('should fail to sign up because registration custom fields does not exist in database', async () => {
     // set env vars
     await request.post('/change-env').send({
       AUTO_ACTIVATE_NEW_USERS: true,
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_REQUIRED: true,
-      REGISTRATION_CUSTOM_FIELDS: 'incorrect',
+      REGISTRATION_PROFILE_FIELDS: 'incorrect',
     });
 
     await request
@@ -308,10 +306,7 @@ describe('email-password with profile table', () => {
         password: '123456',
         profile: { incorrect: 1337 },
       })
-      .expect(
-        400,
-        'Error validating request body. "profile.incorrect" is not allowed.'
-      );
+      .expect(500);
   });
 
   it('should fail to sign up user with no profile data', async () => {
@@ -320,8 +315,7 @@ describe('email-password with profile table', () => {
       AUTO_ACTIVATE_NEW_USERS: true,
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_REQUIRED: true,
-      REGISTRATION_CUSTOM_FIELDS: 'incorrect',
+      REGISTRATION_PROFILE_FIELDS: 'companyId',
     });
 
     await request
@@ -345,8 +339,7 @@ describe('email-password with profile table', () => {
       AUTO_ACTIVATE_NEW_USERS: true,
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_REQUIRED: true,
-      REGISTRATION_CUSTOM_FIELDS: 'companyId',
+      REGISTRATION_PROFILE_FIELDS: 'companyId',
     });
 
     await request
