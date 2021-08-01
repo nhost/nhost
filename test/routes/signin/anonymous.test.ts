@@ -30,12 +30,15 @@ describe('anonymous', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
+    console.log('before each generate new server');
+
     server = app.listen(await getPort(), APPLICATION.HOST);
-    request = agent(server);
     request = agent(server);
   });
 
   afterEach(async () => {
+    console.log('after each, close server');
+
     server.close();
   });
 
@@ -149,7 +152,6 @@ describe('anonymous with profile table', () => {
     await client.query(`DELETE FROM public.profiles;`);
 
     server = app.listen(await getPort(), APPLICATION.HOST);
-    request = agent(server);
     request = agent(server);
   });
 

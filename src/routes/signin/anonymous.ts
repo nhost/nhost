@@ -9,6 +9,7 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { insertProfile } from '@/utils/profile';
 import { ENV } from '@config/env';
 import { getSignInTokens } from '@/utils/tokens';
+import { APPLICATION } from '@config/application';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -32,7 +33,10 @@ export const signInAnonymousHandler = async (
     return res.boom.notFound('Anonymous users are not enabled');
   }
 
-  const { locale, profile } = req.body;
+  const { profile } = req.body;
+
+  // set potential default values
+  const locale = req.body.locale || APPLICATION.EMAILS_DEFAULT_LOCALE;
 
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = [{ role: 'anonymous' }];

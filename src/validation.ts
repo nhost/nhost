@@ -141,9 +141,9 @@ export const signInMFATOTPSchema = Joi.object({
 });
 
 export const signInAnonymousSchema = Joi.object({
-  locale: localeRule.default(APPLICATION.EMAILS_DEFAULT_LOCALE),
+  locale: localeRule,
   displayName: Joi.string(),
-  profile: profileRule,
+  profile: Joi.object(),
 });
 
 // -- SIGN OUT--
