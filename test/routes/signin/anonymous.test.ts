@@ -38,8 +38,6 @@ describe('email-password', () => {
       .post('/signin/anonymous')
       .expect(200);
 
-    console.log('body from anonymous login');
-
     const { accessToken, accessTokenExpiresIn, refreshToken, mfa } = body;
 
     expect(isValidAccessToken(accessToken)).toBe(true);

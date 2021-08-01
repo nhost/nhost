@@ -36,8 +36,6 @@ export const signInMagicLinkHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('sign up magic link handler');
-
   if (!AUTHENTICATION.MAGIC_LINK_ENABLED) {
     return res.boom.notFound('Magic link is not enabled');
   }
@@ -75,19 +73,12 @@ export const signInMagicLinkHandler = async (
       return res.boom.badRequest('Default role must be part of allowed roles');
     }
 
-    console.log('check allowed roles subset');
-
-    console.log(allowedRoles);
-    console.log(REGISTRATION.DEFAULT_ALLOWED_USER_ROLES);
-
     // check if allowedRoles is a subset of allowed user roles
     if (
       !allowedRoles.every((role: string) =>
         REGISTRATION.ALLOWED_USER_ROLES.includes(role)
       )
     ) {
-      console.error('allowed roles is not a subset');
-
       return res.boom.badRequest(
         'Allowed roles must be a subset of allowedRoles'
       );

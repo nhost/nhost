@@ -22,8 +22,6 @@ export const tokenHandler = async (
 ): Promise<unknown> => {
   const { refreshToken } = req.body;
 
-  console.log({ refreshToken });
-
   const refreshTokens = await gqlSdk
     .getUsersByRefreshToken({
       refreshToken,
@@ -32,7 +30,6 @@ export const tokenHandler = async (
       return gqlres.authRefreshTokens;
     });
 
-  console.log({ refreshTokens });
   if (refreshTokens.length === 0) {
     return res.boom.unauthorized('Invalid or expired refresh token');
   }

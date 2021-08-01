@@ -20,8 +20,6 @@ export const signInMagicLinkCallbackHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('sign up magic link callback handler');
-
   const { ticket } = req.body;
 
   const user = await gqlSdk

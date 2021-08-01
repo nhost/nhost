@@ -200,7 +200,10 @@ describe('email-password with profile table', () => {
     await deleteAllMailHogEmails();
 
     // create profile table
+    console.log('drop profiles table:');
     await client.query(`DROP TABLE IF EXISTS public.profiles;`);
+
+    console.log('create profiles table');
     await client.query(`
     CREATE TABLE public.profiles (
       user_id uuid PRIMARY KEY,

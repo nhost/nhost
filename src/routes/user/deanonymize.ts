@@ -150,16 +150,7 @@ export const userDeanonymizeHandler = async (
 
   // send email
   if (signInMethod === 'email-password') {
-    console.log('login method email password');
-
-    console.log('auto activate new users');
-    console.log(REGISTRATION.AUTO_ACTIVATE_NEW_USERS);
-
-    console.log('verify emails');
-    console.log(AUTHENTICATION.VERIFY_EMAILS);
-
     if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
-      console.log('send email');
       if (!APPLICATION.EMAILS_ENABLED) {
         throw new Error('SMTP settings unavailable');
       }
@@ -188,7 +179,6 @@ export const userDeanonymizeHandler = async (
       });
     }
   } else if (signInMethod === 'magic-link') {
-    console.log('login method magic link');
     if (!APPLICATION.EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }
