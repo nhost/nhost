@@ -211,7 +211,7 @@ export const userDeanonymizeHandler = async (
       locals: {
         email,
         locale: user.locale,
-        token: ticket,
+        otp,
         url: APPLICATION.SERVER_URL,
         appUrl: APPLICATION.APP_URL,
       },
