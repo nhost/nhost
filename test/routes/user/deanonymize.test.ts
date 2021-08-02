@@ -125,7 +125,7 @@ describe('email-password', () => {
     // should be abel to sign in with otp from magic link
     await request
       .post('/signin/otp')
-      .send({ signInMethod: 'magic-link', identifier: email, otp })
+      .send({ otpMethod: 'magic-link', identifier: email, otp })
       .expect(200);
   });
 
