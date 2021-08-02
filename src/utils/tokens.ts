@@ -64,10 +64,10 @@ export function generatePermissionVariables(
   });
 
   return {
-    [`x-hasura-user-id`]: user.id,
     [`x-hasura-allowed-roles`]: allowedRoles,
     [`x-hasura-default-role`]: user.defaultRole,
-    [`x-hasura-is-anonymous`]: user.isAnonymous,
+    [`x-hasura-user-id`]: user.id,
+    [`x-hasura-user-isAnonymous`]: user.isAnonymous.toString(),
     ...customSessionVariables,
   };
 }
@@ -214,7 +214,7 @@ export const getSignInTokens = async ({
 
   const profile = await getProfileFieldsForAccessToken({
     userId: user.id,
-  }).catch((err) => {
+  }).catch(() => {
     // noop
     // profile is not available
   });
