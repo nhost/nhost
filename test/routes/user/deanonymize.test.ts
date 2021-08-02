@@ -113,7 +113,7 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const otp = message.Content.Headers['x-otp'][0];
+    const otp = message.Content.Headers['x-Otp'][0];
     expect(typeof otp).toBe('string');
 
     const emailType = message.Content.Headers['X-Email-Template'][0];
