@@ -18,6 +18,7 @@ import { isPasswordValid } from '@/utils/password';
 import { isValidEmail } from '@/utils/email';
 import { ENV } from '@/utils/env';
 import { isRolesValid } from '@/utils/roles';
+import { getOtpData } from '@/utils/otp';
 
 type BodyType = {
   signInMethod: 'email-password' | 'magic-link';
@@ -94,35 +95,48 @@ export const userDeanonymizeHandler = async (
 
   const userRoles = allowedRoles.map((role: string) => ({ role, userId }));
 
-  //
-  const ticketPrefix =
-    signInMethod === 'email-password' ? 'userActivate' : 'magicLink';
-  const ticket = `${ticketPrefix}:${uuidv4()}`;
-  const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
+  let ticket, otpHash;
 
-  // set isActive to true directly if users should be automatically activated
-  // if AUTO_ACTIVATED_NEW_USER is false the user must instead activate their
-  // account with the email
-  const isActive =
-    signInMethod === 'magic-link'
-      ? true
-      : signInMethod === 'email-password'
-      ? REGISTRATION.AUTO_ACTIVATE_NEW_USERS
-      : false;
+  // set ticket or otpHash depending on sign in method
+  if (signInMethod === 'email-password') {
+    ticket = `userActivate:${uuidv4()}`;
+    const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
-  await gqlSdk.updateUser({
-    id: userId,
-    user: {
-      isActive,
-      emailVerified: false,
-      email,
-      passwordHash,
-      defaultRole,
-      ticket,
-      ticketExpiresAt,
-      isAnonymous: false,
-    },
-  });
+    await gqlSdk.updateUser({
+      id: userId,
+      user: {
+        isActive: ENV.AUTO_ACTIVATE_NEW_USERS,
+        emailVerified: false,
+        email,
+        passwordHash,
+        defaultRole,
+        ticket,
+        ticketExpiresAt,
+        isAnonymous: false,
+      },
+    });
+  } else if (signInMethod === 'magic-link') {
+    const otpData = await getOtpData();
+
+    otpHash = otpData.otpHash;
+    const otpHashExpiresAt = otpData.otpHashExpiresAt;
+
+    await gqlSdk.updateUser({
+      id: userId,
+      user: {
+        isActive: true,
+        emailVerified: false,
+        email,
+        passwordHash: null,
+        defaultRole,
+        otpHash,
+        otpHashExpiresAt,
+        isAnonymous: false,
+      },
+    });
+  } else {
+    throw new Error('Incorrect state (signInMethod)');
+  }
 
   if (!user) {
     throw new Error('Unable to get user');
@@ -157,9 +171,9 @@ export const userDeanonymizeHandler = async (
           headers: {
             'x-ticket': {
               prepared: true,
-              value: ticket,
+              value: ticket as string,
             },
-            'x-email-type': {
+            'x-email-template': {
               prepared: true,
               value: 'activate-user',
             },
@@ -183,11 +197,11 @@ export const userDeanonymizeHandler = async (
       message: {
         to: email,
         headers: {
-          'x-ticket': {
+          'x-otp-hash': {
             prepared: true,
-            value: ticket,
+            value: otpHash as string,
           },
-          'x-email-type': {
+          'x-email-template': {
             prepared: true,
             value: 'magic-link',
           },
