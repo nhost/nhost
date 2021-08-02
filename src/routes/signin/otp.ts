@@ -13,7 +13,7 @@ import { getUserByTicket } from '@/helpers';
 import { authenticator } from 'otplib';
 
 export const signInOtpSchema = Joi.object({
-  signInMethod: Joi.string()
+  otpMethod: Joi.string()
     .valid('magic-link', 'phone-number', 'mfa-sms', 'mfa-totp')
     .required(),
   identifier: Joi.string().required(),
