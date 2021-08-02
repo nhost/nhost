@@ -13,6 +13,7 @@
     "core-js": "^3.6.5",
     "graphql-tag": "^2.12.4",
     "nhost-js-sdk": "^3.1.0",
+    "nhost-vue-apollo": "^1.0.6",
     "vue": "^3.0.0",
     "vue-feather-icons": "^5.1.0",
     "vue-router": "^4.0.0-0",
