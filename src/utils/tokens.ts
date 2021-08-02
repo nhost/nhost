@@ -241,7 +241,12 @@ export const getNewTokens = async ({
 }: {
   user: UserFieldsFragment;
 }): Promise<Tokens> => {
-  const profile = await getProfileFieldsForAccessToken({ userId: user.id });
+  const profile = await getProfileFieldsForAccessToken({
+    userId: user.id,
+  }).catch(() => {
+    // noop
+    // profile is not available
+  });
 
   const accessToken = createHasuraAccessToken(user, profile);
   const refreshToken = await getNewRefreshToken(user.id);
