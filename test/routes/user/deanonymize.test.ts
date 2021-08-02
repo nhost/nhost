@@ -59,7 +59,7 @@ describe('email-password', () => {
     const ticket = message.Content.Headers['X-Ticket'][0];
     expect(ticket.startsWith('userActivate:')).toBeTruthy();
 
-    const emailType = message.Content.Headers['X-Email-Type'][0];
+    const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('activate-user');
 
     // should not be abel to login before activated
@@ -113,19 +113,19 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
-    expect(ticket.startsWith('magicLink:')).toBeTruthy();
+    const otp = message.Content.Headers['x-otp'][0];
+    expect(typeof otp).toBe('string');
 
-    const emailType = message.Content.Headers['X-Email-Type'][0];
+    const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('magic-link');
 
     // should not be able to reuse old refresh token
     await request.post('/token').send({ refreshToken }).expect(401);
 
-    // should be abel to activate account with ticket from email
+    // should be abel to sign in with otp from magic link
     await request
-      .post('/signin/magic-link/callback')
-      .send({ ticket })
+      .post('/signin/otp')
+      .send({ signInMethod: 'magic-link', identifier: email, otp })
       .expect(200);
   });
 

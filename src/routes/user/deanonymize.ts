@@ -95,7 +95,7 @@ export const userDeanonymizeHandler = async (
 
   const userRoles = allowedRoles.map((role: string) => ({ role, userId }));
 
-  let ticket, otpHash;
+  let ticket, otp;
 
   // set ticket or otpHash depending on sign in method
   if (signInMethod === 'email-password') {
@@ -118,7 +118,8 @@ export const userDeanonymizeHandler = async (
   } else if (signInMethod === 'magic-link') {
     const otpData = await getOtpData();
 
-    otpHash = otpData.otpHash;
+    otp = otpData.otp;
+    const otpHash = otpData.otpHash;
     const otpHashExpiresAt = otpData.otpHashExpiresAt;
 
     await gqlSdk.updateUser({
@@ -197,9 +198,9 @@ export const userDeanonymizeHandler = async (
       message: {
         to: email,
         headers: {
-          'x-otp-hash': {
+          'x-otp': {
             prepared: true,
-            value: otpHash as string,
+            value: otp as string,
           },
           'x-email-template': {
             prepared: true,

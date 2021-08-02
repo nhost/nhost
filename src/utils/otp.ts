@@ -9,6 +9,7 @@ export const getOtpData = async () => {
   const otpHashExpiresAt = generateTicketExpiresAt(10 * 60);
 
   return {
+    otp,
     otpHash,
     otpHashExpiresAt,
   };

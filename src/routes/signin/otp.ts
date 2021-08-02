@@ -17,7 +17,7 @@ export const signInOtpSchema = Joi.object({
     .valid('magic-link', 'phone-number', 'mfa-sms', 'mfa-totp')
     .required(),
   identifier: Joi.string().required(),
-  otpParam: Joi.string().required(),
+  otp: Joi.string().required(),
 });
 
 type BodyType = {

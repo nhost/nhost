@@ -4,7 +4,6 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
-import { v4 as uuidv4 } from 'uuid';
 
 import { getGravatarUrl, getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
@@ -15,7 +14,6 @@ import { AUTHENTICATION } from '@config/authentication';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
-import { generateTicketExpiresAt } from '@/utils/ticket';
 import { getOtpData } from '@/utils/otp';
 
 type Profile = {
@@ -117,7 +115,7 @@ export const signInMagicLinkHandler = async (
   }
 
   // OTP
-  const { otpHash, otpHashExpiresAt } = await getOtpData();
+  const { otp, otpHash, otpHashExpiresAt } = await getOtpData();
 
   gqlSdk.updateUser({
     id: userId,
@@ -133,16 +131,16 @@ export const signInMagicLinkHandler = async (
     message: {
       to: email,
       headers: {
-        'x-otp-hash': {
+        'x-otp': {
           prepared: true,
-          value: otpHash,
+          value: otp,
         },
       },
     },
     locals: {
       email,
       locale,
-      otpHash,
+      otp,
       url: APPLICATION.SERVER_URL,
       appUrl: APPLICATION.APP_URL,
     },
