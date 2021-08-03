@@ -85,6 +85,7 @@ describe('email-password', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTO_ACTIVATE_NEW_USERS: false,
+      MAGIC_LINK_ENABLED: true,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
@@ -124,8 +125,8 @@ describe('email-password', () => {
 
     // should be abel to sign in with otp from magic link
     await request
-      .post('/signin/otp')
-      .send({ otpMethod: 'magic-link', identifier: email, otp })
+      .post('/signin/magic-link/otp')
+      .send({ email, otp })
       .expect(200);
   });
 

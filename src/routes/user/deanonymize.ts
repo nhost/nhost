@@ -4,7 +4,6 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
-import { pwnedPassword } from 'hibp';
 import { v4 as uuidv4 } from 'uuid';
 
 import { getUserByEmail, hashPassword } from '@/helpers';

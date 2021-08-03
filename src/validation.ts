@@ -47,7 +47,7 @@ export const signInEmailPasswordSchema = Joi.object({
 });
 
 export const signInMagicLinkSchema = Joi.object({
-  email: emailRule,
+  email: emailRule.required(),
   locale: localeRule,
   defaultRole: Joi.string(),
   allowedRoles: Joi.array().items(Joi.string()),
@@ -55,16 +55,19 @@ export const signInMagicLinkSchema = Joi.object({
   profile: Joi.object(),
 });
 
-const magicLinkCallbackTicketPattern = new RegExp(
-  `magicLink:${uuidRegex.source}`
-);
-export const signInMagicLinkCallbackSchema = Joi.object({
-  ticket: Joi.string().regex(magicLinkCallbackTicketPattern).required(),
+export const signInMagicLinkOtpSchema = Joi.object({
+  email: emailRule.required(),
+  otp: Joi.string().required(),
 });
 
-const MFATOTPTicketPattern = new RegExp(`mfaTotp:${uuidRegex.source}`);
-export const signInMFATOTPSchema = Joi.object({
-  ticket: Joi.string().regex(MFATOTPTicketPattern).required(),
+const mfaTotpTicketPattern = new RegExp(`mfaTotp:${uuidRegex.source}`);
+export const signInMfaTotpSchema = Joi.object({
+  ticket: Joi.string().regex(mfaTotpTicketPattern).required(),
+  code: Joi.string().required(),
+});
+
+export const signInMfaPhoneNumberSchema = Joi.object({
+  phoneNumber: Joi.string().required(),
   code: Joi.string().required(),
 });
 

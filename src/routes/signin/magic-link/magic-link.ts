@@ -10,7 +10,6 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
 import { insertProfile, isProfileValid } from '@/utils/profile';
-import { AUTHENTICATION } from '@config/authentication';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
@@ -38,7 +37,7 @@ export const signInMagicLinkHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (!AUTHENTICATION.MAGIC_LINK_ENABLED) {
+  if (!ENV.MAGIC_LINK_ENABLED) {
     return res.boom.notFound('Magic link is not enabled');
   }
 
@@ -134,6 +133,10 @@ export const signInMagicLinkHandler = async (
         'x-otp': {
           prepared: true,
           value: otp,
+        },
+        'x-email-template': {
+          prepared: true,
+          value: 'magic-link',
         },
       },
     },

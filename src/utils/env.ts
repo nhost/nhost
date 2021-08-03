@@ -14,6 +14,10 @@ export const ENV = {
     return castStringArrayEnv('ALLOWED_LOCALES') || ['en'];
   },
 
+  get MAGIC_LINK_ENABLED() {
+    return castBooleanEnv('MAGIC_LINK_ENABLED', false);
+  },
+
   get PHONE_NUMBER_AUTH_ENABLED() {
     return castBooleanEnv('PHONE_NUMBER_AUTH_ENABLED', false);
   },

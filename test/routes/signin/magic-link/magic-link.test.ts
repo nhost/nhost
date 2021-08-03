@@ -1,5 +1,5 @@
 // import { request } from "@/test/server";
-import { request } from '../../server';
+import { request } from '../../../server';
 import { Client } from 'pg';
 
 describe('magic link', () => {

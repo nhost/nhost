@@ -6,12 +6,17 @@ import {
   signInEmailPasswordSchema,
   signInMagicLinkSchema,
   signInAnonymousSchema,
+  signInMagicLinkOtpSchema,
+  signInMfaTotpSchema,
 } from '@/validation';
 import { signInEmailPasswordHandler } from './email-password';
-import { signInMagicLinkHandler } from './magic-link';
+import {
+  signInMagicLinkHandler,
+  signInMagicLinkOtpHandler,
+} from './magic-link';
 import { signInAnonymousHandler } from './anonymous';
 import providers from './providers';
-import { signInOtpHandler, signInOtpSchema } from './otp';
+import { signInMfaTotpHandler } from './mfa';
 
 const router = Router();
 
@@ -28,15 +33,21 @@ router.post(
 );
 
 router.post(
-  '/signin/otp',
-  createValidator().body(signInOtpSchema),
-  aw(signInOtpHandler)
+  '/signin/magic-link/otp',
+  createValidator().body(signInMagicLinkOtpSchema),
+  aw(signInMagicLinkOtpHandler)
 );
 
 router.post(
   '/signin/anonymous',
   createValidator().body(signInAnonymousSchema),
   aw(signInAnonymousHandler)
+);
+
+router.post(
+  '/signin/mfa/totp',
+  createValidator().body(signInMfaTotpSchema),
+  aw(signInMfaTotpHandler)
 );
 
 providers(router);
