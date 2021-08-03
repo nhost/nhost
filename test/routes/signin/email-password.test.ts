@@ -29,7 +29,7 @@ describe('email-password', () => {
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request

@@ -4,8 +4,8 @@ import { SuperTest, Test } from 'supertest';
 
 import { APPLICATION } from '../src/config/application';
 import { TOKEN } from '../src/config/token';
-
 import { getClaims } from '../src/utils/tokens';
+import { Token } from '../src/types';
 
 export interface UserLoginData {
   email: string;
@@ -228,5 +228,16 @@ export const isValidAccessToken = (accessToken: string | null): boolean => {
     return true;
   } catch (err) {
     return false;
+  }
+};
+
+export const decodeAccessToken = (accessToken: string | null) => {
+  if (!accessToken) {
+    return null;
+  }
+  try {
+    return JWT.verify(accessToken, TOKEN.JWT_SECRET) as Token;
+  } catch (err) {
+    return null;
   }
 };

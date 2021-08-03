@@ -15,11 +15,11 @@ router.post(
 );
 
 // WARNING: alias route for `/signin/magic-link`
-router.post(
-  '/signup/magic-link',
-  createValidator().body(signInMagicLinkSchema),
-  aw(signInMagicLinkHandler)
-);
+// router.post(
+//   '/signup/magic-link',
+//   createValidator().body(signInMagicLinkSchema),
+//   aw(signInMagicLinkHandler)
+// );
 
 const signUpRouter = router;
 export { signUpRouter };

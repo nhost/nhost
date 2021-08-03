@@ -20,6 +20,22 @@ export const signInOtpSchema = Joi.object({
   otp: Joi.string().required(),
 });
 
+// signin/otp (current)
+
+// v1
+// signin/otp/magic-link
+// signin/otp/phone-number
+// signin/otp/mfa-sms
+// signin/otp/mfa-totp
+
+// V2
+// signin/magic-link
+// signin/magic-link/otp
+// signin/phone-number
+// signin/phone-number/otp
+// signin/mfa/sms
+// signin/mfa/totp
+
 type BodyType = {
   otpMethod: 'magic-link' | 'phone-number' | 'mfa-totp' | 'mfa-sms';
   identifier: string; // value of email, phoneNumber or ticket

@@ -26,6 +26,14 @@ export const ENV = {
     return castStringArrayEnv('REGISTRATION_PROFILE_FIELDS', []);
   },
 
+  get USER_SESSION_VARIABLE_FIELDS() {
+    return castStringArrayEnv('USER_SESSION_VARIABLE_FIELDS', []);
+  },
+
+  get PROFILE_SESSION_VARIABLE_FIELDS() {
+    return castStringArrayEnv('PROFILE_SESSION_VARIABLE_FIELDS', []);
+  },
+
   get ANONYMOUS_USERS_ENABLED() {
     return castBooleanEnv('ANONYMOUS_USERS_ENABLED', false);
   },

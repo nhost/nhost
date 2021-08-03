@@ -38,6 +38,7 @@ export interface PermissionVariables {
 export type Token = {
   [key: string]: Claims;
 } & {
+  'https://hasura.io/jwt/claims': Claims;
   exp: bigint;
   iat: bigint;
   iss: string;

@@ -27,7 +27,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request
@@ -45,7 +45,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: false,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request
@@ -63,7 +63,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: true,
       MAGIC_LINK_ENABLED: true,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request
@@ -81,7 +81,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request
@@ -106,7 +106,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
@@ -127,7 +127,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
@@ -148,7 +148,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
@@ -169,7 +169,7 @@ describe('magic link', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
       EMAILS_ENABLED: false,

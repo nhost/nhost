@@ -7,6 +7,7 @@ import { Claims, Token, ClaimValueType, PermissionVariables } from '../types';
 import { UserFieldsFragment } from './__generated__/graphql-request';
 import { generateTicketExpiresAt } from './ticket';
 import { getProfileFieldsForAccessToken } from './profile';
+import { ENV } from './env';
 
 // const RSA_TYPES = ["RS256", "RS384", "RS512"];
 const SHA_TYPES = ['HS256', 'HS384', 'HS512'];
@@ -47,20 +48,48 @@ export function generatePermissionVariables(
     allowedRoles.push(user.defaultRole);
   }
 
-  const customSessionVariables = {} as any;
-  TOKEN.PROFILE_SESSION_VARIABLE_FIELDS.forEach((column) => {
-    let value;
-
-    const type = typeof profile[column] as ClaimValueType;
-    if (type === 'string') {
-      value = profile[column];
-    } else if (Array.isArray(profile[column])) {
-      value = toPgArray(profile[column] as string[]);
-    } else {
-      value = JSON.stringify(profile[column] ?? null);
+  // custom user session variables
+  const customUserSessionVariables = {} as any;
+  ENV.USER_SESSION_VARIABLE_FIELDS.forEach((field) => {
+    if (!(field in user)) {
+      throw new Error('field not in user');
     }
 
-    customSessionVariables[`x-hasura-profile-${column}`] = value;
+    // make user any type
+    const userAny = user as any;
+
+    // value to set for the session variable
+    let value;
+
+    const type = typeof userAny[field] as ClaimValueType;
+
+    if (type === 'string') {
+      value = userAny[field];
+    } else if (Array.isArray(userAny[field])) {
+      value = toPgArray(userAny[field] as string[]);
+    } else {
+      value = JSON.stringify(userAny[field] ?? null);
+    }
+
+    // we've made sure `field` is part of `user` in the check above
+    customUserSessionVariables[`x-hasura-user-${field}`] = value;
+  });
+
+  // profile
+  const customProfileSessionVariables = {} as any;
+  ENV.PROFILE_SESSION_VARIABLE_FIELDS.forEach((field) => {
+    let value;
+
+    const type = typeof profile[field] as ClaimValueType;
+    if (type === 'string') {
+      value = profile[field];
+    } else if (Array.isArray(profile[field])) {
+      value = toPgArray(profile[field] as string[]);
+    } else {
+      value = JSON.stringify(profile[field] ?? null);
+    }
+
+    customProfileSessionVariables[`x-hasura-profile-${field}`] = value;
   });
 
   return {
@@ -68,7 +97,8 @@ export function generatePermissionVariables(
     [`x-hasura-default-role`]: user.defaultRole,
     [`x-hasura-user-id`]: user.id,
     [`x-hasura-user-isAnonymous`]: user.isAnonymous.toString(),
-    ...customSessionVariables,
+    ...customProfileSessionVariables,
+    ...customUserSessionVariables,
   };
 }
 

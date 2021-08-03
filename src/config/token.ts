@@ -22,6 +22,9 @@ export const TOKEN = {
   get CUSTOM_FIELDS() {
     return castStringArrayEnv('PROFILE_SESSION_VARIABLE_FIELDS');
   },
+  get USER_SESSION_VARIABLE_FIELDS() {
+    return castStringArrayEnv('USER_SESSION_VARIABLE_FIELDS');
+  },
   get PROFILE_SESSION_VARIABLE_FIELDS() {
     return castStringArrayEnv('PROFILE_SESSION_VARIABLE_FIELDS');
   },

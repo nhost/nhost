@@ -29,7 +29,7 @@ describe('email-password', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       ANONYMOUS_USERS_ENABLED: true,
     });
 
@@ -88,7 +88,7 @@ describe('email-password', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       ANONYMOUS_USERS_ENABLED: true,
     });
 
@@ -136,7 +136,7 @@ describe('email-password', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       ANONYMOUS_USERS_ENABLED: true,
     });
 
@@ -164,7 +164,7 @@ describe('email-password', () => {
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_CUSTOM_FIELDS: '',
+      REGISTRATION_PROFILE_FIELDS: '',
       ANONYMOUS_USERS_ENABLED: true,
     });
 

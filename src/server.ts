@@ -9,7 +9,7 @@ import { limiter } from './limiter';
 import router from './routes';
 import passport from 'passport';
 import { authMiddleware } from './middleware/auth';
-import logger from './logger';
+// import logger from './logger';
 
 const app = express();
 
