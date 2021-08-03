@@ -38,6 +38,18 @@ router.post(
   aw(signInMagicLinkOtpHandler)
 );
 
+// router.post(
+//   '/signin/phone-number',
+//   createValidator().body(signInMagicLinkSchema),
+//   aw(signInMagicLinkHandler)
+// );
+
+// router.post(
+//   '/signin/phone-number/otp',
+//   createValidator().body(signInMagicLinkOtpSchema),
+//   aw(signInMagicLinkOtpHandler)
+// );
+
 router.post(
   '/signin/anonymous',
   createValidator().body(signInAnonymousSchema),
@@ -50,6 +62,13 @@ router.post(
   aw(signInMfaTotpHandler)
 );
 
+// router.post(
+//   '/signin/mfa/sms',
+//   createValidator().body(signInMfaSmsSchema),
+//   aw(signInMfaSmsHandler)
+// );
+
+// providers
 providers(router);
 
 const signInRouter = router;
