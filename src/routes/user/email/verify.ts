@@ -5,11 +5,11 @@ import {
   ValidatedRequestSchema,
 } from 'express-joi-validation';
 
-import { getUserByTicket } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 
 type BodyType = {
-  ticket?: string;
+  email: string;
+  ticket: string;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -22,27 +22,42 @@ export const userEmailVerifyHandler = async (
 ): Promise<unknown> => {
   console.log('inside user password handler');
 
-  const { ticket } = req.body;
+  const { email, ticket } = req.body;
 
-  if (!ticket) {
-    return res.boom.badRequest('Missing ticket');
-  }
-
-  // get user using ticket
-  const user = await getUserByTicket(ticket);
+  const user = await gqlSdk
+    .users({
+      where: {
+        _and: [
+          {
+            email: {
+              _eq: email,
+            },
+          },
+          {
+            ticket: {
+              _eq: ticket,
+            },
+          },
+          {
+            ticketExpiresAt: {
+              _gt: new Date(),
+            },
+          },
+        ],
+      },
+    })
+    .then((gqlRes) => gqlRes.users[0]);
 
   if (!user) {
-    return res.boom.badRequest('Invalid or expired ticket');
+    return res.boom.unauthorized('Invalid or expired ticket');
   }
 
-  // set new email for user
   await gqlSdk.updateUser({
     id: user.id,
     user: {
       emailVerified: true,
-      ticket: null,
     },
   });
 
-  return res.send('ok');
+  return res.send('OK');
 };

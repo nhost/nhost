@@ -16,6 +16,7 @@ import { isValidEmail } from '@/utils/email';
 import { isPasswordValid } from '@/utils/password';
 import { isRolesValid } from '@/utils/roles';
 import { ENV } from '@/utils/env';
+import { generateTicketExpiresAt } from '@/utils/ticket';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -76,8 +77,8 @@ export const signUpEmailPasswordHandler = async (
   const passwordHash = await hashPassword(password);
 
   // create ticket
-  const ticket = `userActivate:${uuidv4()}`;
-  const ticketExpiresAt = new Date(+new Date() + 60 * 60 * 1000).toISOString();
+  const ticket = `verifyEmail:${uuidv4()}`;
+  const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = allowedRoles.map((role: string) => ({ role }));
@@ -113,7 +114,7 @@ export const signUpEmailPasswordHandler = async (
   await insertProfile({ userId: user.id, profile });
 
   // user is now inserted. Continue sending out activation email
-  if (!ENV.DISABLE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
+  if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
     if (!APPLICATION.EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }

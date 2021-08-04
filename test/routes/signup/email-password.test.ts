@@ -143,7 +143,7 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
     const ticket = message.Content.Headers['X-Ticket'][0];
-    expect(ticket.startsWith('userActivate:')).toBeTruthy();
+    expect(ticket.startsWith('verifyEmail:')).toBeTruthy();
   });
 
   it('default role must be part of allowed roles', async () => {
@@ -187,6 +187,49 @@ describe('email-password', () => {
         allowedRoles: ['user', 'some-other-role'],
       })
       .expect(400);
+  });
+
+  it('user must verify email before being able to sign in', async () => {
+    // set env vars
+    await request.post('/change-env').send({
+      DISABLE_NEW_USERS: false,
+      SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      REGISTRATION_PROFILE_FIELDS: '',
+      VERIFY_EMAILS: false,
+      WHITELIST_ENABLED: false,
+    });
+
+    const email = 'joedoe@example.com';
+    const password = '123123';
+
+    await request
+      .post('/signup/email-password')
+      .send({ email, password })
+      .expect(200);
+
+    await request
+      .post('/signin/email-password')
+      .send({ email, password })
+      .expect(401);
+
+    // get ticket from email
+    const [message] = await mailHogSearch(email);
+    expect(message).toBeTruthy();
+    const ticket = message.Content.Headers['X-Ticket'][0];
+    expect(ticket.startsWith('verifyEmail:')).toBeTruthy();
+
+    // use ticket to verify email
+    await request
+      .post('/user/email/verify')
+      .send({ email, ticket })
+      .expect(200);
+
+    // sign in should now work
+
+    await request
+      .post('/signin/email-password')
+      .send({ email, password })
+      .expect(200);
   });
 });
 
