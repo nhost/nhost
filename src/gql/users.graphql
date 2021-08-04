@@ -1,10 +1,12 @@
 fragment userFields on users {
   id
+  disabled
   displayName
   avatarUrl
   email
   passwordHash
-  isActive
+  emailVerified
+  phoneNumberVerified
   defaultRole
   roles {
     role
@@ -52,17 +54,7 @@ query getUsersByRefreshToken($refreshToken: uuid!) {
     where: {
       _and: [
         { refreshToken: { _eq: $refreshToken } }
-        {
-          _or: [
-            { user: { isActive: { _eq: true } } }
-            {
-              _and: [
-                { user: { isActive: { _eq: false } } }
-                { user: { isAnonymous: { _eq: true } } }
-              ]
-            }
-          ]
-        }
+        { user: { disabled: { _eq: false } } }
         { expiresAt: { _gte: now } }
       ]
     }
@@ -96,27 +88,6 @@ mutation rotateUsersTicket(
     where: { ticket: { _eq: $oldTicket } }
   ) {
     affected_rows
-  }
-}
-
-mutation activateUsers(
-  $ticket: String!
-  $newTicket: String!
-  $newTicketExpiresAt: timestamptz!
-) {
-  updateUsers(
-    _set: {
-      isActive: true
-      ticket: $newTicket
-      ticketExpiresAt: $newTicketExpiresAt
-    }
-    where: {
-      _and: [{ isActive: { _eq: false } }, { ticket: { _eq: $ticket } }]
-    }
-  ) {
-    returning {
-      ...userFields
-    }
   }
 }
 
@@ -169,7 +140,7 @@ mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
 
   updateUser(
     pk_columns: { id: $userId }
-    _set: { avatarUrl: $avatarUrl, defaultRole: $role, isActive: true }
+    _set: { avatarUrl: $avatarUrl, defaultRole: $role }
   ) {
     id
   }
@@ -177,13 +148,9 @@ mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
 
 mutation insertUserProviderToUser(
   $userProvider: authUserProviders_insert_input!
-  $userId: uuid!
 ) {
   insertAuthUserProvider(object: $userProvider) {
     id
-  }
-  updateUser(pk_columns: { id: $userId }, _set: { isActive: true }) {
-    ...userFields
   }
 }
 

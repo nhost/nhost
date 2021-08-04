@@ -23,7 +23,7 @@ describe('magic link', () => {
   it('should sign in', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
@@ -41,7 +41,7 @@ describe('magic link', () => {
   it('should fail to sign in if magic link is not enabled', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: false,
@@ -59,7 +59,7 @@ describe('magic link', () => {
   it('should fail to sign if email is not whitelisted', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: true,
       MAGIC_LINK_ENABLED: true,
@@ -77,7 +77,7 @@ describe('magic link', () => {
   it('should be able to sign in twice. First request will create the user', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
@@ -102,7 +102,7 @@ describe('magic link', () => {
   it('should fail to sign in with default role that is not in allowed roles', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
@@ -123,7 +123,7 @@ describe('magic link', () => {
   it('should succeed sign in with correct default role', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
@@ -144,7 +144,7 @@ describe('magic link', () => {
   it('should fail to sign in with incorrect allowed roles', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,
@@ -165,7 +165,7 @@ describe('magic link', () => {
   it('should fail if sending emails is not enabled', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       MAGIC_LINK_ENABLED: true,

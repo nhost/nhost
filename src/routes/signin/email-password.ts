@@ -8,10 +8,7 @@ import bcrypt from 'bcryptjs';
 
 import { getSignInTokens } from '@/utils/tokens';
 import { getUserByEmail } from '@/helpers';
-
-type Profile = {
-  [key: string]: string | number | boolean;
-};
+import { ENV } from '@/utils/env';
 
 type BodyType = {
   email: string;
@@ -34,8 +31,12 @@ export const signInEmailPasswordHandler = async (
     return res.boom.unauthorized('No user with that email');
   }
 
-  if (!user.isActive) {
-    return res.boom.unauthorized('User is not active');
+  if (user.disabled) {
+    return res.boom.unauthorized('User is disabled');
+  }
+
+  if (ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+    return res.boom.unauthorized('Email is not verified');
   }
 
   if (!user.passwordHash) {

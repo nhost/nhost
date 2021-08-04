@@ -28,8 +28,8 @@ export const userPasswordResetHandler = async (
 
   const user = await getUserByEmail(email);
 
-  if (!user || !user.isActive) {
-    return res.boom.badRequest('No active user with such email exists');
+  if (!user || user.disabled) {
+    return res.boom.badRequest('No user with such email exists');
   }
 
   const ticket = `passwordReset:${uuidv4()}`;

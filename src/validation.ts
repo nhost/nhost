@@ -100,6 +100,11 @@ export const userEmailResetSchema = Joi.object({
   newEmail: emailRule,
 });
 
+const verifyEmailTicketPattern = new RegExp(`verifyEmail:${uuidRegex.source}`);
+export const userVerifyEmailSchema = Joi.object({
+  ticket: Joi.string().regex(verifyEmailTicketPattern),
+});
+
 const emailTicketPattern = new RegExp(`emailReset:${uuidRegex.source}`);
 export const userEmailSchema = Joi.object({
   ticket: Joi.string().regex(emailTicketPattern),

@@ -50,7 +50,6 @@ export const signInAnonymousHandler = async (
     .insertUser({
       user: {
         displayName,
-        isActive: true,
         locale,
         defaultRole: 'anonymous',
         roles: {

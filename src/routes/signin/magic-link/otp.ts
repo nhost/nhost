@@ -52,8 +52,8 @@ export const signInMagicLinkOtpHandler = async (
     return res.boom.unauthorized('Invalid or expired OTP');
   }
 
-  if (!user.isActive) {
-    return res.boom.badRequest('User is not activated');
+  if (user.disabled) {
+    return res.boom.badRequest('User is disabled');
   }
 
   if (!(await bcrypt.compare(otp, user.otpHash))) {

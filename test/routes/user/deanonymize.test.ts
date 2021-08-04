@@ -25,7 +25,8 @@ describe('email-password', () => {
   it('should be able to deanonymize user with email-password', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
+      SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
@@ -57,10 +58,10 @@ describe('email-password', () => {
     expect(message).toBeTruthy();
 
     const ticket = message.Content.Headers['X-Ticket'][0];
-    expect(ticket.startsWith('userActivate:')).toBeTruthy();
+    expect(ticket.startsWith('verifyEmail:')).toBeTruthy();
 
     const emailType = message.Content.Headers['X-Email-Template'][0];
-    expect(emailType).toBe('activate-user');
+    expect(emailType).toBe('verify-email');
 
     // should not be abel to login before activated
     await request
@@ -71,8 +72,8 @@ describe('email-password', () => {
     // should not be able to reuse old refresh token
     await request.post('/token').send({ refreshToken }).expect(401);
 
-    // should be abel to activate account with ticket from email
-    await request.post('/user/activate').send({ ticket }).expect(200);
+    // should verify email using ticket from email
+    await request.post('/user/email/verify').send({ ticket }).expect(200);
 
     // should be able to sign in after activated account
     await request
@@ -84,7 +85,7 @@ describe('email-password', () => {
   it('should be able to deanonymize user with magic-link', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       MAGIC_LINK_ENABLED: true,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
@@ -133,7 +134,7 @@ describe('email-password', () => {
   it('should fail to deanonymize user unacceptable sign in method', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
@@ -161,7 +162,7 @@ describe('email-password', () => {
   it('should fail to deanonymize user with already existing email', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
+      DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',

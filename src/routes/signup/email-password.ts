@@ -90,13 +90,13 @@ export const signUpEmailPasswordHandler = async (
   const user = await gqlSdk
     .insertUser({
       user: {
+        disabled: ENV.DISABLE_NEW_USERS,
         displayName,
         avatarUrl,
         email,
         passwordHash,
         ticket,
         ticketExpiresAt,
-        isActive: REGISTRATION.AUTO_ACTIVATE_NEW_USERS,
         emailVerified: false,
         locale,
         defaultRole,
@@ -114,19 +114,23 @@ export const signUpEmailPasswordHandler = async (
   await insertProfile({ userId: user.id, profile });
 
   // user is now inserted. Continue sending out activation email
-  if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
+  if (!ENV.DISABLE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
     if (!APPLICATION.EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }
 
     await emailClient.send({
-      template: 'activate-user',
+      template: 'verify-email',
       message: {
         to: email,
         headers: {
           'x-ticket': {
             prepared: true,
             value: ticket,
+          },
+          'x-email-template': {
+            prepared: true,
+            value: 'verify-email',
           },
         },
       },

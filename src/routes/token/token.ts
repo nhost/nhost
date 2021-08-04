@@ -40,8 +40,8 @@ export const tokenHandler = async (
     return res.boom.unauthorized('Invalid or expired refresh token');
   }
 
-  if (!user.isActive) {
-    return res.boom.unauthorized('User is not activated');
+  if (user.disabled) {
+    return res.boom.unauthorized('User is disabled');
   }
 
   // delete current refresh token

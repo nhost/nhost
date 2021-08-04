@@ -30,8 +30,8 @@ export const signInMfaTotpHandler = async (
     return res.boom.unauthorized('Invalid code');
   }
 
-  if (!user.isActive) {
-    return res.boom.badRequest('User is not activated');
+  if (user.disabled) {
+    return res.boom.badRequest('User is disabled');
   }
 
   if (user.activeMfaType !== 'totp') {

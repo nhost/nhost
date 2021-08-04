@@ -25,7 +25,8 @@ describe('email-password', () => {
   it('should sign in user and return valid tokens', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
+      DISABLE_NEW_USERS: false,
+      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
       VERIFY_EMAILS: false,
       WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',

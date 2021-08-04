@@ -99,9 +99,8 @@ const manageProviderStrategy =
 
       if (user) {
         // add this provider to existing user with the same email
-        const insertedUser = await gqlSdk
+        const insertedAuthUserprovider = await gqlSdk
           .insertUserProviderToUser({
-            userId: user.id,
             userProvider: {
               userId: user.id,
               providerId: provider,
@@ -110,9 +109,9 @@ const manageProviderStrategy =
               refreshToken,
             },
           })
-          .then((res) => res.updateUser);
+          .then((res) => res.insertAuthUserProvider);
 
-        if (!insertedUser) {
+        if (!insertedAuthUserprovider) {
           throw new Error('Could not insert provider to user');
         }
 
@@ -170,7 +169,6 @@ const manageProviderStrategy =
         user: {
           email,
           passwordHash: null,
-          isActive: true,
           emailVerified: true,
           defaultRole: REGISTRATION.DEFAULT_USER_ROLE,
           roles: {

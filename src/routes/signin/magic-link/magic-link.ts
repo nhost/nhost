@@ -91,10 +91,10 @@ export const signInMagicLinkHandler = async (
     const insertedUser = await gqlSdk
       .insertUser({
         user: {
+          disabled: ENV.DISABLE_NEW_USERS,
           displayName,
           avatarUrl,
           email,
-          isActive: true,
           locale,
           defaultRole,
           roles: {

@@ -68,7 +68,7 @@ describe('token', () => {
   it('should should sign in and get access token with standard claims', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
+      DISABLE_NEW_USERS: false,
       ANONYMOUS_USERS_ENABLED: true,
       WHITELIST_ENABLED: false,
       REGISTRATION_PROFILE_FIELDS: '',
@@ -88,7 +88,8 @@ describe('token', () => {
   it('should should sign in and get access token with email user fields', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
+      DISABLE_NEW_USERS: false,
+      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
       ANONYMOUS_USERS_ENABLED: true,
       WHITELIST_ENABLED: false,
       REGISTRATION_PROFILE_FIELDS: '',
@@ -129,8 +130,8 @@ describe('token', () => {
   it('should should sign in and get access token with email user fields and companyId profile field', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      ANONYMOUS_USERS_ENABLED: true,
+      DISABLE_NEW_USERS: false,
+      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
       WHITELIST_ENABLED: false,
       REGISTRATION_PROFILE_FIELDS: 'companyId',
       PROFILE_SESSION_VARIABLE_FIELDS: 'companyId',

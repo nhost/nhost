@@ -98,13 +98,12 @@ export const userDeanonymizeHandler = async (
 
   // set ticket or otpHash depending on sign in method
   if (signInMethod === 'email-password') {
-    ticket = `userActivate:${uuidv4()}`;
+    ticket = `verifyEmail:${uuidv4()}`;
     const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
     await gqlSdk.updateUser({
       id: userId,
       user: {
-        isActive: ENV.AUTO_ACTIVATE_NEW_USERS,
         emailVerified: false,
         email,
         passwordHash,
@@ -124,7 +123,6 @@ export const userDeanonymizeHandler = async (
     await gqlSdk.updateUser({
       id: userId,
       user: {
-        isActive: true,
         emailVerified: false,
         email,
         passwordHash: null,
@@ -152,10 +150,17 @@ export const userDeanonymizeHandler = async (
     userRoles,
   });
 
-  // delete all pervious refresh tokens for user
-  await gqlSdk.deleteUserRefreshTokens({
-    userId,
-  });
+  // delete all pervious refresh tokens for user if the user first must verify
+  // their new email.
+  console.log('signin emai lverified required?');
+  console.log(ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED);
+
+  if (ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+    console.log('delete all aold user refresh tokens');
+    await gqlSdk.deleteUserRefreshTokens({
+      userId,
+    });
+  }
 
   // send email
   if (signInMethod === 'email-password') {
@@ -165,7 +170,7 @@ export const userDeanonymizeHandler = async (
       }
 
       await emailClient.send({
-        template: 'activate-user',
+        template: 'verify-email',
         message: {
           to: email,
           headers: {
@@ -175,7 +180,7 @@ export const userDeanonymizeHandler = async (
             },
             'x-email-template': {
               prepared: true,
-              value: 'activate-user',
+              value: 'verify-email',
             },
           },
         },

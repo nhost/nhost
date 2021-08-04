@@ -22,8 +22,16 @@ export const ENV = {
     return castBooleanEnv('PHONE_NUMBER_AUTH_ENABLED', false);
   },
 
-  get AUTO_ACTIVATE_NEW_USERS() {
-    return castBooleanEnv('AUTO_ACTIVATE_NEW_USERS', false);
+  get DISABLE_NEW_USERS() {
+    return castBooleanEnv('DISABLE_NEW_USERS', false);
+  },
+
+  get SIGNIN_EMAIL_VERIFIED_REQUIRED() {
+    return castBooleanEnv('SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
+  },
+
+  get SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED() {
+    return castBooleanEnv('SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
   },
 
   get REGISTRATION_PROFILE_FIELDS() {
