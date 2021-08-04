@@ -63,7 +63,7 @@ export const signInMagicLinkOtpSchema = Joi.object({
 const mfaTotpTicketPattern = new RegExp(`mfaTotp:${uuidRegex.source}`);
 export const signInMfaTotpSchema = Joi.object({
   ticket: Joi.string().regex(mfaTotpTicketPattern).required(),
-  code: Joi.string().required(),
+  otp: Joi.string().required(),
 });
 
 export const signInMfaPhoneNumberSchema = Joi.object({
@@ -119,9 +119,9 @@ export const userActivateSchema = Joi.object({
 });
 
 // MFA
-export const userMFASchema = Joi.object({
+export const userMfaSchema = Joi.object({
   code: Joi.string().required(),
-  mfaEnabled: Joi.boolean().required(),
+  activeMfaType: Joi.string().required(),
 });
 
 // Deanonymize

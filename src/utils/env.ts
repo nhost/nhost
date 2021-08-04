@@ -18,6 +18,10 @@ export const ENV = {
     return castBooleanEnv('MAGIC_LINK_ENABLED', false);
   },
 
+  get MFA_ENABLED() {
+    return castBooleanEnv('MFA_ENABLED', false);
+  },
+
   get PHONE_NUMBER_AUTH_ENABLED() {
     return castBooleanEnv('PHONE_NUMBER_AUTH_ENABLED', false);
   },

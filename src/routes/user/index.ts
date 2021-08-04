@@ -6,7 +6,7 @@ import {
   userDeanonymizeSchema,
   userEmailResetSchema,
   userEmailSchema,
-  userMFASchema,
+  userMfaSchema,
   userPasswordResetSchema,
   userPasswordSchema,
   userProviderTokensSchema,
@@ -58,7 +58,7 @@ router.post(
 
 router.post(
   '/user/mfa',
-  createValidator().body(userMFASchema),
+  // createValidator().body(userMfaSchema),
   aw(userMFAHandler)
 );
 

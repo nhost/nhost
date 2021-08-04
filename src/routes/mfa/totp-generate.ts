@@ -9,11 +9,9 @@ import { MFA } from '@config/index';
 import { createQR } from '@/helpers';
 import { authenticator } from 'otplib';
 import { gqlSdk } from '@/utils/gqlSDK';
+import { ENV } from '@/utils/env';
 
-type BodyType = {
-  ticket: string;
-  code: string;
-};
+type BodyType = {};
 
 interface Schema extends ValidatedRequestSchema {
   [ContainerTypes.Body]: BodyType;
@@ -25,7 +23,7 @@ export const mfatotpGenerateHandler = async (
 ): Promise<unknown> => {
   console.log('mfa totp generate handler');
 
-  if (!MFA.ENABLED) {
+  if (!ENV.MFA_ENABLED) {
     return res.boom.notFound();
   }
 
@@ -46,6 +44,9 @@ export const mfatotpGenerateHandler = async (
   });
 
   const imageUrl = await createQR(otpAuth);
+
+  console.log({ imageUrl });
+  console.log({ totpSecret });
 
   return res.send({ imageUrl, totpSecret });
 };

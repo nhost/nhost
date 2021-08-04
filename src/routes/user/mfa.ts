@@ -1,4 +1,5 @@
 import { gqlSdk } from '@/utils/gqlSDK';
+import { resolveSoa } from 'dns';
 import { Response } from 'express';
 import {
   ContainerTypes,
@@ -9,7 +10,7 @@ import { authenticator } from 'otplib';
 
 type BodyType = {
   code: string;
-  mfaEnabled: boolean;
+  activeMfaType: null | 'totp'; // | 'sms';
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -20,9 +21,19 @@ export const userMFAHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
+  console.log('user mfa handler');
+
   // check if user is logged in
   if (!req.auth?.userId) {
     return res.status(401).send('Incorrect access token');
+  }
+
+  const { code, activeMfaType } = req.body;
+
+  if (activeMfaType && !['totp'].includes(activeMfaType)) {
+    return res.boom.badRequest(
+      'Incorrect activeMfaType. Must be emtpy string or one of: [totp]'
+    );
   }
 
   const { userId } = req.auth;
@@ -35,20 +46,56 @@ export const userMFAHandler = async (
     throw new Error('user could not be fetched');
   }
 
-  if (!user.totpSecret) {
-    return res.boom.internal('otp secret is not set for user');
+  if (!activeMfaType) {
+    // user wants to deactivate any active MFA type
+    if (!user.activeMfaType) {
+      return res.boom.badRequest('There is no active MFA set for the user');
+    }
+
+    if (user.activeMfaType === 'totp') {
+      if (!user.totpSecret) {
+        return res.boom.internal('totp secret is not set for user');
+      }
+
+      if (!authenticator.check(code, user.totpSecret)) {
+        return res.boom.unauthorized('Invalid code');
+      }
+    }
+
+    // if (user.activeMfaType === 'sms') {
+    // }
+
+    await gqlSdk.updateUser({
+      id: userId,
+      user: {
+        activeMfaType: null,
+      },
+    });
+
+    return res.send('ok');
   }
 
-  const { code, mfaEnabled } = req.body;
+  // activate MFA
+  if (activeMfaType === 'totp') {
+    if (user.activeMfaType === 'totp') {
+      return res.boom.badRequest('TOTP MFA already active');
+    }
 
-  if (!authenticator.check(code, user.totpSecret)) {
-    return res.boom.unauthorized('Invalid code');
+    if (!user.totpSecret) {
+      return res.boom.internal('otp secret is not set for user');
+    }
+
+    if (!authenticator.check(code, user.totpSecret)) {
+      return res.boom.unauthorized('Invalid code');
+    }
   }
+  // else if (activeMfaType === 'sms') {
+  // }
 
   await gqlSdk.updateUser({
     id: userId,
     user: {
-      activeMfaType: 'totp',
+      activeMfaType,
     },
   });
 
