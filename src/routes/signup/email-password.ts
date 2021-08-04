@@ -6,7 +6,6 @@ import {
 } from 'express-joi-validation';
 import { v4 as uuidv4 } from 'uuid';
 
-import { REGISTRATION } from '@config/registration';
 import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { AUTHENTICATION } from '@config/authentication';

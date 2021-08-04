@@ -22,7 +22,10 @@ router.get('/version', (_req, res) =>
 
 // serve actions from action folder
 // router.use(serveStatic(`action`));
-router.use(express.static(path.join(process.cwd(), 'src/public')));
+const uiPath = path.join(process.cwd(), 'src/ui');
+
+// @ts-expect-error
+router.use('/ui', express.static(uiPath));
 
 router.use(signUpRouter);
 router.use(signInRouter);

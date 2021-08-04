@@ -84,10 +84,9 @@ export const signInSmsHandler = async (
     const insertedUser = await gqlSdk
       .insertUser({
         user: {
+          disabled: ENV.DISABLE_NEW_USERS,
           displayName,
           phoneNumber,
-          isActive: ENV.AUTO_ACTIVATE_NEW_USERS,
-          emailVerified: false,
           locale,
           defaultRole,
           lastVerifyPhoneNumberSentAt: new Date(),

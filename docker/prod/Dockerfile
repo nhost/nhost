@@ -23,6 +23,10 @@ COPY --from=builder /app/dist dist
 COPY migrations migrations
 COPY prod-paths.js .
 
+# Build Next.js UI
+RUN cd ui; yarn build
+RUN cp -r ui/out src/ui
+
 HEALTHCHECK --interval=60s --timeout=2s --retries=3 CMD wget localhost:${PORT}/healthz -q -O - > /dev/null 2>&1
 
 EXPOSE $PORT

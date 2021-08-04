@@ -43,8 +43,8 @@ export const signInPhoneNumberOtpHandler = async (
     })
     .then((gqlres) => gqlres.users[0]);
 
-  if (!user.isActive) {
-    return res.boom.badRequest('User is not activated');
+  if (user.disabled) {
+    return res.boom.badRequest('User is disabled');
   }
 
   if (!user || !user.otpHash) {
