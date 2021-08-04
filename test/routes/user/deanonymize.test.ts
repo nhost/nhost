@@ -73,7 +73,10 @@ describe('email-password', () => {
     await request.post('/token').send({ refreshToken }).expect(401);
 
     // should verify email using ticket from email
-    await request.post('/user/email/verify').send({ ticket }).expect(200);
+    await request
+      .post('/user/email/verify')
+      .send({ email, ticket })
+      .expect(200);
 
     // should be able to sign in after activated account
     await request
