@@ -102,8 +102,8 @@ jobs:
             ${{ runner.os }}-yarn-
       - name: Install dependencies
         run: yarn
-      - name: Lint files
-        run: yarn run lint
+      # - name: Lint files
+      #   run: yarn run lint
       - name: Run Jest tests
         run: yarn run test --coverage
       - name: Upload test results
