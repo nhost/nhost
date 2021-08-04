@@ -37,13 +37,46 @@ const waitForHasura = async () => {
   }
 };
 
+const getIsFirstRound = async () => {
+  // https://stackoverflow.com/a/24089729
+  const { data } = await axios.post(
+    APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/v2/query'),
+    {
+      type: 'run_sql',
+      args: {
+        source: 'default',
+        sql: "SELECT to_regclass('auth.users');",
+      },
+    },
+    {
+      headers: {
+        'x-hasura-admin-secret': APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET,
+      },
+    }
+  );
+
+  const isFirstRound = data.result[1][0] === 'NULL';
+
+  return isFirstRound;
+};
+
 const start = async (): Promise<void> => {
   // wait for hasura to be ready
   await waitForHasura();
 
-  // apply migrations and metadata
+  // Check if metadata should be applied or not.
+  // Metadata should be applied in dev mode or on first run in production.
+  // In production, on subsequent runs, metadata should be applied by the
+  // developer
+  const metadataShouldBeApplied =
+    process.env.NODE_ENV === 'development' || (await getIsFirstRound());
+
+  // apply migrations
   await applyMigrations();
-  await applyMetadata();
+
+  if (metadataShouldBeApplied) {
+    await applyMetadata();
+  }
 
   app.listen(APPLICATION.PORT, APPLICATION.HOST, () => {
     if (APPLICATION.HOST) {
