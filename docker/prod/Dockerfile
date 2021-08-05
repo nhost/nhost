@@ -8,7 +8,7 @@ COPY . .
 RUN yarn build
 
 # Build Next.js UI
-RUN cd ui; yarn build
+RUN cd ui; yarn; yarn build
 
 FROM node:14-alpine
 ARG NODE_ENV=production
