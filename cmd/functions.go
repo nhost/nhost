@@ -238,7 +238,6 @@ func generateRoutes(path string) error {
 		"package.json",
 		"package-lock.json",
 		"yarn.lock",
-		// "hello.test",
 	}
 
 	for _, item := range files {
