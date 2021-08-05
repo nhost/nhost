@@ -55,6 +55,8 @@ describe('email-password', () => {
       })
       .expect(200);
 
+    await delay(2000);
+
     // make sure user activate email was sent
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
