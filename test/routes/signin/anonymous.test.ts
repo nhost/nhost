@@ -1,11 +1,10 @@
-// import { request } from "@/test/server";
-// import { request } from '../../server';
-import { APPLICATION } from '../../../src/config/application';
-import { app } from '../../../src/server';
 import { SuperTest, Test, agent } from 'supertest';
 import { Server } from 'http';
 import getPort from 'get-port';
 import { Client } from 'pg';
+
+import { APPLICATION } from '../../../src/config/application';
+import { app } from '../../../src/server';
 import { isValidAccessToken } from '../../utils';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { trackTable, setTableCustomization } from '../../../src/metadata';

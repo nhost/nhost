@@ -1,7 +1,7 @@
-import { TOKEN } from '@config/index';
 import { JWT } from 'jose';
 import { v4 as uuidv4 } from 'uuid';
 
+import { TOKEN } from '@config/index';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { Claims, Token, ClaimValueType, PermissionVariables } from '../types';
 import { UserFieldsFragment } from './__generated__/graphql-request';

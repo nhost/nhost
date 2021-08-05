@@ -3,7 +3,6 @@ import { Client } from 'pg';
 import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { authenticator } from 'otplib';
-import { mailHogSearch } from '../../utils';
 
 describe('mfa totp', () => {
   let client: any;

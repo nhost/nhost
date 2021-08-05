@@ -1,13 +1,14 @@
-import cors from 'cors';
-import { errors } from './errors';
 import express from 'express';
 import helmet from 'helmet';
 import { json } from 'body-parser';
+import cors from 'cors';
+import passport from 'passport';
 import morgan from 'morgan';
 import morganBody from 'morgan-body';
-import { limiter } from './limiter';
+
 import router from './routes';
-import passport from 'passport';
+import { errors } from './errors';
+import { limiter } from './limiter';
 import { authMiddleware } from './middleware/auth';
 // import logger from './logger';
 
