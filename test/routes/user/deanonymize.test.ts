@@ -1,6 +1,8 @@
 // import { request } from "@/test/server";
-import { request } from '../../server';
 import { Client } from 'pg';
+import * as faker from 'faker';
+
+import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { mailHogSearch } from '../../utils';
 
@@ -40,8 +42,8 @@ describe('email-password', () => {
 
     const { accessToken, refreshToken } = body;
 
-    const email = 'joedoe@example.com';
-    const password = '1234567';
+    const email = faker.internet.email();
+    const password = faker.internet.password();
 
     await request
       .post('/user/deanonymize')
