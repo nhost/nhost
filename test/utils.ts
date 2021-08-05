@@ -160,6 +160,9 @@ export const mailHogSearch = async (
   const response = await fetch(
     `http://${APPLICATION.SMTP_HOST}:8025/api/v2/search?kind=${fields}&query=${query}`
   );
+  console.log('mail hog search:');
+  console.log(response.json());
+
   return ((await response.json()) as MailhogSearchResult).items;
 };
 

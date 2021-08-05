@@ -6,10 +6,6 @@ import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { mailHogSearch } from '../../utils';
 
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 describe('email-password', () => {
   let client: any;
 
@@ -49,6 +45,9 @@ describe('email-password', () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
 
+    console.log({ email });
+    console.log({ password });
+
     await request
       .post('/user/deanonymize')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -59,10 +58,9 @@ describe('email-password', () => {
       })
       .expect(200);
 
-    await delay(2000);
-
     // make sure user activate email was sent
     const [message] = await mailHogSearch(email);
+    console.log({ message });
     expect(message).toBeTruthy();
 
     const ticket = message.Content.Headers['X-Ticket'][0];
@@ -71,7 +69,7 @@ describe('email-password', () => {
     const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('verify-email');
 
-    // should not be abel to login before activated
+    // should not be abel to login before email is verified
     await request
       .post('/signin/email-password')
       .send({ email, password })
