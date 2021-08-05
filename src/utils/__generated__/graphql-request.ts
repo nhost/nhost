@@ -3573,7 +3573,7 @@ export type DeleteUserRolesByUserIdMutation = (
 
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'otpHashExpiresAt' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
+  & Pick<Users, 'id' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'lastVerifyEmailSentAt' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'otpHashExpiresAt' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
   & { roles: Array<(
     { __typename?: 'authUserRoles' }
     & Pick<AuthUserRoles, 'role'>
@@ -3811,6 +3811,7 @@ export const UserFieldsFragmentDoc = gql`
   email
   passwordHash
   emailVerified
+  lastVerifyEmailSentAt
   phoneNumberVerified
   defaultRole
   roles {

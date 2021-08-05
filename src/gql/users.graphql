@@ -6,6 +6,7 @@ fragment userFields on users {
   email
   passwordHash
   emailVerified
+  lastVerifyEmailSentAt
   phoneNumberVerified
   defaultRole
   roles {

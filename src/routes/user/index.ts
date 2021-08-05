@@ -6,7 +6,7 @@ import {
   userDeanonymizeSchema,
   userEmailResetSchema,
   userEmailSchema,
-  userMfaSchema,
+  userEmailSendVerificationEmailSchema,
   userPasswordResetSchema,
   userPasswordSchema,
   userProviderTokensSchema,
@@ -21,6 +21,7 @@ import { userEmailReset } from './email/reset';
 import { userDeanonymizeHandler } from './deanonymize';
 import { userProviderTokensHandler } from './provider-tokens';
 import { userEmailVerifyHandler } from './email/verify';
+import { userEmailSendVerificationEmailHandler } from './email/send-verification-email';
 
 const router = Router();
 
@@ -42,6 +43,12 @@ router.post(
   '/user/email/reset',
   createValidator().body(userEmailResetSchema),
   aw(userEmailReset)
+);
+
+router.post(
+  '/user/email/send-verification-email',
+  createValidator().body(userEmailSendVerificationEmailSchema),
+  aw(userEmailSendVerificationEmailHandler)
 );
 
 router.post(
