@@ -6,6 +6,10 @@ import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { mailHogSearch } from '../../utils';
 
+function delay(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 describe('email-password', () => {
   let client: any;
 
