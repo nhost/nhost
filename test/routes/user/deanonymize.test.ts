@@ -4,7 +4,7 @@ import * as faker from 'faker';
 
 import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';
-import { mailHogSearch } from '../../utils';
+import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
 
 describe('email-password', () => {
   let client: any;
@@ -22,6 +22,7 @@ describe('email-password', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
+    await deleteAllMailHogEmails();
   });
 
   it('should be able to deanonymize user with email-password', async () => {
