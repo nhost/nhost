@@ -43,8 +43,8 @@ describe('email-password', () => {
 
     const { accessToken, refreshToken } = body;
 
-    const email = faker.internet.email();
-    const password = faker.internet.password();
+    const email = 'something@example.com'; //faker.internet.email();
+    const password = '123123123'; //faker.internet.password();
 
     console.log({ email });
     console.log({ password });
