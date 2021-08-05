@@ -163,10 +163,10 @@ export const mailHogSearch = async (
 
   console.log('mail hog search:');
 
-  const jsonBody = response.json();
+  const jsonBody = await response.json();
   console.log(jsonBody);
 
-  return ((await jsonBody) as MailhogSearchResult).items;
+  return (jsonBody as MailhogSearchResult).items;
 };
 
 export const deleteMailHogEmail = async ({
