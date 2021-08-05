@@ -166,6 +166,8 @@ export const mailHogSearch = async (
   const jsonBody = await response.json();
   console.log(jsonBody);
 
+  console.log(JSON.stringify(jsonBody, null, 2));
+
   return (jsonBody as MailhogSearchResult).items;
 };
 

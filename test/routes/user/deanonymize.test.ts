@@ -60,8 +60,17 @@ describe('email-password', () => {
       .expect(200);
 
     // make sure user activate email was sent
-    const [message] = await mailHogSearch(email);
+    console.log('before getting messages');
+
+    const messages = await mailHogSearch(email);
+    console.log('after getting messages');
+    const message = messages[0];
+
+    console.log('message:');
+
     console.log({ message });
+    console.log(JSON.stringify(message, null, 2));
+
     expect(message).toBeTruthy();
 
     const ticket = message.Content.Headers['X-Ticket'][0];
