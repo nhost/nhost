@@ -32,13 +32,16 @@ export const userHandler = async (
     throw new Error('Unable to get suer');
   }
 
-  const profile = await getProfileFieldsForAccessToken({ userId });
+  const profile = await getProfileFieldsForAccessToken({ userId }).catch(() => {
+    // noop
+    // profile is not available
+  });
 
   return res.send({
     id: user.id,
     email: user.email,
     displayName: user.displayName,
-    avatarURL: user.avatarUrl,
+    avatarUrl: user.avatarUrl,
     profile,
   });
 };

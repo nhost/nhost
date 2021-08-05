@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { AUTHENTICATION } from '@config/authentication';
 import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
 import { insertProfile, isProfileValid } from '@/utils/profile';
