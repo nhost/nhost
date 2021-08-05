@@ -34,7 +34,7 @@ app.use(json());
 app.use(cors({ credentials: true, origin: true }));
 
 if (process.env.CI || process.env.NODE_ENV === 'development') {
-  morganBody(app);
+  // morganBody(app);
 }
 
 app.use(authMiddleware);
