@@ -25,7 +25,7 @@ router.get('/version', (_req, res) =>
 const uiPath = path.join(process.cwd(), 'src/ui');
 
 // @ts-expect-error
-router.use('/ui', express.static(uiPath));
+router.use('/ui', express.static(uiPath, { extensions: ['html'] }));
 
 router.use(signUpRouter);
 router.use(signInRouter);
