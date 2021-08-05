@@ -164,7 +164,7 @@ export const userDeanonymizeHandler = async (
 
   // send email
   if (signInMethod === 'email-password') {
-    if (!REGISTRATION.AUTO_ACTIVATE_NEW_USERS && AUTHENTICATION.VERIFY_EMAILS) {
+    if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
       if (!APPLICATION.EMAILS_ENABLED) {
         throw new Error('SMTP settings unavailable');
       }
