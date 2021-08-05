@@ -1,20 +1,20 @@
-import { migrate } from 'postgres-migrations'
-import { Client } from 'pg'
-import logger from './logger'
+import { migrate } from 'postgres-migrations';
+import { Client } from 'pg';
+import logger from './logger';
 
 export async function applyMigrations(): Promise<void> {
-  logger.info('Applying migrations')
+  logger.info('Applying migrations');
 
   const dbConfig = {
-    connectionString: process.env.DATABASE_URL
-  }
+    connectionString: process.env.DATABASE_URL,
+  };
 
-  const client = new Client(dbConfig)
+  const client = new Client(dbConfig);
   try {
-    await client.connect()
-    await migrate({ client }, './db/migrations')
+    await client.connect();
+    await migrate({ client }, './migrations');
   } finally {
-    await client.end()
+    await client.end();
   }
-  logger.info('Finished applying migrations')
+  logger.info('Finished applying migrations');
 }

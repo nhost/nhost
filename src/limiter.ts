@@ -1,5 +1,5 @@
-import { APPLICATION } from '@config/index'
-import rateLimit, { Message } from 'express-rate-limit'
+import { APPLICATION } from '@config/index';
+import rateLimit, { Message } from 'express-rate-limit';
 
 /**
  * In order to stay consistent with the error message
@@ -8,9 +8,9 @@ import rateLimit, { Message } from 'express-rate-limit'
  * include the `statusCode` property.
  */
 interface LimitMessage extends Message {
-  statusCode: number
-  message: string
-  [key: string]: unknown
+  statusCode: number;
+  message: string;
+  [key: string]: unknown;
 }
 
 export const limiter = rateLimit({
@@ -20,16 +20,16 @@ export const limiter = rateLimit({
   windowMs: APPLICATION.TIME_FRAME,
   skip: ({ path }) => {
     // Don't limit health checks. See https://github.com/nhost/hasura-auth/issues/175
-    if (path === '/healthz') return true
-    return false
+    if (path === '/healthz') return true;
+    return false;
   },
   /**
    * To use the above created interface, an `unknown`
    * conversion for non-overlapping types is necessary.
    */
-  message: ({
+  message: {
     statusCode: 429,
     error: 'Too Many Requests',
-    message: 'You are being rate limited'
-  } as unknown) as LimitMessage
-})
+    message: 'You are being rate limited',
+  } as unknown as LimitMessage,
+});

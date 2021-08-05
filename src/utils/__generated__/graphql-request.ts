@@ -13,7 +13,6 @@ export type Scalars = {
   Int: number;
   Float: number;
   citext: any;
-  jsonb: any;
   timestamp: any;
   timestamptz: any;
   uuid: any;
@@ -230,9 +229,7 @@ export enum AuthEmailTemplates_Update_Column {
 export type AuthProviderRequests = {
   __typename?: 'authProviderRequests';
   id: Scalars['uuid'];
-  jwtToken?: Maybe<Scalars['String']>;
-  redirectUrlFailure: Scalars['String'];
-  redirectUrlSuccess: Scalars['String'];
+  redirectUrl: Scalars['String'];
 };
 
 /** aggregated selection of "auth.provider_requests" */
@@ -263,9 +260,7 @@ export type AuthProviderRequests_Bool_Exp = {
   _not?: Maybe<AuthProviderRequests_Bool_Exp>;
   _or?: Maybe<Array<AuthProviderRequests_Bool_Exp>>;
   id?: Maybe<Uuid_Comparison_Exp>;
-  jwtToken?: Maybe<String_Comparison_Exp>;
-  redirectUrlFailure?: Maybe<String_Comparison_Exp>;
-  redirectUrlSuccess?: Maybe<String_Comparison_Exp>;
+  redirectUrl?: Maybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.provider_requests" */
@@ -277,27 +272,21 @@ export enum AuthProviderRequests_Constraint {
 /** input type for inserting data into table "auth.provider_requests" */
 export type AuthProviderRequests_Insert_Input = {
   id?: Maybe<Scalars['uuid']>;
-  jwtToken?: Maybe<Scalars['String']>;
-  redirectUrlFailure?: Maybe<Scalars['String']>;
-  redirectUrlSuccess?: Maybe<Scalars['String']>;
+  redirectUrl?: Maybe<Scalars['String']>;
 };
 
 /** aggregate max on columns */
 export type AuthProviderRequests_Max_Fields = {
   __typename?: 'authProviderRequests_max_fields';
   id?: Maybe<Scalars['uuid']>;
-  jwtToken?: Maybe<Scalars['String']>;
-  redirectUrlFailure?: Maybe<Scalars['String']>;
-  redirectUrlSuccess?: Maybe<Scalars['String']>;
+  redirectUrl?: Maybe<Scalars['String']>;
 };
 
 /** aggregate min on columns */
 export type AuthProviderRequests_Min_Fields = {
   __typename?: 'authProviderRequests_min_fields';
   id?: Maybe<Scalars['uuid']>;
-  jwtToken?: Maybe<Scalars['String']>;
-  redirectUrlFailure?: Maybe<Scalars['String']>;
-  redirectUrlSuccess?: Maybe<Scalars['String']>;
+  redirectUrl?: Maybe<Scalars['String']>;
 };
 
 /** response of any mutation on the table "auth.provider_requests" */
@@ -319,9 +308,7 @@ export type AuthProviderRequests_On_Conflict = {
 /** Ordering options when selecting data from "auth.provider_requests". */
 export type AuthProviderRequests_Order_By = {
   id?: Maybe<Order_By>;
-  jwtToken?: Maybe<Order_By>;
-  redirectUrlFailure?: Maybe<Order_By>;
-  redirectUrlSuccess?: Maybe<Order_By>;
+  redirectUrl?: Maybe<Order_By>;
 };
 
 /** primary key columns input for table: authProviderRequests */
@@ -334,19 +321,13 @@ export enum AuthProviderRequests_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  JwtToken = 'jwtToken',
-  /** column name */
-  RedirectUrlFailure = 'redirectUrlFailure',
-  /** column name */
-  RedirectUrlSuccess = 'redirectUrlSuccess'
+  RedirectUrl = 'redirectUrl'
 }
 
 /** input type for updating data in table "auth.provider_requests" */
 export type AuthProviderRequests_Set_Input = {
   id?: Maybe<Scalars['uuid']>;
-  jwtToken?: Maybe<Scalars['String']>;
-  redirectUrlFailure?: Maybe<Scalars['String']>;
-  redirectUrlSuccess?: Maybe<Scalars['String']>;
+  redirectUrl?: Maybe<Scalars['String']>;
 };
 
 /** update columns of table "auth.provider_requests" */
@@ -354,18 +335,13 @@ export enum AuthProviderRequests_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  JwtToken = 'jwtToken',
-  /** column name */
-  RedirectUrlFailure = 'redirectUrlFailure',
-  /** column name */
-  RedirectUrlSuccess = 'redirectUrlSuccess'
+  RedirectUrl = 'redirectUrl'
 }
 
 /** columns and relationships of "auth.providers" */
 export type AuthProviders = {
   __typename?: 'authProviders';
-  code: Scalars['String'];
-  name: Scalars['String'];
+  id: Scalars['String'];
   /** An array relationship */
   userProviders: Array<AuthUserProviders>;
   /** An aggregate relationship */
@@ -419,8 +395,7 @@ export type AuthProviders_Bool_Exp = {
   _and?: Maybe<Array<AuthProviders_Bool_Exp>>;
   _not?: Maybe<AuthProviders_Bool_Exp>;
   _or?: Maybe<Array<AuthProviders_Bool_Exp>>;
-  code?: Maybe<String_Comparison_Exp>;
-  name?: Maybe<String_Comparison_Exp>;
+  id?: Maybe<String_Comparison_Exp>;
   userProviders?: Maybe<AuthUserProviders_Bool_Exp>;
 };
 
@@ -432,23 +407,20 @@ export enum AuthProviders_Constraint {
 
 /** input type for inserting data into table "auth.providers" */
 export type AuthProviders_Insert_Input = {
-  code?: Maybe<Scalars['String']>;
-  name?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['String']>;
   userProviders?: Maybe<AuthUserProviders_Arr_Rel_Insert_Input>;
 };
 
 /** aggregate max on columns */
 export type AuthProviders_Max_Fields = {
   __typename?: 'authProviders_max_fields';
-  code?: Maybe<Scalars['String']>;
-  name?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['String']>;
 };
 
 /** aggregate min on columns */
 export type AuthProviders_Min_Fields = {
   __typename?: 'authProviders_min_fields';
-  code?: Maybe<Scalars['String']>;
-  name?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['String']>;
 };
 
 /** response of any mutation on the table "auth.providers" */
@@ -476,36 +448,30 @@ export type AuthProviders_On_Conflict = {
 
 /** Ordering options when selecting data from "auth.providers". */
 export type AuthProviders_Order_By = {
-  code?: Maybe<Order_By>;
-  name?: Maybe<Order_By>;
+  id?: Maybe<Order_By>;
   userProviders_aggregate?: Maybe<AuthUserProviders_Aggregate_Order_By>;
 };
 
 /** primary key columns input for table: authProviders */
 export type AuthProviders_Pk_Columns_Input = {
-  code: Scalars['String'];
+  id: Scalars['String'];
 };
 
 /** select columns of table "auth.providers" */
 export enum AuthProviders_Select_Column {
   /** column name */
-  Code = 'code',
-  /** column name */
-  Name = 'name'
+  Id = 'id'
 }
 
 /** input type for updating data in table "auth.providers" */
 export type AuthProviders_Set_Input = {
-  code?: Maybe<Scalars['String']>;
-  name?: Maybe<Scalars['String']>;
+  id?: Maybe<Scalars['String']>;
 };
 
 /** update columns of table "auth.providers" */
 export enum AuthProviders_Update_Column {
   /** column name */
-  Code = 'code',
-  /** column name */
-  Name = 'name'
+  Id = 'id'
 }
 
 /** columns and relationships of "auth.refresh_tokens" */
@@ -783,16 +749,18 @@ export enum AuthRoles_Update_Column {
 /** columns and relationships of "auth.user_providers" */
 export type AuthUserProviders = {
   __typename?: 'authUserProviders';
+  accessToken: Scalars['String'];
   createdAt: Scalars['timestamptz'];
   id: Scalars['uuid'];
   /** An object relationship */
   provider: AuthProviders;
+  providerId: Scalars['String'];
+  providerUserId: Scalars['String'];
+  refreshToken: Scalars['String'];
   updatedAt: Scalars['timestamptz'];
   /** An object relationship */
   user: Users;
   userId: Scalars['uuid'];
-  userProviderCode: Scalars['String'];
-  userProviderUniqueId: Scalars['String'];
 };
 
 /** aggregated selection of "auth.user_providers" */
@@ -836,14 +804,16 @@ export type AuthUserProviders_Bool_Exp = {
   _and?: Maybe<Array<AuthUserProviders_Bool_Exp>>;
   _not?: Maybe<AuthUserProviders_Bool_Exp>;
   _or?: Maybe<Array<AuthUserProviders_Bool_Exp>>;
+  accessToken?: Maybe<String_Comparison_Exp>;
   createdAt?: Maybe<Timestamptz_Comparison_Exp>;
   id?: Maybe<Uuid_Comparison_Exp>;
   provider?: Maybe<AuthProviders_Bool_Exp>;
+  providerId?: Maybe<String_Comparison_Exp>;
+  providerUserId?: Maybe<String_Comparison_Exp>;
+  refreshToken?: Maybe<String_Comparison_Exp>;
   updatedAt?: Maybe<Timestamptz_Comparison_Exp>;
   user?: Maybe<Users_Bool_Exp>;
   userId?: Maybe<Uuid_Comparison_Exp>;
-  userProviderCode?: Maybe<String_Comparison_Exp>;
-  userProviderUniqueId?: Maybe<String_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.user_providers" */
@@ -851,63 +821,73 @@ export enum AuthUserProviders_Constraint {
   /** unique or primary key constraint */
   UserProvidersPkey = 'user_providers_pkey',
   /** unique or primary key constraint */
-  UserProvidersUserIdUserProviderCodeKey = 'user_providers_user_id_user_provider_code_key',
+  UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
   /** unique or primary key constraint */
-  UserProvidersUserProviderCodeUserProviderUniqueIdKey = 'user_providers_user_provider_code_user_provider_unique_id_key'
+  UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
 /** input type for inserting data into table "auth.user_providers" */
 export type AuthUserProviders_Insert_Input = {
+  accessToken?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
   provider?: Maybe<AuthProviders_Obj_Rel_Insert_Input>;
+  providerId?: Maybe<Scalars['String']>;
+  providerUserId?: Maybe<Scalars['String']>;
+  refreshToken?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   user?: Maybe<Users_Obj_Rel_Insert_Input>;
   userId?: Maybe<Scalars['uuid']>;
-  userProviderCode?: Maybe<Scalars['String']>;
-  userProviderUniqueId?: Maybe<Scalars['String']>;
 };
 
 /** aggregate max on columns */
 export type AuthUserProviders_Max_Fields = {
   __typename?: 'authUserProviders_max_fields';
+  accessToken?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  providerId?: Maybe<Scalars['String']>;
+  providerUserId?: Maybe<Scalars['String']>;
+  refreshToken?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userId?: Maybe<Scalars['uuid']>;
-  userProviderCode?: Maybe<Scalars['String']>;
-  userProviderUniqueId?: Maybe<Scalars['String']>;
 };
 
 /** order by max() on columns of table "auth.user_providers" */
 export type AuthUserProviders_Max_Order_By = {
+  accessToken?: Maybe<Order_By>;
   createdAt?: Maybe<Order_By>;
   id?: Maybe<Order_By>;
+  providerId?: Maybe<Order_By>;
+  providerUserId?: Maybe<Order_By>;
+  refreshToken?: Maybe<Order_By>;
   updatedAt?: Maybe<Order_By>;
   userId?: Maybe<Order_By>;
-  userProviderCode?: Maybe<Order_By>;
-  userProviderUniqueId?: Maybe<Order_By>;
 };
 
 /** aggregate min on columns */
 export type AuthUserProviders_Min_Fields = {
   __typename?: 'authUserProviders_min_fields';
+  accessToken?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  providerId?: Maybe<Scalars['String']>;
+  providerUserId?: Maybe<Scalars['String']>;
+  refreshToken?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userId?: Maybe<Scalars['uuid']>;
-  userProviderCode?: Maybe<Scalars['String']>;
-  userProviderUniqueId?: Maybe<Scalars['String']>;
 };
 
 /** order by min() on columns of table "auth.user_providers" */
 export type AuthUserProviders_Min_Order_By = {
+  accessToken?: Maybe<Order_By>;
   createdAt?: Maybe<Order_By>;
   id?: Maybe<Order_By>;
+  providerId?: Maybe<Order_By>;
+  providerUserId?: Maybe<Order_By>;
+  refreshToken?: Maybe<Order_By>;
   updatedAt?: Maybe<Order_By>;
   userId?: Maybe<Order_By>;
-  userProviderCode?: Maybe<Order_By>;
-  userProviderUniqueId?: Maybe<Order_By>;
 };
 
 /** response of any mutation on the table "auth.user_providers" */
@@ -928,14 +908,16 @@ export type AuthUserProviders_On_Conflict = {
 
 /** Ordering options when selecting data from "auth.user_providers". */
 export type AuthUserProviders_Order_By = {
+  accessToken?: Maybe<Order_By>;
   createdAt?: Maybe<Order_By>;
   id?: Maybe<Order_By>;
   provider?: Maybe<AuthProviders_Order_By>;
+  providerId?: Maybe<Order_By>;
+  providerUserId?: Maybe<Order_By>;
+  refreshToken?: Maybe<Order_By>;
   updatedAt?: Maybe<Order_By>;
   user?: Maybe<Users_Order_By>;
   userId?: Maybe<Order_By>;
-  userProviderCode?: Maybe<Order_By>;
-  userProviderUniqueId?: Maybe<Order_By>;
 };
 
 /** primary key columns input for table: authUserProviders */
@@ -946,43 +928,53 @@ export type AuthUserProviders_Pk_Columns_Input = {
 /** select columns of table "auth.user_providers" */
 export enum AuthUserProviders_Select_Column {
   /** column name */
+  AccessToken = 'accessToken',
+  /** column name */
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
   /** column name */
+  ProviderId = 'providerId',
+  /** column name */
+  ProviderUserId = 'providerUserId',
+  /** column name */
+  RefreshToken = 'refreshToken',
+  /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId',
-  /** column name */
-  UserProviderCode = 'userProviderCode',
-  /** column name */
-  UserProviderUniqueId = 'userProviderUniqueId'
+  UserId = 'userId'
 }
 
 /** input type for updating data in table "auth.user_providers" */
 export type AuthUserProviders_Set_Input = {
+  accessToken?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
+  providerId?: Maybe<Scalars['String']>;
+  providerUserId?: Maybe<Scalars['String']>;
+  refreshToken?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userId?: Maybe<Scalars['uuid']>;
-  userProviderCode?: Maybe<Scalars['String']>;
-  userProviderUniqueId?: Maybe<Scalars['String']>;
 };
 
 /** update columns of table "auth.user_providers" */
 export enum AuthUserProviders_Update_Column {
   /** column name */
+  AccessToken = 'accessToken',
+  /** column name */
   CreatedAt = 'createdAt',
   /** column name */
   Id = 'id',
   /** column name */
+  ProviderId = 'providerId',
+  /** column name */
+  ProviderUserId = 'providerUserId',
+  /** column name */
+  RefreshToken = 'refreshToken',
+  /** column name */
   UpdatedAt = 'updatedAt',
   /** column name */
-  UserId = 'userId',
-  /** column name */
-  UserProviderCode = 'userProviderCode',
-  /** column name */
-  UserProviderUniqueId = 'userProviderUniqueId'
+  UserId = 'userId'
 }
 
 /** columns and relationships of "auth.user_roles" */
@@ -1160,7 +1152,7 @@ export enum AuthUserRoles_Update_Column {
 /** columns and relationships of "auth.whitelist" */
 export type AuthWhitelist = {
   __typename?: 'authWhitelist';
-  email: Scalars['String'];
+  email: Scalars['citext'];
 };
 
 /** aggregated selection of "auth.whitelist" */
@@ -1190,7 +1182,7 @@ export type AuthWhitelist_Bool_Exp = {
   _and?: Maybe<Array<AuthWhitelist_Bool_Exp>>;
   _not?: Maybe<AuthWhitelist_Bool_Exp>;
   _or?: Maybe<Array<AuthWhitelist_Bool_Exp>>;
-  email?: Maybe<String_Comparison_Exp>;
+  email?: Maybe<Citext_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.whitelist" */
@@ -1201,19 +1193,19 @@ export enum AuthWhitelist_Constraint {
 
 /** input type for inserting data into table "auth.whitelist" */
 export type AuthWhitelist_Insert_Input = {
-  email?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['citext']>;
 };
 
 /** aggregate max on columns */
 export type AuthWhitelist_Max_Fields = {
   __typename?: 'authWhitelist_max_fields';
-  email?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['citext']>;
 };
 
 /** aggregate min on columns */
 export type AuthWhitelist_Min_Fields = {
   __typename?: 'authWhitelist_min_fields';
-  email?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['citext']>;
 };
 
 /** response of any mutation on the table "auth.whitelist" */
@@ -1239,7 +1231,7 @@ export type AuthWhitelist_Order_By = {
 
 /** primary key columns input for table: authWhitelist */
 export type AuthWhitelist_Pk_Columns_Input = {
-  email: Scalars['String'];
+  email: Scalars['citext'];
 };
 
 /** select columns of table "auth.whitelist" */
@@ -1250,7 +1242,7 @@ export enum AuthWhitelist_Select_Column {
 
 /** input type for updating data in table "auth.whitelist" */
 export type AuthWhitelist_Set_Input = {
-  email?: Maybe<Scalars['String']>;
+  email?: Maybe<Scalars['citext']>;
 };
 
 /** update columns of table "auth.whitelist" */
@@ -1491,30 +1483,6 @@ export type Citext_Comparison_Exp = {
   _similar?: Maybe<Scalars['citext']>;
 };
 
-
-/** Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'. */
-export type Jsonb_Comparison_Exp = {
-  /** is the column contained in the given json value */
-  _contained_in?: Maybe<Scalars['jsonb']>;
-  /** does the column contain the given json value at the top level */
-  _contains?: Maybe<Scalars['jsonb']>;
-  _eq?: Maybe<Scalars['jsonb']>;
-  _gt?: Maybe<Scalars['jsonb']>;
-  _gte?: Maybe<Scalars['jsonb']>;
-  /** does the string exist as a top-level key in the column */
-  _has_key?: Maybe<Scalars['String']>;
-  /** do all of these strings exist as top-level keys in the column */
-  _has_keys_all?: Maybe<Array<Scalars['String']>>;
-  /** do any of these strings exist as top-level keys in the column */
-  _has_keys_any?: Maybe<Array<Scalars['String']>>;
-  _in?: Maybe<Array<Scalars['jsonb']>>;
-  _is_null?: Maybe<Scalars['Boolean']>;
-  _lt?: Maybe<Scalars['jsonb']>;
-  _lte?: Maybe<Scalars['jsonb']>;
-  _neq?: Maybe<Scalars['jsonb']>;
-  _nin?: Maybe<Array<Scalars['jsonb']>>;
-};
-
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
@@ -1550,6 +1518,10 @@ export type Mutation_Root = {
   deleteAuthWhitelist?: Maybe<AuthWhitelist>;
   /** delete data from the table: "auth.whitelist" */
   deleteAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
+  /** delete single row from the table: "profiles" */
+  deleteProfile?: Maybe<Profiles>;
+  /** delete data from the table: "profiles" */
+  deleteProfiles?: Maybe<Profiles_Mutation_Response>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -1590,6 +1562,10 @@ export type Mutation_Root = {
   insertAuthWhitelist?: Maybe<AuthWhitelist>;
   /** insert data into the table: "auth.whitelist" */
   insertAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
+  /** insert a single row into the table: "profiles" */
+  insertProfile?: Maybe<Profiles>;
+  /** insert data into the table: "profiles" */
+  insertProfiles?: Maybe<Profiles_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -1630,6 +1606,10 @@ export type Mutation_Root = {
   updateAuthWhitelist?: Maybe<AuthWhitelist>;
   /** update data of the table: "auth.whitelist" */
   updateAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
+  /** update single row of the table: "profiles" */
+  updateProfile?: Maybe<Profiles>;
+  /** update data of the table: "profiles" */
+  updateProfiles?: Maybe<Profiles_Mutation_Response>;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -1656,7 +1636,7 @@ export type Mutation_RootDeleteAuthEmailTemplatesArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteAuthProviderArgs = {
-  code: Scalars['String'];
+  id: Scalars['String'];
 };
 
 
@@ -1728,13 +1708,25 @@ export type Mutation_RootDeleteAuthUserRolesArgs = {
 
 /** mutation root */
 export type Mutation_RootDeleteAuthWhitelistArgs = {
-  email: Scalars['String'];
+  email: Scalars['citext'];
 };
 
 
 /** mutation root */
 export type Mutation_RootDeleteAuthWhitelistsArgs = {
   where: AuthWhitelist_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteProfilesArgs = {
+  where: Profiles_Bool_Exp;
 };
 
 
@@ -1871,6 +1863,20 @@ export type Mutation_RootInsertAuthWhitelistArgs = {
 export type Mutation_RootInsertAuthWhitelistsArgs = {
   objects: Array<AuthWhitelist_Insert_Input>;
   on_conflict?: Maybe<AuthWhitelist_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertProfileArgs = {
+  object: Profiles_Insert_Input;
+  on_conflict?: Maybe<Profiles_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertProfilesArgs = {
+  objects: Array<Profiles_Insert_Input>;
+  on_conflict?: Maybe<Profiles_On_Conflict>;
 };
 
 
@@ -2015,12 +2021,23 @@ export type Mutation_RootUpdateAuthWhitelistsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateProfileArgs = {
+  _inc?: Maybe<Profiles_Inc_Input>;
+  _set?: Maybe<Profiles_Set_Input>;
+  pk_columns: Profiles_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateProfilesArgs = {
+  _inc?: Maybe<Profiles_Inc_Input>;
+  _set?: Maybe<Profiles_Set_Input>;
+  where: Profiles_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateUserArgs = {
-  _append?: Maybe<Users_Append_Input>;
-  _delete_at_path?: Maybe<Users_Delete_At_Path_Input>;
-  _delete_elem?: Maybe<Users_Delete_Elem_Input>;
-  _delete_key?: Maybe<Users_Delete_Key_Input>;
-  _prepend?: Maybe<Users_Prepend_Input>;
   _set?: Maybe<Users_Set_Input>;
   pk_columns: Users_Pk_Columns_Input;
 };
@@ -2028,11 +2045,6 @@ export type Mutation_RootUpdateUserArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateUsersArgs = {
-  _append?: Maybe<Users_Append_Input>;
-  _delete_at_path?: Maybe<Users_Delete_At_Path_Input>;
-  _delete_elem?: Maybe<Users_Delete_Elem_Input>;
-  _delete_key?: Maybe<Users_Delete_Key_Input>;
-  _prepend?: Maybe<Users_Prepend_Input>;
   _set?: Maybe<Users_Set_Input>;
   where: Users_Bool_Exp;
 };
@@ -2068,6 +2080,192 @@ export enum Order_By {
   /** in descending order, nulls last */
   DescNullsLast = 'desc_nulls_last'
 }
+
+/** columns and relationships of "profiles" */
+export type Profiles = {
+  __typename?: 'profiles';
+  companyId: Scalars['Int'];
+  /** An object relationship */
+  user: Users;
+  userId: Scalars['uuid'];
+};
+
+/** aggregated selection of "profiles" */
+export type Profiles_Aggregate = {
+  __typename?: 'profiles_aggregate';
+  aggregate?: Maybe<Profiles_Aggregate_Fields>;
+  nodes: Array<Profiles>;
+};
+
+/** aggregate fields of "profiles" */
+export type Profiles_Aggregate_Fields = {
+  __typename?: 'profiles_aggregate_fields';
+  avg?: Maybe<Profiles_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Profiles_Max_Fields>;
+  min?: Maybe<Profiles_Min_Fields>;
+  stddev?: Maybe<Profiles_Stddev_Fields>;
+  stddev_pop?: Maybe<Profiles_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Profiles_Stddev_Samp_Fields>;
+  sum?: Maybe<Profiles_Sum_Fields>;
+  var_pop?: Maybe<Profiles_Var_Pop_Fields>;
+  var_samp?: Maybe<Profiles_Var_Samp_Fields>;
+  variance?: Maybe<Profiles_Variance_Fields>;
+};
+
+
+/** aggregate fields of "profiles" */
+export type Profiles_Aggregate_FieldsCountArgs = {
+  columns?: Maybe<Array<Profiles_Select_Column>>;
+  distinct?: Maybe<Scalars['Boolean']>;
+};
+
+/** aggregate avg on columns */
+export type Profiles_Avg_Fields = {
+  __typename?: 'profiles_avg_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** Boolean expression to filter rows from the table "profiles". All fields are combined with a logical 'AND'. */
+export type Profiles_Bool_Exp = {
+  _and?: Maybe<Array<Profiles_Bool_Exp>>;
+  _not?: Maybe<Profiles_Bool_Exp>;
+  _or?: Maybe<Array<Profiles_Bool_Exp>>;
+  companyId?: Maybe<Int_Comparison_Exp>;
+  user?: Maybe<Users_Bool_Exp>;
+  userId?: Maybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "profiles" */
+export enum Profiles_Constraint {
+  /** unique or primary key constraint */
+  ProfilesPkey = 'profiles_pkey'
+}
+
+/** input type for incrementing numeric columns in table "profiles" */
+export type Profiles_Inc_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "profiles" */
+export type Profiles_Insert_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+  user?: Maybe<Users_Obj_Rel_Insert_Input>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Profiles_Max_Fields = {
+  __typename?: 'profiles_max_fields';
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Profiles_Min_Fields = {
+  __typename?: 'profiles_min_fields';
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "profiles" */
+export type Profiles_Mutation_Response = {
+  __typename?: 'profiles_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Profiles>;
+};
+
+/** input type for inserting object relation for remote table "profiles" */
+export type Profiles_Obj_Rel_Insert_Input = {
+  data: Profiles_Insert_Input;
+  /** on conflict condition */
+  on_conflict?: Maybe<Profiles_On_Conflict>;
+};
+
+/** on conflict condition type for table "profiles" */
+export type Profiles_On_Conflict = {
+  constraint: Profiles_Constraint;
+  update_columns?: Array<Profiles_Update_Column>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "profiles". */
+export type Profiles_Order_By = {
+  companyId?: Maybe<Order_By>;
+  user?: Maybe<Users_Order_By>;
+  userId?: Maybe<Order_By>;
+};
+
+/** primary key columns input for table: profiles */
+export type Profiles_Pk_Columns_Input = {
+  userId: Scalars['uuid'];
+};
+
+/** select columns of table "profiles" */
+export enum Profiles_Select_Column {
+  /** column name */
+  CompanyId = 'companyId',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** input type for updating data in table "profiles" */
+export type Profiles_Set_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate stddev on columns */
+export type Profiles_Stddev_Fields = {
+  __typename?: 'profiles_stddev_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Profiles_Stddev_Pop_Fields = {
+  __typename?: 'profiles_stddev_pop_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Profiles_Stddev_Samp_Fields = {
+  __typename?: 'profiles_stddev_samp_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate sum on columns */
+export type Profiles_Sum_Fields = {
+  __typename?: 'profiles_sum_fields';
+  companyId?: Maybe<Scalars['Int']>;
+};
+
+/** update columns of table "profiles" */
+export enum Profiles_Update_Column {
+  /** column name */
+  CompanyId = 'companyId',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** aggregate var_pop on columns */
+export type Profiles_Var_Pop_Fields = {
+  __typename?: 'profiles_var_pop_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate var_samp on columns */
+export type Profiles_Var_Samp_Fields = {
+  __typename?: 'profiles_var_samp_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate variance on columns */
+export type Profiles_Variance_Fields = {
+  __typename?: 'profiles_variance_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
 
 export type Query_Root = {
   __typename?: 'query_root';
@@ -2127,6 +2325,12 @@ export type Query_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** fetch data from the table: "profiles" using primary key columns */
+  profile?: Maybe<Profiles>;
+  /** fetch data from the table: "profiles" */
+  profiles: Array<Profiles>;
+  /** fetch aggregated fields from the table: "profiles" */
+  profilesAggregat: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -2205,7 +2409,7 @@ export type Query_RootAuthRolesAggregateArgs = {
 
 
 export type Query_RootAuthWhitelistArgs = {
-  email: Scalars['String'];
+  email: Scalars['citext'];
 };
 
 
@@ -2237,7 +2441,7 @@ export type Query_RootUserAggregateArgs = {
 
 
 export type Query_RootAuthProviderArgs = {
-  code: Scalars['String'];
+  id: Scalars['String'];
 };
 
 
@@ -2351,6 +2555,29 @@ export type Query_RootAuth_Migrations_By_PkArgs = {
 };
 
 
+export type Query_RootProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+export type Query_RootProfilesArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
+export type Query_RootProfilesAggregatArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2422,6 +2649,12 @@ export type Subscription_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** fetch data from the table: "profiles" using primary key columns */
+  profile?: Maybe<Profiles>;
+  /** fetch data from the table: "profiles" */
+  profiles: Array<Profiles>;
+  /** fetch aggregated fields from the table: "profiles" */
+  profilesAggregat: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -2500,7 +2733,7 @@ export type Subscription_RootAuthRolesAggregateArgs = {
 
 
 export type Subscription_RootAuthWhitelistArgs = {
-  email: Scalars['String'];
+  email: Scalars['citext'];
 };
 
 
@@ -2532,7 +2765,7 @@ export type Subscription_RootUserAggregateArgs = {
 
 
 export type Subscription_RootAuthProviderArgs = {
-  code: Scalars['String'];
+  id: Scalars['String'];
 };
 
 
@@ -2646,6 +2879,29 @@ export type Subscription_RootAuth_Migrations_By_PkArgs = {
 };
 
 
+export type Subscription_RootProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+export type Subscription_RootProfilesArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
+export type Subscription_RootProfilesAggregatArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2690,21 +2946,27 @@ export type Timestamptz_Comparison_Exp = {
 /** columns and relationships of "auth.users" */
 export type Users = {
   __typename?: 'users';
-  active: Scalars['Boolean'];
-  avatarUrl?: Maybe<Scalars['String']>;
+  activeMfaType?: Maybe<Scalars['String']>;
+  avatarUrl: Scalars['String'];
   createdAt: Scalars['timestamptz'];
-  customRegisterData?: Maybe<Scalars['jsonb']>;
   defaultRole: Scalars['String'];
-  displayName?: Maybe<Scalars['String']>;
+  disabled: Scalars['Boolean'];
+  displayName: Scalars['String'];
   email?: Maybe<Scalars['citext']>;
+  emailVerified: Scalars['Boolean'];
   id: Scalars['uuid'];
   isAnonymous: Scalars['Boolean'];
-  lastConfirmationEmailSentAt: Scalars['timestamptz'];
+  lastVerifyEmailSentAt: Scalars['timestamptz'];
+  lastVerifyPhoneNumberSentAt: Scalars['timestamptz'];
   locale: Scalars['String'];
-  mfaEnabled: Scalars['Boolean'];
   newEmail?: Maybe<Scalars['citext']>;
-  otpSecret?: Maybe<Scalars['String']>;
+  otpHash?: Maybe<Scalars['String']>;
+  otpHashExpiresAt: Scalars['timestamptz'];
   passwordHash?: Maybe<Scalars['String']>;
+  phoneNumber?: Maybe<Scalars['String']>;
+  phoneNumberVerified: Scalars['Boolean'];
+  /** An object relationship */
+  profile: Profiles;
   /** An array relationship */
   refreshTokens: Array<AuthRefreshTokens>;
   /** An aggregate relationship */
@@ -2713,19 +2975,14 @@ export type Users = {
   roles: Array<AuthUserRoles>;
   /** An aggregate relationship */
   roles_aggregate: AuthUserRoles_Aggregate;
-  ticket: Scalars['uuid'];
+  ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt: Scalars['timestamptz'];
+  totpSecret?: Maybe<Scalars['String']>;
   updatedAt: Scalars['timestamptz'];
   /** An array relationship */
   userProviders: Array<AuthUserProviders>;
   /** An aggregate relationship */
   userProviders_aggregate: AuthUserProviders_Aggregate;
-};
-
-
-/** columns and relationships of "auth.users" */
-export type UsersCustomRegisterDataArgs = {
-  path?: Maybe<Scalars['String']>;
 };
 
 
@@ -2810,35 +3067,36 @@ export type Users_Aggregate_FieldsCountArgs = {
   distinct?: Maybe<Scalars['Boolean']>;
 };
 
-/** append existing jsonb value of filtered columns with new jsonb value */
-export type Users_Append_Input = {
-  customRegisterData?: Maybe<Scalars['jsonb']>;
-};
-
 /** Boolean expression to filter rows from the table "auth.users". All fields are combined with a logical 'AND'. */
 export type Users_Bool_Exp = {
   _and?: Maybe<Array<Users_Bool_Exp>>;
   _not?: Maybe<Users_Bool_Exp>;
   _or?: Maybe<Array<Users_Bool_Exp>>;
-  active?: Maybe<Boolean_Comparison_Exp>;
+  activeMfaType?: Maybe<String_Comparison_Exp>;
   avatarUrl?: Maybe<String_Comparison_Exp>;
   createdAt?: Maybe<Timestamptz_Comparison_Exp>;
-  customRegisterData?: Maybe<Jsonb_Comparison_Exp>;
   defaultRole?: Maybe<String_Comparison_Exp>;
+  disabled?: Maybe<Boolean_Comparison_Exp>;
   displayName?: Maybe<String_Comparison_Exp>;
   email?: Maybe<Citext_Comparison_Exp>;
+  emailVerified?: Maybe<Boolean_Comparison_Exp>;
   id?: Maybe<Uuid_Comparison_Exp>;
   isAnonymous?: Maybe<Boolean_Comparison_Exp>;
-  lastConfirmationEmailSentAt?: Maybe<Timestamptz_Comparison_Exp>;
+  lastVerifyEmailSentAt?: Maybe<Timestamptz_Comparison_Exp>;
+  lastVerifyPhoneNumberSentAt?: Maybe<Timestamptz_Comparison_Exp>;
   locale?: Maybe<String_Comparison_Exp>;
-  mfaEnabled?: Maybe<Boolean_Comparison_Exp>;
   newEmail?: Maybe<Citext_Comparison_Exp>;
-  otpSecret?: Maybe<String_Comparison_Exp>;
+  otpHash?: Maybe<String_Comparison_Exp>;
+  otpHashExpiresAt?: Maybe<Timestamptz_Comparison_Exp>;
   passwordHash?: Maybe<String_Comparison_Exp>;
+  phoneNumber?: Maybe<String_Comparison_Exp>;
+  phoneNumberVerified?: Maybe<Boolean_Comparison_Exp>;
+  profile?: Maybe<Profiles_Bool_Exp>;
   refreshTokens?: Maybe<AuthRefreshTokens_Bool_Exp>;
   roles?: Maybe<AuthUserRoles_Bool_Exp>;
-  ticket?: Maybe<Uuid_Comparison_Exp>;
+  ticket?: Maybe<String_Comparison_Exp>;
   ticketExpiresAt?: Maybe<Timestamptz_Comparison_Exp>;
+  totpSecret?: Maybe<String_Comparison_Exp>;
   updatedAt?: Maybe<Timestamptz_Comparison_Exp>;
   userProviders?: Maybe<AuthUserProviders_Bool_Exp>;
 };
@@ -2848,47 +3106,38 @@ export enum Users_Constraint {
   /** unique or primary key constraint */
   UsersEmailKey = 'users_email_key',
   /** unique or primary key constraint */
-  UsersNewEmailKey = 'users_new_email_key',
+  UsersPhoneNumberKey = 'users_phone_number_key',
   /** unique or primary key constraint */
   UsersPkey = 'users_pkey'
 }
 
-/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
-export type Users_Delete_At_Path_Input = {
-  customRegisterData?: Maybe<Array<Scalars['String']>>;
-};
-
-/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
-export type Users_Delete_Elem_Input = {
-  customRegisterData?: Maybe<Scalars['Int']>;
-};
-
-/** delete key/value pair or string element. key/value pairs are matched based on their key value */
-export type Users_Delete_Key_Input = {
-  customRegisterData?: Maybe<Scalars['String']>;
-};
-
 /** input type for inserting data into table "auth.users" */
 export type Users_Insert_Input = {
-  active?: Maybe<Scalars['Boolean']>;
+  activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  customRegisterData?: Maybe<Scalars['jsonb']>;
   defaultRole?: Maybe<Scalars['String']>;
+  disabled?: Maybe<Scalars['Boolean']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
+  emailVerified?: Maybe<Scalars['Boolean']>;
   id?: Maybe<Scalars['uuid']>;
   isAnonymous?: Maybe<Scalars['Boolean']>;
-  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
-  mfaEnabled?: Maybe<Scalars['Boolean']>;
   newEmail?: Maybe<Scalars['citext']>;
-  otpSecret?: Maybe<Scalars['String']>;
+  otpHash?: Maybe<Scalars['String']>;
+  otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
   passwordHash?: Maybe<Scalars['String']>;
+  phoneNumber?: Maybe<Scalars['String']>;
+  phoneNumberVerified?: Maybe<Scalars['Boolean']>;
+  profile?: Maybe<Profiles_Obj_Rel_Insert_Input>;
   refreshTokens?: Maybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   roles?: Maybe<AuthUserRoles_Arr_Rel_Insert_Input>;
-  ticket?: Maybe<Scalars['uuid']>;
+  ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
+  totpSecret?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
   userProviders?: Maybe<AuthUserProviders_Arr_Rel_Insert_Input>;
 };
@@ -2896,38 +3145,48 @@ export type Users_Insert_Input = {
 /** aggregate max on columns */
 export type Users_Max_Fields = {
   __typename?: 'users_max_fields';
+  activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   defaultRole?: Maybe<Scalars['String']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
-  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
-  otpSecret?: Maybe<Scalars['String']>;
+  otpHash?: Maybe<Scalars['String']>;
+  otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
   passwordHash?: Maybe<Scalars['String']>;
-  ticket?: Maybe<Scalars['uuid']>;
+  phoneNumber?: Maybe<Scalars['String']>;
+  ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
+  totpSecret?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** aggregate min on columns */
 export type Users_Min_Fields = {
   __typename?: 'users_min_fields';
+  activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   defaultRole?: Maybe<Scalars['String']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
-  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
-  otpSecret?: Maybe<Scalars['String']>;
+  otpHash?: Maybe<Scalars['String']>;
+  otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
   passwordHash?: Maybe<Scalars['String']>;
-  ticket?: Maybe<Scalars['uuid']>;
+  phoneNumber?: Maybe<Scalars['String']>;
+  ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
+  totpSecret?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
@@ -2956,25 +3215,31 @@ export type Users_On_Conflict = {
 
 /** Ordering options when selecting data from "auth.users". */
 export type Users_Order_By = {
-  active?: Maybe<Order_By>;
+  activeMfaType?: Maybe<Order_By>;
   avatarUrl?: Maybe<Order_By>;
   createdAt?: Maybe<Order_By>;
-  customRegisterData?: Maybe<Order_By>;
   defaultRole?: Maybe<Order_By>;
+  disabled?: Maybe<Order_By>;
   displayName?: Maybe<Order_By>;
   email?: Maybe<Order_By>;
+  emailVerified?: Maybe<Order_By>;
   id?: Maybe<Order_By>;
   isAnonymous?: Maybe<Order_By>;
-  lastConfirmationEmailSentAt?: Maybe<Order_By>;
+  lastVerifyEmailSentAt?: Maybe<Order_By>;
+  lastVerifyPhoneNumberSentAt?: Maybe<Order_By>;
   locale?: Maybe<Order_By>;
-  mfaEnabled?: Maybe<Order_By>;
   newEmail?: Maybe<Order_By>;
-  otpSecret?: Maybe<Order_By>;
+  otpHash?: Maybe<Order_By>;
+  otpHashExpiresAt?: Maybe<Order_By>;
   passwordHash?: Maybe<Order_By>;
+  phoneNumber?: Maybe<Order_By>;
+  phoneNumberVerified?: Maybe<Order_By>;
+  profile?: Maybe<Profiles_Order_By>;
   refreshTokens_aggregate?: Maybe<AuthRefreshTokens_Aggregate_Order_By>;
   roles_aggregate?: Maybe<AuthUserRoles_Aggregate_Order_By>;
   ticket?: Maybe<Order_By>;
   ticketExpiresAt?: Maybe<Order_By>;
+  totpSecret?: Maybe<Order_By>;
   updatedAt?: Maybe<Order_By>;
   userProviders_aggregate?: Maybe<AuthUserProviders_Aggregate_Order_By>;
 };
@@ -2984,109 +3249,129 @@ export type Users_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
-/** prepend existing jsonb value of filtered columns with new jsonb value */
-export type Users_Prepend_Input = {
-  customRegisterData?: Maybe<Scalars['jsonb']>;
-};
-
 /** select columns of table "auth.users" */
 export enum Users_Select_Column {
   /** column name */
-  Active = 'active',
+  ActiveMfaType = 'activeMfaType',
   /** column name */
   AvatarUrl = 'avatarUrl',
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
-  CustomRegisterData = 'customRegisterData',
-  /** column name */
   DefaultRole = 'defaultRole',
+  /** column name */
+  Disabled = 'disabled',
   /** column name */
   DisplayName = 'displayName',
   /** column name */
   Email = 'email',
   /** column name */
+  EmailVerified = 'emailVerified',
+  /** column name */
   Id = 'id',
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  LastConfirmationEmailSentAt = 'lastConfirmationEmailSentAt',
+  LastVerifyEmailSentAt = 'lastVerifyEmailSentAt',
+  /** column name */
+  LastVerifyPhoneNumberSentAt = 'lastVerifyPhoneNumberSentAt',
   /** column name */
   Locale = 'locale',
   /** column name */
-  MfaEnabled = 'mfaEnabled',
-  /** column name */
   NewEmail = 'newEmail',
   /** column name */
-  OtpSecret = 'otpSecret',
+  OtpHash = 'otpHash',
+  /** column name */
+  OtpHashExpiresAt = 'otpHashExpiresAt',
   /** column name */
   PasswordHash = 'passwordHash',
+  /** column name */
+  PhoneNumber = 'phoneNumber',
+  /** column name */
+  PhoneNumberVerified = 'phoneNumberVerified',
   /** column name */
   Ticket = 'ticket',
   /** column name */
   TicketExpiresAt = 'ticketExpiresAt',
+  /** column name */
+  TotpSecret = 'totpSecret',
   /** column name */
   UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "auth.users" */
 export type Users_Set_Input = {
-  active?: Maybe<Scalars['Boolean']>;
+  activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  customRegisterData?: Maybe<Scalars['jsonb']>;
   defaultRole?: Maybe<Scalars['String']>;
+  disabled?: Maybe<Scalars['Boolean']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
+  emailVerified?: Maybe<Scalars['Boolean']>;
   id?: Maybe<Scalars['uuid']>;
   isAnonymous?: Maybe<Scalars['Boolean']>;
-  lastConfirmationEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
+  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
-  mfaEnabled?: Maybe<Scalars['Boolean']>;
   newEmail?: Maybe<Scalars['citext']>;
-  otpSecret?: Maybe<Scalars['String']>;
+  otpHash?: Maybe<Scalars['String']>;
+  otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
   passwordHash?: Maybe<Scalars['String']>;
-  ticket?: Maybe<Scalars['uuid']>;
+  phoneNumber?: Maybe<Scalars['String']>;
+  phoneNumberVerified?: Maybe<Scalars['Boolean']>;
+  ticket?: Maybe<Scalars['String']>;
   ticketExpiresAt?: Maybe<Scalars['timestamptz']>;
+  totpSecret?: Maybe<Scalars['String']>;
   updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** update columns of table "auth.users" */
 export enum Users_Update_Column {
   /** column name */
-  Active = 'active',
+  ActiveMfaType = 'activeMfaType',
   /** column name */
   AvatarUrl = 'avatarUrl',
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
-  CustomRegisterData = 'customRegisterData',
-  /** column name */
   DefaultRole = 'defaultRole',
+  /** column name */
+  Disabled = 'disabled',
   /** column name */
   DisplayName = 'displayName',
   /** column name */
   Email = 'email',
   /** column name */
+  EmailVerified = 'emailVerified',
+  /** column name */
   Id = 'id',
   /** column name */
   IsAnonymous = 'isAnonymous',
   /** column name */
-  LastConfirmationEmailSentAt = 'lastConfirmationEmailSentAt',
+  LastVerifyEmailSentAt = 'lastVerifyEmailSentAt',
+  /** column name */
+  LastVerifyPhoneNumberSentAt = 'lastVerifyPhoneNumberSentAt',
   /** column name */
   Locale = 'locale',
   /** column name */
-  MfaEnabled = 'mfaEnabled',
-  /** column name */
   NewEmail = 'newEmail',
   /** column name */
-  OtpSecret = 'otpSecret',
+  OtpHash = 'otpHash',
+  /** column name */
+  OtpHashExpiresAt = 'otpHashExpiresAt',
   /** column name */
   PasswordHash = 'passwordHash',
+  /** column name */
+  PhoneNumber = 'phoneNumber',
+  /** column name */
+  PhoneNumberVerified = 'phoneNumberVerified',
   /** column name */
   Ticket = 'ticket',
   /** column name */
   TicketExpiresAt = 'ticketExpiresAt',
+  /** column name */
+  TotpSecret = 'totpSecret',
   /** column name */
   UpdatedAt = 'updatedAt'
 }
@@ -3128,7 +3413,7 @@ export type InsertProviderRequestMutation = (
   { __typename?: 'mutation_root' }
   & { insertAuthProviderRequest?: Maybe<(
     { __typename?: 'authProviderRequests' }
-    & Pick<AuthProviderRequests, 'id' | 'jwtToken' | 'redirectUrlFailure' | 'redirectUrlSuccess'>
+    & Pick<AuthProviderRequests, 'id' | 'redirectUrl'>
   )> }
 );
 
@@ -3141,7 +3426,7 @@ export type DeleteProviderRequestMutation = (
   { __typename?: 'mutation_root' }
   & { deleteAuthProviderRequest?: Maybe<(
     { __typename?: 'authProviderRequests' }
-    & Pick<AuthProviderRequests, 'id' | 'jwtToken' | 'redirectUrlFailure' | 'redirectUrlSuccess'>
+    & Pick<AuthProviderRequests, 'id' | 'redirectUrl'>
   )> }
 );
 
@@ -3154,27 +3439,7 @@ export type ProviderRequestQuery = (
   { __typename?: 'query_root' }
   & { AuthProviderRequest?: Maybe<(
     { __typename?: 'authProviderRequests' }
-    & Pick<AuthProviderRequests, 'redirectUrlSuccess' | 'redirectUrlFailure' | 'jwtToken'>
-  )> }
-);
-
-export type ProvidersQueryVariables = Exact<{
-  provider: Scalars['String'];
-  profileId: Scalars['String'];
-}>;
-
-
-export type ProvidersQuery = (
-  { __typename?: 'query_root' }
-  & { authProviders: Array<(
-    { __typename?: 'authProviders' }
-    & { userProviders: Array<(
-      { __typename?: 'authUserProviders' }
-      & { user: (
-        { __typename?: 'users' }
-        & UserFieldsFragment
-      ) }
-    )> }
+    & Pick<AuthProviderRequests, 'id' | 'redirectUrl'>
   )> }
 );
 
@@ -3209,7 +3474,7 @@ export type UpdateRefreshTokenMutation = (
 );
 
 export type DeleteRefreshTokenMutationVariables = Exact<{
-  id: Scalars['uuid'];
+  refreshToken: Scalars['uuid'];
 }>;
 
 
@@ -3217,7 +3482,7 @@ export type DeleteRefreshTokenMutation = (
   { __typename?: 'mutation_root' }
   & { deleteAuthRefreshToken?: Maybe<(
     { __typename?: 'authRefreshTokens' }
-    & Pick<AuthRefreshTokens, 'refreshToken'>
+    & Pick<AuthRefreshTokens, 'refreshToken' | 'expiresAt'>
   )> }
 );
 
@@ -3234,9 +3499,81 @@ export type DeleteUserRefreshTokensMutation = (
   )> }
 );
 
+export type AuthUserProvidersQueryVariables = Exact<{
+  provider: Scalars['String'];
+  providerUserId: Scalars['String'];
+}>;
+
+
+export type AuthUserProvidersQuery = (
+  { __typename?: 'query_root' }
+  & { authUserProviders: Array<(
+    { __typename?: 'authUserProviders' }
+    & Pick<AuthUserProviders, 'id'>
+    & { user: (
+      { __typename?: 'users' }
+      & Pick<Users, 'id'>
+    ) }
+  )> }
+);
+
+export type UserProviderQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+  providerId: Scalars['String'];
+}>;
+
+
+export type UserProviderQuery = (
+  { __typename?: 'query_root' }
+  & { authUserProviders: Array<(
+    { __typename?: 'authUserProviders' }
+    & Pick<AuthUserProviders, 'id' | 'refreshToken'>
+  )> }
+);
+
+export type UpdateAuthUserproviderMutationVariables = Exact<{
+  id: Scalars['uuid'];
+  authUserProvider: AuthUserProviders_Set_Input;
+}>;
+
+
+export type UpdateAuthUserproviderMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateAuthUserProvider?: Maybe<(
+    { __typename?: 'authUserProviders' }
+    & Pick<AuthUserProviders, 'id'>
+  )> }
+);
+
+export type InsertUserRolesMutationVariables = Exact<{
+  userRoles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
+}>;
+
+
+export type InsertUserRolesMutation = (
+  { __typename?: 'mutation_root' }
+  & { insertAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
+export type DeleteUserRolesByUserIdMutationVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
+
+
+export type DeleteUserRolesByUserIdMutation = (
+  { __typename?: 'mutation_root' }
+  & { deleteAuthUserRoles?: Maybe<(
+    { __typename?: 'authUserRoles_mutation_response' }
+    & Pick<AuthUserRoles_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'active' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpSecret' | 'mfaEnabled' | 'newEmail' | 'lastConfirmationEmailSentAt' | 'locale' | 'customRegisterData'>
+  & Pick<Users, 'id' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'lastVerifyEmailSentAt' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'otpHashExpiresAt' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
   & { roles: Array<(
     { __typename?: 'authUserRoles' }
     & Pick<AuthUserRoles, 'role'>
@@ -3269,15 +3606,16 @@ export type UsersQuery = (
   )> }
 );
 
-export type UsersByRefreshTokenQueryVariables = Exact<{
+export type GetUsersByRefreshTokenQueryVariables = Exact<{
   refreshToken: Scalars['uuid'];
 }>;
 
 
-export type UsersByRefreshTokenQuery = (
+export type GetUsersByRefreshTokenQuery = (
   { __typename?: 'query_root' }
   & { authRefreshTokens: Array<(
     { __typename?: 'authRefreshTokens' }
+    & Pick<AuthRefreshTokens, 'refreshToken'>
     & { user: (
       { __typename?: 'users' }
       & UserFieldsFragment
@@ -3299,9 +3637,23 @@ export type UpdateUserMutation = (
   )> }
 );
 
+export type UpdateUserWhereMutationVariables = Exact<{
+  where: Users_Bool_Exp;
+  user: Users_Set_Input;
+}>;
+
+
+export type UpdateUserWhereMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateUsers?: Maybe<(
+    { __typename?: 'users_mutation_response' }
+    & Pick<Users_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
 export type RotateUsersTicketMutationVariables = Exact<{
-  oldTicket: Scalars['uuid'];
-  newTicket: Scalars['uuid'];
+  oldTicket: Scalars['String'];
+  newTicket: Scalars['String'];
   newTicketExpiresAt: Scalars['timestamptz'];
 }>;
 
@@ -3314,28 +3666,10 @@ export type RotateUsersTicketMutation = (
   )> }
 );
 
-export type ActivateUsersMutationVariables = Exact<{
-  ticket: Scalars['uuid'];
-  newTicket: Scalars['uuid'];
-  newTicketExpiresAt: Scalars['timestamptz'];
-}>;
-
-
-export type ActivateUsersMutation = (
-  { __typename?: 'mutation_root' }
-  & { updateUsers?: Maybe<(
-    { __typename?: 'users_mutation_response' }
-    & { returning: Array<(
-      { __typename?: 'users' }
-      & UserFieldsFragment
-    )> }
-  )> }
-);
-
 export type ChangeEmailsByTicketMutationVariables = Exact<{
-  ticket: Scalars['uuid'];
+  ticket: Scalars['String'];
   email: Scalars['citext'];
-  newTicket: Scalars['uuid'];
+  newTicket: Scalars['String'];
   now: Scalars['timestamptz'];
 }>;
 
@@ -3398,25 +3732,34 @@ export type DeanonymizeUserMutation = (
   )> }
 );
 
-export type InsertProviderToUserMutationVariables = Exact<{
-  provider: AuthProviders_Insert_Input;
-  userId: Scalars['uuid'];
+export type InsertUserProviderToUserMutationVariables = Exact<{
+  userProvider: AuthUserProviders_Insert_Input;
 }>;
 
 
-export type InsertProviderToUserMutation = (
+export type InsertUserProviderToUserMutation = (
   { __typename?: 'mutation_root' }
-  & { insertAuthProvider?: Maybe<(
-    { __typename?: 'authProviders' }
-    & Pick<AuthProviders, 'name' | 'code'>
-  )>, updateUser?: Maybe<(
+  & { insertAuthUserProvider?: Maybe<(
+    { __typename?: 'authUserProviders' }
+    & Pick<AuthUserProviders, 'id'>
+  )> }
+);
+
+export type GetUserByTicketQueryVariables = Exact<{
+  ticket: Scalars['String'];
+}>;
+
+
+export type GetUserByTicketQuery = (
+  { __typename?: 'query_root' }
+  & { users: Array<(
     { __typename?: 'users' }
     & UserFieldsFragment
   )> }
 );
 
 export type UpdateUsersByTicketMutationVariables = Exact<{
-  ticket: Scalars['uuid'];
+  ticket: Scalars['String'];
   user: Users_Set_Input;
 }>;
 
@@ -3434,7 +3777,7 @@ export type UpdateUsersByTicketMutation = (
 );
 
 export type IsWhitelistedEmailQueryVariables = Exact<{
-  email: Scalars['String'];
+  email: Scalars['citext'];
 }>;
 
 
@@ -3447,7 +3790,7 @@ export type IsWhitelistedEmailQuery = (
 );
 
 export type InsertWhitelistedEmailMutationVariables = Exact<{
-  email: Scalars['String'];
+  email: Scalars['citext'];
 }>;
 
 
@@ -3462,24 +3805,26 @@ export type InsertWhitelistedEmailMutation = (
 export const UserFieldsFragmentDoc = gql`
     fragment userFields on users {
   id
+  disabled
   displayName
   avatarUrl
   email
   passwordHash
-  active
+  emailVerified
+  lastVerifyEmailSentAt
+  phoneNumberVerified
   defaultRole
   roles {
     role
   }
   isAnonymous
   ticket
-  otpSecret
-  mfaEnabled
-  passwordHash
+  otpHash
+  otpHashExpiresAt
+  totpSecret
+  activeMfaType
   newEmail
-  lastConfirmationEmailSentAt
   locale
-  customRegisterData
   roles {
     role
   }
@@ -3500,9 +3845,7 @@ export const InsertProviderRequestDocument = gql`
     mutation insertProviderRequest($providerRequest: authProviderRequests_insert_input!) {
   insertAuthProviderRequest(object: $providerRequest) {
     id
-    jwtToken
-    redirectUrlFailure
-    redirectUrlSuccess
+    redirectUrl
   }
 }
     `;
@@ -3510,32 +3853,18 @@ export const DeleteProviderRequestDocument = gql`
     mutation deleteProviderRequest($id: uuid!) {
   deleteAuthProviderRequest(id: $id) {
     id
-    jwtToken
-    redirectUrlFailure
-    redirectUrlSuccess
+    redirectUrl
   }
 }
     `;
 export const ProviderRequestDocument = gql`
     query providerRequest($id: uuid!) {
   AuthProviderRequest(id: $id) {
-    redirectUrlSuccess
-    redirectUrlFailure
-    jwtToken
+    id
+    redirectUrl
   }
 }
     `;
-export const ProvidersDocument = gql`
-    query providers($provider: String!, $profileId: String!) {
-  authProviders(where: {_and: {userProviders: {userProviderUniqueId: {_eq: $profileId}, provider: {name: {_eq: $provider}}}}}) {
-    userProviders {
-      user {
-        ...userFields
-      }
-    }
-  }
-}
-    ${UserFieldsFragmentDoc}`;
 export const InsertRefreshTokenDocument = gql`
     mutation insertRefreshToken($refreshToken: authRefreshTokens_insert_input!) {
   insertAuthRefreshToken(object: $refreshToken) {
@@ -3554,15 +3883,55 @@ export const UpdateRefreshTokenDocument = gql`
 }
     `;
 export const DeleteRefreshTokenDocument = gql`
-    mutation deleteRefreshToken($id: uuid!) {
-  deleteAuthRefreshToken(refreshToken: $id) {
+    mutation deleteRefreshToken($refreshToken: uuid!) {
+  deleteAuthRefreshToken(refreshToken: $refreshToken) {
     refreshToken
+    expiresAt
   }
 }
     `;
 export const DeleteUserRefreshTokensDocument = gql`
     mutation deleteUserRefreshTokens($userId: uuid!) {
   deleteAuthRefreshTokens(where: {user: {id: {_eq: $userId}}}) {
+    affected_rows
+  }
+}
+    `;
+export const AuthUserProvidersDocument = gql`
+    query authUserProviders($provider: String!, $providerUserId: String!) {
+  authUserProviders(where: {_and: {provider: {id: {_eq: $provider}}, providerUserId: {_eq: $providerUserId}}}, limit: 1) {
+    id
+    user {
+      id
+    }
+  }
+}
+    `;
+export const UserProviderDocument = gql`
+    query userProvider($userId: uuid!, $providerId: String!) {
+  authUserProviders(where: {_and: [{userId: {_eq: $userId}}, {providerId: {_eq: $providerId}}]}, limit: 1) {
+    id
+    refreshToken
+  }
+}
+    `;
+export const UpdateAuthUserproviderDocument = gql`
+    mutation updateAuthUserprovider($id: uuid!, $authUserProvider: authUserProviders_set_input!) {
+  updateAuthUserProvider(pk_columns: {id: $id}, _set: $authUserProvider) {
+    id
+  }
+}
+    `;
+export const InsertUserRolesDocument = gql`
+    mutation insertUserRoles($userRoles: [authUserRoles_insert_input!]!) {
+  insertAuthUserRoles(objects: $userRoles) {
+    affected_rows
+  }
+}
+    `;
+export const DeleteUserRolesByUserIdDocument = gql`
+    mutation deleteUserRolesByUserId($userId: uuid!) {
+  deleteAuthUserRoles(where: {userId: {_eq: $userId}}) {
     affected_rows
   }
 }
@@ -3581,9 +3950,10 @@ export const UsersDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
-export const UsersByRefreshTokenDocument = gql`
-    query usersByRefreshToken($refreshToken: uuid!) {
-  authRefreshTokens(where: {_and: [{refreshToken: {_eq: $refreshToken}}, {_or: [{user: {active: {_eq: true}}}, {_and: [{user: {active: {_eq: false}}}, {user: {isAnonymous: {_eq: true}}}]}]}, {expiresAt: {_gte: now}}]}) {
+export const GetUsersByRefreshTokenDocument = gql`
+    query getUsersByRefreshToken($refreshToken: uuid!) {
+  authRefreshTokens(where: {_and: [{refreshToken: {_eq: $refreshToken}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}) {
+    refreshToken
     user {
       ...userFields
     }
@@ -3597,24 +3967,22 @@ export const UpdateUserDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
+export const UpdateUserWhereDocument = gql`
+    mutation updateUserWhere($where: users_bool_exp!, $user: users_set_input!) {
+  updateUsers(where: $where, _set: $user) {
+    affected_rows
+  }
+}
+    `;
 export const RotateUsersTicketDocument = gql`
-    mutation rotateUsersTicket($oldTicket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
+    mutation rotateUsersTicket($oldTicket: String!, $newTicket: String!, $newTicketExpiresAt: timestamptz!) {
   updateUsers(_set: {ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {ticket: {_eq: $oldTicket}}) {
     affected_rows
   }
 }
     `;
-export const ActivateUsersDocument = gql`
-    mutation activateUsers($ticket: uuid!, $newTicket: uuid!, $newTicketExpiresAt: timestamptz!) {
-  updateUsers(_set: {active: true, ticket: $newTicket, ticketExpiresAt: $newTicketExpiresAt}, where: {_and: [{active: {_eq: false}}, {ticket: {_eq: $ticket}}]}) {
-    returning {
-      ...userFields
-    }
-  }
-}
-    ${UserFieldsFragmentDoc}`;
 export const ChangeEmailsByTicketDocument = gql`
-    mutation changeEmailsByTicket($ticket: uuid!, $email: citext!, $newTicket: uuid!, $now: timestamptz!) {
+    mutation changeEmailsByTicket($ticket: String!, $email: citext!, $newTicket: String!, $now: timestamptz!) {
   updateUsers(where: {_and: [{ticket: {_eq: $ticket}}, {ticketExpiresAt: {_gt: $now}}]}, _set: {email: $email, newEmail: null, ticket: $newTicket, ticketExpiresAt: $now}) {
     returning {
       ...userFields
@@ -3644,24 +4012,27 @@ export const DeanonymizeUserDocument = gql`
   updateAuthUserRoles(where: {user: {id: {_eq: $userId}}}, _set: {role: $role}) {
     affected_rows
   }
-  updateUser(pk_columns: {id: $userId}, _set: {avatarUrl: $avatarUrl, defaultRole: $role, active: true}) {
+  updateUser(pk_columns: {id: $userId}, _set: {avatarUrl: $avatarUrl, defaultRole: $role}) {
     id
   }
 }
     `;
-export const InsertProviderToUserDocument = gql`
-    mutation insertProviderToUser($provider: authProviders_insert_input!, $userId: uuid!) {
-  insertAuthProvider(object: $provider) {
-    name
-    code
+export const InsertUserProviderToUserDocument = gql`
+    mutation insertUserProviderToUser($userProvider: authUserProviders_insert_input!) {
+  insertAuthUserProvider(object: $userProvider) {
+    id
   }
-  updateUser(pk_columns: {id: $userId}, _set: {active: true}) {
+}
+    `;
+export const GetUserByTicketDocument = gql`
+    query getUserByTicket($ticket: String!) {
+  users(where: {ticket: {_eq: $ticket}}) {
     ...userFields
   }
 }
     ${UserFieldsFragmentDoc}`;
 export const UpdateUsersByTicketDocument = gql`
-    mutation updateUsersByTicket($ticket: uuid!, $user: users_set_input!) {
+    mutation updateUsersByTicket($ticket: String!, $user: users_set_input!) {
   updateUsers(where: {_and: [{ticket: {_eq: $ticket}}, {ticketExpiresAt: {_gt: now}}]}, _set: $user) {
     affected_rows
     returning {
@@ -3671,14 +4042,14 @@ export const UpdateUsersByTicketDocument = gql`
 }
     ${UserFieldsFragmentDoc}`;
 export const IsWhitelistedEmailDocument = gql`
-    query isWhitelistedEmail($email: String!) {
+    query isWhitelistedEmail($email: citext!) {
   AuthWhitelist(email: $email) {
     email
   }
 }
     `;
 export const InsertWhitelistedEmailDocument = gql`
-    mutation insertWhitelistedEmail($email: String!) {
+    mutation insertWhitelistedEmail($email: citext!) {
   insertAuthWhitelist(object: {email: $email}) {
     email
   }
@@ -3704,9 +4075,6 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     providerRequest(variables: ProviderRequestQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProviderRequestQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<ProviderRequestQuery>(ProviderRequestDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'providerRequest');
     },
-    providers(variables: ProvidersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ProvidersQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<ProvidersQuery>(ProvidersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'providers');
-    },
     insertRefreshToken(variables: InsertRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertRefreshTokenMutation>(InsertRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertRefreshToken');
     },
@@ -3719,23 +4087,38 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     deleteUserRefreshTokens(variables: DeleteUserRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRefreshTokensMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRefreshTokensMutation>(DeleteUserRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRefreshTokens');
     },
+    authUserProviders(variables: AuthUserProvidersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AuthUserProvidersQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<AuthUserProvidersQuery>(AuthUserProvidersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'authUserProviders');
+    },
+    userProvider(variables: UserProviderQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UserProviderQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UserProviderQuery>(UserProviderDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'userProvider');
+    },
+    updateAuthUserprovider(variables: UpdateAuthUserproviderMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateAuthUserproviderMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateAuthUserproviderMutation>(UpdateAuthUserproviderDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateAuthUserprovider');
+    },
+    insertUserRoles(variables: InsertUserRolesMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserRolesMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertUserRolesMutation>(InsertUserRolesDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUserRoles');
+    },
+    deleteUserRolesByUserId(variables: DeleteUserRolesByUserIdMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRolesByUserIdMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRolesByUserIdMutation>(DeleteUserRolesByUserIdDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRolesByUserId');
+    },
     user(variables: UserQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UserQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UserQuery>(UserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'user');
     },
     users(variables: UsersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UsersQuery>(UsersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'users');
     },
-    usersByRefreshToken(variables: UsersByRefreshTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersByRefreshTokenQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UsersByRefreshTokenQuery>(UsersByRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'usersByRefreshToken');
+    getUsersByRefreshToken(variables: GetUsersByRefreshTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUsersByRefreshTokenQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUsersByRefreshTokenQuery>(GetUsersByRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUsersByRefreshToken');
     },
     updateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUser');
     },
+    updateUserWhere(variables: UpdateUserWhereMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserWhereMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserWhereMutation>(UpdateUserWhereDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUserWhere');
+    },
     rotateUsersTicket(variables: RotateUsersTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<RotateUsersTicketMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<RotateUsersTicketMutation>(RotateUsersTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'rotateUsersTicket');
-    },
-    activateUsers(variables: ActivateUsersMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ActivateUsersMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<ActivateUsersMutation>(ActivateUsersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'activateUsers');
     },
     changeEmailsByTicket(variables: ChangeEmailsByTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<ChangeEmailsByTicketMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<ChangeEmailsByTicketMutation>(ChangeEmailsByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'changeEmailsByTicket');
@@ -3749,8 +4132,11 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     deanonymizeUser(variables: DeanonymizeUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeanonymizeUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeanonymizeUserMutation>(DeanonymizeUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deanonymizeUser');
     },
-    insertProviderToUser(variables: InsertProviderToUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertProviderToUserMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<InsertProviderToUserMutation>(InsertProviderToUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertProviderToUser');
+    insertUserProviderToUser(variables: InsertUserProviderToUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertUserProviderToUserMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<InsertUserProviderToUserMutation>(InsertUserProviderToUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertUserProviderToUser');
+    },
+    getUserByTicket(variables: GetUserByTicketQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserByTicketQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserByTicketQuery>(GetUserByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserByTicket');
     },
     updateUsersByTicket(variables: UpdateUsersByTicketMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUsersByTicketMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUsersByTicketMutation>(UpdateUsersByTicketDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUsersByTicket');

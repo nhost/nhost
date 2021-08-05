@@ -1,13 +1,13 @@
-import { APPLICATION, JWT, REGISTRATION } from "@config/index";
-import { NextFunction, Response, Request } from "express";
-import * as gravatar from "gravatar";
-import QRCode from "qrcode";
-import bcrypt from "bcryptjs";
-import { pwnedPassword } from "hibp";
-import { v4 as uuidv4 } from "uuid";
-import { gqlSdk } from "./utils/gqlSDK";
-import { UserFieldsFragment } from "./utils/__generated__/graphql-request";
-import { SessionUser } from "./types";
+import { APPLICATION, TOKEN, REGISTRATION } from '@config/index';
+import { NextFunction, Response, Request } from 'express';
+import * as gravatar from 'gravatar';
+import QRCode from 'qrcode';
+import bcrypt from 'bcryptjs';
+import { pwnedPassword } from 'hibp';
+import { v4 as uuidv4 } from 'uuid';
+import { gqlSdk } from './utils/gqlSDK';
+import { UserFieldsFragment } from './utils/__generated__/graphql-request';
+import { SessionUser } from './types';
 
 /**
  * Create QR code.
@@ -35,10 +35,6 @@ export const getUserByEmail = async (email: string) => {
       },
     },
   });
-
-  // if (users.length !== 1) {
-  //   throw new Error('User does not exist.')
-  // }
 
   return users[0];
 };
@@ -73,7 +69,7 @@ export const getUserByTicket = async (ticket: string) => {
 // TODO await request returns undefined if no user found!
 export const getUserById = async (userId: string | undefined) => {
   if (!userId) {
-    throw new Error("User does not exists");
+    throw new Error('User does not exists');
   }
 
   const { user } = await gqlSdk.user({
@@ -81,7 +77,7 @@ export const getUserById = async (userId: string | undefined) => {
   });
 
   if (!user) {
-    throw new Error("User does not exists");
+    throw new Error('User does not exists');
   }
 
   return user;
@@ -121,7 +117,7 @@ export function newRefreshExpiry() {
   const date = new Date();
 
   // 1 day = 1440 minutes
-  const days = JWT.REFRESH_EXPIRES_IN / 1440;
+  const days = TOKEN.REFRESH_TOKEN_EXPIRES_IN / 1440;
 
   // cant return this becuase this will return a unix timestamp directly
   date.setDate(date.getDate() + days);
@@ -129,21 +125,6 @@ export function newRefreshExpiry() {
   // instead we must return the js date object
   return date;
 }
-
-export const setRefreshToken = async (
-  userId: string,
-  refreshToken = uuidv4()
-) => {
-  await gqlSdk.insertRefreshToken({
-    refreshToken: {
-      userId,
-      refreshToken,
-      expiresAt: new Date(newRefreshExpiry()),
-    },
-  });
-
-  return refreshToken;
-};
 
 export const userWithEmailExists = async (email: string) => {
   return !!(await getUserByEmail(email));
@@ -161,7 +142,7 @@ export const getGravatarUrl = (email?: string) => {
   if (APPLICATION.GRAVATAR_ENABLED && email) {
     return gravatar.url(email, {
       r: APPLICATION.RATING,
-      protocol: "https",
+      protocol: 'https',
       default: APPLICATION.GRAVATAR_DEFAULT,
     });
   }
@@ -174,7 +155,7 @@ export const deanonymizeUser = async (user: UserFieldsFragment) => {
 
   await gqlSdk.deanonymizeUser({
     userId: user.id,
-    avatarUrl: !useGravatar ? user.avatarUrl : getGravatarUrl(user.email) || "",
+    avatarUrl: !useGravatar ? user.avatarUrl : getGravatarUrl(user.email) || '',
     role: REGISTRATION.DEFAULT_USER_ROLE,
   });
 };

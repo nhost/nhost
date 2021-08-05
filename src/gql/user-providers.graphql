@@ -1,0 +1,37 @@
+query authUserProviders($provider: String!, $providerUserId: String!) {
+  authUserProviders(
+    where: {
+      _and: {
+        provider: { id: { _eq: $provider } }
+        providerUserId: { _eq: $providerUserId }
+      }
+    }
+    limit: 1
+  ) {
+    id
+    user {
+      id
+    }
+  }
+}
+
+query userProvider($userId: uuid!, $providerId: String!) {
+  authUserProviders(
+    where: {
+      _and: [{ userId: { _eq: $userId } }, { providerId: { _eq: $providerId } }]
+    }
+    limit: 1
+  ) {
+    id
+    refreshToken
+  }
+}
+
+mutation updateAuthUserprovider(
+  $id: uuid!
+  $authUserProvider: authUserProviders_set_input!
+) {
+  updateAuthUserProvider(pk_columns: { id: $id }, _set: $authUserProvider) {
+    id
+  }
+}

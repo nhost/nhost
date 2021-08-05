@@ -14,3 +14,6 @@ package-lock.json
 /docker/dev/db_data
 
 #/docker/test/docker-compose.yaml
+
+
+src/ui

@@ -1,23 +1,25 @@
 fragment userFields on users {
   id
+  disabled
   displayName
   avatarUrl
   email
   passwordHash
-  active
+  emailVerified
+  lastVerifyEmailSentAt
+  phoneNumberVerified
   defaultRole
   roles {
     role
   }
   isAnonymous
   ticket
-  otpSecret
-  mfaEnabled
-  passwordHash
+  otpHash
+  otpHashExpiresAt
+  totpSecret
+  activeMfaType
   newEmail
-  lastConfirmationEmailSentAt
   locale
-  customRegisterData
   roles {
     role
   }
@@ -48,26 +50,17 @@ query users($where: users_bool_exp!) {
 # is not active. Except if the user anonymous. Then we can allow it.
 # A user can be anonymous but with active = false when the user converts their
 # account to a real account but has not yet activated it aka verified their email.
-query usersByRefreshToken($refreshToken: uuid!) {
+query getUsersByRefreshToken($refreshToken: uuid!) {
   authRefreshTokens(
     where: {
       _and: [
         { refreshToken: { _eq: $refreshToken } }
-        {
-          _or: [
-            { user: { active: { _eq: true } } }
-            {
-              _and: [
-                { user: { active: { _eq: false } } }
-                { user: { isAnonymous: { _eq: true } } }
-              ]
-            }
-          ]
-        }
+        { user: { disabled: { _eq: false } } }
         { expiresAt: { _gte: now } }
       ]
     }
   ) {
+    refreshToken
     user {
       ...userFields
     }
@@ -80,9 +73,15 @@ mutation updateUser($id: uuid!, $user: users_set_input!) {
   }
 }
 
+mutation updateUserWhere($where: users_bool_exp!, $user: users_set_input!) {
+  updateUsers(where: $where, _set: $user) {
+    affected_rows
+  }
+}
+
 mutation rotateUsersTicket(
-  $oldTicket: uuid!
-  $newTicket: uuid!
+  $oldTicket: String!
+  $newTicket: String!
   $newTicketExpiresAt: timestamptz!
 ) {
   updateUsers(
@@ -93,29 +92,10 @@ mutation rotateUsersTicket(
   }
 }
 
-mutation activateUsers(
-  $ticket: uuid!
-  $newTicket: uuid!
-  $newTicketExpiresAt: timestamptz!
-) {
-  updateUsers(
-    _set: {
-      active: true
-      ticket: $newTicket
-      ticketExpiresAt: $newTicketExpiresAt
-    }
-    where: { _and: [{ active: { _eq: false } }, { ticket: { _eq: $ticket } }] }
-  ) {
-    returning {
-      ...userFields
-    }
-  }
-}
-
 mutation changeEmailsByTicket(
-  $ticket: uuid!
+  $ticket: String!
   $email: citext!
-  $newTicket: uuid!
+  $newTicket: String!
   $now: timestamptz!
 ) {
   updateUsers(
@@ -161,26 +141,27 @@ mutation deanonymizeUser($userId: uuid!, $avatarUrl: String, $role: String!) {
 
   updateUser(
     pk_columns: { id: $userId }
-    _set: { avatarUrl: $avatarUrl, defaultRole: $role, active: true }
+    _set: { avatarUrl: $avatarUrl, defaultRole: $role }
   ) {
     id
   }
 }
 
-mutation insertProviderToUser(
-  $provider: authProviders_insert_input!
-  $userId: uuid!
+mutation insertUserProviderToUser(
+  $userProvider: authUserProviders_insert_input!
 ) {
-  insertAuthProvider(object: $provider) {
-    name
-    code
+  insertAuthUserProvider(object: $userProvider) {
+    id
   }
-  updateUser(pk_columns: { id: $userId }, _set: { active: true }) {
+}
+
+query getUserByTicket($ticket: String!) {
+  users(where: { ticket: { _eq: $ticket } }) {
     ...userFields
   }
 }
 
-mutation updateUsersByTicket($ticket: uuid!, $user: users_set_input!) {
+mutation updateUsersByTicket($ticket: String!, $user: users_set_input!) {
   updateUsers(
     where: {
       _and: [{ ticket: { _eq: $ticket } }, { ticketExpiresAt: { _gt: now } }]

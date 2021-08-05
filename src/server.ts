@@ -1,46 +1,51 @@
-import cors from 'cors'
-import { errors } from './errors'
-import express from 'express'
-import fileUpload from 'express-fileupload'
-import helmet from 'helmet'
-import { json } from 'body-parser'
-import morgan from 'morgan'
-import { limiter } from './limiter'
-import router from './routes'
-import passport from 'passport'
-import baseMiddleware from './middleware/base'
-import logger from './logger'
+import cors from 'cors';
+import { errors } from './errors';
+import express from 'express';
+import helmet from 'helmet';
+import { json } from 'body-parser';
+import morgan from 'morgan';
+import morganBody from 'morgan-body';
+import { limiter } from './limiter';
+import router from './routes';
+import passport from 'passport';
+import { authMiddleware } from './middleware/auth';
+// import logger from './logger';
 
-const app = express()
+const app = express();
 
 if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1)
-  app.use(limiter)
+  app.set('trust proxy', 1);
+  app.use(limiter);
 }
 
+// app.use(morgan('combined'))
 app.use(
   morgan(
-    ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]',
-    {
-      stream: {
-        write: (msg) => logger.verbose(msg.slice(0, -1) /* Removes morgan newline at end */)
-      }
-    }
+    ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]'
   )
-)
-app.use((req, res, next) => {
-  req.logger = logger
-  return next()
-})
-app.use(helmet())
-app.use(json())
-app.use(cors({ credentials: true, origin: true }))
-app.use(fileUpload())
+);
+// app.use((req, res, next) => {
+//   req.logger = logger;
+//   return next();
+// });
 
-app.use(passport.initialize())
+app.use(helmet());
+app.use(json());
+app.use(cors({ credentials: true, origin: true }));
 
-app.use(baseMiddleware)
-app.use(router)
-app.use(errors)
+if (process.env.CI || process.env.NODE_ENV === 'development') {
+  // morganBody(app, {
+  //   skip: (req) => {
+  //     return req.originalUrl === '/change-env';
+  //   },
+  // });
+}
 
-export { app }
+app.use(authMiddleware);
+
+app.use(passport.initialize());
+
+app.use(router);
+app.use(errors);
+
+export { app };
