@@ -91,9 +91,10 @@ export const userPasswordResetSchema = Joi.object({
 
 const passwordTicketPattern = new RegExp(`passwordReset:${uuidRegex.source}`);
 export const userPasswordSchema = Joi.object({
-  oldPassword: Joi.string(),
   ticket: Joi.string().regex(passwordTicketPattern),
-  newPassword: passwordRule,
+  // .label('ticket format incorrect'),
+  oldPassword: Joi.string(),
+  newPassword: Joi.string().required(),
 });
 
 export const userEmailResetSchema = Joi.object({

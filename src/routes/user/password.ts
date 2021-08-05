@@ -58,13 +58,13 @@ export const userPasswordHandler = async (
     });
 
     if (ticketUpdateResponse.updateUsers?.affected_rows !== 1) {
-      return res.boom.badRequest('Ticket invalid or expired');
+      return res.boom.unauthorized('Ticket invalid or expired');
     }
   } else if (oldPassword) {
     // make sure user is signed in
 
     if (!req.auth?.userId) {
-      return res.boom.forbidden('User must be signed in');
+      return res.boom.unauthorized('User must be signed in');
     }
 
     const { userId } = req.auth;

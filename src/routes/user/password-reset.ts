@@ -59,6 +59,10 @@ export const userPasswordResetHandler = async (
           prepared: true,
           value: ticket as string,
         },
+        'x-email-template': {
+          prepared: true,
+          value: 'password-reset',
+        },
       },
     },
   });

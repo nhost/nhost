@@ -34,7 +34,11 @@ app.use(json());
 app.use(cors({ credentials: true, origin: true }));
 
 if (process.env.CI || process.env.NODE_ENV === 'development') {
-  // morganBody(app);
+  morganBody(app, {
+    skip: (req) => {
+      return req.originalUrl === '/change-env';
+    },
+  });
 }
 
 app.use(authMiddleware);
