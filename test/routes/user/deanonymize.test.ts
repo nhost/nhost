@@ -46,9 +46,6 @@ describe('email-password', () => {
     const email = 'something@example.com'; //faker.internet.email();
     const password = '123123123'; //faker.internet.password();
 
-    console.log({ email });
-    console.log({ password });
-
     await request
       .post('/user/deanonymize')
       .set('Authorization', `Bearer ${accessToken}`)
@@ -60,16 +57,7 @@ describe('email-password', () => {
       .expect(200);
 
     // make sure user activate email was sent
-    console.log('before getting messages');
-
-    const messages = await mailHogSearch(email);
-    console.log('after getting messages');
-    const message = messages[0];
-
-    console.log('message:');
-
-    console.log({ message });
-    console.log(JSON.stringify(message, null, 2));
+    const [message] = await mailHogSearch(email);
 
     expect(message).toBeTruthy();
 
