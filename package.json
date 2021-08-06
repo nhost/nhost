@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@aaronhayes/hasura-sdk": "^1.4.0",
+    "@djgrant/postgres-migrations": "^4.1.0-rc.1",
     "@nicokaiser/passport-apple": "^0.2.1",
     "@riderize/passport-strava-oauth2": "^1.1.1",
     "axios": "0.21.1",
@@ -74,7 +75,6 @@
     "passport-twitter": "^1.0.4",
     "passport-windowslive": "^1.0.2",
     "pg": "^8.6.0",
-    "postgres-migrations": "^5.1.1",
     "qrcode": "1.4.4",
     "random-number-csprng": "^1.0.2",
     "uuid": "7.0.3",

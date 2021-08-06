@@ -1,4 +1,4 @@
-import { migrate } from 'postgres-migrations';
+import { migrate } from '@djgrant/postgres-migrations';
 import { Client } from 'pg';
 import logger from './logger';
 
@@ -12,7 +12,9 @@ export async function applyMigrations(): Promise<void> {
   const client = new Client(dbConfig);
   try {
     await client.connect();
-    await migrate({ client }, './migrations');
+    await migrate({ client }, './migrations', {
+      migrationTableName: 'auth.migrations',
+    });
   } finally {
     await client.end();
   }
