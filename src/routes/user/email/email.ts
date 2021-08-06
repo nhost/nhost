@@ -11,8 +11,8 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { AUTHENTICATION } from '@config/authentication';
 
 type BodyType = {
-  ticket?: string;
-  newEmail?: string;
+  ticket: string;
+  newEmail: string;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -64,7 +64,7 @@ export const userEmailHandler = async (
   const user = await getUserByTicket(ticket);
 
   if (!user) {
-    return res.boom.badRequest('Invalid or expired ticket');
+    return res.boom.unauthorized('Invalid or expired ticket');
   }
 
   // set new email for user

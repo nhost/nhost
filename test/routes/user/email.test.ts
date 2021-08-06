@@ -1,11 +1,11 @@
 import { Client } from 'pg';
+import { v4 as uuidv4 } from 'uuid';
 
 import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';
 import { mailHogSearch } from '../../utils';
-import { v4 as uuidv4 } from 'uuid';
 
-describe('user eamil', () => {
+describe('user email', () => {
   let client: any;
 
   beforeAll(async () => {
@@ -48,23 +48,54 @@ describe('user eamil', () => {
 
     accessToken = body.accessToken as string;
 
-    const oldPassword = password;
-    const newPassword = '543543543';
+    // request to reset (to-change) email
+
+    const newEmail = 'newemail@example.com';
 
     await request
-      .post('/user/password')
+      .post('/user/email/reset')
+      // .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newEmail })
+      .expect(401);
+
+    await request
+      .post('/user/email/reset')
       .set('Authorization', `Bearer ${accessToken}`)
-      .send({ oldPassword, newPassword })
+      .send({ newEmail })
       .expect(200);
 
+    // get ticket on new email
+    const [message] = await mailHogSearch(newEmail);
+    expect(message).toBeTruthy();
+
+    const ticket = message.Content.Headers['X-Ticket'][0];
+    expect(ticket.startsWith('emailReset:')).toBeTruthy();
+
+    const emailType = message.Content.Headers['X-Email-Template'][0];
+    expect(emailType).toBe('email-reset');
+
+    // change email
+    await request
+      .post('/user/email')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ ticket: `emailReset:${uuidv4()}` })
+      .expect(401);
+
+    await request
+      .post('/user/email')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ ticket })
+      .expect(200);
+
+    // sign in with new email
     await request
       .post('/signin/email-password')
-      .send({ email, password: oldPassword })
+      .send({ email, password })
       .expect(401);
 
     await request
       .post('/signin/email-password')
-      .send({ email, password: newPassword })
+      .send({ email: newEmail, password })
       .expect(200);
   });
 });

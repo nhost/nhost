@@ -37,7 +37,7 @@ export const userEmailReset = async (
   }
 
   if (!req.auth?.userId) {
-    return res.boom.forbidden('User must be signed in');
+    return res.boom.unauthorized('User must be signed in');
   }
 
   const { userId } = req.auth;
@@ -77,6 +77,10 @@ export const userEmailReset = async (
         'x-ticket': {
           prepared: true,
           value: ticket,
+        },
+        'x-email-template': {
+          prepared: true,
+          value: 'email-reset',
         },
       },
     },
