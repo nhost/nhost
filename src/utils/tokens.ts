@@ -153,11 +153,8 @@ export const getPermissionVariablesFromClaims = (
 export function newRefreshExpiry() {
   const date = new Date();
 
-  // 1 day = 1440 minutes
-  const days = TOKEN.REFRESH_TOKEN_EXPIRES_IN / 1440;
-
   // cant return this becuase this will return a unix timestamp directly
-  date.setDate(date.getDate() + days);
+  date.setSeconds(date.getSeconds() + TOKEN.REFRESH_TOKEN_EXPIRES_IN);
 
   // instead we must return the js date object
   return date;
