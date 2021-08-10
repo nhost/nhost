@@ -17,8 +17,4 @@ RUN yarn install
 
 COPY ../../ .
 
-# Build Next.js UI
-RUN cd ui; yarn; yarn build
-RUN cp -r ui/out src/ui
-
 CMD ["yarn", "run", "dev:in-docker"]
