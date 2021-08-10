@@ -45,9 +45,9 @@ export const insertProfile = async ({
   profile,
 }: InsertProfileParams) => {
   try {
-    // if (!profile) {
-    //   return;
-    // }
+    if (!profile) {
+      return;
+    }
 
     console.log('inside insert profile');
 

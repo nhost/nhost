@@ -7,7 +7,6 @@ import {
 } from 'express-joi-validation';
 
 import { gqlSdk } from '@/utils/gqlSDK';
-import { AUTHENTICATION } from '@config/authentication';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
@@ -27,10 +26,6 @@ export const userEmailReset = async (
   console.log('inside user email reset handler');
 
   const { newEmail } = req.body;
-
-  if (!AUTHENTICATION.VERIFY_EMAILS) {
-    throw new Error('VERIFY_EMAILS set to false');
-  }
 
   if (!APPLICATION.EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable');

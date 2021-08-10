@@ -1,7 +1,7 @@
 // import { request } from "@/test/server";
 import { request } from '../../server';
 import { Client } from 'pg';
-import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
+import { deleteAllMailHogEmails } from '../../utils';
 
 describe('email-password', () => {
   let client: any;
