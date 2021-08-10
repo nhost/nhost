@@ -136,6 +136,7 @@ export const signUpEmailPasswordHandler = async (
       locals: {
         displayName,
         ticket,
+        email,
         url: APPLICATION.SERVER_URL,
         locale: user.locale,
       },

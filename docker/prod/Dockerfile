@@ -15,8 +15,6 @@ ARG NODE_ENV=production
 ENV NODE_ENV $NODE_ENV
 ENV PORT 3000
 
-ENV PGOPTIONS "-c search_path=auth"
-
 WORKDIR /app
 
 COPY package.json yarn.lock ./

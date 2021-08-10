@@ -6,6 +6,18 @@ import {
 } from '../config/utils';
 
 export const ENV = {
+  get SERVER_URL() {
+    return castStringEnv('SERVER_URL', '');
+  },
+
+  get APP_URL() {
+    return castStringEnv('APP_URL', '');
+  },
+
+  get APP_NAME() {
+    return castStringEnv('APP_NAME');
+  },
+
   get DEFAULT_LOCALE() {
     return castStringEnv('DEFAULT_LOCALE', 'en');
   },
@@ -34,9 +46,9 @@ export const ENV = {
     return castBooleanEnv('SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
   },
 
-  get SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED() {
-    return castBooleanEnv('SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
-  },
+  // get SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED() {
+  //   return castBooleanEnv('SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
+  // },
 
   get REGISTRATION_PROFILE_FIELDS() {
     return castStringArrayEnv('REGISTRATION_PROFILE_FIELDS', []);

@@ -45,9 +45,11 @@ export const insertProfile = async ({
   profile,
 }: InsertProfileParams) => {
   try {
-    if (!profile) {
-      return;
-    }
+    // if (!profile) {
+    //   return;
+    // }
+
+    console.log('inside insert profile');
 
     const insertProfile = gql`
       mutation insertProfile($profile: profiles_insert_input!) {
@@ -64,6 +66,16 @@ export const insertProfile = async ({
       },
     });
   } catch (error) {
+    console.log('failed to insert profile');
+    console.log({ error });
+
+    console.log('profile:');
+    console.log(profile);
+
+    // if no profile was provided that it's okey that this query fails.
+    // if (!profile) {
+    //   return;
+    // }
     // delete previously inserted user if unable to insert profile
     await gqlSdk.deleteUser({
       userId,

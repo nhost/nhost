@@ -5,7 +5,6 @@ import {
   ValidatedRequestSchema,
 } from 'express-joi-validation';
 
-import { getNewTokens } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 
 type BodyType = {
