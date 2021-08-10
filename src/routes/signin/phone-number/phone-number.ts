@@ -4,16 +4,11 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
-import { v4 as uuidv4 } from 'uuid';
 
-import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
+import { hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { APPLICATION } from '@config/application';
-import { emailClient } from '@/email';
 import { insertProfile, isProfileValid } from '@/utils/profile';
-import { AUTHENTICATION } from '@config/authentication';
 import { ENV } from '@/utils/env';
-import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
 import { getUserByPhoneNumber } from '@/utils/user';
 import { generateTicketExpiresAt } from '@/utils/ticket';
