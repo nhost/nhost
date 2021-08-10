@@ -9,27 +9,6 @@ const emailRule = Joi.string().email(); //.required(); //.allowedDomains();
 
 const localeRule = Joi.string().length(2);
 
-// const profileRule = Joi.object(
-//   REGISTRATION.CUSTOM_FIELDS.reduce<{ [k: string]: Joi.Schema[] }>(
-//     (aggr, key) => ({
-//       ...aggr,
-//       [key]: [
-//         Joi.string(),
-//         Joi.number(),
-//         Joi.boolean(),
-//         Joi.object(),
-//         Joi.array().items(
-//           Joi.string(),
-//           Joi.number(),
-//           Joi.boolean(),
-//           Joi.object()
-//         ),
-//       ],
-//     }),
-//     {}
-//   )
-// );
-
 export const signUpEmailPasswordSchema = Joi.object({
   email: emailRule.required(),
   password: passwordRule.required(),

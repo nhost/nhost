@@ -1,16 +1,11 @@
 import { castBooleanEnv, castStringArrayEnv } from '@config/utils';
-import { APPLICATION } from '@config/application';
 
 const PROVIDERS = {
   get REDIRECT_SUCCESS() {
-    return (
-      process.env.PROVIDER_SUCCESS_REDIRECT || APPLICATION.REDIRECT_URL_SUCCESS
-    );
+    return process.env.PROVIDER_SUCCESS_REDIRECT;
   },
   get REDIRECT_FAILURE() {
-    return (
-      process.env.PROVIDER_FAILURE_REDIRECT || APPLICATION.REDIRECT_URL_ERROR
-    );
+    return process.env.PROVIDER_FAILURE_REDIRECT;
   },
 
   get github() {

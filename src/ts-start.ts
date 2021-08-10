@@ -1,4 +1,3 @@
-import { APPLICATION } from '@config/index';
 import axios from 'axios';
 
 import { app } from './server';
@@ -6,6 +5,7 @@ import { applyMigrations } from '@/migrations';
 import { applyMetadata } from '@/metadata';
 import './env-vars-check';
 import logger from './logger';
+import { ENV } from './utils/env';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,7 +14,7 @@ function delay(ms: number) {
 const getHasuraReadyState = async () => {
   try {
     await axios.get(
-      `${APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/healthz')}`
+      `${ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/healthz')}`
     );
     return true;
   } catch (err) {
@@ -29,9 +29,9 @@ const waitForHasura = async () => {
     hasuraIsReady = await getHasuraReadyState();
 
     if (hasuraIsReady) {
-      console.log('Hasura is ready');
+      logger.info('Hasura is ready');
     } else {
-      console.log('Hasura is not ready. Retry in 5 seconds.');
+      logger.info('Hasura is not ready. Retry in 5 seconds.');
       await delay(5000);
     }
   }
@@ -40,7 +40,7 @@ const waitForHasura = async () => {
 const getIsFirstRound = async () => {
   // https://stackoverflow.com/a/24089729
   const { data } = await axios.post(
-    APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/v2/query'),
+    ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v2/query'),
     {
       type: 'run_sql',
       args: {
@@ -50,7 +50,7 @@ const getIsFirstRound = async () => {
     },
     {
       headers: {
-        'x-hasura-admin-secret': APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET,
+        'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
       },
     }
   );
@@ -78,11 +78,11 @@ const start = async (): Promise<void> => {
     await applyMetadata();
   }
 
-  app.listen(APPLICATION.PORT, APPLICATION.HOST, () => {
-    if (APPLICATION.HOST) {
-      logger.info(`Running on http://${APPLICATION.HOST}:${APPLICATION.PORT}`);
+  app.listen(ENV.PORT, ENV.HOST, () => {
+    if (ENV.HOST) {
+      logger.info(`Running on http://${ENV.HOST}:${ENV.PORT}`);
     } else {
-      logger.info(`Running on port ${APPLICATION.PORT}`);
+      logger.info(`Running on port ${ENV.PORT}`);
     }
   });
 };

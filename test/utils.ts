@@ -2,7 +2,7 @@ import { JWT } from 'jose';
 import fetch, { Response } from 'node-fetch';
 import { SuperTest, Test } from 'supertest';
 
-import { APPLICATION } from '../src/config/application';
+import { ENV } from '../src/utils/env';
 import { TOKEN } from '../src/config/token';
 import { getClaims } from '../src/utils/tokens';
 import { Token } from '../src/types';
@@ -158,7 +158,7 @@ export const mailHogSearch = async (
   fields = 'to'
 ): Promise<MailhogMessage[]> => {
   const response = await fetch(
-    `http://${APPLICATION.SMTP_HOST}:8025/api/v2/search?kind=${fields}&query=${query}`
+    `http://${ENV.SMTP_HOST}:8025/api/v2/search?kind=${fields}&query=${query}`
   );
   const jsonBody = await response.json();
   return (jsonBody as MailhogSearchResult).items;
@@ -167,18 +167,13 @@ export const mailHogSearch = async (
 export const deleteMailHogEmail = async ({
   ID,
 }: MailhogMessage): Promise<Response> => {
-  return await fetch(
-    `http://${APPLICATION.SMTP_HOST}:8025/api/v1/messages/${ID}`,
-    {
-      method: 'DELETE',
-    }
-  );
+  return await fetch(`http://${ENV.SMTP_HOST}:8025/api/v1/messages/${ID}`, {
+    method: 'DELETE',
+  });
 };
 
 export const deleteAllMailHogEmails = async () => {
-  const response = await fetch(
-    `http://${APPLICATION.SMTP_HOST}:8025/api/v2/messages`
-  );
+  const response = await fetch(`http://${ENV.SMTP_HOST}:8025/api/v2/messages`);
 
   const emails = ((await response.json()) as MailhogSearchResult).items;
 

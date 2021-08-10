@@ -1,6 +1,6 @@
-import { APPLICATION } from '@config/index';
 import axios from 'axios';
 import logger from './logger';
+import { ENV } from './utils/env';
 
 /**
  * https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/relationship.html
@@ -52,7 +52,7 @@ export const trackTable = async (args: TableArgs) => {
   logger.info(`Tracking table ${args.table.name}`);
   try {
     await axios.post(
-      APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
       {
         type: 'track_table',
         version: 2,
@@ -60,7 +60,7 @@ export const trackTable = async (args: TableArgs) => {
       },
       {
         headers: {
-          'x-hasura-admin-secret': APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET,
+          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
         },
       }
     );
@@ -79,14 +79,14 @@ export const setTableCustomization = async (args: TableArgs) => {
 
   try {
     await axios.post(
-      APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
       {
         type: 'set_table_customization',
         args: args,
       },
       {
         headers: {
-          'x-hasura-admin-secret': APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET,
+          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
         },
       }
     );
@@ -100,14 +100,14 @@ export const createObjectRelationship = async (args: RelationshipArgs) => {
   logger.info(`create object relationship ${args.name} for ${args.table.name}`);
   try {
     await axios.post(
-      APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
       {
         type: 'create_object_relationship',
         args,
       },
       {
         headers: {
-          'x-hasura-admin-secret': APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET,
+          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
         },
       }
     );
@@ -129,14 +129,14 @@ export const createArrayRelationship = async (args: RelationshipArgs) => {
   logger.info(`create array relationship ${args.name} for ${args.table.name}`);
   try {
     await axios.post(
-      APPLICATION.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
       {
         type: 'create_array_relationship',
         args,
       },
       {
         headers: {
-          'x-hasura-admin-secret': APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET,
+          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
         },
       }
     );
@@ -155,7 +155,7 @@ export const createArrayRelationship = async (args: RelationshipArgs) => {
 };
 
 export async function applyMetadata(): Promise<void> {
-  logger.info('Applying metadata 3');
+  console.log('Applying metadata 3');
 
   // track tables
   await trackTable({ table: { schema: 'auth', name: 'users' } });
@@ -199,8 +199,6 @@ export async function applyMetadata(): Promise<void> {
         email: 'email',
         password_hash: 'passwordHash',
         phone_number: 'phoneNumber',
-        // is_active: 'isActive',
-        // last_activate_email_sent_at: 'latActivateEmailSentAt',
         email_verified: 'emailVerified',
         last_verify_email_sent_at: 'lastVerifyEmailSentAt',
         phone_number_verified: 'phoneNumberVerified',
@@ -576,5 +574,5 @@ export async function applyMetadata(): Promise<void> {
     );
   }
 
-  logger.info('Finished applying metadata');
+  console.log('Finished applying metadata');
 }

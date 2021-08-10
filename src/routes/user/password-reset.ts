@@ -9,8 +9,8 @@ import {
 import { emailClient } from '@/email';
 import { getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { APPLICATION } from '@config/application';
 import { generateTicketExpiresAt } from '@/utils/ticket';
+import { ENV } from '@/utils/env';
 
 type BodyType = {
   email: string;
@@ -47,9 +47,9 @@ export const userPasswordResetHandler = async (
     template: 'password-reset',
     locals: {
       ticket,
-      url: APPLICATION.SERVER_URL,
+      url: ENV.SERVER_URL,
       locale: user.locale,
-      appUrl: APPLICATION.APP_URL,
+      appUrl: ENV.APP_URL,
       displayName: user.displayName,
     },
     message: {

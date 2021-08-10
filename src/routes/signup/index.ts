@@ -3,8 +3,7 @@ import { createValidator } from 'express-joi-validation';
 
 import { asyncWrapper as aw } from '@/helpers';
 import { signUpEmailPasswordHandler } from './email-password';
-import { signInMagicLinkHandler } from '@routes/signin/magic-link';
-import { signInMagicLinkSchema, signUpEmailPasswordSchema } from '@/validation';
+import { signUpEmailPasswordSchema } from '@/validation';
 
 const router = Router();
 

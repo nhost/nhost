@@ -1,22 +1,22 @@
-import { APPLICATION } from '@config/index';
-
 import Email from 'email-templates';
 import nodemailer from 'nodemailer';
 import ejs from 'ejs';
+
 import { gqlSdk } from './utils/gqlSDK';
+import { ENV } from './utils/env';
 
 /**
  * SMTP transport.
  */
 const transport = nodemailer.createTransport({
-  host: APPLICATION.SMTP_HOST,
-  port: Number(APPLICATION.SMTP_PORT),
-  secure: Boolean(APPLICATION.SMTP_SECURE),
+  host: ENV.SMTP_HOST,
+  port: Number(ENV.SMTP_PORT),
+  secure: Boolean(ENV.SMTP_SECURE),
   auth: {
-    pass: APPLICATION.SMTP_PASS,
-    user: APPLICATION.SMTP_USER,
+    pass: ENV.SMTP_PASS,
+    user: ENV.SMTP_USER,
   },
-  authMethod: APPLICATION.SMTP_AUTH_METHOD,
+  authMethod: ENV.SMTP_AUTH_METHOD,
 });
 
 /**
@@ -24,7 +24,7 @@ const transport = nodemailer.createTransport({
  */
 export const emailClient: Email<any> = new Email({
   transport,
-  message: { from: APPLICATION.SMTP_SENDER },
+  message: { from: ENV.SMTP_SENDER },
   send: true,
   render: async (view, locals) => {
     const [id, field] = view.split('/');

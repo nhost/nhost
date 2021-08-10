@@ -32,8 +32,7 @@ env(router);
 
 // all other routes should throw 404 not found
 router.use('*', (rwq, res) => {
-  return res.send('fail');
-  // return res.boom.notFound();
+  return res.boom.notFound('Route not found');
 });
 
 export default router;

@@ -7,8 +7,8 @@ import {
 } from 'express-joi-validation';
 import refresh from 'passport-oauth2-refresh';
 
-import { APPLICATION } from '@config/application';
 import { gqlSdk } from '@/utils/gqlSDK';
+import { ENV } from '@/utils/env';
 
 const rotate = async ({ providerId, userId }: BodyType) => {
   const { authUserProviders } = await gqlSdk.userProvider({
@@ -67,7 +67,7 @@ export const userProviderTokensHandler = async (
 ): Promise<unknown> => {
   const adminSecret = req.headers['x-admin-secret'];
 
-  if (adminSecret !== APPLICATION.HASURA_GRAPHQL_ADMIN_SECRET) {
+  if (adminSecret !== ENV.HASURA_GRAPHQL_ADMIN_SECRET) {
     return res.boom.unauthorized('incorrect admin secret header');
   }
 

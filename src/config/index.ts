@@ -7,10 +7,8 @@ const envFile =
     : '.env';
 dotenv.config({ path: envFile });
 
-export * from '@config/application';
 export * from '@config/authentication';
 export * from '@config/headers';
-export * from '@config/registration';
 export * from '@config/token';
 export * from '@config/providers';
 export * from '@config/mfa';

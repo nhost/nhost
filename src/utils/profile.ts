@@ -61,7 +61,7 @@ export const insertProfile = async ({
 
     await client.request(insertProfile, {
       profile: {
-        userId: userId,
+        userId: userId, // TODO: Maybe skip this?
         ...profile,
       },
     });

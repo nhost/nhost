@@ -1,6 +1,4 @@
-// import { request } from "@/test/server";
 import { Client } from 'pg';
-import * as faker from 'faker';
 
 import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';

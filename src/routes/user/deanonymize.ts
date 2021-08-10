@@ -9,10 +9,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getUserByEmail, hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
-import { REGISTRATION } from '@config/registration';
 import { emailClient } from '@/email';
-import { APPLICATION } from '@config/application';
-import { AUTHENTICATION } from '@config/authentication';
 import { isPasswordValid } from '@/utils/password';
 import { isValidEmail } from '@/utils/email';
 import { ENV } from '@/utils/env';
@@ -165,7 +162,7 @@ export const userDeanonymizeHandler = async (
   // send email
   if (signInMethod === 'email-password') {
     if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-      if (!APPLICATION.EMAILS_ENABLED) {
+      if (!ENV.EMAILS_ENABLED) {
         throw new Error('SMTP settings unavailable');
       }
 
@@ -188,13 +185,13 @@ export const userDeanonymizeHandler = async (
           displayName: user.displayName,
           email,
           ticket,
-          url: APPLICATION.SERVER_URL,
+          url: ENV.SERVER_URL,
           locale: user.locale,
         },
       });
     }
   } else if (signInMethod === 'magic-link') {
-    if (!APPLICATION.EMAILS_ENABLED) {
+    if (!ENV.EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }
 
@@ -217,8 +214,8 @@ export const userDeanonymizeHandler = async (
         email,
         locale: user.locale,
         otp,
-        url: APPLICATION.SERVER_URL,
-        appUrl: APPLICATION.APP_URL,
+        url: ENV.SERVER_URL,
+        appUrl: ENV.APP_URL,
       },
     });
   } else {

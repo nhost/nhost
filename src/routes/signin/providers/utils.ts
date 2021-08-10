@@ -1,43 +1,34 @@
 import express, {
   NextFunction,
-  Request,
   RequestHandler,
   Response,
   Router,
 } from 'express';
-import passport, { Profile } from 'passport';
-import { VerifyCallback } from 'passport-oauth2';
-import refresh from 'passport-oauth2-refresh';
-import { Strategy } from 'passport';
-
-import { APPLICATION, PROVIDERS, REGISTRATION } from '@config/index';
-import {
-  asyncWrapper,
-  getGravatarUrl,
-  isWhitelistedEmail,
-  getUserByEmail,
-} from '@/helpers';
-import { PermissionVariables, SessionUser } from '@/types';
-import {
-  ProviderCallbackQuery,
-  providerCallbackQuery,
-  ProviderQuery,
-  providerQuery,
-} from '@/validation';
-import { v4 as uuidv4 } from 'uuid';
-import {
-  getClaims,
-  getNewRefreshToken,
-  getPermissionVariablesFromClaims,
-} from '@/utils/tokens';
 import {
   ContainerTypes,
   createValidator,
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
+import passport, { Profile } from 'passport';
+import { VerifyCallback } from 'passport-oauth2';
+import refresh from 'passport-oauth2-refresh';
+import { Strategy } from 'passport';
+import { v4 as uuidv4 } from 'uuid';
+
+import { PROVIDERS } from '@config/index';
+import { asyncWrapper, getGravatarUrl, getUserByEmail } from '@/helpers';
+import { SessionUser } from '@/types';
+import {
+  ProviderCallbackQuery,
+  providerCallbackQuery,
+  ProviderQuery,
+  providerQuery,
+} from '@/validation';
+import { getNewRefreshToken } from '@/utils/tokens';
 import { UserFieldsFragment } from '@/utils/__generated__/graphql-request';
 import { gqlSdk } from '@/utils/gqlSDK';
+import { ENV } from '@/utils/env';
 
 interface RequestWithState<T extends ValidatedRequestSchema>
   extends ValidatedRequest<T> {
@@ -74,10 +65,6 @@ const manageProviderStrategy =
     // find or create the user
     // check if user exists, using profile.id
     const { id, email, displayName, avatarUrl } = transformProfile(profile);
-
-    if (REGISTRATION.WHITELIST && (!email || !isWhitelistedEmail(email))) {
-      return done(new Error('Email not allowed'));
-    }
 
     // check if user already exist with `id` (unique id from provider)
     const userProvider = await gqlSdk
@@ -170,9 +157,9 @@ const manageProviderStrategy =
           email,
           passwordHash: null,
           emailVerified: true,
-          defaultRole: REGISTRATION.DEFAULT_USER_ROLE,
+          defaultRole: ENV.DEFAULT_USER_ROLE,
           roles: {
-            data: REGISTRATION.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({
+            data: ENV.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({
               role,
             })),
           },
@@ -269,7 +256,7 @@ export const initProvider = <T extends Strategy>(
       {
         ...PROVIDERS[strategyName],
         ...options,
-        callbackURL: `${APPLICATION.SERVER_URL}/signin/provider/${strategyName}/callback`,
+        callbackURL: `${ENV.SERVER_URL}/signin/provider/${strategyName}/callback`,
         passReqToCallback: true,
       },
       manageProviderStrategy(strategyName, transformProfile)
@@ -281,14 +268,6 @@ export const initProvider = <T extends Strategy>(
   }
 
   subRouter.get('/', [
-    async (req: Request, res: Response, next: NextFunction) => {
-      if (REGISTRATION.ADMIN_ONLY) {
-        return res.boom.notImplemented(
-          'Provider authentication cannot be used when registration when ADMIN_ONLY_REGISTRATION=true'
-        );
-      }
-      await next();
-    },
     createValidator().query(providerQuery),
     asyncWrapper(
       async (

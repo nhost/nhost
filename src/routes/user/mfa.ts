@@ -1,5 +1,4 @@
 import { gqlSdk } from '@/utils/gqlSDK';
-import { resolveSoa } from 'dns';
 import { Response } from 'express';
 import {
   ContainerTypes,

@@ -3,7 +3,7 @@ import { Server } from 'http';
 import getPort from 'get-port';
 import { Client } from 'pg';
 
-import { APPLICATION } from '../../../src/config/application';
+import { ENV } from '../../../src/utils/env';
 import { app } from '../../../src/server';
 import { isValidAccessToken } from '../../utils';
 import { SignInTokens } from '../../../src/utils/tokens';
@@ -31,7 +31,7 @@ describe('anonymous', () => {
     await client.query(`DELETE FROM auth.users;`);
     console.log('before each generate new server');
 
-    server = app.listen(await getPort(), APPLICATION.HOST);
+    server = app.listen(await getPort(), ENV.HOST);
     request = agent(server);
   });
 
@@ -150,7 +150,7 @@ describe('anonymous with profile table', () => {
     await client.query(`DELETE FROM auth.users;`);
     await client.query(`DELETE FROM public.profiles;`);
 
-    server = app.listen(await getPort(), APPLICATION.HOST);
+    server = app.listen(await getPort(), ENV.HOST);
     request = agent(server);
   });
 

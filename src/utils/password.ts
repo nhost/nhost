@@ -1,4 +1,3 @@
-import { REGISTRATION } from '@config/registration';
 import { Response } from 'express';
 import { pwnedPassword } from 'hibp';
 import { ENV } from './env';
@@ -26,7 +25,7 @@ export const isPasswordValid = async ({
   }
 
   // check if compromised
-  if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password))) {
+  if (ENV.HIBP_ENABLED && (await pwnedPassword(password))) {
     res.boom.badRequest('Password is too weak.');
     return false;
   }

@@ -3,8 +3,6 @@ import * as faker from 'faker';
 
 import { request } from '../../server';
 import { SignInTokens } from '../../../src/utils/tokens';
-import { mailHogSearch } from '../../utils';
-import { v4 as uuidv4 } from 'uuid';
 
 describe('user password', () => {
   let client: any;

@@ -4,11 +4,10 @@ import { json } from 'body-parser';
 import cors from 'cors';
 import passport from 'passport';
 import morgan from 'morgan';
-import morganBody from 'morgan-body';
+// import morganBody from 'morgan-body';
 
 import router from './routes';
 import { errors } from './errors';
-import { limiter } from './limiter';
 import { authMiddleware } from './middleware/auth';
 // import logger from './logger';
 
@@ -16,7 +15,6 @@ const app = express();
 
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
-  app.use(limiter);
 }
 
 // app.use(morgan('combined'))
@@ -35,11 +33,11 @@ app.use(json());
 app.use(cors({ credentials: true, origin: true }));
 
 if (process.env.CI || process.env.NODE_ENV === 'development') {
-  morganBody(app, {
-    skip: (req) => {
-      return req.originalUrl === '/change-env';
-    },
-  });
+  // morganBody(app, {
+  //   skip: (req) => {
+  //     return req.originalUrl === '/change-env';
+  //   },
+  // });
 }
 
 app.use(authMiddleware);

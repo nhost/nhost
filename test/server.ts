@@ -1,15 +1,15 @@
-import { APPLICATION } from "@config/index";
-import { app } from "@/server";
-import { SuperTest, Test, agent } from "supertest";
-import { Server } from "http";
-import getPort from "get-port";
+import { ENV } from '@/utils/env';
+import { app } from '@/server';
+import { SuperTest, Test, agent } from 'supertest';
+import { Server } from 'http';
+import getPort from 'get-port';
 
 export let request: SuperTest<Test>;
 
 export let server: Server;
 
 const start = async () => {
-  server = app.listen(await getPort(), APPLICATION.HOST);
+  server = app.listen(await getPort(), ENV.HOST);
   request = agent(server);
 };
 

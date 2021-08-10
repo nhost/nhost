@@ -8,9 +8,9 @@ import {
 
 import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
-import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
 import { getUserByEmail } from '@/helpers';
+import { ENV } from '@/utils/env';
 
 type BodyType = {
   email: string;
@@ -28,7 +28,7 @@ export const userEmailSendVerificationEmailHandler = async (
 
   const { email } = req.body;
 
-  if (!APPLICATION.EMAILS_ENABLED) {
+  if (!ENV.EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable');
   }
 
@@ -77,7 +77,7 @@ export const userEmailSendVerificationEmailHandler = async (
     locals: {
       displayName: user.displayName,
       ticket,
-      url: APPLICATION.SERVER_URL,
+      url: ENV.SERVER_URL,
       locale: user.locale,
     },
   });

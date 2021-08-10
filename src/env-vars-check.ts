@@ -1,5 +1,6 @@
-import { APPLICATION, PROVIDERS } from '@config/index';
+import { PROVIDERS } from '@config/index';
 import logger from './logger';
+import { ENV } from './utils/env';
 
 function isUnset(val: any) {
   return (
@@ -129,7 +130,7 @@ if (PROVIDERS.github) {
   });
 }
 
-if (APPLICATION.EMAILS_ENABLED) {
+if (ENV.EMAILS_ENABLED) {
   ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'].forEach((env) => {
     if (isUnset(process.env[env])) {
       errors.push(

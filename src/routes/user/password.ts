@@ -9,7 +9,7 @@ import { pwnedPassword } from 'hibp';
 
 import { hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { REGISTRATION } from '@config/registration';
+import { ENV } from '@/utils/env';
 
 type BodyType = {
   ticket?: string;
@@ -38,7 +38,7 @@ export const userPasswordHandler = async (
   }
 
   // check if password is compromised
-  if (REGISTRATION.HIBP_ENABLED && (await pwnedPassword(newPassword))) {
+  if (ENV.HIBP_ENABLED && (await pwnedPassword(newPassword))) {
     return res.boom.badRequest('Password is too weak');
   }
 

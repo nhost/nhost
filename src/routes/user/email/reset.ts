@@ -8,8 +8,8 @@ import {
 
 import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
-import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
+import { ENV } from '@/utils/env';
 
 type BodyType = {
   newEmail: string;
@@ -27,7 +27,7 @@ export const userEmailReset = async (
 
   const { newEmail } = req.body;
 
-  if (!APPLICATION.EMAILS_ENABLED) {
+  if (!ENV.EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable');
   }
 
@@ -61,9 +61,9 @@ export const userEmailReset = async (
     template: 'email-reset',
     locals: {
       ticket,
-      url: APPLICATION.SERVER_URL,
+      url: ENV.SERVER_URL,
       locale: user.locale,
-      appUrl: APPLICATION.APP_URL,
+      appUrl: ENV.APP_URL,
       displayName: user.displayName,
     },
     message: {

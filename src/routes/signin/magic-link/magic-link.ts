@@ -7,7 +7,6 @@ import {
 
 import { getGravatarUrl, getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
 import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
@@ -42,7 +41,7 @@ export const signInMagicLinkHandler = async (
   }
 
   // EMAIL must be enabled
-  if (!APPLICATION.EMAILS_ENABLED) {
+  if (!ENV.EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable');
   }
 
@@ -144,8 +143,8 @@ export const signInMagicLinkHandler = async (
       email,
       locale,
       otp,
-      url: APPLICATION.SERVER_URL,
-      appUrl: APPLICATION.APP_URL,
+      url: ENV.SERVER_URL,
+      appUrl: ENV.APP_URL,
     },
   });
 

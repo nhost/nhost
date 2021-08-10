@@ -1,13 +1,13 @@
-import { APPLICATION, TOKEN, REGISTRATION } from '@config/index';
+import { TOKEN } from '@config/index';
 import { NextFunction, Response, Request } from 'express';
 import * as gravatar from 'gravatar';
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
-import { pwnedPassword } from 'hibp';
 import { v4 as uuidv4 } from 'uuid';
 import { gqlSdk } from './utils/gqlSDK';
 import { UserFieldsFragment } from './utils/__generated__/graphql-request';
 import { SessionUser } from './types';
+import { ENV } from './utils/env';
 
 /**
  * Create QR code.
@@ -91,16 +91,6 @@ export const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, 10);
 };
 
-/**
- * Checks password against the HIBP API.
- * @param password Password to check.
- */
-export const isCompromisedPassword = async (
-  password: string
-): Promise<boolean> => {
-  return !!(REGISTRATION.HIBP_ENABLED && (await pwnedPassword(password)));
-};
-
 export const rotateTicket = async (oldTicket: string): Promise<string> => {
   const newTicket = uuidv4();
 
@@ -139,25 +129,13 @@ export const userIsAnonymous = async (userId: string) => {
 };
 
 export const getGravatarUrl = (email?: string) => {
-  if (APPLICATION.GRAVATAR_ENABLED && email) {
+  if (ENV.GRAVATAR_ENABLED && email) {
     return gravatar.url(email, {
-      r: APPLICATION.RATING,
+      r: ENV.GRAVATAR_RATING,
       protocol: 'https',
-      default: APPLICATION.GRAVATAR_DEFAULT,
+      default: ENV.GRAVATAR_DEFAULT,
     });
   }
-};
-
-export const deanonymizeUser = async (user: UserFieldsFragment) => {
-  // Gravatar is enabled and anonymous user has not added
-  // an avatar yet
-  const useGravatar = APPLICATION.GRAVATAR_ENABLED && !user.avatarUrl;
-
-  await gqlSdk.deanonymizeUser({
-    userId: user.id,
-    avatarUrl: !useGravatar ? user.avatarUrl : getGravatarUrl(user.email) || '',
-    role: REGISTRATION.DEFAULT_USER_ROLE,
-  });
 };
 
 export const isWhitelistedEmail = async (email: string) => {

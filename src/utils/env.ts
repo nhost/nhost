@@ -6,6 +6,61 @@ import {
 } from '../config/utils';
 
 export const ENV = {
+  // Application
+
+  get HASURA_GRAPHQL_ADMIN_SECRET() {
+    return castStringEnv('HASURA_GRAPHQL_ADMIN_SECRET', '');
+  },
+  get HASURA_ENDPOINT() {
+    return castStringEnv('HASURA_ENDPOINT', '');
+  },
+
+  get HOST() {
+    return castStringEnv('HOST', undefined);
+  },
+  get PORT() {
+    return castIntEnv('PORT', 3000);
+  },
+
+  get SMTP_PASS() {
+    return process.env.SMTP_PASS || '';
+  },
+  get SMTP_HOST() {
+    return process.env.SMTP_HOST || '';
+  },
+  get SMTP_USER() {
+    return process.env.SMTP_USER || '';
+  },
+  get SMTP_SENDER() {
+    return process.env.SMTP_SENDER || this.SMTP_USER;
+  },
+  get SMTP_AUTH_METHOD() {
+    return process.env.SMTP_AUTH_METHOD || 'PLAIN';
+  },
+  get EMAILS_ENABLED() {
+    return castBooleanEnv('EMAILS_ENABLED', false);
+  },
+  get SMTP_PORT() {
+    return castIntEnv('SMTP_PORT', 587);
+  },
+  get SMTP_SECURE() {
+    return castBooleanEnv('SMTP_SECURE'); // note: false disables SSL (deprecated)
+  },
+
+  get EMAILS_DEFAULT_LOCALE() {
+    return process.env.EMAILS_DEFAULT_LOCALE || 'en';
+  },
+
+  get GRAVATAR_ENABLED() {
+    return castBooleanEnv('GRAVATAR_ENABLED', true);
+  },
+  get GRAVATAR_DEFAULT() {
+    return castStringEnv('GRAVATAR_DEFAULT', 'blank');
+  },
+  get GRAVATAR_RATING() {
+    return castStringEnv('GRAVATAR_RATING', 'g');
+  },
+
   get SERVER_URL() {
     return castStringEnv('SERVER_URL', '');
   },
@@ -97,5 +152,13 @@ export const ENV = {
 
   get ALLOWED_EMAIL_DOMAINS() {
     return castStringArrayEnv('ALLOWED_EMAIL_DOMAINS');
+  },
+
+  get LOGGER_ENABLED() {
+    return castBooleanEnv('LOGGER_ENABLED', true);
+  },
+
+  get LOGGER_LEVEL() {
+    return castStringEnv('LOGGER_LEVEL', 'info');
   },
 };

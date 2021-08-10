@@ -38,7 +38,8 @@ describe('email-password', () => {
       .send({ email: 'joedoe@example.com', password: '123456' })
       .expect(200);
 
-    const { status, body } = await request
+    // const { status, body } = await request
+    await request
       .post('/signin/email-password')
       .send({ email: 'joedoe@example.com', password: '123456' })
       .expect(200);

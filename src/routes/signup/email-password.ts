@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { APPLICATION } from '@config/application';
 import { emailClient } from '@/email';
 import { insertProfile, isProfileValid } from '@/utils/profile';
 import { isValidEmail } from '@/utils/email';
@@ -114,7 +113,7 @@ export const signUpEmailPasswordHandler = async (
 
   // user is now inserted. Continue sending out activation email
   if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    if (!APPLICATION.EMAILS_ENABLED) {
+    if (!ENV.EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }
 
@@ -137,7 +136,7 @@ export const signUpEmailPasswordHandler = async (
         displayName,
         ticket,
         email,
-        url: APPLICATION.SERVER_URL,
+        url: ENV.SERVER_URL,
         locale: user.locale,
       },
     });

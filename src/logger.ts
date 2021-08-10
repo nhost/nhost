@@ -1,5 +1,5 @@
-import { APPLICATION } from '@config/application';
 import winston from 'winston';
+import { ENV } from './utils/env';
 
 const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
@@ -11,8 +11,8 @@ const logger = winston.createLogger({
           winston.format.simple()
         ),
   exitOnError: false,
-  level: APPLICATION.LOGGER_LEVEL,
-  silent: !APPLICATION.LOGGER_ENABLED,
+  level: ENV.LOGGER_LEVEL,
+  silent: !ENV.LOGGER_ENABLED,
 });
 
 export default logger;
