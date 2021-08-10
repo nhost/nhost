@@ -23,27 +23,20 @@ export const signOutHandler = async (
   const { refreshToken, all } = req.body;
 
   if (all) {
-    const user = await gqlSdk
-      .getUsersByRefreshToken({
-        refreshToken,
-      })
-      .then((res) => {
-        try {
-          return res.authRefreshTokens[0].user;
-        } catch (error) {
-          throw new Error('Invalid or expired ticket');
-        }
-      });
-
-    if (!user) {
-      throw new Error('Invalid or expired ticket');
+    if (!req.auth?.userId) {
+      return res.boom.unauthorized(
+        'User must be signed in to sign out from all sessions'
+      );
     }
 
+    const { userId } = req.auth;
+
     await gqlSdk.deleteUserRefreshTokens({
-      userId: user.id,
+      userId,
     });
   } else {
-    // !all
+    // only sign out from the current session
+    // delete current refresh token
     await gqlSdk.deleteRefreshToken({
       refreshToken,
     });

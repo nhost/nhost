@@ -153,7 +153,7 @@ export const userDeanonymizeHandler = async (
   console.log(ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED);
 
   if (ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    console.log('delete all aold user refresh tokens');
+    console.log('delete all old user refresh tokens');
     await gqlSdk.deleteUserRefreshTokens({
       userId,
     });

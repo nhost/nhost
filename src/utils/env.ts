@@ -44,19 +44,19 @@ export const ENV = {
   },
 
   get SMTP_PASS() {
-    return process.env.SMTP_PASS || '';
+    return castStringEnv('SMTP_PASS', '');
   },
   get SMTP_HOST() {
-    return process.env.SMTP_HOST || '';
+    return castStringEnv('SMTP_HOST', '');
   },
   get SMTP_USER() {
-    return process.env.SMTP_USER || '';
+    return castStringEnv('SMTP_USER', '');
   },
   get SMTP_SENDER() {
-    return process.env.SMTP_SENDER || this.SMTP_USER;
+    return castStringEnv('SMTP_SENDER', '');
   },
   get SMTP_AUTH_METHOD() {
-    return process.env.SMTP_AUTH_METHOD || 'PLAIN';
+    return castStringEnv('SMTP_AUTH_METHOD', 'PLAIN');
   },
   get EMAILS_ENABLED() {
     return castBooleanEnv('EMAILS_ENABLED', false);
@@ -65,11 +65,8 @@ export const ENV = {
     return castIntEnv('SMTP_PORT', 587);
   },
   get SMTP_SECURE() {
-    return castBooleanEnv('SMTP_SECURE'); // note: false disables SSL (deprecated)
-  },
-
-  get EMAILS_DEFAULT_LOCALE() {
-    return process.env.EMAILS_DEFAULT_LOCALE || 'en';
+    // note: false disables SSL (deprecated)
+    return castBooleanEnv('SMTP_SECURE', false);
   },
 
   get GRAVATAR_ENABLED() {
@@ -173,6 +170,10 @@ export const ENV = {
 
   get ALLOWED_EMAIL_DOMAINS() {
     return castStringArrayEnv('ALLOWED_EMAIL_DOMAINS');
+  },
+
+  get ALLOWED_REDIRECT_URLS() {
+    return castStringArrayEnv('ALLOWED_REDIRECT_URLS');
   },
 
   get LOGGER_ENABLED() {

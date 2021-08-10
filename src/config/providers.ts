@@ -1,13 +1,6 @@
 import { castBooleanEnv, castStringArrayEnv } from '@config/utils';
 
 const PROVIDERS = {
-  get REDIRECT_SUCCESS() {
-    return process.env.PROVIDER_SUCCESS_REDIRECT;
-  },
-  get REDIRECT_FAILURE() {
-    return process.env.PROVIDER_FAILURE_REDIRECT;
-  },
-
   get github() {
     return !(
       castBooleanEnv('GITHUB_ENABLED') || castBooleanEnv('GITHUB_ENABLE')

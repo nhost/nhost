@@ -158,6 +158,7 @@ const manageProviderStrategy =
           passwordHash: null,
           emailVerified: true,
           defaultRole: ENV.DEFAULT_USER_ROLE,
+          locale: ENV.DEFAULT_LOCALE,
           roles: {
             data: ENV.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({
               role,
@@ -277,14 +278,21 @@ export const initProvider = <T extends Strategy>(
       ) => {
         req.state = uuidv4();
 
-        // get redirect Url
-        // will default to REDIRECT_URL_SUCCESS
-        const redirectUrl = req.query.redirectUrl as string;
+        const redirectUrl =
+          'redirectUrl' in req.query ? req.query.redirectUrl : ENV.APP_URL;
 
-        // TODO:
-        // - make sure redirect url is in allowed redirect urls
-        // - rename REDIRECT_URL_SUCCESS to REDIRECT_URL
-        // - place all env vars under `ENV`
+        if (!redirectUrl) {
+          return res.boom.badRequest('Redirect URL is undefined');
+        }
+
+        if (
+          ENV.APP_URL !== redirectUrl &&
+          !ENV.ALLOWED_REDIRECT_URLS.includes(redirectUrl)
+        ) {
+          return res.boom.badRequest(
+            'Redirect URL is not same as APP_URL or not in ALLOWED_REDIRECT_URLS'
+          );
+        }
 
         await gqlSdk.insertProviderRequest({
           providerRequest: {
