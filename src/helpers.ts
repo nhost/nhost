@@ -2,7 +2,6 @@ import { NextFunction, Response, Request } from 'express';
 import * as gravatar from 'gravatar';
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
-import { v4 as uuidv4 } from 'uuid';
 import { gqlSdk } from './utils/gqlSDK';
 import { UserFieldsFragment } from './utils/__generated__/graphql-request';
 import { SessionUser } from './types';
@@ -88,18 +87,6 @@ export const getUserById = async (userId: string | undefined) => {
  */
 export const hashPassword = async (password: string): Promise<string> => {
   return await bcrypt.hash(password, 10);
-};
-
-export const rotateTicket = async (oldTicket: string): Promise<string> => {
-  const newTicket = uuidv4();
-
-  await gqlSdk.rotateUsersTicket({
-    oldTicket,
-    newTicket,
-    newTicketExpiresAt: new Date(),
-  });
-
-  return newTicket;
 };
 
 export function newRefreshExpiry() {
