@@ -5,7 +5,6 @@ import {
   ValidatedRequestSchema,
 } from 'express-joi-validation';
 
-import { MFA } from '@config/index';
 import { createQR } from '@/helpers';
 import { authenticator } from 'otplib';
 import { gqlSdk } from '@/utils/gqlSDK';
@@ -34,7 +33,7 @@ export const mfatotpGenerateHandler = async (
   const { userId } = req.auth;
 
   const totpSecret = authenticator.generateSecret();
-  const otpAuth = authenticator.keyuri(userId, MFA.OTP_ISSUER, totpSecret);
+  const otpAuth = authenticator.keyuri(userId, ENV.TOTP_ISSUER, totpSecret);
 
   await gqlSdk.updateUser({
     id: userId,

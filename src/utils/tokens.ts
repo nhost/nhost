@@ -1,7 +1,6 @@
 import { JWT } from 'jose';
 import { v4 as uuidv4 } from 'uuid';
 
-import { TOKEN } from '@config/index';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { Claims, Token, ClaimValueType, PermissionVariables } from '../types';
 import { UserFieldsFragment } from './__generated__/graphql-request';
@@ -12,11 +11,11 @@ import { ENV } from './env';
 // const RSA_TYPES = ["RS256", "RS384", "RS512"];
 const SHA_TYPES = ['HS256', 'HS384', 'HS512'];
 
-if (!SHA_TYPES.includes(TOKEN.ALGORITHM)) {
-  throw new Error(`Invalid JWT algorithm: ${TOKEN.ALGORITHM}`);
+if (!SHA_TYPES.includes(ENV.ALGORITHM)) {
+  throw new Error(`Invalid JWT algorithm: ${ENV.ALGORITHM}`);
 }
 
-if (!TOKEN.JWT_SECRET) {
+if (!ENV.JWT_SECRET) {
   throw new Error('Empty JWT secret key');
 }
 
@@ -112,9 +111,9 @@ export const sign = ({
   payload: object;
   user: UserFieldsFragment;
 }) => {
-  return JWT.sign(payload, TOKEN.JWT_SECRET, {
-    algorithm: TOKEN.ALGORITHM,
-    expiresIn: `${TOKEN.ACCESS_TOKEN_EXPIRES_IN}s`,
+  return JWT.sign(payload, ENV.JWT_SECRET, {
+    algorithm: ENV.ALGORITHM,
+    expiresIn: `${ENV.ACCESS_TOKEN_EXPIRES_IN}s`,
     subject: user.id,
     issuer: 'nhost',
   });
@@ -128,10 +127,10 @@ export const getClaims = (authorization: string | undefined): Claims => {
   if (!authorization) throw new Error('Missing Authorization header');
   const token = authorization.replace('Bearer ', '');
   try {
-    const decodedToken = JWT.verify(token, TOKEN.JWT_SECRET) as Token;
-    if (!decodedToken[TOKEN.CLAIMS_NAMESPACE])
+    const decodedToken = JWT.verify(token, ENV.JWT_SECRET) as Token;
+    if (!decodedToken[ENV.CLAIMS_NAMESPACE])
       throw new Error('Claims namespace not found');
-    return decodedToken[TOKEN.CLAIMS_NAMESPACE];
+    return decodedToken[ENV.CLAIMS_NAMESPACE];
   } catch (err) {
     throw new Error('Invalid or expired JWT token');
   }
@@ -154,14 +153,14 @@ export function newRefreshExpiry() {
   const date = new Date();
 
   // cant return this becuase this will return a unix timestamp directly
-  date.setSeconds(date.getSeconds() + TOKEN.REFRESH_TOKEN_EXPIRES_IN);
+  date.setSeconds(date.getSeconds() + ENV.REFRESH_TOKEN_EXPIRES_IN);
 
   // instead we must return the js date object
   return date;
 }
 
 /**
- * Create JWT token.
+ * Create JWT ENV.
  */
 export const createHasuraAccessToken = (
   user: UserFieldsFragment,
@@ -169,7 +168,7 @@ export const createHasuraAccessToken = (
 ): string => {
   return sign({
     payload: {
-      [TOKEN.CLAIMS_NAMESPACE]: generatePermissionVariables(user, profile),
+      [ENV.CLAIMS_NAMESPACE]: generatePermissionVariables(user, profile),
     },
     user,
   });
@@ -251,7 +250,7 @@ export const getSignInTokens = async ({
 
   return {
     accessToken,
-    accessTokenExpiresIn: TOKEN.ACCESS_TOKEN_EXPIRES_IN,
+    accessTokenExpiresIn: ENV.ACCESS_TOKEN_EXPIRES_IN,
     refreshToken,
     mfa: null,
   };
@@ -280,7 +279,7 @@ export const getNewTokens = async ({
 
   return {
     accessToken,
-    accessTokenExpiresIn: TOKEN.ACCESS_TOKEN_EXPIRES_IN,
+    accessTokenExpiresIn: ENV.ACCESS_TOKEN_EXPIRES_IN,
     refreshToken,
   };
 };

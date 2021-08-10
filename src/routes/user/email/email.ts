@@ -4,15 +4,12 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
-import * as EmailValidator from 'email-validator';
 
 import { getUserByTicket } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { AUTHENTICATION } from '@config/authentication';
 
 type BodyType = {
   ticket: string;
-  newEmail: string;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -25,36 +22,30 @@ export const userEmailHandler = async (
 ): Promise<unknown> => {
   console.log('inside user password handler');
 
-  const { ticket, newEmail } = req.body;
+  const { ticket } = req.body;
 
-  if (newEmail) {
-    if (AUTHENTICATION.VERIFY_EMAILS) {
-      return res.boom.badRequest(
-        "Email can not be changed manually. Use the `/user/email/reset route to reset the users's email"
-      );
-    }
+  // if (newEmail) {
+  //   if (!req.auth?.userId) {
+  //     return res.boom.forbidden('User must be signed in');
+  //   }
 
-    if (!req.auth?.userId) {
-      return res.boom.forbidden('User must be signed in');
-    }
+  //   const { userId } = req.auth;
 
-    const { userId } = req.auth;
+  //   if (!EmailValidator.validate(newEmail)) {
+  //     return res.boom.badRequest(
+  //       'Invalid: newEmail is not a valid email address'
+  //     );
+  //   }
 
-    if (!EmailValidator.validate(newEmail)) {
-      return res.boom.badRequest(
-        'Invalid: newEmail is not a valid email address'
-      );
-    }
+  //   await gqlSdk.updateUser({
+  //     id: userId,
+  //     user: {
+  //       email: newEmail,
+  //     },
+  //   });
 
-    await gqlSdk.updateUser({
-      id: userId,
-      user: {
-        email: newEmail,
-      },
-    });
-
-    return res.send('ok');
-  }
+  //   return res.send('ok');
+  // }
 
   if (!ticket) {
     return res.boom.badRequest('Missing ticket');

@@ -1,4 +1,3 @@
-import { TOKEN } from '@config/index';
 import { NextFunction, Response, Request } from 'express';
 import * as gravatar from 'gravatar';
 import QRCode from 'qrcode';
@@ -107,7 +106,7 @@ export function newRefreshExpiry() {
   const date = new Date();
 
   // 1 day = 1440 minutes
-  const days = TOKEN.REFRESH_TOKEN_EXPIRES_IN / 1440;
+  const days = ENV.REFRESH_TOKEN_EXPIRES_IN / 1440;
 
   // cant return this becuase this will return a unix timestamp directly
   date.setDate(date.getDate() + days);

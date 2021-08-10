@@ -6,6 +6,27 @@ import {
 } from '../config/utils';
 
 export const ENV = {
+  // jwt
+
+  get JWT_SECRET() {
+    return castStringEnv('JWT_SECRET', '');
+  },
+  get ALGORITHM() {
+    return castStringEnv('JWT_ALGORITHM', 'HS512');
+  },
+  get CLAIMS_NAMESPACE() {
+    return castStringEnv(
+      'JWT_CLAIMS_NAMESPACE',
+      'https://hasura.io/jwt/claims'
+    );
+  },
+  get ACCESS_TOKEN_EXPIRES_IN() {
+    return castIntEnv('ACCESS_TOKEN_EXPIRES_IN', 900);
+  },
+  get REFRESH_TOKEN_EXPIRES_IN() {
+    return castIntEnv('REFRESH_TOKEN_EXPIRES_IN', 43200);
+  },
+
   // Application
 
   get HASURA_GRAPHQL_ADMIN_SECRET() {
@@ -160,5 +181,9 @@ export const ENV = {
 
   get LOGGER_LEVEL() {
     return castStringEnv('LOGGER_LEVEL', 'info');
+  },
+
+  get TOTP_ISSUER() {
+    return castStringEnv('TOTP_ISSUER', 'hasura-auth');
   },
 };

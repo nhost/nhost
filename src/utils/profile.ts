@@ -2,7 +2,6 @@ import { Response } from 'express';
 import { gql } from 'graphql-request';
 
 import { client, gqlSdk } from '@/utils/gqlSDK';
-import { TOKEN } from '@config/token';
 import { ENV } from './env';
 
 type Profile = {
@@ -95,7 +94,7 @@ export const getProfileFieldsForAccessToken = async ({
   const getProfile = gql`
     query getProfile($userId: uuid!) {
       profile(userId: $userId) {
-        ${TOKEN.PROFILE_SESSION_VARIABLE_FIELDS.join('\n')}
+        ${ENV.PROFILE_SESSION_VARIABLE_FIELDS.join('\n')}
       }
     }
   `;

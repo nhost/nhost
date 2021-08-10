@@ -3,7 +3,6 @@ import fetch, { Response } from 'node-fetch';
 import { SuperTest, Test } from 'supertest';
 
 import { ENV } from '../src/utils/env';
-import { TOKEN } from '../src/config/token';
 import { getClaims } from '../src/utils/tokens';
 import { Token } from '../src/types';
 
@@ -220,7 +219,7 @@ export const isValidAccessToken = (accessToken: string | null): boolean => {
     return false;
   }
   try {
-    JWT.verify(accessToken, TOKEN.JWT_SECRET);
+    JWT.verify(accessToken, ENV.JWT_SECRET);
     return true;
   } catch (err) {
     return false;
@@ -232,7 +231,7 @@ export const decodeAccessToken = (accessToken: string | null) => {
     return null;
   }
   try {
-    return JWT.verify(accessToken, TOKEN.JWT_SECRET) as Token;
+    return JWT.verify(accessToken, ENV.JWT_SECRET) as Token;
   } catch (err) {
     return null;
   }
