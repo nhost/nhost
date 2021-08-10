@@ -104,14 +104,7 @@ export const rotateTicket = async (oldTicket: string): Promise<string> => {
 
 export function newRefreshExpiry() {
   const date = new Date();
-
-  // 1 day = 1440 minutes
-  const days = ENV.REFRESH_TOKEN_EXPIRES_IN / 1440;
-
-  // cant return this becuase this will return a unix timestamp directly
-  date.setDate(date.getDate() + days);
-
-  // instead we must return the js date object
+  date.setSeconds(date.getSeconds() + ENV.REFRESH_TOKEN_EXPIRES_IN);
   return date;
 }
 
