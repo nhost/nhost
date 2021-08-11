@@ -164,7 +164,6 @@ export async function applyMetadata(): Promise<void> {
   await trackTable({ table: { schema: 'auth', name: 'providers' } });
   await trackTable({ table: { schema: 'auth', name: 'refresh_tokens' } });
   await trackTable({ table: { schema: 'auth', name: 'roles' } });
-  await trackTable({ table: { schema: 'auth', name: 'email_templates' } });
   await trackTable({ table: { schema: 'auth', name: 'provider_requests' } });
   await trackTable({ table: { schema: 'auth', name: 'migrations' } });
   await trackTable({ table: { schema: 'auth', name: 'whitelist' } });
@@ -340,33 +339,6 @@ export async function applyMetadata(): Promise<void> {
       },
       custom_column_names: {
         role: 'role',
-      },
-    },
-  });
-  await setTableCustomization({
-    table: {
-      schema: 'auth',
-      name: 'email_templates',
-    },
-    configuration: {
-      custom_name: 'authEmailTemplates',
-      custom_root_fields: {
-        select: 'AuthEmailTemplates',
-        select_by_pk: 'AuthEmailTemplate',
-        select_aggregate: 'AuthEmailTemplatesAggregate',
-        insert: 'insertAuthEmailTemplates',
-        insert_one: 'insertAuthEmailTemplate',
-        update: 'updateAuthEmailTemplates',
-        update_by_pk: 'updateAuthEmailTemplate',
-        delete: 'deleteAuthEmailTemplates',
-        delete_by_pk: 'deleteAuthEmailTemplate',
-      },
-      custom_column_names: {
-        id: 'id',
-        title: 'title',
-        html: 'html',
-        no_html: 'noHtml',
-        locale: 'locale',
       },
     },
   });
