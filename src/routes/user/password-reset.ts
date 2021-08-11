@@ -44,7 +44,7 @@ export const userPasswordResetHandler = async (
   });
 
   await emailClient.send({
-    template: 'password-reset',
+    template: 'reset-password',
     locals: {
       ticket,
       url: ENV.SERVER_URL,

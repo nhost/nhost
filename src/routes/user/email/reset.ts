@@ -58,7 +58,7 @@ export const userEmailReset = async (
 
   // send out email
   await emailClient.send({
-    template: 'email-reset',
+    template: 'reset-email',
     locals: {
       ticket,
       url: ENV.SERVER_URL,
