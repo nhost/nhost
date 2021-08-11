@@ -50,8 +50,6 @@ CREATE TABLE auth.users (
   email auth.email UNIQUE,
   phone_number text UNIQUE,
   password_hash text,
-  -- is_active boolean DEFAULT FALSE NOT NULL,
-  -- last_activate_email_sent_at timestamp with time zone DEFAULT now() NOT NULL,
   email_verified boolean DEFAULT FALSE NOT NULL,
   last_verify_email_sent_at timestamp with time zone DEFAULT now() NOT NULL,
   phone_number_verified boolean DEFAULT FALSE NOT NULL,

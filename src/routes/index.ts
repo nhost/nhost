@@ -9,6 +9,7 @@ import { mfaRouter } from './mfa';
 import { tokenRouter } from './token';
 import { signOutRouter } from './signout';
 import env from './env';
+import { emailTemplatesRouter } from './email-templates';
 
 const router = express.Router();
 router.use(boom());
@@ -26,6 +27,9 @@ router.use(signOutRouter);
 router.use(userRouter);
 router.use(mfaRouter);
 router.use(tokenRouter);
+
+//
+router.use(emailTemplatesRouter);
 
 // admin
 env(router);

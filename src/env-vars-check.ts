@@ -11,14 +11,12 @@ function isUnset(val: any) {
 const errors: string[] = [];
 
 [
-  'APP_URL',
   'SERVER_URL',
+  'JWT_SECRET',
   'HASURA_ENDPOINT',
   'HASURA_GRAPHQL_ADMIN_SECRET',
-  'JWT_SECRET',
-  'REDIRECT_URL_ERROR',
-  'REDIRECT_URL_SUCCESS',
   'DATABASE_URL',
+  'APP_URL',
 ].forEach((env) => {
   if (isUnset(process.env[env])) {
     errors.push(`No value was provided for required env var ${env}`);

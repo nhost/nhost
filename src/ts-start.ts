@@ -78,6 +78,8 @@ const start = async (): Promise<void> => {
     await applyMetadata();
   }
 
+  // TODO: Fetch email templates from ENV var URL
+
   app.listen(ENV.PORT, ENV.HOST, () => {
     if (ENV.HOST) {
       logger.info(`Running on http://${ENV.HOST}:${ENV.PORT}`);

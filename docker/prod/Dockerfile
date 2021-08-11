@@ -22,6 +22,7 @@ RUN yarn cache clean
 COPY --from=builder /app/dist dist
 
 COPY migrations migrations
+COPY email-templates email-templates
 COPY prod-paths.js .
 
 HEALTHCHECK --interval=60s --timeout=2s --retries=3 CMD wget localhost:${PORT}/healthz -q -O - > /dev/null 2>&1

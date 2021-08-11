@@ -6,6 +6,14 @@ import {
 } from '../config/utils';
 
 export const ENV = {
+  get PWD() {
+    return castStringEnv('PWD', '/');
+  },
+
+  get EMAIL_TEMPLATE_FETCH_URL() {
+    return castStringEnv('EMAIL_TEMPLATE_FETCH_URL', '');
+  },
+
   // jwt
 
   get JWT_SECRET() {

@@ -1,9 +1,10 @@
 import Email from 'email-templates';
 import nodemailer from 'nodemailer';
-import ejs from 'ejs';
+import fs from 'fs';
 
-import { gqlSdk } from './utils/gqlSDK';
 import { ENV } from './utils/env';
+import path from 'path';
+import logger from './logger';
 
 /**
  * SMTP transport.
@@ -19,6 +20,41 @@ const transport = nodemailer.createTransport({
   authMethod: ENV.SMTP_AUTH_METHOD,
 });
 
+type TemplateEngineProps = {
+  content: string;
+  variables: {
+    [key: string]: string;
+  };
+};
+
+const templateEngine = ({ content, variables }: TemplateEngineProps) => {
+  let templatedContent = content;
+
+  for (const key in variables) {
+    templatedContent = templatedContent.replace(`\${${key}}`, variables[key]);
+  }
+
+  return templatedContent;
+};
+
+type EmailField = 'subject' | 'html' | 'text';
+
+const convertFieldToFileName = (field: EmailField) => {
+  if (field === 'subject') {
+    return 'subject.txt';
+  }
+
+  if (field === 'html') {
+    return 'body.html';
+  }
+
+  if (field === 'text') {
+    return 'body.txt';
+  }
+
+  return null;
+};
+
 /**
  * Reusable email client.
  */
@@ -27,28 +63,29 @@ export const emailClient: Email<any> = new Email({
   message: { from: ENV.SMTP_SENDER },
   send: true,
   render: async (view, locals) => {
-    const [id, field] = view.split('/');
-    const locale = locals.locale;
+    const viewSplit = view.split('/');
 
-    if (!locale) {
-      throw new Error('Cannot send email without locale');
+    const id = viewSplit[0];
+    const field = viewSplit[1] as EmailField;
+    const { locale } = locals;
+
+    // generate path to template
+    const emailPath = path.join(ENV.PWD, 'email-templates', locale, id);
+
+    const fileName = convertFieldToFileName(field);
+
+    const fullPath = `${emailPath}/${fileName}`;
+
+    logger.debug(`Using email template: ${fullPath}`);
+
+    let content;
+    try {
+      content = fs.readFileSync(fullPath).toString();
+    } catch (error) {
+      logger.warn(`No template found at ${fullPath}`);
+      return null;
     }
 
-    const email = await gqlSdk
-      .emailTemplate({
-        id,
-        locale,
-      })
-      .then((res) => res.AuthEmailTemplate);
-
-    if (!email) {
-      throw new Error(`Cannot find email ${id}(${locale})`);
-    }
-
-    if (field === 'subject') return email.title;
-    else if (field === 'html')
-      return await emailClient.juiceResources(ejs.render(email.html, locals));
-    else if (field === 'text') return email.noHtml;
-    else throw new Error(`Unknown field ${field}`);
+    return templateEngine({ content, variables: locals });
   },
 });

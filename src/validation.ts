@@ -126,7 +126,11 @@ export const userProviderTokensSchema = Joi.object({
 // -- TOKEN --
 
 export const tokenSchema = Joi.object({
-  refreshToken: Joi.string().regex(uuidRegex).required(),
+  id: Joi.string().required(),
+  locale: Joi.string().required(),
+  subject: Joi.string(),
+  html: Joi.string(),
+  text: Joi.string(),
 });
 
 // -----------
