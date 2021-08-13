@@ -201,7 +201,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// If no function file has been found,
 	// then return 404 error
 	if len(f.File) == 0 {
-		fmt.Fprintf(w, "No function found on route '%s'", r.URL.Path)
+		http.Error(w, fmt.Sprintf("No function found on route '%s'", r.URL.Path), http.StatusNotFound)
 	}
 
 	/*
