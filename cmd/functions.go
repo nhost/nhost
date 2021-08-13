@@ -30,6 +30,7 @@ import (
 	"io/fs"
 	"io/ioutil"
 	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -274,7 +275,7 @@ const app = express();`, filepath.Join(nhost.API_DIR, "node_modules"), jsPort)
 			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
 		}
 
-		time.Sleep(1 * time.Second)
+		// time.Sleep(1 * time.Second)
 
 		// serve
 		f.Handler(w, r)
@@ -571,17 +572,19 @@ func router(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	req.URL.RawQuery = q.Encode()
 	client := http.Client{
-		// Timeout: 5 * time.Second,
+		Transport: &http.Transport{
+			MaxIdleConnsPerHost: 20,
+		},
+		Timeout: 5 * time.Second,
 	}
 
 	//Leverage Go's HTTP Post function to make request
 	resp, err := client.Do(req)
-	/*
-		if _, ok := err.(net.Error); ok {
-			time.Sleep(30 * time.Millisecond)
-			router(w, r)
-		}
-	*/
+	if _, ok := err.(net.Error); ok {
+		time.Sleep(30 * time.Millisecond)
+		router(w, r)
+		return
+	}
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
