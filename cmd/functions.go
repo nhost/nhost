@@ -198,6 +198,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.WithField("component", "server").Error("No function found on this route")
 	}
 
+	// If no function file has been found,
+	// then return 404 error
+	if len(f.File) == 0 {
+		fmt.Fprintf(w, "No function found on route '%s'", r.URL.Path)
+	}
+
 	/*
 		if err := f.Search(nhost.API_DIR, r.URL.Path); err != nil {
 			log.WithField("component", "server").Debug(err)
