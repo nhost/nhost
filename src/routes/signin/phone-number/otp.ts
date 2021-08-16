@@ -6,7 +6,7 @@ import {
 } from 'express-joi-validation';
 import bcrypt from 'bcryptjs';
 
-import { getSignInTokens } from '@/utils/tokens';
+import { getSignInResponse } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 
 type BodyType = {
@@ -62,10 +62,10 @@ export const signInPhoneNumberOtpHandler = async (
     },
   });
 
-  const signInTokens = await getSignInTokens({
+  const signInResponse = await getSignInResponse({
     userId: user.id,
     checkMFA: false,
   });
 
-  return res.send(signInTokens);
+  return res.send(signInResponse);
 };

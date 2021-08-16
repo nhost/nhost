@@ -6,7 +6,7 @@ import {
 } from 'express-joi-validation';
 import bcrypt from 'bcryptjs';
 
-import { getSignInTokens } from '@/utils/tokens';
+import { getSignInResponse } from '@/utils/tokens';
 import { getUserByTicket } from '@/helpers';
 
 type BodyType = {
@@ -34,10 +34,10 @@ export const signInMfaSmspHandler = async (
     return res.boom.unauthorized('Invalid or expired OTP');
   }
 
-  const signInTokens = await getSignInTokens({
+  const signInResponse = await getSignInResponse({
     userId: user.id,
     checkMFA: false,
   });
 
-  return res.send(signInTokens);
+  return res.send(signInResponse);
 };
