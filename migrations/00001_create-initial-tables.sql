@@ -1,5 +1,10 @@
 -- start a transaction
-BEGIN;
+-- BEGIN;
+
+-- extensions
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
 -- functions
 CREATE FUNCTION auth.set_current_timestamp_updated_at ()
   RETURNS TRIGGER
@@ -149,5 +154,5 @@ INSERT INTO auth.providers (id)
     ('bitbucket');
 
 -- commit the change (or roll it back later)
-COMMIT;
+--COMMIT;
 
