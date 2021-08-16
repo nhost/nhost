@@ -15,6 +15,7 @@ import { isPasswordValid } from '@/utils/password';
 import { isRolesValid } from '@/utils/roles';
 import { ENV } from '@/utils/env';
 import { generateTicketExpiresAt } from '@/utils/ticket';
+import { getSignInResponse } from '@/utils/tokens';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -142,5 +143,20 @@ export const signUpEmailPasswordHandler = async (
     });
   }
 
-  return res.status(200).send('OK');
+  // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => Must verify email before sign in
+  // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => Don't have to verify email before
+  // sign in
+
+  if (!ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+    const signInResponse = await getSignInResponse({
+      userId: user.id,
+      checkMFA: false,
+    });
+
+    // return logged in session because user does not have to verify their email
+    // to sign in
+    return res.send(signInResponse);
+  }
+
+  return res.send({ session: null, mfa: null });
 };

@@ -6,7 +6,7 @@ import { Client } from 'pg';
 import { ENV } from '../../../src/utils/env';
 import { app } from '../../../src/server';
 import { isValidAccessToken } from '../../utils';
-import { SignInTokens } from '../../../src/utils/tokens';
+import { SignInResponse } from '../../../src/types';
 import { trackTable, setTableCustomization } from '../../../src/metadata';
 
 let request: SuperTest<Test>;
@@ -52,11 +52,18 @@ describe('anonymous', () => {
       ANONYMOUS_USERS_ENABLED: true,
     });
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/anonymous')
       .expect(200);
 
-    const { accessToken, accessTokenExpiresIn, refreshToken, mfa } = body;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken, accessTokenExpiresIn, refreshToken } = body.session;
+    const { mfa } = body;
 
     expect(isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');

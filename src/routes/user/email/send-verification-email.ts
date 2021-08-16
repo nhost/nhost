@@ -1,10 +1,10 @@
 import { Response } from 'express';
-import { v4 as uuidv4 } from 'uuid';
 import {
   ContainerTypes,
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
+import { v4 as uuidv4 } from 'uuid';
 
 import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';

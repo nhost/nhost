@@ -1518,6 +1518,10 @@ export type Mutation_Root = {
   deleteAuthWhitelist?: Maybe<AuthWhitelist>;
   /** delete data from the table: "auth.whitelist" */
   deleteAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
+  /** delete single row from the table: "profiles" */
+  deleteProfile?: Maybe<Profiles>;
+  /** delete data from the table: "profiles" */
+  deleteProfiles?: Maybe<Profiles_Mutation_Response>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -1558,6 +1562,10 @@ export type Mutation_Root = {
   insertAuthWhitelist?: Maybe<AuthWhitelist>;
   /** insert data into the table: "auth.whitelist" */
   insertAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
+  /** insert a single row into the table: "profiles" */
+  insertProfile?: Maybe<Profiles>;
+  /** insert data into the table: "profiles" */
+  insertProfiles?: Maybe<Profiles_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -1598,6 +1606,10 @@ export type Mutation_Root = {
   updateAuthWhitelist?: Maybe<AuthWhitelist>;
   /** update data of the table: "auth.whitelist" */
   updateAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
+  /** update single row of the table: "profiles" */
+  updateProfile?: Maybe<Profiles>;
+  /** update data of the table: "profiles" */
+  updateProfiles?: Maybe<Profiles_Mutation_Response>;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -1703,6 +1715,18 @@ export type Mutation_RootDeleteAuthWhitelistArgs = {
 /** mutation root */
 export type Mutation_RootDeleteAuthWhitelistsArgs = {
   where: AuthWhitelist_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteProfilesArgs = {
+  where: Profiles_Bool_Exp;
 };
 
 
@@ -1839,6 +1863,20 @@ export type Mutation_RootInsertAuthWhitelistArgs = {
 export type Mutation_RootInsertAuthWhitelistsArgs = {
   objects: Array<AuthWhitelist_Insert_Input>;
   on_conflict?: Maybe<AuthWhitelist_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertProfileArgs = {
+  object: Profiles_Insert_Input;
+  on_conflict?: Maybe<Profiles_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertProfilesArgs = {
+  objects: Array<Profiles_Insert_Input>;
+  on_conflict?: Maybe<Profiles_On_Conflict>;
 };
 
 
@@ -1983,6 +2021,22 @@ export type Mutation_RootUpdateAuthWhitelistsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateProfileArgs = {
+  _inc?: Maybe<Profiles_Inc_Input>;
+  _set?: Maybe<Profiles_Set_Input>;
+  pk_columns: Profiles_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateProfilesArgs = {
+  _inc?: Maybe<Profiles_Inc_Input>;
+  _set?: Maybe<Profiles_Set_Input>;
+  where: Profiles_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateUserArgs = {
   _set?: Maybe<Users_Set_Input>;
   pk_columns: Users_Pk_Columns_Input;
@@ -2026,6 +2080,192 @@ export enum Order_By {
   /** in descending order, nulls last */
   DescNullsLast = 'desc_nulls_last'
 }
+
+/** columns and relationships of "profiles" */
+export type Profiles = {
+  __typename?: 'profiles';
+  companyId: Scalars['Int'];
+  /** An object relationship */
+  user: Users;
+  userId: Scalars['uuid'];
+};
+
+/** aggregated selection of "profiles" */
+export type Profiles_Aggregate = {
+  __typename?: 'profiles_aggregate';
+  aggregate?: Maybe<Profiles_Aggregate_Fields>;
+  nodes: Array<Profiles>;
+};
+
+/** aggregate fields of "profiles" */
+export type Profiles_Aggregate_Fields = {
+  __typename?: 'profiles_aggregate_fields';
+  avg?: Maybe<Profiles_Avg_Fields>;
+  count: Scalars['Int'];
+  max?: Maybe<Profiles_Max_Fields>;
+  min?: Maybe<Profiles_Min_Fields>;
+  stddev?: Maybe<Profiles_Stddev_Fields>;
+  stddev_pop?: Maybe<Profiles_Stddev_Pop_Fields>;
+  stddev_samp?: Maybe<Profiles_Stddev_Samp_Fields>;
+  sum?: Maybe<Profiles_Sum_Fields>;
+  var_pop?: Maybe<Profiles_Var_Pop_Fields>;
+  var_samp?: Maybe<Profiles_Var_Samp_Fields>;
+  variance?: Maybe<Profiles_Variance_Fields>;
+};
+
+
+/** aggregate fields of "profiles" */
+export type Profiles_Aggregate_FieldsCountArgs = {
+  columns?: Maybe<Array<Profiles_Select_Column>>;
+  distinct?: Maybe<Scalars['Boolean']>;
+};
+
+/** aggregate avg on columns */
+export type Profiles_Avg_Fields = {
+  __typename?: 'profiles_avg_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** Boolean expression to filter rows from the table "profiles". All fields are combined with a logical 'AND'. */
+export type Profiles_Bool_Exp = {
+  _and?: Maybe<Array<Profiles_Bool_Exp>>;
+  _not?: Maybe<Profiles_Bool_Exp>;
+  _or?: Maybe<Array<Profiles_Bool_Exp>>;
+  companyId?: Maybe<Int_Comparison_Exp>;
+  user?: Maybe<Users_Bool_Exp>;
+  userId?: Maybe<Uuid_Comparison_Exp>;
+};
+
+/** unique or primary key constraints on table "profiles" */
+export enum Profiles_Constraint {
+  /** unique or primary key constraint */
+  ProfilesPkey = 'profiles_pkey'
+}
+
+/** input type for incrementing numeric columns in table "profiles" */
+export type Profiles_Inc_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+};
+
+/** input type for inserting data into table "profiles" */
+export type Profiles_Insert_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+  user?: Maybe<Users_Obj_Rel_Insert_Input>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate max on columns */
+export type Profiles_Max_Fields = {
+  __typename?: 'profiles_max_fields';
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate min on columns */
+export type Profiles_Min_Fields = {
+  __typename?: 'profiles_min_fields';
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** response of any mutation on the table "profiles" */
+export type Profiles_Mutation_Response = {
+  __typename?: 'profiles_mutation_response';
+  /** number of rows affected by the mutation */
+  affected_rows: Scalars['Int'];
+  /** data from the rows affected by the mutation */
+  returning: Array<Profiles>;
+};
+
+/** input type for inserting object relation for remote table "profiles" */
+export type Profiles_Obj_Rel_Insert_Input = {
+  data: Profiles_Insert_Input;
+  /** on conflict condition */
+  on_conflict?: Maybe<Profiles_On_Conflict>;
+};
+
+/** on conflict condition type for table "profiles" */
+export type Profiles_On_Conflict = {
+  constraint: Profiles_Constraint;
+  update_columns?: Array<Profiles_Update_Column>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+/** Ordering options when selecting data from "profiles". */
+export type Profiles_Order_By = {
+  companyId?: Maybe<Order_By>;
+  user?: Maybe<Users_Order_By>;
+  userId?: Maybe<Order_By>;
+};
+
+/** primary key columns input for table: profiles */
+export type Profiles_Pk_Columns_Input = {
+  userId: Scalars['uuid'];
+};
+
+/** select columns of table "profiles" */
+export enum Profiles_Select_Column {
+  /** column name */
+  CompanyId = 'companyId',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** input type for updating data in table "profiles" */
+export type Profiles_Set_Input = {
+  companyId?: Maybe<Scalars['Int']>;
+  userId?: Maybe<Scalars['uuid']>;
+};
+
+/** aggregate stddev on columns */
+export type Profiles_Stddev_Fields = {
+  __typename?: 'profiles_stddev_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_pop on columns */
+export type Profiles_Stddev_Pop_Fields = {
+  __typename?: 'profiles_stddev_pop_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate stddev_samp on columns */
+export type Profiles_Stddev_Samp_Fields = {
+  __typename?: 'profiles_stddev_samp_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate sum on columns */
+export type Profiles_Sum_Fields = {
+  __typename?: 'profiles_sum_fields';
+  companyId?: Maybe<Scalars['Int']>;
+};
+
+/** update columns of table "profiles" */
+export enum Profiles_Update_Column {
+  /** column name */
+  CompanyId = 'companyId',
+  /** column name */
+  UserId = 'userId'
+}
+
+/** aggregate var_pop on columns */
+export type Profiles_Var_Pop_Fields = {
+  __typename?: 'profiles_var_pop_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate var_samp on columns */
+export type Profiles_Var_Samp_Fields = {
+  __typename?: 'profiles_var_samp_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
+
+/** aggregate variance on columns */
+export type Profiles_Variance_Fields = {
+  __typename?: 'profiles_variance_fields';
+  companyId?: Maybe<Scalars['Float']>;
+};
 
 export type Query_Root = {
   __typename?: 'query_root';
@@ -2085,6 +2325,12 @@ export type Query_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** fetch data from the table: "profiles" using primary key columns */
+  profile?: Maybe<Profiles>;
+  /** fetch data from the table: "profiles" */
+  profiles: Array<Profiles>;
+  /** fetch aggregated fields from the table: "profiles" */
+  profilesAggregat: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -2309,6 +2555,29 @@ export type Query_RootAuth_Migrations_By_PkArgs = {
 };
 
 
+export type Query_RootProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+export type Query_RootProfilesArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
+export type Query_RootProfilesAggregatArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2380,6 +2649,12 @@ export type Subscription_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
+  /** fetch data from the table: "profiles" using primary key columns */
+  profile?: Maybe<Profiles>;
+  /** fetch data from the table: "profiles" */
+  profiles: Array<Profiles>;
+  /** fetch aggregated fields from the table: "profiles" */
+  profilesAggregat: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
@@ -2604,6 +2879,29 @@ export type Subscription_RootAuth_Migrations_By_PkArgs = {
 };
 
 
+export type Subscription_RootProfileArgs = {
+  userId: Scalars['uuid'];
+};
+
+
+export type Subscription_RootProfilesArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
+export type Subscription_RootProfilesAggregatArgs = {
+  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
+  limit?: Maybe<Scalars['Int']>;
+  offset?: Maybe<Scalars['Int']>;
+  order_by?: Maybe<Array<Profiles_Order_By>>;
+  where?: Maybe<Profiles_Bool_Exp>;
+};
+
+
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2667,6 +2965,8 @@ export type Users = {
   passwordHash?: Maybe<Scalars['String']>;
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified: Scalars['Boolean'];
+  /** An object relationship */
+  profile: Profiles;
   /** An array relationship */
   refreshTokens: Array<AuthRefreshTokens>;
   /** An aggregate relationship */
@@ -2791,6 +3091,7 @@ export type Users_Bool_Exp = {
   passwordHash?: Maybe<String_Comparison_Exp>;
   phoneNumber?: Maybe<String_Comparison_Exp>;
   phoneNumberVerified?: Maybe<Boolean_Comparison_Exp>;
+  profile?: Maybe<Profiles_Bool_Exp>;
   refreshTokens?: Maybe<AuthRefreshTokens_Bool_Exp>;
   roles?: Maybe<AuthUserRoles_Bool_Exp>;
   ticket?: Maybe<String_Comparison_Exp>;
@@ -2831,6 +3132,7 @@ export type Users_Insert_Input = {
   passwordHash?: Maybe<Scalars['String']>;
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified?: Maybe<Scalars['Boolean']>;
+  profile?: Maybe<Profiles_Obj_Rel_Insert_Input>;
   refreshTokens?: Maybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   roles?: Maybe<AuthUserRoles_Arr_Rel_Insert_Input>;
   ticket?: Maybe<Scalars['String']>;
@@ -2932,6 +3234,7 @@ export type Users_Order_By = {
   passwordHash?: Maybe<Order_By>;
   phoneNumber?: Maybe<Order_By>;
   phoneNumberVerified?: Maybe<Order_By>;
+  profile?: Maybe<Profiles_Order_By>;
   refreshTokens_aggregate?: Maybe<AuthRefreshTokens_Aggregate_Order_By>;
   roles_aggregate?: Maybe<AuthUserRoles_Aggregate_Order_By>;
   ticket?: Maybe<Order_By>;
@@ -3153,23 +3456,6 @@ export type InsertRefreshTokenMutation = (
   )> }
 );
 
-export type UpdateRefreshTokenMutationVariables = Exact<{
-  refreshTokenId: Scalars['uuid'];
-  refreshToken: AuthRefreshTokens_Insert_Input;
-}>;
-
-
-export type UpdateRefreshTokenMutation = (
-  { __typename?: 'mutation_root' }
-  & { deleteAuthRefreshTokens?: Maybe<(
-    { __typename?: 'authRefreshTokens_mutation_response' }
-    & Pick<AuthRefreshTokens_Mutation_Response, 'affected_rows'>
-  )>, insertAuthRefreshTokens?: Maybe<(
-    { __typename?: 'authRefreshTokens_mutation_response' }
-    & Pick<AuthRefreshTokens_Mutation_Response, 'affected_rows'>
-  )> }
-);
-
 export type DeleteRefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['uuid'];
 }>;
@@ -3189,6 +3475,17 @@ export type DeleteUserRefreshTokensMutationVariables = Exact<{
 
 
 export type DeleteUserRefreshTokensMutation = (
+  { __typename?: 'mutation_root' }
+  & { deleteAuthRefreshTokens?: Maybe<(
+    { __typename?: 'authRefreshTokens_mutation_response' }
+    & Pick<AuthRefreshTokens_Mutation_Response, 'affected_rows'>
+  )> }
+);
+
+export type DeleteExpiredRefreshTokensMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type DeleteExpiredRefreshTokensMutation = (
   { __typename?: 'mutation_root' }
   & { deleteAuthRefreshTokens?: Maybe<(
     { __typename?: 'authRefreshTokens_mutation_response' }
@@ -3270,7 +3567,7 @@ export type DeleteUserRolesByUserIdMutation = (
 
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'lastVerifyEmailSentAt' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'otpHashExpiresAt' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
+  & Pick<Users, 'id' | 'createdAt' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'lastVerifyEmailSentAt' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'otpHashExpiresAt' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
   & { roles: Array<(
     { __typename?: 'authUserRoles' }
     & Pick<AuthUserRoles, 'role'>
@@ -3303,12 +3600,33 @@ export type UsersQuery = (
   )> }
 );
 
-export type GetUsersByRefreshTokenQueryVariables = Exact<{
+export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariables = Exact<{
+  refreshToken: Scalars['uuid'];
+  expiresAt: Scalars['timestamptz'];
+}>;
+
+
+export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = (
+  { __typename?: 'mutation_root' }
+  & { updateAuthRefreshTokens?: Maybe<(
+    { __typename?: 'authRefreshTokens_mutation_response' }
+    & { returning: Array<(
+      { __typename?: 'authRefreshTokens' }
+      & Pick<AuthRefreshTokens, 'refreshToken'>
+      & { user: (
+        { __typename?: 'users' }
+        & UserFieldsFragment
+      ) }
+    )> }
+  )> }
+);
+
+export type GetUsersByRefreshTokenOldQueryVariables = Exact<{
   refreshToken: Scalars['uuid'];
 }>;
 
 
-export type GetUsersByRefreshTokenQuery = (
+export type GetUsersByRefreshTokenOldQuery = (
   { __typename?: 'query_root' }
   & { authRefreshTokens: Array<(
     { __typename?: 'authRefreshTokens' }
@@ -3502,6 +3820,7 @@ export type InsertWhitelistedEmailMutation = (
 export const UserFieldsFragmentDoc = gql`
     fragment userFields on users {
   id
+  createdAt
   disabled
   displayName
   avatarUrl
@@ -3569,16 +3888,6 @@ export const InsertRefreshTokenDocument = gql`
   }
 }
     `;
-export const UpdateRefreshTokenDocument = gql`
-    mutation updateRefreshToken($refreshTokenId: uuid!, $refreshToken: authRefreshTokens_insert_input!) {
-  deleteAuthRefreshTokens(where: {refreshToken: {_eq: $refreshTokenId}}) {
-    affected_rows
-  }
-  insertAuthRefreshTokens(objects: [$refreshToken]) {
-    affected_rows
-  }
-}
-    `;
 export const DeleteRefreshTokenDocument = gql`
     mutation deleteRefreshToken($refreshToken: uuid!) {
   deleteAuthRefreshToken(refreshToken: $refreshToken) {
@@ -3590,6 +3899,13 @@ export const DeleteRefreshTokenDocument = gql`
 export const DeleteUserRefreshTokensDocument = gql`
     mutation deleteUserRefreshTokens($userId: uuid!) {
   deleteAuthRefreshTokens(where: {user: {id: {_eq: $userId}}}) {
+    affected_rows
+  }
+}
+    `;
+export const DeleteExpiredRefreshTokensDocument = gql`
+    mutation deleteExpiredRefreshTokens {
+  deleteAuthRefreshTokens(where: {expiresAt: {_lt: now}}) {
     affected_rows
   }
 }
@@ -3647,8 +3963,20 @@ export const UsersDocument = gql`
   }
 }
     ${UserFieldsFragmentDoc}`;
-export const GetUsersByRefreshTokenDocument = gql`
-    query getUsersByRefreshToken($refreshToken: uuid!) {
+export const GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtDocument = gql`
+    mutation getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt($refreshToken: uuid!, $expiresAt: timestamptz!) {
+  updateAuthRefreshTokens(_set: {expiresAt: $expiresAt}, where: {_and: [{refreshToken: {_eq: $refreshToken}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}) {
+    returning {
+      refreshToken
+      user {
+        ...userFields
+      }
+    }
+  }
+}
+    ${UserFieldsFragmentDoc}`;
+export const GetUsersByRefreshTokenOldDocument = gql`
+    query getUsersByRefreshTokenOld($refreshToken: uuid!) {
   authRefreshTokens(where: {_and: [{refreshToken: {_eq: $refreshToken}}, {user: {disabled: {_eq: false}}}, {expiresAt: {_gte: now}}]}) {
     refreshToken
     user {
@@ -3775,14 +4103,14 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     insertRefreshToken(variables: InsertRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertRefreshTokenMutation>(InsertRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertRefreshToken');
     },
-    updateRefreshToken(variables: UpdateRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateRefreshTokenMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateRefreshTokenMutation>(UpdateRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateRefreshToken');
-    },
     deleteRefreshToken(variables: DeleteRefreshTokenMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteRefreshTokenMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteRefreshTokenMutation>(DeleteRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteRefreshToken');
     },
     deleteUserRefreshTokens(variables: DeleteUserRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteUserRefreshTokensMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteUserRefreshTokensMutation>(DeleteUserRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteUserRefreshTokens');
+    },
+    deleteExpiredRefreshTokens(variables?: DeleteExpiredRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteExpiredRefreshTokensMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<DeleteExpiredRefreshTokensMutation>(DeleteExpiredRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteExpiredRefreshTokens');
     },
     authUserProviders(variables: AuthUserProvidersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AuthUserProvidersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<AuthUserProvidersQuery>(AuthUserProvidersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'authUserProviders');
@@ -3805,8 +4133,11 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     users(variables: UsersQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UsersQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<UsersQuery>(UsersDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'users');
     },
-    getUsersByRefreshToken(variables: GetUsersByRefreshTokenQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUsersByRefreshTokenQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<GetUsersByRefreshTokenQuery>(GetUsersByRefreshTokenDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUsersByRefreshToken');
+    getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt(variables: GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation>(GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt');
+    },
+    getUsersByRefreshTokenOld(variables: GetUsersByRefreshTokenOldQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUsersByRefreshTokenOldQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUsersByRefreshTokenOldQuery>(GetUsersByRefreshTokenOldDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUsersByRefreshTokenOld');
     },
     updateUser(variables: UpdateUserMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserMutation>(UpdateUserDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUser');

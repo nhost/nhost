@@ -5,7 +5,7 @@ import {
   ValidatedRequestSchema,
 } from 'express-joi-validation';
 
-import { getSignInTokens } from '@/utils/tokens';
+import { getSignInResponse } from '@/utils/tokens';
 import { getUserByTicket } from '@/helpers';
 import { authenticator } from 'otplib';
 
@@ -50,10 +50,10 @@ export const signInMfaTotpHandler = async (
     return res.boom.unauthorized('Invalid code');
   }
 
-  const signInTokens = await getSignInTokens({
+  const signInResponse = await getSignInResponse({
     userId: user.id,
     checkMFA: false,
   });
 
-  return res.send(signInTokens);
+  return res.send(signInResponse);
 };

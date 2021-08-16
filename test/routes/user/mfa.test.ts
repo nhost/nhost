@@ -1,7 +1,7 @@
 import { Client } from 'pg';
 
 import { request } from '../../server';
-import { SignInTokens } from '../../../src/utils/tokens';
+import { SignInResponse } from '../../../src/types';
 import { authenticator } from 'otplib';
 
 describe('mfa totp', () => {
@@ -30,22 +30,28 @@ describe('mfa totp', () => {
       WHITELIST_ENABLED: false,
     });
 
-    let accessToken = '';
-
     const email = 'asdasd@asdasd.com';
     const password = '123123123';
+
+    let accessToken = '';
 
     await request
       .post('/signup/email-password')
       .send({ email, password })
       .expect(200);
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(200);
 
-    accessToken = body.accessToken as string;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    accessToken = body.session.accessToken;
 
     // generate
     const {
@@ -67,20 +73,26 @@ describe('mfa totp', () => {
 
     // TODO: log out
 
-    const { body: signInBody }: { body: SignInTokens } = await request
+    const { body: signInBody }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(200);
 
-    const { body: mfaTotpBody }: { body: SignInTokens } = await request
+    const { body: mfaTotpBody }: { body: SignInResponse } = await request
       .post('/signin/mfa/totp')
       .send({
-        ticket: signInBody.mfa!.ticket,
+        ticket: signInBody.mfa?.ticket,
         otp: authenticator.generate(totpSecret),
       })
       .expect(200);
 
-    accessToken = mfaTotpBody.accessToken as string;
+    expect(mfaTotpBody.session).toBeTruthy();
+
+    if (!mfaTotpBody.session) {
+      throw new Error('session is not set');
+    }
+
+    accessToken = mfaTotpBody.session.accessToken;
 
     // must be correct activeMfaType
     await request
@@ -104,7 +116,7 @@ describe('mfa totp', () => {
 
     // TODO: validat tokens
 
-    const { body: signInBodyThird }: { body: SignInTokens } = await request
+    const { body: signInBodyThird }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(200);

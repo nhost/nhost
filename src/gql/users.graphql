@@ -1,5 +1,6 @@
 fragment userFields on users {
   id
+  createdAt
   disabled
   displayName
   avatarUrl
@@ -37,20 +38,30 @@ query users($where: users_bool_exp!) {
   }
 }
 
-# WHERE
-#   refreshToken = $refreshToken
-#   AND (
-#     user.active = true
-#     OR (
-#       user.active =  false
-#       AND user.isAnonymous
-#     )
-#   )
-# The reason is, we don't want users to select a refresh token if the user
-# is not active. Except if the user anonymous. Then we can allow it.
-# A user can be anonymous but with active = false when the user converts their
-# account to a real account but has not yet activated it aka verified their email.
-query getUsersByRefreshToken($refreshToken: uuid!) {
+mutation getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt(
+  $refreshToken: uuid!
+  $expiresAt: timestamptz!
+) {
+  updateAuthRefreshTokens(
+    _set: { expiresAt: $expiresAt }
+    where: {
+      _and: [
+        { refreshToken: { _eq: $refreshToken } }
+        { user: { disabled: { _eq: false } } }
+        { expiresAt: { _gte: now } }
+      ]
+    }
+  ) {
+    returning {
+      refreshToken
+      user {
+        ...userFields
+      }
+    }
+  }
+}
+
+query getUsersByRefreshTokenOld($refreshToken: uuid!) {
   authRefreshTokens(
     where: {
       _and: [

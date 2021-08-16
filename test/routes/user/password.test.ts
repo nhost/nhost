@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 
 import { request } from '../../server';
-import { SignInTokens } from '../../../src/utils/tokens';
+import { SignInResponse } from '../../../src/types';
 import { mailHogSearch } from '../../utils';
 
 describe('user password', () => {
@@ -31,8 +31,6 @@ describe('user password', () => {
       WHITELIST_ENABLED: false,
     });
 
-    let accessToken = '';
-
     const email = 'asdasd@asdasd.com';
     const password = '123123123';
 
@@ -41,12 +39,18 @@ describe('user password', () => {
       .send({ email, password })
       .expect(200);
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(200);
 
-    accessToken = body.accessToken as string;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken } = body.session;
 
     const oldPassword = password;
     const newPassword = '543543543';

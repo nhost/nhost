@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 
 import { request } from '../../server';
-import { SignInTokens } from '../../../src/utils/tokens';
+import { SignInResponse } from '../../../src/types';
 import { mailHogSearch } from '../../utils';
 
 describe('user email', () => {
@@ -41,12 +41,18 @@ describe('user email', () => {
       .send({ email, password })
       .expect(200);
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(200);
 
-    accessToken = body.accessToken as string;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    accessToken = body.session.accessToken;
 
     // request to reset (to-change) email
 

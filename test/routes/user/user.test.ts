@@ -2,7 +2,7 @@ import { Client } from 'pg';
 import * as faker from 'faker';
 
 import { request } from '../../server';
-import { SignInTokens } from '../../../src/utils/tokens';
+import { SignInResponse } from '../../../src/types';
 
 describe('user password', () => {
   let client: any;
@@ -46,8 +46,8 @@ describe('user password', () => {
       .expect(200);
 
     const {
-      body: { accessToken },
-    }: { body: SignInTokens } = await request
+      body: { session },
+    }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({
         email,
@@ -57,7 +57,7 @@ describe('user password', () => {
 
     const { body } = await request
       .get('/user')
-      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Authorization', `Bearer ${session?.accessToken}`)
       .expect(200);
 
     expect(typeof body.id).toBe('string');

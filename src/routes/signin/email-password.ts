@@ -6,7 +6,7 @@ import {
 } from 'express-joi-validation';
 import bcrypt from 'bcryptjs';
 
-import { getSignInTokens } from '@/utils/tokens';
+import { getSignInResponse } from '@/utils/tokens';
 import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
 
@@ -49,7 +49,7 @@ export const signInEmailPasswordHandler = async (
     return res.boom.unauthorized('Incorrect password');
   }
 
-  const signInTokens = await getSignInTokens({
+  const signInTokens = await getSignInResponse({
     userId: user.id,
     checkMFA: true,
   });

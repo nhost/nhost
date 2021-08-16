@@ -1,5 +1,3 @@
-import { Maybe } from './utils/__generated__/graphql-request';
-
 export type ClaimValueType =
   | string
   | string[]
@@ -45,17 +43,35 @@ export type Token = {
   sub: string;
 };
 
-export interface Session {
-  jwtToken: string;
-  jwtExpiresIn: number;
-  refreshToken?: string;
-  user: SessionUser;
-}
+// Session and user
 
-export interface SessionUser {
-  [key: string]: ClaimValueType;
+export type Session = {
+  accessToken: string;
+  accessTokenExpiresIn: number;
+  refreshToken: string;
+  user: User | null;
+};
+
+export type User = {
   id: string;
+  createdAt: string;
+  displayName: string;
+  avatarUrl: string;
+  locale: string;
   email?: string;
-  displayName?: Maybe<string>;
-  avatarUrl?: Maybe<string>;
-}
+  isAnonymous: boolean;
+  defaultRole: string;
+  roles: string[];
+  profile: null | {
+    [key: string]: string;
+  };
+};
+
+export type Mfa = {
+  ticket: string | null;
+};
+
+export type SignInResponse = {
+  session: Session | null;
+  mfa: Mfa | null;
+};

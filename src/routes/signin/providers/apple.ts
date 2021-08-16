@@ -2,7 +2,6 @@ import { Router } from 'express';
 import { Strategy, Profile } from '@nicokaiser/passport-apple';
 import { PROVIDERS } from '@config/index';
 import { initProvider } from './utils';
-import { SessionUser } from '@/types';
 import { getGravatarUrl } from '@/helpers';
 
 const transformProfile = ({
@@ -10,7 +9,12 @@ const transformProfile = ({
   name,
   email,
   photos,
-}: Profile): SessionUser => ({
+}: Profile): {
+  id: string;
+  email?: string;
+  displayName: string;
+  avatarUrl: string;
+} => ({
   id,
   email,
   displayName: name ? `${name.firstName} ${name.lastName}` : email,

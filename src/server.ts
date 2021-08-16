@@ -4,7 +4,7 @@ import { json } from 'body-parser';
 import cors from 'cors';
 import passport from 'passport';
 import morgan from 'morgan';
-import morganBody from 'morgan-body';
+// import morganBody from 'morgan-body';
 
 import router from './routes';
 import { errors } from './errors';
@@ -33,11 +33,11 @@ app.use(json());
 app.use(cors({ credentials: true, origin: true }));
 
 if (process.env.CI || process.env.NODE_ENV === 'development') {
-  morganBody(app, {
-    skip: (req) => {
-      return req.originalUrl === '/change-env';
-    },
-  });
+  // morganBody(app, {
+  //   skip: (req) => {
+  //     return req.originalUrl === '/change-env';
+  //   },
+  // });
 }
 
 app.use(authMiddleware);

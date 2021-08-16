@@ -80,7 +80,7 @@ describe('token', () => {
 
     console.log({ body });
 
-    const token = decodeAccessToken(body.accessToken);
+    const token = decodeAccessToken(body.session.accessToken);
 
     console.log({ token });
   });
@@ -116,7 +116,7 @@ describe('token', () => {
       })
       .expect(200);
 
-    const token = decodeAccessToken(body.accessToken);
+    const token = decodeAccessToken(body.session.accessToken);
 
     if (!token) {
       throw new Error('Token not set');
@@ -161,7 +161,7 @@ describe('token', () => {
       })
       .expect(200);
 
-    const token = decodeAccessToken(body.accessToken);
+    const token = decodeAccessToken(body.session.accessToken);
 
     if (!token) {
       throw new Error('Token not set');

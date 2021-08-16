@@ -6,14 +6,10 @@ import {
   signInEmailPasswordSchema,
   signInMagicLinkSchema,
   signInAnonymousSchema,
-  signInMagicLinkOtpSchema,
   signInMfaTotpSchema,
 } from '@/validation';
 import { signInEmailPasswordHandler } from './email-password';
-import {
-  signInMagicLinkHandler,
-  signInMagicLinkOtpHandler,
-} from './magic-link';
+import { signInMagicLinkHandler } from './magic-link';
 import { signInAnonymousHandler } from './anonymous';
 import providers from './providers';
 import { signInMfaTotpHandler } from './mfa';
@@ -30,12 +26,6 @@ router.post(
   '/signin/magic-link',
   createValidator().body(signInMagicLinkSchema),
   aw(signInMagicLinkHandler)
-);
-
-router.post(
-  '/signin/magic-link/otp',
-  createValidator().body(signInMagicLinkOtpSchema),
-  aw(signInMagicLinkOtpHandler)
 );
 
 // router.post(

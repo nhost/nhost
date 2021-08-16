@@ -3,8 +3,7 @@ import * as gravatar from 'gravatar';
 import QRCode from 'qrcode';
 import bcrypt from 'bcryptjs';
 import { gqlSdk } from './utils/gqlSDK';
-import { UserFieldsFragment } from './utils/__generated__/graphql-request';
-import { SessionUser } from './types';
+// import { UserFieldsFragment } from './utils/__generated__/graphql-request';
 import { ENV } from './utils/env';
 
 /**
@@ -125,11 +124,11 @@ export const isWhitelistedEmail = async (email: string) => {
   return !!AuthWhitelist;
 };
 
-export function userToSessionUser(user: UserFieldsFragment): SessionUser {
-  return {
-    id: user.id,
-    email: user.email,
-    displayName: user.displayName,
-    avatarUrl: user.avatarUrl,
-  };
-}
+// export function userToSessionUser(user: UserFieldsFragment): SessionUser {
+//   return {
+//     id: user.id,
+//     email: user.email,
+//     displayName: user.displayName,
+//     avatarUrl: user.avatarUrl,
+//   };
+// }

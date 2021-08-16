@@ -1,7 +1,7 @@
 import { Client } from 'pg';
 
 import { request } from '../../server';
-import { SignInTokens } from '../../../src/utils/tokens';
+import { SignInResponse } from '../../../src/types';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
 
 describe('email-password', () => {
@@ -35,11 +35,17 @@ describe('email-password', () => {
       ANONYMOUS_USERS_ENABLED: true,
     });
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/anonymous')
       .expect(200);
 
-    const { accessToken, refreshToken } = body;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken, refreshToken } = body.session;
 
     const email = 'something@example.com'; //faker.internet.email();
     const password = '123123123'; //faker.internet.password();
@@ -99,11 +105,17 @@ describe('email-password', () => {
       ANONYMOUS_USERS_ENABLED: true,
     });
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/anonymous')
       .expect(200);
 
-    const { accessToken, refreshToken } = body;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken, refreshToken } = body.session;
 
     const email = 'joedoe@example.com';
     await request
@@ -120,8 +132,11 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const otp = message.Content.Headers['X-Otp'][0];
-    expect(typeof otp).toBe('string');
+    const emailRefreshToken = message.Content.Headers['X-Refreshtoken'][0];
+    expect(typeof refreshToken).toBe('string');
+
+    const emailTicket = message.Content.Headers['X-Ticket'][0];
+    expect(typeof emailTicket).toBe('string');
 
     const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('magic-link');
@@ -129,10 +144,16 @@ describe('email-password', () => {
     // should not be able to reuse old refresh token
     await request.post('/token').send({ refreshToken }).expect(401);
 
-    // should be abel to sign in with otp from magic link
+    // should be able to login using the refresh token from the email
     await request
-      .post('/signin/magic-link/otp')
-      .send({ email, otp })
+      .post('/token')
+      .send({ refreshToken: emailRefreshToken })
+      .expect(200);
+
+    // should e able to verify email using ticket from email
+    await request
+      .post('/user/email/verify')
+      .send({ email, ticket: emailTicket })
       .expect(200);
   });
 
@@ -147,11 +168,17 @@ describe('email-password', () => {
       ANONYMOUS_USERS_ENABLED: true,
     });
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/anonymous')
       .expect(200);
 
-    const { accessToken } = body;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken } = body.session;
 
     await request
       .post('/user/deanonymize')
@@ -186,11 +213,17 @@ describe('email-password', () => {
       })
       .expect(200);
 
-    const { body }: { body: SignInTokens } = await request
+    const { body }: { body: SignInResponse } = await request
       .post('/signin/anonymous')
       .expect(200);
 
-    const { accessToken } = body;
+    expect(body.session).toBeTruthy();
+
+    if (!body.session) {
+      throw new Error('session is not set');
+    }
+
+    const { accessToken } = body.session;
 
     await request
       .post('/user/deanonymize')

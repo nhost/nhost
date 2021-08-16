@@ -4,6 +4,7 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
+import { v4 as uuidv4 } from 'uuid';
 
 import { getGravatarUrl, getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
@@ -12,7 +13,9 @@ import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
-import { getOtpData } from '@/utils/otp';
+// import { getOtpData } from '@/utils/otp';
+import { getNewRefreshToken } from '@/utils/tokens';
+import { generateTicketExpiresAt } from '@/utils/ticket';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -49,7 +52,7 @@ export const signInMagicLinkHandler = async (
   const { email, profile, locale = ENV.DEFAULT_LOCALE } = body;
 
   // check if email already exist
-  const user = await getUserByEmail(email);
+  let user = await getUserByEmail(email);
 
   let userId = user ? user.id : undefined;
 
@@ -110,18 +113,35 @@ export const signInMagicLinkHandler = async (
     await insertProfile({ userId: insertedUser.id, profile });
 
     userId = insertedUser.id;
+    user = insertedUser;
   }
 
-  // OTP
-  const { otp, otpHash, otpHashExpiresAt } = await getOtpData();
+  // // OTP
+  // const { otp, otpHash, otpHashExpiresAt } = await getOtpData();
 
-  gqlSdk.updateUser({
-    id: userId,
+  // gqlSdk.updateUser({
+  //   id: userId,
+  //   user: {
+  //     otpHash,
+  //     otpHashExpiresAt,
+  //   },
+  // });
+
+  // generate verify email ticket to be used to verify this email once the user
+  // clicks the link in the email
+  const ticket = `verifyEmail:${uuidv4()}`;
+  const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
+
+  // set newEmail for user
+  await gqlSdk.updateUser({
+    id: user.id,
     user: {
-      otpHash,
-      otpHashExpiresAt,
+      ticket,
+      ticketExpiresAt,
     },
   });
+
+  const refreshToken = await getNewRefreshToken(userId);
 
   // Send magic link
   await emailClient.send({
@@ -129,9 +149,9 @@ export const signInMagicLinkHandler = async (
     message: {
       to: email,
       headers: {
-        'x-otp': {
+        'x-refreshToken': {
           prepared: true,
-          value: otp,
+          value: refreshToken,
         },
         'x-email-template': {
           prepared: true,
@@ -141,12 +161,13 @@ export const signInMagicLinkHandler = async (
     },
     locals: {
       email,
+      ticket,
       locale,
-      otp,
+      refreshToken,
       url: ENV.SERVER_URL,
       appUrl: ENV.APP_URL,
     },
   });
 
-  res.status(200).send('OK');
+  res.send({ session: null, mfa: null });
 };

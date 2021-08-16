@@ -31,7 +31,8 @@ const templateEngine = ({ content, variables }: TemplateEngineProps) => {
   let templatedContent = content;
 
   for (const key in variables) {
-    templatedContent = templatedContent.replace(`\${${key}}`, variables[key]);
+    const regex = new RegExp(`\\\${${key}}`, 'g');
+    templatedContent = templatedContent.replace(regex, variables[key]);
   }
 
   return templatedContent;

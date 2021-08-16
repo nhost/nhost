@@ -22,13 +22,25 @@ export const tokenHandler = async (
 ): Promise<unknown> => {
   const { refreshToken } = req.body;
 
+  // set expiresAt to now + 10 seconds.
+  // this means the refresh token is available for 10 more seconds to avoid race
+  // conditions with multiple request sent by the same client. Ex multiple tabs.
+  const expiresAt = new Date();
+  expiresAt.setSeconds(expiresAt.getSeconds() + 10);
+
+  // get user and set new expiresAt on the used refreshToken
   const refreshTokens = await gqlSdk
-    .getUsersByRefreshToken({
+    .getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
       refreshToken,
+      expiresAt: expiresAt,
     })
     .then((gqlres) => {
-      return gqlres.authRefreshTokens;
+      return gqlres.updateAuthRefreshTokens?.returning;
     });
+
+  if (!refreshTokens) {
+    return res.boom.unauthorized('Invalid or expired refresh token');
+  }
 
   if (refreshTokens.length === 0) {
     return res.boom.unauthorized('Invalid or expired refresh token');
@@ -44,10 +56,23 @@ export const tokenHandler = async (
     return res.boom.unauthorized('User is disabled');
   }
 
-  // delete current refresh token
-  await gqlSdk.deleteRefreshToken({
-    refreshToken,
-  });
+  // // delete current refresh token
+  // await gqlSdk.deleteRefreshToken({
+  //   refreshToken,
+  // });
+
+  const randomNumber = Math.floor(Math.random() * 10);
+
+  // 10% chance
+  // 1 in 10 request will delete expired refresh tokens
+  // Probably a CRONJOB in the future.
+  if (randomNumber === 1) {
+    console.log('DO delete');
+    // no await
+    gqlSdk.deleteExpiredRefreshTokens();
+  } else {
+    console.log('no delete');
+  }
 
   const tokens = await getNewTokens({
     user,

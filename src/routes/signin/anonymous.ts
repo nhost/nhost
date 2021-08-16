@@ -8,7 +8,7 @@ import {
 import { gqlSdk } from '@/utils/gqlSDK';
 import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
-import { getSignInTokens } from '@/utils/tokens';
+import { getSignInResponse } from '@/utils/tokens';
 
 type Profile = {
   [key: string]: string | number | boolean;
@@ -66,10 +66,10 @@ export const signInAnonymousHandler = async (
 
   await insertProfile({ userId: user.id, profile });
 
-  const signInTokens = await getSignInTokens({
+  const signInResponse = await getSignInResponse({
     userId: user.id,
     checkMFA: false,
   });
 
-  return res.send(signInTokens);
+  return res.send(signInResponse);
 };

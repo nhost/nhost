@@ -20,7 +20,9 @@
   <body>
     <h2>Hello ${email}</h2>
     <p>Use this link to securely sign in:</p>
-    <a href="${url}/action/magic-link?otp=${otp}">
+    <a
+      href="${appUrl}#action=verifyEmail&email=${email}&ticket=${ticket}&refreshToken=${refreshToken}"
+    >
       <button>Sign In</button>
     </a>
     <p>Thanks,<br />The Team</p>

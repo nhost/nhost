@@ -18,7 +18,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { PROVIDERS } from '@config/index';
 import { asyncWrapper, getGravatarUrl, getUserByEmail } from '@/helpers';
-import { SessionUser } from '@/types';
 import {
   ProviderCallbackQuery,
   providerCallbackQuery,
@@ -43,7 +42,8 @@ interface Constructable<T> {
 
 export type TransformProfileFunction = <T extends Profile>(
   profile: T
-) => SessionUser;
+) => { id: string; email: string; displayName: string; avatarUrl: string };
+
 interface InitProviderSettings {
   transformProfile: TransformProfileFunction;
   callbackMethod: 'GET' | 'POST';
@@ -236,7 +236,12 @@ export const initProvider = <T extends Strategy>(
       emails,
       displayName,
       photos,
-    }: Profile): SessionUser => ({
+    }: Profile): {
+      id: string;
+      email?: string;
+      displayName: string;
+      avatarUrl?: string;
+    } => ({
       id,
       email: emails?.[0].value,
       displayName: displayName,

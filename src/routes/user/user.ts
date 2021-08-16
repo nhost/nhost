@@ -5,8 +5,7 @@ import {
   ValidatedRequestSchema,
 } from 'express-joi-validation';
 
-import { getProfileFieldsForAccessToken } from '@/utils/profile';
-import { gqlSdk } from '@/utils/gqlSDK';
+import { getUser } from '@/utils/user';
 
 type BodyType = {};
 
@@ -24,24 +23,9 @@ export const userHandler = async (
 
   const { userId } = req.auth;
 
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
-
-  if (!user) {
-    throw new Error('Unable to get suer');
-  }
-
-  const profile = await getProfileFieldsForAccessToken({ userId }).catch(() => {
-    // noop
-    // profile is not available
-  });
+  const user = await getUser({ userId });
 
   return res.send({
-    id: user.id,
-    email: user.email,
-    displayName: user.displayName,
-    avatarUrl: user.avatarUrl,
-    profile,
+    ...user,
   });
 };

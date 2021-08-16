@@ -15,6 +15,7 @@ import { isValidEmail } from '@/utils/email';
 import { ENV } from '@/utils/env';
 import { isRolesValid } from '@/utils/roles';
 import { getOtpData } from '@/utils/otp';
+import { getNewRefreshToken } from '@/utils/tokens';
 
 type BodyType = {
   signInMethod: 'email-password' | 'magic-link';
@@ -195,14 +196,32 @@ export const userDeanonymizeHandler = async (
       throw new Error('SMTP settings unavailable');
     }
 
+    const ticket = `verifyEmail:${uuidv4()}`;
+    const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
+
+    // set newEmail for user
+    await gqlSdk.updateUser({
+      id: user.id,
+      user: {
+        ticket,
+        ticketExpiresAt,
+      },
+    });
+
+    const refreshToken = await getNewRefreshToken(userId);
+
     await emailClient.send({
       template: 'magic-link',
       message: {
         to: email,
         headers: {
-          'x-otp': {
+          'x-ticket': {
             prepared: true,
-            value: otp as string,
+            value: ticket,
+          },
+          'x-refreshToken': {
+            prepared: true,
+            value: refreshToken,
           },
           'x-email-template': {
             prepared: true,
@@ -212,6 +231,7 @@ export const userDeanonymizeHandler = async (
       },
       locals: {
         email,
+        ticket,
         locale: user.locale,
         otp,
         url: ENV.SERVER_URL,
