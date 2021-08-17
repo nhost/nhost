@@ -38,7 +38,6 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email,
       })
       .expect(200);
@@ -49,7 +48,7 @@ describe('passwordless email (magic link)', () => {
 
     const emailTemplate = message.Content.Headers['X-Email-Template'][0];
 
-    expect(emailTemplate).toBe('passwordless-link');
+    expect(emailTemplate).toBe('passwordless');
 
     const otp = message.Content.Headers['X-Otp'][0];
 
@@ -78,7 +77,6 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(404);
@@ -98,7 +96,6 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(401);
@@ -118,7 +115,6 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(200);
@@ -127,33 +123,9 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(200);
-  });
-
-  it('should fail to sign in with default role that is not in allowed roles', async () => {
-    // set env vars
-    await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PASSWORDLESS_EMAIL_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
-      DEFAULT_USER_ROLE: 'user',
-      DEFAULT_ALLOWED_USER_ROLES: 'user',
-    });
-
-    await request
-      .post('/signin/passwordless/start')
-      .send({
-        connection: 'email',
-        mode: 'link',
-        email: 'joedoe@example.com',
-        defaultRole: 'other',
-      })
-      .expect(400);
   });
 
   it('should succeed sign in with correct default role', async () => {
@@ -172,7 +144,6 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email: 'joedoe@example.com',
         defaultRole: 'user',
       })
@@ -195,7 +166,6 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email: 'joedoe@example.com',
         allowedRoles: ['incorrect'],
       })
@@ -219,7 +189,6 @@ describe('passwordless email (magic link)', () => {
       .post('/signin/passwordless/start')
       .send({
         connection: 'email',
-        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(500);

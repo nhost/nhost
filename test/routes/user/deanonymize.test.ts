@@ -124,7 +124,6 @@ describe('email-password', () => {
       .send({
         signInMethod: 'passwordless',
         connection: 'email',
-        mode: 'link',
         email,
         password: '1234567',
       })
@@ -136,7 +135,7 @@ describe('email-password', () => {
 
     const emailTemplate = message.Content.Headers['X-Email-Template'][0];
 
-    expect(emailTemplate).toBe('passwordless-link');
+    expect(emailTemplate).toBe('passwordless');
 
     const otp = message.Content.Headers['X-Otp'][0];
 

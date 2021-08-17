@@ -76,11 +76,8 @@ export type SignInResponse = {
   mfa: Mfa | null;
 };
 
-export type PasswordlessMode = 'code' | 'link';
-
 export type PasswordLessEmailBody = {
   connection: 'email';
-  mode: PasswordlessMode;
   email: string;
   locale?: string;
   allowedRoles?: string[];
@@ -91,13 +88,12 @@ export type PasswordLessEmailBody = {
 
 export type PasswordLessSmsBody = {
   connection: 'sms';
-  mode: 'code'; // only support code for now
   phoneNumber: string;
-  locale: string;
-  allowedRoles: string[];
-  defaultRole: string;
-  displayName: string;
-  profile: Profile | null;
+  locale?: string;
+  allowedRoles?: string[];
+  defaultRole?: string;
+  displayName?: string;
+  profile?: Profile;
 };
 
 export type Profile = {

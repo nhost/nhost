@@ -38,13 +38,14 @@ export const signInPasswordlessStartHandler = async (
       return res.boom.internal('SMTP settings unavailable');
     }
 
-    const { email, mode, profile, locale = ENV.DEFAULT_LOCALE } = body;
+    const { email, profile, locale = ENV.DEFAULT_LOCALE } = body;
 
     // check if email already exist
     let user = await getUserByEmail(email);
 
     let userId = user ? user.id : undefined;
 
+    // if no user exists, create the user
     if (!user) {
       // check email
       if (!(await isValidEmail({ email, res }))) {
@@ -73,6 +74,7 @@ export const signInPasswordlessStartHandler = async (
       const displayName = body.displayName ?? email;
       const avatarUrl = getGravatarUrl(email);
 
+      // create new user
       const insertedUser = await gqlSdk
         .insertUser({
           user: {
@@ -99,6 +101,7 @@ export const signInPasswordlessStartHandler = async (
       userId = insertedUser.id;
     }
 
+    // set otp for user that will be sent in the email
     const { otp, otpHash, otpHashExpiresAt } =
       await getNewOneTimePasswordData();
 
@@ -111,39 +114,34 @@ export const signInPasswordlessStartHandler = async (
       },
     });
 
-    if (mode === 'link') {
-      await emailClient.send({
-        template: 'passwordless-link',
-        message: {
-          to: email,
-          headers: {
-            'x-email': {
-              prepared: true,
-              value: email,
-            },
-            'x-otp': {
-              prepared: true,
-              value: otp,
-            },
-            'x-email-template': {
-              prepared: true,
-              value: 'passwordless-link',
-            },
+    await emailClient.send({
+      template: 'passwordless',
+      message: {
+        to: email,
+        headers: {
+          'x-email': {
+            prepared: true,
+            value: email,
+          },
+          'x-otp': {
+            prepared: true,
+            value: otp,
+          },
+          'x-email-template': {
+            prepared: true,
+            value: 'passwordless',
           },
         },
-        locals: {
-          displayName: user.displayName,
-          email,
-          otp,
-          locale: user.locale,
-          url: ENV.SERVER_URL,
-          appUrl: ENV.APP_URL,
-        },
-      });
-    } else if (mode === 'code') {
-      // TODO
-      return res.boom.notImplemented('mode code is not implemented yet.');
-    }
+      },
+      locals: {
+        displayName: user.displayName,
+        email,
+        otp,
+        locale: user.locale,
+        url: ENV.SERVER_URL,
+        appUrl: ENV.APP_URL,
+      },
+    });
   } else if (body.connection === 'sms') {
     // TODO
     return res.boom.notImplemented(

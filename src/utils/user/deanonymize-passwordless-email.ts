@@ -9,13 +9,11 @@ import { ENV } from '../env';
 import { emailClient } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';
 import { getNewOneTimePasswordData } from '../otp';
-import { PasswordlessMode } from '@/types';
 
 export type BodyTypePasswordlessEmail = {
   signInMethod: 'passwordless';
   connection: 'email';
   email: string;
-  mode?: PasswordlessMode;
   allowedRoles?: string[];
   defaultRole?: string;
 };
@@ -103,7 +101,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
     });
 
     await emailClient.send({
-      template: 'passwordless-link',
+      template: 'passwordless',
       message: {
         to: email,
         headers: {
@@ -117,7 +115,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
           },
           'x-email-template': {
             prepared: true,
-            value: 'passwordless-link',
+            value: 'passwordless',
           },
         },
       },

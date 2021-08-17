@@ -27,7 +27,6 @@ export const signInEmailPasswordSchema = Joi.object({
 
 export const signInPasswordlessSchema = Joi.object({
   connection: Joi.string(),
-  mode: Joi.string(),
   email: Joi.string(),
   phoneNumber: Joi.string(),
   locale: localeRule,
@@ -122,7 +121,6 @@ export const userDeanonymizeSchema = Joi.object({
   email: emailRule.required(),
   password: passwordRule,
   connection: Joi.string().allow('email', 'sms'),
-  mode: Joi.string().allow('link', 'code'),
   defaultRole: Joi.string(),
   allowedRoles: Joi.array().items(Joi.string()),
 });

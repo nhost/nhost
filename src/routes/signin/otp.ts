@@ -102,6 +102,7 @@ export const signInOtpHandler = async (
     await gqlSdk.updateUser({
       id: user.id,
       user: {
+        otpHash: null,
         phoneNumberVerified: true,
       },
     });
@@ -110,6 +111,7 @@ export const signInOtpHandler = async (
     await gqlSdk.updateUser({
       id: user.id,
       user: {
+        otpHash: null,
         emailVerified: true,
       },
     });
