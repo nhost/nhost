@@ -24,11 +24,11 @@ type Profile = {
 type BodyType = {
   email: string;
   password: string;
-  locale: string;
-  allowedRoles: string[] | null;
-  defaultRole: string | null;
-  displayName: string | null;
-  profile: Profile | null;
+  locale?: string;
+  allowedRoles?: string[];
+  defaultRole?: string;
+  displayName?: string;
+  profile?: Profile;
 };
 
 interface Schema extends ValidatedRequestSchema {

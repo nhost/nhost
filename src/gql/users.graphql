@@ -16,7 +16,6 @@ fragment userFields on users {
   isAnonymous
   ticket
   otpHash
-  otpHashExpiresAt
   totpSecret
   activeMfaType
   newEmail

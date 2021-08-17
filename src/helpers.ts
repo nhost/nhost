@@ -132,3 +132,23 @@ export const isWhitelistedEmail = async (email: string) => {
 //     avatarUrl: user.avatarUrl,
 //   };
 // }
+
+export function getRandomInt(min: number, max: number): number {
+  // Create byte array and fill with 1 random number
+  const byteArray = new Uint8Array(1);
+  crypto.getRandomValues(byteArray);
+
+  const range = max - min + 1;
+  const max_range = 256;
+  if (byteArray[0] >= Math.floor(max_range / range) * range)
+    return getRandomInt(min, max);
+  return min + (byteArray[0] % range);
+}
+
+export function getNewPasswordlessCode() {
+  let otp = '';
+  for (let i = 0; i < 6; i++) {
+    otp += getRandomInt(0, 9);
+  }
+  return otp;
+}

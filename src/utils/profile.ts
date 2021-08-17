@@ -3,13 +3,10 @@ import { gql } from 'graphql-request';
 
 import { client, gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from './env';
-
-type Profile = {
-  [key: string]: string | number | boolean;
-};
+import { Profile } from '@/types';
 
 type IsProfileValidParams = {
-  profile: Profile | null;
+  profile?: Profile;
   res: Response;
 };
 
@@ -36,7 +33,7 @@ export const isProfileValid = async ({
 
 type InsertProfileParams = {
   userId: string;
-  profile: null | { [key: string]: unknown };
+  profile?: Profile;
 };
 
 export const insertProfile = async ({

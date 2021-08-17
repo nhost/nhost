@@ -1,8 +1,9 @@
 // import { request } from "@/test/server";
 import { request } from '../../../server';
 import { Client } from 'pg';
+import { mailHogSearch, deleteAllMailHogEmails } from '../../../utils';
 
-describe('magic link', () => {
+describe('passwordless email (magic link)', () => {
   let client: any;
 
   beforeAll(async () => {
@@ -10,6 +11,7 @@ describe('magic link', () => {
       connectionString: process.env.DATABASE_URL,
     });
     await client.connect();
+    deleteAllMailHogEmails();
   });
 
   afterAll(() => {
@@ -26,31 +28,57 @@ describe('magic link', () => {
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
-      MAGIC_LINK_ENABLED: true,
+      PASSWORDLESS_EMAIL_ENABLED: true,
       REGISTRATION_PROFILE_FIELDS: '',
     });
 
+    const email = 'joedoe@example.com';
+
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
-        email: 'joedoe@example.com',
+        connection: 'email',
+        mode: 'link',
+        email,
+      })
+      .expect(200);
+
+    // get magic link email
+    const [message] = await mailHogSearch(email);
+    expect(message).toBeTruthy();
+
+    const emailTemplate = message.Content.Headers['X-Email-Template'][0];
+
+    expect(emailTemplate).toBe('passwordless-link');
+
+    const otp = message.Content.Headers['X-Otp'][0];
+
+    // sign in using OTP
+    await request
+      .post('/signin/otp')
+      .send({
+        connection: 'email',
+        email,
+        otp,
       })
       .expect(200);
   });
 
-  it('should fail to sign in if magic link is not enabled', async () => {
+  it('should fail to sign in if passworless email is not enabled', async () => {
     // set env vars
     await request.post('/change-env').send({
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
-      MAGIC_LINK_ENABLED: false,
+      PASSWORDLESS_EMAIL_ENABLED: false,
       REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(404);
@@ -62,13 +90,15 @@ describe('magic link', () => {
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: true,
-      MAGIC_LINK_ENABLED: true,
+      PASSWORDLESS_EMAIL_ENABLED: true,
       REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(401);
@@ -80,20 +110,24 @@ describe('magic link', () => {
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
-      MAGIC_LINK_ENABLED: true,
+      PASSWORDLESS_EMAIL_ENABLED: true,
       REGISTRATION_PROFILE_FIELDS: '',
     });
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(200);
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(200);
@@ -105,15 +139,17 @@ describe('magic link', () => {
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
-      MAGIC_LINK_ENABLED: true,
+      PASSWORDLESS_EMAIL_ENABLED: true,
       REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
         defaultRole: 'other',
       })
@@ -126,15 +162,17 @@ describe('magic link', () => {
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
-      MAGIC_LINK_ENABLED: true,
+      PASSWORDLESS_EMAIL_ENABLED: true,
       REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
         defaultRole: 'user',
       })
@@ -147,17 +185,19 @@ describe('magic link', () => {
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
-      MAGIC_LINK_ENABLED: true,
+      PASSWORDLESS_EMAIL_ENABLED: true,
       REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
-        allowedRoles: ['me'],
+        allowedRoles: ['incorrect'],
       })
       .expect(400);
   });
@@ -168,7 +208,7 @@ describe('magic link', () => {
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
       WHITELIST_ENABLED: false,
-      MAGIC_LINK_ENABLED: true,
+      PASSWORDLESS_EMAIL_ENABLED: true,
       REGISTRATION_PROFILE_FIELDS: '',
       DEFAULT_USER_ROLE: 'user',
       DEFAULT_ALLOWED_USER_ROLES: 'user',
@@ -176,8 +216,10 @@ describe('magic link', () => {
     });
 
     await request
-      .post('/signin/magic-link')
+      .post('/signin/passwordless/start')
       .send({
+        connection: 'email',
+        mode: 'link',
         email: 'joedoe@example.com',
       })
       .expect(500);

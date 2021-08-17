@@ -1,5 +1,10 @@
 -- start a transaction
 BEGIN;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
+CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
+
 -- functions
 CREATE FUNCTION auth.set_current_timestamp_updated_at ()
   RETURNS TRIGGER
@@ -55,6 +60,7 @@ CREATE TABLE auth.users (
   phone_number_verified boolean DEFAULT FALSE NOT NULL,
   last_verify_phone_number_sent_at timestamp with time zone DEFAULT now() NOT NULL,
   new_email auth.email,
+  otp_method_last_used text, -- used to verify the method (sms or email)
   otp_hash text,
   otp_hash_expires_at timestamp with time zone DEFAULT now() NOT NULL,
   default_role text DEFAULT 'user' NOT NULL,

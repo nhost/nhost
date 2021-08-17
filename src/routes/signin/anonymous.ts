@@ -9,15 +9,12 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
 import { getSignInResponse } from '@/utils/tokens';
-
-type Profile = {
-  [key: string]: string | number | boolean;
-};
+import { Profile } from '@/types';
 
 type BodyType = {
-  locale: string;
-  displayName: string;
-  profile: Profile | null;
+  locale?: string;
+  displayName?: string;
+  profile?: Profile;
 };
 
 interface Schema extends ValidatedRequestSchema {

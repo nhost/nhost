@@ -75,3 +75,43 @@ export type SignInResponse = {
   session: Session | null;
   mfa: Mfa | null;
 };
+
+export type PasswordlessMode = 'code' | 'link';
+
+export type PasswordLessEmailBody = {
+  connection: 'email';
+  mode: PasswordlessMode;
+  email: string;
+  locale?: string;
+  allowedRoles?: string[];
+  defaultRole?: string;
+  displayName?: string;
+  profile?: Profile;
+};
+
+export type PasswordLessSmsBody = {
+  connection: 'sms';
+  mode: 'code'; // only support code for now
+  phoneNumber: string;
+  locale: string;
+  allowedRoles: string[];
+  defaultRole: string;
+  displayName: string;
+  profile: Profile | null;
+};
+
+export type Profile = {
+  [key: string]: string | number | boolean;
+};
+
+export type OtpEmailBody = {
+  connection: 'email';
+  email: string;
+  otp: string;
+};
+
+export type OtpSmsBody = {
+  connection: 'sms';
+  phoneNumber: string;
+  otp: string;
+};

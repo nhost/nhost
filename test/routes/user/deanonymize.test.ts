@@ -122,7 +122,9 @@ describe('email-password', () => {
       .post('/user/deanonymize')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        signInMethod: 'magic-link',
+        signInMethod: 'passwordless',
+        connection: 'email',
+        mode: 'link',
         email,
         password: '1234567',
       })
@@ -132,28 +134,23 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const emailRefreshToken = message.Content.Headers['X-Refreshtoken'][0];
-    expect(typeof refreshToken).toBe('string');
+    const emailTemplate = message.Content.Headers['X-Email-Template'][0];
 
-    const emailTicket = message.Content.Headers['X-Ticket'][0];
-    expect(typeof emailTicket).toBe('string');
+    expect(emailTemplate).toBe('passwordless-link');
 
-    const emailType = message.Content.Headers['X-Email-Template'][0];
-    expect(emailType).toBe('magic-link');
+    const otp = message.Content.Headers['X-Otp'][0];
 
     // should not be able to reuse old refresh token
     await request.post('/token').send({ refreshToken }).expect(401);
 
-    // should be able to login using the refresh token from the email
+    // should be able to sign in using otp
     await request
-      .post('/token')
-      .send({ refreshToken: emailRefreshToken })
-      .expect(200);
-
-    // should e able to verify email using ticket from email
-    await request
-      .post('/user/email/verify')
-      .send({ email, ticket: emailTicket })
+      .post('/signin/otp')
+      .send({
+        connection: 'email',
+        email,
+        otp,
+      })
       .expect(200);
   });
 

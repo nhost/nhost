@@ -25,8 +25,11 @@ export const signInEmailPasswordSchema = Joi.object({
   password: passwordRule.required(),
 });
 
-export const signInMagicLinkSchema = Joi.object({
-  email: emailRule.required(),
+export const signInPasswordlessSchema = Joi.object({
+  connection: Joi.string(),
+  mode: Joi.string(),
+  email: Joi.string(),
+  phoneNumber: Joi.string(),
   locale: localeRule,
   defaultRole: Joi.string(),
   allowedRoles: Joi.array().items(Joi.string()),
@@ -34,8 +37,10 @@ export const signInMagicLinkSchema = Joi.object({
   profile: Joi.object(),
 });
 
-export const signInMagicLinkOtpSchema = Joi.object({
-  email: emailRule.required(),
+export const signInOtpSchema = Joi.object({
+  connection: Joi.string().required(),
+  email: emailRule,
+  phoneNumber: Joi.string(),
   otp: Joi.string().required(),
 });
 
@@ -110,9 +115,14 @@ export const userMfaSchema = Joi.object({
 
 // Deanonymize
 export const userDeanonymizeSchema = Joi.object({
-  signInMethod: Joi.string().allow('email-password').allow('magic-link'),
+  signInMethod: Joi.string()
+    .allow('email-password')
+    .allow('passwordless')
+    .required(),
   email: emailRule.required(),
   password: passwordRule,
+  connection: Joi.string().allow('email', 'sms'),
+  mode: Joi.string().allow('link', 'code'),
   defaultRole: Joi.string(),
   allowedRoles: Joi.array().items(Joi.string()),
 });

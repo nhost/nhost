@@ -78,153 +78,6 @@ export type String_Comparison_Exp = {
   _similar?: Maybe<Scalars['String']>;
 };
 
-/** columns and relationships of "auth.email_templates" */
-export type AuthEmailTemplates = {
-  __typename?: 'authEmailTemplates';
-  html: Scalars['String'];
-  id: Scalars['String'];
-  locale: Scalars['String'];
-  noHtml: Scalars['String'];
-  title: Scalars['String'];
-};
-
-/** aggregated selection of "auth.email_templates" */
-export type AuthEmailTemplates_Aggregate = {
-  __typename?: 'authEmailTemplates_aggregate';
-  aggregate?: Maybe<AuthEmailTemplates_Aggregate_Fields>;
-  nodes: Array<AuthEmailTemplates>;
-};
-
-/** aggregate fields of "auth.email_templates" */
-export type AuthEmailTemplates_Aggregate_Fields = {
-  __typename?: 'authEmailTemplates_aggregate_fields';
-  count: Scalars['Int'];
-  max?: Maybe<AuthEmailTemplates_Max_Fields>;
-  min?: Maybe<AuthEmailTemplates_Min_Fields>;
-};
-
-
-/** aggregate fields of "auth.email_templates" */
-export type AuthEmailTemplates_Aggregate_FieldsCountArgs = {
-  columns?: Maybe<Array<AuthEmailTemplates_Select_Column>>;
-  distinct?: Maybe<Scalars['Boolean']>;
-};
-
-/** Boolean expression to filter rows from the table "auth.email_templates". All fields are combined with a logical 'AND'. */
-export type AuthEmailTemplates_Bool_Exp = {
-  _and?: Maybe<Array<AuthEmailTemplates_Bool_Exp>>;
-  _not?: Maybe<AuthEmailTemplates_Bool_Exp>;
-  _or?: Maybe<Array<AuthEmailTemplates_Bool_Exp>>;
-  html?: Maybe<String_Comparison_Exp>;
-  id?: Maybe<String_Comparison_Exp>;
-  locale?: Maybe<String_Comparison_Exp>;
-  noHtml?: Maybe<String_Comparison_Exp>;
-  title?: Maybe<String_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "auth.email_templates" */
-export enum AuthEmailTemplates_Constraint {
-  /** unique or primary key constraint */
-  EmailTemplatesPkey = 'email_templates_pkey'
-}
-
-/** input type for inserting data into table "auth.email_templates" */
-export type AuthEmailTemplates_Insert_Input = {
-  html?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['String']>;
-  locale?: Maybe<Scalars['String']>;
-  noHtml?: Maybe<Scalars['String']>;
-  title?: Maybe<Scalars['String']>;
-};
-
-/** aggregate max on columns */
-export type AuthEmailTemplates_Max_Fields = {
-  __typename?: 'authEmailTemplates_max_fields';
-  html?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['String']>;
-  locale?: Maybe<Scalars['String']>;
-  noHtml?: Maybe<Scalars['String']>;
-  title?: Maybe<Scalars['String']>;
-};
-
-/** aggregate min on columns */
-export type AuthEmailTemplates_Min_Fields = {
-  __typename?: 'authEmailTemplates_min_fields';
-  html?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['String']>;
-  locale?: Maybe<Scalars['String']>;
-  noHtml?: Maybe<Scalars['String']>;
-  title?: Maybe<Scalars['String']>;
-};
-
-/** response of any mutation on the table "auth.email_templates" */
-export type AuthEmailTemplates_Mutation_Response = {
-  __typename?: 'authEmailTemplates_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<AuthEmailTemplates>;
-};
-
-/** on conflict condition type for table "auth.email_templates" */
-export type AuthEmailTemplates_On_Conflict = {
-  constraint: AuthEmailTemplates_Constraint;
-  update_columns?: Array<AuthEmailTemplates_Update_Column>;
-  where?: Maybe<AuthEmailTemplates_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "auth.email_templates". */
-export type AuthEmailTemplates_Order_By = {
-  html?: Maybe<Order_By>;
-  id?: Maybe<Order_By>;
-  locale?: Maybe<Order_By>;
-  noHtml?: Maybe<Order_By>;
-  title?: Maybe<Order_By>;
-};
-
-/** primary key columns input for table: authEmailTemplates */
-export type AuthEmailTemplates_Pk_Columns_Input = {
-  id: Scalars['String'];
-  locale: Scalars['String'];
-};
-
-/** select columns of table "auth.email_templates" */
-export enum AuthEmailTemplates_Select_Column {
-  /** column name */
-  Html = 'html',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Locale = 'locale',
-  /** column name */
-  NoHtml = 'noHtml',
-  /** column name */
-  Title = 'title'
-}
-
-/** input type for updating data in table "auth.email_templates" */
-export type AuthEmailTemplates_Set_Input = {
-  html?: Maybe<Scalars['String']>;
-  id?: Maybe<Scalars['String']>;
-  locale?: Maybe<Scalars['String']>;
-  noHtml?: Maybe<Scalars['String']>;
-  title?: Maybe<Scalars['String']>;
-};
-
-/** update columns of table "auth.email_templates" */
-export enum AuthEmailTemplates_Update_Column {
-  /** column name */
-  Html = 'html',
-  /** column name */
-  Id = 'id',
-  /** column name */
-  Locale = 'locale',
-  /** column name */
-  NoHtml = 'noHtml',
-  /** column name */
-  Title = 'title'
-}
-
 /** columns and relationships of "auth.provider_requests" */
 export type AuthProviderRequests = {
   __typename?: 'authProviderRequests';
@@ -1486,10 +1339,6 @@ export type Citext_Comparison_Exp = {
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
-  /** delete single row from the table: "auth.email_templates" */
-  deleteAuthEmailTemplate?: Maybe<AuthEmailTemplates>;
-  /** delete data from the table: "auth.email_templates" */
-  deleteAuthEmailTemplates?: Maybe<AuthEmailTemplates_Mutation_Response>;
   /** delete single row from the table: "auth.providers" */
   deleteAuthProvider?: Maybe<AuthProviders>;
   /** delete single row from the table: "auth.provider_requests" */
@@ -1518,10 +1367,6 @@ export type Mutation_Root = {
   deleteAuthWhitelist?: Maybe<AuthWhitelist>;
   /** delete data from the table: "auth.whitelist" */
   deleteAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
-  /** delete single row from the table: "profiles" */
-  deleteProfile?: Maybe<Profiles>;
-  /** delete data from the table: "profiles" */
-  deleteProfiles?: Maybe<Profiles_Mutation_Response>;
   /** delete single row from the table: "auth.users" */
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
@@ -1530,10 +1375,6 @@ export type Mutation_Root = {
   delete_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** delete single row from the table: "auth.migrations" */
   delete_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
-  /** insert a single row into the table: "auth.email_templates" */
-  insertAuthEmailTemplate?: Maybe<AuthEmailTemplates>;
-  /** insert data into the table: "auth.email_templates" */
-  insertAuthEmailTemplates?: Maybe<AuthEmailTemplates_Mutation_Response>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
   /** insert a single row into the table: "auth.provider_requests" */
@@ -1562,10 +1403,6 @@ export type Mutation_Root = {
   insertAuthWhitelist?: Maybe<AuthWhitelist>;
   /** insert data into the table: "auth.whitelist" */
   insertAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
-  /** insert a single row into the table: "profiles" */
-  insertProfile?: Maybe<Profiles>;
-  /** insert data into the table: "profiles" */
-  insertProfiles?: Maybe<Profiles_Mutation_Response>;
   /** insert a single row into the table: "auth.users" */
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
@@ -1574,10 +1411,6 @@ export type Mutation_Root = {
   insert_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** insert a single row into the table: "auth.migrations" */
   insert_auth_migrations_one?: Maybe<Auth_Migrations>;
-  /** update single row of the table: "auth.email_templates" */
-  updateAuthEmailTemplate?: Maybe<AuthEmailTemplates>;
-  /** update data of the table: "auth.email_templates" */
-  updateAuthEmailTemplates?: Maybe<AuthEmailTemplates_Mutation_Response>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -1606,10 +1439,6 @@ export type Mutation_Root = {
   updateAuthWhitelist?: Maybe<AuthWhitelist>;
   /** update data of the table: "auth.whitelist" */
   updateAuthWhitelists?: Maybe<AuthWhitelist_Mutation_Response>;
-  /** update single row of the table: "profiles" */
-  updateProfile?: Maybe<Profiles>;
-  /** update data of the table: "profiles" */
-  updateProfiles?: Maybe<Profiles_Mutation_Response>;
   /** update single row of the table: "auth.users" */
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
@@ -1618,19 +1447,6 @@ export type Mutation_Root = {
   update_auth_migrations?: Maybe<Auth_Migrations_Mutation_Response>;
   /** update single row of the table: "auth.migrations" */
   update_auth_migrations_by_pk?: Maybe<Auth_Migrations>;
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteAuthEmailTemplateArgs = {
-  id: Scalars['String'];
-  locale: Scalars['String'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteAuthEmailTemplatesArgs = {
-  where: AuthEmailTemplates_Bool_Exp;
 };
 
 
@@ -1719,18 +1535,6 @@ export type Mutation_RootDeleteAuthWhitelistsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootDeleteProfileArgs = {
-  userId: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDeleteProfilesArgs = {
-  where: Profiles_Bool_Exp;
-};
-
-
-/** mutation root */
 export type Mutation_RootDeleteUserArgs = {
   id: Scalars['uuid'];
 };
@@ -1751,20 +1555,6 @@ export type Mutation_RootDelete_Auth_MigrationsArgs = {
 /** mutation root */
 export type Mutation_RootDelete_Auth_Migrations_By_PkArgs = {
   id: Scalars['Int'];
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertAuthEmailTemplateArgs = {
-  object: AuthEmailTemplates_Insert_Input;
-  on_conflict?: Maybe<AuthEmailTemplates_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertAuthEmailTemplatesArgs = {
-  objects: Array<AuthEmailTemplates_Insert_Input>;
-  on_conflict?: Maybe<AuthEmailTemplates_On_Conflict>;
 };
 
 
@@ -1867,20 +1657,6 @@ export type Mutation_RootInsertAuthWhitelistsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsertProfileArgs = {
-  object: Profiles_Insert_Input;
-  on_conflict?: Maybe<Profiles_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsertProfilesArgs = {
-  objects: Array<Profiles_Insert_Input>;
-  on_conflict?: Maybe<Profiles_On_Conflict>;
-};
-
-
-/** mutation root */
 export type Mutation_RootInsertUserArgs = {
   object: Users_Insert_Input;
   on_conflict?: Maybe<Users_On_Conflict>;
@@ -1905,20 +1681,6 @@ export type Mutation_RootInsert_Auth_MigrationsArgs = {
 export type Mutation_RootInsert_Auth_Migrations_OneArgs = {
   object: Auth_Migrations_Insert_Input;
   on_conflict?: Maybe<Auth_Migrations_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateAuthEmailTemplateArgs = {
-  _set?: Maybe<AuthEmailTemplates_Set_Input>;
-  pk_columns: AuthEmailTemplates_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateAuthEmailTemplatesArgs = {
-  _set?: Maybe<AuthEmailTemplates_Set_Input>;
-  where: AuthEmailTemplates_Bool_Exp;
 };
 
 
@@ -2021,22 +1783,6 @@ export type Mutation_RootUpdateAuthWhitelistsArgs = {
 
 
 /** mutation root */
-export type Mutation_RootUpdateProfileArgs = {
-  _inc?: Maybe<Profiles_Inc_Input>;
-  _set?: Maybe<Profiles_Set_Input>;
-  pk_columns: Profiles_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdateProfilesArgs = {
-  _inc?: Maybe<Profiles_Inc_Input>;
-  _set?: Maybe<Profiles_Set_Input>;
-  where: Profiles_Bool_Exp;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdateUserArgs = {
   _set?: Maybe<Users_Set_Input>;
   pk_columns: Users_Pk_Columns_Input;
@@ -2081,200 +1827,8 @@ export enum Order_By {
   DescNullsLast = 'desc_nulls_last'
 }
 
-/** columns and relationships of "profiles" */
-export type Profiles = {
-  __typename?: 'profiles';
-  companyId: Scalars['Int'];
-  /** An object relationship */
-  user: Users;
-  userId: Scalars['uuid'];
-};
-
-/** aggregated selection of "profiles" */
-export type Profiles_Aggregate = {
-  __typename?: 'profiles_aggregate';
-  aggregate?: Maybe<Profiles_Aggregate_Fields>;
-  nodes: Array<Profiles>;
-};
-
-/** aggregate fields of "profiles" */
-export type Profiles_Aggregate_Fields = {
-  __typename?: 'profiles_aggregate_fields';
-  avg?: Maybe<Profiles_Avg_Fields>;
-  count: Scalars['Int'];
-  max?: Maybe<Profiles_Max_Fields>;
-  min?: Maybe<Profiles_Min_Fields>;
-  stddev?: Maybe<Profiles_Stddev_Fields>;
-  stddev_pop?: Maybe<Profiles_Stddev_Pop_Fields>;
-  stddev_samp?: Maybe<Profiles_Stddev_Samp_Fields>;
-  sum?: Maybe<Profiles_Sum_Fields>;
-  var_pop?: Maybe<Profiles_Var_Pop_Fields>;
-  var_samp?: Maybe<Profiles_Var_Samp_Fields>;
-  variance?: Maybe<Profiles_Variance_Fields>;
-};
-
-
-/** aggregate fields of "profiles" */
-export type Profiles_Aggregate_FieldsCountArgs = {
-  columns?: Maybe<Array<Profiles_Select_Column>>;
-  distinct?: Maybe<Scalars['Boolean']>;
-};
-
-/** aggregate avg on columns */
-export type Profiles_Avg_Fields = {
-  __typename?: 'profiles_avg_fields';
-  companyId?: Maybe<Scalars['Float']>;
-};
-
-/** Boolean expression to filter rows from the table "profiles". All fields are combined with a logical 'AND'. */
-export type Profiles_Bool_Exp = {
-  _and?: Maybe<Array<Profiles_Bool_Exp>>;
-  _not?: Maybe<Profiles_Bool_Exp>;
-  _or?: Maybe<Array<Profiles_Bool_Exp>>;
-  companyId?: Maybe<Int_Comparison_Exp>;
-  user?: Maybe<Users_Bool_Exp>;
-  userId?: Maybe<Uuid_Comparison_Exp>;
-};
-
-/** unique or primary key constraints on table "profiles" */
-export enum Profiles_Constraint {
-  /** unique or primary key constraint */
-  ProfilesPkey = 'profiles_pkey'
-}
-
-/** input type for incrementing numeric columns in table "profiles" */
-export type Profiles_Inc_Input = {
-  companyId?: Maybe<Scalars['Int']>;
-};
-
-/** input type for inserting data into table "profiles" */
-export type Profiles_Insert_Input = {
-  companyId?: Maybe<Scalars['Int']>;
-  user?: Maybe<Users_Obj_Rel_Insert_Input>;
-  userId?: Maybe<Scalars['uuid']>;
-};
-
-/** aggregate max on columns */
-export type Profiles_Max_Fields = {
-  __typename?: 'profiles_max_fields';
-  companyId?: Maybe<Scalars['Int']>;
-  userId?: Maybe<Scalars['uuid']>;
-};
-
-/** aggregate min on columns */
-export type Profiles_Min_Fields = {
-  __typename?: 'profiles_min_fields';
-  companyId?: Maybe<Scalars['Int']>;
-  userId?: Maybe<Scalars['uuid']>;
-};
-
-/** response of any mutation on the table "profiles" */
-export type Profiles_Mutation_Response = {
-  __typename?: 'profiles_mutation_response';
-  /** number of rows affected by the mutation */
-  affected_rows: Scalars['Int'];
-  /** data from the rows affected by the mutation */
-  returning: Array<Profiles>;
-};
-
-/** input type for inserting object relation for remote table "profiles" */
-export type Profiles_Obj_Rel_Insert_Input = {
-  data: Profiles_Insert_Input;
-  /** on conflict condition */
-  on_conflict?: Maybe<Profiles_On_Conflict>;
-};
-
-/** on conflict condition type for table "profiles" */
-export type Profiles_On_Conflict = {
-  constraint: Profiles_Constraint;
-  update_columns?: Array<Profiles_Update_Column>;
-  where?: Maybe<Profiles_Bool_Exp>;
-};
-
-/** Ordering options when selecting data from "profiles". */
-export type Profiles_Order_By = {
-  companyId?: Maybe<Order_By>;
-  user?: Maybe<Users_Order_By>;
-  userId?: Maybe<Order_By>;
-};
-
-/** primary key columns input for table: profiles */
-export type Profiles_Pk_Columns_Input = {
-  userId: Scalars['uuid'];
-};
-
-/** select columns of table "profiles" */
-export enum Profiles_Select_Column {
-  /** column name */
-  CompanyId = 'companyId',
-  /** column name */
-  UserId = 'userId'
-}
-
-/** input type for updating data in table "profiles" */
-export type Profiles_Set_Input = {
-  companyId?: Maybe<Scalars['Int']>;
-  userId?: Maybe<Scalars['uuid']>;
-};
-
-/** aggregate stddev on columns */
-export type Profiles_Stddev_Fields = {
-  __typename?: 'profiles_stddev_fields';
-  companyId?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_pop on columns */
-export type Profiles_Stddev_Pop_Fields = {
-  __typename?: 'profiles_stddev_pop_fields';
-  companyId?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate stddev_samp on columns */
-export type Profiles_Stddev_Samp_Fields = {
-  __typename?: 'profiles_stddev_samp_fields';
-  companyId?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate sum on columns */
-export type Profiles_Sum_Fields = {
-  __typename?: 'profiles_sum_fields';
-  companyId?: Maybe<Scalars['Int']>;
-};
-
-/** update columns of table "profiles" */
-export enum Profiles_Update_Column {
-  /** column name */
-  CompanyId = 'companyId',
-  /** column name */
-  UserId = 'userId'
-}
-
-/** aggregate var_pop on columns */
-export type Profiles_Var_Pop_Fields = {
-  __typename?: 'profiles_var_pop_fields';
-  companyId?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate var_samp on columns */
-export type Profiles_Var_Samp_Fields = {
-  __typename?: 'profiles_var_samp_fields';
-  companyId?: Maybe<Scalars['Float']>;
-};
-
-/** aggregate variance on columns */
-export type Profiles_Variance_Fields = {
-  __typename?: 'profiles_variance_fields';
-  companyId?: Maybe<Scalars['Float']>;
-};
-
 export type Query_Root = {
   __typename?: 'query_root';
-  /** fetch data from the table: "auth.email_templates" using primary key columns */
-  AuthEmailTemplate?: Maybe<AuthEmailTemplates>;
-  /** fetch data from the table: "auth.email_templates" */
-  AuthEmailTemplates: Array<AuthEmailTemplates>;
-  /** fetch aggregated fields from the table: "auth.email_templates" */
-  AuthEmailTemplatesAggregate: AuthEmailTemplates_Aggregate;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
   AuthProviderRequest?: Maybe<AuthProviderRequests>;
   /** fetch data from the table: "auth.provider_requests" */
@@ -2325,40 +1879,10 @@ export type Query_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
-  /** fetch data from the table: "profiles" using primary key columns */
-  profile?: Maybe<Profiles>;
-  /** fetch data from the table: "profiles" */
-  profiles: Array<Profiles>;
-  /** fetch aggregated fields from the table: "profiles" */
-  profilesAggregat: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
-};
-
-
-export type Query_RootAuthEmailTemplateArgs = {
-  id: Scalars['String'];
-  locale: Scalars['String'];
-};
-
-
-export type Query_RootAuthEmailTemplatesArgs = {
-  distinct_on?: Maybe<Array<AuthEmailTemplates_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<AuthEmailTemplates_Order_By>>;
-  where?: Maybe<AuthEmailTemplates_Bool_Exp>;
-};
-
-
-export type Query_RootAuthEmailTemplatesAggregateArgs = {
-  distinct_on?: Maybe<Array<AuthEmailTemplates_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<AuthEmailTemplates_Order_By>>;
-  where?: Maybe<AuthEmailTemplates_Bool_Exp>;
 };
 
 
@@ -2555,29 +2079,6 @@ export type Query_RootAuth_Migrations_By_PkArgs = {
 };
 
 
-export type Query_RootProfileArgs = {
-  userId: Scalars['uuid'];
-};
-
-
-export type Query_RootProfilesArgs = {
-  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<Profiles_Order_By>>;
-  where?: Maybe<Profiles_Bool_Exp>;
-};
-
-
-export type Query_RootProfilesAggregatArgs = {
-  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<Profiles_Order_By>>;
-  where?: Maybe<Profiles_Bool_Exp>;
-};
-
-
 export type Query_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2593,12 +2094,6 @@ export type Query_RootUsersArgs = {
 
 export type Subscription_Root = {
   __typename?: 'subscription_root';
-  /** fetch data from the table: "auth.email_templates" using primary key columns */
-  AuthEmailTemplate?: Maybe<AuthEmailTemplates>;
-  /** fetch data from the table: "auth.email_templates" */
-  AuthEmailTemplates: Array<AuthEmailTemplates>;
-  /** fetch aggregated fields from the table: "auth.email_templates" */
-  AuthEmailTemplatesAggregate: AuthEmailTemplates_Aggregate;
   /** fetch data from the table: "auth.provider_requests" using primary key columns */
   AuthProviderRequest?: Maybe<AuthProviderRequests>;
   /** fetch data from the table: "auth.provider_requests" */
@@ -2649,40 +2144,10 @@ export type Subscription_Root = {
   auth_migrations_aggregate: Auth_Migrations_Aggregate;
   /** fetch data from the table: "auth.migrations" using primary key columns */
   auth_migrations_by_pk?: Maybe<Auth_Migrations>;
-  /** fetch data from the table: "profiles" using primary key columns */
-  profile?: Maybe<Profiles>;
-  /** fetch data from the table: "profiles" */
-  profiles: Array<Profiles>;
-  /** fetch aggregated fields from the table: "profiles" */
-  profilesAggregat: Profiles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
-};
-
-
-export type Subscription_RootAuthEmailTemplateArgs = {
-  id: Scalars['String'];
-  locale: Scalars['String'];
-};
-
-
-export type Subscription_RootAuthEmailTemplatesArgs = {
-  distinct_on?: Maybe<Array<AuthEmailTemplates_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<AuthEmailTemplates_Order_By>>;
-  where?: Maybe<AuthEmailTemplates_Bool_Exp>;
-};
-
-
-export type Subscription_RootAuthEmailTemplatesAggregateArgs = {
-  distinct_on?: Maybe<Array<AuthEmailTemplates_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<AuthEmailTemplates_Order_By>>;
-  where?: Maybe<AuthEmailTemplates_Bool_Exp>;
 };
 
 
@@ -2879,29 +2344,6 @@ export type Subscription_RootAuth_Migrations_By_PkArgs = {
 };
 
 
-export type Subscription_RootProfileArgs = {
-  userId: Scalars['uuid'];
-};
-
-
-export type Subscription_RootProfilesArgs = {
-  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<Profiles_Order_By>>;
-  where?: Maybe<Profiles_Bool_Exp>;
-};
-
-
-export type Subscription_RootProfilesAggregatArgs = {
-  distinct_on?: Maybe<Array<Profiles_Select_Column>>;
-  limit?: Maybe<Scalars['Int']>;
-  offset?: Maybe<Scalars['Int']>;
-  order_by?: Maybe<Array<Profiles_Order_By>>;
-  where?: Maybe<Profiles_Bool_Exp>;
-};
-
-
 export type Subscription_RootUserArgs = {
   id: Scalars['uuid'];
 };
@@ -2962,11 +2404,10 @@ export type Users = {
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt: Scalars['timestamptz'];
+  otpMethodLastUsed?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified: Scalars['Boolean'];
-  /** An object relationship */
-  profile: Profiles;
   /** An array relationship */
   refreshTokens: Array<AuthRefreshTokens>;
   /** An aggregate relationship */
@@ -3088,10 +2529,10 @@ export type Users_Bool_Exp = {
   newEmail?: Maybe<Citext_Comparison_Exp>;
   otpHash?: Maybe<String_Comparison_Exp>;
   otpHashExpiresAt?: Maybe<Timestamptz_Comparison_Exp>;
+  otpMethodLastUsed?: Maybe<String_Comparison_Exp>;
   passwordHash?: Maybe<String_Comparison_Exp>;
   phoneNumber?: Maybe<String_Comparison_Exp>;
   phoneNumberVerified?: Maybe<Boolean_Comparison_Exp>;
-  profile?: Maybe<Profiles_Bool_Exp>;
   refreshTokens?: Maybe<AuthRefreshTokens_Bool_Exp>;
   roles?: Maybe<AuthUserRoles_Bool_Exp>;
   ticket?: Maybe<String_Comparison_Exp>;
@@ -3129,10 +2570,10 @@ export type Users_Insert_Input = {
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
+  otpMethodLastUsed?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified?: Maybe<Scalars['Boolean']>;
-  profile?: Maybe<Profiles_Obj_Rel_Insert_Input>;
   refreshTokens?: Maybe<AuthRefreshTokens_Arr_Rel_Insert_Input>;
   roles?: Maybe<AuthUserRoles_Arr_Rel_Insert_Input>;
   ticket?: Maybe<Scalars['String']>;
@@ -3158,6 +2599,7 @@ export type Users_Max_Fields = {
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
+  otpMethodLastUsed?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
   phoneNumber?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
@@ -3182,6 +2624,7 @@ export type Users_Min_Fields = {
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
+  otpMethodLastUsed?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
   phoneNumber?: Maybe<Scalars['String']>;
   ticket?: Maybe<Scalars['String']>;
@@ -3231,10 +2674,10 @@ export type Users_Order_By = {
   newEmail?: Maybe<Order_By>;
   otpHash?: Maybe<Order_By>;
   otpHashExpiresAt?: Maybe<Order_By>;
+  otpMethodLastUsed?: Maybe<Order_By>;
   passwordHash?: Maybe<Order_By>;
   phoneNumber?: Maybe<Order_By>;
   phoneNumberVerified?: Maybe<Order_By>;
-  profile?: Maybe<Profiles_Order_By>;
   refreshTokens_aggregate?: Maybe<AuthRefreshTokens_Aggregate_Order_By>;
   roles_aggregate?: Maybe<AuthUserRoles_Aggregate_Order_By>;
   ticket?: Maybe<Order_By>;
@@ -3284,6 +2727,8 @@ export enum Users_Select_Column {
   /** column name */
   OtpHashExpiresAt = 'otpHashExpiresAt',
   /** column name */
+  OtpMethodLastUsed = 'otpMethodLastUsed',
+  /** column name */
   PasswordHash = 'passwordHash',
   /** column name */
   PhoneNumber = 'phoneNumber',
@@ -3317,6 +2762,7 @@ export type Users_Set_Input = {
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt?: Maybe<Scalars['timestamptz']>;
+  otpMethodLastUsed?: Maybe<Scalars['String']>;
   passwordHash?: Maybe<Scalars['String']>;
   phoneNumber?: Maybe<Scalars['String']>;
   phoneNumberVerified?: Maybe<Scalars['Boolean']>;
@@ -3361,6 +2807,8 @@ export enum Users_Update_Column {
   /** column name */
   OtpHashExpiresAt = 'otpHashExpiresAt',
   /** column name */
+  OtpMethodLastUsed = 'otpMethodLastUsed',
+  /** column name */
   PasswordHash = 'passwordHash',
   /** column name */
   PhoneNumber = 'phoneNumber',
@@ -3389,20 +2837,6 @@ export type Uuid_Comparison_Exp = {
   _neq?: Maybe<Scalars['uuid']>;
   _nin?: Maybe<Array<Scalars['uuid']>>;
 };
-
-export type EmailTemplateQueryVariables = Exact<{
-  id: Scalars['String'];
-  locale: Scalars['String'];
-}>;
-
-
-export type EmailTemplateQuery = (
-  { __typename?: 'query_root' }
-  & { AuthEmailTemplate?: Maybe<(
-    { __typename?: 'authEmailTemplates' }
-    & Pick<AuthEmailTemplates, 'id' | 'title' | 'html' | 'noHtml' | 'locale'>
-  )> }
-);
 
 export type InsertProviderRequestMutationVariables = Exact<{
   providerRequest: AuthProviderRequests_Insert_Input;
@@ -3567,7 +3001,7 @@ export type DeleteUserRolesByUserIdMutation = (
 
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'createdAt' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'lastVerifyEmailSentAt' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'otpHashExpiresAt' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
+  & Pick<Users, 'id' | 'createdAt' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'lastVerifyEmailSentAt' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
   & { roles: Array<(
     { __typename?: 'authUserRoles' }
     & Pick<AuthUserRoles, 'role'>
@@ -3836,24 +3270,12 @@ export const UserFieldsFragmentDoc = gql`
   isAnonymous
   ticket
   otpHash
-  otpHashExpiresAt
   totpSecret
   activeMfaType
   newEmail
   locale
   roles {
     role
-  }
-}
-    `;
-export const EmailTemplateDocument = gql`
-    query emailTemplate($id: String!, $locale: String!) {
-  AuthEmailTemplate(id: $id, locale: $locale) {
-    id
-    title
-    html
-    noHtml
-    locale
   }
 }
     `;
@@ -4088,9 +3510,6 @@ const defaultWrapper: SdkFunctionWrapper = (action, _operationName) => action();
 
 export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = defaultWrapper) {
   return {
-    emailTemplate(variables: EmailTemplateQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<EmailTemplateQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<EmailTemplateQuery>(EmailTemplateDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'emailTemplate');
-    },
     insertProviderRequest(variables: InsertProviderRequestMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<InsertProviderRequestMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<InsertProviderRequestMutation>(InsertProviderRequestDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'insertProviderRequest');
     },

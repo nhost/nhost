@@ -107,8 +107,16 @@ export const ENV = {
     return castStringArrayEnv('ALLOWED_LOCALES') || ['en'];
   },
 
-  get MAGIC_LINK_ENABLED() {
-    return castBooleanEnv('MAGIC_LINK_ENABLED', false);
+  // get MAGIC_LINK_ENABLED() {
+  //   return castBooleanEnv('MAGIC_LINK_ENABLED', false);
+  // },
+
+  get PASSWORDLESS_EMAIL_ENABLED() {
+    return castBooleanEnv('PASSWORDLESS_EMAIL_ENABLED', false);
+  },
+
+  get PASSWORDLESS_SMS_ENABLED() {
+    return castBooleanEnv('PASSWORDLESS_SMS_ENABLED', false);
   },
 
   get MFA_ENABLED() {
