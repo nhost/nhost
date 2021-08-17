@@ -82,8 +82,11 @@ export const signInOtpHandler = async (
     return res.boom.badRequest('Incorrect mode');
   }
 
-  // continue checking the user
+  if (!user) {
+    return res.boom.unauthorized('Invalid or expired OTP');
+  }
 
+  // continue checking the user
   if (user.disabled) {
     return res.boom.badRequest('User is disabled');
   }

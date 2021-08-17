@@ -25,7 +25,9 @@ export const emailTemplatesHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (req.headers['x-admin-secret'] !== ENV.HASURA_GRAPHQL_ADMIN_SECRET) {
+  if (
+    req.headers['x-hasura-admin-secret'] !== ENV.HASURA_GRAPHQL_ADMIN_SECRET
+  ) {
     return res.boom.unauthorized('Incorrect admin secret');
   }
 
