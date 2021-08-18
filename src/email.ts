@@ -4,7 +4,7 @@ import fs from 'fs';
 
 import { ENV } from './utils/env';
 import path from 'path';
-import logger from './logger';
+import { logger } from './logger';
 
 /**
  * SMTP transport.

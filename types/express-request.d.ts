@@ -1,4 +1,4 @@
-import winston from "winston";
+import PinoHttp from 'express-pino-logger';
 
 interface RequestAuth {
   userId: string;
@@ -9,7 +9,7 @@ interface RequestAuth {
 declare global {
   namespace Express {
     export interface Request {
-      logger: winston.Logger;
+      log: PinoHttp.HttpLogger;
       auth: RequestAuth | null;
       refreshToken?: string;
     }

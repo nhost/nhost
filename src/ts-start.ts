@@ -4,8 +4,8 @@ import { app } from './server';
 import { applyMigrations } from '@/migrations';
 import { applyMetadata } from '@/metadata';
 import './env-vars-check';
-import logger from './logger';
 import { ENV } from './utils/env';
+import { logger } from './logger';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -81,6 +81,8 @@ const start = async (): Promise<void> => {
   // TODO: Fetch email templates from ENV var URL
 
   app.listen(ENV.AUTH_PORT, ENV.AUTH_HOST, () => {
+    logger.info('Log level');
+    logger.info(ENV.AUTH_LOG_LEVEL);
     if (ENV.AUTH_HOST) {
       logger.info(`Running on http://${ENV.AUTH_HOST}:${ENV.AUTH_PORT}`);
     } else {

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import logger from './logger';
+import { logger } from './logger';
 import { ENV } from './utils/env';
 
 /**
@@ -126,7 +126,7 @@ export const createObjectRelationship = async (args: RelationshipArgs) => {
 };
 
 export const createArrayRelationship = async (args: RelationshipArgs) => {
-  logger.info(`create array relationship ${args.name} for ${args.table.name}`);
+  // logger.info(`create array relationship ${args.name} for ${args.table.name}`);
   try {
     await axios.post(
       ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
@@ -146,16 +146,15 @@ export const createArrayRelationship = async (args: RelationshipArgs) => {
       throw new Error(
         `Error creating array relationship for table ${args.table.name}`
       );
-    } else {
-      logger.debug(
-        `Array relationship ${args.name} on table ${args.table.name} is already created`
-      );
     }
+    logger.debug(
+      `Array relationship ${args.name} on table ${args.table.name} is already created`
+    );
   }
 };
 
-export async function applyMetadata(): Promise<void> {
-  console.log('Applying metadata 3');
+export const applyMetadata = async (): Promise<void> => {
+  logger.info('Applying metadata 3');
 
   // track tables
   await trackTable({ table: { schema: 'auth', name: 'users' } });
@@ -547,5 +546,5 @@ export async function applyMetadata(): Promise<void> {
     );
   }
 
-  console.log('Finished applying metadata');
-}
+  // console.log('Finished applying metadata');
+};

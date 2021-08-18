@@ -1,5 +1,5 @@
 import { PROVIDERS } from '@config/index';
-import logger from './logger';
+import { logger } from './logger';
 import { ENV } from './utils/env';
 
 function isUnset(val: any) {

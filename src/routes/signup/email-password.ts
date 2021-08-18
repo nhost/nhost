@@ -42,6 +42,8 @@ export const signUpEmailPasswordHandler = async (
   const { body } = req;
   const { email, password, profile, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
 
+  req.log.debug({ body });
+
   // check email
   if (!(await isValidEmail({ email, res }))) {
     // function send potential error via `res`
@@ -67,6 +69,9 @@ export const signUpEmailPasswordHandler = async (
     return;
   }
 
+  req.log.debug({ defaultRole });
+  req.log.debug({ allowedRoles });
+
   // check if email already in use by some other user
   if (await getUserByEmail(email)) {
     return res.boom.conflict('Email already in use');
@@ -84,6 +89,8 @@ export const signUpEmailPasswordHandler = async (
 
   const displayName = body.displayName ?? email;
   const avatarUrl = getGravatarUrl(email);
+
+  req.log.debug({ displayName, avatarUrl });
 
   // insert user
   const user = await gqlSdk

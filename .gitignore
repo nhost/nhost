@@ -10,7 +10,6 @@ data
 yarn-error.log
 package-lock.json
 
-/docker/dev/docker-compose.yaml
 /docker/dev/db_data
 
 #/docker/test/docker-compose.yaml
