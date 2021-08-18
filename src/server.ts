@@ -3,7 +3,8 @@ import helmet from 'helmet';
 import { json } from 'body-parser';
 import cors from 'cors';
 import passport from 'passport';
-import morgan from 'morgan';
+// import morgan from 'morgan';
+import pino from 'express-pino-logger';
 // import morganBody from 'morgan-body';
 
 import router from './routes';
@@ -17,12 +18,13 @@ if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
-// app.use(morgan('combined'))
-app.use(
-  morgan(
-    ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]'
-  )
-);
+app.use(pino());
+// app.use(morgan('combined'));
+// app.use(
+//   morgan(
+//     ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length]'
+//   )
+// );
 // app.use((req, res, next) => {
 //   req.logger = logger;
 //   return next();
