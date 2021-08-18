@@ -9,7 +9,7 @@ export let request: SuperTest<Test>;
 export let server: Server;
 
 const start = async () => {
-  server = app.listen(await getPort(), ENV.HOST);
+  server = app.listen(await getPort(), ENV.AUTH_HOST);
   request = agent(server);
 };
 

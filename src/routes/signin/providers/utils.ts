@@ -157,10 +157,10 @@ const manageProviderStrategy =
           email,
           passwordHash: null,
           emailVerified: true,
-          defaultRole: ENV.DEFAULT_USER_ROLE,
-          locale: ENV.DEFAULT_LOCALE,
+          defaultRole: ENV.AUTH_DEFAULT_USER_ROLE,
+          locale: ENV.AUTH_DEFAULT_LOCALE,
           roles: {
-            data: ENV.DEFAULT_ALLOWED_USER_ROLES.map((role) => ({
+            data: ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES.map((role) => ({
               role,
             })),
           },
@@ -262,7 +262,7 @@ export const initProvider = <T extends Strategy>(
       {
         ...PROVIDERS[strategyName],
         ...options,
-        callbackURL: `${ENV.SERVER_URL}/signin/provider/${strategyName}/callback`,
+        callbackURL: `${ENV.AUTH_SERVER_URL}/signin/provider/${strategyName}/callback`,
         passReqToCallback: true,
       },
       manageProviderStrategy(strategyName, transformProfile)
@@ -284,15 +284,17 @@ export const initProvider = <T extends Strategy>(
         req.state = uuidv4();
 
         const redirectUrl =
-          'redirectUrl' in req.query ? req.query.redirectUrl : ENV.APP_URL;
+          'redirectUrl' in req.query
+            ? req.query.redirectUrl
+            : ENV.AUTH_CLIENT_URL;
 
         if (!redirectUrl) {
           return res.boom.badRequest('Redirect URL is undefined');
         }
 
         if (
-          ENV.APP_URL !== redirectUrl &&
-          !ENV.ALLOWED_REDIRECT_URLS.includes(redirectUrl)
+          ENV.AUTH_CLIENT_URL !== redirectUrl &&
+          !ENV.AUTH_ALLOWED_REDIRECT_URLS.includes(redirectUrl)
         ) {
           return res.boom.badRequest(
             'Redirect URL is not same as APP_URL or not in ALLOWED_REDIRECT_URLS'

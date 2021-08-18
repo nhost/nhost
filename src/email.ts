@@ -10,14 +10,14 @@ import logger from './logger';
  * SMTP transport.
  */
 const transport = nodemailer.createTransport({
-  host: ENV.SMTP_HOST,
-  port: Number(ENV.SMTP_PORT),
-  secure: Boolean(ENV.SMTP_SECURE),
+  host: ENV.AUTH_SMTP_HOST,
+  port: Number(ENV.AUTH_SMTP_PORT),
+  secure: Boolean(ENV.AUTH_SMTP_SECURE),
   auth: {
-    pass: ENV.SMTP_PASS,
-    user: ENV.SMTP_USER,
+    pass: ENV.AUTH_SMTP_PASS,
+    user: ENV.AUTH_SMTP_USER,
   },
-  authMethod: ENV.SMTP_AUTH_METHOD,
+  authMethod: ENV.AUTH_SMTP_AUTH_METHOD,
 });
 
 type TemplateEngineProps = {
@@ -61,7 +61,7 @@ const convertFieldToFileName = (field: EmailField) => {
  */
 export const emailClient: Email<any> = new Email({
   transport,
-  message: { from: ENV.SMTP_SENDER },
+  message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,
   render: async (view, locals) => {
     const viewSplit = view.split('/');

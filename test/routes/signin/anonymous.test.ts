@@ -18,7 +18,7 @@ describe('anonymous', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
   });
@@ -29,27 +29,24 @@ describe('anonymous', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
-    console.log('before each generate new server');
 
-    server = app.listen(await getPort(), ENV.HOST);
+    server = app.listen(await getPort(), ENV.AUTH_HOST);
     request = agent(server);
   });
 
   afterEach(async () => {
-    console.log('after each, close server');
-
     server.close();
   });
 
   it('should sign in as anonymous', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -83,12 +80,12 @@ describe('anonymous', () => {
   it('should fail to sign in anonymously if not enabled', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request.post('/signin/anonymous').expect(404);
@@ -100,14 +97,12 @@ describe('anonymous with profile table', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
 
     // create profile table
-    console.log('drop table if exist');
     await client.query(`DROP TABLE IF EXISTS public.profiles;`);
-    console.log('create profiles table');
     await client.query(`
     CREATE TABLE public.profiles (
       user_id uuid PRIMARY KEY,
@@ -116,11 +111,9 @@ describe('anonymous with profile table', () => {
     );
     `);
 
-    console.log('track table');
     // track table
     await trackTable({ table: { schema: 'public', name: 'profiles' } });
 
-    console.log('customize table');
     // set profile customization
     await setTableCustomization({
       table: {
@@ -157,7 +150,7 @@ describe('anonymous with profile table', () => {
     await client.query(`DELETE FROM auth.users;`);
     await client.query(`DELETE FROM public.profiles;`);
 
-    server = app.listen(await getPort(), ENV.HOST);
+    server = app.listen(await getPort(), ENV.AUTH_HOST);
     request = agent(server);
   });
 
@@ -168,11 +161,12 @@ describe('anonymous with profile table', () => {
   it('should sign up anonymous user with profile data', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
-      ANONYMOUS_USERS_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: 'companyId',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request

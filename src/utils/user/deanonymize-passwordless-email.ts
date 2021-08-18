@@ -45,8 +45,8 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   }
 
   // check roles
-  const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
-  const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
+  const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+  const allowedRoles = body.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
   if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
     return;
   }
@@ -83,8 +83,8 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
     userId,
   });
 
-  if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    if (!ENV.EMAILS_ENABLED) {
+  if (!ENV.AUTH_DISABLE_NEW_USERS && ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+    if (!ENV.AUTH_EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }
 
@@ -124,8 +124,8 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
         email,
         otp,
         locale: user.locale,
-        url: ENV.SERVER_URL,
-        appUrl: ENV.APP_URL,
+        serverUrl: ENV.AUTH_SERVER_URL,
+        clientUrl: ENV.AUTH_CLIENT_URL,
       },
     });
   }

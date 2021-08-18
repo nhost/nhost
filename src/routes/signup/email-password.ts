@@ -40,7 +40,7 @@ export const signUpEmailPasswordHandler = async (
   res: Response
 ): Promise<unknown> => {
   const { body } = req;
-  const { email, password, profile, locale = ENV.DEFAULT_LOCALE } = body;
+  const { email, password, profile, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
 
   // check email
   if (!(await isValidEmail({ email, res }))) {
@@ -61,8 +61,8 @@ export const signUpEmailPasswordHandler = async (
   }
 
   // check roles
-  const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
-  const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
+  const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+  const allowedRoles = body.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
   if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
     return;
   }
@@ -89,7 +89,7 @@ export const signUpEmailPasswordHandler = async (
   const user = await gqlSdk
     .insertUser({
       user: {
-        disabled: ENV.DISABLE_NEW_USERS,
+        disabled: ENV.AUTH_DISABLE_NEW_USERS,
         displayName,
         avatarUrl,
         email,
@@ -113,8 +113,8 @@ export const signUpEmailPasswordHandler = async (
   await insertProfile({ userId: user.id, profile });
 
   // user is now inserted. Continue sending out activation email
-  if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    if (!ENV.EMAILS_ENABLED) {
+  if (!ENV.AUTH_DISABLE_NEW_USERS && ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+    if (!ENV.AUTH_EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }
 
@@ -137,8 +137,9 @@ export const signUpEmailPasswordHandler = async (
         displayName,
         ticket,
         email,
-        url: ENV.SERVER_URL,
         locale: user.locale,
+        serverUrl: ENV.AUTH_SERVER_URL,
+        clientUrl: ENV.AUTH_CLIENT_URL,
       },
     });
   }
@@ -147,7 +148,7 @@ export const signUpEmailPasswordHandler = async (
   // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => Don't have to verify email before
   // sign in
 
-  if (!ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+  if (!ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
     const signInResponse = await getSignInResponse({
       userId: user.id,
       checkMFA: false,

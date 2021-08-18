@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 
+import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
@@ -9,7 +10,7 @@ describe('email-password', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
   });
@@ -26,13 +27,12 @@ describe('email-password', () => {
   it('should be able to deanonymize user with email-password', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -96,13 +96,13 @@ describe('email-password', () => {
   it('should be able to deanonymize user with magic-link', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      MAGIC_LINK_ENABLED: true,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -156,12 +156,13 @@ describe('email-password', () => {
   it('should fail to deanonymize user unacceptable sign in method', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request

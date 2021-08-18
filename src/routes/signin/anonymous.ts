@@ -25,11 +25,11 @@ export const signInAnonymousHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (!ENV.ANONYMOUS_USERS_ENABLED) {
+  if (!ENV.AUTH_ANONYMOUS_USERS_ENABLED) {
     return res.boom.notFound('Anonymous users are not enabled');
   }
 
-  const { profile, locale = ENV.DEFAULT_LOCALE } = req.body;
+  const { profile, locale = ENV.AUTH_DEFAULT_LOCALE } = req.body;
 
   // check profile
   if (!(await isProfileValid({ profile, res }))) {

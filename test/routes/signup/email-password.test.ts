@@ -1,6 +1,7 @@
-// import { request } from "@/test/server";
-import { request } from '../../server';
 import { Client } from 'pg';
+
+import { ENV } from '../../../src/utils/env';
+import { request } from '../../server';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
 import { trackTable, setTableCustomization } from '../../../src/metadata';
 
@@ -8,8 +9,11 @@ describe('email-password', () => {
   let client: any;
 
   beforeAll(async () => {
+    console.log('database url:');
+    console.log(ENV.HASURA_GRAPHQL_DATABASE_URL);
+
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
     await deleteAllMailHogEmails();
@@ -26,10 +30,10 @@ describe('email-password', () => {
   it('should sign up user', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      REGISTRATION_PROFILE_FIELDS: '',
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_EMAILS_ENABLED: true,
     });
 
     await request
@@ -41,10 +45,8 @@ describe('email-password', () => {
   it('should fail to sign up with same email', async () => {
     // set env vars
     await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      HIBP_ENABLED: false,
-      WHITELIST_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_WHITELIST_ENABLED: false,
     });
 
     await request
@@ -61,9 +63,8 @@ describe('email-password', () => {
   it('should fail sign up if whitelist is enabled and the email is not whitelisted', async () => {
     // set env vars
     await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      HIBP_ENABLED: true,
-      WHITELIST_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_WHITELIST_ENABLED: true,
     });
 
     await request
@@ -75,9 +76,9 @@ describe('email-password', () => {
   it('should fail with weak password', async () => {
     // set env vars
     await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      HIBP_ENABLED: true,
-      WHITELIST_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_HIBP_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
     });
 
     await request
@@ -89,10 +90,9 @@ describe('email-password', () => {
   it('should succeed to sign up with different emails', async () => {
     // set env vars
     await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      HIBP_ENABLED: false,
-      WHITELIST_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_HIBP_ENABLED: false,
+      AUTH_WHITELIST_ENABLED: false,
     });
 
     await request
@@ -106,30 +106,13 @@ describe('email-password', () => {
       .expect(200);
   });
 
-  it('should fail sending email', async () => {
-    // set env vars
-    await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      EMAILS_ENABLED: false,
-      HIBP_ENABLED: false,
-      WHITELIST_ENABLED: false,
-    });
-
-    await request
-      .post('/signup/email-password')
-      .send({ email: 'joedoe@example.com', password: '123456' })
-      .expect(500);
-  });
-
   it('should success with SMTP settings', async () => {
     // set env vars
     await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      EMAILS_ENABLED: 'true',
-      HIBP_ENABLED: false,
-      WHITELIST_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_HIBP_ENABLED: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
     });
 
     const email = 'joedoe@example.com';
@@ -149,9 +132,7 @@ describe('email-password', () => {
   it('default role must be part of allowed roles', async () => {
     // set env vars
     await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      HIBP_ENABLED: false,
-      WHITELIST_ENABLED: false,
+      AUTH_WHITELIST_ENABLED: false,
     });
 
     const email = 'joedoe@example.com';
@@ -170,10 +151,7 @@ describe('email-password', () => {
   it('allowed roles must be subset of env var ALLOWED_USER_ROLES', async () => {
     // set env vars
     await await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
       ALLOWED_USER_ROLES: 'user,editor',
-      HIBP_ENABLED: false,
-      WHITELIST_ENABLED: false,
     });
 
     const email = 'joedoe@example.com';
@@ -192,11 +170,8 @@ describe('email-password', () => {
   it('user must verify email before being able to sign in', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
     });
 
     const email = 'joedoe@example.com';
@@ -238,7 +213,7 @@ describe('email-password with profile table', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
     await deleteAllMailHogEmails();
@@ -299,10 +274,9 @@ describe('email-password with profile table', () => {
   it('should sign up user with profile data', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: 'companyId',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 
     await request
@@ -317,10 +291,9 @@ describe('email-password with profile table', () => {
 
   it('should fail to sign up user with extra profile data', async () => {
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: 'companyId',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 
     await request
@@ -336,10 +309,9 @@ describe('email-password with profile table', () => {
   it('should fail to sign up because registration custom fields does not exist in database', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: 'incorrect',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: 'incorrect',
     });
 
     await request
@@ -355,10 +327,9 @@ describe('email-password with profile table', () => {
   it('should fail to sign up user with no profile data', async () => {
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: 'companyId',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 
     await request
@@ -379,10 +350,9 @@ describe('email-password with profile table', () => {
 
     // set env vars
     await request.post('/change-env').send({
-      AUTO_ACTIVATE_NEW_USERS: true,
-      VERIFY_EMAILS: false,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: 'companyId',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 
     await request

@@ -11,8 +11,8 @@ const logger = winston.createLogger({
           winston.format.simple()
         ),
   exitOnError: false,
-  level: ENV.LOGGER_LEVEL,
-  silent: !ENV.LOGGER_ENABLED,
+  level: ENV.AUTH_LOG_LEVEL,
+  silent: false,
 });
 
 export default logger;

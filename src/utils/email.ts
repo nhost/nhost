@@ -29,17 +29,26 @@ export const isValidEmail = async ({
   }
 
   // check if email domain is valid
-  if (ENV.ALLOWED_EMAIL_DOMAINS.length > 0) {
+  if (ENV.AUTH_ALLOWED_EMAIL_DOMAINS.length > 0) {
     const emailDomain = email.split('@')[1];
 
-    if (!ENV.ALLOWED_EMAIL_DOMAINS.includes(emailDomain)) {
+    console.log('allowed email domains:');
+
+    console.log(process.env.AUTH_ALLOWED_EMAIL_DOMAINS);
+    console.log(ENV.AUTH_ALLOWED_EMAIL_DOMAINS);
+
+    console.log('other');
+
+    console.log(process.env.NOT_SET_123);
+
+    if (!ENV.AUTH_ALLOWED_EMAIL_DOMAINS.includes(emailDomain)) {
       res.boom.unauthorized('Email domain is not allowed');
       return false;
     }
   }
 
   // check if email is whitelisted
-  if (ENV.WHITELIST_ENABLED && !(await isWhitelistedEmail(email))) {
+  if (ENV.AUTH_WHITELIST_ENABLED && !(await isWhitelistedEmail(email))) {
     res.boom.unauthorized('Email is not allowed');
     return false;
   }

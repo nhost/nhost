@@ -27,7 +27,7 @@ export const userEmailReset = async (
 
   const { newEmail } = req.body;
 
-  if (!ENV.EMAILS_ENABLED) {
+  if (!ENV.AUTH_EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable');
   }
 
@@ -60,11 +60,11 @@ export const userEmailReset = async (
   await emailClient.send({
     template: 'reset-email',
     locals: {
-      ticket,
-      url: ENV.SERVER_URL,
-      locale: user.locale,
-      appUrl: ENV.APP_URL,
       displayName: user.displayName,
+      ticket,
+      locale: user.locale,
+      serverUrl: ENV.AUTH_SERVER_URL,
+      clientUrl: ENV.AUTH_CLIENT_URL,
     },
     message: {
       to: newEmail,

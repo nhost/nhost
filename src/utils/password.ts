@@ -17,15 +17,15 @@ export const isPasswordValid = async ({
   }
 
   // check min length
-  if (password.length < ENV.MIN_PASSWORD_LENGTH) {
+  if (password.length < ENV.AUTH_MIN_PASSWORD_LENGTH) {
     res.boom.badRequest(
-      `Password is too short. The password must be minimum ${ENV.MIN_PASSWORD_LENGTH} chars.`
+      `Password is too short. The password must be minimum ${ENV.AUTH_MIN_PASSWORD_LENGTH} chars.`
     );
     return false;
   }
 
   // check if compromised
-  if (ENV.HIBP_ENABLED && (await pwnedPassword(password))) {
+  if (ENV.AUTH_HIBP_ENABLED && (await pwnedPassword(password))) {
     res.boom.badRequest('Password is too weak.');
     return false;
   }

@@ -53,8 +53,8 @@ export const handleDeanonymizeUserEmailPassword = async (
   const passwordHash = await hashPassword(password);
 
   // check roles
-  const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
-  const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
+  const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+  const allowedRoles = body.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
   if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
     return;
   }
@@ -89,14 +89,14 @@ export const handleDeanonymizeUserEmailPassword = async (
 
   // delete old refresh tokens if user must verify their email before they can
   // sign in.
-  if (ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+  if (ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
     await gqlSdk.deleteUserRefreshTokens({
       userId,
     });
   }
 
-  if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    if (!ENV.EMAILS_ENABLED) {
+  if (!ENV.AUTH_DISABLE_NEW_USERS && ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+    if (!ENV.AUTH_EMAILS_ENABLED) {
       throw new Error('SMTP settings unavailable');
     }
 
@@ -119,8 +119,9 @@ export const handleDeanonymizeUserEmailPassword = async (
         displayName: user.displayName,
         email,
         ticket,
-        url: ENV.SERVER_URL,
         locale: user.locale,
+        serverUrl: ENV.AUTH_SERVER_URL,
+        clientUrl: ENV.AUTH_CLIENT_URL,
       },
     });
   }

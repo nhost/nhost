@@ -47,10 +47,10 @@ export const userPasswordResetHandler = async (
     template: 'reset-password',
     locals: {
       ticket,
-      url: ENV.SERVER_URL,
       locale: user.locale,
-      appUrl: ENV.APP_URL,
       displayName: user.displayName,
+      serverUrl: ENV.AUTH_SERVER_URL,
+      clientUrl: ENV.AUTH_CLIENT_URL,
     },
     message: {
       to: email,

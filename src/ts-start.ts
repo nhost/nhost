@@ -80,11 +80,11 @@ const start = async (): Promise<void> => {
 
   // TODO: Fetch email templates from ENV var URL
 
-  app.listen(ENV.PORT, ENV.HOST, () => {
-    if (ENV.HOST) {
-      logger.info(`Running on http://${ENV.HOST}:${ENV.PORT}`);
+  app.listen(ENV.AUTH_PORT, ENV.AUTH_HOST, () => {
+    if (ENV.AUTH_HOST) {
+      logger.info(`Running on http://${ENV.AUTH_HOST}:${ENV.AUTH_PORT}`);
     } else {
-      logger.info(`Running on port ${ENV.PORT}`);
+      logger.info(`Running on port ${ENV.AUTH_PORT}`);
     }
   });
 };

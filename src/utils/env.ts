@@ -10,197 +10,164 @@ export const ENV = {
     return castStringEnv('PWD', '/');
   },
 
-  get EMAIL_TEMPLATE_FETCH_URL() {
-    return castStringEnv('EMAIL_TEMPLATE_FETCH_URL', '');
+  // HASURA
+  get HASURA_GRAPHQL_JWT_SECRET() {
+    return castStringEnv('HASURA_GRAPHQL_JWT_SECRET', '');
   },
-
-  // jwt
-
-  get JWT_SECRET() {
-    return castStringEnv('JWT_SECRET', '');
+  get HASURA_GRAPHQL_DATABASE_URL() {
+    return castStringEnv('HASURA_GRAPHQL_DATABASE_URL', '');
   },
-  get ALGORITHM() {
-    return castStringEnv('JWT_ALGORITHM', 'HS512');
-  },
-  get CLAIMS_NAMESPACE() {
-    return castStringEnv(
-      'JWT_CLAIMS_NAMESPACE',
-      'https://hasura.io/jwt/claims'
-    );
-  },
-  get ACCESS_TOKEN_EXPIRES_IN() {
-    return castIntEnv('ACCESS_TOKEN_EXPIRES_IN', 900);
-  },
-  get REFRESH_TOKEN_EXPIRES_IN() {
-    return castIntEnv('REFRESH_TOKEN_EXPIRES_IN', 43200);
-  },
-
-  // Application
-
   get HASURA_GRAPHQL_ADMIN_SECRET() {
     return castStringEnv('HASURA_GRAPHQL_ADMIN_SECRET', '');
   },
   get HASURA_ENDPOINT() {
-    return castStringEnv('HASURA_ENDPOINT', '');
+    return castStringEnv('HASURA_GRAPHQL_GRAPHQL_URL', '');
   },
 
-  get HOST() {
-    return castStringEnv('HOST', undefined);
+  // SERVER
+  get AUTH_HOST() {
+    return castStringEnv('AUTH_HOST', undefined);
   },
-  get PORT() {
-    return castIntEnv('PORT', 3000);
+  get AUTH_PORT() {
+    return castIntEnv('AUTH_PORT', 4000);
+  },
+  get AUTH_SERVER_URL() {
+    return castStringEnv('AUTH_SERVER_URL', '');
   },
 
-  get SMTP_PASS() {
-    return castStringEnv('SMTP_PASS', '');
+  // SMTP
+  get AUTH_SMTP_PASS() {
+    return castStringEnv('AUTH_SMTP_PASS', '');
   },
-  get SMTP_HOST() {
-    return castStringEnv('SMTP_HOST', '');
+  get AUTH_SMTP_HOST() {
+    return castStringEnv('AUTH_SMTP_HOST', '');
   },
-  get SMTP_USER() {
-    return castStringEnv('SMTP_USER', '');
+  get AUTH_SMTP_USER() {
+    return castStringEnv('AUTH_SMTP_USER', '');
   },
-  get SMTP_SENDER() {
-    return castStringEnv('SMTP_SENDER', '');
+  get AUTH_SMTP_SENDER() {
+    return castStringEnv('AUTH_SMTP_SENDER', '');
   },
-  get SMTP_AUTH_METHOD() {
-    return castStringEnv('SMTP_AUTH_METHOD', 'PLAIN');
+  get AUTH_SMTP_AUTH_METHOD() {
+    return castStringEnv('AUTH_SMTP_AUTH_METHOD', 'PLAIN');
   },
-  get EMAILS_ENABLED() {
-    return castBooleanEnv('EMAILS_ENABLED', false);
+  get AUTH_EMAILS_ENABLED() {
+    return castBooleanEnv('AUTH_EMAILS_ENABLED', false);
   },
-  get SMTP_PORT() {
-    return castIntEnv('SMTP_PORT', 587);
+  get AUTH_SMTP_PORT() {
+    return castIntEnv('AUTH_SMTP_PORT', 587);
   },
-  get SMTP_SECURE() {
+  get AUTH_SMTP_SECURE() {
     // note: false disables SSL (deprecated)
-    return castBooleanEnv('SMTP_SECURE', false);
+    return castBooleanEnv('AUTH_SMTP_SECURE', false);
   },
 
-  get GRAVATAR_ENABLED() {
-    return castBooleanEnv('GRAVATAR_ENABLED', true);
+  // GRAVATAR
+  get AUTH_GRAVATAR_ENABLED() {
+    return castBooleanEnv('AUTH_GRAVATAR_ENABLED', true);
   },
-  get GRAVATAR_DEFAULT() {
-    return castStringEnv('GRAVATAR_DEFAULT', 'blank');
+  get AUTH_GRAVATAR_DEFAULT() {
+    return castStringEnv('AUTH_GRAVATAR_DEFAULT', 'blank');
   },
-  get GRAVATAR_RATING() {
-    return castStringEnv('GRAVATAR_RATING', 'g');
-  },
-
-  get SERVER_URL() {
-    return castStringEnv('SERVER_URL', '');
+  get AUTH_GRAVATAR_RATING() {
+    return castStringEnv('AUTH_GRAVATAR_RATING', 'g');
   },
 
-  get APP_URL() {
-    return castStringEnv('APP_URL', '');
+  // CLIENT & APP
+  get AUTH_CLIENT_URL() {
+    return castStringEnv('AUTH_CLIENT_URL', '');
+  },
+  get AUTH_APP_NAME() {
+    return castStringEnv('AUTH_APP_NAME');
   },
 
-  get APP_NAME() {
-    return castStringEnv('APP_NAME');
+  // SIGN UP
+  get AUTH_ANONYMOUS_USERS_ENABLED() {
+    return castBooleanEnv('AUTH_ANONYMOUS_USERS_ENABLED', false);
   },
-
-  get DEFAULT_LOCALE() {
-    return castStringEnv('DEFAULT_LOCALE', 'en');
+  get AUTH_DISABLE_NEW_USERS() {
+    return castBooleanEnv('AUTH_DISABLE_NEW_USERS', false);
   },
-
-  get ALLOWED_LOCALES() {
-    return castStringArrayEnv('ALLOWED_LOCALES') || ['en'];
+  get AUTH_WHITELIST_ENABLED() {
+    return castBooleanEnv('AUTH_WHITELIST_ENABLED', false);
   },
-
-  // get MAGIC_LINK_ENABLED() {
-  //   return castBooleanEnv('MAGIC_LINK_ENABLED', false);
-  // },
-
-  get PASSWORDLESS_EMAIL_ENABLED() {
-    return castBooleanEnv('PASSWORDLESS_EMAIL_ENABLED', false);
+  get AUTH_ALLOWED_EMAIL_DOMAINS() {
+    return castStringArrayEnv('AUTH_ALLOWED_EMAIL_DOMAINS');
   },
-
-  get PASSWORDLESS_SMS_ENABLED() {
-    return castBooleanEnv('PASSWORDLESS_SMS_ENABLED', false);
+  get AUTH_SIGNUP_PROFILE_FIELDS() {
+    return castStringArrayEnv('AUTH_SIGNUP_PROFILE_FIELDS', []);
   },
-
-  get MFA_ENABLED() {
-    return castBooleanEnv('MFA_ENABLED', false);
+  get AUTH_MIN_PASSWORD_LENGTH() {
+    return castIntEnv('AUTH_MIN_PASSWORD_LENGTH', 3);
   },
-
-  get PHONE_NUMBER_AUTH_ENABLED() {
-    return castBooleanEnv('PHONE_NUMBER_AUTH_ENABLED', false);
+  get AUTH_HIBP_ENABLED() {
+    return castBooleanEnv('AUTH_HIBP_ENABLED', false);
   },
-
-  get DISABLE_NEW_USERS() {
-    return castBooleanEnv('DISABLE_NEW_USERS', false);
+  get AUTH_DEFAULT_USER_ROLE() {
+    return castStringEnv('AUTH_DEFAULT_USER_ROLE', 'user');
   },
-
-  get SIGNIN_EMAIL_VERIFIED_REQUIRED() {
-    return castBooleanEnv('SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
-  },
-
-  // get SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED() {
-  //   return castBooleanEnv('SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
-  // },
-
-  get REGISTRATION_PROFILE_FIELDS() {
-    return castStringArrayEnv('REGISTRATION_PROFILE_FIELDS', []);
-  },
-
-  get USER_SESSION_VARIABLE_FIELDS() {
-    return castStringArrayEnv('USER_SESSION_VARIABLE_FIELDS', []);
-  },
-
-  get PROFILE_SESSION_VARIABLE_FIELDS() {
-    return castStringArrayEnv('PROFILE_SESSION_VARIABLE_FIELDS', []);
-  },
-
-  get ANONYMOUS_USERS_ENABLED() {
-    return castBooleanEnv('ANONYMOUS_USERS_ENABLED', false);
-  },
-
-  get DEFAULT_USER_ROLE() {
-    return castStringEnv('DEFAULT_USER_ROLE', 'user');
-  },
-
-  get DEFAULT_ALLOWED_USER_ROLES() {
-    return castStringArrayEnv('DEFAULT_ALLOWED_USER_ROLES', [
-      this.DEFAULT_USER_ROLE,
+  get AUTH_DEFAULT_ALLOWED_USER_ROLES() {
+    return castStringArrayEnv('AUTH_DEFAULT_ALLOWED_USER_ROLES', [
+      this.AUTH_DEFAULT_USER_ROLE,
     ]);
   },
-
-  get ALLOWED_USER_ROLES() {
+  get AUTH_ALLOWED_USER_ROLES() {
     return castStringArrayEnv(
       'ALLOWED_USER_ROLES',
-      this.DEFAULT_ALLOWED_USER_ROLES
+      this.AUTH_DEFAULT_ALLOWED_USER_ROLES
     );
   },
-
-  get MIN_PASSWORD_LENGTH() {
-    return castIntEnv('MIN_PASSWORD_LENGTH', 3);
+  get AUTH_DEFAULT_LOCALE() {
+    return castStringEnv('AUTH_DEFAULT_LOCALE', 'en');
+  },
+  get AUTH_ALLOWED_LOCALES() {
+    return castStringArrayEnv('AUTH_ALLOWED_LOCALES') || ['en'];
   },
 
-  get HIBP_ENABLED() {
-    return castBooleanEnv('HIBP_ENABLED', false);
+  // SIGN IN
+  get AUTH_PASSWORDLESS_EMAIL_ENABLED() {
+    return castBooleanEnv('AUTH_PASSWORDLESS_EMAIL_ENABLED', false);
+  },
+  get AUTH_PASSWORDLESS_SMS_ENABLED() {
+    return castBooleanEnv('AUTH_PASSWORDLESS_SMS_ENABLED', false);
+  },
+  get AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED() {
+    return castBooleanEnv('AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
+  },
+  // get AUTH_SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED() {
+  //   return castBooleanEnv('AUTH_SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
+  // },
+  get AUTH_ALLOWED_REDIRECT_URLS() {
+    return castStringArrayEnv('AUTH_ALLOWED_REDIRECT_URLS');
+  },
+  get AUTH_MFA_ENABLED() {
+    return castBooleanEnv('AUTH_MFA_ENABLED', false);
+  },
+  get AUTH_TOTP_ISSUER() {
+    return castStringEnv('AUTH_TOTP_ISSUER', 'hasura-auth');
   },
 
-  get WHITELIST_ENABLED() {
-    return castBooleanEnv('WHITELIST_ENABLED', false);
+  // TOKENS
+  get AUTH_ACCESS_TOKEN_EXPIRES_IN() {
+    return castIntEnv('AUTH_ACCESS_TOKEN_EXPIRES_IN', 900);
+  },
+  get AUTH_REFRESH_TOKEN_EXPIRES_IN() {
+    return castIntEnv('AUTH_REFRESH_TOKEN_EXPIRES_IN', 43200);
+  },
+  get AUTH_USER_SESSION_VARIABLE_FIELDS() {
+    return castStringArrayEnv('AUTH_USER_SESSION_VARIABLE_FIELDS', []);
+  },
+  get AUTH_PROFILE_SESSION_VARIABLE_FIELDS() {
+    return castStringArrayEnv('AUTH_PROFILE_SESSION_VARIABLE_FIELDS', []);
   },
 
-  get ALLOWED_EMAIL_DOMAINS() {
-    return castStringArrayEnv('ALLOWED_EMAIL_DOMAINS');
+  // EMAIL TEMPLATES
+  get AUTH_EMAIL_TEMPLATE_FETCH_URL() {
+    return castStringEnv('AUTH_EMAIL_TEMPLATE_FETCH_URL', '');
   },
 
-  get ALLOWED_REDIRECT_URLS() {
-    return castStringArrayEnv('ALLOWED_REDIRECT_URLS');
-  },
-
-  get LOGGER_ENABLED() {
-    return castBooleanEnv('LOGGER_ENABLED', true);
-  },
-
-  get LOGGER_LEVEL() {
-    return castStringEnv('LOGGER_LEVEL', 'info');
-  },
-
-  get TOTP_ISSUER() {
-    return castStringEnv('TOTP_ISSUER', 'hasura-auth');
+  // LOGS
+  get AUTH_LOG_LEVEL() {
+    return castStringEnv('AUTH_LOG_LEVEL', 'info');
   },
 };

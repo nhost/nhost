@@ -35,7 +35,7 @@ export const signInEmailPasswordHandler = async (
     return res.boom.unauthorized('User is disabled');
   }
 
-  if (ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+  if (ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
     return res.boom.unauthorized('Email is not verified');
   }
 

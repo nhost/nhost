@@ -90,7 +90,7 @@ export const hashPassword = async (password: string): Promise<string> => {
 
 export function newRefreshExpiry() {
   const date = new Date();
-  date.setSeconds(date.getSeconds() + ENV.REFRESH_TOKEN_EXPIRES_IN);
+  date.setSeconds(date.getSeconds() + ENV.AUTH_REFRESH_TOKEN_EXPIRES_IN);
   return date;
 }
 
@@ -107,11 +107,11 @@ export const userIsAnonymous = async (userId: string) => {
 };
 
 export const getGravatarUrl = (email?: string) => {
-  if (ENV.GRAVATAR_ENABLED && email) {
+  if (ENV.AUTH_GRAVATAR_ENABLED && email) {
     return gravatar.url(email, {
-      r: ENV.GRAVATAR_RATING,
+      r: ENV.AUTH_GRAVATAR_RATING,
       protocol: 'https',
-      default: ENV.GRAVATAR_DEFAULT,
+      default: ENV.AUTH_GRAVATAR_DEFAULT,
     });
   }
 };

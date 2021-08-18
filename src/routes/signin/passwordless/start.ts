@@ -28,17 +28,17 @@ export const signInPasswordlessStartHandler = async (
   const { body } = req;
 
   if (body.connection === 'email') {
-    if (!ENV.PASSWORDLESS_EMAIL_ENABLED) {
+    if (!ENV.AUTH_PASSWORDLESS_EMAIL_ENABLED) {
       return res.boom.notFound(
         'Passwordless sign in with email is not enabled'
       );
     }
 
-    if (!ENV.EMAILS_ENABLED) {
+    if (!ENV.AUTH_EMAILS_ENABLED) {
       return res.boom.internal('SMTP settings unavailable');
     }
 
-    const { email, profile, locale = ENV.DEFAULT_LOCALE } = body;
+    const { email, profile, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
 
     // check if email already exist
     let user = await getUserByEmail(email);
@@ -60,8 +60,9 @@ export const signInPasswordlessStartHandler = async (
       }
 
       // check roles
-      const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
-      const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
+      const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+      const allowedRoles =
+        body.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
       if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
         return;
       }
@@ -78,7 +79,7 @@ export const signInPasswordlessStartHandler = async (
       const insertedUser = await gqlSdk
         .insertUser({
           user: {
-            disabled: ENV.DISABLE_NEW_USERS,
+            disabled: ENV.AUTH_DISABLE_NEW_USERS,
             displayName,
             avatarUrl,
             email,
@@ -92,6 +93,7 @@ export const signInPasswordlessStartHandler = async (
         .then((res) => res.insertUser);
 
       if (!insertedUser) {
+        console.log('unable to insert new user');
         throw new Error('Unable to insert new user');
       }
 
@@ -138,8 +140,8 @@ export const signInPasswordlessStartHandler = async (
         email,
         otp,
         locale: user.locale,
-        url: ENV.SERVER_URL,
-        appUrl: ENV.APP_URL,
+        serverUrl: ENV.AUTH_SERVER_URL,
+        clientUrl: ENV.AUTH_CLIENT_URL,
       },
     });
   } else if (body.connection === 'sms') {

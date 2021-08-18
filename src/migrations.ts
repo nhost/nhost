@@ -1,12 +1,13 @@
 import { migrate } from '@djgrant/postgres-migrations';
 import { Client } from 'pg';
 import logger from './logger';
+import { ENV } from './utils/env';
 
 export async function applyMigrations(): Promise<void> {
   logger.info('Applying migrations');
 
   const dbConfig = {
-    connectionString: process.env.DATABASE_URL,
+    connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
   };
 
   const client = new Client(dbConfig);

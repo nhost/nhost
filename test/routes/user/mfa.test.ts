@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 
+import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
 import { authenticator } from 'otplib';
@@ -9,7 +10,7 @@ describe('mfa totp', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
   });
@@ -24,10 +25,10 @@ describe('mfa totp', () => {
 
   it('should generate a secret, enable mfa and sign in with mfa', async () => {
     await request.post('/change-env').send({
-      MFA_ENABLED: true,
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      WHITELIST_ENABLED: false,
+      AUTH_MFA_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_WHITELIST_ENABLED: false,
     });
 
     const email = 'asdasd@asdasd.com';

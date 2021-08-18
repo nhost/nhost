@@ -28,7 +28,7 @@ export const userEmailSendVerificationEmailHandler = async (
 
   const { email } = req.body;
 
-  if (!ENV.EMAILS_ENABLED) {
+  if (!ENV.AUTH_EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable');
   }
 
@@ -77,8 +77,9 @@ export const userEmailSendVerificationEmailHandler = async (
     locals: {
       displayName: user.displayName,
       ticket,
-      url: ENV.SERVER_URL,
       locale: user.locale,
+      serverUrl: ENV.AUTH_SERVER_URL,
+      clientUrl: ENV.AUTH_CLIENT_URL,
     },
   });
 

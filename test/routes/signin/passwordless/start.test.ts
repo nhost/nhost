@@ -1,6 +1,7 @@
-// import { request } from "@/test/server";
-import { request } from '../../../server';
 import { Client } from 'pg';
+
+import { ENV } from '../../../../src/utils/env';
+import { request } from '../../../server';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../../utils';
 
 describe('passwordless email (magic link)', () => {
@@ -8,7 +9,7 @@ describe('passwordless email (magic link)', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
     deleteAllMailHogEmails();
@@ -25,11 +26,12 @@ describe('passwordless email (magic link)', () => {
   it('should sign in', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PASSWORDLESS_EMAIL_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const email = 'joedoe@example.com';
@@ -66,11 +68,12 @@ describe('passwordless email (magic link)', () => {
   it('should fail to sign in if passworless email is not enabled', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PASSWORDLESS_EMAIL_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: '',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request
@@ -85,11 +88,12 @@ describe('passwordless email (magic link)', () => {
   it('should fail to sign if email is not whitelisted', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: true,
-      PASSWORDLESS_EMAIL_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: true,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request
@@ -104,11 +108,12 @@ describe('passwordless email (magic link)', () => {
   it('should be able to sign in twice. First request will create the user', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PASSWORDLESS_EMAIL_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request
@@ -131,13 +136,12 @@ describe('passwordless email (magic link)', () => {
   it('should succeed sign in with correct default role', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PASSWORDLESS_EMAIL_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
-      DEFAULT_USER_ROLE: 'user',
-      DEFAULT_ALLOWED_USER_ROLES: 'user',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request
@@ -153,13 +157,14 @@ describe('passwordless email (magic link)', () => {
   it('should fail to sign in with incorrect allowed roles', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PASSWORDLESS_EMAIL_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
-      DEFAULT_USER_ROLE: 'user',
-      DEFAULT_ALLOWED_USER_ROLES: 'user',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
+      AUTH_DEFAULT_USER_ROLE: 'user',
+      AUTH_DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
 
     await request
@@ -175,14 +180,13 @@ describe('passwordless email (magic link)', () => {
   it('should fail if sending emails is not enabled', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PASSWORDLESS_EMAIL_ENABLED: true,
-      REGISTRATION_PROFILE_FIELDS: '',
-      DEFAULT_USER_ROLE: 'user',
-      DEFAULT_ALLOWED_USER_ROLES: 'user',
-      EMAILS_ENABLED: false,
+      AUTH_EMAILS_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request

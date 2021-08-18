@@ -1,22 +1,21 @@
 import { Client } from 'pg';
 
+import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { trackTable, setTableCustomization } from '../../../src/metadata';
-import { decodeAccessToken } from '../../utils';
+import { decodeAccessToken, isValidAccessToken } from '../../utils';
 
 describe('token', () => {
   let client: any;
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
 
     // create profile table
-    console.log('drop table if exist');
     await client.query(`DROP TABLE IF EXISTS public.profiles;`);
-    console.log('create profiles table');
     await client.query(`
     CREATE TABLE public.profiles (
       user_id uuid PRIMARY KEY,
@@ -25,11 +24,9 @@ describe('token', () => {
     );
     `);
 
-    console.log('track table');
     // track table
     await trackTable({ table: { schema: 'public', name: 'profiles' } });
 
-    console.log('customize table');
     // set profile customization
     await setTableCustomization({
       table: {
@@ -68,33 +65,34 @@ describe('token', () => {
   it('should should sign in and get access token with standard claims', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      ANONYMOUS_USERS_ENABLED: true,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: '',
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      USER_SESSION_VARIABLE_FIELDS: '',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body } = await request.post('/signin/anonymous').send().expect(200);
 
-    console.log({ body });
+    const { accessToken, accessTokenExpiresIn, refreshToken } = body.session;
+    const { mfa } = body;
 
-    const token = decodeAccessToken(body.session.accessToken);
-
-    console.log({ token });
+    expect(isValidAccessToken(accessToken)).toBe(true);
+    expect(typeof accessTokenExpiresIn).toBe('number');
+    expect(typeof refreshToken).toBe('string');
+    expect(mfa).toBe(null);
   });
 
   it('should should sign in and get access token with email user fields', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      ANONYMOUS_USERS_ENABLED: true,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: '',
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      USER_SESSION_VARIABLE_FIELDS: 'email',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: 'email',
     });
 
     const email = 'joedoe@example.com';
@@ -130,12 +128,12 @@ describe('token', () => {
   it('should should sign in and get access token with email user fields and companyId profile field', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      WHITELIST_ENABLED: false,
-      REGISTRATION_PROFILE_FIELDS: 'companyId',
-      PROFILE_SESSION_VARIABLE_FIELDS: 'companyId',
-      USER_SESSION_VARIABLE_FIELDS: 'email',
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_WHITELIST_ENABLED: false,
+      AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: 'companyId',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: 'email',
     });
 
     const email = 'joedoe@example.com';
