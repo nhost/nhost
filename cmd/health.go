@@ -185,8 +185,8 @@ respective containers and service-exclusive health endpoints.`,
 							if err != nil {
 								log.Debug(err)
 								log.WithFields(logrus.Fields{
-									"container": service.Name,
 									"type":      "service",
+									"container": service.Name,
 								}).Error("Health check unsuccessful")
 								wg.Done()
 								ok = false
@@ -198,16 +198,16 @@ respective containers and service-exclusive health endpoints.`,
 							if err != nil {
 								log.Debug(err)
 								log.WithFields(logrus.Fields{
-									"container": service.Name,
 									"type":      "service",
+									"container": service.Name,
 								}).Error("Health check unsuccessful")
 								wg.Done()
 								ok = false
 							}
 							if valid := strings.Contains(result.StdOut, "accepting connections"); valid {
 								log.WithFields(logrus.Fields{
-									"container": service.Name,
 									"type":      "service",
+									"container": service.Name,
 								}).Info("Health check successful")
 							}
 
@@ -295,8 +295,8 @@ func checkServiceHealth(name, url string) bool {
 		}
 		time.Sleep(2 * time.Second)
 		log.WithFields(logrus.Fields{
-			"container": name,
 			"type":      "service",
+			"container": name,
 		}).Debugf("Health check attempt #%v unsuccessful", x)
 	}
 	return false

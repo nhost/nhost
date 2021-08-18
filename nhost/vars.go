@@ -49,6 +49,9 @@ var (
 	// generate path for .nhost/nhost.yaml file
 	INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
 
+	// generate path for express NPM modules
+	NODE_MODULES_PATH = filepath.Join(ROOT, "node_modules")
+
 	// package repository to download latest release from
 	REPOSITORY = "mrinalwahal/cli"
 

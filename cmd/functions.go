@@ -53,7 +53,7 @@ var (
 	jsPort           = getPort(9000, 9999)
 	tempDir          string
 	nodeServerConfig string
-	port             string
+	funcPort         string
 	functions        []Function
 	nodeServerCode   string
 )
@@ -77,7 +77,7 @@ var functionsCmd = &cobra.Command{
 		}()
 
 		// being the execution
-		serve(cmd, args)
+		ServeFuncs(cmd, args)
 		removeTemp()
 
 		// wait for Ctrl+C
@@ -201,7 +201,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	// If no function file has been found,
 	// then return 404 error
 	if len(f.File) == 0 {
-		http.Error(w, fmt.Sprintf("No function found on route '%s'", r.URL.Path), http.StatusNotFound)
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 
 	/*
@@ -218,19 +218,33 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// save the handler
 		f.Handler = router
 
+		// get node modules path for express
+		if err := validateExpress(); err != nil {
+			log.WithField("component", "server").Debug(err)
+			if strings.Contains(err.Error(), "permission denied") {
+				log.WithField("component", "server").Error("Permission denied: restart server with 'sudo'")
+			} else {
+				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+				log.WithField("component", "server").Error("Required node modules could not be fetched")
+			}
+			removeTemp()
+		}
+
 		// initialize NodeJS server config
 		nodeServerConfig = filepath.Join(tempDir, "server.js")
-		nodeServerCode = fmt.Sprintf(`const express = require('%s/express');
+		nodeServerCode = fmt.Sprintf(`
+const express = require('%s');
 const port = %s;
-const app = express();`, filepath.Join(nhost.API_DIR, "node_modules"), jsPort)
+const app = express();`, filepath.Join(nhost.API_DIR, "node_modules", "express"), jsPort)
 	}
 
 	// inform the user of build the request
-	log.Println(
+	log.Debugln(
+		Gray,
 		r.Method,
-		r.URL.Path,
 		r.Proto,
-		r.Host,
+		r.URL,
+		Reset,
 		fmt.Sprintf("Serving: %s", filepath.Join(f.Base, filepath.Base(f.File))),
 	)
 
@@ -273,15 +287,13 @@ const app = express();`, filepath.Join(nhost.API_DIR, "node_modules"), jsPort)
 			Path:   nodeCLI,
 			Args:   []string{nodeCLI, nodeServerConfig},
 			Stdout: os.Stdout,
-			// Stderr: os.Stderr,
+			Stderr: os.Stderr,
 		}
 
 		if err := cmd.Start(); err != nil {
 			log.WithField("runtime", "NodeJS").Debug(err)
 			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
 		}
-
-		// time.Sleep(1 * time.Second)
 
 		// serve
 		f.Handler(w, r)
@@ -311,7 +323,74 @@ const app = express();`, filepath.Join(nhost.API_DIR, "node_modules"), jsPort)
 	}
 }
 
-func serve(cmd *cobra.Command, args []string) {
+func getNodePrefix() string {
+
+	// if node modules already exist,
+	// then return it's path
+	// Install express module
+	nodeCLI, _ := exec.LookPath("npm")
+
+	cmd := exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "config", "get", "prefix"},
+	}
+
+	output, _ := cmd.Output()
+	return string(output)
+}
+
+func validateExpress() error {
+
+	// if node modules already exist,
+	// then return it's path
+	// Install express module
+	nodeCLI, err := exec.LookPath("npm")
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "list", "-g", "express"},
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+
+		// check if express is available in output
+		if !strings.Contains(string(output), "express") {
+			return installExpress()
+		}
+		return errors.New(string(output))
+	}
+
+	return nil
+}
+
+func installExpress() error {
+
+	log.Info("Installing NPM modules on your first run")
+
+	nodeCLI, err := exec.LookPath("npm")
+	if err != nil {
+		return err
+	}
+
+	// Install express module
+	cmd := exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "install", "-g", "express"},
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.New(string(output))
+	}
+
+	return nil
+}
+
+func ServeFuncs(cmd *cobra.Command, args []string) {
 
 	if !pathExists(nhost.API_DIR) {
 		log.Fatal("Functions directory not found")
@@ -336,8 +415,8 @@ func serve(cmd *cobra.Command, args []string) {
 	*/
 
 	http.HandleFunc("/", handler)
-	log.Info("Nhost functions serving at: http://localhost:", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
+	log.Info("Nhost functions serving at: http://localhost:", funcPort)
+	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
 		log.WithField("component", "server").Debug(err)
 		log.WithField("component", "server").Error("Failed to serve the functions")
 		return
@@ -479,6 +558,8 @@ func (function *Function) Search(path, url string) error {
 
 func (function *Function) BuildNodePackage() error {
 
+	log.WithField("runtime", "NodeJS").Debug("Building function")
+
 	// initialize path for temporary esbuild output
 	tempFile, err := ioutil.TempFile(tempDir, "*.js")
 	if err != nil {
@@ -530,12 +611,6 @@ func (function *Function) Prepare() error {
 		if err := function.BuildNodePackage(); err != nil {
 			return err
 		}
-		/*
-			case ".ts":
-				if err := function.BuildNodePackage("\napp.all('%s', require('%s').default);"); err != nil {
-					return err
-				}
-		*/
 	case ".go":
 		p, err := function.BuildGoPlugin()
 		if err != nil {
@@ -567,6 +642,8 @@ func (function *Function) Prepare() error {
 }
 func router(w http.ResponseWriter, r *http.Request) {
 
+	log.WithField("request", "proxy").Debug("Routing request to ", "localhost:"+jsPort+r.URL.Path)
+
 	//Leverage Go's HTTP Post function to make request
 	req, _ := http.NewRequest(
 		r.Method,
@@ -591,16 +668,39 @@ func router(w http.ResponseWriter, r *http.Request) {
 		router(w, r)
 		return
 	}
+
+	/*
+		// set the response headers
+		for key, value := range resp.Header {
+			w.Header().Add(key, "")
+			if len(value) > 0 {
+				w.Header().Add(key, value[0])
+			}
+		}
+
+		// set response code to header
+		w.WriteHeader(resp.StatusCode)
+	*/
+
+	// if request failed, write HTTP error to response
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	w.Header().Add("Access-Control-Allow-Origin", "*")
+	w.Header().Add("Access-Control-Allow-Headers", "origin,Accept,Authorization,Content-Type")
+
+	// read the body
 	body, _ := ioutil.ReadAll(resp.Body)
+
+	// finally the write the output
 	fmt.Fprint(w, string(body))
 }
 
 func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
+
+	log.WithField("runtime", "Go").Debug("Building function")
 
 	var p *plugin.Plugin
 	tempFile, err := ioutil.TempFile(tempDir, "*.so")
@@ -649,7 +749,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	functionsCmd.Flags().StringVarP(&port, "port", "p", "8080", "Custom port to serve functions on")
+	functionsCmd.Flags().StringVarP(&funcPort, "port", "p", "7777", "Custom port to serve functions on")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

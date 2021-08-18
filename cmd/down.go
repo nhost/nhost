@@ -144,7 +144,10 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 // returns the list of running containers whose names have specified prefix
 func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]types.Container, error) {
 
-	log.WithField("prefix", prefix).Debug("Fetching containers")
+	log.WithFields(logrus.Fields{
+		"type":   "prefix",
+		"prefix": prefix,
+	}).Debug("Fetching containers")
 
 	var response []types.Container
 	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{All: true})
@@ -161,8 +164,8 @@ func getContainers(cli *client.Client, ctx context.Context, prefix string) ([]ty
 func removeNetwork(cli *client.Client, ctx context.Context, ID string) error {
 
 	log.WithFields(logrus.Fields{
-		"network": ID,
 		"type":    "network",
+		"network": ID,
 	}).Debug("Removing")
 
 	err := cli.NetworkRemove(ctx, ID)
@@ -173,8 +176,8 @@ func removeNetwork(cli *client.Client, ctx context.Context, ID string) error {
 func prepareNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
 
 	log.WithFields(logrus.Fields{
-		"network": name,
 		"type":    "network",
+		"network": name,
 	}).Debug("Preparing")
 
 	response, err := getNetwork(cli, ctx, name)
@@ -210,8 +213,8 @@ func prepareNetwork(cli *client.Client, ctx context.Context, name string) (strin
 func getNetwork(cli *client.Client, ctx context.Context, name string) (string, error) {
 
 	log.WithFields(logrus.Fields{
-		"network": name,
 		"type":    "network",
+		"network": name,
 	}).Debug("Fetching")
 
 	f := filters.NewArgs(filters.KeyValuePair{
@@ -232,8 +235,8 @@ func getNetwork(cli *client.Client, ctx context.Context, name string) (string, e
 func stopContainer(cli *client.Client, ctx context.Context, container types.Container) error {
 
 	log.WithFields(logrus.Fields{
-		"component": container.Names[0],
 		"type":      "container",
+		"component": container.Names[0],
 	}).Debug("Stopping")
 
 	return cli.ContainerStop(ctx, container.ID, nil)
@@ -244,8 +247,8 @@ func stopContainer(cli *client.Client, ctx context.Context, container types.Cont
 func getContainerLogs(cli *client.Client, ctx context.Context, container types.Container) ([]byte, error) {
 
 	log.WithFields(logrus.Fields{
-		"component": container.Names[0],
 		"type":      "container",
+		"component": container.Names[0],
 	}).Debug("Fetching logs")
 
 	var response []byte
@@ -276,8 +279,8 @@ func getContainerLogs(cli *client.Client, ctx context.Context, container types.C
 func removeContainer(cli *client.Client, ctx context.Context, container types.Container) error {
 
 	log.WithFields(logrus.Fields{
-		"component": container.Names[0],
 		"type":      "container",
+		"component": container.Names[0],
 	}).Debug("Removing")
 
 	removeOptions := types.ContainerRemoveOptions{

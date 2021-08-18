@@ -30,6 +30,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net"
+	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -49,6 +52,14 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+var (
+	hostTarget = map[string]string{}
+	hostProxy  = make(map[string]*httputil.ReverseProxy)
+	port       string
+)
+
+type baseHandle struct{}
 
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
@@ -193,7 +204,6 @@ func execute(cmd *cobra.Command, args []string) {
 
 	// prepare and load required binaries
 	hasuraCLI, _ := hasura.Binary()
-	samCLI, _ := exec.LookPath("sam")
 
 	commandOptions := []string{
 		"--endpoint",
@@ -213,22 +223,32 @@ func execute(cmd *cobra.Command, args []string) {
 	fmt.Println()
 
 	/*
-		log.Info("Nhost Root: http://localhost:8080")
-		fmt.Println()
+				log.Info("Nhost Root: http://localhost:8080")
+				fmt.Println()
 
-		log.Info("GraphQL: http://localhost:8080/graphql")
-		log.Info("Console: http://localhost:8080/console")
-		log.Info("Authentication: http://localhost:8080/auth")
-		log.Info("Storage: http://localhost:8080/storage")
-		log.Info("Database: http://localhost:8080/db")
-		log.Info("Functions: http://localhost:8080/functions")
+				log.Info("GraphQL: http://localhost:8080/graphql")
+				log.Info("Console: http://localhost:8080/console")
+				log.Info("Authentication: http://localhost:8080/auth")
+				log.Info("Storage: http://localhost:8080/storage")
+				log.Info("Database: http://localhost:8080/db")
+				log.Info("Functions: http://localhost:8080/functions")
+			log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
+			log.Infof("Authentication: http://localhost:%v", nhostConfig.Services["auth"].Port)
+			log.Infof("Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
+			log.Infof("Postgres: http://localhost:%v", nhostConfig.Services["postgres"].Port)
+
+		hostTarget[fmt.Sprintf("http://localhost:%v", port)] = fmt.Sprintf("http://localhost:%v", nhostConfig.Services["minio"].Port)
+
+		h := &baseHandle{}
+		http.Handle("/", h)
+
+		server := &http.Server{
+			Addr:    ":" + port,
+			Handler: h,
+		}
 	*/
-	log.Infof("GraphQL API: %v/v1/graphql", hasuraEndpoint)
-	log.Infof("Authentication: http://localhost:%v", nhostConfig.Services["auth"].Port)
-	log.Infof("Storage: http://localhost:%v", nhostConfig.Services["minio"].Port)
-	log.Infof("Postgres: http://localhost:%v", nhostConfig.Services["postgres"].Port)
 
-	log.Infof("Hasura console: http://localhost:%v", nhostConfig.Services["hasura"].ConsolePort)
+	// log.Infof("Hasura console: http://localhost:%v", nhostConfig.Services["hasura"].ConsolePort)
 
 	//spawn hasura console
 	hasuraConsoleSpawnCmd := exec.Cmd{
@@ -247,46 +267,79 @@ func execute(cmd *cobra.Command, args []string) {
 
 	go hasuraConsoleSpawnCmd.Run()
 
+	// prepare services for reverse proxy
+	type Service struct {
+		Name    string
+		Address string
+		Handle  string
+	}
+	services := []Service{
+		{
+			Name:    "Console",
+			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["hasura"].ConsolePort),
+			Handle:  "/console/",
+		},
+		{
+			Name:    "GraphQL",
+			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["hasura"].Port),
+			Handle:  "/graphql/",
+		},
+		{
+			Name:    "Authentication",
+			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["auth"].Port),
+			Handle:  "/auth/",
+		},
+		/*
+			{
+				Name:    "Database",
+				Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["postgres"].Port),
+				Handle:  "/db",
+			},
+				{
+					Name:    "Storage",
+					Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["minio"].Port),
+					Handle:  "/storage",
+				},
+		*/
+		{
+			Name:    "Minio",
+			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["minio"].Port),
+			Handle:  "/minio/",
+		},
+		{
+			Name:    "Functions",
+			Address: fmt.Sprintf("http://localhost:%v", funcPort),
+			Handle:  "/functions/",
+		},
+	}
+
+	for _, item := range services {
+		if err := prepareProxy(item.Address, item.Handle); err != nil {
+			log.WithField("component", "server").Debug(err)
+			log.WithField("component", "server").Error("Failed to proxy", item.Name)
+			cleanup(cmd)
+		}
+		log.Info(item.Name, ": http://localhost:", port, item.Handle)
+	}
+
 	if pathExists(nhost.API_DIR) {
+
+		// run the functions command
+		go ServeFuncs(cmd, args)
 		log.Infof("Nhost Functions or API: http://localhost:%v", nhostConfig.Services["api"].Port)
 	}
 
 	fmt.Println()
 	log.Warn("Use Ctrl + C to stop running evironment")
 
-	// spawn SAM server if api exists
-	if pathExists(nhost.API_DIR) {
-
-		buildCmd := exec.Cmd{
-			Path: samCLI,
-			Args: []string{samCLI, "build"},
-			Dir:  nhost.API_DIR,
+	// launch proxy
+	func() {
+		if err := http.ListenAndServe(":"+port, nil); err != nil {
+			log.WithField("component", "server").Debug(err)
+			log.WithField("component", "server").Error("Failed to start proxy")
+			cleanup(cmd)
 		}
-
-		err := buildCmd.Run()
-		if err != nil {
-			log.Debug(err)
-			log.Error("Failde to build API")
-
-		} else {
-
-			lambdaCmd := exec.Cmd{
-				Path: samCLI,
-				Args: []string{samCLI,
-					"local",
-					"start-api",
-					"-p",
-					fmt.Sprint(nhostConfig.Services["api"].Port),
-				},
-				Dir: nhost.API_DIR,
-			}
-
-			if err := lambdaCmd.Run(); err != nil {
-				log.Debug(err)
-				log.Error("API server interrupted")
-			}
-		}
-	}
+	}()
 
 	/*
 
@@ -351,6 +404,35 @@ func execute(cmd *cobra.Command, args []string) {
 			}
 		}
 	*/
+}
+
+func prepareProxy(address, handle string) error {
+
+	log.WithField("compnent", "proxy").Debugf("%s --> %s", address, handle)
+
+	origin, err := url.Parse(address)
+	if err != nil {
+		return err
+	}
+
+	proxy := httputil.NewSingleHostReverseProxy(origin)
+
+	http.HandleFunc(handle, func(w http.ResponseWriter, r *http.Request) {
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, handle)
+
+		// log the request
+		log.Debugln(
+			r.Method,
+			r.Proto,
+			r.Host,
+			r.URL,
+		)
+
+		// route the req through proxy
+		proxy.ServeHTTP(w, r)
+	})
+
+	return nil
 }
 
 func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
@@ -478,6 +560,8 @@ func validatePortAvailability(services map[string]nhost.Service) error {
 		fmt.Sprint(services["minio"].Port),
 		fmt.Sprint(services["postgres"].Port),
 		fmt.Sprint(services["api"].Port),
+		port,
+		funcPort,
 	}
 
 	freePorts := getFreePorts(ports)
@@ -1063,7 +1147,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// devCmd.PersistentFlags().String("foo", "", "A help for foo")
+	devCmd.PersistentFlags().StringVarP(&port, "port", "p", "8888", "Port for dev proxy")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
