@@ -1,8 +1,8 @@
 require('tsconfig-paths/register');
 import { Client } from 'pg';
 
-import { applyMigrations } from '@/migrations';
-import { applyMetadata } from '@/metadata';
+import { applyMigrations } from '../src//migrations';
+import { applyMetadata } from '../src/metadata';
 import { ENV } from '../src/utils/env';
 
 export default async (): Promise<void> => {
