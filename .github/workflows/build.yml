@@ -52,37 +52,19 @@ jobs:
     container:
       image: node:14
       env:
-        HOST: 0.0.0.0
-        PORT: 4000
-        HASURA_ENDPOINT: http://graphql-engine:8080/v1/graphql
+        AUTH_HOST: 0.0.0.0
+        AUTH_PORT: 4000
         HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
-        JWT_ALGORITHM: ${{ env.JWT_ALGORITHM }}
-        JWT_SECRET: ${{ env.JWT_KEY }}
-        DATABASE_URL: postgres://postgres:${{ env.POSTGRES_PASSWORD }}@postgres:5432/postgres
-        PGOPTIONS: '-c search_path=auth'
-        AUTH_ENABLED: 'true'
-        MAGIC_LINK_ENABLED: 'true'
-        AUTH_LOCAL_USERS_ENABLED: 'true'
-        AUTO_ACTIVATE_NEW_USERS: 'true'
-        AUTH_ANONYMOUS_USERS_ACTIVE: 'false'
-        PROVIDER_SUCCESS_REDIRECT: 'http://localhost:3001/success'
-        PROVIDER_FAILURE_REDIRECT: 'http://localhost:3001/failed'
-        ALLOW_USER_SELF_DELETE: 'false'
-        LOST_PASSWORD_ENABLED: 'true'
-        MIN_PASSWORD_LENGTH: 4
-        CHANGE_EMAIL_ENABLED: 'true'
-        VERIFY_EMAILS: 'true'
-        NOTIFY_EMAIL_CHANGE: 'true'
-        EMAILS_ENABLED: 'true'
-        HIBP_ENABLED: 'false'
-        SMTP_HOST: mailhog
-        SMTP_PORT: 1025
-        SMTP_PASS: password
-        SMTP_USER: user
-        SMTP_SECURE: 'false'
-        SMTP_SENDER: hbp@hbp.com
-        REDIRECT_URL_SUCCESS: 'http://localhost:3000'
-        REDIRECT_URL_ERROR: 'http://localhost:3000/fail'
+        HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${{ env.POSTGRES_PASSWORD }}@postgres:5432/postgres
+        HASURA_GRAPHQL_JWT_SECRET: '{"type": "${{ env.JWT_ALGORITHM }}",
+          "key": "${{ env.JWT_KEY }}"}'
+        AUTH_EMAILS_ENABLED: true
+        AUTH_SMTP_HOST: mailhog
+        AUTH_SMTP_PORT: 1025
+        AUTH_SMTP_USER: user
+        AUTH_SMTP_PASS: password
+        AUTH_SMTP_SENDER: hasura-auth@example.com
+        AUTH_SMTP_SECURE: false
       options: --hostname hasura-auth
     steps:
       - uses: actions/checkout@v2
