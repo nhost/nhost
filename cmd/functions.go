@@ -222,7 +222,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if err := validateExpress(); err != nil {
 			log.WithField("component", "server").Debug(err)
 			if strings.Contains(err.Error(), "permission denied") {
-				log.WithField("component", "server").Error("Permission denied: restart server with 'sudo'")
+				log.WithField("component", "server").Error("Restart server with sudo/root permission")
 			} else {
 				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 				log.WithField("component", "server").Error("Required node modules could not be fetched")
@@ -323,6 +323,7 @@ const app = express();`, filepath.Join(nhost.API_DIR, "node_modules", "express")
 	}
 }
 
+/*
 func getNodePrefix() string {
 
 	// if node modules already exist,
@@ -338,6 +339,7 @@ func getNodePrefix() string {
 	output, _ := cmd.Output()
 	return string(output)
 }
+*/
 
 func validateExpress() error {
 
@@ -359,12 +361,31 @@ func validateExpress() error {
 
 		// check if express is available in output
 		if !strings.Contains(string(output), "express") {
-			return installExpress()
+			if err := installExpress(); err != nil {
+				return err
+			}
+		} else {
+			return errors.New(string(output))
 		}
-		return errors.New(string(output))
 	}
 
-	return nil
+	/*
+		// check if express is available in output
+		if !strings.Contains(string(output), "express") {
+			if err := installExpress(); err != nil {
+				return err
+			}
+		}
+	*/
+
+	// link project with express global installation
+	cmd = exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "link", "express"},
+		Dir:  nhost.API_DIR,
+	}
+
+	return cmd.Run()
 }
 
 func installExpress() error {
