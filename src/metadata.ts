@@ -52,7 +52,7 @@ export const trackTable = async (args: TableArgs) => {
   logger.info(`Tracking table ${args.table.name}`);
   try {
     await axios.post(
-      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
       {
         type: 'track_table',
         version: 2,
@@ -79,7 +79,7 @@ export const setTableCustomization = async (args: TableArgs) => {
 
   try {
     await axios.post(
-      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
       {
         type: 'set_table_customization',
         args: args,
@@ -100,7 +100,7 @@ export const createObjectRelationship = async (args: RelationshipArgs) => {
   logger.info(`create object relationship ${args.name} for ${args.table.name}`);
   try {
     await axios.post(
-      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
       {
         type: 'create_object_relationship',
         args,
@@ -129,7 +129,7 @@ export const createArrayRelationship = async (args: RelationshipArgs) => {
   // logger.info(`create array relationship ${args.name} for ${args.table.name}`);
   try {
     await axios.post(
-      ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v1/query'),
+      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
       {
         type: 'create_array_relationship',
         args,

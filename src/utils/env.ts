@@ -20,13 +20,13 @@ export const ENV = {
   get HASURA_GRAPHQL_ADMIN_SECRET() {
     return castStringEnv('HASURA_GRAPHQL_ADMIN_SECRET', '');
   },
-  get HASURA_ENDPOINT() {
+  get HASURA_GRAPHQL_GRAPHQL_URL() {
     return castStringEnv('HASURA_GRAPHQL_GRAPHQL_URL', '');
   },
 
   // SERVER
   get AUTH_HOST() {
-    return castStringEnv('AUTH_HOST', undefined);
+    return castStringEnv('AUTH_HOST', '0.0.0.0');
   },
   get AUTH_PORT() {
     return castIntEnv('AUTH_PORT', 4000);

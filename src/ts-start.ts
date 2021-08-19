@@ -14,7 +14,7 @@ function delay(ms: number) {
 const getHasuraReadyState = async () => {
   try {
     await axios.get(
-      `${ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/healthz')}`
+      `${ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/healthz')}`
     );
     return true;
   } catch (err) {
@@ -40,7 +40,7 @@ const waitForHasura = async () => {
 const getIsFirstRound = async () => {
   // https://stackoverflow.com/a/24089729
   const { data } = await axios.post(
-    ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v2/query'),
+    ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v2/query'),
     {
       type: 'run_sql',
       args: {
