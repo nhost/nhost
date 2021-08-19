@@ -1,5 +1,6 @@
 FROM node:14-alpine
 
+# needed for jest --watch to work properly
 RUN apk update && apk upgrade && \
     apk add --no-cache bash git openssh
 
