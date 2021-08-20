@@ -56,6 +56,11 @@ var (
 	funcPort         string
 	functions        []Function
 	nodeServerCode   string
+
+	// vars to store server state during each runtime
+	nodeServerInstalled = false
+	expressPath         = filepath.Join(nhost.WORKING_DIR, "node_modules", "express")
+	buildDir            string
 )
 
 // uninstallCmd removed Nhost CLI from system
@@ -215,19 +220,36 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	switch filepath.Ext(f.File) {
 	case ".js", ".ts":
 
+		// detect package.json inside functions dir
+		buildDir = nhost.WORKING_DIR
+		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
+			buildDir = nhost.API_DIR
+			expressPath = filepath.Join(nhost.API_DIR, "node_modules", "express")
+		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			log.Error("neither a local, nor a root package.json found")
+			return
+		}
+
 		// save the handler
 		f.Handler = router
 
-		// get node modules path for express
-		if err := validateExpress(); err != nil {
-			log.WithField("component", "server").Debug(err)
-			if strings.Contains(err.Error(), "permission denied") {
-				log.WithField("component", "server").Error("Restart server with sudo/root permission")
-			} else {
-				http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-				log.WithField("component", "server").Error("Required node modules could not be fetched")
+		// if express has been validated before,
+		// skip validation to save execution time
+		if !nodeServerInstalled {
+
+			if err := validateExpress(); err != nil {
+				log.WithField("component", "server").Debug(err)
+				if strings.Contains(err.Error(), "permission denied") {
+					log.WithField("component", "server").Error("Restart server with sudo/root permission")
+				} else {
+					http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+					log.WithField("component", "server").Error("Required node modules could not be fetched")
+				}
+				removeTemp()
 			}
-			removeTemp()
+
+			nodeServerInstalled = true
 		}
 
 		// initialize NodeJS server config
@@ -235,7 +257,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		nodeServerCode = fmt.Sprintf(`
 const express = require('%s');
 const port = %s;
-const app = express();`, filepath.Join(nhost.API_DIR, "node_modules", "express"), jsPort)
+const app = express();`, expressPath, jsPort)
 	}
 
 	// inform the user of build the request
@@ -382,7 +404,7 @@ func validateExpress() error {
 	cmd = exec.Cmd{
 		Path: nodeCLI,
 		Args: []string{nodeCLI, "link", "express"},
-		Dir:  nhost.API_DIR,
+		Dir:  buildDir,
 	}
 
 	return cmd.Run()
@@ -390,7 +412,7 @@ func validateExpress() error {
 
 func installExpress() error {
 
-	log.Info("Installing NPM modules on your first run")
+	log.Info("Installing dependencies on your first run")
 
 	nodeCLI, err := exec.LookPath("npm")
 	if err != nil {
@@ -511,72 +533,6 @@ func generateRoutes(path string) error {
 	return nil
 }
 
-func (function *Function) Search(path, url string) error {
-
-	if len(function.File) > 0 {
-		return nil
-	}
-
-	// initialize the base directory
-	base := strings.TrimPrefix(path, nhost.API_DIR)
-
-	files, err := os.ReadDir(nhost.API_DIR)
-	if err != nil {
-		return err
-	}
-
-	filesToAvoid := []string{
-		"node_modules",
-		"package.json",
-		"package-lock.json",
-		"yarn.lock",
-		// "hello.test",
-	}
-
-	for _, item := range files {
-
-		// ignore the files not required
-		// as well as the files which start with a "."
-		// for example: .env should be ignored
-		if !contains(filesToAvoid, item.Name()) && fileNameWithoutExtension(item.Name()) != "" {
-
-			itemPath := filepath.Join(nhost.API_DIR, base, item.Name())
-
-			// generate route
-			route := strings.Join([]string{base, fileNameWithoutExtension(item.Name())}, "/")
-			if fileNameWithoutExtension(item.Name()) == "index" {
-				if filepath.Clean(base) == "." {
-					route = "/"
-				} else {
-					route = filepath.Clean(base)
-				}
-			}
-
-			// if the item is a directory,
-			// recursively initiate the function again
-			if item.IsDir() {
-				if err := function.Search(itemPath, url); err != nil {
-					return err
-				}
-				continue
-			}
-
-			// since it's not a directory
-			// initialize it's function
-			function.Route = route
-			function.File = itemPath
-			function.Base = base
-
-			// attach the required handler subject to file extension
-			switch filepath.Ext(item.Name()) {
-			case ".js", ".ts":
-				function.Handler = router
-			}
-		}
-	}
-	return nil
-}
-
 func (function *Function) BuildNodePackage() error {
 
 	log.WithField("runtime", "NodeJS").Debug("Building function")
@@ -592,6 +548,7 @@ func (function *Function) BuildNodePackage() error {
 
 	// build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
+		AbsWorkingDir:    buildDir,
 		EntryPoints:      []string{function.File},
 		Outfile:          location,
 		Bundle:           true,
@@ -662,8 +619,6 @@ func (function *Function) Prepare() error {
 	return nil
 }
 func router(w http.ResponseWriter, r *http.Request) {
-
-	log.WithField("request", "proxy").Debug("Routing request to ", "localhost:"+jsPort+r.URL.Path)
 
 	//Leverage Go's HTTP Post function to make request
 	req, _ := http.NewRequest(
