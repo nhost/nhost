@@ -25,6 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -41,7 +42,6 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	"text/tabwriter"
 	"time"
 
 	"github.com/evanw/esbuild/pkg/api"
@@ -54,14 +54,21 @@ var (
 	tempDir          string
 	nodeServerConfig string
 	funcPort         string
-	functions        []Function
-	nodeServerCode   string
+	// functions        []Function
+	nodeServerCode string
 
 	// vars to store server state during each runtime
 	nodeServerInstalled = false
+	npmDepInstalled     = false
 	expressPath         = filepath.Join(nhost.WORKING_DIR, "node_modules", "express")
 	buildDir            string
+	plugins             []GoPlugin
 )
+
+type GoPlugin struct {
+	Data   []byte
+	Plugin *plugin.Plugin
+}
 
 // uninstallCmd removed Nhost CLI from system
 var functionsCmd = &cobra.Command{
@@ -91,57 +98,6 @@ var functionsCmd = &cobra.Command{
 	},
 }
 
-// uninstallCmd removed Nhost CLI from system
-var routesCmd = &cobra.Command{
-	Use:   "routes",
-	Short: "Generate routes for Nhost functions",
-	Long: `Quick generate and validate routes for your Nhost functions
-based on your file tree.`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-		if !pathExists(nhost.API_DIR) {
-			log.Fatal("Functions directory not found")
-		}
-
-		// run recursive function to generate routes
-		if err := generateRoutes(nhost.API_DIR); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to generate HTTP routes")
-		}
-
-		// print the output
-		printRoutes(functions)
-
-		if countDuplicates(functions) > 0 {
-			log.Error("Duplicate routes detected")
-		}
-	},
-}
-
-func printRoutes(list []Function) {
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-	fmt.Fprintf(w, "Route\t\t%s%s/%sfile\n", Gray, filepath.Base(nhost.API_DIR), Reset)
-	fmt.Fprintln(w, "-----\t\t-----")
-	for _, item := range list {
-		fmt.Fprintf(w, "%v\t\t%v", item.Route, filepath.Join(item.Base, filepath.Base(item.File)))
-		fmt.Fprintln(w)
-	}
-	w.Flush()
-}
-
-func countDuplicates(dupArr []Function) int {
-	dupcount := 0
-	for i := 0; i < len(dupArr); i++ {
-		for j := i + 1; j < len(dupArr); j++ {
-			if dupArr[i].Route == dupArr[j].Route {
-				dupcount++
-				break
-			}
-		}
-	}
-	return dupcount
-}
-
 func removeTemp() {
 	log.Debug("Removing temporary directory from: ", tempDir)
 	os.RemoveAll(tempDir)
@@ -160,7 +116,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"package.json",
 		"package-lock.json",
 		"yarn.lock",
-		// "hello.test",
 	}
 
 	getRoute := func(path string, item fs.FileInfo, err error) error {
@@ -209,13 +164,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 	}
 
-	/*
-		if err := f.Search(nhost.API_DIR, r.URL.Path); err != nil {
-			log.WithField("component", "server").Debug(err)
-			log.WithField("component", "server").Error("No function found on this route")
-		}
-	*/
-
 	// Prepare to serve
 	switch filepath.Ext(f.File) {
 	case ".js", ".ts":
@@ -234,30 +182,31 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// save the handler
 		f.Handler = router
 
-		// if express has been validated before,
-		// skip validation to save execution time
-		if !nodeServerInstalled {
-
-			if err := validateExpress(); err != nil {
-				log.WithField("component", "server").Debug(err)
-				if strings.Contains(err.Error(), "permission denied") {
-					log.WithField("component", "server").Error("Restart server with sudo/root permission")
-				} else {
-					http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-					log.WithField("component", "server").Error("Required node modules could not be fetched")
-				}
-				removeTemp()
+		// if npm dependencies haven't been confirmed,
+		// just install them on first run
+		if err := installNPMDependencies(); err != nil {
+			log.WithField("component", "server").Debug(err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			if strings.Contains(err.Error(), "permission denied") {
+				log.WithField("component", "server").Error("Restart server with sudo/root permission")
+			} else {
+				log.WithField("component", "server").Error("Dependencies required by your functions could not be installed")
 			}
-
-			nodeServerInstalled = true
+			removeTemp()
 		}
 
-		// initialize NodeJS server config
-		nodeServerConfig = filepath.Join(tempDir, "server.js")
-		nodeServerCode = fmt.Sprintf(`
-const express = require('%s');
-const port = %s;
-const app = express();`, expressPath, jsPort)
+		// if express has been validated before,
+		// skip validation to save execution time
+		if err := validateExpress(); err != nil {
+			log.WithField("component", "server").Debug(err)
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			if strings.Contains(err.Error(), "permission denied") {
+				log.WithField("component", "server").Error("Restart server with sudo/root permission")
+			} else {
+				log.WithField("component", "server").Error("Required build dependencies could not be installed")
+			}
+			removeTemp()
+		}
 	}
 
 	// inform the user of build the request
@@ -345,24 +294,6 @@ const app = express();`, expressPath, jsPort)
 	}
 }
 
-/*
-func getNodePrefix() string {
-
-	// if node modules already exist,
-	// then return it's path
-	// Install express module
-	nodeCLI, _ := exec.LookPath("npm")
-
-	cmd := exec.Cmd{
-		Path: nodeCLI,
-		Args: []string{nodeCLI, "config", "get", "prefix"},
-	}
-
-	output, _ := cmd.Output()
-	return string(output)
-}
-*/
-
 func validateExpress() error {
 
 	// if node modules already exist,
@@ -391,15 +322,6 @@ func validateExpress() error {
 		}
 	}
 
-	/*
-		// check if express is available in output
-		if !strings.Contains(string(output), "express") {
-			if err := installExpress(); err != nil {
-				return err
-			}
-		}
-	*/
-
 	// link project with express global installation
 	cmd = exec.Cmd{
 		Path: nodeCLI,
@@ -412,7 +334,12 @@ func validateExpress() error {
 
 func installExpress() error {
 
-	log.Info("Installing dependencies on your first run")
+	// break if dependency have already been confirmed
+	if nodeServerInstalled {
+		return nil
+	}
+
+	log.Info("Installing build dependencies on your first run")
 
 	nodeCLI, err := exec.LookPath("npm")
 	if err != nil {
@@ -430,6 +357,40 @@ func installExpress() error {
 		return errors.New(string(output))
 	}
 
+	nodeServerInstalled = true
+
+	return nil
+}
+
+func installNPMDependencies() error {
+
+	// break if dependencies have already been confirmed
+	if npmDepInstalled {
+		return nil
+	}
+
+	log.Info("Installing dependencies of your functions")
+
+	nodeCLI, err := exec.LookPath("npm")
+	if err != nil {
+		return err
+	}
+
+	// Install express module
+	cmd := exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "install"},
+		Dir:  buildDir,
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.New(string(output))
+	}
+
+	// update the flag
+	npmDepInstalled = true
+
 	return nil
 }
 
@@ -439,24 +400,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		log.Fatal("Functions directory not found")
 	}
 
-	/*
-
-		// run recursive function to generate routes
-		if err := generateRoutes(nhost.API_DIR); err != nil {
-			log.Debug(err)
-			log.Error("Failed to generate HTTP routes")
-			return
-		}
-
-		// check for duplicate routes
-		if countDuplicates(functions) > 0 {
-			log.Error("Duplicate routes detected")
-			printRoutes(functions)
-			return
-		}
-
-	*/
-
 	http.HandleFunc("/", handler)
 	log.Info("Nhost functions serving at: http://localhost:", funcPort)
 	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
@@ -464,73 +407,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		log.WithField("component", "server").Error("Failed to serve the functions")
 		return
 	}
-}
-
-func generateRoutes(path string) error {
-
-	// initialize the base directory
-	base := strings.TrimPrefix(path, nhost.API_DIR)
-
-	files, err := os.ReadDir(path)
-	if err != nil {
-		return err
-	}
-
-	filesToAvoid := []string{
-		"node_modules",
-		"package.json",
-		"package-lock.json",
-		"yarn.lock",
-		// "hello.test",
-	}
-
-	for _, item := range files {
-
-		// ignore the files not required
-		// as well as the files which start with a "."
-		// for example: .env should be ignored
-		if !contains(filesToAvoid, item.Name()) && fileNameWithoutExtension(item.Name()) != "" {
-
-			itemPath := filepath.Join(nhost.API_DIR, base, item.Name())
-
-			// generate route
-			route := strings.Join([]string{base, fileNameWithoutExtension(item.Name())}, "/")
-			if fileNameWithoutExtension(item.Name()) == "index" {
-				if filepath.Clean(base) == "." {
-					route = "/"
-				} else {
-					route = filepath.Clean(base)
-				}
-			}
-
-			// if the item is a directory,
-			// recursively initiate the function again
-			if item.IsDir() {
-				if err := generateRoutes(itemPath); err != nil {
-					return err
-				}
-				continue
-			}
-
-			// since it's not a directory
-			// initialize it's function
-			f := Function{
-				Route: route,
-				File:  itemPath,
-				Base:  base,
-			}
-
-			// attach the required handler subject to file extension
-			switch filepath.Ext(item.Name()) {
-			case ".js", ".ts":
-				// f.Handler = router
-			}
-
-			// add the new function
-			functions = append(functions, f)
-		}
-	}
-	return nil
 }
 
 func (function *Function) BuildNodePackage() error {
@@ -564,7 +440,9 @@ func (function *Function) BuildNodePackage() error {
 	}
 
 	// add function to NodeJS server config
-	nodeServerCode += fmt.Sprintf(`
+	nodeServerCode = fmt.Sprintf(`
+const express = require('%s');
+const app = express();
 let func;
 const requiredFile = require('%s')
 
@@ -578,22 +456,60 @@ if (typeof requiredFile === "function") {
 
 app.all('%s', func);
 	
-app.listen(port);`, location, function.Route)
+app.listen(%s);`, expressPath, location, function.Route, jsPort)
 
 	return nil
 }
 
 func (function *Function) Prepare() error {
+
 	switch filepath.Ext(function.File) {
+
 	case ".js", ".ts":
-		if err := function.BuildNodePackage(); err != nil {
+
+		// initialize NodeJS server config
+		nodeServerConfig = filepath.Join(tempDir, "server.js")
+
+		// build the package
+		return function.BuildNodePackage()
+
+	case ".go":
+
+		// read the go file
+		data, err := ioutil.ReadFile(function.File)
+		if err != nil {
+			log.Error("Failed to read the function file")
 			return err
 		}
-	case ".go":
-		p, err := function.BuildGoPlugin()
-		if err != nil {
-			log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.File)))
-			return err
+
+		// If a plugin for corresponding file data is already saved,
+		// then load that plugin instead of building a new one
+		pluginExists := false
+		var p *plugin.Plugin
+		for _, item := range plugins {
+			if bytes.Equal(item.Data, data) {
+				p = item.Plugin
+				pluginExists = true
+			}
+		}
+
+		// If a plugin hasn't been built yet,
+		// then build one and save it
+		// REASON:  This will save time in next execution cycle
+		if !pluginExists {
+
+			// Build the plugin
+			p, err = function.BuildGoPlugin()
+			if err != nil {
+				log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.File)))
+				return err
+			}
+
+			// Save the plugin corresponding to file data
+			plugins = append(plugins, GoPlugin{
+				Data:   data,
+				Plugin: p,
+			})
 		}
 
 		// Lookup - Searches for a symbol name in the plugin
@@ -618,6 +534,7 @@ func (function *Function) Prepare() error {
 	// http.HandleFunc(function.Route, function.Handler)
 	return nil
 }
+
 func router(w http.ResponseWriter, r *http.Request) {
 
 	//Leverage Go's HTTP Post function to make request
@@ -695,9 +612,10 @@ func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 		return p, err
 	}
 
+	// "-ldflags", fmt.Sprintf(`"-pluginpath=%v"`, time.Now().Unix()),
 	execute := exec.Cmd{
 		Path: CLI,
-		Args: []string{CLI, "build", "-ldflags", fmt.Sprintf(`"-pluginpath=%v"`, time.Now().Unix()), "-buildmode=plugin", "-o", pluginPath, function.File},
+		Args: []string{CLI, "build", "-buildmode=plugin", "-o", pluginPath, function.File},
 		// Dir:  nhost.API_DIR,
 	}
 
@@ -719,7 +637,6 @@ func getPort(low, hi int) string {
 
 func init() {
 	rootCmd.AddCommand(functionsCmd)
-	functionsCmd.AddCommand(routesCmd)
 
 	// Here you will define your flags and configuration settings.
 
