@@ -25,9 +25,9 @@ SOFTWARE.
 package cmd
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"io/ioutil"
 	"math/rand"
@@ -50,11 +50,10 @@ import (
 )
 
 var (
-	jsPort           = getPort(9000, 9999)
-	tempDir          string
-	nodeServerConfig string
-	funcPort         string
-	// functions        []Function
+	jsPort         = getPort(9000, 9999)
+	tempDir, _     = ioutil.TempDir("", "")
+	funcPort       string
+	functions      []Function
 	nodeServerCode string
 
 	// vars to store server state during each runtime
@@ -107,7 +106,7 @@ func removeTemp() {
 func handler(w http.ResponseWriter, r *http.Request) {
 
 	// initialize tempDir
-	tempDir, _ = ioutil.TempDir("", "")
+	// tempDir, _ = ioutil.TempDir("", "")
 
 	var f Function
 
@@ -120,7 +119,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	getRoute := func(path string, item fs.FileInfo, err error) error {
 
-		if len(f.File) > 0 || item.IsDir() {
+		if len(f.Path) > 0 || item.IsDir() {
 			return nil
 		}
 
@@ -137,15 +136,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		if fileNameWithoutExtension(item.Name()) != "" {
 			if r.URL.Path == base {
 				if fileNameWithoutExtension(file) == "index" {
-					f.File = path
+					f.Path = path
 					f.Route = r.URL.Path
 					f.Base = base
+					f.Name = fileNameWithoutExtension(file)
+					f.File = item
 				}
 			} else {
 				if filepath.Join(base, fileNameWithoutExtension(file)) == r.URL.Path {
-					f.File = path
+					f.Path = path
 					f.Route = r.URL.Path
 					f.Base = base
+					f.Name = fileNameWithoutExtension(file)
+					f.File = item
 				}
 			}
 		}
@@ -160,52 +163,34 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// If no function file has been found,
 	// then return 404 error
-	if len(f.File) == 0 {
+	if len(f.Path) == 0 {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
 	}
 
-	// Prepare to serve
-	switch filepath.Ext(f.File) {
-	case ".js", ".ts":
+	// Validate whether the function has been built before
+	preBuilt := false
+	for _, item := range functions {
 
-		// detect package.json inside functions dir
-		buildDir = nhost.WORKING_DIR
-		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
-			buildDir = nhost.API_DIR
-			expressPath = filepath.Join(nhost.API_DIR, "node_modules", "express")
-		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			log.Error("neither a local, nor a root package.json found")
-			return
-		}
+		// check whether it's the same function file
+		if item.Path == f.Path {
 
-		// save the handler
-		f.Handler = router
+			// now compare modification time of function file
+			// with it's cached copy
+			if f.File.ModTime() == item.File.ModTime() {
+				log.WithField("route", f.Route).Debug("Found cached copy of function")
+				f = item
+				preBuilt = true
+				break
 
-		// if npm dependencies haven't been confirmed,
-		// just install them on first run
-		if err := installNPMDependencies(); err != nil {
-			log.WithField("component", "server").Debug(err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			if strings.Contains(err.Error(), "permission denied") {
-				log.WithField("component", "server").Error("Restart server with sudo/root permission")
 			} else {
-				log.WithField("component", "server").Error("Dependencies required by your functions could not be installed")
-			}
-			removeTemp()
-		}
 
-		// if express has been validated before,
-		// skip validation to save execution time
-		if err := validateExpress(); err != nil {
-			log.WithField("component", "server").Debug(err)
-			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-			if strings.Contains(err.Error(), "permission denied") {
-				log.WithField("component", "server").Error("Restart server with sudo/root permission")
-			} else {
-				log.WithField("component", "server").Error("Required build dependencies could not be installed")
+				// if file has been modified, clean the cache location
+				log.Debug("Removing temporary directory from: ", filepath.Join(tempDir, f.Base))
+				if err := os.RemoveAll(filepath.Join(tempDir, f.Base)); err != nil {
+					log.Error("failed to remove temp directory: ", err)
+				}
 			}
-			removeTemp()
 		}
 	}
 
@@ -216,35 +201,45 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		r.Proto,
 		r.URL,
 		Reset,
-		fmt.Sprintf("Serving: %s", filepath.Join(f.Base, filepath.Base(f.File))),
+		fmt.Sprintf("Serving: %s", filepath.Join(f.Base, f.File.Name())),
 	)
 
-	if err := f.Prepare(); err != nil {
-		log.WithField("route", f.Route).Debug(err)
-		log.WithField("route", f.Route).Error("Failed to build the function")
-		return
+	if !preBuilt {
+
+		// Prepare to serve
+		switch filepath.Ext(f.Path) {
+		case ".js", ".ts":
+
+			// save the handler
+			f.Handler = router
+		}
+
+		// cache the function file to temporary directory
+		if err := os.MkdirAll(filepath.Join(tempDir, f.Base), os.ModePerm); err != nil {
+			log.WithField("route", f.Route).Debug(err)
+			log.WithField("route", f.Route).Error("Failed to prepare location to cache function file")
+			return
+		}
+
+		if err := f.Prepare(); err != nil {
+			log.WithField("route", f.Route).Debug(err)
+			log.WithField("route", f.Route).Error("Failed to build the function")
+			return
+		}
+
+		if _, err := copy(f.Path, filepath.Join(tempDir, f.Base, filepath.Base(f.Path))); err != nil {
+			log.WithField("route", f.Route).Debug(err)
+			log.WithField("route", f.Route).Error("Failed to cache function file")
+			return
+		}
+
+		// save the function before serving it
+		functions = append(functions, f)
+
 	}
 
-	switch filepath.Ext(f.File) {
+	switch filepath.Ext(f.Path) {
 	case ".js", ".ts":
-
-		// save the nodeJS server config
-		file, err := os.Create(nodeServerConfig)
-		if err != nil {
-			log.WithField("runtime", "NodeJS").Debug(err)
-			log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
-			return
-		}
-
-		defer file.Close()
-
-		if _, err := file.Write([]byte(nodeServerCode)); err != nil {
-			log.WithField("runtime", "NodeJS").Debug(err)
-			log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
-			return
-		}
-
-		file.Sync()
 
 		// start the NodeJS server
 		nodeCLI, err := exec.LookPath("node")
@@ -256,7 +251,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		cmd := exec.Cmd{
 			Path:   nodeCLI,
-			Args:   []string{nodeCLI, nodeServerConfig},
+			Args:   []string{nodeCLI, f.ServerConfig},
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
 		}
@@ -286,12 +281,31 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			fmt.Printf("%s", w.Body.String())
 		*/
 	}
+}
 
-	// cleanup
-	log.Debug("Removing temporary directory from: ", tempDir)
-	if err := os.RemoveAll(tempDir); err != nil {
-		log.Error("failed to remove temp directory: ", err)
+func copy(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
 	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	nBytes, err := io.Copy(destination, source)
+	return nBytes, err
 }
 
 func validateExpress() error {
@@ -400,6 +414,55 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		log.Fatal("Functions directory not found")
 	}
 
+	prepareNode := false
+
+	// traverse through the directory
+	// and check if there's even a single JS/TS func
+	files, _ := os.ReadDir(nhost.API_DIR)
+	for _, item := range files {
+		if filepath.Ext(item.Name()) == ".js" || filepath.Ext(item.Name()) == ".ts" {
+			prepareNode = true
+			break
+		}
+	}
+
+	// if npm dependencies haven't been confirmed,
+	// just install them on first run
+	if prepareNode {
+
+		// detect package.json inside functions dir
+		buildDir = nhost.WORKING_DIR
+		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
+			buildDir = nhost.API_DIR
+			expressPath = filepath.Join(nhost.API_DIR, "node_modules", "express")
+		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
+			log.Error("neither a local, nor a root package.json found")
+			return
+		}
+
+		if err := installNPMDependencies(); err != nil {
+			log.WithField("component", "server").Debug(err)
+			if strings.Contains(err.Error(), "permission denied") {
+				log.WithField("component", "server").Error("Restart server with sudo/root permission")
+			} else {
+				log.WithField("component", "server").Error("Dependencies required by your functions could not be installed")
+			}
+			removeTemp()
+		}
+
+		// if express has been validated before,
+		// skip validation to save execution time
+		if err := validateExpress(); err != nil {
+			log.WithField("component", "server").Debug(err)
+			if strings.Contains(err.Error(), "permission denied") {
+				log.WithField("component", "server").Error("Restart server with sudo/root permission")
+			} else {
+				log.WithField("component", "server").Error("Required build dependencies could not be installed")
+			}
+			removeTemp()
+		}
+	}
+
 	http.HandleFunc("/", handler)
 	log.Info("Nhost functions serving at: http://localhost:", funcPort)
 	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
@@ -420,13 +483,13 @@ func (function *Function) BuildNodePackage() error {
 	}
 
 	defer tempFile.Close()
-	location := filepath.Join(tempDir, tempFile.Name())
+	function.Build = filepath.Join(tempDir, tempFile.Name())
 
 	// build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
 		AbsWorkingDir:    buildDir,
-		EntryPoints:      []string{function.File},
-		Outfile:          location,
+		EntryPoints:      []string{function.Path},
+		Outfile:          function.Build,
 		Bundle:           true,
 		Write:            true,
 		Platform:         api.PlatformNode,
@@ -435,7 +498,7 @@ func (function *Function) BuildNodePackage() error {
 	})
 
 	if len(result.Errors) > 0 {
-		log.WithField("file", filepath.Base(function.File)).Error("Failed to run esbuild")
+		log.WithField("file", filepath.Base(function.Path)).Error("Failed to run esbuild")
 		return errors.New(result.Errors[0].Text)
 	}
 
@@ -456,82 +519,72 @@ if (typeof requiredFile === "function") {
 
 app.all('%s', func);
 	
-app.listen(%s);`, expressPath, location, function.Route, jsPort)
+app.listen(%s);`, expressPath, function.Build, function.Route, jsPort)
 
 	return nil
 }
 
 func (function *Function) Prepare() error {
 
-	switch filepath.Ext(function.File) {
+	switch filepath.Ext(function.Path) {
 
 	case ".js", ".ts":
 
 		// initialize NodeJS server config
-		nodeServerConfig = filepath.Join(tempDir, "server.js")
+		function.ServerConfig = filepath.Join(tempDir, function.Base, "server.js")
 
 		// build the package
-		return function.BuildNodePackage()
-
-	case ".go":
-
-		// read the go file
-		data, err := ioutil.ReadFile(function.File)
-		if err != nil {
-			log.Error("Failed to read the function file")
+		if err := function.BuildNodePackage(); err != nil {
 			return err
 		}
 
-		// If a plugin for corresponding file data is already saved,
-		// then load that plugin instead of building a new one
-		pluginExists := false
-		var p *plugin.Plugin
-		for _, item := range plugins {
-			if bytes.Equal(item.Data, data) {
-				p = item.Plugin
-				pluginExists = true
-			}
+		// save the nodeJS server config
+		file, err := os.Create(function.ServerConfig)
+		if err != nil {
+			log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
+			return err
 		}
 
-		// If a plugin hasn't been built yet,
-		// then build one and save it
-		// REASON:  This will save time in next execution cycle
-		if !pluginExists {
+		defer file.Close()
 
-			// Build the plugin
-			p, err = function.BuildGoPlugin()
-			if err != nil {
-				log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.File)))
-				return err
-			}
-
-			// Save the plugin corresponding to file data
-			plugins = append(plugins, GoPlugin{
-				Data:   data,
-				Plugin: p,
-			})
+		if _, err := file.Write([]byte(nodeServerCode)); err != nil {
+			log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
+			return err
 		}
+
+		file.Sync()
+
+		return nil
+
+	case ".go":
+
+		// Build the plugin
+		p, err := function.BuildGoPlugin()
+		if err != nil {
+			log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.Path)))
+			return err
+		}
+
+		// Save the plugin
+		function.Plugin = p
 
 		// Lookup - Searches for a symbol name in the plugin
-		symbol, err := p.Lookup("Handler")
+		symbol, err := function.Plugin.Lookup("Handler")
 		if err != nil {
-			log.WithField("plugin", filepath.Base(function.Route)).Error("Failed to lookup handler")
+			log.WithField("plugin", function.Route).Error("Failed to lookup handler")
 			return err
 		}
 
 		// symbol - Checks the function signature
 		handler, ok := symbol.(func(http.ResponseWriter, *http.Request))
 		if !ok {
-			log.WithField("plugin", filepath.Base(function.Route)).Error("Handler function is broken")
-			return err
+			return errors.New("handler function is broken")
 		}
 
 		// update the handler for this function
 		function.Handler = handler
 	}
 
-	// add function handler to `dev` environment server
-	// http.HandleFunc(function.Route, function.Handler)
 	return nil
 }
 
@@ -596,16 +649,16 @@ func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 	log.WithField("runtime", "Go").Debug("Building function")
 
 	var p *plugin.Plugin
-	tempFile, err := ioutil.TempFile(tempDir, "*.so")
+	tempFile, err := ioutil.TempFile(tempDir, function.Name+".so")
 	if err != nil {
 		return p, err
 	}
 
 	defer tempFile.Close()
 
-	pluginPath := filepath.Join(tempDir, tempFile.Name())
+	function.Build = filepath.Join(tempDir, tempFile.Name())
 
-	log.WithField("plugin", filepath.Base(function.File)).Debug("Creating plugin at: ", pluginPath)
+	log.WithField("plugin", filepath.Base(function.Path)).Debug("Creating plugin at: ", function.Build)
 
 	CLI, err := exec.LookPath("go")
 	if err != nil {
@@ -615,7 +668,7 @@ func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 	// "-ldflags", fmt.Sprintf(`"-pluginpath=%v"`, time.Now().Unix()),
 	execute := exec.Cmd{
 		Path: CLI,
-		Args: []string{CLI, "build", "-buildmode=plugin", "-o", pluginPath, function.File},
+		Args: []string{CLI, "build", "-buildmode=plugin", "-o", function.Build, function.Path},
 		// Dir:  nhost.API_DIR,
 	}
 
@@ -624,7 +677,7 @@ func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 	}
 
 	// Open - Loads the plugin
-	return plugin.Open(pluginPath)
+	return plugin.Open(function.Build)
 }
 
 func fileNameWithoutExtension(fileName string) string {
@@ -632,7 +685,17 @@ func fileNameWithoutExtension(fileName string) string {
 }
 
 func getPort(low, hi int) string {
-	return strconv.Itoa(low + rand.Intn(hi-low))
+
+	// generate a random port value
+	port := strconv.Itoa(low + rand.Intn(hi-low))
+
+	// validate wehther the port is available
+	if !portAvaiable(port) {
+		return getPort(low, hi)
+	}
+
+	// return the value, if it's available
+	return port
 }
 
 func init() {

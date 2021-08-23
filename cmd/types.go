@@ -1,6 +1,10 @@
 package cmd
 
-import "net/http"
+import (
+	"io/fs"
+	"net/http"
+	"plugin"
+)
 
 type (
 
@@ -36,9 +40,14 @@ type (
 	}
 
 	Function struct {
-		Route   string
-		File    string
-		Handler func(http.ResponseWriter, *http.Request)
-		Base    string
+		Route        string
+		File         fs.FileInfo
+		Path         string
+		Handler      func(http.ResponseWriter, *http.Request)
+		Base         string
+		Name         string
+		Build        string
+		ServerConfig string
+		Plugin       *plugin.Plugin
 	}
 )

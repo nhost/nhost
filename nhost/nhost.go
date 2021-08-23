@@ -189,8 +189,8 @@ func GenerateConfig(options Project) Configuration {
 		Version:     "v1.3.3",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
-		Port:        8080,
-		ConsolePort: 9695,
+		// Port:        8080,
+		// ConsolePort: 9695,
 	}
 
 	// check if a loaded remote project has been passed
@@ -205,17 +205,19 @@ func GenerateConfig(options Project) Configuration {
 		Version:  12,
 		User:     "postgres",
 		Password: "postgres",
-		Port:     5432,
+		// Port:     5432,
 	}
 
 	if options.PostgresVersion != "" {
 		postgres.Version = options.PostgresVersion
 	}
 
-	auth := Service{
-		Version: "v0.0.1",
-		Port:    9002,
-	}
+	/*
+		auth := Service{
+			Version: "v0.0.1",
+			Port:    9002,
+		}
+	*/
 
 	authentication := map[string]interface{}{
 		"endpoints": map[string]interface{}{
@@ -235,14 +237,16 @@ func GenerateConfig(options Project) Configuration {
 		Services: map[string]Service{
 			"postgres": postgres,
 			"hasura":   hasura,
-			"auth":     auth,
-			"minio": {
-				Version: "latest",
-				Port:    9000,
-			},
-			"api": {
-				Port: 4000,
-			},
+			/*
+				"auth":     auth,
+				"minio": {
+					Version: "latest",
+					Port:    9000,
+				},
+					"api": {
+						Port: 4000,
+					},
+			*/
 		},
 		Environment: map[string]interface{}{
 			"env_file":           ENV_FILE,
