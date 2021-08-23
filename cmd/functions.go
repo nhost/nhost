@@ -168,9 +168,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// read env vars from any existing .env file
+	var envs []string
+	if pathExists(filepath.Join(nhost.API_DIR, ".env")) {
+		data, _ := ioutil.ReadFile(filepath.Join(nhost.API_DIR, ".env"))
+		envs = strings.Split(string(data), "\n")
+	}
+
 	// Validate whether the function has been built before
 	preBuilt := false
-	for _, item := range functions {
+	for index, item := range functions {
 
 		// check whether it's the same function file
 		if item.Path == f.Path {
@@ -190,6 +197,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				if err := os.RemoveAll(filepath.Join(tempDir, f.Base)); err != nil {
 					log.Error("failed to remove temp directory: ", err)
 				}
+
+				// delete the saved function from array
+				functions = remove(functions, index)
 			}
 		}
 	}
@@ -205,14 +215,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if !preBuilt {
-
-		// Prepare to serve
-		switch filepath.Ext(f.Path) {
-		case ".js", ".ts":
-
-			// save the handler
-			f.Handler = router
-		}
 
 		// cache the function file to temporary directory
 		if err := os.MkdirAll(filepath.Join(tempDir, f.Base), os.ModePerm); err != nil {
@@ -251,6 +253,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		cmd := exec.Cmd{
 			Path:   nodeCLI,
+			Env:    envs,
 			Args:   []string{nodeCLI, f.ServerConfig},
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
@@ -377,11 +380,6 @@ func installExpress() error {
 }
 
 func installNPMDependencies() error {
-
-	// break if dependencies have already been confirmed
-	if npmDepInstalled {
-		return nil
-	}
 
 	log.Info("Installing dependencies of your functions")
 
@@ -554,6 +552,9 @@ func (function *Function) Prepare() error {
 
 		file.Sync()
 
+		// save the handler
+		function.Handler = router
+
 		return nil
 
 	case ".go":
@@ -682,6 +683,11 @@ func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 
 func fileNameWithoutExtension(fileName string) string {
 	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
+}
+
+func remove(s []Function, i int) []Function {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
 }
 
 func getPort(low, hi int) string {
