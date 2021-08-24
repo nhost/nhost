@@ -809,27 +809,20 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	}
 	containerVariables = append(containerVariables, envVars...)
 
-	// prepare social auth credentials for hasura backend plus container
-	for provider, data := range options.Authentication.Providers {
-		for key, value := range data.(map[interface{}]interface{}) {
-			if value != "" {
-				containerVariables = append(containerVariables, fmt.Sprintf("AUTH_%v_%v=%v", strings.ToUpper(provider), strings.ToUpper(fmt.Sprint(key)), value))
-			}
-		}
-	}
-
-	// similarly add other variables from config.yaml
-	vars := []map[string]interface{}{
-		options.Authentication.Email,
-		options.Authentication.Tokens,
-		options.Authentication.Gravatar,
-		options.Authentication.Registration,
-	}
-
-	for _, item := range vars {
-		for key, value := range item {
-			if value != "" {
-				containerVariables = append(containerVariables, fmt.Sprintf("AUTH_%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+	// append social auth credentials and other env vars
+	for _, item := range options.Authentication {
+		for key, value := range item.(map[interface{}]interface{}) {
+			switch value := value.(type) {
+			case map[interface{}]interface{}:
+				for newkey, newvalue := range value {
+					if newvalue != "" {
+						containerVariables = append(containerVariables, fmt.Sprintf("AUTH_%v_%v=%v", strings.ToUpper(fmt.Sprint(key)), strings.ToUpper(fmt.Sprint(newkey)), newvalue))
+					}
+				}
+			case interface{}:
+				if value != "" {
+					containerVariables = append(containerVariables, fmt.Sprintf("AUTH_%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+				}
 			}
 		}
 	}

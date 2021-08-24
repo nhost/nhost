@@ -66,17 +66,14 @@ type (
 	Configuration struct {
 		MetadataDirectory string                 `yaml:"metadata_directory,omitempty"`
 		Services          map[string]Service     `yaml:",omitempty"`
-		Authentication    Authentication         `yaml:",omitempty"`
+		Authentication    map[string]interface{} `yaml:",omitempty"`
 		Version           int                    `yaml:",omitempty"`
 		Environment       map[string]interface{} `yaml:",omitempty"`
 	}
 
 	// Nhost config.yaml authentication structure
 	Authentication struct {
-		Endpoints struct {
-			Failure string `yaml:"provider_failure_redirect,omitempty"`
-			Success string `yaml:"provider_success_redirect,omitempty"`
-		} `yaml:",omitempty"`
+		Endpoints    map[string]interface{} `yaml:",omitempty"`
 		Providers    map[string]interface{} `yaml:",omitempty"`
 		Email        map[string]interface{} `yaml:",omitempty"`
 		Registration map[string]interface{} `yaml:",omitempty"`

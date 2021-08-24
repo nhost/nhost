@@ -241,23 +241,6 @@ func GenerateConfig(options Project) Configuration {
 		postgres.Version = options.PostgresVersion
 	}
 
-	authentication := map[string]interface{}{
-		"endpoints": map[string]interface{}{
-			"provider_success_redirect": "http://localhost:3000",
-			"provider_failure_redirect": "http://localhost:3000/login-fail",
-		},
-		"providers":    generateProviders(),
-		"tokens":       generateTokenVars(),
-		"registration": generateRegistrationVars(),
-		"email":        generateEmailVars(),
-		"gravatar":     generateGravatarVars(),
-	}
-
-	authPayload, _ := yaml.Marshal(authentication)
-
-	var authYAML Authentication
-	yaml.Unmarshal(authPayload, &authYAML)
-
 	return Configuration{
 		Version: 2,
 		Services: map[string]Service{
@@ -270,7 +253,17 @@ func GenerateConfig(options Project) Configuration {
 			"storage_force_download_for_content_types": "text/html,application/javascript",
 		},
 		MetadataDirectory: "metadata",
-		Authentication:    authYAML,
+		Authentication: map[string]interface{}{
+			"endpoints": map[string]interface{}{
+				"provider_success_redirect": "http://localhost:3000",
+				"provider_failure_redirect": "http://localhost:3000/login-fail",
+			},
+			"providers":    generateProviders(),
+			"tokens":       generateTokenVars(),
+			"registration": generateRegistrationVars(),
+			"email":        generateEmailVars(),
+			"gravatar":     generateGravatarVars(),
+		},
 	}
 }
 
