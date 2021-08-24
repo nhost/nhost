@@ -189,7 +189,7 @@ func Config() (Configuration, error) {
 	}
 	response.Services["auth"] = Service{
 		Image:   "nhost/hasura-auth",
-		Version: "v0.0.1",
+		Version: "sha-c68cd71",
 		Port:    GetPort(9000, 9100),
 	}
 	response.Services["storage"] = Service{
@@ -205,8 +205,9 @@ func Config() (Configuration, error) {
 		Port:    GetPort(5000, 5999),
 	}
 	response.Services["hasura"] = Service{
-		Image:       response.Services["hasura"].Image,
-		Version:     fmt.Sprintf("%v%s", response.Services["hasura"].Version, ".cli-migrations-v2"),
+		Image:   response.Services["hasura"].Image,
+		Version: fmt.Sprintf("%v.%s", response.Services["hasura"].Version, "cli-migrations-v2"),
+		// Version:     response.Services["hasura"].Version,
 		AdminSecret: response.Services["hasura"].AdminSecret,
 		Port:        GetPort(9200, 9300),
 		ConsolePort: GetPort(9301, 9400),
@@ -222,7 +223,7 @@ func GenerateConfig(options Project) Configuration {
 	log.Debug("Generating project configuration")
 
 	hasura := Service{
-		Version:     "v1.3.3",
+		Version:     "v2.0.7",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
 	}

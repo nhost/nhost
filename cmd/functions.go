@@ -85,6 +85,7 @@ var functionsCmd = &cobra.Command{
 		}()
 
 		// being the execution
+		args = append(args, "inform")
 		ServeFuncs(cmd, args)
 		removeTemp()
 
@@ -198,11 +199,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// inform the user of build the request
 	log.Debugln(
-		Gray,
 		r.Method,
 		r.Proto,
 		r.URL,
-		Reset,
 		fmt.Sprintf("Serving: %s", filepath.Join(f.Base, f.File.Name())),
 	)
 
@@ -456,7 +455,9 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	}
 
 	http.HandleFunc("/", handler)
-	log.Info("Nhost functions serving at: http://localhost:", funcPort)
+	if contains(args, "inform") {
+		log.Info("Nhost functions serving at: http://localhost:", funcPort)
+	}
 	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
 		log.WithField("component", "server").Debug(err)
 		log.WithField("component", "server").Error("Failed to serve the functions")
@@ -511,7 +512,7 @@ if (typeof requiredFile === "function") {
 
 app.all('%s', func);
 	
-app.listen(%s);`, expressPath, function.Build, function.Route, jsPort)
+app.listen(%d);`, expressPath, function.Build, function.Route, jsPort)
 
 	return nil
 }

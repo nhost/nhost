@@ -50,14 +50,30 @@ respective containers and service-exclusive health endpoints.`,
 			log.Fatal("Failed to read Nhost config")
 		}
 
+		// connect to docker client
+		ctx := context.Background()
+		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to connect to docker client")
+		}
+
+		defer docker.Close()
+
+		// break execution if docker deamon is not running
+		_, err = docker.Info(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
 		// run diagnosis
-		if err := Diagnose(options); err != nil {
+		if err := Diagnose(options, docker, ctx); err != nil {
 			downCmd.Run(cmd, args)
 		}
 	},
 }
 
-func Diagnose(options nhost.Configuration) error {
+func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Context) error {
 
 	postgresConfig := options.Services["postgres"]
 	hasuraConfig := options.Services["hasura"]
@@ -97,22 +113,6 @@ func Diagnose(options nhost.Configuration) error {
 			Name:                getContainerName("minio"),
 			HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig.Port),
 		},
-	}
-
-	// connect to docker client
-	ctx := context.Background()
-	docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-	if err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to connect to docker client")
-	}
-
-	defer docker.Close()
-
-	// break execution if docker deamon is not running
-	_, err = docker.Info(ctx)
-	if err != nil {
-		log.Fatal(err)
 	}
 
 	// fetch list of all running containers
