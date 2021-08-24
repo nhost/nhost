@@ -1,0 +1,286 @@
+- table:
+    schema: auth
+    name: migrations
+- table:
+    schema: auth
+    name: provider_requests
+  configuration:
+    custom_root_fields:
+      insert: insertAuthProviderRequests
+      select_aggregate: AuthProviderRequestsAggregate
+      insert_one: insertAuthProviderRequest
+      select_by_pk: AuthProviderRequest
+      select: AuthProviderRequests
+      delete: deleteAuthProviderRequests
+      update: updateAuthProviderRequests
+      delete_by_pk: deleteAuthProviderRequest
+      update_by_pk: updateAuthProviderRequest
+    custom_name: authProviderRequests
+    custom_column_names:
+      redirect_url: redirectUrl
+      id: id
+- table:
+    schema: auth
+    name: providers
+  configuration:
+    custom_root_fields:
+      insert: insertAuthProviders
+      select_aggregate: authProvidersAggregate
+      insert_one: insertAuthProvider
+      select_by_pk: authProvider
+      select: authProviders
+      delete: deleteAuthProviders
+      update: updateAuthProviders
+      delete_by_pk: deleteAuthProvider
+      update_by_pk: updateAuthProvider
+    custom_name: authProviders
+    custom_column_names:
+      id: id
+  array_relationships:
+  - name: userProviders
+    using:
+      foreign_key_constraint_on:
+        column: provider_id
+        table:
+          schema: auth
+          name: user_providers
+- table:
+    schema: auth
+    name: refresh_tokens
+  configuration:
+    custom_root_fields:
+      insert: insertAuthRefreshTokens
+      select_aggregate: authRefreshTokensAggregate
+      insert_one: insertAuthRefreshToken
+      select_by_pk: authRefreshToken
+      select: authRefreshTokens
+      delete: deleteAuthRefreshTokens
+      update: updateAuthRefreshTokens
+      delete_by_pk: deleteAuthRefreshToken
+      update_by_pk: updateAuthRefreshToken
+    custom_name: authRefreshTokens
+    custom_column_names:
+      refresh_token: refreshToken
+      expires_at: expiresAt
+      created_at: createdAt
+      user_id: userId
+  object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+- table:
+    schema: auth
+    name: roles
+  configuration:
+    custom_root_fields:
+      insert: insertAuthRoles
+      select_aggregate: AuthRolesAggregate
+      insert_one: insertAuthRole
+      select_by_pk: AuthRole
+      select: AuthRoles
+      delete: deleteAuthRoles
+      update: updateAuthRoles
+      delete_by_pk: deleteAuthRole
+      update_by_pk: updateAuthRole
+    custom_name: authRoles
+    custom_column_names:
+      role: role
+- table:
+    schema: auth
+    name: user_providers
+  configuration:
+    custom_root_fields:
+      insert: insertAuthUserProviders
+      select_aggregate: authUserProvidersAggregate
+      insert_one: insertAuthUserProvider
+      select_by_pk: authUserProvider
+      select: authUserProviders
+      delete: deleteAuthUserProviders
+      update: updateAuthUserProviders
+      delete_by_pk: deleteAuthUserProvider
+      update_by_pk: updateAuthUserProvider
+    custom_name: authUserProviders
+    custom_column_names:
+      provider_user_id: providerUserId
+      access_token: accessToken
+      provider_id: providerId
+      refresh_token: refreshToken
+      updated_at: updatedAt
+      created_at: createdAt
+      id: id
+      user_id: userId
+  object_relationships:
+  - name: provider
+    using:
+      foreign_key_constraint_on: provider_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+- table:
+    schema: auth
+    name: user_roles
+  configuration:
+    custom_root_fields:
+      insert: insertAuthUserRoles
+      select_aggregate: authUserRolesAggregate
+      insert_one: insertAuthUserRole
+      select_by_pk: authUserRole
+      select: authUserRoles
+      delete: deleteAuthUserRoles
+      update: updateAuthUserRoles
+      delete_by_pk: deleteAuthUserRole
+      update_by_pk: updateAuthUserRole
+    custom_name: authUserRoles
+    custom_column_names:
+      role: role
+      created_at: createdAt
+      id: id
+      user_id: userId
+  object_relationships:
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
+- table:
+    schema: auth
+    name: users
+  configuration:
+    custom_root_fields:
+      insert: insertUsers
+      select_aggregate: UserAggregate
+      insert_one: insertUser
+      select_by_pk: user
+      select: users
+      delete: deleteUsers
+      update: updateUsers
+      delete_by_pk: deleteUser
+      update_by_pk: updateUser
+    custom_name: users
+    custom_column_names:
+      email: email
+      display_name: displayName
+      email_verified: emailVerified
+      phone_number: phoneNumber
+      last_verify_email_sent_at: lastVerifyEmailSentAt
+      disabled: disabled
+      locale: locale
+      otp_hash_expires_at: otpHashExpiresAt
+      otp_method_last_used: otpMethodLastUsed
+      phone_number_verified: phoneNumberVerified
+      ticket: ticket
+      last_verify_phone_number_sent_at: lastVerifyPhoneNumberSentAt
+      updated_at: updatedAt
+      new_email: newEmail
+      password_hash: passwordHash
+      created_at: createdAt
+      id: id
+      avatar_url: avatarUrl
+      default_role: defaultRole
+      active_mfa_type: activeMfaType
+      otp_hash: otpHash
+      totp_secret: totpSecret
+      is_anonymous: isAnonymous
+      ticket_expires_at: ticketExpiresAt
+  array_relationships:
+  - name: refreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: auth
+          name: refresh_tokens
+  - name: roles
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: auth
+          name: user_roles
+  - name: userProviders
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          schema: auth
+          name: user_providers
+- table:
+    schema: auth
+    name: whitelist
+  configuration:
+    custom_root_fields:
+      insert: insertAuthWhitelists
+      select_aggregate: AuthWhitelistsAggregate
+      insert_one: insertAuthWhitelist
+      select_by_pk: AuthWhitelist
+      select: AuthWhitelists
+      delete: deleteAuthWhitelists
+      update: updateAuthWhitelists
+      delete_by_pk: deleteAuthWhitelist
+      update_by_pk: updateAuthWhitelist
+    custom_name: authWhitelist
+    custom_column_names:
+      email: email
+- table:
+    schema: storage
+    name: buckets
+  configuration:
+    custom_root_fields:
+      insert: insertBuckets
+      select_aggregate: bucketAggregate
+      insert_one: insertBucket
+      select_by_pk: bucket
+      select: buckets
+      delete: deleteBuckets
+      update: updateBuckets
+      delete_by_pk: deleteBucket
+      update_by_pk: updateBucket
+    custom_name: buckets
+    custom_column_names:
+      min_upload_file_size: minUploadFileSize
+      download_expiration: downloadExpiration
+      presigned_urls_enabled: presignedUrlsEnabled
+      cache_control: cacheControl
+      updated_at: updatedAt
+      created_at: createdAt
+      id: id
+      max_upload_file_size: maxUploadFileSize
+  array_relationships:
+  - name: files
+    using:
+      foreign_key_constraint_on:
+        column: bucket_id
+        table:
+          schema: storage
+          name: files
+- table:
+    schema: storage
+    name: files
+  configuration:
+    custom_root_fields:
+      insert: insertFiles
+      select_aggregate: fileAggregate
+      insert_one: insertFile
+      select_by_pk: file
+      select: files
+      delete: deleteFiles
+      update: updateFiles
+      delete_by_pk: deleteFile
+      update_by_pk: updateFile
+    custom_name: files
+    custom_column_names:
+      etag: etag
+      is_uploaded: isUploaded
+      uploaded_by_user_id: uploadedByUserId
+      size: size
+      mime_type: mimeType
+      bucket_id: bucketId
+      name: name
+      updated_at: updatedAt
+      created_at: createdAt
+      id: id
+  object_relationships:
+  - name: bucket
+    using:
+      foreign_key_constraint_on: bucket_id
+  - name: uploadedBy
+    using:
+      foreign_key_constraint_on: uploaded_by_user_id

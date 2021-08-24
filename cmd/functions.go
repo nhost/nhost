@@ -165,7 +165,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// read env vars from any existing .env file
 	var envs []string
-	data, _ := ioutil.ReadFile(nhost.ENV_FILE)
+	data, _ := nhost.Env()
 	envs = strings.Split(string(data), "\n")
 
 	// Validate whether the function has been built before

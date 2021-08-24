@@ -77,15 +77,19 @@ type (
 			Failure string `yaml:"provider_failure_redirect,omitempty"`
 			Success string `yaml:"provider_success_redirect,omitempty"`
 		} `yaml:",omitempty"`
-		Providers map[string]interface{} `yaml:",omitempty"`
+		Providers    map[string]interface{} `yaml:",omitempty"`
+		Email        map[string]interface{} `yaml:",omitempty"`
+		Registration map[string]interface{} `yaml:",omitempty"`
+		Tokens       map[string]interface{} `yaml:",omitempty"`
+		Gravatar     map[string]interface{} `yaml:",omitempty"`
 	}
 
 	// Nhost config.yaml service structure
 	Service struct {
-		Port        int         `yaml:",omitempty"`
-		ConsolePort int         `yaml:"console_port,omitempty"`
-		Version     interface{} `yaml:",omitempty"`
-		Image       string      `yaml:",omitempty"`
+		Port int `yaml:",omitempty"`
+		// ConsolePort int         `yaml:"console_port,omitempty"`
+		Version interface{} `yaml:",omitempty"`
+		Image   string      `yaml:",omitempty"`
 		// User        string      `yaml:",omitempty"`
 		// Password    string      `yaml:",omitempty"`
 		AdminSecret interface{} `yaml:"admin_secret,omitempty"`

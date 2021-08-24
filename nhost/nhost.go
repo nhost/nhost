@@ -210,7 +210,7 @@ func Config() (Configuration, error) {
 		// Version:     response.Services["hasura"].Version,
 		AdminSecret: response.Services["hasura"].AdminSecret,
 		Port:        GetPort(9200, 9300),
-		ConsolePort: GetPort(9301, 9400),
+		// ConsolePort: GetPort(9301, 9400),
 	}
 
 	// return the response
@@ -246,7 +246,11 @@ func GenerateConfig(options Project) Configuration {
 			"provider_success_redirect": "http://localhost:3000",
 			"provider_failure_redirect": "http://localhost:3000/login-fail",
 		},
-		"providers": generateProviders(),
+		"providers":    generateProviders(),
+		"tokens":       generateTokenVars(),
+		"registration": generateRegistrationVars(),
+		"email":        generateEmailVars(),
+		"gravatar":     generateGravatarVars(),
 	}
 
 	authPayload, _ := yaml.Marshal(authentication)
@@ -254,7 +258,7 @@ func GenerateConfig(options Project) Configuration {
 	var authYAML Authentication
 	yaml.Unmarshal(authPayload, &authYAML)
 
-	payload := Configuration{
+	return Configuration{
 		Version: 2,
 		Services: map[string]Service{
 			"postgres": postgres,
@@ -262,23 +266,82 @@ func GenerateConfig(options Project) Configuration {
 		},
 		Environment: map[string]interface{}{
 			// "env_file":           ENV_FILE,
-			"hasura_cli_version": "v2.0.0-alpha.11",
+			"hasura_cli_version":                       "v2.0.0-alpha.11",
+			"storage_force_download_for_content_types": "text/html,application/javascript",
 		},
 		MetadataDirectory: "metadata",
 		Authentication:    authYAML,
 	}
+}
 
-	return payload
+func generateRegistrationVars() map[string]interface{} {
+	return map[string]interface{}{
+		"passwordless_email_enabled":     true,
+		"passwordless_sms_enabled":       "",
+		"signin_email_verified_required": "",
+		"allowed_redirect_urls":          "",
+		"mfa_enabled":                    "",
+		"totp_issuer":                    "",
+		"anonymous_users_enabled":        false,
+		"disable_new_users":              "",
+		"whitelist_enabled":              "",
+		"allowed_email_domains":          "",
+		"signup_profile_fields":          "",
+		"min_password_length":            "",
+		"hibp_enabled":                   "",
+		"default_user_role":              "",
+		"default_allowed_user_roles":     "",
+		"allowed_user_roles":             "",
+		"default_locale":                 "",
+		"allowed_locales":                "",
+	}
+}
+
+func generateEmailVars() map[string]interface{} {
+	return map[string]interface{}{
+		"refresh_token_expires_in": "",
+		"emails_enabled":           true,
+		"smtp_host":                "mailhog",
+		"smtp_port":                1025,
+		"smtp_user":                "user",
+		"smtp_pass":                "password",
+		"smtp_sender":              "hasura-auth@example.com",
+		"smtp_method":              "",
+		"smtp_secure":              false,
+		"email_template_fetch_url": "",
+	}
+}
+
+func generateGravatarVars() map[string]interface{} {
+	return map[string]interface{}{
+		"gravatar_enabled": "",
+		"gravatar_default": "",
+		"gravatar_rating":  "",
+	}
+}
+
+func generateTokenVars() map[string]interface{} {
+	return map[string]interface{}{
+		"refresh_token_expires_in":        "",
+		"access_token_expires_in":         "",
+		"user_session_variable_fields":    "",
+		"profile_session_variable_fields": "",
+	}
 }
 
 func generateProviders() map[string]interface{} {
 
-	payload := map[string]interface{}{
+	return map[string]interface{}{
 		"google": map[string]interface{}{
 			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "email,profile",
+		},
+		"strava": map[string]interface{}{
+			"enabled":       false,
+			"client_id":     "",
+			"client_secret": "",
 		},
 		"facebook": map[string]interface{}{
 			"enabled":       false,
@@ -338,8 +401,6 @@ func generateProviders() map[string]interface{} {
 			"client_secret": "",
 		},
 	}
-
-	return payload
 }
 
 // fetches saved credentials from auth file
