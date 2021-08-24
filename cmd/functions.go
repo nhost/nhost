@@ -30,7 +30,6 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
-	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -38,7 +37,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"plugin"
-	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -50,7 +48,7 @@ import (
 )
 
 var (
-	jsPort         = getPort(9000, 9999)
+	jsPort         = nhost.GetPort(9401, 9500)
 	tempDir, _     = ioutil.TempDir("", "")
 	funcPort       string
 	functions      []Function
@@ -61,7 +59,6 @@ var (
 	npmDepInstalled     = false
 	expressPath         = filepath.Join(nhost.WORKING_DIR, "node_modules", "express")
 	buildDir            string
-	plugins             []GoPlugin
 )
 
 type GoPlugin struct {
@@ -104,9 +101,6 @@ func removeTemp() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-
-	// initialize tempDir
-	// tempDir, _ = ioutil.TempDir("", "")
 
 	var f Function
 
@@ -170,10 +164,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// read env vars from any existing .env file
 	var envs []string
-	if pathExists(filepath.Join(nhost.API_DIR, ".env")) {
-		data, _ := ioutil.ReadFile(filepath.Join(nhost.API_DIR, ".env"))
-		envs = strings.Split(string(data), "\n")
-	}
+	data, _ := ioutil.ReadFile(nhost.ENV_FILE)
+	envs = strings.Split(string(data), "\n")
 
 	// Validate whether the function has been built before
 	preBuilt := false
@@ -438,27 +430,29 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 			return
 		}
 
-		if err := installNPMDependencies(); err != nil {
-			log.WithField("component", "server").Debug(err)
-			if strings.Contains(err.Error(), "permission denied") {
-				log.WithField("component", "server").Error("Restart server with sudo/root permission")
-			} else {
-				log.WithField("component", "server").Error("Dependencies required by your functions could not be installed")
+		/*
+			if err := installNPMDependencies(); err != nil {
+				log.WithField("component", "server").Debug(err)
+				if strings.Contains(err.Error(), "permission denied") {
+					log.WithField("component", "server").Error("Restart server with sudo/root permission")
+				} else {
+					log.WithField("component", "server").Error("Dependencies required by your functions could not be installed")
+				}
+				removeTemp()
 			}
-			removeTemp()
-		}
 
-		// if express has been validated before,
-		// skip validation to save execution time
-		if err := validateExpress(); err != nil {
-			log.WithField("component", "server").Debug(err)
-			if strings.Contains(err.Error(), "permission denied") {
-				log.WithField("component", "server").Error("Restart server with sudo/root permission")
-			} else {
-				log.WithField("component", "server").Error("Required build dependencies could not be installed")
+			// if express has been validated before,
+			// skip validation to save execution time
+			if err := validateExpress(); err != nil {
+				log.WithField("component", "server").Debug(err)
+				if strings.Contains(err.Error(), "permission denied") {
+					log.WithField("component", "server").Error("Restart server with sudo/root permission")
+				} else {
+					log.WithField("component", "server").Error("Required build dependencies could not be installed")
+				}
+				removeTemp()
 			}
-			removeTemp()
-		}
+		*/
 	}
 
 	http.HandleFunc("/", handler)
@@ -594,7 +588,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 	//Leverage Go's HTTP Post function to make request
 	req, _ := http.NewRequest(
 		r.Method,
-		"http://localhost:"+jsPort+r.URL.Path,
+		fmt.Sprintf("http://localhost:%v"+r.URL.Path, jsPort),
 		r.Body,
 	)
 
@@ -688,20 +682,6 @@ func fileNameWithoutExtension(fileName string) string {
 func remove(s []Function, i int) []Function {
 	s[i] = s[len(s)-1]
 	return s[:len(s)-1]
-}
-
-func getPort(low, hi int) string {
-
-	// generate a random port value
-	port := strconv.Itoa(low + rand.Intn(hi-low))
-
-	// validate wehther the port is available
-	if !portAvaiable(port) {
-		return getPort(low, hi)
-	}
-
-	// return the value, if it's available
-	return port
 }
 
 func init() {

@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -177,6 +180,39 @@ func Config() (Configuration, error) {
 	}
 
 	err = yaml.Unmarshal(data, &response)
+
+	// add the additional services
+	response.Services["minio"] = Service{
+		Image:   "minio/minio",
+		Version: "latest",
+		Port:    GetPort(8200, 8500),
+	}
+	response.Services["auth"] = Service{
+		Image:   "nhost/hasura-auth",
+		Version: "v0.0.1",
+		Port:    GetPort(9000, 9100),
+	}
+	response.Services["storage"] = Service{
+		Image:   "nhost/hasura-storage",
+		Version: "sha-e7fc9c9",
+		Port:    GetPort(8501, 8999),
+	}
+
+	// set the defaults
+	response.Services["postgres"] = Service{
+		Image:   "nhost/postgres",
+		Version: response.Services["postgres"].Version,
+		Port:    GetPort(5000, 5999),
+	}
+	response.Services["hasura"] = Service{
+		Image:       response.Services["hasura"].Image,
+		Version:     fmt.Sprintf("%v%s", response.Services["hasura"].Version, ".cli-migrations-v2"),
+		AdminSecret: response.Services["hasura"].AdminSecret,
+		Port:        GetPort(9200, 9300),
+		ConsolePort: GetPort(9301, 9400),
+	}
+
+	// return the response
 	return response, err
 }
 
@@ -189,8 +225,6 @@ func GenerateConfig(options Project) Configuration {
 		Version:     "v1.3.3",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
-		// Port:        8080,
-		// ConsolePort: 9695,
 	}
 
 	// check if a loaded remote project has been passed
@@ -198,26 +232,13 @@ func GenerateConfig(options Project) Configuration {
 		hasura.Version = options.HasuraGQEVersion
 	}
 
-	// use special Hasura image which automatically loads migrations and metadata
-	// hasura.Version = fmt.Sprintf("%v.cli-migrations-v2", hasura.Version)
-
 	postgres := Service{
-		Version:  12,
-		User:     "postgres",
-		Password: "postgres",
-		// Port:     5432,
+		Version: 12,
 	}
 
 	if options.PostgresVersion != "" {
 		postgres.Version = options.PostgresVersion
 	}
-
-	/*
-		auth := Service{
-			Version: "v0.0.1",
-			Port:    9002,
-		}
-	*/
 
 	authentication := map[string]interface{}{
 		"endpoints": map[string]interface{}{
@@ -237,19 +258,9 @@ func GenerateConfig(options Project) Configuration {
 		Services: map[string]Service{
 			"postgres": postgres,
 			"hasura":   hasura,
-			/*
-				"auth":     auth,
-				"minio": {
-					Version: "latest",
-					Port:    9000,
-				},
-					"api": {
-						Port: 4000,
-					},
-			*/
 		},
 		Environment: map[string]interface{}{
-			"env_file":           ENV_FILE,
+			// "env_file":           ENV_FILE,
 			"hasura_cli_version": "v2.0.0-alpha.11",
 		},
 		MetadataDirectory: "metadata",
@@ -359,4 +370,33 @@ func LoadCredentials() (Credentials, error) {
 	err = json.Unmarshal(byteValue, &credentials)
 
 	return credentials, err
+}
+
+func GetPort(low, hi int) int {
+
+	// generate a random port value
+	port := strconv.Itoa(low + rand.Intn(hi-low))
+
+	// validate wehther the port is available
+	if !portAvaiable(port) {
+		return GetPort(low, hi)
+	}
+
+	// return the value, if it's available
+	response, _ := strconv.Atoi(port)
+	return response
+}
+
+func portAvaiable(port string) bool {
+
+	log.WithField("port", port).Debug("Checking port for availability")
+
+	ln, err := net.Listen("tcp", ":"+port)
+
+	if err != nil {
+		return false
+	}
+
+	ln.Close()
+	return true
 }

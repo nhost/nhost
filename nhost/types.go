@@ -86,8 +86,8 @@ type (
 		ConsolePort int         `yaml:"console_port,omitempty"`
 		Version     interface{} `yaml:",omitempty"`
 		Image       string      `yaml:",omitempty"`
-		User        string      `yaml:",omitempty"`
-		Password    string      `yaml:",omitempty"`
+		// User        string      `yaml:",omitempty"`
+		// Password    string      `yaml:",omitempty"`
 		AdminSecret interface{} `yaml:"admin_secret,omitempty"`
 	}
 
