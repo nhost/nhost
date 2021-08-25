@@ -55,9 +55,9 @@ for the logged in user from Nhost console and present them.`,
 		services := []Option{
 			{Key: "Database", Value: "postgres"},
 			{Key: "GraphQL Engine", Value: "hasura"},
-			{Key: "Hasura Backend Plus", Value: "hbp"},
-			{Key: "Storage", Value: "minio"},
-			{Key: "API", Value: "api"},
+			{Key: "Authentication", Value: "auth"},
+			{Key: "Storage", Value: "storage"},
+			{Key: "Minio", Value: "minio"},
 		}
 
 		var options []types.Container
@@ -91,7 +91,7 @@ for the logged in user from Nhost console and present them.`,
 
 		for _, service := range services {
 			for _, container := range containers {
-				if strings.Contains(container.Names[0], service.Value) {
+				if strings.Contains(container.Names[0], getContainerName(service.Value)) {
 					options = append(options, container)
 				}
 			}

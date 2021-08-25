@@ -64,21 +64,23 @@ type (
 
 	// Nhost config.yaml root structure
 	Configuration struct {
-		MetadataDirectory string                 `yaml:"metadata_directory,omitempty"`
-		Services          map[string]Service     `yaml:",omitempty"`
-		Authentication    map[string]interface{} `yaml:",omitempty"`
-		Version           int                    `yaml:",omitempty"`
-		Environment       map[string]interface{} `yaml:",omitempty"`
+		MetadataDirectory string                      `yaml:"metadata_directory,omitempty"`
+		Services          map[string]Service          `yaml:",omitempty"`
+		Auth              map[interface{}]interface{} `yaml:",omitempty"`
+		Storage           map[interface{}]interface{} `yaml:",omitempty"`
+		Version           int                         `yaml:",omitempty"`
+		// Environment       map[string]interface{} `yaml:",omitempty"`
 	}
 
 	// Nhost config.yaml authentication structure
 	Authentication struct {
-		Endpoints    map[string]interface{} `yaml:",omitempty"`
-		Providers    map[string]interface{} `yaml:",omitempty"`
-		Email        map[string]interface{} `yaml:",omitempty"`
-		Registration map[string]interface{} `yaml:",omitempty"`
-		Tokens       map[string]interface{} `yaml:",omitempty"`
-		Gravatar     map[string]interface{} `yaml:",omitempty"`
+		Endpoints map[string]interface{} `yaml:",omitempty"`
+		Providers map[string]interface{} `yaml:",omitempty"`
+		Signin    map[string]interface{} `yaml:",omitempty"`
+		Signup    map[string]interface{} `yaml:",omitempty"`
+		Email     map[string]interface{} `yaml:",omitempty"`
+		Tokens    map[string]interface{} `yaml:",omitempty"`
+		Gravatar  map[string]interface{} `yaml:",omitempty"`
 	}
 
 	// Nhost config.yaml service structure

@@ -163,11 +163,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// read env vars from any existing .env file
-	var envs []string
-	data, _ := ioutil.ReadFile(nhost.ENV_FILE)
-	envs = strings.Split(string(data), "\n")
-
 	// Validate whether the function has been built before
 	preBuilt := false
 	for index, item := range functions {
@@ -231,6 +226,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	// load .env.development
+	env, err := nhost.Env()
+	if err != nil {
+		log.WithField("environment", ".env.development").Debug(err)
+	}
+
 	switch filepath.Ext(f.Path) {
 	case ".js", ".ts":
 
@@ -244,7 +245,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		cmd := exec.Cmd{
 			Path:   nodeCLI,
-			Env:    envs,
+			Env:    env,
 			Args:   []string{nodeCLI, f.ServerConfig},
 			Stdout: os.Stdout,
 			Stderr: os.Stderr,
@@ -625,8 +626,17 @@ func router(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Access-Control-Allow-Origin", "*")
-	w.Header().Add("Access-Control-Allow-Headers", "origin,Accept,Authorization,Content-Type")
+	// Check CORS headers
+	cors := map[string]string{
+		"Access-Control-Allow-Origin":  "*",
+		"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
+	}
+
+	for key, value := range cors {
+		if w.Header().Get(key) == "" {
+			w.Header().Add(key, value)
+		}
+	}
 
 	// read the body
 	body, _ := ioutil.ReadAll(resp.Body)

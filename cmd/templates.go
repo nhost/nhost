@@ -17,9 +17,7 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/hashicorp/go-getter"
@@ -60,12 +58,6 @@ Nhost modules and plugins.
 And you can immediately start developing on that template.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		samCLI, err := exec.LookPath("sam")
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to find AWS SAM utility. Is it properly installed?")
-		}
-
 		var selected Entity
 
 		entities := []Entity{
@@ -81,16 +73,18 @@ And you can immediately start developing on that template.`,
 				NextSteps: "Use `cd web && npm install --save-dev`",
 				Manual:    "git clone github.com/nhost/nhost/templates/" + choice,
 			},
-			{
-				Name:      "API or Nhost Functions",
-				Value:     "api",
-				Command:   []string{samCLI, "init", "-o", nhost.WORKING_DIR, "-n", "api", "--app-template", "hello-world", "-p", "Zip"},
-				NextSteps: "Start testing API with `nhost dev`",
+			/*
+				{
+					Name:      "API or Nhost Functions",
+					Value:     "api",
+					Command:   []string{samCLI, "init", "-o", nhost.WORKING_DIR, "-n", "api", "--app-template", "hello-world", "-p", "Zip"},
+					NextSteps: "Start testing API with `nhost dev`",
 
-				// Sample SAM initialization command
-				Manual: "sam init -o . -n api --app-template hello-world -p Zip",
-				Ignore: []string{".aws-sam"},
-			},
+					// Sample SAM initialization command
+					Manual: "sam init -o . -n api --app-template hello-world -p Zip",
+					Ignore: []string{".aws-sam"},
+				},
+			*/
 		}
 
 		// configure interactive prompt template
@@ -200,20 +194,22 @@ And you can immediately start developing on that template.`,
 
 		} else {
 
-			execute := exec.Cmd{
-				Path:   samCLI,
-				Args:   selected.Command,
-				Dir:    nhost.WORKING_DIR,
-				Stdin:  os.Stdin,
-				Stdout: os.Stdout,
-			}
+			/*
+				execute := exec.Cmd{
+					Path:   samCLI,
+					Args:   selected.Command,
+					Dir:    nhost.WORKING_DIR,
+					Stdin:  os.Stdin,
+					Stdout: os.Stdout,
+				}
 
-			if err := execute.Run(); err != nil {
-				log.WithField("compnent", selected.Value).Debug(err)
-				log.WithField("compnent", selected.Value).Error("Failed to clone template")
-				log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
-				os.Exit(1)
-			}
+				if err := execute.Run(); err != nil {
+					log.WithField("compnent", selected.Value).Debug(err)
+					log.WithField("compnent", selected.Value).Error("Failed to clone template")
+					log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
+					os.Exit(1)
+				}
+			*/
 		}
 
 		// if there are any ignore files,
@@ -221,14 +217,13 @@ And you can immediately start developing on that template.`,
 
 		for _, file := range selected.Ignore {
 
-			if err = writeToFile(filepath.Join(nhost.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
+			if err := writeToFile(filepath.Join(nhost.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
 				log.Debug(err)
 				log.Warnf("Failed to add `%s` to .gitignore", file)
 			}
 		}
 
 		log.WithField("compnent", selected.Value).Info("Template generated successfully")
-		fmt.Println()
 
 		// advise the user about next steps
 		log.Info(selected.NextSteps)

@@ -136,10 +136,6 @@ func execute(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to read Nhost config")
 	}
 
-	if nhostConfig.Environment["graphql_jwt_key"] == "" || nhostConfig.Environment["graphql_jwt_key"] == nil {
-		nhostConfig.Environment["graphql_jwt_key"] = generateRandomKey()
-	}
-
 	// generate Nhost service containers' configurations
 	nhostServices, err := getContainerConfigs(docker, nhostConfig)
 	if err != nil {
@@ -222,7 +218,7 @@ func execute(cmd *cobra.Command, args []string) {
 		{
 			Name:    "GraphQL",
 			Address: fmt.Sprintf("http://localhost:%v/v1/graphql", nhostConfig.Services["hasura"].Port),
-			Handle:  "/graphql/",
+			Handle:  "/graphql",
 		},
 		{
 			Name:    "Authentication",
@@ -234,11 +230,13 @@ func execute(cmd *cobra.Command, args []string) {
 			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["storage"].Port),
 			Handle:  "/storage/",
 		},
-		{
-			Name:    "Minio",
-			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["minio"].Port),
-			Handle:  "/minio/",
-		},
+		/*
+			{
+				Name:    "Minio",
+				Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["minio"].Port),
+				Handle:  "/minio/",
+			},
+		*/
 	}
 
 	// if functions exist,
@@ -279,6 +277,9 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	go hasuraConsoleSpawnCmd.Run()
+
+	// launch mailhog UI
+	go openbrowser(fmt.Sprintf("http://localhost:%v", nhostConfig.Services["mailhog"].Port))
 
 	log.Warn("Use Ctrl + C to stop running evironment")
 
@@ -568,6 +569,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	storageConfig := options.Services["storage"]
 	authConfig := options.Services["auth"]
 	minioConfig := options.Services["minio"]
+	mailhogConfig := options.Services["mailhog"]
 
 	// check if a required image already exists
 	// if it doesn't which case -> then pull it
@@ -578,6 +580,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		fmt.Sprintf("%s:%v", authConfig.Image, authConfig.Version),
 		fmt.Sprintf("%s:%v", minioConfig.Image, minioConfig.Version),
 		fmt.Sprintf("%s:%v", storageConfig.Image, storageConfig.Version),
+		fmt.Sprintf("%s:%v", mailhogConfig.Image, mailhogConfig.Version),
 	}
 
 	availableImages, err := getInstalledImages(client, context.Background())
@@ -606,9 +609,11 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		}
 	}
 
-	// read env_file
-	envFile, _ := ioutil.ReadFile(nhost.ENV_FILE)
-	envVars := strings.Split(string(envFile), "\n")
+	// load .env.development
+	envVars, envVarErr := nhost.Env()
+	if envVarErr != nil {
+		log.WithField("environment", ".env.development").Debug(envVarErr)
+	}
 
 	// create mount points if they doesn't exist
 	mountPoints := []mount.Mount{
@@ -669,22 +674,21 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		},
 	}
 
+	// generate fresh JWT key for GraphQL
+	jwtKey := generateRandomKey()
+
 	// prepare env variables for following container
 	containerVariables := []string{
 		fmt.Sprintf("HASURA_GRAPHQL_SERVER_PORT=%v", hasuraConfig.Port),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", getContainerName("postgres"), postgresConfig.Port)),
-		"HASURA_GRAPHQL_ENABLE_CONSOLE=true",
+		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", hasuraConfig.AdminSecret),
 		fmt.Sprintf("HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT=%d", 20),
 		fmt.Sprintf("HASURA_GRAPHQL_NO_OF_RETRIES=%d", 20),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
-		fmt.Sprintf("NHOST_HASURA_URL=%v", fmt.Sprintf(`http://%s:%v/v1/graphql`, getContainerName("hasura"), hasuraConfig.Port)),
-		"NHOST_WEBHOOK_SECRET=devnhostwebhooksecret",
-		fmt.Sprintf("NHOST_HBP_URL=%v", fmt.Sprintf(`http://%s:%v`, getContainerName("hbp"), authConfig.Port)),
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options.Environment["graphql_jwt_key"])),
+		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, jwtKey)),
 	}
-	containerVariables = append(containerVariables, envVars...)
 
 	// create mount points if they doesn't exist
 	mountPoints = []mount.Mount{
@@ -797,7 +801,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", hasuraConfig.AdminSecret),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", getContainerName("postgres"), postgresConfig.Port)),
 		fmt.Sprintf("HASURA_GRAPHQL_GRAPHQL_URL=%v", fmt.Sprintf(`http://%s:%v/v1/graphql`, getContainerName("hasura"), hasuraConfig.Port)),
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, options.Environment["graphql_jwt_key"])),
+		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, jwtKey)),
 		fmt.Sprintf("AUTH_PORT=%v", authConfig.Port),
 		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v", authConfig.Port),
 		fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", "3000"),
@@ -807,25 +811,12 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		"AUTH_HOST=0.0.0.0",
 		"JWT_ALGORITHM=HS256",
 	}
-	containerVariables = append(containerVariables, envVars...)
+	if envVarErr == nil {
+		containerVariables = append(containerVariables, envVars...)
+	}
 
 	// append social auth credentials and other env vars
-	for _, item := range options.Authentication {
-		for key, value := range item.(map[interface{}]interface{}) {
-			switch value := value.(type) {
-			case map[interface{}]interface{}:
-				for newkey, newvalue := range value {
-					if newvalue != "" {
-						containerVariables = append(containerVariables, fmt.Sprintf("AUTH_%v_%v=%v", strings.ToUpper(fmt.Sprint(key)), strings.ToUpper(fmt.Sprint(newkey)), newvalue))
-					}
-				}
-			case interface{}:
-				if value != "" {
-					containerVariables = append(containerVariables, fmt.Sprintf("AUTH_%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
-				}
-			}
-		}
-	}
+	containerVariables = append(containerVariables, appendEnvVars(options.Auth, "AUTH")...)
 
 	// create mount point if it doesn't exit
 	customMountPoint := filepath.Join(nhost.DOT_NHOST, "custom", "keys")
@@ -866,7 +857,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", hasuraConfig.AdminSecret),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", getContainerName("postgres"), postgresConfig.Port)),
 		fmt.Sprintf("S3_ENDPOINT=http://%s:%v", getContainerName("minio"), minioConfig.Port),
-		fmt.Sprintf("STORAGE_FORCE_DOWNLOAD_FOR_CONTENT_TYPES=%v", options.Environment["storage_force_download_for_content_types"]),
 
 		// additional default
 		"S3_ACCESS_KEY=minioaccesskey123123",
@@ -874,10 +864,15 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		"STORAGE_HOST=0.0.0.0",
 		"STORAGE_STANDALONE_MODE=false",
 		"STORAGE_LOG_LEVEL=info",
-		// "STORAGE_FORCE_DOWNLOAD_FOR_CONTENT_TYPES=text/html,application/javascript",
 		"STORAGE_SWAGGER_ENABLED=false",
 		"S3_SSL_ENABLED=false",
 		"S3_BUCKET=nhost",
+	}
+
+	// append storage env vars
+	containerVariables = append(containerVariables, appendEnvVars(options.Storage, "STORAGE")...)
+	if envVarErr == nil {
+		containerVariables = append(containerVariables, envVars...)
 	}
 
 	storageContainer := map[string]interface{}{
@@ -897,6 +892,41 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		},
 	}
 
+	// prepare env variables for following container
+	containerVariables = []string{}
+	var smtpPort int
+	for key, value := range options.Auth["email"].(map[interface{}]interface{}) {
+		if value != "" {
+			containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+			if key.(string) == "smtp_port" {
+				smtpPort = value.(int)
+			}
+		}
+	}
+
+	mailhogContainer := map[string]interface{}{
+		"name": getContainerName("mailhog"),
+		"config": &container.Config{
+			Image: fmt.Sprintf(`%s:%v`, mailhogConfig.Image, mailhogConfig.Version),
+			Env:   containerVariables,
+			ExposedPorts: nat.PortSet{
+				nat.Port(strconv.Itoa(smtpPort)):           struct{}{},
+				nat.Port(strconv.Itoa(mailhogConfig.Port)): struct{}{},
+			},
+		},
+		"host_config": &container.HostConfig{
+			PortBindings: map[nat.Port][]nat.PortBinding{
+				nat.Port(strconv.Itoa(smtpPort)): {{HostIP: "127.0.0.1",
+					HostPort: strconv.Itoa(smtpPort)}},
+				nat.Port(strconv.Itoa(mailhogConfig.Port)): {{HostIP: "127.0.0.1",
+					HostPort: strconv.Itoa(mailhogConfig.Port)}},
+			},
+			RestartPolicy: container.RestartPolicy{
+				Name: "always",
+			},
+		},
+	}
+
 	containers = append(containers, postgresContainer)
 	containers = append(containers, minioContainer)
 
@@ -904,6 +934,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	containers = append(containers, hasuraContainer)
 	containers = append(containers, authContainer)
 	containers = append(containers, storageContainer)
+	containers = append(containers, mailhogContainer)
 
 	return containers, err
 }
@@ -930,8 +961,40 @@ func pullImage(cli *client.Client, tag string) error {
 	return cmd.Run()
 }
 
+func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string {
+	var response []string
+	for key, item := range payload {
+		switch item := item.(type) {
+		/*
+			case map[interface{}]interface{}:
+				response = append(response, appendEnvVars(item, prefix)...)
+		*/
+		case map[interface{}]interface{}:
+			for key, value := range item {
+				switch value := value.(type) {
+				case map[interface{}]interface{}:
+					for newkey, newvalue := range value {
+						if newvalue != "" {
+							response = append(response, fmt.Sprintf("%s_%v_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), strings.ToUpper(fmt.Sprint(newkey)), newvalue))
+						}
+					}
+				case interface{}, string:
+					if value != "" {
+						response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), value))
+					}
+				}
+			}
+		case interface{}:
+			if item != "" {
+				response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), item))
+			}
+		}
+	}
+	return response
+}
+
 func getContainerName(name string) string {
-	return strings.Join([]string{nhost.PROJECT, name}, "_")
+	return strings.Join([]string{"nhost", name}, "_")
 }
 
 func init() {

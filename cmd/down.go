@@ -33,7 +33,6 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
-	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -79,7 +78,7 @@ var downCmd = &cobra.Command{
 func shutdownServices(cli *client.Client, ctx context.Context, logFile string) error {
 
 	// get running containers with prefix "nhost_"
-	containers, err := getContainers(cli, ctx, nhost.PROJECT)
+	containers, err := getContainers(cli, ctx, "nhost")
 	if err != nil {
 		return err
 	}
@@ -127,7 +126,7 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 	// if purge, delete the network too
 	if purge {
 
-		network, err := getNetwork(cli, ctx, nhost.PROJECT)
+		network, err := getNetwork(cli, ctx, "nhost")
 		if err != nil {
 			return err
 		}

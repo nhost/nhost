@@ -41,12 +41,7 @@ func Binary() (string, error) {
 
 	binary := "hasura"
 
-	nhostConfig, err := nhost.Config()
-	if err != nil {
-		return url, err
-	}
-
-	version := nhostConfig.Environment["hasura_cli_version"]
+	version := "v2.0.0-alpha.11"
 
 	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, runtime.GOARCH)
 
@@ -56,7 +51,7 @@ func Binary() (string, error) {
 	}
 
 	// create the binary path
-	if err = os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {
+	if err := os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {
 		return "", err
 	}
 	out, err := os.Create(binaryPath)

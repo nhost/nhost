@@ -116,7 +116,7 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 	}
 
 	// fetch list of all running containers
-	containers, err := getContainers(docker, ctx, nhost.PROJECT)
+	containers, err := getContainers(docker, ctx, "nhost")
 	if err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to fetch running containers")
@@ -171,7 +171,7 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 							log.WithFields(logrus.Fields{
 								"container": service.Name,
 								"type":      "service",
-							}).Info("Health check successful")
+							}).Debug("Health check successful")
 						} else {
 							log.WithFields(logrus.Fields{
 								"container": service.Name,
@@ -208,7 +208,7 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 							log.WithFields(logrus.Fields{
 								"type":      "service",
 								"container": service.Name,
-							}).Info("Health check successful")
+							}).Debug("Health check successful")
 						}
 
 						wg.Done()
@@ -290,11 +290,11 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 
 func checkServiceHealth(name, url string) bool {
 
-	for x := 1; x <= 6000; x++ {
+	for x := 1; x <= 120; x++ {
 		if valid := validateEndpointHealth(url); valid {
 			return true
 		}
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 		log.WithFields(logrus.Fields{
 			"type":      "service",
 			"container": name,

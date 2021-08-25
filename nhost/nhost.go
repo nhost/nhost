@@ -2,6 +2,7 @@ package nhost
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -58,14 +59,18 @@ func (config *Configuration) Save() error {
 	return nil
 }
 
-func Env() ([]byte, error) {
+func Env() ([]string, error) {
 
 	data, err := ioutil.ReadFile(ENV_FILE)
 	if err != nil {
 		return nil, err
 	}
 
-	return json.Marshal(data)
+	if len(string(data)) > 0 {
+		return strings.Split(string(data), "\n"), nil
+	}
+
+	return nil, errors.New("no environment variables found")
 }
 
 func Exists() bool {
@@ -187,6 +192,11 @@ func Config() (Configuration, error) {
 		Version: "latest",
 		Port:    GetPort(8200, 8500),
 	}
+	response.Services["mailhog"] = Service{
+		Image:   "mailhog/mailhog",
+		Version: "latest",
+		Port:    8025,
+	}
 	response.Services["auth"] = Service{
 		Image:   "nhost/hasura-auth",
 		Version: "sha-c68cd71",
@@ -223,7 +233,7 @@ func GenerateConfig(options Project) Configuration {
 	log.Debug("Generating project configuration")
 
 	hasura := Service{
-		Version:     "v2.0.7",
+		Version:     "v2.0.0",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
 	}
@@ -247,23 +257,28 @@ func GenerateConfig(options Project) Configuration {
 			"postgres": postgres,
 			"hasura":   hasura,
 		},
-		Environment: map[string]interface{}{
-			// "env_file":           ENV_FILE,
-			"hasura_cli_version":                       "v2.0.0-alpha.11",
-			"storage_force_download_for_content_types": "text/html,application/javascript",
-		},
+		/*
+			Environment: map[string]interface{}{
+				// "env_file":           ENV_FILE,
+				"hasura_cli_version": "v2.0.0-alpha.11",
+			},
+		*/
 		MetadataDirectory: "metadata",
-		Authentication: map[string]interface{}{
-			"providers":    generateProviders(),
-			"tokens":       generateTokenVars(),
-			"registration": generateRegistrationVars(),
-			"email":        generateEmailVars(),
-			"gravatar":     generateGravatarVars(),
+		Storage: map[interface{}]interface{}{
+			"force_download_for_content_types": "text/html,application/javascript",
+		},
+		Auth: map[interface{}]interface{}{
+			"providers": generateProviders(),
+			"tokens":    generateTokenVars(),
+			"signin":    generateSignInVars(),
+			"signup":    generateSignUpVars(),
+			"email":     generateEmailVars(),
+			"gravatar":  generateGravatarVars(),
 		},
 	}
 }
 
-func generateRegistrationVars() map[string]interface{} {
+func generateSignInVars() map[string]interface{} {
 	return map[string]interface{}{
 		"passwordless_email_enabled":     true,
 		"passwordless_sms_enabled":       "",
@@ -271,18 +286,23 @@ func generateRegistrationVars() map[string]interface{} {
 		"allowed_redirect_urls":          "",
 		"mfa_enabled":                    "",
 		"totp_issuer":                    "",
-		"anonymous_users_enabled":        false,
-		"disable_new_users":              "",
-		"whitelist_enabled":              "",
-		"allowed_email_domains":          "",
-		"signup_profile_fields":          "",
-		"min_password_length":            "",
-		"hibp_enabled":                   "",
-		"default_user_role":              "",
-		"default_allowed_user_roles":     "",
-		"allowed_user_roles":             "",
-		"default_locale":                 "",
-		"allowed_locales":                "",
+	}
+}
+
+func generateSignUpVars() map[string]interface{} {
+	return map[string]interface{}{
+		"anonymous_users_enabled":    false,
+		"disable_new_users":          "",
+		"whitelist_enabled":          "",
+		"allowed_email_domains":      "",
+		"signup_profile_fields":      "",
+		"min_password_length":        "",
+		"hibp_enabled":               "",
+		"default_user_role":          "",
+		"default_allowed_user_roles": "",
+		"allowed_user_roles":         "",
+		"default_locale":             "",
+		"allowed_locales":            "",
 	}
 }
 

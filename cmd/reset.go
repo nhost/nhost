@@ -77,9 +77,9 @@ var resetCmd = &cobra.Command{
 
 			paths := []string{
 				nhost.NHOST_DIR,
-				nhost.ENV_FILE,
-				nhost.API_DIR,
-				nhost.WEB_DIR,
+				// nhost.ENV_FILE,
+				// nhost.API_DIR,
+				// nhost.WEB_DIR,
 				nhost.DOT_NHOST,
 			}
 
