@@ -254,10 +254,6 @@ func GenerateConfig(options Project) Configuration {
 		},
 		MetadataDirectory: "metadata",
 		Authentication: map[string]interface{}{
-			"endpoints": map[string]interface{}{
-				"provider_success_redirect": "http://localhost:3000",
-				"provider_failure_redirect": "http://localhost:3000/login-fail",
-			},
 			"providers":    generateProviders(),
 			"tokens":       generateTokenVars(),
 			"registration": generateRegistrationVars(),

@@ -607,7 +607,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	}
 
 	// read env_file
-	envFile, _ := nhost.Env()
+	envFile, _ := ioutil.ReadFile(nhost.ENV_FILE)
 	envVars := strings.Split(string(envFile), "\n")
 
 	// create mount points if they doesn't exist

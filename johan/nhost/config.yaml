@@ -7,9 +7,6 @@ services:
   postgres:
     version: 12
 authentication:
-  endpoints:
-    provider_failure_redirect: http://localhost:3000/login-fail
-    provider_success_redirect: http://localhost:3000
   providers:
     apple:
       client_id: ""

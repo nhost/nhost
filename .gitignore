@@ -16,6 +16,8 @@ requests.*
 .vercel
 *.zip
 .vscode/*
+johan
+johan/
 
 enum.json
 test.json

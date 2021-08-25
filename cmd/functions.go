@@ -165,7 +165,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// read env vars from any existing .env file
 	var envs []string
-	data, _ := nhost.Env()
+	data, _ := ioutil.ReadFile(nhost.ENV_FILE)
 	envs = strings.Split(string(data), "\n")
 
 	// Validate whether the function has been built before
@@ -611,18 +611,13 @@ func router(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	/*
-		// set the response headers
-		for key, value := range resp.Header {
-			w.Header().Add(key, "")
-			if len(value) > 0 {
-				w.Header().Add(key, value[0])
-			}
-		}
+	// set the response headers
+	for key, value := range resp.Header {
+		w.Header().Add(key, value[0])
+	}
 
-		// set response code to header
-		w.WriteHeader(resp.StatusCode)
-	*/
+	// set response code to header
+	w.WriteHeader(resp.StatusCode)
 
 	// if request failed, write HTTP error to response
 	if err != nil {
