@@ -574,13 +574,9 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	// check if a required image already exists
 	// if it doesn't which case -> then pull it
 
-	requiredImages := []string{
-		fmt.Sprintf("%s:%v", postgresConfig.Image, postgresConfig.Version),
-		fmt.Sprintf("%s:%v", hasuraConfig.Image, hasuraConfig.Version),
-		fmt.Sprintf("%s:%v", authConfig.Image, authConfig.Version),
-		fmt.Sprintf("%s:%v", minioConfig.Image, minioConfig.Version),
-		fmt.Sprintf("%s:%v", storageConfig.Image, storageConfig.Version),
-		fmt.Sprintf("%s:%v", mailhogConfig.Image, mailhogConfig.Version),
+	requiredImages := []string{}
+	for _, service := range options.Services {
+		requiredImages = append(requiredImages, fmt.Sprintf("%s:%v", service.Image, service.Version))
 	}
 
 	availableImages, err := getInstalledImages(client, context.Background())
@@ -688,6 +684,9 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		fmt.Sprintf("HASURA_GRAPHQL_NO_OF_RETRIES=%d", 20),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, jwtKey)),
+	}
+	if envVarErr == nil {
+		containerVariables = append(containerVariables, envVars...)
 	}
 
 	// create mount points if they doesn't exist
@@ -811,9 +810,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		"AUTH_HOST=0.0.0.0",
 		"JWT_ALGORITHM=HS256",
 	}
-	if envVarErr == nil {
-		containerVariables = append(containerVariables, envVars...)
-	}
 
 	// append social auth credentials and other env vars
 	containerVariables = append(containerVariables, appendEnvVars(options.Auth, "AUTH")...)
@@ -871,9 +867,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 
 	// append storage env vars
 	containerVariables = append(containerVariables, appendEnvVars(options.Storage, "STORAGE")...)
-	if envVarErr == nil {
-		containerVariables = append(containerVariables, envVars...)
-	}
 
 	storageContainer := map[string]interface{}{
 		"name": getContainerName("storage"),
@@ -947,6 +940,7 @@ func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageS
 func pullImage(cli *client.Client, tag string) error {
 
 	log.WithField("component", tag).Info("Pulling container image")
+
 	/*
 		out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
 		out.Close()

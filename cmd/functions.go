@@ -110,6 +110,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		"package.json",
 		"package-lock.json",
 		"yarn.lock",
+		"go.mod",
+		"go.sum",
 	}
 
 	getRoute := func(path string, item fs.FileInfo, err error) error {
@@ -267,14 +269,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		// serve
 		f.Handler(w, r)
-
-		// Uncomment the following to catch HTTP ResponseWriter Body
-		/*
-			w := httptest.NewRecorder()
-			f.Handler(w, r)
-
-			fmt.Printf("%s", w.Body.String())
-		*/
 	}
 }
 

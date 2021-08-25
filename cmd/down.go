@@ -25,7 +25,6 @@ package cmd
 
 import (
 	"context"
-	"io"
 	"os"
 	"strings"
 	"sync"
@@ -96,15 +95,6 @@ func shutdownServices(cli *client.Client, ctx context.Context, logFile string) e
 
 		// prepare container name for better logging
 		name := strings.Split(container.Names[0], "/")[1]
-
-		if LOG_FILE != "" {
-
-			// generate container logs and write them to logFile
-			_, err = getContainerLogs(cli, ctx, container)
-			if err != nil {
-				return err
-			}
-		}
 
 		go func(cli *client.Client, ctx context.Context, container types.Container, wg *sync.WaitGroup) {
 			err := stopContainer(cli, ctx, container)
@@ -239,39 +229,6 @@ func stopContainer(cli *client.Client, ctx context.Context, container types.Cont
 	}).Debug("Stopping")
 
 	return cli.ContainerStop(ctx, container.ID, nil)
-}
-
-// fetches the logs of a specific container
-// and writes them to a log file
-func getContainerLogs(cli *client.Client, ctx context.Context, container types.Container) ([]byte, error) {
-
-	log.WithFields(logrus.Fields{
-		"type":      "container",
-		"component": container.Names[0],
-	}).Debug("Fetching logs")
-
-	var response []byte
-
-	options := types.ContainerLogsOptions{ShowStdout: true}
-
-	out, err := cli.ContainerLogs(ctx, container.ID, options)
-	if err != nil {
-		return response, err
-	}
-
-	response, err = io.ReadAll(out)
-	if err != nil {
-		return response, err
-	}
-
-	if LOG_FILE != "" {
-		// write the fetched logs to a file
-		if err = writeToFile(LOG_FILE, string(response), "end"); err != nil {
-			return response, err
-		}
-	}
-
-	return response, nil
 }
 
 // removes given container
