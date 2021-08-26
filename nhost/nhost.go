@@ -233,7 +233,7 @@ func GenerateConfig(options Project) Configuration {
 	log.Debug("Generating project configuration")
 
 	hasura := Service{
-		Version:     "v2.0.0",
+		Version:     "v2.0.7",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
 	}

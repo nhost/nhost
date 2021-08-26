@@ -78,7 +78,7 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 	postgresConfig := options.Services["postgres"]
 	hasuraConfig := options.Services["hasura"]
 	authConfig := options.Services["auth"]
-	minioConfig := options.Services["minio"]
+	// minioConfig := options.Services["minio"]
 	storageConfig := options.Services["storage"]
 
 	// initialize all Nhost service structures
@@ -109,10 +109,12 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 			Name:                getContainerName("hasura"),
 			HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hasuraConfig.Port),
 		},
-		{
-			Name:                getContainerName("minio"),
-			HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig.Port),
-		},
+		/*
+			{
+				Name:                getContainerName("minio"),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig.Port),
+			},
+		*/
 	}
 
 	// fetch list of all running containers
@@ -143,8 +145,6 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 	}
 
 	var wg sync.WaitGroup
-
-	// flag to ensure all checks have cleared
 
 	for _, service := range targets {
 		wg.Add(1)
@@ -204,6 +204,7 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 							}).Error("Health check unsuccessful")
 							wg.Done()
 						}
+
 						if valid := strings.Contains(result.StdOut, "accepting connections"); valid {
 							log.WithFields(logrus.Fields{
 								"type":      "service",
@@ -219,12 +220,7 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 	}
 
 	wg.Wait()
-
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return err
 }
 
 func Exec(docker *client.Client, ctx context.Context, containerID string, command []string) (types.IDResponse, error) {
@@ -305,13 +301,8 @@ func checkServiceHealth(name, url string) bool {
 
 func validateEndpointHealth(url string) bool {
 
-	client := &http.Client{
-		Timeout: 2 * time.Second,
-	}
-
-	resp, err := client.Get(url)
+	resp, err := http.Get(url)
 	if err != nil {
-		//log.Debug(err)
 		return false
 	}
 
