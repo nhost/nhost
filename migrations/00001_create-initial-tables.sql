@@ -86,10 +86,6 @@ CREATE TABLE auth.roles (
   role text NOT NULL PRIMARY KEY
 );
 
-CREATE TABLE IF NOT EXISTS auth.whitelist (
-  email auth.email NOT NULL PRIMARY KEY
-);
-
 CREATE TABLE auth.provider_requests (
   id uuid NOT NULL PRIMARY KEY,
   redirect_url text NOT NULL

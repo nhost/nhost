@@ -1,16 +1,7 @@
 import { Response } from 'express';
 import * as EmailValidator from 'email-validator';
 
-import { gqlSdk } from './gqlSDK';
 import { ENV } from './env';
-
-export const isWhitelistedEmail = async (email: string) => {
-  const { AuthWhitelist } = await gqlSdk.isWhitelistedEmail({
-    email,
-  });
-
-  return !!AuthWhitelist;
-};
 
 type IsValidEmailParams = {
   email: string;
@@ -28,30 +19,75 @@ export const isValidEmail = async ({
     return false;
   }
 
-  // check if email domain is valid
-  if (ENV.AUTH_ALLOWED_EMAIL_DOMAINS.length > 0) {
-    const emailDomain = email.split('@')[1];
-
-    console.log('allowed email domains:');
-
-    console.log(process.env.AUTH_ALLOWED_EMAIL_DOMAINS);
-    console.log(ENV.AUTH_ALLOWED_EMAIL_DOMAINS);
-
-    console.log('other');
-
-    console.log(process.env.NOT_SET_123);
-
-    if (!ENV.AUTH_ALLOWED_EMAIL_DOMAINS.includes(emailDomain)) {
-      res.boom.unauthorized('Email domain is not allowed');
-      return false;
-    }
+  // of no access control is set, allow all emails
+  if (
+    ENV.AUTH_ACCESS_CONTROL_ALLOW_LIST.length === 0 &&
+    ENV.AUTH_ACCESS_CONTROL_BLOCK_LIST.length === 0
+  ) {
+    return true;
   }
 
-  // check if email is whitelisted
-  if (ENV.AUTH_WHITELIST_ENABLED && !(await isWhitelistedEmail(email))) {
-    res.boom.unauthorized('Email is not allowed');
+  const emailDomain = email.split('@')[1];
+
+  // check blocked first
+  const blockedDomains: string[] = [];
+  const blockedEmails: string[] = [];
+
+  ENV.AUTH_ACCESS_CONTROL_BLOCK_LIST.filter((item) => {
+    if (item.startsWith('*@')) {
+      // add allowed domain without the first `*@`
+      blockedDomains.push(item.substring(2));
+    } else {
+      // otherwise, treat the item as an email
+      blockedEmails.push(item);
+    }
+  });
+
+  // check if blocked
+  if (blockedDomains.includes(emailDomain)) {
+    res.boom.forbidden('Email is not allowed');
     return false;
   }
 
-  return true;
+  if (blockedEmails.includes(email)) {
+    res.boom.forbidden('Email is not allowed');
+    return false;
+  }
+
+  // We've now checked the block list.
+  // If ther eis no entry in the allow list it means we can allow the email
+  if (ENV.AUTH_ACCESS_CONTROL_ALLOW_LIST.length === 0) {
+    return true;
+  }
+
+  // The allow list is not empty. We'll now go ahead and check if the email is
+  // allowed. Otherwise, we'll default to false.
+
+  // get allowed domains from environment variable
+  const allowedDomains: string[] = [];
+  const allowedEmails: string[] = [];
+
+  ENV.AUTH_ACCESS_CONTROL_ALLOW_LIST.filter((item) => {
+    if (item.startsWith('*@')) {
+      // add allowed domain without the first `*@`
+      allowedDomains.push(item.substring(2));
+    } else {
+      // otherwise, treat the item as an email
+      allowedEmails.push(item);
+    }
+  });
+
+  console.log({ emailDomain });
+  console.log({ allowedDomains });
+
+  if (allowedDomains.includes(emailDomain)) {
+    return true;
+  }
+
+  if (allowedEmails.includes(email)) {
+    return true;
+  }
+
+  res.boom.forbidden('Email is not allowed');
+  return false;
 };

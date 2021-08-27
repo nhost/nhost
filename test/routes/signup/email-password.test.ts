@@ -32,7 +32,6 @@ describe('email-password', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_SIGNUP_PROFILE_FIELDS: '',
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_EMAILS_ENABLED: true,
     });
 
@@ -46,7 +45,6 @@ describe('email-password', () => {
     // set env vars
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_WHITELIST_ENABLED: false,
     });
 
     await request
@@ -60,17 +58,85 @@ describe('email-password', () => {
       .expect(409);
   });
 
-  it('should fail sign up if whitelist is enabled and the email is not whitelisted', async () => {
+  it('should only allow email domains that are allowed', async () => {
     // set env vars
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_WHITELIST_ENABLED: true,
+      AUTH_ACCESS_CONTROL_ALLOW_LIST: '*@nhost.io',
+      AUTH_ACCESS_CONTROL_BLOCK_LIST: '',
     });
 
     await request
       .post('/signup/email-password')
       .send({ email: 'joedoe@example.com', password: '123456' })
-      .expect(401);
+      .expect(403);
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'joedoe@nhost.io', password: '123456' })
+      .expect(200);
+  });
+
+  it('should fail sign up if email is not allowed', async () => {
+    // set env vars
+    await await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ACCESS_CONTROL_ALLOW_LIST: 'vip@example.com',
+      AUTH_ACCESS_CONTROL_BLOCK_LIST: '',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'joedoe@example.com', password: '123456' })
+      .expect(403);
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'vip@example.com', password: '123456' })
+      .expect(200);
+  });
+
+  it('should fail sign up if email domain is blocked', async () => {
+    // set env vars
+    await await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ACCESS_CONTROL_ALLOW_LIST: '',
+      AUTH_ACCESS_CONTROL_BLOCK_LIST: '*@example.com',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'joedoe@example.com', password: '123456' })
+      .expect(403);
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'joedoe@nhost.io', password: '123456' })
+      .expect(200);
+  });
+
+  it('should fail sign up if email is blocked', async () => {
+    // set env vars
+    await await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ACCESS_CONTROL_ALLOW_LIST: '',
+      AUTH_ACCESS_CONTROL_BLOCK_LIST: 'joedoe@example.com',
+    });
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'joedoe@example.com', password: '123456' })
+      .expect(403);
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'joedoe2@example.com', password: '123456' })
+      .expect(200);
+
+    await request
+      .post('/signup/email-password')
+      .send({ email: 'joedoe@nhost.io', password: '123456' })
+      .expect(200);
   });
 
   it('should fail with weak password', async () => {
@@ -78,7 +144,8 @@ describe('email-password', () => {
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_HIBP_ENABLED: true,
-      AUTH_WHITELIST_ENABLED: false,
+      AUTH_ACCESS_CONTROL_ALLOW_LIST: '',
+      AUTH_ACCESS_CONTROL_BLOCK_LIST: '',
     });
 
     await request
@@ -92,7 +159,8 @@ describe('email-password', () => {
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_HIBP_ENABLED: false,
-      AUTH_WHITELIST_ENABLED: false,
+      AUTH_ACCESS_CONTROL_ALLOW_LIST: '',
+      AUTH_ACCESS_CONTROL_BLOCK_LIST: '',
     });
 
     await request
@@ -111,7 +179,6 @@ describe('email-password', () => {
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_HIBP_ENABLED: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
     });
 
@@ -130,11 +197,6 @@ describe('email-password', () => {
   });
 
   it('default role must be part of allowed roles', async () => {
-    // set env vars
-    await await request.post('/change-env').send({
-      AUTH_WHITELIST_ENABLED: false,
-    });
-
     const email = 'joedoe@example.com';
 
     await request
@@ -275,7 +337,6 @@ describe('email-password with profile table', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 
@@ -292,7 +353,6 @@ describe('email-password with profile table', () => {
   it('should fail to sign up user with extra profile data', async () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 
@@ -310,7 +370,6 @@ describe('email-password with profile table', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: 'incorrect',
     });
 
@@ -328,7 +387,6 @@ describe('email-password with profile table', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 
@@ -351,7 +409,6 @@ describe('email-password with profile table', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
     });
 

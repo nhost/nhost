@@ -165,7 +165,6 @@ export const applyMetadata = async (): Promise<void> => {
   await trackTable({ table: { schema: 'auth', name: 'roles' } });
   await trackTable({ table: { schema: 'auth', name: 'provider_requests' } });
   await trackTable({ table: { schema: 'auth', name: 'migrations' } });
-  await trackTable({ table: { schema: 'auth', name: 'whitelist' } });
 
   // set custom root fields + custom column names
   await setTableCustomization({
@@ -363,29 +362,6 @@ export const applyMetadata = async (): Promise<void> => {
       custom_column_names: {
         id: 'id',
         redirect_url: 'redirectUrl',
-      },
-    },
-  });
-  await setTableCustomization({
-    table: {
-      schema: 'auth',
-      name: 'whitelist',
-    },
-    configuration: {
-      custom_name: 'authWhitelist',
-      custom_root_fields: {
-        select: 'AuthWhitelists',
-        select_by_pk: 'AuthWhitelist',
-        select_aggregate: 'AuthWhitelistsAggregate',
-        insert: 'insertAuthWhitelists',
-        insert_one: 'insertAuthWhitelist',
-        update: 'updateAuthWhitelists',
-        update_by_pk: 'updateAuthWhitelist',
-        delete: 'deleteAuthWhitelists',
-        delete_by_pk: 'deleteAuthWhitelist',
-      },
-      custom_column_names: {
-        email: 'email',
       },
     },
   });

@@ -88,11 +88,11 @@ export const ENV = {
   get AUTH_DISABLE_NEW_USERS() {
     return castBooleanEnv('AUTH_DISABLE_NEW_USERS', false);
   },
-  get AUTH_WHITELIST_ENABLED() {
-    return castBooleanEnv('AUTH_WHITELIST_ENABLED', false);
+  get AUTH_ACCESS_CONTROL_ALLOW_LIST() {
+    return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOW_LIST', []);
   },
-  get AUTH_ALLOWED_EMAIL_DOMAINS() {
-    return castStringArrayEnv('AUTH_ALLOWED_EMAIL_DOMAINS');
+  get AUTH_ACCESS_CONTROL_BLOCK_LIST() {
+    return castStringArrayEnv('AUTH_ACCESS_CONTROL_BLOCK_LIST', []);
   },
   get AUTH_SIGNUP_PROFILE_FIELDS() {
     return castStringArrayEnv('AUTH_SIGNUP_PROFILE_FIELDS', []);

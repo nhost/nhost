@@ -193,7 +193,6 @@ describe('email-password', () => {
     await request.post('/change-env').send({
       DISABLE_NEW_USERS: false,
       VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
       REGISTRATION_PROFILE_FIELDS: '',
       ANONYMOUS_USERS_ENABLED: true,

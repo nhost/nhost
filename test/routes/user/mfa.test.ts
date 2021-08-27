@@ -28,7 +28,6 @@ describe('mfa totp', () => {
       AUTH_MFA_ENABLED: true,
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_WHITELIST_ENABLED: false,
     });
 
     const email = 'asdasd@asdasd.com';

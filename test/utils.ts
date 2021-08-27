@@ -63,7 +63,6 @@ export const registerAccount = async (
         REGISTRATION_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
         JWT_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
         AUTO_ACTIVATE_NEW_USERS: 'true',
-        WHITELIST_ENABLED: 'false',
         ADMIN_ONLY_REGISTRATION: 'false',
       },
       agent,

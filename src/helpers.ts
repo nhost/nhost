@@ -116,14 +116,6 @@ export const getGravatarUrl = (email?: string) => {
   }
 };
 
-export const isWhitelistedEmail = async (email: string) => {
-  const { AuthWhitelist } = await gqlSdk.isWhitelistedEmail({
-    email,
-  });
-
-  return !!AuthWhitelist;
-};
-
 // export function userToSessionUser(user: UserFieldsFragment): SessionUser {
 //   return {
 //     id: user.id,

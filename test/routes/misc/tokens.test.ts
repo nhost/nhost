@@ -67,7 +67,6 @@ describe('token', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: '',
       AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
@@ -89,7 +88,6 @@ describe('token', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: '',
       AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
       AUTH_USER_SESSION_VARIABLE_FIELDS: 'email',
@@ -130,7 +128,6 @@ describe('token', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_WHITELIST_ENABLED: false,
       AUTH_SIGNUP_PROFILE_FIELDS: 'companyId',
       AUTH_PROFILE_SESSION_VARIABLE_FIELDS: 'companyId',
       AUTH_USER_SESSION_VARIABLE_FIELDS: 'email',
