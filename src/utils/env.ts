@@ -62,6 +62,25 @@ export const ENV = {
     return castBooleanEnv('AUTH_SMTP_SECURE', false);
   },
 
+  // SMS
+  get AUTH_SMS_PROVIDER() {
+    return castStringEnv('AUTH_SMS_PROVIDER', '');
+  },
+
+  // TWILIO
+  get AUTH_TWILIO_ACCOUNT_SID() {
+    return castStringEnv('AUTH_TWILIO_ACCOUNT_SID', '');
+  },
+  get AUTH_TWILIO_AUTH_TOKEN() {
+    return castStringEnv('AUTH_TWILIO_AUTH_TOKEN', '');
+  },
+  get AUTH_TWILIO_MESSAGING_SERVICE_ID() {
+    return castStringEnv('AUTH_TWILIO_MESSAGING_SERVICE_ID', '');
+  },
+  get AUTH_TWILIO_FROM() {
+    return castStringEnv('AUTH_TWILIO_FROM', '');
+  },
+
   // GRAVATAR
   get AUTH_GRAVATAR_ENABLED() {
     return castBooleanEnv('AUTH_GRAVATAR_ENABLED', true);
