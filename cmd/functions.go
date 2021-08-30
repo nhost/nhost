@@ -58,7 +58,6 @@ var (
 	// vars to store server state during each runtime
 	nodeServerInstalled = false
 	npmDepInstalled     = false
-	expressPath         = filepath.Join(nhost.WORKING_DIR, "node_modules", "express")
 	buildDir            string
 )
 
@@ -218,11 +217,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if _, err := copy(f.Path, filepath.Join(tempDir, f.Base, filepath.Base(f.Path))); err != nil {
-			log.WithField("route", f.Route).Debug(err)
-			log.WithField("route", f.Route).Error("Failed to cache function file")
-			return
-		}
+		/*
+			if _, err := copy(f.Path, filepath.Join(tempDir, f.Base, f.File.Name())); err != nil {
+				log.WithField("route", f.Route).Debug(err)
+				log.WithField("route", f.Route).Error("Failed to cache function file")
+				return
+			}
+		*/
 
 		// save the function before serving it
 		functions = append(functions, f)
@@ -248,6 +249,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			Env:    env,
 			Args:   []string{nodeCLI, f.ServerConfig},
 			Stdout: os.Stdout,
+			Stderr: os.Stderr,
 		}
 
 		if err := cmd.Start(); err != nil {
@@ -415,7 +417,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		buildDir = nhost.WORKING_DIR
 		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
 			buildDir = nhost.API_DIR
-			expressPath = filepath.Join(nhost.API_DIR, "node_modules", "express")
 		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
 			log.Error("neither a local, nor a root package.json found")
 			return
@@ -468,7 +469,7 @@ func (function *Function) BuildNodePackage() error {
 	}
 
 	defer tempFile.Close()
-	function.Build = filepath.Join(tempDir, tempFile.Name())
+	function.Build = filepath.Join(tempDir, function.Base, tempFile.Name())
 
 	// build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
@@ -504,7 +505,7 @@ if (typeof requiredFile === "function") {
 
 app.all('%s', func);
 	
-app.listen(%d);`, expressPath, function.Build, function.Route, jsPort)
+app.listen(%d);`, filepath.Join(buildDir, "node_modules", "express"), function.Build, function.Route, jsPort)
 
 	return nil
 }
@@ -582,7 +583,8 @@ func router(w http.ResponseWriter, r *http.Request) {
 	var resp *http.Response
 
 	buf, _ := ioutil.ReadAll(r.Body)
-	req, _ := http.NewRequest(
+	req, _ := http.NewRequestWithContext(
+		r.Context(),
 		r.Method,
 		fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path),
 		bytes.NewBuffer(buf),
