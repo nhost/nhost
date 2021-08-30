@@ -224,7 +224,7 @@ func Config() (Configuration, error) {
 	}
 	response.Services["hasura"] = Service{
 		Image:   response.Services["hasura"].Image,
-		Version: fmt.Sprintf("%v.%s", response.Services["hasura"].Version, "cli-migrations-v2"),
+		Version: fmt.Sprintf("%v.%s", response.Services["hasura"].Version, "cli-migrations-v3"),
 		// Version:     response.Services["hasura"].Version,
 		AdminSecret: response.Services["hasura"].AdminSecret,
 		Port:        GetPort(9200, 9300),

@@ -684,9 +684,9 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	if pathExists(nhost.API_DIR) {
 		switch runtime.GOOS {
 		case "darwin", "windows":
-			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v", funcPort))
+			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/functions", port))
 		default:
-			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://127.0.0.1:%v", funcPort))
+			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://127.0.0.1:%v/functions", port))
 		}
 	}
 
@@ -726,7 +726,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 			Name: "always",
 		},
 		PortBindings: map[nat.Port][]nat.PortBinding{
-			nat.Port(funcPort):                        {{HostIP: "127.0.0.1", HostPort: funcPort}},
+			// nat.Port(funcPort):                        {{HostIP: "127.0.0.1", HostPort: funcPort}},
 			nat.Port(strconv.Itoa(hasuraConfig.Port)): {{HostIP: "127.0.0.1", HostPort: strconv.Itoa(hasuraConfig.Port)}},
 		},
 		Mounts: mountPoints,
@@ -737,7 +737,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		Env:   containerVariables,
 		ExposedPorts: nat.PortSet{
 			nat.Port(strconv.Itoa(hasuraConfig.Port)): struct{}{},
-			nat.Port(funcPort):                        struct{}{},
+			// nat.Port(funcPort):                        struct{}{},
 		},
 		// running following commands on launch were throwing errors,
 		// server is running and responding absolutely fine without these commands

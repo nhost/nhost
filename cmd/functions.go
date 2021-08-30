@@ -25,6 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -181,9 +182,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			} else {
 
 				// if file has been modified, clean the cache location
-				log.Debug("Removing temporary directory from: ", filepath.Join(tempDir, f.Base))
-				if err := os.Remove(filepath.Join(tempDir, f.Base)); err != nil {
-					log.Error("failed to remove temp directory: ", err)
+				log.Debug("Removing temporary directory from: ", filepath.Join(tempDir, item.Base))
+				if err := os.RemoveAll(filepath.Join(tempDir, item.Base)); err != nil {
+					if _, ok := err.(*os.PathError); ok {
+						log.Debug("failed to remove temp directory: ", err)
+					}
 				}
 
 				// delete the saved function from array
@@ -227,10 +230,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load .env.development
-	env, err := nhost.Env()
-	if err != nil {
-		log.WithField("environment", ".env.development").Debug(err)
-	}
+	env, _ := nhost.Env()
 
 	switch filepath.Ext(f.Path) {
 	case ".js", ".ts":
@@ -578,65 +578,75 @@ func (function *Function) Prepare() error {
 
 func router(w http.ResponseWriter, r *http.Request) {
 
-	//Leverage Go's HTTP Post function to make request
-	req, _ := http.NewRequestWithContext(
-		r.Context(),
+	var err error
+	var resp *http.Response
+
+	buf, _ := ioutil.ReadAll(r.Body)
+	req, _ := http.NewRequest(
 		r.Method,
-		fmt.Sprintf("http://localhost:%v"+r.URL.Path, jsPort),
-		r.Body,
+		fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path),
+		bytes.NewBuffer(buf),
 	)
 
 	req.Header = r.Header
 	q := r.URL.Query()
 	req.URL.RawQuery = q.Encode()
-	client := http.Client{}
+	client := &http.Client{
+		Transport: &http.Transport{},
+	}
 
 	for {
-
-		//Leverage Go's HTTP Post function to make request
-		resp, err := client.Do(req)
+		resp, err = client.Do(req)
 		if _, ok := err.(net.Error); ok {
 			time.Sleep(60 * time.Millisecond)
-			continue
+		} else {
+			break
 		}
+	}
+
+	if resp != nil {
+
 		// set the response headers
 		for key, value := range resp.Header {
-			if w.Header().Get(key) != "" {
+			if resp.Header.Get(key) != "" {
 				w.Header().Add(key, value[0])
 			}
 		}
 
-		// set response code to header
-		w.WriteHeader(resp.StatusCode)
-
 		// if request failed, write HTTP error to response
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			break
-		} else {
-
-			// remember to close the connection after reading the body
-			defer resp.Body.Close()
-
-			// Check CORS headers
-			cors := map[string]string{
-				"Access-Control-Allow-Origin":  "*",
-				"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
-			}
-
-			for key, value := range cors {
-				if w.Header().Get(key) == "" {
-					w.Header().Set(key, value)
-				}
-			}
-
-			// read the body
-			body, _ := ioutil.ReadAll(resp.Body)
-
-			// finally the write the output
-			fmt.Fprint(w, string(body))
-			break
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
 		}
+
+		// remember to close the connection after reading the body
+		defer resp.Body.Close()
+
+		// read the body
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// Check CORS headers
+		cors := map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
+		}
+
+		for key, value := range cors {
+			if resp.Header.Get(key) == "" {
+				w.Header().Set(key, value)
+			}
+		}
+
+		// set response code to header
+		if resp.StatusCode != http.StatusOK {
+			w.WriteHeader(resp.StatusCode)
+		}
+
+		fmt.Fprint(w, string(body))
 	}
 
 }
