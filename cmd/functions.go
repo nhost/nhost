@@ -168,21 +168,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	for index, item := range functions {
 
 		// check whether it's the same function file
-		if item.Path == f.Path {
+		if item.File == f.File {
 
 			// now compare modification time of function file
 			// with it's cached copy
-			if f.File.ModTime() == item.File.ModTime() {
+			if f.File.ModTime().Equal(item.File.ModTime()) {
 				log.WithField("route", f.Route).Debug("Found cached copy of function")
 				f = item
 				preBuilt = true
-				break
-
 			} else {
 
 				// if file has been modified, clean the cache location
-				log.Debug("Removing temporary directory from: ", filepath.Join(tempDir, item.Base))
-				if err := os.RemoveAll(filepath.Join(tempDir, item.Base)); err != nil {
+				log.Debug("Removing temporary directory from: ", filepath.Dir(item.Build))
+				if err := os.RemoveAll(filepath.Dir(item.Build)); err != nil {
 					if _, ok := err.(*os.PathError); ok {
 						log.Debug("failed to remove temp directory: ", err)
 					}
@@ -191,6 +189,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 				// delete the saved function from array
 				functions = remove(functions, index)
 			}
+
+			break
 		}
 	}
 
@@ -469,7 +469,7 @@ func (function *Function) BuildNodePackage() error {
 	}
 
 	defer tempFile.Close()
-	function.Build = filepath.Join(tempDir, function.Base, tempFile.Name())
+	function.Build = tempFile.Name()
 
 	// build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
@@ -484,7 +484,7 @@ func (function *Function) BuildNodePackage() error {
 	})
 
 	if len(result.Errors) > 0 {
-		log.WithField("file", filepath.Base(function.Path)).Error("Failed to run esbuild")
+		log.WithField("file", function.File.Name()).Error("Failed to run esbuild")
 		return errors.New(result.Errors[0].Text)
 	}
 
