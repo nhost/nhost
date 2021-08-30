@@ -25,11 +25,15 @@ package cmd
 
 import (
 	"context"
+	"path/filepath"
+	"runtime"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
+
+var repoSource string
 
 // upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
@@ -40,7 +44,7 @@ var upgradeCmd = &cobra.Command{
 utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		release, err := nhost.LatestRelease()
+		release, err := nhost.LatestRelease(repoSource)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch latest release")
@@ -56,7 +60,8 @@ utility and upgrade to it.`,
 			// initialize hashicorp go-getter client
 			client := &getter.Client{
 				Ctx: context.Background(),
-				//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
+				// Define the destination to where the directory will be stored.
+				// This will create the directory if it doesnt exist
 				Dst:  nhost.WORKING_DIR,
 				Dir:  false,
 				Src:  asset.BrowserDownloadURL,
@@ -68,11 +73,29 @@ utility and upgrade to it.`,
 				log.WithField("compnent", release.TagName).Debug(err)
 				log.WithField("compnent", release.TagName).Fatal("Failed to download release")
 			}
-
 			log.WithField("compnent", release.TagName).Info("New release downloaded in current working directory")
-			log.Infof("Use it with: %v./nhost -- help%v", Bold, Reset)
+
+			instructions := getInstallInstructions()
+			if instructions != "" {
+				log.Infoln("Install using: ", instructions)
+			}
+
+			log.Infof("Use it with: %vnhost --help%v", Bold, Reset)
 		}
 	},
+}
+
+func getInstallInstructions() string {
+
+	switch runtime.GOOS {
+	case "linux", "darwin":
+		response, _ := filepath.Abs(filepath.Join("usr", "local", "bin"))
+		return "sudo mv ./nhost " + response
+	case "windows":
+		return "Ren nhost-xxx.exe nhost"
+	default:
+		return ""
+	}
 }
 
 func init() {
@@ -82,7 +105,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// upgradeCmd.PersistentFlags().String("foo", "", "A help for foo")
+	upgradeCmd.PersistentFlags().StringVarP(&repoSource, "repository", "r", "", "Custom repository source")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

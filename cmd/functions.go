@@ -136,7 +136,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 					f.Path = path
 					f.Route = r.URL.Path
 					f.Base = base
-					f.Name = fileNameWithoutExtension(file)
 					f.File = item
 				}
 			} else {
@@ -144,7 +143,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 					f.Path = path
 					f.Route = r.URL.Path
 					f.Base = base
-					f.Name = fileNameWithoutExtension(file)
 					f.File = item
 				}
 			}
@@ -184,7 +182,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 				// if file has been modified, clean the cache location
 				log.Debug("Removing temporary directory from: ", filepath.Join(tempDir, f.Base))
-				if err := os.RemoveAll(filepath.Join(tempDir, f.Base)); err != nil {
+				if err := os.Remove(filepath.Join(tempDir, f.Base)); err != nil {
 					log.Error("failed to remove temp directory: ", err)
 				}
 
@@ -250,7 +248,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			Env:    env,
 			Args:   []string{nodeCLI, f.ServerConfig},
 			Stdout: os.Stdout,
-			Stderr: os.Stderr,
 		}
 
 		if err := cmd.Start(); err != nil {
@@ -582,7 +579,8 @@ func (function *Function) Prepare() error {
 func router(w http.ResponseWriter, r *http.Request) {
 
 	//Leverage Go's HTTP Post function to make request
-	req, _ := http.NewRequest(
+	req, _ := http.NewRequestWithContext(
+		r.Context(),
 		r.Method,
 		fmt.Sprintf("http://localhost:%v"+r.URL.Path, jsPort),
 		r.Body,
@@ -591,52 +589,56 @@ func router(w http.ResponseWriter, r *http.Request) {
 	req.Header = r.Header
 	q := r.URL.Query()
 	req.URL.RawQuery = q.Encode()
-	client := http.Client{
-		Transport: &http.Transport{
-			MaxIdleConnsPerHost: 20,
-		},
-		Timeout: 5 * time.Second,
-	}
+	client := http.Client{}
 
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if _, ok := err.(net.Error); ok {
-		time.Sleep(30 * time.Millisecond)
-		router(w, r)
-		return
-	}
+	for {
 
-	// set the response headers
-	for key, value := range resp.Header {
-		w.Header().Add(key, value[0])
-	}
+		//Leverage Go's HTTP Post function to make request
+		resp, err := client.Do(req)
+		if _, ok := err.(net.Error); ok {
+			time.Sleep(60 * time.Millisecond)
+			continue
+		}
+		// set the response headers
+		for key, value := range resp.Header {
+			if w.Header().Get(key) != "" {
+				w.Header().Add(key, value[0])
+			}
+		}
 
-	// set response code to header
-	w.WriteHeader(resp.StatusCode)
+		// set response code to header
+		w.WriteHeader(resp.StatusCode)
 
-	// if request failed, write HTTP error to response
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+		// if request failed, write HTTP error to response
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			break
+		} else {
 
-	// Check CORS headers
-	cors := map[string]string{
-		"Access-Control-Allow-Origin":  "*",
-		"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
-	}
+			// remember to close the connection after reading the body
+			defer resp.Body.Close()
 
-	for key, value := range cors {
-		if w.Header().Get(key) == "" {
-			w.Header().Add(key, value)
+			// Check CORS headers
+			cors := map[string]string{
+				"Access-Control-Allow-Origin":  "*",
+				"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
+			}
+
+			for key, value := range cors {
+				if w.Header().Get(key) == "" {
+					w.Header().Set(key, value)
+				}
+			}
+
+			// read the body
+			body, _ := ioutil.ReadAll(resp.Body)
+
+			// finally the write the output
+			fmt.Fprint(w, string(body))
+			break
 		}
 	}
 
-	// read the body
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	// finally the write the output
-	fmt.Fprint(w, string(body))
 }
 
 func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
@@ -644,7 +646,7 @@ func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 	log.WithField("runtime", "Go").Debug("Building function")
 
 	var p *plugin.Plugin
-	tempFile, err := ioutil.TempFile(tempDir, function.Name+".so")
+	tempFile, err := ioutil.TempFile(tempDir, fileNameWithoutExtension(function.File.Name())+".so")
 	if err != nil {
 		return p, err
 	}

@@ -36,6 +36,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -367,17 +368,9 @@ func prepareProxy(address, handle string) error {
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(origin)
-
 	http.HandleFunc(handle, func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = strings.TrimPrefix(r.URL.Path, handle)
-
-		// log the request
-		log.Debugln(
-			r.Method,
-			r.Proto,
-			r.Host,
-			r.URL,
-		)
+		r = r.WithContext(context.Background())
 
 		// route the req through proxy
 		proxy.ServeHTTP(w, r)
@@ -606,9 +599,9 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	}
 
 	// load .env.development
-	envVars, envVarErr := nhost.Env()
-	if envVarErr != nil {
-		log.WithField("environment", ".env.development").Debug(envVarErr)
+	envVars, err := nhost.Env()
+	if err != nil {
+		log.WithField("environment", ".env.development").Debug(err)
 	}
 
 	// create mount points if they doesn't exist
@@ -685,8 +678,16 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, jwtKey)),
 	}
-	if envVarErr == nil {
-		containerVariables = append(containerVariables, envVars...)
+	containerVariables = append(containerVariables, envVars...)
+
+	// append NHOST_FUNCTIONS env var
+	if pathExists(nhost.API_DIR) {
+		switch runtime.GOOS {
+		case "darwin", "windows":
+			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v", funcPort))
+		default:
+			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://127.0.0.1:%v", funcPort))
+		}
 	}
 
 	// create mount points if they doesn't exist
@@ -720,30 +721,40 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		}
 	}
 
+	hostConfig := &container.HostConfig{
+		RestartPolicy: container.RestartPolicy{
+			Name: "always",
+		},
+		PortBindings: map[nat.Port][]nat.PortBinding{
+			nat.Port(funcPort):                        {{HostIP: "127.0.0.1", HostPort: funcPort}},
+			nat.Port(strconv.Itoa(hasuraConfig.Port)): {{HostIP: "127.0.0.1", HostPort: strconv.Itoa(hasuraConfig.Port)}},
+		},
+		Mounts: mountPoints,
+	}
+
+	containerConfig := &container.Config{
+		Image: fmt.Sprintf(`%s:%v`, hasuraConfig.Image, hasuraConfig.Version),
+		Env:   containerVariables,
+		ExposedPorts: nat.PortSet{
+			nat.Port(strconv.Itoa(hasuraConfig.Port)): struct{}{},
+			nat.Port(funcPort):                        struct{}{},
+		},
+		// running following commands on launch were throwing errors,
+		// server is running and responding absolutely fine without these commands
+		//Cmd:          []string{"graphql-engine", "serve"},
+	}
+
+	// declare network mode = "host" in case of Linux
+	switch runtime.GOOS {
+	case "linux":
+		hostConfig.NetworkMode = "host"
+		containerConfig.Hostname = getContainerName("hasura")
+	}
+
 	hasuraContainer := map[string]interface{}{
-		"name": getContainerName("hasura"),
-		"config": &container.Config{
-			Image: fmt.Sprintf(`%s:%v`, hasuraConfig.Image, hasuraConfig.Version),
-			Env:   containerVariables,
-			ExposedPorts: nat.PortSet{
-				nat.Port(strconv.Itoa(hasuraConfig.Port)): struct{}{},
-			},
-
-			// running following commands on launch were throwing errors,
-			// server is running and responding absolutely fine without these commands
-			//Cmd:          []string{"graphql-engine", "serve"},
-		},
-
-		"host_config": &container.HostConfig{
-			RestartPolicy: container.RestartPolicy{
-				Name: "always",
-			},
-			PortBindings: map[nat.Port][]nat.PortBinding{
-				nat.Port(strconv.Itoa(hasuraConfig.Port)): {{HostIP: "127.0.0.1",
-					HostPort: strconv.Itoa(hasuraConfig.Port)}},
-			},
-			Mounts: mountPoints,
-		},
+		"name":        getContainerName("hasura"),
+		"config":      containerConfig,
+		"host_config": hostConfig,
 	}
 
 	// create mount points if they doesn't exit
@@ -808,7 +819,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		// set the defaults
 		"AUTH_LOG_LEVEL=info",
 		"AUTH_HOST=0.0.0.0",
-		"JWT_ALGORITHM=HS256",
 	}
 
 	// append social auth credentials and other env vars
@@ -890,7 +900,11 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	var smtpPort int
 	for key, value := range options.Auth["email"].(map[interface{}]interface{}) {
 		if value != "" {
-			containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+			if key.(string) == "smtp_host" {
+				containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), getContainerName(value.(string))))
+			} else {
+				containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+			}
 			if key.(string) == "smtp_port" {
 				smtpPort = value.(int)
 			}
@@ -974,7 +988,11 @@ func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string 
 					}
 				case interface{}, string:
 					if value != "" {
-						response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), value))
+						if key.(string) == "smtp_host" {
+							response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), getContainerName(value.(string))))
+						} else {
+							response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), value))
+						}
 					}
 				}
 			}

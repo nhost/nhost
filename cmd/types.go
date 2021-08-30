@@ -45,7 +45,6 @@ type (
 		Path         string
 		Handler      func(http.ResponseWriter, *http.Request)
 		Base         string
-		Name         string
 		Build        string
 		ServerConfig string
 		Plugin       *plugin.Plugin

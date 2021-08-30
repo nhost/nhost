@@ -2,7 +2,6 @@ package nhost
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -66,11 +65,16 @@ func Env() ([]string, error) {
 		return nil, err
 	}
 
-	if len(string(data)) > 0 {
-		return strings.Split(string(data), "\n"), nil
+	var response []string
+
+	split := strings.Split(string(data), "=")
+	for _, item := range split {
+		if strings.Contains(item, "=") {
+			response = append(response, item)
+		}
 	}
 
-	return nil, errors.New("no environment variables found")
+	return response, nil
 }
 
 func Exists() bool {
@@ -118,13 +122,17 @@ func (release *Release) Asset() Asset {
 }
 
 // fetches the details of latest binary release
-func LatestRelease() (Release, error) {
+func LatestRelease(source string) (Release, error) {
 
 	log.Debug("Fetching latest release")
 
 	var response Release
 
-	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", REPOSITORY))
+	if source == "" {
+		source = REPOSITORY
+	}
+
+	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", source))
 	if err != nil {
 		return response, err
 	}
@@ -244,7 +252,7 @@ func GenerateConfig(options Project) Configuration {
 	}
 
 	postgres := Service{
-		Version: 12,
+		Version: "12-v0.0.6",
 	}
 
 	if options.PostgresVersion != "" {
@@ -252,7 +260,7 @@ func GenerateConfig(options Project) Configuration {
 	}
 
 	return Configuration{
-		Version: 2,
+		Version: 3,
 		Services: map[string]Service{
 			"postgres": postgres,
 			"hasura":   hasura,

@@ -58,6 +58,7 @@ for the logged in user from Nhost console and present them.`,
 			{Key: "Authentication", Value: "auth"},
 			{Key: "Storage", Value: "storage"},
 			{Key: "Minio", Value: "minio"},
+			{Key: "Mailhog", Value: "mailhog"},
 		}
 
 		var options []types.Container

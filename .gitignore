@@ -4,6 +4,8 @@
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 
+req.http
+
 # Application Binaries
 bin/
 bin/*
