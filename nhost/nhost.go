@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
+	"net"
 	"net/http"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -55,14 +58,23 @@ func (config *Configuration) Save() error {
 	return nil
 }
 
-func Env() ([]byte, error) {
+func Env() ([]string, error) {
 
 	data, err := ioutil.ReadFile(ENV_FILE)
 	if err != nil {
 		return nil, err
 	}
 
-	return json.Marshal(data)
+	var response []string
+
+	split := strings.Split(string(data), "\n")
+	for _, item := range split {
+		if strings.Contains(item, "=") {
+			response = append(response, item)
+		}
+	}
+
+	return response, nil
 }
 
 func Exists() bool {
@@ -110,13 +122,17 @@ func (release *Release) Asset() Asset {
 }
 
 // fetches the details of latest binary release
-func LatestRelease() (Release, error) {
+func LatestRelease(source string) (Release, error) {
 
 	log.Debug("Fetching latest release")
 
 	var response Release
 
-	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", REPOSITORY))
+	if source == "" {
+		source = REPOSITORY
+	}
+
+	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", source))
 	if err != nil {
 		return response, err
 	}
@@ -177,6 +193,45 @@ func Config() (Configuration, error) {
 	}
 
 	err = yaml.Unmarshal(data, &response)
+
+	// add the additional services
+	response.Services["minio"] = Service{
+		Image:   "minio/minio",
+		Version: "latest",
+		Port:    GetPort(8200, 8500),
+	}
+	response.Services["mailhog"] = Service{
+		Image:   "mailhog/mailhog",
+		Version: "latest",
+		Port:    8025,
+	}
+	response.Services["auth"] = Service{
+		Image:   "nhost/hasura-auth",
+		Version: "sha-c68cd71",
+		Port:    GetPort(9000, 9100),
+	}
+	response.Services["storage"] = Service{
+		Image:   "nhost/hasura-storage",
+		Version: "sha-e7fc9c9",
+		Port:    GetPort(8501, 8999),
+	}
+
+	// set the defaults
+	response.Services["postgres"] = Service{
+		Image:   "nhost/postgres",
+		Version: response.Services["postgres"].Version,
+		Port:    GetPort(5000, 5999),
+	}
+	response.Services["hasura"] = Service{
+		Image:   response.Services["hasura"].Image,
+		Version: fmt.Sprintf("%v.%s", response.Services["hasura"].Version, "cli-migrations-v3"),
+		// Version:     response.Services["hasura"].Version,
+		AdminSecret: response.Services["hasura"].AdminSecret,
+		Port:        GetPort(9200, 9300),
+		// ConsolePort: GetPort(9301, 9400),
+	}
+
+	// return the response
 	return response, err
 }
 
@@ -186,11 +241,9 @@ func GenerateConfig(options Project) Configuration {
 	log.Debug("Generating project configuration")
 
 	hasura := Service{
-		Version:     "v1.3.3",
+		Version:     "v2.0.7",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
-		Port:        8080,
-		ConsolePort: 9695,
 	}
 
 	// check if a loaded remote project has been passed
@@ -198,71 +251,114 @@ func GenerateConfig(options Project) Configuration {
 		hasura.Version = options.HasuraGQEVersion
 	}
 
-	// use special Hasura image which automatically loads migrations and metadata
-	// hasura.Version = fmt.Sprintf("%v.cli-migrations-v2", hasura.Version)
-
 	postgres := Service{
-		Version:  12,
-		User:     "postgres",
-		Password: "postgres",
-		Port:     5432,
+		Version: "12-v0.0.6",
 	}
 
 	if options.PostgresVersion != "" {
 		postgres.Version = options.PostgresVersion
 	}
 
-	auth := Service{
-		Version: "v0.0.1",
-		Port:    9002,
-	}
-
-	authentication := map[string]interface{}{
-		"endpoints": map[string]interface{}{
-			"provider_success_redirect": "http://localhost:3000",
-			"provider_failure_redirect": "http://localhost:3000/login-fail",
-		},
-		"providers": generateProviders(),
-	}
-
-	authPayload, _ := yaml.Marshal(authentication)
-
-	var authYAML Authentication
-	yaml.Unmarshal(authPayload, &authYAML)
-
-	payload := Configuration{
-		Version: 2,
+	return Configuration{
+		Version: 3,
 		Services: map[string]Service{
 			"postgres": postgres,
 			"hasura":   hasura,
-			"auth":     auth,
-			"minio": {
-				Version: "latest",
-				Port:    9000,
-			},
-			"api": {
-				Port: 4000,
-			},
 		},
-		Environment: map[string]interface{}{
-			"env_file":           ENV_FILE,
-			"hasura_cli_version": "v2.0.0-alpha.11",
-		},
+		/*
+			Environment: map[string]interface{}{
+				// "env_file":           ENV_FILE,
+				"hasura_cli_version": "v2.0.0-alpha.11",
+			},
+		*/
 		MetadataDirectory: "metadata",
-		Authentication:    authYAML,
+		Storage: map[interface{}]interface{}{
+			"force_download_for_content_types": "text/html,application/javascript",
+		},
+		Auth: map[interface{}]interface{}{
+			"providers": generateProviders(),
+			"tokens":    generateTokenVars(),
+			"signin":    generateSignInVars(),
+			"signup":    generateSignUpVars(),
+			"email":     generateEmailVars(),
+			"gravatar":  generateGravatarVars(),
+		},
 	}
+}
 
-	return payload
+func generateSignInVars() map[string]interface{} {
+	return map[string]interface{}{
+		"passwordless_email_enabled":     true,
+		"passwordless_sms_enabled":       "",
+		"signin_email_verified_required": "",
+		"allowed_redirect_urls":          "",
+		"mfa_enabled":                    "",
+		"totp_issuer":                    "",
+	}
+}
+
+func generateSignUpVars() map[string]interface{} {
+	return map[string]interface{}{
+		"anonymous_users_enabled":    false,
+		"disable_new_users":          "",
+		"whitelist_enabled":          "",
+		"allowed_email_domains":      "",
+		"signup_profile_fields":      "",
+		"min_password_length":        "",
+		"hibp_enabled":               "",
+		"default_user_role":          "",
+		"default_allowed_user_roles": "",
+		"allowed_user_roles":         "",
+		"default_locale":             "",
+		"allowed_locales":            "",
+	}
+}
+
+func generateEmailVars() map[string]interface{} {
+	return map[string]interface{}{
+		"refresh_token_expires_in": "",
+		"emails_enabled":           true,
+		"smtp_host":                "mailhog",
+		"smtp_port":                1025,
+		"smtp_user":                "user",
+		"smtp_pass":                "password",
+		"smtp_sender":              "hasura-auth@example.com",
+		"smtp_method":              "",
+		"smtp_secure":              false,
+		"email_template_fetch_url": "",
+	}
+}
+
+func generateGravatarVars() map[string]interface{} {
+	return map[string]interface{}{
+		"gravatar_enabled": "",
+		"gravatar_default": "",
+		"gravatar_rating":  "",
+	}
+}
+
+func generateTokenVars() map[string]interface{} {
+	return map[string]interface{}{
+		"refresh_token_expires_in":        "",
+		"access_token_expires_in":         "",
+		"user_session_variable_fields":    "",
+		"profile_session_variable_fields": "",
+	}
 }
 
 func generateProviders() map[string]interface{} {
 
-	payload := map[string]interface{}{
+	return map[string]interface{}{
 		"google": map[string]interface{}{
 			"enabled":       false,
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "email,profile",
+		},
+		"strava": map[string]interface{}{
+			"enabled":       false,
+			"client_id":     "",
+			"client_secret": "",
 		},
 		"facebook": map[string]interface{}{
 			"enabled":       false,
@@ -322,8 +418,6 @@ func generateProviders() map[string]interface{} {
 			"client_secret": "",
 		},
 	}
-
-	return payload
 }
 
 // fetches saved credentials from auth file
@@ -355,4 +449,33 @@ func LoadCredentials() (Credentials, error) {
 	err = json.Unmarshal(byteValue, &credentials)
 
 	return credentials, err
+}
+
+func GetPort(low, hi int) int {
+
+	// generate a random port value
+	port := strconv.Itoa(low + rand.Intn(hi-low))
+
+	// validate wehther the port is available
+	if !portAvaiable(port) {
+		return GetPort(low, hi)
+	}
+
+	// return the value, if it's available
+	response, _ := strconv.Atoi(port)
+	return response
+}
+
+func portAvaiable(port string) bool {
+
+	log.WithField("port", port).Debug("Checking port for availability")
+
+	ln, err := net.Listen("tcp", ":"+port)
+
+	if err != nil {
+		return false
+	}
+
+	ln.Close()
+	return true
 }

@@ -45,7 +45,7 @@ var versionCmd = &cobra.Command{
 			"arch": runtime.GOARCH,
 		}).Info(Version)
 
-		release, err := nhost.LatestRelease()
+		release, err := nhost.LatestRelease(repoSource)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch latest release")

@@ -25,9 +25,13 @@ SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"io/fs"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -37,7 +41,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
-	"text/tabwriter"
+	"time"
 
 	"github.com/evanw/esbuild/pkg/api"
 	"github.com/mrinalwahal/cli/nhost"
@@ -45,13 +49,22 @@ import (
 )
 
 var (
-	jsPort           = "9296"
-	tempDir, _       = ioutil.TempDir("", nhost.PROJECT+"_functions_runtime")
-	nodeServerConfig = filepath.Join(tempDir, "server.js")
-	port             string
-	functions        []Function
-	nodeServerCode   string
+	jsPort         = nhost.GetPort(9401, 9500)
+	tempDir, _     = ioutil.TempDir("", "")
+	funcPort       string
+	functions      []Function
+	nodeServerCode string
+
+	// vars to store server state during each runtime
+	nodeServerInstalled = false
+	npmDepInstalled     = false
+	buildDir            string
 )
+
+type GoPlugin struct {
+	Data   []byte
+	Plugin *plugin.Plugin
+}
 
 // uninstallCmd removed Nhost CLI from system
 var functionsCmd = &cobra.Command{
@@ -72,7 +85,8 @@ var functionsCmd = &cobra.Command{
 		}()
 
 		// being the execution
-		serve(cmd, args)
+		args = append(args, "inform")
+		ServeFuncs(cmd, args)
 		removeTemp()
 
 		// wait for Ctrl+C
@@ -81,229 +95,382 @@ var functionsCmd = &cobra.Command{
 	},
 }
 
-// uninstallCmd removed Nhost CLI from system
-var routesCmd = &cobra.Command{
-	Use:   "routes",
-	Short: "Generate routes for Nhost functions",
-	Long: `Quick generate and validate routes for your Nhost functions
-based on your file tree.`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-		if !pathExists(nhost.API_DIR) {
-			log.Fatal("Functions directory not found")
-		}
-
-		// run recursive function to generate routes
-		if err := generateRoutes(nhost.API_DIR); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to generate HTTP routes")
-		}
-
-		// print the output
-		printRoutes(functions)
-
-		if countDuplicates(functions) > 0 {
-			log.Error("Duplicate routes detected")
-		}
-	},
-}
-
-func printRoutes(list []Function) {
-	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-	fmt.Fprintf(w, "Route\t\t%s%s/%sfile\n", Gray, filepath.Base(nhost.API_DIR), Reset)
-	fmt.Fprintln(w, "-----\t\t-----")
-	for _, item := range list {
-		fmt.Fprintf(w, "%v\t\t%v", item.Route, filepath.Join(item.Base, filepath.Base(item.File)))
-		fmt.Fprintln(w)
-	}
-	w.Flush()
-}
-
-func countDuplicates(dupArr []Function) int {
-	dupcount := 0
-	for i := 0; i < len(dupArr); i++ {
-		for j := i + 1; j < len(dupArr); j++ {
-			if dupArr[i].Route == dupArr[j].Route {
-				dupcount++
-				break
-			}
-		}
-	}
-	return dupcount
-}
-
 func removeTemp() {
 	log.Debug("Removing temporary directory from: ", tempDir)
 	os.RemoveAll(tempDir)
 	os.Exit(0)
 }
 
-func serve(cmd *cobra.Command, args []string) {
+func handler(w http.ResponseWriter, r *http.Request) {
 
-	if !pathExists(nhost.API_DIR) {
-		log.Fatal("Functions directory not found")
-	}
-
-	// initialize NodeJS server config
-	nodeServerCode = fmt.Sprintf(`const express = require('%s/express');
-const port = %s;
-const app = express();`, filepath.Join(nhost.API_DIR, "node_modules"), jsPort)
-
-	// run recursive function to generate routes
-	if err := generateRoutes(nhost.API_DIR); err != nil {
-		log.Debug(err)
-		log.Error("Failed to generate HTTP routes")
-		return
-	}
-
-	// check for duplicate routes
-	if countDuplicates(functions) > 0 {
-		log.Error("Duplicate routes detected")
-		printRoutes(functions)
-		return
-	}
-
-	// prepare the generated routes
-	for _, item := range functions {
-		if err := item.Prepare(); err != nil {
-			log.WithField("route", item.Route).Debug(err)
-			log.WithField("route", item.Route).Error("Failed to prepare the HTTP route")
-			return
-		}
-	}
-
-	// complete NodeJS server configuration
-	nodeServerCode += "\napp.listen(port);"
-
-	// save the nodeJS server config
-	f, err := os.Create(nodeServerConfig)
-	if err != nil {
-		log.WithField("runtime", "NodeJS").Debug(err)
-		log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
-		return
-	}
-
-	defer f.Close()
-
-	if _, err := f.Write([]byte(nodeServerCode)); err != nil {
-		log.WithField("runtime", "NodeJS").Debug(err)
-		log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
-		return
-	}
-
-	f.Sync()
-
-	// start the NodeJS server
-	nodeCLI, err := exec.LookPath("node")
-	if err != nil {
-		log.WithField("runtime", "NodeJS").Debug(err)
-		log.WithField("runtime", "NodeJS").Error("Runtime not installed")
-		return
-	}
-
-	execute := exec.Cmd{
-		Path: nodeCLI,
-		Args: []string{nodeCLI, nodeServerConfig},
-	}
-
-	go func() {
-		output, err := execute.CombinedOutput()
-		if err != nil {
-			log.WithField("runtime", "NodeJS").Debug(string(output))
-			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
-			removeTemp()
-		}
-	}()
-
-	log.Info("Nhost functions serving at: http://localhost:", port)
-	if err := http.ListenAndServe(":"+port, nil); err != nil {
-		log.WithField("component", "server").Debug(err)
-		log.WithField("component", "server").Error("Failed to serve the functions")
-		return
-	}
-}
-
-func generateRoutes(path string) error {
-
-	// initialize the base directory
-	base := strings.TrimPrefix(path, nhost.API_DIR)
-
-	files, err := os.ReadDir(path)
-	if err != nil {
-		return err
-	}
+	var f Function
 
 	filesToAvoid := []string{
 		"node_modules",
 		"package.json",
 		"package-lock.json",
 		"yarn.lock",
+		"go.mod",
+		"go.sum",
 	}
 
-	for _, item := range files {
+	getRoute := func(path string, item fs.FileInfo, err error) error {
 
-		// ignore the files not required
-		// as well as the files which start with a "."
-		// for example: .env should be ignored
-		if !contains(filesToAvoid, item.Name()) && fileNameWithoutExtension(item.Name()) != "" {
+		if len(f.Path) > 0 || item.IsDir() {
+			return nil
+		}
 
-			itemPath := filepath.Join(nhost.API_DIR, base, item.Name())
+		// initialize the base directory
+		base, file := filepath.Split(strings.TrimPrefix(path, nhost.API_DIR))
+		base = filepath.Clean(base)
 
-			// generate route
-			route := strings.Join([]string{base, fileNameWithoutExtension(item.Name())}, "/")
-			if fileNameWithoutExtension(item.Name()) == "index" {
-				if filepath.Clean(base) == "." {
-					route = "/"
-				} else {
-					route = filepath.Clean(base)
+		for _, itemToAvoid := range filesToAvoid {
+			if strings.Contains(path, itemToAvoid) {
+				return nil
+			}
+		}
+
+		if fileNameWithoutExtension(item.Name()) != "" {
+			if r.URL.Path == base {
+				if fileNameWithoutExtension(file) == "index" {
+					f.Path = path
+					f.Route = r.URL.Path
+					f.Base = base
+					f.File = item
+				}
+			} else {
+				if filepath.Join(base, fileNameWithoutExtension(file)) == r.URL.Path {
+					f.Path = path
+					f.Route = r.URL.Path
+					f.Base = base
+					f.File = item
 				}
 			}
+		}
 
-			// if the item is a directory,
-			// recursively initiate the function again
-			if item.IsDir() {
-				if err := generateRoutes(itemPath); err != nil {
-					return err
+		return nil
+	}
+
+	if err := filepath.Walk(nhost.API_DIR, getRoute); err != nil {
+		log.WithField("component", "server").Debug(err)
+		log.WithField("component", "server").Error("No function found on this route")
+	}
+
+	// If no function file has been found,
+	// then return 404 error
+	if len(f.Path) == 0 {
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
+
+	// Validate whether the function has been built before
+	preBuilt := false
+	for index, item := range functions {
+
+		// check whether it's the same function file
+		if item.Path == f.Path {
+
+			// now compare modification time of function file
+			// with it's cached copy
+			if f.File.ModTime().Equal(item.File.ModTime()) {
+
+				log.WithField("route", f.Route).Debug("Found cached copy of function")
+				f = item
+				preBuilt = true
+
+			} else {
+
+				// if file has been modified, clean the cache location
+				log.Debug("Removing temporary directory from: ", filepath.Dir(item.Build))
+				if err := os.RemoveAll(filepath.Dir(item.Build)); err != nil {
+					if _, ok := err.(*os.PathError); ok {
+						log.Debug("failed to remove temp directory: ", err)
+					}
 				}
-				continue
+
+				// delete the saved function from array
+				functions = remove(functions, index)
 			}
 
-			// since it's not a directory
-			// initialize it's function
-			f := Function{
-				Route: route,
-				File:  itemPath,
-				Base:  base,
-			}
-
-			// attach the required handler subject to file extension
-			switch filepath.Ext(item.Name()) {
-			case ".js", ".ts":
-				f.Handler = jsHandler
-			}
-
-			// add the new function
-			functions = append(functions, f)
+			break
 		}
 	}
+
+	// inform the user of build the request
+	log.Debugln(
+		r.Method,
+		r.Proto,
+		r.URL,
+		fmt.Sprintf("Serving: %s", filepath.Join(f.Base, f.File.Name())),
+	)
+
+	if !preBuilt {
+
+		// cache the function file to temporary directory
+		if err := os.MkdirAll(filepath.Join(tempDir, f.Base), os.ModePerm); err != nil {
+			log.WithField("route", f.Route).Debug(err)
+			log.WithField("route", f.Route).Error("Failed to prepare location to cache function file")
+			return
+		}
+
+		if err := f.Prepare(); err != nil {
+			log.WithField("route", f.Route).Debug(err)
+			log.WithField("route", f.Route).Error("Failed to build the function")
+			return
+		}
+
+		// save the function before serving it
+		functions = append(functions, f)
+
+	}
+
+	// load .env.development
+	env, _ := nhost.Env()
+
+	switch filepath.Ext(f.Path) {
+	case ".js", ".ts":
+
+		// start the NodeJS server
+		nodeCLI, err := exec.LookPath("node")
+		if err != nil {
+			log.WithField("runtime", "NodeJS").Debug(err)
+			log.WithField("runtime", "NodeJS").Error("Runtime not installed")
+			return
+		}
+
+		cmd := exec.Cmd{
+			Path:   nodeCLI,
+			Env:    env,
+			Args:   []string{nodeCLI, f.ServerConfig},
+			Stdout: os.Stdout,
+			Stderr: os.Stderr,
+		}
+
+		if err := cmd.Start(); err != nil {
+			log.WithField("runtime", "NodeJS").Debug(err)
+			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
+		}
+
+		// serve
+		f.Handler(w, r)
+
+		if err := cmd.Process.Kill(); err != nil {
+			log.Error("failed to kill process: ", err)
+		}
+
+	case ".go":
+
+		// serve
+		f.Handler(w, r)
+	}
+}
+
+func copy(src, dst string) (int64, error) {
+	sourceFileStat, err := os.Stat(src)
+	if err != nil {
+		return 0, err
+	}
+
+	if !sourceFileStat.Mode().IsRegular() {
+		return 0, fmt.Errorf("%s is not a regular file", src)
+	}
+
+	source, err := os.Open(src)
+	if err != nil {
+		return 0, err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(dst)
+	if err != nil {
+		return 0, err
+	}
+	defer destination.Close()
+	nBytes, err := io.Copy(destination, source)
+	return nBytes, err
+}
+
+func validateExpress() error {
+
+	// if node modules already exist,
+	// then return it's path
+	// Install express module
+	nodeCLI, err := exec.LookPath("npm")
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "list", "-g", "express"},
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+
+		// check if express is available in output
+		if !strings.Contains(string(output), "express") {
+			if err := installExpress(); err != nil {
+				return err
+			}
+		} else {
+			return errors.New(string(output))
+		}
+	}
+
+	// link project with express global installation
+	cmd = exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "link", "express"},
+		Dir:  buildDir,
+	}
+
+	return cmd.Run()
+}
+
+func installExpress() error {
+
+	// break if dependency have already been confirmed
+	if nodeServerInstalled {
+		return nil
+	}
+
+	log.Info("Installing build dependencies on your first run")
+
+	nodeCLI, err := exec.LookPath("npm")
+	if err != nil {
+		return err
+	}
+
+	// Install express module
+	cmd := exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "install", "-g", "express"},
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.New(string(output))
+	}
+
+	nodeServerInstalled = true
+
 	return nil
 }
 
-func (function *Function) BuildNodePackage(data string) error {
+func installNPMDependencies() error {
 
-	// initialize path for temporary esbuild output
-	tempFile, err := ioutil.TempFile(tempDir, "*.js")
+	log.Info("Installing dependencies of your functions")
+
+	nodeCLI, err := exec.LookPath("npm")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	defer tempFile.Close()
-	location := filepath.Join(tempDir, tempFile.Name())
+	// Install express module
+	cmd := exec.Cmd{
+		Path: nodeCLI,
+		Args: []string{nodeCLI, "install"},
+		Dir:  buildDir,
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return errors.New(string(output))
+	}
+
+	// update the flag
+	npmDepInstalled = true
+
+	return nil
+}
+
+func ServeFuncs(cmd *cobra.Command, args []string) {
+
+	if !pathExists(nhost.API_DIR) {
+		log.Fatal("Functions directory not found")
+	}
+
+	prepareNode := false
+
+	// traverse through the directory
+	// and check if there's even a single JS/TS func
+	files, _ := os.ReadDir(nhost.API_DIR)
+	for _, item := range files {
+		if filepath.Ext(item.Name()) == ".js" || filepath.Ext(item.Name()) == ".ts" {
+			prepareNode = true
+			break
+		}
+	}
+
+	// if npm dependencies haven't been confirmed,
+	// just install them on first run
+	if prepareNode {
+
+		// detect package.json inside functions dir
+		buildDir = nhost.WORKING_DIR
+		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
+			buildDir = nhost.API_DIR
+		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
+			log.Error("neither a local, nor a root package.json found")
+			return
+		}
+
+		/*
+			if err := installNPMDependencies(); err != nil {
+				log.WithField("component", "server").Debug(err)
+				if strings.Contains(err.Error(), "permission denied") {
+					log.WithField("component", "server").Error("Restart server with sudo/root permission")
+				} else {
+					log.WithField("component", "server").Error("Dependencies required by your functions could not be installed")
+				}
+				removeTemp()
+			}
+
+			// if express has been validated before,
+			// skip validation to save execution time
+			if err := validateExpress(); err != nil {
+				log.WithField("component", "server").Debug(err)
+				if strings.Contains(err.Error(), "permission denied") {
+					log.WithField("component", "server").Error("Restart server with sudo/root permission")
+				} else {
+					log.WithField("component", "server").Error("Required build dependencies could not be installed")
+				}
+				removeTemp()
+			}
+		*/
+	}
+
+	http.HandleFunc("/", handler)
+	if contains(args, "inform") {
+		log.Info("Nhost functions serving at: http://localhost:", funcPort)
+	}
+	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
+		log.WithField("component", "server").Debug(err)
+		log.WithField("component", "server").Error("Failed to serve the functions")
+		return
+	}
+}
+
+func (function *Function) BuildNodePackage() error {
+
+	log.WithField("runtime", "NodeJS").Debug("Building function")
+
+	// initialize path for temporary esbuild output
+	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
+	if err != nil {
+		return err
+	}
+
+	defer file.Close()
+
+	function.Build = file.Name()
 
 	// build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
-		EntryPoints:      []string{function.File},
-		Outfile:          location,
+		AbsWorkingDir:    buildDir,
+		EntryPoints:      []string{function.Path},
+		Outfile:          function.Build,
 		Bundle:           true,
 		Write:            true,
 		Platform:         api.PlatformNode,
@@ -312,189 +479,234 @@ func (function *Function) BuildNodePackage(data string) error {
 	})
 
 	if len(result.Errors) > 0 {
-		log.WithField("file", filepath.Base(function.File)).Error("Failed to run esbuild")
+		log.WithField("file", function.File.Name()).Error("Failed to run esbuild")
 		return errors.New(result.Errors[0].Text)
 	}
 
 	// add function to NodeJS server config
-	nodeServerCode += fmt.Sprintf(data, function.Route, location)
+	nodeServerCode = fmt.Sprintf(`
+const express = require('%s');
+const app = express();
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.disable('x-powered-by');
+
+let func;
+const requiredFile = require('%s')
+
+if (typeof requiredFile === "function") {
+	func = requiredFile;
+} else if (typeof requiredFile.default === "function") {
+	func = requiredFile.default;
+} else {
+	return;
+}
+
+app.all('%s', func);
+	
+app.listen(%d);`, filepath.Join(buildDir, "node_modules", "express"), function.Build, function.Route, jsPort)
+
 	return nil
 }
 
 func (function *Function) Prepare() error {
-	switch filepath.Ext(function.File) {
-	case ".js":
-		if err := function.BuildNodePackage("\napp.all('%s', require('%s'));"); err != nil {
+
+	switch filepath.Ext(function.Path) {
+
+	case ".js", ".ts":
+
+		// build the package
+		if err := function.BuildNodePackage(); err != nil {
 			return err
 		}
-	case ".ts":
-		if err := function.BuildNodePackage("\napp.all('%s', require('%s').default);"); err != nil {
+
+		// save the nodeJS server config
+		// file, err := os.Create(function.ServerConfig)
+		file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
+		if err != nil {
+			log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
 			return err
 		}
+
+		// save the server file location
+		function.ServerConfig = file.Name()
+
+		defer file.Close()
+
+		if _, err := file.Write([]byte(nodeServerCode)); err != nil {
+			log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
+			return err
+		}
+
+		file.Sync()
+
+		// save the handler
+		function.Handler = router
+
+		return nil
+
 	case ".go":
-		pluginPath, err := function.BuildGoPlugin()
+
+		// Build the plugin
+		p, err := function.BuildGoPlugin()
 		if err != nil {
-			log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.File)))
+			log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.Path)))
 			return err
 		}
 
-		// Glob - Gets the plugin to be loaded
-		plugins, err := filepath.Glob(pluginPath)
-		if err != nil {
-			log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to search for plugin")
-			return err
-		}
-
-		if len(plugins) == 0 {
-			return errors.New("Failed to search for plugin: " + filepath.Base(pluginPath))
-		}
-
-		// Open - Loads the plugin
-		p, err := plugin.Open(plugins[0])
-		if err != nil {
-			log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to load the plugin")
-			return err
-		}
+		// Save the plugin
+		function.Plugin = p
 
 		// Lookup - Searches for a symbol name in the plugin
-		symbol, err := p.Lookup("Handler")
+		symbol, err := function.Plugin.Lookup("Handler")
 		if err != nil {
-			log.WithField("plugin", filepath.Base(pluginPath)).Error("Failed to lookup handler")
+			log.WithField("plugin", function.Route).Error("Failed to lookup handler")
 			return err
 		}
 
 		// symbol - Checks the function signature
 		handler, ok := symbol.(func(http.ResponseWriter, *http.Request))
 		if !ok {
-			log.WithField("plugin", filepath.Base(pluginPath)).Error("Handler function is broken")
-			return err
+			return errors.New("handler function is broken")
 		}
 
 		// update the handler for this function
 		function.Handler = handler
 	}
 
-	// add function handler to `dev` environment server
-	http.HandleFunc(function.Route, function.Handler)
 	return nil
 }
 
-/*
-// Route wraps echo server into Lambda Handler
-func Route(handler func(http.ResponseWriter, *http.Request)) func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return func(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-		body := strings.NewReader(request.Body)
-		req := httptest.NewRequest(request.HTTPMethod, request.Path, body)
-		for k, v := range request.Headers {
-			req.Header.Add(k, v)
-		}
+func router(w http.ResponseWriter, r *http.Request) {
 
-		q := req.URL.Query()
-		for k, v := range request.QueryStringParameters {
-			q.Add(k, v)
-		}
-		req.URL.RawQuery = q.Encode()
+	var err error
+	var resp *http.Response
 
-		rec := httptest.NewRecorder()
-		handler(rec, req)
-
-		res := rec.Result()
-		responseBody, err := ioutil.ReadAll(res.Body)
-
-		responseHeaders := make(map[string]string)
-		for key, value := range res.Header {
-			responseHeaders[key] = ""
-			if len(value) > 0 {
-				responseHeaders[key] = value[0]
-			}
-		}
-		if err != nil {
-			return events.APIGatewayProxyResponse{
-				Body:       err.Error(),
-				Headers:    responseHeaders,
-				StatusCode: http.StatusInternalServerError,
-			}, err
-		}
-
-		return events.APIGatewayProxyResponse{
-			Body:       string(responseBody),
-			Headers:    responseHeaders,
-			StatusCode: res.StatusCode,
-		}, nil
-	}
-}
-*/
-
-func jsHandler(w http.ResponseWriter, r *http.Request) {
-
-	//Leverage Go's HTTP Post function to make request
-	req, _ := http.NewRequest(
+	buf, _ := ioutil.ReadAll(r.Body)
+	req, _ := http.NewRequestWithContext(
+		r.Context(),
 		r.Method,
-		"http://localhost:"+jsPort+r.URL.Path,
-		r.Body,
+		fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path),
+		bytes.NewBuffer(buf),
 	)
 
 	req.Header = r.Header
 	q := r.URL.Query()
 	req.URL.RawQuery = q.Encode()
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
+	client := &http.Client{
+		Transport: &http.Transport{},
 	}
 
-	body, _ := ioutil.ReadAll(resp.Body)
-	fmt.Fprint(w, string(body))
+	for {
+		resp, err = client.Do(req)
+		if _, ok := err.(net.Error); ok {
+			time.Sleep(60 * time.Millisecond)
+		} else {
+			break
+		}
+	}
+
+	if resp != nil {
+
+		// set the response headers
+		for key, value := range resp.Header {
+			if resp.Header.Get(key) != "" {
+				w.Header().Add(key, value[0])
+			}
+		}
+
+		// if request failed, write HTTP error to response
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+			return
+		}
+
+		// remember to close the connection after reading the body
+		defer resp.Body.Close()
+
+		// read the body
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+
+		// Check CORS headers
+		cors := map[string]string{
+			"Access-Control-Allow-Origin":  "*",
+			"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
+		}
+
+		for key, value := range cors {
+			if resp.Header.Get(key) == "" {
+				w.Header().Set(key, value)
+			}
+		}
+
+		// set response code to header
+		if resp.StatusCode != http.StatusOK {
+			w.WriteHeader(resp.StatusCode)
+		}
+
+		fmt.Fprint(w, string(body))
+	}
+
 }
 
-func (function *Function) BuildGoPlugin() (string, error) {
+func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 
-	tempFile, err := ioutil.TempFile(tempDir, "*.so")
+	log.WithField("runtime", "Go").Debug("Building function")
+
+	var p *plugin.Plugin
+	tempFile, err := ioutil.TempFile(tempDir, fileNameWithoutExtension(function.File.Name())+".so")
 	if err != nil {
-		log.Fatal(err)
+		return p, err
 	}
 
 	defer tempFile.Close()
 
-	pluginPath := filepath.Join(tempDir, tempFile.Name())
+	function.Build = filepath.Join(tempDir, tempFile.Name())
 
-	log.WithField("plugin", filepath.Base(function.File)).Debug("Creating plugin at: ", pluginPath)
+	log.WithField("plugin", filepath.Base(function.Path)).Debug("Creating plugin at: ", function.Build)
 
 	CLI, err := exec.LookPath("go")
 	if err != nil {
-		return "", err
+		return p, err
 	}
 
+	// "-ldflags", fmt.Sprintf(`"-pluginpath=%v"`, time.Now().Unix()),
 	execute := exec.Cmd{
 		Path: CLI,
-		Args: []string{CLI, "build", "-buildmode=plugin", "-o", pluginPath, function.File},
+		Args: []string{CLI, "build", "-buildmode=plugin", "-o", function.Build, function.Path},
 		// Dir:  nhost.API_DIR,
 	}
 
 	if err := execute.Run(); err != nil {
-		return "", err
+		return p, err
 	}
 
-	return pluginPath, nil
-
+	// Open - Loads the plugin
+	return plugin.Open(function.Build)
 }
 
 func fileNameWithoutExtension(fileName string) string {
 	return strings.TrimSuffix(fileName, filepath.Ext(fileName))
 }
 
+func remove(s []Function, i int) []Function {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
+}
+
 func init() {
 	rootCmd.AddCommand(functionsCmd)
-	functionsCmd.AddCommand(routesCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	functionsCmd.Flags().StringVarP(&port, "port", "p", "8080", "Custom port to serve functions on")
+	functionsCmd.Flags().StringVarP(&funcPort, "port", "p", "7777", "Custom port to serve functions on")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

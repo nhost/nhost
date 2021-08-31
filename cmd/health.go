@@ -18,6 +18,7 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -49,52 +50,6 @@ respective containers and service-exclusive health endpoints.`,
 			log.Fatal("Failed to read Nhost config")
 		}
 
-		postgresConfig := options.Services["postgres"]
-		hasuraConfig := options.Services["hasura"]
-		authConfig := options.Services["auth"]
-		minioConfig := options.Services["minio"]
-		// apiConfig := options.Services["api"]
-
-		// initialize all Nhost service structures
-		// and their respective service specific health check
-		// commands and endpoints
-		services := []Container{
-			{
-				Name: getContainerName("postgres"),
-				Command: []string{
-					"pg_isready",
-					"-h",
-					"localhost",
-					"-p",
-					fmt.Sprintf("%v", postgresConfig.Port),
-					"-U",
-					fmt.Sprintf("%v", postgresConfig.User),
-				},
-			},
-			{
-				Name:                getContainerName("auth"),
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", authConfig.Port),
-			},
-			{
-				Name:                getContainerName("hasura"),
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hasuraConfig.Port),
-			},
-			{
-				Name:                getContainerName("minio"),
-				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig.Port),
-			},
-		}
-
-		/*
-			// Add API container if it's activated in config
-			if pathExists(nhost.API_DIR) {
-				services = append(services, Container{
-					Name:                getContainerName("api"),
-					HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", apiConfig.Port),
-				})
-			}
-		*/
-
 		// connect to docker client
 		ctx := context.Background()
 		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
@@ -111,119 +66,161 @@ respective containers and service-exclusive health endpoints.`,
 			log.Fatal(err)
 		}
 
-		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, nhost.PROJECT)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to fetch running containers")
-		}
-
-		var targets []Container
-
-		if service != "" {
-			for _, item := range services {
-				if service == item.Name {
-					for _, container := range containers {
-						if strings.Contains(container.Names[0], item.Name) {
-							targets = append(targets, item)
-						}
-					}
-				}
-			}
-
-			if len(targets) == 0 {
-				log.WithField("service", service).Fatal("No such running service found")
-			}
-		} else {
-			targets = services
-		}
-
-		var wg sync.WaitGroup
-
-		// flag to ensure all checks have cleared
-		ok := true
-
-		for _, service := range targets {
-			wg.Add(1)
-
-			containerValidated := false
-			serviceValidated := false
-			for _, container := range containers {
-
-				// first check whether the service container is at least active and responding
-				go func(container types.Container, service Container, containerValidated *bool, serviceValidated *bool, wg *sync.WaitGroup) {
-					if strings.Contains(container.Names[0], service.Name) {
-						/*
-							log.WithFields(logrus.Fields{
-								"container": service.Name,
-								"type":      "container",
-							}).Info("Active and responding")
-						*/
-
-						// validate their corresponding health check endpoints
-						if service.HealthCheckEndpoint != "" {
-
-							valid := checkServiceHealth(service.Name, service.HealthCheckEndpoint)
-							if valid {
-								log.WithFields(logrus.Fields{
-									"container": service.Name,
-									"type":      "service",
-								}).Info("Health check successful")
-							} else {
-								log.WithFields(logrus.Fields{
-									"container": service.Name,
-									"type":      "service",
-								}).Error("Health check timed out")
-								ok = false
-							}
-							wg.Done()
-
-						} else if len(service.Command) > 0 {
-
-							// create the command execution skeleton
-							response, err := Exec(docker, ctx, container.ID, service.Command)
-							if err != nil {
-								log.Debug(err)
-								log.WithFields(logrus.Fields{
-									"container": service.Name,
-									"type":      "service",
-								}).Error("Health check unsuccessful")
-								wg.Done()
-								ok = false
-							}
-
-							// execute the command
-							// and inspect the health check response
-							result, err := InspectExecResp(docker, ctx, response.ID)
-							if err != nil {
-								log.Debug(err)
-								log.WithFields(logrus.Fields{
-									"container": service.Name,
-									"type":      "service",
-								}).Error("Health check unsuccessful")
-								wg.Done()
-								ok = false
-							}
-							if valid := strings.Contains(result.StdOut, "accepting connections"); valid {
-								log.WithFields(logrus.Fields{
-									"container": service.Name,
-									"type":      "service",
-								}).Info("Health check successful")
-							}
-
-							wg.Done()
-						}
-					}
-				}(container, service, &containerValidated, &serviceValidated, &wg)
-			}
-		}
-
-		wg.Wait()
-
-		if !ok && contains(args, "exit") {
+		// run diagnosis
+		if err := Diagnose(options, docker, ctx); err != nil {
 			downCmd.Run(cmd, args)
 		}
 	},
+}
+
+func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Context) error {
+
+	postgresConfig := options.Services["postgres"]
+	hasuraConfig := options.Services["hasura"]
+	authConfig := options.Services["auth"]
+	// minioConfig := options.Services["minio"]
+	storageConfig := options.Services["storage"]
+
+	// initialize all Nhost service structures
+	// and their respective service specific health check
+	// commands and endpoints
+	services := []Container{
+		{
+			Name: getContainerName("postgres"),
+			Command: []string{
+				"pg_isready",
+				"-h",
+				"localhost",
+				"-p",
+				fmt.Sprint(postgresConfig.Port),
+				"-U",
+				"postgres",
+			},
+		},
+		{
+			Name:                getContainerName("auth"),
+			HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", authConfig.Port),
+		},
+		{
+			Name:                getContainerName("storage"),
+			HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", storageConfig.Port),
+		},
+		{
+			Name:                getContainerName("hasura"),
+			HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/healthz", hasuraConfig.Port),
+		},
+		/*
+			{
+				Name:                getContainerName("minio"),
+				HealthCheckEndpoint: fmt.Sprintf("http://127.0.0.1:%v/minio/health/live", minioConfig.Port),
+			},
+		*/
+	}
+
+	// fetch list of all running containers
+	containers, err := getContainers(docker, ctx, "nhost")
+	if err != nil {
+		log.Debug(err)
+		log.Fatal("Failed to fetch running containers")
+	}
+
+	var targets []Container
+
+	if service != "" {
+		for _, item := range services {
+			if service == item.Name {
+				for _, container := range containers {
+					if strings.Contains(container.Names[0], item.Name) {
+						targets = append(targets, item)
+					}
+				}
+			}
+		}
+
+		if len(targets) == 0 {
+			log.WithField("service", service).Fatal("No such running service found")
+		}
+	} else {
+		targets = services
+	}
+
+	var wg sync.WaitGroup
+
+	for _, service := range targets {
+		wg.Add(1)
+
+		containerValidated := false
+		serviceValidated := false
+		for _, container := range containers {
+
+			// first check whether the service container is at least active and responding
+			go func(container types.Container, service Container, containerValidated *bool, serviceValidated *bool, wg *sync.WaitGroup) {
+				if strings.Contains(container.Names[0], service.Name) {
+					/*
+						log.WithFields(logrus.Fields{
+							"container": service.Name,
+							"type":      "container",
+						}).Info("Active and responding")
+					*/
+
+					// validate their corresponding health check endpoints
+					if service.HealthCheckEndpoint != "" {
+
+						valid := checkServiceHealth(service.Name, service.HealthCheckEndpoint)
+						if valid {
+							log.WithFields(logrus.Fields{
+								"container": service.Name,
+								"type":      "service",
+							}).Debug("Health check successful")
+						} else {
+							log.WithFields(logrus.Fields{
+								"container": service.Name,
+								"type":      "service",
+							}).Error("Health check timed out")
+							err = errors.New("health check of at least 1 service timed out")
+						}
+						wg.Done()
+
+					} else if len(service.Command) > 0 {
+
+						// create the command execution skeleton
+						response, err := Exec(docker, ctx, container.ID, service.Command)
+						if err != nil {
+							log.WithFields(logrus.Fields{
+								"type":      "service",
+								"container": service.Name,
+							}).Error("Health check unsuccessful")
+							wg.Done()
+						}
+
+						// execute the command
+						// and inspect the health check response
+						result, err := InspectExecResp(docker, ctx, response.ID)
+						if err != nil {
+							log.Debug(err)
+							log.WithFields(logrus.Fields{
+								"type":      "service",
+								"container": service.Name,
+							}).Error("Health check unsuccessful")
+							wg.Done()
+						}
+
+						if valid := strings.Contains(result.StdOut, "accepting connections"); valid {
+							log.WithFields(logrus.Fields{
+								"type":      "service",
+								"container": service.Name,
+							}).Debug("Health check successful")
+						}
+
+						wg.Done()
+					}
+				}
+			}(container, service, &containerValidated, &serviceValidated, &wg)
+		}
+	}
+
+	wg.Wait()
+	return err
 }
 
 func Exec(docker *client.Client, ctx context.Context, containerID string, command []string) (types.IDResponse, error) {
@@ -289,14 +286,14 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 
 func checkServiceHealth(name, url string) bool {
 
-	for x := 1; x <= 60; x++ {
+	for x := 1; x <= 120; x++ {
 		if valid := validateEndpointHealth(url); valid {
 			return true
 		}
-		time.Sleep(2 * time.Second)
+		time.Sleep(1 * time.Second)
 		log.WithFields(logrus.Fields{
-			"container": name,
 			"type":      "service",
+			"container": name,
 		}).Debugf("Health check attempt #%v unsuccessful", x)
 	}
 	return false
@@ -304,13 +301,8 @@ func checkServiceHealth(name, url string) bool {
 
 func validateEndpointHealth(url string) bool {
 
-	client := &http.Client{
-		Timeout: 2 * time.Second,
-	}
-
-	resp, err := client.Get(url)
+	resp, err := http.Get(url)
 	if err != nil {
-		//log.Debug(err)
 		return false
 	}
 

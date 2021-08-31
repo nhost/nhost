@@ -35,7 +35,7 @@ var (
 	WEB_DIR = filepath.Join(WORKING_DIR, "web")
 
 	// generate path for API code
-	API_DIR = filepath.Join(WORKING_DIR, "api")
+	API_DIR = filepath.Join(WORKING_DIR, "functions")
 
 	// generate path for legacy migrations
 	LEGACY_DIR = filepath.Join(DOT_NHOST, "legacy")
@@ -48,6 +48,9 @@ var (
 
 	// generate path for .nhost/nhost.yaml file
 	INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
+
+	// generate path for express NPM modules
+	NODE_MODULES_PATH = filepath.Join(ROOT, "node_modules")
 
 	// package repository to download latest release from
 	REPOSITORY = "mrinalwahal/cli"

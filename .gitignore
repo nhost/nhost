@@ -4,6 +4,8 @@
 !.elasticbeanstalk/*.cfg.yml
 !.elasticbeanstalk/*.global.yml
 
+req.http
+
 # Application Binaries
 bin/
 bin/*
@@ -16,6 +18,8 @@ requests.*
 .vercel
 *.zip
 .vscode/*
+johan
+johan/
 
 enum.json
 test.json

@@ -26,14 +26,14 @@ package cmd
 
 import (
 	"context"
-	"fmt"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
 	client "github.com/docker/docker/client"
 	"github.com/manifoldco/promptui"
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -55,9 +55,10 @@ for the logged in user from Nhost console and present them.`,
 		services := []Option{
 			{Key: "Database", Value: "postgres"},
 			{Key: "GraphQL Engine", Value: "hasura"},
-			{Key: "Hasura Backend Plus", Value: "hbp"},
-			{Key: "Storage", Value: "minio"},
-			{Key: "API", Value: "api"},
+			{Key: "Authentication", Value: "auth"},
+			{Key: "Storage", Value: "storage"},
+			{Key: "Minio", Value: "minio"},
+			{Key: "Mailhog", Value: "mailhog"},
 		}
 
 		var options []types.Container
@@ -78,7 +79,7 @@ for the logged in user from Nhost console and present them.`,
 		}
 
 		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, nhost.PROJECT)
+		containers, err := getContainers(docker, ctx, "nhost")
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
@@ -91,7 +92,7 @@ for the logged in user from Nhost console and present them.`,
 
 		for _, service := range services {
 			for _, container := range containers {
-				if strings.Contains(container.Names[0], service.Value) {
+				if strings.Contains(container.Names[0], getContainerName(service.Value)) {
 					options = append(options, container)
 				}
 			}
@@ -149,9 +150,34 @@ for the logged in user from Nhost console and present them.`,
 		}
 
 		//	print the logs for the user
-		fmt.Println(string(logs))
-
+		os.Stdout.Write(logs)
 	},
+}
+
+// fetches the logs of a specific container
+// and writes them to a log file
+func getContainerLogs(cli *client.Client, ctx context.Context, container types.Container) ([]byte, error) {
+
+	log.WithFields(logrus.Fields{
+		"type":      "container",
+		"component": container.Names[0],
+	}).Debug("Fetching logs")
+
+	var response []byte
+
+	options := types.ContainerLogsOptions{ShowStdout: true}
+
+	out, err := cli.ContainerLogs(ctx, container.ID, options)
+	if err != nil {
+		return response, err
+	}
+
+	response, err = io.ReadAll(out)
+	if err != nil {
+		return response, err
+	}
+
+	return response, nil
 }
 
 func init() {

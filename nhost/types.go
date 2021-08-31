@@ -64,30 +64,33 @@ type (
 
 	// Nhost config.yaml root structure
 	Configuration struct {
-		MetadataDirectory string                 `yaml:"metadata_directory,omitempty"`
-		Services          map[string]Service     `yaml:",omitempty"`
-		Authentication    Authentication         `yaml:",omitempty"`
-		Version           int                    `yaml:",omitempty"`
-		Environment       map[string]interface{} `yaml:",omitempty"`
+		MetadataDirectory string                      `yaml:"metadata_directory,omitempty"`
+		Services          map[string]Service          `yaml:",omitempty"`
+		Auth              map[interface{}]interface{} `yaml:",omitempty"`
+		Storage           map[interface{}]interface{} `yaml:",omitempty"`
+		Version           int                         `yaml:",omitempty"`
+		// Environment       map[string]interface{} `yaml:",omitempty"`
 	}
 
 	// Nhost config.yaml authentication structure
 	Authentication struct {
-		Endpoints struct {
-			Failure string `yaml:"provider_failure_redirect,omitempty"`
-			Success string `yaml:"provider_success_redirect,omitempty"`
-		} `yaml:",omitempty"`
+		Endpoints map[string]interface{} `yaml:",omitempty"`
 		Providers map[string]interface{} `yaml:",omitempty"`
+		Signin    map[string]interface{} `yaml:",omitempty"`
+		Signup    map[string]interface{} `yaml:",omitempty"`
+		Email     map[string]interface{} `yaml:",omitempty"`
+		Tokens    map[string]interface{} `yaml:",omitempty"`
+		Gravatar  map[string]interface{} `yaml:",omitempty"`
 	}
 
 	// Nhost config.yaml service structure
 	Service struct {
-		Port        int         `yaml:",omitempty"`
-		ConsolePort int         `yaml:"console_port,omitempty"`
-		Version     interface{} `yaml:",omitempty"`
-		Image       string      `yaml:",omitempty"`
-		User        string      `yaml:",omitempty"`
-		Password    string      `yaml:",omitempty"`
+		Port int `yaml:",omitempty"`
+		// ConsolePort int         `yaml:"console_port,omitempty"`
+		Version interface{} `yaml:",omitempty"`
+		Image   string      `yaml:",omitempty"`
+		// User        string      `yaml:",omitempty"`
+		// Password    string      `yaml:",omitempty"`
 		AdminSecret interface{} `yaml:"admin_secret,omitempty"`
 	}
 
