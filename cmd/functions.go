@@ -168,14 +168,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	for index, item := range functions {
 
 		// check whether it's the same function file
-		if item.File == f.File {
+		if item.Path == f.Path {
 
 			// now compare modification time of function file
 			// with it's cached copy
 			if f.File.ModTime().Equal(item.File.ModTime()) {
+
 				log.WithField("route", f.Route).Debug("Found cached copy of function")
 				f = item
 				preBuilt = true
+
 			} else {
 
 				// if file has been modified, clean the cache location
@@ -216,14 +218,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			log.WithField("route", f.Route).Error("Failed to build the function")
 			return
 		}
-
-		/*
-			if _, err := copy(f.Path, filepath.Join(tempDir, f.Base, f.File.Name())); err != nil {
-				log.WithField("route", f.Route).Debug(err)
-				log.WithField("route", f.Route).Error("Failed to cache function file")
-				return
-			}
-		*/
 
 		// save the function before serving it
 		functions = append(functions, f)
@@ -463,13 +457,14 @@ func (function *Function) BuildNodePackage() error {
 	log.WithField("runtime", "NodeJS").Debug("Building function")
 
 	// initialize path for temporary esbuild output
-	tempFile, err := ioutil.TempFile(tempDir, "*.js")
+	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
-	defer tempFile.Close()
-	function.Build = tempFile.Name()
+	defer file.Close()
+
+	function.Build = file.Name()
 
 	// build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
@@ -516,20 +511,21 @@ func (function *Function) Prepare() error {
 
 	case ".js", ".ts":
 
-		// initialize NodeJS server config
-		function.ServerConfig = filepath.Join(tempDir, function.Base, "server.js")
-
 		// build the package
 		if err := function.BuildNodePackage(); err != nil {
 			return err
 		}
 
 		// save the nodeJS server config
-		file, err := os.Create(function.ServerConfig)
+		// file, err := os.Create(function.ServerConfig)
+		file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
 		if err != nil {
 			log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
 			return err
 		}
+
+		// save the server file location
+		function.ServerConfig = file.Name()
 
 		defer file.Close()
 

@@ -599,10 +599,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	}
 
 	// load .env.development
-	envVars, err := nhost.Env()
-	if err != nil {
-		log.WithField("environment", ".env.development").Debug(err)
-	}
+	envVars, _ := nhost.Env()
 
 	// create mount points if they doesn't exist
 	mountPoints := []mount.Mount{
@@ -726,7 +723,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 			Name: "always",
 		},
 		PortBindings: map[nat.Port][]nat.PortBinding{
-			// nat.Port(funcPort):                        {{HostIP: "127.0.0.1", HostPort: funcPort}},
 			nat.Port(strconv.Itoa(hasuraConfig.Port)): {{HostIP: "127.0.0.1", HostPort: strconv.Itoa(hasuraConfig.Port)}},
 		},
 		Mounts: mountPoints,
@@ -737,7 +733,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		Env:   containerVariables,
 		ExposedPorts: nat.PortSet{
 			nat.Port(strconv.Itoa(hasuraConfig.Port)): struct{}{},
-			// nat.Port(funcPort):                        struct{}{},
 		},
 		// running following commands on launch were throwing errors,
 		// server is running and responding absolutely fine without these commands

@@ -67,7 +67,7 @@ func Env() ([]string, error) {
 
 	var response []string
 
-	split := strings.Split(string(data), "=")
+	split := strings.Split(string(data), "\n")
 	for _, item := range split {
 		if strings.Contains(item, "=") {
 			response = append(response, item)
