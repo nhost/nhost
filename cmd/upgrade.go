@@ -25,7 +25,8 @@ package cmd
 
 import (
 	"context"
-	"path/filepath"
+	"os/exec"
+	"os/user"
 	"runtime"
 
 	"github.com/hashicorp/go-getter"
@@ -44,10 +45,29 @@ var upgradeCmd = &cobra.Command{
 utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		switch runtime.GOOS {
+		case "windows":
+			log.Warn("Make sure you are running this environment with root privileges")
+		default:
+			if !isRoot() {
+				log.Fatal("Run this command with root/sudo permissions")
+			}
+		}
+
 		release, err := nhost.LatestRelease(repoSource)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch latest release")
+		}
+
+		// fetch nhost installation directory
+		target, err := exec.LookPath("nhost")
+		if err != nil {
+			log.Debug(err)
+		}
+
+		if err != nil || target == "" {
+			target = nhost.WORKING_DIR
 		}
 
 		if release.TagName == Version {
@@ -62,7 +82,7 @@ utility and upgrade to it.`,
 				Ctx: context.Background(),
 				// Define the destination to where the directory will be stored.
 				// This will create the directory if it doesnt exist
-				Dst:  nhost.WORKING_DIR,
+				Dst:  target,
 				Dir:  false,
 				Src:  asset.BrowserDownloadURL,
 				Mode: getter.ClientModeDir,
@@ -73,23 +93,69 @@ utility and upgrade to it.`,
 				log.WithField("compnent", release.TagName).Debug(err)
 				log.WithField("compnent", release.TagName).Fatal("Failed to download release")
 			}
-			log.WithField("compnent", release.TagName).Info("New release downloaded in current working directory")
 
-			instructions := getInstallInstructions()
-			if instructions != "" {
-				log.Infoln("Install using: ", instructions)
+			if target == nhost.WORKING_DIR {
+				instructions := getInstallInstructions()
+				if instructions != "" {
+					log.Infoln("Install using: ", instructions)
+				}
 			}
 
-			log.Infof("Use it with: %vnhost --help%v", Bold, Reset)
+			log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
 		}
 	},
+}
+
+func isRoot() bool {
+	switch runtime.GOOS {
+	case "windows":
+		/*
+			var sid *windows.SID
+
+			// Although this looks scary, it is directly copied from the
+			// official windows documentation. The Go API for this is a
+			// direct wrap around the official C++ API.
+			// See https://docs.microsoft.com/en-us/windows/desktop/api/securitybaseapi/nf-securitybaseapi-checktokenmembership
+			err := windows.AllocateAndInitializeSid(
+				&windows.SECURITY_NT_AUTHORITY,
+				2,
+				windows.SECURITY_BUILTIN_DOMAIN_RID,
+				windows.DOMAIN_ALIAS_RID_ADMINS,
+				0, 0, 0, 0, 0, 0,
+				&sid)
+			if err != nil {
+				log.Debug("SID Error: %s", err)
+				return false
+			}
+
+			// This appears to cast a null pointer so I'm not sure why this
+			// works, but this guy says it does and it Works for Me™:
+			// https://github.com/golang/go/issues/28804#issuecomment-438838144
+			token := windows.Token(0)
+
+			member, err := token.IsMember(sid)
+			if err != nil {
+				log.Debug("Token Membership Error: %s", err)
+				return false
+			}
+			return member
+		*/
+	default:
+		currentUser, err := user.Current()
+		if err != nil {
+			log.Debug(err)
+			return false
+		}
+		return currentUser.Username == "root"
+	}
+	return false
 }
 
 func getInstallInstructions() string {
 
 	switch runtime.GOOS {
 	case "linux", "darwin":
-		response, _ := filepath.Abs(filepath.Join("usr", "local", "bin"))
+		response, _ := exec.LookPath("nhost")
 		return "sudo mv ./nhost " + response
 	case "windows":
 		return "Ren nhost-xxx.exe nhost"
@@ -105,7 +171,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	upgradeCmd.PersistentFlags().StringVarP(&repoSource, "repository", "r", "", "Custom repository source")
+	upgradeCmd.PersistentFlags().StringVarP(&repoSource, "source", "s", nhost.REPOSITORY, "Custom repository source")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

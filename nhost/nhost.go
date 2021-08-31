@@ -128,10 +128,6 @@ func LatestRelease(source string) (Release, error) {
 
 	var response Release
 
-	if source == "" {
-		source = REPOSITORY
-	}
-
 	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", source))
 	if err != nil {
 		return response, err

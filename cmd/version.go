@@ -68,6 +68,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// versionCmd.PersistentFlags().String("foo", "", "A help for foo")
+	versionCmd.PersistentFlags().StringVarP(&repoSource, "source", "s", nhost.REPOSITORY, "Custom repository source")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

@@ -29,6 +29,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -512,12 +513,17 @@ func runContainer(client *client.Client, ctx context.Context, containerConfig *c
 		return err
 	}
 
-	err = client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{})
-	if err != nil {
+	if err = client.ContainerStart(ctx, container.ID, types.ContainerStartOptions{}); err != nil {
 		return err
 	}
 
-	return client.NetworkConnect(ctx, networkID, container.ID, nil)
+	if name != getContainerName("hasura") {
+		if err = client.NetworkConnect(ctx, networkID, container.ID, nil); err != nil {
+			return err
+		}
+	}
+
+	return nil
 
 	/*
 		// avoid using the code below if you want to run the containers in background
@@ -682,8 +688,8 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		switch runtime.GOOS {
 		case "darwin", "windows":
 			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/functions", port))
-		default:
-			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://127.0.0.1:%v/functions", port))
+		case "linux":
+			containerVariables = append(containerVariables, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v/functions", getOutboundIP(), port))
 		}
 	}
 
@@ -739,12 +745,14 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 		//Cmd:          []string{"graphql-engine", "serve"},
 	}
 
-	// declare network mode = "host" in case of Linux
-	switch runtime.GOOS {
-	case "linux":
-		hostConfig.NetworkMode = "host"
-		containerConfig.Hostname = getContainerName("hasura")
-	}
+	/*
+		// declare network mode = "host" in case of Linux
+		switch runtime.GOOS {
+		case "linux":
+			hostConfig.NetworkMode = "host"
+			containerConfig.Hostname = getContainerName("hasura")
+		}
+	*/
 
 	hasuraContainer := map[string]interface{}{
 		"name":        getContainerName("hasura"),
@@ -998,6 +1006,19 @@ func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string 
 		}
 	}
 	return response
+}
+
+// Get preferred outbound ip of this machine
+func getOutboundIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
 }
 
 func getContainerName(name string) string {

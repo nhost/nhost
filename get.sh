@@ -96,7 +96,7 @@ if [ -e $targetFile ]; then
 fi
 
 log "${PURPLE}Downloading Nhost for $platform-$arch to ${targetFile}${NC}"
-url=https://github.com/mrinalwahal/cli/releases/download/$version/$targetFile
+url=https://github.com/nhost/cli-go/releases/download/$version/$targetFile
 
 try curl -L -f -o $targetFile "$url"
 try chmod +x $targetFile
@@ -105,6 +105,8 @@ rm ./$targetFile
 
 log "${GREEN}Download complete!${NC}"
 echo
-./nhost version
+location=`which nhost`
+mv ./nhost location
+nhost version
 echo
 log "${BLUE}Use Nhost CLI with: ./nhost --help${NC}"
