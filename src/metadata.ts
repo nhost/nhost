@@ -13,6 +13,7 @@ interface Table {
 }
 
 interface TableArgs {
+  source: string;
   table: Table;
   configuration?: {
     custom_name?: string;
@@ -35,35 +36,38 @@ interface TableArgs {
 }
 
 interface RelationshipArgs {
+  source: string;
   table: Table;
   name: string;
   using: {
     foreign_key_constraint_on:
       | {
           table: Table;
-          column: string;
+          columns: string[];
         }
-      | string;
+      | string[];
   };
 }
 
+export const runMetadataRequest = async (args: any) => {
+  await axios.post(
+    ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/metadata'),
+    args,
+    {
+      headers: {
+        'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
+      },
+    }
+  );
+};
+
 // https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/table-view.html#track-table-v2
 export const trackTable = async (args: TableArgs) => {
-  logger.info(`Tracking table ${args.table.name}`);
   try {
-    await axios.post(
-      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
-      {
-        type: 'track_table',
-        version: 2,
-        args: args,
-      },
-      {
-        headers: {
-          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
-        },
-      }
-    );
+    await runMetadataRequest({
+      type: 'pg_track_table',
+      args,
+    });
   } catch (error) {
     if (error.response.data.code !== 'already-tracked') {
       logger.error(error);
@@ -78,18 +82,10 @@ export const setTableCustomization = async (args: TableArgs) => {
   logger.info(`Set table customization for ${args.table.name}`);
 
   try {
-    await axios.post(
-      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
-      {
-        type: 'set_table_customization',
-        args: args,
-      },
-      {
-        headers: {
-          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
-        },
-      }
-    );
+    await runMetadataRequest({
+      type: 'pg_set_table_customization',
+      args,
+    });
   } catch (error) {
     logger.error(error);
     throw new Error('error setting customization for table ' + args.table.name);
@@ -97,23 +93,14 @@ export const setTableCustomization = async (args: TableArgs) => {
 };
 
 export const createObjectRelationship = async (args: RelationshipArgs) => {
-  logger.info(`create object relationship ${args.name} for ${args.table.name}`);
+  logger.info(`Set object relationship ${args.name} for ${args.table.name}`);
   try {
-    await axios.post(
-      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
-      {
-        type: 'create_object_relationship',
-        args,
-      },
-      {
-        headers: {
-          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
-        },
-      }
-    );
+    await runMetadataRequest({
+      type: 'pg_create_object_relationship',
+      args,
+    });
   } catch (error) {
     if (error.response.data.code !== 'already-exists') {
-      logger.error(error);
       throw new Error(
         `Error creating object relationship for table ${args.table.name}`
       );
@@ -126,23 +113,14 @@ export const createObjectRelationship = async (args: RelationshipArgs) => {
 };
 
 export const createArrayRelationship = async (args: RelationshipArgs) => {
-  // logger.info(`create array relationship ${args.name} for ${args.table.name}`);
+  logger.info(`create array relationship ${args.name} for ${args.table.name}`);
   try {
-    await axios.post(
-      ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/query'),
-      {
-        type: 'create_array_relationship',
-        args,
-      },
-      {
-        headers: {
-          'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
-        },
-      }
-    );
+    await runMetadataRequest({
+      type: 'pg_create_array_relationship',
+      args,
+    });
   } catch (error) {
     if (error.response.data.code !== 'already-exists') {
-      logger.error(error);
       throw new Error(
         `Error creating array relationship for table ${args.table.name}`
       );
@@ -154,26 +132,67 @@ export const createArrayRelationship = async (args: RelationshipArgs) => {
 };
 
 export const applyMetadata = async (): Promise<void> => {
-  logger.info('Applying metadata 3');
+  logger.info('Applying metadata');
 
-  // track tables
-  await trackTable({ table: { schema: 'auth', name: 'users' } });
-  await trackTable({ table: { schema: 'auth', name: 'user_roles' } });
-  await trackTable({ table: { schema: 'auth', name: 'user_providers' } });
-  await trackTable({ table: { schema: 'auth', name: 'providers' } });
-  await trackTable({ table: { schema: 'auth', name: 'refresh_tokens' } });
-  await trackTable({ table: { schema: 'auth', name: 'roles' } });
-  await trackTable({ table: { schema: 'auth', name: 'provider_requests' } });
-  await trackTable({ table: { schema: 'auth', name: 'migrations' } });
+  // track
+  await trackTable({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'provider_requests',
+    },
+  });
+  await trackTable({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'refresh_tokens',
+    },
+  });
+  await trackTable({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'roles',
+    },
+  });
+  await trackTable({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'user_providers',
+    },
+  });
+  await trackTable({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'user_roles',
+    },
+  });
+  await trackTable({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'users',
+    },
+  });
+  await trackTable({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'providers',
+    },
+  });
 
-  // set custom root fields + custom column names
+  // customization
   await setTableCustomization({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'users',
     },
     configuration: {
-      custom_name: 'users',
       custom_root_fields: {
         select: 'users',
         select_by_pk: 'user',
@@ -213,7 +232,9 @@ export const applyMetadata = async (): Promise<void> => {
       },
     },
   });
+
   await setTableCustomization({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'user_roles',
@@ -240,6 +261,7 @@ export const applyMetadata = async (): Promise<void> => {
     },
   });
   await setTableCustomization({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'user_providers',
@@ -270,6 +292,7 @@ export const applyMetadata = async (): Promise<void> => {
     },
   });
   await setTableCustomization({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'providers',
@@ -293,6 +316,7 @@ export const applyMetadata = async (): Promise<void> => {
     },
   });
   await setTableCustomization({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'refresh_tokens',
@@ -319,6 +343,7 @@ export const applyMetadata = async (): Promise<void> => {
     },
   });
   await setTableCustomization({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'roles',
@@ -342,6 +367,7 @@ export const applyMetadata = async (): Promise<void> => {
     },
   });
   await setTableCustomization({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'provider_requests',
@@ -367,16 +393,18 @@ export const applyMetadata = async (): Promise<void> => {
   });
 
   await createObjectRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'user_providers',
     },
     name: 'user',
     using: {
-      foreign_key_constraint_on: 'user_id',
+      foreign_key_constraint_on: ['user_id'],
     },
   });
   await createArrayRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'users',
@@ -388,22 +416,24 @@ export const applyMetadata = async (): Promise<void> => {
           schema: 'auth',
           name: 'user_providers',
         },
-        column: 'user_id',
+        columns: ['user_id'],
       },
     },
   });
 
   await createObjectRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'user_providers',
     },
     name: 'provider',
     using: {
-      foreign_key_constraint_on: 'provider_id',
+      foreign_key_constraint_on: ['provider_id'],
     },
   });
   await createArrayRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'providers',
@@ -415,22 +445,72 @@ export const applyMetadata = async (): Promise<void> => {
           schema: 'auth',
           name: 'user_providers',
         },
-        column: 'provider_id',
+        columns: ['provider_id'],
       },
     },
   });
 
   await createObjectRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'user_roles',
     },
     name: 'user',
     using: {
-      foreign_key_constraint_on: 'user_id',
+      foreign_key_constraint_on: ['user_id'],
+    },
+  });
+
+  await createArrayRelationship({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'roles',
+    },
+    name: 'userRoles',
+    using: {
+      foreign_key_constraint_on: {
+        table: {
+          schema: 'auth',
+          name: 'user_roles',
+        },
+        columns: ['role'],
+      },
+    },
+  });
+
+  await createObjectRelationship({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'users',
+    },
+    name: 'defaultRoleByRole',
+    using: {
+      foreign_key_constraint_on: ['default_role'],
     },
   });
   await createArrayRelationship({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'roles',
+    },
+    name: 'usersByDefaultRole',
+    using: {
+      foreign_key_constraint_on: {
+        table: {
+          schema: 'auth',
+          name: 'users',
+        },
+        columns: ['default_role'],
+      },
+    },
+  });
+
+  await createArrayRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'users',
@@ -442,33 +522,48 @@ export const applyMetadata = async (): Promise<void> => {
           schema: 'auth',
           name: 'user_roles',
         },
-        column: 'user_id',
+        columns: ['user_id'],
       },
     },
   });
 
   await createObjectRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'user_roles',
     },
     name: 'user',
     using: {
-      foreign_key_constraint_on: 'user_id',
+      foreign_key_constraint_on: ['user_id'],
     },
   });
 
   await createObjectRelationship({
+    source: 'default',
+    table: {
+      schema: 'auth',
+      name: 'user_roles',
+    },
+    name: 'roleByRole',
+    using: {
+      foreign_key_constraint_on: ['role'],
+    },
+  });
+
+  await createObjectRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'refresh_tokens',
     },
     name: 'user',
     using: {
-      foreign_key_constraint_on: 'user_id',
+      foreign_key_constraint_on: ['user_id'],
     },
   });
   await createArrayRelationship({
+    source: 'default',
     table: {
       schema: 'auth',
       name: 'users',
@@ -480,7 +575,7 @@ export const applyMetadata = async (): Promise<void> => {
           schema: 'auth',
           name: 'refresh_tokens',
         },
-        column: 'user_id',
+        columns: ['user_id'],
       },
     },
   });
@@ -490,17 +585,19 @@ export const applyMetadata = async (): Promise<void> => {
   // Which is why we allow this to fail silently.
   try {
     await createObjectRelationship({
+      source: 'default',
       table: {
         schema: 'public',
         name: 'profiles',
       },
       name: 'user',
       using: {
-        foreign_key_constraint_on: 'user_id',
+        foreign_key_constraint_on: ['user_id'],
       },
     });
 
     await createObjectRelationship({
+      source: 'default',
       table: {
         schema: 'auth',
         name: 'users',
@@ -512,7 +609,7 @@ export const applyMetadata = async (): Promise<void> => {
             schema: 'public',
             name: 'profiles',
           },
-          column: 'user_id',
+          columns: ['user_id'],
         },
       },
     });
@@ -522,5 +619,5 @@ export const applyMetadata = async (): Promise<void> => {
     );
   }
 
-  // console.log('Finished applying metadata');
+  logger.debug('Done applying metadata');
 };
