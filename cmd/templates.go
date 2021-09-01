@@ -92,15 +92,20 @@ And you can immediately start developing on that template.`,
 			{
 				Name:        "Emails",
 				Value:       "emails",
-				Destination: filepath.Join(choice, nhost.EMAILS_DIR),
+				Destination: nhost.EMAILS_DIR,
 				Source:      "github.com/nhost/hasura-auth/email-templates/en/",
-				Templates: []Template{
-					{Name: "Passwordless", Value: "passwordless"},
-					{Name: "Reset Email", Value: "reset-email"},
-					{Name: "Reset Password", Value: "reset-password"},
-					{Name: "Verify Email", Value: "verify-email"},
-				},
+				/*
+					Templates: []Template{
+						{Name: "Passwordless", Value: "passwordless"},
+						{Name: "Reset Email", Value: "reset-email"},
+						{Name: "Reset Password", Value: "reset-password"},
+						{Name: "Verify Email", Value: "verify-email"},
+					},
+				*/
 				Manual: "git clone github.com/nhost/hasura-auth/email-templates/en/" + choice,
+			},
+			{
+				Name: "Skip",
 			},
 		}
 
@@ -117,7 +122,7 @@ And you can immediately start developing on that template.`,
 
 			// propose boilerplate options
 			boilerplatePrompt := promptui.Select{
-				Label:     "Choose Entity",
+				Label:     "Clone a template",
 				Items:     entities,
 				Templates: &promptTemplate,
 			}
@@ -127,7 +132,11 @@ And you can immediately start developing on that template.`,
 				log.Fatal("Aborted")
 			}
 
-			selected = entities[index]
+			if index == (len(entities) - 1) {
+				return
+			} else {
+				selected = entities[index]
+			}
 
 		} else {
 
@@ -149,19 +158,22 @@ And you can immediately start developing on that template.`,
 
 		if len(choice) == 0 {
 
-			// propose boilerplate options
-			boilerplatePrompt := promptui.Select{
-				Label:     "Choose Preferred Template",
-				Items:     selected.Templates,
-				Templates: &promptTemplate,
-			}
+			if len(selected.Templates) > 0 {
 
-			index, _, err := boilerplatePrompt.Run()
-			if err != nil {
-				log.Fatal("Aborted")
-			}
+				// propose boilerplate options
+				boilerplatePrompt := promptui.Select{
+					Label:     "Choose Preferred Template",
+					Items:     selected.Templates,
+					Templates: &promptTemplate,
+				}
 
-			choice = selected.Templates[index].Value
+				index, _, err := boilerplatePrompt.Run()
+				if err != nil {
+					log.Fatal("Aborted")
+				}
+
+				choice = selected.Templates[index].Value
+			}
 
 		} else {
 

@@ -35,7 +35,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/manifoldco/promptui"
 	"github.com/mattn/go-colorable"
 	"github.com/mrinalwahal/cli/formatter"
 	"github.com/mrinalwahal/cli/nhost"
@@ -132,19 +131,8 @@ var (
 				// start the "init" command
 				initCmd.Run(cmd, args)
 
-				// configure interative prompt
-				frontendPrompt := promptui.Prompt{
-					Label:     "Do you want to setup a front-end project template",
-					IsConfirm: true,
-				}
-
-				frontendApproval, _ := frontendPrompt.Run()
-
-				if strings.ToLower(frontendApproval) == "y" || strings.ToLower(frontendApproval) == "yes" {
-
-					templatesCmd.Run(cmd, args)
-
-				}
+				// offer to clone templates
+				templatesCmd.Run(cmd, args)
 
 				// start the "dev" command
 				devCmd.Run(cmd, args)
