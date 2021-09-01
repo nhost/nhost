@@ -107,7 +107,7 @@ rm ./$targetFile
 
 log "${GREEN}Download complete!${NC}"
 echo
-try mv ./nhost ${INSTALL_PATH}/nhost
-try nhost version
+mv ./nhost ${INSTALL_PATH}/nhost
+nhost version
 echo
 log "${BLUE}Use Nhost CLI with: nhost --help${NC}"
