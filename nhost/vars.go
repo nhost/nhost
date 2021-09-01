@@ -37,6 +37,9 @@ var (
 	// generate path for API code
 	API_DIR = filepath.Join(WORKING_DIR, "functions")
 
+	// generate path for email templates
+	EMAILS_DIR = filepath.Join(NHOST_DIR, "emails")
+
 	// generate path for legacy migrations
 	LEGACY_DIR = filepath.Join(DOT_NHOST, "legacy")
 

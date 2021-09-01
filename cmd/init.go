@@ -25,11 +25,13 @@ SOFTWARE.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/hashicorp/go-getter"
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
@@ -178,6 +180,7 @@ var initCmd = &cobra.Command{
 			nhost.MIGRATIONS_DIR,
 			nhost.METADATA_DIR,
 			nhost.SEEDS_DIR,
+			nhost.EMAILS_DIR,
 		}
 
 		// if required directories don't exist, then create them
@@ -186,6 +189,27 @@ var initCmd = &cobra.Command{
 				log.Debug(err)
 				log.WithField("component", filepath.Base(dir)).Fatal("Failed to create directory")
 			}
+		}
+
+		// save the email templates
+		// initialize hashicorp go-getter client
+		client := &getter.Client{
+			Ctx: context.Background(),
+			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
+			Dst:  nhost.EMAILS_DIR,
+			Dir:  true,
+			Src:  "github.com/nhost/hasura-auth/email-templates/en/",
+			Mode: getter.ClientModeDir,
+			//define the type of detectors go getter should use, in this case only github is needed
+			Detectors: []getter.Detector{
+				&getter.GitHubDetector{},
+			},
+		}
+
+		//download the files
+		if err := client.Get(); err != nil {
+			log.WithField("compnent", "email-templates").Debug(err)
+			log.WithField("compnent", "email-templates").Error("Failed to clone template")
 		}
 
 		// create or append to .gitignore

@@ -25,7 +25,6 @@ package cmd
 
 import (
 	"context"
-	"os"
 	"os/exec"
 	"os/user"
 	"path/filepath"
@@ -72,9 +71,6 @@ utility and upgrade to it.`,
 			log.Debug(err)
 			target = nhost.WORKING_DIR
 		} else {
-			if err = os.Remove(target); err != nil {
-				log.Fatal("Failed to remove existing CLI from: ", target)
-			}
 			target = filepath.Dir(target)
 		}
 

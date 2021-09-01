@@ -29,15 +29,18 @@ import (
 var entity string
 var choice string
 
+// var allChoices bool
+
 type Entity struct {
-	Name      string
-	Value     string
-	Source    string
-	Command   []string
-	Templates []Template
-	NextSteps string
-	Manual    string
-	Ignore    []string
+	Name        string
+	Value       string
+	Source      string
+	Command     []string
+	Templates   []Template
+	NextSteps   string
+	Manual      string
+	Ignore      []string
+	Destination string
 }
 
 type Template struct {
@@ -62,29 +65,43 @@ And you can immediately start developing on that template.`,
 
 		entities := []Entity{
 			{
-				Name:   "Web or Front-end",
-				Value:  "web",
-				Source: "github.com/nhost/nhost/templates/",
+				Name:        "Web or Front-end",
+				Value:       "web",
+				Destination: nhost.WEB_DIR,
+				Source:      "github.com/nhost/nhost/templates/",
 				Templates: []Template{
 					{Name: "NuxtJs", Value: "nuxt"},
 					{Name: "NextJs", Value: "next"},
 					{Name: "ReactJs", Value: "react"},
 				},
-				NextSteps: "Use `cd web && npm install --save-dev`",
+				NextSteps: "Use `cd web && npm install`",
 				Manual:    "git clone github.com/nhost/nhost/templates/" + choice,
 			},
-			/*
-				{
-					Name:      "API or Nhost Functions",
-					Value:     "api",
-					Command:   []string{samCLI, "init", "-o", nhost.WORKING_DIR, "-n", "api", "--app-template", "hello-world", "-p", "Zip"},
-					NextSteps: "Start testing API with `nhost dev`",
-
-					// Sample SAM initialization command
-					Manual: "sam init -o . -n api --app-template hello-world -p Zip",
-					Ignore: []string{".aws-sam"},
+			{
+				Name:        "Functions",
+				Value:       "functions",
+				Destination: nhost.API_DIR,
+				Source:      "github.com/nhost/nhost/templates/functions/",
+				Templates: []Template{
+					{Name: "Golang", Value: "go"},
+					{Name: "NodeJs", Value: "node"},
 				},
-			*/
+				NextSteps: "Use `cd functions && npm i && npm i express`",
+				Manual:    "git clone github.com/nhost/nhost/templates/functions/" + choice,
+			},
+			{
+				Name:        "Emails",
+				Value:       "emails",
+				Destination: filepath.Join(choice, nhost.EMAILS_DIR),
+				Source:      "github.com/nhost/hasura-auth/email-templates/en/",
+				Templates: []Template{
+					{Name: "Passwordless", Value: "passwordless"},
+					{Name: "Reset Email", Value: "reset-email"},
+					{Name: "Reset Password", Value: "reset-password"},
+					{Name: "Verify Email", Value: "verify-email"},
+				},
+				Manual: "git clone github.com/nhost/hasura-auth/email-templates/en/" + choice,
+			},
 		}
 
 		// configure interactive prompt template
@@ -127,106 +144,79 @@ And you can immediately start developing on that template.`,
 			}
 		}
 
-		if selected.Source != "" {
+		// if the use has specified choice flag,
+		// then skip the selection prompt
 
-			// if the use has specified choice flag,
-			// then skip the selection prompt
+		if len(choice) == 0 {
 
-			if len(choice) == 0 {
-
-				// propose boilerplate options
-				boilerplatePrompt := promptui.Select{
-					Label:     "Choose Preferred Template",
-					Items:     selected.Templates,
-					Templates: &promptTemplate,
-				}
-
-				index, _, err := boilerplatePrompt.Run()
-				if err != nil {
-					log.Fatal("Aborted")
-				}
-
-				choice = selected.Templates[index].Value
-
-			} else {
-
-				ok := false
-				for _, item := range selected.Templates {
-					if item.Value == choice {
-						ok = true
-					}
-				}
-				if !ok {
-					log.WithField("component", choice).Fatal("No such framework found")
-				}
+			// propose boilerplate options
+			boilerplatePrompt := promptui.Select{
+				Label:     "Choose Preferred Template",
+				Items:     selected.Templates,
+				Templates: &promptTemplate,
 			}
 
-			destination, err := filepath.Abs(selected.Value)
+			index, _, err := boilerplatePrompt.Run()
 			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to parse clone destionation")
+				log.Fatal("Aborted")
 			}
 
-			// initialize hashicorp go-getter client
-			client := &getter.Client{
-				Ctx: context.Background(),
-				//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-				Dst:  destination,
-				Dir:  true,
-				Src:  selected.Source,
-				Mode: getter.ClientModeDir,
-				//define the type of detectors go getter should use, in this case only github is needed
-				Detectors: []getter.Detector{
-					&getter.GitHubDetector{},
-				},
-			}
-
-			// append the chosen result template to source URL
-			client.Src += choice
-
-			//download the files
-			if err := client.Get(); err != nil {
-				log.WithField("compnent", selected.Value).Debug(err)
-				log.WithField("compnent", selected.Value).Error("Failed to clone template")
-				log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
-				os.Exit(1)
-			}
+			choice = selected.Templates[index].Value
 
 		} else {
 
-			/*
-				execute := exec.Cmd{
-					Path:   samCLI,
-					Args:   selected.Command,
-					Dir:    nhost.WORKING_DIR,
-					Stdin:  os.Stdin,
-					Stdout: os.Stdout,
+			ok := false
+			for _, item := range selected.Templates {
+				if item.Value == choice {
+					ok = true
 				}
+			}
+			if !ok {
+				log.WithField("component", choice).Fatal("No such framework found")
+			}
+		}
 
-				if err := execute.Run(); err != nil {
-					log.WithField("compnent", selected.Value).Debug(err)
-					log.WithField("compnent", selected.Value).Error("Failed to clone template")
-					log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
-					os.Exit(1)
-				}
-			*/
+		// initialize hashicorp go-getter client
+		client := &getter.Client{
+			Ctx: context.Background(),
+			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
+			Dst:  selected.Destination,
+			Dir:  true,
+			Src:  selected.Source,
+			Mode: getter.ClientModeDir,
+			//define the type of detectors go getter should use, in this case only github is needed
+			Detectors: []getter.Detector{
+				&getter.GitHubDetector{},
+			},
+		}
+
+		// append the chosen result template to source URL
+		client.Src += choice
+
+		//download the files
+		if err := client.Get(); err != nil {
+			log.WithField("compnent", selected.Value).Debug(err)
+			log.WithField("compnent", selected.Value).Error("Failed to clone template")
+			log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
+			os.Exit(1)
 		}
 
 		// if there are any ignore files,
 		// append them to .gitignore
 
 		for _, file := range selected.Ignore {
-
 			if err := writeToFile(filepath.Join(nhost.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
 				log.Debug(err)
 				log.Warnf("Failed to add `%s` to .gitignore", file)
 			}
 		}
 
-		log.WithField("compnent", selected.Value).Info("Template generated successfully")
+		log.WithField("compnent", selected.Value).Info("Template cloned successfully")
 
 		// advise the user about next steps
-		log.Info(selected.NextSteps)
+		if selected.NextSteps != "" {
+			log.Info(selected.NextSteps)
+		}
 	},
 }
 
@@ -283,5 +273,6 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	templatesCmd.Flags().StringVarP(&choice, "choice", "c", "", "Choice of template to clone")
+	// templatesCmd.Flags().BoolVarP(&allChoices, "all", "a", false, "Clone all templates")
 	templatesCmd.Flags().StringVarP(&entity, "entity", "e", "", "Entity to clone the template for [web/api]")
 }

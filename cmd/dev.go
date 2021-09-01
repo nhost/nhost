@@ -517,13 +517,7 @@ func runContainer(client *client.Client, ctx context.Context, containerConfig *c
 		return err
 	}
 
-	if name != getContainerName("hasura") {
-		if err = client.NetworkConnect(ctx, networkID, container.ID, nil); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return client.NetworkConnect(ctx, networkID, container.ID, nil)
 
 	/*
 		// avoid using the code below if you want to run the containers in background
@@ -854,6 +848,11 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 					Source: filepath.Join(nhost.DOT_NHOST, "custom"),
 					Target: "/app/custom",
 				},
+				{
+					Type:   mount.TypeBind,
+					Source: nhost.EMAILS_DIR,
+					Target: "/app/email-templates",
+				},
 			},
 		},
 	}
@@ -1012,7 +1011,7 @@ func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string 
 func getOutboundIP() net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		log.Fatal(err)
+		return nil
 	}
 	defer conn.Close()
 

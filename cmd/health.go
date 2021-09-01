@@ -290,7 +290,7 @@ func checkServiceHealth(name, url string) bool {
 		if valid := validateEndpointHealth(url); valid {
 			return true
 		}
-		time.Sleep(1 * time.Second)
+		time.Sleep(2 * time.Second)
 		log.WithFields(logrus.Fields{
 			"type":      "service",
 			"container": name,
