@@ -53,7 +53,7 @@ var (
 	NODE_MODULES_PATH = filepath.Join(ROOT, "node_modules")
 
 	// package repository to download latest release from
-	REPOSITORY = "mrinalwahal/cli"
+	REPOSITORY = "nhost/cli-go"
 
 	// initialize the project prefix
 	PROJECT = filepath.Base(WORKING_DIR)

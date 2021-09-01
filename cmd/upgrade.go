@@ -70,15 +70,12 @@ utility and upgrade to it.`,
 		target, err := exec.LookPath("nhost")
 		if err != nil {
 			log.Debug(err)
-		}
-
-		if err != nil || target == "" {
 			target = nhost.WORKING_DIR
 		} else {
 			if err = os.Remove(target); err != nil {
 				log.Fatal("Failed to remove existing CLI from: ", target)
 			}
-			target, _ = filepath.Split(target)
+			target = filepath.Dir(target)
 		}
 
 		if release.TagName == Version {
@@ -112,7 +109,13 @@ utility and upgrade to it.`,
 				}
 			}
 
-			log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
+			// check new version
+			cli, _ := exec.LookPath("nhost")
+			if output, err := exec.Command(cli, "version").CombinedOutput(); err != nil {
+				log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
+			} else {
+				log.Println(string(output))
+			}
 		}
 	},
 }
@@ -166,7 +169,7 @@ func getInstallInstructions() string {
 
 	switch runtime.GOOS {
 	case "linux", "darwin":
-		response := filepath.Join("usr", "local", "bin")
+		response := "/usr/local/bin/nhost"
 		return "sudo mv ./nhost " + response
 	case "windows":
 		return "Ren nhost-xxx.exe nhost"
