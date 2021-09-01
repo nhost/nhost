@@ -15,9 +15,9 @@ YELLOW='\033[0;33m'
 NC='\033[0m'
 
 INSTALL_PATH=${INSTALL_PATH:-"/usr/local/bin"}
-NEED_SUDO=0
+NEED_SUDO=1
 
-REPO="mrinalwahal/cli"
+REPO="nhost/cli-go"
 
 function maybe_sudo() {
     if [[ "$NEED_SUDO" == '1' ]]; then
@@ -83,7 +83,9 @@ arch='unknown'
 archstr=`uname -m`
 if [[ "$archstr" == 'x86_64' ]]; then
     arch='amd64'
-else
+elif [[ "$archstr" == 'arm64' ]]; then
+    arch='arm64'
+else 
     arch='386'
 fi
 
@@ -96,17 +98,17 @@ if [ -e $targetFile ]; then
 fi
 
 log "${PURPLE}Downloading Nhost for $platform-$arch to ${targetFile}${NC}"
-url=https://github.com/nhost/cli-go/releases/download/$version/$targetFile
+url=https://github.com/$REPO/releases/download/$version/$targetFile
 
 try curl -L -f -o $targetFile "$url"
 try chmod +x $targetFile
+#rm ${hasCli}
 try tar -xvf $targetFile
 rm ./$targetFile
 
 log "${GREEN}Download complete!${NC}"
 echo
-location=`which nhost`
-mv ./nhost location
+mv ./nhost ${hasCli}
 nhost version
 echo
-log "${BLUE}Use Nhost CLI with: ./nhost --help${NC}"
+log "${BLUE}Use Nhost CLI with: nhost --help${NC}"

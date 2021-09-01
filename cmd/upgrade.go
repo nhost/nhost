@@ -25,8 +25,10 @@ package cmd
 
 import (
 	"context"
+	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 	"runtime"
 
 	"github.com/hashicorp/go-getter"
@@ -54,6 +56,10 @@ utility and upgrade to it.`,
 			}
 		}
 
+		if repoSource == "" {
+			repoSource = nhost.REPOSITORY
+		}
+
 		release, err := nhost.LatestRelease(repoSource)
 		if err != nil {
 			log.Debug(err)
@@ -68,12 +74,17 @@ utility and upgrade to it.`,
 
 		if err != nil || target == "" {
 			target = nhost.WORKING_DIR
+		} else {
+			if err = os.Remove(target); err != nil {
+				log.Fatal("Failed to remove existing CLI from: ", target)
+			}
+			target, _ = filepath.Split(target)
 		}
 
 		if release.TagName == Version {
 			log.WithField("component", release.TagName).Info("You already have the latest version. Hurray!")
 		} else {
-			log.WithField("component", release.TagName).Info("New version available")
+			log.WithField("component", release.TagName).Info("Downloading new version")
 
 			asset := release.Asset()
 
@@ -155,7 +166,7 @@ func getInstallInstructions() string {
 
 	switch runtime.GOOS {
 	case "linux", "darwin":
-		response, _ := exec.LookPath("nhost")
+		response := filepath.Join("usr", "local", "bin")
 		return "sudo mv ./nhost " + response
 	case "windows":
 		return "Ren nhost-xxx.exe nhost"
@@ -171,7 +182,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	upgradeCmd.PersistentFlags().StringVarP(&repoSource, "source", "s", nhost.REPOSITORY, "Custom repository source")
+	upgradeCmd.PersistentFlags().StringVarP(&repoSource, "source", "s", "", "Custom repository source")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
