@@ -20,6 +20,8 @@ requests.*
 .vscode/*
 johan
 johan/
+t
+t/
 
 enum.json
 test.json
