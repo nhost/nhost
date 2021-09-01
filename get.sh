@@ -17,7 +17,7 @@ NC='\033[0m'
 INSTALL_PATH=${INSTALL_PATH:-"/usr/local/bin"}
 NEED_SUDO=1
 
-REPO="nhost/cli-go"
+REPO="mrinalwahal/cli"
 
 function maybe_sudo() {
     if [[ "$NEED_SUDO" == '1' ]]; then
@@ -102,13 +102,11 @@ url=https://github.com/$REPO/releases/download/$version/$targetFile
 
 try curl -L -f -o $targetFile "$url"
 try chmod +x $targetFile
-#rm ${hasCli}
-try tar -xvf $targetFile
+try tar -xvf $targetFile -C ${INSTALL_PATH}/
 rm ./$targetFile
 
 log "${GREEN}Download complete!${NC}"
 echo
-mv ./nhost ${hasCli}
-nhost version
+try nhost version
 echo
 log "${BLUE}Use Nhost CLI with: nhost --help${NC}"
