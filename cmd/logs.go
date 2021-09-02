@@ -33,6 +33,7 @@ import (
 	"github.com/docker/docker/api/types"
 	client "github.com/docker/docker/client"
 	"github.com/manifoldco/promptui"
+	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -79,7 +80,7 @@ for the logged in user from Nhost console and present them.`,
 		}
 
 		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, "nhost")
+		containers, err := getContainers(docker, ctx, nhost.PREFIX)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
@@ -99,6 +100,7 @@ for the logged in user from Nhost console and present them.`,
 		}
 
 		var selectedContainer types.Container
+		// var port uint16
 
 		// if the user has already supplied the service flag,
 		// match it
@@ -109,6 +111,8 @@ for the logged in user from Nhost console and present them.`,
 					for _, container := range containers {
 						if strings.Contains(container.Names[0], item.Value) {
 							selectedContainer = container
+							// port = container.Ports[0].PublicPort
+							break
 						}
 					}
 				}
@@ -151,6 +155,26 @@ for the logged in user from Nhost console and present them.`,
 
 		//	print the logs for the user
 		os.Stdout.Write(logs)
+
+		/*
+			// create new hasura client
+			hasuraClient := hasura.Client{
+				Endpoint:    fmt.Sprintf(`http://localhost:%v`, port),
+				AdminSecret: "hasura-admin-secret",
+				Client:      &Client,
+			}
+
+			// testing custom metadata
+			metadata, err := hasuraClient.GetMetadata()
+			if err != nil {
+				log.Debug("Failed to get metadata")
+				log.Error(err)
+			}
+			fmt.Println(metadata.Tables)
+
+			migrationTables := getMigrationTables([]string{"hdb_catalog"}, metadata.Tables)
+			fmt.Println(migrationTables)
+		*/
 	},
 }
 

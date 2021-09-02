@@ -28,18 +28,17 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"io/ioutil"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"plugin"
 	"strings"
-	"sync"
 	"syscall"
 	"time"
 
@@ -49,16 +48,14 @@ import (
 )
 
 var (
-	jsPort         = nhost.GetPort(9401, 9500)
-	tempDir, _     = ioutil.TempDir("", "")
-	funcPort       string
-	functions      []Function
-	nodeServerCode string
+	// initialize temporary directory for caching
+	tempDir, _ = ioutil.TempDir("", "")
+
+	funcPort string
 
 	// vars to store server state during each runtime
-	nodeServerInstalled = false
-	npmDepInstalled     = false
-	buildDir            string
+	functions []Function
+	buildDir  string
 )
 
 type GoPlugin struct {
@@ -68,37 +65,80 @@ type GoPlugin struct {
 
 // uninstallCmd removed Nhost CLI from system
 var functionsCmd = &cobra.Command{
-	Use:   "functions [port_number]",
+	Use:   "functions [-p port]",
 	Short: "Serve and manage serverless functions",
 	Long:  `Serve and manage serverless functions.`,
+	PostRun: func(cmd *cobra.Command, args []string) {
+
+		if err := os.RemoveAll(tempDir); err != nil {
+			log.WithField("component", "cache").Debug(err)
+		}
+		os.Exit(0)
+
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		var end_waiter sync.WaitGroup
-		end_waiter.Add(1)
+		// if environment variables haven't been loaded
+		// then load them from .env.development
+		if len(envVars) == 0 {
+			envVars, _ = nhost.Env()
+		}
 
 		// add cleanup action in case of signal interruption
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-c
-			removeTemp()
+			cmd.PostRun(cmd, args)
 		}()
 
-		// being the execution
-		args = append(args, "inform")
 		ServeFuncs(cmd, args)
-		removeTemp()
-
-		// wait for Ctrl+C
-		end_waiter.Wait()
-
 	},
 }
 
-func removeTemp() {
-	log.Debug("Removing temporary directory from: ", tempDir)
-	os.RemoveAll(tempDir)
-	os.Exit(0)
+func ServeFuncs(cmd *cobra.Command, args []string) {
+	if !pathExists(nhost.API_DIR) {
+		log.Error("Functions directory not found")
+		return
+	}
+
+	prepareNode := false
+
+	// traverse through the directory
+	// and check if there's even a single JS/TS func
+	files, _ := os.ReadDir(nhost.API_DIR)
+	for _, item := range files {
+		switch filepath.Ext(item.Name()) {
+		case ".js", ".ts":
+			prepareNode = true
+		}
+	}
+
+	// if npm dependencies haven't been confirmed,
+	// just install them on first run
+	if prepareNode {
+
+		// detect package.json inside functions dir
+		buildDir = nhost.WORKING_DIR
+		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
+			buildDir = nhost.API_DIR
+		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
+			log.Error("neither a local, nor a root package.json found")
+			return
+		}
+
+	}
+
+	http.HandleFunc("/", handler)
+
+	if !contains(args, "do_not_inform") {
+		log.Info("Nhost functions serving at: http://localhost:", funcPort)
+	}
+
+	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
+		log.WithField("component", "server").Debug(err)
+	}
+
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -225,7 +265,11 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// load .env.development
-	env, _ := nhost.Env()
+	runtimeVars := []string{
+		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, jwtKey)),
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", configuration.Services["hasura"].AdminSecret),
+		fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
+	}
 
 	switch filepath.Ext(f.Path) {
 	case ".js", ".ts":
@@ -238,217 +282,60 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		cmd := exec.Cmd{
-			Path:   nodeCLI,
-			Env:    env,
-			Args:   []string{nodeCLI, f.ServerConfig},
-			Stdout: os.Stdout,
-			Stderr: os.Stderr,
+		// append the runtime env vars
+		envVars = append(envVars, runtimeVars...)
+
+		// initialize random port to serve the file
+		jsPort := nhost.GetPort(9401, 9500)
+
+		// prepare the node server configuration
+		if err := f.BuildNodeServer(jsPort); err != nil {
+			log.WithField("runtime", "NodeJS").Debug(err)
+			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
 		}
 
+		// prepare the execution command
+		cmd := exec.Cmd{
+			Path:   nodeCLI,
+			Env:    envVars,
+			Args:   []string{nodeCLI, f.ServerConfig},
+			Stdout: os.Stdout,
+			// Stderr: os.Stderr,
+		}
+
+		// begin the comand execution
 		if err := cmd.Start(); err != nil {
 			log.WithField("runtime", "NodeJS").Debug(err)
 			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
 		}
 
+		// update request URL
+		url, _ := url.Parse(fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path))
+		r.URL = url
+
 		// serve
 		f.Handler(w, r)
 
+		// kill the command execution once the req is served
 		if err := cmd.Process.Kill(); err != nil {
 			log.Error("failed to kill process: ", err)
 		}
 
+		// delete the node server configuration
+		if err := os.Remove(f.ServerConfig); err != nil {
+			log.WithField("runtime", "NodeJS").Debug(err)
+		}
+
 	case ".go":
+
+		// set the runtime env vars
+		for _, item := range runtimeVars {
+			payload := strings.Split(item, "=")
+			os.Setenv(payload[0], payload[1])
+		}
 
 		// serve
 		f.Handler(w, r)
-	}
-}
-
-func copy(src, dst string) (int64, error) {
-	sourceFileStat, err := os.Stat(src)
-	if err != nil {
-		return 0, err
-	}
-
-	if !sourceFileStat.Mode().IsRegular() {
-		return 0, fmt.Errorf("%s is not a regular file", src)
-	}
-
-	source, err := os.Open(src)
-	if err != nil {
-		return 0, err
-	}
-	defer source.Close()
-
-	destination, err := os.Create(dst)
-	if err != nil {
-		return 0, err
-	}
-	defer destination.Close()
-	nBytes, err := io.Copy(destination, source)
-	return nBytes, err
-}
-
-func validateExpress() error {
-
-	// if node modules already exist,
-	// then return it's path
-	// Install express module
-	nodeCLI, err := exec.LookPath("npm")
-	if err != nil {
-		return err
-	}
-
-	cmd := exec.Cmd{
-		Path: nodeCLI,
-		Args: []string{nodeCLI, "list", "-g", "express"},
-	}
-
-	output, err := cmd.Output()
-	if err != nil {
-
-		// check if express is available in output
-		if !strings.Contains(string(output), "express") {
-			if err := installExpress(); err != nil {
-				return err
-			}
-		} else {
-			return errors.New(string(output))
-		}
-	}
-
-	// link project with express global installation
-	cmd = exec.Cmd{
-		Path: nodeCLI,
-		Args: []string{nodeCLI, "link", "express"},
-		Dir:  buildDir,
-	}
-
-	return cmd.Run()
-}
-
-func installExpress() error {
-
-	// break if dependency have already been confirmed
-	if nodeServerInstalled {
-		return nil
-	}
-
-	log.Info("Installing build dependencies on your first run")
-
-	nodeCLI, err := exec.LookPath("npm")
-	if err != nil {
-		return err
-	}
-
-	// Install express module
-	cmd := exec.Cmd{
-		Path: nodeCLI,
-		Args: []string{nodeCLI, "install", "-g", "express"},
-	}
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return errors.New(string(output))
-	}
-
-	nodeServerInstalled = true
-
-	return nil
-}
-
-func installNPMDependencies() error {
-
-	log.Info("Installing dependencies of your functions")
-
-	nodeCLI, err := exec.LookPath("npm")
-	if err != nil {
-		return err
-	}
-
-	// Install express module
-	cmd := exec.Cmd{
-		Path: nodeCLI,
-		Args: []string{nodeCLI, "install"},
-		Dir:  buildDir,
-	}
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return errors.New(string(output))
-	}
-
-	// update the flag
-	npmDepInstalled = true
-
-	return nil
-}
-
-func ServeFuncs(cmd *cobra.Command, args []string) {
-
-	if !pathExists(nhost.API_DIR) {
-		log.Fatal("Functions directory not found")
-	}
-
-	prepareNode := false
-
-	// traverse through the directory
-	// and check if there's even a single JS/TS func
-	files, _ := os.ReadDir(nhost.API_DIR)
-	for _, item := range files {
-		if filepath.Ext(item.Name()) == ".js" || filepath.Ext(item.Name()) == ".ts" {
-			prepareNode = true
-			break
-		}
-	}
-
-	// if npm dependencies haven't been confirmed,
-	// just install them on first run
-	if prepareNode {
-
-		// detect package.json inside functions dir
-		buildDir = nhost.WORKING_DIR
-		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
-			buildDir = nhost.API_DIR
-		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
-			log.Error("neither a local, nor a root package.json found")
-			return
-		}
-
-		/*
-			if err := installNPMDependencies(); err != nil {
-				log.WithField("component", "server").Debug(err)
-				if strings.Contains(err.Error(), "permission denied") {
-					log.WithField("component", "server").Error("Restart server with sudo/root permission")
-				} else {
-					log.WithField("component", "server").Error("Dependencies required by your functions could not be installed")
-				}
-				removeTemp()
-			}
-
-			// if express has been validated before,
-			// skip validation to save execution time
-			if err := validateExpress(); err != nil {
-				log.WithField("component", "server").Debug(err)
-				if strings.Contains(err.Error(), "permission denied") {
-					log.WithField("component", "server").Error("Restart server with sudo/root permission")
-				} else {
-					log.WithField("component", "server").Error("Required build dependencies could not be installed")
-				}
-				removeTemp()
-			}
-		*/
-	}
-
-	http.HandleFunc("/", handler)
-	if contains(args, "inform") {
-		log.Info("Nhost functions serving at: http://localhost:", funcPort)
-	}
-	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
-		log.WithField("component", "server").Debug(err)
-		log.WithField("component", "server").Error("Failed to serve the functions")
-		return
 	}
 }
 
@@ -483,29 +370,53 @@ func (function *Function) BuildNodePackage() error {
 		return errors.New(result.Errors[0].Text)
 	}
 
-	// add function to NodeJS server config
-	nodeServerCode = fmt.Sprintf(`
-const express = require('%s');
-const app = express();
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.disable('x-powered-by');
-
-let func;
-const requiredFile = require('%s')
-
-if (typeof requiredFile === "function") {
-	func = requiredFile;
-} else if (typeof requiredFile.default === "function") {
-	func = requiredFile.default;
-} else {
-	return;
+	return nil
 }
 
-app.all('%s', func);
-	
-app.listen(%d);`, filepath.Join(buildDir, "node_modules", "express"), function.Build, function.Route, jsPort)
+func (function *Function) BuildNodeServer(port int) error {
+
+	// add function to NodeJS server config
+	nodeServerCode := fmt.Sprintf(`
+		const express = require('%s');
+		const app = express();
+		
+		app.use(express.json());
+		app.use(express.urlencoded({ extended: true }));
+		app.disable('x-powered-by');
+		
+		let func;
+		const requiredFile = require('%s')
+		
+		if (typeof requiredFile === "function") {
+			func = requiredFile;
+		} else if (typeof requiredFile.default === "function") {
+			func = requiredFile.default;
+		} else {
+			return;
+		}
+		
+		app.all('%s', func);
+			
+		app.listen(%d);`, filepath.Join(buildDir, "node_modules", "express"), function.Build, function.Route, port)
+
+	// save the nodeJS server config
+	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
+	if err != nil {
+		log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
+		return err
+	}
+
+	// save the server file location
+	function.ServerConfig = file.Name()
+
+	defer file.Close()
+
+	if _, err := file.Write([]byte(nodeServerCode)); err != nil {
+		log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
+		return err
+	}
+
+	file.Sync()
 
 	return nil
 }
@@ -520,26 +431,6 @@ func (function *Function) Prepare() error {
 		if err := function.BuildNodePackage(); err != nil {
 			return err
 		}
-
-		// save the nodeJS server config
-		// file, err := os.Create(function.ServerConfig)
-		file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
-		if err != nil {
-			log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
-			return err
-		}
-
-		// save the server file location
-		function.ServerConfig = file.Name()
-
-		defer file.Close()
-
-		if _, err := file.Write([]byte(nodeServerCode)); err != nil {
-			log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
-			return err
-		}
-
-		file.Sync()
 
 		// save the handler
 		function.Handler = router
@@ -584,22 +475,35 @@ func router(w http.ResponseWriter, r *http.Request) {
 	var resp *http.Response
 
 	buf, _ := ioutil.ReadAll(r.Body)
+	/*
+		ctx, cancel := context.WithCancel(r.Context())
+		defer cancel()
+	*/
+
 	req, _ := http.NewRequestWithContext(
 		r.Context(),
 		r.Method,
-		fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path),
+		r.URL.String(),
 		bytes.NewBuffer(buf),
 	)
 
 	req.Header = r.Header
 	q := r.URL.Query()
 	req.URL.RawQuery = q.Encode()
-	client := &http.Client{
-		Transport: &http.Transport{},
-	}
+	/*
+		client := &http.Client{
+			Transport: &http.Transport{
+				// DisableKeepAlives:   true,
+				MaxIdleConns:        0,
+				MaxIdleConnsPerHost: 0,
+				MaxConnsPerHost:     0,
+			},
+			Timeout: time.Second * 5,
+		}
+	*/
 
 	for {
-		resp, err = client.Do(req)
+		resp, err = http.DefaultClient.Do(req)
 		if _, ok := err.(net.Error); ok {
 			time.Sleep(60 * time.Millisecond)
 		} else {

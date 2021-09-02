@@ -162,6 +162,7 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 	}
 
 	migrationTables := getMigrationTables(schemas, metadata.Tables)
+	fmt.Println(migrationTables)
 
 	/*
 		// fetch migrations

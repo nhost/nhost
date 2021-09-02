@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"strings"
 
@@ -58,9 +57,9 @@ already running Nhost service containers.`,
 		services := []Option{
 			{Key: "Database", Value: "postgres"},
 			{Key: "GraphQL Engine", Value: "hasura"},
-			{Key: "Hasura Backend Plus", Value: "hbp"},
+			{Key: "Authentication", Value: "auth"},
 			{Key: "Storage", Value: "minio"},
-			{Key: "API", Value: "api"},
+			{Key: "Mailhog", Value: "mailhog"},
 		}
 
 		var options []types.Container
@@ -81,7 +80,7 @@ already running Nhost service containers.`,
 		}
 
 		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, nhost.PROJECT)
+		containers, err := getContainers(docker, ctx, nhost.PREFIX)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
@@ -96,7 +95,7 @@ already running Nhost service containers.`,
 
 		for _, service := range services {
 			for _, container := range containers {
-				if strings.Contains(container.Names[0], service.Value) {
+				if strings.Contains(container.Names[0], getContainerName(service.Value)) {
 					options = append(options, container)
 				}
 			}
@@ -108,7 +107,7 @@ already running Nhost service containers.`,
 			for _, item := range services {
 				if service == item.Value {
 					for _, container := range containers {
-						if strings.Contains(container.Names[0], item.Value) {
+						if strings.Contains(container.Names[0], getContainerName(item.Value)) {
 							selectedContainer = container
 						}
 					}
@@ -158,27 +157,11 @@ already running Nhost service containers.`,
 			log.WithField("service", service).Error("Failed to execute the command.")
 
 			if len(result.StdErr) > 0 {
-				fmt.Println(result.StdErr)
-
-				// if log file is passed - save the output
-				if LOG_FILE != "" {
-					if err = writeToFile(LOG_FILE, result.StdErr, "end"); err != nil {
-						log.WithField("service", service).Error("Failed to save the error logs")
-					}
-				}
+				os.Stderr.Write([]byte(result.StdErr))
 			}
 		}
 
-		if len(result.StdOut) > 0 {
-			fmt.Println(result.StdOut)
-
-			// if log file is passed - save the output
-			if LOG_FILE != "" {
-				if err = writeToFile(LOG_FILE, result.StdOut, "end"); err != nil {
-					log.WithField("service", service).Error("Failed to save the output logs")
-				}
-			}
-		}
+		os.Stdout.Write([]byte(result.StdOut))
 	},
 }
 

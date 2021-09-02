@@ -48,6 +48,52 @@ type Template struct {
 	Value string
 }
 
+var entities = []Entity{
+	{
+		Name:        "Web or Front-end",
+		Value:       "web",
+		Destination: nhost.WEB_DIR,
+		Source:      "github.com/nhost/nhost/templates/",
+		Templates: []Template{
+			{Name: "NuxtJs", Value: "nuxt"},
+			{Name: "NextJs", Value: "next"},
+			{Name: "ReactJs", Value: "react"},
+		},
+		NextSteps: "Use `cd web && npm install`",
+		Manual:    "git clone github.com/nhost/nhost/templates/" + choice,
+	},
+	{
+		Name:        "Functions",
+		Value:       "functions",
+		Destination: nhost.API_DIR,
+		Source:      "github.com/nhost/nhost/templates/functions/",
+		Templates: []Template{
+			{Name: "Golang", Value: "go"},
+			{Name: "NodeJs", Value: "node"},
+		},
+		NextSteps: "Use `cd functions && npm i && npm i express`",
+		Manual:    "git clone github.com/nhost/nhost/templates/functions/" + choice,
+	},
+	{
+		Name:        "Emails",
+		Value:       "emails",
+		Destination: nhost.EMAILS_DIR,
+		Source:      "github.com/nhost/hasura-auth/email-templates/",
+		/*
+			Templates: []Template{
+				{Name: "Passwordless", Value: "passwordless"},
+				{Name: "Reset Email", Value: "reset-email"},
+				{Name: "Reset Password", Value: "reset-password"},
+				{Name: "Verify Email", Value: "verify-email"},
+			},
+		*/
+		Manual: "git clone github.com/nhost/hasura-auth/email-templates/" + choice,
+	},
+	{
+		Name: "Skip",
+	},
+}
+
 // templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
 	Use:     "templates",
@@ -62,52 +108,6 @@ And you can immediately start developing on that template.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var selected Entity
-
-		entities := []Entity{
-			{
-				Name:        "Web or Front-end",
-				Value:       "web",
-				Destination: nhost.WEB_DIR,
-				Source:      "github.com/nhost/nhost/templates/",
-				Templates: []Template{
-					{Name: "NuxtJs", Value: "nuxt"},
-					{Name: "NextJs", Value: "next"},
-					{Name: "ReactJs", Value: "react"},
-				},
-				NextSteps: "Use `cd web && npm install`",
-				Manual:    "git clone github.com/nhost/nhost/templates/" + choice,
-			},
-			{
-				Name:        "Functions",
-				Value:       "functions",
-				Destination: nhost.API_DIR,
-				Source:      "github.com/nhost/nhost/templates/functions/",
-				Templates: []Template{
-					{Name: "Golang", Value: "go"},
-					{Name: "NodeJs", Value: "node"},
-				},
-				NextSteps: "Use `cd functions && npm i && npm i express`",
-				Manual:    "git clone github.com/nhost/nhost/templates/functions/" + choice,
-			},
-			{
-				Name:        "Emails",
-				Value:       "emails",
-				Destination: nhost.EMAILS_DIR,
-				Source:      "github.com/nhost/hasura-auth/email-templates/en/",
-				/*
-					Templates: []Template{
-						{Name: "Passwordless", Value: "passwordless"},
-						{Name: "Reset Email", Value: "reset-email"},
-						{Name: "Reset Password", Value: "reset-password"},
-						{Name: "Verify Email", Value: "verify-email"},
-					},
-				*/
-				Manual: "git clone github.com/nhost/hasura-auth/email-templates/en/" + choice,
-			},
-			{
-				Name: "Skip",
-			},
-		}
 
 		// configure interactive prompt template
 		promptTemplate := promptui.SelectTemplates{
@@ -188,25 +188,11 @@ And you can immediately start developing on that template.`,
 			}
 		}
 
-		// initialize hashicorp go-getter client
-		client := &getter.Client{
-			Ctx: context.Background(),
-			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-			Dst:  selected.Destination,
-			Dir:  true,
-			Src:  selected.Source,
-			Mode: getter.ClientModeDir,
-			//define the type of detectors go getter should use, in this case only github is needed
-			Detectors: []getter.Detector{
-				&getter.GitHubDetector{},
-			},
-		}
-
 		// append the chosen result template to source URL
-		client.Src += choice
+		selected.Source += choice
 
-		//download the files
-		if err := client.Get(); err != nil {
+		// clone the data
+		if err := clone(selected.Source, selected.Destination); err != nil {
 			log.WithField("compnent", selected.Value).Debug(err)
 			log.WithField("compnent", selected.Value).Error("Failed to clone template")
 			log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
@@ -230,6 +216,25 @@ And you can immediately start developing on that template.`,
 			log.Info(selected.NextSteps)
 		}
 	},
+}
+
+func clone(src, dest string) error {
+
+	// initialize hashicorp go-getter client
+	client := &getter.Client{
+		Ctx: context.Background(),
+		//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
+		Dst:  dest,
+		Dir:  true,
+		Src:  src,
+		Mode: getter.ClientModeDir,
+		//define the type of detectors go getter should use, in this case only github is needed
+		Detectors: []getter.Detector{
+			&getter.GitHubDetector{},
+		},
+	}
+
+	return client.Get()
 }
 
 /*

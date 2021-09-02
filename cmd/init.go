@@ -25,13 +25,11 @@ SOFTWARE.
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/hashicorp/go-getter"
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
@@ -192,24 +190,15 @@ var initCmd = &cobra.Command{
 		}
 
 		// save the email templates
-		// initialize hashicorp go-getter client
-		client := &getter.Client{
-			Ctx: context.Background(),
-			//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-			Dst:  nhost.EMAILS_DIR,
-			Dir:  true,
-			Src:  "github.com/nhost/hasura-auth/email-templates/en/",
-			Mode: getter.ClientModeDir,
-			//define the type of detectors go getter should use, in this case only github is needed
-			Detectors: []getter.Detector{
-				&getter.GitHubDetector{},
-			},
-		}
+		for _, item := range entities {
+			if item.Value == "emails" {
 
-		//download the files
-		if err := client.Get(); err != nil {
-			log.WithField("compnent", "email-templates").Debug(err)
-			log.WithField("compnent", "email-templates").Error("Failed to clone template")
+				//download the files
+				if err := clone(item.Source, item.Destination); err != nil {
+					log.WithField("compnent", "email-templates").Debug(err)
+					log.WithField("compnent", "email-templates").Error("Failed to clone template")
+				}
+			}
 		}
 
 		// create or append to .gitignore
@@ -225,8 +214,8 @@ var initCmd = &cobra.Command{
 		if _, err = f.WriteString(
 			fmt.Sprintf("%v\n%v\n%v",
 				filepath.Base(nhost.DOT_NHOST),
-				filepath.Join("api", "node_modules"),
-				filepath.Join("web", "node_modules"))); err != nil {
+				filepath.Join(nhost.API_DIR, "node_modules"),
+				filepath.Join(nhost.WEB_DIR, "node_modules"))); err != nil {
 			log.Debug(err)
 			log.Error("Failed to write to .gitignore file")
 		}

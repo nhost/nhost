@@ -118,7 +118,7 @@ func (c *Client) GetSchemas() ([]string, error) {
 		return response, err
 	}
 
-	resp, err := c.Request(body)
+	resp, err := c.Request(body, "/v1/query")
 	if err != nil {
 		return response, err
 	}
@@ -170,7 +170,7 @@ func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
 		return response, err
 	}
 
-	resp, err := c.Request(body)
+	resp, err := c.Request(body, "/v1/metadata")
 	if err != nil {
 		return response, err
 	}
@@ -180,6 +180,8 @@ func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
 	if err != nil {
 		return response, err
 	}
+
+	// fmt.Println(string(body))
 
 	return UnmarshalHasuraMetadataV2(body)
 }
@@ -199,7 +201,7 @@ func (c *Client) ClearMigration() error {
 		return err
 	}
 
-	resp, err := c.Request(body)
+	resp, err := c.Request(body, "/v1/query")
 	if err != nil {
 		return err
 	}
@@ -228,7 +230,7 @@ func (c *Client) GetExtensions() ([]string, error) {
 		return response, err
 	}
 
-	resp, err := c.Request(body)
+	resp, err := c.Request(body, "/v1/query")
 	if err != nil {
 		return response, err
 	}
@@ -282,7 +284,7 @@ func (c *Client) Track(table TableEntry) error {
 		return err
 	}
 
-	resp, err := c.Request(marshalledBody)
+	resp, err := c.Request(marshalledBody, "/v1/query")
 	if err != nil {
 		return err
 	}

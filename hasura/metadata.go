@@ -1001,6 +1001,20 @@ type HasuraMetadataV2 struct {
 	Version          float64                `json:"version"`
 }
 
+type HasuraMetadataV3 struct {
+	ActionsGraphQL []Action `json:"actions.graphql"`
+	ActionsYAML    []Action `json:"actions.yaml"`
+
+	Allowlist    []AllowList
+	CronTriggers []CronTrigger
+	// CustomTypes      *CustomTypes           `json:"custom_types,omitempty"`
+	Functions        []CustomFunction       `json:"functions"`
+	QueryCollections []QueryCollectionEntry `json:"query_collections"`
+	RemoteSchemas    []RemoteSchema         `json:"remote_schemas"`
+	Tables           []TableEntry           `json:"tables"`
+	Version          float64                `json:"version"`
+}
+
 //
 // https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/actions.html#args-syntax
 type Action struct {

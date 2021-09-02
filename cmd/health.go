@@ -118,7 +118,7 @@ func Diagnose(options nhost.Configuration, docker *client.Client, ctx context.Co
 	}
 
 	// fetch list of all running containers
-	containers, err := getContainers(docker, ctx, "nhost")
+	containers, err := getContainers(docker, ctx, nhost.PREFIX)
 	if err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to fetch running containers")

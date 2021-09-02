@@ -22,11 +22,11 @@ func (r *RequestBody) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-func (c *Client) Request(body []byte) (*http.Response, error) {
+func (c *Client) Request(body []byte, path string) (*http.Response, error) {
 
 	req, err := http.NewRequest(
 		http.MethodPost,
-		c.Endpoint+"/v1/query",
+		c.Endpoint+path,
 		bytes.NewBuffer(body),
 	)
 	if err != nil {
@@ -35,7 +35,7 @@ func (c *Client) Request(body []byte) (*http.Response, error) {
 
 	req.Header.Set("X-Hasura-Admin-Secret", c.AdminSecret)
 
-	if len(body) > 0 {
+	if body != nil {
 		req.Header.Set("Content-Type", "application/json")
 	}
 

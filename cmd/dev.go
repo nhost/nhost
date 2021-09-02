@@ -42,6 +42,7 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/container"
@@ -56,24 +57,45 @@ import (
 
 var (
 	port string
+
+	// JWT Key for the dev env
+	jwtKey string
+
+	// Nhost services configuration
+	configuration nhost.Configuration
+
+	// runtime environment variables
+	envVars []string
+
+	// proxy mux
+	mux = http.NewServeMux()
+
+	// reverse proxy server
+	proxy *http.Server
+
+	// signal interruption channel
+	stop = make(chan os.Signal)
 )
 
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
-	Use:     "dev",
+	Use:     "dev [-p port]",
 	Aliases: []string{"d"},
 	Short:   "Start local development environment",
 	Long:    `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		// initialize the proxy server
+		proxy = &http.Server{Addr: ":" + port, Handler: mux}
+
 		var end_waiter sync.WaitGroup
 		end_waiter.Add(1)
 
 		// add cleanup action in case of signal interruption
-		c := make(chan os.Signal)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		go func() {
-			<-c
+			<-stop
 			cleanup(cmd)
 		}()
 
@@ -87,14 +109,28 @@ var devCmd = &cobra.Command{
 
 func cleanup(cmd *cobra.Command) {
 	log.Warn("Please wait while we cleanup")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	proxy.Shutdown(ctx)
 	downCmd.Run(cmd, []string{"exit"})
 }
 
 func execute(cmd *cobra.Command, args []string) {
 
+	// if environment variables haven't been loaded
+	// then load them from .env.development
+	if len(envVars) == 0 {
+		envVars, _ = nhost.Env()
+	}
+
+	// generate fresh JWT key for GraphQL
+	if len(jwtKey) == 0 {
+		jwtKey = generateRandomKey()
+	}
+
 	// check if /nhost exists
 	if !pathExists(nhost.NHOST_DIR) {
-		log.Info("Initialize a project by running 'nhost' or 'nhost init'")
+		log.Info("Initialize a project by running 'nhost'")
 		log.Fatal("Project not found in this directory")
 	}
 
@@ -138,21 +174,24 @@ func execute(cmd *cobra.Command, args []string) {
 		log.Fatal("Failed to read Nhost config")
 	}
 
+	configuration = nhostConfig
+
 	// generate Nhost service containers' configurations
-	nhostServices, err := getContainerConfigs(docker, nhostConfig)
+	nhostServices, err := getContainerConfigs(docker)
 	if err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to generate container configurations")
 	}
 
 	// create the Nhost network if it doesn't exist
-	networkID, err := prepareNetwork(docker, ctx, nhost.PROJECT)
+	networkID, err := prepareNetwork(docker, ctx, nhost.PREFIX)
 	if err != nil {
 		log.Debug(err)
 		log.WithFields(logrus.Fields{
 			"type":    "network",
-			"network": nhost.PROJECT,
-		}).Debug("Failed to prepare network")
+			"network": nhost.PREFIX,
+		}).Error("Failed to prepare network")
+		cleanup(cmd)
 	}
 
 	// create and start the conatiners
@@ -175,23 +214,13 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	log.Info("Running a quick health check on services")
-	if err := Diagnose(nhostConfig, docker, ctx); err != nil {
+	if err := Diagnose(configuration, docker, ctx); err != nil {
 		log.Debug(err)
 		log.WithField("stage", "health").Error("Diagnosis failed")
 		cleanup(cmd)
 	}
 
-	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
-
-	/*
-		// wait for graphQL engine to become healthy
-		hasuraContainerName := getContainerName("hasura")
-		log.WithField("container", hasuraContainerName).Info("Waiting for GraphQL engine to become active")
-		if ok := checkServiceHealth(hasuraContainerName, fmt.Sprintf("%v/healthz", hasuraEndpoint)); !ok {
-			log.WithField("container", hasuraContainerName).Error("GraphQL engine health check failed")
-			downCmd.Run(cmd, []string{"exit"})
-		}
-	*/
+	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, configuration.Services["hasura"].Port)
 
 	// prepare and load required binaries
 	hasuraCLI, _ := hasura.Binary()
@@ -200,7 +229,7 @@ func execute(cmd *cobra.Command, args []string) {
 		"--endpoint",
 		hasuraEndpoint,
 		"--admin-secret",
-		fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret),
+		fmt.Sprint(configuration.Services["hasura"].AdminSecret),
 		"--skip-update-check",
 	}
 
@@ -219,26 +248,19 @@ func execute(cmd *cobra.Command, args []string) {
 	services := []Service{
 		{
 			Name:    "GraphQL",
-			Address: fmt.Sprintf("http://localhost:%v/v1/graphql", nhostConfig.Services["hasura"].Port),
+			Address: fmt.Sprintf("http://localhost:%v/v1/graphql", configuration.Services["hasura"].Port),
 			Handle:  "/graphql",
 		},
 		{
 			Name:    "Authentication",
-			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["auth"].Port),
+			Address: fmt.Sprintf("http://localhost:%v", configuration.Services["auth"].Port),
 			Handle:  "/auth/",
 		},
 		{
 			Name:    "Storage",
-			Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["storage"].Port),
+			Address: fmt.Sprintf("http://localhost:%v", configuration.Services["storage"].Port),
 			Handle:  "/storage/",
 		},
-		/*
-			{
-				Name:    "Minio",
-				Address: fmt.Sprintf("http://localhost:%v", nhostConfig.Services["minio"].Port),
-				Handle:  "/minio/",
-			},
-		*/
 	}
 
 	// if functions exist,
@@ -246,7 +268,7 @@ func execute(cmd *cobra.Command, args []string) {
 	if pathExists(nhost.API_DIR) {
 
 		// run the functions command
-		go ServeFuncs(cmd, args)
+		go ServeFuncs(cmd, []string{"do_not_inform"})
 		services = append(services, Service{
 			Name:    "Functions",
 			Address: fmt.Sprintf("http://localhost:%v", funcPort),
@@ -271,7 +293,7 @@ func execute(cmd *cobra.Command, args []string) {
 			"--endpoint",
 			hasuraEndpoint,
 			"--admin-secret",
-			fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret),
+			fmt.Sprint(configuration.Services["hasura"].AdminSecret),
 			"--console-port",
 			fmt.Sprint(nhost.GetPort(9301, 9400)),
 		},
@@ -281,82 +303,20 @@ func execute(cmd *cobra.Command, args []string) {
 	go hasuraConsoleSpawnCmd.Run()
 
 	// launch mailhog UI
-	go openbrowser(fmt.Sprintf("http://localhost:%v", nhostConfig.Services["mailhog"].Port))
+	go openbrowser(fmt.Sprintf("http://localhost:%v", configuration.Services["mailhog"].Port))
 
 	log.Warn("Use Ctrl + C to stop running evironment")
 
 	// launch proxy
 	go func() {
-		if err := http.ListenAndServe(":"+port, nil); err != nil {
-			log.WithField("component", "server").Debug(err)
-			log.WithField("component", "server").Error("Failed to start proxy")
-			cleanup(cmd)
+		if err := proxy.ListenAndServe(); err != nil {
+			if err == http.ErrServerClosed {
+				log.WithField("component", "proxy").Debug("Shutdown")
+			} else {
+				log.WithField("component", "proxy").Debug(err)
+			}
 		}
 	}()
-
-	/*
-
-		// attach a watcher to the API conatiner's package.json
-		// to provide live reload functionality
-
-		if pathExists(nhost.API_DIR) {
-
-			watcher, err := fsnotify.NewWatcher()
-			if err != nil {
-				log.Debug(err)
-				log.WithField("component", "watcher").Error("Failed to initialize live reload watcher")
-			}
-			defer watcher.Close()
-
-			// fetch the API container
-			APIContainerName := getContainerName("api")
-			containers, err := getContainers(docker, ctx, APIContainerName)
-			if err != nil {
-				log.WithField("container", APIContainerName).Debug(err)
-				log.WithField("container", APIContainerName).Error("Failed to fetch container")
-			}
-
-			container := containers[0]
-
-			go func() {
-				for {
-					select {
-					case event, ok := <-watcher.Events:
-						if !ok {
-							return
-						}
-						if event.Op&fsnotify.Write == fsnotify.Write {
-							log.WithField("file", filepath.Join(event.Name)).Debug("File modifed")
-							log.WithField("container", APIContainerName).Info("Restarting container")
-							if err = docker.ContainerRestart(ctx, container.ID, nil); err != nil {
-								log.WithField("container", APIContainerName).Debug(err)
-								log.WithField("container", APIContainerName).Error("Failed to restart container")
-							}
-						}
-					case err, ok := <-watcher.Errors:
-						if !ok {
-							return
-						}
-						log.WithField("container", APIContainerName).Error(err)
-					}
-				}
-			}()
-
-			// initialize locations to start watching
-			targets := map[string]string{
-				"api/package.json": filepath.Join(nhost.API_DIR, "package.json"),
-			}
-
-			for key, value := range targets {
-				err = watcher.Add(value)
-				if err != nil {
-					log.Debug(err)
-					log.WithField("target", key).Error("Failed to attach target for live reload")
-				}
-				log.WithField("target", key).Info("Target being watched for live reload")
-			}
-		}
-	*/
 }
 
 func prepareProxy(address, handle string) error {
@@ -369,9 +329,13 @@ func prepareProxy(address, handle string) error {
 	}
 
 	proxy := httputil.NewSingleHostReverseProxy(origin)
-	http.HandleFunc(handle, func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc(handle, func(w http.ResponseWriter, r *http.Request) {
 		r.URL.Path = strings.TrimPrefix(r.URL.Path, handle)
-		r = r.WithContext(context.Background())
+		/*
+			ctx, cancel := context.WithCancel(r.Context())
+			defer cancel()
+		*/
+		// r = r.WithContext(context.Background())
 
 		// route the req through proxy
 		proxy.ServeHTTP(w, r)
@@ -380,7 +344,7 @@ func prepareProxy(address, handle string) error {
 	return nil
 }
 
-func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error {
+func prepareData(hasuraCLI string, commandConfiguration []string, firstRun bool) error {
 
 	log.Debug("Prearing migrations and metadata")
 
@@ -397,7 +361,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	/*
 		// create migrations
 		cmdArgs = []string{hasuraCLI, "migrate", "apply"}
-		cmdArgs = append(cmdArgs, commandOptions...)
+		cmdArgs = append(cmdArgs, commandConfiguration...)
 
 		execute = exec.Cmd{
 			Path: hasuraCLI,
@@ -423,11 +387,11 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	// apply them too
 	if firstRun && len(seed_files) > 0 {
 
-		log.Debug("Applying seeds on first run")
+		log.Info("Applying seeds on first run")
 
 		// apply seed data
-		cmdArgs = []string{hasuraCLI, "seeds", "apply"}
-		cmdArgs = append(cmdArgs, commandOptions...)
+		cmdArgs = []string{hasuraCLI, "seeds", "apply", "--database-name", "default"}
+		cmdArgs = append(cmdArgs, commandConfiguration...)
 
 		execute = exec.Cmd{
 			Path: hasuraCLI,
@@ -456,7 +420,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 
 		// export metadata
 		cmdArgs = []string{hasuraCLI, "metadata", "export"}
-		cmdArgs = append(cmdArgs, commandOptions...)
+		cmdArgs = append(cmdArgs, commandConfiguration...)
 
 		execute = exec.Cmd{
 			Path: hasuraCLI,
@@ -478,7 +442,7 @@ func prepareData(hasuraCLI string, commandOptions []string, firstRun bool) error
 	/*
 		// apply metadata
 		cmdArgs = []string{hasuraCLI, "metadata", "apply"}
-		cmdArgs = append(cmdArgs, commandOptions...)
+		cmdArgs = append(cmdArgs, commandConfiguration...)
 
 		execute = exec.Cmd{
 			Path: hasuraCLI,
@@ -550,29 +514,29 @@ func contains(s []string, e string) bool {
 	return false
 }
 
-func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]map[string]interface{}, error) {
+func getContainerConfigs(client *client.Client) ([]map[string]interface{}, error) {
 
 	log.Debug("Preparing Nhost container configurations")
 
 	var containers []map[string]interface{}
 
 	// segregate configurations for different services
-	postgresConfig := options.Services["postgres"]
-	hasuraConfig := options.Services["hasura"]
-	storageConfig := options.Services["storage"]
-	authConfig := options.Services["auth"]
-	minioConfig := options.Services["minio"]
-	mailhogConfig := options.Services["mailhog"]
+	postgresConfig := configuration.Services["postgres"]
+	hasuraConfig := configuration.Services["hasura"]
+	storageConfig := configuration.Services["storage"]
+	authConfig := configuration.Services["auth"]
+	minioConfig := configuration.Services["minio"]
+	mailhogConfig := configuration.Services["mailhog"]
 
 	// check if a required image already exists
 	// if it doesn't which case -> then pull it
 
 	requiredImages := []string{}
-	for _, service := range options.Services {
+	for _, service := range configuration.Services {
 		requiredImages = append(requiredImages, fmt.Sprintf("%s:%v", service.Image, service.Version))
 	}
 
-	availableImages, err := getInstalledImages(client, context.Background())
+	availableImages, err := getInstalledImages(client)
 	if err != nil {
 		return containers, err
 	}
@@ -597,9 +561,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 			}
 		}
 	}
-
-	// load .env.development
-	envVars, _ := nhost.Env()
 
 	// create mount points if they doesn't exist
 	mountPoints := []mount.Mount{
@@ -659,9 +620,6 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 			Mounts: mountPoints,
 		},
 	}
-
-	// generate fresh JWT key for GraphQL
-	jwtKey := generateRandomKey()
 
 	// prepare env variables for following container
 	containerVariables := []string{
@@ -819,7 +777,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	}
 
 	// append social auth credentials and other env vars
-	containerVariables = append(containerVariables, appendEnvVars(options.Auth, "AUTH")...)
+	containerVariables = append(containerVariables, appendEnvVars(configuration.Auth, "AUTH")...)
 
 	// create mount point if it doesn't exit
 	customMountPoint := filepath.Join(nhost.DOT_NHOST, "custom", "keys")
@@ -878,7 +836,7 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	}
 
 	// append storage env vars
-	containerVariables = append(containerVariables, appendEnvVars(options.Storage, "STORAGE")...)
+	containerVariables = append(containerVariables, appendEnvVars(configuration.Storage, "STORAGE")...)
 
 	storageContainer := map[string]interface{}{
 		"name": getContainerName("storage"),
@@ -900,15 +858,18 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 	// prepare env variables for following container
 	containerVariables = []string{}
 	var smtpPort int
-	for key, value := range options.Auth["email"].(map[interface{}]interface{}) {
-		if value != "" {
-			if key.(string) == "smtp_host" {
-				containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), getContainerName(value.(string))))
-			} else {
-				containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
-			}
-			if key.(string) == "smtp_port" {
-				smtpPort = value.(int)
+	switch t := configuration.Auth["email"].(type) {
+	case map[interface{}]interface{}:
+		for key, value := range t {
+			if value != "" {
+				if key.(string) == "smtp_host" {
+					containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), getContainerName(value.(string))))
+				} else {
+					containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+				}
+				if key.(string) == "smtp_port" {
+					smtpPort = value.(int)
+				}
 			}
 		}
 	}
@@ -947,9 +908,9 @@ func getContainerConfigs(client *client.Client, options nhost.Configuration) ([]
 
 	return containers, err
 }
-func getInstalledImages(cli *client.Client, ctx context.Context) ([]types.ImageSummary, error) {
+func getInstalledImages(client *client.Client) ([]types.ImageSummary, error) {
 	log.Debug("Fetching available container images")
-	images, err := cli.ImageList(ctx, types.ImageListOptions{All: true})
+	images, err := client.ImageList(context.Background(), types.ImageListOptions{All: true})
 	return images, err
 }
 
@@ -958,7 +919,7 @@ func pullImage(cli *client.Client, tag string) error {
 	log.WithField("component", tag).Info("Pulling container image")
 
 	/*
-		out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
+		out, err := cli.ImagePull(context.Background(), tag, types.ImagePullConfiguration{})
 		out.Close()
 	*/
 
@@ -1021,7 +982,7 @@ func getOutboundIP() net.IP {
 }
 
 func getContainerName(name string) string {
-	return strings.Join([]string{"nhost", name}, "_")
+	return strings.Join([]string{nhost.PREFIX, name}, "_")
 }
 
 func init() {

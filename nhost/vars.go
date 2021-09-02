@@ -59,5 +59,5 @@ var (
 	REPOSITORY = "nhost/cli-go"
 
 	// initialize the project prefix
-	PROJECT = filepath.Base(WORKING_DIR)
+	PREFIX = "nhost"
 )
