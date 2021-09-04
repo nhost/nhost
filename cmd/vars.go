@@ -3,7 +3,7 @@ package cmd
 import (
 	"net/http"
 
-	"github.com/sirupsen/logrus"
+	"github.com/mrinalwahal/cli/logger"
 )
 
 const (
@@ -25,11 +25,8 @@ var (
 	Version string
 
 	cfgFile string
-	log     = logrus.New()
-	DEBUG   bool
-	JSON    bool
+	log     = &logger.Log
 
-	LOG_FILE = ""
-
-	Client = http.Client{}
+	Client      = http.Client{}
+	environment Environment
 )

@@ -1,4 +1,4 @@
-package formatter
+package logger
 
 import (
 	"bytes"

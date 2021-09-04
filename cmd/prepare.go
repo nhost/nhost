@@ -16,44 +16,68 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
 	"io/ioutil"
-	"os"
 	"path/filepath"
-	"strings"
 
-	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
 
 // prepareCmd represents the prepare command
 var prepareCmd = &cobra.Command{
-	Use:     "prepare",
-	Aliases: []string{"pre"},
-	Short:   "Prepare your project for deployment",
-	Long: `Run validation checks on your codebase,
-ensure seed data for all enum tables is ready inside migrations,
-and just in general run extra checks to prepare your project for deployment.`,
+	Use:     "seed",
+	Aliases: []string{"seeds"},
+	Short:   "Apply seeds on your database",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		nhostConfig, err := nhost.Config()
-		if err != nil {
+		environment.Seed()
+
+	},
+}
+
+func (e *Environment) Seed() {
+
+	/* 	// intialize common options
+	   	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, configuration.Services["hasura"].Port)
+	   	adminSecret := fmt.Sprint(configuration.Services["hasura"].AdminSecret)
+
+	   	// create new hasura client
+	   	client := hasura.Client{
+	   		Endpoint:    hasuraEndpoint,
+	   		AdminSecret: adminSecret,
+	   		Client:      &Client,
+	   	}
+	*/
+	seed_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
+	if err != nil {
+		log.Fatal("Failed to read seeds directory")
+	}
+
+	// if there are more seeds than just enum tables,
+	// apply them too
+	for _, item := range seed_files {
+
+		// read seed file
+		data, _ := ioutil.ReadFile(filepath.Join(nhost.SEEDS_DIR, item.Name()))
+
+		// apply seed data
+		if err := e.Hasura.Seed(string(data)); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to read Nhost config")
+			log.WithField("component", "seeds").Error("Failed to apply: ", item.Name())
 		}
+		/*
+			cmdArgs = []string{hasuraCLI, "seed", "apply", "--database-name", "default"}
+			cmdArgs = append(cmdArgs, commandConfiguration...)
+			execute.Args = cmdArgs
 
-		// intialize common options
-		hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, nhostConfig.Services["hasura"].Port)
-		adminSecret := fmt.Sprint(nhostConfig.Services["hasura"].AdminSecret)
+			if err = execute.Run(); err != nil {
+				log.Error("Failed to apply seeds")
+				return err
+			}
+		*/
+	}
 
-		// create new hasura client
-		client := hasura.Client{
-			Endpoint:    hasuraEndpoint,
-			AdminSecret: adminSecret,
-			Client:      &Client,
-		}
-
+	/*
 		// fetch metadata
 		metadata, err := client.GetMetadata()
 		if err != nil {
@@ -80,7 +104,7 @@ and just in general run extra checks to prepare your project for deployment.`,
 				if migrationName == expectedName {
 
 					// get the seed data for this table
-					seedData, err := client.Seeds([]hasura.TableEntry{item})
+					seedData, err := client.ApplySeeds([]hasura.TableEntry{item})
 					if err != nil {
 						log.Debug(err)
 						log.WithField("component", item.Table.Name).Error("Failed to get seeds for enum table")
@@ -112,13 +136,11 @@ and just in general run extra checks to prepare your project for deployment.`,
 				}
 			}
 		}
-
-		log.Info("You are all set to deploy this project! Hurray!")
-	},
+	*/
 }
 
 func init() {
-	rootCmd.AddCommand(prepareCmd)
+	// rootCmd.AddCommand(prepareCmd)
 
 	// Here you will define your flags and configuration settings.
 

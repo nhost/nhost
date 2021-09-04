@@ -79,7 +79,7 @@ utility and upgrade to it.`,
 		}
 
 		if release.TagName == Version {
-			log.WithField("component", release.TagName).Info("You already have the latest version. Hurray!")
+			log.WithField("component", release.TagName).Info("You have the latest version. Hurray!")
 		} else {
 			log.WithField("component", release.TagName).Info("Downloading new version")
 

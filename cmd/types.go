@@ -1,9 +1,14 @@
 package cmd
 
 import (
+	"context"
 	"io/fs"
 	"net/http"
 	"plugin"
+
+	"github.com/docker/docker/client"
+	"github.com/mrinalwahal/cli/hasura"
+	"github.com/mrinalwahal/cli/nhost"
 )
 
 type (
@@ -25,14 +30,6 @@ type (
 		HealthCheckEndpoint string
 	}
 
-	/*
-		// Container services
-		Services struct {
-			Containers map[string]Container `yaml:"services,omitempty"`
-			Version    string
-		}
-	*/
-
 	ExecResult struct {
 		StdOut   string
 		StdErr   string
@@ -48,5 +45,17 @@ type (
 		Build        string
 		ServerConfig string
 		Plugin       *plugin.Plugin
+	}
+
+	Environment struct {
+		Name    string
+		Active  bool
+		Port    int
+		HTTP    *http.Client
+		Hasura  *hasura.Client
+		Docker  *client.Client
+		Config  nhost.Configuration
+		Context context.Context
+		Network string
 	}
 )

@@ -16,6 +16,7 @@ type Client struct {
 	Endpoint    string
 	AdminSecret string
 	Client      *http.Client
+	CLI         string
 }
 
 func (r *RequestBody) Marshal() ([]byte, error) {

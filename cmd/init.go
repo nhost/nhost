@@ -119,7 +119,8 @@ var initCmd = &cobra.Command{
 					log.Errorf("Remote project with name %v not found", remoteProject)
 
 					// reset the created directories
-					resetCmd.Run(cmd, []string{"exit"})
+					purgeCmd.Run(cmd, args)
+					os.Exit(0)
 				}
 			} else {
 
@@ -189,14 +190,14 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		// save the email templates
+		// save the default templates
 		for _, item := range entities {
-			if item.Value == "emails" {
+			if item.Default {
 
 				//download the files
 				if err := clone(item.Source, item.Destination); err != nil {
-					log.WithField("compnent", "email-templates").Debug(err)
-					log.WithField("compnent", "email-templates").Error("Failed to clone template")
+					log.WithField("compnent", "templates").Debug(err)
+					log.WithField("compnent", "templates").Error("Failed to clone template")
 				}
 			}
 		}

@@ -80,7 +80,7 @@ already running Nhost service containers.`,
 		}
 
 		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, nhost.PREFIX)
+		containers, err := environment.GetContainers()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
@@ -95,7 +95,7 @@ already running Nhost service containers.`,
 
 		for _, service := range services {
 			for _, container := range containers {
-				if strings.Contains(container.Names[0], getContainerName(service.Value)) {
+				if strings.Contains(container.Names[0], nhost.GetContainerName(service.Value)) {
 					options = append(options, container)
 				}
 			}
@@ -107,7 +107,7 @@ already running Nhost service containers.`,
 			for _, item := range services {
 				if service == item.Value {
 					for _, container := range containers {
-						if strings.Contains(container.Names[0], getContainerName(item.Value)) {
+						if strings.Contains(container.Names[0], nhost.GetContainerName(item.Value)) {
 							selectedContainer = container
 						}
 					}

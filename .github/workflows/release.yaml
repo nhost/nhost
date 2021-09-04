@@ -41,10 +41,10 @@ jobs:
           binary_name: nhost
           ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}" -X "github.com/${{ github.repository }}/nhost.REPOSITORY=${{ github.repository }}"
 
-      #- name: Notify Community
-      #  uses: sarisia/actions-status-discord@v1
-      #  with:
-      #    webhook: ${{ secrets.DISCORD_WEBHOOK }}
-      #    nodetail: true
-      #    title: ${{ env.VERSION }} Realeased for CLI
-      #    description: Download it from [here](https://github.com/${{ github.repository }}/releases/tag/${{ env.VERSION }})
+      - name: Notify Community
+        uses: sarisia/actions-status-discord@v1
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          nodetail: true
+          title: CLI ${{ env.VERSION }} Realeased
+          description: Upgrade using `nhost upgrade`

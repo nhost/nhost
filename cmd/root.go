@@ -25,17 +25,12 @@ SOFTWARE.
 package cmd
 
 import (
-	"bytes"
-	"io"
-	"io/ioutil"
-	"os"
+	"fmt"
 	"path/filepath"
-	"time"
 
-	"github.com/mattn/go-colorable"
-	"github.com/mrinalwahal/cli/formatter"
+	"github.com/manifoldco/promptui"
+	"github.com/mrinalwahal/cli/logger"
 	"github.com/mrinalwahal/cli/nhost"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
@@ -69,52 +64,7 @@ var (
 			// otherwise applied permissions, might get affected
 			// resetUmask()
 
-			// initialize the logger for all commands,
-			// including subcommands
-
-			log.SetOutput(colorable.NewColorableStdout())
-
-			// initialize logger formatter
-			formatter := &formatter.Formatter{
-				HideKeys:      true,
-				ShowFullLevel: true,
-				FieldsOrder:   []string{"component", "category"},
-				Timestamps:    false,
-			}
-
-			// if DEBUG flag is true, show logger level to debug
-			if DEBUG {
-				log.SetLevel(logrus.DebugLevel)
-			}
-
-			// if JSON flag has been supplied,
-			// format the logs to JSON
-			if JSON {
-				log.SetFormatter(&logrus.JSONFormatter{
-					TimestampFormat: time.Stamp,
-				})
-			} else {
-
-				// otherwise set the pre-configured formatter
-				log.SetFormatter(formatter)
-			}
-
-			// if the user has specified a log write,
-			//simultaneously write logs to that file as well
-			// along with stdOut
-
-			if LOG_FILE != "" {
-
-				formatter.Timestamps = true
-				formatter.NoColors = true
-
-				logFile, err := os.OpenFile(LOG_FILE, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
-				if err != nil {
-					log.Fatal(err)
-				}
-				mw := io.MultiWriter(os.Stdout, logFile)
-				log.SetOutput(mw)
-			}
+			logger.Init()
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 
@@ -130,7 +80,25 @@ var (
 				initCmd.Run(cmd, args)
 
 				// offer to clone templates
-				templatesCmd.Run(cmd, args)
+				// templatesCmd.Run(cmd, args)
+				for _, item := range entities {
+					if !item.Default {
+						prompt := promptui.Prompt{
+							Label:     fmt.Sprintf("Do you want to install %s templates", item.Name),
+							IsConfirm: true,
+						}
+
+						_, err := prompt.Run()
+						if err != nil {
+							continue
+						}
+
+						entity = item.Value
+
+						// start the "templates" command
+						templatesCmd.Run(cmd, []string{"do_not_inform"})
+					}
+				}
 
 				// start the "dev" command
 				devCmd.Run(cmd, args)
@@ -146,9 +114,6 @@ var (
 func Execute() {
 
 	if err := rootCmd.Execute(); err != nil {
-		if !DEBUG {
-			log.Info("Use `--debug` flag to trace the logs next time")
-		}
 		log.Fatal(err)
 	}
 
@@ -178,7 +143,7 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nhost.yaml)")
 
-	rootCmd.PersistentFlags().BoolVarP(&JSON, "json", "j", false, "Print JSON formatted logs")
+	rootCmd.PersistentFlags().BoolVarP(&logger.JSON, "json", "j", false, "Print JSON formatted logs")
 	//rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
 	//rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 	//viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
@@ -191,8 +156,8 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.PersistentFlags().StringVarP(&LOG_FILE, "log-file", "f", "", "Write logs to given file")
-	rootCmd.PersistentFlags().BoolVarP(&DEBUG, "debug", "d", false, "Show debugging level logs")
+	rootCmd.PersistentFlags().StringVarP(&logger.LOG_FILE, "log-file", "f", "", "Write logs to given file")
+	rootCmd.PersistentFlags().BoolVarP(&logger.DEBUG, "debug", "d", false, "Show debugging level logs")
 }
 
 /*
@@ -205,61 +170,6 @@ func resetUmask() {
 	}
 }
 */
-
-// validates whether a given folder/file path exists or not
-func pathExists(filePath string) bool {
-	_, err := os.Stat(filePath)
-	return err == nil
-}
-
-// deletes the given file/folder path and unlink from filesystem
-func deletePath(path string) error {
-	os.Chmod(path, 0777)
-	return os.Remove(path)
-}
-
-// moves the given file/folder path to new location
-func movePath(source, destination string) error {
-	return os.Rename(source, destination)
-}
-
-// deletes all the paths leading to the given file/folder and unlink from filesystem
-func deleteAllPaths(path string) error {
-	os.Chmod(path, 0777)
-	return os.RemoveAll(path)
-}
-
-func writeToFile(filePath, data, position string) error {
-
-	// is position is anything else than start/end,
-	// or even blank, make it start
-	if position != "start" && position != "end" {
-		position = "end"
-	}
-
-	// open and read the contents of the file
-	f, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-
-	var buffer bytes.Buffer
-
-	buffer.WriteString(data)
-	s := buffer.String()
-	buffer.Reset()
-
-	// add rest of file data at required position i.e. start or end
-	if position == "start" {
-		buffer.WriteString(s + string(f))
-	} else {
-		buffer.WriteString(string(f) + s)
-	}
-
-	// write the data to the file
-	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)
-	return err
-}
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {

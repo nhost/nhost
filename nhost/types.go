@@ -1,5 +1,7 @@
 package nhost
 
+import "github.com/docker/docker/api/types/container"
+
 type (
 
 	// Authentication validation response
@@ -62,13 +64,22 @@ type (
 		Teams    []TeamData `json:",omitempty"`
 	}
 
+	// Session struct
+	Session struct {
+		Command string
+		Dir     string
+		Log     bool
+		Browser string
+	}
+
 	// Nhost config.yaml root structure
 	Configuration struct {
 		MetadataDirectory string                      `yaml:"metadata_directory,omitempty"`
-		Services          map[string]Service          `yaml:",omitempty"`
+		Services          map[string]*Service         `yaml:",omitempty"`
 		Auth              map[interface{}]interface{} `yaml:",omitempty"`
 		Storage           map[interface{}]interface{} `yaml:",omitempty"`
 		Version           int                         `yaml:",omitempty"`
+		Sessions          map[string]Session          `yaml:",omitempty"`
 		// Environment       map[string]interface{} `yaml:",omitempty"`
 	}
 
@@ -85,13 +96,18 @@ type (
 
 	// Nhost config.yaml service structure
 	Service struct {
-		Port int `yaml:",omitempty"`
-		// ConsolePort int         `yaml:"console_port,omitempty"`
-		Version interface{} `yaml:",omitempty"`
-		Image   string      `yaml:",omitempty"`
-		// User        string      `yaml:",omitempty"`
-		// Password    string      `yaml:",omitempty"`
-		AdminSecret interface{} `yaml:"admin_secret,omitempty"`
+		Port           int                   `yaml:",omitempty"`
+		Version        interface{}           `yaml:",omitempty"`
+		Image          string                `yaml:",omitempty"`
+		AdminSecret    interface{}           `yaml:"admin_secret,omitempty"`
+		Name           string                `yaml:",omitempty"`
+		Address        string                `yaml:",omitempty"`
+		ID             string                `yaml:",omitempty"`
+		Handle         string                `yaml:",omitempty"`
+		Proxy          bool                  `yaml:",omitempty"`
+		Config         *container.Config     `yaml:",omitempty"`
+		HostConfig     *container.HostConfig `yaml:",omitempty"`
+		HealthEndpoint string                `yaml:",omitempty"`
 	}
 
 	// .nhost/nhost.yaml information

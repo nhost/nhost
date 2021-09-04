@@ -41,6 +41,7 @@ type Entity struct {
 	Manual      string
 	Ignore      []string
 	Destination string
+	Default     bool
 }
 
 type Template struct {
@@ -77,6 +78,7 @@ var entities = []Entity{
 	{
 		Name:        "Emails",
 		Value:       "emails",
+		Default:     true,
 		Destination: nhost.EMAILS_DIR,
 		Source:      "github.com/nhost/hasura-auth/email-templates/",
 		/*
@@ -89,17 +91,14 @@ var entities = []Entity{
 		*/
 		Manual: "git clone github.com/nhost/hasura-auth/email-templates/" + choice,
 	},
-	{
-		Name: "Skip",
-	},
 }
 
 // templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
 	Use:     "templates",
 	Aliases: []string{"t"},
-	Short:   "Generate Nhost compatible front-end templates",
-	Long: `Choose from the provided list of front-end choices
+	Short:   "Clone Nhost compatible ready-made templates",
+	Long: `Choose from the provided list of framework choices
 and we will automatically initialize an Nhost compatible
 template in that choice for you with all the required
 Nhost modules and plugins.
@@ -122,21 +121,17 @@ And you can immediately start developing on that template.`,
 
 			// propose boilerplate options
 			boilerplatePrompt := promptui.Select{
-				Label:     "Clone a template",
+				Label:     "Choose a template",
 				Items:     entities,
 				Templates: &promptTemplate,
 			}
 
 			index, _, err := boilerplatePrompt.Run()
 			if err != nil {
-				log.Fatal("Aborted")
+				os.Exit(0)
 			}
 
-			if index == (len(entities) - 1) {
-				return
-			} else {
-				selected = entities[index]
-			}
+			selected = entities[index]
 
 		} else {
 
@@ -209,10 +204,12 @@ And you can immediately start developing on that template.`,
 			}
 		}
 
-		log.WithField("compnent", selected.Value).Info("Template cloned successfully")
+		if !contains(args, "do_not_inform") {
+			log.WithField("compnent", selected.Value).Info("Template cloned successfully")
+		}
 
 		// advise the user about next steps
-		if selected.NextSteps != "" {
+		if selected.NextSteps != "" && !contains(args, "do_not_inform") {
 			log.Info(selected.NextSteps)
 		}
 	},

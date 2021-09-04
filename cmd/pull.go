@@ -211,7 +211,7 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 		if len(enumTables) > 0 {
 
 			log.Debug("Appending enum table seeds to initial migration")
-			seeds, err := client.Seeds(enumTables)
+			seeds, err := client.ApplySeeds(enumTables)
 			if err != nil {
 				log.Debug("Failed to fetch seeds for enum tables")
 				return migration, err
@@ -340,14 +340,13 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 	metadataArgs = append(metadataArgs, commonOptions...)
 
 	execute := exec.Cmd{
-		Path: hasuraCLI,
-		Args: metadataArgs,
-		Dir:  nhost.NHOST_DIR,
+		Path:   hasuraCLI,
+		Args:   metadataArgs,
+		Dir:    nhost.NHOST_DIR,
+		Stderr: os.Stderr,
 	}
 
-	output, err := execute.CombinedOutput()
-	if err != nil {
-		log.Debug(string(output))
+	if err := execute.Run(); err != nil {
 		return migration, err
 	}
 

@@ -80,7 +80,7 @@ for the logged in user from Nhost console and present them.`,
 		}
 
 		// fetch list of all running containers
-		containers, err := getContainers(docker, ctx, nhost.PREFIX)
+		containers, err := environment.GetContainers()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch running containers")
@@ -93,7 +93,7 @@ for the logged in user from Nhost console and present them.`,
 
 		for _, service := range services {
 			for _, container := range containers {
-				if strings.Contains(container.Names[0], getContainerName(service.Value)) {
+				if strings.Contains(container.Names[0], nhost.GetContainerName(service.Value)) {
 					options = append(options, container)
 				}
 			}

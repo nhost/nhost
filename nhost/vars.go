@@ -3,9 +3,12 @@ package nhost
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/mrinalwahal/cli/logger"
 )
 
 var (
+	log = &logger.Log
 	API = "https://customapi.nhost.io"
 
 	// fetch current working directory
@@ -28,8 +31,11 @@ var (
 	// generate path for metadata
 	METADATA_DIR = filepath.Join(NHOST_DIR, "metadata")
 
+	// default Nhost database
+	DATABASE = "default"
+
 	// generate path for seeds
-	SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds")
+	SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds", DATABASE)
 
 	// generate path for frontend
 	WEB_DIR = filepath.Join(WORKING_DIR, "web")
@@ -60,4 +66,7 @@ var (
 
 	// initialize the project prefix
 	PREFIX = "nhost"
+
+	// initiaze JWT key for Hasura Authentication\
+	JWT_KEY = generateRandomKey()
 )

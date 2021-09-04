@@ -56,6 +56,9 @@ var (
 	// vars to store server state during each runtime
 	functions []Function
 	buildDir  string
+
+	// runtime environment variables
+	envVars []string
 )
 
 type GoPlugin struct {
@@ -103,6 +106,7 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	}
 
 	prepareNode := false
+	prepareGo := false
 
 	// traverse through the directory
 	// and check if there's even a single JS/TS func
@@ -111,6 +115,18 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		switch filepath.Ext(item.Name()) {
 		case ".js", ".ts":
 			prepareNode = true
+		case ".go":
+			prepareGo = true
+		}
+	}
+
+	// validate golang installation
+	if prepareGo {
+		if _, err := exec.LookPath("go"); err != nil {
+			log.Debug(err)
+			log.WithField("runtime", "Go").Error("Runtime not found")
+			log.WithField("runtime", "Go").Info("Install from:", "https://golang.org/doc/install")
+			return
 		}
 	}
 
@@ -118,16 +134,39 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	// just install them on first run
 	if prepareNode {
 
+		// first, check for runtime installation
+		if _, err := exec.LookPath("node"); err != nil {
+			log.Debug(err)
+			log.WithField("runtime", "NodeJS").Error("Runtime not found")
+			log.WithField("runtime", "NodeJS").Info("Install from:", "https://nodejs.org/en/download/")
+			return
+		}
+
 		// detect package.json inside functions dir
 		buildDir = nhost.WORKING_DIR
 		if pathExists(filepath.Join(nhost.API_DIR, "package.json")) {
 			buildDir = nhost.API_DIR
 		} else if !pathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
-			log.Error("neither a local, nor a root package.json found")
-			return
+			log.WithField("runtime", "NodeJS").Error("Neither a local, nor a root package.json found")
+			log.WithField("runtime", "NodeJS").Warn("Run `npm init && npm i` to use functions")
 		}
-
 	}
+
+	// assing important env vars during runtime
+	runtimeVars := []string{
+		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", environment.Config.Services["hasura"].AdminSecret),
+		fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
+	}
+
+	// set the runtime env vars
+	for _, item := range runtimeVars {
+		payload := strings.Split(item, "=")
+		os.Setenv(payload[0], payload[1])
+	}
+
+	// append the runtime env vars
+	envVars = append(envVars, runtimeVars...)
 
 	http.HandleFunc("/", handler)
 
@@ -138,7 +177,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
 		log.WithField("component", "server").Debug(err)
 	}
-
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -264,13 +302,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	// load .env.development
-	runtimeVars := []string{
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, jwtKey)),
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", configuration.Services["hasura"].AdminSecret),
-		fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
-	}
-
 	switch filepath.Ext(f.Path) {
 	case ".js", ".ts":
 
@@ -281,9 +312,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			log.WithField("runtime", "NodeJS").Error("Runtime not installed")
 			return
 		}
-
-		// append the runtime env vars
-		envVars = append(envVars, runtimeVars...)
 
 		// initialize random port to serve the file
 		jsPort := nhost.GetPort(9401, 9500)
@@ -327,12 +355,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 	case ".go":
-
-		// set the runtime env vars
-		for _, item := range runtimeVars {
-			payload := strings.Split(item, "=")
-			os.Setenv(payload[0], payload[1])
-		}
 
 		// serve
 		f.Handler(w, r)

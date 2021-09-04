@@ -8,18 +8,22 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
 
+	"github.com/mrinalwahal/cli/logger"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/sirupsen/logrus"
 )
 
 // initialize the binary path
 var binaryPath = getBinary()
+
+var log = &logger.Log
 
 func getBinary() string {
 	switch runtime.GOOS {
@@ -42,6 +46,11 @@ func Binary() (string, error) {
 	binary := "hasura"
 
 	version := "v2.0.0-alpha.11"
+
+	log.WithFields(logrus.Fields{
+		"type":    binary,
+		"version": version,
+	}).Debug("Fetching binary")
 
 	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, runtime.GOARCH)
 
@@ -162,8 +171,9 @@ func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
 	var response HasuraMetadataV2
 
 	reqBody := RequestBody{
-		Type: "export_metadata",
-		Args: map[string]string{},
+		Type:    "export_metadata",
+		Version: 2,
+		Args:    map[string]string{},
 	}
 	body, err := reqBody.Marshal()
 	if err != nil {
@@ -184,6 +194,39 @@ func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
 	// fmt.Println(string(body))
 
 	return UnmarshalHasuraMetadataV2(body)
+}
+
+func (c *Client) Seed(payload string) error {
+
+	log.Debug("Applying seeds")
+
+	reqBody := RequestBody{
+		Type: "run_sql",
+		Args: map[string]string{
+			"source": nhost.DATABASE,
+			"sql":    payload,
+		},
+	}
+
+	body, err := reqBody.Marshal()
+	if err != nil {
+		return err
+	}
+
+	resp, err := c.Request(body, "/v2/query")
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	response, _ := ioutil.ReadAll(resp.Body)
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(string(response))
+	}
+
+	return nil
 }
 
 func (c *Client) ClearMigration() error {
@@ -264,6 +307,11 @@ func (c *Client) GetExtensions() ([]string, error) {
 
 func (c *Client) Track(table TableEntry) error {
 
+	log.WithFields(logrus.Fields{
+		"component": table.Table.Name,
+		"value":     table.Table.Schema,
+	}).Debug("Tracking table")
+
 	//Encode the data
 	args := map[string]interface{}{
 		"schema": table.Table.Schema,
@@ -302,6 +350,78 @@ func (c *Client) Track(table TableEntry) error {
 	}
 
 	return errors.New(response.Error)
+}
+
+//
+// Performs default migrations and metadata operations
+//
+
+func (c *Client) Prepare() error {
+
+	log.Debug("Preparing migrations and metadata")
+
+	var (
+		execute = exec.Cmd{
+			Path:   c.CLI,
+			Dir:    nhost.NHOST_DIR,
+			Stderr: os.Stderr,
+		}
+
+		commandOptions = []string{
+			"--endpoint",
+			c.Endpoint,
+			"--admin-secret",
+			c.AdminSecret,
+			"--skip-update-check",
+		}
+	)
+
+	// If migrations directory is already mounted to nhost_hasura container,
+	// then Hasura must be auto-applying migrations
+	// hence, manually applying migrations doesn't make sense
+
+	/*
+		// create migrations
+		cmdArgs = []string{hasuraCLI, "migrate", "apply"}
+		cmdArgs = append(cmdArgs, commandConfiguration...)
+		execute.Args = cmdArgs
+
+		if err = execute.Run(); err != nil {
+			log.Error("Failed to apply migrations")
+			return err
+		}
+	*/
+
+	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
+	if err != nil {
+		return err
+	}
+
+	if len(metaFiles) == 0 {
+		execute.Args = append([]string{c.CLI, "metadata", "export"}, commandOptions...)
+		if err = execute.Run(); err != nil {
+			log.Error("Failed to export metadata")
+			return err
+		}
+	}
+
+	/*
+		// If metadata directory is already mounted to nhost_hasura container,
+		// then Hasura must be auto-applying metadata
+		// hence, manually applying metadata doesn't make sense
+
+			// apply metadata
+			cmdArgs = []string{hasuraCLI, "metadata", "apply"}
+			cmdArgs = append(cmdArgs, commandConfiguration...)
+			execute.Args = cmdArgs
+
+			if err = execute.Run(); err != nil {
+				log.Error("Failed to apply metadata")
+				return err
+			}
+	*/
+
+	return nil
 }
 
 /*
@@ -412,13 +532,17 @@ func (c *ClientCommonMetadataOps) GetInconsistentMetadataReader() (io.Reader, er
 
 func (c *Client) Migration(options []string) ([]byte, error) {
 
+	log.Debug("Performing migration")
+
 	pgDumpOpts := []string{"-x", "-O", "--schema-only"}
 	pgDumpOpts = append(pgDumpOpts, options...)
 
 	return c.PGDump(pgDumpOpts)
 }
 
-func (c *Client) Seeds(tables []TableEntry) ([]byte, error) {
+func (c *Client) ApplySeeds(tables []TableEntry) ([]byte, error) {
+
+	log.Debug("Applying seeds")
 
 	pgDumpOpts := []string{"--no-owner", "--no-acl", "--data-only", "--column-inserts"}
 	for _, table := range tables {
@@ -429,6 +553,8 @@ func (c *Client) Seeds(tables []TableEntry) ([]byte, error) {
 }
 
 func GetTablesFromLocalMetadata() ([]TableEntry, error) {
+
+	log.Debug("Fetching tables from local metadata")
 
 	var response []TableEntry
 
