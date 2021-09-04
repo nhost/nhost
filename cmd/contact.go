@@ -32,7 +32,7 @@ var (
 	issue   bool
 	chat    bool
 	discuss bool
-	wiki    bool
+	// wiki    bool
 
 	noBrowser bool
 )
@@ -65,11 +65,13 @@ Or even chat with our team and start a new discussion.`,
 				"value": fmt.Sprintf("https://github.com/%v/discussions/new", nhost.REPOSITORY),
 				"flag":  discuss,
 			},
-			{
-				"text":  "Advanced usage, deployment help, example apps & more",
-				"value": fmt.Sprintf("https://github.com/%v/wiki", nhost.REPOSITORY),
-				"flag":  wiki,
-			},
+			/*
+				{
+					"text":  "Advanced usage, deployment help, example apps & more",
+					"value": fmt.Sprintf("https://github.com/%v/wiki", nhost.REPOSITORY),
+					"flag":  wiki,
+				},
+			*/
 		}
 
 		// if the user has passed the flag for any option,
@@ -163,5 +165,5 @@ func init() {
 	reportCmd.Flags().BoolVar(&issue, "issue", false, "Open Issue on GitHub")
 	reportCmd.Flags().BoolVar(&chat, "chat", false, "Launch Nhost Discord Server")
 	reportCmd.Flags().BoolVar(&discuss, "discuss", false, "Launch GitHub Discussions")
-	reportCmd.Flags().BoolVar(&wiki, "wiki", false, "Launch wiki in browser")
+	// reportCmd.Flags().BoolVar(&wiki, "wiki", false, "Launch wiki in browser")
 }

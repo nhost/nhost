@@ -81,6 +81,12 @@ but without hurting existing Nhost projects on the system and their data.`,
 			log.Fatal("Failed to delete the installed binary from ", cli)
 		}
 
+		// remove NHOST ROOT Dir as well
+		if err := deletePath(nhost.ROOT); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to delete Nhost root directory", nhost.ROOT)
+		}
+
 		log.Info("Uninstall complete! We are sad to see you go :(")
 	},
 }

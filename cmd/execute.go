@@ -16,12 +16,15 @@ limitations under the License.
 package cmd
 
 import (
+	"bytes"
 	"context"
+	"io/ioutil"
 	"os"
 	"strings"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
+	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
@@ -48,42 +51,28 @@ already running Nhost service containers.`,
 			os.Exit(0)
 		}
 
-		// load the saved Nhost configuration
-		type Option struct {
-			Key   string
-			Value string
-		}
-
-		services := []Option{
-			{Key: "Database", Value: "postgres"},
-			{Key: "GraphQL Engine", Value: "hasura"},
-			{Key: "Authentication", Value: "auth"},
-			{Key: "Storage", Value: "minio"},
-			{Key: "Mailhog", Value: "mailhog"},
-		}
-
-		var options []types.Container
+		var err error
 
 		// connect to docker client
-		ctx := context.Background()
-		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		environment.Context = context.Background()
+		environment.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to connect to docker client")
 		}
-		defer docker.Close()
+		defer environment.Docker.Close()
 
 		// break execution if docker deamon is not running
-		_, err = docker.Info(ctx)
+		_, err = environment.Docker.Info(environment.Context)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// fetch list of all running containers
+		// get running containers with prefix "nhost_"
 		containers, err := environment.GetContainers()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to fetch running containers")
+			log.Fatal("Failed to shut down Nhost services")
 		}
 
 		// if no containers found - abort the execution
@@ -91,33 +80,26 @@ already running Nhost service containers.`,
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
 
-		log.WithField("docker", docker.ClientVersion()).Debug("Docker client version")
+		// wrap the fetched containers inside the environment
+		_ = environment.WrapContainersAsServices(containers)
 
-		for _, service := range services {
-			for _, container := range containers {
-				if strings.Contains(container.Names[0], nhost.GetContainerName(service.Value)) {
-					options = append(options, container)
-				}
-			}
-		}
+		var selected *nhost.Service
 
-		var selectedContainer types.Container
+		if service == "" {
 
-		if service != "" {
-			for _, item := range services {
-				if service == item.Value {
-					for _, container := range containers {
-						if strings.Contains(container.Names[0], nhost.GetContainerName(item.Value)) {
-							selectedContainer = container
-						}
-					}
-				}
+			// load the saved Nhost configuration
+			type Option struct {
+				Key   string
+				Value string
 			}
 
-			if selectedContainer.ID == "" {
-				log.WithField("service", service).Fatal("No such running service")
+			var services []Option
+			for name := range environment.Config.Services {
+				services = append(services, Option{
+					Key:   strings.Title(strings.ToLower(strings.Split(name, "_")[1])),
+					Value: name,
+				})
 			}
-		} else {
 
 			// configure interactive prompt template
 			templates := promptui.SelectTemplates{
@@ -138,12 +120,22 @@ already running Nhost service containers.`,
 				os.Exit(0)
 			}
 
-			selectedContainer = options[index]
+			service = services[index].Value
+		}
 
+		for _, item := range environment.Config.Services {
+			if strings.Contains(item.Name, strings.ToLower(service)) {
+				selected = item
+				break
+			}
+		}
+
+		if selected == nil {
+			log.Fatal("No such service found")
 		}
 
 		// create the command execution skeleton
-		response, err := Exec(docker, ctx, selectedContainer.ID, strings.Split(command, " "))
+		response, err := selected.Exec(environment.Docker, environment.Context, strings.Split(command, " "))
 		if err != nil {
 			log.WithField("service", service).Debug(err)
 			log.WithField("service", service).Fatal("Failed to prepare execution shell")
@@ -151,7 +143,7 @@ already running Nhost service containers.`,
 
 		// execute the command
 		// and inspect the response
-		result, err := InspectExecResp(docker, ctx, response.ID)
+		result, err := InspectExecResp(environment.Docker, environment.Context, response.ID)
 		if err != nil {
 			log.WithField("service", service).Debug(err)
 			log.WithField("service", service).Error("Failed to execute the command.")
@@ -163,6 +155,56 @@ already running Nhost service containers.`,
 
 		os.Stdout.Write([]byte(result.StdOut))
 	},
+}
+
+func InspectExecResp(docker *client.Client, ctx context.Context, id string) (ExecResult, error) {
+	var execResult ExecResult
+
+	resp, err := docker.ContainerExecAttach(ctx, id, types.ExecStartCheck{})
+	if err != nil {
+		return execResult, err
+	}
+	defer resp.Close()
+
+	// read the output
+	var outBuf, errBuf bytes.Buffer
+	outputDone := make(chan error)
+
+	go func() {
+		// StdCopy demultiplexes the stream into two buffers
+		_, err = stdcopy.StdCopy(&outBuf, &errBuf, resp.Reader)
+		outputDone <- err
+	}()
+
+	select {
+	case err := <-outputDone:
+		if err != nil {
+			return execResult, err
+		}
+		break
+
+	case <-ctx.Done():
+		return execResult, ctx.Err()
+	}
+
+	stdout, err := ioutil.ReadAll(&outBuf)
+	if err != nil {
+		return execResult, err
+	}
+	stderr, err := ioutil.ReadAll(&errBuf)
+	if err != nil {
+		return execResult, err
+	}
+
+	res, err := docker.ContainerExecInspect(ctx, id)
+	if err != nil {
+		return execResult, err
+	}
+
+	execResult.ExitCode = res.ExitCode
+	execResult.StdOut = string(stdout)
+	execResult.StdErr = string(stderr)
+	return execResult, nil
 }
 
 func init() {

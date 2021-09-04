@@ -776,6 +776,17 @@ func (config *Configuration) Init() error {
 	return err
 }
 
+func (s *Service) Exec(docker *client.Client, ctx context.Context, command []string) (types.IDResponse, error) {
+
+	config := types.ExecConfig{
+		AttachStderr: true,
+		AttachStdout: true,
+		Cmd:          command,
+	}
+
+	return docker.ContainerExecCreate(ctx, s.ID, config)
+}
+
 func generateSignInVars() map[string]interface{} {
 	return map[string]interface{}{
 		"passwordless_email_enabled":     true,
