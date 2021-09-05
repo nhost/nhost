@@ -26,15 +26,12 @@ package cmd
 
 import (
 	"context"
-	"io"
 	"os"
 	"strings"
 
-	"github.com/docker/docker/api/types"
 	client "github.com/docker/docker/client"
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -47,43 +44,28 @@ var logsCmd = &cobra.Command{
 for the logged in user from Nhost console and present them.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// load the saved Nhost configuration
-		type Option struct {
-			Key   string
-			Value string
-		}
-
-		services := []Option{
-			{Key: "Database", Value: "postgres"},
-			{Key: "GraphQL Engine", Value: "hasura"},
-			{Key: "Authentication", Value: "auth"},
-			{Key: "Storage", Value: "storage"},
-			{Key: "Minio", Value: "minio"},
-			{Key: "Mailhog", Value: "mailhog"},
-		}
-
-		var options []types.Container
+		var err error
 
 		// connect to docker client
-		ctx := context.Background()
-		docker, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		environment.Context = context.Background()
+		environment.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to connect to docker client")
 		}
-		defer docker.Close()
+		defer environment.Docker.Close()
 
 		// break execution if docker deamon is not running
-		_, err = docker.Info(ctx)
+		_, err = environment.Docker.Info(environment.Context)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// fetch list of all running containers
+		// get running containers with prefix "nhost_"
 		containers, err := environment.GetContainers()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to fetch running containers")
+			log.Fatal("Failed to get running Nhost services")
 		}
 
 		// if no containers found - abort the execution
@@ -91,37 +73,26 @@ for the logged in user from Nhost console and present them.`,
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
 
-		for _, service := range services {
-			for _, container := range containers {
-				if strings.Contains(container.Names[0], nhost.GetContainerName(service.Value)) {
-					options = append(options, container)
-				}
-			}
-		}
+		// wrap the fetched containers inside the environment
+		_ = environment.WrapContainersAsServices(containers)
 
-		var selectedContainer types.Container
-		// var port uint16
+		var selected *nhost.Service
 
-		// if the user has already supplied the service flag,
-		// match it
+		if service == "" {
 
-		if service != "" {
-			for _, item := range services {
-				if service == item.Value {
-					for _, container := range containers {
-						if strings.Contains(container.Names[0], item.Value) {
-							selectedContainer = container
-							// port = container.Ports[0].PublicPort
-							break
-						}
-					}
-				}
+			// load the saved Nhost configuration
+			type Option struct {
+				Key   string
+				Value string
 			}
 
-			if selectedContainer.ID == "" {
-				log.WithField("service", service).Fatal("No such running service found")
+			var services []Option
+			for name := range environment.Config.Services {
+				services = append(services, Option{
+					Key:   strings.Title(strings.ToLower(name)),
+					Value: name,
+				})
 			}
-		} else {
 
 			// configure interactive prompt template
 			templates := promptui.SelectTemplates{
@@ -142,15 +113,25 @@ for the logged in user from Nhost console and present them.`,
 				os.Exit(0)
 			}
 
-			selectedContainer = options[index]
+			service = services[index].Value
+		}
 
+		for name, item := range environment.Config.Services {
+			if strings.EqualFold(name, service) {
+				selected = item
+				break
+			}
+		}
+
+		if selected == nil {
+			log.Fatal("No such service found")
 		}
 
 		// fetch the logs of selected container
-		logs, err := getContainerLogs(docker, ctx, selectedContainer)
+		logs, err := selected.Logs(environment.Docker, environment.Context)
 		if err != nil {
-			log.Debug(err)
-			log.WithField("component", selectedContainer.Names[0]).Error("Failed to fetch service logs")
+			log.WithField("component", selected.Name).Debug(err)
+			log.WithField("component", selected.Name).Fatal("Failed to fetch service logs")
 		}
 
 		//	print the logs for the user
@@ -176,32 +157,6 @@ for the logged in user from Nhost console and present them.`,
 			fmt.Println(migrationTables)
 		*/
 	},
-}
-
-// fetches the logs of a specific container
-// and writes them to a log file
-func getContainerLogs(cli *client.Client, ctx context.Context, container types.Container) ([]byte, error) {
-
-	log.WithFields(logrus.Fields{
-		"type":      "container",
-		"component": container.Names[0],
-	}).Debug("Fetching logs")
-
-	var response []byte
-
-	options := types.ContainerLogsOptions{ShowStdout: true}
-
-	out, err := cli.ContainerLogs(ctx, container.ID, options)
-	if err != nil {
-		return response, err
-	}
-
-	response, err = io.ReadAll(out)
-	if err != nil {
-		return response, err
-	}
-
-	return response, nil
 }
 
 func init() {

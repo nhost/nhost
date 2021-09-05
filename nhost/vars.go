@@ -16,6 +16,9 @@ var (
 	NHOST_DIR      = filepath.Join(WORKING_DIR, "nhost")
 	DOT_NHOST      = filepath.Join(WORKING_DIR, ".nhost")
 
+	// initialize the names of all Nhost services in the stack
+	SERVICES = []string{"hasura", "auth", "storage", "mailhog", "postgres", "minio"}
+
 	// find user's home directory
 	HOME, _ = os.UserHomeDir()
 

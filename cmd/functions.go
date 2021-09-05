@@ -274,14 +274,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// inform the user of build the request
-	log.Debugln(
-		r.Method,
-		r.Proto,
-		r.URL,
-		fmt.Sprintf("Serving: %s", filepath.Join(f.Base, f.File.Name())),
-	)
-
 	if !preBuilt {
 
 		// cache the function file to temporary directory
@@ -359,6 +351,15 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// serve
 		f.Handler(w, r)
 	}
+
+	// log the request
+	log.Debugln(
+		r.Method,
+		r.Proto,
+		r.URL,
+		fmt.Sprintln("Served:", filepath.Join(f.Base, f.File.Name())),
+	)
+
 }
 
 func (function *Function) BuildNodePackage() error {

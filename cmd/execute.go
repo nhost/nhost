@@ -72,7 +72,7 @@ already running Nhost service containers.`,
 		containers, err := environment.GetContainers()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to shut down Nhost services")
+			log.Fatal("Failed to get running Nhost services")
 		}
 
 		// if no containers found - abort the execution
@@ -96,7 +96,7 @@ already running Nhost service containers.`,
 			var services []Option
 			for name := range environment.Config.Services {
 				services = append(services, Option{
-					Key:   strings.Title(strings.ToLower(strings.Split(name, "_")[1])),
+					Key:   strings.Title(strings.ToLower(name)),
 					Value: name,
 				})
 			}
@@ -123,8 +123,8 @@ already running Nhost service containers.`,
 			service = services[index].Value
 		}
 
-		for _, item := range environment.Config.Services {
-			if strings.Contains(item.Name, strings.ToLower(service)) {
+		for name, item := range environment.Config.Services {
+			if strings.EqualFold(name, service) {
 				selected = item
 				break
 			}

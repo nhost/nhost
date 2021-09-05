@@ -32,7 +32,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -63,7 +63,7 @@ var (
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:     "dev [-p port]",
-	Aliases: []string{"d"},
+	Aliases: []string{"d", "start", "up"},
 	Short:   "Start local development environment",
 	Long:    `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -145,46 +145,51 @@ func execute(cmd *cobra.Command, args []string) {
 		log.Fatal(err)
 	}
 
-	// check if this is the first time dev env is running
-	firstRun := !pathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
-	if firstRun {
-		log.Info("First run takes longer, please be patient")
-	}
+	/*
 
-	//
-	// Shut down any existing Nhost containers
-	//
-	// 1. Fetch list of existing containers
+		---------------------------------
+		`nhost dev` Operational Strategy
+		---------------------------------
+
+		1.	Initialize your running environment.
+		2.	Fetch the list of running containers.
+		3.	Wrap those existing containers as services inside the runtime environment.
+			This will save the container ID in the service structure, so that it can be used to simply
+			restart the container later, instead of creating it from scratch.
+		4.	Parse the Nhost project configuration from config.yaml,
+			and wrap it on existing services configurations.
+			This will update all the fields of the service, which until now, only contained the container ID.
+			This also includes initializing the service config and host config.
+		5. 	Run the services.
+			5.1	If the service ID exists --> start the same container
+				else {
+				--> create the container from configuration, and attach it to the network.
+				--> now start the newly created container.
+			}
+			5.2	Once the container has been started, save the new container ID and assigned Port.
+				This will ensure that the new port is used for attaching a reverse proxy to this service, if required.
+	*/
+
+	// Fetch list of existing containers
 	containers, err := environment.GetContainers()
 	if err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to shut down Nhost services")
 	}
 
-	// 2. Wrap fetched containers as services in the environment
+	// Wrap fetched containers as services in the environment
 	_ = environment.WrapContainersAsServices(containers)
 
-	// 3. Shutdown containers
-	_ = environment.Shutdown(false)
-
-	// 4. Reset the environment services
-	environment.Config.Services = nil
-
-	//
-	// Running services have been shut down.
-	// You may proceed to start fresh.
-	//
-
 	// Parse the nhost/config.yaml
-	environment.Config, err = nhost.Config()
-	if err != nil {
+	if err = environment.Config.Wrap(); err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to read Nhost config")
 	}
 
-	// initialize configuration for ever service
-	for _, service := range environment.Config.Services {
-		service.InitConfig()
+	// check if this is the first time dev env is running
+	firstRun := !pathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
+	if firstRun {
+		log.Info("First run takes longer, please be patient")
 	}
 
 	// if functions exist,
@@ -193,12 +198,13 @@ func execute(cmd *cobra.Command, args []string) {
 
 		// run the functions command
 		go ServeFuncs(cmd, []string{"do_not_inform"})
-
+		port, _ := strconv.Atoi(funcPort)
 		environment.Config.Services["functions"] = &nhost.Service{
 			Name:    "functions",
 			Address: fmt.Sprintf("http://localhost:%v", funcPort),
 			Handle:  "/v1/functions/",
 			Proxy:   true,
+			Port:    port,
 		}
 	}
 
@@ -223,8 +229,7 @@ func execute(cmd *cobra.Command, args []string) {
 		log.WithFields(logrus.Fields{
 			"type":    "network",
 			"network": nhost.PREFIX,
-		}).Error("Failed to prepare network")
-		cleanup(cmd)
+		}).Fatal("Failed to prepare network")
 	}
 
 	// create and start the conatiners
@@ -249,6 +254,19 @@ func execute(cmd *cobra.Command, args []string) {
 			environment.Active = true
 		}
 	}
+
+	//
+	// Update the ports and IDs of services against the running ones
+	//
+	// Fetch list of existing containers
+	containers, err = environment.GetContainers()
+	if err != nil {
+		log.Debug(err)
+		log.Fatal("Failed to shut down Nhost services")
+	}
+
+	// Wrap fetched containers as services in the environment
+	_ = environment.WrapContainersAsServices(containers)
 
 	log.Info("Running a quick health check on services")
 	var health_waiter sync.WaitGroup
@@ -291,9 +309,12 @@ func execute(cmd *cobra.Command, args []string) {
 		cleanup(cmd)
 	}
 
-	// apply seeds if any
+	// apply seeds on the first run
 	if firstRun {
-		environment.Seed()
+		if err = environment.Seed(); err != nil {
+			log.Debug(err)
+			cleanup(cmd)
+		}
 	}
 
 	// print the proxy routes
@@ -378,30 +399,13 @@ func execute(cmd *cobra.Command, args []string) {
 }
 
 //
-// Prepare func initializes the environment any variables,
-// commands or mount points required by containers
+// Prepare func validates whether all required images exist,
+// and downloads any one which doesn't
 //
 
 func (e *Environment) Prepare() error {
 
 	log.Debug("Preparing environment")
-
-	// segregate configurations for different services
-	hasuraConfig := e.Config.Services["hasura"].Config
-
-	// Append NHOST_FUNCTIONS env var to Hasura
-	// to allow NHOST_FUNCTIONS to be reachable from Hasura Event Triggers.
-	// This is being done over here, because development proxy port is required
-	if pathExists(nhost.API_DIR) {
-		switch runtime.GOOS {
-		case "darwin", "windows":
-			hasuraConfig.Env = append(hasuraConfig.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v%s", port, filepath.Clean(e.Config.Services["functions"].Handle)))
-		case "linux":
-			hasuraConfig.Env = append(hasuraConfig.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v%s", getOutboundIP(), port, filepath.Clean(e.Config.Services["functions"].Handle)))
-		}
-	}
-
-	e.Config.Services["hasura"].Config = hasuraConfig
 
 	// check if a required image already exists
 	// if it doesn't -> then pull it
@@ -438,11 +442,12 @@ func (e *Environment) Prepare() error {
 				log.Debug(err)
 				log.WithField("component", requiredImage).Error("Failed to pull image")
 				log.WithField("component", requiredImage).Infof("Pull it manually with `docker image pull %v && nhost dev`", requiredImage)
+				return err
 			}
 		}
 	}
 
-	return err
+	return nil
 }
 
 func pullImage(cli *client.Client, tag string) error {
@@ -463,7 +468,7 @@ func pullImage(cli *client.Client, tag string) error {
 	return cmd.Run()
 }
 
-func (e *Environment) Seed() {
+func (e *Environment) Seed() error {
 
 	/* 	// intialize common options
 	   	hasuraEndpoint := fmt.Sprintf(`http://localhost:%v`, configuration.Services["hasura"].Port)
@@ -478,7 +483,11 @@ func (e *Environment) Seed() {
 	*/
 	seed_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
 	if err != nil {
-		log.Fatal("Failed to read seeds directory")
+		return err
+	}
+
+	if len(seed_files) > 0 {
+		log.Debug("Applying seeds")
 	}
 
 	// if there are more seeds than just enum tables,
@@ -486,12 +495,16 @@ func (e *Environment) Seed() {
 	for _, item := range seed_files {
 
 		// read seed file
-		data, _ := ioutil.ReadFile(filepath.Join(nhost.SEEDS_DIR, item.Name()))
+		data, err := ioutil.ReadFile(filepath.Join(nhost.SEEDS_DIR, item.Name()))
+		if err != nil {
+			log.WithField("component", "seeds").Errorln("Failed to open:", item.Name())
+			return err
+		}
 
 		// apply seed data
 		if err := e.Hasura.Seed(string(data)); err != nil {
-			log.Debug(err)
-			log.WithField("component", "seeds").Error("Failed to apply: ", item.Name())
+			log.WithField("component", "seeds").Errorln("Failed to apply:", item.Name())
+			return err
 		}
 		/*
 			cmdArgs = []string{hasuraCLI, "seed", "apply", "--database-name", "default"}
@@ -504,6 +517,7 @@ func (e *Environment) Seed() {
 			}
 		*/
 	}
+	return nil
 
 	/*
 		// fetch metadata

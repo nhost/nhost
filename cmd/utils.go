@@ -3,22 +3,8 @@ package cmd
 import (
 	"bytes"
 	"io/ioutil"
-	"net"
 	"os"
 )
-
-// Get preferred outbound ip of this machine
-func getOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return nil
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
-}
 
 // check whether source array contains value or not
 func contains(s []string, e string) bool {

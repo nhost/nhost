@@ -45,7 +45,7 @@ var purgeData bool
 // downCmd represents the down command
 var purgeCmd = &cobra.Command{
 	Use:        "purge",
-	Aliases:    []string{"pg"},
+	Aliases:    []string{"pg", "down"},
 	SuggestFor: []string{"health", "dev"},
 	Short:      "Delete all containers created by `nhost dev`",
 	Long: `If you have changed your nhost/config.yaml, 
@@ -112,14 +112,37 @@ And re-create them next time you run 'nhost dev'`,
 // Wraps a list of docker containers as *nhost.Services for respective environment.
 func (e *Environment) WrapContainersAsServices(containers []types.Container) error {
 
-	services := map[string]*nhost.Service{}
-	for _, item := range containers {
-		services[strings.Split(item.Names[0], "/")[1]] = &nhost.Service{
-			Name: strings.Split(item.Names[0], "/")[1],
-			ID:   item.ID,
+	log.Debug("Wrapping containers into environment")
+
+	if environment.Config.Services == nil {
+		environment.Config.Services = make(map[string]*nhost.Service)
+	}
+	for _, container := range containers {
+		nameWithPrefix := strings.Split(container.Names[0], "/")[1]
+		name := strings.TrimPrefix(nameWithPrefix, nhost.PREFIX+"_")
+		if e.Config.Services[name] == nil {
+			e.Config.Services[name] = &nhost.Service{}
+		}
+		e.Config.Services[name].ID = container.ID
+
+		if e.Config.Services[name].Name == "" {
+			e.Config.Services[name].Name = nameWithPrefix
+		}
+
+		if len(container.Ports) > 0 {
+			if name == "mailhog" {
+				e.Config.Services[name].Port = 8025
+				return nil
+			}
+
+			// Update the ports, if available
+			for _, port := range container.Ports {
+				if port.IP != "" && int(port.PublicPort) != 0 {
+					e.Config.Services[name].Port = int(port.PublicPort)
+				}
+			}
 		}
 	}
-	e.Config.Services = services
 	return nil
 }
 

@@ -40,9 +40,8 @@ var repoSource string
 
 // upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
-	Use:     "upgrade",
-	Aliases: []string{"up"},
-	Short:   "Upgrade this utility to latest version",
+	Use:   "upgrade",
+	Short: "Upgrade this utility to latest version",
 	Long: `Automatically check for the latest available version of this
 utility and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -96,7 +95,7 @@ utility and upgrade to it.`,
 				Mode: getter.ClientModeDir,
 			}
 
-			//download the files
+			// download the files
 			if err := client.Get(); err != nil {
 				log.WithField("compnent", release.TagName).Debug(err)
 				log.WithField("compnent", release.TagName).Fatal("Failed to download release")
@@ -114,7 +113,7 @@ utility and upgrade to it.`,
 			if output, err := exec.Command(cli, "version").CombinedOutput(); err != nil {
 				log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
 			} else {
-				log.Println(string(output))
+				os.Stdout.Write(output)
 			}
 		}
 	},

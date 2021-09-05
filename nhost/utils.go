@@ -11,6 +11,19 @@ import (
 	"strings"
 )
 
+// Get preferred outbound ip of this machine
+func getOutboundIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		return nil
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
+}
+
 func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string {
 	var response []string
 	for key, item := range payload {

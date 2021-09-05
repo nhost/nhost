@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
@@ -194,89 +195,114 @@ func Servers() ([]Server, error) {
 	return response, err
 }
 
-func Config() (Configuration, error) {
+func (c *Configuration) Wrap() error {
 
 	log.Debug("Parsing project configuration")
 
-	var response Configuration
+	var parsed Configuration
 
 	data, err := ioutil.ReadFile(CONFIG_PATH)
 	if err != nil {
-		return response, err
+		return err
 	}
 
-	err = yaml.Unmarshal(data, &response)
-
-	// add the additional services
-	port := GetPort(8200, 8500)
-	response.Services["minio"] = &Service{
-		Image:          "minio/minio",
-		Version:        "latest",
-		Port:           port,
-		Address:        fmt.Sprintf("http://localhost:%v", port),
-		Name:           GetContainerName("minio"),
-		HealthEndpoint: "/minio/health/live",
+	if err = yaml.Unmarshal(data, &parsed); err != nil {
+		return err
 	}
 
-	port = 8025
-	response.Services["mailhog"] = &Service{
-		Name:    GetContainerName("mailhog"),
-		Image:   "mailhog/mailhog",
-		Version: "latest",
-		Port:    port,
-		Address: fmt.Sprintf("http://localhost:%v", port),
+	// Parse additional services against supplied payload
+	for _, name := range SERVICES {
+
+		// If no such service exists in the environment configuration,
+		// then initialize the structure for it
+		if parsed.Services[name] == nil {
+			parsed.Services[name] = &Service{}
+		}
+
+		if c.Services[name] != nil && c.Services[name].ID != "" {
+			parsed.Services[name].ID = c.Services[name].ID
+		}
+
+		parsed.Services[name].Name = GetContainerName(name)
+
+		switch name {
+		case "minio":
+
+			if parsed.Services[name].Port == 0 {
+				parsed.Services[name].Port = GetPort(8200, 8500)
+			}
+
+			parsed.Services[name].Image = "minio/minio"
+			parsed.Services[name].Version = "latest"
+			parsed.Services[name].HealthEndpoint = "/minio/health/live"
+
+		case "mailhog":
+
+			if parsed.Services[name].Port == 0 {
+				parsed.Services[name].Port = 8025
+			}
+
+			parsed.Services[name].Image = "mailhog/mailhog"
+			parsed.Services[name].Version = "latest"
+
+		case "auth":
+
+			if parsed.Services[name].Port == 0 {
+				parsed.Services[name].Port = GetPort(9000, 9100)
+			}
+
+			parsed.Services[name].Image = "nhost/hasura-auth"
+			parsed.Services[name].Version = "sha-c68cd71"
+			parsed.Services[name].HealthEndpoint = "/healthz"
+			parsed.Services[name].Handle = "/v1/auth/"
+			parsed.Services[name].Proxy = true
+
+		case "storage":
+
+			if parsed.Services[name].Port == 0 {
+				parsed.Services[name].Port = GetPort(8501, 8999)
+			}
+
+			parsed.Services[name].Image = "nhost/hasura-storage"
+			parsed.Services[name].Version = "sha-e7fc9c9"
+			parsed.Services[name].HealthEndpoint = "/healthz"
+			parsed.Services[name].Handle = "/v1/storage/"
+			parsed.Services[name].Proxy = true
+
+		case "postgres":
+
+			if parsed.Services[name].Port == 0 {
+				parsed.Services[name].Port = GetPort(5000, 5999)
+			}
+
+			parsed.Services[name].Image = "nhost/postgres"
+			parsed.Services[name].Version = parsed.Services["postgres"].Version
+			parsed.Services[name].Address = fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", GetContainerName("postgres"), parsed.Services[name].Port)
+
+		case "hasura":
+
+			if parsed.Services[name].Port == 0 {
+				parsed.Services[name].Port = GetPort(9200, 9300)
+			}
+
+			parsed.Services[name].Image = parsed.Services["hasura"].Image
+			parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
+			parsed.Services[name].HealthEndpoint = "/healthz"
+			parsed.Services[name].Handle = "/v1/graphql"
+			parsed.Services[name].Proxy = true
+		}
+
+		if parsed.Services[name].Address == "" {
+			parsed.Services[name].Address = fmt.Sprintf("http://localhost:%v", parsed.Services[name].Port)
+		}
+
+		// initialize configuration for the service
+		parsed.Services[name].InitConfig()
 	}
 
-	port = GetPort(9000, 9100)
-	response.Services["auth"] = &Service{
-		Name:           GetContainerName("auth"),
-		Image:          "nhost/hasura-auth",
-		Version:        "sha-c68cd71",
-		Port:           port,
-		Address:        fmt.Sprintf("http://localhost:%v", port),
-		Proxy:          true,
-		Handle:         "/v1/auth/",
-		HealthEndpoint: "/healthz",
-	}
-
-	port = GetPort(8501, 8999)
-	response.Services["storage"] = &Service{
-		Name:           GetContainerName("storage"),
-		Image:          "nhost/hasura-storage",
-		Version:        "sha-e7fc9c9",
-		Port:           port,
-		Address:        fmt.Sprintf("http://localhost:%v", port),
-		Proxy:          true,
-		Handle:         "/v1/storage/",
-		HealthEndpoint: "/healthz",
-	}
-
-	// set the defaults
-	port = GetPort(5000, 5999)
-	response.Services["postgres"] = &Service{
-		Name:    GetContainerName("postgres"),
-		Image:   "nhost/postgres",
-		Version: response.Services["postgres"].Version,
-		Port:    port,
-		Address: fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", GetContainerName("postgres"), port),
-	}
-
-	port = GetPort(9200, 9300)
-	response.Services["hasura"] = &Service{
-		Name:    GetContainerName("hasura"),
-		Image:   response.Services["hasura"].Image,
-		Version: fmt.Sprintf("%v.%s", response.Services["hasura"].Version, "cli-migrations-v3"),
-		// Version:     response.Services["hasura"].Version,
-		AdminSecret:    response.Services["hasura"].AdminSecret,
-		Port:           port,
-		Address:        fmt.Sprintf("http://localhost:%v", port),
-		Proxy:          true,
-		Handle:         "/v1/graphql",
-		HealthEndpoint: "/healthz",
-	}
-
-	// return the response
-	return response, err
+	// update the environment configuration
+	*c = parsed
+	return nil
 }
 
 // start a fresh container in background and connect it to specified network
@@ -284,8 +310,16 @@ func (s *Service) Run(client *client.Client, ctx context.Context, networkID stri
 
 	// first search if the container already exists
 	// if it does, use that one
-	s.ID = s.Exists(client, ctx)
-	if s.ID == "" {
+	if s.ID != "" {
+
+		log.WithFields(logrus.Fields{
+			"type":      "container",
+			"component": s.Name,
+		}).Debug("Starting")
+
+		return client.ContainerStart(ctx, s.ID, types.ContainerStartOptions{})
+
+	} else {
 
 		// if the container doesn't already exist,
 		// create a new one and attach it to the network
@@ -303,35 +337,15 @@ func (s *Service) Run(client *client.Client, ctx context.Context, networkID stri
 		// Save the it's ID for future use
 		s.ID = service.ID
 
+		// Connect the newly created container to Nhost docker network
 		if err := client.NetworkConnect(ctx, networkID, s.ID, nil); err != nil {
 			return err
 		}
 
+		// Start the newly created container
+		return s.Run(client, ctx, networkID)
+
 	}
-	/*
-		else {
-
-			// Inspect the container configuration
-			if err := s.Inspect(client, ctx); err != nil {
-
-				// If the configuration is invalid,
-				// kill the container and create a new one
-				if err := s.Remove(client, ctx); err != nil {
-					return err
-				} else {
-
-					// Create a fresh container
-					s.Run(client, ctx, networkID)
-				}
-			}
-		}
-	*/
-
-	if err := client.ContainerStart(ctx, s.ID, types.ContainerStartOptions{}); err != nil {
-		return err
-	}
-
-	return nil
 	/*
 		// avoid using the code below if you want to run the containers in background
 
@@ -612,6 +626,18 @@ func (config *Configuration) Init() error {
 	}
 	containerVariables = append(containerVariables, envVars...)
 
+	// Append NHOST_FUNCTIONS env var to Hasura
+	// to allow NHOST_FUNCTIONS to be reachable from Hasura Event Triggers.
+	// This is being done over here, because development proxy port is required
+	if pathExists(API_DIR) {
+		switch runtime.GOOS {
+		case "darwin", "windows":
+			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v", config.Services["functions"].Port))
+		case "linux":
+			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v", getOutboundIP(), config.Services["functions"].Port))
+		}
+	}
+
 	// create mount points if they doesn't exist
 	mountPoints = []mount.Mount{
 		{
@@ -774,6 +800,32 @@ func (config *Configuration) Init() error {
 	}
 
 	return err
+}
+
+// fetches the logs of a specific container
+// and writes them to a log file
+func (s *Service) Logs(cli *client.Client, ctx context.Context) ([]byte, error) {
+
+	log.WithFields(logrus.Fields{
+		"type":      "container",
+		"component": s.Name,
+	}).Debug("Fetching logs")
+
+	var response []byte
+
+	options := types.ContainerLogsOptions{ShowStdout: true}
+
+	out, err := cli.ContainerLogs(ctx, s.ID, options)
+	if err != nil {
+		return response, err
+	}
+
+	response, err = io.ReadAll(out)
+	if err != nil {
+		return response, err
+	}
+
+	return response, nil
 }
 
 func (s *Service) Exec(docker *client.Client, ctx context.Context, command []string) (types.IDResponse, error) {

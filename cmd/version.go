@@ -56,7 +56,7 @@ var versionCmd = &cobra.Command{
 		}
 
 		if release.TagName == Version {
-			log.Info("You already have the latest version. Hurray!")
+			log.Info("You have the latest version. Hurray!")
 		} else {
 			log.WithField("component", release.TagName).Info("New version available")
 			log.Info("Upgrade with `nhost upgrade`")
