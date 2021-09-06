@@ -51,7 +51,6 @@ services:
       REGISTRATION_CUSTOM_FIELDS: 'companyId'
       ANONYMOUS_USERS_ENABLED: 'true'
       PROFILE_SESSION_VARIABLE_FIELDS: 'companyId'
-      VERIFY_EMAILS: 'true'
       EMAILS_ENABLED: 'true'
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
