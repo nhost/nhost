@@ -26,14 +26,9 @@ package cmd
 import (
 	"context"
 	"path/filepath"
-	"strings"
-	"sync"
 
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 	"github.com/mrinalwahal/cli/nhost"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -44,7 +39,7 @@ var purgeData bool
 
 // downCmd represents the down command
 var purgeCmd = &cobra.Command{
-	Use:        "purge",
+	Use:        "purge [--data]",
 	Aliases:    []string{"pg", "down"},
 	SuggestFor: []string{"health", "dev"},
 	Short:      "Delete all containers created by `nhost dev`",
@@ -107,164 +102,6 @@ And re-create them next time you run 'nhost dev'`,
 			log.Info("Purge complete. See you later, grasshopper!")
 		}
 	},
-}
-
-// Wraps a list of docker containers as *nhost.Services for respective environment.
-func (e *Environment) WrapContainersAsServices(containers []types.Container) error {
-
-	log.Debug("Wrapping containers into environment")
-
-	if environment.Config.Services == nil {
-		environment.Config.Services = make(map[string]*nhost.Service)
-	}
-	for _, container := range containers {
-		nameWithPrefix := strings.Split(container.Names[0], "/")[1]
-		name := strings.TrimPrefix(nameWithPrefix, nhost.PREFIX+"_")
-		if e.Config.Services[name] == nil {
-			e.Config.Services[name] = &nhost.Service{}
-		}
-		e.Config.Services[name].ID = container.ID
-
-		if e.Config.Services[name].Name == "" {
-			e.Config.Services[name].Name = nameWithPrefix
-		}
-
-		if len(container.Ports) > 0 {
-			if name == "mailhog" {
-				e.Config.Services[name].Port = 8025
-				return nil
-			}
-
-			// Update the ports, if available
-			for _, port := range container.Ports {
-				if port.IP != "" && int(port.PublicPort) != 0 {
-					e.Config.Services[name].Port = int(port.PublicPort)
-				}
-			}
-		}
-	}
-	return nil
-}
-
-func (e *Environment) Shutdown(purge bool) error {
-
-	log.Debug("Shutting down running services")
-
-	var end_waiter sync.WaitGroup
-
-	for _, container := range e.Config.Services {
-
-		// container will only have an ID if it was started properly
-		if container.ID != "" {
-			end_waiter.Add(1)
-			go func(container *nhost.Service) {
-				if err := container.Stop(e.Docker, e.Context); err != nil {
-					log.Debug(err)
-					log.WithFields(logrus.Fields{
-						"container": container.Name,
-						"type":      "container",
-					}).Error("Failed to stop")
-				} else {
-					if purge {
-						go container.Remove(e.Docker, e.Context)
-					}
-				}
-				end_waiter.Done()
-			}(container)
-		}
-	}
-
-	end_waiter.Wait()
-
-	// if purge, delete the network too
-	if purge && environment.Network != "" {
-		return e.RemoveNetwork()
-	}
-	return nil
-}
-
-// returns the list of running containers whose names have specified prefix
-func (e *Environment) GetContainers() ([]types.Container, error) {
-
-	log.WithFields(logrus.Fields{
-		"type":   "prefix",
-		"prefix": nhost.PREFIX,
-	}).Debug("Fetching containers")
-
-	f := filters.NewArgs(filters.KeyValuePair{
-		Key:   "name",
-		Value: nhost.PREFIX,
-	})
-
-	return e.Docker.ContainerList(e.Context, types.ContainerListOptions{All: true, Filters: f})
-}
-
-// removes a given network by ID
-func (e *Environment) RemoveNetwork() error {
-
-	log.WithFields(logrus.Fields{
-		"type":    "network",
-		"network": e.Network,
-	}).Debug("Removing")
-
-	err := e.Docker.NetworkRemove(e.Context, e.Network)
-	return err
-}
-
-// If docker network exists -> fetches it's ID
-// If it doesn't exist -> creates a new network
-func (e *Environment) PrepareNetwork() error {
-
-	log.WithFields(logrus.Fields{
-		"type":    "network",
-		"network": nhost.PREFIX,
-	}).Debug("Preparing")
-
-	var err error
-	e.Network, err = e.GetNetwork()
-	if err != nil {
-		return err
-	}
-
-	if e.Network == "" {
-
-		log.WithFields(logrus.Fields{
-			"network": nhost.PREFIX,
-			"type":    "network",
-		}).Debug("Creating")
-
-		// create new network if no network such exists
-		net, err := e.Docker.NetworkCreate(e.Context, nhost.PREFIX, types.NetworkCreate{
-			CheckDuplicate: true,
-		})
-		if err != nil {
-			return err
-		}
-		e.Network = net.ID
-	}
-	return nil
-}
-
-// fetches ID of docker network by name
-func (e *Environment) GetNetwork() (string, error) {
-
-	log.WithFields(logrus.Fields{
-		"type":    "network",
-		"network": nhost.PREFIX,
-	}).Debug("Fetching")
-
-	f := filters.NewArgs(filters.KeyValuePair{
-		Key:   "name",
-		Value: nhost.PREFIX,
-	})
-
-	response, err := e.Docker.NetworkList(e.Context, types.NetworkListOptions{
-		Filters: f,
-	})
-	if len(response) > 0 && err == nil {
-		return response[0].ID, err
-	}
-	return "", err
 }
 
 func init() {

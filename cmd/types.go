@@ -50,6 +50,7 @@ type (
 	Environment struct {
 		Name    string
 		Active  bool
+		Cancel  context.CancelFunc
 		Port    int
 		HTTP    *http.Client
 		Hasura  *hasura.Client

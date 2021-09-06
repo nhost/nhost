@@ -51,37 +51,16 @@ already running Nhost service containers.`,
 			os.Exit(0)
 		}
 
-		var err error
-
-		// connect to docker client
-		environment.Context = context.Background()
-		environment.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-		if err != nil {
+		// Initialize the runtime environment
+		if err := environment.Init(); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to connect to docker client")
-		}
-		defer environment.Docker.Close()
-
-		// break execution if docker deamon is not running
-		_, err = environment.Docker.Info(environment.Context)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// get running containers with prefix "nhost_"
-		containers, err := environment.GetContainers()
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to get running Nhost services")
+			log.Fatal("Failed to initialize the environment")
 		}
 
 		// if no containers found - abort the execution
-		if len(containers) == 0 {
+		if len(environment.Config.Services) == 0 {
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
-
-		// wrap the fetched containers inside the environment
-		_ = environment.WrapContainersAsServices(containers)
 
 		var selected *nhost.Service
 

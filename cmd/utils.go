@@ -2,9 +2,34 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"io/ioutil"
 	"os"
+	"os/exec"
+
+	client "github.com/docker/docker/client"
+	"github.com/hashicorp/go-getter"
 )
+
+// download a remote directory/file to local
+func clone(src, dest string) error {
+
+	// initialize hashicorp go-getter client
+	client := &getter.Client{
+		Ctx: context.Background(),
+		//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
+		Dst:  dest,
+		Dir:  true,
+		Src:  src,
+		Mode: getter.ClientModeDir,
+		//define the type of detectors go getter should use, in this case only github is needed
+		Detectors: []getter.Detector{
+			&getter.GitHubDetector{},
+		},
+	}
+
+	return client.Get()
+}
 
 // check whether source array contains value or not
 func contains(s []string, e string) bool {
@@ -26,11 +51,6 @@ func pathExists(filePath string) bool {
 func deletePath(path string) error {
 	os.Chmod(path, 0777)
 	return os.Remove(path)
-}
-
-// moves the given file/folder path to new location
-func movePath(source, destination string) error {
-	return os.Rename(source, destination)
 }
 
 // deletes all the paths leading to the given file/folder and unlink from filesystem
@@ -69,4 +89,22 @@ func writeToFile(filePath, data, position string) error {
 	// write the data to the file
 	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)
 	return err
+}
+
+func pullImage(cli *client.Client, tag string) error {
+
+	log.WithField("component", tag).Info("Pulling container image")
+
+	/*
+		out, err := cli.ImagePull(context.Background(), tag, types.ImagePullConfiguration{})
+		out.Close()
+	*/
+
+	dockerCLI, _ := exec.LookPath("docker")
+	cmd := exec.Cmd{
+		Args:   []string{dockerCLI, "image", "pull", tag},
+		Path:   dockerCLI,
+		Stdout: os.Stdout,
+	}
+	return cmd.Run()
 }

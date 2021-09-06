@@ -353,11 +353,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// log the request
-	log.Debugln(
-		r.Method,
+	log.WithField("method", r.Method).Debugln(
 		r.Proto,
 		r.URL,
-		fmt.Sprintln("Served:", filepath.Join(f.Base, f.File.Name())),
+		fmt.Sprint("Served: ", filepath.Join(f.Base, f.File.Name())),
 	)
 
 }
@@ -578,7 +577,6 @@ func router(w http.ResponseWriter, r *http.Request) {
 
 		fmt.Fprint(w, string(body))
 	}
-
 }
 
 func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {

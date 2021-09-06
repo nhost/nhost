@@ -16,11 +16,9 @@ limitations under the License.
 package cmd
 
 import (
-	"context"
 	"os"
 	"path/filepath"
 
-	"github.com/hashicorp/go-getter"
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
@@ -213,25 +211,6 @@ And you can immediately start developing on that template.`,
 			log.Info(selected.NextSteps)
 		}
 	},
-}
-
-func clone(src, dest string) error {
-
-	// initialize hashicorp go-getter client
-	client := &getter.Client{
-		Ctx: context.Background(),
-		//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
-		Dst:  dest,
-		Dir:  true,
-		Src:  src,
-		Mode: getter.ClientModeDir,
-		//define the type of detectors go getter should use, in this case only github is needed
-		Detectors: []getter.Detector{
-			&getter.GitHubDetector{},
-		},
-	}
-
-	return client.Get()
 }
 
 /*

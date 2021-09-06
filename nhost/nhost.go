@@ -286,7 +286,8 @@ func (c *Configuration) Wrap() error {
 			}
 
 			parsed.Services[name].Image = parsed.Services["hasura"].Image
-			parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
+			// parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
+			parsed.Services[name].Version = parsed.Services["hasura"].Version
 			parsed.Services[name].HealthEndpoint = "/healthz"
 			parsed.Services[name].Handle = "/v1/graphql"
 			parsed.Services[name].Proxy = true
@@ -638,38 +639,40 @@ func (config *Configuration) Init() error {
 		}
 	}
 
-	// create mount points if they doesn't exist
-	mountPoints = []mount.Mount{
-		{
-			Type:   mount.TypeBind,
-			Source: MIGRATIONS_DIR,
-			Target: "/hasura-migrations",
-		},
-	}
+	/*
+			// create mount points if they doesn't exist
+			mountPoints = []mount.Mount{
+				{
+					Type:   mount.TypeBind,
+					Source: MIGRATIONS_DIR,
+					Target: "/hasura-migrations",
+				},
+			}
 
-	// parse the metadata directory tree
-	meta_files, err := ioutil.ReadDir(METADATA_DIR)
-	if err != nil {
-		log.Error("Failed to parse the tree of metadata directory")
-		return err
-	}
+			// parse the metadata directory tree
+			meta_files, err := ioutil.ReadDir(METADATA_DIR)
+			if err != nil {
+				log.Error("Failed to parse the tree of metadata directory")
+				return err
+			}
 
-	// mount the metadata directory if meta files exist
-	if len(meta_files) > 0 {
-		mountPoints = append(mountPoints, mount.Mount{
-			Type:   mount.TypeBind,
-			Source: METADATA_DIR,
-			Target: "/hasura-metadata",
-		})
-	}
+			// mount the metadata directory if meta files exist
+			if len(meta_files) > 0 {
+				mountPoints = append(mountPoints, mount.Mount{
+					Type:   mount.TypeBind,
+					Source: METADATA_DIR,
+					Target: "/hasura-metadata",
+				})
+			}
 
-	for _, mountPoint := range mountPoints {
-		if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
-			return err
-		}
-	}
+			for _, mountPoint := range mountPoints {
+				if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
+					return err
+				}
+			}
 
-	hasuraConfig.HostConfig.Mounts = mountPoints
+		hasuraConfig.HostConfig.Mounts = mountPoints
+	*/
 	hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, containerVariables...)
 
 	// create mount points if they doesn't exit
@@ -725,7 +728,7 @@ func (config *Configuration) Init() error {
 
 	// create mount point if it doesn't exit
 	customMountPoint := filepath.Join(DOT_NHOST, "custom", "keys")
-	if err = os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
+	if err := os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
 		log.Errorf("Failed to create %s directory", customMountPoint)
 		return err
 	}
@@ -775,11 +778,7 @@ func (config *Configuration) Init() error {
 	case map[interface{}]interface{}:
 		for key, value := range t {
 			if value != "" {
-				if key.(string) == "smtp_host" {
-					containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), GetContainerName(value.(string))))
-				} else {
-					containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
-				}
+				containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
 				if key.(string) == "smtp_port" {
 					smtpPort = value.(int)
 				}
@@ -799,7 +798,7 @@ func (config *Configuration) Init() error {
 		nat.Port(strconv.Itoa(config.Services["mailhog"].Port)): struct{}{},
 	}
 
-	return err
+	return nil
 }
 
 // fetches the logs of a specific container
@@ -871,7 +870,7 @@ func generateEmailVars() map[string]interface{} {
 	return map[string]interface{}{
 		"refresh_token_expires_in": "",
 		"emails_enabled":           true,
-		"smtp_host":                "mailhog",
+		"smtp_host":                "nhost_mailhog",
 		"smtp_port":                1025,
 		"smtp_user":                "user",
 		"smtp_pass":                "password",
@@ -884,7 +883,7 @@ func generateEmailVars() map[string]interface{} {
 
 func generateGravatarVars() map[string]interface{} {
 	return map[string]interface{}{
-		"gravatar_enabled": "",
+		"gravatar_enabled": true,
 		"gravatar_default": "",
 		"gravatar_rating":  "",
 	}

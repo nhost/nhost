@@ -43,11 +43,7 @@ func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string 
 					}
 				case interface{}, string:
 					if value != "" {
-						if key.(string) == "smtp_host" {
-							response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), GetContainerName(value.(string))))
-						} else {
-							response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), value))
-						}
+						response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), value))
 					}
 				}
 			}

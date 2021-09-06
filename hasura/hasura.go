@@ -198,8 +198,6 @@ func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
 
 func (c *Client) Seed(payload string) error {
 
-	log.Debug("Applying seeds")
-
 	reqBody := RequestBody{
 		Type: "run_sql",
 		Args: map[string]string{
@@ -362,9 +360,8 @@ func (c *Client) Prepare() error {
 
 	var (
 		execute = exec.Cmd{
-			Path:   c.CLI,
-			Dir:    nhost.NHOST_DIR,
-			Stderr: os.Stderr,
+			Path: c.CLI,
+			Dir:  nhost.NHOST_DIR,
 		}
 
 		commandOptions = []string{
@@ -380,17 +377,15 @@ func (c *Client) Prepare() error {
 	// then Hasura must be auto-applying migrations
 	// hence, manually applying migrations doesn't make sense
 
-	/*
-		// create migrations
-		cmdArgs = []string{hasuraCLI, "migrate", "apply"}
-		cmdArgs = append(cmdArgs, commandConfiguration...)
-		execute.Args = cmdArgs
+	// create migrations
+	cmdArgs := []string{c.CLI, "migrate", "apply", "--database-name", "default"}
+	cmdArgs = append(cmdArgs, commandOptions...)
+	execute.Args = cmdArgs
 
-		if err = execute.Run(); err != nil {
-			log.Error("Failed to apply migrations")
-			return err
-		}
-	*/
+	if err := execute.Run(); err != nil {
+		log.Error("Failed to apply migrations")
+		return err
+	}
 
 	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
 	if err != nil {
@@ -398,28 +393,37 @@ func (c *Client) Prepare() error {
 	}
 
 	if len(metaFiles) == 0 {
-		execute.Args = append([]string{c.CLI, "metadata", "export"}, commandOptions...)
+		execute = exec.Cmd{
+			Path: c.CLI,
+			Dir:  nhost.NHOST_DIR,
+		}
+
+		cmdArgs = []string{c.CLI, "metadata", "export"}
+		cmdArgs = append(cmdArgs, commandOptions...)
+		execute.Args = cmdArgs
 		if err = execute.Run(); err != nil {
 			log.Error("Failed to export metadata")
 			return err
 		}
 	}
 
-	/*
-		// If metadata directory is already mounted to nhost_hasura container,
-		// then Hasura must be auto-applying metadata
-		// hence, manually applying metadata doesn't make sense
+	// If metadata directory is already mounted to nhost_hasura container,
+	// then Hasura must be auto-applying metadata
+	// hence, manually applying metadata doesn't make sense
 
-			// apply metadata
-			cmdArgs = []string{hasuraCLI, "metadata", "apply"}
-			cmdArgs = append(cmdArgs, commandConfiguration...)
-			execute.Args = cmdArgs
+	// apply metadata
+	execute = exec.Cmd{
+		Path: c.CLI,
+		Dir:  nhost.NHOST_DIR,
+	}
+	cmdArgs = []string{c.CLI, "metadata", "apply"}
+	cmdArgs = append(cmdArgs, commandOptions...)
+	execute.Args = cmdArgs
 
-			if err = execute.Run(); err != nil {
-				log.Error("Failed to apply metadata")
-				return err
-			}
-	*/
+	if err = execute.Run(); err != nil {
+		log.Error("Failed to apply metadata")
+		return err
+	}
 
 	return nil
 }
