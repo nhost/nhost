@@ -297,7 +297,7 @@ export const initProvider = <T extends Strategy>(
           !ENV.AUTH_ALLOWED_REDIRECT_URLS.includes(redirectUrl)
         ) {
           return res.boom.badRequest(
-            'Redirect URL is not same as APP_URL or not in ALLOWED_REDIRECT_URLS'
+            'The redirect URL is not the same as AUTH_CLIENT_URL nor is it in ALLOWED_REDIRECT_URLS'
           );
         }
 
