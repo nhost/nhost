@@ -278,6 +278,7 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	// apply migrations and metadata
+	log.Info("Almost done")
 	if err = environment.Hasura.Prepare(); err != nil {
 		log.Debug(err)
 		cleanup(cmd)

@@ -870,7 +870,7 @@ func generateEmailVars() map[string]interface{} {
 	return map[string]interface{}{
 		"refresh_token_expires_in": "",
 		"emails_enabled":           true,
-		"smtp_host":                "nhost_mailhog",
+		"smtp_host":                PREFIX + "_mailhog",
 		"smtp_port":                1025,
 		"smtp_user":                "user",
 		"smtp_pass":                "password",

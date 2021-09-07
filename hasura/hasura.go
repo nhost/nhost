@@ -356,8 +356,6 @@ func (c *Client) Track(table TableEntry) error {
 
 func (c *Client) Prepare() error {
 
-	log.Debug("Preparing migrations and metadata")
-
 	var (
 		execute = exec.Cmd{
 			Path: c.CLI,
@@ -378,6 +376,7 @@ func (c *Client) Prepare() error {
 	// hence, manually applying migrations doesn't make sense
 
 	// create migrations
+	log.Debug("Applying migrations")
 	cmdArgs := []string{c.CLI, "migrate", "apply", "--database-name", "default"}
 	cmdArgs = append(cmdArgs, commandOptions...)
 	execute.Args = cmdArgs
@@ -412,6 +411,7 @@ func (c *Client) Prepare() error {
 	// hence, manually applying metadata doesn't make sense
 
 	// apply metadata
+	log.Debug("Applying migrations")
 	execute = exec.Cmd{
 		Path: c.CLI,
 		Dir:  nhost.NHOST_DIR,

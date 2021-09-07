@@ -38,7 +38,7 @@ var (
 	DATABASE = "default"
 
 	// generate path for seeds
-	SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds", DATABASE)
+	SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds")
 
 	// generate path for frontend
 	WEB_DIR = filepath.Join(WORKING_DIR, "web")

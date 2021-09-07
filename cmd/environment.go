@@ -273,7 +273,7 @@ func (e *Environment) Seed() error {
 	for _, item := range seed_files {
 
 		// read seed file
-		data, err := ioutil.ReadFile(filepath.Join(nhost.SEEDS_DIR, item.Name()))
+		data, err := ioutil.ReadFile(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE, item.Name()))
 		if err != nil {
 			log.WithField("component", "seeds").Errorln("Failed to open:", item.Name())
 			return err

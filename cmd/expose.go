@@ -31,7 +31,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-// ssh -N -L 80:localhost:8080 root@128.199.25.110 -i ./id_rsa
+// ssh -f -N -T -R 3000:localhost:3000 root@128.199.25.110 -i ./id_rsa
 
 type Endpoint struct {
 	Host string
@@ -126,6 +126,8 @@ for both, testing and show-off.`,
 			if err != nil {
 				log.Fatalln(fmt.Printf("Dial INTO local service error: %s", err))
 			}
+
+			fmt.Println("done")
 
 			client, err := listener.Accept()
 			if err != nil {
