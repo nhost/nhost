@@ -39,7 +39,6 @@ services:
       HASURA_ENDPOINT: http://graphql-engine:8080/v1/graphql
       JWT_KEY: 5152fa850c02dc222631cca898ed1485821a70912a6e3649c49076912daa3b62182ba013315915d64f40cddfbb8b58eb5bd11ba225336a6af45bbae07ca873f3
       REDIRECT_URL_ERROR: http://localhost:3000
-      REDIRECT_URL_SUCCESS: http://localhost:3000
       EMAILS_ENABLED: 'true'
       SMTP_HOST: mailhog
       SMTP_PORT: 1025
