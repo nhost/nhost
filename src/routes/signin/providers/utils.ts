@@ -60,7 +60,7 @@ const manageProviderStrategy =
   ): Promise<void> => {
     req.state = req.query.state as string;
 
-    // TODO How do we handle REGISTRATION_CUSTOM_FIELDS with OAuth?
+    // TODO How do we handle auth_signup_profile_fields with OAuth?
 
     // find or create the user
     // check if user exists, using profile.id
