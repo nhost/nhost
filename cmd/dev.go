@@ -37,6 +37,7 @@ import (
 	"syscall"
 	"text/tabwriter"
 
+	"github.com/koding/tunnel"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
@@ -45,6 +46,11 @@ import (
 
 var (
 	port string
+
+	// initialize boolean to determine
+	// whether to expose the local environment to the public internet
+	// through a tunnel
+	expose bool
 
 	// proxy mux
 	mux = http.NewServeMux()
@@ -295,7 +301,11 @@ func execute(cmd *cobra.Command, args []string) {
 	// print the proxy routes
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 	fmt.Println()
-	fmt.Fprintln(w, "---\t\t-----")
+	if expose {
+		fmt.Fprintln(w, "---\t\t-----\t\t-----")
+	} else {
+		fmt.Fprintln(w, "---\t\t-----")
+	}
 
 	for name, item := range environment.Config.Services {
 
@@ -310,13 +320,26 @@ func execute(cmd *cobra.Command, args []string) {
 			}
 
 			// print the name and handle
-			fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, port, Reset, filepath.Clean(item.Handle)))
+			if expose {
+				fmt.Fprintf(
+					w,
+					"%v\t\t%v\t\t%v",
+					strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, port, Reset, filepath.Clean(item.Handle)),
+					fmt.Sprintf("%s%s%s%s", Gray, tunnelAddress, Reset, filepath.Clean(item.Handle)),
+				)
+			} else {
+				fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, port, Reset, filepath.Clean(item.Handle)))
+			}
 			fmt.Fprintln(w)
 
 		}
 	}
 
-	fmt.Fprintln(w, "---\t\t-----")
+	if expose {
+		fmt.Fprintln(w, "---\t\t-----\t\t-----")
+	} else {
+		fmt.Fprintln(w, "---\t\t-----")
+	}
 	w.Flush()
 	fmt.Println()
 
@@ -361,6 +384,24 @@ func execute(cmd *cobra.Command, args []string) {
 		}
 	}()
 
+	// expose to public internet
+	if expose {
+		go func() {
+			cfg := &tunnel.ClientConfig{
+				Identifier: tunnelSecret,
+				ServerAddr: tunnelAddress,
+			}
+
+			client, err := tunnel.NewClient(cfg)
+			if err != nil {
+				log.Debug(err)
+				log.Error("Failed to expose the environment to public internet")
+			}
+
+			client.Start()
+		}()
+	}
+
 	// launch sessions
 	for key, item := range environment.Config.Sessions {
 
@@ -381,6 +422,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	devCmd.PersistentFlags().StringVarP(&port, "port", "p", "1337", "Port for dev proxy")
+	devCmd.PersistentFlags().BoolVarP(&expose, "expose", "e", false, "Expose local environment to public internet")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

@@ -29,4 +29,7 @@ var (
 
 	Client      = http.Client{}
 	environment Environment
+
+	tunnelAddress = "tunnel.mrinalwahal.com"
+	tunnelSecret  = "1234"
 )
