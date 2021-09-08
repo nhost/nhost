@@ -411,7 +411,7 @@ func (c *Client) Prepare() error {
 	// hence, manually applying metadata doesn't make sense
 
 	// apply metadata
-	log.Debug("Applying migrations")
+	log.Debug("Applying metadata")
 	execute = exec.Cmd{
 		Path: c.CLI,
 		Dir:  nhost.NHOST_DIR,

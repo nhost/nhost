@@ -25,6 +25,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/sirupsen/logrus"
+	"github.com/subosito/gotenv"
 
 	"gopkg.in/yaml.v2"
 )
@@ -81,16 +82,15 @@ func Env() ([]string, error) {
 		return nil, err
 	}
 
-	var response []string
+	pairs := gotenv.Parse(strings.NewReader(string(data)))
+	envs := []string{}
 
-	split := strings.Split(string(data), "\n")
-	for _, item := range split {
-		if strings.Contains(item, "=") {
-			response = append(response, item)
-		}
+	// split := strings.Split(string(data), "\n")
+	for key, value := range pairs {
+		envs = append(envs, fmt.Sprintf("%v=%v", key, value))
 	}
 
-	return response, nil
+	return envs, nil
 }
 
 func Exists() bool {

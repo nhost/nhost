@@ -24,9 +24,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
-	"path/filepath"
 
-	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh"
 )
@@ -68,74 +66,75 @@ for both, testing and show-off.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		/*
-			savePrivateFileTo := "./id_rsa_test"
-			savePublicFileTo := "./id_rsa_test.pub"
-			bitSize := 4096
+				// Legacy Code
+				savePrivateFileTo := "./id_rsa_test"
+				savePublicFileTo := "./id_rsa_test.pub"
+				bitSize := 4096
 
-			privateKey, err := generatePrivateKey(bitSize)
-			if err != nil {
-				log.Fatal(err.Error())
+				privateKey, err := generatePrivateKey(bitSize)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+
+				publicKeyBytes, err := generatePublicKey(&privateKey.PublicKey)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+
+				privateKeyBytes := encodePrivateKeyToPEM(privateKey)
+
+				err = writeKeyToFile(privateKeyBytes, savePrivateFileTo)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+
+				err = writeKeyToFile([]byte(publicKeyBytes), savePublicFileTo)
+				if err != nil {
+					log.Fatal(err.Error())
+				}
+
+			// refer to https://godoc.org/golang.org/x/crypto/ssh for other authentication types
+			sshConfig := &ssh.ClientConfig{
+				// SSH connection username
+				User: "root",
+				Auth: []ssh.AuthMethod{
+					// put here your private key path
+					publicKeyFile(filepath.Join(nhost.WORKING_DIR, "id_rsa")),
+				},
+				HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 			}
 
-			publicKeyBytes, err := generatePublicKey(&privateKey.PublicKey)
+			// Connect to SSH remote server using serverEndpoint
+			serverConn, err := ssh.Dial("tcp", serverEndpoint.String(), sshConfig)
 			if err != nil {
-				log.Fatal(err.Error())
+				log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
 			}
 
-			privateKeyBytes := encodePrivateKeyToPEM(privateKey)
-
-			err = writeKeyToFile(privateKeyBytes, savePrivateFileTo)
+			// Listen on remote server port
+			listener, err := serverConn.Listen("tcp", remoteEndpoint.String())
 			if err != nil {
-				log.Fatal(err.Error())
+				log.Fatalln(fmt.Printf("Listen open port ON remote server error: %s", err))
 			}
+			defer listener.Close()
 
-			err = writeKeyToFile([]byte(publicKeyBytes), savePublicFileTo)
-			if err != nil {
-				log.Fatal(err.Error())
+			// handle incoming connections on reverse forwarded tunnel
+			for {
+				// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
+				local, err := net.Dial("tcp", localEndpoint.String())
+				if err != nil {
+					log.Fatalln(fmt.Printf("Dial INTO local service error: %s", err))
+				}
+
+				fmt.Println("done")
+
+				client, err := listener.Accept()
+				if err != nil {
+					log.Fatalln(err)
+				}
+
+				handleClient(client, local)
 			}
 		*/
-
-		// refer to https://godoc.org/golang.org/x/crypto/ssh for other authentication types
-		sshConfig := &ssh.ClientConfig{
-			// SSH connection username
-			User: "root",
-			Auth: []ssh.AuthMethod{
-				// put here your private key path
-				publicKeyFile(filepath.Join(nhost.WORKING_DIR, "id_rsa")),
-			},
-			HostKeyCallback: ssh.InsecureIgnoreHostKey(),
-		}
-
-		// Connect to SSH remote server using serverEndpoint
-		serverConn, err := ssh.Dial("tcp", serverEndpoint.String(), sshConfig)
-		if err != nil {
-			log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
-		}
-
-		// Listen on remote server port
-		listener, err := serverConn.Listen("tcp", remoteEndpoint.String())
-		if err != nil {
-			log.Fatalln(fmt.Printf("Listen open port ON remote server error: %s", err))
-		}
-		defer listener.Close()
-
-		// handle incoming connections on reverse forwarded tunnel
-		for {
-			// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
-			local, err := net.Dial("tcp", localEndpoint.String())
-			if err != nil {
-				log.Fatalln(fmt.Printf("Dial INTO local service error: %s", err))
-			}
-
-			fmt.Println("done")
-
-			client, err := listener.Accept()
-			if err != nil {
-				log.Fatalln(err)
-			}
-
-			handleClient(client, local)
-		}
 
 	},
 }

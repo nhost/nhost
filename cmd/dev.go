@@ -37,7 +37,6 @@ import (
 	"syscall"
 	"text/tabwriter"
 
-	"github.com/koding/tunnel"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
@@ -384,23 +383,26 @@ func execute(cmd *cobra.Command, args []string) {
 		}
 	}()
 
-	// expose to public internet
-	if expose {
-		go func() {
-			cfg := &tunnel.ClientConfig{
-				Identifier: tunnelSecret,
-				ServerAddr: tunnelAddress,
-			}
+	/*
+		// expose to public internet
+		if expose {
+			go func() {
+				cfg := &tunnel.ClientConfig{
+					Identifier: tunnelSecret,
+					ServerAddr: tunnelAddress,
+					// LocalAddr:  ":" + port,
+				}
 
-			client, err := tunnel.NewClient(cfg)
-			if err != nil {
-				log.Debug(err)
-				log.Error("Failed to expose the environment to public internet")
-			}
+				client, err := tunnel.NewClient(cfg)
+				if err != nil {
+					log.Debug(err)
+					log.Error("Failed to expose the environment to public internet")
+				}
 
-			client.Start()
-		}()
-	}
+				client.Start()
+			}()
+		}
+	*/
 
 	// launch sessions
 	for key, item := range environment.Config.Sessions {

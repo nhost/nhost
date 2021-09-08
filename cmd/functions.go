@@ -81,12 +81,6 @@ var functionsCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// if environment variables haven't been loaded
-		// then load them from .env.development
-		if len(envVars) == 0 {
-			envVars, _ = nhost.Env()
-		}
-
 		// add cleanup action in case of signal interruption
 		c := make(chan os.Signal)
 		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
@@ -150,6 +144,12 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 			log.WithField("runtime", "NodeJS").Error("Neither a local, nor a root package.json found")
 			log.WithField("runtime", "NodeJS").Warn("Run `npm init && npm i` to use functions")
 		}
+	}
+
+	// if environment variables haven't been loaded
+	// then load them from .env.development
+	if len(envVars) == 0 {
+		envVars, _ = nhost.Env()
 	}
 
 	// assing important env vars during runtime
@@ -243,36 +243,40 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Validate whether the function has been built before
 	preBuilt := false
-	for index, item := range functions {
 
-		// check whether it's the same function file
-		if item.Path == f.Path {
+	// Uncomment the following to enable caching
+	/*
+		for index, item := range functions {
 
-			// now compare modification time of function file
-			// with it's cached copy
-			if f.File.ModTime().Equal(item.File.ModTime()) {
+			// check whether it's the same function file
+			if item.Path == f.Path {
 
-				log.WithField("route", f.Route).Debug("Found cached copy of function")
-				f = item
-				preBuilt = true
+				// now compare modification time of function file
+				// with it's cached copy
+				if f.File.ModTime().Equal(item.File.ModTime()) {
 
-			} else {
+					log.WithField("route", f.Route).Debug("Found cached copy of function")
+					f = item
+					preBuilt = true
 
-				// if file has been modified, clean the cache location
-				log.Debug("Removing temporary directory from: ", filepath.Dir(item.Build))
-				if err := os.RemoveAll(filepath.Dir(item.Build)); err != nil {
-					if _, ok := err.(*os.PathError); ok {
-						log.Debug("failed to remove temp directory: ", err)
+				} else {
+
+					// if file has been modified, clean the cache location
+					log.Debug("Removing temporary directory from: ", filepath.Dir(item.Build))
+					if err := os.RemoveAll(filepath.Dir(item.Build)); err != nil {
+						if _, ok := err.(*os.PathError); ok {
+							log.Debug("failed to remove temp directory: ", err)
+						}
 					}
+
+					// delete the saved function from array
+					functions = remove(functions, index)
 				}
 
-				// delete the saved function from array
-				functions = remove(functions, index)
+				break
 			}
-
-			break
 		}
-	}
+	*/
 
 	if !preBuilt {
 
@@ -320,7 +324,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			Env:    envVars,
 			Args:   []string{nodeCLI, f.ServerConfig},
 			Stdout: os.Stdout,
-			// Stderr: os.Stderr,
+			Stderr: os.Stderr,
 		}
 
 		// begin the comand execution
