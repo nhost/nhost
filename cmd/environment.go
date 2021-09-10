@@ -13,6 +13,7 @@ import (
 	client "github.com/docker/docker/client"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
 // Reset the services and network,
@@ -54,40 +55,60 @@ func (e *Environment) Init() error {
 	// wrap the fetched containers inside the environment
 	_ = environment.WrapContainersAsServices(containers)
 
-	// load the local git repository in project root directory
-	e.Repository, err = loadRepository()
-	if err != nil {
-		log.Debug(err)
-		log.Debug("Either a local git repository doesn't exist or it's broken")
-	} else {
+	// If there is a local git repository,
+	// in the project root directory,
+	// then initialize watchers for keeping track
+	// of HEAD changes on git checkout/pull/merge/fetch
 
-		// watch for changes in repo's head
-		go e.watchHead()
+	if pathExists(nhost.GIT_DIR) {
+
+		e.Watchers = make(map[string]WatcherOperation)
+
+		// Initialize watcher for post-checkout branch changes
+		e.Watchers[filepath.Join(nhost.GIT_DIR, "HEAD")] = e.restartEnvironmentAfterCheckout
+
+		// Initialize watcher for post-merge commit changes
+		e.Watchers[filepath.Join(nhost.GIT_DIR, "refs", "remotes", "origin", "HEAD")] = e.restartMigrations
 	}
 	return nil
 }
 
-func (e *Environment) watchHead() {
+func (e *Environment) restartMigrations(cmd *cobra.Command, args []string) error {
 
-	// get the current head of git repo
-	head := getCurrentBranch(e.Repository)
+	// inform the user of detection
+	log.Info("We've detected change in local git commit")
+	log.Warn("We're fixing your data accordingly. Give us a moment!")
 
-	for {
-
-		// get the current head of git repo
-		new := getCurrentBranch(e.Repository)
-
-		if new != "" && new != head {
-
-			// update the head value
-			head = new
-
-			log.WithField("branch", head).Debug("Detected git branch change")
-
-			// update branch change channel
-			branchSwitch <- head
-		}
+	// re-do migrations and metadata
+	if err := e.Hasura.Prepare(); err != nil {
+		return err
 	}
+
+	log.Info("Done! Please continue with your work")
+	return nil
+}
+
+func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args []string) error {
+
+	// inform the user of detection
+	log.Info("We've detected change in local git branch")
+	log.Warn("We're restarting your environment")
+
+	// Stop the local reverse proxy server
+	proxy.Shutdown(environment.Context)
+
+	if err := environment.Shutdown(true); err != nil {
+		log.Debug(err)
+		log.Error("Failed to stop running services")
+	}
+
+	// update DOT_NHOST directory
+	nhost.DOT_NHOST, _ = nhost.GetDotNhost()
+
+	// now re-create the them
+	execute(cmd, args)
+
+	return nil
 }
 
 // Wraps a list of docker containers as *nhost.Services for respective environment.
@@ -453,3 +474,28 @@ func (e *Environment) Seed() error {
 		}
 	*/
 }
+
+/*
+func (e *Environment) watchHead() {
+
+	// get the current head of git repo
+	head := getCurrentBranch(e.Repository)
+
+	for {
+
+		// get the current head of git repo
+		new := getCurrentBranch(e.Repository)
+
+		if new != "" && new != head {
+
+			// update the head value
+			head = new
+
+			log.WithField("branch", head).Debug("Detected git branch change")
+
+			// update branch change channel
+			branchSwitch <- head
+		}
+	}
+}
+*/

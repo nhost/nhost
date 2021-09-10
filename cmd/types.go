@@ -10,6 +10,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/spf13/cobra"
 )
 
 type (
@@ -48,6 +49,8 @@ type (
 		Plugin       *plugin.Plugin
 	}
 
+	WatcherOperation func(cmd *cobra.Command, args []string) error
+
 	Environment struct {
 		Name       string
 		Active     bool
@@ -61,5 +64,11 @@ type (
 		Network    string
 		Repository *git.Repository
 		Branch     string
+
+		// In the following format:
+		// Key - Absolute File Name to Watch
+		// Value - Function to execute,
+		// which takes cobra command and suuplied arguments as params
+		Watchers map[string]WatcherOperation
 	}
 )

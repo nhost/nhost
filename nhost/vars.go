@@ -52,6 +52,9 @@ var (
 	// generate path for legacy migrations
 	LEGACY_DIR = filepath.Join(DOT_NHOST, "legacy")
 
+	// generate path for local git directory
+	GIT_DIR = filepath.Join(WORKING_DIR, ".git")
+
 	// generate path for .env.development
 	ENV_FILE = filepath.Join(WORKING_DIR, ".env.development")
 

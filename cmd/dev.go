@@ -37,6 +37,7 @@ import (
 	"syscall"
 	"text/tabwriter"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
@@ -58,7 +59,10 @@ var (
 	proxy *http.Server
 
 	// signal interruption channel
-	stop = make(chan os.Signal)
+	stop = make(chan os.Signal, 2)
+
+	// fsnotify watcher
+	watcher *fsnotify.Watcher
 )
 
 /*
@@ -108,6 +112,34 @@ var devCmd = &cobra.Command{
 			log.Fatal("Failed to initialize nhost data directory")
 		}
 
+		var err error
+
+		// Initialize the runtime environment
+		if err = environment.Init(); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to initialize the environment")
+		}
+
+		// Launch the Watchers of this environment
+		if len(environment.Watchers) > 0 {
+
+			watcher, err = fsnotify.NewWatcher()
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer watcher.Close()
+
+			// Add the files to our watcher
+			for file := range environment.Watchers {
+				if err := watcher.Add(file); err != nil {
+					log.WithField("component", "watcher").Error(err)
+				}
+			}
+
+			// launch the infinite watching goroutine
+			go environment.Watch(watcher, cmd, args)
+		}
+
 		var end_waiter sync.WaitGroup
 		end_waiter.Add(1)
 
@@ -115,7 +147,7 @@ var devCmd = &cobra.Command{
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-stop
-			cleanup(cmd, true)
+			cleanup(cmd)
 		}()
 
 		// being the execution
@@ -126,28 +158,21 @@ var devCmd = &cobra.Command{
 	},
 }
 
-func cleanup(cmd *cobra.Command, exit bool) {
+func cleanup(cmd *cobra.Command) {
 	proxy.Shutdown(environment.Context)
 
 	if environment.Active {
-		if exit {
-			log.Warn("Please wait while we cleanup")
-		}
-		if err := environment.Shutdown(!exit); err != nil {
+		log.Warn("Please wait while we cleanup")
+		if err := environment.Shutdown(false); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to stop running services")
 		}
-		if exit {
-			log.Info("Cleanup complete. See you later, grasshopper!")
-		}
+		log.Info("Cleanup complete. See you later, grasshopper!")
 	}
 
-	if exit {
-		environment.Cancel()
-		close(branchSwitch)
-		close(stop)
-		os.Exit(0)
-	}
+	environment.Cancel()
+	close(stop)
+	os.Exit(0)
 }
 
 func execute(cmd *cobra.Command, args []string) {
@@ -157,38 +182,6 @@ func execute(cmd *cobra.Command, args []string) {
 	// initialize the proxy server
 	mux = http.NewServeMux()
 	proxy = &http.Server{Addr: ":" + port, Handler: mux}
-
-	// If the environment is already active,
-	// skip initializing it from scratch
-	if !environment.Active {
-
-		// Initialize the runtime environment
-		if err = environment.Init(); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to initialize the environment")
-		}
-
-	}
-
-	// if the branch changes,
-	// re-start the environment
-	go func() {
-		for range branchSwitch {
-
-			// inform the user of switch detection
-			log.Info("We've detected change in local git branch")
-			log.Warn("We're restarting your environment")
-
-			// clean the environment
-			cleanup(cmd, false)
-
-			// update DOT_NHOST directory
-			nhost.DOT_NHOST, _ = nhost.GetDotNhost()
-
-			// now re-create the them
-			execute(cmd, args)
-		}
-	}()
 
 	// initialize a common http client
 	environment.HTTP = &http.Client{}
@@ -261,7 +254,7 @@ func execute(cmd *cobra.Command, args []string) {
 					"container": item.Name,
 					"type":      "container",
 				}).Error("Failed to run container")
-				cleanup(cmd, true)
+				cleanup(cmd)
 			}
 
 			// activate the environment to let it be cleaned on shutdown
@@ -293,7 +286,7 @@ func execute(cmd *cobra.Command, args []string) {
 						"type":      "service",
 						"container": service.Name,
 					}).Error("Health check failed")
-					cleanup(cmd, true)
+					cleanup(cmd)
 				}
 				log.WithFields(logrus.Fields{
 					"type":      "service",
@@ -321,14 +314,14 @@ func execute(cmd *cobra.Command, args []string) {
 	log.Info("Preparing your data")
 	if err = environment.Hasura.Prepare(); err != nil {
 		log.Debug(err)
-		cleanup(cmd, true)
+		cleanup(cmd)
 	}
 
 	// apply seeds on the first run
 	if firstRun {
 		if err = environment.Seed(); err != nil {
 			log.Debug(err)
-			cleanup(cmd, true)
+			cleanup(cmd)
 		}
 	}
 
@@ -436,7 +429,7 @@ func execute(cmd *cobra.Command, args []string) {
 			if err := item.IssueProxy(mux); err != nil {
 				log.WithField("component", "server").Debug(err)
 				log.WithField("component", "server").Error("Failed to proxy", name)
-				cleanup(cmd, true)
+				cleanup(cmd)
 			}
 
 			// print the name and handle

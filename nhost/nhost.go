@@ -76,14 +76,18 @@ func (config *Configuration) Save() error {
 // Get the expected current DotNhost directory as per git branch head
 func GetDotNhost() (string, error) {
 
-	repo, err := loadRepository()
-	if err != nil {
-		return "", err
-	}
+	// set default branch name
+	branch := "main"
 
-	branch := getCurrentBranch(repo)
-	if branch == "" {
-		branch = "main"
+	// If the current directory is a git repository,
+	// then read the branch name from HEAD
+	if pathExists(GIT_DIR) {
+		data, err := ioutil.ReadFile(filepath.Join(GIT_DIR, "HEAD"))
+		if err != nil {
+			return "", err
+		}
+		payload := strings.Split(string(data), " ")
+		branch = filepath.Base(payload[1])
 	}
 
 	return filepath.Join(WORKING_DIR, ".nhost", branch), nil
@@ -606,7 +610,7 @@ func (config *Configuration) Init() error {
 	envVars, _ := Env()
 
 	// create mount points if they doesn't exist
-	log.WithField("service", "data").Debugln("Mounting:", strings.TrimPrefix(DOT_NHOST, WORKING_DIR))
+	log.WithField("service", "data").Debug("Mounting:", strings.TrimPrefix(DOT_NHOST, WORKING_DIR))
 	mountPoints := []mount.Mount{
 		{
 			Type:   mount.TypeBind,

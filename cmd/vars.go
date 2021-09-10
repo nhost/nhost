@@ -31,6 +31,4 @@ var (
 	environment Environment
 
 	tunnelAddress = "tunnel.mrinalwahal.com"
-
-	branchSwitch = make(chan string)
 )

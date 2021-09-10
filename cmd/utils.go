@@ -8,9 +8,11 @@ import (
 	"os/exec"
 
 	client "github.com/docker/docker/client"
+	"github.com/fsnotify/fsnotify"
 	"github.com/go-git/go-git/v5"
 	"github.com/hashicorp/go-getter"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/spf13/cobra"
 )
 
 // download a remote directory/file to local
@@ -128,4 +130,35 @@ func getCurrentBranch(repo *git.Repository) string {
 	}
 
 	return ""
+}
+
+// Infinite function which listens for
+// fsnotify events once launched
+func (e *Environment) Watch(watcher *fsnotify.Watcher, cmd *cobra.Command, args []string) {
+	for {
+		select {
+		// detect Ctrl + C
+		case <-stop:
+			log.WithField("component", "watcher").Debug("Inactivated")
+			return
+		case event, ok := <-watcher.Events:
+			if !ok {
+				return
+			}
+			if event.Op&fsnotify.Write == fsnotify.Write ||
+				event.Op&fsnotify.Create == fsnotify.Create {
+
+				// run the operation
+				if err := e.Watchers[event.Name](cmd, args); err != nil {
+					log.WithField("component", "watcher").Error(err)
+				}
+
+			}
+		case err, ok := <-watcher.Errors:
+			if !ok {
+				return
+			}
+			log.WithField("component", "watcher").Debug(err)
+		}
+	}
 }
