@@ -11,6 +11,7 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	client "github.com/docker/docker/client"
+	"github.com/go-git/go-git/v5"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
 )
@@ -44,7 +45,49 @@ func (e *Environment) Init() error {
 	// wrap the fetched containers inside the environment
 	_ = environment.WrapContainersAsServices(containers)
 
+	// load the local git repository in project root directory
+	e.Repository, err = e.loadRepository()
+	if err != nil {
+		log.Debug(err)
+		log.Debug("Either a local git repository doesn't exist or it's broken")
+	}
+
+	// watch for changes in repo's head
+	go e.watchHead()
+
 	return err
+}
+
+func (e *Environment) watchHead() {
+
+	var head string
+	for {
+
+		// get the current head of git repo
+		new, err := e.Repository.Head()
+		if err != nil {
+			break
+		}
+
+		if new.Name().IsBranch() && new.Name().String() != head {
+
+			// update the head value
+			head = new.Name().String()
+
+			if head != "" {
+
+				// perform operation for head change
+				log.Info("Detect git branch change")
+
+			}
+		}
+	}
+}
+
+func (e *Environment) loadRepository() (*git.Repository, error) {
+
+	log.Debug("Loading local git repository")
+	return git.PlainOpen(nhost.WORKING_DIR)
 }
 
 // Wraps a list of docker containers as *nhost.Services for respective environment.

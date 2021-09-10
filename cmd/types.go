@@ -7,6 +7,7 @@ import (
 	"plugin"
 
 	"github.com/docker/docker/client"
+	"github.com/go-git/go-git/v5"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 )
@@ -48,15 +49,17 @@ type (
 	}
 
 	Environment struct {
-		Name    string
-		Active  bool
-		Cancel  context.CancelFunc
-		Port    int
-		HTTP    *http.Client
-		Hasura  *hasura.Client
-		Docker  *client.Client
-		Config  nhost.Configuration
-		Context context.Context
-		Network string
+		Name       string
+		Active     bool
+		Cancel     context.CancelFunc
+		Port       int
+		HTTP       *http.Client
+		Hasura     *hasura.Client
+		Docker     *client.Client
+		Config     nhost.Configuration
+		Context    context.Context
+		Network    string
+		Repository *git.Repository
+		Branch     string
 	}
 )

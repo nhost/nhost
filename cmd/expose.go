@@ -24,6 +24,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
+	"sync"
 
 	"github.com/spf13/cobra"
 	"golang.org/x/crypto/ssh"
@@ -65,75 +66,118 @@ services running on your localhost to the public internet,
 for both, testing and show-off.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
+		var wg sync.WaitGroup
+		wg.Add(1)
+		// Initialize the runtime environment
+		if err := environment.Init(); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to initialize the environment")
+		}
+		log.Info("environment active")
+		wg.Wait()
 		/*
-				// Legacy Code
-				savePrivateFileTo := "./id_rsa_test"
-				savePublicFileTo := "./id_rsa_test.pub"
-				bitSize := 4096
+			// local start mock server
+			http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(http.StatusOK)
+				fmt.Fprint(w, "Hello, from mock server")
+			})
+			go http.ListenAndServe(":8081", nil)
 
-				privateKey, err := generatePrivateKey(bitSize)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
+			state := make(chan *tunnels.ClientState)
 
-				publicKeyBytes, err := generatePublicKey(&privateKey.PublicKey)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-
-				privateKeyBytes := encodePrivateKeyToPEM(privateKey)
-
-				err = writeKeyToFile(privateKeyBytes, savePrivateFileTo)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-
-				err = writeKeyToFile([]byte(publicKeyBytes), savePublicFileTo)
-				if err != nil {
-					log.Fatal(err.Error())
-				}
-
-			// refer to https://godoc.org/golang.org/x/crypto/ssh for other authentication types
-			sshConfig := &ssh.ClientConfig{
-				// SSH connection username
-				User: "root",
-				Auth: []ssh.AuthMethod{
-					// put here your private key path
-					publicKeyFile(filepath.Join(nhost.WORKING_DIR, "id_rsa")),
-				},
-				HostKeyCallback: ssh.InsecureIgnoreHostKey(),
+			client := &tunnels.Client{
+				Address: "wahal.tunnel.nhost.io:443",
+				Token:   "1234",
+				Port:    "8081",
+				State:   state,
 			}
 
-			// Connect to SSH remote server using serverEndpoint
-			serverConn, err := ssh.Dial("tcp", serverEndpoint.String(), sshConfig)
-			if err != nil {
-				log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
+			go func() {
+				for {
+					change := <-state
+					if *change == tunnels.Connecting {
+						log.WithField("component", "tunnel").Debug("Connecting")
+					} else if *change == tunnels.Connected {
+						log.WithField("component", "tunnel").Debug("Connected")
+					} else if *change == tunnels.Disconnected {
+						log.WithField("component", "tunnel").Debug("Disconnected")
+					}
+				}
+			}()
+
+			if err := client.Connect(); err != nil {
+				log.WithField("component", "tunnel").Debug(err)
+				log.WithField("component", "tunnel").Error("Failed to expose your environment")
 			}
 
-			// Listen on remote server port
-			listener, err := serverConn.Listen("tcp", remoteEndpoint.String())
-			if err != nil {
-				log.Fatalln(fmt.Printf("Listen open port ON remote server error: %s", err))
-			}
-			defer listener.Close()
+					// Legacy Code
+					savePrivateFileTo := "./id_rsa_test"
+					savePublicFileTo := "./id_rsa_test.pub"
+					bitSize := 4096
 
-			// handle incoming connections on reverse forwarded tunnel
-			for {
-				// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
-				local, err := net.Dial("tcp", localEndpoint.String())
-				if err != nil {
-					log.Fatalln(fmt.Printf("Dial INTO local service error: %s", err))
+					privateKey, err := generatePrivateKey(bitSize)
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+
+					publicKeyBytes, err := generatePublicKey(&privateKey.PublicKey)
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+
+					privateKeyBytes := encodePrivateKeyToPEM(privateKey)
+
+					err = writeKeyToFile(privateKeyBytes, savePrivateFileTo)
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+
+					err = writeKeyToFile([]byte(publicKeyBytes), savePublicFileTo)
+					if err != nil {
+						log.Fatal(err.Error())
+					}
+
+				// refer to https://godoc.org/golang.org/x/crypto/ssh for other authentication types
+				sshConfig := &ssh.ClientConfig{
+					// SSH connection username
+					User: "root",
+					Auth: []ssh.AuthMethod{
+						// put here your private key path
+						publicKeyFile(filepath.Join(nhost.WORKING_DIR, "id_rsa")),
+					},
+					HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 				}
 
-				fmt.Println("done")
-
-				client, err := listener.Accept()
+				// Connect to SSH remote server using serverEndpoint
+				serverConn, err := ssh.Dial("tcp", serverEndpoint.String(), sshConfig)
 				if err != nil {
-					log.Fatalln(err)
+					log.Fatalln(fmt.Printf("Dial INTO remote server error: %s", err))
 				}
 
-				handleClient(client, local)
-			}
+				// Listen on remote server port
+				listener, err := serverConn.Listen("tcp", remoteEndpoint.String())
+				if err != nil {
+					log.Fatalln(fmt.Printf("Listen open port ON remote server error: %s", err))
+				}
+				defer listener.Close()
+
+				// handle incoming connections on reverse forwarded tunnel
+				for {
+					// Open a (local) connection to localEndpoint whose content will be forwarded so serverEndpoint
+					local, err := net.Dial("tcp", localEndpoint.String())
+					if err != nil {
+						log.Fatalln(fmt.Printf("Dial INTO local service error: %s", err))
+					}
+
+					fmt.Println("done")
+
+					client, err := listener.Accept()
+					if err != nil {
+						log.Fatalln(err)
+					}
+
+					handleClient(client, local)
+				}
 		*/
 
 	},

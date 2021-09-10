@@ -297,6 +297,93 @@ func execute(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	//spawn hasura console
+	consolePort := nhost.GetPort(9301, 9400)
+	hasuraConsoleSpawnCmd := exec.Cmd{
+		Path: hasuraCLI,
+		Args: []string{hasuraCLI,
+			"console",
+			"--endpoint",
+			environment.Hasura.Endpoint,
+			"--admin-secret",
+			environment.Hasura.AdminSecret,
+			"--console-port",
+			fmt.Sprint(consolePort),
+		},
+		Dir: nhost.NHOST_DIR,
+	}
+
+	go hasuraConsoleSpawnCmd.Run()
+
+	// launch mailhog UI
+	go openbrowser(environment.Config.Services["mailhog"].Address)
+
+	// launch a local reverse proxy
+	// for all Nhost services the CLI is running locally
+	go func() {
+		if err := proxy.ListenAndServe(); err != nil {
+			log.WithField("component", "proxy").Debug(err)
+		}
+
+	}()
+
+	// expose to public internet
+	var exposed bool
+	/*
+		if expose {
+			go func() {
+
+				// get the user's credentials
+				credentials, err := nhost.LoadCredentials()
+				if err != nil {
+					log.WithField("component", "tunnel").Debug(err)
+					log.WithField("component", "tunnel").Error("Failed to fetch authentication credentials")
+					log.WithField("component", "tunnel").Info("Login again with `nhost login` and re-start the environment")
+					log.WithField("component", "tunnel").Warn("We're skipping exposing your environment to the outside world")
+					return
+				} else {
+					go func() {
+
+						state := make(chan *tunnels.ClientState)
+						client := &tunnels.Client{
+							Address: "wahal.tunnel.nhost.io:443",
+							Port:    port,
+							Token:   credentials.Token,
+							State:   state,
+						}
+
+						if err := client.Init(); err != nil {
+							log.WithField("component", "tunnel").Debug(err)
+							log.WithField("component", "tunnel").Error("Failed to initialize your tunnel")
+							return
+						}
+
+						// Listen for tunnel state changes
+						go func() {
+							for {
+								change := <-state
+								if *change == tunnels.Connecting {
+									log.WithField("component", "tunnel").Debug("Connecting")
+								} else if *change == tunnels.Connected {
+									exposed = true
+									log.WithField("component", "tunnel").Debug("Connected")
+								} else if *change == tunnels.Disconnected {
+									log.WithField("component", "tunnel").Debug("Disconnected")
+								}
+							}
+						}()
+
+						if err := client.Connect(); err != nil {
+							log.WithField("component", "tunnel").Debug(err)
+							log.WithField("component", "tunnel").Error("Failed to expose your environment to the outside world")
+						}
+
+					}()
+				}
+			}()
+		}
+	*/
+
 	// print the proxy routes
 	w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 	fmt.Println()
@@ -319,7 +406,7 @@ func execute(cmd *cobra.Command, args []string) {
 			}
 
 			// print the name and handle
-			if expose {
+			if exposed {
 				fmt.Fprintf(
 					w,
 					"%v\t\t%v\t\t%v",
@@ -330,11 +417,25 @@ func execute(cmd *cobra.Command, args []string) {
 				fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, port, Reset, filepath.Clean(item.Handle)))
 			}
 			fmt.Fprintln(w)
-
 		}
 	}
 
-	if expose {
+	// print Hasura console and mailhog URLs
+	fmt.Fprintf(
+		w,
+		"%v\t\t%v",
+		strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s/console", Gray, consolePort, Reset),
+	)
+	fmt.Fprintln(w)
+	fmt.Fprintf(
+		w,
+		"%v\t\t%v",
+		strings.Title("mailhog"), fmt.Sprintf("%s%s%s", Gray, environment.Config.Services["mailhog"].Address, Reset),
+	)
+	fmt.Fprintln(w)
+
+	// End the pretty printing
+	if exposed {
 		fmt.Fprintln(w, "---\t\t-----\t\t-----")
 	} else {
 		fmt.Fprintln(w, "---\t\t-----")
@@ -354,55 +455,7 @@ func execute(cmd *cobra.Command, args []string) {
 		fmt.Println()
 	}
 
-	//spawn hasura console
-	hasuraConsoleSpawnCmd := exec.Cmd{
-		Path: hasuraCLI,
-		Args: []string{hasuraCLI,
-			"console",
-			"--endpoint",
-			environment.Hasura.Endpoint,
-			"--admin-secret",
-			environment.Hasura.AdminSecret,
-			"--console-port",
-			fmt.Sprint(nhost.GetPort(9301, 9400)),
-		},
-		Dir: nhost.NHOST_DIR,
-	}
-
-	go hasuraConsoleSpawnCmd.Run()
-
-	// launch mailhog UI
-	go openbrowser(environment.Config.Services["mailhog"].Address)
-
 	log.Warn("Use Ctrl + C to stop running evironment")
-
-	// launch proxy
-	go func() {
-		if err := proxy.ListenAndServe(); err != nil {
-			log.WithField("component", "proxy").Debug(err)
-		}
-	}()
-
-	/*
-		// expose to public internet
-		if expose {
-			go func() {
-				cfg := &tunnel.ClientConfig{
-					Identifier: tunnelSecret,
-					ServerAddr: tunnelAddress,
-					// LocalAddr:  ":" + port,
-				}
-
-				client, err := tunnel.NewClient(cfg)
-				if err != nil {
-					log.Debug(err)
-					log.Error("Failed to expose the environment to public internet")
-				}
-
-				client.Start()
-			}()
-		}
-	*/
 
 	// launch sessions
 	for key, item := range environment.Config.Sessions {
@@ -424,7 +477,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	devCmd.PersistentFlags().StringVarP(&port, "port", "p", "1337", "Port for dev proxy")
-	devCmd.PersistentFlags().BoolVarP(&expose, "expose", "e", false, "Expose local environment to public internet")
+	// devCmd.PersistentFlags().BoolVarP(&expose, "expose", "e", false, "Expose local environment to public internet")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
