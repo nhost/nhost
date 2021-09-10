@@ -9,6 +9,8 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+
+	"github.com/go-git/go-git/v5"
 )
 
 // Get preferred outbound ip of this machine
@@ -110,4 +112,23 @@ func openbrowser(url string) error {
 	}
 
 	return err
+}
+
+func loadRepository() (*git.Repository, error) {
+
+	log.Debug("Loading local git repository")
+	return git.PlainOpen(WORKING_DIR)
+}
+
+func getCurrentBranch(repo *git.Repository) string {
+	head, err := repo.Head()
+	if err != nil {
+		return ""
+	}
+
+	if head.Name().IsBranch() {
+		return head.Name().Short()
+	}
+
+	return ""
 }

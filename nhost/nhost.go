@@ -73,6 +73,22 @@ func (config *Configuration) Save() error {
 	return nil
 }
 
+// Get the expected current DotNhost directory as per git branch head
+func GetDotNhost() (string, error) {
+
+	repo, err := loadRepository()
+	if err != nil {
+		return "", err
+	}
+
+	branch := getCurrentBranch(repo)
+	if branch == "" {
+		branch = "main"
+	}
+
+	return filepath.Join(WORKING_DIR, ".nhost", branch), nil
+}
+
 func Env() ([]string, error) {
 
 	log.Debug("Reading environment variables")
@@ -592,6 +608,7 @@ func (config *Configuration) Init() error {
 	envVars, _ := Env()
 
 	// create mount points if they doesn't exist
+	log.WithField("service", hasuraConfig.Name).Debugln("Mounting database path", filepath.Join(DOT_NHOST, "db_data"))
 	mountPoints := []mount.Mount{
 		{
 			Type:   mount.TypeBind,

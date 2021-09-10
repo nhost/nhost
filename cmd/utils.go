@@ -8,7 +8,9 @@ import (
 	"os/exec"
 
 	client "github.com/docker/docker/client"
+	"github.com/go-git/go-git/v5"
 	"github.com/hashicorp/go-getter"
+	"github.com/mrinalwahal/cli/nhost"
 )
 
 // download a remote directory/file to local
@@ -107,4 +109,23 @@ func pullImage(cli *client.Client, tag string) error {
 		Stdout: os.Stdout,
 	}
 	return cmd.Run()
+}
+
+func loadRepository() (*git.Repository, error) {
+
+	log.Debug("Loading local git repository")
+	return git.PlainOpen(nhost.WORKING_DIR)
+}
+
+func getCurrentBranch(repo *git.Repository) string {
+	head, err := repo.Head()
+	if err != nil {
+		return ""
+	}
+
+	if head.Name().IsBranch() {
+		return head.Name().Short()
+	}
+
+	return ""
 }

@@ -52,7 +52,7 @@ var (
 	expose bool
 
 	// proxy mux
-	mux = http.NewServeMux()
+	mux *http.ServeMux
 
 	// reverse proxy server
 	proxy *http.Server
@@ -96,9 +96,6 @@ var devCmd = &cobra.Command{
 
 		log.Info("Initializing environment")
 
-		// initialize the proxy server
-		proxy = &http.Server{Addr: ":" + port, Handler: mux}
-
 		// check if /nhost exists
 		if !pathExists(nhost.NHOST_DIR) {
 			log.Info("Initialize a project by running 'nhost'")
@@ -118,7 +115,7 @@ var devCmd = &cobra.Command{
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-stop
-			cleanup(cmd)
+			cleanup(cmd, true)
 		}()
 
 		// being the execution
@@ -129,32 +126,63 @@ var devCmd = &cobra.Command{
 	},
 }
 
-func cleanup(cmd *cobra.Command) {
+func cleanup(cmd *cobra.Command, exit bool) {
 	proxy.Shutdown(environment.Context)
 
 	if environment.Active {
-		log.Warn("Please wait while we cleanup")
-		if err := environment.Shutdown(false); err != nil {
+		if exit {
+			log.Warn("Please wait while we cleanup")
+		}
+		if err := environment.Shutdown(!exit); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to stop running services")
 		}
-		log.Info("Cleanup complete. See you later, grasshopper!")
+		if exit {
+			log.Info("Cleanup complete. See you later, grasshopper!")
+		}
 	}
 
-	close(stop)
 	environment.Cancel()
-	os.Exit(0)
+
+	if exit {
+		close(branchSwitch)
+		close(stop)
+		os.Exit(0)
+	}
 }
 
 func execute(cmd *cobra.Command, args []string) {
 
 	var err error
 
+	// initialize the proxy server
+	mux = http.NewServeMux()
+	proxy = &http.Server{Addr: ":" + port, Handler: mux}
+
 	// Initialize the runtime environment
 	if err = environment.Init(); err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to initialize the environment")
 	}
+
+	// if the branch changes,
+	// re-start the environment
+	go func() {
+		for range branchSwitch {
+
+			// inform the user of switch detection
+			log.Warn("We've detected a change in git branch. We're restarting your environment.")
+
+			// clean the environment
+			cleanup(cmd, false)
+
+			// update DOT_NHOST directory
+			nhost.DOT_NHOST, _ = nhost.GetDotNhost()
+
+			// now re-create the them
+			execute(cmd, args)
+		}
+	}()
 
 	// initialize a common http client
 	environment.HTTP = &http.Client{}
@@ -226,7 +254,7 @@ func execute(cmd *cobra.Command, args []string) {
 					"container": item.Name,
 					"type":      "container",
 				}).Error("Failed to run container")
-				cleanup(cmd)
+				cleanup(cmd, true)
 			}
 
 			// activate the environment to let it be cleaned on shutdown
@@ -258,7 +286,7 @@ func execute(cmd *cobra.Command, args []string) {
 						"type":      "service",
 						"container": service.Name,
 					}).Error("Health check failed")
-					cleanup(cmd)
+					cleanup(cmd, true)
 				}
 				log.WithFields(logrus.Fields{
 					"type":      "service",
@@ -283,17 +311,17 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	// apply migrations and metadata
-	log.Info("Almost done")
+	log.Info("Preparing your data")
 	if err = environment.Hasura.Prepare(); err != nil {
 		log.Debug(err)
-		cleanup(cmd)
+		cleanup(cmd, true)
 	}
 
 	// apply seeds on the first run
 	if firstRun {
 		if err = environment.Seed(); err != nil {
 			log.Debug(err)
-			cleanup(cmd)
+			cleanup(cmd, true)
 		}
 	}
 
@@ -402,7 +430,7 @@ func execute(cmd *cobra.Command, args []string) {
 			if err := item.IssueProxy(mux); err != nil {
 				log.WithField("component", "server").Debug(err)
 				log.WithField("component", "server").Error("Failed to proxy", name)
-				cleanup(cmd)
+				cleanup(cmd, true)
 			}
 
 			// print the name and handle

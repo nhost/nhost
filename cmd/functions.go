@@ -168,15 +168,17 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	// append the runtime env vars
 	envVars = append(envVars, runtimeVars...)
 
-	http.HandleFunc("/", handler)
+	// initialize server multiplexer
+	mux := http.NewServeMux()
+	proxy := &http.Server{Addr: ":" + funcPort, Handler: mux}
+
+	mux.HandleFunc("/", handler)
 
 	if !contains(args, "do_not_inform") {
 		log.Info("Nhost functions serving at: http://localhost:", funcPort)
 	}
 
-	if err := http.ListenAndServe(":"+funcPort, nil); err != nil {
-		log.WithField("component", "server").Debug(err)
-	}
+	log.WithField("component", "functions").Debug(proxy.ListenAndServe())
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

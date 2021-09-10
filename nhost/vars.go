@@ -14,7 +14,7 @@ var (
 	// fetch current working directory
 	WORKING_DIR, _ = os.Getwd()
 	NHOST_DIR      = filepath.Join(WORKING_DIR, "nhost")
-	DOT_NHOST      = filepath.Join(WORKING_DIR, ".nhost")
+	DOT_NHOST, _   = GetDotNhost()
 
 	// initialize the names of all Nhost services in the stack
 	SERVICES = []string{"hasura", "auth", "storage", "mailhog", "postgres", "minio"}
@@ -68,8 +68,9 @@ var (
 	REPOSITORY = "nhost/cli-go"
 
 	// initialize the project prefix
-	PREFIX = "nhost"
+	PREFIX = filepath.Base(WORKING_DIR)
+	//PREFIX = "nhost"
 
-	// initiaze JWT key for Hasura Authentication\
+	// initiaze JWT key for Hasura Authentication
 	JWT_KEY = generateRandomKey()
 )

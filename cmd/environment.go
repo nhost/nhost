@@ -11,12 +11,14 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	client "github.com/docker/docker/client"
-	"github.com/go-git/go-git/v5"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
 )
 
 func (e *Environment) Init() error {
+
+	// reset any previously loaded environments
+	e.Config = nhost.Configuration{}
 
 	var err error
 
@@ -46,48 +48,39 @@ func (e *Environment) Init() error {
 	_ = environment.WrapContainersAsServices(containers)
 
 	// load the local git repository in project root directory
-	e.Repository, err = e.loadRepository()
+	e.Repository, err = loadRepository()
 	if err != nil {
 		log.Debug(err)
 		log.Debug("Either a local git repository doesn't exist or it's broken")
+	} else {
+
+		// watch for changes in repo's head
+		go e.watchHead()
 	}
-
-	// watch for changes in repo's head
-	go e.watchHead()
-
-	return err
+	return nil
 }
 
 func (e *Environment) watchHead() {
 
-	var head string
+	// get the current head of git repo
+	head := getCurrentBranch(e.Repository)
+
 	for {
 
 		// get the current head of git repo
-		new, err := e.Repository.Head()
-		if err != nil {
-			break
-		}
+		new := getCurrentBranch(e.Repository)
 
-		if new.Name().IsBranch() && new.Name().String() != head {
+		if new != "" && new != head {
 
 			// update the head value
-			head = new.Name().String()
+			head = new
 
-			if head != "" {
+			log.WithField("branch", head).Debug("Detected git branch change")
 
-				// perform operation for head change
-				log.Info("Detect git branch change")
-
-			}
+			// update branch change channel
+			branchSwitch <- head
 		}
 	}
-}
-
-func (e *Environment) loadRepository() (*git.Repository, error) {
-
-	log.Debug("Loading local git repository")
-	return git.PlainOpen(nhost.WORKING_DIR)
 }
 
 // Wraps a list of docker containers as *nhost.Services for respective environment.
@@ -159,7 +152,7 @@ func (e *Environment) Shutdown(purge bool) error {
 
 	// if purge, delete the network too
 	if purge && environment.Network != "" {
-		return e.RemoveNetwork()
+		e.RemoveNetwork()
 	}
 	return nil
 }
@@ -302,7 +295,8 @@ func (e *Environment) Prepare() error {
 
 func (e *Environment) Seed() error {
 
-	seed_files, err := ioutil.ReadDir(nhost.SEEDS_DIR)
+	base := filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)
+	seed_files, err := ioutil.ReadDir(base)
 	if err != nil {
 		return err
 	}
@@ -316,7 +310,7 @@ func (e *Environment) Seed() error {
 	for _, item := range seed_files {
 
 		// read seed file
-		data, err := ioutil.ReadFile(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE, item.Name()))
+		data, err := ioutil.ReadFile(filepath.Join(base, item.Name()))
 		if err != nil {
 			log.WithField("component", "seeds").Errorln("Failed to open:", item.Name())
 			return err

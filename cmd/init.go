@@ -213,10 +213,9 @@ var initCmd = &cobra.Command{
 
 		defer f.Close()
 		if _, err = f.WriteString(
-			fmt.Sprintf("%v\n%v\n%v",
+			fmt.Sprintf("%v\n%v",
 				filepath.Base(nhost.DOT_NHOST),
-				filepath.Join(nhost.API_DIR, "node_modules"),
-				filepath.Join(nhost.WEB_DIR, "node_modules"))); err != nil {
+				filepath.Join(nhost.API_DIR, "node_modules"))); err != nil {
 			log.Debug(err)
 			log.Error("Failed to write to .gitignore file")
 		}
