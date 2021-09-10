@@ -391,9 +391,6 @@ func (s *Service) Inspect(client *client.Client, ctx context.Context) error {
 		return err
 	}
 
-	fmt.Println("fetched config", data.Config)
-	fmt.Println("loaded config", s.Config)
-
 	// Validate the fetched configuration against the loaded one
 	if data.Config == s.Config && data.HostConfig == s.HostConfig {
 		return nil
@@ -581,7 +578,8 @@ func (s *Service) Remove(client *client.Client, ctx context.Context) error {
 
 	removeOptions := types.ContainerRemoveOptions{
 		RemoveVolumes: true,
-		Force:         true,
+		// RemoveLinks:   true,
+		Force: true,
 	}
 
 	return client.ContainerRemove(ctx, s.ID, removeOptions)
@@ -608,7 +606,7 @@ func (config *Configuration) Init() error {
 	envVars, _ := Env()
 
 	// create mount points if they doesn't exist
-	log.WithField("service", hasuraConfig.Name).Debugln("Mounting database path", filepath.Join(DOT_NHOST, "db_data"))
+	log.WithField("service", "data").Debugln("Mounting:", strings.TrimPrefix(DOT_NHOST, WORKING_DIR))
 	mountPoints := []mount.Mount{
 		{
 			Type:   mount.TypeBind,
@@ -650,9 +648,9 @@ func (config *Configuration) Init() error {
 	if pathExists(API_DIR) {
 		switch runtime.GOOS {
 		case "darwin", "windows":
-			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v", config.Services["functions"].Port))
+			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/v1/functions", config.Services["functions"].Port))
 		case "linux":
-			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v", getOutboundIP(), config.Services["functions"].Port))
+			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v/v1/functions", getOutboundIP(), config.Services["functions"].Port))
 		}
 	}
 

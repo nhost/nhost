@@ -142,9 +142,8 @@ func cleanup(cmd *cobra.Command, exit bool) {
 		}
 	}
 
-	environment.Cancel()
-
 	if exit {
+		environment.Cancel()
 		close(branchSwitch)
 		close(stop)
 		os.Exit(0)
@@ -159,10 +158,16 @@ func execute(cmd *cobra.Command, args []string) {
 	mux = http.NewServeMux()
 	proxy = &http.Server{Addr: ":" + port, Handler: mux}
 
-	// Initialize the runtime environment
-	if err = environment.Init(); err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to initialize the environment")
+	// If the environment is already active,
+	// skip initializing it from scratch
+	if !environment.Active {
+
+		// Initialize the runtime environment
+		if err = environment.Init(); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to initialize the environment")
+		}
+
 	}
 
 	// if the branch changes,
@@ -171,7 +176,8 @@ func execute(cmd *cobra.Command, args []string) {
 		for range branchSwitch {
 
 			// inform the user of switch detection
-			log.Warn("We've detected a change in git branch. We're restarting your environment.")
+			log.Info("We've detected change in local git branch")
+			log.Warn("We're restarting your environment")
 
 			// clean the environment
 			cleanup(cmd, false)
@@ -205,13 +211,14 @@ func execute(cmd *cobra.Command, args []string) {
 
 		// run the functions command
 		go ServeFuncs(cmd, []string{"do_not_inform"})
-		port, _ := strconv.Atoi(funcPort)
+		funcPortStr, _ := strconv.Atoi(funcPort)
+		portStr, _ := strconv.Atoi(port)
 		environment.Config.Services["functions"] = &nhost.Service{
 			Name:    "functions",
-			Address: fmt.Sprintf("http://localhost:%v", funcPort),
+			Address: fmt.Sprintf("http://localhost:%v", funcPortStr),
 			Handle:  "/v1/functions/",
 			Proxy:   true,
-			Port:    port,
+			Port:    portStr,
 		}
 	}
 
@@ -352,7 +359,6 @@ func execute(cmd *cobra.Command, args []string) {
 		if err := proxy.ListenAndServe(); err != nil {
 			log.WithField("component", "proxy").Debug(err)
 		}
-
 	}()
 
 	// expose to public internet
@@ -452,7 +458,7 @@ func execute(cmd *cobra.Command, args []string) {
 	fmt.Fprintf(
 		w,
 		"%v\t\t%v",
-		strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s/console", Gray, consolePort, Reset),
+		strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, consolePort, Reset),
 	)
 	fmt.Fprintln(w)
 	fmt.Fprintf(

@@ -15,10 +15,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (e *Environment) Init() error {
+// Reset the services and network,
+// to re-use the same environment
+func (e *Environment) Reset() error {
 
-	// reset any previously loaded environments
 	e.Config = nhost.Configuration{}
+	e.Network = ""
+
+	return nil
+}
+
+func (e *Environment) Init() error {
 
 	var err error
 
@@ -134,13 +141,19 @@ func (e *Environment) Shutdown(purge bool) error {
 			go func(container *nhost.Service) {
 				if err := container.Stop(e.Docker, e.Context); err != nil {
 					log.Debug(err)
-					log.WithFields(logrus.Fields{
-						"container": container.Name,
-						"type":      "container",
-					}).Error("Failed to stop")
-				} else {
-					if purge {
-						go container.Remove(e.Docker, e.Context)
+					if !strings.Contains(strings.ToLower(err.Error()), "no such container") {
+						log.WithFields(logrus.Fields{
+							"container": container.Name,
+							"type":      "container",
+						}).Error("Failed to stop")
+					}
+				} else if purge {
+					if err := container.Remove(e.Docker, e.Context); err != nil {
+						log.Debug(err)
+						log.WithFields(logrus.Fields{
+							"container": container.Name,
+							"type":      "container",
+						}).Error("Failed to remove")
 					}
 				}
 				end_waiter.Done()
@@ -151,9 +164,17 @@ func (e *Environment) Shutdown(purge bool) error {
 	end_waiter.Wait()
 
 	// if purge, delete the network too
-	if purge && environment.Network != "" {
+	if purge {
+		if environment.Network == "" {
+			e.Network, _ = e.GetNetwork()
+		}
 		e.RemoveNetwork()
 	}
+
+	// reset the loaded environments,
+	// to cater for re-use
+	e.Reset()
+
 	return nil
 }
 
@@ -181,7 +202,44 @@ func (e *Environment) RemoveNetwork() error {
 		"network": e.Network,
 	}).Debug("Removing")
 
-	err := e.Docker.NetworkRemove(e.Context, e.Network)
+	return e.Docker.NetworkRemove(e.Context, e.Network)
+}
+
+// prune unused networks
+func (e *Environment) PruneNetworks() error {
+
+	log.WithFields(logrus.Fields{
+		"type":  "networks",
+		"value": nhost.PREFIX,
+	}).Debug("Pruning")
+
+	f := filters.NewArgs(filters.KeyValuePair{
+		Key:   "name",
+		Value: nhost.PREFIX,
+	})
+
+	_, err := e.Docker.NetworksPrune(e.Context, f)
+
+	return err
+}
+
+// prune unused containers
+func (e *Environment) PruneContainers() error {
+
+	log.WithFields(logrus.Fields{
+		"type":  "containers",
+		"value": nhost.PREFIX,
+	}).Debug("Pruning")
+
+	/*
+		f := filters.NewArgs(filters.KeyValuePair{
+			Key:   "name",
+			Value: nhost.PREFIX,
+		})
+	*/
+
+	_, err := e.Docker.ContainersPrune(e.Context, filters.Args{})
+
 	return err
 }
 

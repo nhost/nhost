@@ -82,10 +82,9 @@ var functionsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// add cleanup action in case of signal interruption
-		c := make(chan os.Signal)
-		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		go func() {
-			<-c
+			<-stop
 			cmd.PostRun(cmd, args)
 		}()
 
@@ -152,21 +151,26 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		envVars, _ = nhost.Env()
 	}
 
-	// assing important env vars during runtime
-	runtimeVars := []string{
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", environment.Config.Services["hasura"].AdminSecret),
-		fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
-	}
+	// If the environment is active,
+	// assign important env vars during runtime
+	if environment.Active {
 
-	// set the runtime env vars
-	for _, item := range runtimeVars {
-		payload := strings.Split(item, "=")
-		os.Setenv(payload[0], payload[1])
-	}
+		runtimeVars := []string{
+			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
+			fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", environment.Config.Services["hasura"].AdminSecret),
+			fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
+		}
 
-	// append the runtime env vars
-	envVars = append(envVars, runtimeVars...)
+		// set the runtime env vars
+		for _, item := range runtimeVars {
+			payload := strings.Split(item, "=")
+			os.Setenv(payload[0], payload[1])
+		}
+
+		// append the runtime env vars
+		envVars = append(envVars, runtimeVars...)
+
+	}
 
 	// initialize server multiplexer
 	mux := http.NewServeMux()
@@ -178,7 +182,12 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		log.Info("Nhost functions serving at: http://localhost:", funcPort)
 	}
 
-	log.WithField("component", "functions").Debug(proxy.ListenAndServe())
+	go func() {
+		if err := proxy.ListenAndServe(); err != nil {
+			log.WithField("component", "functions").Debug(err)
+		}
+	}()
+	<-stop
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
