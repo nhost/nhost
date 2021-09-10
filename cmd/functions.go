@@ -145,33 +145,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// if environment variables haven't been loaded
-	// then load them from .env.development
-	if len(envVars) == 0 {
-		envVars, _ = nhost.Env()
-	}
-
-	// If the environment is active,
-	// assign important env vars during runtime
-	if environment.Active {
-
-		runtimeVars := []string{
-			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
-			fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", environment.Config.Services["hasura"].AdminSecret),
-			fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
-		}
-
-		// set the runtime env vars
-		for _, item := range runtimeVars {
-			payload := strings.Split(item, "=")
-			os.Setenv(payload[0], payload[1])
-		}
-
-		// append the runtime env vars
-		envVars = append(envVars, runtimeVars...)
-
-	}
-
 	// initialize server multiplexer
 	mux := http.NewServeMux()
 	proxy := &http.Server{Addr: ":" + funcPort, Handler: mux}
@@ -309,6 +282,36 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	//
+	// Handle Environment Variables
+	//
+
+	// If environment variables haven't been loaded
+	// then load them from .env.development
+	if len(envVars) == 0 {
+		envVars, _ = nhost.Env()
+	}
+
+	// If the environment is active,
+	// assign important env vars during runtime
+	if environment.Active {
+
+		runtimeVars := []string{
+			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
+			fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", environment.Config.Services["hasura"].AdminSecret),
+			fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
+		}
+
+		// set the runtime env vars
+		for _, item := range runtimeVars {
+			payload := strings.Split(item, "=")
+			os.Setenv(payload[0], payload[1])
+		}
+
+		// append the runtime env vars
+		envVars = append(envVars, runtimeVars...)
+	}
+
 	switch filepath.Ext(f.Path) {
 	case ".js", ".ts":
 
@@ -345,8 +348,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// update request URL
+		q := r.URL.Query()
 		url, _ := url.Parse(fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path))
 		r.URL = url
+		r.URL.RawQuery = q.Encode()
 
 		// serve
 		f.Handler(w, r)
@@ -525,8 +530,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 	)
 
 	req.Header = r.Header
-	q := r.URL.Query()
-	req.URL.RawQuery = q.Encode()
+
 	/*
 		client := &http.Client{
 			Transport: &http.Transport{

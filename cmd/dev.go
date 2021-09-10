@@ -59,7 +59,7 @@ var (
 	proxy *http.Server
 
 	// signal interruption channel
-	stop = make(chan os.Signal, 2)
+	stop = make(chan os.Signal, 1)
 
 	// fsnotify watcher
 	watcher *fsnotify.Watcher
