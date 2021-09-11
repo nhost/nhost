@@ -254,7 +254,7 @@ func (c *Configuration) Wrap() error {
 		case "mailhog":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = 8025
+				parsed.Services[name].Port = GetPort(8800, 8900)
 			}
 
 			parsed.Services[name].Image = "mailhog/mailhog"
@@ -275,7 +275,7 @@ func (c *Configuration) Wrap() error {
 		case "storage":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = GetPort(8501, 8999)
+				parsed.Services[name].Port = GetPort(8501, 8799)
 			}
 
 			parsed.Services[name].Image = "nhost/hasura-storage"
@@ -804,12 +804,12 @@ func (config *Configuration) Init() error {
 	mailhogConfig.HostConfig.PortBindings = map[nat.Port][]nat.PortBinding{
 		nat.Port(strconv.Itoa(smtpPort)): {{HostIP: "127.0.0.1",
 			HostPort: strconv.Itoa(smtpPort)}},
-		nat.Port(strconv.Itoa(config.Services["mailhog"].Port)): {{HostIP: "127.0.0.1",
+		nat.Port(strconv.Itoa(8025)): {{HostIP: "127.0.0.1",
 			HostPort: strconv.Itoa(config.Services["mailhog"].Port)}},
 	}
 	mailhogConfig.Config.ExposedPorts = nat.PortSet{
-		nat.Port(strconv.Itoa(smtpPort)):                        struct{}{},
-		nat.Port(strconv.Itoa(config.Services["mailhog"].Port)): struct{}{},
+		nat.Port(strconv.Itoa(smtpPort)): struct{}{},
+		nat.Port(strconv.Itoa(8025)):     struct{}{},
 	}
 
 	return nil

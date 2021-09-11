@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Get preferred outbound ip of this machine
@@ -66,6 +67,12 @@ func generateRandomKey() string {
 }
 
 func GetPort(low, hi int) int {
+
+	//
+	// Initialize the seed
+	//
+	// This is done to prevent Go from choosing pseudo-random numbers
+	rand.Seed(time.Now().UnixNano())
 
 	// generate a random port value
 	port := strconv.Itoa(low + rand.Intn(hi-low))

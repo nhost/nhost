@@ -170,7 +170,7 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 
 		// Add the watcher
 		watcher.Add(head)
-		log.WithField("component", "watcher").Debug("Watching: ", head)
+		log.WithField("component", "watcher").Debug("Watching: ", strings.TrimPrefix(head, nhost.WORKING_DIR))
 	}
 
 	// now re-create the them
@@ -200,14 +200,30 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 		}
 
 		if len(container.Ports) > 0 {
-			if name == "mailhog" {
-				e.Config.Services[name].Port = 8025
-				return nil
-			}
 
 			// Update the ports, if available
 			for _, port := range container.Ports {
 				if port.IP != "" && int(port.PublicPort) != 0 {
+					if name == "mailhog" {
+
+						// we don't want to save mailhog's smtp port
+						// this is done to avoid double port loading issue
+						var smtpPort int
+						switch t := e.Config.Auth["email"].(type) {
+						case map[interface{}]interface{}:
+							for key, value := range t {
+								if value != "" {
+									if key.(string) == "smtp_port" {
+										smtpPort = value.(int)
+										break
+									}
+								}
+							}
+						}
+						if int(port.PublicPort) == smtpPort {
+							continue
+						}
+					}
 					e.Config.Services[name].Port = int(port.PublicPort)
 				}
 			}

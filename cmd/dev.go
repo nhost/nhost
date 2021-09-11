@@ -135,7 +135,7 @@ var devCmd = &cobra.Command{
 					if err := watcher.Add(file); err != nil {
 						log.WithField("component", "watcher").Error(err)
 					}
-					log.WithField("component", "watcher").Debug("Watching: ", file)
+					log.WithField("component", "watcher").Debug("Watching: ", strings.TrimPrefix(file, nhost.WORKING_DIR))
 				}
 			}
 
