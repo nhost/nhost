@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -68,9 +69,56 @@ func (e *Environment) Init() error {
 		e.Watchers[filepath.Join(nhost.GIT_DIR, "HEAD")] = e.restartEnvironmentAfterCheckout
 
 		// Initialize watcher for post-merge commit changes
-		e.Watchers[filepath.Join(nhost.GIT_DIR, "refs", "remotes", "origin", "HEAD")] = e.restartMigrations
+		head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", "origin"))
+		if head != "" {
+			e.Watchers[head] = e.restartMigrations
+		}
 	}
 	return nil
+}
+
+func getBranchHEAD(root string) string {
+
+	//
+	// HEAD Selection Logic
+	//
+	// 1.If $GIT_DIR/<refname> exists,
+	// that is what you mean (this is usually useful only for HEAD,
+	// FETCH_HEAD, ORIG_HEAD, MERGE_HEAD and CHERRY_PICK_HEAD);
+
+	// 2.otherwise, refs/<refname> if it exists;
+	// 3.otherwise, refs/tags/<refname> if it exists;
+	// 4.otherwise, refs/heads/<refname> if it exists;
+	// 5.otherwise, refs/remotes/<refname> if it exists;
+	// 6.otherwise, refs/remotes/<refname>/HEAD if it exists.
+
+	var response string
+	branch := nhost.GetCurrentBranch()
+
+	// The priority order these paths are added in,
+	// is extremely IMPORTANT
+	tree := []string{
+		root,
+		filepath.Join(root, "HEAD"),
+		filepath.Join(root, branch),
+		filepath.Join(root, branch, "HEAD"),
+	}
+
+	f := func(path string, dir fs.DirEntry, err error) error {
+		for _, file := range tree {
+			if file == path && !dir.IsDir() {
+				response = path
+				return nil
+			}
+		}
+		return nil
+	}
+
+	if err := filepath.WalkDir(root, f); err != nil {
+		return ""
+	}
+
+	return response
 }
 
 func (e *Environment) restartMigrations(cmd *cobra.Command, args []string) error {
@@ -104,6 +152,26 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 
 	// update DOT_NHOST directory
 	nhost.DOT_NHOST, _ = nhost.GetDotNhost()
+
+	// register new branch HEAD for the watcher
+	head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", "origin"))
+	if head != "" {
+		var watcherAlreadyExists bool
+		for name := range e.Watchers {
+			if name == head {
+				watcherAlreadyExists = true
+				break
+			}
+		}
+
+		if !watcherAlreadyExists {
+			e.Watchers[head] = e.restartMigrations
+		}
+
+		// Add the watcher
+		watcher.Add(head)
+		log.WithField("component", "watcher").Debug("Watching: ", head)
+	}
 
 	// now re-create the them
 	execute(cmd, args)

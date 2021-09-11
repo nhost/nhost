@@ -131,8 +131,11 @@ var devCmd = &cobra.Command{
 
 			// Add the files to our watcher
 			for file := range environment.Watchers {
-				if err := watcher.Add(file); err != nil {
-					log.WithField("component", "watcher").Error(err)
+				if pathExists(file) {
+					if err := watcher.Add(file); err != nil {
+						log.WithField("component", "watcher").Error(err)
+					}
+					log.WithField("component", "watcher").Debug("Watching: ", file)
 				}
 			}
 

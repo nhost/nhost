@@ -3,14 +3,14 @@ package nhost
 import (
 	"encoding/hex"
 	"fmt"
+	"io/ioutil"
 	"math/rand"
 	"net"
 	"os/exec"
+	"path/filepath"
 	"runtime"
 	"strconv"
 	"strings"
-
-	"github.com/go-git/go-git/v5"
 )
 
 // Get preferred outbound ip of this machine
@@ -114,21 +114,13 @@ func openbrowser(url string) error {
 	return err
 }
 
-func loadRepository() (*git.Repository, error) {
+func GetCurrentBranch() string {
 
-	log.Debug("Loading local git repository")
-	return git.PlainOpen(WORKING_DIR)
-}
-
-func getCurrentBranch(repo *git.Repository) string {
-	head, err := repo.Head()
+	log.Debug("Fetching local git branch")
+	data, err := ioutil.ReadFile(filepath.Join(GIT_DIR, "HEAD"))
 	if err != nil {
 		return ""
 	}
-
-	if head.Name().IsBranch() {
-		return head.Name().Short()
-	}
-
-	return ""
+	payload := strings.Split(string(data), " ")
+	return strings.TrimSpace(filepath.Base(payload[1]))
 }
