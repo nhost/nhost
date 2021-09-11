@@ -131,49 +131,9 @@ func (e *Environment) restartMigrations(cmd *cobra.Command, args []string) error
 	log.Info("We've detected change in local git commit")
 	log.Warn("We're fixing your data accordingly. Give us a moment!")
 
-	// ------------------------------------------
-	// Why listen to Hasura's Activation channel?
-	// ------------------------------------------
-	//
-	// Because we may have a potential race condition over here.
-	//
-	// Consider the following corner case:
-	//
-	// 1. User does `git checkout` another branch.
-	// 2. User immediately does `git pull`, before letting the refreshed environment
-	// complete health checks, and even before letting Hasura complete migrations
-	// for refreshed environment.
-	//
-	// --------------------
-	// Implemented Solution
-	// --------------------
-	//
-	// Only perform migrations and metadata if Hasura is active,
-	// independent of whether it performs these new "post-pull" migrations
-	// before OR after the migrations of refreshed environment has been completed.
-	//
-	// Before applying migrations, Hasura anyway validates whether the migrations
-	// already exist or not. If they do, Hasura doesn't even apply them.
-	//
-	// So, we are good!
-
-	for {
-		active, ok := <-*e.Config.Services["hasura"].Active
-		if !ok {
-			return errors.New("hasura isn't live yet")
-		} else {
-			if !active {
-				log.Info("Waiting for your GraphQL Engine to become active")
-			} else {
-
-				// re-do migrations and metadata
-				if err := e.Prepare(); err != nil {
-					return err
-				}
-
-				break
-			}
-		}
+	// re-do migrations and metadata
+	if err := e.Prepare(); err != nil {
+		return err
 	}
 
 	log.Info("Done! Please continue with your work.")
@@ -184,15 +144,15 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 
 	// inform the user of detection
 	log.Info("We've detected change in local git branch")
-	log.Warn("We're restarting your environment")
+	log.Warn("We're recreating your environment. Give us a moment!")
+	// log.Warn("Keep your hands away from the keyboard, and don't do anything new until the environment is active again.")
 
 	// Stop all execution specific goroutines
 	executionContext.Done()
 	executionCancel()
 
 	if err := environment.Shutdown(true); err != nil {
-		log.Debug(err)
-		log.Error("Failed to stop running services")
+		return err
 	}
 
 	// update DOT_NHOST directory
@@ -237,11 +197,12 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 		nameWithPrefix := strings.Split(container.Names[0], "/")[1]
 		name := strings.TrimPrefix(nameWithPrefix, nhost.PREFIX+"_")
 		if e.Config.Services[name] == nil {
-			e.Config.Services[name] = &nhost.Service{}
+			e.Config.Services[name] = &nhost.Service{
 
-			// Initialize the channel to send out [de/]activation
-			// signals to whoever needs to listen for these signals
-			e.Config.Services[name].Active = new(chan bool)
+				// Initialize the channel to send out [de/]activation
+				// signals to whoever needs to listen for these signals
+				// Active: make(chan bool, 10),
+			}
 		}
 
 		// Load the container ID as service ID
@@ -320,11 +281,6 @@ func (e *Environment) Shutdown(purge bool) error {
 					// Reset their service ID,
 					// to prevent docker from starting these non-existent containers
 					container.ID = ""
-
-					// Close the service's activation channel
-					if *container.Active != nil {
-						close(*container.Active)
-					}
 				}
 
 				end_waiter.Done()
@@ -493,7 +449,24 @@ func (e *Environment) Prepare() error {
 
 	// Send out de-activation signal before starting migrations,
 	// to inform any other resource which using Hasura
-	e.Config.Services["hasura"].Deactivate()
+	// e.Config.Services["hasura"].Deactivate()
+
+	// Enable a mutual exclusion lock,
+	// to prevent other resources from
+	// modifying Hasura's data while
+	// we're making changes
+
+	// This will also prevent
+	// multiple resources inside our code
+	// from concurrently making changes to the Hasura service
+
+	// NOTE: This mutex lock only works
+	// for resources talking to Hasura service inside this code
+	// It doesn't lock anything for external resources, obviously!
+	// e.Config.Services["hasura"].Lock()
+
+	// defer e.Config.Services["hasura"].Activate()
+	// defer e.Config.Services["hasura"].Unlock()
 
 	// If migrations directory is already mounted to nhost_hasura container,
 	// then Hasura must be auto-applying migrations
@@ -559,9 +532,6 @@ func (e *Environment) Prepare() error {
 		log.Error("Failed to apply metadata")
 		return err
 	}
-
-	// Designate Hasura re-activated once migrations are complete
-	e.Config.Services["hasura"].Activate()
 
 	return nil
 }
@@ -645,10 +615,10 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 								"container": service.Name,
 							}).Debug("Health check successful")
 
+							health_waiter.Done()
+
 							// Activate the service
 							service.Activate()
-
-							health_waiter.Done()
 
 							return
 						}

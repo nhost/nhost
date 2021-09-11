@@ -153,7 +153,7 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	functionMux = http.NewServeMux()
 	functionServer = &http.Server{Addr: ":" + funcPort, Handler: functionMux}
 
-	mux.HandleFunc("/", handler)
+	functionMux.HandleFunc("/", handler)
 
 	if !contains(args, "do_not_inform") {
 		log.Info("Nhost functions serving at: http://localhost:", funcPort)
@@ -354,7 +354,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 		// update request URL
 		q := r.URL.Query()
-		url, _ := url.Parse(fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path))
+		url, _ := url.Parse(fmt.Sprintf("%s://localhost:%v%s", r.URL.Scheme, jsPort, r.URL.Path))
 		r.URL = url
 		r.URL.RawQuery = q.Encode()
 

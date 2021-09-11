@@ -240,11 +240,13 @@ func (c *Configuration) Wrap() error {
 
 		parsed.Services[name].Name = GetContainerName(name)
 
-		// Initialize the channel to send out [de/]activation
-		// signals to whoever needs to listen for these signals
-		if parsed.Services[name].Active == nil {
-			parsed.Services[name].Active = new(chan bool)
-		}
+		/*
+			// Initialize the channel to send out [de/]activation
+			// signals to whoever needs to listen for these signals
+			if parsed.Services[name].Active == nil {
+				parsed.Services[name].Active = make(chan bool, 10)
+			}
+		*/
 
 		switch name {
 		case "minio":
@@ -559,18 +561,14 @@ func (s *Service) InitConfig() {
 // to whoever is listening,
 // or whichever resource is waiting for this signal
 func (s *Service) Activate() {
-	if *s.Active != nil {
-		*s.Active <- true
-	}
+	s.Active = true
 }
 
 // Sends out the de-activation signal
 // to whoever is listening,
 // or whichever resource is waiting for this signal
 func (s *Service) Deactivate() {
-	if *s.Active != nil {
-		*s.Active <- false
-	}
+	s.Active = false
 }
 
 // Stops given container

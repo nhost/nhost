@@ -1,6 +1,10 @@
 package nhost
 
-import "github.com/docker/docker/api/types/container"
+import (
+	"sync"
+
+	"github.com/docker/docker/api/types/container"
+)
 
 type (
 
@@ -108,7 +112,13 @@ type (
 		Config         *container.Config     `yaml:",omitempty"`
 		HostConfig     *container.HostConfig `yaml:",omitempty"`
 		HealthEndpoint string                `yaml:",omitempty"`
-		Active         *chan bool
+
+		// Channels are best thought of as queues (FIFO).
+		// Therefore you can't really skip around.
+		// We need a mutex to lock the service
+		// before updating it's channels.
+		sync.Mutex
+		Active bool
 	}
 
 	// .nhost/nhost.yaml information

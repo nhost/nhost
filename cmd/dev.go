@@ -176,14 +176,16 @@ var devCmd = &cobra.Command{
 
 func cleanup(cmd *cobra.Command) {
 
+	executionCancel()
+
 	if environment.Started {
-		executionCancel()
 
 		// Shut down the local reverse proxy
 		proxy.Shutdown(environment.Context)
 
 		// Shut down the functions server
 		functionServer.Shutdown(environment.Context)
+
 	}
 
 	if environment.Active {
@@ -364,6 +366,8 @@ func execute(cmd *cobra.Command, args []string) {
 				environment.Hasura.AdminSecret,
 				"--console-port",
 				fmt.Sprint(consolePort),
+				"--api-port",
+				fmt.Sprint(nhost.GetPort(9301, 9400)),
 				"--skip-update-check",
 			},
 			Dir: nhost.NHOST_DIR,

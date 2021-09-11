@@ -180,9 +180,11 @@ func (e *Environment) Watch(watcher *fsnotify.Watcher, cmd *cobra.Command, args 
 				event.Op&fsnotify.Create == fsnotify.Create {
 
 				// run the operation
-				if err := e.Watchers[event.Name](cmd, args); err != nil {
-					log.WithField("component", "watcher").Error(err)
-				}
+				go func() {
+					if err := e.Watchers[event.Name](cmd, args); err != nil {
+						log.WithField("component", "watcher").Error(err)
+					}
+				}()
 
 			}
 		case err, ok := <-watcher.Errors:
