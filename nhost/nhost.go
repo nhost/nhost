@@ -240,6 +240,12 @@ func (c *Configuration) Wrap() error {
 
 		parsed.Services[name].Name = GetContainerName(name)
 
+		// Initialize the channel to send out [de/]activation
+		// signals to whoever needs to listen for these signals
+		if parsed.Services[name].Active == nil {
+			parsed.Services[name].Active = new(chan bool)
+		}
+
 		switch name {
 		case "minio":
 
@@ -475,18 +481,12 @@ func GenerateConfig(options Project) Configuration {
 
 func (s *Service) Healthz() bool {
 
-	for counter := 1; counter <= 240; counter++ {
-		if valid := Check200(s.Address + s.HealthEndpoint); valid {
-			return true
-		}
-		time.Sleep(1 * time.Second)
-		log.WithFields(logrus.Fields{
-			"type":      "container",
-			"component": s.Name,
-		}).Debugf("Health check attempt #%v unsuccessful", counter)
+	resp, err := http.Get(s.Address + s.HealthEndpoint)
+	if err != nil {
+		return false
 	}
 
-	return false
+	return resp.StatusCode == 200
 }
 
 func Check200(url string) bool {
@@ -535,9 +535,9 @@ func (s *Service) IssueProxy(mux *http.ServeMux) error {
 func (s *Service) InitConfig() {
 
 	log.WithFields(logrus.Fields{
-		"type":      "container",
-		"component": s.Name,
-	}).Debug("Initializing configuration")
+		"type":    "configuration",
+		"service": s.Name,
+	}).Debug("Initializing")
 
 	s.Config = &container.Config{
 		Image:        fmt.Sprintf(`%s:%v`, s.Image, s.Version),
@@ -555,7 +555,25 @@ func (s *Service) InitConfig() {
 	}
 }
 
-// stops given container
+// Sends out the activation signal
+// to whoever is listening,
+// or whichever resource is waiting for this signal
+func (s *Service) Activate() {
+	if *s.Active != nil {
+		*s.Active <- true
+	}
+}
+
+// Sends out the de-activation signal
+// to whoever is listening,
+// or whichever resource is waiting for this signal
+func (s *Service) Deactivate() {
+	if *s.Active != nil {
+		*s.Active <- false
+	}
+}
+
+// Stops given container
 func (s *Service) Stop(client *client.Client, ctx context.Context) error {
 
 	log.WithFields(logrus.Fields{
@@ -567,7 +585,7 @@ func (s *Service) Stop(client *client.Client, ctx context.Context) error {
 	return client.ContainerStop(ctx, s.ID, &timeout)
 }
 
-// removes given container
+// Removes given container
 func (s *Service) Remove(client *client.Client, ctx context.Context) error {
 
 	log.WithFields(logrus.Fields{
@@ -604,8 +622,11 @@ func (config *Configuration) Init() error {
 	// load .env.development
 	envVars, _ := Env()
 
+	// properly log the location from where you are mounting the data
+	dataTarget, _ := filepath.Rel(WORKING_DIR, DOT_NHOST)
+	log.WithField("service", "data").Debugln("Mounting data from ", dataTarget)
+
 	// create mount points if they doesn't exist
-	log.WithField("service", "data").Debugln("Mounting:", strings.TrimPrefix(DOT_NHOST, WORKING_DIR))
 	mountPoints := []mount.Mount{
 		{
 			Type:   mount.TypeBind,

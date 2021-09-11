@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 
 	client "github.com/docker/docker/client"
 	"github.com/fsnotify/fsnotify"
@@ -51,16 +52,41 @@ func pathExists(filePath string) bool {
 	return err == nil
 }
 
+// Adds location to watcher.
+// And associates it with respective operation.
+func addToWatcher(watcher *fsnotify.Watcher, path string) error {
+
+	log.WithField("component", "path").Debugln("Watching", rel(path))
+
+	return watcher.Add(path)
+}
+
 // deletes the given file/folder path and unlink from filesystem
 func deletePath(path string) error {
+
+	log.WithField("component", "path").Debugln("Removing", rel(path))
+
 	os.Chmod(path, 0777)
 	return os.Remove(path)
 }
 
 // deletes all the paths leading to the given file/folder and unlink from filesystem
 func deleteAllPaths(path string) error {
+
+	log.WithField("component", "path").Debugln("Removing", rel(path))
+
 	os.Chmod(path, 0777)
 	return os.RemoveAll(path)
+}
+
+// Returns path relative to Nhost current working directory
+func rel(path string) string {
+
+	target, err := filepath.Rel(nhost.WORKING_DIR, path)
+	if err == nil {
+		return target
+	}
+	return path
 }
 
 func writeToFile(filePath, data, position string) error {
@@ -135,12 +161,17 @@ func getCurrentBranch(repo *git.Repository) string {
 // Infinite function which listens for
 // fsnotify events once launched
 func (e *Environment) Watch(watcher *fsnotify.Watcher, cmd *cobra.Command, args []string) {
+
+	log.WithField("component", "watcher").Debug("Activated")
+
 	for {
 		select {
-		// detect Ctrl + C
-		case <-stop:
+
+		// Inactivate the watch when the environment shuts does
+		case <-environment.Context.Done():
 			log.WithField("component", "watcher").Debug("Inactivated")
 			return
+
 		case event, ok := <-watcher.Events:
 			if !ok {
 				return

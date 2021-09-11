@@ -108,6 +108,7 @@ type (
 		Config         *container.Config     `yaml:",omitempty"`
 		HostConfig     *container.HostConfig `yaml:",omitempty"`
 		HealthEndpoint string                `yaml:",omitempty"`
+		Active         *chan bool
 	}
 
 	// .nhost/nhost.yaml information

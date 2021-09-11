@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -348,84 +347,6 @@ func (c *Client) Track(table TableEntry) error {
 	}
 
 	return errors.New(response.Error)
-}
-
-//
-// Performs default migrations and metadata operations
-//
-
-func (c *Client) Prepare() error {
-
-	var (
-		execute = exec.Cmd{
-			Path: c.CLI,
-			Dir:  nhost.NHOST_DIR,
-		}
-
-		commandOptions = []string{
-			"--endpoint",
-			c.Endpoint,
-			"--admin-secret",
-			c.AdminSecret,
-			"--skip-update-check",
-		}
-	)
-
-	// If migrations directory is already mounted to nhost_hasura container,
-	// then Hasura must be auto-applying migrations
-	// hence, manually applying migrations doesn't make sense
-
-	// create migrations
-	log.Debug("Applying migrations")
-	cmdArgs := []string{c.CLI, "migrate", "apply", "--database-name", "default"}
-	cmdArgs = append(cmdArgs, commandOptions...)
-	execute.Args = cmdArgs
-
-	if err := execute.Run(); err != nil {
-		log.Error("Failed to apply migrations")
-		return err
-	}
-
-	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
-	if err != nil {
-		return err
-	}
-
-	if len(metaFiles) == 0 {
-		execute = exec.Cmd{
-			Path: c.CLI,
-			Dir:  nhost.NHOST_DIR,
-		}
-
-		cmdArgs = []string{c.CLI, "metadata", "export"}
-		cmdArgs = append(cmdArgs, commandOptions...)
-		execute.Args = cmdArgs
-		if err = execute.Run(); err != nil {
-			log.Error("Failed to export metadata")
-			return err
-		}
-	}
-
-	// If metadata directory is already mounted to nhost_hasura container,
-	// then Hasura must be auto-applying metadata
-	// hence, manually applying metadata doesn't make sense
-
-	// apply metadata
-	log.Debug("Applying metadata")
-	execute = exec.Cmd{
-		Path: c.CLI,
-		Dir:  nhost.NHOST_DIR,
-	}
-	cmdArgs = []string{c.CLI, "metadata", "apply"}
-	cmdArgs = append(cmdArgs, commandOptions...)
-	execute.Args = cmdArgs
-
-	if err = execute.Run(); err != nil {
-		log.Error("Failed to apply metadata")
-		return err
-	}
-
-	return nil
 }
 
 /*

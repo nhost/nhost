@@ -2,12 +2,16 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"io/ioutil"
+	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -123,16 +127,56 @@ func getBranchHEAD(root string) string {
 
 func (e *Environment) restartMigrations(cmd *cobra.Command, args []string) error {
 
-	// inform the user of detection
+	// Inform the user of detection
 	log.Info("We've detected change in local git commit")
 	log.Warn("We're fixing your data accordingly. Give us a moment!")
 
-	// re-do migrations and metadata
-	if err := e.Hasura.Prepare(); err != nil {
-		return err
+	// ------------------------------------------
+	// Why listen to Hasura's Activation channel?
+	// ------------------------------------------
+	//
+	// Because we may have a potential race condition over here.
+	//
+	// Consider the following corner case:
+	//
+	// 1. User does `git checkout` another branch.
+	// 2. User immediately does `git pull`, before letting the refreshed environment
+	// complete health checks, and even before letting Hasura complete migrations
+	// for refreshed environment.
+	//
+	// --------------------
+	// Implemented Solution
+	// --------------------
+	//
+	// Only perform migrations and metadata if Hasura is active,
+	// independent of whether it performs these new "post-pull" migrations
+	// before OR after the migrations of refreshed environment has been completed.
+	//
+	// Before applying migrations, Hasura anyway validates whether the migrations
+	// already exist or not. If they do, Hasura doesn't even apply them.
+	//
+	// So, we are good!
+
+	for {
+		active, ok := <-*e.Config.Services["hasura"].Active
+		if !ok {
+			return errors.New("hasura isn't live yet")
+		} else {
+			if !active {
+				log.Info("Waiting for your GraphQL Engine to become active")
+			} else {
+
+				// re-do migrations and metadata
+				if err := e.Prepare(); err != nil {
+					return err
+				}
+
+				break
+			}
+		}
 	}
 
-	log.Info("Done! Please continue with your work")
+	log.Info("Done! Please continue with your work.")
 	return nil
 }
 
@@ -142,8 +186,9 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 	log.Info("We've detected change in local git branch")
 	log.Warn("We're restarting your environment")
 
-	// Stop the local reverse proxy server
-	proxy.Shutdown(environment.Context)
+	// Stop all execution specific goroutines
+	executionContext.Done()
+	executionCancel()
 
 	if err := environment.Shutdown(true); err != nil {
 		log.Debug(err)
@@ -176,6 +221,7 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 	// now re-create the them
 	execute(cmd, args)
 
+	log.Info("Done! Please continue with your work.")
 	return nil
 }
 
@@ -192,7 +238,13 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 		name := strings.TrimPrefix(nameWithPrefix, nhost.PREFIX+"_")
 		if e.Config.Services[name] == nil {
 			e.Config.Services[name] = &nhost.Service{}
+
+			// Initialize the channel to send out [de/]activation
+			// signals to whoever needs to listen for these signals
+			e.Config.Services[name].Active = new(chan bool)
 		}
+
+		// Load the container ID as service ID
 		e.Config.Services[name].ID = container.ID
 
 		if e.Config.Services[name].Name == "" {
@@ -252,6 +304,10 @@ func (e *Environment) Shutdown(purge bool) error {
 							"type":      "container",
 						}).Error("Failed to stop")
 					}
+
+					// De-activate the service
+					container.Deactivate()
+
 				} else if purge {
 					if err := container.Remove(e.Docker, e.Context); err != nil {
 						log.Debug(err)
@@ -260,7 +316,17 @@ func (e *Environment) Shutdown(purge bool) error {
 							"type":      "container",
 						}).Error("Failed to remove")
 					}
+
+					// Reset their service ID,
+					// to prevent docker from starting these non-existent containers
+					container.ID = ""
+
+					// Close the service's activation channel
+					if *container.Active != nil {
+						close(*container.Active)
+					}
 				}
+
 				end_waiter.Done()
 			}(container)
 		}
@@ -268,17 +334,9 @@ func (e *Environment) Shutdown(purge bool) error {
 
 	end_waiter.Wait()
 
-	// if purge, delete the network too
-	if purge {
-		if environment.Network == "" {
-			e.Network, _ = e.GetNetwork()
-		}
-		e.RemoveNetwork()
-	}
-
 	// reset the loaded environments,
 	// to cater for re-use
-	e.Reset()
+	// e.Reset()
 
 	return nil
 }
@@ -352,6 +410,14 @@ func (e *Environment) PruneContainers() error {
 // If it doesn't exist -> creates a new network
 func (e *Environment) PrepareNetwork() error {
 
+	// If the same environment is being re-started,
+	// then the environment must already have a network ID loaded.
+	// To save time during execution,
+	// we can simply return the a nil error
+	if e.Network != "" {
+		return nil
+	}
+
 	log.WithFields(logrus.Fields{
 		"type":    "network",
 		"network": nhost.PREFIX,
@@ -405,13 +471,108 @@ func (e *Environment) GetNetwork() (string, error) {
 }
 
 //
-// Prepare func validates whether all required images exist,
-// and downloads any one which doesn't
+// Performs default migrations and metadata operations
 //
 
 func (e *Environment) Prepare() error {
 
-	log.Debug("Preparing environment")
+	var (
+		execute = exec.Cmd{
+			Path: e.Hasura.CLI,
+			Dir:  nhost.NHOST_DIR,
+		}
+
+		commandOptions = []string{
+			"--endpoint",
+			e.Hasura.Endpoint,
+			"--admin-secret",
+			e.Hasura.AdminSecret,
+			"--skip-update-check",
+		}
+	)
+
+	// Send out de-activation signal before starting migrations,
+	// to inform any other resource which using Hasura
+	e.Config.Services["hasura"].Deactivate()
+
+	// If migrations directory is already mounted to nhost_hasura container,
+	// then Hasura must be auto-applying migrations
+	// hence, manually applying migrations doesn't make sense
+
+	// create migrations
+	files, _ := os.ReadDir(nhost.MIGRATIONS_DIR)
+	if len(files) > 0 {
+
+		log.Debug("Applying migrations")
+		cmdArgs := []string{e.Hasura.CLI, "migrate", "apply", "--database-name", nhost.DATABASE}
+		cmdArgs = append(cmdArgs, commandOptions...)
+		execute.Args = cmdArgs
+
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to apply migrations")
+			return err
+		}
+	}
+
+	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
+	if err != nil {
+		return err
+	}
+
+	if len(metaFiles) == 0 {
+		execute = exec.Cmd{
+			Path: e.Hasura.CLI,
+			Dir:  nhost.NHOST_DIR,
+		}
+
+		cmdArgs := []string{e.Hasura.CLI, "metadata", "export"}
+		cmdArgs = append(cmdArgs, commandOptions...)
+		execute.Args = cmdArgs
+
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			log.Error("Failed to export metadata")
+			return err
+		}
+	}
+
+	// If metadata directory is already mounted to nhost_hasura container,
+	// then Hasura must be auto-applying metadata
+	// hence, manually applying metadata doesn't make sense
+
+	// apply metadata
+	log.Debug("Applying metadata")
+	execute = exec.Cmd{
+		Path: e.Hasura.CLI,
+		Dir:  nhost.NHOST_DIR,
+	}
+	cmdArgs := []string{e.Hasura.CLI, "metadata", "apply"}
+	cmdArgs = append(cmdArgs, commandOptions...)
+	execute.Args = cmdArgs
+
+	output, err := execute.CombinedOutput()
+	if err != nil {
+		log.Debug(string(output))
+		log.Error("Failed to apply metadata")
+		return err
+	}
+
+	// Designate Hasura re-activated once migrations are complete
+	e.Config.Services["hasura"].Activate()
+
+	return nil
+}
+
+//
+// Prepare func validates whether all required images exist,
+// and downloads any one which doesn't.
+//
+func (e *Environment) CheckImages() error {
+
+	log.Debug("Checking for required Nhost container images")
 
 	// check if a required image already exists
 	// if it doesn't -> then pull it
@@ -454,6 +615,65 @@ func (e *Environment) Prepare() error {
 	}
 
 	return nil
+}
+
+// Runs concurrent healthchecks on all Nhost services,
+// which have a health check endpoint.
+//
+// Also, supports process cancellation from contexts.
+func (e *Environment) HealthCheck(ctx context.Context) error {
+
+	var err error
+	var health_waiter sync.WaitGroup
+	for _, service := range environment.Config.Services {
+		if service.HealthEndpoint != "" {
+			health_waiter.Add(1)
+			go func(service *nhost.Service) {
+
+				for counter := 1; counter <= 240; counter++ {
+					select {
+					case <-executionContext.Done():
+						log.WithFields(logrus.Fields{
+							"type":      "service",
+							"container": service.Name,
+						}).Debug("Health check cancelled")
+						return
+					default:
+						if healthy := service.Healthz(); healthy {
+							log.WithFields(logrus.Fields{
+								"type":      "service",
+								"container": service.Name,
+							}).Debug("Health check successful")
+
+							// Activate the service
+							service.Activate()
+
+							health_waiter.Done()
+
+							return
+						}
+						time.Sleep(1 * time.Second)
+						log.WithFields(logrus.Fields{
+							"type":      "container",
+							"component": service.Name,
+						}).Debugf("Health check attempt #%v unsuccessful", counter)
+					}
+				}
+
+				log.WithFields(logrus.Fields{
+					"type":      "service",
+					"container": service.Name,
+				}).Error("Health check failed")
+				err = errors.New("healthcheck of at least 1 service has failed")
+
+			}(service)
+		}
+	}
+
+	// wait for all healthchecks to pass
+	health_waiter.Wait()
+
+	return err
 }
 
 func (e *Environment) Seed() error {
@@ -558,28 +778,3 @@ func (e *Environment) Seed() error {
 		}
 	*/
 }
-
-/*
-func (e *Environment) watchHead() {
-
-	// get the current head of git repo
-	head := getCurrentBranch(e.Repository)
-
-	for {
-
-		// get the current head of git repo
-		new := getCurrentBranch(e.Repository)
-
-		if new != "" && new != head {
-
-			// update the head value
-			head = new
-
-			log.WithField("branch", head).Debug("Detected git branch change")
-
-			// update branch change channel
-			branchSwitch <- head
-		}
-	}
-}
-*/

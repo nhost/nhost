@@ -25,6 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
@@ -59,10 +60,14 @@ var (
 	proxy *http.Server
 
 	// signal interruption channel
-	stop = make(chan os.Signal, 1)
+	stop = make(chan os.Signal)
 
 	// fsnotify watcher
 	watcher *fsnotify.Watcher
+
+	// execution specific context
+	executionContext context.Context
+	executionCancel  context.CancelFunc
 )
 
 /*
@@ -120,6 +125,12 @@ var devCmd = &cobra.Command{
 			log.Fatal("Failed to initialize the environment")
 		}
 
+		// Parse the nhost/config.yaml
+		if err = environment.Config.Wrap(); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to read Nhost config")
+		}
+
 		// Launch the Watchers of this environment
 		if len(environment.Watchers) > 0 {
 
@@ -132,10 +143,9 @@ var devCmd = &cobra.Command{
 			// Add the files to our watcher
 			for file := range environment.Watchers {
 				if pathExists(file) {
-					if err := watcher.Add(file); err != nil {
+					if err := addToWatcher(watcher, file); err != nil {
 						log.WithField("component", "watcher").Error(err)
 					}
-					log.WithField("component", "watcher").Debug("Watching: ", strings.TrimPrefix(file, nhost.WORKING_DIR))
 				}
 			}
 
@@ -156,13 +166,25 @@ var devCmd = &cobra.Command{
 		// being the execution
 		execute(cmd, args)
 
+		// Desginate the environment to have been Started
+		environment.Started = true
+
 		// wait for Ctrl+C
 		end_waiter.Wait()
 	},
 }
 
 func cleanup(cmd *cobra.Command) {
-	proxy.Shutdown(environment.Context)
+
+	if environment.Started {
+		executionCancel()
+
+		// Shut down the local reverse proxy
+		proxy.Shutdown(environment.Context)
+
+		// Shut down the functions server
+		functionServer.Shutdown(environment.Context)
+	}
 
 	if environment.Active {
 		log.Warn("Please wait while we cleanup")
@@ -173,14 +195,21 @@ func cleanup(cmd *cobra.Command) {
 		log.Info("Cleanup complete. See you later, grasshopper!")
 	}
 
+	// Don't cancel the contexts before shutting down the containers
 	environment.Cancel()
 	close(stop)
+
+	// Exit the CLI
 	os.Exit(0)
 }
 
 func execute(cmd *cobra.Command, args []string) {
 
 	var err error
+
+	// initialize new context for execution specific jobs
+	executionContext, executionCancel = context.WithCancel(environment.Context)
+	defer executionCancel()
 
 	// initialize the proxy server
 	mux = http.NewServeMux()
@@ -189,12 +218,6 @@ func execute(cmd *cobra.Command, args []string) {
 	// initialize a common http client
 	environment.HTTP = &http.Client{}
 
-	// Parse the nhost/config.yaml
-	if err = environment.Config.Wrap(); err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to read Nhost config")
-	}
-
 	// check if this is the first time dev env is running
 	firstRun := !pathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
 	if firstRun {
@@ -202,11 +225,9 @@ func execute(cmd *cobra.Command, args []string) {
 	}
 
 	// if functions exist,
-	// start then and register as a service
+	// start them and register as a service
 	if pathExists(nhost.API_DIR) {
 
-		// run the functions command
-		go ServeFuncs(cmd, []string{"do_not_inform"})
 		funcPortStr, _ := strconv.Atoi(funcPort)
 		portStr, _ := strconv.Atoi(port)
 		environment.Config.Services["functions"] = &nhost.Service{
@@ -218,10 +239,9 @@ func execute(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// prepare environment
-	// check for available docker images
-	// and update any env vars required
-	if err := environment.Prepare(); err != nil {
+	// Validate the availability of required docker images,
+	// and download the ones that are missing
+	if err := environment.CheckImages(); err != nil {
 		log.Debug(err)
 		log.Fatal("Failed to prepare environment")
 	}
@@ -260,7 +280,8 @@ func execute(cmd *cobra.Command, args []string) {
 				cleanup(cmd)
 			}
 
-			// activate the environment to let it be cleaned on shutdown
+			// Even if a single service has been successfully started,
+			// designate the environment as "activated" to let it be cleaned on shutdown
 			environment.Active = true
 		}
 	}
@@ -272,36 +293,18 @@ func execute(cmd *cobra.Command, args []string) {
 	containers, err := environment.GetContainers()
 	if err != nil {
 		log.Debug(err)
-		log.Fatal("Failed to shut down Nhost services")
+		log.Error("Failed to get running Nhost services")
+		cleanup(cmd)
 	}
 
 	// Wrap fetched containers as services in the environment
 	_ = environment.WrapContainersAsServices(containers)
 
 	log.Info("Running a quick health check on services")
-	var health_waiter sync.WaitGroup
-	for _, service := range environment.Config.Services {
-		if service.HealthEndpoint != "" {
-			health_waiter.Add(1)
-			go func(service *nhost.Service) {
-				if healthy := service.Healthz(); !healthy {
-					log.WithFields(logrus.Fields{
-						"type":      "service",
-						"container": service.Name,
-					}).Error("Health check failed")
-					cleanup(cmd)
-				}
-				log.WithFields(logrus.Fields{
-					"type":      "service",
-					"container": service.Name,
-				}).Debug("Health check successful")
-				health_waiter.Done()
-			}(service)
-		}
+	if err := environment.HealthCheck(executionContext); err != nil {
+		log.Debug(err)
+		cleanup(cmd)
 	}
-
-	// wait for all healthchecks to pass
-	health_waiter.Wait()
 
 	// prepare and load required binaries
 	hasuraCLI, _ := hasura.Binary()
@@ -313,14 +316,27 @@ func execute(cmd *cobra.Command, args []string) {
 		CLI:         hasuraCLI,
 	}
 
-	// apply migrations and metadata
+	//
+	// Apply migrations and metadata
+	//
 	log.Info("Preparing your data")
-	if err = environment.Hasura.Prepare(); err != nil {
+	if err = environment.Prepare(); err != nil {
 		log.Debug(err)
 		cleanup(cmd)
 	}
 
-	// apply seeds on the first run
+	//
+	// Everything after this point,
+	// needs to be executed only the first time
+	// the environment has been started.
+	//
+	if environment.Started {
+		return
+	}
+
+	//
+	// Apply Seeds on the first run
+	//
 	if firstRun {
 		if err = environment.Seed(); err != nil {
 			log.Debug(err)
@@ -328,23 +344,39 @@ func execute(cmd *cobra.Command, args []string) {
 		}
 	}
 
+	// run the functions command
+	go ServeFuncs(cmd, []string{"do_not_inform"})
+
 	//spawn hasura console
 	consolePort := nhost.GetPort(9301, 9400)
-	hasuraConsoleSpawnCmd := exec.Cmd{
-		Path: hasuraCLI,
-		Args: []string{hasuraCLI,
-			"console",
-			"--endpoint",
-			environment.Hasura.Endpoint,
-			"--admin-secret",
-			environment.Hasura.AdminSecret,
-			"--console-port",
-			fmt.Sprint(consolePort),
-		},
-		Dir: nhost.NHOST_DIR,
-	}
 
-	go hasuraConsoleSpawnCmd.Run()
+	go func() {
+
+		// Start the hasura console
+		cmd := exec.Cmd{
+			Path: hasuraCLI,
+			Args: []string{
+				hasuraCLI,
+				"console",
+				"--endpoint",
+				environment.Hasura.Endpoint,
+				"--admin-secret",
+				environment.Hasura.AdminSecret,
+				"--console-port",
+				fmt.Sprint(consolePort),
+				"--skip-update-check",
+			},
+			Dir: nhost.NHOST_DIR,
+		}
+
+		if err := cmd.Start(); err != nil {
+			log.WithField("component", "console").Debug(err)
+		}
+
+		if err := cmd.Wait(); err != nil {
+			log.WithField("component", "console").Debug(err)
+		}
+	}()
 
 	// launch mailhog UI
 	go openbrowser(environment.Config.Services["mailhog"].Address)
@@ -353,7 +385,7 @@ func execute(cmd *cobra.Command, args []string) {
 	// for all Nhost services the CLI is running locally
 	go func() {
 		if err := proxy.ListenAndServe(); err != nil {
-			log.WithField("component", "proxy").Debug(err)
+			log.WithFields(logrus.Fields{"component": "proxy", "value": port}).Debug(err)
 		}
 	}()
 

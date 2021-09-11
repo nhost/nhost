@@ -59,6 +59,10 @@ var (
 
 	// runtime environment variables
 	envVars []string
+
+	// initialize functions server and multiplexer
+	functionMux    *http.ServeMux
+	functionServer *http.Server
 )
 
 type GoPlugin struct {
@@ -73,7 +77,7 @@ var functionsCmd = &cobra.Command{
 	Long:  `Serve and manage serverless functions.`,
 	PostRun: func(cmd *cobra.Command, args []string) {
 
-		if err := os.RemoveAll(tempDir); err != nil {
+		if err := deleteAllPaths(tempDir); err != nil {
 			log.WithField("component", "cache").Debug(err)
 		}
 		os.Exit(0)
@@ -146,8 +150,8 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	}
 
 	// initialize server multiplexer
-	mux := http.NewServeMux()
-	proxy := &http.Server{Addr: ":" + funcPort, Handler: mux}
+	functionMux = http.NewServeMux()
+	functionServer = &http.Server{Addr: ":" + funcPort, Handler: functionMux}
 
 	mux.HandleFunc("/", handler)
 
@@ -156,7 +160,8 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	}
 
 	go func() {
-		if err := proxy.ListenAndServe(); err != nil {
+		log.Debug("Starting Functions server")
+		if err := functionServer.ListenAndServe(); err != nil {
 			log.WithField("component", "functions").Debug(err)
 		}
 	}()

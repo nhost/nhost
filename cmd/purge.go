@@ -25,7 +25,6 @@ package cmd
 
 import (
 	"context"
-	"path/filepath"
 
 	"github.com/docker/docker/client"
 	"github.com/mrinalwahal/cli/nhost"
@@ -90,13 +89,15 @@ And re-create them next time you run 'nhost dev'`,
 			for _, item := range paths {
 				if err := deleteAllPaths(item); err != nil {
 					log.Debug(err)
-					log.Warnf("Please delete %s manually", filepath.Base(item))
-				} else {
-					log.Debugln("Removed", filepath.Base(item))
+					log.Warnln("Please delete path manually:", item)
 				}
 			}
-
 		}
+
+		if environment.Network == "" {
+			environment.Network, _ = environment.GetNetwork()
+		}
+		environment.RemoveNetwork()
 
 		if !contains(args, "do_not_inform") {
 			log.Info("Purge complete. See you later, grasshopper!")

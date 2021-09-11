@@ -52,8 +52,17 @@ type (
 	WatcherOperation func(cmd *cobra.Command, args []string) error
 
 	Environment struct {
-		Name       string
-		Active     bool
+		Name string
+
+		// Started flag records whether the dev command
+		// has been started.
+		// It doesn't record whether containers are active or not.
+		Started bool
+
+		// Active flag is "true" when at least 1 container has cleared
+		// it's respective health check
+		Active bool
+
 		Cancel     context.CancelFunc
 		Port       int
 		HTTP       *http.Client
