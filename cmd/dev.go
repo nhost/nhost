@@ -170,6 +170,24 @@ var devCmd = &cobra.Command{
 			log.Info("First run takes longer, please be patient")
 		}
 
+		// initialize the proxy server
+		mux = http.NewServeMux()
+		proxy = &http.Server{Addr: ":" + port, Handler: mux}
+
+		// initialize a common http client
+		environment.HTTP = &http.Client{}
+
+		// Register functions as a service in our environment
+		funcPortStr, _ := strconv.Atoi(funcPort)
+		portStr, _ := strconv.Atoi(port)
+		environment.Config.Services["functions"] = &nhost.Service{
+			Name:    "functions",
+			Address: fmt.Sprintf("http://localhost:%v", funcPortStr),
+			Handle:  "/v1/functions/",
+			Proxy:   true,
+			Port:    portStr,
+		}
+
 		// Execute the environment
 		environment.Execute()
 
@@ -253,7 +271,7 @@ var devCmd = &cobra.Command{
 
 				if err := item.IssueProxy(mux); err != nil {
 					log.WithField("component", "server").Debug(err)
-					log.WithField("component", "server").Error("Failed to proxy", name)
+					log.WithField("component", "server").Error("Failed to proxy ", name)
 					environment.cleanup()
 				}
 
@@ -325,24 +343,6 @@ func (e *Environment) Execute() {
 	// initialize new context for execution specific jobs
 	executionContext, executionCancel = context.WithCancel(e.Context)
 	defer executionCancel()
-
-	// initialize the proxy server
-	mux = http.NewServeMux()
-	proxy = &http.Server{Addr: ":" + port, Handler: mux}
-
-	// initialize a common http client
-	e.HTTP = &http.Client{}
-
-	// Register functions as a service in our environment
-	funcPortStr, _ := strconv.Atoi(funcPort)
-	portStr, _ := strconv.Atoi(port)
-	e.Config.Services["functions"] = &nhost.Service{
-		Name:    "functions",
-		Address: fmt.Sprintf("http://localhost:%v", funcPortStr),
-		Handle:  "/v1/functions/",
-		Proxy:   true,
-		Port:    portStr,
-	}
 
 	// Validate the availability of required docker images,
 	// and download the ones that are missing

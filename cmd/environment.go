@@ -144,7 +144,7 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 
 	// inform the user of detection
 	log.Info("We've detected change in local git branch")
-	log.Warn("We're recreating your environment. Give us a moment!")
+	log.Warn("We're recreating your environment accordingly. Give us a moment!")
 	// log.Warn("Keep your hands away from the keyboard, and don't do anything new until the environment is active again.")
 
 	// Stop all execution specific goroutines
@@ -212,37 +212,39 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 			e.Config.Services[name].Name = nameWithPrefix
 		}
 
-		if len(container.Ports) > 0 {
+		if e.Config.Services[name].Port == 0 || e.Config.Services[name].Address == "" {
 
-			// Update the ports, if available
-			for _, port := range container.Ports {
-				if port.IP != "" && int(port.PublicPort) != 0 {
-					if name == "mailhog" {
+			if len(container.Ports) > 0 {
 
-						// we don't want to save mailhog's smtp port
-						// this is done to avoid double port loading issue
-						var smtpPort int
-						switch t := e.Config.Auth["email"].(type) {
-						case map[interface{}]interface{}:
-							for key, value := range t {
-								if value != "" {
-									if key.(string) == "smtp_port" {
-										smtpPort = value.(int)
-										break
+				// Update the ports, if available
+				for _, port := range container.Ports {
+					if port.IP != "" && int(port.PublicPort) != 0 {
+						if name == "mailhog" {
+
+							// we don't want to save mailhog's smtp port
+							// this is done to avoid double port loading issue
+							var smtpPort int
+							switch t := e.Config.Auth["email"].(type) {
+							case map[interface{}]interface{}:
+								for key, value := range t {
+									if value != "" {
+										if key.(string) == "smtp_port" {
+											smtpPort = value.(int)
+											break
+										}
 									}
 								}
 							}
+							if int(port.PublicPort) == smtpPort {
+								continue
+							}
 						}
-						if int(port.PublicPort) == smtpPort {
-							continue
-						}
+
+						e.Config.Services[name].Port = int(port.PublicPort)
+
+						// Update the service address based on the new port
+						e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
 					}
-
-					// Update the service port
-					e.Config.Services[name].Port = int(port.PublicPort)
-
-					// Update the service address based on the new port
-					e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
 				}
 			}
 		}

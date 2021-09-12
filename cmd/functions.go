@@ -155,7 +155,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 	}
 
 	go func() {
-		log.Debug("Starting Functions server")
 		if err := functionServer.ListenAndServe(); err != nil {
 			log.WithField("component", "functions").Debug(err)
 		}

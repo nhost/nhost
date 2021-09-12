@@ -316,9 +316,7 @@ func (c *Configuration) Wrap() error {
 			parsed.Services[name].Proxy = true
 		}
 
-		if parsed.Services[name].Address == "" {
-			parsed.Services[name].Address = parsed.Services[name].GetAddress()
-		}
+		parsed.Services[name].Address = parsed.Services[name].GetAddress()
 
 		// initialize configuration for the service
 		parsed.Services[name].InitConfig()
@@ -332,8 +330,6 @@ func (c *Configuration) Wrap() error {
 // Reset the service ID, port, address and any other fields
 func (s *Service) Reset() {
 	s.Lock()
-	s.Port = 0
-	s.Address = ""
 	s.ID = ""
 	s.Active = false
 	s.Unlock()
@@ -341,7 +337,13 @@ func (s *Service) Reset() {
 
 // Generate service address based on assigned port
 func (s *Service) GetAddress() string {
-	return fmt.Sprintf("http://localhost:%v", s.Port)
+
+	switch s.Name {
+	case GetContainerName("postgres"):
+		return fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", GetContainerName("postgres"), s.Port)
+	default:
+		return fmt.Sprintf("http://localhost:%v", s.Port)
+	}
 }
 
 // start a fresh container in background and connect it to specified network
