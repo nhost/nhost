@@ -55,6 +55,9 @@ var (
 	// generate path for local git directory
 	GIT_DIR = filepath.Join(WORKING_DIR, ".git")
 
+	// default git repository remote to watch for git ops
+	REMOTE = "origin"
+
 	// generate path for .env.development
 	ENV_FILE = filepath.Join(WORKING_DIR, ".env.development")
 

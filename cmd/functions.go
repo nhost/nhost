@@ -26,6 +26,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -77,7 +78,7 @@ var functionsCmd = &cobra.Command{
 	Long:  `Serve and manage serverless functions.`,
 	PostRun: func(cmd *cobra.Command, args []string) {
 
-		if err := deleteAllPaths(tempDir); err != nil {
+		if err := deletePath(tempDir); err != nil {
 			log.WithField("component", "cache").Debug(err)
 		}
 		os.Exit(0)
@@ -97,10 +98,6 @@ var functionsCmd = &cobra.Command{
 }
 
 func ServeFuncs(cmd *cobra.Command, args []string) {
-	if !pathExists(nhost.API_DIR) {
-		log.Error("Functions directory not found")
-		return
-	}
 
 	prepareNode := false
 	prepareGo := false
@@ -123,7 +120,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 			log.Debug(err)
 			log.WithField("runtime", "Go").Error("Runtime not found")
 			log.WithField("runtime", "Go").Info("Install from:", "https://golang.org/doc/install")
-			return
 		}
 	}
 
@@ -136,7 +132,6 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 			log.Debug(err)
 			log.WithField("runtime", "NodeJS").Error("Runtime not found")
 			log.WithField("runtime", "NodeJS").Info("Install from:", "https://nodejs.org/en/download/")
-			return
 		}
 
 		// detect package.json inside functions dir
@@ -165,7 +160,12 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 			log.WithField("component", "functions").Debug(err)
 		}
 	}()
+
+	// Catch signal interruption (ctrl+c), and stop the server.
 	<-stop
+
+	// Gracefully shut down the functions server
+	functionServer.Shutdown(context.Background())
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {

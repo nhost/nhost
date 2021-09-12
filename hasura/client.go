@@ -42,3 +42,26 @@ func (c *Client) Request(body []byte, path string) (*http.Response, error) {
 
 	return c.Client.Do(req)
 }
+
+// Initialize the client with supplied Hasura endpoint,
+// admin secret and a custom HTTP client.
+func (c *Client) Init(endpoint, adminSecret string, client *http.Client) error {
+
+	// Prepare and load required binaries
+	cli, err := Binary()
+	if err != nil {
+		return err
+	}
+
+	c.CLI = cli
+	c.Endpoint = endpoint
+	c.AdminSecret = adminSecret
+
+	if client == nil {
+		c.Client = &http.Client{}
+	} else {
+		c.Client = client
+	}
+
+	return nil
+}

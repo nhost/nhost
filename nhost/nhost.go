@@ -317,7 +317,7 @@ func (c *Configuration) Wrap() error {
 		}
 
 		if parsed.Services[name].Address == "" {
-			parsed.Services[name].Address = fmt.Sprintf("http://localhost:%v", parsed.Services[name].Port)
+			parsed.Services[name].Address = parsed.Services[name].GetAddress()
 		}
 
 		// initialize configuration for the service
@@ -327,6 +327,21 @@ func (c *Configuration) Wrap() error {
 	// update the environment configuration
 	*c = parsed
 	return nil
+}
+
+// Reset the service ID, port, address and any other fields
+func (s *Service) Reset() {
+	s.Lock()
+	s.Port = 0
+	s.Address = ""
+	s.ID = ""
+	s.Active = false
+	s.Unlock()
+}
+
+// Generate service address based on assigned port
+func (s *Service) GetAddress() string {
+	return fmt.Sprintf("http://localhost:%v", s.Port)
 }
 
 // start a fresh container in background and connect it to specified network
@@ -460,12 +475,6 @@ func GenerateConfig(options Project) Configuration {
 			"postgres": &postgres,
 			"hasura":   &hasura,
 		},
-		/*
-			Environment: map[string]interface{}{
-				// "env_file":           ENV_FILE,
-				"hasura_cli_version": "v2.0.0-alpha.11",
-			},
-		*/
 		MetadataDirectory: "metadata",
 		Storage: map[interface{}]interface{}{
 			"force_download_for_content_types": "text/html,application/javascript",
@@ -484,16 +493,6 @@ func GenerateConfig(options Project) Configuration {
 func (s *Service) Healthz() bool {
 
 	resp, err := http.Get(s.Address + s.HealthEndpoint)
-	if err != nil {
-		return false
-	}
-
-	return resp.StatusCode == 200
-}
-
-func Check200(url string) bool {
-
-	resp, err := http.Get(url)
 	if err != nil {
 		return false
 	}
@@ -561,14 +560,18 @@ func (s *Service) InitConfig() {
 // to whoever is listening,
 // or whichever resource is waiting for this signal
 func (s *Service) Activate() {
+	s.Lock()
 	s.Active = true
+	s.Unlock()
 }
 
 // Sends out the de-activation signal
 // to whoever is listening,
 // or whichever resource is waiting for this signal
 func (s *Service) Deactivate() {
+	s.Lock()
 	s.Active = false
+	s.Unlock()
 }
 
 // Stops given container
@@ -663,13 +666,11 @@ func (config *Configuration) Init() error {
 	// Append NHOST_FUNCTIONS env var to Hasura
 	// to allow NHOST_FUNCTIONS to be reachable from Hasura Event Triggers.
 	// This is being done over here, because development proxy port is required
-	if pathExists(API_DIR) {
-		switch runtime.GOOS {
-		case "darwin", "windows":
-			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/v1/functions", config.Services["functions"].Port))
-		case "linux":
-			hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v/v1/functions", getOutboundIP(), config.Services["functions"].Port))
-		}
+	switch runtime.GOOS {
+	case "darwin", "windows":
+		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/v1/functions", config.Services["functions"].Port))
+	case "linux":
+		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v/v1/functions", getOutboundIP(), config.Services["functions"].Port))
 	}
 
 	/*
@@ -904,10 +905,10 @@ func generateEmailVars() map[string]interface{} {
 		"refresh_token_expires_in": "",
 		"emails_enabled":           true,
 		"smtp_host":                PREFIX + "_mailhog",
-		"smtp_port":                1025,
+		"smtp_port":                GetPort(1000, 1999),
 		"smtp_user":                "user",
 		"smtp_pass":                "password",
-		"smtp_sender":              "hasura-auth@examplcom",
+		"smtp_sender":              "hasura-auth@example.com",
 		"smtp_method":              "",
 		"smtp_secure":              false,
 		"email_template_fetch_url": "",

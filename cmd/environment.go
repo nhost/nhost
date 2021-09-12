@@ -73,7 +73,7 @@ func (e *Environment) Init() error {
 		e.Watchers[filepath.Join(nhost.GIT_DIR, "HEAD")] = e.restartEnvironmentAfterCheckout
 
 		// Initialize watcher for post-merge commit changes
-		head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", "origin"))
+		head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", nhost.REMOTE))
 		if head != "" {
 			e.Watchers[head] = e.restartMigrations
 		}
@@ -159,7 +159,7 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 	nhost.DOT_NHOST, _ = nhost.GetDotNhost()
 
 	// register new branch HEAD for the watcher
-	head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", "origin"))
+	head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", nhost.REMOTE))
 	if head != "" {
 		var watcherAlreadyExists bool
 		for name := range e.Watchers {
@@ -179,7 +179,7 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 	}
 
 	// now re-create the them
-	execute(cmd, args)
+	environment.Execute()
 
 	log.Info("Done! Please continue with your work.")
 	return nil
@@ -237,7 +237,12 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 							continue
 						}
 					}
+
+					// Update the service port
 					e.Config.Services[name].Port = int(port.PublicPort)
+
+					// Update the service address based on the new port
+					e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
 				}
 			}
 		}
@@ -259,12 +264,10 @@ func (e *Environment) Shutdown(purge bool) error {
 			go func(container *nhost.Service) {
 				if err := container.Stop(e.Docker, e.Context); err != nil {
 					log.Debug(err)
-					if !strings.Contains(strings.ToLower(err.Error()), "no such container") {
-						log.WithFields(logrus.Fields{
-							"container": container.Name,
-							"type":      "container",
-						}).Error("Failed to stop")
-					}
+					log.WithFields(logrus.Fields{
+						"container": container.Name,
+						"type":      "container",
+					}).Error("Failed to stop")
 
 					// De-activate the service
 					container.Deactivate()
@@ -278,9 +281,9 @@ func (e *Environment) Shutdown(purge bool) error {
 						}).Error("Failed to remove")
 					}
 
-					// Reset their service ID,
+					// Reset their service ID, port and other fields,
 					// to prevent docker from starting these non-existent containers
-					container.ID = ""
+					container.Reset()
 				}
 
 				end_waiter.Done()
@@ -646,10 +649,9 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 	return err
 }
 
-func (e *Environment) Seed() error {
+func (e *Environment) Seed(path string) error {
 
-	base := filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)
-	seed_files, err := ioutil.ReadDir(base)
+	seed_files, err := ioutil.ReadDir(path)
 	if err != nil {
 		return err
 	}
@@ -663,7 +665,7 @@ func (e *Environment) Seed() error {
 	for _, item := range seed_files {
 
 		// read seed file
-		data, err := ioutil.ReadFile(filepath.Join(base, item.Name()))
+		data, err := ioutil.ReadFile(filepath.Join(path, item.Name()))
 		if err != nil {
 			log.WithField("component", "seeds").Errorln("Failed to open:", item.Name())
 			return err

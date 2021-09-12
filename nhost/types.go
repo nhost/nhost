@@ -117,8 +117,8 @@ type (
 		// Therefore you can't really skip around.
 		// We need a mutex to lock the service
 		// before updating it's channels.
-		sync.Mutex
-		Active bool
+		sync.Mutex `yaml:",omitempty"`
+		Active     bool `yaml:",omitempty"`
 	}
 
 	// .nhost/nhost.yaml information

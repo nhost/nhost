@@ -27,6 +27,7 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/logger"
@@ -76,8 +77,19 @@ var (
 
 			} else {
 
-				// start the "init" command
-				initCmd.Run(cmd, args)
+				prompt := promptui.Prompt{
+					Label:     "Do you want to initialize an Nhost project in this directory",
+					IsConfirm: true,
+				}
+
+				response, err := prompt.Run()
+				if err == nil && (strings.ToLower(response) == "y" || strings.ToLower(response) == "yes") {
+
+					// start the "init" command
+					initCmd.Run(cmd, args)
+				} else {
+					return
+				}
 
 				// offer to clone templates
 				// templatesCmd.Run(cmd, args)
