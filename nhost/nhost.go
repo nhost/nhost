@@ -300,7 +300,6 @@ func (c *Configuration) Wrap() error {
 
 			parsed.Services[name].Image = "nhost/postgres"
 			parsed.Services[name].Version = parsed.Services["postgres"].Version
-			parsed.Services[name].Address = fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", GetContainerName("postgres"), parsed.Services[name].Port)
 
 		case "hasura":
 
@@ -670,9 +669,9 @@ func (config *Configuration) Init() error {
 	// This is being done over here, because development proxy port is required
 	switch runtime.GOOS {
 	case "darwin", "windows":
-		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/v1/functions", config.Services["functions"].Port))
+		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v", config.Services["functions"].Port))
 	case "linux":
-		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v/v1/functions", getOutboundIP(), config.Services["functions"].Port))
+		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v", getOutboundIP(), config.Services["functions"].Port))
 	}
 
 	/*

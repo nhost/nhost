@@ -74,7 +74,7 @@ And re-create them next time you run 'nhost dev'`,
 		// wrap the fetched containers inside the environment
 		_ = environment.WrapContainersAsServices(containers)
 
-		if err := environment.Shutdown(true); err != nil {
+		if err := environment.Shutdown(true, context.Background()); err != nil {
 			log.Debug(err)
 			log.Error("Failed to shut down Nhost services")
 		}

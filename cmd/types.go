@@ -5,12 +5,11 @@ import (
 	"io/fs"
 	"net/http"
 	"plugin"
+	"sync"
 
 	"github.com/docker/docker/client"
-	"github.com/go-git/go-git/v5"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
-	"github.com/spf13/cobra"
 )
 
 type (
@@ -49,30 +48,37 @@ type (
 		Plugin       *plugin.Plugin
 	}
 
-	WatcherOperation func(cmd *cobra.Command, args []string) error
+	WatcherOperation func() error
 
 	Environment struct {
+		sync.Mutex
 		Name string
 
-		// Started flag records whether the dev command
-		// has been started.
-		// It doesn't record whether containers are active or not.
-		Started bool
+		// Records the current state of the environment
+		state State
 
-		// Active flag is "true" when at least 1 container has cleared
-		// it's respective health check
-		Active bool
+		//	Channel in which state changes are updated for listeners
+		//	stateChan chan State
 
-		Cancel     context.CancelFunc
-		Port       int
-		HTTP       *http.Client
-		Hasura     *hasura.Client
-		Docker     *client.Client
-		Config     nhost.Configuration
-		Context    context.Context
-		Network    string
-		Repository *git.Repository
-		Branch     string
+		// List of all HTTP servers registered with our environment.
+		Servers []*http.Server
+
+		// Parent cancellable context
+		Context context.Context
+		Cancel  context.CancelFunc
+
+		// Execution specific cancellable context
+		ExecutionContext context.Context
+		ExecutionCancel  context.CancelFunc
+
+		Port string
+		// HTTP       *http.Client
+		Hasura  *hasura.Client
+		Docker  *client.Client
+		Config  nhost.Configuration
+		Network string
+		// Repository *git.Repository
+		// Branch string
 
 		// In the following format:
 		// Key - Absolute File Name to Watch

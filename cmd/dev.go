@@ -46,28 +46,16 @@ import (
 )
 
 var (
-	port string
-
 	// initialize boolean to determine
 	// whether to expose the local environment to the public internet
 	// through a tunnel
 	expose bool
-
-	// proxy mux
-	mux *http.ServeMux
-
-	// reverse proxy server
-	proxy *http.Server
 
 	// signal interruption channel
 	stop = make(chan os.Signal)
 
 	// fsnotify watcher
 	watcher *fsnotify.Watcher
-
-	// execution specific context
-	executionContext context.Context
-	executionCancel  context.CancelFunc
 )
 
 /*
@@ -150,7 +138,7 @@ var devCmd = &cobra.Command{
 			}
 
 			// launch the infinite watching goroutine
-			go environment.Watch(watcher, cmd, args)
+			go environment.Watch(watcher)
 		}
 
 		var end_waiter sync.WaitGroup
@@ -160,8 +148,14 @@ var devCmd = &cobra.Command{
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		go func() {
 			<-stop
-			executionCancel()
+
+			// Cancel any ongoing excution
+			environment.ExecutionCancel()
+
+			// Cleanup the environment
 			environment.cleanup()
+
+			end_waiter.Done()
 		}()
 
 		// check if this is the first time dev env is running
@@ -170,26 +164,29 @@ var devCmd = &cobra.Command{
 			log.Info("First run takes longer, please be patient")
 		}
 
-		// initialize the proxy server
-		mux = http.NewServeMux()
-		proxy = &http.Server{Addr: ":" + port, Handler: mux}
-
-		// initialize a common http client
-		environment.HTTP = &http.Client{}
-
 		// Register functions as a service in our environment
 		funcPortStr, _ := strconv.Atoi(funcPort)
-		portStr, _ := strconv.Atoi(port)
 		environment.Config.Services["functions"] = &nhost.Service{
 			Name:    "functions",
 			Address: fmt.Sprintf("http://localhost:%v", funcPortStr),
 			Handle:  "/v1/functions/",
 			Proxy:   true,
-			Port:    portStr,
+			Port:    funcPortStr,
 		}
 
 		// Execute the environment
-		environment.Execute()
+		if err := environment.Execute(); err != nil {
+
+			//	Only perform the cleanup before ending,
+			//	if the error has occurred under execution stage.
+			//
+			//	This is being done to account for the state change
+			//	imposed by git ops watcher.
+			if environment.state <= Executing {
+				environment.cleanup()
+				end_waiter.Done()
+			}
+		}
 
 		//
 		// Everything after this point,
@@ -207,8 +204,11 @@ var devCmd = &cobra.Command{
 			}
 		}
 
-		// run the functions command
-		go ServeFuncs(cmd, []string{"do_not_inform"})
+		// Start functions
+		go ServeFuncs()
+
+		// Register the functions server in our environment
+		environment.Servers = append(environment.Servers, functionServer)
 
 		//spawn hasura console
 		consolePort := nhost.GetPort(9301, 9400)
@@ -228,7 +228,7 @@ var devCmd = &cobra.Command{
 					"--console-port",
 					fmt.Sprint(consolePort),
 					"--api-port",
-					fmt.Sprint(nhost.GetPort(9301, 9400)),
+					fmt.Sprint(nhost.GetPort(8301, 9400)),
 					"--skip-update-check",
 				},
 				Dir: nhost.NHOST_DIR,
@@ -246,11 +246,20 @@ var devCmd = &cobra.Command{
 		// launch mailhog UI
 		go openbrowser(environment.Config.Services["mailhog"].Address)
 
-		// launch a local reverse proxy
-		// for all Nhost services the CLI is running locally
+		// Initialize a reverse proxy server,
+		// to make all our locally running Nhost services
+		// available from a single port
+		mux := http.NewServeMux()
+		proxy := &http.Server{Addr: ":" + environment.Port, Handler: mux}
+
 		go func() {
+
+			// Before launching, register the proxy server in our environment
+			environment.Servers = append(environment.Servers, proxy)
+
+			// Now start the server
 			if err := proxy.ListenAndServe(); err != nil {
-				log.WithFields(logrus.Fields{"component": "proxy", "value": port}).Debug(err)
+				log.WithFields(logrus.Fields{"component": "proxy", "value": environment.Port}).Debug(err)
 			}
 		}()
 
@@ -276,7 +285,7 @@ var devCmd = &cobra.Command{
 				}
 
 				// print the name and handle
-				fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, port, Reset, filepath.Clean(item.Handle)))
+				fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, environment.Port, Reset, filepath.Clean(item.Handle)))
 				fmt.Fprintln(w)
 			}
 		}
@@ -327,44 +336,45 @@ var devCmd = &cobra.Command{
 			}
 		*/
 
-		// Desginate the environment to have been Started
-		environment.Started = true
-
 		// wait for Ctrl+C
 		end_waiter.Wait()
+
+		// Close the signal interruption channel
+		close(stop)
+
+		os.Exit(0)
 	},
 }
 
 // Explain what it does
-func (e *Environment) Execute() {
+func (e *Environment) Execute() error {
 
 	var err error
 
-	// initialize new context for execution specific jobs
-	executionContext, executionCancel = context.WithCancel(e.Context)
-	defer executionCancel()
+	// Update environment state
+	e.UpdateState(Executing)
+
+	// Initialize cancellable context for this specific execution
+	e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
+
+	// Cancel the execution context as soon as this function completes
+	defer e.ExecutionCancel()
 
 	// Validate the availability of required docker images,
 	// and download the ones that are missing
 	if err := e.CheckImages(); err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to prepare environment")
+		return err
 	}
 
-	// generate configuration for every service
-	// this generates all env vars, mount points and commands
+	//	Generate configuration for every service.
+	//	This generates all env vars, mount points and commands
 	if err := e.Config.Init(); err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to generate configuration")
+		return err
 	}
 
-	// create the Nhost network if it doesn't exist
+	//	Create the Nhost network if it doesn't exist
 	if err := e.PrepareNetwork(); err != nil {
-		log.Debug(err)
-		log.WithFields(logrus.Fields{
-			"type":    "network",
-			"network": nhost.PREFIX,
-		}).Fatal("Failed to prepare network")
+		return err
 	}
 
 	// create and start the conatiners
@@ -373,21 +383,13 @@ func (e *Environment) Execute() {
 		// Only those services which have a container configuration
 		// This is being done to exclude FUNCTIONS
 		if item.Config != nil {
-			if err := item.Run(e.Docker, e.Context, e.Network); err != nil {
-				log.WithFields(logrus.Fields{
-					"container": item.Name,
-					"type":      "container",
-				}).Debug(err)
-				log.WithFields(logrus.Fields{
-					"container": item.Name,
-					"type":      "container",
-				}).Error("Failed to run container")
-				e.cleanup()
-			}
 
-			// Even if a single service has been successfully started,
-			// designate the environment as "activated" to let it be cleaned on shutdown
-			e.Active = true
+			//	We are passing execution context, and not parent context,
+			//	because if this execution is cancelled in between,
+			//	we want docker to abort this procedure.
+			if err := item.Run(e.Docker, e.ExecutionContext, e.Network); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -397,30 +399,26 @@ func (e *Environment) Execute() {
 	// Fetch list of existing containers
 	containers, err := e.GetContainers()
 	if err != nil {
-		log.Debug(err)
-		log.Error("Failed to get running Nhost services")
-		e.cleanup()
+		return err
 	}
 
 	// Wrap fetched containers as services in the environment
 	_ = e.WrapContainersAsServices(containers)
 
 	log.Info("Running a quick health check on services")
-	if err := e.HealthCheck(executionContext); err != nil {
-		log.Debug(err)
-		e.cleanup()
+	if err := e.HealthCheck(e.ExecutionContext); err != nil {
+		return err
 	}
 
 	// Now that Hasura container is active,
 	// initialize the Hasura client.
 	e.Hasura = &hasura.Client{}
 	if err := e.Hasura.Init(
-		e.Config.Services["hasura"].GetAddress(),
+		e.Config.Services["hasura"].Address,
 		fmt.Sprint(e.Config.Services["hasura"].AdminSecret),
 		nil,
 	); err != nil {
-		log.Debug(err)
-		e.cleanup()
+		return err
 	}
 
 	//
@@ -428,34 +426,40 @@ func (e *Environment) Execute() {
 	//
 	log.Info("Preparing your data")
 	if err = e.Prepare(); err != nil {
-		log.Debug(err)
-		e.cleanup()
+		return err
 	}
+
+	// Update environment state
+	e.UpdateState(Active)
+
+	return err
 }
 
 func (e *Environment) cleanup() {
 
-	if e.Started {
+	/*
+		// Gracefully shut down all registered servers of the environment
+		for _, server := range e.Servers {
+			server.Shutdown(e.Context)
+		}
+	*/
 
-		// Gracefully shut down the local reverse proxy
-		proxy.Shutdown(e.Context)
-	}
-
-	if e.Active {
+	if e.state >= Executing {
 		log.Warn("Please wait while we cleanup")
-		if err := e.Shutdown(false); err != nil {
+
+		//	Pass the parent context of the environment,
+		//	because this is the final cleanup procedure
+		//	and we are going to cancel this context shortly after
+		if err := e.Shutdown(false, e.Context); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to stop running services")
 		}
+
 		log.Info("Cleanup complete. See you later, grasshopper!")
 	}
 
 	// Don't cancel the contexts before shutting down the containers
 	e.Cancel()
-	close(stop)
-
-	// Exit the CLI
-	os.Exit(0)
 }
 
 func init() {
@@ -465,7 +469,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	devCmd.PersistentFlags().StringVarP(&port, "port", "p", "1337", "Port for dev proxy")
+	devCmd.PersistentFlags().StringVarP(&environment.Port, "port", "p", "1337", "Port for dev proxy")
 	// devCmd.PersistentFlags().BoolVarP(&expose, "expose", "e", false, "Expose local environment to public internet")
 
 	// Cobra supports local flags which will only run when this command

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -18,22 +17,34 @@ import (
 	client "github.com/docker/docker/client"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 )
 
-// Reset the services and network,
-// to re-use the same environment
-func (e *Environment) Reset() error {
+// State represents current state of any structure
+type State uint32
 
-	e.Config = nhost.Configuration{}
-	e.Network = ""
+// State enumeration
+const (
+	Unknown State = iota
+	Initializing
+	Intialized
+	Executing
+	Active
+	ShuttingDown
+	Inactive // keep it always last
+)
 
-	return nil
+func (e *Environment) UpdateState(state State) {
+	e.Lock()
+	e.state = state
+	e.Unlock()
 }
 
 func (e *Environment) Init() error {
 
 	var err error
+
+	// Update environment state
+	e.UpdateState(Initializing)
 
 	// connect to docker client
 	e.Context, e.Cancel = context.WithCancel(context.Background())
@@ -70,7 +81,7 @@ func (e *Environment) Init() error {
 		e.Watchers = make(map[string]WatcherOperation)
 
 		// Initialize watcher for post-checkout branch changes
-		e.Watchers[filepath.Join(nhost.GIT_DIR, "HEAD")] = e.restartEnvironmentAfterCheckout
+		e.Watchers[filepath.Join(nhost.GIT_DIR, "HEAD")] = e.restartAfterCheckout
 
 		// Initialize watcher for post-merge commit changes
 		head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", nhost.REMOTE))
@@ -78,82 +89,93 @@ func (e *Environment) Init() error {
 			e.Watchers[head] = e.restartMigrations
 		}
 	}
+
+	// Update environment state
+	e.UpdateState(Intialized)
+
 	return nil
 }
 
-func getBranchHEAD(root string) string {
+func (e *Environment) restartMigrations() error {
 
 	//
-	// HEAD Selection Logic
+	// Only perform operations if is active and available.
 	//
-	// 1.If $GIT_DIR/<refname> exists,
-	// that is what you mean (this is usually useful only for HEAD,
-	// FETCH_HEAD, ORIG_HEAD, MERGE_HEAD and CHERRY_PICK_HEAD);
+	// If the environment is not yet active,
+	// when it does become active, and performs migrations,
+	// only the new migrations will be applied.
 
-	// 2.otherwise, refs/<refname> if it exists;
-	// 3.otherwise, refs/tags/<refname> if it exists;
-	// 4.otherwise, refs/heads/<refname> if it exists;
-	// 5.otherwise, refs/remotes/<refname> if it exists;
-	// 6.otherwise, refs/remotes/<refname>/HEAD if it exists.
+	if e.state == Active {
 
-	var response string
-	branch := nhost.GetCurrentBranch()
+		// Inform the user of detection
+		log.Info("We've detected change in local git commit")
+		log.Warn("We're fixing your data accordingly. Give us a moment!")
 
-	// The priority order these paths are added in,
-	// is extremely IMPORTANT
-	tree := []string{
-		root,
-		filepath.Join(root, "HEAD"),
-		filepath.Join(root, branch),
-		filepath.Join(root, branch, "HEAD"),
-	}
-
-	f := func(path string, dir fs.DirEntry, err error) error {
-		for _, file := range tree {
-			if file == path && !dir.IsDir() {
-				response = path
-				return nil
-			}
+		// re-do migrations and metadata
+		if err := e.Prepare(); err != nil {
+			return err
 		}
-		return nil
+
+		log.Info("Done! Please continue with your work.")
 	}
 
-	if err := filepath.WalkDir(root, f); err != nil {
-		return ""
-	}
-
-	return response
+	return nil
 }
 
-func (e *Environment) restartMigrations(cmd *cobra.Command, args []string) error {
+func (e *Environment) restartAfterCheckout() error {
+
+	//
+	//	The implemented logic below, should take care of following test cases:
+	//
+	//	Situation 1 [git checkout {branch}]:
+	//		- Environment is active
+	//		- User performs git checkout
+	//		- Restart environment
+	//
+	//	Situation 2 [git checkout {branch} && git checkout {branch}]:
+	//		- Environment restarting, but not yet active
+	//		- User performs git checkout
+	//		- Stop the restart
+	//		- Shutdown whatever minimal environment may be created (delete services)
+	//		- Restart environment
+	//		- This must be true in an infinite loop fashion
 
 	// Inform the user of detection
-	log.Info("We've detected change in local git commit")
-	log.Warn("We're fixing your data accordingly. Give us a moment!")
-
-	// re-do migrations and metadata
-	if err := e.Prepare(); err != nil {
-		return err
-	}
-
-	log.Info("Done! Please continue with your work.")
-	return nil
-}
-
-func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args []string) error {
-
-	// inform the user of detection
 	log.Info("We've detected change in local git branch")
-	log.Warn("We're recreating your environment accordingly. Give us a moment!")
-	// log.Warn("Keep your hands away from the keyboard, and don't do anything new until the environment is active again.")
 
-	// Stop all execution specific goroutines
-	executionContext.Done()
-	executionCancel()
+	if e.state >= Executing {
 
-	if err := environment.Shutdown(true); err != nil {
-		return err
+		//	If the environment is already shutting down,
+		//	then no point in triggering new migrations,
+		//	since in the post-shutdown OR next execution,
+		//	new migrations will be applied.
+		if e.state == ShuttingDown {
+			return nil
+		}
+
+		//	Change environment before initiating shut-down,
+		//	state to prevent dev command from starting cleanup operations
+		e.UpdateState(ShuttingDown)
+
+		//	Stop any ongoing execution of our environment
+		e.ExecutionCancel()
+
+		// Initialize cancellable context ONLY for this shutdown oepration
+		e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
+
+		// Shutdown and remove the services
+		if err := e.Shutdown(true, e.ExecutionContext); err != nil {
+
+			log.Error(err)
+
+			return err
+		}
+
+		// Complete the shutdown
+		e.ExecutionCancel()
 	}
+
+	log.Warn("We're recreating your environment accordingly. Give us a moment!")
 
 	// update DOT_NHOST directory
 	nhost.DOT_NHOST, _ = nhost.GetDotNhost()
@@ -174,12 +196,16 @@ func (e *Environment) restartEnvironmentAfterCheckout(cmd *cobra.Command, args [
 		}
 
 		// Add the watcher
-		watcher.Add(head)
-		log.WithField("component", "watcher").Debug("Watching: ", strings.TrimPrefix(head, nhost.WORKING_DIR))
+		addToWatcher(watcher, head)
 	}
 
-	// now re-create the them
-	environment.Execute()
+	// now re-execute the environment
+	if err := e.Execute(); err != nil {
+
+		// cleanup and return an error
+		e.cleanup()
+		return err
+	}
 
 	log.Info("Done! Please continue with your work.")
 	return nil
@@ -193,6 +219,7 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 	if environment.Config.Services == nil {
 		environment.Config.Services = make(map[string]*nhost.Service)
 	}
+
 	for _, container := range containers {
 		nameWithPrefix := strings.Split(container.Names[0], "/")[1]
 		name := strings.TrimPrefix(nameWithPrefix, nhost.PREFIX+"_")
@@ -212,39 +239,34 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 			e.Config.Services[name].Name = nameWithPrefix
 		}
 
-		if e.Config.Services[name].Port == 0 || e.Config.Services[name].Address == "" {
+		if len(container.Ports) > 0 {
 
-			if len(container.Ports) > 0 {
+			// Update the ports, if available
+			for _, port := range container.Ports {
+				if port.IP != "" && int(port.PublicPort) != 0 {
+					if name == "mailhog" {
 
-				// Update the ports, if available
-				for _, port := range container.Ports {
-					if port.IP != "" && int(port.PublicPort) != 0 {
-						if name == "mailhog" {
-
-							// we don't want to save mailhog's smtp port
-							// this is done to avoid double port loading issue
-							var smtpPort int
-							switch t := e.Config.Auth["email"].(type) {
-							case map[interface{}]interface{}:
-								for key, value := range t {
-									if value != "" {
-										if key.(string) == "smtp_port" {
-											smtpPort = value.(int)
-											break
-										}
-									}
+						// we don't want to save mailhog's smtp port
+						// this is done to avoid double port loading issue
+						var smtpPort int
+						switch t := e.Config.Auth["email"].(type) {
+						case map[interface{}]interface{}:
+							for key, value := range t {
+								if value != "" && key.(string) == "smtp_port" {
+									smtpPort = value.(int)
+									break
 								}
 							}
-							if int(port.PublicPort) == smtpPort {
-								continue
-							}
 						}
-
-						e.Config.Services[name].Port = int(port.PublicPort)
-
-						// Update the service address based on the new port
-						e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
+						if int(port.PublicPort) == smtpPort {
+							continue
+						}
 					}
+
+					e.Config.Services[name].Port = int(port.PublicPort)
+
+					// Update the service address based on the new port
+					e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
 				}
 			}
 		}
@@ -252,36 +274,30 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 	return nil
 }
 
-func (e *Environment) Shutdown(purge bool) error {
+//	Stops, and additionally, removes all Nhost containers
+func (e *Environment) Shutdown(purge bool, ctx context.Context) error {
 
 	log.Debug("Shutting down running services")
 
+	// Update environment state
+	e.UpdateState(ShuttingDown)
+
+	var response error
 	var end_waiter sync.WaitGroup
 
 	for _, container := range e.Config.Services {
 
-		// container will only have an ID if it was started properly
+		//	Container will only have an ID if it was started properly
 		if container.ID != "" {
 			end_waiter.Add(1)
 			go func(container *nhost.Service) {
-				if err := container.Stop(e.Docker, e.Context); err != nil {
-					log.Debug(err)
-					log.WithFields(logrus.Fields{
-						"container": container.Name,
-						"type":      "container",
-					}).Error("Failed to stop")
+				response = container.Stop(e.Docker, ctx)
 
-					// De-activate the service
-					container.Deactivate()
+				// De-activate the service
+				container.Deactivate()
 
-				} else if purge {
-					if err := container.Remove(e.Docker, e.Context); err != nil {
-						log.Debug(err)
-						log.WithFields(logrus.Fields{
-							"container": container.Name,
-							"type":      "container",
-						}).Error("Failed to remove")
-					}
+				if purge {
+					response = container.Remove(e.Docker, ctx)
 
 					// Reset their service ID, port and other fields,
 					// to prevent docker from starting these non-existent containers
@@ -293,13 +309,11 @@ func (e *Environment) Shutdown(purge bool) error {
 		}
 	}
 
+	// Update environment state
+	e.UpdateState(Inactive)
+
 	end_waiter.Wait()
-
-	// reset the loaded environments,
-	// to cater for re-use
-	// e.Reset()
-
-	return nil
+	return response
 }
 
 // returns the list of running containers whose names have specified prefix
@@ -607,7 +621,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 
 				for counter := 1; counter <= 240; counter++ {
 					select {
-					case <-executionContext.Done():
+					case <-ctx.Done():
 						log.WithFields(logrus.Fields{
 							"type":      "service",
 							"container": service.Name,
@@ -620,10 +634,10 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 								"container": service.Name,
 							}).Debug("Health check successful")
 
-							health_waiter.Done()
-
 							// Activate the service
 							service.Activate()
+
+							health_waiter.Done()
 
 							return
 						}
@@ -642,6 +656,16 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 				err = errors.New("healthcheck of at least 1 service has failed")
 
 			}(service)
+		} else {
+
+			//
+			//	If any service doesn't have a health check endpoint,
+			//	then, by default, declare it active.
+			//
+			//	This is being done to prevent the enviroment from failing activation checks.
+			//	Because we are not performing health checks on postgres and mailhog,
+			//	they end up making the entire environment fail activation check.
+			service.Active = true
 		}
 	}
 
@@ -752,3 +776,22 @@ func (e *Environment) Seed(path string) error {
 		}
 	*/
 }
+
+/*
+// Ranges through all registered services of the environment,
+// and ONLY if all are designated active, it returns true. Otherwise false.
+func (e *Environment) isActive() bool {
+
+	if len(e.Config.Services) == 0 {
+		return false
+	}
+
+	for _, item := range e.Config.Services {
+		if !item.Active {
+			return false
+		}
+	}
+
+	return true
+}
+*/

@@ -40,6 +40,7 @@ import (
 	"path/filepath"
 	"plugin"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -50,7 +51,7 @@ import (
 
 var (
 	// initialize temporary directory for caching
-	tempDir, _ = ioutil.TempDir("", "")
+	tempDir string
 
 	funcPort string
 
@@ -76,28 +77,36 @@ var functionsCmd = &cobra.Command{
 	Use:   "functions [-p port]",
 	Short: "Serve and manage serverless functions",
 	Long:  `Serve and manage serverless functions.`,
-	PostRun: func(cmd *cobra.Command, args []string) {
-
-		if err := deletePath(tempDir); err != nil {
-			log.WithField("component", "cache").Debug(err)
-		}
-		os.Exit(0)
-
-	},
 	Run: func(cmd *cobra.Command, args []string) {
+
+		var end_waiter sync.WaitGroup
+		end_waiter.Add(1)
 
 		// add cleanup action in case of signal interruption
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		go func() {
+
+			// Catch signal interruption (ctrl+c), and stop the server.
 			<-stop
-			cmd.PostRun(cmd, args)
+
+			// Gracefully shut down the functions server
+			functionServer.Shutdown(context.Background())
+
+			end_waiter.Done()
 		}()
 
-		ServeFuncs(cmd, args)
+		ServeFuncs()
+		log.Info("Nhost functions serving at: http://localhost:", funcPort)
+
+		// Wait for execution to complete
+		end_waiter.Wait()
 	},
 }
 
-func ServeFuncs(cmd *cobra.Command, args []string) {
+func ServeFuncs() {
+
+	//	Initialize the temporary directory
+	tempDir, _ = ioutil.TempDir("", "")
 
 	prepareNode := false
 	prepareGo := false
@@ -144,27 +153,25 @@ func ServeFuncs(cmd *cobra.Command, args []string) {
 		}
 	}
 
-	// initialize server multiplexer
+	//	Initialize server multiplexer
 	functionMux = http.NewServeMux()
+
+	//	Initialize the functions server
 	functionServer = &http.Server{Addr: ":" + funcPort, Handler: functionMux}
 
-	functionMux.HandleFunc("/", handler)
+	//	Remove the tmeporary directory on server shutdown
+	functionServer.RegisterOnShutdown(func() {
+		deleteAllPaths(tempDir)
+	})
 
-	if !contains(args, "do_not_inform") {
-		log.Info("Nhost functions serving at: http://localhost:", funcPort)
-	}
+	//	Attach the request handler
+	functionMux.HandleFunc("/", handler)
 
 	go func() {
 		if err := functionServer.ListenAndServe(); err != nil {
 			log.WithField("component", "functions").Debug(err)
 		}
 	}()
-
-	// Catch signal interruption (ctrl+c), and stop the server.
-	<-stop
-
-	// Gracefully shut down the functions server
-	functionServer.Shutdown(context.Background())
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
@@ -298,12 +305,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// If the environment is active,
 	// assign important env vars during runtime
-	if environment.Active {
+	if environment.state == Active {
 
 		runtimeVars := []string{
 			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
 			fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", environment.Config.Services["hasura"].AdminSecret),
-			fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", port),
+			fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", environment.Port),
 		}
 
 		// set the runtime env vars
@@ -345,15 +352,16 @@ func handler(w http.ResponseWriter, r *http.Request) {
 			Stderr: os.Stderr,
 		}
 
-		// begin the comand execution
+		//	begin the comand execution
 		if err := cmd.Start(); err != nil {
 			log.WithField("runtime", "NodeJS").Debug(err)
 			log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
 		}
 
-		// update request URL
+		//	update request URL
 		q := r.URL.Query()
-		url, _ := url.Parse(fmt.Sprintf("%s://localhost:%v%s", r.URL.Scheme, jsPort, r.URL.Path))
+		//	url, _ := url.Parse(fmt.Sprintf("%s://localhost:%v%s", r.URL.Scheme, jsPort, r.URL.Path))
+		url, _ := url.Parse(fmt.Sprintf("http://localhost:%v%s", jsPort, r.URL.Path))
 		r.URL = url
 		r.URL.RawQuery = q.Encode()
 

@@ -3,6 +3,7 @@ package cmd
 import (
 	"bytes"
 	"context"
+	"io/fs"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -13,7 +14,6 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/hashicorp/go-getter"
 	"github.com/mrinalwahal/cli/nhost"
-	"github.com/spf13/cobra"
 )
 
 // download a remote directory/file to local
@@ -160,7 +160,7 @@ func getCurrentBranch(repo *git.Repository) string {
 
 // Infinite function which listens for
 // fsnotify events once launched
-func (e *Environment) Watch(watcher *fsnotify.Watcher, cmd *cobra.Command, args []string) {
+func (e *Environment) Watch(watcher *fsnotify.Watcher) {
 
 	log.WithField("component", "watcher").Debug("Activated")
 
@@ -168,7 +168,7 @@ func (e *Environment) Watch(watcher *fsnotify.Watcher, cmd *cobra.Command, args 
 		select {
 
 		// Inactivate the watch when the environment shuts does
-		case <-environment.Context.Done():
+		case <-e.Context.Done():
 			log.WithField("component", "watcher").Debug("Inactivated")
 			return
 
@@ -181,8 +181,8 @@ func (e *Environment) Watch(watcher *fsnotify.Watcher, cmd *cobra.Command, args 
 
 				// run the operation
 				go func() {
-					if err := e.Watchers[event.Name](cmd, args); err != nil {
-						log.WithField("component", "watcher").Error(err)
+					if err := e.Watchers[event.Name](); err != nil {
+						log.WithField("component", "watcher").Debug(err)
 					}
 				}()
 
@@ -194,4 +194,48 @@ func (e *Environment) Watch(watcher *fsnotify.Watcher, cmd *cobra.Command, args 
 			log.WithField("component", "watcher").Debug(err)
 		}
 	}
+}
+
+func getBranchHEAD(root string) string {
+
+	//
+	// HEAD Selection Logic
+	//
+	// 1.If $GIT_DIR/<refname> exists,
+	// that is what you mean (this is usually useful only for HEAD,
+	// FETCH_HEAD, ORIG_HEAD, MERGE_HEAD and CHERRY_PICK_HEAD);
+
+	// 2.otherwise, refs/<refname> if it exists;
+	// 3.otherwise, refs/tags/<refname> if it exists;
+	// 4.otherwise, refs/heads/<refname> if it exists;
+	// 5.otherwise, refs/remotes/<refname> if it exists;
+	// 6.otherwise, refs/remotes/<refname>/HEAD if it exists.
+
+	var response string
+	branch := nhost.GetCurrentBranch()
+
+	// The priority order these paths are added in,
+	// is extremely IMPORTANT
+	tree := []string{
+		root,
+		filepath.Join(root, "HEAD"),
+		filepath.Join(root, branch),
+		filepath.Join(root, branch, "HEAD"),
+	}
+
+	f := func(path string, dir fs.DirEntry, err error) error {
+		for _, file := range tree {
+			if file == path && !dir.IsDir() {
+				response = path
+				return nil
+			}
+		}
+		return nil
+	}
+
+	if err := filepath.WalkDir(root, f); err != nil {
+		return ""
+	}
+
+	return response
 }

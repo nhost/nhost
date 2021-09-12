@@ -70,7 +70,7 @@ var entities = []Entity{
 			{Name: "Golang", Value: "go"},
 			{Name: "NodeJs", Value: "node"},
 		},
-		NextSteps: "Use `cd functions && npm i && npm i express`",
+		NextSteps: `For Javascript/Typescript functions, run: 'npm init && npm i && npm i express'`,
 		Manual:    "git clone github.com/nhost/nhost/templates/functions/" + choice,
 	},
 	{
