@@ -159,12 +159,6 @@ var devCmd = &cobra.Command{
 			os.Exit(0)
 		}()
 
-		// check if this is the first time dev env is running
-		firstRun := !pathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
-		if firstRun {
-			log.Info("First run takes longer, please be patient")
-		}
-
 		// Register functions as a service in our environment
 		funcPortStr, _ := strconv.Atoi(funcPort)
 		environment.Config.Services["functions"] = &nhost.Service{
@@ -206,16 +200,6 @@ var devCmd = &cobra.Command{
 		// needs to be executed only the first time
 		// the environment has been started.
 		//
-
-		//
-		// Apply Seeds if required
-		//
-		if firstRun && pathExists(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)) {
-			if err = environment.Seed(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)); err != nil {
-				log.Debug(err)
-				environment.cleanup()
-			}
-		}
 
 		// Start functions
 		go ServeFuncs()
@@ -291,7 +275,7 @@ var devCmd = &cobra.Command{
 			// which have proxy enabled
 			if item.Proxy {
 
-				if err := item.IssueProxy(mux); err != nil {
+				if err := item.IssueProxy(mux, environment.Context); err != nil {
 					log.WithField("component", "server").Debug(err)
 					log.WithField("component", "server").Error("Failed to proxy ", name)
 					environment.cleanup()
@@ -371,6 +355,12 @@ func (e *Environment) Execute() error {
 	//	Cancel the execution context as soon as this function completed
 	defer e.ExecutionCancel()
 
+	// check if this is the first time dev env is running
+	firstRun := !pathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
+	if firstRun {
+		log.Info("First run takes longer, please be patient")
+	}
+
 	// Validate the availability of required docker images,
 	// and download the ones that are missing
 	if err := e.CheckImages(); err != nil {
@@ -438,6 +428,16 @@ func (e *Environment) Execute() error {
 	log.Info("Preparing your data")
 	if err = e.Prepare(); err != nil {
 		return err
+	}
+
+	//
+	// Apply Seeds if required
+	//
+	if firstRun && pathExists(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)) {
+		if err = environment.Seed(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)); err != nil {
+			log.Debug(err)
+			environment.cleanup()
+		}
 	}
 
 	return err

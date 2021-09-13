@@ -24,6 +24,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/koding/websocketproxy"
 	"github.com/sirupsen/logrus"
 	"github.com/subosito/gotenv"
 
@@ -500,34 +501,55 @@ func (s *Service) Healthz() bool {
 	return resp.StatusCode == 200
 }
 
-func (s *Service) IssueProxy(mux *http.ServeMux) error {
+//	Issues an HTTP and WS reverse proxy to the respective service.
+//	Supports a custom connection multiplexer,
+//	and custom request context.
+func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 
-	address := s.Address
-	if s.Name == GetContainerName("hasura") {
-		address += "/v1/graphql"
+	httpAddress := s.Address
+	wsAddress := fmt.Sprintf("ws://localhost:%v", s.Port)
+
+	switch s.Name {
+	case GetContainerName("hasura"):
+		httpAddress += "/v1/graphql"
+		wsAddress += "/v1/graphql"
 	}
 
 	log.WithFields(logrus.Fields{
 		"value": s.Name,
 		"type":  "proxy",
-	}).Debugf("%s --> %s", address, s.Handle)
+	}).Debugf("%s --> %s", httpAddress, s.Handle)
 
-	origin, err := url.Parse(address)
+	httpOrigin, err := url.Parse(httpAddress)
 	if err != nil {
 		return err
 	}
 
-	proxy := httputil.NewSingleHostReverseProxy(origin)
-	mux.HandleFunc(s.Handle, func(w http.ResponseWriter, r *http.Request) {
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, s.Handle)
-		/*
-			ctx, cancel := context.WithCancel(r.Context())
-			defer cancel()
-		*/
-		// r = r.WithContext(context.Background())
+	wsOrigin, err := url.Parse(wsAddress)
+	if err != nil {
+		return err
+	}
 
-		// route the req through proxy
-		proxy.ServeHTTP(w, r)
+	httpProxy := httputil.NewSingleHostReverseProxy(httpOrigin)
+	wsProxy := websocketproxy.NewProxy(wsOrigin)
+	mux.HandleFunc(s.Handle, func(w http.ResponseWriter, r *http.Request) {
+
+		//	Wrap the incoming request over passed context
+		r = r.WithContext(ctx)
+
+		//	If the client has passed Web-socket protocol header,
+		//	then serve the request through web-socket proxy
+		if r.Header.Get("Sec-WebSocket-Protocol") != "" {
+			wsProxy.ServeHTTP(w, r)
+		} else {
+
+			//	Otherwise, serve it through normal HTTP proxy
+
+			//	Get the original service URL without Nhost specific routes
+			r.URL.Path = strings.TrimPrefix(r.URL.Path, s.Handle)
+
+			httpProxy.ServeHTTP(w, r)
+		}
 	})
 
 	return nil
