@@ -368,7 +368,7 @@ func (e *Environment) Execute() error {
 
 	//	Generate configuration for every service.
 	//	This generates all env vars, mount points and commands
-	if err := e.Config.Init(); err != nil {
+	if err := e.Config.Init(environment.Port); err != nil {
 		return err
 	}
 

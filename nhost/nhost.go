@@ -604,7 +604,7 @@ func (s *Service) Remove(client *client.Client, ctx context.Context) error {
 	return client.ContainerRemove(ctx, s.ID, removeOptions)
 }
 
-func (config *Configuration) Init() error {
+func (config *Configuration) Init(port string) error {
 
 	//
 	// This section initializes any environment variables,
@@ -669,9 +669,9 @@ func (config *Configuration) Init() error {
 	// This is being done over here, because development proxy port is required
 	switch runtime.GOOS {
 	case "darwin", "windows":
-		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v", config.Services["functions"].Port))
+		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/v1/functions", port))
 	case "linux":
-		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v", getOutboundIP(), config.Services["functions"].Port))
+		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v/v1/functions", getOutboundIP(), port))
 	}
 
 	/*
@@ -750,7 +750,7 @@ func (config *Configuration) Init() error {
 		fmt.Sprintf("HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql", config.Services["hasura"].Name, config.Services["hasura"].Port),
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
 		fmt.Sprintf("AUTH_PORT=%v", config.Services["auth"].Port),
-		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v", config.Services["auth"].Port),
+		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v/v1/auth", port),
 		fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", "3000"),
 
 		// set the defaults
