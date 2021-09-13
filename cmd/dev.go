@@ -156,6 +156,7 @@ var devCmd = &cobra.Command{
 			environment.cleanup()
 
 			end_waiter.Done()
+			os.Exit(0)
 		}()
 
 		// check if this is the first time dev env is running
@@ -167,12 +168,14 @@ var devCmd = &cobra.Command{
 		// Register functions as a service in our environment
 		funcPortStr, _ := strconv.Atoi(funcPort)
 		environment.Config.Services["functions"] = &nhost.Service{
-			Name:    "functions",
-			Address: fmt.Sprintf("http://localhost:%v", funcPortStr),
-			Handle:  "/v1/functions/",
-			Proxy:   true,
-			Port:    funcPortStr,
+			Name:   "functions",
+			Handle: "/v1/functions/",
+			Proxy:  true,
+			Port:   funcPortStr,
 		}
+
+		// Initialize cancellable context for this specific execution
+		environment.ExecutionContext, environment.ExecutionCancel = context.WithCancel(environment.Context)
 
 		// Execute the environment
 		if err := environment.Execute(); err != nil {
@@ -182,7 +185,17 @@ var devCmd = &cobra.Command{
 			//
 			//	This is being done to account for the state change
 			//	imposed by git ops watcher.
+
+			/* 			for {
+			   				<-environment.ExecutionContext.Done()
+			   				if environment.ExecutionContext.Err() != context.Canceled {
+			   					break
+			   				}
+			   			}
+			*/
 			if environment.state <= Executing {
+				log.Debug(err)
+				log.Error("Failed to initialize your environment")
 				environment.cleanup()
 				end_waiter.Done()
 			}
@@ -321,6 +334,9 @@ var devCmd = &cobra.Command{
 			fmt.Println()
 		}
 
+		// Update environment state
+		environment.UpdateState(Active)
+
 		log.Warn("Use Ctrl + C to stop running evironment")
 
 		/*
@@ -341,8 +357,6 @@ var devCmd = &cobra.Command{
 
 		// Close the signal interruption channel
 		close(stop)
-
-		os.Exit(0)
 	},
 }
 
@@ -354,10 +368,7 @@ func (e *Environment) Execute() error {
 	// Update environment state
 	e.UpdateState(Executing)
 
-	// Initialize cancellable context for this specific execution
-	e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
-
-	// Cancel the execution context as soon as this function completes
+	//	Cancel the execution context as soon as this function completed
 	defer e.ExecutionCancel()
 
 	// Validate the availability of required docker images,
@@ -428,9 +439,6 @@ func (e *Environment) Execute() error {
 	if err = e.Prepare(); err != nil {
 		return err
 	}
-
-	// Update environment state
-	e.UpdateState(Active)
 
 	return err
 }

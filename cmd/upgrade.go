@@ -65,22 +65,22 @@ utility and upgrade to it.`,
 			log.Fatal("Failed to fetch latest release")
 		}
 
-		// fetch nhost installation directory
-		target, err := exec.LookPath("nhost")
-		if err != nil {
-			log.Debug(err)
-			target = nhost.WORKING_DIR
-		} else {
-			if err = os.Remove(target); err != nil {
-				log.Fatal("Failed to remove existing CLI from: ", target)
-			}
-			target = filepath.Dir(target)
-		}
-
 		if release.TagName == Version {
 			log.WithField("component", release.TagName).Info("You have the latest version. Hurray!")
 		} else {
 			log.WithField("component", release.TagName).Info("Downloading new version")
+
+			// fetch nhost installation directory
+			target, err := exec.LookPath("nhost")
+			if err != nil {
+				log.Debug(err)
+				target = nhost.WORKING_DIR
+			} else {
+				if err = os.Remove(target); err != nil {
+					log.Fatal("Failed to remove existing CLI from: ", target)
+				}
+				target = filepath.Dir(target)
+			}
 
 			asset := release.Asset()
 

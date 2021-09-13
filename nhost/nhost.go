@@ -356,7 +356,6 @@ func (s *Service) Run(client *client.Client, ctx context.Context, networkID stri
 			"type":      "container",
 			"component": s.Name,
 		}).Debug("Starting")
-
 		return client.ContainerStart(ctx, s.ID, types.ContainerStartOptions{})
 
 	} else {

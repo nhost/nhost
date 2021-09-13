@@ -84,9 +84,6 @@ and sync them with your local project.`,
 			}
 		}
 
-		// load hasura binary
-		hasuraCLI, _ := hasura.Binary()
-
 		// intialize common options
 		hasuraEndpoint := "https://" + linkedProject.ProjectDomains.Hasura
 		adminSecret := linkedProject.HasuraGQEAdminSecret
@@ -97,12 +94,10 @@ and sync them with your local project.`,
 		// and notify remote to skip it
 
 		// test new hasura client
-		hasuraClient := hasura.Client{
-			Endpoint:    hasuraEndpoint,
-			AdminSecret: adminSecret,
-		}
+		hasuraClient := hasura.Client{}
+		hasuraClient.Init(hasuraEndpoint, adminSecret, nil)
 
-		_, err = pullMigration(hasuraClient, hasuraCLI, "pulled_from_remote", commonOptions)
+		_, err = pullMigration(hasuraClient, "pulled_from_remote", commonOptions)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to create migration from remote")
@@ -141,7 +136,7 @@ and sync them with your local project.`,
 	},
 }
 
-func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions []string) (hasura.Migration, error) {
+func pullMigration(client hasura.Client, name string, commonOptions []string) (hasura.Migration, error) {
 
 	// prepare response
 	migration := hasura.Migration{
@@ -163,7 +158,6 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 	}
 
 	migrationTables := getMigrationTables(schemas, metadata.Tables)
-	fmt.Println(migrationTables)
 
 	/*
 		// fetch migrations
@@ -272,11 +266,11 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 		// apply init migration on remote
 		// to prevent this init migration being run again
 		// in production
-		migrationArgs := []string{hasuraCLI, "migrate", "apply", "--version", strconv.FormatInt(migration.Version, 10), "--skip-execution"}
+		migrationArgs := []string{client.CLI, "migrate", "apply", "--version", strconv.FormatInt(migration.Version, 10), "--skip-execution"}
 		migrationArgs = append(migrationArgs, commonOptions...)
 
 		execute := exec.Cmd{
-			Path: hasuraCLI,
+			Path: client.CLI,
 			Args: migrationArgs,
 			Dir:  nhost.NHOST_DIR,
 		}
@@ -337,14 +331,13 @@ func pullMigration(client hasura.Client, hasuraCLI, name string, commonOptions [
 		}
 	*/
 	// fetch metadata
-	metadataArgs := []string{hasuraCLI, "metadata", "export"}
+	metadataArgs := []string{client.CLI, "metadata", "export"}
 	metadataArgs = append(metadataArgs, commonOptions...)
 
 	execute := exec.Cmd{
-		Path:   hasuraCLI,
-		Args:   metadataArgs,
-		Dir:    nhost.NHOST_DIR,
-		Stderr: os.Stderr,
+		Path: client.CLI,
+		Args: metadataArgs,
+		Dir:  nhost.NHOST_DIR,
 	}
 
 	if err := execute.Run(); err != nil {

@@ -37,37 +37,39 @@ import (
 )
 
 var (
-	remote string
-
-	// project to initialize
-	remoteProject string
-	showList      bool = false
+	project string
+	remote  bool
 )
 
 // initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:     "init",
-	Aliases: []string{"i"},
-	Short:   "Initialize current directory as Nhost project",
-	Long:    `Initialize current working directory as an Nhost project.`,
+	Use:                "init",
+	Aliases:            []string{"i"},
+	Short:              "Initialize current directory as Nhost project",
+	Long:               `Initialize current working directory as an Nhost project.`,
+	DisableFlagParsing: true,
 	PreRun: func(cmd *cobra.Command, args []string) {
-
-	},
-	Run: func(cmd *cobra.Command, args []string) {
 
 		if pathExists(nhost.NHOST_DIR) {
 			log.Error("Project already exists in this directory")
 			log.Info("To start development environment, run 'nhost' or 'nhost dev'")
-			log.Info("To delete the saved project, run 'nhost reset'")
 			os.Exit(0)
 		}
+
+		cmd.Flags().Parse(args)
+		if contains(args, "-r") || contains(args, "--remote") {
+			remote = true
+		}
+
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		var selectedProject nhost.Project
 
 		// if user has already passed remote_project as a flag,
 		// then fetch list of remote projects,
 		// iterate through those projects and filter that project
-		if len(remote) > 0 {
+		if remote {
 
 			// check if auth file exists
 			if !pathExists(nhost.AUTH_PATH) {
@@ -107,19 +109,16 @@ var initCmd = &cobra.Command{
 			}
 
 			// if flag is empty, present selection list
-			if len(remoteProject) > 0 {
+			if len(project) > 0 {
 
-				for _, project := range projects {
-					if project.Name == remoteProject {
-						selectedProject = project
+				for _, item := range projects {
+					if item.Name == project {
+						selectedProject = item
 					}
 				}
 
 				if selectedProject.ID == "" {
-					log.Errorf("Remote project with name %v not found", remoteProject)
-
-					// reset the created directories
-					purgeCmd.Run(cmd, args)
+					log.Errorf("Remote project with name %v not found", remote)
 					os.Exit(0)
 				}
 			} else {
@@ -172,8 +171,6 @@ var initCmd = &cobra.Command{
 			log.Debug(err)
 			log.Fatal("Failed to save Nhost configuration")
 		}
-
-		// check if migrations directory already exists
 
 		requiredDirs := []string{
 			nhost.MIGRATIONS_DIR,
@@ -231,7 +228,7 @@ var initCmd = &cobra.Command{
 		}
 		f.Close()
 
-		if len(remote) > 0 {
+		if remote {
 
 			f, err := os.Create(filepath.Join(nhost.DOT_NHOST, "nhost.yaml"))
 			if err != nil {
@@ -242,7 +239,7 @@ var initCmd = &cobra.Command{
 			defer f.Close()
 			if _, err = f.WriteString("project_id: " + selectedProject.ID); err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to write to /nhost.yaml")
+				log.Fatal("Failed to write to nhost.yaml")
 			}
 			f.Sync()
 
@@ -250,14 +247,11 @@ var initCmd = &cobra.Command{
 			adminSecret := selectedProject.HasuraGQEAdminSecret
 
 			// create new hasura client
-			hasuraClient := hasura.Client{
-				Endpoint:    hasuraEndpoint,
-				AdminSecret: adminSecret,
-				Client:      &Client,
+			hasuraClient := hasura.Client{}
+			if err := hasuraClient.Init(hasuraEndpoint, adminSecret, nil); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to initialize Hasura client")
 			}
-
-			// load hasura binary
-			hasuraCLI, _ := hasura.Binary()
 
 			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
@@ -268,88 +262,11 @@ var initCmd = &cobra.Command{
 			}
 
 			// create migrations from remote
-			_, err = pullMigration(hasuraClient, hasuraCLI, "init", commonOptions)
+			_, err = pullMigration(hasuraClient, "init", commonOptions)
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to create migration from remote")
 			}
-
-			/*
-
-				sqlFiles, err := ioutil.ReadDir(migration.Location)
-				if err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to traverse migrations directory")
-				}
-
-				for _, file := range sqlFiles {
-
-					sqlPath := filepath.Join(migration.Location, file.Name())
-
-					// format the new migration
-					// so that it doesn't conflicts with existing migrations
-					if err = formatMigration(sqlPath); err != nil {
-						log.Debug(err)
-						log.Fatal("Failed to format migration")
-					}
-
-					// add or update extensions to new migration
-					if err = addExtensionstoMigration(sqlPath, hasuraEndpoint, adminSecret); err != nil {
-						log.Debug(err)
-						log.Fatal("Failed to format migration")
-					}
-
-				}
-			*/
-
-			/*
-					// avoid adding auth and providers to migration
-					// since HBP 2.5.0 separated auth and storage schema
-
-					// add auth.roles to init migration
-				roles, err := getRoles(hasuraEndpoint, adminSecret)
-				if err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to get hasura roles")
-				}
-
-				rolesSQL := "\nINSERT INTO auth.roles (role)\n    VALUES "
-
-				var rolesMap []string
-				for _, role := range roles {
-					rolesMap = append(rolesMap, fmt.Sprintf(`('%s')`, role))
-				}
-				rolesSQL += fmt.Sprintf("%s ON CONFLICT DO NOTHING;\n\n", strings.Join(rolesMap, ", "))
-
-				// write roles to end of SQL file of init migration
-				if err = writeToFile(sqlPath, rolesSQL, "end"); err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to write roles to SQL file")
-				}
-
-
-					// add auth.providers to init migration
-						providers, err := getProviders(hasuraEndpoint, adminSecret)
-						if err != nil {
-							log.Debug(err)
-							log.Fatal("Failed to get hasura providers")
-						}
-
-						providersSQL := "\nINSERT INTO auth.providers (provider)\n    VALUES "
-
-						var providersMap []string
-						for _, provider := range providers {
-							providersMap = append(providersMap, fmt.Sprintf(`('%s')`, provider))
-						}
-						providersSQL += fmt.Sprintf("%s ON CONFLICT DO NOTHING;\n\n", strings.Join(providersMap, ", "))
-
-						// write providers to end of SQL file of init migration
-						if err = writeToFile(sqlPath, providersSQL, "end"); err != nil {
-							log.Debug(err)
-							log.Fatal("Failed to write providers to SQL file")
-						}
-
-			*/
 
 			// write ENV variables to .env.development
 			var envArray []string
@@ -608,8 +525,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	initCmd.Flags().StringVarP(&remoteProject, "project", "p", "", "Project name")
-	initCmd.Flags().StringVarP(&remote, "remote", "r", "", "Use a remote project")
+	initCmd.Flags().StringVarP(&project, "remote", "r", "", "Name of a remote project")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

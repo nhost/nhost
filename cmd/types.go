@@ -52,6 +52,7 @@ type (
 
 	Environment struct {
 		sync.Mutex
+
 		Name string
 
 		// Records the current state of the environment

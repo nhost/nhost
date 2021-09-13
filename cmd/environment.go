@@ -111,6 +111,9 @@ func (e *Environment) restartMigrations() error {
 		log.Info("We've detected change in local git commit")
 		log.Warn("We're fixing your data accordingly. Give us a moment!")
 
+		// Initialize cancellable context ONLY for this shutdown oepration
+		e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
+
 		// re-do migrations and metadata
 		if err := e.Prepare(); err != nil {
 			return err
@@ -153,10 +156,6 @@ func (e *Environment) restartAfterCheckout() error {
 			return nil
 		}
 
-		//	Change environment before initiating shut-down,
-		//	state to prevent dev command from starting cleanup operations
-		e.UpdateState(ShuttingDown)
-
 		//	Stop any ongoing execution of our environment
 		e.ExecutionCancel()
 
@@ -164,12 +163,7 @@ func (e *Environment) restartAfterCheckout() error {
 		e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
 
 		// Shutdown and remove the services
-		if err := e.Shutdown(true, e.ExecutionContext); err != nil {
-
-			log.Error(err)
-
-			return err
-		}
+		e.Shutdown(true, e.ExecutionContext)
 
 		// Complete the shutdown
 		e.ExecutionCancel()
@@ -200,6 +194,7 @@ func (e *Environment) restartAfterCheckout() error {
 	}
 
 	// now re-execute the environment
+	e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
 	if err := e.Execute(); err != nil {
 
 		// cleanup and return an error
@@ -451,20 +446,13 @@ func (e *Environment) GetNetwork() (string, error) {
 
 func (e *Environment) Prepare() error {
 
-	var (
-		execute = exec.Cmd{
-			Path: e.Hasura.CLI,
-			Dir:  nhost.NHOST_DIR,
-		}
-
-		commandOptions = []string{
-			"--endpoint",
-			e.Hasura.Endpoint,
-			"--admin-secret",
-			e.Hasura.AdminSecret,
-			"--skip-update-check",
-		}
-	)
+	var commandOptions = []string{
+		"--endpoint",
+		e.Hasura.Endpoint,
+		"--admin-secret",
+		e.Hasura.AdminSecret,
+		"--skip-update-check",
+	}
 
 	// Send out de-activation signal before starting migrations,
 	// to inform any other resource which using Hasura
@@ -496,6 +484,10 @@ func (e *Environment) Prepare() error {
 	if len(files) > 0 {
 
 		log.Debug("Applying migrations")
+
+		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
+		execute.Dir = nhost.NHOST_DIR
+
 		cmdArgs := []string{e.Hasura.CLI, "migrate", "apply", "--database-name", nhost.DATABASE}
 		cmdArgs = append(cmdArgs, commandOptions...)
 		execute.Args = cmdArgs
@@ -514,10 +506,8 @@ func (e *Environment) Prepare() error {
 	}
 
 	if len(metaFiles) == 0 {
-		execute = exec.Cmd{
-			Path: e.Hasura.CLI,
-			Dir:  nhost.NHOST_DIR,
-		}
+		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
+		execute.Dir = nhost.NHOST_DIR
 
 		cmdArgs := []string{e.Hasura.CLI, "metadata", "export"}
 		cmdArgs = append(cmdArgs, commandOptions...)
@@ -537,10 +527,9 @@ func (e *Environment) Prepare() error {
 
 	// apply metadata
 	log.Debug("Applying metadata")
-	execute = exec.Cmd{
-		Path: e.Hasura.CLI,
-		Dir:  nhost.NHOST_DIR,
-	}
+	execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
+	execute.Dir = nhost.NHOST_DIR
+
 	cmdArgs := []string{e.Hasura.CLI, "metadata", "apply"}
 	cmdArgs = append(cmdArgs, commandOptions...)
 	execute.Args = cmdArgs
@@ -777,7 +766,6 @@ func (e *Environment) Seed(path string) error {
 	*/
 }
 
-/*
 // Ranges through all registered services of the environment,
 // and ONLY if all are designated active, it returns true. Otherwise false.
 func (e *Environment) isActive() bool {
@@ -794,4 +782,3 @@ func (e *Environment) isActive() bool {
 
 	return true
 }
-*/
