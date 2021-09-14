@@ -1,3 +1,7 @@
+//
+//	The function can import dependencies that are NOT in main package.
+//	But the function to be built, must always be in the main package.
+//
 package main
 
 import (
@@ -13,9 +17,20 @@ import (
 //	"Handler" func should be exported, it cannot be "handler".
 
 type Body struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	FirstName string
+	LastName  string
 }
+
+//	Start your local environment with `nhost dev`,
+//	and send a GET request to your functions endpoint,
+//	with following body:
+//
+//	{
+//		"first_name": "Mrinal",
+//		"last_name": "Wahal"
+//	}
+//
+//	Expected Output: `Nhost pays it's respects to Wahal, Mrinal!`
 
 func Handler(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
@@ -23,4 +38,3 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(body, &payload)
 	fmt.Fprintf(w, "Nhost pays it's respects to %s, %s!", payload.LastName, payload.FirstName)
 }
-
