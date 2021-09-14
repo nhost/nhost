@@ -46,6 +46,7 @@ import (
 
 	"github.com/evanw/esbuild/pkg/api"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -65,6 +66,10 @@ var (
 	// initialize functions server and multiplexer
 	functionMux    *http.ServeMux
 	functionServer *http.Server
+)
+
+const (
+	functionHandler = "/v1/functions/"
 )
 
 type GoPlugin struct {
@@ -96,6 +101,7 @@ var functionsCmd = &cobra.Command{
 		}()
 
 		ServeFuncs()
+		//	log.Info("Nhost functions serving at: http://localhost:", funcPort, filepath.Clean(functionHandler))
 		log.Info("Nhost functions serving at: http://localhost:", funcPort)
 
 		// Wait for execution to complete
@@ -166,6 +172,17 @@ func ServeFuncs() {
 
 	//	Attach the request handler
 	functionMux.HandleFunc("/", handler)
+	/*
+		functionMux.HandleFunc(functionHandler, func(w http.ResponseWriter, r *http.Request) {
+
+			//	If the Nhost specific handler route exists,
+			//	trim it to get the original service URL
+			r.URL.Path = strings.TrimPrefix(r.URL.Path, functionHandler)
+
+			//	Serve the request
+			handler(w, r)
+		})
+	*/
 
 	go func() {
 		if err := functionServer.ListenAndServe(); err != nil {
@@ -383,19 +400,14 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		// serve
 		f.Handler(w, r)
 	}
-
-	// log the request
-	log.WithField("method", r.Method).Debugln(
-		r.Proto,
-		r.URL,
-		fmt.Sprint("Served: ", filepath.Join(f.Base, f.File.Name())),
-	)
-
 }
 
 func (function *Function) BuildNodePackage() error {
 
-	log.WithField("runtime", "NodeJS").Debug("Building function")
+	log.WithFields(logrus.Fields{
+		"component": "functions",
+		"runtime":   "NodeJS",
+	}).Debugln("Building", filepath.Join(function.Base, function.File.Name()))
 
 	// initialize path for temporary esbuild output
 	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
@@ -529,31 +541,13 @@ func router(w http.ResponseWriter, r *http.Request) {
 	var resp *http.Response
 
 	buf, _ := ioutil.ReadAll(r.Body)
-	/*
-		ctx, cancel := context.WithCancel(r.Context())
-		defer cancel()
-	*/
-
 	req, _ := http.NewRequestWithContext(
 		r.Context(),
 		r.Method,
 		r.URL.String(),
 		bytes.NewBuffer(buf),
 	)
-
 	req.Header = r.Header
-
-	/*
-		client := &http.Client{
-			Transport: &http.Transport{
-				// DisableKeepAlives:   true,
-				MaxIdleConns:        0,
-				MaxIdleConnsPerHost: 0,
-				MaxConnsPerHost:     0,
-			},
-			Timeout: time.Second * 5,
-		}
-	*/
 
 	for {
 		resp, err = http.DefaultClient.Do(req)
@@ -612,7 +606,10 @@ func router(w http.ResponseWriter, r *http.Request) {
 
 func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 
-	log.WithField("runtime", "Go").Debug("Building function")
+	log.WithFields(logrus.Fields{
+		"component": "functions",
+		"runtime":   "Go",
+	}).Debugln("Building", filepath.Join(function.Base, function.File.Name()))
 
 	var p *plugin.Plugin
 	tempFile, err := ioutil.TempFile(tempDir, fileNameWithoutExtension(function.File.Name())+".so")

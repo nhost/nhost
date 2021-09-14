@@ -91,8 +91,6 @@ func GetDotNhost() (string, error) {
 
 func Env() ([]string, error) {
 
-	log.Debug("Reading environment variables")
-
 	data, err := ioutil.ReadFile(ENV_FILE)
 	if err != nil {
 		return nil, err
@@ -506,13 +504,13 @@ func (s *Service) Healthz() bool {
 //	and custom request context.
 func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 
-	httpAddress := s.Address
+	httpAddress := s.GetAddress()
 	wsAddress := fmt.Sprintf("ws://localhost:%v", s.Port)
 
 	switch s.Name {
 	case GetContainerName("hasura"):
 		httpAddress += "/v1/graphql"
-		wsAddress += "/v1/graphql"
+		//	wsAddress += "/v1/graphql"
 	}
 
 	log.WithFields(logrus.Fields{
@@ -534,22 +532,33 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 	wsProxy := websocketproxy.NewProxy(wsOrigin)
 	mux.HandleFunc(s.Handle, func(w http.ResponseWriter, r *http.Request) {
 
-		//	Wrap the incoming request over passed context
-		r = r.WithContext(ctx)
+		//	Log every incoming request
+		log.WithFields(logrus.Fields{
+			"component": "proxy",
+			"method":    r.Method,
+		}).Debug(r.URL)
+
+		//	If the supplied context is not nil,
+		//	wrap the incoming request over the context
+		if ctx != nil {
+			r = r.WithContext(ctx)
+		}
 
 		//	If the client has passed Web-socket protocol header,
 		//	then serve the request through web-socket proxy
-		if r.Header.Get("Sec-WebSocket-Protocol") != "" {
-			wsProxy.ServeHTTP(w, r)
-		} else {
-
-			//	Otherwise, serve it through normal HTTP proxy
-
-			//	Get the original service URL without Nhost specific routes
-			r.URL.Path = strings.TrimPrefix(r.URL.Path, s.Handle)
-
-			httpProxy.ServeHTTP(w, r)
+		for key := range r.Header {
+			if strings.ToLower(key) == "sec-websocket-protocol" {
+				wsProxy.ServeHTTP(w, r)
+				return
+			}
 		}
+
+		//	Otherwise, serve it through normal HTTP proxy
+
+		//	Get the original service URL without Nhost specific routes
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, s.Handle)
+
+		httpProxy.ServeHTTP(w, r)
 	})
 
 	return nil
