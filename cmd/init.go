@@ -33,6 +33,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -50,7 +51,7 @@ var initCmd = &cobra.Command{
 	DisableFlagParsing: true,
 	PreRun: func(cmd *cobra.Command, args []string) {
 
-		if pathExists(nhost.NHOST_DIR) {
+		if util.PathExists(nhost.NHOST_DIR) {
 			log.Error("Project already exists in this directory")
 			log.Info("To start development environment, run 'nhost' or 'nhost dev'")
 			os.Exit(0)
@@ -72,7 +73,7 @@ var initCmd = &cobra.Command{
 		if remote {
 
 			// check if auth file exists
-			if !pathExists(nhost.AUTH_PATH) {
+			if !util.PathExists(nhost.AUTH_PATH) {
 				log.Debug("Auth credentials not found at: " + nhost.AUTH_PATH)
 
 				// begin login procedure

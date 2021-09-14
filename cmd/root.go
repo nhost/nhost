@@ -32,6 +32,7 @@ import (
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/logger"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
@@ -70,7 +71,7 @@ var (
 		Run: func(cmd *cobra.Command, args []string) {
 
 			// check if project is already initialized
-			if pathExists(nhost.NHOST_DIR) {
+			if util.PathExists(nhost.NHOST_DIR) {
 
 				// start the "dev" command
 				devCmd.Run(cmd, args)

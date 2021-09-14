@@ -119,6 +119,10 @@ type (
 		// before updating it's channels.
 		sync.Mutex `yaml:",omitempty"`
 		Active     bool `yaml:",omitempty"`
+
+		//	HTTP Handler function.
+		//	If specified, then all proxy requests will be handle with this handler.
+		//	Handler func(http.ResponseWriter, *http.Request) `yaml:",omitempty"`
 	}
 
 	// .nhost/nhost.yaml information

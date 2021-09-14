@@ -41,13 +41,13 @@ var logsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// Initialize the runtime environment
-		if err := environment.Init(); err != nil {
+		if err := env.Init(); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize the environment")
 		}
 
 		// if no containers found - abort the execution
-		if len(environment.Config.Services) == 0 {
+		if len(env.Config.Services) == 0 {
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
 
@@ -62,7 +62,7 @@ var logsCmd = &cobra.Command{
 			}
 
 			var services []Option
-			for name := range environment.Config.Services {
+			for name := range env.Config.Services {
 				services = append(services, Option{
 					Key:   strings.Title(strings.ToLower(name)),
 					Value: name,
@@ -91,7 +91,7 @@ var logsCmd = &cobra.Command{
 			service = services[index].Value
 		}
 
-		for name, item := range environment.Config.Services {
+		for name, item := range env.Config.Services {
 			if strings.EqualFold(name, service) {
 				selected = item
 				break
@@ -103,7 +103,7 @@ var logsCmd = &cobra.Command{
 		}
 
 		// fetch the logs of selected container
-		logs, err := selected.Logs(environment.Docker, environment.Context)
+		logs, err := selected.Logs(env.Docker, env.Context)
 		if err != nil {
 			log.WithField("component", selected.Name).Debug(err)
 			log.WithField("component", selected.Name).Fatal("Failed to fetch service logs")

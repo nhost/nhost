@@ -276,7 +276,7 @@ func (c *Configuration) Wrap() error {
 			parsed.Services[name].Image = "nhost/hasura-auth"
 			parsed.Services[name].Version = "sha-c68cd71"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handle = "/v1/auth/"
+			parsed.Services[name].Handle = "auth/"
 			parsed.Services[name].Proxy = true
 
 		case "storage":
@@ -288,7 +288,7 @@ func (c *Configuration) Wrap() error {
 			parsed.Services[name].Image = "nhost/hasura-storage"
 			parsed.Services[name].Version = "sha-e7fc9c9"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handle = "/v1/storage/"
+			parsed.Services[name].Handle = "storage/"
 			parsed.Services[name].Proxy = true
 
 		case "postgres":
@@ -310,13 +310,14 @@ func (c *Configuration) Wrap() error {
 			// parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
 			parsed.Services[name].Version = parsed.Services["hasura"].Version
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handle = "/v1/graphql"
+			parsed.Services[name].Handle = "graphql"
 			parsed.Services[name].Proxy = true
 		}
 
+		//	Update service address subject to their ports
 		parsed.Services[name].Address = parsed.Services[name].GetAddress()
 
-		// initialize configuration for the service
+		// Initialize configuration for the service
 		parsed.Services[name].InitConfig()
 	}
 
@@ -530,7 +531,11 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 
 	httpProxy := httputil.NewSingleHostReverseProxy(httpOrigin)
 	wsProxy := websocketproxy.NewProxy(wsOrigin)
-	mux.HandleFunc(s.Handle, func(w http.ResponseWriter, r *http.Request) {
+
+	//	Prepend all handles with API VERSION
+	handle := "/" + API_VERSION + "/" + s.Handle
+
+	mux.HandleFunc(handle, func(w http.ResponseWriter, r *http.Request) {
 
 		//	Log every incoming request
 		log.WithFields(logrus.Fields{
@@ -556,7 +561,7 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 		//	Otherwise, serve it through normal HTTP proxy
 
 		//	Get the original service URL without Nhost specific routes
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, s.Handle)
+		r.URL.Path = strings.TrimPrefix(r.URL.Path, handle)
 
 		httpProxy.ServeHTTP(w, r)
 	})

@@ -3,6 +3,7 @@ package cmd
 import (
 	"net/http"
 
+	"github.com/mrinalwahal/cli/environment"
 	"github.com/mrinalwahal/cli/logger"
 )
 
@@ -27,8 +28,8 @@ var (
 	cfgFile string
 	log     = &logger.Log
 
-	Client      = http.Client{}
-	environment Environment
+	Client = http.Client{}
+	env    = environment.Environment{}
 
 	tunnelAddress = "tunnel.mrinalwahal.com"
 )

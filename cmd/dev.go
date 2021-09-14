@@ -39,8 +39,9 @@ import (
 	"text/tabwriter"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/mrinalwahal/cli/hasura"
+	"github.com/mrinalwahal/cli/environment"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
@@ -94,7 +95,7 @@ var devCmd = &cobra.Command{
 		log.Info("Initializing environment")
 
 		// check if /nhost exists
-		if !pathExists(nhost.NHOST_DIR) {
+		if !util.PathExists(nhost.NHOST_DIR) {
 			log.Info("Initialize a project by running 'nhost'")
 			log.Fatal("Project not found in this directory")
 		}
@@ -108,37 +109,27 @@ var devCmd = &cobra.Command{
 		var err error
 
 		// Initialize the runtime environment
-		if err = environment.Init(); err != nil {
+		if err = env.Init(); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize the environment")
 		}
 
 		// Parse the nhost/config.yaml
-		if err = environment.Config.Wrap(); err != nil {
+		if err = env.Config.Wrap(); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read Nhost config")
 		}
 
 		// Launch the Watchers of this environment
-		if len(environment.Watchers) > 0 {
+		if len(env.Watcher.Map) > 0 {
 
-			watcher, err = fsnotify.NewWatcher()
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer watcher.Close()
-
-			// Add the files to our watcher
-			for file := range environment.Watchers {
-				if pathExists(file) {
-					if err := addToWatcher(watcher, file); err != nil {
-						log.WithField("component", "watcher").Error(err)
-					}
-				}
+			//	Register all watcher locations.
+			if err := env.Watcher.RegisterAll(); err != nil {
+				log.WithField("component", "watcher").Error(err)
 			}
 
 			// launch the infinite watching goroutine
-			go environment.Watch(watcher)
+			go env.Watcher.Start()
 		}
 
 		var end_waiter sync.WaitGroup
@@ -150,10 +141,10 @@ var devCmd = &cobra.Command{
 			<-stop
 
 			// Cancel any ongoing excution
-			environment.ExecutionCancel()
+			env.ExecutionCancel()
 
 			// Cleanup the environment
-			environment.cleanup()
+			env.Cleanup()
 
 			end_waiter.Done()
 			os.Exit(0)
@@ -161,18 +152,23 @@ var devCmd = &cobra.Command{
 
 		// Register functions as a service in our environment
 		funcPortStr, _ := strconv.Atoi(funcPort)
-		environment.Config.Services["functions"] = &nhost.Service{
+		env.Config.Services["functions"] = &nhost.Service{
 			Name:   "functions",
-			Handle: "/v1/functions/",
+			Handle: "functions/",
 			Proxy:  true,
 			Port:   funcPortStr,
+
+			//	Initialize this function service,
+			//	directly with functions HTTP handler.
+			//	This will allow us to avoid launching a separate functions server.
+			//	Handler: functionServer.Handler,
 		}
 
 		// Initialize cancellable context for this specific execution
-		environment.ExecutionContext, environment.ExecutionCancel = context.WithCancel(environment.Context)
+		env.ExecutionContext, env.ExecutionCancel = context.WithCancel(env.Context)
 
 		// Execute the environment
-		if err := environment.Execute(); err != nil {
+		if err := env.Execute(); err != nil {
 
 			//	Only perform the cleanup before ending,
 			//	if the error has occurred under execution stage.
@@ -181,16 +177,16 @@ var devCmd = &cobra.Command{
 			//	imposed by git ops watcher.
 
 			/* 			for {
-			   				<-environment.ExecutionContext.Done()
-			   				if environment.ExecutionContext.Err() != context.Canceled {
+			   				<-env.ExecutionContext.Done()
+			   				if env.ExecutionContext.Err() != context.Canceled {
 			   					break
 			   				}
 			   			}
 			*/
-			if environment.state <= Executing {
+			if env.State <= environment.Executing {
 				log.Debug(err)
 				log.Error("Failed to initialize your environment")
-				environment.cleanup()
+				env.Cleanup()
 				end_waiter.Done()
 			}
 		}
@@ -205,7 +201,7 @@ var devCmd = &cobra.Command{
 		go ServeFuncs()
 
 		// Register the functions server in our environment
-		environment.Servers = append(environment.Servers, functionServer)
+		//	env.Servers = append(env.Servers, functionServer)
 
 		//spawn hasura console
 		consolePort := nhost.GetPort(9301, 9400)
@@ -214,14 +210,14 @@ var devCmd = &cobra.Command{
 
 			// Start the hasura console
 			cmd := exec.Cmd{
-				Path: environment.Hasura.CLI,
+				Path: env.Hasura.CLI,
 				Args: []string{
-					environment.Hasura.CLI,
+					env.Hasura.CLI,
 					"console",
 					"--endpoint",
-					environment.Hasura.Endpoint,
+					env.Hasura.Endpoint,
 					"--admin-secret",
-					environment.Hasura.AdminSecret,
+					env.Hasura.AdminSecret,
 					"--console-port",
 					fmt.Sprint(consolePort),
 					"--api-port",
@@ -241,22 +237,22 @@ var devCmd = &cobra.Command{
 		}()
 
 		// launch mailhog UI
-		go openbrowser(environment.Config.Services["mailhog"].Address)
+		go openbrowser(env.Config.Services["mailhog"].Address)
 
 		// Initialize a reverse proxy server,
 		// to make all our locally running Nhost services
 		// available from a single port
 		mux := http.NewServeMux()
-		proxy := &http.Server{Addr: ":" + environment.Port, Handler: mux}
+		proxy := &http.Server{Addr: ":" + env.Port, Handler: mux}
 
 		go func() {
 
 			// Before launching, register the proxy server in our environment
-			environment.Servers = append(environment.Servers, proxy)
+			env.Servers = append(env.Servers, proxy)
 
 			// Now start the server
 			if err := proxy.ListenAndServe(); err != nil {
-				log.WithFields(logrus.Fields{"component": "proxy", "value": environment.Port}).Debug(err)
+				log.WithFields(logrus.Fields{"component": "proxy", "value": env.Port}).Debug(err)
 			}
 		}()
 
@@ -269,20 +265,20 @@ var devCmd = &cobra.Command{
 			fmt.Fprintln(w, "---\t\t-----")
 		}
 
-		for name, item := range environment.Config.Services {
+		for name, item := range env.Config.Services {
 
 			// Only issue a proxy to those,
 			// which have proxy enabled
 			if item.Proxy {
 
-				if err := item.IssueProxy(mux, environment.Context); err != nil {
+				if err := item.IssueProxy(mux, env.Context); err != nil {
 					log.WithField("component", "server").Debug(err)
 					log.WithField("component", "server").Error("Failed to proxy ", name)
-					environment.cleanup()
+					env.Cleanup()
 				}
 
 				// print the name and handle
-				fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, environment.Port, Reset, filepath.Clean(item.Handle)))
+				fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(item.Handle)))
 				fmt.Fprintln(w)
 			}
 		}
@@ -297,7 +293,7 @@ var devCmd = &cobra.Command{
 		fmt.Fprintf(
 			w,
 			"%v\t\t%v",
-			strings.Title("mailhog"), fmt.Sprintf("%s%s%s", Gray, environment.Config.Services["mailhog"].Address, Reset),
+			strings.Title("mailhog"), fmt.Sprintf("%s%s%s", Gray, env.Config.Services["mailhog"].Address, Reset),
 		)
 		fmt.Fprintln(w)
 
@@ -307,7 +303,7 @@ var devCmd = &cobra.Command{
 		fmt.Println()
 
 		// give example of using Functions inside Hasura
-		if pathExists(nhost.API_DIR) {
+		if util.PathExists(nhost.API_DIR) {
 			log.Info("ProTip: You can call Functions inside Hasura!")
 			fmt.Println()
 			fmt.Fprintln(w, "--\t\t----")
@@ -319,13 +315,13 @@ var devCmd = &cobra.Command{
 		}
 
 		// Update environment state
-		environment.UpdateState(Active)
+		env.UpdateState(environment.Active)
 
 		log.Warn("Use Ctrl + C to stop running evironment")
 
 		/*
 			// launch sessions
-			for key, item := range environment.Config.Sessions {
+			for key, item := range env.Config.Sessions {
 
 				log.WithFields(logrus.Fields{
 					"type":  "session",
@@ -344,132 +340,6 @@ var devCmd = &cobra.Command{
 	},
 }
 
-// Explain what it does
-func (e *Environment) Execute() error {
-
-	var err error
-
-	// Update environment state
-	e.UpdateState(Executing)
-
-	//	Cancel the execution context as soon as this function completed
-	defer e.ExecutionCancel()
-
-	// check if this is the first time dev env is running
-	firstRun := !pathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
-	if firstRun {
-		log.Info("First run takes longer, please be patient")
-	}
-
-	// Validate the availability of required docker images,
-	// and download the ones that are missing
-	if err := e.CheckImages(); err != nil {
-		return err
-	}
-
-	//	Generate configuration for every service.
-	//	This generates all env vars, mount points and commands
-	if err := e.Config.Init(environment.Port); err != nil {
-		return err
-	}
-
-	//	Create the Nhost network if it doesn't exist
-	if err := e.PrepareNetwork(); err != nil {
-		return err
-	}
-
-	// create and start the conatiners
-	for _, item := range e.Config.Services {
-
-		// Only those services which have a container configuration
-		// This is being done to exclude FUNCTIONS
-		if item.Config != nil {
-
-			//	We are passing execution context, and not parent context,
-			//	because if this execution is cancelled in between,
-			//	we want docker to abort this procedure.
-			if err := item.Run(e.Docker, e.ExecutionContext, e.Network); err != nil {
-				return err
-			}
-		}
-	}
-
-	//
-	// Update the ports and IDs of services against the running ones
-	//
-	// Fetch list of existing containers
-	containers, err := e.GetContainers()
-	if err != nil {
-		return err
-	}
-
-	// Wrap fetched containers as services in the environment
-	_ = e.WrapContainersAsServices(containers)
-
-	log.Info("Running a quick health check on services")
-	if err := e.HealthCheck(e.ExecutionContext); err != nil {
-		return err
-	}
-
-	// Now that Hasura container is active,
-	// initialize the Hasura client.
-	e.Hasura = &hasura.Client{}
-	if err := e.Hasura.Init(
-		e.Config.Services["hasura"].Address,
-		fmt.Sprint(e.Config.Services["hasura"].AdminSecret),
-		nil,
-	); err != nil {
-		return err
-	}
-
-	//
-	// Apply migrations and metadata
-	//
-	log.Info("Preparing your data")
-	if err = e.Prepare(); err != nil {
-		return err
-	}
-
-	//
-	// Apply Seeds if required
-	//
-	if firstRun && pathExists(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)) {
-		if err = environment.Seed(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)); err != nil {
-			log.Debug(err)
-			environment.cleanup()
-		}
-	}
-
-	return err
-}
-
-func (e *Environment) cleanup() {
-
-	/*
-		// Gracefully shut down all registered servers of the environment
-		for _, server := range e.Servers {
-			server.Shutdown(e.Context)
-		}
-	*/
-
-	if e.state >= Executing {
-		log.Warn("Please wait while we cleanup")
-
-		//	Pass the parent context of the environment,
-		//	because this is the final cleanup procedure
-		//	and we are going to cancel this context shortly after
-		if err := e.Shutdown(false, e.Context); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to stop running services")
-		}
-
-		log.Info("Cleanup complete. See you later, grasshopper!")
-	}
-
-	// Don't cancel the contexts before shutting down the containers
-	e.Cancel()
-}
-
 func init() {
 	rootCmd.AddCommand(devCmd)
 
@@ -477,7 +347,7 @@ func init() {
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	devCmd.PersistentFlags().StringVarP(&environment.Port, "port", "p", "1337", "Port for dev proxy")
+	devCmd.PersistentFlags().StringVarP(&env.Port, "port", "p", "1337", "Port for dev proxy")
 	// devCmd.PersistentFlags().BoolVarP(&expose, "expose", "e", false, "Expose local environment to public internet")
 
 	// Cobra supports local flags which will only run when this command

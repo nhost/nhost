@@ -30,6 +30,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -38,8 +39,9 @@ var approve bool
 
 // uninstallCmd removed Nhost CLI from system
 var uninstallCmd = &cobra.Command{
-	Use:   "uninstall",
-	Short: "Removed the installed CLI from system permanently",
+	Use:     "uninstall",
+	Aliases: []string{"remove"},
+	Short:   "Removed the installed CLI from system permanently",
 	Long: `Removed the installed CLI from system permanently
 but without hurting existing Nhost projects on the system and their data.`,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -65,7 +67,7 @@ but without hurting existing Nhost projects on the system and their data.`,
 		}
 
 		// first delete the Nhost Root directory
-		if err := deleteAllPaths(nhost.ROOT); err != nil {
+		if err := util.DeleteAllPaths(nhost.ROOT); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to delete ", filepath.Base(nhost.ROOT))
 		}
@@ -76,13 +78,13 @@ but without hurting existing Nhost projects on the system and their data.`,
 			log.Debug(err)
 			log.Fatal("Failed to find `nhost` installed in the system")
 		}
-		if err := deletePath(cli); err != nil {
+		if err := util.DeletePath(cli); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to delete the installed binary from ", cli)
 		}
 
 		// remove NHOST ROOT Dir as well
-		if err := deletePath(nhost.ROOT); err != nil {
+		if err := util.DeletePath(nhost.ROOT); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to delete Nhost root directory", nhost.ROOT)
 		}

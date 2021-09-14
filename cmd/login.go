@@ -34,6 +34,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -47,7 +48,7 @@ var loginCmd = &cobra.Command{
 	Long:    `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if pathExists(nhost.AUTH_PATH) {
+		if util.PathExists(nhost.AUTH_PATH) {
 
 			// if user is already logged in, ask to logout
 			if _, err := validateAuth(nhost.AUTH_PATH); err == nil {
@@ -88,8 +89,8 @@ var loginCmd = &cobra.Command{
 			}, "", " ")
 
 			// delete any existing auth files
-			if pathExists(nhost.AUTH_PATH) {
-				if err = deletePath(nhost.AUTH_PATH); err != nil {
+			if util.PathExists(nhost.AUTH_PATH) {
+				if err = util.DeletePath(nhost.AUTH_PATH); err != nil {
 					log.Debug(err)
 					log.Fatalf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH)
 				}

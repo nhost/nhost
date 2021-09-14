@@ -28,6 +28,7 @@ import (
 
 	"github.com/docker/docker/client"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -50,31 +51,31 @@ And re-create them next time you run 'nhost dev'`,
 		var err error
 
 		// connect to docker client
-		environment.Context = context.Background()
-		environment.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
+		env.Context = context.Background()
+		env.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to connect to docker client")
 		}
-		defer environment.Docker.Close()
+		defer env.Docker.Close()
 
 		// break execution if docker deamon is not running
-		_, err = environment.Docker.Info(environment.Context)
+		_, err = env.Docker.Info(env.Context)
 		if err != nil {
 			log.Fatal(err)
 		}
 
 		// get running containers with prefix "nhost_"
-		containers, err := environment.GetContainers()
+		containers, err := env.GetContainers()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to shut down Nhost services")
 		}
 
 		// wrap the fetched containers inside the environment
-		_ = environment.WrapContainersAsServices(containers)
+		_ = env.WrapContainersAsServices(containers)
 
-		if err := environment.Shutdown(true, context.Background()); err != nil {
+		if err := env.Shutdown(true, context.Background()); err != nil {
 			log.Debug(err)
 			log.Error("Failed to shut down Nhost services")
 		}
@@ -87,17 +88,17 @@ And re-create them next time you run 'nhost dev'`,
 			}
 
 			for _, item := range paths {
-				if err := deleteAllPaths(item); err != nil {
+				if err := util.DeleteAllPaths(item); err != nil {
 					log.Debug(err)
 					log.Warnln("Please delete path manually:", item)
 				}
 			}
 		}
 
-		if environment.Network == "" {
-			environment.Network, _ = environment.GetNetwork()
+		if env.Network == "" {
+			env.Network, _ = env.GetNetwork()
 		}
-		environment.RemoveNetwork()
+		env.RemoveNetwork()
 
 		if !contains(args, "do_not_inform") {
 			log.Info("Purge complete. See you later, grasshopper!")

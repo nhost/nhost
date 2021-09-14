@@ -80,3 +80,7 @@ var (
 	// initiaze JWT key for Hasura Authentication
 	JWT_KEY = generateRandomKey()
 )
+
+const (
+	API_VERSION = "v1"
+)

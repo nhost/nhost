@@ -35,6 +35,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -264,10 +265,10 @@ func updateNhostProject(ID string) error {
 		log.Fatal("Failed to initialize nhost specific directory")
 	}
 
-	if pathExists(nhost.INFO_PATH) {
+	if util.PathExists(nhost.INFO_PATH) {
 
 		// first delete any existing nhost.yaml file
-		if err := deletePath(nhost.INFO_PATH); err != nil {
+		if err := util.DeletePath(nhost.INFO_PATH); err != nil {
 			return err
 		}
 	}

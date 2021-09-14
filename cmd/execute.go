@@ -1,18 +1,27 @@
 /*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
+MIT License
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+Copyright (c) Nhost
 
-    http://www.apache.org/licenses/LICENSE-2.0
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 */
+
 package cmd
 
 import (
@@ -37,6 +46,12 @@ var (
 	service string
 )
 
+type ExecResult struct {
+	StdOut   string
+	StdErr   string
+	ExitCode int
+}
+
 // executeCmd represents the execute command
 var executeCmd = &cobra.Command{
 	Use:   "execute",
@@ -52,13 +67,13 @@ already running Nhost service containers.`,
 		}
 
 		// Initialize the runtime environment
-		if err := environment.Init(); err != nil {
+		if err := env.Init(); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize the environment")
 		}
 
 		// if no containers found - abort the execution
-		if len(environment.Config.Services) == 0 {
+		if len(env.Config.Services) == 0 {
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
 
@@ -73,7 +88,7 @@ already running Nhost service containers.`,
 			}
 
 			var services []Option
-			for name := range environment.Config.Services {
+			for name := range env.Config.Services {
 				services = append(services, Option{
 					Key:   strings.Title(strings.ToLower(name)),
 					Value: name,
@@ -102,7 +117,7 @@ already running Nhost service containers.`,
 			service = services[index].Value
 		}
 
-		for name, item := range environment.Config.Services {
+		for name, item := range env.Config.Services {
 			if strings.EqualFold(name, service) {
 				selected = item
 				break
@@ -114,7 +129,7 @@ already running Nhost service containers.`,
 		}
 
 		// create the command execution skeleton
-		response, err := selected.Exec(environment.Docker, environment.Context, strings.Split(command, " "))
+		response, err := selected.Exec(env.Docker, env.Context, strings.Split(command, " "))
 		if err != nil {
 			log.WithField("service", service).Debug(err)
 			log.WithField("service", service).Fatal("Failed to prepare execution shell")
@@ -122,7 +137,7 @@ already running Nhost service containers.`,
 
 		// execute the command
 		// and inspect the response
-		result, err := InspectExecResp(environment.Docker, environment.Context, response.ID)
+		result, err := InspectExecResp(env.Docker, env.Context, response.ID)
 		if err != nil {
 			log.WithField("service", service).Debug(err)
 			log.WithField("service", service).Error("Failed to execute the command.")

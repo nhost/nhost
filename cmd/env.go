@@ -32,6 +32,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -46,11 +47,6 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	/*
-		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("env called")
-		},
-	*/
 }
 
 // lsCmd getches env vars from remote
@@ -212,7 +208,7 @@ var envPullCmd = &cobra.Command{
 		}
 
 		// delete the existing .env.development file
-		deletePath(nhost.ENV_FILE)
+		util.DeletePath(nhost.ENV_FILE)
 
 		// create a fresh one
 		f, err := os.Create(nhost.ENV_FILE)
