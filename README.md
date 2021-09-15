@@ -96,7 +96,7 @@ Installing the CLI is easy.
 - If you version is less than `v1.0.0`, then download the latest version by executing the following in your terminal:
 
 ```
-curl -L https://raw.githubusercontent.com/mrinalwahal/cli/canary/get.sh | bash
+curl -L https://raw.githubusercontent.com/nhost/cli-go/main/get.sh | bash
 ```
 
 This will autoatically detect your **operating system** and **platform/architecture**, and download it's equivalent binary in `/usr/local/bin` directory. 
