@@ -196,7 +196,7 @@ export const applyMetadata = async (): Promise<void> => {
       custom_root_fields: {
         select: 'users',
         select_by_pk: 'user',
-        select_aggregate: 'UserAggregate',
+        select_aggregate: 'userAggregate',
         insert: 'insertUsers',
         insert_one: 'insertUser',
         update: 'updateUsers',
@@ -351,9 +351,9 @@ export const applyMetadata = async (): Promise<void> => {
     configuration: {
       custom_name: 'authRoles',
       custom_root_fields: {
-        select: 'AuthRoles',
-        select_by_pk: 'AuthRole',
-        select_aggregate: 'AuthRolesAggregate',
+        select: 'authRoles',
+        select_by_pk: 'authRole',
+        select_aggregate: 'authRolesAggregate',
         insert: 'insertAuthRoles',
         insert_one: 'insertAuthRole',
         update: 'updateAuthRoles',
@@ -375,9 +375,9 @@ export const applyMetadata = async (): Promise<void> => {
     configuration: {
       custom_name: 'authProviderRequests',
       custom_root_fields: {
-        select: 'AuthProviderRequests',
-        select_by_pk: 'AuthProviderRequest',
-        select_aggregate: 'AuthProviderRequestsAggregate',
+        select: 'authProviderRequests',
+        select_by_pk: 'authProviderRequest',
+        select_aggregate: 'authProviderRequestsAggregate',
         insert: 'insertAuthProviderRequests',
         insert_one: 'insertAuthProviderRequest',
         update: 'updateAuthProviderRequests',
