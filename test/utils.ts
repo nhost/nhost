@@ -60,10 +60,7 @@ export const registerAccount = async (
   return new Promise((resolve, reject) => {
     withEnv(
       {
-        REGISTRATION_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
         JWT_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
-        AUTO_ACTIVATE_NEW_USERS: 'true',
-        ADMIN_ONLY_REGISTRATION: 'false',
       },
       agent,
       async (done) => {
