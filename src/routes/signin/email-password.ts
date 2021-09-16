@@ -9,6 +9,7 @@ import bcrypt from 'bcryptjs';
 import { getSignInResponse } from '@/utils/tokens';
 import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
+import { logger } from '@/logger';
 
 type BodyType = {
   email: string;
@@ -24,29 +25,35 @@ export const signInEmailPasswordHandler = async (
   res: Response
 ): Promise<unknown> => {
   const { email, password } = req.body;
+  logger.debug(`Sign in with email: ${email}`);
 
   const user = await getUserByEmail(email);
 
   if (!user) {
-    return res.boom.unauthorized('No user with that email');
+    logger.debug('No user with that email exist');
+    return res.boom.unauthorized('Incorrect email or password');
   }
 
   if (user.disabled) {
+    logger.debug('User is disabled');
     return res.boom.unauthorized('User is disabled');
   }
 
-  if (ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+  if (ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+    logger.debug('Email is not verified');
     return res.boom.unauthorized('Email is not verified');
   }
 
   if (!user.passwordHash) {
-    return res.boom.unauthorized('User has no password set');
+    logger.debug('User has no password set');
+    return res.boom.unauthorized('Incorrect email or password');
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordCorrect) {
-    return res.boom.unauthorized('Incorrect password');
+    logger.debug('Incorrect password');
+    return res.boom.unauthorized('Incorrect email or password');
   }
 
   const signInTokens = await getSignInResponse({
@@ -54,6 +61,5 @@ export const signInEmailPasswordHandler = async (
     checkMFA: true,
   });
 
-  // login user
   return res.send(signInTokens);
 };

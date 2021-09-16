@@ -1,6 +1,7 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
 
+import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
 
@@ -9,7 +10,7 @@ describe('user password', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
   });
@@ -28,8 +29,8 @@ describe('user password', () => {
 
   it('should get user data if signed in', async () => {
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
 
     const email = faker.internet.email();

@@ -2,64 +2,61 @@ import { castBooleanEnv, castStringArrayEnv } from '@config/utils';
 
 const PROVIDERS = {
   get github() {
-    return !(
-      castBooleanEnv('GITHUB_ENABLED') || castBooleanEnv('GITHUB_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_GITHUB_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.GITHUB_CLIENT_ID;
+            return process.env.AUTH_GITHUB_CLIENT_ID;
           },
           get clientSecret() {
-            return process.env.GITHUB_CLIENT_SECRET;
+            return process.env.AUTH_GITHUB_CLIENT_SECRET;
           },
           get authorizationURL() {
-            return process.env.GITHUB_AUTHORIZATION_URL;
+            return process.env.AUTH_GITHUB_AUTHORIZATION_URL;
           },
           get tokenURL() {
-            return process.env.GITHUB_TOKEN_URL;
+            return process.env.AUTH_GITHUB_TOKEN_URL;
           },
           get userProfileURL() {
-            return process.env.GITHUB_USER_PROFILE_URL;
+            return process.env.AUTH_GITHUB_USER_PROFILE_URL;
           },
           get scope() {
-            return castStringArrayEnv('GITHUB_SCOPE', ['user:email']);
+            return castStringArrayEnv('AUTH_GITHUB_SCOPE', ['user:email']);
           },
         };
   },
 
   get google() {
-    return !(
-      castBooleanEnv('GOOGLE_ENABLED') || castBooleanEnv('GOOGLE_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_GOOGLE_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.GOOGLE_CLIENT_ID || '';
+            return process.env.AUTH_GOOGLE_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.GOOGLE_CLIENT_SECRET || '';
+            return process.env.AUTH_GOOGLE_CLIENT_SECRET || '';
           },
           get scope() {
-            return castStringArrayEnv('GOOGLE_SCOPE', ['email', 'profile']);
+            return castStringArrayEnv('AUTH_GOOGLE_SCOPE', [
+              'email',
+              'profile',
+            ]);
           },
         };
   },
 
   get facebook() {
-    return !(
-      castBooleanEnv('FACEBOOK_ENABLED') || castBooleanEnv('FACEBOOK_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_FACEBOOK_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.FACEBOOK_CLIENT_ID || '';
+            return process.env.AUTH_FACEBOOK_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.FACEBOOK_CLIENT_SECRET || '';
+            return process.env.AUTH_FACEBOOK_CLIENT_SECRET || '';
           },
           get profileFields() {
-            return castStringArrayEnv('FACEBOOK_PROFILE_FIELDS', [
+            return castStringArrayEnv('AUTH_FACEBOOK_PROFILE_FIELDS', [
               'email',
               'photos',
               'displayName',
@@ -69,34 +66,30 @@ const PROVIDERS = {
   },
 
   get twitter() {
-    return !(
-      castBooleanEnv('TWITTER_ENABLED') || castBooleanEnv('TWITTER_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_TWITTER_ENABLED')
       ? null
       : {
           get consumerKey() {
-            return process.env.TWITTER_CONSUMER_KEY || '';
+            return process.env.AUTH_TWITTER_CONSUMER_KEY || '';
           },
           get consumerSecret() {
-            return process.env.TWITTER_CONSUMER_SECRET || '';
+            return process.env.AUTH_TWITTER_CONSUMER_SECRET || '';
           },
         };
   },
 
   get linkedin() {
-    return !(
-      castBooleanEnv('LINKEDIN_ENABLED') || castBooleanEnv('LINKEDIN_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_LINKEDIN_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.LINKEDIN_CLIENT_ID || '';
+            return process.env.AUTH_LINKEDIN_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.LINKEDIN_CLIENT_SECRET || '';
+            return process.env.AUTH_LINKEDIN_CLIENT_SECRET || '';
           },
           get scope() {
-            return castStringArrayEnv('LINKEDIN_SCOPE', [
+            return castStringArrayEnv('AUTH_LINKEDIN_SCOPE', [
               'r_emailaddress',
               'r_liteprofile',
             ]);
@@ -105,53 +98,53 @@ const PROVIDERS = {
   },
 
   get apple() {
-    if (!(castBooleanEnv('APPLE_ENABLED') || castBooleanEnv('APPLE_ENABLE')))
+    if (!castBooleanEnv('AUTH_APPLE_ENABLED')) {
       return null;
-    try {
-      return {
-        get clientID() {
-          return process.env.APPLE_CLIENT_ID || '';
-        },
-        get teamID() {
-          return process.env.APPLE_TEAM_ID || '';
-        },
-        get keyID() {
-          return process.env.APPLE_KEY_ID || '';
-        },
-        get key() {
-          return (
-            (process.env.APPLE_PRIVATE_KEY &&
-              // Convert contents from base64 string to string to avoid issues with line breaks in the environment variable
-              Buffer.from(process.env.APPLE_PRIVATE_KEY, 'base64').toString(
-                'ascii'
-              )) ||
-            ''
-          );
-        },
-        get scope() {
-          return castStringArrayEnv('APPLE_SCOPE', ['name', 'email']);
-        },
-      };
-    } catch (e) {
-      throw new Error(`Invalid Apple OAuth Key file`);
+    } else {
+      try {
+        return {
+          get clientID() {
+            return process.env.AUTH_APPLE_CLIENT_ID || '';
+          },
+          get teamID() {
+            return process.env.AUTH_APPLE_TEAM_ID || '';
+          },
+          get keyID() {
+            return process.env.AUTH_APPLE_KEY_ID || '';
+          },
+          get key() {
+            return (
+              (process.env.AUTH_APPLE_PRIVATE_KEY &&
+                // Convert contents from base64 string to string to avoid issues with line breaks in the environment variable
+                Buffer.from(
+                  process.env.AUTH_APPLE_PRIVATE_KEY,
+                  'base64'
+                ).toString('ascii')) ||
+              ''
+            );
+          },
+          get scope() {
+            return castStringArrayEnv('AUTH_APPLE_SCOPE', ['name', 'email']);
+          },
+        };
+      } catch (e) {
+        throw new Error(`Invalid Apple OAuth Key file`);
+      }
     }
   },
 
   get windowslive() {
-    return !(
-      castBooleanEnv('WINDOWS_LIVE_ENABLED') ||
-      castBooleanEnv('WINDOWS_LIVE_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_WINDOWS_LIVE_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.WINDOWS_LIVE_CLIENT_ID || '';
+            return process.env.AUTH_WINDOWS_LIVE_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.WINDOWS_LIVE_CLIENT_SECRET || '';
+            return process.env.AUTH_WINDOWS_LIVE_CLIENT_SECRET || '';
           },
           get scope() {
-            return castStringArrayEnv('WINDOWS_LIVE_SCOPE', [
+            return castStringArrayEnv('AUTH_WINDOWS_LIVE_SCOPE', [
               'wl.basic',
               'wl.emails',
             ]);
@@ -160,19 +153,17 @@ const PROVIDERS = {
   },
 
   get spotify() {
-    return !(
-      castBooleanEnv('SPOTIFY_ENABLED') || castBooleanEnv('SPOTIFY_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_SPOTIFY_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.SPOTIFY_CLIENT_ID || '';
+            return process.env.AUTH_SPOTIFY_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.SPOTIFY_CLIENT_SECRET || '';
+            return process.env.AUTH_SPOTIFY_CLIENT_SECRET || '';
           },
           get scope() {
-            return castStringArrayEnv('SPOTIFY_SCOPE', [
+            return castStringArrayEnv('AUTH_SPOTIFY_SCOPE', [
               'user-read-email',
               'user-read-private',
             ]);
@@ -181,53 +172,51 @@ const PROVIDERS = {
   },
 
   get gitlab() {
-    return !(
-      castBooleanEnv('GITLAB_ENABLED') || castBooleanEnv('GITLAB_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_GITLAB_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.GITLAB_CLIENT_ID || '';
+            return process.env.AUTH_GITLAB_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.GITLAB_CLIENT_SECRET || '';
+            return process.env.AUTH_GITLAB_CLIENT_SECRET || '';
           },
           get baseUrl() {
-            return process.env.GITLAB_BASE_URL || '';
+            return process.env.AUTH_GITLAB_BASE_URL || '';
           },
           get scope() {
-            return castStringArrayEnv('GITLAB_SCOPE', ['read_user']);
+            return castStringArrayEnv('AUTH_GITLAB_SCOPE', ['read_user']);
           },
         };
   },
 
   get bitbucket() {
-    return !(
-      castBooleanEnv('BITBUCKET_ENABLED') || castBooleanEnv('BITBUCKET_ENABLE')
-    )
+    return !castBooleanEnv('AUTH_BITBUCKET_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.BITBUCKET_CLIENT_ID || '';
+            return process.env.AUTH_BITBUCKET_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.BITBUCKET_CLIENT_SECRET || '';
+            return process.env.AUTH_BITBUCKET_CLIENT_SECRET || '';
           },
         };
   },
 
   get strava() {
-    return !castBooleanEnv('STRAVA_ENABLED')
+    return !castBooleanEnv('AUTH_STRAVA_ENABLED')
       ? null
       : {
           get clientID() {
-            return process.env.STRAVA_CLIENT_ID || '';
+            return process.env.AUTH_STRAVA_CLIENT_ID || '';
           },
           get clientSecret() {
-            return process.env.STRAVA_CLIENT_SECRET || '';
+            return process.env.AUTH_STRAVA_CLIENT_SECRET || '';
           },
           get scope() {
-            return castStringArrayEnv('STRAVA_SCOPE', ['profile:read_all']);
+            return castStringArrayEnv('AUTH_STRAVA_SCOPE', [
+              'profile:read_all',
+            ]);
           },
         };
   },

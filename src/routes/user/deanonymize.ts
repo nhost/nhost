@@ -4,26 +4,28 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
-import { v4 as uuidv4 } from 'uuid';
 
-import { getUserByEmail, hashPassword } from '@/helpers';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { generateTicketExpiresAt } from '@/utils/ticket';
-import { emailClient } from '@/email';
-import { isPasswordValid } from '@/utils/password';
-import { isValidEmail } from '@/utils/email';
-import { ENV } from '@/utils/env';
-import { isRolesValid } from '@/utils/roles';
-import { getOtpData } from '@/utils/otp';
-import { getNewRefreshToken } from '@/utils/tokens';
+import {
+  BodyTypeEmailPassword,
+  handleDeanonymizeUserEmailPassword,
+} from '@/utils/user/deanonymize-email-password';
+import {
+  BodyTypePasswordlessEmail,
+  handleDeanonymizeUserPasswordlessEmail,
+} from '@/utils/user/deanonymize-passwordless-email';
 
-type BodyType = {
-  signInMethod: 'email-password' | 'magic-link';
-  email: string;
-  password?: string;
-  allowedRoles: string[];
-  defaultRole: string;
-};
+// export type BodyTypePasswordlessSms = {
+//   signInMethod: 'passwordless';
+//   connection: 'sms';
+//   mode: PasswordlessMode;
+//   phoneNumber: string;
+//   password: string;
+//   allowedRoles: string[];
+//   defaultRole: string;
+// };
+
+type BodyType = BodyTypeEmailPassword | BodyTypePasswordlessEmail;
+// | BodyTypePasswordlessSms;
 
 interface Schema extends ValidatedRequestSchema {
   [ContainerTypes.Body]: BodyType;
@@ -39,208 +41,21 @@ export const userDeanonymizeHandler = async (
   }
 
   const { body } = req;
-  const { signInMethod, email, password } = req.body;
-
-  if (!['email-password', 'magic-link'].includes(signInMethod)) {
-    return res.boom.badRequest(
-      'Incorrect sign in method. Must be one of [email-password, magic-link].'
-    );
-  }
-
   const { userId } = req.auth;
 
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
-
-  // we don't use the `isAnonymous` from the middeware because it might be out
-  // dated (old jwt token) if you make this request multiple times in a short amount of time
-  if (user?.isAnonymous !== true) {
-    return res.boom.badRequest('Logged in user is not anonymous');
-  }
-
-  // check email
-  if (!(await isValidEmail({ email, res }))) {
-    // function send potential error via `res`
+  if (body.signInMethod === 'email-password') {
+    await handleDeanonymizeUserEmailPassword(body, userId, res);
     return;
   }
 
-  // check if email already in use by some other user
-  if (await getUserByEmail(email)) {
-    return res.boom.conflict('Email already in use');
+  if (body.signInMethod === 'passwordless' && body.connection === 'email') {
+    await handleDeanonymizeUserPasswordlessEmail(body, userId, res);
+    return res.send('ok');
   }
 
-  // checks for email-password sign in method
-  if (signInMethod === 'email-password') {
-    // check password
-    if (!(await isPasswordValid({ password, res }))) {
-      // function send potential error via `res`
-      return;
-    }
-  }
+  // if (body.signInMethod === 'passwordless' && body.connection === 'sms') {
+  //   handleDeanonymizeUserPasswordlessSms(body, res);
+  // }
 
-  // check roles
-  const defaultRole = body.defaultRole ?? ENV.DEFAULT_USER_ROLE;
-  const allowedRoles = body.allowedRoles ?? ENV.DEFAULT_ALLOWED_USER_ROLES;
-  if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
-    return;
-  }
-
-  // password is null if password is not set
-  // if password is null we're using sign in method magic link
-  const passwordHash = password ? await hashPassword(password) : null;
-
-  const userRoles = allowedRoles.map((role: string) => ({ role, userId }));
-
-  let ticket, otp;
-
-  // set ticket or otpHash depending on sign in method
-  if (signInMethod === 'email-password') {
-    ticket = `verifyEmail:${uuidv4()}`;
-    const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
-
-    await gqlSdk.updateUser({
-      id: userId,
-      user: {
-        emailVerified: false,
-        email,
-        passwordHash,
-        defaultRole,
-        ticket,
-        ticketExpiresAt,
-        isAnonymous: false,
-      },
-    });
-  } else if (signInMethod === 'magic-link') {
-    const otpData = await getOtpData();
-
-    otp = otpData.otp;
-    const otpHash = otpData.otpHash;
-    const otpHashExpiresAt = otpData.otpHashExpiresAt;
-
-    await gqlSdk.updateUser({
-      id: userId,
-      user: {
-        emailVerified: false,
-        email,
-        passwordHash: null,
-        defaultRole,
-        otpHash,
-        otpHashExpiresAt,
-        isAnonymous: false,
-      },
-    });
-  } else {
-    throw new Error('Incorrect state (signInMethod)');
-  }
-
-  if (!user) {
-    throw new Error('Unable to get user');
-  }
-
-  // delete existing (anonymous) user roles
-  await gqlSdk.deleteUserRolesByUserId({
-    userId,
-  });
-
-  // insert new user roles (userRoles)
-  await gqlSdk.insertUserRoles({
-    userRoles,
-  });
-
-  // delete all pervious refresh tokens for user if the user first must verify
-  // their new email.
-  console.log('signin emai lverified required?');
-  console.log(ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED);
-
-  if (ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    console.log('delete all old user refresh tokens');
-    await gqlSdk.deleteUserRefreshTokens({
-      userId,
-    });
-  }
-
-  // send email
-  if (signInMethod === 'email-password') {
-    if (!ENV.DISABLE_NEW_USERS && ENV.SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-      if (!ENV.EMAILS_ENABLED) {
-        throw new Error('SMTP settings unavailable');
-      }
-
-      await emailClient.send({
-        template: 'verify-email',
-        message: {
-          to: email,
-          headers: {
-            'x-ticket': {
-              prepared: true,
-              value: ticket as string,
-            },
-            'x-email-template': {
-              prepared: true,
-              value: 'verify-email',
-            },
-          },
-        },
-        locals: {
-          displayName: user.displayName,
-          email,
-          ticket,
-          url: ENV.SERVER_URL,
-          locale: user.locale,
-        },
-      });
-    }
-  } else if (signInMethod === 'magic-link') {
-    if (!ENV.EMAILS_ENABLED) {
-      throw new Error('SMTP settings unavailable');
-    }
-
-    const ticket = `verifyEmail:${uuidv4()}`;
-    const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
-
-    // set newEmail for user
-    await gqlSdk.updateUser({
-      id: user.id,
-      user: {
-        ticket,
-        ticketExpiresAt,
-      },
-    });
-
-    const refreshToken = await getNewRefreshToken(userId);
-
-    await emailClient.send({
-      template: 'magic-link',
-      message: {
-        to: email,
-        headers: {
-          'x-ticket': {
-            prepared: true,
-            value: ticket,
-          },
-          'x-refreshToken': {
-            prepared: true,
-            value: refreshToken,
-          },
-          'x-email-template': {
-            prepared: true,
-            value: 'magic-link',
-          },
-        },
-      },
-      locals: {
-        email,
-        ticket,
-        locale: user.locale,
-        otp,
-        url: ENV.SERVER_URL,
-        appUrl: ENV.APP_URL,
-      },
-    });
-  } else {
-    throw new Error('Invalid state.');
-  }
-
-  return res.send('OK');
+  return res.boom.badRequest('incorrect sign in method');
 };

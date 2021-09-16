@@ -1,18 +1,13 @@
-import winston from 'winston';
+import pinoLogger from 'express-pino-logger';
 import { ENV } from './utils/env';
 
-const logger = winston.createLogger({
-  transports: [new winston.transports.Console()],
-  format:
-    process.env.NODE_ENV === 'production'
-      ? winston.format.json()
-      : winston.format.combine(
-          winston.format.colorize(),
-          winston.format.simple()
-        ),
-  exitOnError: false,
-  level: ENV.LOGGER_LEVEL,
-  silent: !ENV.LOGGER_ENABLED,
+const pino = pinoLogger({
+  autoLogging: {
+    ignorePaths: ['/healthz', '/change-env'],
+  },
+  level: ENV.AUTH_LOG_LEVEL,
 });
 
-export default logger;
+const logger = pino.logger;
+
+export { pino, logger };

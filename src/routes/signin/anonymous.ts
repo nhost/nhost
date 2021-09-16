@@ -9,15 +9,12 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
 import { getSignInResponse } from '@/utils/tokens';
-
-type Profile = {
-  [key: string]: string | number | boolean;
-};
+import { Profile } from '@/types';
 
 type BodyType = {
-  locale: string;
-  displayName: string;
-  profile: Profile | null;
+  locale?: string;
+  displayName?: string;
+  profile?: Profile;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -28,11 +25,11 @@ export const signInAnonymousHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (!ENV.ANONYMOUS_USERS_ENABLED) {
+  if (!ENV.AUTH_ANONYMOUS_USERS_ENABLED) {
     return res.boom.notFound('Anonymous users are not enabled');
   }
 
-  const { profile, locale = ENV.DEFAULT_LOCALE } = req.body;
+  const { profile, locale = ENV.AUTH_DEFAULT_LOCALE } = req.body;
 
   // check profile
   if (!(await isProfileValid({ profile, res }))) {

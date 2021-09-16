@@ -4,15 +4,17 @@ import { createValidator } from 'express-joi-validation';
 import { asyncWrapper as aw } from '@/helpers';
 import {
   signInEmailPasswordSchema,
-  signInMagicLinkSchema,
   signInAnonymousSchema,
   signInMfaTotpSchema,
+  signInOtpSchema,
+  signInPasswordlessSchema,
 } from '@/validation';
 import { signInEmailPasswordHandler } from './email-password';
-import { signInMagicLinkHandler } from './magic-link';
 import { signInAnonymousHandler } from './anonymous';
 import providers from './providers';
 import { signInMfaTotpHandler } from './mfa';
+import { signInPasswordlessStartHandler } from './passwordless';
+import { signInOtpHandler } from './otp';
 
 const router = Router();
 
@@ -22,23 +24,19 @@ router.post(
   aw(signInEmailPasswordHandler)
 );
 
+// magic link via email and sms
+// code (otp) via email and sms
 router.post(
-  '/signin/magic-link',
-  createValidator().body(signInMagicLinkSchema),
-  aw(signInMagicLinkHandler)
+  '/signin/passwordless/start',
+  createValidator().body(signInPasswordlessSchema),
+  aw(signInPasswordlessStartHandler)
 );
 
-// router.post(
-//   '/signin/phone-number',
-//   createValidator().body(signInMagicLinkSchema),
-//   aw(signInMagicLinkHandler)
-// );
-
-// router.post(
-//   '/signin/phone-number/otp',
-//   createValidator().body(signInMagicLinkOtpSchema),
-//   aw(signInMagicLinkOtpHandler)
-// );
+router.post(
+  '/signin/otp',
+  createValidator().body(signInOtpSchema),
+  aw(signInOtpHandler)
+);
 
 router.post(
   '/signin/anonymous',
@@ -52,6 +50,7 @@ router.post(
   aw(signInMfaTotpHandler)
 );
 
+// TODO: Implement:
 // router.post(
 //   '/signin/mfa/sms',
 //   createValidator().body(signInMfaSmsSchema),

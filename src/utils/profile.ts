@@ -3,13 +3,10 @@ import { gql } from 'graphql-request';
 
 import { client, gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from './env';
-
-type Profile = {
-  [key: string]: string | number | boolean;
-};
+import { Profile } from '@/types';
 
 type IsProfileValidParams = {
-  profile: Profile | null;
+  profile?: Profile;
   res: Response;
 };
 
@@ -17,7 +14,7 @@ export const isProfileValid = async ({
   profile,
   res,
 }: IsProfileValidParams): Promise<boolean> => {
-  if (ENV.REGISTRATION_PROFILE_FIELDS.length && !profile) {
+  if (ENV.AUTH_SIGNUP_PROFILE_FIELDS.length && !profile) {
     res.boom.badRequest('Profile required');
     return false;
   }
@@ -25,7 +22,7 @@ export const isProfileValid = async ({
   // check profile keys
 
   for (const key in profile) {
-    if (!ENV.REGISTRATION_PROFILE_FIELDS.includes(key)) {
+    if (!ENV.AUTH_SIGNUP_PROFILE_FIELDS.includes(key)) {
       res.boom.badRequest(`profile key ${key} is not allowed`);
       return false;
     }
@@ -36,7 +33,7 @@ export const isProfileValid = async ({
 
 type InsertProfileParams = {
   userId: string;
-  profile: null | { [key: string]: unknown };
+  profile?: Profile;
 };
 
 export const insertProfile = async ({
@@ -47,8 +44,6 @@ export const insertProfile = async ({
     if (!profile) {
       return;
     }
-
-    console.log('inside insert profile');
 
     const insertProfile = gql`
       mutation insertProfile($profile: profiles_insert_input!) {
@@ -94,7 +89,7 @@ export const getProfileFieldsForAccessToken = async ({
   const getProfile = gql`
     query getProfile($userId: uuid!) {
       profile(userId: $userId) {
-        ${ENV.PROFILE_SESSION_VARIABLE_FIELDS.join('\n')}
+        ${ENV.AUTH_PROFILE_SESSION_VARIABLE_FIELDS.join('\n')}
       }
     }
   `;

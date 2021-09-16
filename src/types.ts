@@ -75,3 +75,53 @@ export type SignInResponse = {
   session: Session | null;
   mfa: Mfa | null;
 };
+
+export type PasswordLessEmailBody = {
+  connection: 'email';
+  email: string;
+  locale?: string;
+  allowedRoles?: string[];
+  defaultRole?: string;
+  displayName?: string;
+  profile?: Profile;
+};
+
+export type PasswordLessSmsBody = {
+  connection: 'sms';
+  phoneNumber: string;
+  locale?: string;
+  allowedRoles?: string[];
+  defaultRole?: string;
+  displayName?: string;
+  profile?: Profile;
+};
+
+export type Profile = {
+  [key: string]: string | number | boolean;
+};
+
+export type OtpEmailBody = {
+  connection: 'email';
+  email: string;
+  otp: string;
+};
+
+export type OtpSmsBody = {
+  connection: 'sms';
+  phoneNumber: string;
+  otp: string;
+};
+
+export type JwtSecret = {
+  type: 'HS256' | 'HS238' | 'HS512' | 'RS256' | 'RS384' | 'RS512' | 'Ed25519';
+  key: string;
+  jwk_url?: string;
+  claims_namespace?: string;
+  claims_namespace_path?: string;
+  claims_format?: string;
+  audience?: string;
+  issuer?: string;
+  claims_map?: string;
+  allowed_skew?: string;
+  header?: string;
+};

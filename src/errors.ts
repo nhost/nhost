@@ -1,5 +1,5 @@
 import { NextFunction, Response, Request } from 'express';
-import logger from './logger';
+import { logger } from './logger';
 
 /**
  * This is a custom error middleware for Express.

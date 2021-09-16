@@ -4,7 +4,7 @@ import { SuperTest, Test } from 'supertest';
 
 import { ENV } from '../src/utils/env';
 import { getClaims } from '../src/utils/tokens';
-import { Token } from '../src/types';
+import { JwtSecret, Token } from '../src/types';
 
 export interface UserLoginData {
   email: string;
@@ -60,11 +60,7 @@ export const registerAccount = async (
   return new Promise((resolve, reject) => {
     withEnv(
       {
-        REGISTRATION_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
         JWT_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
-        AUTO_ACTIVATE_NEW_USERS: 'true',
-        WHITELIST_ENABLED: 'false',
-        ADMIN_ONLY_REGISTRATION: 'false',
       },
       agent,
       async (done) => {
@@ -157,7 +153,7 @@ export const mailHogSearch = async (
   fields = 'to'
 ): Promise<MailhogMessage[]> => {
   const response = await fetch(
-    `http://${ENV.SMTP_HOST}:8025/api/v2/search?kind=${fields}&query=${query}`
+    `http://${ENV.AUTH_SMTP_HOST}:8025/api/v2/search?kind=${fields}&query=${query}`
   );
   const jsonBody = await response.json();
   return (jsonBody as MailhogSearchResult).items;
@@ -166,13 +162,18 @@ export const mailHogSearch = async (
 export const deleteMailHogEmail = async ({
   ID,
 }: MailhogMessage): Promise<Response> => {
-  return await fetch(`http://${ENV.SMTP_HOST}:8025/api/v1/messages/${ID}`, {
-    method: 'DELETE',
-  });
+  return await fetch(
+    `http://${ENV.AUTH_SMTP_HOST}:8025/api/v1/messages/${ID}`,
+    {
+      method: 'DELETE',
+    }
+  );
 };
 
 export const deleteAllMailHogEmails = async () => {
-  const response = await fetch(`http://${ENV.SMTP_HOST}:8025/api/v2/messages`);
+  const response = await fetch(
+    `http://${ENV.AUTH_SMTP_HOST}:8025/api/v2/messages`
+  );
 
   const emails = ((await response.json()) as MailhogSearchResult).items;
 
@@ -219,7 +220,8 @@ export const isValidAccessToken = (accessToken: string | null): boolean => {
     return false;
   }
   try {
-    JWT.verify(accessToken, ENV.JWT_SECRET);
+    const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+    JWT.verify(accessToken, jwt.key);
     return true;
   } catch (err) {
     return false;
@@ -231,7 +233,8 @@ export const decodeAccessToken = (accessToken: string | null) => {
     return null;
   }
   try {
-    return JWT.verify(accessToken, ENV.JWT_SECRET) as Token;
+    const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+    return JWT.verify(accessToken, jwt.key) as Token;
   } catch (err) {
     return null;
   }

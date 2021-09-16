@@ -20,3 +20,25 @@
     />
   </a>
 </p>
+
+# Environment variables
+
+| env var                     | default value |
+| --------------------------- | ------------- |
+| HASURA_GRAPHQL_DATABASE_URL |               |
+| HASURA_GRAPHQL_JWT_SECRET   |               |
+| HASURA_GRAPHQL_ADMIN_SECRET |               |
+| HASURA_GRAPHQL_GRAPHQL_URL  |               |
+| AUTH_HOST                   | 0.0.0.0       |
+| AUTH_PORT                   | 4000          |
+| EMAIL_ENABLED               | false         |
+| AUTH_SMTP_HOST              |               |
+| AUTH_SMTP_PORT              | 587           |
+| AUTH_SMTP_USER              |               |
+| AUTH_SMTP_PASS              |               |
+| AUTH_SMTP_SENDER            |               |
+| AUTH_SMTP_AUTH_METHOD       | PLAIN         |
+| AUTH_SMTP_SECURE            | false         |
+| AUTH_GRAVATAR_ENABLED       | true          |
+| AUTH_GRAVATAR_DEFAULT       | blank         |
+| AUTH_GRAVATAR_RATING        | g             |

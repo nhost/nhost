@@ -1,6 +1,7 @@
 import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 
+import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
 import { mailHogSearch } from '../../utils';
@@ -10,7 +11,7 @@ describe('user email', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
   });
@@ -25,10 +26,8 @@ describe('user email', () => {
 
   it('change email', async () => {
     await request.post('/change-env').send({
-      MFA_ENABLED: true,
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      WHITELIST_ENABLED: false,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
 
     let accessToken = '';

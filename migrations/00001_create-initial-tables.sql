@@ -1,9 +1,10 @@
 -- start a transaction
--- BEGIN;
+BEGIN;
 
 -- extensions
 CREATE EXTENSION IF NOT EXISTS citext WITH SCHEMA public;
 CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+
 
 -- functions
 CREATE FUNCTION auth.set_current_timestamp_updated_at ()
@@ -60,6 +61,7 @@ CREATE TABLE auth.users (
   phone_number_verified boolean DEFAULT FALSE NOT NULL,
   last_verify_phone_number_sent_at timestamp with time zone DEFAULT now() NOT NULL,
   new_email auth.email,
+  otp_method_last_used text, -- used to verify the method (sms or email)
   otp_hash text,
   otp_hash_expires_at timestamp with time zone DEFAULT now() NOT NULL,
   default_role text DEFAULT 'user' NOT NULL,
@@ -83,10 +85,6 @@ CREATE TABLE auth.refresh_tokens (
 
 CREATE TABLE auth.roles (
   role text NOT NULL PRIMARY KEY
-);
-
-CREATE TABLE IF NOT EXISTS auth.whitelist (
-  email auth.email NOT NULL PRIMARY KEY
 );
 
 CREATE TABLE auth.provider_requests (
@@ -154,5 +152,5 @@ INSERT INTO auth.providers (id)
     ('bitbucket');
 
 -- commit the change (or roll it back later)
---COMMIT;
+COMMIT;
 

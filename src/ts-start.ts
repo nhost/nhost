@@ -4,8 +4,8 @@ import { app } from './server';
 import { applyMigrations } from '@/migrations';
 import { applyMetadata } from '@/metadata';
 import './env-vars-check';
-import logger from './logger';
 import { ENV } from './utils/env';
+import { logger } from './logger';
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -14,7 +14,7 @@ function delay(ms: number) {
 const getHasuraReadyState = async () => {
   try {
     await axios.get(
-      `${ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/healthz')}`
+      `${ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/healthz')}`
     );
     return true;
   } catch (err) {
@@ -40,7 +40,7 @@ const waitForHasura = async () => {
 const getIsFirstRound = async () => {
   // https://stackoverflow.com/a/24089729
   const { data } = await axios.post(
-    ENV.HASURA_ENDPOINT.replace('/v1/graphql', '/v2/query'),
+    ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v2/query'),
     {
       type: 'run_sql',
       args: {
@@ -80,11 +80,13 @@ const start = async (): Promise<void> => {
 
   // TODO: Fetch email templates from ENV var URL
 
-  app.listen(ENV.PORT, ENV.HOST, () => {
-    if (ENV.HOST) {
-      logger.info(`Running on http://${ENV.HOST}:${ENV.PORT}`);
+  app.listen(ENV.AUTH_PORT, ENV.AUTH_HOST, () => {
+    logger.info('Log level');
+    logger.info(ENV.AUTH_LOG_LEVEL);
+    if (ENV.AUTH_HOST) {
+      logger.info(`Running on http://${ENV.AUTH_HOST}:${ENV.AUTH_PORT}`);
     } else {
-      logger.info(`Running on port ${ENV.PORT}`);
+      logger.info(`Running on port ${ENV.AUTH_PORT}`);
     }
   });
 };

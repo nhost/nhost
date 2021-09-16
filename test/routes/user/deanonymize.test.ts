@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 
+import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
@@ -9,7 +10,7 @@ describe('email-password', () => {
 
   beforeAll(async () => {
     client = new Client({
-      connectionString: process.env.DATABASE_URL,
+      connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
   });
@@ -26,13 +27,12 @@ describe('email-password', () => {
   it('should be able to deanonymize user with email-password', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -96,13 +96,13 @@ describe('email-password', () => {
   it('should be able to deanonymize user with magic-link', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      MAGIC_LINK_ENABLED: true,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -122,7 +122,8 @@ describe('email-password', () => {
       .post('/user/deanonymize')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({
-        signInMethod: 'magic-link',
+        signInMethod: 'passwordless',
+        connection: 'email',
         email,
         password: '1234567',
       })
@@ -132,40 +133,36 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const emailRefreshToken = message.Content.Headers['X-Refreshtoken'][0];
-    expect(typeof refreshToken).toBe('string');
+    const emailTemplate = message.Content.Headers['X-Email-Template'][0];
 
-    const emailTicket = message.Content.Headers['X-Ticket'][0];
-    expect(typeof emailTicket).toBe('string');
+    expect(emailTemplate).toBe('passwordless');
 
-    const emailType = message.Content.Headers['X-Email-Template'][0];
-    expect(emailType).toBe('magic-link');
+    const otp = message.Content.Headers['X-Otp'][0];
 
     // should not be able to reuse old refresh token
     await request.post('/token').send({ refreshToken }).expect(401);
 
-    // should be able to login using the refresh token from the email
+    // should be able to sign in using otp
     await request
-      .post('/token')
-      .send({ refreshToken: emailRefreshToken })
-      .expect(200);
-
-    // should e able to verify email using ticket from email
-    await request
-      .post('/user/email/verify')
-      .send({ email, ticket: emailTicket })
+      .post('/signin/otp')
+      .send({
+        connection: 'email',
+        email,
+        otp,
+      })
       .expect(200);
   });
 
   it('should fail to deanonymize user unacceptable sign in method', async () => {
     // set env vars
     await request.post('/change-env').send({
-      DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
-      PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
-      ANONYMOUS_USERS_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_SIGNUP_PROFILE_FIELDS: '',
+      AUTH_PROFILE_SESSION_VARIABLE_FIELDS: '',
+      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -195,10 +192,7 @@ describe('email-password', () => {
     // set env vars
     await request.post('/change-env').send({
       DISABLE_NEW_USERS: false,
-      VERIFY_EMAILS: true,
-      WHITELIST_ENABLED: false,
       PROFILE_SESSION_VARIABLE_FIELDS: '',
-      REGISTRATION_PROFILE_FIELDS: '',
       ANONYMOUS_USERS_ENABLED: true,
     });
 

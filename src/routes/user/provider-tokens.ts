@@ -65,7 +65,7 @@ export const userProviderTokensHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  const adminSecret = req.headers['x-admin-secret'];
+  const adminSecret = req.headers['x-hasura-admin-secret'];
 
   if (adminSecret !== ENV.HASURA_GRAPHQL_ADMIN_SECRET) {
     return res.boom.unauthorized('incorrect admin secret header');

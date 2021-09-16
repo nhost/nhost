@@ -22,7 +22,7 @@ export const mfatotpGenerateHandler = async (
 ): Promise<unknown> => {
   console.log('mfa totp generate handler');
 
-  if (!ENV.MFA_ENABLED) {
+  if (!ENV.AUTH_MFA_ENABLED) {
     return res.boom.notFound();
   }
 
@@ -33,7 +33,11 @@ export const mfatotpGenerateHandler = async (
   const { userId } = req.auth;
 
   const totpSecret = authenticator.generateSecret();
-  const otpAuth = authenticator.keyuri(userId, ENV.TOTP_ISSUER, totpSecret);
+  const otpAuth = authenticator.keyuri(
+    userId,
+    ENV.AUTH_TOTP_ISSUER,
+    totpSecret
+  );
 
   await gqlSdk.updateUser({
     id: userId,

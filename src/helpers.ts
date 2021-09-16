@@ -90,7 +90,7 @@ export const hashPassword = async (password: string): Promise<string> => {
 
 export function newRefreshExpiry() {
   const date = new Date();
-  date.setSeconds(date.getSeconds() + ENV.REFRESH_TOKEN_EXPIRES_IN);
+  date.setSeconds(date.getSeconds() + ENV.AUTH_REFRESH_TOKEN_EXPIRES_IN);
   return date;
 }
 
@@ -107,21 +107,13 @@ export const userIsAnonymous = async (userId: string) => {
 };
 
 export const getGravatarUrl = (email?: string) => {
-  if (ENV.GRAVATAR_ENABLED && email) {
+  if (ENV.AUTH_GRAVATAR_ENABLED && email) {
     return gravatar.url(email, {
-      r: ENV.GRAVATAR_RATING,
+      r: ENV.AUTH_GRAVATAR_RATING,
       protocol: 'https',
-      default: ENV.GRAVATAR_DEFAULT,
+      default: ENV.AUTH_GRAVATAR_DEFAULT,
     });
   }
-};
-
-export const isWhitelistedEmail = async (email: string) => {
-  const { AuthWhitelist } = await gqlSdk.isWhitelistedEmail({
-    email,
-  });
-
-  return !!AuthWhitelist;
 };
 
 // export function userToSessionUser(user: UserFieldsFragment): SessionUser {
@@ -132,3 +124,23 @@ export const isWhitelistedEmail = async (email: string) => {
 //     avatarUrl: user.avatarUrl,
 //   };
 // }
+
+export function getRandomInt(min: number, max: number): number {
+  // Create byte array and fill with 1 random number
+  const byteArray = new Uint8Array(1);
+  crypto.getRandomValues(byteArray);
+
+  const range = max - min + 1;
+  const max_range = 256;
+  if (byteArray[0] >= Math.floor(max_range / range) * range)
+    return getRandomInt(min, max);
+  return min + (byteArray[0] % range);
+}
+
+export function getNewPasswordlessCode() {
+  let otp = '';
+  for (let i = 0; i < 6; i++) {
+    otp += getRandomInt(0, 9);
+  }
+  return otp;
+}

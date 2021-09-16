@@ -9,6 +9,7 @@ import {
   PermissionVariables,
   SignInResponse,
   Session,
+  JwtSecret,
 } from '../types';
 import { UserFieldsFragment } from './__generated__/graphql-request';
 import { generateTicketExpiresAt } from './ticket';
@@ -17,14 +18,16 @@ import { ENV } from './env';
 import { getUser } from './user';
 
 // const RSA_TYPES = ["RS256", "RS384", "RS512"];
-const SHA_TYPES = ['HS256', 'HS384', 'HS512'];
+const ALLOWED_JWT_TYPES = ['HS256', 'HS384', 'HS512'];
 
-if (!SHA_TYPES.includes(ENV.ALGORITHM)) {
-  throw new Error(`Invalid JWT algorithm: ${ENV.ALGORITHM}`);
+const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+
+if (!ALLOWED_JWT_TYPES.includes(jwt.type)) {
+  throw new Error(`Invalid JWT type: ${jwt.type}`);
 }
 
-if (!ENV.JWT_SECRET) {
-  throw new Error('Empty JWT secret key');
+if (!jwt.key) {
+  throw new Error('Empty JWT key');
 }
 
 /**
@@ -57,7 +60,7 @@ export function generatePermissionVariables(
 
   // custom user session variables
   const customUserSessionVariables = {} as any;
-  ENV.USER_SESSION_VARIABLE_FIELDS.forEach((field) => {
+  ENV.AUTH_USER_SESSION_VARIABLE_FIELDS.forEach((field) => {
     if (!(field in user)) {
       throw new Error('field not in user');
     }
@@ -84,7 +87,7 @@ export function generatePermissionVariables(
 
   // profile
   const customProfileSessionVariables = {} as any;
-  ENV.PROFILE_SESSION_VARIABLE_FIELDS.forEach((field) => {
+  ENV.AUTH_PROFILE_SESSION_VARIABLE_FIELDS.forEach((field) => {
     let value;
 
     const type = typeof profile[field] as ClaimValueType;
@@ -119,11 +122,13 @@ export const sign = ({
   payload: object;
   user: UserFieldsFragment;
 }) => {
-  return JWT.sign(payload, ENV.JWT_SECRET, {
-    algorithm: ENV.ALGORITHM,
-    expiresIn: `${ENV.ACCESS_TOKEN_EXPIRES_IN}s`,
+  const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+
+  return JWT.sign(payload, jwt.key, {
+    algorithm: jwt.type,
+    expiresIn: `${ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN}s`,
     subject: user.id,
-    issuer: 'nhost',
+    issuer: jwt.issuer ? jwt.issuer : 'hasura-auth',
   });
 };
 
@@ -135,10 +140,17 @@ export const getClaims = (authorization: string | undefined): Claims => {
   if (!authorization) throw new Error('Missing Authorization header');
   const token = authorization.replace('Bearer ', '');
   try {
-    const decodedToken = JWT.verify(token, ENV.JWT_SECRET) as Token;
-    if (!decodedToken[ENV.CLAIMS_NAMESPACE])
+    const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+
+    const decodedToken = JWT.verify(token, jwt.key) as Token;
+
+    const jwtNameSpace = jwt.claims_namespace
+      ? jwt.claims_namespace
+      : 'https://hasura.io/jwt/claims';
+
+    if (!decodedToken[jwtNameSpace])
       throw new Error('Claims namespace not found');
-    return decodedToken[ENV.CLAIMS_NAMESPACE];
+    return decodedToken[jwtNameSpace];
   } catch (err) {
     throw new Error('Invalid or expired JWT token');
   }
@@ -161,7 +173,7 @@ export function newRefreshExpiry() {
   const date = new Date();
 
   // cant return this becuase this will return a unix timestamp directly
-  date.setSeconds(date.getSeconds() + ENV.REFRESH_TOKEN_EXPIRES_IN);
+  date.setSeconds(date.getSeconds() + ENV.AUTH_REFRESH_TOKEN_EXPIRES_IN);
 
   // instead we must return the js date object
   return date;
@@ -174,9 +186,15 @@ export const createHasuraAccessToken = (
   user: UserFieldsFragment,
   profile: unknown
 ): string => {
+  const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+
+  const jwtNameSpace = jwt.claims_namespace
+    ? jwt.claims_namespace
+    : 'https://hasura.io/jwt/claims';
+
   return sign({
     payload: {
-      [ENV.CLAIMS_NAMESPACE]: generatePermissionVariables(user, profile),
+      [jwtNameSpace]: generatePermissionVariables(user, profile),
     },
     user,
   });
@@ -248,7 +266,7 @@ export const getSignInResponse = async ({
   return {
     session: {
       accessToken,
-      accessTokenExpiresIn: ENV.ACCESS_TOKEN_EXPIRES_IN,
+      accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
       refreshToken,
       user: sessionUser,
     },
@@ -275,7 +293,7 @@ export const getNewTokens = async ({
 
   return {
     accessToken,
-    accessTokenExpiresIn: ENV.ACCESS_TOKEN_EXPIRES_IN,
+    accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
     refreshToken,
     user: sessionUser,
   };
