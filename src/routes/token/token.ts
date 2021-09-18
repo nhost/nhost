@@ -65,9 +65,9 @@ export const tokenHandler = async (
 
   // 10% chance
   // 1 in 10 request will delete expired refresh tokens
-  // Probably a CRONJOB in the future.
+  // TODO: CRONJOB in the future.
   if (randomNumber === 1) {
-    console.log('DO delete');
+    console.log('Do delete');
     // no await
     gqlSdk.deleteExpiredRefreshTokens();
   } else {
