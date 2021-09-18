@@ -15,7 +15,7 @@ mutation deleteProviderRequest($id: uuid!) {
 }
 
 query providerRequest($id: uuid!) {
-  AuthProviderRequest(id: $id) {
+  authProviderRequest(id: $id) {
     id
     redirectUrl
   }

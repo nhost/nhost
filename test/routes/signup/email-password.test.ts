@@ -294,10 +294,14 @@ describe('email-password with profile table', () => {
     `);
 
     // track table
-    await trackTable({ table: { schema: 'public', name: 'profiles' } });
+    await trackTable({
+      source: 'default',
+      table: { schema: 'public', name: 'profiles' },
+    });
 
     // set profile customization
     await setTableCustomization({
+      source: 'default',
       table: {
         schema: 'public',
         name: 'profiles',

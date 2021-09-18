@@ -193,6 +193,7 @@ export const applyMetadata = async (): Promise<void> => {
       name: 'users',
     },
     configuration: {
+      custom_name: 'users',
       custom_root_fields: {
         select: 'users',
         select_by_pk: 'user',
