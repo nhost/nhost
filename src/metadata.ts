@@ -209,6 +209,7 @@ export const applyMetadata = async (): Promise<void> => {
         id: 'id',
         created_at: 'createdAt',
         updated_at: 'updatedAt',
+        last_seen: 'lastSeen',
         disabled: 'disabled',
         display_name: 'displayName',
         avatar_url: 'avatarUrl',

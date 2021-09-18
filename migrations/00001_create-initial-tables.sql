@@ -49,6 +49,7 @@ CREATE TABLE auth.users (
   id uuid DEFAULT public.gen_random_uuid () NOT NULL PRIMARY KEY,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   updated_at timestamp with time zone DEFAULT now() NOT NULL,
+  last_seen timestamp with time zone,
   disabled boolean DEFAULT false NOT NULL,
   display_name text DEFAULT '' NOT NULl,
   avatar_url text DEFAULT '' NOT NULL,

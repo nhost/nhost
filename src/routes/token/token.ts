@@ -5,7 +5,7 @@ import {
   ValidatedRequestSchema,
 } from 'express-joi-validation';
 
-import { getNewTokens } from '@/utils/tokens';
+import { getNewSession } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 
 type BodyType = {
@@ -74,9 +74,9 @@ export const tokenHandler = async (
     console.log('no delete');
   }
 
-  const tokens = await getNewTokens({
+  const session = await getNewSession({
     user,
   });
 
-  return res.send(tokens);
+  return res.send(session);
 };

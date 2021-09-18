@@ -215,6 +215,39 @@ export const getNewRefreshToken = async (
   return refreshToken;
 };
 
+export const getNewSession = async ({
+  user,
+}: {
+  user: UserFieldsFragment;
+}): Promise<Session> => {
+  const profile = await getProfileFieldsForAccessToken({
+    userId: user.id,
+  }).catch(() => {
+    // noop
+    // profile is not available
+  });
+
+  // update user's last seen
+  gqlSdk.updateUser({
+    id: user.id,
+    user: {
+      lastSeen: new Date(),
+    },
+  });
+
+  const sessionUser = await getUser({ userId: user.id });
+
+  const accessToken = createHasuraAccessToken(user, profile);
+  const refreshToken = await getNewRefreshToken(user.id);
+
+  return {
+    accessToken,
+    accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
+    refreshToken,
+    user: sessionUser,
+  };
+};
+
 export const getSignInResponse = async ({
   userId,
   checkMFA,
@@ -251,50 +284,10 @@ export const getSignInResponse = async ({
     };
   }
 
-  const profile = await getProfileFieldsForAccessToken({
-    userId: user.id,
-  }).catch(() => {
-    // noop
-    // profile is not available
-  });
-
-  const sessionUser = await getUser({ userId });
-
-  const accessToken = createHasuraAccessToken(user, profile);
-  const refreshToken = await getNewRefreshToken(userId);
+  const session = await getNewSession({ user });
 
   return {
-    session: {
-      accessToken,
-      accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
-      refreshToken,
-      user: sessionUser,
-    },
+    session,
     mfa: null,
-  };
-};
-
-export const getNewTokens = async ({
-  user,
-}: {
-  user: UserFieldsFragment;
-}): Promise<Session> => {
-  const profile = await getProfileFieldsForAccessToken({
-    userId: user.id,
-  }).catch(() => {
-    // noop
-    // profile is not available
-  });
-
-  const sessionUser = await getUser({ userId: user.id });
-
-  const accessToken = createHasuraAccessToken(user, profile);
-  const refreshToken = await getNewRefreshToken(user.id);
-
-  return {
-    accessToken,
-    accessTokenExpiresIn: ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN,
-    refreshToken,
-    user: sessionUser,
   };
 };
