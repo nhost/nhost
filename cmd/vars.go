@@ -19,6 +19,12 @@ const (
 	Red    = "\033[31m"
 	Gray   = "\033[37;2m"
 	// White = "\033[97m"
+
+	//	Common Error Codes
+	ErrDockerNotFound = "Is your docker running on your machine?"
+
+	//	Common Information Codes
+	InfoDockerDownload = "Download docker from: https://www.docker.com/products/docker-desktop"
 )
 
 var (
@@ -31,5 +37,5 @@ var (
 	Client = http.Client{}
 	env    = environment.Environment{}
 
-	tunnelAddress = "tunnel.mrinalwahal.com"
+	//	tunnelAddress = "tunnel.mrinalwahal.com"
 )

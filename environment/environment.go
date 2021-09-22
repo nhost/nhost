@@ -80,12 +80,12 @@ func (e *Environment) Init() error {
 	if util.PathExists(nhost.GIT_DIR) {
 
 		// Initialize watcher for post-checkout branch changes
-		e.Watcher.Map[filepath.Join(nhost.GIT_DIR, "HEAD")] = e.restartAfterCheckout
+		e.Watcher.Register(filepath.Join(nhost.GIT_DIR, "HEAD"), e.restartAfterCheckout)
 
 		// Initialize watcher for post-merge commit changes
 		head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", nhost.REMOTE))
 		if head != "" {
-			e.Watcher.Map[head] = e.restartMigrations
+			e.Watcher.Register(head, e.restartMigrations)
 		}
 	}
 

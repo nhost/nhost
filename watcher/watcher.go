@@ -27,23 +27,14 @@ type Watcher struct {
 }
 
 //	Add individial location to watcher.
-func (w *Watcher) Register(path string) error {
+//	Along with associating it with respectiove operation function.
+func (w *Watcher) Register(path string, op Operation) error {
 
 	w.log.WithField("component", "path").Debugln("Watching", util.Rel(path))
 
+	w.Map[path] = op
+
 	return w.Add(path)
-}
-
-//	Add all locations in mapping to the watcher.
-func (w *Watcher) RegisterAll() error {
-
-	for item := range w.Map {
-		if err := w.Register(item); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 //	Validates whether a given key is already

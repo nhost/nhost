@@ -38,7 +38,6 @@ import (
 	"syscall"
 	"text/tabwriter"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/mrinalwahal/cli/environment"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/mrinalwahal/cli/util"
@@ -54,9 +53,6 @@ var (
 
 	// signal interruption channel
 	stop = make(chan os.Signal)
-
-	// fsnotify watcher
-	watcher *fsnotify.Watcher
 )
 
 /*
@@ -120,17 +116,8 @@ var devCmd = &cobra.Command{
 			log.Fatal("Failed to read Nhost config")
 		}
 
-		// Launch the Watchers of this environment
-		if len(env.Watcher.Map) > 0 {
-
-			//	Register all watcher locations.
-			if err := env.Watcher.RegisterAll(); err != nil {
-				log.WithField("component", "watcher").Error(err)
-			}
-
-			// launch the infinite watching goroutine
-			go env.Watcher.Start()
-		}
+		//	Start the Watcher
+		go env.Watcher.Start()
 
 		var end_waiter sync.WaitGroup
 		end_waiter.Add(1)
@@ -153,10 +140,10 @@ var devCmd = &cobra.Command{
 		// Register functions as a service in our environment
 		funcPortStr, _ := strconv.Atoi(funcPort)
 		env.Config.Services["functions"] = &nhost.Service{
-			Name:   "functions",
-			Handle: "functions/",
-			Proxy:  true,
-			Port:   funcPortStr,
+			Name:    "functions",
+			Handles: map[string]string{"/": "/v1/functions/"},
+			Proxy:   true,
+			Port:    funcPortStr,
 
 			//	Initialize this function service,
 			//	directly with functions HTTP handler.
@@ -202,6 +189,10 @@ var devCmd = &cobra.Command{
 
 		// Register the functions server in our environment
 		//	env.Servers = append(env.Servers, functionServer)
+
+		// print the proxy routes
+		p := newPrinter()
+		p.print("header", "", "")
 
 		//spawn hasura console
 		consolePort := nhost.GetPort(9301, 9400)
@@ -256,15 +247,6 @@ var devCmd = &cobra.Command{
 			}
 		}()
 
-		// print the proxy routes
-		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
-		fmt.Println()
-		if expose {
-			fmt.Fprintln(w, "---\t\t-----\t\t-----")
-		} else {
-			fmt.Fprintln(w, "---\t\t-----")
-		}
-
 		for name, item := range env.Config.Services {
 
 			// Only issue a proxy to those,
@@ -278,40 +260,28 @@ var devCmd = &cobra.Command{
 				}
 
 				// print the name and handle
-				fmt.Fprintf(w, "%v\t\t%v", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(item.Handle)))
-				fmt.Fprintln(w)
+				for _, value := range item.Handles {
+					p.print("", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(value)))
+					break
+				}
+			}
+
+			switch name {
+			case "mailhog":
+				p.print("", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s", Gray, item.Port, Reset))
 			}
 		}
 
-		// print Hasura console and mailhog URLs
-		fmt.Fprintf(
-			w,
-			"%v\t\t%v",
-			strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, consolePort, Reset),
-		)
-		fmt.Fprintln(w)
-		fmt.Fprintf(
-			w,
-			"%v\t\t%v",
-			strings.Title("mailhog"), fmt.Sprintf("%s%s%s", Gray, env.Config.Services["mailhog"].Address, Reset),
-		)
-		fmt.Fprintln(w)
-
-		// End the pretty printing
-		fmt.Fprintln(w, "---\t\t-----")
-		w.Flush()
-		fmt.Println()
+		// print Hasura console URLs
+		p.print("", strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, consolePort, Reset))
+		p.close()
 
 		// give example of using Functions inside Hasura
 		if util.PathExists(nhost.API_DIR) {
-			log.Info("ProTip: You can call Functions inside Hasura!")
-			fmt.Println()
-			fmt.Fprintln(w, "--\t\t----")
-			fmt.Fprintf(w, "%v\t\t%v", "URL", fmt.Sprintf("%s{{NHOST_FUNCTIONS}}%s/hello", Gray, Reset))
-			fmt.Fprintln(w)
-			fmt.Fprintln(w, "--\t\t----")
-			w.Flush()
-			fmt.Println()
+			p.print("info", "ProTip: You can call Functions inside Hasura!", "")
+			p.print("header", "", "")
+			p.print("", "URL", fmt.Sprintf("%s{{NHOST_FUNCTIONS}}%s/hello", Gray, Reset))
+			p.close()
 		}
 
 		// Update environment state
@@ -338,6 +308,38 @@ var devCmd = &cobra.Command{
 		// Close the signal interruption channel
 		close(stop)
 	},
+}
+
+type Printer struct {
+	*tabwriter.Writer
+}
+
+func newPrinter() *Printer {
+	t := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
+	return &Printer{
+		Writer: t,
+	}
+}
+
+func (p *Printer) print(loc, head, tail string) {
+
+	switch loc {
+	case "header":
+		fmt.Fprintln(p)
+		fmt.Fprintln(p, "---\t\t-----")
+	case "footer":
+		fmt.Fprintln(p, "---\t\t-----")
+	case "info":
+		log.Info(head)
+	default:
+		fmt.Fprintf(p, "%v\t\t%v", head, tail)
+		fmt.Fprintln(p)
+	}
+}
+
+func (p *Printer) close() {
+	p.Flush()
+	fmt.Println()
 }
 
 func init() {

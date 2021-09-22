@@ -254,8 +254,11 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Port = GetPort(8200, 8500)
 			}
 
+			if parsed.Services[name].Version == nil {
+				parsed.Services[name].Version = "latest"
+			}
+
 			parsed.Services[name].Image = "minio/minio"
-			parsed.Services[name].Version = "latest"
 			parsed.Services[name].HealthEndpoint = "/minio/health/live"
 
 		case "mailhog":
@@ -264,8 +267,11 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Port = GetPort(8800, 8900)
 			}
 
+			if parsed.Services[name].Version == nil {
+				parsed.Services[name].Version = "latest"
+			}
+
 			parsed.Services[name].Image = "mailhog/mailhog"
-			parsed.Services[name].Version = "latest"
 
 		case "auth":
 
@@ -273,10 +279,13 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Port = GetPort(9000, 9100)
 			}
 
+			if parsed.Services[name].Version == nil {
+				parsed.Services[name].Version = "sha-6ebfe2b"
+			}
+
 			parsed.Services[name].Image = "nhost/hasura-auth"
-			parsed.Services[name].Version = "sha-c68cd71"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handle = "auth/"
+			parsed.Services[name].Handles = map[string]string{"/": "/v1/auth/"}
 			parsed.Services[name].Proxy = true
 
 		case "storage":
@@ -285,10 +294,13 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Port = GetPort(8501, 8799)
 			}
 
+			if parsed.Services[name].Version == nil {
+				parsed.Services[name].Version = "sha-e7fc9c9"
+			}
+
 			parsed.Services[name].Image = "nhost/hasura-storage"
-			parsed.Services[name].Version = "sha-e7fc9c9"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handle = "storage/"
+			parsed.Services[name].Handles = map[string]string{"/": "/v1/storage/"}
 			parsed.Services[name].Proxy = true
 
 		case "postgres":
@@ -310,7 +322,11 @@ func (c *Configuration) Wrap() error {
 			// parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
 			parsed.Services[name].Version = parsed.Services["hasura"].Version
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handle = "graphql"
+			parsed.Services[name].Handles = map[string]string{
+				"/v1/graphql":  "/v1/graphql",
+				"/v2/query":    "/hasura/v2/query",
+				"/v1/metadata": "/hasura/v1/metadata",
+			}
 			parsed.Services[name].Proxy = true
 		}
 
@@ -454,6 +470,9 @@ func GenerateConfig(options Project) Configuration {
 		Version:     "v2.0.7",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
+		Environment: map[interface{}]interface{}{
+			"hasura_graphql_enable_remote_schema_permissions": false,
+		},
 	}
 
 	// check if a loaded remote project has been passed
@@ -505,66 +524,66 @@ func (s *Service) Healthz() bool {
 //	and custom request context.
 func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 
-	httpAddress := s.GetAddress()
-	wsAddress := fmt.Sprintf("ws://localhost:%v", s.Port)
+	//	Loop over all handles to be proxied
+	for key, value := range s.Handles {
 
-	switch s.Name {
-	case GetContainerName("hasura"):
-		httpAddress += "/v1/graphql"
-		//	wsAddress += "/v1/graphql"
-	}
+		httpAddress := s.GetAddress()
+		wsAddress := fmt.Sprintf("ws://localhost:%v", s.Port)
 
-	log.WithFields(logrus.Fields{
-		"value": s.Name,
-		"type":  "proxy",
-	}).Debugf("%s --> %s", httpAddress, s.Handle)
+		httpOrigin, err := url.Parse(httpAddress)
+		if err != nil {
+			return err
+		}
 
-	httpOrigin, err := url.Parse(httpAddress)
-	if err != nil {
-		return err
-	}
+		if key != "/" {
+			httpAddress += key
+		}
 
-	wsOrigin, err := url.Parse(wsAddress)
-	if err != nil {
-		return err
-	}
+		wsOrigin, err := url.Parse(wsAddress)
+		if err != nil {
+			return err
+		}
 
-	httpProxy := httputil.NewSingleHostReverseProxy(httpOrigin)
-	wsProxy := websocketproxy.NewProxy(wsOrigin)
+		httpProxy := httputil.NewSingleHostReverseProxy(httpOrigin)
+		wsProxy := websocketproxy.NewProxy(wsOrigin)
 
-	//	Prepend all handles with API VERSION
-	handle := "/" + API_VERSION + "/" + s.Handle
-
-	mux.HandleFunc(handle, func(w http.ResponseWriter, r *http.Request) {
-
-		//	Log every incoming request
 		log.WithFields(logrus.Fields{
-			"component": "proxy",
-			"method":    r.Method,
-		}).Debug(r.URL)
+			"value": s.Name,
+			"type":  "proxy",
+		}).Debugf("%s --> %s", httpAddress, value)
 
-		//	If the supplied context is not nil,
-		//	wrap the incoming request over the context
-		if ctx != nil {
-			r = r.WithContext(ctx)
-		}
+		mux.HandleFunc(value, func(w http.ResponseWriter, r *http.Request) {
 
-		//	If the client has passed Web-socket protocol header,
-		//	then serve the request through web-socket proxy
-		for key := range r.Header {
-			if strings.ToLower(key) == "sec-websocket-protocol" {
-				wsProxy.ServeHTTP(w, r)
-				return
+			//	Log every incoming request
+			log.WithFields(logrus.Fields{
+				"component": "proxy",
+				"method":    r.Method,
+			}).Debug(r.URL)
+
+			//	If the supplied context is not nil,
+			//	wrap the incoming request over the context
+			if ctx != nil {
+				r = r.WithContext(ctx)
 			}
-		}
 
-		//	Otherwise, serve it through normal HTTP proxy
+			//	If the client has passed Web-socket protocol header,
+			//	then serve the request through web-socket proxy
+			for key := range r.Header {
+				if strings.ToLower(key) == "sec-websocket-protocol" {
+					wsProxy.ServeHTTP(w, r)
+					return
+				}
+			}
 
-		//	Get the original service URL without Nhost specific routes
-		r.URL.Path = strings.TrimPrefix(r.URL.Path, handle)
+			//	Otherwise, serve it through normal HTTP proxy
 
-		httpProxy.ServeHTTP(w, r)
-	})
+			//	Get the original service URL without Nhost specific routes
+			r.URL.Path = strings.TrimPrefix(r.URL.Path, value)
+
+			httpProxy.ServeHTTP(w, r)
+		})
+
+	}
 
 	return nil
 }
@@ -698,6 +717,11 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
 	}
 	containerVariables = append(containerVariables, envVars...)
+
+	// append service specific environment variables
+	for key, value := range hasuraConfig.Environment {
+		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+	}
 
 	// Append NHOST_FUNCTIONS env var to Hasura
 	// to allow NHOST_FUNCTIONS to be reachable from Hasura Event Triggers.
@@ -911,10 +935,10 @@ func (s *Service) Exec(docker *client.Client, ctx context.Context, command []str
 func generateSignInVars() map[string]interface{} {
 	return map[string]interface{}{
 		"passwordless_email_enabled":     true,
-		"passwordless_sms_enabled":       "",
+		"passwordless_sms_enabled":       false,
 		"signin_email_verified_required": "",
 		"allowed_redirect_urls":          "",
-		"mfa_enabled":                    "",
+		"mfa_enabled":                    false,
 		"totp_issuer":                    "",
 	}
 }
@@ -923,11 +947,10 @@ func generateSignUpVars() map[string]interface{} {
 	return map[string]interface{}{
 		"anonymous_users_enabled":    false,
 		"disable_new_users":          "",
-		"whitelist_enabled":          "",
 		"allowed_email_domains":      "",
 		"signup_profile_fields":      "",
 		"min_password_length":        "",
-		"hibp_enabled":               "",
+		"hibp_enabled":               false,
 		"default_user_role":          "",
 		"default_allowed_user_roles": "",
 		"allowed_user_roles":         "",
