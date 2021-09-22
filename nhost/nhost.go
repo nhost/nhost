@@ -578,7 +578,8 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 			//	Otherwise, serve it through normal HTTP proxy
 
 			//	Get the original service URL without Nhost specific routes
-			r.URL.Path = strings.ReplaceAll(r.URL.Path, value, key)
+			//	fmt.Println(strings.Count(r.URL.Path, value))
+			r.URL.Path = strings.Replace(r.URL.Path, value, key, -1)
 			httpProxy.ServeHTTP(w, r)
 		})
 	}
