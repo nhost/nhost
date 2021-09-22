@@ -70,6 +70,14 @@ utility and upgrade to it.`,
 		} else {
 			log.WithField("component", release.TagName).Info("Downloading new version")
 
+			asset := release.Asset()
+
+			//	If there is no asset for our runtime,
+			//	then abort
+			if asset.BrowserDownloadURL == "" {
+				log.WithField("component", release.TagName).Fatal("Version not yet available. Try again in a moment!")
+			}
+
 			// fetch nhost installation directory
 			target, err := exec.LookPath("nhost")
 			if err != nil {
@@ -81,8 +89,6 @@ utility and upgrade to it.`,
 				}
 				target = filepath.Dir(target)
 			}
-
-			asset := release.Asset()
 
 			// initialize hashicorp go-getter client
 			client := &getter.Client{

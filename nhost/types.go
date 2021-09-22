@@ -100,19 +100,19 @@ type (
 
 	// Nhost config.yaml service structure
 	Service struct {
-		Port           int                         `yaml:",omitempty"`
-		Version        interface{}                 `yaml:",omitempty"`
-		Image          string                      `yaml:",omitempty"`
-		AdminSecret    interface{}                 `yaml:"admin_secret,omitempty"`
-		Name           string                      `yaml:",omitempty"`
-		Address        string                      `yaml:",omitempty"`
-		ID             string                      `yaml:",omitempty"`
-		Handles        map[string]string           `yaml:",omitempty"`
-		Proxy          bool                        `yaml:",omitempty"`
-		Config         *container.Config           `yaml:",omitempty"`
-		HostConfig     *container.HostConfig       `yaml:",omitempty"`
-		HealthEndpoint string                      `yaml:",omitempty"`
-		Environment    map[interface{}]interface{} `yaml:",omitempty"`
+		Port           int                    `yaml:",omitempty"`
+		Version        interface{}            `yaml:",omitempty"`
+		Image          string                 `yaml:",omitempty"`
+		AdminSecret    interface{}            `yaml:"admin_secret,omitempty"`
+		Name           string                 `yaml:",omitempty"`
+		Address        string                 `yaml:",omitempty"`
+		ID             string                 `yaml:",omitempty"`
+		Handles        map[string]string      `yaml:",omitempty"`
+		Proxy          bool                   `yaml:",omitempty"`
+		Config         *container.Config      `yaml:",omitempty"`
+		HostConfig     *container.HostConfig  `yaml:",omitempty"`
+		HealthEndpoint string                 `yaml:",omitempty"`
+		Environment    map[string]interface{} `yaml:",omitempty"`
 
 		// Channels are best thought of as queues (FIFO).
 		// Therefore you can't really skip around.

@@ -262,7 +262,6 @@ var devCmd = &cobra.Command{
 				// print the name and handle
 				for _, value := range item.Handles {
 					p.print("", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(value)))
-					break
 				}
 			}
 

@@ -470,7 +470,7 @@ func GenerateConfig(options Project) Configuration {
 		Version:     "v2.0.7",
 		Image:       "hasura/graphql-engine",
 		AdminSecret: "hasura-admin-secret",
-		Environment: map[interface{}]interface{}{
+		Environment: map[string]interface{}{
 			"hasura_graphql_enable_remote_schema_permissions": false,
 		},
 	}
@@ -558,7 +558,7 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 			log.WithFields(logrus.Fields{
 				"component": "proxy",
 				"method":    r.Method,
-			}).Debug(r.URL)
+			}).Debug(r.URL.Path)
 
 			//	If the supplied context is not nil,
 			//	wrap the incoming request over the context
@@ -568,8 +568,8 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 
 			//	If the client has passed Web-socket protocol header,
 			//	then serve the request through web-socket proxy
-			for key := range r.Header {
-				if strings.ToLower(key) == "sec-websocket-protocol" {
+			for item := range r.Header {
+				if strings.ToLower(item) == "sec-websocket-protocol" {
 					wsProxy.ServeHTTP(w, r)
 					return
 				}
@@ -578,11 +578,9 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 			//	Otherwise, serve it through normal HTTP proxy
 
 			//	Get the original service URL without Nhost specific routes
-			r.URL.Path = strings.TrimPrefix(r.URL.Path, value)
-
+			r.URL.Path = strings.ReplaceAll(r.URL.Path, value, key)
 			httpProxy.ServeHTTP(w, r)
 		})
-
 	}
 
 	return nil
@@ -720,7 +718,7 @@ func (config *Configuration) Init(port string) error {
 
 	// append service specific environment variables
 	for key, value := range hasuraConfig.Environment {
-		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
+		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
 
 	// Append NHOST_FUNCTIONS env var to Hasura
