@@ -78,6 +78,14 @@ const manageProviderStrategy =
 
     // User is already registered
     if (userProvider) {
+      await gqlSdk.updateAuthUserprovider({
+        id: userProvider.id,
+        authUserProvider: {
+          accessToken,
+          refreshToken,
+        },
+      });
+
       return done(null, userProvider.user);
     }
 
@@ -105,51 +113,6 @@ const manageProviderStrategy =
         return done(null, user);
       }
     }
-
-    // // Check whether logged in user is trying to add a provider
-    // const jwtToken = await gqlSdk
-    //   .providerRequest({
-    //     id: req.state,
-    //   })
-    //   .then((res) => res.AuthProviderRequest?.jwtToken);
-
-    // if (jwtToken) {
-    //   let permissionVariables: PermissionVariables;
-
-    //   try {
-    //     permissionVariables = getPermissionVariablesFromClaims(
-    //       getClaims(jwtToken)
-    //     );
-    //   } catch (err) {
-    //     return done(new Error("Invalid JWT Token"));
-    //   }
-
-    //   const id = permissionVariables["user-id"];
-
-    //   const user = await gqlSdk
-    //     .insertProviderToUser({
-    //       userId: id,
-    //       provider: {
-    //         id,
-    //       },
-    //     })
-    //     .then((res) => res.updateUser);
-
-    //   if (!user) {
-    //     throw new Error("Could not insert provider to user");
-    //   }
-
-    //   req.logger.verbose(
-    //     `User ${user.id} added a ${provider} provider(${id})`,
-    //     {
-    //       userId: user.id,
-    //       authProvider: provider,
-    //       authProviderUniqueId: id,
-    //     }
-    //   );
-
-    //   return done(null, user);
-    // }
 
     const insertUser = await gqlSdk
       .insertUser({

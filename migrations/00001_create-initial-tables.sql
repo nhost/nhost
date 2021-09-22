@@ -30,7 +30,7 @@ CREATE TABLE auth.user_providers (
   updated_at timestamp with time zone DEFAULT now() NOT NULL,
   user_id uuid NOT NULL,
   access_token text NOT NULL,
-  refresh_token text NOT NULL,
+  refresh_token text,
   provider_id text NOT NULL,
   provider_user_id text NOT NULL,
   UNIQUE (user_id, provider_id),
