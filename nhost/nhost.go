@@ -324,8 +324,8 @@ func (c *Configuration) Wrap() error {
 			parsed.Services[name].HealthEndpoint = "/healthz"
 			parsed.Services[name].Handles = map[string]string{
 				"/v1/graphql":  "/v1/graphql",
-				"/v2/query":    "/hasura/v2/query",
-				"/v1/metadata": "/hasura/v1/metadata",
+				"/v2/query":    "/v2/query",
+				"/v1/metadata": "/v1/metadata",
 			}
 			parsed.Services[name].Proxy = true
 		}
@@ -578,8 +578,7 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 			//	Otherwise, serve it through normal HTTP proxy
 
 			//	Get the original service URL without Nhost specific routes
-			//	fmt.Println(strings.Count(r.URL.Path, value))
-			r.URL.Path = strings.Replace(r.URL.Path, value, key, -1)
+			r.URL.Path = strings.ReplaceAll(r.URL.Path, value, key)
 			httpProxy.ServeHTTP(w, r)
 		})
 	}
