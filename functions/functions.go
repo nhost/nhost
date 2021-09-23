@@ -35,7 +35,7 @@ func (function *Function) BuildNodePackage() error {
 
 	// build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
-		AbsWorkingDir:    buildDir,
+		AbsWorkingDir:    function.buildDir,
 		EntryPoints:      []string{function.Path},
 		Outfile:          function.Build,
 		Bundle:           true,
@@ -77,7 +77,7 @@ func (function *Function) BuildNodeServer(port int) error {
 		
 		app.all('%s', func);
 			
-		app.listen(%d);`, filepath.Join(buildDir, "node_modules", "express"), function.Build, function.Route, port)
+		app.listen(%d);`, filepath.Join(function.buildDir, "node_modules", "express"), function.Build, function.Route, port)
 
 	// save the nodeJS server config
 	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")

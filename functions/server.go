@@ -132,7 +132,8 @@ func New(config *ServerConfig) *Server {
 func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 
 	f := Function{
-		log: s.log,
+		log:      s.log,
+		buildDir: s.config.BuildDir,
 	}
 
 	getRoute := func(path string, item fs.FileInfo, err error) error {

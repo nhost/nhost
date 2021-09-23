@@ -255,7 +255,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "latest"
+				parsed.Services[name].Version = "RELEASE.2021-09-18T18-09-59Z"
 			}
 
 			parsed.Services[name].Image = "minio/minio"
@@ -268,7 +268,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "latest"
+				parsed.Services[name].Version = "v1.0.1"
 			}
 
 			parsed.Services[name].Image = "mailhog/mailhog"

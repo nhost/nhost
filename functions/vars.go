@@ -4,7 +4,6 @@ var (
 
 	// vars to store server state during each runtime
 	functions []Function
-	buildDir  string
 
 	// initialize temporary directory for caching
 	tempDir string
