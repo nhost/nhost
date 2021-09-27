@@ -255,7 +255,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "RELEASE.2021-09-18T18-09-59Z"
+				parsed.Services[name].Version = "RELEASE.2021-09-24T00-24-24Z"
 			}
 
 			parsed.Services[name].Image = "minio/minio"
@@ -795,7 +795,7 @@ func (config *Configuration) Init(port string) error {
 
 	minioConfig.Config.Cmd = []string{
 		"-c",
-		fmt.Sprintf(`mkdir -p /data/nhost && /usr/bin/minio server --address :%v /data`, config.Services["minio"].Port),
+		fmt.Sprintf(`mkdir -p /data/nhost && /opt/bin/minio server --address :%v /data`, config.Services["minio"].Port),
 	}
 	//User:  "999:1001",
 	minioConfig.Config.Entrypoint = []string{"sh"}
