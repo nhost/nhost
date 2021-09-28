@@ -37,48 +37,13 @@ const waitForHasura = async () => {
   }
 };
 
-const getIsFirstRound = async () => {
-  // https://stackoverflow.com/a/24089729
-  const { data } = await axios.post(
-    ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v2/query'),
-    {
-      type: 'run_sql',
-      args: {
-        source: 'default',
-        sql: "SELECT to_regclass('auth.users');",
-      },
-    },
-    {
-      headers: {
-        'x-hasura-admin-secret': ENV.HASURA_GRAPHQL_ADMIN_SECRET,
-      },
-    }
-  );
-
-  const isFirstRound = data.result[1][0] === 'NULL';
-
-  return isFirstRound;
-};
-
 const start = async (): Promise<void> => {
   // wait for hasura to be ready
   await waitForHasura();
 
-  // Check if metadata should be applied or not.
-  // Metadata should be applied in dev mode or on first run in production.
-  // In production, on subsequent runs, metadata should be applied by the
-  // developer
-  const metadataShouldBeApplied =
-    process.env.NODE_ENV === 'development' || (await getIsFirstRound());
-
-  // apply migrations
+  // apply migrations and metadata
   await applyMigrations();
-
-  if (metadataShouldBeApplied) {
-    await applyMetadata();
-  }
-
-  // TODO: Fetch email templates from ENV var URL
+  await applyMetadata();
 
   app.listen(ENV.AUTH_PORT, ENV.AUTH_HOST, () => {
     logger.info('Log level');
