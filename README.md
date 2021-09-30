@@ -1,6 +1,8 @@
 <div align="center">
 
-![Nhost](assets/logo.png)
+<p align="center">
+  <img width="300" src="https://raw.githubusercontent.com/nhost/nhost/master/assets/logo.png"/>
+</p>
 
   <p>
     <!-- <div style="padding: 5px"><img src="https://img.shields.io/github/stars/nhost/nhost?colorB=7289da" /></div> -->
@@ -12,6 +14,19 @@
     <img src="https://img.shields.io/github/contributors/nhost/nhost" />
   </p>
 </div>
+
+<p align="center">
+<strong>
+Help us by giving us a star on GitHub. Thanks for your support!
+</strong>
+</p>
+
+<p align="center">
+  <img width="500" src="https://reporoster.com/stars/nhost/nhost" />
+</p>
+<p align="center">
+  <img width="500" src="https://raw.githubusercontent.com/nhost/nhost/master/assets/follow-us-banner.png"/>
+</p>
 
 **Nhost is an backend for your web and mobile apps.** Nhost consists of open
 source software pre-configured to make it fast to get started and easy to scale.
@@ -30,18 +45,6 @@ JS/TS and Flutter SDKs to make it easy to work with.
 ![Nhost](assets/hero-image.png)
 
 <hr />
-
-# Stay up-to-date
-
-Help us by giving us a star on GitHub. Thanks for your support!
-
-Also: Your username and profile picture will be displayed below if you give us a
-star!
-
-![Followers](https://reporoster.com/stars/nhost/nhost)
-![Follow Us](assets/follow-us-banner.png)
-
----
 
 # Get Started
 
@@ -77,7 +80,7 @@ Now you're ready to develop your app.
 
 # Develop Your App
 
-Now you're ready to use these fundamental building blocks to build a unique experince:
+Now you're ready to use these fundamental building blocks to build a unique experience:
 
 - [Quick Start](https://docs.nhost.io/quick-start): Create an app with Readt
 - [Authentication](https://docs.nhost.io/auth) with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
