@@ -1,7 +1,7 @@
 <div align="center">
 
 <p align="center">
-  <img width="190" src="https://raw.githubusercontent.com/nhost/nhost/main/assets/logo.png"/>
+  <img width="237" src="https://raw.githubusercontent.com/nhost/nhost/main/assets/logo.png"/>
 </p>
 
   <p>
