@@ -45,10 +45,6 @@ star!
 
 # Get Started
 
-## CLI
-
-_Coming soon_
-
 ![Nhost CLI](assets/cli-started.png)
 
 ## Managed at Nhost.io
