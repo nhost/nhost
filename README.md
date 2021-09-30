@@ -13,6 +13,11 @@
   </p>
 </div>
 
+**Help us by giving us a star on GitHub. Thanks for your support!**
+
+![Followers](https://reporoster.com/stars/nhost/nhost | width=100)
+![Follow Us](assets/follow-us-banner.png | width=100)
+
 **Nhost is an backend for your web and mobile apps.** Nhost consists of open
 source software pre-configured to make it fast to get started and easy to scale.
 
@@ -30,18 +35,6 @@ JS/TS and Flutter SDKs to make it easy to work with.
 ![Nhost](assets/hero-image.png)
 
 <hr />
-
-# Stay up-to-date
-
-Help us by giving us a star on GitHub. Thanks for your support!
-
-Also: Your username and profile picture will be displayed below if you give us a
-star!
-
-![Followers](https://reporoster.com/stars/nhost/nhost)
-![Follow Us](assets/follow-us-banner.png)
-
----
 
 # Get Started
 
