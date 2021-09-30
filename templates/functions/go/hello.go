@@ -17,23 +17,25 @@ import (
 //	"Handler" func should be exported, it cannot be "handler".
 
 type Body struct {
-	FirstName string
-	LastName  string
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 //	Start your local environment with `nhost dev`,
 //	and send a GET request to your functions endpoint,
 //	with following body:
 //
-//	{
-//		"first_name": "Mrinal",
-//		"last_name": "Wahal"
-//	}
-//
+/*
+	{
+		"first_name": "Mrinal",
+		"last_name": "Wahal"
+	}
+*/
 //	Expected Output: `Nhost pays it's respects to Wahal, Mrinal!`
 
 func Handler(w http.ResponseWriter, r *http.Request) {
 	body, _ := ioutil.ReadAll(r.Body)
+	defer r.Body.Close()
 	var payload Body
 	json.Unmarshal(body, &payload)
 	fmt.Fprintf(w, "Nhost pays it's respects to %s, %s!", payload.LastName, payload.FirstName)
