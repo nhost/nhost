@@ -1,6 +1,8 @@
 <div align="center">
 
-![Nhost](assets/logo.png)
+<p align="center">
+  <img width="300" src="https://raw.githubusercontent.com/nhost/nhost/master/assets/logo.png"/>
+</p>
 
   <p>
     <!-- <div style="padding: 5px"><img src="https://img.shields.io/github/stars/nhost/nhost?colorB=7289da" /></div> -->
@@ -13,10 +15,18 @@
   </p>
 </div>
 
-**Help us by giving us a star on GitHub. Thanks for your support!**
+<p align="center">
+<strong>
+Help us by giving us a star on GitHub. Thanks for your support!
+</strong>
+</p>
 
-![Followers](https://reporoster.com/stars/nhost/nhost | width=100)
-![Follow Us](assets/follow-us-banner.png | width=100)
+<p align="center">
+  <img width="500" src="https://reporoster.com/stars/nhost/nhost" />
+</p>
+<p align="center">
+  <img width="500" src="https://raw.githubusercontent.com/nhost/nhost/master/assets/follow-us-banner.png"/>
+</p>
 
 **Nhost is an backend for your web and mobile apps.** Nhost consists of open
 source software pre-configured to make it fast to get started and easy to scale.
