@@ -107,7 +107,7 @@ type (
 		Name           string                 `yaml:",omitempty"`
 		Address        string                 `yaml:",omitempty"`
 		ID             string                 `yaml:",omitempty"`
-		Handles        map[string]string      `yaml:",omitempty"`
+		Handles        []Route                `yaml:",omitempty"`
 		Proxy          bool                   `yaml:",omitempty"`
 		Config         *container.Config      `yaml:",omitempty"`
 		HostConfig     *container.HostConfig  `yaml:",omitempty"`
@@ -129,6 +129,8 @@ type (
 	// .nhost/nhost.yaml information
 	Information struct {
 		ProjectID string `yaml:"project_id,omitempty"`
+		ID        string `yaml:",omitempty"`
+		Name      string `yaml:",omitempty"`
 	}
 
 	// Nhost servers structure
@@ -165,5 +167,12 @@ type (
 		Label              string `json:",omitempty"`
 		BrowserDownloadURL string `json:"browser_download_url,omitempty"`
 		Size               int    `json:",omitempty"`
+	}
+
+	//	Proxy Route URL structure
+	Route struct {
+		Name        string
+		Source      string
+		Destination string
 	}
 )

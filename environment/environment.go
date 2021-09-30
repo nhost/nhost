@@ -48,22 +48,22 @@ func (e *Environment) Init() error {
 	e.Context, e.Cancel = context.WithCancel(context.Background())
 	e.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to connect to docker client")
+		log.Error("Failed to connect to docker client")
+		return err
 	}
 	defer e.Docker.Close()
 
 	// break execution if docker deamon is not running
 	_, err = e.Docker.Info(e.Context)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// get running containers with prefix "nhost_"
 	containers, err := e.GetContainers()
 	if err != nil {
-		log.Debug(err)
 		log.Error("Failed to get running Nhost services")
+		return err
 	}
 
 	// wrap the fetched containers inside the environment

@@ -134,18 +134,24 @@ func ServeFuncs() {
 			buildDir = nhost.API_DIR
 		} else if !util.PathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
 			log.WithField("runtime", "NodeJS").Error("Neither a local, nor a root package.json found")
-			log.WithField("runtime", "NodeJS").Warn("Run `npm init && npm i` to use functions")
+			log.WithField("runtime", "NodeJS").Warn("Run `npm init && npm i && npm i express` to use functions")
 		}
 	}
 
 	//	Initialize a new functions server
-	functionServer = functions.New(
-		&functions.ServerConfig{
-			BuildDir:    buildDir,
-			Port:        funcPort,
-			Environment: &env,
-		},
-	)
+	serverConfig := functions.ServerConfig{
+		BuildDir:    buildDir,
+		Environment: &env,
+	}
+
+	//	If the default/supplied port is available,
+	//	attach it to the configuration,
+	//	otherwise a random port will get selected
+	if nhost.PortAvaiable(funcPort) {
+		serverConfig.Port = funcPort
+	}
+
+	functionServer = functions.New(&serverConfig)
 
 	go func() {
 		if err := functionServer.ListenAndServe(); err != nil {

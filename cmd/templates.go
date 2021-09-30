@@ -33,10 +33,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var entity string
-var choice string
+var (
+	entity   string
+	choice   string
+	selected Entity
 
-// var allChoices bool
+	// configure interactive prompt template
+	templatesPromptTemplate = promptui.SelectTemplates{
+		Active:   `✔ {{ .Name | cyan | bold }}`,
+		Inactive: `   {{ .Name | cyan }}`,
+		Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
+	}
+)
 
 type Entity struct {
 	Name        string
@@ -51,6 +59,30 @@ type Entity struct {
 	Default     bool
 }
 
+//	Returns boolean, if entity contains templates or not.
+func (e *Entity) contains(choice string) bool {
+
+	for _, item := range e.Templates {
+		if item.Value == choice {
+			return true
+		}
+	}
+
+	return false
+}
+
+//	Returns boolean, if entity exists or not.
+func exists(list []Entity, child string) bool {
+
+	for _, item := range list {
+		if item.Value == child {
+			return true
+		}
+	}
+
+	return false
+}
+
 type Template struct {
 	Name  string
 	Value string
@@ -61,14 +93,14 @@ var entities = []Entity{
 		Name:        "Web or Front-end",
 		Value:       "web",
 		Destination: nhost.WEB_DIR,
-		Source:      "github.com/nhost/nhost/templates/",
+		Source:      "github.com/nhost/nhost/templates/web/",
 		Templates: []Template{
 			{Name: "NuxtJs", Value: "nuxt"},
 			{Name: "NextJs", Value: "next"},
 			{Name: "ReactJs", Value: "react"},
 		},
 		NextSteps: "Use `cd web && npm install`",
-		Manual:    "git clone github.com/nhost/nhost/templates/" + choice,
+		Manual:    "git clone github.com/nhost/nhost/templates/web/" + choice,
 	},
 	{
 		Name:        "Functions",
@@ -79,7 +111,7 @@ var entities = []Entity{
 			{Name: "Golang", Value: "go"},
 			{Name: "NodeJs", Value: "node"},
 		},
-		NextSteps: `For Javascript/Typescript functions, run: 'npm init && npm i && npm i express'`,
+		NextSteps: "",
 		Manual:    "git clone github.com/nhost/nhost/templates/functions/" + choice,
 	},
 	{
@@ -102,25 +134,16 @@ var entities = []Entity{
 
 // templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
-	Use:     "templates",
-	Aliases: []string{"t"},
-	Short:   "Clone Nhost compatible ready-made templates",
+	Use:    "templates",
+	Hidden: true,
+	Short:  "Clone Nhost compatible ready-made templates",
 	Long: `Choose from the provided list of framework choices
 and we will automatically initialize an Nhost compatible
 template in that choice for you with all the required
 Nhost modules and plugins.
 
 And you can immediately start developing on that template.`,
-	Run: func(cmd *cobra.Command, args []string) {
-
-		var selected Entity
-
-		// configure interactive prompt template
-		promptTemplate := promptui.SelectTemplates{
-			Active:   `✔ {{ .Name | cyan | bold }}`,
-			Inactive: `   {{ .Name | cyan }}`,
-			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
-		}
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		// if the user hasn't supplied an entity,
 		// provide a prompt for it
@@ -128,9 +151,9 @@ And you can immediately start developing on that template.`,
 
 			// propose boilerplate options
 			boilerplatePrompt := promptui.Select{
-				Label:     "Choose a template",
+				Label:     "Type of template",
 				Items:     entities,
-				Templates: &promptTemplate,
+				Templates: &templatesPromptTemplate,
 			}
 
 			index, _, err := boilerplatePrompt.Run()
@@ -140,20 +163,12 @@ And you can immediately start developing on that template.`,
 
 			selected = entities[index]
 
-		} else {
-
-			ok := false
-			for _, item := range entities {
-				if item.Value == entity {
-					selected = item
-					ok = true
-					break
-				}
-			}
-			if !ok {
-				log.WithField("component", choice).Fatal("No such entity available")
-			}
+		} else if !exists(entities, entity) {
+			log.WithField("component", entity).Fatal("No such entity available")
 		}
+
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		// if the use has specified choice flag,
 		// then skip the selection prompt
@@ -166,28 +181,19 @@ And you can immediately start developing on that template.`,
 				boilerplatePrompt := promptui.Select{
 					Label:     "Choose Preferred Template",
 					Items:     selected.Templates,
-					Templates: &promptTemplate,
+					Templates: &templatesPromptTemplate,
 				}
 
 				index, _, err := boilerplatePrompt.Run()
 				if err != nil {
-					log.Fatal("Aborted")
+					os.Exit(0)
 				}
 
 				choice = selected.Templates[index].Value
 			}
 
-		} else {
-
-			ok := false
-			for _, item := range selected.Templates {
-				if item.Value == choice {
-					ok = true
-				}
-			}
-			if !ok {
-				log.WithField("component", choice).Fatal("No such framework found")
-			}
+		} else if !selected.contains(choice) {
+			log.WithField("component", choice).Fatal("No such framework found")
 		}
 
 		// append the chosen result template to source URL
@@ -211,12 +217,10 @@ And you can immediately start developing on that template.`,
 			}
 		}
 
-		if !contains(args, "do_not_inform") {
-			log.WithField("compnent", selected.Value).Info("Template cloned successfully")
-		}
-
-		// advise the user about next steps
-		if selected.NextSteps != "" && !contains(args, "do_not_inform") {
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		log.WithField("compnent", selected.Value).Info("Template cloned successfully")
+		if selected.NextSteps != "" {
 			log.Info(selected.NextSteps)
 		}
 	},

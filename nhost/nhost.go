@@ -285,7 +285,7 @@ func (c *Configuration) Wrap() error {
 
 			parsed.Services[name].Image = "nhost/hasura-auth"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = map[string]string{"/": "/v1/auth/"}
+			parsed.Services[name].Handles = []Route{{Name: "Authentication", Source: "/", Destination: "/v1/auth/"}}
 			parsed.Services[name].Proxy = true
 
 		case "storage":
@@ -300,7 +300,7 @@ func (c *Configuration) Wrap() error {
 
 			parsed.Services[name].Image = "nhost/hasura-storage"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = map[string]string{"/": "/v1/storage/"}
+			parsed.Services[name].Handles = []Route{{Name: "Storage", Source: "/", Destination: "/v1/storage/"}}
 			parsed.Services[name].Proxy = true
 
 		case "postgres":
@@ -322,10 +322,11 @@ func (c *Configuration) Wrap() error {
 			// parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
 			parsed.Services[name].Version = parsed.Services["hasura"].Version
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = map[string]string{
-				"/v1/graphql":  "/v1/graphql",
-				"/v2/query":    "/v2/query",
-				"/v1/metadata": "/v1/metadata",
+			parsed.Services[name].Handles = []Route{
+				{Name: "GraphQL", Source: "/v1/graphql", Destination: "/v1/graphql"},
+				{Name: "Query", Source: "/v2/query", Destination: "/v2/query"},
+				{Name: "Metadata", Source: "/v1/metadata", Destination: "/v1/metadata"},
+				{Name: "Config", Source: "/v1/config", Destination: "/v1/config"},
 			}
 			parsed.Services[name].Proxy = true
 		}
@@ -525,7 +526,7 @@ func (s *Service) Healthz() bool {
 func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 
 	//	Loop over all handles to be proxied
-	for key, value := range s.Handles {
+	for _, item := range s.Handles {
 
 		httpAddress := s.GetAddress()
 		wsAddress := fmt.Sprintf("ws://localhost:%v", s.Port)
@@ -535,8 +536,8 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 			return err
 		}
 
-		if key != "/" {
-			httpAddress += key
+		if item.Source != "/" {
+			httpAddress += item.Source
 		}
 
 		wsOrigin, err := url.Parse(wsAddress)
@@ -550,9 +551,9 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 		log.WithFields(logrus.Fields{
 			"value": s.Name,
 			"type":  "proxy",
-		}).Debugf("%s --> %s", httpAddress, value)
+		}).Debugf("%s --> %s", httpAddress, item.Destination)
 
-		mux.HandleFunc(value, func(w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc(item.Destination, func(w http.ResponseWriter, r *http.Request) {
 
 			//	Log every incoming request
 			log.WithFields(logrus.Fields{
@@ -578,7 +579,7 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 			//	Otherwise, serve it through normal HTTP proxy
 
 			//	Get the original service URL without Nhost specific routes
-			r.URL.Path = strings.ReplaceAll(r.URL.Path, value, key)
+			r.URL.Path = strings.ReplaceAll(r.URL.Path, item.Destination, item.Source)
 			httpProxy.ServeHTTP(w, r)
 		})
 	}
@@ -876,6 +877,14 @@ func (config *Configuration) Init(port string) error {
 				}
 			}
 		}
+	}
+
+	//	If the SMTP port is busy,
+	//	choose a random one
+	if !PortAvaiable(strconv.Itoa(smtpPort)) {
+		log.WithField("component", "smtp").Debugf("Port %s not available", smtpPort)
+		smtpPort = GetPort(1000, 1999)
+		log.WithField("component", "smtp").Debugf("Running SMTP server on port %s", smtpPort)
 	}
 
 	mailhogConfig.Config.Env = append(mailhogConfig.Config.Env, containerVariables...)

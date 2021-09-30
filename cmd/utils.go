@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"io/ioutil"
 
 	"github.com/hashicorp/go-getter"
+	"github.com/mrinalwahal/cli/nhost"
 )
 
 // download a remote directory/file to local
@@ -13,12 +13,12 @@ func clone(src, dest string) error {
 
 	// initialize hashicorp go-getter client
 	client := &getter.Client{
-		Ctx: context.Background(),
+		Ctx: env.Context,
 		//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
 		Dst:  dest,
-		Dir:  true,
 		Src:  src,
-		Mode: getter.ClientModeDir,
+		Pwd:  nhost.WORKING_DIR,
+		Mode: getter.ClientModeAny,
 		//define the type of detectors go getter should use, in this case only github is needed
 		Detectors: []getter.Detector{
 			&getter.GitHubDetector{},

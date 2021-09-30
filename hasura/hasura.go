@@ -44,14 +44,20 @@ func Binary() (string, error) {
 
 	binary := "hasura"
 
-	version := "v2.0.0-alpha.11"
+	version := "v2.0.9"
 
 	log.WithFields(logrus.Fields{
 		"type":    binary,
 		"version": version,
 	}).Debug("Fetching binary")
 
-	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, runtime.GOARCH)
+	//	Use AMD architecture instead of ARM
+	architecture := runtime.GOARCH
+	if strings.Contains(architecture, "arm") {
+		architecture = strings.ReplaceAll(architecture, "arm", "amd")
+	}
+
+	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, architecture)
 
 	// search for installed binary
 	if pathExists(binaryPath) {

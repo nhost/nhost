@@ -27,7 +27,6 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
-	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/logger"
@@ -44,7 +43,7 @@ var (
 	rootCmd = &cobra.Command{
 		Use:   "nhost",
 		Short: "Open Source Firebase Alternative with GraphQL",
-		Long: `
+		Long: fmt.Sprintf(`
 		_   ____               __ 
 		/ | / / /_  ____  _____/ /_
 	   /  |/ / __ \/ __ \/ ___/ __/
@@ -52,14 +51,10 @@ var (
 	 /_/ |_/_/ /_/\____/____/\__/  
 								   
 	 
-  Nhost.io is a full-fledged serverless backend for Jamstack and client-serverless applications. 
-  It enables developers to build dynamic websites without having to worry about infrastructure, 
-  data storage, data access and user management.
-  Nhost was inspired by Google Firebase, but uses SQL, GraphQL and has no vendor lock-in.
- 
-  Or simply put, it's an open source firebase alternative with GraphQL, which allows 
-  passionate developers to build apps fast without managing infrastructure - from MVP to global scale.
-  `,
+  Nhost.io is a full-fledged serverless backend for Jamstack and client-serverless applications.
+  Version - %s
+  Documentation - https://docs.nhost.io
+  `, Version),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 
 			// reset the umask before creating directories anywhere in this program
@@ -78,19 +73,8 @@ var (
 
 			} else {
 
-				prompt := promptui.Prompt{
-					Label:     "Do you want to initialize an Nhost project in this directory",
-					IsConfirm: true,
-				}
-
-				response, err := prompt.Run()
-				if err == nil && (strings.ToLower(response) == "y" || strings.ToLower(response) == "yes") {
-
-					// start the "init" command
-					initCmd.Run(cmd, args)
-				} else {
-					return
-				}
+				// start the "init" command
+				initCmd.Run(cmd, args)
 
 				// offer to clone templates
 				// templatesCmd.Run(cmd, args)
@@ -106,10 +90,13 @@ var (
 							continue
 						}
 
-						entity = item.Value
+						selected = item
 
 						// start the "templates" command
-						templatesCmd.Run(cmd, []string{"do_not_inform"})
+						templatesCmd.Run(cmd, args)
+
+						//	reset selected template choice
+						choice = ""
 					}
 				}
 

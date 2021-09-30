@@ -45,14 +45,13 @@ var (
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:                "init",
-	Aliases:            []string{"i"},
-	Short:              "Initialize current directory as Nhost project",
-	Long:               `Initialize current working directory as an Nhost project.`,
+	Short:              "Initialize current directory as Nhost app",
+	Long:               `Initialize current working directory as an Nhost application.`,
 	DisableFlagParsing: true,
 	PreRun: func(cmd *cobra.Command, args []string) {
 
 		if util.PathExists(nhost.NHOST_DIR) {
-			log.Error("Project already exists in this directory")
+			log.Error("App already exists in this directory")
 			log.Info("To start development environment, run 'nhost' or 'nhost dev'")
 			os.Exit(0)
 		}
@@ -64,6 +63,37 @@ var initCmd = &cobra.Command{
 
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+
+		prompt := promptui.Prompt{
+			Label:     "Do you want to initialize a new Nhost app",
+			IsConfirm: true,
+		}
+
+		response, err := prompt.Run()
+		if err != nil || !(strings.ToLower(response) == "y" || strings.ToLower(response) == "yes") {
+			os.Exit(0)
+		}
+
+		/*
+			prompt = promptui.Prompt{
+				Label: "Name",
+			}
+
+			name, err := prompt.Run()
+			if err != nil || len(response) == 0 {
+				return
+			}
+
+			//	Create the project directory
+			appDir := filepath.Join(nhost.WORKING_DIR, name)
+			if err := os.MkdirAll(appDir, os.ModePerm); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to create application directory")
+			}
+
+			//	Update current working directory to newly create app directory
+			nhost.WORKING_DIR = appDir
+		*/
 
 		var selectedProject nhost.Project
 
@@ -93,8 +123,8 @@ var initCmd = &cobra.Command{
 			// concatenate personal and team projects
 			projects := user.Projects
 			if len(projects) == 0 {
-				log.Info("Go to https://console.nhost.io/new and create a new project")
-				log.Fatal("Failed to find any projects related to this account")
+				log.Info("Go to https://console.nhost.io/new and create a new app")
+				log.Fatal("Failed to find any apps related to this account")
 			}
 
 			// if user is part of teams which have projects, append them as well
@@ -119,7 +149,7 @@ var initCmd = &cobra.Command{
 				}
 
 				if selectedProject.ID == "" {
-					log.Errorf("Remote project with name %v not found", remote)
+					log.Errorf("Remote app with name %v not found", remote)
 					os.Exit(0)
 				}
 			} else {
@@ -134,22 +164,19 @@ var initCmd = &cobra.Command{
 
 				// configure interative prompt
 				prompt := promptui.Select{
-					Label:     "Select project",
+					Label:     "Select app",
 					Items:     projects,
 					Templates: &templates,
 				}
 
 				index, _, err := prompt.Run()
 				if err != nil {
-					log.Fatal("Aborted")
+					os.Exit(0)
 				}
 
 				selectedProject = projects[index]
 			}
 		}
-
-		// signify initialization is starting
-		log.Info("Initializing Nhost project in this directory")
 
 		// create root nhost folder
 		if err := os.MkdirAll(nhost.NHOST_DIR, os.ModePerm); err != nil {
@@ -174,6 +201,7 @@ var initCmd = &cobra.Command{
 		}
 
 		requiredDirs := []string{
+			nhost.ROOT,
 			nhost.MIGRATIONS_DIR,
 			nhost.METADATA_DIR,
 			nhost.SEEDS_DIR,
@@ -238,7 +266,12 @@ var initCmd = &cobra.Command{
 			}
 
 			defer f.Close()
+			//	Remove this repetition
 			if _, err = f.WriteString("project_id: " + selectedProject.ID); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to write to nhost.yaml")
+			}
+			if _, err = f.WriteString("id: " + selectedProject.ID); err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to write to nhost.yaml")
 			}
@@ -294,12 +327,14 @@ var initCmd = &cobra.Command{
 
 			if err = writeToFile(nhost.ENV_FILE, envData, "end"); err != nil {
 				log.Debug(err)
-				log.Error("Failed to write project environment variables to .env.development file", false)
+				log.Error("Failed to write app environment variables to .env.development file", false)
 
 			}
 		}
-
-		log.Info("Nhost backend successfully initialized")
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		log.Info("Nhost app successfully initialized")
+		log.Info("Start your environment with `nhost dev`")
 	},
 }
 
@@ -526,7 +561,7 @@ func init() {
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
 	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	initCmd.Flags().StringVarP(&project, "remote", "r", "", "Name of a remote project")
+	initCmd.Flags().StringVarP(&project, "remote", "r", "", "Name of a remote app")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:

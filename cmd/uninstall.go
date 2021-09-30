@@ -84,7 +84,7 @@ but without hurting existing Nhost projects on the system and their data.`,
 		}
 
 		// remove NHOST ROOT Dir as well
-		if err := util.DeletePath(nhost.ROOT); err != nil {
+		if err := util.DeleteAllPaths(nhost.ROOT); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to delete Nhost root directory", nhost.ROOT)
 		}

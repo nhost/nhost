@@ -102,6 +102,14 @@ var devCmd = &cobra.Command{
 			log.Fatal("Failed to initialize nhost data directory")
 		}
 
+		//	If the default port is not available,
+		//	choose a random one
+		if !nhost.PortAvaiable(env.Port) {
+			log.Debugf("Port %s not available", env.Port)
+			env.Port = strconv.Itoa(nhost.GetPort(1000, 9999))
+			log.Debugf("Starting the environment on port %s", env.Port)
+		}
+
 		var err error
 
 		// Initialize the runtime environment
@@ -141,7 +149,7 @@ var devCmd = &cobra.Command{
 		funcPortStr, _ := strconv.Atoi(funcPort)
 		env.Config.Services["functions"] = &nhost.Service{
 			Name:    "functions",
-			Handles: map[string]string{"/": "/v1/functions/"},
+			Handles: []nhost.Route{{Name: "Functions", Source: "/", Destination: "/v1/functions/"}},
 			Proxy:   true,
 			Port:    funcPortStr,
 
@@ -260,8 +268,8 @@ var devCmd = &cobra.Command{
 				}
 
 				// print the name and handle
-				for _, value := range item.Handles {
-					p.print("", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(value)))
+				for _, route := range item.Handles {
+					p.print("", route.Name, fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(route.Destination)))
 				}
 			}
 

@@ -2,10 +2,12 @@ package environment
 
 import (
 	"context"
+	"errors"
 	"io/fs"
 	"path/filepath"
 
 	"github.com/mrinalwahal/cli/nhost"
+	"github.com/mrinalwahal/cli/util"
 )
 
 func getBranchHEAD(root string) string {
@@ -37,15 +39,16 @@ func getBranchHEAD(root string) string {
 
 	f := func(path string, dir fs.DirEntry, err error) error {
 		for _, file := range tree {
-			if file == path && !dir.IsDir() {
+			if util.PathExists(file) && file == path && !dir.IsDir() {
 				response = path
 				return nil
 			}
 		}
-		return nil
+		return errors.New("git HEAD not found")
 	}
 
 	if err := filepath.WalkDir(root, f); err != nil {
+		log.Debug(err)
 		return ""
 	}
 
