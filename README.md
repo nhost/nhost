@@ -13,17 +13,45 @@
   </p>
 </div>
 
-[LATEST UPDATE: Flutter and Dart SDK have been released 🎉](https://nhost.io/blog/beta-support-for-dart-and-flutter-on-nhost)
+**Nhost is an backend for your web and mobile apps.** Nhost consists of open
+source software pre-configured to make it fast to get started and easy to scale.
 
-**Nhost is an easy-to-use, full-featured backend-as-a-service (Baas) for your web and mobile apps.** Use GraphQL and our JS/TS or Flutter SDKs to build modern web and mobile apps that scale.
+This is what you get with Nhost:
 
-With just a few clicks, Nhost gives you a real-time database, authentication, file storage, transactional emails and payments. You can build advanced backend functionallity with serverless cloud functions, database events and webhooks.
+- Database: [Postgres]()
+- GraphQL API: [Hasura]()
+- Authentication: [Hasura Auth]()
+- Storage: [Hasura Storage]()
+- Functions: [JS](https://developer.mozilla.org/en-US/docs/Web/JavaScript)/[TS](https://www.typescriptlang.org/) and [Go](https://golang.org/) runtimes
+
+We also provide a UI to manage your database, users, and files. And we have
+JS/TS and Flutter SDKs to make it easy to work with.
 
 ![Nhost](assets/hero-image.png)
 
 <hr />
 
+# Stay up-to-date
+
+Help us by giving us a star on GitHub. Thanks for your support!
+
+Also: Your username and profile picture will be displayed below if you give us a
+star!
+
+![Followers](https://reporoster.com/stars/nhost/nhost)
+![Follow Us](assets/follow-us-banner.png)
+
+---
+
 # Get Started
+
+## CLI
+
+_Coming soon_
+
+![Nhost CLI](assets/cli-started.png)
+
+## Managed at Nhost.io
 
 [Sign up](https://console.nhost.io) and create your first app on [https://console.nhost.io](https://console.nhost.io).
 
@@ -43,20 +71,13 @@ In your project, initialize the SDK with the endpoint of your new Nhost App:
 import { createClient } from "nhost-js-sdk";
 
 const nhost = createClient({
-  baseURL: "https://project-id.nhost.app"
-})
+  baseURL: "https://project-id.nhost.app",
+});
 
 export { nhost };
 ```
 
 Now you're ready to develop your app.
-
-# Stay up-to-date
-
-Follow this repository to stay-up-to-date with new releases.
-
-![Followers](https://reporoster.com/stars/nhost/nhost)
-![Follow Us](assets/follow-us-banner.png)
 
 # Develop Your App
 
