@@ -70,7 +70,7 @@ Now you're ready to develop your app.
 
 # Develop Your App
 
-Now you're ready to use these fundamental building blocks to build a unique experince:
+Now you're ready to use these fundamental building blocks to build a unique experience:
 
 - [Quick Start](https://docs.nhost.io/quick-start): Create an app with Readt
 - [Authentication](https://docs.nhost.io/auth) with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
