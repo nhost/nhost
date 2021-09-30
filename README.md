@@ -17,7 +17,7 @@
 
 <p align="center">
 <strong>
-Help us by giving us a star on GitHub. Thanks for your support!
+Help us by star this repo. Thanks for your support!
 </strong>
 </p>
 
