@@ -49,7 +49,7 @@ func (r *Configuration) MarshalJSON() ([]byte, error) {
 
 func (config *Configuration) Save() error {
 
-	log.Debug("Saving project configuration")
+	log.Debug("Saving app configuration")
 
 	// convert generated Nhost configuration to YAML
 	marshalled, err := config.MarshalYAML()
@@ -119,7 +119,7 @@ func pathExists(filePath string) bool {
 
 func Info() (Information, error) {
 
-	log.Debug("Fetching project information")
+	log.Debug("Fetching app information")
 
 	var response Information
 
@@ -211,7 +211,7 @@ func Servers() ([]Server, error) {
 
 func (c *Configuration) Wrap() error {
 
-	log.Debug("Parsing project configuration")
+	log.Debug("Parsing app configuration")
 
 	var parsed Configuration
 
@@ -465,7 +465,7 @@ func (s *Service) Exists(client *client.Client, ctx context.Context) string {
 // generates fresh config.yaml for /nhost dir
 func GenerateConfig(options Project) Configuration {
 
-	log.Debug("Generating project configuration")
+	log.Debug("Generating app configuration")
 
 	hasura := Service{
 		Version:     "v2.0.7",

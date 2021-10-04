@@ -42,17 +42,16 @@ var email string
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:     "login",
-	Aliases: []string{"ln"},
-	Short:   "Login to your Nhost account",
-	Long:    `Login to your existing Nhost account.`,
+	Use:   "login",
+	Short: "Login to your Nhost account",
+	Long:  `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if util.PathExists(nhost.AUTH_PATH) {
 
 			// if user is already logged in, ask to logout
 			if _, err := validateAuth(nhost.AUTH_PATH); err == nil {
-				log.Fatal("You are already logged in, first logout with `nhost logout`")
+				log.Fatal(ErrLoggedIn)
 			}
 		}
 
@@ -126,9 +125,11 @@ var loginCmd = &cobra.Command{
 				log.Debug(err)
 				log.Fatal("Failed to validate authentication")
 			}
-
-			log.Info("Email verified, and login complete!")
 		}
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		log.Info("Email verified, and you are logged in!")
+		log.Info("Type `nhost list` to see your apps")
 	},
 }
 

@@ -33,7 +33,7 @@ to your Nhost account from CLI.`,
 		credentials, err := nhost.LoadCredentials()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to fetch authentication credentials. Please login with `nhost login`")
+			log.Fatal(ErrNotLoggedIn)
 		}
 
 		log.WithField("component", "email").Info(credentials.Email)

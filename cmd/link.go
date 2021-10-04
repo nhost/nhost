@@ -43,8 +43,8 @@ import (
 var linkCmd = &cobra.Command{
 	Use:     "link",
 	Aliases: []string{"lk"},
-	Short:   "Link local project to a remote one",
-	Long:    `Connect your already hosted Nhost Project to local environment and start development or testings.`,
+	Short:   "Link local app to a remote one",
+	Long:    `Connect your already hosted Nhost app to local environment and start development or testings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// validate authentication
@@ -70,7 +70,7 @@ var linkCmd = &cobra.Command{
 
 		// add the option of a new project to the existing selection payload
 		projects = append(projects, nhost.Project{
-			Name: "Create New Project",
+			Name: "Create New App",
 			ID:   "new",
 		})
 
@@ -93,7 +93,7 @@ var linkCmd = &cobra.Command{
 
 		// configure interative prompt
 		prompt := promptui.Select{
-			Label:     "Select project",
+			Label:     "Select app",
 			Items:     projects,
 			Templates: &templates,
 			Searcher:  searcher,
@@ -102,7 +102,7 @@ var linkCmd = &cobra.Command{
 		index, _, err := prompt.Run()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Aborted")
+			os.Exit(0)
 		}
 
 		project := projects[index]
@@ -122,16 +122,16 @@ var linkCmd = &cobra.Command{
 			for ok := true; ok; ok = contains(names, project.Name) {
 
 				inputPrompt := promptui.Prompt{
-					Label: "Name of the project",
+					Label: "Name of the app",
 				}
 
 				project.Name, err = inputPrompt.Run()
 				if err != nil {
-					log.Fatal("Aborted")
+					os.Exit(0)
 				}
 
 				if contains(names, project.Name) {
-					log.Error("Project with that name already exists")
+					log.Error("App with that name already exists")
 				}
 			}
 
@@ -159,19 +159,19 @@ var linkCmd = &cobra.Command{
 
 			index, _, err := prompt.Run()
 			if err != nil {
-				log.Fatal("Aborted")
+				os.Exit(0)
 			}
 			selectedServer := servers[index].ID
 
 			// ask whether it's a team project or a personal one
 			prompt = promptui.Select{
-				Label: "Choose Project Type",
-				Items: []string{"Personal Project", "Team Project"},
+				Label: "Choose App Type",
+				Items: []string{"Personal App", "Team App"},
 			}
 
 			index, _, err = prompt.Run()
 			if err != nil {
-				log.Fatal("Aborted")
+				os.Exit(0)
 			}
 
 			if index == 0 {
@@ -179,10 +179,10 @@ var linkCmd = &cobra.Command{
 				project.ID, err = createProject(project.Name, selectedServer, userData.ID, "")
 				if err != nil {
 					log.Debug(err)
-					log.Fatal("Failed to create a new project")
+					log.Fatal("Failed to create a new app")
 				}
 
-				log.WithField("component", project.Name).Info("Project created successfully")
+				log.WithField("component", project.Name).Info("App created successfully")
 
 			} else {
 
@@ -202,13 +202,13 @@ var linkCmd = &cobra.Command{
 
 				index, _, err = prompt.Run()
 				if err != nil {
-					log.Fatal("Aborted")
+					os.Exit(0)
 				}
 
 				project.ID, err = createProject(project.Name, selectedServer, userData.ID, userData.Teams[index].Team.ID)
 				if err != nil {
 					log.Debug(err)
-					log.Fatal("Failed to create a new project")
+					log.Fatal("Failed to create a new app")
 				}
 
 			}
@@ -221,7 +221,7 @@ var linkCmd = &cobra.Command{
 			}
 
 			// provide confirmation prompt
-			log.Warn("If you linked to the wrong project, you could break your production environment.")
+			log.Warn("If you linked to the wrong app, you could break your production environment.")
 			log.Info("Therefore we need confirmation you are serious about this.")
 
 			credentials, err := nhost.LoadCredentials()
@@ -249,11 +249,11 @@ var linkCmd = &cobra.Command{
 		// update the project ID
 		if err = updateNhostProject(project.ID); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to update Nhost project configuration locally")
+			log.Fatal("Failed to update Nhost app configuration locally")
 		}
 
 		// project linking complete
-		log.WithField("component", project.Name).Info("Project linked to local Nhost environment")
+		log.Info("App linked to local Nhost environment")
 	},
 }
 

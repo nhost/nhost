@@ -25,6 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"os"
 	"os/exec"
 	"path/filepath"
 
@@ -43,11 +44,11 @@ var uninstallCmd = &cobra.Command{
 	Aliases: []string{"remove"},
 	Short:   "Removed the installed CLI from system permanently",
 	Long: `Removed the installed CLI from system permanently
-but without hurting existing Nhost projects on the system and their data.`,
+but without hurting existing Nhost apps on the system and their data.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.Warn("This will permanently remove the installed CLI utility")
-		log.Info("This, however, won't affect your existing Nhost projects and their data")
+		log.Info("This, however, won't affect your existing Nhost apps and their data")
 
 		// if the use has not pre-approved the uninstall,
 		// take the user's approval manually
@@ -61,7 +62,7 @@ but without hurting existing Nhost projects on the system and their data.`,
 
 			_, err := prompt.Run()
 			if err != nil {
-				log.Fatal("Aborted")
+				os.Exit(0)
 			}
 
 		}

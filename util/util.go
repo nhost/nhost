@@ -14,6 +14,17 @@ var (
 	log = &logger.Log
 )
 
+const (
+
+	//	Common Error Codes
+	ErrDockerNotFound   = "Is docker running on your machine?"
+	ErrServicesNotFound = "No services found currently running for this app"
+
+	//	Common Information Codes
+	InfoDockerDownload  = "Download docker from: https://www.docker.com/products/docker-desktop"
+	InfoServicesRunning = "Start your app with `nhost dev`"
+)
+
 // check whether source array contains value or not
 func Contains(s []string, e string) bool {
 	for _, a := range s {

@@ -88,12 +88,12 @@ var devCmd = &cobra.Command{
 	Long:    `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.Info("Initializing environment")
+		log.Info("Starting your app")
 
 		// check if /nhost exists
 		if !util.PathExists(nhost.NHOST_DIR) {
-			log.Info("Initialize a project by running 'nhost'")
-			log.Fatal("Project not found in this directory")
+			log.Info("Initialize new app by running 'nhost'")
+			log.Fatal("App not found in this directory")
 		}
 
 		// create /.nhost if it doesn't exist
@@ -177,13 +177,17 @@ var devCmd = &cobra.Command{
 			   					break
 			   				}
 			   			}
-			*/
 			if env.State <= environment.Executing {
 				log.Debug(err)
 				log.Error("Failed to initialize your environment")
 				env.Cleanup()
 				end_waiter.Done()
 			}
+			*/
+			log.Debug(err)
+			log.Error("Failed to initialize your environment")
+			env.Cleanup()
+			end_waiter.Done()
 		}
 
 		//

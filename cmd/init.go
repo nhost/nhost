@@ -223,7 +223,7 @@ var initCmd = &cobra.Command{
 				//download the files
 				if err := clone(item.Source, item.Destination); err != nil {
 					log.WithField("compnent", "templates").Debug(err)
-					log.WithField("compnent", "templates").Error("Failed to clone template")
+					log.Error("Failed to clone template")
 				}
 			}
 		}

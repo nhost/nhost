@@ -5,6 +5,8 @@
 !.elasticbeanstalk/*.global.yml
 
 req.http
+demo/
+demo/*
 
 # Application Binaries
 bin/

@@ -88,8 +88,8 @@ var lsCmd = &cobra.Command{
 		}
 
 		if len(projects) == 0 {
-			log.Info("Go to https://console.nhost.io/new and create a new project")
-			log.Fatal("We couldn't find any projects related to this account")
+			log.Info("Go to https://console.nhost.io/new and create a new apps")
+			log.Fatal("We couldn't find any apps related to this account")
 		}
 
 		var savedProject nhost.Project
@@ -156,8 +156,8 @@ var envPullCmd = &cobra.Command{
 		}
 
 		if len(projects) == 0 {
-			log.Info("Go to https://console.nhost.io/new and create a new project")
-			log.Fatal("We couldn't find any projects related to this account")
+			log.Info("Go to https://console.nhost.io/new and create a new apps")
+			log.Fatal("We couldn't find any apps related to this account")
 		}
 
 		var savedProject nhost.Project
@@ -168,7 +168,7 @@ var envPullCmd = &cobra.Command{
 			}
 		}
 
-		log.Infof("Downloading development environment variables for project: %s", savedProject.Name)
+		log.Infof("Downloading development environment variables for app: %s", savedProject.Name)
 
 		envData, err := ioutil.ReadFile(nhost.ENV_FILE)
 		if err != nil {

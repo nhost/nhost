@@ -41,6 +41,8 @@ func (e *Environment) Init() error {
 
 	var err error
 
+	log.WithField("component", e.Name).Debug("Initializing environment")
+
 	// Update environment state
 	e.UpdateState(Initializing)
 
@@ -48,7 +50,7 @@ func (e *Environment) Init() error {
 	e.Context, e.Cancel = context.WithCancel(context.Background())
 	e.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Error("Failed to connect to docker client")
+		log.Error(util.ErrDockerNotFound)
 		return err
 	}
 	defer e.Docker.Close()
@@ -56,13 +58,14 @@ func (e *Environment) Init() error {
 	// break execution if docker deamon is not running
 	_, err = e.Docker.Info(e.Context)
 	if err != nil {
+		log.Info(util.InfoDockerDownload)
 		return err
 	}
 
 	// get running containers with prefix "nhost_"
 	containers, err := e.GetContainers()
 	if err != nil {
-		log.Error("Failed to get running Nhost services")
+		log.Error(util.ErrServicesNotFound)
 		return err
 	}
 
@@ -205,6 +208,8 @@ func (e *Environment) Prepare() error {
 // Also, supports process cancellation from contexts.
 func (e *Environment) HealthCheck(ctx context.Context) error {
 
+	log.WithField("component", e.Name).Debug("Starting health check")
+
 	var err error
 	var health_waiter sync.WaitGroup
 	for _, service := range e.Config.Services {
@@ -218,6 +223,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 						log.WithFields(logrus.Fields{
 							"type":      "service",
 							"container": service.Name,
+							"port":      service.Port,
 						}).Debug("Health check cancelled")
 						return
 					default:
@@ -225,6 +231,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 							log.WithFields(logrus.Fields{
 								"type":      "service",
 								"container": service.Name,
+								"port":      service.Port,
 							}).Debug("Health check successful")
 
 							// Activate the service
@@ -238,6 +245,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 						log.WithFields(logrus.Fields{
 							"type":      "container",
 							"component": service.Name,
+							"port":      service.Port,
 						}).Debugf("Health check attempt #%v unsuccessful", counter)
 					}
 				}
@@ -245,6 +253,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 				log.WithFields(logrus.Fields{
 					"type":      "service",
 					"container": service.Name,
+					"port":      service.Port,
 				}).Error("Health check failed")
 				err = errors.New("healthcheck of at least 1 service has failed")
 

@@ -20,11 +20,8 @@ const (
 	Gray   = "\033[37;2m"
 	// White = "\033[97m"
 
-	//	Common Error Codes
-	ErrDockerNotFound = "Is your docker running on your machine?"
-
-	//	Common Information Codes
-	InfoDockerDownload = "Download docker from: https://www.docker.com/products/docker-desktop"
+	ErrNotLoggedIn = "Please login with `nhost login`"
+	ErrLoggedIn    = "You are already logged in, first logout with `nhost logout`"
 )
 
 var (

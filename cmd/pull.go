@@ -44,7 +44,7 @@ var pullCmd = &cobra.Command{
 	Short:   "Pull migrations from remote",
 	Hidden:  true,
 	Long: `Pull latest migrations and metadata changes from remote
-and sync them with your local project.`,
+and sync them with your local app.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// warn the user of upcoming dangers
@@ -60,7 +60,7 @@ and sync them with your local project.`,
 		_, err := confirmationPrompt.Run()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Aborted")
+			os.Exit(0)
 		}
 
 		// validate authentication
@@ -82,7 +82,7 @@ and sync them with your local project.`,
 		info, err := nhost.Info()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to read saved Nhost project information")
+			log.Fatal("Failed to read saved Nhost app information")
 		}
 
 		var linkedProject nhost.Project

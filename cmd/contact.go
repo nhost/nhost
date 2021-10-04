@@ -123,7 +123,7 @@ Or even chat with our team and start a new discussion.`,
 
 		index, _, err := prompt.Run()
 		if err != nil {
-			log.Fatal("Aborted")
+			os.Exit(0)
 		}
 
 		selected := options[index]

@@ -25,6 +25,8 @@ SOFTWARE.
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
 )
@@ -33,8 +35,8 @@ import (
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
-	Short:   "List the projects",
-	Long: `Fetch the list of personal and team projects
+	Short:   "List the apps",
+	Long: `Fetch the list of personal and team app
 for the logged in user from Nhost console and present them.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -42,7 +44,6 @@ for the logged in user from Nhost console and present them.`,
 		userData, err := validateAuth(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
-			log.Error("Failed to validate authentication")
 
 			// begin the login procedure
 			loginCmd.Run(cmd, args)
@@ -59,17 +60,24 @@ for the logged in user from Nhost console and present them.`,
 			projects = append(projects, team.Team.Projects...)
 		}
 
+		log.Info("Remote apps")
+
+		p := newPrinter()
+		p.print("header", "", "")
+
 		// log every project for the user
 		for _, item := range projects {
 
 			if item.TeamID != "" {
 				item.Type = item.Team.Name
 			} else {
-				item.Type = "personal"
+				item.Type = "Personal"
 			}
 
-			log.WithField("component", item.Type).Info(item.Name)
+			p.print("", item.Name, fmt.Sprintf("%s%v%s", Gray, item.Type, Reset))
 		}
+		p.print("footer", "", "")
+		p.close()
 	},
 }
 
