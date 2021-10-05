@@ -3,7 +3,6 @@ import { Response } from 'express';
 import { getGravatarUrl, getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { emailClient } from '@/email';
-import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
@@ -22,7 +21,7 @@ export const signInPasswordlessStartEmailHandler = async (
     return res.boom.internal('SMTP settings unavailable');
   }
 
-  const { email, profile, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
+  const { email, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
 
   // check if email already exist
   let user = await getUserByEmail(email);
@@ -33,12 +32,6 @@ export const signInPasswordlessStartEmailHandler = async (
   if (!user) {
     // check email
     if (!(await isValidEmail({ email, res }))) {
-      // function send potential error via `res`
-      return;
-    }
-
-    // check profile
-    if (!(await isProfileValid({ profile, res }))) {
       // function send potential error via `res`
       return;
     }
@@ -80,8 +73,6 @@ export const signInPasswordlessStartEmailHandler = async (
       console.log('unable to insert new user');
       throw new Error('Unable to insert new user');
     }
-
-    await insertProfile({ userId: insertedUser.id, profile });
 
     user = insertedUser;
     userId = insertedUser.id;

@@ -6,15 +6,12 @@ import {
 } from 'express-joi-validation';
 
 import { gqlSdk } from '@/utils/gqlSDK';
-import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
 import { getSignInResponse } from '@/utils/tokens';
-import { Profile } from '@/types';
 
 type BodyType = {
   locale?: string;
   displayName?: string;
-  profile?: Profile;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -29,13 +26,7 @@ export const signInAnonymousHandler = async (
     return res.boom.notFound('Anonymous users are not enabled');
   }
 
-  const { profile, locale = ENV.AUTH_DEFAULT_LOCALE } = req.body;
-
-  // check profile
-  if (!(await isProfileValid({ profile, res }))) {
-    // function send potential error via `res`
-    return;
-  }
+  const { locale = ENV.AUTH_DEFAULT_LOCALE } = req.body;
 
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = [{ role: 'anonymous' }];
@@ -60,8 +51,6 @@ export const signInAnonymousHandler = async (
   if (!user) {
     throw new Error('Unable to insert new user');
   }
-
-  await insertProfile({ userId: user.id, profile });
 
   const signInResponse = await getSignInResponse({
     userId: user.id,

@@ -16,7 +16,6 @@ export const signUpEmailPasswordSchema = Joi.object({
   defaultRole: Joi.string(),
   allowedRoles: Joi.array().items(Joi.string()),
   displayName: Joi.string(),
-  profile: Joi.object(),
 });
 
 // Sign In
@@ -33,7 +32,6 @@ export const signInPasswordlessSchema = Joi.object({
   defaultRole: Joi.string(),
   allowedRoles: Joi.array().items(Joi.string()),
   displayName: Joi.string(),
-  profile: Joi.object(),
 });
 
 export const signInOtpSchema = Joi.object({
@@ -57,7 +55,6 @@ export const signInMfaPhoneNumberSchema = Joi.object({
 export const signInAnonymousSchema = Joi.object({
   locale: localeRule,
   displayName: Joi.string(),
-  profile: Joi.object(),
 });
 
 // -- SIGN OUT--

@@ -582,44 +582,5 @@ export const applyMetadata = async (): Promise<void> => {
     },
   });
 
-  // try to add relation from `public.profiles` to `auth.users`
-  // the `public.profile` table is optional.
-  // Which is why we allow this to fail silently.
-  try {
-    await createObjectRelationship({
-      source: 'default',
-      table: {
-        schema: 'public',
-        name: 'profiles',
-      },
-      name: 'user',
-      using: {
-        foreign_key_constraint_on: ['user_id'],
-      },
-    });
-
-    await createObjectRelationship({
-      source: 'default',
-      table: {
-        schema: 'auth',
-        name: 'users',
-      },
-      name: 'profile',
-      using: {
-        foreign_key_constraint_on: {
-          table: {
-            schema: 'public',
-            name: 'profiles',
-          },
-          columns: ['user_id'],
-        },
-      },
-    });
-  } catch (error) {
-    logger.debug(
-      'Unable to add relationship between public.profiles and auth.users'
-    );
-  }
-
   logger.debug('Done applying metadata');
 };

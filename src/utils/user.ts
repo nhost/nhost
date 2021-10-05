@@ -1,6 +1,5 @@
 import { User } from '@/types';
 import { gqlSdk } from './gqlSDK';
-import { getProfileFieldsForAccessToken } from './profile';
 
 export const getUserByPhoneNumber = async ({
   phoneNumber,
@@ -31,11 +30,6 @@ export const getUser = async ({
     throw new Error('Unable to get suer');
   }
 
-  const profile = await getProfileFieldsForAccessToken({ userId }).catch(() => {
-    // noop
-    // profile is not available
-  });
-
   const {
     id,
     createdAt,
@@ -60,6 +54,5 @@ export const getUser = async ({
     isAnonymous,
     defaultRole,
     roles: userRoles,
-    profile,
   };
 };

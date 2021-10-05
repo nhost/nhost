@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpgpasswor}
   graphql-engine:
-    image: hasura/graphql-engine:v2.0.1
+    image: hasura/graphql-engine:v2.0.9
     depends_on:
       - 'postgres'
     restart: always
@@ -56,7 +56,6 @@ services:
 
       AUTH_ANONYMOUS_USERS_ENABLED: ${AUTH_ANONYMOUS_USERS_ENABLED}
       AUTH_DISABLE_NEW_USERS: ${AUTH_DISABLE_NEW_USERS}
-      AUTH_SIGNUP_PROFILE_FIELDS: ${AUTH_SIGNUP_PROFILE_FIELDS}
       AUTH_ACCSS_CONTROL_ALLOW_LIST: ${AUTH_ACCSS_CONTROL_ALLOW_LIST}
       AUTH_ACCSS_CONTROL_BLOCK_LIST: ${AUTH_ACCSS_CONTROL_BLOCK_LIST}
       AUTH_MIN_PASSWORD_LENGTH: ${AUTH_MIN_PASSWORD_LENGTH}

@@ -62,9 +62,6 @@ export type User = {
   isAnonymous: boolean;
   defaultRole: string;
   roles: string[];
-  profile: null | {
-    [key: string]: string;
-  };
 };
 
 export type Mfa = {
@@ -83,7 +80,6 @@ export type PasswordLessEmailBody = {
   allowedRoles?: string[];
   defaultRole?: string;
   displayName?: string;
-  profile?: Profile;
 };
 
 export type PasswordLessSmsBody = {
@@ -93,11 +89,6 @@ export type PasswordLessSmsBody = {
   allowedRoles?: string[];
   defaultRole?: string;
   displayName?: string;
-  profile?: Profile;
-};
-
-export type Profile = {
-  [key: string]: string | number | boolean;
 };
 
 export type OtpEmailBody = {

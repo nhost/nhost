@@ -9,17 +9,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { emailClient } from '@/email';
-import { insertProfile, isProfileValid } from '@/utils/profile';
 import { isValidEmail } from '@/utils/email';
 import { isPasswordValid } from '@/utils/password';
 import { isRolesValid } from '@/utils/roles';
 import { ENV } from '@/utils/env';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { getSignInResponse } from '@/utils/tokens';
-
-type Profile = {
-  [key: string]: string | number | boolean;
-};
 
 type BodyType = {
   email: string;
@@ -28,7 +23,6 @@ type BodyType = {
   allowedRoles?: string[];
   defaultRole?: string;
   displayName?: string;
-  profile?: Profile;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -40,7 +34,7 @@ export const signUpEmailPasswordHandler = async (
   res: Response
 ): Promise<unknown> => {
   const { body } = req;
-  const { email, password, profile, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
+  const { email, password, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
 
   req.log.debug({ body });
 
@@ -52,12 +46,6 @@ export const signUpEmailPasswordHandler = async (
 
   // check password
   if (!(await isPasswordValid({ password, res }))) {
-    // function send potential error via `res`
-    return;
-  }
-
-  // check profile
-  if (!(await isProfileValid({ profile, res }))) {
     // function send potential error via `res`
     return;
   }
@@ -116,8 +104,6 @@ export const signUpEmailPasswordHandler = async (
   if (!user) {
     throw new Error('Unable to insert new user');
   }
-
-  await insertProfile({ userId: user.id, profile });
 
   // user is now inserted. Continue sending out activation email
   if (!ENV.AUTH_DISABLE_NEW_USERS && ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {

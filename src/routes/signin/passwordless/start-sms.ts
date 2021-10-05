@@ -2,7 +2,6 @@ import { Response } from 'express';
 import twilio from 'twilio';
 
 import { gqlSdk } from '@/utils/gqlSDK';
-import { insertProfile, isProfileValid } from '@/utils/profile';
 import { ENV } from '@/utils/env';
 import { isRolesValid } from '@/utils/roles';
 import { getNewOneTimePasswordData } from '@/utils/otp';
@@ -21,7 +20,7 @@ export const signInPasswordlessStartSmsHandler = async (
     return res.boom.internal('SMTP settings unavailable');
   }
 
-  const { phoneNumber, profile, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
+  const { phoneNumber, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
 
   // check if email already exist
   let user = await getUserByPhoneNumber({ phoneNumber });
@@ -30,12 +29,6 @@ export const signInPasswordlessStartSmsHandler = async (
 
   // if no user exists, create the user
   if (!user) {
-    // check profile
-    if (!(await isProfileValid({ profile, res }))) {
-      // function send potential error via `res`
-      return;
-    }
-
     // check roles
     const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
     const allowedRoles =
@@ -73,8 +66,6 @@ export const signInPasswordlessStartSmsHandler = async (
       console.log('unable to insert new user');
       throw new Error('Unable to insert new user');
     }
-
-    await insertProfile({ userId: insertedUser.id, profile });
 
     user = insertedUser;
     userId = insertedUser.id;

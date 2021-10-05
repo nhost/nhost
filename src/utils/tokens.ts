@@ -13,7 +13,6 @@ import {
 } from '../types';
 import { UserFieldsFragment } from './__generated__/graphql-request';
 import { generateTicketExpiresAt } from './ticket';
-import { getProfileFieldsForAccessToken } from './profile';
 import { ENV } from './env';
 import { getUser } from './user';
 
@@ -45,10 +44,7 @@ function toPgArray(arr: string[]): string {
  * of the public.tables columns defined in JWT_CUSTOM_FIELDS
  * @param jwt if true, add a 'x-hasura-' prefix to the property names, and stringifies the values (required by Hasura)
  */
-export function generatePermissionVariables(
-  user: UserFieldsFragment,
-  profile: any
-): {
+export function generatePermissionVariables(user: UserFieldsFragment): {
   [key: string]: ClaimValueType;
 } {
   const allowedRoles = user.roles.map((role) => role.role);
@@ -85,29 +81,11 @@ export function generatePermissionVariables(
     customUserSessionVariables[`x-hasura-user-${field}`] = value;
   });
 
-  // profile
-  const customProfileSessionVariables = {} as any;
-  ENV.AUTH_PROFILE_SESSION_VARIABLE_FIELDS.forEach((field) => {
-    let value;
-
-    const type = typeof profile[field] as ClaimValueType;
-    if (type === 'string') {
-      value = profile[field];
-    } else if (Array.isArray(profile[field])) {
-      value = toPgArray(profile[field] as string[]);
-    } else {
-      value = JSON.stringify(profile[field] ?? null);
-    }
-
-    customProfileSessionVariables[`x-hasura-profile-${field}`] = value;
-  });
-
   return {
     [`x-hasura-allowed-roles`]: allowedRoles,
     [`x-hasura-default-role`]: user.defaultRole,
     [`x-hasura-user-id`]: user.id,
     [`x-hasura-user-isAnonymous`]: user.isAnonymous.toString(),
-    ...customProfileSessionVariables,
     ...customUserSessionVariables,
   };
 }
@@ -182,10 +160,7 @@ export function newRefreshExpiry() {
 /**
  * Create JWT ENV.
  */
-export const createHasuraAccessToken = (
-  user: UserFieldsFragment,
-  profile: unknown
-): string => {
+export const createHasuraAccessToken = (user: UserFieldsFragment): string => {
   const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
 
   const jwtNameSpace = jwt.claims_namespace
@@ -194,7 +169,7 @@ export const createHasuraAccessToken = (
 
   return sign({
     payload: {
-      [jwtNameSpace]: generatePermissionVariables(user, profile),
+      [jwtNameSpace]: generatePermissionVariables(user),
     },
     user,
   });
@@ -220,13 +195,6 @@ export const getNewSession = async ({
 }: {
   user: UserFieldsFragment;
 }): Promise<Session> => {
-  const profile = await getProfileFieldsForAccessToken({
-    userId: user.id,
-  }).catch(() => {
-    // noop
-    // profile is not available
-  });
-
   // update user's last seen
   gqlSdk.updateUser({
     id: user.id,
@@ -237,7 +205,7 @@ export const getNewSession = async ({
 
   const sessionUser = await getUser({ userId: user.id });
 
-  const accessToken = createHasuraAccessToken(user, profile);
+  const accessToken = createHasuraAccessToken(user);
   const refreshToken = await getNewRefreshToken(user.id);
 
   return {
