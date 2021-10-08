@@ -33,10 +33,10 @@ source software pre-configured to make it fast to get started and easy to scale.
 
 This is what you get with Nhost:
 
-- Database: [Postgres]()
-- GraphQL API: [Hasura]()
-- Authentication: [Hasura Auth]()
-- Storage: [Hasura Storage]()
+- Database: [Postgres](https://www.postgresql.org/)
+- GraphQL API: [Hasura](https://hasura.io/)
+- Authentication: [Hasura Auth](https://github.com/nhost/hasura-backend-plus/)
+- Storage: [Hasura Storage](https://github.com/nhost/hasura-backend-plus/)
 - Functions: [JS](https://developer.mozilla.org/en-US/docs/Web/JavaScript)/[TS](https://www.typescriptlang.org/) and [Go](https://golang.org/) runtimes
 
 We also provide a UI to manage your database, users, and files. And we have
