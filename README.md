@@ -17,7 +17,7 @@
 
 <p align="center">
 <strong>
-Help us and please star this repo. Thanks for your support!
+Please star this repo to receive updates. We have a free tier launching soon. Thanks for your support!
 </strong>
 </p>
 
