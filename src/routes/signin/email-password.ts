@@ -10,6 +10,7 @@ import { getSignInResponse } from '@/utils/tokens';
 import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
 import { logger } from '@/logger';
+import { isValidEmail } from '@/utils/email';
 
 type BodyType = {
   email: string;
@@ -26,6 +27,12 @@ export const signInEmailPasswordHandler = async (
 ): Promise<unknown> => {
   const { email, password } = req.body;
   logger.debug(`Sign in with email: ${email}`);
+
+  // check email
+  if (!(await isValidEmail({ email, res }))) {
+    // function send potential error via `res`
+    return;
+  }
 
   const user = await getUserByEmail(email);
 
