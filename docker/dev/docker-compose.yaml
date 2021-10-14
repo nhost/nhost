@@ -96,6 +96,7 @@ services:
 
     volumes:
       - '../../src:/app/src'
+      - '../../email-templates:/app/email-templates'
       - '../../test:/app/test'
       - '../../types:/app/types'
       - '../../migrations:/app/migrations'

@@ -13,10 +13,11 @@
   <body>
     <h2>Hello.</h2>
     <p>Someone requested to reset the password for your account.</p>
-    <p>If this was not you, please disregard this message.</p>
-    <hr />
-    <p>Proceed the password reset by using the following code:</p>
-    <p>${ticket}</p>
+
+    <a href="${serverUrl}/verify?&ticket=${ticket}&type=resetPassword">
+      <button>reset password</button></a
+    >
+
     <p>Thanks,<br />The Team</p>
   </body>
 </html>

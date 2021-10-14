@@ -42,10 +42,7 @@ export const userEmailSendVerificationEmailHandler = async (
     return res.boom.badRequest("User's email is already verified");
   }
 
-  // TODO: check last verified email sent at
-  // if (user.lastVerifyEmailSentAt -- some calculation)  {
-  //   return res.boom.badRequest('you need to wait to send another verification email')
-  // }
+  // TODO: possibly check when last email was sent to minimize abuse
 
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);

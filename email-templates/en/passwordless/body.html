@@ -20,8 +20,10 @@
   <body>
     <h2>Hello ${email}</h2>
     <p>Use this link to securely sign in:</p>
-    <a href="${appUrl}#otp=${otp}&email=${email}">
+    <a href="${serverUrl}/verify?&ticket=${ticket}&type=passwordlessEmail">
       <button>Sign In</button>
+    >
+    <a href="${appUrl}#otp=${otp}&email=${email}">
     </a>
     <p>Thanks,<br />The Team</p>
   </body>

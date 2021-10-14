@@ -22,17 +22,12 @@ export const userEmailVerifyHandler = async (
 ): Promise<unknown> => {
   console.log('inside user password handler');
 
-  const { email, ticket } = req.body;
+  const { ticket } = req.body;
 
   const user = await gqlSdk
     .users({
       where: {
         _and: [
-          {
-            email: {
-              _eq: email,
-            },
-          },
           {
             ticket: {
               _eq: ticket,

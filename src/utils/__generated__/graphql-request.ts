@@ -656,7 +656,7 @@ export type AuthUserProviders = {
   provider: AuthProviders;
   providerId: Scalars['String'];
   providerUserId: Scalars['String'];
-  refreshToken: Scalars['String'];
+  refreshToken?: Maybe<Scalars['String']>;
   updatedAt: Scalars['timestamptz'];
   /** An object relationship */
   user: Users;
@@ -1917,8 +1917,6 @@ export type Users = {
   id: Scalars['uuid'];
   isAnonymous: Scalars['Boolean'];
   lastSeen?: Maybe<Scalars['timestamptz']>;
-  lastVerifyEmailSentAt: Scalars['timestamptz'];
-  lastVerifyPhoneNumberSentAt: Scalars['timestamptz'];
   locale: Scalars['String'];
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -2058,8 +2056,6 @@ export type Users_Bool_Exp = {
   id?: Maybe<Uuid_Comparison_Exp>;
   isAnonymous?: Maybe<Boolean_Comparison_Exp>;
   lastSeen?: Maybe<Timestamptz_Comparison_Exp>;
-  lastVerifyEmailSentAt?: Maybe<Timestamptz_Comparison_Exp>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Timestamptz_Comparison_Exp>;
   locale?: Maybe<String_Comparison_Exp>;
   newEmail?: Maybe<Citext_Comparison_Exp>;
   otpHash?: Maybe<String_Comparison_Exp>;
@@ -2101,8 +2097,6 @@ export type Users_Insert_Input = {
   id?: Maybe<Scalars['uuid']>;
   isAnonymous?: Maybe<Scalars['Boolean']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
-  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -2131,8 +2125,6 @@ export type Users_Max_Fields = {
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
-  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -2156,8 +2148,6 @@ export type Users_Max_Order_By = {
   email?: Maybe<Order_By>;
   id?: Maybe<Order_By>;
   lastSeen?: Maybe<Order_By>;
-  lastVerifyEmailSentAt?: Maybe<Order_By>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Order_By>;
   locale?: Maybe<Order_By>;
   newEmail?: Maybe<Order_By>;
   otpHash?: Maybe<Order_By>;
@@ -2182,8 +2172,6 @@ export type Users_Min_Fields = {
   email?: Maybe<Scalars['citext']>;
   id?: Maybe<Scalars['uuid']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
-  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -2207,8 +2195,6 @@ export type Users_Min_Order_By = {
   email?: Maybe<Order_By>;
   id?: Maybe<Order_By>;
   lastSeen?: Maybe<Order_By>;
-  lastVerifyEmailSentAt?: Maybe<Order_By>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Order_By>;
   locale?: Maybe<Order_By>;
   newEmail?: Maybe<Order_By>;
   otpHash?: Maybe<Order_By>;
@@ -2259,8 +2245,6 @@ export type Users_Order_By = {
   id?: Maybe<Order_By>;
   isAnonymous?: Maybe<Order_By>;
   lastSeen?: Maybe<Order_By>;
-  lastVerifyEmailSentAt?: Maybe<Order_By>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Order_By>;
   locale?: Maybe<Order_By>;
   newEmail?: Maybe<Order_By>;
   otpHash?: Maybe<Order_By>;
@@ -2308,10 +2292,6 @@ export enum Users_Select_Column {
   /** column name */
   LastSeen = 'lastSeen',
   /** column name */
-  LastVerifyEmailSentAt = 'lastVerifyEmailSentAt',
-  /** column name */
-  LastVerifyPhoneNumberSentAt = 'lastVerifyPhoneNumberSentAt',
-  /** column name */
   Locale = 'locale',
   /** column name */
   NewEmail = 'newEmail',
@@ -2350,8 +2330,6 @@ export type Users_Set_Input = {
   id?: Maybe<Scalars['uuid']>;
   isAnonymous?: Maybe<Scalars['Boolean']>;
   lastSeen?: Maybe<Scalars['timestamptz']>;
-  lastVerifyEmailSentAt?: Maybe<Scalars['timestamptz']>;
-  lastVerifyPhoneNumberSentAt?: Maybe<Scalars['timestamptz']>;
   locale?: Maybe<Scalars['String']>;
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
@@ -2390,10 +2368,6 @@ export enum Users_Update_Column {
   IsAnonymous = 'isAnonymous',
   /** column name */
   LastSeen = 'lastSeen',
-  /** column name */
-  LastVerifyEmailSentAt = 'lastVerifyEmailSentAt',
-  /** column name */
-  LastVerifyPhoneNumberSentAt = 'lastVerifyPhoneNumberSentAt',
   /** column name */
   Locale = 'locale',
   /** column name */
@@ -2597,7 +2571,7 @@ export type DeleteUserRolesByUserIdMutation = (
 
 export type UserFieldsFragment = (
   { __typename?: 'users' }
-  & Pick<Users, 'id' | 'createdAt' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'lastVerifyEmailSentAt' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
+  & Pick<Users, 'id' | 'createdAt' | 'disabled' | 'displayName' | 'avatarUrl' | 'email' | 'passwordHash' | 'emailVerified' | 'phoneNumberVerified' | 'defaultRole' | 'isAnonymous' | 'ticket' | 'otpHash' | 'totpSecret' | 'activeMfaType' | 'newEmail' | 'locale'>
   & { roles: Array<(
     { __typename?: 'authUserRoles' }
     & Pick<AuthUserRoles, 'role'>
@@ -2831,7 +2805,6 @@ export const UserFieldsFragmentDoc = gql`
   email
   passwordHash
   emailVerified
-  lastVerifyEmailSentAt
   phoneNumberVerified
   defaultRole
   roles {

@@ -10,6 +10,7 @@ import { tokenRouter } from './token';
 import { signOutRouter } from './signout';
 import env from './env';
 import { emailTemplatesRouter } from './email-templates';
+import { verifyRouter } from './verify';
 
 const router = express.Router();
 router.use(boom());
@@ -27,6 +28,7 @@ router.use(signOutRouter);
 router.use(userRouter);
 router.use(mfaRouter);
 router.use(tokenRouter);
+router.use(verifyRouter);
 
 //
 router.use(emailTemplatesRouter);
