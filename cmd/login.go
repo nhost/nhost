@@ -27,10 +27,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
@@ -39,6 +40,7 @@ import (
 )
 
 var email string
+var password string
 
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
@@ -47,85 +49,73 @@ var loginCmd = &cobra.Command{
 	Long:  `Login to your existing Nhost account.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if util.PathExists(nhost.AUTH_PATH) {
-
-			// if user is already logged in, ask to logout
-			if _, err := validateAuth(nhost.AUTH_PATH); err == nil {
-				log.Fatal(ErrLoggedIn)
-			}
+		// if user is already logged in, ask to logout
+		if _, err := getUser(nhost.AUTH_PATH); err == nil {
+			log.Fatal(ErrLoggedIn)
 		}
 
 		if email == "" {
-
-			readEmail, err := readEmail()
+			readEmail, err := readInput("email")
 			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to read email")
+				os.Exit(0)
 			}
 			email = readEmail
 		}
 
-		token, err := login(nhost.API, email)
+		if password == "" {
+			payload, err := readInput("password")
+			if err != nil {
+				os.Exit(0)
+			}
+			password = payload
+		}
+
+		credentials, err := login(nhost.API, email, password)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to login with that email")
 		}
 
-		log.Info("We have sent you an email on \"" + email + "\". Confirm the email to login")
+		// delete any existing auth files
+		if util.PathExists(nhost.AUTH_PATH) {
+			if err = util.DeletePath(nhost.AUTH_PATH); err != nil {
+				log.Debug(err)
+				log.Fatalf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH)
+			}
+		}
 
-		verifiedToken, err := runVerificationLoop(nhost.API, email, token)
+		// create the auth file path if it doesn't exist
+		err = os.MkdirAll(nhost.ROOT, os.ModePerm)
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Login verification failed")
+			log.Fatal("Failed to initialize Nhost root directory: ", nhost.ROOT)
 		}
 
-		if len(verifiedToken) > 0 {
-
-			// prepare credentials to auth file
-			credentials, _ := json.MarshalIndent(map[string]string{
-				"email": email,
-				"token": verifiedToken,
-			}, "", " ")
-
-			// delete any existing auth files
-			if util.PathExists(nhost.AUTH_PATH) {
-				if err = util.DeletePath(nhost.AUTH_PATH); err != nil {
-					log.Debug(err)
-					log.Fatalf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH)
-				}
-			}
-
-			// create the auth file path if it doesn't exist
-			err := os.MkdirAll(nhost.ROOT, os.ModePerm)
-			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to initialize Nhost root directory: ", nhost.ROOT)
-			}
-
-			// create the auth file to write it
-			f, err := os.Create(nhost.AUTH_PATH)
-			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to create auth configuration file")
-			}
-
-			defer f.Close()
-
-			// write auth file
-			err = writeToFile(nhost.AUTH_PATH, string(credentials), "end")
-
-			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to save auth configuration")
-			}
-
-			// validate auth
-			_, err = validateAuth(nhost.AUTH_PATH)
-			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to validate authentication")
-			}
+		// create the auth file to write it
+		f, err := os.Create(nhost.AUTH_PATH)
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to create auth configuration file")
 		}
+
+		defer f.Close()
+
+		// write auth file
+		output, _ := json.Marshal(credentials)
+		err = ioutil.WriteFile(nhost.AUTH_PATH, output, 0644)
+
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to save auth configuration")
+		}
+
+		// validate auth
+		user, err := getUser(nhost.AUTH_PATH)
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to validate authentication")
+		}
+		fmt.Println(user)
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
 		log.Info("Email verified, and you are logged in!")
@@ -134,159 +124,79 @@ var loginCmd = &cobra.Command{
 }
 
 // take email input from user
-func readEmail() (string, error) {
+func readInput(key string) (string, error) {
 
 	// configure interative prompt
 	prompt := promptui.Prompt{
-		Label: "Nhost Email",
+		Label: strings.ToTitle(strings.ToLower(key)),
 	}
 
-	email, err := prompt.Run()
-	return email, err
+	return prompt.Run()
 }
 
-// ValidateAuth func confirms whether user is logged in or not
-func validateAuth(authFile string) (nhost.User, error) {
+//	Gets user's details using specified token
+func getUser(authFile string) (nhost.User, error) {
 
-	log.Debug("Validating authentication")
+	var response nhost.User
+	if !util.PathExists(authFile) {
+		return response, errors.New("auth source not found")
+	}
 
-	var response nhost.Response
+	log.Debug("Fetching user data")
 
 	credentials, err := nhost.LoadCredentials()
 
-	//Handle Error
+	//	Handle Error
 	if err != nil {
-		return response.User, err
+		return response, err
 	}
 
-	//Encode the data
+	//	Encode the data
 	postBody, _ := json.Marshal(credentials)
 	responseBody := bytes.NewBuffer(postBody)
 
 	//Leverage Go's HTTP Post function to make request
-	resp, err := http.Post(nhost.API+"/custom/cli/login/validate", "application/json", responseBody)
+	resp, err := http.Post(nhost.API+"/custom/cli/user", "application/json", responseBody)
 	if err != nil {
-		return response.User, err
+		return response, err
 	}
 
 	// read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
-	// fmt.Println(string(body))
-
-	//var res map[string]interface{}
-	// we unmarshal our body byteArray which contains our
-	// jsonFile's content into 'user' strcuture which we initialized above
 	json.Unmarshal(body, &response)
 
-	//fmt.Println(res["user"].(map[string]interface{})["teams"].([]interface{})[0].(map[string]interface{})["team"])
-
 	defer resp.Body.Close()
 
 	//Handle Error
-	if response.Error.Code == "server_not_available" {
-		return response.User, errors.New("server unavailable, please retry again later")
-	} else if response.Error.Code == "invalid_token" {
-		return response.User, errors.New("invalid auth token, please run 'nhost login' again")
-	}
-
-	return response.User, err
-}
-
-func runVerificationLoop(url, email, token string) (string, error) {
-
-	log.Debug("Verifying your login")
-
-	timeout := time.After(60 * time.Second)
-	ticker := time.Tick(1 * time.Second)
-
-	// Keep trying until we're timed out or get a result/error
-	for {
-		select {
-		// Got a timeout! fail with a timeout error
-		case <-timeout:
-			return "", errors.New("auth verification timed out")
-		// Got a tick, we should check on verify()
-		case <-ticker:
-			token, err := verify(url, email, token)
-			if err != nil {
-				// We may return, or ignore the error
-				return "", err
-			} else if len(token) > 0 {
-				// verify() done! let's return
-				return token, nil
-			}
-			// verify() isn't done yet, but it didn't fail either, let's try again
+	/*
+		if response.Error.Code == "server_not_available" {
+			return response.User, errors.New("server unavailable, please retry again later")
+		} else if response.Error.Code == "invalid_token" {
+			return response.User, errors.New("invalid auth token, please run 'nhost login' again")
 		}
-	}
-}
+	*/
 
-// validate the verification token
-func verify(url, email, token string) (string, error) {
-
-	log.Debug("Verifying login token")
-
-	//Leverage Go's HTTP Post function to make request
-	req, _ := http.NewRequest(
-		http.MethodGet,
-		url+"/custom/cli/login/verify",
-		nil,
-	)
-
-	queries := req.URL.Query()
-	queries.Add("email", email)
-	queries.Add("token", token)
-	req.URL.RawQuery = queries.Encode()
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	var response nhost.Response
-	err = json.Unmarshal(body, &response)
-
-	// if token returned, verification is successful
-	if len(response.VerifiedToken) > 0 {
-		return response.VerifiedToken, nil
-	}
-
-	//Handle Error
-	if response.Error.Code == "invalid_verification_token" {
-		return "", errors.New("your verification token is invalid")
-	} else if response.Error.Code == "server_not_available" {
-		return "", errors.New("service unavailable")
-	} else if len(body) == 0 {
-		// Empty body means unconfirmed email, no error and no result
-		return "", nil
-	}
-
-	return "", err
+	return response, err
 }
 
 // signs the user in with email and returns verification token
-func login(url, email string) (string, error) {
+func login(url, email, password string) (nhost.Credentials, error) {
 
 	log.Debug("Authenticating with email ", email)
 
-	var response nhost.Response
+	var response nhost.Credentials
 
-	//Encode the data
+	//	Encode the data
 	postBody, _ := json.Marshal(map[string]string{
-		"email": email,
+		"email":    email,
+		"password": password,
 	})
 	responseBody := bytes.NewBuffer(postBody)
 
-	//Leverage Go's HTTP Post function to make request
+	//	Leverage Go's HTTP Post function to make request
 	resp, err := http.Post(url+"/custom/cli/login", "application/json", responseBody)
 	if err != nil {
-		return response.VerificationToken, err
+		return response, err
 	}
 
 	defer resp.Body.Close()
@@ -295,15 +205,17 @@ func login(url, email string) (string, error) {
 	json.Unmarshal(body, &response)
 
 	//Handle Error
-	if response.Error.Code == "not_found" {
-		return response.VerificationToken, errors.New("we couldn't find an account registered with this email, please register at https://nhost.io/register")
-	} else if response.Error.Code == "unknown" {
-		return response.VerificationToken, errors.New("error while trying to create a login token")
-	} else if response.Error.Code == "server_not_available" {
-		return response.VerificationToken, errors.New("service unavailable")
-	}
+	/*
+		if response.Error.Code == "not_found" {
+			return response.VerificationToken, errors.New("we couldn't find an account registered with this email, please register at https://nhost.io/register")
+		} else if response.Error.Code == "unknown" {
+			return response.VerificationToken, errors.New("error while trying to create a login token")
+		} else if response.Error.Code == "server_not_available" {
+			return response.VerificationToken, errors.New("service unavailable")
+		}
+	*/
 
-	return response.VerificationToken, err
+	return response, err
 }
 
 func init() {
@@ -314,4 +226,5 @@ func init() {
 	// Add Persistent Flags which will work for this command
 	// and all subcommands
 	loginCmd.PersistentFlags().StringVarP(&email, "email", "e", "", "Email of your Nhost account")
+	loginCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "Password of your Nhost account")
 }

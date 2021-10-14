@@ -25,12 +25,8 @@ SOFTWARE.
 package cmd
 
 import (
-	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 
-	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/mrinalwahal/cli/util"
@@ -62,276 +58,278 @@ var initCmd = &cobra.Command{
 		}
 
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	/*
+		Run: func(cmd *cobra.Command, args []string) {
 
-		prompt := promptui.Prompt{
-			Label:     "Do you want to initialize a new Nhost app",
-			IsConfirm: true,
-		}
-
-		response, err := prompt.Run()
-		if err != nil || !(strings.ToLower(response) == "y" || strings.ToLower(response) == "yes") {
-			os.Exit(0)
-		}
-
-		/*
-			prompt = promptui.Prompt{
-				Label: "Name",
+			prompt := promptui.Prompt{
+				Label:     "Do you want to initialize a new Nhost app",
+				IsConfirm: true,
 			}
 
-			name, err := prompt.Run()
-			if err != nil || len(response) == 0 {
-				return
+			response, err := prompt.Run()
+			if err != nil || !(strings.ToLower(response) == "y" || strings.ToLower(response) == "yes") {
+				os.Exit(0)
 			}
 
-			//	Create the project directory
-			appDir := filepath.Join(nhost.WORKING_DIR, name)
-			if err := os.MkdirAll(appDir, os.ModePerm); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to create application directory")
-			}
 
-			//	Update current working directory to newly create app directory
-			nhost.WORKING_DIR = appDir
-		*/
-
-		var selectedProject nhost.Project
-
-		// if user has already passed remote_project as a flag,
-		// then fetch list of remote projects,
-		// iterate through those projects and filter that project
-		if remote {
-
-			// check if auth file exists
-			if !util.PathExists(nhost.AUTH_PATH) {
-				log.Debug("Auth credentials not found at: " + nhost.AUTH_PATH)
-
-				// begin login procedure
-				loginCmd.Run(cmd, args)
-			}
-
-			// validate authentication
-			user, err := validateAuth(nhost.AUTH_PATH)
-			if err != nil {
-				log.Debug(err)
-				log.Error("Failed to validate authentication")
-
-				// begin login procedure
-				loginCmd.Run(cmd, args)
-			}
-
-			// concatenate personal and team projects
-			projects := user.Projects
-			if len(projects) == 0 {
-				log.Info("Go to https://console.nhost.io/new and create a new app")
-				log.Fatal("Failed to find any apps related to this account")
-			}
-
-			// if user is part of teams which have projects, append them as well
-			teams := user.Teams
-
-			for _, team := range teams {
-
-				// check if particular team has projects
-				if len(team.Team.Projects) > 0 {
-					// append the projects
-					projects = append(projects, team.Team.Projects...)
+				prompt = promptui.Prompt{
+					Label: "Name",
 				}
-			}
 
-			// if flag is empty, present selection list
-			if len(project) > 0 {
+				name, err := prompt.Run()
+				if err != nil || len(response) == 0 {
+					return
+				}
 
-				for _, item := range projects {
-					if item.Name == project {
-						selectedProject = item
+				//	Create the project directory
+				appDir := filepath.Join(nhost.WORKING_DIR, name)
+				if err := os.MkdirAll(appDir, os.ModePerm); err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to create application directory")
+				}
+
+				//	Update current working directory to newly create app directory
+				nhost.WORKING_DIR = appDir
+
+
+			var selectedProject nhost.Project
+
+			// if user has already passed remote_project as a flag,
+			// then fetch list of remote projects,
+			// iterate through those projects and filter that project
+			if remote {
+
+				// check if auth file exists
+				if !util.PathExists(nhost.AUTH_PATH) {
+					log.Debug("Auth credentials not found at: " + nhost.AUTH_PATH)
+
+					// begin login procedure
+					loginCmd.Run(cmd, args)
+				}
+
+				// validate authentication
+				user, err := getUser(nhost.AUTH_PATH)
+				if err != nil {
+					log.Debug(err)
+					log.Error("Failed to validate authentication")
+
+					// begin login procedure
+					loginCmd.Run(cmd, args)
+				}
+
+				// concatenate personal and team projects
+				projects := user.Projects
+				if len(projects) == 0 {
+					log.Info("Go to https://console.nhost.io/new and create a new app")
+					log.Fatal("Failed to find any apps related to this account")
+				}
+
+				// if user is part of teams which have projects, append them as well
+				teams := user.Teams
+
+				for _, team := range teams {
+
+					// check if particular team has projects
+					if len(team.Team.Projects) > 0 {
+						// append the projects
+						projects = append(projects, team.Team.Projects...)
 					}
 				}
 
-				if selectedProject.ID == "" {
-					log.Errorf("Remote app with name %v not found", remote)
-					os.Exit(0)
-				}
-			} else {
+				// if flag is empty, present selection list
+				if len(project) > 0 {
 
-				// configure interactive prompt template
-				templates := promptui.SelectTemplates{
-					//Label:    "{{ . }}?",
-					Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Team.Name | faint }}`,
-					Inactive: `   {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
-					Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
-				}
+					for _, item := range projects {
+						if item.Name == project {
+							selectedProject = item
+						}
+					}
 
-				// configure interative prompt
-				prompt := promptui.Select{
-					Label:     "Select app",
-					Items:     projects,
-					Templates: &templates,
-				}
+					if selectedProject.ID == "" {
+						log.Errorf("Remote app with name %v not found", remote)
+						os.Exit(0)
+					}
+				} else {
 
-				index, _, err := prompt.Run()
-				if err != nil {
-					os.Exit(0)
-				}
+					// configure interactive prompt template
+					templates := promptui.SelectTemplates{
+						//Label:    "{{ . }}?",
+						Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Team.Name | faint }}`,
+						Inactive: `   {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
+						Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
+					}
 
-				selectedProject = projects[index]
+					// configure interative prompt
+					prompt := promptui.Select{
+						Label:     "Select app",
+						Items:     projects,
+						Templates: &templates,
+					}
+
+					index, _, err := prompt.Run()
+					if err != nil {
+						os.Exit(0)
+					}
+
+					selectedProject = projects[index]
+				}
 			}
-		}
 
-		// create root nhost folder
-		if err := os.MkdirAll(nhost.NHOST_DIR, os.ModePerm); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to initialize root nhost directory")
-		}
-
-		// Create .nhost dir which is used for nhost specific configuration
-		if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to initialize nhost specific directory")
-		}
-
-		// generate Nhost configuration
-		// which will contain the information for GraphQL, Minio and other services
-		nhostConfig := nhost.GenerateConfig(selectedProject)
-
-		// save the Nhost configuration
-		if err := nhostConfig.Save(); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to save Nhost configuration")
-		}
-
-		requiredDirs := []string{
-			nhost.ROOT,
-			nhost.MIGRATIONS_DIR,
-			nhost.METADATA_DIR,
-			nhost.SEEDS_DIR,
-			nhost.EMAILS_DIR,
-		}
-
-		// if required directories don't exist, then create them
-		for _, dir := range requiredDirs {
-			if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+			// create root nhost folder
+			if err := os.MkdirAll(nhost.NHOST_DIR, os.ModePerm); err != nil {
 				log.Debug(err)
-				log.WithField("component", filepath.Base(dir)).Fatal("Failed to create directory")
+				log.Fatal("Failed to initialize root nhost directory")
 			}
-		}
 
-		// save the default templates
-		for _, item := range entities {
-			if item.Default {
+			// Create .nhost dir which is used for nhost specific configuration
+			if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to initialize nhost specific directory")
+			}
 
-				//download the files
-				if err := clone(item.Source, item.Destination); err != nil {
-					log.WithField("compnent", "templates").Debug(err)
-					log.Error("Failed to clone template")
+			// generate Nhost configuration
+			// which will contain the information for GraphQL, Minio and other services
+			nhostConfig := nhost.GenerateConfig(selectedProject)
+
+			// save the Nhost configuration
+			if err := nhostConfig.Save(); err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to save Nhost configuration")
+			}
+
+			requiredDirs := []string{
+				nhost.ROOT,
+				nhost.MIGRATIONS_DIR,
+				nhost.METADATA_DIR,
+				nhost.SEEDS_DIR,
+				nhost.EMAILS_DIR,
+			}
+
+			// if required directories don't exist, then create them
+			for _, dir := range requiredDirs {
+				if err := os.MkdirAll(dir, os.ModePerm); err != nil {
+					log.Debug(err)
+					log.WithField("component", filepath.Base(dir)).Fatal("Failed to create directory")
 				}
 			}
-		}
 
-		// create or append to .gitignore
-		ignoreFile := filepath.Join(nhost.WORKING_DIR, ".gitignore")
+			// save the default templates
+			for _, item := range entities {
+				if item.Default {
 
-		f, err := os.Create(ignoreFile)
-		if err != nil {
-			log.Debug(err)
-			log.Error("Failed to create .gitignore file")
-		}
+					//download the files
+					if err := clone(item.Source, item.Destination); err != nil {
+						log.WithField("compnent", "templates").Debug(err)
+						log.Error("Failed to clone template")
+					}
+				}
+			}
 
-		defer f.Close()
-		if _, err = f.WriteString(
-			fmt.Sprintf("%v\n%v\n%v\n%v",
-				nhost.DOT_NHOST,
-				filepath.Join(nhost.WEB_DIR, "node_modules"),
-				filepath.Join(nhost.WORKING_DIR, "node_modules"),
-				filepath.Join(nhost.API_DIR, "node_modules"))); err != nil {
-			log.Debug(err)
-			log.Error("Failed to write to .gitignore file")
-		}
-		f.Sync()
+			// create or append to .gitignore
+			ignoreFile := filepath.Join(nhost.WORKING_DIR, ".gitignore")
 
-		// create .env.development file
-		f, err = os.Create(nhost.ENV_FILE)
-		if err != nil {
-			log.Debug(err)
-			log.Warn("Failed to create .env.developement file")
-		}
-		f.Close()
-
-		if remote {
-
-			f, err := os.Create(filepath.Join(nhost.DOT_NHOST, "nhost.yaml"))
+			f, err := os.Create(ignoreFile)
 			if err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to write nHost configuration")
+				log.Error("Failed to create .gitignore file")
 			}
 
 			defer f.Close()
-			//	Remove this repetition
-			if _, err = f.WriteString("project_id: " + selectedProject.ID); err != nil {
+			if _, err = f.WriteString(
+				fmt.Sprintf("%v\n%v\n%v\n%v",
+					nhost.DOT_NHOST,
+					filepath.Join(nhost.WEB_DIR, "node_modules"),
+					filepath.Join(nhost.WORKING_DIR, "node_modules"),
+					filepath.Join(nhost.API_DIR, "node_modules"))); err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to write to nhost.yaml")
-			}
-			if _, err = f.WriteString("id: " + selectedProject.ID); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to write to nhost.yaml")
+				log.Error("Failed to write to .gitignore file")
 			}
 			f.Sync()
 
-			hasuraEndpoint := "https://" + selectedProject.ProjectDomains.Hasura
-			adminSecret := selectedProject.HasuraGQEAdminSecret
-
-			// create new hasura client
-			hasuraClient := hasura.Client{}
-			if err := hasuraClient.Init(hasuraEndpoint, adminSecret, nil); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to initialize Hasura client")
-			}
-
-			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
-
-			// clear current migration information from remote
-			if err := hasuraClient.ClearMigration(); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to clear migrations from remote")
-			}
-
-			// create migrations from remote
-			_, err = pullMigration(hasuraClient, "init", commonOptions)
+			// create .env.development file
+			f, err = os.Create(nhost.ENV_FILE)
 			if err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to create migration from remote")
+				log.Warn("Failed to create .env.developement file")
 			}
+			f.Close()
 
-			// write ENV variables to .env.development
-			var envArray []string
-			for _, row := range selectedProject.ProjectEnvVars {
-				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row["name"], row["dev_value"]))
+			if remote {
+
+				f, err := os.Create(filepath.Join(nhost.DOT_NHOST, "nhost.yaml"))
+				if err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to write nHost configuration")
+				}
+
+				defer f.Close()
+				//	Remove this repetition
+				if _, err = f.WriteString("project_id: " + selectedProject.ID); err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to write to nhost.yaml")
+				}
+				if _, err = f.WriteString("id: " + selectedProject.ID); err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to write to nhost.yaml")
+				}
+				f.Sync()
+
+				hasuraEndpoint := "https://" + selectedProject.ProjectDomains.Hasura
+				adminSecret := selectedProject.HasuraGQEAdminSecret
+
+				// create new hasura client
+				hasuraClient := hasura.Client{}
+				if err := hasuraClient.Init(hasuraEndpoint, adminSecret, nil); err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to initialize Hasura client")
+				}
+
+				commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
+
+				// clear current migration information from remote
+				if err := hasuraClient.ClearMigration(); err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to clear migrations from remote")
+				}
+
+				// create migrations from remote
+				_, err = pullMigration(hasuraClient, "init", commonOptions)
+				if err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to create migration from remote")
+				}
+
+				// write ENV variables to .env.development
+				var envArray []string
+				for _, row := range selectedProject.ProjectEnvVars {
+					envArray = append(envArray, fmt.Sprintf(`%s=%s`, row["name"], row["dev_value"]))
+				}
+
+				envData := strings.Join(envArray, "\n")
+
+				// add required env vars
+				envData += fmt.Sprintf("\nREGISTRATION_CUSTOM_FIELDS=%s\n", selectedProject.HBPRegistrationCustomFields)
+
+				if len(selectedProject.BackendUserFields) > 0 {
+					envData += fmt.Sprintf("JWT_CUSTOM_FIELDS=%s\n", selectedProject.BackendUserFields)
+				}
+
+				if len(selectedProject.HBPDefaultAllowedUserRoles) > 0 {
+					envData += fmt.Sprintf("DEFAULT_ALLOWED_USER_ROLES=%s\n", selectedProject.HBPDefaultAllowedUserRoles)
+				}
+
+				if len(selectedProject.HBPAllowedUserRoles) > 0 {
+					envData += fmt.Sprintf("ALLOWED_USER_ROLES=%s\n", selectedProject.HBPAllowedUserRoles)
+				}
+
+				if err = writeToFile(nhost.ENV_FILE, envData, "end"); err != nil {
+					log.Debug(err)
+					log.Error("Failed to write app environment variables to .env.development file", false)
+
+				}
 			}
-
-			envData := strings.Join(envArray, "\n")
-
-			// add required env vars
-			envData += fmt.Sprintf("\nREGISTRATION_CUSTOM_FIELDS=%s\n", selectedProject.HBPRegistrationCustomFields)
-
-			if len(selectedProject.BackendUserFields) > 0 {
-				envData += fmt.Sprintf("JWT_CUSTOM_FIELDS=%s\n", selectedProject.BackendUserFields)
-			}
-
-			if len(selectedProject.HBPDefaultAllowedUserRoles) > 0 {
-				envData += fmt.Sprintf("DEFAULT_ALLOWED_USER_ROLES=%s\n", selectedProject.HBPDefaultAllowedUserRoles)
-			}
-
-			if len(selectedProject.HBPAllowedUserRoles) > 0 {
-				envData += fmt.Sprintf("ALLOWED_USER_ROLES=%s\n", selectedProject.HBPAllowedUserRoles)
-			}
-
-			if err = writeToFile(nhost.ENV_FILE, envData, "end"); err != nil {
-				log.Debug(err)
-				log.Error("Failed to write app environment variables to .env.development file", false)
-
-			}
-		}
-	},
+		},
+	*/
 	PostRun: func(cmd *cobra.Command, args []string) {
 		log.Info("Nhost app successfully initialized")
 		log.Info("Start your environment with `nhost dev`")

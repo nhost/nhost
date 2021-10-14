@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strconv"
+
 	"strings"
 	"time"
 
@@ -117,11 +118,11 @@ func pathExists(filePath string) bool {
 	return err == nil
 }
 
-func Info() (Information, error) {
+func Info() (App, error) {
 
 	log.Debug("Fetching app information")
 
-	var response Information
+	var response App
 
 	file, err := ioutil.ReadFile(INFO_PATH)
 	if err != nil {
@@ -698,10 +699,10 @@ func (config *Configuration) Init(port string) error {
 
 	postgresConfig.Config.Cmd = []string{"-p", fmt.Sprint(config.Services["postgres"].Port)}
 	postgresConfig.HostConfig.Mounts = mountPoints
-	postgresConfig.Config.Env = append(postgresConfig.Config.Env, []string{
+	postgresConfig.Config.Env = []string{
 		"POSTGRES_USER=postgres",
 		"POSTGRES_PASSWORD=postgres",
-	}...)
+	}
 
 	// prepare env variables for following container
 	containerVariables := []string{
@@ -725,48 +726,56 @@ func (config *Configuration) Init(port string) error {
 	// Append NHOST_FUNCTIONS env var to Hasura
 	// to allow NHOST_FUNCTIONS to be reachable from Hasura Event Triggers.
 	// This is being done over here, because development proxy port is required
+	var localhost string
 	switch runtime.GOOS {
 	case "darwin", "windows":
-		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://host.docker.internal:%v/v1/functions", port))
-	case "linux":
-		hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, fmt.Sprintf("NHOST_FUNCTIONS=http://%v:%v/v1/functions", getOutboundIP(), port))
+		localhost = "host.docker.internal"
+	default:
+		localhost = fmt.Sprint(getOutboundIP())
 	}
+	containerVariables = append(
+		containerVariables,
+		fmt.Sprintf("NHOST_FUNCTIONS=http://%s:%v/v1/functions", localhost, port),
+		fmt.Sprintf("LOCALHOST=http://%s", localhost),
+	)
 
 	/*
-			// create mount points if they doesn't exist
-			mountPoints = []mount.Mount{
+		// create mount points if they doesn't exist
+		mountPoints = []mount.Mount{
 				{
 					Type:   mount.TypeBind,
 					Source: MIGRATIONS_DIR,
 					Target: "/hasura-migrations",
 				},
-			}
+		}
 
-			// parse the metadata directory tree
-			meta_files, err := ioutil.ReadDir(METADATA_DIR)
-			if err != nil {
-				log.Error("Failed to parse the tree of metadata directory")
-				return err
-			}
+					// parse the metadata directory tree
+					meta_files, err := ioutil.ReadDir(METADATA_DIR)
+					if err != nil {
+						log.Error("Failed to parse the tree of metadata directory")
+						return err
+					}
 
-			// mount the metadata directory if meta files exist
-			if len(meta_files) > 0 {
-				mountPoints = append(mountPoints, mount.Mount{
-					Type:   mount.TypeBind,
-					Source: METADATA_DIR,
-					Target: "/hasura-metadata",
-				})
-			}
+					// mount the metadata directory if meta files exist
+					if len(meta_files) > 0 {
+						mountPoints = append(mountPoints, mount.Mount{
+							Type:   mount.TypeBind,
+							Source: METADATA_DIR,
+							Target: "/hasura-metadata",
+						})
+					}
 
-			for _, mountPoint := range mountPoints {
-				if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
-					return err
+				for _, mountPoint := range mountPoints {
+					if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
+						return err
+					}
 				}
-			}
 
-		hasuraConfig.HostConfig.Mounts = mountPoints
+			//hasuraConfig.HostConfig.Mounts = mountPoints
 	*/
-	hasuraConfig.Config.Env = append(hasuraConfig.Config.Env, containerVariables...)
+	//	hasuraConfig.HostConfig.Binds = []string{ENV_FILE + ":/env_file"}
+	//	hasuraConfig.Config.Cmd = append(hasuraConfig.Config.Cmd, "export", "$(grep -v '^#' /env_file | xargs)")
+	hasuraConfig.Config.Env = containerVariables
 
 	// create mount points if they doesn't exit
 	mountPoints = []mount.Mount{
@@ -789,10 +798,10 @@ func (config *Configuration) Init(port string) error {
 	}
 
 	minioConfig.HostConfig.Mounts = mountPoints
-	minioConfig.Config.Env = append(minioConfig.Config.Env, []string{
+	minioConfig.Config.Env = []string{
 		"MINIO_ROOT_USER=minioaccesskey123123",
 		"MINIO_ROOT_PASSWORD=minioaccesskey123123",
-	}...)
+	}
 
 	minioConfig.Config.Cmd = []string{
 		"-c",
@@ -826,7 +835,7 @@ func (config *Configuration) Init(port string) error {
 		return err
 	}
 
-	authConfig.Config.Env = append(authConfig.Config.Env, containerVariables...)
+	authConfig.Config.Env = containerVariables
 	authConfig.HostConfig.Mounts = []mount.Mount{
 		{
 			Type:   mount.TypeBind,
@@ -862,7 +871,7 @@ func (config *Configuration) Init(port string) error {
 
 	// append storage env vars
 	containerVariables = append(containerVariables, appendEnvVars(config.Storage, "STORAGE")...)
-	storageConfig.Config.Env = append(storageConfig.Config.Env, containerVariables...)
+	storageConfig.Config.Env = containerVariables
 
 	// prepare env variables for following container
 	containerVariables = []string{}
@@ -887,16 +896,16 @@ func (config *Configuration) Init(port string) error {
 		log.WithField("component", "smtp").Debugf("Running SMTP server on port %s", smtpPort)
 	}
 
-	mailhogConfig.Config.Env = append(mailhogConfig.Config.Env, containerVariables...)
+	mailhogConfig.Config.Env = containerVariables
 	mailhogConfig.HostConfig.PortBindings = map[nat.Port][]nat.PortBinding{
-		nat.Port(strconv.Itoa(smtpPort)): {{HostIP: "127.0.0.1",
+		nat.Port(strconv.Itoa(1025)): {{HostIP: "127.0.0.1",
 			HostPort: strconv.Itoa(smtpPort)}},
 		nat.Port(strconv.Itoa(8025)): {{HostIP: "127.0.0.1",
 			HostPort: strconv.Itoa(config.Services["mailhog"].Port)}},
 	}
 	mailhogConfig.Config.ExposedPorts = nat.PortSet{
-		nat.Port(strconv.Itoa(smtpPort)): struct{}{},
-		nat.Port(strconv.Itoa(8025)):     struct{}{},
+		nat.Port(strconv.Itoa(1025)): struct{}{},
+		nat.Port(strconv.Itoa(8025)): struct{}{},
 	}
 
 	return nil

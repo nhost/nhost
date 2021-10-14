@@ -25,7 +25,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -38,9 +37,8 @@ import (
 
 // envCmd represents the env command
 var envCmd = &cobra.Command{
-	Use:     "env",
-	Aliases: []string{"e"},
-	Short:   "Handle your Nhost env vars",
+	Use:   "env",
+	Short: "Handle your Nhost env vars",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
 
@@ -59,32 +57,22 @@ var lsCmd = &cobra.Command{
 
 		log.Info("Fetching env vars from remote")
 
-		info, err := nhost.Info()
+		app, err := nhost.Info()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read .nhost/nhost.yaml")
 		}
 
-		savedProjectID := info.ProjectID
-
-		user, err := validateAuth(nhost.AUTH_PATH)
+		user, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch user data from remote")
 		}
 
 		// concatenate personal and team projects
-		projects := user.Projects
-
-		// if user is part of teams which have projects, append them as well
-		teams := user.Teams
-		for _, team := range teams {
-
-			// check if particular team has projects
-			if len(team.Team.Projects) > 0 {
-				// append the projects
-				projects = append(projects, team.Team.Projects...)
-			}
+		var projects []nhost.App
+		for _, member := range user.WorkspaceMembers {
+			projects = append(projects, member.Workspace.Apps...)
 		}
 
 		if len(projects) == 0 {
@@ -92,10 +80,10 @@ var lsCmd = &cobra.Command{
 			log.Fatal("We couldn't find any apps related to this account")
 		}
 
-		var savedProject nhost.Project
+		var savedProject nhost.App
 
 		for _, project := range projects {
-			if project.ID == savedProjectID {
+			if project.ID == app.ID {
 				savedProject = project
 			}
 		}
@@ -106,8 +94,8 @@ var lsCmd = &cobra.Command{
 
 		fmt.Fprintln(w, "key\t\tvalue")
 		fmt.Fprintln(w, "---\t\t-----")
-		for _, envRow := range savedProject.ProjectEnvVars {
-			fmt.Fprintf(w, "%v\t\t%v", envRow["name"], envRow["dev_value"])
+		for _, envRow := range savedProject.EnvVars {
+			fmt.Fprintf(w, "%v\t\t%v", envRow.Name, envRow.Value)
 			fmt.Fprintln(w)
 		}
 		w.Flush()
@@ -119,40 +107,29 @@ var lsCmd = &cobra.Command{
 
 // pullCmd syncs env vars from remote with local environment
 var envPullCmd = &cobra.Command{
-	Use:     "pull",
-	Aliases: []string{"p"},
-	Short:   "Sync env vars from remote with local env",
-	Long:    `Pull and sync environment variables stored at remote with local environment.`,
+	Use:   "pull",
+	Short: "Sync env vars from remote with local env",
+	Long:  `Pull and sync environment variables stored at remote with local environment.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.Info("Overwriting existing .env.development file")
 
-		info, err := nhost.Info()
+		app, err := nhost.Info()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read .nhost/nhost.yaml")
 		}
 
-		savedProjectID := info.ProjectID
-
-		user, err := validateAuth(nhost.AUTH_PATH)
+		user, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to fetch user data from remote")
 		}
 
 		// concatenate personal and team projects
-		projects := user.Projects
-
-		// if user is part of teams which have projects, append them as well
-		teams := user.Teams
-		for _, team := range teams {
-
-			// check if particular team has projects
-			if len(team.Team.Projects) > 0 {
-				// append the projects
-				projects = append(projects, team.Team.Projects...)
-			}
+		var projects []nhost.App
+		for _, member := range user.WorkspaceMembers {
+			projects = append(projects, member.Workspace.Apps...)
 		}
 
 		if len(projects) == 0 {
@@ -160,52 +137,51 @@ var envPullCmd = &cobra.Command{
 			log.Fatal("We couldn't find any apps related to this account")
 		}
 
-		var savedProject nhost.Project
+		var savedProject nhost.App
 
 		for _, project := range projects {
-			if project.ID == savedProjectID {
+			if strings.EqualFold(project.ID, app.ID) {
 				savedProject = project
 			}
 		}
 
 		log.Infof("Downloading development environment variables for app: %s", savedProject.Name)
 
-		envData, err := ioutil.ReadFile(nhost.ENV_FILE)
+		vars, err := nhost.Env()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to read .env.development file")
 		}
 
-		envRows := strings.Split(string(envData), "\n")
+		var existingVars []nhost.EnvVar
+		for _, item := range vars {
+			localParsedRow := strings.Split(item, "=")
+			localKey, localValue := localParsedRow[0], localParsedRow[1]
+			existingVars = append(existingVars, nhost.EnvVar{
+				Name:  localKey,
+				Value: localValue,
+			})
+		}
 
-		var envMap []map[string]interface{}
-		for index, row := range envRows {
-
-			if strings.Contains(row, "=") {
-				localParsedRow := strings.Split(row, "=")
-				localKey, localValue := localParsedRow[0], localParsedRow[1]
-
-				// copy the pair as it is
-				envMap = append(envMap, map[string]interface{}{
-					localKey: localValue,
-				})
-
-				// if the same key is in response from remote, then override the previously copied value
-				for _, remoteVarRow := range savedProject.ProjectEnvVars {
-					if remoteVarRow["name"] == localKey {
-						envMap[index][localKey] = remoteVarRow["dev_value"]
-					}
+		for _, remote := range savedProject.EnvVars {
+			added := false
+			for index, local := range existingVars {
+				if remote.Name == local.Name {
+					existingVars[index].Value = local.Value
+					added = true
 				}
 			}
-		}
-
-		// convert the new env var map to string
-		var envArray []string
-		for _, row := range envMap {
-			for key, value := range row {
-				envArray = append(envArray, fmt.Sprintf(`%s=%v`, key, value))
+			if !added {
+				existingVars = append(existingVars, remote)
 			}
 		}
+
+		var envArray []string
+		for _, item := range existingVars {
+			envArray = append(envArray, fmt.Sprintf("%v=%v", item.Name, item.Value))
+		}
+
+		fmt.Println(envArray)
 
 		// delete the existing .env.development file
 		util.DeletePath(nhost.ENV_FILE)
@@ -225,39 +201,6 @@ var envPullCmd = &cobra.Command{
 		f.Sync()
 
 		log.Info("Local environment vars successfully synced with remote")
-
-		/*
-			// Legacy code.
-			// Might be required in the future to push local env changes to remote
-			var remoteEnvVars []map[string]interface{}
-			for _, variable := range savedProject.ProjectEnvVars {
-				remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-					"name":  variable["name"],
-					"value": variable["dev_value"],
-				})
-			}
-
-			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-				"name":  "REGISTRATION_CUSTOM_FIELDS",
-				"value": savedProject.HBPRegistrationCustomFields,
-			})
-
-			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-				"name":  "JWT_CUSTOM_FIELDS",
-				"value": savedProject.BackendUserFields,
-			})
-
-			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-				"name":  "DEFAULT_ALLOWED_USER_ROLES",
-				"value": savedProject.HBPDefaultAllowedUserRoles,
-			})
-
-			remoteEnvVars = append(remoteEnvVars, map[string]interface{}{
-				"name":  "ALLOWED_USER_ROLES",
-				"value": savedProject.HBPAllowedUserRoles,
-			})
-		*/
-
 	},
 }
 

@@ -26,6 +26,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
@@ -41,7 +42,7 @@ for the logged in user from Nhost console and present them.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// validate authentication
-		userData, err := validateAuth(nhost.AUTH_PATH)
+		user, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 
@@ -49,32 +50,21 @@ for the logged in user from Nhost console and present them.`,
 			loginCmd.Run(cmd, args)
 		}
 
-		// concatenate personal and team projects
-		projects := userData.Projects
-
-		// if user is part of teams which have projects, append them as well
-		teams := userData.Teams
-
-		for _, team := range teams {
-			// append the projects
-			projects = append(projects, team.Team.Projects...)
+		if !(len(user.WorkspaceMembers) > 0) {
+			log.Error("No workspaces found")
+			log.Info("Create new app with `nhost link`")
+			os.Exit(0)
 		}
 
-		log.Info("Remote apps")
-
 		p := newPrinter()
+		p.print("", "App", fmt.Sprint(Gray, "Workspace", Reset))
 		p.print("header", "", "")
 
 		// log every project for the user
-		for _, item := range projects {
-
-			if item.TeamID != "" {
-				item.Type = item.Team.Name
-			} else {
-				item.Type = "Personal"
+		for _, member := range user.WorkspaceMembers {
+			for _, app := range member.Workspace.Apps {
+				p.print("", app.Name, fmt.Sprint(Gray, member.Workspace.Name, Reset))
 			}
-
-			p.print("", item.Name, fmt.Sprintf("%s%v%s", Gray, item.Type, Reset))
 		}
 		p.print("footer", "", "")
 		p.close()

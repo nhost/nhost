@@ -105,9 +105,9 @@ var devCmd = &cobra.Command{
 		//	If the default port is not available,
 		//	choose a random one
 		if !nhost.PortAvaiable(env.Port) {
-			log.Debugf("Port %s not available", env.Port)
-			env.Port = strconv.Itoa(nhost.GetPort(1000, 9999))
-			log.Debugf("Starting the environment on port %s", env.Port)
+			log.Errorf("Port %s not available", env.Port)
+			log.Info("Choose a different port with `nhost dev [--port]`")
+			os.Exit(0)
 		}
 
 		var err error

@@ -27,7 +27,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -41,14 +40,13 @@ import (
 
 // linkCmd represents the link command
 var linkCmd = &cobra.Command{
-	Use:     "link",
-	Aliases: []string{"lk"},
-	Short:   "Link local app to a remote one",
-	Long:    `Connect your already hosted Nhost app to local environment and start development or testings.`,
+	Use:   "link",
+	Short: "Link local app to a remote one",
+	Long:  `Connect your already hosted Nhost app to local environment and start development or testings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// validate authentication
-		userData, err := validateAuth(nhost.AUTH_PATH)
+		user, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to validate authentication")
@@ -58,18 +56,20 @@ var linkCmd = &cobra.Command{
 		}
 
 		// concatenate personal and team projects
-		projects := userData.Projects
-
-		// if user is part of teams which have projects, append them as well
-		teams := userData.Teams
-
-		for _, team := range teams {
-			// append the projects
-			projects = append(projects, team.Team.Projects...)
+		var projects []nhost.App
+		for _, member := range user.WorkspaceMembers {
+			for _, item := range member.Workspace.Apps {
+				projects = append(projects, nhost.App{
+					Name:      item.Name,
+					ID:        item.ID,
+					EnvVars:   item.EnvVars,
+					Workspace: member.Workspace.Name,
+				})
+			}
 		}
 
 		// add the option of a new project to the existing selection payload
-		projects = append(projects, nhost.Project{
+		projects = append(projects, nhost.App{
 			Name: "Create New App",
 			ID:   "new",
 		})
@@ -77,9 +77,9 @@ var linkCmd = &cobra.Command{
 		// configure interactive prompt template
 		templates := promptui.SelectTemplates{
 			//Label:    "{{ . }}?",
-			Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Team.Name | faint }}`,
-			Inactive: `   {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
-			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Team.Name | faint }}`,
+			Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Workspace | faint }}`,
+			Inactive: `   {{ .Name | cyan }}  {{ .Workspace | faint }}`,
+			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Workspace | faint }}`,
 		}
 
 		// configure interactive prompt search function
@@ -176,7 +176,7 @@ var linkCmd = &cobra.Command{
 
 			if index == 0 {
 
-				project.ID, err = createProject(project.Name, selectedServer, userData.ID, "")
+				project.ID, err = createProject(project.Name, selectedServer, user.ID, "")
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new app")
@@ -188,15 +188,15 @@ var linkCmd = &cobra.Command{
 
 				// configure interactive prompt template
 				templates = promptui.SelectTemplates{
-					Active:   `{{ "✔" | green | bold }} {{ .Team.Name | cyan | bold }}`,
-					Inactive: `   {{ .Team.Name | cyan }}`,
-					Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Team.Name | cyan }}`,
+					Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }}`,
+					Inactive: `   {{ .Name | cyan }}`,
+					Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
 				}
 
 				// select the team
 				prompt = promptui.Select{
-					Label:     "Choose your team",
-					Items:     userData.Teams,
+					Label:     "Choose your workspace",
+					Items:     user.WorkspaceMembers,
 					Templates: &templates,
 				}
 
@@ -205,7 +205,7 @@ var linkCmd = &cobra.Command{
 					os.Exit(0)
 				}
 
-				project.ID, err = createProject(project.Name, selectedServer, userData.ID, userData.Teams[index].Team.ID)
+				project.ID, err = createProject(project.Name, selectedServer, user.ID, user.WorkspaceMembers[index].ID)
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new app")
@@ -216,38 +216,30 @@ var linkCmd = &cobra.Command{
 		} else {
 
 			if err != nil {
-				log.Debug(err)
-				log.Fatal("Input prompt failed")
+				os.Exit(0)
 			}
 
 			// provide confirmation prompt
 			log.Warn("If you linked to the wrong app, you could break your production environment.")
 			log.Info("Therefore we need confirmation you are serious about this.")
 
-			credentials, err := nhost.LoadCredentials()
-			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to load authentication credentials")
-			}
-
 			// configure interative prompt
 			confirmationPrompt := promptui.Prompt{
-				Label: "Enter your email to confirm this linking",
+				Label: "Enter the app's name to confirm linking (case sensitive)",
 			}
 
 			response, err := confirmationPrompt.Run()
 			if err != nil {
-				log.Debug(err)
-				log.Fatal("Input prompt aborted")
+				os.Exit(0)
 			}
 
-			if strings.ToLower(response) != credentials.Email {
+			if strings.ToLower(response) != project.Name {
 				log.Fatal("Invalid email. Linking aborted.")
 			}
 		}
 
 		// update the project ID
-		if err = updateNhostProject(project.ID); err != nil {
+		if err = updateNhostProject(project); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to update Nhost app configuration locally")
 		}
@@ -257,7 +249,7 @@ var linkCmd = &cobra.Command{
 	},
 }
 
-func updateNhostProject(ID string) error {
+func updateNhostProject(app nhost.App) error {
 
 	// create .nhost, if it doesn't exists
 	if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
@@ -283,13 +275,13 @@ func updateNhostProject(ID string) error {
 	defer f.Close()
 
 	// write the file
+	payload, _ := json.Marshal(app)
 	if err = writeToFile(
 		nhost.INFO_PATH,
-		fmt.Sprintf(`project_id: %s`, ID),
+		string(payload),
 		"start",
 	); err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to save /nhost.yaml config")
+		log.Errorf("Failed to save %s config", util.Rel(nhost.INFO_PATH))
 	}
 
 	return err

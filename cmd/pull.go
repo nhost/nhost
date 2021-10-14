@@ -31,7 +31,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/hasura"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/spf13/cobra"
@@ -45,104 +44,79 @@ var pullCmd = &cobra.Command{
 	Hidden:  true,
 	Long: `Pull latest migrations and metadata changes from remote
 and sync them with your local app.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	/*
+		Run: func(cmd *cobra.Command, args []string) {
 
-		// warn the user of upcoming dangers
-		log.Warn("This can potentially break your local changes")
-		log.Info("Backup your local changes before proceeding ahead")
+			// warn the user of upcoming dangers
+			log.Warn("This can potentially break your local changes")
+			log.Info("Backup your local changes before proceeding ahead")
 
-		// configure interative prompt
-		confirmationPrompt := promptui.Prompt{
-			Label:     "Are you sure you want to continue",
-			IsConfirm: true,
-		}
-
-		_, err := confirmationPrompt.Run()
-		if err != nil {
-			log.Debug(err)
-			os.Exit(0)
-		}
-
-		// validate authentication
-		user, err := validateAuth(nhost.AUTH_PATH)
-		if err != nil {
-			log.Debug(err)
-			log.Error("Failed to validate authentication")
-
-			// begin the login procedure
-			loginCmd.Run(cmd, args)
-		}
-
-		var projects []nhost.Project
-		projects = append(projects, user.Projects...)
-		for _, item := range user.Teams {
-			projects = append(projects, item.Team.Projects...)
-		}
-
-		info, err := nhost.Info()
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to read saved Nhost app information")
-		}
-
-		var linkedProject nhost.Project
-
-		for _, project := range projects {
-			if project.ID == info.ProjectID {
-				linkedProject = project
+			// configure interative prompt
+			confirmationPrompt := promptui.Prompt{
+				Label:     "Are you sure you want to continue",
+				IsConfirm: true,
 			}
-		}
 
-		// intialize common options
-		hasuraEndpoint := "https://" + linkedProject.ProjectDomains.Hasura
-		adminSecret := linkedProject.HasuraGQEAdminSecret
-
-		commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
-
-		// create migration
-		// and notify remote to skip it
-
-		// test new hasura client
-		hasuraClient := hasura.Client{}
-		hasuraClient.Init(hasuraEndpoint, adminSecret, nil)
-
-		_, err = pullMigration(hasuraClient, "pulled_from_remote", commonOptions)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to create migration from remote")
-		}
-
-		/*
-
-			sqlFiles, err := ioutil.ReadDir(filepath.Join(nhost.MIGRATIONS_DIR, migration.Name))
+			_, err := confirmationPrompt.Run()
 			if err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to traverse migrations directory")
+				os.Exit(0)
 			}
 
-			for _, file := range sqlFiles {
+			// validate authentication
+			user, err := validateAuth(nhost.AUTH_PATH)
+			if err != nil {
+				log.Debug(err)
+				log.Error("Failed to validate authentication")
 
-				sqlPath := filepath.Join(nhost.MIGRATIONS_DIR, migration.Name, file.Name())
-
-				// format the new migration
-				// so that it doesn't conflicts with existing migrations
-				if err = formatMigration(sqlPath); err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to format migration")
-				}
-
-				// add or update extensions to new migration
-				if err = addExtensionstoMigration(sqlPath, hasuraEndpoint, adminSecret); err != nil {
-					log.Debug(err)
-					log.Fatal("Failed to format migration")
-				}
-
+				// begin the login procedure
+				loginCmd.Run(cmd, args)
 			}
-		*/
 
-		log.Info("Migrations pulled from remote")
-		log.Info("To apply the new migrations use `nhost dev`")
-	},
+			var projects []nhost.Project
+			projects = append(projects, user.Projects...)
+			for _, item := range user.Teams {
+				projects = append(projects, item.Team.Projects...)
+			}
+
+			info, err := nhost.Info()
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to read saved Nhost app information")
+			}
+
+			var linkedProject nhost.Project
+
+			for _, project := range projects {
+				if project.ID == info.ProjectID {
+					linkedProject = project
+				}
+			}
+
+			// intialize common options
+			hasuraEndpoint := "https://" + linkedProject.ProjectDomains.Hasura
+			adminSecret := linkedProject.HasuraGQEAdminSecret
+
+			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
+
+			// create migration
+			// and notify remote to skip it
+
+			// test new hasura client
+			hasuraClient := hasura.Client{}
+			hasuraClient.Init(hasuraEndpoint, adminSecret, nil)
+
+			_, err = pullMigration(hasuraClient, "pulled_from_remote", commonOptions)
+			if err != nil {
+				log.Debug(err)
+				log.Fatal("Failed to create migration from remote")
+			}
+
+
+			log.Info("Migrations pulled from remote")
+			log.Info("To apply the new migrations use `nhost dev`")
+		},
+	*/
 }
 
 func pullMigration(client hasura.Client, name string, commonOptions []string) (hasura.Migration, error) {

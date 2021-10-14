@@ -8,6 +8,43 @@ import (
 
 type (
 
+	//	Nhost user structure
+	User struct {
+		ID               string            `json:"id,omitempty"`
+		Name             string            `json:"displayName,omitempty"`
+		WorkspaceMembers []WorkspaceMember `json:"workspaceMembers,omitempty"`
+	}
+
+	WorkspaceMember struct {
+		ID        string    `json:"id,omitempty"`
+		Workspace Workspace `json:"workspace,omitempty"`
+	}
+
+	Workspace struct {
+		ID   string `json:"id,omitempty"`
+		Name string `json:"name,omitempty"`
+		Apps []App  `json:"apps,omitempty"`
+	}
+
+	App struct {
+		ID        string   `json:"id,omitempty"`
+		Name      string   `json:"name,omitempty"`
+		EnvVars   []EnvVar `json:"environmentVariables,omitempty"`
+		Workspace string   `json:"workspace,omitempty"`
+	}
+
+	EnvVar struct {
+		ID    string `json:"id,omitempty"`
+		Name  string `json:"name,omitempty"`
+		Value string `json:"devValue,omitempty"`
+	}
+
+	// Error structure
+	Error struct {
+		Code  string
+		Email string
+	}
+
 	// Authentication validation response
 	Response struct {
 		Project           Project `json:",omitempty"`
@@ -16,12 +53,6 @@ type (
 		Email             string `json:"email"`
 		VerificationToken string `json:"verificationToken"`
 		VerifiedToken     string `json:"token"`
-	}
-
-	// Error structure
-	Error struct {
-		Code  string
-		Email string
 	}
 
 	// Nhost individual team structure
@@ -59,13 +90,6 @@ type (
 	// Nhost project domains
 	Domains struct {
 		Hasura string `json:"hasura_domain,omitempty"`
-	}
-
-	// Nhost user structure
-	User struct {
-		ID       string     `json:",omitempty"`
-		Projects []Project  `json:",omitempty"`
-		Teams    []TeamData `json:",omitempty"`
 	}
 
 	// Session struct
@@ -143,8 +167,8 @@ type (
 
 	// Authentication credentials structure
 	Credentials struct {
-		Email string `json:"email"`
-		Token string `json:"token"`
+		ID    string `json:"id,omitempty"`
+		Token string `json:"token,omitempty"`
 	}
 
 	// GitHub Release API reponse structure

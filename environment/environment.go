@@ -58,6 +58,7 @@ func (e *Environment) Init() error {
 	// break execution if docker deamon is not running
 	_, err = e.Docker.Info(e.Context)
 	if err != nil {
+		log.Error(util.ErrDockerNotFound)
 		log.Info(util.InfoDockerDownload)
 		return err
 	}
@@ -223,7 +224,6 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 						log.WithFields(logrus.Fields{
 							"type":      "service",
 							"container": service.Name,
-							"port":      service.Port,
 						}).Debug("Health check cancelled")
 						return
 					default:
@@ -231,7 +231,6 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 							log.WithFields(logrus.Fields{
 								"type":      "service",
 								"container": service.Name,
-								"port":      service.Port,
 							}).Debug("Health check successful")
 
 							// Activate the service
@@ -245,7 +244,6 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 						log.WithFields(logrus.Fields{
 							"type":      "container",
 							"component": service.Name,
-							"port":      service.Port,
 						}).Debugf("Health check attempt #%v unsuccessful", counter)
 					}
 				}
@@ -253,9 +251,8 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 				log.WithFields(logrus.Fields{
 					"type":      "service",
 					"container": service.Name,
-					"port":      service.Port,
 				}).Error("Health check failed")
-				err = errors.New("healthcheck of at least 1 service has failed")
+				err = errors.New("health check of at least 1 service has failed")
 
 			}(service)
 		} else {
@@ -398,12 +395,10 @@ func (e *Environment) isActive() bool {
 
 func (e *Environment) Cleanup() {
 
-	/*
-		// Gracefully shut down all registered servers of the environment
-		for _, server := range e.Servers {
-			server.Shutdown(e.Context)
-		}
-	*/
+	// Gracefully shut down all registered servers of the environment
+	for _, server := range e.Servers {
+		server.Shutdown(e.Context)
+	}
 
 	//	Close the watcher
 	e.Watcher.Close()
