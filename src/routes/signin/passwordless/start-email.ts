@@ -23,8 +23,6 @@ export const signInPasswordlessStartEmailHandler = async (
 
   const { email, options } = body;
 
-  const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
-
   // check if email already exist
   let user = await getUserByEmail(email);
 
@@ -52,6 +50,7 @@ export const signInPasswordlessStartEmailHandler = async (
     const userRoles = allowedRoles.map((role: string) => ({ role }));
 
     const displayName = options?.displayName ?? email;
+    const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
     const avatarUrl = getGravatarUrl(email);
 
     // create new user

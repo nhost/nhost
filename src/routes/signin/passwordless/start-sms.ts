@@ -22,8 +22,6 @@ export const signInPasswordlessStartSmsHandler = async (
 
   const { phoneNumber, options } = body;
 
-  const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
-
   // check if email already exist
   let user = await getUserByPhoneNumber({ phoneNumber });
 
@@ -45,6 +43,7 @@ export const signInPasswordlessStartSmsHandler = async (
     const userRoles = allowedRoles.map((role: string) => ({ role }));
 
     const displayName = options?.displayName ?? '';
+    const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
     const avatarUrl = '';
 
     // create new user

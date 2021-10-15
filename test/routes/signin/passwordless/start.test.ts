@@ -164,7 +164,9 @@ describe('passwordless email (magic link)', () => {
       .send({
         connection: 'email',
         email: 'joedoe@example.com',
-        allowedRoles: ['incorrect'],
+        options: {
+          allowedRoles: ['incorrect'],
+        },
       })
       .expect(400);
   });
