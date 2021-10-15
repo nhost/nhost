@@ -9,9 +9,6 @@ fragment userFields on users {
   emailVerified
   phoneNumberVerified
   defaultRole
-  roles {
-    role
-  }
   isAnonymous
   ticket
   otpHash
