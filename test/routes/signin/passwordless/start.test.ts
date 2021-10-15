@@ -142,7 +142,9 @@ describe('passwordless email (magic link)', () => {
       .send({
         connection: 'email',
         email: 'joedoe@example.com',
-        defaultRole: 'user',
+        options: {
+          defaultRole: 'user',
+        },
       })
       .expect(200);
   });

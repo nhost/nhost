@@ -19,10 +19,12 @@ import { getSignInResponse } from '@/utils/tokens';
 type BodyType = {
   email: string;
   password: string;
-  locale?: string;
-  allowedRoles?: string[];
-  defaultRole?: string;
-  displayName?: string;
+  options?: {
+    locale?: string;
+    allowedRoles?: string[];
+    defaultRole?: string;
+    displayName?: string;
+  };
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -34,7 +36,9 @@ export const signUpEmailPasswordHandler = async (
   res: Response
 ): Promise<unknown> => {
   const { body } = req;
-  const { email, password, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
+  const { email, password, options } = body;
+
+  const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
 
   req.log.debug({ body });
 
@@ -51,8 +55,9 @@ export const signUpEmailPasswordHandler = async (
   }
 
   // check roles
-  const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
-  const allowedRoles = body.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
+  const defaultRole = options?.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+  const allowedRoles =
+    options?.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
   if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
     return;
   }
@@ -75,7 +80,7 @@ export const signUpEmailPasswordHandler = async (
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = allowedRoles.map((role: string) => ({ role }));
 
-  const displayName = body.displayName ?? email;
+  const displayName = options?.displayName ?? email;
   const avatarUrl = getGravatarUrl(email);
 
   req.log.debug({ displayName, avatarUrl });

@@ -21,7 +21,9 @@ export const signInPasswordlessStartEmailHandler = async (
     return res.boom.internal('SMTP settings unavailable');
   }
 
-  const { email, locale = ENV.AUTH_DEFAULT_LOCALE } = body;
+  const { email, options } = body;
+
+  const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
 
   // check if email already exist
   let user = await getUserByEmail(email);
@@ -37,9 +39,9 @@ export const signInPasswordlessStartEmailHandler = async (
     }
 
     // check roles
-    const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+    const defaultRole = options?.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
     const allowedRoles =
-      body.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
+      options?.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
     if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
       return;
     }
@@ -49,7 +51,7 @@ export const signInPasswordlessStartEmailHandler = async (
     // restructure user roles to be inserted in GraphQL mutation
     const userRoles = allowedRoles.map((role: string) => ({ role }));
 
-    const displayName = body.displayName ?? email;
+    const displayName = options?.displayName ?? email;
     const avatarUrl = getGravatarUrl(email);
 
     // create new user

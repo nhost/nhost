@@ -12,26 +12,36 @@ const localeRule = Joi.string().length(2);
 export const signUpEmailPasswordSchema = Joi.object({
   email: emailRule.required(),
   password: passwordRule.required(),
-  locale: localeRule,
-  defaultRole: Joi.string(),
-  allowedRoles: Joi.array().items(Joi.string()),
-  displayName: Joi.string(),
+  options: Joi.object({
+    locale: localeRule,
+    defaultRole: Joi.string(),
+    allowedRoles: Joi.array().items(Joi.string()),
+    displayName: Joi.string(),
+  }),
 });
 
 // Sign In
 export const signInEmailPasswordSchema = Joi.object({
   email: emailRule.required(),
   password: passwordRule.required(),
+  options: Joi.object({
+    locale: localeRule,
+    defaultRole: Joi.string(),
+    allowedRoles: Joi.array().items(Joi.string()),
+    displayName: Joi.string(),
+  }),
 });
 
 export const signInPasswordlessSchema = Joi.object({
   connection: Joi.string(),
   email: Joi.string(),
   phoneNumber: Joi.string(),
-  locale: localeRule,
-  defaultRole: Joi.string(),
-  allowedRoles: Joi.array().items(Joi.string()),
-  displayName: Joi.string(),
+  options: Joi.object({
+    locale: localeRule,
+    defaultRole: Joi.string(),
+    allowedRoles: Joi.array().items(Joi.string()),
+    displayName: Joi.string(),
+  }),
 });
 
 export const signInOtpSchema = Joi.object({

@@ -42,7 +42,9 @@ describe('user password', () => {
       .send({
         email,
         password,
-        displayName,
+        options: {
+          displayName,
+        },
       })
       .expect(200);
 

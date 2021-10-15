@@ -76,19 +76,23 @@ export type SignInResponse = {
 export type PasswordLessEmailBody = {
   connection: 'email';
   email: string;
-  locale?: string;
-  allowedRoles?: string[];
-  defaultRole?: string;
-  displayName?: string;
+  options?: {
+    locale?: string;
+    allowedRoles?: string[];
+    defaultRole?: string;
+    displayName?: string;
+  };
 };
 
 export type PasswordLessSmsBody = {
   connection: 'sms';
   phoneNumber: string;
-  locale?: string;
-  allowedRoles?: string[];
-  defaultRole?: string;
-  displayName?: string;
+  options?: {
+    locale?: string;
+    allowedRoles?: string[];
+    defaultRole?: string;
+    displayName?: string;
+  };
 };
 
 export type OtpEmailBody = {
