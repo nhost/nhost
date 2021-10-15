@@ -56,8 +56,9 @@ export const userEmailSendVerificationEmailHandler = async (
     },
   });
 
+  const template = 'email-verify';
   await emailClient.send({
-    template: 'verify-email',
+    template,
     message: {
       to: email,
       headers: {
@@ -67,7 +68,7 @@ export const userEmailSendVerificationEmailHandler = async (
         },
         'x-email-template': {
           prepared: true,
-          value: 'verify-email',
+          value: template,
         },
       },
     },

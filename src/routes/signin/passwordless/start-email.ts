@@ -1,4 +1,5 @@
 import { Response } from 'express';
+import { v4 as uuidv4 } from 'uuid';
 
 import { getGravatarUrl, getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
@@ -6,8 +7,8 @@ import { emailClient } from '@/email';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
-import { getNewOneTimePasswordData } from '@/utils/otp';
 import { PasswordLessEmailBody } from '@/types';
+import { generateTicketExpiresAt } from '@/utils/ticket';
 
 export const signInPasswordlessStartEmailHandler = async (
   body: PasswordLessEmailBody,
@@ -79,41 +80,38 @@ export const signInPasswordlessStartEmailHandler = async (
     userId = insertedUser.id;
   }
 
-  // set otp for user that will be sent in the email
-  const { otp, otpHash, otpHashExpiresAt } = await getNewOneTimePasswordData();
+  // create ticket
+  const ticket = `passwordlessEmai:${uuidv4()}`;
+  const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
   await gqlSdk.updateUser({
     id: userId,
     user: {
-      otpMethodLastUsed: 'email',
-      otpHash,
-      otpHashExpiresAt,
+      ticket,
+      ticketExpiresAt,
     },
   });
 
+  const template = 'signin-passwordless';
   await emailClient.send({
-    template: 'passwordless',
+    template,
     message: {
       to: email,
       headers: {
-        'x-email': {
+        'x-ticket': {
           prepared: true,
-          value: email,
-        },
-        'x-otp': {
-          prepared: true,
-          value: otp,
+          value: ticket,
         },
         'x-email-template': {
           prepared: true,
-          value: 'passwordless',
+          value: template,
         },
       },
     },
     locals: {
       displayName: user.displayName,
       email,
-      otp,
+      ticket,
       locale: user.locale,
       serverUrl: ENV.AUTH_SERVER_URL,
       clientUrl: ENV.AUTH_CLIENT_URL,

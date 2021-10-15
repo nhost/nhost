@@ -58,13 +58,13 @@ describe('user email', () => {
     const newEmail = 'newemail@example.com';
 
     await request
-      .post('/user/email/reset')
+      .post('/user/email/change')
       // .set('Authorization', `Bearer ${accessToken}`)
       .send({ newEmail })
       .expect(401);
 
     await request
-      .post('/user/email/reset')
+      .post('/user/email/change')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ newEmail })
       .expect(200);
@@ -74,30 +74,28 @@ describe('user email', () => {
     expect(message).toBeTruthy();
 
     const ticket = message.Content.Headers['X-Ticket'][0];
-    expect(ticket.startsWith('emailReset:')).toBeTruthy();
+    // expect(ticket.startsWith('emailReset:')).toBeTruthy();
 
     const emailType = message.Content.Headers['X-Email-Template'][0];
-    expect(emailType).toBe('email-reset');
+    expect(emailType).toBe('email-confirm-change');
 
-    // change email
+    // wrong ticket should fail
     await request
-      .post('/user/email')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ ticket: `emailReset:${uuidv4()}` })
+      .get(`/verify?ticket=${uuidv4()}&type=emailConfirmChange`)
       .expect(401);
 
+    // confirm change email
     await request
-      .post('/user/email')
-      .set('Authorization', `Bearer ${accessToken}`)
-      .send({ ticket })
-      .expect(200);
+      .get(`/verify?ticket=${ticket}&type=emailConfirmChange`)
+      .expect(302);
 
-    // sign in with new email
+    // fail to signin with old email
     await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(401);
 
+    // sign in with new email
     await request
       .post('/signin/email-password')
       .send({ email: newEmail, password })

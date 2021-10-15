@@ -163,16 +163,13 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
     const ticket = message.Content.Headers['X-Ticket'][0];
-    expect(ticket.startsWith('verifyEmail:')).toBeTruthy();
 
     // use ticket to verify email
     await request
-      .post('/user/email/verify')
-      .send({ email, ticket })
-      .expect(200);
+      .get(`/verify?ticket=${ticket}&type=signinPasswordless`)
+      .expect(302);
 
     // sign in should now work
-
     await request
       .post('/signin/email-password')
       .send({ email, password })

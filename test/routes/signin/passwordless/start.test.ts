@@ -47,19 +47,13 @@ describe('passwordless email (magic link)', () => {
 
     const emailTemplate = message.Content.Headers['X-Email-Template'][0];
 
-    expect(emailTemplate).toBe('passwordless');
+    expect(emailTemplate).toBe('signin-passwordless');
 
-    const otp = message.Content.Headers['X-Otp'][0];
+    const ticket = message.Content.Headers['X-Ticket'][0];
 
-    // sign in using OTP
     await request
-      .post('/signin/otp')
-      .send({
-        connection: 'email',
-        email,
-        otp,
-      })
-      .expect(200);
+      .get(`/verify?ticket=${ticket}&type=signinPasswordless`)
+      .expect(302);
   });
 
   it('should fail to sign in if passworless email is not enabled', async () => {

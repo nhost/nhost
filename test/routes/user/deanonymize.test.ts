@@ -64,10 +64,6 @@ describe('email-password', () => {
     expect(message).toBeTruthy();
 
     const ticket = message.Content.Headers['X-Ticket'][0];
-    expect(ticket.startsWith('verifyEmail:')).toBeTruthy();
-
-    const emailType = message.Content.Headers['X-Email-Template'][0];
-    expect(emailType).toBe('verify-email');
 
     // should not be abel to login before email is verified
     await request
@@ -80,9 +76,8 @@ describe('email-password', () => {
 
     // should verify email using ticket from email
     await request
-      .post('/user/email/verify')
-      .send({ email, ticket })
-      .expect(200);
+      .get(`/verify?ticket=${ticket}&type=signinPasswordless`)
+      .expect(302);
 
     // should be able to sign in after activated account
     await request
@@ -129,22 +124,22 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const emailTemplate = message.Content.Headers['X-Email-Template'][0];
-
-    expect(emailTemplate).toBe('passwordless');
-
-    const otp = message.Content.Headers['X-Otp'][0];
+    const ticket = message.Content.Headers['X-Ticket'][0];
 
     // should not be able to reuse old refresh token
     await request.post('/token').send({ refreshToken }).expect(401);
 
-    // should be able to sign in using otp
+    // verify
     await request
-      .post('/signin/otp')
+      .get(`/verify?ticket=${ticket}&type=signinPasswordless`)
+      .expect(302);
+
+    // should be able to sign in using passwordless email
+    await request
+      .post('/signin/passwordless/start')
       .send({
         connection: 'email',
         email,
-        otp,
       })
       .expect(200);
   });

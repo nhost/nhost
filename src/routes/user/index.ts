@@ -4,24 +4,20 @@ import { createValidator } from 'express-joi-validation';
 import { asyncWrapper as aw } from '@/helpers';
 import {
   userDeanonymizeSchema,
-  userEmailResetSchema,
-  userEmailSchema,
+  userEmailChangeSchema,
   userEmailSendVerificationEmailSchema,
   userPasswordResetSchema,
   userPasswordSchema,
   userProviderTokensSchema,
-  userVerifyEmailSchema,
 } from '@/validation';
 import { userMFAHandler } from './mfa';
 import { userHandler } from './user';
 import { userPasswordHandler } from './password';
 import { userPasswordResetHandler } from './password-reset';
-import { userEmailHandler } from './email';
-import { userEmailReset } from './email/reset';
 import { userDeanonymizeHandler } from './deanonymize';
 import { userProviderTokensHandler } from './provider-tokens';
-import { userEmailVerifyHandler } from './email/verify';
-import { userEmailSendVerificationEmailHandler } from './email/send-verification-email';
+import { userEmailSendVerificationEmailHandler } from './email';
+import { userEmailChange } from './email';
 
 const router = Router();
 
@@ -40,27 +36,15 @@ router.post(
 );
 
 router.post(
-  '/user/email/reset',
-  createValidator().body(userEmailResetSchema),
-  aw(userEmailReset)
-);
-
-router.post(
   '/user/email/send-verification-email',
   createValidator().body(userEmailSendVerificationEmailSchema),
   aw(userEmailSendVerificationEmailHandler)
 );
 
 router.post(
-  '/user/email/verify',
-  createValidator().body(userVerifyEmailSchema),
-  aw(userEmailVerifyHandler)
-);
-
-router.post(
-  '/user/email',
-  createValidator().body(userEmailSchema),
-  aw(userEmailHandler)
+  '/user/email/change',
+  createValidator().body(userEmailChangeSchema),
+  aw(userEmailChange)
 );
 
 router.post(

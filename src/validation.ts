@@ -79,31 +79,17 @@ export const userPasswordResetSchema = Joi.object({
   email: emailRule.required(),
 });
 
-const passwordTicketPattern = new RegExp(`passwordReset:${uuidRegex.source}`);
 export const userPasswordSchema = Joi.object({
-  ticket: Joi.string().regex(passwordTicketPattern),
-  // .label('ticket format incorrect'),
-  oldPassword: Joi.string(),
+  oldPassword: Joi.string().required(),
   newPassword: Joi.string().required(),
 });
 
-export const userEmailResetSchema = Joi.object({
+export const userEmailChangeSchema = Joi.object({
   newEmail: emailRule,
 });
 
 export const userEmailSendVerificationEmailSchema = Joi.object({
   email: emailRule.required(),
-});
-
-const verifyEmailTicketPattern = new RegExp(`verifyEmail:${uuidRegex.source}`);
-export const userVerifyEmailSchema = Joi.object({
-  email: emailRule.required(),
-  ticket: Joi.string().regex(verifyEmailTicketPattern),
-});
-
-const emailTicketPattern = new RegExp(`emailReset:${uuidRegex.source}`);
-export const userEmailSchema = Joi.object({
-  ticket: Joi.string().regex(emailTicketPattern),
 });
 
 const userActivateTicketPattern = new RegExp(

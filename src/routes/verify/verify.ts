@@ -51,18 +51,14 @@ export const verifyHandler = async (
   });
 
   // different types
-  if (type === 'verifyEmail') {
+  if (type === 'emailVerify') {
     await gqlSdk.updateUser({
       id: user.id,
       user: {
         emailVerified: true,
       },
     });
-  } else if (type === 'passwordlessEmail') {
-    // noop
-  } else if (type === 'resetPassword') {
-    // noop
-  } else if (type === 'resetEmail') {
+  } else if (type === 'emailConfirmChange') {
     // set new email for user
     await gqlSdk.updateUser({
       id: user.id,
@@ -71,6 +67,15 @@ export const verifyHandler = async (
         newEmail: null,
       },
     });
+  } else if (type === 'signinPasswordless') {
+    await gqlSdk.updateUser({
+      id: user.id,
+      user: {
+        emailVerified: true,
+      },
+    });
+  } else if (type === 'passwordReset') {
+    // noop
   }
 
   const refreshToken = await getNewRefreshToken(user.id);

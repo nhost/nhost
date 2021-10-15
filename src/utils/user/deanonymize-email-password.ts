@@ -100,8 +100,9 @@ export const handleDeanonymizeUserEmailPassword = async (
       throw new Error('SMTP settings unavailable');
     }
 
+    const template = 'email-verify';
     await emailClient.send({
-      template: 'verify-email',
+      template,
       message: {
         to: email,
         headers: {
@@ -111,7 +112,7 @@ export const handleDeanonymizeUserEmailPassword = async (
           },
           'x-email-template': {
             prepared: true,
-            value: 'verify-email',
+            value: template,
           },
         },
       },

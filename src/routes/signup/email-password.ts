@@ -116,8 +116,9 @@ export const signUpEmailPasswordHandler = async (
       throw new Error('SMTP settings unavailable');
     }
 
+    const template = 'email-verify';
     await emailClient.send({
-      template: 'verify-email',
+      template,
       message: {
         to: email,
         headers: {
@@ -127,7 +128,7 @@ export const signUpEmailPasswordHandler = async (
           },
           'x-email-template': {
             prepared: true,
-            value: 'verify-email',
+            value: template,
           },
         },
       },

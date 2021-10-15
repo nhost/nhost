@@ -8,7 +8,6 @@ import { isRolesValid } from '../roles';
 import { ENV } from '../env';
 import { emailClient } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';
-import { getNewOneTimePasswordData } from '../otp';
 
 export type BodyTypePasswordlessEmail = {
   signInMethod: 'passwordless';
@@ -88,41 +87,38 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
       throw new Error('SMTP settings unavailable');
     }
 
-    const { otp, otpHash, otpHashExpiresAt } =
-      await getNewOneTimePasswordData();
+    // create ticket
+    const ticket = `passwordlessEmai:${uuidv4()}`;
+    const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
     await gqlSdk.updateUser({
       id: userId,
       user: {
-        otpMethodLastUsed: 'email',
-        otpHash,
-        otpHashExpiresAt,
+        ticket,
+        ticketExpiresAt,
       },
     });
 
+    const template = 'signin-passwordless';
     await emailClient.send({
-      template: 'passwordless',
+      template,
       message: {
         to: email,
         headers: {
-          'x-email': {
+          'x-ticket': {
             prepared: true,
-            value: email,
-          },
-          'x-otp': {
-            prepared: true,
-            value: otp,
+            value: ticket,
           },
           'x-email-template': {
             prepared: true,
-            value: 'passwordless',
+            value: template,
           },
         },
       },
       locals: {
         displayName: user.displayName,
         email,
-        otp,
+        ticket,
         locale: user.locale,
         serverUrl: ENV.AUTH_SERVER_URL,
         clientUrl: ENV.AUTH_CLIENT_URL,

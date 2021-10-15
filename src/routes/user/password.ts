@@ -12,8 +12,7 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 
 type BodyType = {
-  ticket?: string;
-  oldPassword?: string;
+  oldPassword: string;
   newPassword: string;
 };
 
@@ -27,15 +26,7 @@ export const userPasswordHandler = async (
 ): Promise<unknown> => {
   console.log('inside user password handler');
 
-  const { ticket, oldPassword, newPassword } = req.body;
-
-  if (ticket && oldPassword) {
-    return res.boom.badRequest('Both ticket and oldPassword can not be set');
-  }
-
-  if (!ticket && !oldPassword) {
-    return res.boom.badRequest('Either ticket (x)or oldPassword must be set');
-  }
+  const { oldPassword, newPassword } = req.body;
 
   // check if password is compromised
   if (ENV.AUTH_HIBP_ENABLED && (await pwnedPassword(newPassword))) {
@@ -44,63 +35,40 @@ export const userPasswordHandler = async (
 
   const newPasswordHash = await hashPassword(newPassword);
 
-  if (ticket) {
-    const ticketUpdateResponse = await gqlSdk.updateUserWhere({
-      user: {
-        passwordHash: newPasswordHash,
-        ticket: null,
-      },
-      where: {
-        ticket: {
-          _eq: ticket,
-        },
-      },
-    });
-
-    if (ticketUpdateResponse.updateUsers?.affected_rows !== 1) {
-      return res.boom.unauthorized('Ticket invalid or expired');
-    }
-  } else if (oldPassword) {
-    // make sure user is signed in
-
-    if (!req.auth?.userId) {
-      return res.boom.unauthorized('User must be signed in');
-    }
-
-    const { userId } = req.auth;
-
-    const { user } = await gqlSdk.user({
-      id: userId,
-    });
-
-    if (!user) {
-      throw new Error('Unable to get user');
-    }
-
-    // const oldPasswordHash = await hashPassword(oldPassword);
-    // if no password is set, don't care about the old password
-    const isPasswordCorrect = !user.passwordHash
-      ? true
-      : await bcrypt.compare(oldPassword, user.passwordHash);
-
-    if (!isPasswordCorrect) {
-      console.log(user.passwordHash);
-      console.log(oldPassword);
-
-      return res.boom.badRequest('Incorrect old password');
-    }
-
-    // set new password for user
-    await gqlSdk.updateUser({
-      id: userId,
-      user: {
-        passwordHash: newPasswordHash,
-      },
-    });
-  } else {
-    // should never be able to get to this state
-    return res.boom.badRequest('Either ticket (x)or oldPassword must be set');
+  if (!req.auth?.userId) {
+    return res.boom.unauthorized('User must be signed in');
   }
+
+  const { userId } = req.auth;
+
+  const { user } = await gqlSdk.user({
+    id: userId,
+  });
+
+  if (!user) {
+    throw new Error('Unable to get user');
+  }
+
+  // const oldPasswordHash = await hashPassword(oldPassword);
+  // if no password is set, don't care about the old password
+  const isPasswordCorrect = !user.passwordHash
+    ? true
+    : await bcrypt.compare(oldPassword, user.passwordHash);
+
+  if (!isPasswordCorrect) {
+    console.log(user.passwordHash);
+    console.log(oldPassword);
+
+    return res.boom.badRequest('Incorrect old password');
+  }
+
+  // set new password for user
+  await gqlSdk.updateUser({
+    id: userId,
+    user: {
+      passwordHash: newPasswordHash,
+    },
+  });
 
   return res.send('OK');
 };

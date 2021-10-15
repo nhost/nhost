@@ -43,8 +43,9 @@ export const userPasswordResetHandler = async (
     },
   });
 
+  const template = 'password-reset';
   await emailClient.send({
-    template: 'reset-password',
+    template,
     locals: {
       ticket,
       locale: user.locale,
@@ -61,7 +62,7 @@ export const userPasswordResetHandler = async (
         },
         'x-email-template': {
           prepared: true,
-          value: 'password-reset',
+          value: template,
         },
       },
     },

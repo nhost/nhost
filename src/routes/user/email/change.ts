@@ -19,7 +19,7 @@ interface Schema extends ValidatedRequestSchema {
   [ContainerTypes.Body]: BodyType;
 }
 
-export const userEmailReset = async (
+export const userEmailChange = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
@@ -37,7 +37,7 @@ export const userEmailReset = async (
 
   const { userId } = req.auth;
 
-  const ticket = `emailReset:${uuidv4()}`;
+  const ticket = `emailConfirmChange:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60); // 1 hour
 
   // set newEmail for user
@@ -56,9 +56,9 @@ export const userEmailReset = async (
     throw new Error('Unable to get user');
   }
 
-  // send out email
+  const template = 'email-confirm-change';
   await emailClient.send({
-    template: 'reset-email',
+    template,
     locals: {
       displayName: user.displayName,
       ticket,
@@ -75,7 +75,7 @@ export const userEmailReset = async (
         },
         'x-email-template': {
           prepared: true,
-          value: 'email-reset',
+          value: template,
         },
       },
     },
