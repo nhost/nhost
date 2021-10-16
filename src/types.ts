@@ -74,18 +74,17 @@ export type SignInResponse = {
 };
 
 export type PasswordLessEmailBody = {
-  connection: 'email';
   email: string;
   options?: {
     locale?: string;
     allowedRoles?: string[];
     defaultRole?: string;
     displayName?: string;
+    redirectTo?: string;
   };
 };
 
 export type PasswordLessSmsBody = {
-  connection: 'sms';
   phoneNumber: string;
   options?: {
     locale?: string;
@@ -95,14 +94,7 @@ export type PasswordLessSmsBody = {
   };
 };
 
-export type OtpEmailBody = {
-  connection: 'email';
-  email: string;
-  otp: string;
-};
-
 export type OtpSmsBody = {
-  connection: 'sms';
   phoneNumber: string;
   otp: string;
 };

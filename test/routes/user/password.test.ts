@@ -94,10 +94,13 @@ describe('user password', () => {
     expect(message).toBeTruthy();
 
     const ticket = message.Content.Headers['X-Ticket'][0];
+    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
 
     // use password reset link
     await request
-      .get(`/verify?ticket=${ticket}&type=signinPasswordless`)
+      .get(
+        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
+      )
       .expect(302);
 
     // TODO

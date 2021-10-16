@@ -7,8 +7,10 @@
     <h2>Verify Email</h2>
     <p>Use this link to verify your email:</p>
     <p>
-      <a href="${serverUrl}/verify?&ticket=${ticket}&type=emailVerify">
-        Sign In
+      <a
+        href="${serverUrl}/verify?&ticket=${ticket}&type=emailVerify&redirectTo=${redirectTo}"
+      >
+        Verify Email
       </a>
     </p>
   </body>

@@ -34,9 +34,8 @@ describe('passwordless email (magic link)', () => {
     const email = 'joedoe@example.com';
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email,
       })
       .expect(200);
@@ -50,9 +49,12 @@ describe('passwordless email (magic link)', () => {
     expect(emailTemplate).toBe('signin-passwordless');
 
     const ticket = message.Content.Headers['X-Ticket'][0];
+    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
 
     await request
-      .get(`/verify?ticket=${ticket}&type=signinPasswordless`)
+      .get(
+        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
+      )
       .expect(302);
   });
 
@@ -65,9 +67,8 @@ describe('passwordless email (magic link)', () => {
     });
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email: 'joedoe@example.com',
       })
       .expect(404);
@@ -86,9 +87,8 @@ describe('passwordless email (magic link)', () => {
     });
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email: 'joedoe@example.com',
       })
       .expect(403);
@@ -107,17 +107,15 @@ describe('passwordless email (magic link)', () => {
     });
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email: 'joedoe@example.com',
       })
       .expect(200);
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email: 'joedoe@example.com',
       })
       .expect(200);
@@ -132,9 +130,8 @@ describe('passwordless email (magic link)', () => {
     });
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email: 'joedoe@example.com',
         options: {
           defaultRole: 'user',
@@ -154,9 +151,8 @@ describe('passwordless email (magic link)', () => {
     });
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email: 'joedoe@example.com',
         options: {
           allowedRoles: ['incorrect'],
@@ -175,9 +171,8 @@ describe('passwordless email (magic link)', () => {
     });
 
     await request
-      .post('/signin/passwordless/start')
+      .post('/signin/passwordless/email')
       .send({
-        connection: 'email',
         email: 'joedoe@example.com',
       })
       .expect(500);

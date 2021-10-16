@@ -144,3 +144,23 @@ export function getNewPasswordlessCode() {
   }
   return otp;
 }
+
+export function isValidRedirectTo({
+  redirectTo,
+}: {
+  redirectTo: string;
+}): boolean {
+  if (!redirectTo) {
+    return false;
+  }
+
+  if (redirectTo.startsWith(ENV.AUTH_CLIENT_URL)) {
+    return true;
+  }
+
+  if (ENV.AUTH_ALLOWED_REDIRECT_URLS.includes(redirectTo)) {
+    return true;
+  }
+
+  return false;
+}

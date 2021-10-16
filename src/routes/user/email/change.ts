@@ -10,9 +10,13 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { emailClient } from '@/email';
 import { ENV } from '@/utils/env';
+import { isValidRedirectTo } from '@/helpers';
 
 type BodyType = {
   newEmail: string;
+  options?: {
+    redirectTo?: string;
+  };
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -25,7 +29,13 @@ export const userEmailChange = async (
 ): Promise<unknown> => {
   console.log('inside user email reset handler');
 
-  const { newEmail } = req.body;
+  const { newEmail, options } = req.body;
+
+  // check if redirectTo is valid
+  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
+  if (!isValidRedirectTo({ redirectTo })) {
+    return res.boom.badRequest(`'redirectTo' is not allowed`);
+  }
 
   if (!ENV.AUTH_EMAILS_ENABLED) {
     throw new Error('SMTP settings unavailable');
@@ -62,6 +72,7 @@ export const userEmailChange = async (
     locals: {
       displayName: user.displayName,
       ticket,
+      redirectTo,
       locale: user.locale,
       serverUrl: ENV.AUTH_SERVER_URL,
       clientUrl: ENV.AUTH_CLIENT_URL,
@@ -72,6 +83,10 @@ export const userEmailChange = async (
         'x-ticket': {
           prepared: true,
           value: ticket,
+        },
+        'x-redirect-to': {
+          prepared: true,
+          value: redirectTo,
         },
         'x-email-template': {
           prepared: true,

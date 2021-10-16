@@ -252,28 +252,28 @@ export const initProvider = <T extends Strategy>(
       ) => {
         req.state = uuidv4();
 
-        const redirectUrl =
-          'redirectUrl' in req.query
-            ? req.query.redirectUrl
+        const redirectTo =
+          'redirectTo' in req.query
+            ? (req.query.redirectTo as string)
             : ENV.AUTH_CLIENT_URL;
 
-        if (!redirectUrl) {
+        if (!redirectTo) {
           return res.boom.badRequest('Redirect URL is undefined');
         }
 
         if (
-          ENV.AUTH_CLIENT_URL !== redirectUrl &&
-          !ENV.AUTH_ALLOWED_REDIRECT_URLS.includes(redirectUrl)
+          ENV.AUTH_CLIENT_URL !== redirectTo &&
+          !ENV.AUTH_ALLOWED_REDIRECT_URLS.includes(redirectTo)
         ) {
           return res.boom.badRequest(
-            'The redirect URL is not the same as AUTH_CLIENT_URL nor is it in ALLOWED_REDIRECT_URLS'
+            `'redirectTo' is not the same as AUTH_CLIENT_URL nor is it in ALLOWED_REDIRECT_URLS`
           );
         }
 
         await gqlSdk.insertProviderRequest({
           providerRequest: {
             id: req.state,
-            redirectUrl,
+            redirectUrl: redirectTo,
           },
         });
 

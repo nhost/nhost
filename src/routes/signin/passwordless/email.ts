@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getGravatarUrl, getUserByEmail } from '@/helpers';
+import { getGravatarUrl, getUserByEmail, isValidRedirectTo } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { emailClient } from '@/email';
 import { ENV } from '@/utils/env';
@@ -9,9 +9,18 @@ import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
 import { PasswordLessEmailBody } from '@/types';
 import { generateTicketExpiresAt } from '@/utils/ticket';
+import {
+  ContainerTypes,
+  ValidatedRequest,
+  ValidatedRequestSchema,
+} from 'express-joi-validation';
 
-export const signInPasswordlessStartEmailHandler = async (
-  body: PasswordLessEmailBody,
+interface Schema extends ValidatedRequestSchema {
+  [ContainerTypes.Body]: PasswordLessEmailBody;
+}
+
+export const signInPasswordlessEmailHandler = async (
+  req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
   if (!ENV.AUTH_PASSWORDLESS_EMAIL_ENABLED) {
@@ -22,7 +31,13 @@ export const signInPasswordlessStartEmailHandler = async (
     return res.boom.internal('SMTP settings unavailable');
   }
 
-  const { email, options } = body;
+  const { email, options } = req.body;
+
+  // check if redirectTo is valid
+  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
+  if (!isValidRedirectTo({ redirectTo })) {
+    return res.boom.badRequest(`'redirectTo' is not allowed`);
+  }
 
   // check if email already exist
   let user = await getUserByEmail(email);
@@ -102,6 +117,10 @@ export const signInPasswordlessStartEmailHandler = async (
           prepared: true,
           value: ticket,
         },
+        'x-redirect-to': {
+          prepared: true,
+          value: redirectTo,
+        },
         'x-email-template': {
           prepared: true,
           value: template,
@@ -112,6 +131,7 @@ export const signInPasswordlessStartEmailHandler = async (
       displayName: user.displayName,
       email,
       ticket,
+      redirectTo,
       locale: user.locale,
       serverUrl: ENV.AUTH_SERVER_URL,
       clientUrl: ENV.AUTH_CLIENT_URL,

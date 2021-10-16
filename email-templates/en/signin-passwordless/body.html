@@ -7,7 +7,9 @@
     <h2>Magic Link</h2>
     <p>Use this link to securely sign in:</p>
     <p>
-      <a href="${serverUrl}/verify?&ticket=${ticket}&type=signinPasswordless">
+      <a
+        href="${serverUrl}/verify?&ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}"
+      >
         Sign In
       </a>
     </p>

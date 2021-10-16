@@ -1,7 +1,7 @@
 module.exports = {
   roots: ['./test'],
   globalSetup: '<rootDir>/test/global-setup.ts',
-  verbose: true,
+  verbose: false,
   moduleNameMapper: {
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@middleware/(.*)$': '<rootDir>/src/middleware/$1',

@@ -1,4 +1,3 @@
-import { ENV } from '@/utils/env';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { getNewRefreshToken } from '@/utils/tokens';
 import { Request, Response } from 'express';
@@ -10,6 +9,7 @@ export const verifyHandler = async (
   // const { ticket, type } = req.query;
   const ticket = req.query.ticket as string;
   const type = req.query.type as string;
+  const redirectTo = req.query.redirectTo as string;
 
   if (!ticket) {
     return res.boom.badRequest('Missing ticket');
@@ -17,6 +17,10 @@ export const verifyHandler = async (
 
   if (!type) {
     return res.boom.badRequest('Missing type');
+  }
+
+  if (!redirectTo) {
+    return res.boom.badRequest('Missing redirectTo');
   }
 
   const user = await gqlSdk
@@ -83,6 +87,6 @@ export const verifyHandler = async (
   // TODO: Get redirectTo url from user that can be set from the client. if
   // `redirectTo` is set, use that one instead of `AUTH_CLIENT_URL`
   return res.redirect(
-    `${ENV.AUTH_CLIENT_URL}#refreshToken=${refreshToken}&type=${type}`
+    `${redirectTo}#refreshToken=${refreshToken}&type=${type}`
   );
 };

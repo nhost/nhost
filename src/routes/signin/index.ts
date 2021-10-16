@@ -7,14 +7,18 @@ import {
   signInAnonymousSchema,
   signInMfaTotpSchema,
   signInOtpSchema,
-  signInPasswordlessSchema,
+  signInPasswordlessEmailSchema,
+  signInPasswordlessSmsSchema,
 } from '@/validation';
 import { signInEmailPasswordHandler } from './email-password';
 import { signInAnonymousHandler } from './anonymous';
 import providers from './providers';
+import { signInOtpHandler } from './passwordless/sms/otp';
+import {
+  signInPasswordlessEmailHandler,
+  signInPasswordlessSmsHandler,
+} from './passwordless';
 import { signInMfaTotpHandler } from './mfa';
-import { signInPasswordlessStartHandler } from './passwordless';
-import { signInOtpHandler } from './otp';
 
 const router = Router();
 
@@ -24,16 +28,20 @@ router.post(
   aw(signInEmailPasswordHandler)
 );
 
-// magic link via email and sms
-// code (otp) via email and sms
 router.post(
-  '/signin/passwordless/start',
-  createValidator().body(signInPasswordlessSchema),
-  aw(signInPasswordlessStartHandler)
+  '/signin/passwordless/email',
+  createValidator().body(signInPasswordlessEmailSchema),
+  aw(signInPasswordlessEmailHandler)
 );
 
 router.post(
-  '/signin/otp',
+  '/signin/passwordless/sms',
+  createValidator().body(signInPasswordlessSmsSchema),
+  aw(signInPasswordlessSmsHandler)
+);
+
+router.post(
+  '/signin/passwordless/sms/otp',
   createValidator().body(signInOtpSchema),
   aw(signInOtpHandler)
 );
@@ -43,6 +51,9 @@ router.post(
   createValidator().body(signInAnonymousSchema),
   aw(signInAnonymousHandler)
 );
+
+// sign in using providers
+providers(router);
 
 router.post(
   '/signin/mfa/totp',
@@ -56,9 +67,6 @@ router.post(
 //   createValidator().body(signInMfaSmsSchema),
 //   aw(signInMfaSmsHandler)
 // );
-
-// providers
-providers(router);
 
 const signInRouter = router;
 export { signInRouter };

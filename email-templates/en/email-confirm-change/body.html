@@ -7,7 +7,9 @@
     <h2>Confirm Email Change</h2>
     <p>Use this link to confirm changing email:</p>
     <p>
-      <a href="${serverUrl}/verify?&ticket=${ticket}&type=emailConfirmChange">
+      <a
+        href="${serverUrl}/verify?&ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}"
+      >
         Change email
       </a>
     </p>

@@ -7,20 +7,25 @@ import { isRolesValid } from '@/utils/roles';
 import { getNewOneTimePasswordData } from '@/utils/otp';
 import { PasswordLessSmsBody } from '@/types';
 import { getUserByPhoneNumber } from '@/utils/user';
+import {
+  ContainerTypes,
+  ValidatedRequest,
+  ValidatedRequestSchema,
+} from 'express-joi-validation';
 
-export const signInPasswordlessStartSmsHandler = async (
-  body: PasswordLessSmsBody,
+interface Schema extends ValidatedRequestSchema {
+  [ContainerTypes.Body]: PasswordLessSmsBody;
+}
+
+export const signInPasswordlessSmsHandler = async (
+  req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (!ENV.AUTH_PASSWORDLESS_EMAIL_ENABLED) {
-    return res.boom.notFound('Passwordless sign in with email is not enabled');
+  if (!ENV.AUTH_PASSWORDLESS_SMS_ENABLED) {
+    return res.boom.notFound('Passwordless sign in with sms is not enabled');
   }
 
-  if (!ENV.AUTH_EMAILS_ENABLED) {
-    return res.boom.internal('SMTP settings unavailable');
-  }
-
-  const { phoneNumber, options } = body;
+  const { phoneNumber, options } = req.body;
 
   // check if email already exist
   let user = await getUserByPhoneNumber({ phoneNumber });
@@ -61,10 +66,9 @@ export const signInPasswordlessStartSmsHandler = async (
           },
         },
       })
-      .then((res) => res.insertUser);
+      .then((response) => response.insertUser);
 
     if (!insertedUser) {
-      console.log('unable to insert new user');
       throw new Error('Unable to insert new user');
     }
 
@@ -90,22 +94,24 @@ export const signInPasswordlessStartSmsHandler = async (
       ENV.AUTH_TWILIO_AUTH_TOKEN
     );
 
-    await twilioClient.messages
-      .create({
+    try {
+      await twilioClient.messages.create({
         body: `Your code is ${otp}`,
         messagingServiceSid: ENV.AUTH_TWILIO_MESSAGING_SERVICE_ID,
         to: phoneNumber,
-      })
-      .catch(async (error) => {
-        console.log(error);
-
-        // delete user that was inserted because we were not able to send the SMS
-        await gqlSdk.deleteUser({
-          userId,
-        });
-
-        return res.boom.internal('Error sending SMS');
       });
+    } catch (error) {
+      console.log(error);
+
+      // delete user that was inserted because we were not able to send the SMS
+      await gqlSdk.deleteUser({
+        userId,
+      });
+
+      return res.boom.internal('Error sending SMS');
+    }
+  } else {
+    return res.boom.internal('no sms provider set');
   }
 
   return res.send('ok');

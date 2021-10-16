@@ -6,7 +6,12 @@ import {
 } from 'express-joi-validation';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
+import {
+  getGravatarUrl,
+  getUserByEmail,
+  hashPassword,
+  isValidRedirectTo,
+} from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { emailClient } from '@/email';
 import { isValidEmail } from '@/utils/email';
@@ -24,6 +29,7 @@ type BodyType = {
     allowedRoles?: string[];
     defaultRole?: string;
     displayName?: string;
+    redirectTo?: string;
   };
 };
 
@@ -38,9 +44,13 @@ export const signUpEmailPasswordHandler = async (
   const { body } = req;
   const { email, password, options } = body;
 
-  const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
+  // check if redirectTo is valid
+  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
+  if (!isValidRedirectTo({ redirectTo })) {
+    return res.boom.badRequest(`'redirectTo' is not allowed`);
+  }
 
-  req.log.debug({ body });
+  const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
 
   // check email
   if (!(await isValidEmail({ email, res }))) {
@@ -126,6 +136,10 @@ export const signUpEmailPasswordHandler = async (
             prepared: true,
             value: ticket,
           },
+          'x-redirect-to': {
+            prepared: true,
+            value: redirectTo,
+          },
           'x-email-template': {
             prepared: true,
             value: template,
@@ -134,8 +148,9 @@ export const signUpEmailPasswordHandler = async (
       },
       locals: {
         displayName,
-        ticket,
         email,
+        ticket,
+        redirectTo,
         locale: user.locale,
         serverUrl: ENV.AUTH_SERVER_URL,
         clientUrl: ENV.AUTH_CLIENT_URL,

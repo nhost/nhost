@@ -7,13 +7,16 @@ import {
 } from 'express-joi-validation';
 
 import { emailClient } from '@/email';
-import { getUserByEmail } from '@/helpers';
+import { getUserByEmail, isValidRedirectTo } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { ENV } from '@/utils/env';
 
 type BodyType = {
   email: string;
+  options?: {
+    redirectTo?: string;
+  };
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -24,7 +27,13 @@ export const userPasswordResetHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  const { email } = req.body;
+  const { email, options } = req.body;
+
+  // check if redirectTo is valid
+  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
+  if (!isValidRedirectTo({ redirectTo })) {
+    return res.boom.badRequest(`'redirectTo' is not allowed`);
+  }
 
   const user = await getUserByEmail(email);
 
@@ -48,6 +57,7 @@ export const userPasswordResetHandler = async (
     template,
     locals: {
       ticket,
+      redirectTo,
       locale: user.locale,
       displayName: user.displayName,
       serverUrl: ENV.AUTH_SERVER_URL,
@@ -59,6 +69,10 @@ export const userPasswordResetHandler = async (
         'x-ticket': {
           prepared: true,
           value: ticket as string,
+        },
+        'x-redirect-to': {
+          prepared: true,
+          value: redirectTo,
         },
         'x-email-template': {
           prepared: true,

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { gqlSdk } from '../gqlSDK';
 import { isValidEmail } from '../email';
-import { getUserByEmail } from '@/helpers';
+import { getUserByEmail, isValidRedirectTo } from '@/helpers';
 import { isRolesValid } from '../roles';
 import { ENV } from '../env';
 import { emailClient } from '@/email';
@@ -13,8 +13,11 @@ export type BodyTypePasswordlessEmail = {
   signInMethod: 'passwordless';
   connection: 'email';
   email: string;
-  allowedRoles?: string[];
-  defaultRole?: string;
+  options: {
+    allowedRoles?: string[];
+    defaultRole?: string;
+    redirectTo?: string;
+  };
 };
 
 export const handleDeanonymizeUserPasswordlessEmail = async (
@@ -30,7 +33,13 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
     return res.boom.badRequest('Logged in user is not anonymous');
   }
 
-  const { email } = body;
+  const { email, options } = body;
+
+  // check if redirectTo is valid
+  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
+  if (!isValidRedirectTo({ redirectTo })) {
+    return res.boom.badRequest(`'redirectTo' is not allowed`);
+  }
 
   // check email
   if (!(await isValidEmail({ email, res }))) {
@@ -44,8 +53,9 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   }
 
   // check roles
-  const defaultRole = body.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
-  const allowedRoles = body.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
+  const defaultRole = options?.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+  const allowedRoles =
+    options?.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
   if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
     return;
   }
@@ -109,6 +119,10 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
             prepared: true,
             value: ticket,
           },
+          'x-redirect-to': {
+            prepared: true,
+            value: redirectTo,
+          },
           'x-email-template': {
             prepared: true,
             value: template,
@@ -119,6 +133,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
         displayName: user.displayName,
         email,
         ticket,
+        redirectTo,
         locale: user.locale,
         serverUrl: ENV.AUTH_SERVER_URL,
         clientUrl: ENV.AUTH_CLIENT_URL,
