@@ -258,8 +258,11 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 
 		runtimeVars := []string{
 			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
+			fmt.Sprintf("NHOST_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
 			fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", s.environment.Config.Services["hasura"].AdminSecret),
 			fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", s.environment.Port),
+			fmt.Sprintf("NHOST_ADMIN_SECRET=%v", s.environment.Config.Services["hasura"].AdminSecret),
+			fmt.Sprintf("NHOST_WEBHOOK_SECRET=%v", nhost.WEBHOOK_SECRET),
 		}
 
 		// set the runtime env vars

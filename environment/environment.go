@@ -281,7 +281,9 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 
 	// wait for all healthchecks to pass
 	health_waiter.Wait()
-	fmt.Println()
+	if !logger.DEBUG {
+		fmt.Printf("\r")
+	}
 	return err
 }
 

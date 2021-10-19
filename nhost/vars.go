@@ -82,7 +82,10 @@ var (
 	//PREFIX = "nhost"
 
 	// initiaze JWT key for Hasura Authentication
-	JWT_KEY = generateRandomKey()
+	JWT_KEY = generateRandomKey(128)
+
+	// initiaze webhook-secret for Hasura Authentication
+	WEBHOOK_SECRET = "nhost-webhook-secret"
 )
 
 const (

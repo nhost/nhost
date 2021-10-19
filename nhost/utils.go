@@ -60,8 +60,8 @@ func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string 
 }
 
 // generate a random 128 byte key
-func generateRandomKey() string {
-	key := make([]byte, 128)
+func generateRandomKey(len int) string {
+	key := make([]byte, len)
 	rand.Read(key)
 	return hex.EncodeToString(key)
 }

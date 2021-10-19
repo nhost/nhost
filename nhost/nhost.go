@@ -717,10 +717,13 @@ func (config *Configuration) Init(port string) error {
 		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
 		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", config.Services["hasura"].AdminSecret),
+		fmt.Sprintf("NHOST_ADMIN_SECRET=%v", config.Services["hasura"].AdminSecret),
 		fmt.Sprintf("HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT=%d", 20),
 		fmt.Sprintf("HASURA_GRAPHQL_NO_OF_RETRIES=%d", 20),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
+		fmt.Sprintf("NHOST_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
+		fmt.Sprintf("NHOST_WEBHOOK_SECRET=%v", WEBHOOK_SECRET),
 	}
 	containerVariables = append(containerVariables, envVars...)
 
@@ -743,6 +746,7 @@ func (config *Configuration) Init(port string) error {
 		containerVariables,
 		fmt.Sprintf("NHOST_FUNCTIONS=http://%s:%v/v1/functions", localhost, port),
 		fmt.Sprintf("LOCALHOST=http://%s", localhost),
+		fmt.Sprintf("NHOST_BACKEND_URL=http://%s:%v", localhost, port),
 	)
 
 	/*
