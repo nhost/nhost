@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	log = &logger.Log
-	API = "https://customapi.nhost.io"
+	log         = &logger.Log
+	API         = "https://customapi.nhost.io"
+	APP_ADDRESS = "nuno.nhost.dev"
 
 	// fetch current working directory
 	WORKING_DIR, _ = os.Getwd()
@@ -63,6 +64,9 @@ var (
 
 	// generate path for .config.yaml file
 	CONFIG_PATH = filepath.Join(NHOST_DIR, "config.yaml")
+
+	// generate path for .gitignore file
+	GITIGNORE = filepath.Join(WORKING_DIR, ".gitignore")
 
 	// generate path for .nhost/nhost.yaml file
 	INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")

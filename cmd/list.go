@@ -36,9 +36,9 @@ import (
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
-	Short:   "List the apps",
-	Long: `Fetch the list of personal and team app
-for the logged in user from Nhost console and present them.`,
+	Short:   "List remote apps",
+	Long: `Fetch the list of remote personal and team app
+for the logged in user from Nhost console.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// validate authentication

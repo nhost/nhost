@@ -3,14 +3,17 @@ package environment
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
 	client "github.com/docker/docker/client"
+	"github.com/mrinalwahal/cli/logger"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/mrinalwahal/cli/util"
 	"github.com/mrinalwahal/cli/watcher"
@@ -209,12 +212,16 @@ func (e *Environment) Prepare() error {
 // Also, supports process cancellation from contexts.
 func (e *Environment) HealthCheck(ctx context.Context) error {
 
-	log.WithField("component", e.Name).Debug("Starting health check")
+	const banner = "Running a quick health check on services"
+	log.Info(banner)
 
+	var i int
+	var l int
 	var err error
 	var health_waiter sync.WaitGroup
 	for _, service := range e.Config.Services {
 		if service.HealthEndpoint != "" {
+			l += 1
 			health_waiter.Add(1)
 			go func(service *nhost.Service) {
 
@@ -228,6 +235,10 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 						return
 					default:
 						if healthy := service.Healthz(); healthy {
+							if !logger.DEBUG {
+								i += 1
+								fmt.Printf("\rComplete: (%d/%d)", i, l)
+							}
 							log.WithFields(logrus.Fields{
 								"type":      "service",
 								"container": service.Name,
@@ -270,7 +281,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 
 	// wait for all healthchecks to pass
 	health_waiter.Wait()
-
+	fmt.Println()
 	return err
 }
 
@@ -419,4 +430,19 @@ func (e *Environment) Cleanup() {
 
 	// Don't cancel the contexts before shutting down the containers
 	e.Cancel()
+}
+
+func printProgressBar(iteration, total int, prefix, suffix string, length int, fill string) {
+	percent := float64(iteration) / float64(total)
+	filledLength := int(length * iteration / total)
+	end := ">"
+
+	if iteration == total {
+		end = "="
+	}
+	bar := strings.Repeat(fill, filledLength) + end + strings.Repeat("-", (length-filledLength))
+	fmt.Printf("\r%s [%s] %f%% %s", prefix, bar, percent, suffix)
+	if iteration == total {
+		fmt.Println()
+	}
 }

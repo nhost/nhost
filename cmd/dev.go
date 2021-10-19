@@ -149,7 +149,7 @@ var devCmd = &cobra.Command{
 		funcPortStr, _ := strconv.Atoi(funcPort)
 		env.Config.Services["functions"] = &nhost.Service{
 			Name:    "functions",
-			Handles: []nhost.Route{{Name: "Functions", Source: "/", Destination: "/v1/functions/"}},
+			Handles: []nhost.Route{{Name: "Functions", Source: "/", Destination: "/v1/functions/", Show: true}},
 			Proxy:   true,
 			Port:    funcPortStr,
 
@@ -273,7 +273,9 @@ var devCmd = &cobra.Command{
 
 				// print the name and handle
 				for _, route := range item.Handles {
-					p.print("", route.Name, fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(route.Destination)))
+					if route.Show {
+						p.print("", route.Name, fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(route.Destination)))
+					}
 				}
 			}
 

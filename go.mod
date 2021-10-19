@@ -46,6 +46,7 @@ require (
 	github.com/morikuni/aec v1.0.0 // indirect
 	github.com/nhost/tunnels v0.0.0-20210909100454-04060bb5f3c4 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
+	github.com/schollz/progressbar/v3 v3.8.3 // indirect
 	github.com/sergi/go-diff v1.1.0 // indirect
 	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cast v1.4.1 // indirect
@@ -54,10 +55,11 @@ require (
 	github.com/subosito/gotenv v1.2.0
 	github.com/ulikunitz/xz v0.5.10 // indirect
 	github.com/xanzy/ssh-agent v0.3.0 // indirect
-	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
 	golang.org/x/mod v0.5.0 // indirect
 	golang.org/x/net v0.0.0-20210908191846-a5e095526f91 // indirect
-	golang.org/x/sys v0.0.0-20210908233432-aa78b53d3365 // indirect
+	golang.org/x/sys v0.0.0-20211015200801-69063c4bb744 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/api v0.56.0 // indirect
 	google.golang.org/genproto v0.0.0-20210903162649-d08c68adba83 // indirect

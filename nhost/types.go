@@ -27,10 +27,12 @@ type (
 	}
 
 	App struct {
-		ID        string   `json:"id,omitempty"`
-		Name      string   `json:"name,omitempty"`
-		EnvVars   []EnvVar `json:"environmentVariables,omitempty"`
-		Workspace string   `json:"workspace,omitempty"`
+		ID                 string   `json:"id,omitempty"`
+		Name               string   `json:"name,omitempty"`
+		GraphQLAdminSecret string   `json:"hasuraGraphqlAdminSecret,omitempty"`
+		Subdomain          string   `json:"subdomain,omitempty"`
+		EnvVars            []EnvVar `json:"environmentVariables,omitempty"`
+		Workspace          string   `json:"workspace,omitempty"`
 	}
 
 	EnvVar struct {
@@ -198,5 +200,6 @@ type (
 		Name        string
 		Source      string
 		Destination string
+		Show        bool
 	}
 )

@@ -41,9 +41,9 @@ var repoSource string
 // upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
-	Short: "Upgrade this utility to latest version",
+	Short: "Upgrade this version of Nhost CLI to latest version",
 	Long: `Automatically check for the latest available version of this
-utility and upgrade to it.`,
+CLI and upgrade to it.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		switch runtime.GOOS {

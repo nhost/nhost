@@ -56,17 +56,7 @@ var linkCmd = &cobra.Command{
 		}
 
 		// concatenate personal and team projects
-		var projects []nhost.App
-		for _, member := range user.WorkspaceMembers {
-			for _, item := range member.Workspace.Apps {
-				projects = append(projects, nhost.App{
-					Name:      item.Name,
-					ID:        item.ID,
-					EnvVars:   item.EnvVars,
-					Workspace: member.Workspace.Name,
-				})
-			}
-		}
+		projects := prepareAppList(user)
 
 		// add the option of a new project to the existing selection payload
 		projects = append(projects, nhost.App{
@@ -252,11 +242,6 @@ var linkCmd = &cobra.Command{
 func updateNhostProject(app nhost.App) error {
 
 	// create .nhost, if it doesn't exists
-	if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
-		log.Debug(err)
-		log.Fatal("Failed to initialize nhost specific directory")
-	}
-
 	if util.PathExists(nhost.INFO_PATH) {
 
 		// first delete any existing nhost.yaml file

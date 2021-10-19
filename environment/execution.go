@@ -71,7 +71,6 @@ func (e *Environment) Execute() error {
 	//	Wrap fetched containers as services in the environment
 	_ = e.WrapContainersAsServices(containers)
 
-	log.Info("Running a quick health check on services")
 	if err := e.HealthCheck(e.ExecutionContext); err != nil {
 		return err
 	}

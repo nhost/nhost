@@ -40,11 +40,10 @@ var approve bool
 
 // uninstallCmd removed Nhost CLI from system
 var uninstallCmd = &cobra.Command{
-	Use:     "uninstall",
-	Aliases: []string{"remove"},
-	Short:   "Removed the installed CLI from system permanently",
-	Long: `Removed the installed CLI from system permanently
-but without hurting existing Nhost apps on the system and their data.`,
+	Use:   "uninstall",
+	Short: "Remove the installed CLI from system permanently",
+	Long: `Remove the installed CLI from system permanently
+but without hurting local Nhost apps and their data.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.Warn("This will permanently remove the installed CLI utility")

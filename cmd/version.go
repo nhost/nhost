@@ -36,7 +36,7 @@ import (
 var versionCmd = &cobra.Command{
 	Use:     "version",
 	Aliases: []string{"v"},
-	Short:   "Print the installed version of CLI",
+	Short:   "Show the current version of Nhost CLI you have installed",
 	Long:    `All softwares have versions. This is Nhost's.`,
 	Run: func(cmd *cobra.Command, args []string) {
 

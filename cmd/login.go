@@ -27,7 +27,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -45,8 +44,7 @@ var password string
 // loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Login to your Nhost account",
-	Long:  `Login to your existing Nhost account.`,
+	Short: "Log in to your Nhost account",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		// if user is already logged in, ask to logout
@@ -109,13 +107,6 @@ var loginCmd = &cobra.Command{
 			log.Fatal("Failed to save auth configuration")
 		}
 
-		// validate auth
-		user, err := getUser(nhost.AUTH_PATH)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to validate authentication")
-		}
-		fmt.Println(user)
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
 		log.Info("Email verified, and you are logged in!")
@@ -128,7 +119,7 @@ func readInput(key string) (string, error) {
 
 	// configure interative prompt
 	prompt := promptui.Prompt{
-		Label: strings.ToTitle(strings.ToLower(key)),
+		Label: strings.Title(strings.ToLower(key)),
 	}
 
 	return prompt.Run()
@@ -167,14 +158,9 @@ func getUser(authFile string) (nhost.User, error) {
 
 	defer resp.Body.Close()
 
-	//Handle Error
-	/*
-		if response.Error.Code == "server_not_available" {
-			return response.User, errors.New("server unavailable, please retry again later")
-		} else if response.Error.Code == "invalid_token" {
-			return response.User, errors.New("invalid auth token, please run 'nhost login' again")
-		}
-	*/
+	if response.ID == "" {
+		err = errors.New("user not found")
+	}
 
 	return response, err
 }

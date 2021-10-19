@@ -286,7 +286,9 @@ func (c *Configuration) Wrap() error {
 
 			parsed.Services[name].Image = "nhost/hasura-auth"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = []Route{{Name: "Authentication", Source: "/", Destination: "/v1/auth/"}}
+			parsed.Services[name].Handles = []Route{
+				{Name: "Authentication", Source: "/", Destination: "/v1/auth/", Show: true},
+			}
 			parsed.Services[name].Proxy = true
 
 		case "storage":
@@ -301,7 +303,9 @@ func (c *Configuration) Wrap() error {
 
 			parsed.Services[name].Image = "nhost/hasura-storage"
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = []Route{{Name: "Storage", Source: "/", Destination: "/v1/storage/"}}
+			parsed.Services[name].Handles = []Route{
+				{Name: "Storage", Source: "/", Destination: "/v1/storage/", Show: true},
+			}
 			parsed.Services[name].Proxy = true
 
 		case "postgres":
@@ -324,7 +328,7 @@ func (c *Configuration) Wrap() error {
 			parsed.Services[name].Version = parsed.Services["hasura"].Version
 			parsed.Services[name].HealthEndpoint = "/healthz"
 			parsed.Services[name].Handles = []Route{
-				{Name: "GraphQL", Source: "/v1/graphql", Destination: "/v1/graphql"},
+				{Name: "GraphQL", Source: "/v1/graphql", Destination: "/v1/graphql", Show: true},
 				{Name: "Query", Source: "/v2/query", Destination: "/v2/query"},
 				{Name: "Metadata", Source: "/v1/metadata", Destination: "/v1/metadata"},
 				{Name: "Config", Source: "/v1/config", Destination: "/v1/config"},
@@ -464,7 +468,7 @@ func (s *Service) Exists(client *client.Client, ctx context.Context) string {
 }
 
 // generates fresh config.yaml for /nhost dir
-func GenerateConfig(options Project) Configuration {
+func GenerateConfig(options App) Configuration {
 
 	log.Debug("Generating app configuration")
 
@@ -477,17 +481,19 @@ func GenerateConfig(options Project) Configuration {
 		},
 	}
 
-	// check if a loaded remote project has been passed
-	if options.HasuraGQEVersion != "" {
-		hasura.Version = options.HasuraGQEVersion
-	}
+	/*
+		// check if a loaded remote project has been passed
+		if options.HasuraGQEVersion != "" {
+			hasura.Version = options.HasuraGQEVersion
+		}
+
+		if options.PostgresVersion != "" {
+			postgres.Version = options.PostgresVersion
+		}
+	*/
 
 	postgres := Service{
 		Version: "12-v0.0.6",
-	}
-
-	if options.PostgresVersion != "" {
-		postgres.Version = options.PostgresVersion
 	}
 
 	return Configuration{

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -236,24 +237,58 @@ func (c *Client) ClearMigration() error {
 
 	log.Debug("Clearing Migration")
 
-	reqBody := RequestBody{
-		Type: "run_sql",
-		Args: map[string]string{
-			"sql": "TRUNCATE hdb_catalog.schema_migrations;",
-		},
+	args := []string{c.CLI,
+		"migrate",
+		"delete",
+		"--all",
+		"--server",
+		"--endpoint",
+		c.Endpoint,
+		"--admin-secret",
+		c.AdminSecret,
+		"--database-name",
+		nhost.DATABASE,
+		"--skip-update-check",
+		"--force",
 	}
-	body, err := reqBody.Marshal()
+
+	execute := exec.Cmd{
+		Path: c.CLI,
+		Args: args,
+		Dir:  nhost.NHOST_DIR,
+	}
+	output, err := execute.CombinedOutput()
 	if err != nil {
+		fmt.Println(string(output))
 		return err
 	}
 
-	resp, err := c.Request(body, "/v1/query")
-	if err != nil {
-		return err
-	}
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("failed to clear migration")
-	}
+	/*
+		reqBody := RequestBody{
+			Type: "run_sql",
+			Args: map[string]string{
+				"source": nhost.DATABASE,
+				"sql":    "TRUNCATE hdb_catalog.schema_migrations;",
+			},
+		}
+		body, err := reqBody.Marshal()
+		if err != nil {
+			return err
+		}
+
+		resp, err := c.Request(body, "/v2/query")
+		if err != nil {
+			return err
+		}
+
+		body, _ = ioutil.ReadAll(resp.Body)
+		fmt.Println(string(body))
+
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return errors.New("failed to clear migration")
+		}
+	*/
 
 	return nil
 }
