@@ -127,6 +127,7 @@ export const ENV = {
   },
   get AUTH_DEFAULT_ALLOWED_USER_ROLES() {
     return castStringArrayEnv('AUTH_DEFAULT_ALLOWED_USER_ROLES', [
+      'me',
       this.AUTH_DEFAULT_USER_ROLE,
     ]);
   },
