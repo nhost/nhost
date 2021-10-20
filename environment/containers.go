@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -54,13 +55,11 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 						// we don't want to save mailhog's smtp port
 						// this is done to avoid double port loading issue
 						var smtpPort int
-						switch t := e.Config.Auth["email"].(type) {
-						case map[interface{}]interface{}:
-							for key, value := range t {
-								if value != "" && key.(string) == "smtp_port" {
-									smtpPort = value.(int)
-									break
-								}
+						vars := nhost.ParseEnvVarsFromConfig(e.Config.Auth, "SMTP")
+						for _, item := range vars {
+							payload := strings.Split(item, "=")
+							if payload[0] == "AUTH_SMTP_PORT" {
+								smtpPort, _ = strconv.Atoi(payload[1])
 							}
 						}
 						if int(port.PublicPort) == smtpPort {

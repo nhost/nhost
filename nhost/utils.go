@@ -27,12 +27,12 @@ func getOutboundIP() net.IP {
 	return localAddr.IP
 }
 
-func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string {
+func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) []string {
 	var response []string
 	for key, item := range payload {
 		switch item := item.(type) {
 		case map[interface{}]interface{}:
-			response = append(response, appendEnvVars(item, strings.ToUpper(strings.Join([]string{prefix, fmt.Sprint(key)}, "_")))...)
+			response = append(response, ParseEnvVarsFromConfig(item, strings.ToUpper(strings.Join([]string{prefix, fmt.Sprint(key)}, "_")))...)
 		case interface{}:
 			if item != "" {
 				response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), item))

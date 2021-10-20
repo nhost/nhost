@@ -797,7 +797,7 @@ func (config *Configuration) Init(port string) error {
 	}
 
 	// append social auth credentials and other env vars
-	containerVariables = append(containerVariables, appendEnvVars(config.Auth, "AUTH")...)
+	containerVariables = append(containerVariables, ParseEnvVarsFromConfig(config.Auth, "AUTH")...)
 
 	// append service specific environment variables
 	for key, value := range authConfig.Environment {
@@ -852,7 +852,7 @@ func (config *Configuration) Init(port string) error {
 	}
 
 	// append storage env vars
-	containerVariables = append(containerVariables, appendEnvVars(config.Storage, "STORAGE")...)
+	containerVariables = append(containerVariables, ParseEnvVarsFromConfig(config.Storage, "STORAGE")...)
 	storageConfig.Config.Env = containerVariables
 
 	// prepare env variables for following container
