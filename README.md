@@ -20,4 +20,51 @@
     />
   </a>
 </p>
-123
+
+## Core Features:
+
+- 🧑‍🤝‍🧑 Users are stored in Postgres and accessed via GraphQL
+- 🔑 Multiple sign-in methods.
+- ✨ Integrates with GraphQL and Hasura Permissions
+- 🔐 JWT tokens and Refresh Tokens.
+- ✉️ Emails sent on various operations
+- ✅ Optional checking for Pwned Passwords.
+- 👨‍💻 Written 100% in TypeScript.
+
+## Sign in methods:
+
+- **Email and Password** - simple email and password method.
+- **Email** - also called **passwordless email** or **magic link**.
+- **SMS** - Also called **passwordless sms**.
+- **Anonymous** - sign in users without any method. Anonymous users can be
+  converted to _regular_ users.
+- **OAuth providers**:
+  - Facebook
+  - Google
+  - GitHub
+  - Twitter
+  - Apple
+  - LinkedIn
+  - Windows Live
+  - Spotify
+  - Strave
+  - GitLab
+  - BitBucket
+
+## Deploy Hasura Auth in Seconds
+
+Use [Nhost](https://nhost.io) to start using Hasura Auth in seconds.
+
+## 🤝 Contributing
+
+Contributions and issues are welcome.
+
+Feel free to check the issues page.
+
+## Show your support
+
+Give a ⭐️ if this project helped you!
+
+## 📝 License
+
+This project is MIT licensed.
