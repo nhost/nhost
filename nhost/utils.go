@@ -31,25 +31,8 @@ func appendEnvVars(payload map[interface{}]interface{}, prefix string) []string 
 	var response []string
 	for key, item := range payload {
 		switch item := item.(type) {
-		/*
-			case map[interface{}]interface{}:
-				response = append(response, appendEnvVars(item, prefix)...)
-		*/
 		case map[interface{}]interface{}:
-			for key, value := range item {
-				switch value := value.(type) {
-				case map[interface{}]interface{}:
-					for newkey, newvalue := range value {
-						if newvalue != "" {
-							response = append(response, fmt.Sprintf("%s_%v_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), strings.ToUpper(fmt.Sprint(newkey)), newvalue))
-						}
-					}
-				case interface{}, string:
-					if value != "" {
-						response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), value))
-					}
-				}
-			}
+			response = append(response, appendEnvVars(item, strings.ToUpper(strings.Join([]string{prefix, fmt.Sprint(key)}, "_")))...)
 		case interface{}:
 			if item != "" {
 				response = append(response, fmt.Sprintf("%s_%v=%v", prefix, strings.ToUpper(fmt.Sprint(key)), item))

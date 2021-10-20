@@ -467,55 +467,6 @@ func (s *Service) Exists(client *client.Client, ctx context.Context) string {
 	return ""
 }
 
-// generates fresh config.yaml for /nhost dir
-func GenerateConfig(options App) Configuration {
-
-	log.Debug("Generating app configuration")
-
-	hasura := Service{
-		Version: "v2.0.7",
-		Image:   "hasura/graphql-engine",
-		Environment: map[string]interface{}{
-			"hasura_graphql_enable_remote_schema_permissions": false,
-		},
-	}
-
-	/*
-		// check if a loaded remote project has been passed
-		if options.HasuraGQEVersion != "" {
-			hasura.Version = options.HasuraGQEVersion
-		}
-
-		if options.PostgresVersion != "" {
-			postgres.Version = options.PostgresVersion
-		}
-	*/
-
-	postgres := Service{
-		Version: "12-v0.0.6",
-	}
-
-	return Configuration{
-		Version: 3,
-		Services: map[string]*Service{
-			"postgres": &postgres,
-			"hasura":   &hasura,
-		},
-		MetadataDirectory: "metadata",
-		Storage: map[interface{}]interface{}{
-			"force_download_for_content_types": "text/html,application/javascript",
-		},
-		Auth: map[interface{}]interface{}{
-			"providers": generateProviders(),
-			"tokens":    generateTokenVars(),
-			"signin":    generateSignInVars(),
-			"signup":    generateSignUpVars(),
-			"email":     generateEmailVars(),
-			"gravatar":  generateGravatarVars(),
-		},
-	}
-}
-
 func (s *Service) Healthz() bool {
 
 	resp, err := http.Get(s.Address + s.HealthEndpoint)
@@ -709,6 +660,11 @@ func (config *Configuration) Init(port string) error {
 		"POSTGRES_PASSWORD=postgres",
 	}
 
+	// append service specific environment variables
+	for key, value := range postgresConfig.Environment {
+		postgresConfig.Config.Env = append(postgresConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
+	}
+
 	// prepare env variables for following container
 	containerVariables := []string{
 		fmt.Sprintf("HASURA_GRAPHQL_SERVER_PORT=%v", config.Services["hasura"].Port),
@@ -812,6 +768,11 @@ func (config *Configuration) Init(port string) error {
 		"MINIO_ROOT_PASSWORD=minioaccesskey123123",
 	}
 
+	// append service specific environment variables
+	for key, value := range minioConfig.Environment {
+		minioConfig.Config.Env = append(minioConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
+	}
+
 	minioConfig.Config.Cmd = []string{
 		"-c",
 		fmt.Sprintf(`mkdir -p /data/nhost && /opt/bin/minio server --address :%v /data`, config.Services["minio"].Port),
@@ -827,8 +788,8 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
 		fmt.Sprintf("AUTH_PORT=%v", config.Services["auth"].Port),
 		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v/v1/auth", port),
-		fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", "3000"),
-		//	fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", config.Auth["client_url"]),
+		//	fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", "3000"),
+		fmt.Sprintf("AUTH_CLIENT_URL=%v", config.Auth["client_url"]),
 
 		// set the defaults
 		"AUTH_LOG_LEVEL=info",
@@ -838,6 +799,11 @@ func (config *Configuration) Init(port string) error {
 	// append social auth credentials and other env vars
 	containerVariables = append(containerVariables, appendEnvVars(config.Auth, "AUTH")...)
 
+	// append service specific environment variables
+	for key, value := range authConfig.Environment {
+		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
+	}
+
 	// create mount point if it doesn't exit
 	customMountPoint := filepath.Join(DOT_NHOST, "custom", "keys")
 	if err := os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
@@ -845,6 +811,7 @@ func (config *Configuration) Init(port string) error {
 		return err
 	}
 
+	authVars := containerVariables
 	authConfig.Config.Env = containerVariables
 	authConfig.HostConfig.Mounts = []mount.Mount{
 		{
@@ -879,22 +846,22 @@ func (config *Configuration) Init(port string) error {
 		"S3_BUCKET=nhost",
 	}
 
+	// append service specific environment variables
+	for key, value := range storageConfig.Environment {
+		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
+	}
+
 	// append storage env vars
 	containerVariables = append(containerVariables, appendEnvVars(config.Storage, "STORAGE")...)
 	storageConfig.Config.Env = containerVariables
 
 	// prepare env variables for following container
-	containerVariables = []string{}
+	//	containerVariables = appendEnvVars(config.Auth["smtp"].(map[interface{}]interface{}), "SMTP")
 	var smtpPort int
-	switch t := config.Auth["email"].(type) {
-	case map[interface{}]interface{}:
-		for key, value := range t {
-			if value != "" {
-				containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(fmt.Sprint(key)), value))
-				if key.(string) == "smtp_port" {
-					smtpPort = value.(int)
-				}
-			}
+	for _, item := range authVars {
+		payload := strings.Split(item, "=")
+		if payload[0] == "AUTH_SMTP_PORT" {
+			smtpPort, _ = strconv.Atoi(payload[1])
 		}
 	}
 
@@ -908,6 +875,11 @@ func (config *Configuration) Init(port string) error {
 			smtpPort = GetPort(1000, 1999)
 			log.WithField("component", "smtp").Debugf("Running SMTP server on port %s", smtpPort)
 		*/
+	}
+
+	// append service specific environment variables
+	for key, value := range mailhogConfig.Environment {
+		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
 
 	containerVariables = append(containerVariables,
@@ -967,58 +939,126 @@ func (s *Service) Exec(docker *client.Client, ctx context.Context, command []str
 	return docker.ContainerExecCreate(ctx, s.ID, config)
 }
 
-func generateSignInVars() map[string]interface{} {
-	return map[string]interface{}{
-		"passwordless_email_enabled":     true,
-		"passwordless_sms_enabled":       false,
-		"signin_email_verified_required": true,
-		"allowed_redirect_urls":          "",
-		"mfa_enabled":                    false,
-		"totp_issuer":                    "",
-	}
-}
+// generates fresh config.yaml for /nhost dir
+func GenerateConfig(options App) Configuration {
 
-func generateSignUpVars() map[string]interface{} {
-	return map[string]interface{}{
-		"anonymous_users_enabled":    false,
-		"disable_new_users":          false,
-		"allowed_email_domains":      "",
-		"min_password_length":        3,
-		"hibp_enabled":               false,
-		"default_user_role":          "user",
-		"default_allowed_user_roles": "user,me",
-		"allowed_user_roles":         "",
-		"default_locale":             "",
-		"allowed_locales":            "",
-	}
-}
+	log.Debug("Generating app configuration")
 
-func generateEmailVars() map[string]interface{} {
-	return map[string]interface{}{
-		"emails_enabled":           true,
-		"smtp_host":                PREFIX + "_mailhog",
-		"smtp_port":                GetPort(1000, 1999),
-		"smtp_user":                "user",
-		"smtp_pass":                "password",
-		"smtp_sender":              "hasura-auth@example.com",
-		"smtp_method":              "",
-		"smtp_secure":              false,
-		"email_template_fetch_url": "",
+	hasura := Service{
+		Version: "v2.0.7",
+		Image:   "hasura/graphql-engine",
+		Environment: map[string]interface{}{
+			"hasura_graphql_enable_remote_schema_permissions": false,
+		},
+	}
+
+	/*
+		// check if a loaded remote project has been passed
+		if options.HasuraGQEVersion != "" {
+			hasura.Version = options.HasuraGQEVersion
+		}
+
+		if options.PostgresVersion != "" {
+			postgres.Version = options.PostgresVersion
+		}
+	*/
+
+	postgres := Service{
+		Version: "12-v0.0.6",
+	}
+
+	return Configuration{
+		Version: 3,
+		Services: map[string]*Service{
+			"postgres": &postgres,
+			"hasura":   &hasura,
+		},
+		MetadataDirectory: "metadata",
+		Storage: map[interface{}]interface{}{
+			"force_download_for_content_types": "text/html,application/javascript",
+		},
+		Auth: map[interface{}]interface{}{
+			"client_url":              "http://localhost:3000",
+			"anonymous_users_enabled": false,
+			"disable_new_users":       false,
+			"access_control": map[interface{}]interface{}{
+				"url": map[interface{}]interface{}{
+					"allowed_redirect_urls": "",
+				},
+				"email": map[interface{}]interface{}{
+					"allowed_emails":        "",
+					"allowed_email_domains": "",
+					"blocked_emails":        "",
+					"blocked_email_domains": "",
+				},
+			},
+			"password": map[interface{}]interface{}{
+				"min_length":   3,
+				"hibp_enabled": false,
+			},
+			"user": map[interface{}]interface{}{
+				"default_role":                   "user",
+				"default_allowed_roles":          "user,me",
+				"allowed_roles":                  "user,me",
+				"signin_email_verified_required": true,
+				"mfa": map[interface{}]interface{}{
+					"enabled": false,
+					"issuer":  "nhost",
+				},
+			},
+			"token": map[interface{}]interface{}{
+				"access": map[interface{}]interface{}{
+					"expires_in": 900,
+				},
+				"refresh": map[interface{}]interface{}{
+					"expires_in": 43200,
+				},
+			},
+			"locale": map[interface{}]interface{}{
+				"default": "en",
+				"allowed": "en",
+			},
+			"smtp": map[interface{}]interface{}{
+				"host":   PREFIX + "_mailhog",
+				"port":   GetPort(1000, 1999),
+				"user":   "user",
+				"pass":   "password",
+				"sender": "hasura-auth@example.com",
+				"method": "",
+				"secure": false,
+			},
+			"email": map[interface{}]interface{}{
+				"enabled":            false,
+				"template_fetch_url": "",
+				"passwordless": map[interface{}]interface{}{
+					"enabled": false,
+				},
+			},
+			"sms": map[interface{}]interface{}{
+				"enabled": false,
+				"provider": map[interface{}]interface{}{
+					"twilio": map[interface{}]interface{}{
+						"account_sid":          "",
+						"auth_token":           "",
+						"messaging_service_id": "",
+						"from":                 "",
+					},
+				},
+				"passwordless": map[interface{}]interface{}{
+					"enabled": false,
+				},
+			},
+			"provider": generateProviders(),
+			"gravatar": generateGravatarVars(),
+		},
 	}
 }
 
 func generateGravatarVars() map[string]interface{} {
 	return map[string]interface{}{
-		"gravatar_enabled": true,
-		"gravatar_default": "",
-		"gravatar_rating":  "",
-	}
-}
-
-func generateTokenVars() map[string]interface{} {
-	return map[string]interface{}{
-		"refresh_token_expires_in": 2592000,
-		"access_token_expires_in":  900,
+		"enabled": true,
+		"default": "",
+		"rating":  "",
 	}
 }
 
