@@ -1,7 +1,6 @@
 package environment
 
 import (
-	"fmt"
 	"path/filepath"
 
 	"github.com/mrinalwahal/cli/hasura"
@@ -80,7 +79,7 @@ func (e *Environment) Execute() error {
 	e.Hasura = &hasura.Client{}
 	if err := e.Hasura.Init(
 		e.Config.Services["hasura"].Address,
-		fmt.Sprint(e.Config.Services["hasura"].AdminSecret),
+		nhost.ADMIN_SECRET,
 		nil,
 	); err != nil {
 		return err

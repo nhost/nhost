@@ -473,9 +473,8 @@ func GenerateConfig(options App) Configuration {
 	log.Debug("Generating app configuration")
 
 	hasura := Service{
-		Version:     "v2.0.7",
-		Image:       "hasura/graphql-engine",
-		AdminSecret: "hasura-admin-secret",
+		Version: "v2.0.7",
+		Image:   "hasura/graphql-engine",
 		Environment: map[string]interface{}{
 			"hasura_graphql_enable_remote_schema_permissions": false,
 		},
@@ -716,8 +715,8 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", config.Services["hasura"].AdminSecret),
-		fmt.Sprintf("NHOST_ADMIN_SECRET=%v", config.Services["hasura"].AdminSecret),
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
+		fmt.Sprintf("NHOST_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT=%d", 20),
 		fmt.Sprintf("HASURA_GRAPHQL_NO_OF_RETRIES=%d", 20),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
@@ -822,7 +821,7 @@ func (config *Configuration) Init(port string) error {
 
 	// prepare env variables for following container
 	containerVariables = []string{
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", config.Services["hasura"].AdminSecret),
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		fmt.Sprintf("HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql", config.Services["hasura"].Name, config.Services["hasura"].Port),
 		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
@@ -864,7 +863,7 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("STORAGE_PORT=%v", config.Services["storage"].Port),
 		fmt.Sprintf("STORAGE_PUBLIC_URL=%v", config.Services["storage"].Address),
 		"HASURA_GRAPHQL_GRAPHQL_URL=" + fmt.Sprintf(`http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", config.Services["hasura"].AdminSecret),
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		fmt.Sprintf("S3_ENDPOINT=http://%s:%v", config.Services["minio"].Name, config.Services["minio"].Port),
 

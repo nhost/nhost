@@ -87,6 +87,9 @@ var (
 
 	// initiaze webhook-secret for Hasura Authentication
 	WEBHOOK_SECRET = "nhost-webhook-secret"
+
+	// initiaze admin-secret for Hasura Authentication
+	ADMIN_SECRET = "nhost-admin-secret"
 )
 
 const (

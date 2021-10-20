@@ -126,10 +126,10 @@ type (
 
 	// Nhost config.yaml service structure
 	Service struct {
-		Port           int                    `yaml:",omitempty"`
-		Version        interface{}            `yaml:",omitempty"`
-		Image          string                 `yaml:",omitempty"`
-		AdminSecret    interface{}            `yaml:"admin_secret,omitempty"`
+		Port    int         `yaml:",omitempty"`
+		Version interface{} `yaml:",omitempty"`
+		Image   string      `yaml:",omitempty"`
+		//	AdminSecret    interface{}            `yaml:"admin_secret,omitempty"`
 		Name           string                 `yaml:",omitempty"`
 		Address        string                 `yaml:",omitempty"`
 		ID             string                 `yaml:",omitempty"`
