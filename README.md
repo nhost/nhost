@@ -15,9 +15,9 @@
 
 Launch Blazingly Fast Development Environments For Your Nhost Stack
 
-[![Build](https://github.com/mrinalwahal/cli/actions/workflows/build.yaml/badge.svg)](https://github.com/mrinalwahal/cli/actions/workflows/build.yaml)
-[![Release](https://github.com/mrinalwahal/cli/actions/workflows/release.yaml/badge.svg)](https://github.com/mrinalwahal/cli/actions/workflows/release.yaml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mrinalwahal/cli)](https://goreportcard.com/report/github.com/mrinalwahal/cli)
+[![Build](https://github.com/nhost/cli-go/actions/workflows/build.yaml/badge.svg)](https://github.com/nhost/cli-go/actions/workflows/build.yaml)
+[![Release](https://github.com/nhost/cli-go/actions/workflows/release.yaml/badge.svg)](https://github.com/nhost/cli-go/actions/workflows/release.yaml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/nhost/cli-go)](https://goreportcard.com/report/github.com/nhost/cli-go)
   <a href="https://twitter.com/nhostio" target="_blank" rel="noopener noreferrer">
       <img src="https://img.shields.io/twitter/follow/nhostio?style=social" />
     </a>
@@ -56,7 +56,7 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 
 # Design
 
-To properly understand the design philosophy adopted by Nhost for this CLI, [read this](https://github.com/mrinalwahal/cli/wiki/Design-Philosophy).
+To properly understand the design philosophy adopted by Nhost for this CLI, [read this](https://github.com/nhost/cli-go/wiki/Design-Philosophy).
 
 ## All-powerful `nhost` command
 
@@ -111,14 +111,14 @@ If your installed version is >= `v1.0.0`, then your CLI version already supports
 
 If you have `curl` and `Windows Subsytem for Linux` in your windows environment, you can safely use the above command, and it should download the `.exe` variant of the binary in your current working directory.
 
-However, if you do not have the above dependencies, then you can manually download the [latest release](https://github.com/mrinalwahal/cli/releases) binary depending on your platform architecture from [here](https://github.com/mrinalwahal/cli/releases).
+However, if you do not have the above dependencies, then you can manually download the [latest release](https://github.com/nhost/cli-go/releases) binary depending on your platform architecture from [here](https://github.com/nhost/cli-go/releases).
 
 ## Installing Using Go
 
 If you have go installed in your system, and would like to download using that,
 please use the following command:
 
-    go get -u github.com/mrinalwahal/cli
+    go get -u github.com/nhost/cli-go
 
 This command will install the `nhost` executable binary
 along with its dependencies.
