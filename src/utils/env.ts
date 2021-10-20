@@ -92,12 +92,9 @@ export const ENV = {
     return castStringEnv('AUTH_GRAVATAR_RATING', 'g');
   },
 
-  // CLIENT & APP
+  // CLIENT
   get AUTH_CLIENT_URL() {
     return castStringEnv('AUTH_CLIENT_URL', '');
-  },
-  get AUTH_APP_NAME() {
-    return castStringEnv('AUTH_APP_NAME');
   },
 
   // SIGN UP
