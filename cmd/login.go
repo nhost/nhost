@@ -24,18 +24,21 @@ SOFTWARE.
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
+	"syscall"
 
-	"github.com/manifoldco/promptui"
 	"github.com/mrinalwahal/cli/nhost"
 	"github.com/mrinalwahal/cli/util"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var email string
@@ -53,7 +56,7 @@ var loginCmd = &cobra.Command{
 		}
 
 		if email == "" {
-			readEmail, err := readInput("email")
+			readEmail, err := readInput("email", false)
 			if err != nil {
 				os.Exit(0)
 			}
@@ -61,7 +64,7 @@ var loginCmd = &cobra.Command{
 		}
 
 		if password == "" {
-			payload, err := readInput("password")
+			payload, err := readInput("password", true)
 			if err != nil {
 				os.Exit(0)
 			}
@@ -100,7 +103,7 @@ var loginCmd = &cobra.Command{
 
 		// write auth file
 		output, _ := json.Marshal(credentials)
-		err = ioutil.WriteFile(nhost.AUTH_PATH, output, 0644)
+		err = writeToFile(nhost.AUTH_PATH, string(output), "end")
 
 		if err != nil {
 			log.Debug(err)
@@ -115,14 +118,24 @@ var loginCmd = &cobra.Command{
 }
 
 // take email input from user
-func readInput(key string) (string, error) {
+func readInput(key string, hide bool) (string, error) {
 
-	// configure interative prompt
-	prompt := promptui.Prompt{
-		Label: strings.Title(strings.ToLower(key)),
+	reader := bufio.NewReader(os.Stdin)
+	var response string
+	var err error
+
+	fmt.Print(Bold + strings.Title(key) + ": " + Reset)
+	if !hide {
+		response, err = reader.ReadString('\n')
+	} else {
+		output, err := term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			return response, err
+		}
+		response = string(output)
 	}
 
-	return prompt.Run()
+	return strings.TrimSpace(response), err
 }
 
 //	Gets user's details using specified token
@@ -136,8 +149,6 @@ func getUser(authFile string) (nhost.User, error) {
 	log.Debug("Fetching user data")
 
 	credentials, err := nhost.LoadCredentials()
-
-	//	Handle Error
 	if err != nil {
 		return response, err
 	}

@@ -144,7 +144,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nhost.yaml)")
 
 	rootCmd.PersistentFlags().BoolVarP(&logger.JSON, "json", "j", false, "Print JSON formatted logs")
-	rootCmd.PersistentFlags().StringVar(&nhost.API, "endpoint", "https://customapi.nhost.io", "Auth endpoint - for internal testing")
+	rootCmd.PersistentFlags().StringVar(&nhost.API, "endpoint", "https://nuno.nhost.dev/v1/functions", "Auth endpoint - for internal testing")
 	//rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
 	//rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 	//viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))

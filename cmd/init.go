@@ -103,22 +103,11 @@ var initCmd = &cobra.Command{
 		// iterate through those projects and filter that project
 		if remote {
 
-			// check if auth file exists
-			if !util.PathExists(nhost.AUTH_PATH) {
-				log.Debug("Auth credentials not found at: " + nhost.AUTH_PATH)
-
-				// begin login procedure
-				loginCmd.Run(cmd, args)
-			}
-
 			// validate authentication
 			user, err := getUser(nhost.AUTH_PATH)
 			if err != nil {
 				log.Debug(err)
-				log.Error("Failed to validate authentication")
-
-				// begin login procedure
-				loginCmd.Run(cmd, args)
+				log.Fatal("Failed to fetch user information")
 			}
 
 			// concatenate personal and team projects
@@ -127,7 +116,7 @@ var initCmd = &cobra.Command{
 			if len(projects) == 0 {
 				log.Error("No remote apps found")
 				log.Info("Run `nhost init` to create new one locally")
-				os.Exit(0)
+				return
 			}
 
 			// if flag is empty, present selection list
@@ -227,8 +216,8 @@ var initCmd = &cobra.Command{
 				log.Fatal("Failed to save app configuration")
 			}
 
-			hasuraEndpoint := fmt.Sprintf("https://%s.%s", selectedProject.Subdomain, nhost.APP_ADDRESS)
-			//	hasuraEndpoint := "http://localhost:9221"
+			hasuraEndpoint := fmt.Sprintf("https://%s.%s", selectedProject.Subdomain, nhost.DOMAIN)
+			//	hasuraEndpoint := "http://localhost:9231"
 			adminSecret := selectedProject.GraphQLAdminSecret
 			//	adminSecret := "hasura-admin-secret"
 

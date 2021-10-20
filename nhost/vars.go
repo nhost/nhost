@@ -1,6 +1,7 @@
 package nhost
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -8,9 +9,9 @@ import (
 )
 
 var (
-	log         = &logger.Log
-	API         = "https://customapi.nhost.io"
-	APP_ADDRESS = "nuno.nhost.dev"
+	log    = &logger.Log
+	DOMAIN = "nuno.nhost.dev"
+	API    = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
 
 	// fetch current working directory
 	WORKING_DIR, _ = os.Getwd()

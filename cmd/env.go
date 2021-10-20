@@ -26,7 +26,6 @@ package cmd
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"text/tabwriter"
 
@@ -49,7 +48,7 @@ var lsCmd = &cobra.Command{
 	Long:    `List your environment variables stored on remote.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.Info("Fetching env vars from remote")
+		log.Info("Fetching variables from remote")
 
 		app, err := nhost.Info()
 		if err != nil {
@@ -93,9 +92,10 @@ var lsCmd = &cobra.Command{
 			fmt.Fprintln(w)
 		}
 		w.Flush()
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
 		fmt.Println()
-
-		log.Info("You can edit these variables in ", filepath.Base(nhost.ENV_FILE))
+		log.Info("You can edit local variables in ", util.Rel(nhost.ENV_FILE))
 	},
 }
 
@@ -105,8 +105,6 @@ var envPullCmd = &cobra.Command{
 	Short: "Sync env vars from remote with local env",
 	Long:  `Pull and sync environment variables stored at remote with local environment.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		log.Info("Overwriting existing .env.development file")
 
 		app, err := nhost.Info()
 		if err != nil {
@@ -161,7 +159,7 @@ var envPullCmd = &cobra.Command{
 			added := false
 			for index, local := range existingVars {
 				if remote.Name == local.Name {
-					existingVars[index].Value = local.Value
+					existingVars[index].Value = remote.Value
 					added = true
 				}
 			}
@@ -174,8 +172,6 @@ var envPullCmd = &cobra.Command{
 		for _, item := range existingVars {
 			envArray = append(envArray, fmt.Sprintf("%v=%v", item.Name, item.Value))
 		}
-
-		fmt.Println(envArray)
 
 		// delete the existing .env.development file
 		util.DeletePath(nhost.ENV_FILE)

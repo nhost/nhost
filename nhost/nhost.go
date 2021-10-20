@@ -906,6 +906,10 @@ func (config *Configuration) Init(port string) error {
 		log.WithField("component", "smtp").Debugf("Running SMTP server on port %s", smtpPort)
 	}
 
+	containerVariables = append(containerVariables,
+		fmt.Sprintf("MH_SMTP_BIND_ADDR=0.0.0.0:%v", smtpPort),
+		fmt.Sprintf("MH_UI_BIND_ADDR=0.0.0.0:%v", config.Services["mailhog"].Port),
+	)
 	mailhogConfig.Config.Env = containerVariables
 	mailhogConfig.HostConfig.PortBindings = map[nat.Port][]nat.PortBinding{
 		nat.Port(strconv.Itoa(1025)): {{HostIP: "127.0.0.1",
@@ -962,7 +966,7 @@ func generateSignInVars() map[string]interface{} {
 	return map[string]interface{}{
 		"passwordless_email_enabled":     true,
 		"passwordless_sms_enabled":       false,
-		"signin_email_verified_required": "",
+		"signin_email_verified_required": true,
 		"allowed_redirect_urls":          "",
 		"mfa_enabled":                    false,
 		"totp_issuer":                    "",
@@ -972,13 +976,12 @@ func generateSignInVars() map[string]interface{} {
 func generateSignUpVars() map[string]interface{} {
 	return map[string]interface{}{
 		"anonymous_users_enabled":    false,
-		"disable_new_users":          "",
+		"disable_new_users":          false,
 		"allowed_email_domains":      "",
-		"signup_profile_fields":      "",
-		"min_password_length":        "",
+		"min_password_length":        3,
 		"hibp_enabled":               false,
-		"default_user_role":          "",
-		"default_allowed_user_roles": "",
+		"default_user_role":          "user",
+		"default_allowed_user_roles": "user,me",
 		"allowed_user_roles":         "",
 		"default_locale":             "",
 		"allowed_locales":            "",
@@ -987,7 +990,6 @@ func generateSignUpVars() map[string]interface{} {
 
 func generateEmailVars() map[string]interface{} {
 	return map[string]interface{}{
-		"refresh_token_expires_in": "",
 		"emails_enabled":           true,
 		"smtp_host":                PREFIX + "_mailhog",
 		"smtp_port":                GetPort(1000, 1999),
@@ -1010,10 +1012,8 @@ func generateGravatarVars() map[string]interface{} {
 
 func generateTokenVars() map[string]interface{} {
 	return map[string]interface{}{
-		"refresh_token_expires_in":        "",
-		"access_token_expires_in":         "",
-		"user_session_variable_fields":    "",
-		"profile_session_variable_fields": "",
+		"refresh_token_expires_in": 2592000,
+		"access_token_expires_in":  900,
 	}
 }
 
@@ -1025,6 +1025,12 @@ func generateProviders() map[string]interface{} {
 			"client_id":     "",
 			"client_secret": "",
 			"scope":         "email,profile",
+		},
+		"twilio": map[string]interface{}{
+			"enabled":              false,
+			"account_sid":          "",
+			"auth_token":           "",
+			"messaging_service_id": "",
 		},
 		"strava": map[string]interface{}{
 			"enabled":       false,
