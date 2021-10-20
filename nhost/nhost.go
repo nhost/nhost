@@ -828,6 +828,7 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("AUTH_PORT=%v", config.Services["auth"].Port),
 		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v/v1/auth", port),
 		fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", "3000"),
+		//	fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", config.Auth["client_url"]),
 
 		// set the defaults
 		"AUTH_LOG_LEVEL=info",
@@ -900,25 +901,30 @@ func (config *Configuration) Init(port string) error {
 	//	If the SMTP port is busy,
 	//	choose a random one
 	if !PortAvaiable(strconv.Itoa(smtpPort)) {
-		log.WithField("component", "smtp").Debugf("Port %s not available", smtpPort)
-		smtpPort = GetPort(1000, 1999)
-		log.WithField("component", "smtp").Debugf("Running SMTP server on port %s", smtpPort)
+		log.WithField("component", "smtp").Errorf("Port %s not available", smtpPort)
+		log.WithField("component", "smtp").Info("Change your SMTP port in ./nhost/config.yaml")
+		return fmt.Errorf("SMTP port %v not available", smtpPort)
+		/*
+			smtpPort = GetPort(1000, 1999)
+			log.WithField("component", "smtp").Debugf("Running SMTP server on port %s", smtpPort)
+		*/
 	}
 
 	containerVariables = append(containerVariables,
 		fmt.Sprintf("MH_SMTP_BIND_ADDR=0.0.0.0:%v", smtpPort),
 		fmt.Sprintf("MH_UI_BIND_ADDR=0.0.0.0:%v", config.Services["mailhog"].Port),
+		fmt.Sprintf("MH_API_BIND_ADDR=0.0.0.0:%v", config.Services["mailhog"].Port),
 	)
 	mailhogConfig.Config.Env = containerVariables
 	mailhogConfig.HostConfig.PortBindings = map[nat.Port][]nat.PortBinding{
-		nat.Port(strconv.Itoa(1025)): {{HostIP: "127.0.0.1",
+		nat.Port(strconv.Itoa(smtpPort)): {{HostIP: "127.0.0.1",
 			HostPort: strconv.Itoa(smtpPort)}},
-		nat.Port(strconv.Itoa(8025)): {{HostIP: "127.0.0.1",
+		nat.Port(strconv.Itoa(config.Services["mailhog"].Port)): {{HostIP: "127.0.0.1",
 			HostPort: strconv.Itoa(config.Services["mailhog"].Port)}},
 	}
 	mailhogConfig.Config.ExposedPorts = nat.PortSet{
-		nat.Port(strconv.Itoa(1025)): struct{}{},
-		nat.Port(strconv.Itoa(8025)): struct{}{},
+		nat.Port(strconv.Itoa(smtpPort)):                        struct{}{},
+		nat.Port(strconv.Itoa(config.Services["mailhog"].Port)): struct{}{},
 	}
 
 	return nil
