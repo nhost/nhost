@@ -231,16 +231,16 @@ Example:
 ```
 functions/
 
-		index.js --> served at /
-		hello.go --> served at /hello
+    index.js --> served at /
+    hello.go --> served at /hello
 
-		sub/
-				hello.go --> served at /sub/hello
-				index.js --> served at /sub
+    sub/
+        hello.go --> served at /sub/hello
+        index.js --> served at /sub
 
-				/sub-sub
-								hello.js --> served at /sub/sub-sub/hello
-								index.go --> served at /sub/sub-sub
+        /sub-sub
+                hello.js --> served at /sub/sub-sub/hello
+                index.go --> served at /sub/sub-sub
 ```
 
 Therefore, if you want to call your `functions/hello.go` function, you can call the following route:
