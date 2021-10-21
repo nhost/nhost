@@ -58,11 +58,13 @@ var linkCmd = &cobra.Command{
 		// concatenate personal and team projects
 		projects := prepareAppList(user)
 
-		// add the option of a new project to the existing selection payload
-		projects = append(projects, nhost.App{
-			Name: "Create New App",
-			ID:   "new",
-		})
+		/*
+			// add the option of a new project to the existing selection payload
+			projects = append(projects, nhost.App{
+				Name: "Create New App",
+				ID:   "new",
+			})
+		*/
 
 		// configure interactive prompt template
 		templates := promptui.SelectTemplates{
@@ -91,8 +93,7 @@ var linkCmd = &cobra.Command{
 
 		index, _, err := prompt.Run()
 		if err != nil {
-			log.Debug(err)
-			os.Exit(0)
+			return
 		}
 
 		project := projects[index]
@@ -102,7 +103,6 @@ var linkCmd = &cobra.Command{
 		if project.ID == "new" {
 
 			// input the project name
-
 			names := []string{}
 
 			for _, project := range projects {
@@ -161,7 +161,7 @@ var linkCmd = &cobra.Command{
 
 			index, _, err = prompt.Run()
 			if err != nil {
-				os.Exit(0)
+				return
 			}
 
 			if index == 0 {
@@ -206,7 +206,7 @@ var linkCmd = &cobra.Command{
 		} else {
 
 			if err != nil {
-				os.Exit(0)
+				return
 			}
 
 			// provide confirmation prompt
@@ -220,7 +220,7 @@ var linkCmd = &cobra.Command{
 
 			response, err := confirmationPrompt.Run()
 			if err != nil {
-				os.Exit(0)
+				return
 			}
 
 			if strings.ToLower(response) != project.Name {
