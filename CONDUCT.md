@@ -1,7 +1,7 @@
 ## Nhost User Contract
 
 ### Versioning
-Nhost will follow a steady release cadence. Non breaking changes will be released as minor versions quarterly. Patch bug releases are at the discretion of the maintainers. Users can expect security patch fixes to be released within relatively short order of a CVE becoming known. For more information on security patch fixes see the CVE section below. Releases will follow [Semantic Versioning](https://semver.org/). Users tracking the Master branch should expect unpredictable breaking changes as the project continues to move forward. For stability, it is highly recommended to use a release.
+Nhost will follow a steady release cadence. Non breaking changes will be released as minor versions quarterly. Patch bug releases are at the discretion of the maintainers. Users can expect security patch fixes to be released within relatively short order of a CVE becoming known. For more information on security patch fixes see the CVE section below. Releases will follow [Semantic Versioning](https://semver.org/). Users tracking the Master branch should expect unpredictable breaking changes as the app continues to move forward. For stability, it is highly recommended to use a release.
 
 ### Backward Compatibility
 We will maintain two major releases in a moving window. The N-1 release will only receive bug fixes and security updates and will be dropped once N+1 is released.
@@ -30,7 +30,7 @@ Examples of minor changes include:
 - Updating the version of critical libraries such as `spf13/pflag`, `spf13/viper` etc...
 - Some version updates may be acceptable for picking up bug fixes, but maintainers must exercise caution when reviewing.
 
-There may, at times, need to be exceptions where breaking changes are allowed in release branches. These are at the discretion of the project's maintainers, and must be carefully considered before merging.
+There may, at times, need to be exceptions where breaking changes are allowed in release branches. These are at the discretion of the app's maintainers, and must be carefully considered before merging.
 
 ### CI Testing
 Maintainers will ensure the Nhost test suite utilizes the current supported versions of Golang.
