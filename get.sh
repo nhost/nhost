@@ -103,11 +103,11 @@ url=https://github.com/$REPO/releases/download/$version/$targetFile
 try curl -L -f -o $targetFile "$url"
 try chmod +x $targetFile
 try tar -xvf $targetFile
-rm ./$targetFile
+try rm ./$targetFile
 
 log "${GREEN}Download complete!${NC}"
 echo
-mv ./cli ${INSTALL_PATH}/nhost
+try sudo mv ./cli ${INSTALL_PATH}/nhost
 nhost version
 echo
 log "${BLUE}Use Nhost CLI with: nhost --help${NC}"
