@@ -6,8 +6,8 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"github.com/nhost/cli-go/nhost"
-	"github.com/nhost/cli-go/util"
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 )
 
 func getBranchHEAD(root string) string {

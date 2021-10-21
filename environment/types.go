@@ -6,9 +6,9 @@ import (
 	"sync"
 
 	client "github.com/docker/docker/client"
-	"github.com/nhost/cli-go/hasura"
-	"github.com/nhost/cli-go/nhost"
-	"github.com/nhost/cli-go/watcher"
+	"github.com/nhost/cli/hasura"
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/watcher"
 )
 
 type (

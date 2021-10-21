@@ -1,6 +1,6 @@
 package environment
 
-import "github.com/nhost/cli-go/logger"
+import "github.com/nhost/cli/logger"
 
 var (
 

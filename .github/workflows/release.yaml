@@ -38,7 +38,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
-          binary_name: cli
+          # binary_name: cli
           ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}" -X "github.com/${{ github.repository }}/nhost.REPOSITORY=${{ github.repository }}"
 
       - name: Notify Community

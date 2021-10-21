@@ -3,8 +3,8 @@ package cmd
 import (
 	"net/http"
 
-	"github.com/nhost/cli-go/environment"
-	"github.com/nhost/cli-go/logger"
+	"github.com/nhost/cli/environment"
+	"github.com/nhost/cli/logger"
 )
 
 const (

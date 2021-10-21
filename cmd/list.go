@@ -28,7 +28,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/nhost/cli-go/nhost"
+	"github.com/nhost/cli/nhost"
 	"github.com/spf13/cobra"
 )
 

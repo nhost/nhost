@@ -12,8 +12,8 @@ import (
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	client "github.com/docker/docker/client"
-	"github.com/nhost/cli-go/nhost"
-	"github.com/nhost/cli-go/util"
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 )
 

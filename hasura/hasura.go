@@ -15,8 +15,8 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	"github.com/nhost/cli-go/logger"
-	"github.com/nhost/cli-go/nhost"
+	"github.com/nhost/cli/logger"
+	"github.com/nhost/cli/nhost"
 	"github.com/sirupsen/logrus"
 )
 

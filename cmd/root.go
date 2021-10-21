@@ -29,9 +29,9 @@ import (
 	"path/filepath"
 
 	"github.com/manifoldco/promptui"
-	"github.com/nhost/cli-go/logger"
-	"github.com/nhost/cli-go/nhost"
-	"github.com/nhost/cli-go/util"
+	"github.com/nhost/cli/logger"
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
