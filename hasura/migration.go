@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/nhost/cli-go/nhost"
+	"github.com/nhost/cli/nhost"
 )
 
 type migrateCreateOptions struct {

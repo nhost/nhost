@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/nhost/cli-go/logger"
-	"github.com/nhost/cli-go/util"
+	"github.com/nhost/cli/logger"
+	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 )
 

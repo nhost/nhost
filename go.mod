@@ -1,4 +1,4 @@
-module github.com/nhost/cli-go
+module github.com/nhost/cli
 
 go 1.16
 

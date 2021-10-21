@@ -24,7 +24,7 @@ SOFTWARE.
 package main
 
 import (
-	"github.com/nhost/cli-go/cmd"
+	"github.com/nhost/cli/cmd"
 )
 
 func main() {

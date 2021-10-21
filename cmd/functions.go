@@ -34,10 +34,10 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/nhost/cli-go/environment"
-	"github.com/nhost/cli-go/functions"
-	"github.com/nhost/cli-go/nhost"
-	"github.com/nhost/cli-go/util"
+	"github.com/nhost/cli/environment"
+	"github.com/nhost/cli/functions"
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
