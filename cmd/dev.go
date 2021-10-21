@@ -83,7 +83,7 @@ var (
 // devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:     "dev [-p port]",
-	Aliases: []string{"d", "start", "up"},
+	Aliases: []string{"start", "up"},
 	Short:   "Start local development environment",
 	Long:    `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {

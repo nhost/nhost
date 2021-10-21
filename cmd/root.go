@@ -118,7 +118,7 @@ func Execute() {
 	}
 
 	// un-comment the following to auto-generate documentation
-	// generateDocumentation()
+	//	generateDocumentation()
 
 }
 
@@ -135,13 +135,14 @@ func generateDocumentation() {
 }
 
 func init() {
+
 	cobra.OnInitialize(initConfig)
 
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nhost.yaml)")
+	//	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nhost.yaml)")
 
 	rootCmd.PersistentFlags().BoolVarP(&logger.JSON, "json", "j", false, "Print JSON formatted logs")
 	rootCmd.PersistentFlags().StringVar(&nhost.API, "endpoint", "https://nuno.nhost.dev/v1/functions", "Auth endpoint - for internal testing")
@@ -149,7 +150,7 @@ func init() {
 	//rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 	//viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
 	//viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
-	viper.SetDefault("author", "Mrinal Wahal mrinalwahal@gmail.com")
+	viper.SetDefault("author", "Mrinal Wahal wahal@nhost.io")
 	viper.SetDefault("license", "MIT")
 
 	//rootCmd.AddCommand(versionCmd)

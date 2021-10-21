@@ -1,17 +1,22 @@
-## nhost login
+## nhost execute
 
-Log in to your Nhost account
+Execute commands inside your Nhost containers
+
+### Synopsis
+
+Run shell commands directly inside your 
+already running Nhost service containers.
 
 ```
-nhost login [flags]
+nhost execute [flags]
 ```
 
 ### Options
 
 ```
-  -e, --email string      Email of your Nhost account
-  -h, --help              help for login
-  -p, --password string   Password of your Nhost account
+  -c, --command string   Command to run inside service
+  -h, --help             help for execute
+  -s, --service string   Service to run the command inside
 ```
 
 ### Options inherited from parent commands
