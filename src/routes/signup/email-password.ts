@@ -50,8 +50,7 @@ export const signUpEmailPasswordHandler = async (
     return res.boom.badRequest(`'redirectTo' is not allowed`);
   }
 
-  const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
-
+  const locale = options?.locale ?? ENV.AUTH_LOCALE_DEFAULT;
   // check email
   if (!(await isValidEmail({ email, res }))) {
     // function send potential error via `res`
@@ -65,9 +64,9 @@ export const signUpEmailPasswordHandler = async (
   }
 
   // check roles
-  const defaultRole = options?.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+  const defaultRole = options?.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
   const allowedRoles =
-    options?.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
+    options?.allowedRoles ?? ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
   if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
     return;
   }
@@ -121,11 +120,10 @@ export const signUpEmailPasswordHandler = async (
   }
 
   // user is now inserted. Continue sending out activation email
-  if (!ENV.AUTH_DISABLE_NEW_USERS && ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
-    if (!ENV.AUTH_EMAILS_ENABLED) {
-      throw new Error('SMTP settings unavailable');
-    }
-
+  if (
+    !ENV.AUTH_DISABLE_NEW_USERS &&
+    ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED
+  ) {
     const template = 'email-verify';
     await emailClient.send({
       template,
@@ -162,7 +160,7 @@ export const signUpEmailPasswordHandler = async (
   // SIGNIN_EMAIL_VERIFIED_REQUIRED = true => Don't have to verify email before
   // sign in
 
-  if (!ENV.AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
+  if (!ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED) {
     const signInResponse = await getSignInResponse({
       userId: user.id,
       checkMFA: false,

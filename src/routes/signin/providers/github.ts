@@ -13,9 +13,7 @@ export default (router: Router): void => {
     { scope: PROVIDERS.github?.scope },
     (req, res, next) => {
       if (!PROVIDERS.github) {
-        return res.boom.notImplemented(
-          `Please set the GITHUB_ENABLED env variable to true to use the auth/providers/github routes`
-        );
+        return res.boom.notImplemented(`GitHub sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for GitHub OAuth`);
       } else {

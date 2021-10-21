@@ -29,7 +29,7 @@ describe('email-password', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
@@ -93,9 +93,9 @@ describe('email-password', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
@@ -153,9 +153,9 @@ describe('email-password', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 

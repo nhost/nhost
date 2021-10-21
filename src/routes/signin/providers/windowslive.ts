@@ -15,9 +15,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.windowslive) {
-        return res.boom.notImplemented(
-          `Please set the WINDOWSLIVE_ENABLED env variable to true to use the auth/providers/windowslive routes`
-        );
+        return res.boom.notImplemented(`WindowsLive sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Windows Live OAuth`);
       } else {

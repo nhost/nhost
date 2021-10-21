@@ -27,8 +27,10 @@ export const userMFAHandler = async (
   const { locale } = req.body;
 
   // make sure locale is allowed
-  if (!ENV.AUTH_ALLOWED_LOCALES.includes(locale)) {
-    return res.boom.badRequest('Locale is not part of ALLOWED_LOCALES');
+  if (!ENV.AUTH_LOCALE_ALLOWED_LOCALES.includes(locale)) {
+    return res.boom.badRequest(
+      'Locale is not part of AUTH_LOCALE_ALLOWED_LOCALES'
+    );
   }
 
   const { userId } = req.auth;

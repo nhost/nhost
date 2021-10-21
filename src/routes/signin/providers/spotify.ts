@@ -15,9 +15,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.spotify) {
-        return res.boom.notImplemented(
-          `Please set the SPOTIFY_ENABLED env variable to true to use the auth/providers/spotify routes`
-        );
+        return res.boom.notImplemented(`Spotify sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Spotify OAuth`);
       } else {

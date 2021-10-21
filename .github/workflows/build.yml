@@ -59,7 +59,6 @@ jobs:
         HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${{env.POSTGRES_PASSWORD }}@postgres:5432/postgres
         HASURA_GRAPHQL_GRAPHQL_URL: 'http://graphql-engine:8080/v1/graphql'
         HASURA_GRAPHQL_JWT_SECRET: '{"type": "${{ env.JWT_ALGORITHM }}", "key": "${{ env.JWT_KEY }}"}'
-        AUTH_EMAILS_ENABLED: true
         AUTH_SMTP_HOST: mailhog
         AUTH_SMTP_PORT: 1025
         AUTH_SMTP_USER: user

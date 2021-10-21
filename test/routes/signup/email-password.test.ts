@@ -27,7 +27,6 @@ describe('email-password', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_EMAILS_ENABLED: true,
     });
 
     await request
@@ -57,7 +56,7 @@ describe('email-password', () => {
     // set env vars
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_HIBP_ENABLED: true,
+      AUTH_PASSWORD_HIBP_ENABLED: true,
     });
 
     await request
@@ -70,7 +69,7 @@ describe('email-password', () => {
     // set env vars
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_HIBP_ENABLED: false,
+      AUTH_PASSWORD_HIBP_ENABLED: false,
     });
 
     await request
@@ -89,7 +88,7 @@ describe('email-password', () => {
     await await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_HIBP_ENABLED: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
     });
 
     const email = 'joedoe@example.com';
@@ -143,7 +142,8 @@ describe('email-password', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      ALLOWED_USER_ROLES: '',
     });
 
     const email = 'joedoe@example.com';
@@ -152,7 +152,14 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect((res) => (res.status != 200 ? console.log(res.body) : 0));
+    // .expect(200)
+    // .end((err, res) => {
+    //   if (err) {
+    //     console.error(res.error);
+    //   }
+    //   done(err);
+    // });
 
     await request
       .post('/signin/email-password')

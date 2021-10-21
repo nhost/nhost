@@ -1,8 +1,8 @@
 import { Client } from 'pg';
 // import { v4 as uuidv4 } from 'uuid';
 
-import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
+import { ENV } from '../../../src/utils/env';
 import { SignInResponse } from '../../../src/types';
 import { mailHogSearch } from '../../utils';
 
@@ -27,7 +27,7 @@ describe('user password', () => {
   it('should change password with old password', async () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
 
     const email = 'asdasd@asdasd.com';
@@ -74,7 +74,7 @@ describe('user password', () => {
   it('should change password with ticket', async () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
 
     // const accessToken = '';

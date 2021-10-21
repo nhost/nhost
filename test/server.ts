@@ -1,28 +1,6 @@
-import { ENV } from '@/utils/env';
 import { app } from '@/server';
-import { SuperTest, Test, agent } from 'supertest';
-import { Server } from 'http';
-import getPort from 'get-port';
+import supertest from 'supertest';
 
-export let request: SuperTest<Test>;
+const request = supertest(app);
 
-export let server: Server;
-
-const start = async () => {
-  server = app.listen(await getPort(), ENV.AUTH_HOST);
-  request = agent(server);
-};
-
-const close = async () => {
-  server.close();
-};
-
-beforeAll(async () => {
-  await start();
-  request = agent(server);
-});
-
-// * Code that is executed after any jest test file that imports this file
-afterAll(async () => {
-  await close();
-});
+export { request };

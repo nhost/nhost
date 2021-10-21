@@ -14,7 +14,7 @@ WORKDIR /app
 RUN git init /app/test
 
 COPY package.json yarn.lock ./
-RUN yarn install
+RUN yarn install --production=false
 
 COPY ../../ .
 

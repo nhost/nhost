@@ -30,7 +30,7 @@ describe('user password', () => {
   it('should get user data if signed in', async () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
 
     const email = faker.internet.email();

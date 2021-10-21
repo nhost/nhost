@@ -23,12 +23,8 @@ export const signInPasswordlessEmailHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (!ENV.AUTH_PASSWORDLESS_EMAIL_ENABLED) {
+  if (!ENV.AUTH_EMAIL_PASSWORDLESS_ENABLED) {
     return res.boom.notFound('Passwordless sign in with email is not enabled');
-  }
-
-  if (!ENV.AUTH_EMAILS_ENABLED) {
-    return res.boom.internal('SMTP settings unavailable');
   }
 
   const { email, options } = req.body;
@@ -53,9 +49,9 @@ export const signInPasswordlessEmailHandler = async (
     }
 
     // check roles
-    const defaultRole = options?.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+    const defaultRole = options?.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
     const allowedRoles =
-      options?.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
+      options?.allowedRoles ?? ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
     if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
       return;
     }
@@ -66,7 +62,7 @@ export const signInPasswordlessEmailHandler = async (
     const userRoles = allowedRoles.map((role: string) => ({ role }));
 
     const displayName = options?.displayName ?? email;
-    const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
+    const locale = options?.locale ?? ENV.AUTH_LOCALE_DEFAULT;
     const avatarUrl = getGravatarUrl(email);
 
     // create new user

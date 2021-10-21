@@ -35,9 +35,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.apple) {
-        return res.boom.notImplemented(
-          `Please set the APPLE_ENABLED env variable to true to use the auth/providers/apple routes`
-        );
+        return res.boom.notImplemented(`Apple sign-in is not enabled`);
       } else if (
         !options?.clientID ||
         !options?.teamID ||

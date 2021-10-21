@@ -17,9 +17,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.twitter) {
-        return res.boom.notImplemented(
-          `Please set the TWITTER_ENABLED env variable to true to use the auth/providers/twitter routes`
-        );
+        return res.boom.notImplemented(`Twitter sign-in is not enabled`);
       } else if (!options?.consumerKey || !options?.consumerSecret) {
         throw new Error(`Missing environment variables for Twitter OAuth`);
       } else {

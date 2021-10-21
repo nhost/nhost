@@ -15,9 +15,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.linkedin) {
-        return res.boom.notImplemented(
-          `Please set the LINKEDIN_ENABLED env variable to true to use the auth/providers/linkedin routes`
-        );
+        return res.boom.notImplemented(`LinkedIn sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for LinkedIn OAuth`);
       } else {

@@ -27,7 +27,7 @@ describe('passwordless email (magic link)', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
@@ -62,7 +62,7 @@ describe('passwordless email (magic link)', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: false,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: false,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
@@ -78,7 +78,7 @@ describe('passwordless email (magic link)', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: 'vip@example.com',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: '',
@@ -98,7 +98,7 @@ describe('passwordless email (magic link)', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: '',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: '',
@@ -125,7 +125,7 @@ describe('passwordless email (magic link)', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
@@ -144,9 +144,9 @@ describe('passwordless email (magic link)', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
+      AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_USER_SESSION_VARIABLE_FIELDS: '',
-      AUTH_DEFAULT_USER_ROLE: 'user',
+      AUTH_USER_DEFAULT_ROLE: 'user',
       AUTH_DEFAULT_ALLOWED_USER_ROLES: 'user',
     });
 
@@ -159,22 +159,5 @@ describe('passwordless email (magic link)', () => {
         },
       })
       .expect(400);
-  });
-
-  it('should fail if sending emails is not enabled', async () => {
-    // set env vars
-    await request.post('/change-env').send({
-      AUTH_EMAILS_ENABLED: false,
-      AUTH_DISABLE_NEW_USERS: false,
-      AUTH_PASSWORDLESS_EMAIL_ENABLED: true,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
-    });
-
-    await request
-      .post('/signin/passwordless/email')
-      .send({
-        email: 'joedoe@example.com',
-      })
-      .expect(500);
   });
 });

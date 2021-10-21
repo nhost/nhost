@@ -21,7 +21,7 @@ export const signInPasswordlessSmsHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  if (!ENV.AUTH_PASSWORDLESS_SMS_ENABLED) {
+  if (!ENV.AUTH_SMS_PASSWORDLESS_ENABLED) {
     return res.boom.notFound('Passwordless sign in with sms is not enabled');
   }
 
@@ -35,9 +35,9 @@ export const signInPasswordlessSmsHandler = async (
   // if no user exists, create the user
   if (!user) {
     // check roles
-    const defaultRole = options?.defaultRole ?? ENV.AUTH_DEFAULT_USER_ROLE;
+    const defaultRole = options?.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
     const allowedRoles =
-      options?.allowedRoles ?? ENV.AUTH_DEFAULT_ALLOWED_USER_ROLES;
+      options?.allowedRoles ?? ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
     if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
       return;
     }
@@ -48,7 +48,7 @@ export const signInPasswordlessSmsHandler = async (
     const userRoles = allowedRoles.map((role: string) => ({ role }));
 
     const displayName = options?.displayName ?? '';
-    const locale = options?.locale ?? ENV.AUTH_DEFAULT_LOCALE;
+    const locale = options?.locale ?? ENV.AUTH_LOCALE_DEFAULT;
     const avatarUrl = '';
 
     // create new user
@@ -90,14 +90,14 @@ export const signInPasswordlessSmsHandler = async (
 
   if (ENV.AUTH_SMS_PROVIDER === 'twilio') {
     const twilioClient = twilio(
-      ENV.AUTH_TWILIO_ACCOUNT_SID,
-      ENV.AUTH_TWILIO_AUTH_TOKEN
+      ENV.AUTH_SMS_TWILIO_ACCOUNT_SID,
+      ENV.AUTH_SMS_TWILIO_AUTH_TOKEN
     );
 
     try {
       await twilioClient.messages.create({
         body: `Your code is ${otp}`,
-        messagingServiceSid: ENV.AUTH_TWILIO_MESSAGING_SERVICE_ID,
+        messagingServiceSid: ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID,
         to: phoneNumber,
       });
     } catch (error) {

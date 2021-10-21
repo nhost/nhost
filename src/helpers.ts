@@ -158,7 +158,7 @@ export function isValidRedirectTo({
     return true;
   }
 
-  if (ENV.AUTH_ALLOWED_REDIRECT_URLS.includes(redirectTo)) {
+  if (ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.includes(redirectTo)) {
     return true;
   }
 

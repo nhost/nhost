@@ -27,7 +27,7 @@ describe('mfa totp', () => {
     await request.post('/change-env').send({
       AUTH_MFA_ENABLED: true,
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
 
     const email = 'asdasd@asdasd.com';

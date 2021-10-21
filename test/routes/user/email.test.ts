@@ -27,7 +27,7 @@ describe('user email', () => {
   it('change email', async () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
 
     let accessToken = '';

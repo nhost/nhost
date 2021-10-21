@@ -29,7 +29,7 @@ export const userPasswordHandler = async (
   const { oldPassword, newPassword } = req.body;
 
   // check if password is compromised
-  if (ENV.AUTH_HIBP_ENABLED && (await pwnedPassword(newPassword))) {
+  if (ENV.AUTH_PASSWORD_HIBP_ENABLED && (await pwnedPassword(newPassword))) {
     return res.boom.badRequest('Password is too weak');
   }
 

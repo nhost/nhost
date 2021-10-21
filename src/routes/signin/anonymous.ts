@@ -26,7 +26,7 @@ export const signInAnonymousHandler = async (
     return res.boom.notFound('Anonymous users are not enabled');
   }
 
-  const { locale = ENV.AUTH_DEFAULT_LOCALE } = req.body;
+  const { locale = ENV.AUTH_LOCALE_DEFAULT } = req.body;
 
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = [{ role: 'anonymous' }];

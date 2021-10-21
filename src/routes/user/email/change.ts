@@ -37,10 +37,6 @@ export const userEmailChange = async (
     return res.boom.badRequest(`'redirectTo' is not allowed`);
   }
 
-  if (!ENV.AUTH_EMAILS_ENABLED) {
-    throw new Error('SMTP settings unavailable');
-  }
-
   if (!req.auth?.userId) {
     return res.boom.unauthorized('User must be signed in');
   }

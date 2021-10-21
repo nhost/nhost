@@ -51,9 +51,6 @@ export const ENV = {
   get AUTH_SMTP_AUTH_METHOD() {
     return castStringEnv('AUTH_SMTP_AUTH_METHOD', 'PLAIN');
   },
-  get AUTH_EMAILS_ENABLED() {
-    return castBooleanEnv('AUTH_EMAILS_ENABLED', false);
-  },
   get AUTH_SMTP_PORT() {
     return castIntEnv('AUTH_SMTP_PORT', 587);
   },
@@ -68,17 +65,17 @@ export const ENV = {
   },
 
   // TWILIO
-  get AUTH_TWILIO_ACCOUNT_SID() {
-    return castStringEnv('AUTH_TWILIO_ACCOUNT_SID', '');
+  get AUTH_SMS_TWILIO_ACCOUNT_SID() {
+    return castStringEnv('AUTH_SMS_TWILIO_ACCOUNT_SID', '');
   },
-  get AUTH_TWILIO_AUTH_TOKEN() {
-    return castStringEnv('AUTH_TWILIO_AUTH_TOKEN', '');
+  get AUTH_SMS_TWILIO_AUTH_TOKEN() {
+    return castStringEnv('AUTH_SMS_TWILIO_AUTH_TOKEN', '');
   },
-  get AUTH_TWILIO_MESSAGING_SERVICE_ID() {
-    return castStringEnv('AUTH_TWILIO_MESSAGING_SERVICE_ID', '');
+  get AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID() {
+    return castStringEnv('AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID', '');
   },
-  get AUTH_TWILIO_FROM() {
-    return castStringEnv('AUTH_TWILIO_FROM', '');
+  get AUTH_SMS_TWILIO_FROM() {
+    return castStringEnv('AUTH_SMS_TWILIO_FROM', '');
   },
 
   // GRAVATAR
@@ -116,55 +113,55 @@ export const ENV = {
   get AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS() {
     return castStringArrayEnv('AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS', []);
   },
-  get AUTH_MIN_PASSWORD_LENGTH() {
-    return castIntEnv('AUTH_MIN_PASSWORD_LENGTH', 3);
+  get AUTH_PASSWORD_MIN_LENGTH() {
+    return castIntEnv('AUTH_PASSWORD_MIN_LENGTH', 3);
   },
-  get AUTH_HIBP_ENABLED() {
-    return castBooleanEnv('AUTH_HIBP_ENABLED', false);
+  get AUTH_PASSWORD_HIBP_ENABLED() {
+    return castBooleanEnv('AUTH_PASSWORD_HIBP_ENABLED', false);
   },
-  get AUTH_DEFAULT_USER_ROLE() {
-    return castStringEnv('AUTH_DEFAULT_USER_ROLE', 'user');
+  get AUTH_USER_DEFAULT_ROLE() {
+    return castStringEnv('AUTH_USER_DEFAULT_ROLE', 'user');
   },
-  get AUTH_DEFAULT_ALLOWED_USER_ROLES() {
-    return castStringArrayEnv('AUTH_DEFAULT_ALLOWED_USER_ROLES', [
+  get AUTH_USER_DEFAULT_ALLOWED_ROLES() {
+    return castStringArrayEnv('AUTH_USER_DEFAULT_ALLOWED_ROLES', [
       'me',
-      this.AUTH_DEFAULT_USER_ROLE,
+      this.AUTH_USER_DEFAULT_ROLE,
     ]);
   },
   get AUTH_ALLOWED_USER_ROLES() {
     return castStringArrayEnv(
       'ALLOWED_USER_ROLES',
-      this.AUTH_DEFAULT_ALLOWED_USER_ROLES
+      this.AUTH_USER_DEFAULT_ALLOWED_ROLES
     );
   },
-  get AUTH_DEFAULT_LOCALE() {
-    return castStringEnv('AUTH_DEFAULT_LOCALE', 'en');
+  get AUTH_LOCALE_DEFAULT() {
+    return castStringEnv('AUTH_LOCALE_DEFAULT', 'en');
   },
-  get AUTH_ALLOWED_LOCALES() {
-    return castStringArrayEnv('AUTH_ALLOWED_LOCALES') || ['en'];
+  get AUTH_LOCALE_ALLOWED_LOCALES() {
+    return castStringArrayEnv('AUTH_LOCALE_ALLOWED_LOCALES') || ['en'];
   },
 
   // SIGN IN
-  get AUTH_PASSWORDLESS_EMAIL_ENABLED() {
-    return castBooleanEnv('AUTH_PASSWORDLESS_EMAIL_ENABLED', false);
+  get AUTH_EMAIL_PASSWORDLESS_ENABLED() {
+    return castBooleanEnv('AUTH_EMAIL_PASSWORDLESS_ENABLED', false);
   },
-  get AUTH_PASSWORDLESS_SMS_ENABLED() {
-    return castBooleanEnv('AUTH_PASSWORDLESS_SMS_ENABLED', false);
+  get AUTH_SMS_PASSWORDLESS_ENABLED() {
+    return castBooleanEnv('AUTH_SMS_PASSWORDLESS_ENABLED', false);
   },
-  get AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED() {
-    return castBooleanEnv('AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
+  get AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED() {
+    return castBooleanEnv('AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED', true);
   },
   // get AUTH_SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED() {
   //   return castBooleanEnv('AUTH_SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
   // },
-  get AUTH_ALLOWED_REDIRECT_URLS() {
-    return castStringArrayEnv('AUTH_ALLOWED_REDIRECT_URLS');
+  get AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS() {
+    return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS');
   },
   get AUTH_MFA_ENABLED() {
     return castBooleanEnv('AUTH_MFA_ENABLED', false);
   },
-  get AUTH_TOTP_ISSUER() {
-    return castStringEnv('AUTH_TOTP_ISSUER', 'hasura-auth');
+  get AUTH_MFA_TOTP_ISSUER() {
+    return castStringEnv('AUTH_MFA_TOTP_ISSUER', 'hasura-auth');
   },
 
   // TOKENS

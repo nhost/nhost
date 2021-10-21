@@ -16,9 +16,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.gitlab) {
-        return res.boom.notImplemented(
-          `Please set the GITLAB_ENABLED env variable to true to use the auth/providers/gitlab routes`
-        );
+        return res.boom.notImplemented(`GitLab sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Gitlab OAuth`);
       } else {

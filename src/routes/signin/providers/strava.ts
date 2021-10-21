@@ -13,9 +13,7 @@ export default (router: Router): void => {
     { scope: options?.scope },
     (req, res, next) => {
       if (!PROVIDERS.strava) {
-        return res.boom.notImplemented(
-          `Please set the STRAVA_ENABLE env variable to true to use the auth/providers/strava routes`
-        );
+        return res.boom.notImplemented(`Strava sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Strava OAuth`);
       } else {

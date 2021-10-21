@@ -35,7 +35,7 @@ export const mfatotpGenerateHandler = async (
   const totpSecret = authenticator.generateSecret();
   const otpAuth = authenticator.keyuri(
     userId,
-    ENV.AUTH_TOTP_ISSUER,
+    ENV.AUTH_MFA_TOTP_ISSUER,
     totpSecret
   );
 

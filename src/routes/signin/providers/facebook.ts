@@ -13,9 +13,7 @@ export default (router: Router): void => {
     { profileFields: PROVIDERS.facebook?.profileFields },
     (req, res, next) => {
       if (!PROVIDERS.facebook) {
-        return res.boom.notImplemented(
-          `Please set the FACEBOOK_ENABLED env variable to true to use the auth/providers/facebook routes`
-        );
+        return res.boom.notImplemented(`Facebook sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Facebook OAuth`);
       } else {

@@ -17,9 +17,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.google) {
-        return res.boom.notImplemented(
-          `Please set the GOOGLE_ENABLED env variable to true to use the auth/providers/google routes`
-        );
+        return res.boom.notImplemented(`Google sign-in is not enabled`);
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Google OAuth`);
       } else {

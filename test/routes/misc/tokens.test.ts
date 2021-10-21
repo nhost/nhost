@@ -45,7 +45,7 @@ describe('token', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
-      AUTH_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
       AUTH_USER_SESSION_VARIABLE_FIELDS: 'email',
     });
 

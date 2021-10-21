@@ -37,10 +37,6 @@ export const userEmailSendVerificationEmailHandler = async (
     return res.boom.badRequest(`'redirectTo' is not allowed`);
   }
 
-  if (!ENV.AUTH_EMAILS_ENABLED) {
-    throw new Error('SMTP settings unavailable');
-  }
-
   const user = await getUserByEmail(email);
 
   if (!user) {
