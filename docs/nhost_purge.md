@@ -1,17 +1,22 @@
-## nhost login
+## nhost purge
 
-Log in to your Nhost account
+Delete all containers created by `nhost dev`
+
+### Synopsis
+
+If you have changed your nhost/config.yaml, 
+then use this command to delete all your container.
+And re-create them next time you run 'nhost dev'
 
 ```
-nhost login [flags]
+nhost purge [--data] [flags]
 ```
 
 ### Options
 
 ```
-  -e, --email string      Email of your Nhost account
-  -h, --help              help for login
-  -p, --password string   Password of your Nhost account
+      --data   Delete database and storage
+  -h, --help   help for purge
 ```
 
 ### Options inherited from parent commands

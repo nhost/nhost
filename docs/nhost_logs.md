@@ -1,17 +1,16 @@
-## nhost login
+## nhost logs
 
-Log in to your Nhost account
+Read container logs of any service
 
 ```
-nhost login [flags]
+nhost logs [flags]
 ```
 
 ### Options
 
 ```
-  -e, --email string      Email of your Nhost account
-  -h, --help              help for login
-  -p, --password string   Password of your Nhost account
+  -h, --help             help for logs
+  -s, --service string   Service to fetch the logs for
 ```
 
 ### Options inherited from parent commands
