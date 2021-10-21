@@ -4,8 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mrinalwahal/cli/logger"
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/nhost/cli-go/logger"
+	"github.com/nhost/cli-go/nhost"
 )
 
 var (

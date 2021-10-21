@@ -32,7 +32,7 @@ import (
 	"runtime"
 
 	"github.com/hashicorp/go-getter"
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/nhost/cli-go/nhost"
 	"github.com/spf13/cobra"
 )
 

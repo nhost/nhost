@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/hashicorp/go-getter"
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/nhost/cli-go/nhost"
 )
 
 // download a remote directory/file to local

@@ -2,7 +2,7 @@
 
 This changelog only contains ahigh level overview/abstract of major design and workflow execution changes up to CLI `v1.0.0` from earlier versions.
 
-If you want to read specific changelogs for every major (or breaking change), minor change and patch fix, read them on [release pages](http://github.com/mrinalwahal/cli/releases).
+If you want to read specific changelogs for every major (or breaking change), minor change and patch fix, read them on [release pages](http://github.com/nhost/cli-go/releases).
 
 Changes:
 

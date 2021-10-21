@@ -35,7 +35,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/docker/pkg/stdcopy"
 	"github.com/manifoldco/promptui"
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/nhost/cli-go/nhost"
 	"github.com/spf13/cobra"
 )
 

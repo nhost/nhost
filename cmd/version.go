@@ -27,7 +27,7 @@ package cmd
 import (
 	"runtime"
 
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/nhost/cli-go/nhost"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

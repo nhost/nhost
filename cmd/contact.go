@@ -31,7 +31,7 @@ import (
 	"runtime"
 
 	"github.com/manifoldco/promptui"
-	"github.com/mrinalwahal/cli/nhost"
+	"github.com/nhost/cli-go/nhost"
 	"github.com/spf13/cobra"
 )
 

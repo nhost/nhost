@@ -38,9 +38,9 @@ import (
 	"syscall"
 	"text/tabwriter"
 
-	"github.com/mrinalwahal/cli/environment"
-	"github.com/mrinalwahal/cli/nhost"
-	"github.com/mrinalwahal/cli/util"
+	"github.com/nhost/cli-go/environment"
+	"github.com/nhost/cli-go/nhost"
+	"github.com/nhost/cli-go/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )

@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mrinalwahal/cli/logger"
+	"github.com/nhost/cli-go/logger"
 )
 
 var (
