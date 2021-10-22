@@ -30,9 +30,9 @@ If you have questions regarding Nhost, feel free to ask it in the community
 
 1. CLA: All Pull Requests (PRs) will be subjected to rigourous testing by the maintainers and the maintainers hold ultimate rights to approve or reject a PR merge.
 1. Tests: If you are submitting code, please ensure you have adequate tests
-   for the feature. Tests can be run via `go test ./...` or `make test`.
+   for the feature. Tests can be run via `go test ./...`.
 1. Since this is golang project, ensure the new code is properly formatted to
-   ensure code consistency. Run `make all`.
+   ensure code consistency. Run `go build`.
 
 ### Quick steps to contribute
 

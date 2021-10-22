@@ -23,11 +23,12 @@ There may be times, however, when canary is closed for breaking changes. This is
 Breaking changes are not allowed in release branches, as these represent minor versions that have already been released. These version have consumers who expect the APIs, behaviors, etc, to remain stable during the lifetime of the patch stream for the minor release.
 
 Examples of breaking changes include:
+- Removing or modifying the base domain for all API calls.
 - Removing or modifying the behaviour of an API call, or a command.
 
 Examples of minor changes include:
 - Removing or renaming exported constant, variable, type, or function.
-- Updating the version of critical libraries such as `spf13/pflag`, `spf13/viper` etc...
+- Updating the version of critical libraries such as `fsnotify/fsnotify`, `spf13/pflag` etc...
 - Some version updates may be acceptable for picking up bug fixes, but maintainers must exercise caution when reviewing.
 
 There may, at times, need to be exceptions where breaking changes are allowed in release branches. These are at the discretion of the app's maintainers, and must be carefully considered before merging.
