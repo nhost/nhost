@@ -43,7 +43,7 @@ export default {
   },
 
   nhost: {
-    baseURL: process.env.NHOST_BACKEND_URL,
+    baseURL: process.env.NHOST_BACKEND_ENDPOINT,
     routes: {
       home: "/"
     }
