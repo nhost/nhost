@@ -23,7 +23,7 @@ func (function *Function) BuildNodePackage() error {
 		"runtime":   "NodeJS",
 	}).Debugln("Building", filepath.Join(function.Base, function.File.Name()))
 
-	// initialize path for temporary esbuild output
+	//  initialize path for temporary esbuild output
 	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
 	if err != nil {
 		return err
@@ -33,7 +33,7 @@ func (function *Function) BuildNodePackage() error {
 
 	function.Build = file.Name()
 
-	// build the .js files with esbuild
+	//  build the .js files with esbuild
 	result := api.Build(api.BuildOptions{
 		AbsWorkingDir:    function.buildDir,
 		EntryPoints:      []string{function.Path},
@@ -55,7 +55,7 @@ func (function *Function) BuildNodePackage() error {
 
 func (function *Function) BuildNodeServer(port int) error {
 
-	// add function to NodeJS server config
+	//  add function to NodeJS server config
 	nodeServerCode := fmt.Sprintf(`
 		const express = require('%s');
 		const app = express();
@@ -79,14 +79,14 @@ func (function *Function) BuildNodeServer(port int) error {
 			
 		app.listen(%d);`, filepath.Join(function.buildDir, "node_modules", "express"), function.Build, function.Route, port)
 
-	// save the nodeJS server config
+	//  save the nodeJS server config
 	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
 	if err != nil {
 		function.log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
 		return err
 	}
 
-	// save the server file location
+	//  save the server file location
 	function.ServerConfig = file.Name()
 
 	defer file.Close()
@@ -107,42 +107,42 @@ func (function *Function) Prepare() error {
 
 	case ".js", ".ts":
 
-		// build the package
+		//  build the package
 		if err := function.BuildNodePackage(); err != nil {
 			return err
 		}
 
-		// save the handler
+		//  save the handler
 		function.Handler = router
 
 		return nil
 
 	case ".go":
 
-		// Build the plugin
+		//  Build the plugin
 		p, err := function.BuildGoPlugin()
 		if err != nil {
 			function.log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.Path)))
 			return err
 		}
 
-		// Save the plugin
+		//  Save the plugin
 		function.Plugin = p
 
-		// Lookup - Searches for a symbol name in the plugin
+		//  Lookup - Searches for a symbol name in the plugin
 		symbol, err := function.Plugin.Lookup("Handler")
 		if err != nil {
 			function.log.WithField("plugin", function.Route).Error("Failed to lookup handler")
 			return err
 		}
 
-		// symbol - Checks the function signature
+		//  symbol - Checks the function signature
 		handler, ok := symbol.(func(http.ResponseWriter, *http.Request))
 		if !ok {
 			return errors.New("handler function is broken")
 		}
 
-		// update the handler for this function
+		//  update the handler for this function
 		function.Handler = handler
 	}
 
@@ -174,30 +174,30 @@ func router(w http.ResponseWriter, r *http.Request) {
 
 	if resp != nil {
 
-		// set the response headers
+		//  set the response headers
 		for key, value := range resp.Header {
 			if resp.Header.Get(key) != "" {
 				w.Header().Add(key, value[0])
 			}
 		}
 
-		// if request failed, write HTTP error to response
+		//  if request failed, write HTTP error to response
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 			return
 		}
 
-		// remember to close the connection after reading the body
+		//  remember to close the connection after reading the body
 		defer resp.Body.Close()
 
-		// read the body
+		//  read the body
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
-		// Check CORS headers
+		//  Check CORS headers
 		cors := map[string]string{
 			"Access-Control-Allow-Origin":  "*",
 			"Access-Control-Allow-Headers": "origin,Accept,Authorization,Content-Type",
@@ -209,7 +209,7 @@ func router(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		// set response code to header
+		//  set response code to header
 		if resp.StatusCode != http.StatusOK {
 			w.WriteHeader(resp.StatusCode)
 		}
@@ -242,17 +242,17 @@ func (function *Function) BuildGoPlugin() (*plugin.Plugin, error) {
 		return p, err
 	}
 
-	// "-ldflags", fmt.Sprintf(`"-pluginpath=%v"`, time.Now().Unix()),
+	//  "-ldflags", fmt.Sprintf(`"-pluginpath=%v"`, time.Now().Unix()),
 	execute := exec.Cmd{
 		Path: CLI,
 		Args: []string{CLI, "build", "-buildmode=plugin", "-o", function.Build, function.Path},
-		// Dir:  nhost.API_DIR,
+		//  Dir:  nhost.API_DIR,
 	}
 
 	if err := execute.Run(); err != nil {
 		return p, err
 	}
 
-	// Open - Loads the plugin
+	//  Open - Loads the plugin
 	return plugin.Open(function.Build)
 }

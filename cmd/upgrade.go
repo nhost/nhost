@@ -38,7 +38,7 @@ import (
 
 var repoSource string
 
-// upgradeCmd represents the upgrade command
+//  upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
 	Use:   "upgrade",
 	Short: "Upgrade this version of Nhost CLI to latest version",
@@ -78,7 +78,7 @@ CLI and upgrade to it.`,
 				log.WithField("component", release.TagName).Fatal("Version not yet available. Try again in a moment!")
 			}
 
-			// fetch nhost installation directory
+			//  fetch nhost installation directory
 			target, err := exec.LookPath("nhost")
 			if err != nil {
 				log.Debug(err)
@@ -90,18 +90,18 @@ CLI and upgrade to it.`,
 				target = filepath.Dir(target)
 			}
 
-			// initialize hashicorp go-getter client
+			//  initialize hashicorp go-getter client
 			client := &getter.Client{
 				Ctx: context.Background(),
-				// Define the destination to where the directory will be stored.
-				// This will create the directory if it doesnt exist
+				//  Define the destination to where the directory will be stored.
+				//  This will create the directory if it doesnt exist
 				Dst:  target,
 				Dir:  false,
 				Src:  asset.BrowserDownloadURL,
 				Mode: getter.ClientModeDir,
 			}
 
-			// download the files
+			//  download the files
 			if err := client.Get(); err != nil {
 				log.WithField("compnent", release.TagName).Debug(err)
 				log.WithField("compnent", release.TagName).Fatal("Failed to download release")
@@ -114,7 +114,7 @@ CLI and upgrade to it.`,
 				}
 			}
 
-			// check new version
+			//  check new version
 			cli, _ := exec.LookPath("nhost")
 			if output, err := exec.Command(cli, "version").CombinedOutput(); err != nil {
 				log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
@@ -131,10 +131,10 @@ func isRoot() bool {
 		/*
 			var sid *windows.SID
 
-			// Although this looks scary, it is directly copied from the
-			// official windows documentation. The Go API for this is a
-			// direct wrap around the official C++ API.
-			// See https://docs.microsoft.com/en-us/windows/desktop/api/securitybaseapi/nf-securitybaseapi-checktokenmembership
+			//  Although this looks scary, it is directly copied from the
+			//  official windows documentation. The Go API for this is a
+			//  direct wrap around the official C++ API.
+			//  See https://docs.microsoft.com/en-us/windows/desktop/api/securitybaseapi/nf-securitybaseapi-checktokenmembership
 			err := windows.AllocateAndInitializeSid(
 				&windows.SECURITY_NT_AUTHORITY,
 				2,
@@ -147,9 +147,9 @@ func isRoot() bool {
 				return false
 			}
 
-			// This appears to cast a null pointer so I'm not sure why this
-			// works, but this guy says it does and it Works for Me™:
-			// https://github.com/golang/go/issues/28804#issuecomment-438838144
+			//  This appears to cast a null pointer so I'm not sure why this
+			//  works, but this guy says it does and it Works for Me™:
+			//  https://github.com/golang/go/issues/28804#issuecomment-438838144
 			token := windows.Token(0)
 
 			member, err := token.IsMember(sid)
@@ -186,13 +186,13 @@ func getInstallInstructions() string {
 func init() {
 	rootCmd.AddCommand(upgradeCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
 	upgradeCmd.PersistentFlags().StringVarP(&repoSource, "source", "s", "", "Custom repository source")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// upgradeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
+	//  upgradeCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

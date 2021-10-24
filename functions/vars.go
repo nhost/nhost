@@ -2,13 +2,13 @@ package functions
 
 var (
 
-	// vars to store server state during each runtime
+	//  vars to store server state during each runtime
 	functions []Function
 
-	// initialize temporary directory for caching
+	//  initialize temporary directory for caching
 	tempDir string
 
-	// runtime environment variables
+	//  runtime environment variables
 	envVars []string
 
 	defaultFilesToAvoid = []string{

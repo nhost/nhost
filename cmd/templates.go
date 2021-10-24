@@ -38,7 +38,7 @@ var (
 	choice   string
 	selected Entity
 
-	// configure interactive prompt template
+	//  configure interactive prompt template
 	templatesPromptTemplate = promptui.SelectTemplates{
 		Active:   `✔ {{ .Name | cyan | bold }}`,
 		Inactive: `   {{ .Name | cyan }}`,
@@ -132,7 +132,7 @@ var entities = []Entity{
 	},
 }
 
-// templatesCmd represents the templates command
+//  templatesCmd represents the templates command
 var templatesCmd = &cobra.Command{
 	Use:    "templates",
 	Hidden: true,
@@ -145,11 +145,11 @@ Nhost modules and plugins.
 And you can immediately start developing on that template.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 
-		// if the user hasn't supplied an entity,
-		// provide a prompt for it
+		//  if the user hasn't supplied an entity,
+		//  provide a prompt for it
 		if len(entity) == 0 {
 
-			// propose boilerplate options
+			//  propose boilerplate options
 			boilerplatePrompt := promptui.Select{
 				Label:     "Type of template",
 				Items:     entities,
@@ -170,14 +170,14 @@ And you can immediately start developing on that template.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// if the use has specified choice flag,
-		// then skip the selection prompt
+		//  if the use has specified choice flag,
+		//  then skip the selection prompt
 
 		if len(choice) == 0 {
 
 			if len(selected.Templates) > 0 {
 
-				// propose boilerplate options
+				//  propose boilerplate options
 				boilerplatePrompt := promptui.Select{
 					Label:     "Choose Preferred Template",
 					Items:     selected.Templates,
@@ -196,10 +196,10 @@ And you can immediately start developing on that template.`,
 			log.WithField("component", choice).Fatal("No such framework found")
 		}
 
-		// append the chosen result template to source URL
+		//  append the chosen result template to source URL
 		selected.Source += choice
 
-		// clone the data
+		//  clone the data
 		if err := clone(selected.Source, selected.Destination); err != nil {
 			log.WithField("compnent", selected.Value).Debug(err)
 			log.WithField("compnent", selected.Value).Error("Failed to clone template")
@@ -207,8 +207,8 @@ And you can immediately start developing on that template.`,
 			os.Exit(1)
 		}
 
-		// if there are any ignore files,
-		// append them to .gitignore
+		//  if there are any ignore files,
+		//  append them to .gitignore
 
 		for _, file := range selected.Ignore {
 			if err := writeToFile(filepath.Join(nhost.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
@@ -227,7 +227,7 @@ And you can immediately start developing on that template.`,
 }
 
 /*
-// fetches list of templates from nhost/nhost/templates
+//  fetches list of templates from nhost/nhost/templates
 func getTemplates(url string) ([]string, error) {
 
 	var response []string
@@ -270,15 +270,15 @@ func getTemplates(url string) ([]string, error) {
 func init() {
 	rootCmd.AddCommand(templatesCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// templatesCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
+	//  templatesCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
 	templatesCmd.Flags().StringVarP(&choice, "choice", "c", "", "Choice of template to clone")
-	// templatesCmd.Flags().BoolVarP(&allChoices, "all", "a", false, "Clone all templates")
+	//  templatesCmd.Flags().BoolVarP(&allChoices, "all", "a", false, "Clone all templates")
 	templatesCmd.Flags().StringVarP(&entity, "entity", "e", "", "Entity to clone the template for [web/api]")
 }

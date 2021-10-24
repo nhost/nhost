@@ -37,20 +37,19 @@ import (
 
 var (
 
-	// initialize flags for every choice
+	//  initialize flags for every choice
 	issue   bool
 	chat    bool
 	discuss bool
-	// wiki    bool
+	//  wiki    bool
 
 	noBrowser bool
 )
 
-// reportCmd represents the report command
+//  reportCmd represents the report command
 var reportCmd = &cobra.Command{
-	Use:     "support",
-	Aliases: []string{"sp"},
-	Short:   "Reach out to us",
+	Use:   "support",
+	Short: "Reach out to us",
 	Long: `Launches URL in browser to allow
 you to open issues and submit bug reports
 in case you encounter something broken with this CLI.
@@ -83,9 +82,9 @@ Or even chat with our team and start a new discussion.`,
 			*/
 		}
 
-		// if the user has passed the flag for any option,
-		// launch those directly
-		// bypassing selection prompt
+		//  if the user has passed the flag for any option,
+		//  launch those directly
+		//  bypassing selection prompt
 
 		ok := false
 		for _, item := range options {
@@ -107,14 +106,14 @@ Or even chat with our team and start a new discussion.`,
 			os.Exit(0)
 		}
 
-		// configure interactive prompt template
+		//  configure interactive prompt template
 		templates := promptui.SelectTemplates{
 			Active:   `{{ "✔" | green | bold }} {{ .text | cyan | bold }} {{ .value | faint }}`,
 			Inactive: `   {{ .text | cyan | bold }} `,
 			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .text | cyan | bold }}`,
 		}
 
-		// configure interative prompt
+		//  configure interative prompt
 		prompt := promptui.Select{
 			Label:     "Select Option",
 			Items:     options,
@@ -131,7 +130,7 @@ Or even chat with our team and start a new discussion.`,
 		if noBrowser {
 			log.Info(selected["text"], " @ ", Bold, selected["value"], Reset)
 		} else {
-			// launch browser
+			//  launch browser
 			if err := openbrowser(selected["value"].(string)); err != nil {
 				log.Debug(err)
 				log.Error("Failed to launch browser")
@@ -162,17 +161,17 @@ func openbrowser(url string) error {
 func init() {
 	rootCmd.AddCommand(reportCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// reportCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
+	//  reportCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
 	reportCmd.Flags().BoolVar(&noBrowser, "no-browser", false, "Don't open in browser")
 	reportCmd.Flags().BoolVar(&issue, "issue", false, "Open Issue on GitHub")
 	reportCmd.Flags().BoolVar(&chat, "chat", false, "Launch Nhost Discord Server")
 	reportCmd.Flags().BoolVar(&discuss, "discuss", false, "Launch GitHub Discussions")
-	// reportCmd.Flags().BoolVar(&wiki, "wiki", false, "Launch wiki in browser")
+	//  reportCmd.Flags().BoolVar(&wiki, "wiki", false, "Launch wiki in browser")
 }

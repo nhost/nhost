@@ -4,8 +4,8 @@ import (
 	"io"
 )
 
-// general hasura metadata API requests
-// these are not dependent on the connected source type
+//  general hasura metadata API requests
+//  these are not dependent on the connected source type
 type CommonMetadataOperations interface {
 	ExportMetadata() (metadata io.Reader, err error)
 	ClearMetadata() (io.Reader, error)

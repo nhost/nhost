@@ -38,35 +38,35 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// linkCmd represents the link command
+//  linkCmd represents the link command
 var linkCmd = &cobra.Command{
 	Use:   "link",
 	Short: "Link local app to a remote one",
 	Long:  `Connect your already hosted Nhost app to local environment and start development or testings.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// validate authentication
+		//  validate authentication
 		user, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to validate authentication")
 
-			// begin the login procedure
+			//  begin the login procedure
 			loginCmd.Run(cmd, args)
 		}
 
-		// concatenate personal and team projects
+		//  concatenate personal and team projects
 		projects := prepareAppList(user)
 
 		/*
-			// add the option of a new project to the existing selection payload
+			//  add the option of a new project to the existing selection payload
 			projects = append(projects, nhost.App{
 				Name: "Create New App",
 				ID:   "new",
 			})
 		*/
 
-		// configure interactive prompt template
+		//  configure interactive prompt template
 		templates := promptui.SelectTemplates{
 			//Label:    "{{ . }}?",
 			Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Workspace | faint }}`,
@@ -74,7 +74,7 @@ var linkCmd = &cobra.Command{
 			Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Workspace | faint }}`,
 		}
 
-		// configure interactive prompt search function
+		//  configure interactive prompt search function
 		searcher := func(input string, index int) bool {
 			project := projects[index]
 			name := strings.Replace(strings.ToLower(project.Name), " ", "", -1)
@@ -83,7 +83,7 @@ var linkCmd = &cobra.Command{
 			return strings.Contains(name, input)
 		}
 
-		// configure interative prompt
+		//  configure interative prompt
 		prompt := promptui.Select{
 			Label:     "Select app",
 			Items:     projects,
@@ -98,12 +98,12 @@ var linkCmd = &cobra.Command{
 
 		project := projects[index]
 
-		// if a new project is selected,
-		// then begin input prompts
+		//  if a new project is selected,
+		//  then begin input prompts
 		if project.ID == "new" {
 
-			// input the project name
-			names := []string{}
+			//  input the project name
+			var names []string
 
 			for _, project := range projects {
 				names = append(names, project.Name)
@@ -125,14 +125,14 @@ var linkCmd = &cobra.Command{
 				}
 			}
 
-			// select the server location
+			//  select the server location
 			servers, err := nhost.Servers()
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to fetch list of servers")
 			}
 
-			// configure interactive prompt template
+			//  configure interactive prompt template
 			templates := promptui.SelectTemplates{
 				//Label:    "{{ . }}?",
 				Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }}`,
@@ -140,7 +140,7 @@ var linkCmd = &cobra.Command{
 				Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
 			}
 
-			// configure interative prompt for selecting server
+			//  configure interative prompt for selecting server
 			prompt := promptui.Select{
 				Label:     "Select server location",
 				Items:     servers,
@@ -153,7 +153,7 @@ var linkCmd = &cobra.Command{
 			}
 			selectedServer := servers[index].ID
 
-			// ask whether it's a team project or a personal one
+			//  ask whether it's a team project or a personal one
 			prompt = promptui.Select{
 				Label: "Choose App Type",
 				Items: []string{"Personal App", "Team App"},
@@ -176,14 +176,14 @@ var linkCmd = &cobra.Command{
 
 			} else {
 
-				// configure interactive prompt template
+				//  configure interactive prompt template
 				templates = promptui.SelectTemplates{
 					Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }}`,
 					Inactive: `   {{ .Name | cyan }}`,
 					Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}`,
 				}
 
-				// select the team
+				//  select the team
 				prompt = promptui.Select{
 					Label:     "Choose your workspace",
 					Items:     user.WorkspaceMembers,
@@ -209,11 +209,11 @@ var linkCmd = &cobra.Command{
 				return
 			}
 
-			// provide confirmation prompt
+			//  provide confirmation prompt
 			log.Warn("If you linked to the wrong app, you could break your production environment.")
 			log.Info("Therefore we need confirmation you are serious about this.")
 
-			// configure interative prompt
+			//  configure interative prompt
 			confirmationPrompt := promptui.Prompt{
 				Label: "Enter the app's name to confirm linking (case sensitive)",
 			}
@@ -228,29 +228,31 @@ var linkCmd = &cobra.Command{
 			}
 		}
 
-		// update the project ID
+		//  update the project ID
 		if err = updateNhostProject(project); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to update Nhost app configuration locally")
 		}
 
-		// project linking complete
+		//  project linking complete
 		log.Info("App linked to local Nhost environment")
 	},
 }
 
 func updateNhostProject(app nhost.App) error {
 
-	// create .nhost, if it doesn't exists
+	log.Debug("Saving app information in ", util.Rel(nhost.INFO_PATH))
+
+	//  create .nhost, if it doesn't exists
 	if util.PathExists(nhost.INFO_PATH) {
 
-		// first delete any existing nhost.yaml file
+		//  first delete any existing nhost.yaml file
 		if err := util.DeletePath(nhost.INFO_PATH); err != nil {
 			return err
 		}
 	}
 
-	// create nhost.yaml to write it
+	//  create nhost.yaml to write it
 	f, err := os.Create(nhost.INFO_PATH)
 	if err != nil {
 		log.Debug(err)
@@ -259,7 +261,7 @@ func updateNhostProject(app nhost.App) error {
 
 	defer f.Close()
 
-	// write the file
+	//  write the file
 	payload, _ := json.Marshal(app)
 	if err = writeToFile(
 		nhost.INFO_PATH,
@@ -272,8 +274,10 @@ func updateNhostProject(app nhost.App) error {
 	return err
 }
 
-// creates a new remote project
+//  creates a new remote project
 func createProject(name, server, user, team string) (string, error) {
+
+	log.Debugf("Creating project '%s'", name)
 
 	var response nhost.Response
 
@@ -297,13 +301,13 @@ func createProject(name, server, user, team string) (string, error) {
 		return "", err
 	}
 
-	// read our opened xmlFile as a byte array.
+	//  read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	defer resp.Body.Close()
 
-	// we unmarshal our body byteArray which contains our
-	// jsonFile's content into 'server' strcuture
+	//  we unmarshal our body byteArray which contains our
+	//  jsonFile's content into 'server' strcuture
 	json.Unmarshal(body, &response)
 
 	if response.Error.Code != "" {
@@ -316,13 +320,13 @@ func createProject(name, server, user, team string) (string, error) {
 func init() {
 	rootCmd.AddCommand(linkCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// linkCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
+	//  linkCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// linkCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
+	//  linkCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

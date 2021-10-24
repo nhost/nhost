@@ -13,23 +13,23 @@ import (
 func getBranchHEAD(root string) string {
 
 	//
-	// HEAD Selection Logic
+	//  HEAD Selection Logic
 	//
-	// 1.If $GIT_DIR/<refname> exists,
-	// that is what you mean (this is usually useful only for HEAD,
-	// FETCH_HEAD, ORIG_HEAD, MERGE_HEAD and CHERRY_PICK_HEAD);
+	//  1.If $GIT_DIR/<refname> exists,
+	//  that is what you mean (this is usually useful only for HEAD,
+	//  FETCH_HEAD, ORIG_HEAD, MERGE_HEAD and CHERRY_PICK_HEAD);
 
-	// 2.otherwise, refs/<refname> if it exists;
-	// 3.otherwise, refs/tags/<refname> if it exists;
-	// 4.otherwise, refs/heads/<refname> if it exists;
-	// 5.otherwise, refs/remotes/<refname> if it exists;
-	// 6.otherwise, refs/remotes/<refname>/HEAD if it exists.
+	//  2.otherwise, refs/<refname> if it exists;
+	//  3.otherwise, refs/tags/<refname> if it exists;
+	//  4.otherwise, refs/heads/<refname> if it exists;
+	//  5.otherwise, refs/remotes/<refname> if it exists;
+	//  6.otherwise, refs/remotes/<refname>/HEAD if it exists.
 
 	var response string
 	branch := nhost.GetCurrentBranch()
 
-	// The priority order these paths are added in,
-	// is extremely IMPORTANT
+	//  The priority order these paths are added in,
+	//  is extremely IMPORTANT
 	tree := []string{
 		root,
 		filepath.Join(root, "HEAD"),
@@ -66,14 +66,14 @@ func (e *Environment) restartMigrations() error {
 
 	if e.State == Active {
 
-		// Inform the user of detection
+		//  Inform the user of detection
 		log.Info("We've detected change in local git commit")
 		log.Warn("We're fixing your data accordingly. Give us a moment!")
 
-		// Initialize cancellable context ONLY for this shutdown oepration
+		//  Initialize cancellable context ONLY for this shutdown oepration
 		e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
 
-		// re-do migrations and metadata
+		//  re-do migrations and metadata
 		if err := e.Prepare(); err != nil {
 			return err
 		}
@@ -102,7 +102,7 @@ func (e *Environment) restartAfterCheckout() error {
 	//		- Restart environment
 	//		- This must be true in an infinite loop fashion
 
-	// Inform the user of detection
+	//  Inform the user of detection
 	log.Info("We've detected change in local git branch")
 
 	if e.State >= Executing {
@@ -118,22 +118,22 @@ func (e *Environment) restartAfterCheckout() error {
 		//	Stop any ongoing execution of our environment
 		e.ExecutionCancel()
 
-		// Initialize cancellable context ONLY for this shutdown oepration
+		//  Initialize cancellable context ONLY for this shutdown oepration
 		e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
 
-		// Shutdown and remove the services
+		//  Shutdown and remove the services
 		e.Shutdown(true, e.ExecutionContext)
 
-		// Complete the shutdown
+		//  Complete the shutdown
 		e.ExecutionCancel()
 	}
 
 	log.Warn("We're recreating your environment accordingly. Give us a moment!")
 
-	// update DOT_NHOST directory
+	//  update DOT_NHOST directory
 	nhost.DOT_NHOST, _ = nhost.GetDotNhost()
 
-	// register new branch HEAD for the watcher
+	//  register new branch HEAD for the watcher
 	head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", nhost.REMOTE))
 	if head != "" {
 
@@ -142,11 +142,11 @@ func (e *Environment) restartAfterCheckout() error {
 		}
 	}
 
-	// now re-execute the environment
+	//  now re-execute the environment
 	e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
 	if err := e.Execute(); err != nil {
 
-		// cleanup and return an error
+		//  cleanup and return an error
 		e.Cleanup()
 		return err
 	}

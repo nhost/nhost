@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-// Get preferred outbound ip of this machine
+//  Get preferred outbound ip of this machine
 func getOutboundIP() net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
@@ -42,7 +42,7 @@ func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) 
 	return response
 }
 
-// generate a random 128 byte key
+//  generate a random 128 byte key
 func generateRandomKey(len int) string {
 	key := make([]byte, len)
 	rand.Read(key)
@@ -52,20 +52,20 @@ func generateRandomKey(len int) string {
 func GetPort(low, hi int) int {
 
 	//
-	// Initialize the seed
+	//  Initialize the seed
 	//
-	// This is done to prevent Go from choosing pseudo-random numbers
+	//  This is done to prevent Go from choosing pseudo-random numbers
 	rand.Seed(time.Now().UnixNano())
 
-	// generate a random port value
+	//  generate a random port value
 	port := strconv.Itoa(low + rand.Intn(hi-low))
 
-	// validate wehther the port is available
+	//  validate wehther the port is available
 	if !PortAvaiable(port) {
 		return GetPort(low, hi)
 	}
 
-	// return the value, if it's available
+	//  return the value, if it's available
 	response, _ := strconv.Atoi(port)
 	return response
 }

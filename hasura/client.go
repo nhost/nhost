@@ -43,11 +43,13 @@ func (c *Client) Request(body []byte, path string) (*http.Response, error) {
 	return c.Client.Do(req)
 }
 
-// Initialize the client with supplied Hasura endpoint,
-// admin secret and a custom HTTP client.
+//  Initialize the client with supplied Hasura endpoint,
+//  admin secret and a custom HTTP client.
 func (c *Client) Init(endpoint, adminSecret string, client *http.Client) error {
 
-	// Prepare and load required binaries
+	log.Debug("Initializing Hasura client")
+
+	//  Prepare and load required binaries
 	cli, err := Binary()
 	if err != nil {
 		return err

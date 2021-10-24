@@ -44,13 +44,13 @@ import (
 var email string
 var password string
 
-// loginCmd represents the login command
+//  loginCmd represents the login command
 var loginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Log in to your Nhost account",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// if user is already logged in, ask to logout
+		//  if user is already logged in, ask to logout
 		if _, err := getUser(nhost.AUTH_PATH); err == nil {
 			log.Fatal(ErrLoggedIn)
 		}
@@ -77,7 +77,7 @@ var loginCmd = &cobra.Command{
 			log.Fatal("Failed to login with that email")
 		}
 
-		// delete any existing auth files
+		//  delete any existing auth files
 		if util.PathExists(nhost.AUTH_PATH) {
 			if err = util.DeletePath(nhost.AUTH_PATH); err != nil {
 				log.Debug(err)
@@ -85,14 +85,14 @@ var loginCmd = &cobra.Command{
 			}
 		}
 
-		// create the auth file path if it doesn't exist
+		//  create the auth file path if it doesn't exist
 		err = os.MkdirAll(nhost.ROOT, os.ModePerm)
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize Nhost root directory: ", nhost.ROOT)
 		}
 
-		// create the auth file to write it
+		//  create the auth file to write it
 		f, err := os.Create(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
@@ -101,7 +101,7 @@ var loginCmd = &cobra.Command{
 
 		defer f.Close()
 
-		// write auth file
+		//  write auth file
 		output, _ := json.Marshal(credentials)
 		err = writeToFile(nhost.AUTH_PATH, string(output), "end")
 
@@ -117,7 +117,7 @@ var loginCmd = &cobra.Command{
 	},
 }
 
-// take email input from user
+//  take email input from user
 func readInput(key string, hide bool) (string, error) {
 
 	reader := bufio.NewReader(os.Stdin)
@@ -163,7 +163,7 @@ func getUser(authFile string) (nhost.User, error) {
 		return response, err
 	}
 
-	// read our opened xmlFile as a byte array.
+	//  read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
 	json.Unmarshal(body, &response)
 
@@ -176,10 +176,10 @@ func getUser(authFile string) (nhost.User, error) {
 	return response, err
 }
 
-// signs the user in with email and returns verification token
+//  signs the user in with email and returns verification token
 func login(url, email, password string) (nhost.Credentials, error) {
 
-	log.Debug("Authenticating with email ", email)
+	log.Debug("Authenticating with ", email)
 
 	var response nhost.Credentials
 
@@ -218,10 +218,10 @@ func login(url, email, password string) (nhost.Credentials, error) {
 func init() {
 	rootCmd.AddCommand(loginCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Add Persistent Flags which will work for this command
-	// and all subcommands
+	//  Add Persistent Flags which will work for this command
+	//  and all subcommands
 	loginCmd.PersistentFlags().StringVarP(&email, "email", "e", "", "Email of your Nhost account")
 	loginCmd.PersistentFlags().StringVarP(&password, "password", "p", "", "Password of your Nhost account")
 }

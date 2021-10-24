@@ -20,10 +20,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// State represents current state of any structure
+//  State represents current state of any structure
 type State uint32
 
-// State enumeration
+//  State enumeration
 const (
 	Unknown State = iota
 	Initializing
@@ -31,7 +31,7 @@ const (
 	Executing
 	Active
 	ShuttingDown
-	Inactive // keep it always last
+	Inactive //  keep it always last
 )
 
 func (e *Environment) UpdateState(state State) {
@@ -46,10 +46,10 @@ func (e *Environment) Init() error {
 
 	log.WithField("component", e.Name).Debug("Initializing environment")
 
-	// Update environment state
+	//  Update environment state
 	e.UpdateState(Initializing)
 
-	// connect to docker client
+	//  connect to docker client
 	e.Context, e.Cancel = context.WithCancel(context.Background())
 	e.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
@@ -58,52 +58,53 @@ func (e *Environment) Init() error {
 	}
 	defer e.Docker.Close()
 
-	// break execution if docker deamon is not running
+	//  break execution if docker deamon is not running
 	_, err = e.Docker.Info(e.Context)
 	if err != nil {
 		log.Error(util.ErrDockerNotFound)
+		log.Warn(util.WarnDockerNotFound)
 		log.Info(util.InfoDockerDownload)
 		return err
 	}
 
-	// get running containers with prefix "nhost_"
+	//  get running containers with prefix "nhost_"
 	containers, err := e.GetContainers()
 	if err != nil {
 		log.Error(util.ErrServicesNotFound)
 		return err
 	}
 
-	// wrap the fetched containers inside the environment
+	//  wrap the fetched containers inside the environment
 	_ = e.WrapContainersAsServices(containers)
 
 	//	Initialize a new watcher for the environment
 	e.Watcher = watcher.New(e.Context)
 
-	// If there is a local git repository,
-	// in the project root directory,
-	// then initialize watchers for keeping track
-	// of HEAD changes on git checkout/pull/merge/fetch
+	//  If there is a local git repository,
+	//  in the project root directory,
+	//  then initialize watchers for keeping track
+	//  of HEAD changes on git checkout/pull/merge/fetch
 
 	if util.PathExists(nhost.GIT_DIR) {
 
-		// Initialize watcher for post-checkout branch changes
+		//  Initialize watcher for post-checkout branch changes
 		e.Watcher.Register(filepath.Join(nhost.GIT_DIR, "HEAD"), e.restartAfterCheckout)
 
-		// Initialize watcher for post-merge commit changes
+		//  Initialize watcher for post-merge commit changes
 		head := getBranchHEAD(filepath.Join(nhost.GIT_DIR, "refs", "remotes", nhost.REMOTE))
 		if head != "" {
 			e.Watcher.Register(head, e.restartMigrations)
 		}
 	}
 
-	// Update environment state
+	//  Update environment state
 	e.UpdateState(Intialized)
 
 	return nil
 }
 
 //
-// Performs default migrations and metadata operations
+//  Performs default migrations and metadata operations
 //
 
 func (e *Environment) Prepare() error {
@@ -116,32 +117,32 @@ func (e *Environment) Prepare() error {
 		"--skip-update-check",
 	}
 
-	// Send out de-activation signal before starting migrations,
-	// to inform any other resource which using Hasura
-	// e.Config.Services["hasura"].Deactivate()
+	//  Send out de-activation signal before starting migrations,
+	//  to inform any other resource which using Hasura
+	//  e.Config.Services["hasura"].Deactivate()
 
-	// Enable a mutual exclusion lock,
-	// to prevent other resources from
-	// modifying Hasura's data while
-	// we're making changes
+	//  Enable a mutual exclusion lock,
+	//  to prevent other resources from
+	//  modifying Hasura's data while
+	//  we're making changes
 
-	// This will also prevent
-	// multiple resources inside our code
-	// from concurrently making changes to the Hasura service
+	//  This will also prevent
+	//  multiple resources inside our code
+	//  from concurrently making changes to the Hasura service
 
-	// NOTE: This mutex lock only works
-	// for resources talking to Hasura service inside this code
-	// It doesn't lock anything for external resources, obviously!
-	// e.Config.Services["hasura"].Lock()
+	//  NOTE: This mutex lock only works
+	//  for resources talking to Hasura service inside this code
+	//  It doesn't lock anything for external resources, obviously!
+	//  e.Config.Services["hasura"].Lock()
 
-	// defer e.Config.Services["hasura"].Activate()
-	// defer e.Config.Services["hasura"].Unlock()
+	//  defer e.Config.Services["hasura"].Activate()
+	//  defer e.Config.Services["hasura"].Unlock()
 
-	// If migrations directory is already mounted to nhost_hasura container,
-	// then Hasura must be auto-applying migrations
-	// hence, manually applying migrations doesn't make sense
+	//  If migrations directory is already mounted to nhost_hasura container,
+	//  then Hasura must be auto-applying migrations
+	//  hence, manually applying migrations doesn't make sense
 
-	// create migrations
+	//  create migrations
 	files, _ := os.ReadDir(nhost.MIGRATIONS_DIR)
 	if len(files) > 0 {
 
@@ -183,11 +184,11 @@ func (e *Environment) Prepare() error {
 		}
 	}
 
-	// If metadata directory is already mounted to nhost_hasura container,
-	// then Hasura must be auto-applying metadata
-	// hence, manually applying metadata doesn't make sense
+	//  If metadata directory is already mounted to nhost_hasura container,
+	//  then Hasura must be auto-applying metadata
+	//  hence, manually applying metadata doesn't make sense
 
-	// apply metadata
+	//  apply metadata
 	log.Debug("Applying metadata")
 	execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 	execute.Dir = nhost.NHOST_DIR
@@ -206,14 +207,13 @@ func (e *Environment) Prepare() error {
 	return nil
 }
 
-// Runs concurrent healthchecks on all Nhost services,
-// which have a health check endpoint.
+//  Runs concurrent healthchecks on all Nhost services,
+//  which have a health check endpoint.
 //
-// Also, supports process cancellation from contexts.
+//  Also, supports process cancellation from contexts.
 func (e *Environment) HealthCheck(ctx context.Context) error {
 
-	const banner = "Running a quick health check on services"
-	log.Info(banner)
+	log.Debug("Starting health check")
 
 	var i int
 	var l int
@@ -244,7 +244,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 								"container": service.Name,
 							}).Debug("Health check successful")
 
-							// Activate the service
+							//  Activate the service
 							service.Activate()
 
 							health_waiter.Done()
@@ -279,7 +279,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 		}
 	}
 
-	// wait for all healthchecks to pass
+	//  wait for all healthchecks to pass
 	health_waiter.Wait()
 	if !logger.DEBUG {
 		fmt.Printf("\r")
@@ -298,18 +298,18 @@ func (e *Environment) Seed(path string) error {
 		log.Debug("Applying seeds")
 	}
 
-	// if there are more seeds than just enum tables,
-	// apply them too
+	//  if there are more seeds than just enum tables,
+	//  apply them too
 	for _, item := range seed_files {
 
-		// read seed file
+		//  read seed file
 		data, err := ioutil.ReadFile(filepath.Join(path, item.Name()))
 		if err != nil {
 			log.WithField("component", "seeds").Errorln("Failed to open:", item.Name())
 			return err
 		}
 
-		// apply seed data
+		//  apply seed data
 		if err := e.Hasura.Seed(string(data)); err != nil {
 			log.WithField("component", "seeds").Errorln("Failed to apply:", item.Name())
 			return err
@@ -328,17 +328,17 @@ func (e *Environment) Seed(path string) error {
 	return nil
 
 	/*
-		// fetch metadata
+		//  fetch metadata
 		metadata, err := client.GetMetadata()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to get metadata")
 		}
 
-		// if there are enum tables, add seeds for them
+		//  if there are enum tables, add seeds for them
 		enumTables := filterEnumTables(metadata.Tables)
 
-		// read the migrations directory
+		//  read the migrations directory
 		migrations, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
 		if err != nil {
 			log.Debug(err)
@@ -353,15 +353,15 @@ func (e *Environment) Seed(path string) error {
 				expectedName := strings.Join([]string{"create", "table", item.Table.Schema, item.Table.Name}, "_")
 				if migrationName == expectedName {
 
-					// get the seed data for this table
+					//  get the seed data for this table
 					seedData, err := client.ApplySeeds([]hasura.TableEntry{item})
 					if err != nil {
 						log.Debug(err)
 						log.WithField("component", item.Table.Name).Error("Failed to get seeds for enum table")
 					}
 
-					// first check whether the migration already contains the seed data or not
-					// if yes, then skip writing to file
+					//  first check whether the migration already contains the seed data or not
+					//  if yes, then skip writing to file
 
 					SQLPath := filepath.Join(nhost.MIGRATIONS_DIR, file.Name(), "up.sql")
 					migrationData, err := os.ReadFile(SQLPath)
@@ -372,7 +372,7 @@ func (e *Environment) Seed(path string) error {
 
 					if !strings.Contains(string(migrationData), string(seedData)) {
 
-						// append the seeds to migration
+						//  append the seeds to migration
 						if err = writeToFile(SQLPath, string(seedData), "end"); err != nil {
 							log.Debug(err)
 							log.WithField("component", item.Table.Name).Error("Failed to append seed data for enum table")
@@ -389,8 +389,8 @@ func (e *Environment) Seed(path string) error {
 	*/
 }
 
-// Ranges through all registered services of the environment,
-// and ONLY if all are designated active, it returns true. Otherwise false.
+//  Ranges through all registered services of the environment,
+//  and ONLY if all are designated active, it returns true. Otherwise false.
 func (e *Environment) isActive() bool {
 
 	if len(e.Config.Services) == 0 {
@@ -408,7 +408,7 @@ func (e *Environment) isActive() bool {
 
 func (e *Environment) Cleanup() {
 
-	// Gracefully shut down all registered servers of the environment
+	//  Gracefully shut down all registered servers of the environment
 	for _, server := range e.Servers {
 		server.Shutdown(e.Context)
 	}
@@ -430,7 +430,7 @@ func (e *Environment) Cleanup() {
 		log.Info("Cleanup complete. See you later, grasshopper!")
 	}
 
-	// Don't cancel the contexts before shutting down the containers
+	//  Don't cancel the contexts before shutting down the containers
 	e.Cancel()
 }
 

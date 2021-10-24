@@ -1,7 +1,7 @@
 package hasura
 
 type (
-	// Hasura response
+	//  Hasura response
 	Response struct {
 		Path  string `json:"path"`
 		Error string `json:"error"`

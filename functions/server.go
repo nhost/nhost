@@ -106,7 +106,7 @@ func New(config *ServerConfig) *Server {
 		Server:      &http.Server{Addr: ":" + config.Port, Handler: config.Mux},
 	}
 
-	//	Remove the tmeporary directory on server shutdown
+	//	Remove the temporary directory on server shutdown
 	server.RegisterOnShutdown(func() {
 		util.DeleteAllPaths(tempDir)
 	})
@@ -142,7 +142,7 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 
-		// initialize the base directory
+		//	Initialize the base directory
 		base, file := filepath.Split(strings.TrimPrefix(path, nhost.API_DIR))
 		base = filepath.Clean(base)
 
@@ -178,25 +178,25 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		s.log.WithField("component", "server").Error("No function found on this route")
 	}
 
-	// If no function file has been found,
-	// then return 404 error
+	//	If no function file has been found,
+	//	then return 404 error
 	if len(f.Path) == 0 {
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 
-	// Validate whether the function has been built before
+	//	Validate whether the function has been built before
 	preBuilt := false
 
-	// Uncomment the following to enable caching
+	//	Uncomment the following to enable caching
 	/*
 		for index, item := range functions {
 
-			// check whether it's the same function file
+			//  check whether it's the same function file
 			if item.Path == f.Path {
 
-				// now compare modification time of function file
-				// with it's cached copy
+				//  now compare modification time of function file
+				//  with it's cached copy
 				if f.File.ModTime().Equal(item.File.ModTime()) {
 
 					s.log.WithField("route", f.Route).Debug("Found cached copy of function")
@@ -205,7 +205,7 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 
 				} else {
 
-					// if file has been modified, clean the cache location
+					//  if file has been modified, clean the cache location
 					s.log.Debug("Removing temporary directory from: ", filepath.Dir(item.Build))
 					if err := os.RemoveAll(filepath.Dir(item.Build)); err != nil {
 						if _, ok := err.(*os.PathError); ok {
@@ -213,7 +213,7 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 						}
 					}
 
-					// delete the saved function from array
+					//  delete the saved function from array
 					functions = remove(functions, index)
 				}
 
@@ -224,7 +224,7 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 
 	if !preBuilt {
 
-		// cache the function file to temporary directory
+		//  cache the function file to temporary directory
 		if err := os.MkdirAll(filepath.Join(tempDir, f.Base), os.ModePerm); err != nil {
 			s.log.WithField("route", f.Route).Debug(err)
 			s.log.WithField("route", f.Route).Error("Failed to prepare location to cache function file")
@@ -237,23 +237,23 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// save the function before serving it
+		//  save the function before serving it
 		functions = append(functions, f)
 
 	}
 
 	//
-	// Handle Environment Variables
+	//	Handle Environment Variables
 	//
 
-	// If environment variables haven't been loaded
-	// then load them from .env.development
+	//	If environment variables haven't been loaded
+	//	then load them from .env.development
 	if len(envVars) == 0 {
 		envVars, _ = nhost.Env()
 	}
 
-	// If the environment is active,
-	// assign important env vars during runtime
+	//	If the environment is active,
+	//	assign important env vars during runtime
 	if s.environment.State == environment.Active {
 
 		runtimeVars := []string{
@@ -265,20 +265,20 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Sprintf("NHOST_WEBHOOK_SECRET=%v", nhost.WEBHOOK_SECRET),
 		}
 
-		// set the runtime env vars
+		//  set the runtime env vars
 		for _, item := range runtimeVars {
 			payload := strings.Split(item, "=")
 			os.Setenv(payload[0], payload[1])
 		}
 
-		// append the runtime env vars
+		//  append the runtime env vars
 		envVars = append(envVars, runtimeVars...)
 	}
 
 	switch filepath.Ext(f.Path) {
 	case ".js", ".ts":
 
-		// start the NodeJS server
+		//  start the NodeJS server
 		nodeCLI, err := exec.LookPath("node")
 		if err != nil {
 			s.log.WithField("runtime", "NodeJS").Debug(err)
@@ -286,16 +286,16 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// initialize random port to serve the file
+		//  initialize random port to serve the file
 		jsPort := nhost.GetPort(9401, 9500)
 
-		// prepare the node server configuration
+		//  prepare the node server configuration
 		if err := f.BuildNodeServer(jsPort); err != nil {
 			s.log.WithField("runtime", "NodeJS").Debug(err)
 			s.log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
 		}
 
-		// prepare the execution command
+		//  prepare the execution command
 		cmd := exec.Cmd{
 			Path:   nodeCLI,
 			Env:    envVars,
@@ -317,22 +317,22 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		r.URL = url
 		r.URL.RawQuery = q.Encode()
 
-		// serve
+		//  serve
 		f.Handler(w, r)
 
-		// kill the command execution once the req is served
+		//  kill the command execution once the req is served
 		if err := cmd.Process.Kill(); err != nil {
 			s.log.Error("failed to kill process: ", err)
 		}
 
-		// delete the node server configuration
+		//  delete the node server configuration
 		if err := os.Remove(f.ServerConfig); err != nil {
 			s.log.WithField("runtime", "NodeJS").Debug(err)
 		}
 
 	case ".go":
 
-		// serve
+		//  serve
 		f.Handler(w, r)
 	}
 }

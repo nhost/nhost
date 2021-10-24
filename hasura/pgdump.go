@@ -17,7 +17,7 @@ func (r *PGDumpRequest) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-// fetches migrations from remote Hasura server to be applied manually
+//  fetches migrations from remote Hasura server to be applied manually
 func (c *Client) PGDump(options []string) ([]byte, error) {
 
 	log.Debug("Executing pg_dump")

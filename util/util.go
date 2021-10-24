@@ -17,7 +17,8 @@ var (
 const (
 
 	//	Common Error Codes
-	ErrDockerNotFound   = "Is docker running on your machine?"
+	WarnDockerNotFound  = "Please start docker and re-run `nhost`"
+	ErrDockerNotFound   = "Docker not running"
 	ErrServicesNotFound = "No services found currently running for this app"
 
 	//	Common Information Codes
@@ -25,7 +26,7 @@ const (
 	InfoServicesRunning = "Start your app with `nhost dev`"
 )
 
-// check whether source array contains value or not
+//  check whether source array contains value or not
 func Contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
@@ -35,13 +36,13 @@ func Contains(s []string, e string) bool {
 	return false
 }
 
-// validates whether a given folder/file path exists or not
+//  validates whether a given folder/file path exists or not
 func PathExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return err == nil
 }
 
-// Returns path relative to Nhost current working directory
+//  Returns path relative to Nhost current working directory
 func Rel(path string) string {
 
 	target, err := filepath.Rel(nhost.WORKING_DIR, path)
@@ -51,7 +52,7 @@ func Rel(path string) string {
 	return path
 }
 
-// deletes the given file/folder path and unlink from filesystem
+//  deletes the given file/folder path and unlink from filesystem
 func DeletePath(path string) error {
 
 	log.WithField("component", "path").Debugln("Removing", Rel(path))
@@ -60,7 +61,7 @@ func DeletePath(path string) error {
 	return os.Remove(path)
 }
 
-// deletes all the paths leading to the given file/folder and unlink from filesystem
+//  deletes all the paths leading to the given file/folder and unlink from filesystem
 func DeleteAllPaths(path string) error {
 
 	log.WithField("component", "path").Debugln("Removing", Rel(path))
