@@ -41,6 +41,11 @@ func getBinary() string {
 //  based on user's OS and ARCH
 func Binary() (string, error) {
 
+	//  search for installed binary
+	if pathExists(binaryPath) {
+		return binaryPath, nil
+	}
+
 	var url string
 
 	binary := "hasura"
@@ -59,11 +64,6 @@ func Binary() (string, error) {
 	}
 
 	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, architecture)
-
-	//  search for installed binary
-	if pathExists(binaryPath) {
-		return binaryPath, nil
-	}
 
 	//  create the binary path
 	if err := os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {

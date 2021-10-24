@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 
 	"github.com/hashicorp/go-getter"
-	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 )
 
 //  download a remote directory/file to local
@@ -19,7 +19,7 @@ func clone(src, dest string) error {
 		//define the destination to where the directory will be stored. This will create the directory if it doesnt exist
 		Dst:  dest,
 		Src:  src,
-		Pwd:  nhost.WORKING_DIR,
+		Pwd:  util.WORKING_DIR,
 		Mode: getter.ClientModeAny,
 		//define the type of detectors go getter should use, in this case only github is needed
 		Detectors: []getter.Detector{

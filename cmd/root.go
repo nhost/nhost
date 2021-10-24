@@ -125,7 +125,7 @@ func Execute() {
 //  auto-generate utility documentation in all required formats
 func generateDocumentation() {
 
-	docsDir := filepath.Join(nhost.WORKING_DIR, "docs")
+	docsDir := filepath.Join(util.WORKING_DIR, "docs")
 
 	//  Generate Markdown docs
 	err := doc.GenMarkdownTree(rootCmd, docsDir)

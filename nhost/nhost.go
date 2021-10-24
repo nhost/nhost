@@ -26,6 +26,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/koding/websocketproxy"
+	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 	"github.com/subosito/gotenv"
 
@@ -87,7 +88,7 @@ func GetDotNhost() (string, error) {
 		branch = GetCurrentBranch()
 	}
 
-	return filepath.Join(WORKING_DIR, ".nhost", branch), nil
+	return filepath.Join(util.WORKING_DIR, ".nhost", branch), nil
 }
 
 func Env() ([]string, error) {
@@ -654,10 +655,10 @@ func (config *Configuration) Init(port string) error {
 	mailhogConfig := config.Services["mailhog"]
 
 	//  load .env.development
-	envVars, _ := Env()
+	devVars, _ := Env()
 
 	//  properly log the location from where you are mounting the data
-	dataTarget, _ := filepath.Rel(WORKING_DIR, DOT_NHOST)
+	dataTarget, _ := filepath.Rel(util.WORKING_DIR, DOT_NHOST)
 	log.WithField("service", "data").Debugln("Mounting data from ", dataTarget)
 
 	//  create mount points if they doesn't exist
@@ -693,37 +694,26 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
-		fmt.Sprintf("NHOST_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT=%d", 20),
 		fmt.Sprintf("HASURA_GRAPHQL_NO_OF_RETRIES=%d", 20),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
-		fmt.Sprintf("NHOST_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
-		fmt.Sprintf("NHOST_WEBHOOK_SECRET=%v", WEBHOOK_SECRET),
 	}
-	containerVariables = append(containerVariables, envVars...)
 
-	//  append service specific environment variables
+	//	Append .env.development variables
+	containerVariables = append(containerVariables, devVars...)
+
+	//  Append service specific environment variables
 	for key, value := range hasuraConfig.Environment {
 		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
 
-	//  Append NHOST_FUNCTIONS env var to Hasura
-	//  to allow NHOST_FUNCTIONS to be reachable from Hasura Event Triggers.
-	//  This is being done over here, because development proxy port is required
-	var localhost string
-	switch runtime.GOOS {
-	case "darwin", "windows":
-		localhost = "host.docker.internal"
-	default:
-		localhost = fmt.Sprint(getOutboundIP())
-	}
+	//  Append network based runtime variables,
+	//  to allow NHOST FUNCTIONS, and other addresses,
+	//	to be reachable from Hasura Event Triggers.
+	//  This is being done over here, because development proxy port is required.
 	containerVariables = append(
 		containerVariables,
-		fmt.Sprintf("NHOST_FUNCTIONS=http://%s:%v/v1/functions", localhost, port),
-		fmt.Sprintf("LOCALHOST=http://%s", localhost),
-		fmt.Sprintf("NHOST_BACKEND_URL=http://%s:%v", localhost, port),
+		util.MapToStringArray(util.RuntimeVars(port, true))...,
 	)
 
 	/*
@@ -804,19 +794,22 @@ func (config *Configuration) Init(port string) error {
 
 	//  prepare env variables for following container
 	containerVariables = []string{
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		fmt.Sprintf("HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql", config.Services["hasura"].Name, config.Services["hasura"].Port),
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
 		fmt.Sprintf("AUTH_PORT=%v", config.Services["auth"].Port),
 		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v/v1/auth", port),
-		//	fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", "3000"),
 		fmt.Sprintf("AUTH_CLIENT_URL=%v", config.Auth["client_url"]),
 
 		//  set the defaults
 		"AUTH_LOG_LEVEL=info",
 		"AUTH_HOST=0.0.0.0",
 	}
+
+	//	Append runtime variables
+	containerVariables = append(
+		containerVariables,
+		util.MapToStringArray(util.RuntimeVars(port, true))...,
+	)
 
 	//  append social auth credentials and other env vars
 	containerVariables = append(containerVariables, ParseEnvVarsFromConfig(config.Auth, "AUTH")...)
@@ -853,7 +846,6 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("STORAGE_PORT=%v", config.Services["storage"].Port),
 		fmt.Sprintf("STORAGE_PUBLIC_URL=%v", config.Services["storage"].Address),
 		"HASURA_GRAPHQL_GRAPHQL_URL=" + fmt.Sprintf(`http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		fmt.Sprintf("S3_ENDPOINT=http://%s:%v", config.Services["minio"].Name, config.Services["minio"].Port),
 
@@ -868,6 +860,12 @@ func (config *Configuration) Init(port string) error {
 		"S3_BUCKET=nhost",
 	}
 
+	//	Append runtime variables
+	containerVariables = append(
+		containerVariables,
+		util.MapToStringArray(util.RuntimeVars(port, true))...,
+	)
+
 	//  append service specific environment variables
 	for key, value := range storageConfig.Environment {
 		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
@@ -878,7 +876,7 @@ func (config *Configuration) Init(port string) error {
 	storageConfig.Config.Env = containerVariables
 
 	//  prepare env variables for following container
-	//	containerVariables = appendEnvVars(config.Auth["smtp"].(map[interface{}]interface{}), "SMTP")
+	//	containerVariables = appenddevVars(config.Auth["smtp"].(map[interface{}]interface{}), "SMTP")
 	var smtpPort int
 	for _, item := range authVars {
 		payload := strings.Split(item, "=")
@@ -1170,7 +1168,7 @@ func (s *Session) Spawn() {
 		if filepath.IsAbs(s.Dir) {
 			cmd.Dir = s.Dir
 		} else {
-			cmd.Dir = filepath.Join(WORKING_DIR, s.Dir)
+			cmd.Dir = filepath.Join(util.WORKING_DIR, s.Dir)
 		}
 	}
 

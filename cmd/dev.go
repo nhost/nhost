@@ -182,12 +182,14 @@ var devCmd = &cobra.Command{
 				log.Error("Failed to initialize your environment")
 				env.Cleanup()
 				end_waiter.Done()
+					return
 			}
 			*/
 			log.Debug(err)
 			log.Error("Failed to initialize your environment")
 			env.Cleanup()
 			end_waiter.Done()
+			return
 		}
 
 		//
@@ -269,6 +271,7 @@ var devCmd = &cobra.Command{
 					log.WithField("component", "server").Debug(err)
 					log.WithField("component", "server").Error("Failed to proxy ", name)
 					env.Cleanup()
+					return
 				}
 
 				//  print the name and handle
@@ -290,12 +293,21 @@ var devCmd = &cobra.Command{
 		p.close()
 
 		//  give example of using Functions inside Hasura
-		if util.PathExists(nhost.API_DIR) {
-			p.print("info", "ProTip: You can call Functions inside Hasura!", "")
+		p.print("info", "ProTip: You can call Functions inside Hasura!", "")
+		p.print("header", "", "")
+		p.print("", fmt.Sprintf("%s{{NHOST_FUNCTIONS}}%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves ./functions", Reset, "/hello.js"))
+		p.close()
+
+		/*
+			//	Print list of runtime variables
+			p.print("info", "ProTip: Runtime variables available inside Functions & Hasura!", "")
 			p.print("header", "", "")
-			p.print("", "URL", fmt.Sprintf("%s{{NHOST_FUNCTIONS}}%s/hello", Gray, Reset))
+			runtimeVars := env.RuntimeVars()
+			for key, value := range runtimeVars {
+				p.print("", key, fmt.Sprintf("%s%v%s", Gray, value, Reset))
+			}
 			p.close()
-		}
+		*/
 
 		//  Update environment state
 		env.UpdateState(environment.Active)

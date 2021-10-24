@@ -214,7 +214,7 @@ var initCmd = &cobra.Command{
 			strings.Join([]string{
 				".nhost",
 				util.Rel(filepath.Join(nhost.WEB_DIR, "node_modules")),
-				util.Rel(filepath.Join(nhost.WORKING_DIR, "node_modules")),
+				util.Rel(filepath.Join(util.WORKING_DIR, "node_modules")),
 				util.Rel(filepath.Join(nhost.API_DIR, "node_modules")),
 			}, "\n"), "end"); err != nil {
 			log.Debug(err)

@@ -1,7 +1,6 @@
 package nhost
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -13,19 +12,6 @@ import (
 	"strings"
 	"time"
 )
-
-//  Get preferred outbound ip of this machine
-func getOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return nil
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
-}
 
 func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) []string {
 	var response []string
@@ -40,13 +26,6 @@ func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) 
 		}
 	}
 	return response
-}
-
-//  generate a random 128 byte key
-func generateRandomKey(len int) string {
-	key := make([]byte, len)
-	rand.Read(key)
-	return hex.EncodeToString(key)
 }
 
 func GetPort(low, hi int) int {

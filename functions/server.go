@@ -84,7 +84,7 @@ func New(config *ServerConfig) *Server {
 	}
 
 	if config.BuildDir == "" {
-		config.BuildDir = nhost.WORKING_DIR
+		config.BuildDir = util.WORKING_DIR
 	}
 
 	if config.FilesToAvoid == nil {
@@ -253,26 +253,17 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//	If the environment is active,
-	//	assign important env vars during runtime
+	//	assign runtime environment variables
 	if s.environment.State == environment.Active {
 
-		runtimeVars := []string{
-			fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
-			fmt.Sprintf("NHOST_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, nhost.JWT_KEY)),
-			fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", nhost.ADMIN_SECRET),
-			fmt.Sprintf("NHOST_BACKEND_URL=http://localhost:%v", s.environment.Port),
-			fmt.Sprintf("NHOST_ADMIN_SECRET=%v", nhost.ADMIN_SECRET),
-			fmt.Sprintf("NHOST_WEBHOOK_SECRET=%v", nhost.WEBHOOK_SECRET),
+		//	Load environment specific runtime variables
+		runtimeVars := util.RuntimeVars(s.environment.Port, false)
+		for key, value := range runtimeVars {
+			os.Setenv(key, fmt.Sprint(value))
 		}
 
-		//  set the runtime env vars
-		for _, item := range runtimeVars {
-			payload := strings.Split(item, "=")
-			os.Setenv(payload[0], payload[1])
-		}
-
-		//  append the runtime env vars
-		envVars = append(envVars, runtimeVars...)
+		asArray := util.MapToStringArray(runtimeVars)
+		envVars = append(envVars, asArray...)
 	}
 
 	switch filepath.Ext(f.Path) {

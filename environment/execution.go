@@ -80,7 +80,7 @@ func (e *Environment) Execute() error {
 	e.Hasura = &hasura.Client{}
 	if err := e.Hasura.Init(
 		e.Config.Services["hasura"].Address,
-		nhost.ADMIN_SECRET,
+		util.ADMIN_SECRET,
 		nil,
 	); err != nil {
 		return err

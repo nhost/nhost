@@ -33,6 +33,7 @@ import (
 
 	"github.com/hashicorp/go-getter"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -82,7 +83,7 @@ CLI and upgrade to it.`,
 			target, err := exec.LookPath("nhost")
 			if err != nil {
 				log.Debug(err)
-				target = nhost.WORKING_DIR
+				target = util.WORKING_DIR
 			} else {
 				if err = os.Remove(target); err != nil {
 					log.Fatal("Failed to remove existing CLI from: ", target)
@@ -107,7 +108,7 @@ CLI and upgrade to it.`,
 				log.WithField("compnent", release.TagName).Fatal("Failed to download release")
 			}
 
-			if target == nhost.WORKING_DIR {
+			if target == util.WORKING_DIR {
 				instructions := getInstallInstructions()
 				if instructions != "" {
 					log.Infoln("Install using: ", instructions)

@@ -130,7 +130,7 @@ func ServeFuncs() {
 		//  detect package.json inside functions dir
 		if util.PathExists(filepath.Join(nhost.API_DIR, "package.json")) {
 			buildDir = nhost.API_DIR
-		} else if !util.PathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
+		} else if !util.PathExists(filepath.Join(util.WORKING_DIR, "package.json")) {
 			log.WithField("runtime", "NodeJS").Error("Neither a local, nor a root package.json found")
 			log.WithField("runtime", "NodeJS").Warn("Run `npm init && npm i && npm i express` to use functions")
 		}

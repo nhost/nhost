@@ -1,6 +1,8 @@
 package environment
 
-import "github.com/nhost/cli/logger"
+import (
+	"github.com/nhost/cli/logger"
+)
 
 var (
 

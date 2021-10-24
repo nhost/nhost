@@ -30,6 +30,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -211,7 +212,7 @@ And you can immediately start developing on that template.`,
 		//  append them to .gitignore
 
 		for _, file := range selected.Ignore {
-			if err := writeToFile(filepath.Join(nhost.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
+			if err := writeToFile(filepath.Join(util.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
 				log.Debug(err)
 				log.Warnf("Failed to add `%s` to .gitignore", file)
 			}
