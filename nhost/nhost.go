@@ -970,16 +970,12 @@ func GenerateConfig(options App) Configuration {
 		},
 	}
 
-	/*
-		//  check if a loaded remote project has been passed
-		if options.HasuraGQEVersion != "" {
-			hasura.Version = options.HasuraGQEVersion
-		}
-
-		if options.PostgresVersion != "" {
-			postgres.Version = options.PostgresVersion
-		}
-	*/
+	//	Hasura's image is still not natively working on Apple Silicon.
+	//	If it's an Apple Silicon processor,
+	//	then add the custom Hasura image, as a temporary fix.
+	if runningSilicon() {
+		hasura.Image = "fedormelexin/graphql-engine-arm64"
+	}
 
 	return Configuration{
 		Version: 3,
