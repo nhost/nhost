@@ -26,8 +26,6 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 
 </div>
 
-
-
 # Contents
 
 - [Design](#design)
@@ -49,27 +47,13 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 
 ## Documentation
 
-- [Wiki](https://github.com/nhost/cli/wiki)
+- [Advanced Usage](https://github.com/nhost/cli/wiki)
 - [Command Docs](/docs)
 - [Changelog](CHANGELOG.md)
 - [Contributing](CONTRIBUTING.md)
-- [Conduct](CONDUCT.md)
+- [Conduct](CODE_OF_CONDUCT.md)
 
 <br>
-
-## All-powerful `nhost` command
-
-CLI `v0.5.0` automates everything and launches the entire development environment locally using just a single command:
-
-    nhost
-
-This will do the following in specific order:
-
-1. Intialize the current working directory as an Nhost app.
-2. Offer you the option of cloning pre-configured front-end and functions templates.
-3. Launch the local development environment.
-
-If you use just the `nhost` command in an already initialized app directory, then it will directly launch the development environment. Same as `nhost dev` command.
 
 ## Frontend Support
 
@@ -82,10 +66,6 @@ The single `nhost` command will **optionally** offer you the option of cloning f
 
 1. Remove the installed CLI: `npm uninstall nhost` or `nhost uninstall`
 1. Install the new one: `sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash`
-
-This will automatically detect your **operating system** and **platform/architecture**, and download it's equivalent binary in `/usr/local/bin` directory. 
-
-<br>
 
 If your installed version is >= `v0.5.0`, then your CLI version already supports the `upgrade` command to automatically check the latest available version of the CLI and install it depending on your operating system and architecture. To use this, run the following:
 
@@ -104,8 +84,7 @@ please use the following command:
 
     go get -u github.com/nhost/cli
 
-This command will install the `nhost` executable binary
-along with its dependencies.
+This command will install the `nhost` executable binary along with its dependencies.
 
 ## OS & Platform Support
 
@@ -196,33 +175,16 @@ When you launch the development environment using `nhost` or `nhost dev`, it wil
 
     http://localhost:1337/v1/functions/{function_name}
 
+If you want to call your `functions/hello.js` function, you can call the following route:
+
+    http://localhost:1337/v1/functions/hello
+
 ## Runtimes
 
 Nhost CLI currently supports functions in following runtimes:
 
 1. NodeJS (Both Javascript and Typescript)
 2. Golang
-
-## Route Parsing Logic
-
-Your file names, and file tree structure inside `{app_root}/functions` directory is used to generate dynamic routes for your functions.
-
-Example:
-
-```
-functions/
-
-    index.js --> served at /
-    hello.go --> served at /hello
-
-    sub/
-        hello.go --> served at /sub/hello
-        index.js --> served at /sub
-```
-
-Therefore, if you want to call your `functions/hello.go` function, you can call the following route:
-
-    http://localhost:1337/v1/functions/hello
 
 For more detailed information on Functions, like hello-world templates, understanding how speed up testing of functions, and some Pro-Tips, check [this out](https://github.com/nhost/cli/wiki/Functions).
 

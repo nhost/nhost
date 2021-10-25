@@ -31,6 +31,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"plugin"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -91,28 +92,12 @@ var functionsCmd = &cobra.Command{
 
 func ServeFuncs() {
 
-	prepareNode := false
-	prepareGo := false
-
-	//  traverse through the directory
-	//  and check if there's even a single JS/TS func
-	files, _ := os.ReadDir(nhost.API_DIR)
-	for _, item := range files {
-		switch filepath.Ext(item.Name()) {
-		case ".js", ".ts":
-			prepareNode = true
-		case ".go":
-			prepareGo = true
-		}
-	}
+	prepareNode := fileExistsByExtension(nhost.API_DIR, ".js") || fileExistsByExtension(nhost.API_DIR, ".ts")
+	prepareGo := fileExistsByExtension(nhost.API_DIR, ".go")
 
 	//  validate golang installation
 	if prepareGo {
-		if _, err := exec.LookPath("go"); err != nil {
-			log.Debug(err)
-			log.WithField("runtime", "Go").Error("Runtime not found")
-			log.WithField("runtime", "Go").Info("Install from:", "https://golang.org/doc/install")
-		}
+		validateRuntime("go", "https://golang.org/doc/install")
 	}
 
 	//  if npm dependencies haven't been confirmed,
@@ -121,11 +106,7 @@ func ServeFuncs() {
 	if prepareNode {
 
 		//  first, check for runtime installation
-		if _, err := exec.LookPath("node"); err != nil {
-			log.Debug(err)
-			log.WithField("runtime", "NodeJS").Error("Runtime not found")
-			log.WithField("runtime", "NodeJS").Info("Install from:", "https://nodejs.org/en/download/")
-		}
+		validateRuntime("node", "https://nodejs.org/en/download/")
 
 		//  detect package.json inside functions dir
 		if util.PathExists(filepath.Join(nhost.API_DIR, "package.json")) {
@@ -161,6 +142,31 @@ func ServeFuncs() {
 	if env.State > environment.Unknown {
 		env.Servers = append(env.Servers, functionServer.Server)
 	}
+}
+
+func fileExistsByExtension(directory, ext string) bool {
+
+	//  traverse through the directory
+	//  and check if there's even a single file with specified extension
+	files, _ := os.ReadDir(directory)
+	for _, item := range files {
+		switch filepath.Ext(item.Name()) {
+		case ext:
+			return true
+		}
+	}
+
+	return false
+}
+
+func validateRuntime(runtime, installPath string) {
+
+	if _, err := exec.LookPath(runtime); err != nil {
+		log.Debug(err)
+		log.WithField("runtime", strings.Title(runtime)).Error("Runtime not found")
+		log.WithField("runtime", strings.Title(runtime)).Info("Install from:", installPath)
+	}
+
 }
 
 func init() {
