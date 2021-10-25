@@ -421,7 +421,7 @@ func (e *Environment) Cleanup() {
 		//	Pass the parent context of the environment,
 		//	because this is the final cleanup procedure
 		//	and we are going to cancel this context shortly after
-		if err := e.Shutdown(false, e.Context); err != nil {
+		if err := e.Shutdown(true, e.Context); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to stop running services")
 		}
