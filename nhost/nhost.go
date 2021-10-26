@@ -140,7 +140,7 @@ func (release *Release) Asset() Asset {
 
 	log.Debug("Extracting asset from release")
 
-	payload := []string{"nhost", release.TagName, runtime.GOOS, runtime.GOARCH}
+	payload := []string{"cli", release.TagName, runtime.GOOS, runtime.GOARCH}
 
 	var response Asset
 
