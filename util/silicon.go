@@ -1,4 +1,4 @@
-// +build linux,386 linux,amd64 windows,386 windows,amd64 darwin,amd64 darwin,arm64
+// +build linux windows darwin
 
 package util
 
