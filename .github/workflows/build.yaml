@@ -28,7 +28,7 @@ jobs:
           go-version: 1.16.5
 
       - name: Install Dependencies
-        run: go get -v ./...
+        run: go get
 
       - name: Build
-        run: go build .
+        run: go build
