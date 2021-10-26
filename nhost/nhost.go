@@ -972,7 +972,7 @@ func GenerateConfig(options App) Configuration {
 	//	Hasura's image is still not natively working on Apple Silicon.
 	//	If it's an Apple Silicon processor,
 	//	then add the custom Hasura image, as a temporary fix.
-	if runningSilicon() {
+	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
 		hasura.Image = "fedormelexin/graphql-engine-arm64"
 	}
 

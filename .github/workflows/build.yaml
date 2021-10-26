@@ -6,17 +6,29 @@ on: [push, pull_request]
 
 jobs:
   build:
-      runs-on: ubuntu-latest
-      steps:
-      - uses: actions/checkout@v2
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build in parallel: linux/386, linux/amd64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64, arm64]
+        exclude:
+          - goarch: "386"
+            goos: darwin 
+          - goarch: arm64
+            goos: windows
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2.3.4
 
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: 1.16
+          go-version: 1.16.5
 
-      - name: Install
-        run: go get -v ./...
+      - name: Install Dependencies
+        run: go get
 
       - name: Build
-        run: go build -v ./...
+        run: go build
