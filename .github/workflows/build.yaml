@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # build and publish in parallel: linux/386, linux/amd64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
+        # build in parallel: linux/386, linux/amd64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
         goos: [linux, windows, darwin]
         goarch: ["386", amd64, arm64]
         exclude:
@@ -19,6 +19,9 @@ jobs:
           - goarch: arm64
             goos: windows
     steps:
+      - name: Checkout Repository
+      - uses: actions/checkout@v2.3.4
+
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
