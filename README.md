@@ -34,7 +34,7 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
   * [OS & Platform Support](#os--platform-support)
       * [Apple Silicon (M1)](#apple-silicon-m1)
 - [Getting Started](#getting-started)
-- [Front-end Suppose](#frontend-support)
+- [Front-end Support](#frontend-support)
 - [Usage](#usage)
   * [Blank Local app](#blank-local-app)
   * [Existing Remote app](#existing-remote-app)
@@ -61,7 +61,9 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 - If your version is less than `v0.5.0`, then download the latest version by executing the following in your terminal:
 
 1. Remove the installed CLI: `npm uninstall nhost` or `nhost uninstall`
-1. Install the new one: `sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash`
+1. Install the new one: 
+
+    sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
 
 If your installed version is >= `v0.5.0`, then your CLI version already supports the `upgrade` command to automatically check the latest available version of the CLI and install it depending on your operating system and architecture. To use this, run the following:
 
@@ -157,7 +159,7 @@ Example:
 
 This will print the debug logs along with the standard information, warnings and errors.
 
-### ProTip 1
+### ProTip
 
 You can parallely run `nhost logs` to check real time logs of any service container of your choice, while your local environment is already running. And you can also save it's output, by using `--log-file` flag.
 
