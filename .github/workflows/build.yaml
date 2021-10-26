@@ -6,8 +6,19 @@ on: [push, pull_request]
 
 jobs:
   build:
-      runs-on: ubuntu-latest
-      steps:
+    name: Build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # build and publish in parallel: linux/386, linux/amd64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
+        goos: [linux, windows, darwin]
+        goarch: ["386", amd64, arm64]
+        exclude:
+          - goarch: "386"
+            goos: darwin 
+          - goarch: arm64
+            goos: windows
+    steps:
       - uses: actions/checkout@v2
 
       - name: Set up Go
