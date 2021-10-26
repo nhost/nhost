@@ -28,19 +28,19 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 
 # Contents
 
-- [Design](#design)
 - [Installation](#installation)
   * [Installing On Windows](#installing-on-windows)
   * [Installing Using Go](#installing-using-go)
   * [OS & Platform Support](#os--platform-support)
       * [Apple Silicon (M1)](#apple-silicon-m1)
 - [Getting Started](#getting-started)
+- [Front-end Suppose](#frontend-support)
 - [Usage](#usage)
   * [Blank Local app](#blank-local-app)
   * [Existing Remote app](#existing-remote-app)
   * [Environment Variables](#environment-variables)
   * [Debugging](#debugging)
-- [Functions](#functions)
+- [Serverless Functions](#functions)
 - [Migrate To v2](#migration)
 - [Dependencies](#dependencies)
 - [Community](#community)
@@ -54,10 +54,6 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 - [Conduct](CODE_OF_CONDUCT.md)
 
 <br>
-
-## Frontend Support
-
-The single `nhost` command will **optionally** offer you the option of cloning frontend templates for framework of your choice (NuxtJs, NextJs, ReactJs, etc.) in the `{app_root}/web` directory, which will be preinstalled with all the Nhost libraries and plugins required to allow you to immediately start developing your frontend app.
 
 # Installation
 
@@ -94,13 +90,9 @@ This command will install the `nhost` executable binary along with its dependenc
 
 ### Apple Silicon (M1)
 
-You can use the CLI binary without any issues on M1 chip, except after your app is initialized, then change the `hasura` GraphQL Engine image in your `{app_root}/nhost/config.yaml` to `fedormelexin/graphql-engine-arm64`.
+You can use the CLI binary without any issues on M1 chip, by saving a custom built Hasura image (`fedormelexin/graphql-engine-arm64`) in your `{app_root}/nhost/config.yaml`.
 
-This is because Hasura has still not released an M1 optimized version for their GraphQL engine image, and the current one has some issues running natively on M1.
-
-The `fedormelexin/graphql-engine-arm64` will temporarily resolve the issue and run Hasura GraphQL engine using Rosetta on your machine, until Hasura launches an M1 optimized image.
-
-This will not cause any issues/changes in your app's production environment since the `nhost/config.yaml` file is only used for local development. This workaround is only to ease out the pain in your local development experience.
+This is because Hasura has still not released an M1 optimized version for their GraphQL engine image, and the current one has some issues running natively on M1. This will not cause any issues/changes in your app's production environment since the `nhost/config.yaml` file is only used for local development. This workaround is only to ease out the pain in your local development experience.
 
 # Getting Started
 
@@ -109,6 +101,10 @@ To get the list of all the supported commands, use:
     nhost --help
 
 Complete documentation for all commands is available [here](/docs).
+
+## Frontend Support
+
+The single `nhost` command will **optionally** offer you the option of cloning frontend templates for framework of your choice (NuxtJs, NextJs, ReactJs, etc.) in the `{app_root}/web` directory, which will be preinstalled with all the Nhost libraries and plugins required to allow you to immediately start developing your frontend app.
 
 # Usage
 
@@ -149,7 +145,7 @@ This will present you with a list of apps, across all the workspaces, available 
 - Default file for environment variables is `{app_root}/.env.development`.
 - All variables inside `.env.development` are accessible inside both containers, and functions.
 
-For more detailed information on runtime variables, including how to add environment variables only to specific service containers, and the list of dynamically generated **runtime variables**, [check this out](https://github.com/nhost/cli/wiki/Configuration-Design#environment-variables).
+For more detailed information on runtime variables, including how to add environment variables only to specific service containers, and the list of dynamically generated **runtime variables**, [check this out](https://github.com/nhost/cli/wiki/Environment#variables).
 
 ## Debugging
 
@@ -186,7 +182,7 @@ Nhost CLI currently supports functions in following runtimes:
 1. NodeJS (Both Javascript and Typescript)
 2. Golang
 
-For more detailed information on Functions, like hello-world templates, understanding how speed up testing of functions, and some Pro-Tips, check [this out](https://github.com/nhost/cli/wiki/Functions).
+For more detailed information on Serverless Functions, like hello-world templates, understanding how speed up testing of functions, and some Pro-Tips, check [this out](https://github.com/nhost/cli/wiki/Serverless-Functions).
 
 <br>
 
