@@ -96,7 +96,7 @@ var entities = []Entity{
 		Destination: nhost.WEB_DIR,
 		Source:      "github.com/nhost/nhost/templates/web/",
 		Templates: []Template{
-			{Name: "NuxtJs", Value: "nuxt"},
+			//	{Name: "NuxtJs", Value: "nuxt"},
 			{Name: "NextJs", Value: "next"},
 			{Name: "ReactJs", Value: "react"},
 		},
@@ -227,8 +227,7 @@ And you can immediately start developing on that template.`,
 	},
 }
 
-/*
-//  fetches list of templates from nhost/nhost/templates
+/* //  fetches list of templates from nhost/nhost/templates
 func getTemplates(url string) ([]string, error) {
 
 	var response []string
@@ -267,7 +266,6 @@ func getTemplates(url string) ([]string, error) {
 	return response, nil
 }
 */
-
 func init() {
 	rootCmd.AddCommand(templatesCmd)
 

@@ -15,7 +15,7 @@ Changes:
 1. Added global `-d` or `--debug` flag for printing debug level verbose logs. Default logging includes logs of level `info`, `warn`, 'error' and `fatal`.
 1. Added global `-j` or `--json` flag in case the user wants to print the logs in JSON format.
 1. Added global `--log-file` flag which, if passed, would concurrently write the logs (without colour, and with timestamps) to that file along with stdOut.
-1. Added `upgrade` command to check for latest versions of this utility from Github release APIs of this repository, and download and install those versions.
+1. Added `upgrade` command to check for latest versions of this utility from Github release APIs of this repository, and download and install those versions.   
 1. Added `version` command which prints out the current utility version along with operating system and architecture. Additionally, checks for latest versions of the CLI available from repository's release API.
 1. Added command specific documentations.
 1. Set up a proper and sophisticated logging using `logrus` package.
