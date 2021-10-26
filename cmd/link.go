@@ -38,15 +38,18 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var User nhost.User
+
 //  linkCmd represents the link command
 var linkCmd = &cobra.Command{
-	Use:   "link",
-	Short: "Link local app to a remote one",
-	Long:  `Connect your already hosted Nhost app to local environment and start development or testings.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	Use:        "link",
+	SuggestFor: []string{"list"},
+	Short:      "Link local app to a remote one",
+	Long:       `Connect your already hosted Nhost app to local environment and start development or testings.`,
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		//  validate authentication
-		user, err := getUser(nhost.AUTH_PATH)
+		response, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 			log.Error("Failed to validate authentication")
@@ -55,8 +58,12 @@ var linkCmd = &cobra.Command{
 			loginCmd.Run(cmd, args)
 		}
 
+		User = response
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+
 		//  concatenate personal and team projects
-		projects := prepareAppList(user)
+		projects := prepareAppList(User)
 
 		/*
 			//  add the option of a new project to the existing selection payload
@@ -166,7 +173,7 @@ var linkCmd = &cobra.Command{
 
 			if index == 0 {
 
-				project.ID, err = createProject(project.Name, selectedServer, user.ID, "")
+				project.ID, err = createProject(project.Name, selectedServer, User.ID, "")
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new app")
@@ -186,7 +193,7 @@ var linkCmd = &cobra.Command{
 				//  select the team
 				prompt = promptui.Select{
 					Label:     "Choose your workspace",
-					Items:     user.WorkspaceMembers,
+					Items:     User.WorkspaceMembers,
 					Templates: &templates,
 				}
 
@@ -195,7 +202,7 @@ var linkCmd = &cobra.Command{
 					os.Exit(0)
 				}
 
-				project.ID, err = createProject(project.Name, selectedServer, user.ID, user.WorkspaceMembers[index].ID)
+				project.ID, err = createProject(project.Name, selectedServer, User.ID, User.WorkspaceMembers[index].ID)
 				if err != nil {
 					log.Debug(err)
 					log.Fatal("Failed to create a new app")
@@ -235,6 +242,8 @@ var linkCmd = &cobra.Command{
 		}
 
 		//  project linking complete
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
 		log.Info("App linked to local Nhost environment")
 	},
 }
@@ -275,7 +284,7 @@ func updateNhostProject(app nhost.App) error {
 }
 
 //  creates a new remote project
-func createProject(name, server, user, team string) (string, error) {
+func createProject(name, server, User, team string) (string, error) {
 
 	log.Debugf("Creating project '%s'", name)
 
@@ -284,7 +293,7 @@ func createProject(name, server, user, team string) (string, error) {
 	//Encode the data
 	reqBody := map[string]string{
 		"name":               name,
-		"user_id":            user,
+		"User_id":            User,
 		"server_location_id": server,
 	}
 

@@ -34,23 +34,29 @@ import (
 
 //  listCmd fetches and lists the user's projects
 var listCmd = &cobra.Command{
-	Use:     "list",
-	Aliases: []string{"ls"},
-	Short:   "List remote apps",
-	Long: `Fetch the list of remote personal and team app
+	Use:        "list",
+	Aliases:    []string{"ls"},
+	SuggestFor: []string{"init"},
+	Short:      "List remote apps",
+	Long: `Fetch the list of remote personal and team apps
 for the logged in user from Nhost console.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		//  validate authentication
-		user, err := getUser(nhost.AUTH_PATH)
+		response, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
+			log.Error("Failed to validate authentication")
 
 			//  begin the login procedure
 			loginCmd.Run(cmd, args)
 		}
 
-		if !(len(user.WorkspaceMembers) > 0) {
+		User = response
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+
+		if !(len(User.WorkspaceMembers) > 0) {
 			log.Error("No workspaces found")
 			log.Info("Create new app with `nhost link`")
 			os.Exit(0)
@@ -61,7 +67,7 @@ for the logged in user from Nhost console.`,
 		p.print("header", "", "")
 
 		//  log every project for the user
-		for _, member := range user.WorkspaceMembers {
+		for _, member := range User.WorkspaceMembers {
 			for _, app := range member.Workspace.Apps {
 				p.print("", app.Name, fmt.Sprint(Gray, member.Workspace.Name, Reset))
 			}

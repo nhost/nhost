@@ -35,10 +35,11 @@ import (
 
 //  logsCmd prints the logs from containers and HBP_Catalog
 var logsCmd = &cobra.Command{
-	Use:     "logs",
-	Aliases: []string{"log"},
-	Short:   "Read container logs of any service",
-	Run: func(cmd *cobra.Command, args []string) {
+	Use:        "logs",
+	Aliases:    []string{"log"},
+	SuggestFor: []string{"execute"},
+	Short:      "Read container logs of any service",
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		//  Initialize the runtime environment
 		if err := env.Init(); err != nil {
@@ -50,6 +51,8 @@ var logsCmd = &cobra.Command{
 		if len(env.Config.Services) == 0 {
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		var selected *nhost.Service
 

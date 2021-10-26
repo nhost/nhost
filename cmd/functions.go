@@ -35,7 +35,6 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/nhost/cli/environment"
 	"github.com/nhost/cli/functions"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
@@ -57,10 +56,11 @@ type GoPlugin struct {
 
 //  uninstallCmd removed Nhost CLI from system
 var functionsCmd = &cobra.Command{
-	Use:    "functions [-p port]",
-	Hidden: true,
-	Short:  "Serve and manage serverless functions",
-	Long:   `Serve and manage serverless functions.`,
+	Use:        "functions [-p port]",
+	SuggestFor: []string{"dev"},
+	Hidden:     true,
+	Short:      "Serve and manage serverless functions",
+	Long:       `Serve and manage serverless functions.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var end_waiter sync.WaitGroup
@@ -137,11 +137,6 @@ func ServeFuncs() {
 			log.WithFields(logrus.Fields{"component": "functions", "value": funcPort}).Debug(err)
 		}
 	}()
-
-	//  After launching, register the functions server in our environment
-	if env.State > environment.Unknown {
-		env.Servers = append(env.Servers, functionServer.Server)
-	}
 }
 
 func fileExistsByExtension(directory, ext string) bool {

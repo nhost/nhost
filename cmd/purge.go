@@ -26,7 +26,6 @@ package cmd
 import (
 	"context"
 
-	"github.com/docker/docker/client"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
@@ -35,45 +34,25 @@ import (
 //  intialise variable to remove containers and network
 var purgeData bool
 
-//  var purge bool
-
 //  downCmd represents the down command
 var purgeCmd = &cobra.Command{
 	Use:        "purge [--data]",
-	Aliases:    []string{"pg", "down"},
-	SuggestFor: []string{"health", "dev"},
+	Aliases:    []string{"down"},
+	SuggestFor: []string{"dev"},
 	Short:      "Delete all containers created by `nhost dev`",
 	Long: `If you have changed your nhost/config.yaml, 
 then use this command to delete all your container.
 And re-create them next time you run 'nhost dev'`,
+	PreRun: func(cmd *cobra.Command, args []string) {
+
+		//  Initialize the runtime environment
+		if err := env.Init(); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to initialize the environment")
+		}
+
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-
-		var err error
-
-		//  connect to docker client
-		env.Context = context.Background()
-		env.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to connect to docker client")
-		}
-		defer env.Docker.Close()
-
-		//  break execution if docker deamon is not running
-		_, err = env.Docker.Info(env.Context)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		//  get running containers with prefix "nhost_"
-		containers, err := env.GetContainers()
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to shut down Nhost services")
-		}
-
-		//  wrap the fetched containers inside the environment
-		_ = env.WrapContainersAsServices(containers)
 
 		if err := env.Shutdown(true, context.Background()); err != nil {
 			log.Debug(err)
@@ -99,10 +78,9 @@ And re-create them next time you run 'nhost dev'`,
 			env.Network, _ = env.GetNetwork()
 		}
 		env.RemoveNetwork()
-
-		if !contains(args, "do_not_inform") {
-			log.Info("Purge complete. See you later, grasshopper!")
-		}
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
+		log.Info("Purge complete. See you later, grasshopper!")
 	},
 }
 

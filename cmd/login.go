@@ -46,14 +46,17 @@ var password string
 
 //  loginCmd represents the login command
 var loginCmd = &cobra.Command{
-	Use:   "login",
-	Short: "Log in to your Nhost account",
-	Run: func(cmd *cobra.Command, args []string) {
+	Use:        "login",
+	SuggestFor: []string{"logout"},
+	Short:      "Log in to your Nhost account",
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		//  if user is already logged in, ask to logout
 		if _, err := getUser(nhost.AUTH_PATH); err == nil {
 			log.Fatal(ErrLoggedIn)
 		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		if email == "" {
 			readEmail, err := readInput("email", false)
