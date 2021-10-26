@@ -41,7 +41,7 @@ import (
 
 var (
 
-	// initialize flags
+	//  initialize flags
 	command string
 	service string
 )
@@ -52,7 +52,7 @@ type ExecResult struct {
 	ExitCode int
 }
 
-// executeCmd represents the execute command
+//  executeCmd represents the execute command
 var executeCmd = &cobra.Command{
 	Use:   "execute",
 	Short: "Execute commands inside your Nhost containers",
@@ -66,13 +66,13 @@ already running Nhost service containers.`,
 			os.Exit(0)
 		}
 
-		// Initialize the runtime environment
+		//  Initialize the runtime environment
 		if err := env.Init(); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize the environment")
 		}
 
-		// if no containers found - abort the execution
+		//  if no containers found - abort the execution
 		if len(env.Config.Services) == 0 {
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
@@ -81,7 +81,7 @@ already running Nhost service containers.`,
 
 		if service == "" {
 
-			// load the saved Nhost configuration
+			//  load the saved Nhost configuration
 			type Option struct {
 				Key   string
 				Value string
@@ -95,14 +95,14 @@ already running Nhost service containers.`,
 				})
 			}
 
-			// configure interactive prompt template
+			//  configure interactive prompt template
 			templates := promptui.SelectTemplates{
 				Active:   `{{ "✔" | green | bold }} {{ .Key | cyan | bold }}`,
 				Inactive: `   {{ .Key | cyan }}`,
 				Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Key | cyan }}`,
 			}
 
-			// configure interative prompt
+			//  configure interative prompt
 			prompt := promptui.Select{
 				Label:     "Select Service",
 				Items:     services,
@@ -128,15 +128,15 @@ already running Nhost service containers.`,
 			log.Fatal("No such service found")
 		}
 
-		// create the command execution skeleton
+		//  create the command execution skeleton
 		response, err := selected.Exec(env.Docker, env.Context, strings.Split(command, " "))
 		if err != nil {
 			log.WithField("service", service).Debug(err)
 			log.WithField("service", service).Fatal("Failed to prepare execution shell")
 		}
 
-		// execute the command
-		// and inspect the response
+		//  execute the command
+		//  and inspect the response
 		result, err := InspectExecResp(env.Docker, env.Context, response.ID)
 		if err != nil {
 			log.WithField("service", service).Debug(err)
@@ -160,12 +160,12 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 	}
 	defer resp.Close()
 
-	// read the output
+	//  read the output
 	var outBuf, errBuf bytes.Buffer
 	outputDone := make(chan error)
 
 	go func() {
-		// StdCopy demultiplexes the stream into two buffers
+		//  StdCopy demultiplexes the stream into two buffers
 		_, err = stdcopy.StdCopy(&outBuf, &errBuf, resp.Reader)
 		outputDone <- err
 	}()
@@ -204,14 +204,14 @@ func InspectExecResp(docker *client.Client, ctx context.Context, id string) (Exe
 func init() {
 	rootCmd.AddCommand(executeCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// executeCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
+	//  executeCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
 	executeCmd.Flags().StringVarP(&command, "command", "c", "", "Command to run inside service")
 	executeCmd.Flags().StringVarP(&service, "service", "s", "", "Service to run the command inside")
 }

@@ -31,6 +31,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"plugin"
+	"strings"
 	"sync"
 	"syscall"
 
@@ -45,7 +46,7 @@ import (
 var (
 	funcPort string
 
-	// initialize functions server and multiplexer
+	//  initialize functions server and multiplexer
 	functionServer *functions.Server
 )
 
@@ -54,7 +55,7 @@ type GoPlugin struct {
 	Plugin *plugin.Plugin
 }
 
-// uninstallCmd removed Nhost CLI from system
+//  uninstallCmd removed Nhost CLI from system
 var functionsCmd = &cobra.Command{
 	Use:    "functions [-p port]",
 	Hidden: true,
@@ -65,14 +66,14 @@ var functionsCmd = &cobra.Command{
 		var end_waiter sync.WaitGroup
 		end_waiter.Add(1)
 
-		// add cleanup action in case of signal interruption
+		//  add cleanup action in case of signal interruption
 		signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 		go func() {
 
-			// Catch signal interruption (ctrl+c), and stop the server.
+			//  Catch signal interruption (ctrl+c), and stop the server.
 			<-stop
 
-			// Gracefully shut down the functions server
+			//  Gracefully shut down the functions server
 			functionServer.Shutdown(context.Background())
 
 			end_waiter.Done()
@@ -82,7 +83,7 @@ var functionsCmd = &cobra.Command{
 		//	log.Info("Nhost functions serving at: http://localhost:", funcPort, filepath.Clean(functionHandler))
 		log.Info("Nhost functions serving at: http://localhost:", funcPort)
 
-		// Wait for execution to complete
+		//  Wait for execution to complete
 		end_waiter.Wait()
 
 		os.Exit(0)
@@ -91,46 +92,26 @@ var functionsCmd = &cobra.Command{
 
 func ServeFuncs() {
 
-	prepareNode := false
-	prepareGo := false
+	prepareNode := fileExistsByExtension(nhost.API_DIR, ".js") || fileExistsByExtension(nhost.API_DIR, ".ts")
+	prepareGo := fileExistsByExtension(nhost.API_DIR, ".go")
 
-	// traverse through the directory
-	// and check if there's even a single JS/TS func
-	files, _ := os.ReadDir(nhost.API_DIR)
-	for _, item := range files {
-		switch filepath.Ext(item.Name()) {
-		case ".js", ".ts":
-			prepareNode = true
-		case ".go":
-			prepareGo = true
-		}
-	}
-
-	// validate golang installation
+	//  validate golang installation
 	if prepareGo {
-		if _, err := exec.LookPath("go"); err != nil {
-			log.Debug(err)
-			log.WithField("runtime", "Go").Error("Runtime not found")
-			log.WithField("runtime", "Go").Info("Install from:", "https://golang.org/doc/install")
-		}
+		validateRuntime("go", "https://golang.org/doc/install")
 	}
 
-	// if npm dependencies haven't been confirmed,
-	// just install them on first run
+	//  if npm dependencies haven't been confirmed,
+	//  just install them on first run
 	var buildDir string
 	if prepareNode {
 
-		// first, check for runtime installation
-		if _, err := exec.LookPath("node"); err != nil {
-			log.Debug(err)
-			log.WithField("runtime", "NodeJS").Error("Runtime not found")
-			log.WithField("runtime", "NodeJS").Info("Install from:", "https://nodejs.org/en/download/")
-		}
+		//  first, check for runtime installation
+		validateRuntime("node", "https://nodejs.org/en/download/")
 
-		// detect package.json inside functions dir
+		//  detect package.json inside functions dir
 		if util.PathExists(filepath.Join(nhost.API_DIR, "package.json")) {
 			buildDir = nhost.API_DIR
-		} else if !util.PathExists(filepath.Join(nhost.WORKING_DIR, "package.json")) {
+		} else if !util.PathExists(filepath.Join(util.WORKING_DIR, "package.json")) {
 			log.WithField("runtime", "NodeJS").Error("Neither a local, nor a root package.json found")
 			log.WithField("runtime", "NodeJS").Warn("Run `npm init && npm i && npm i express` to use functions")
 		}
@@ -157,21 +138,46 @@ func ServeFuncs() {
 		}
 	}()
 
-	// After launching, register the functions server in our environment
+	//  After launching, register the functions server in our environment
 	if env.State > environment.Unknown {
 		env.Servers = append(env.Servers, functionServer.Server)
 	}
 }
 
+func fileExistsByExtension(directory, ext string) bool {
+
+	//  traverse through the directory
+	//  and check if there's even a single file with specified extension
+	files, _ := os.ReadDir(directory)
+	for _, item := range files {
+		switch filepath.Ext(item.Name()) {
+		case ext:
+			return true
+		}
+	}
+
+	return false
+}
+
+func validateRuntime(runtime, installPath string) {
+
+	if _, err := exec.LookPath(runtime); err != nil {
+		log.Debug(err)
+		log.WithField("runtime", strings.Title(runtime)).Error("Runtime not found")
+		log.WithField("runtime", strings.Title(runtime)).Info("Install from:", installPath)
+	}
+
+}
+
 func init() {
 	rootCmd.AddCommand(functionsCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
 	functionsCmd.Flags().StringVarP(&funcPort, "port", "p", "7777", "Custom port to serve functions on")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
 }

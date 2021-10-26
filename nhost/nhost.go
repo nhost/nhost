@@ -26,6 +26,7 @@ import (
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
 	"github.com/koding/websocketproxy"
+	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 	"github.com/subosito/gotenv"
 
@@ -52,7 +53,7 @@ func (config *Configuration) Save() error {
 
 	log.Debug("Saving app configuration")
 
-	// convert generated Nhost configuration to YAML
+	//  convert generated Nhost configuration to YAML
 	marshalled, err := config.MarshalYAML()
 	if err != nil {
 		return err
@@ -65,7 +66,7 @@ func (config *Configuration) Save() error {
 
 	defer f.Close()
 
-	// write the marshalled YAML configuration to file
+	//  write the marshalled YAML configuration to file
 	if _, err = f.Write(marshalled); err != nil {
 		return err
 	}
@@ -75,19 +76,19 @@ func (config *Configuration) Save() error {
 	return nil
 }
 
-// Get the expected current DotNhost directory as per git branch head
+//  Get the expected current DotNhost directory as per git branch head
 func GetDotNhost() (string, error) {
 
-	// set default branch name
+	//  set default branch name
 	branch := "main"
 
-	// If the current directory is a git repository,
-	// then read the branch name from HEAD
+	//  If the current directory is a git repository,
+	//  then read the branch name from HEAD
 	if pathExists(GIT_DIR) {
 		branch = GetCurrentBranch()
 	}
 
-	return filepath.Join(WORKING_DIR, ".nhost", branch), nil
+	return filepath.Join(util.WORKING_DIR, ".nhost", branch), nil
 }
 
 func Env() ([]string, error) {
@@ -100,7 +101,7 @@ func Env() ([]string, error) {
 	pairs := gotenv.Parse(strings.NewReader(string(data)))
 	envs := []string{}
 
-	// split := strings.Split(string(data), "\n")
+	//  split := strings.Split(string(data), "\n")
 	for key, value := range pairs {
 		envs = append(envs, fmt.Sprintf("%v=%v", key, value))
 	}
@@ -112,7 +113,7 @@ func Exists() bool {
 	return pathExists(NHOST_DIR)
 }
 
-// validates whether a given folder/file path exists or not
+//  validates whether a given folder/file path exists or not
 func pathExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return err == nil
@@ -133,9 +134,9 @@ func Info() (App, error) {
 	return response, err
 }
 
-// fetches the required asset from release
-// depending on OS and Architecture
-// by matching download URL
+//  fetches the required asset from release
+//  depending on OS and Architecture
+//  by matching download URL
 func (release *Release) Asset() Asset {
 
 	log.Debug("Extracting asset from release")
@@ -154,7 +155,7 @@ func (release *Release) Asset() Asset {
 	return response
 }
 
-// fetches the details of latest binary release
+//  fetches the details of latest binary release
 func LatestRelease(source string) (Release, error) {
 
 	log.Debug("Fetching latest release")
@@ -166,7 +167,7 @@ func LatestRelease(source string) (Release, error) {
 		return response, err
 	}
 
-	// read our opened xmlFile as a byte array.
+	//  read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	defer resp.Body.Close()
@@ -176,7 +177,7 @@ func LatestRelease(source string) (Release, error) {
 	return response, nil
 }
 
-// fetches the list of Nhost production servers
+//  fetches the list of Nhost production servers
 func Servers() ([]Server, error) {
 
 	log.Debug("Fetching server locations")
@@ -188,14 +189,14 @@ func Servers() ([]Server, error) {
 		return response, err
 	}
 
-	// read our opened xmlFile as a byte array.
+	//  read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
 
 	defer resp.Body.Close()
 
 	var res map[string]interface{}
-	// we unmarshal our body byteArray which contains our
-	// jsonFile's content into 'server' strcuture
+	//  we unmarshal our body byteArray which contains our
+	//  jsonFile's content into 'server' strcuture
 	err = json.Unmarshal(body, &res)
 	if err != nil {
 		return response, err
@@ -225,11 +226,11 @@ func (c *Configuration) Wrap() error {
 		return err
 	}
 
-	// Parse additional services against supplied payload
+	//  Parse additional services against supplied payload
 	for _, name := range SERVICES {
 
-		// If no such service exists in the environment configuration,
-		// then initialize the structure for it
+		//  If no such service exists in the environment configuration,
+		//  then initialize the structure for it
 		if parsed.Services[name] == nil {
 			parsed.Services[name] = &Service{}
 		}
@@ -241,8 +242,8 @@ func (c *Configuration) Wrap() error {
 		parsed.Services[name].Name = GetContainerName(name)
 
 		/*
-			// Initialize the channel to send out [de/]activation
-			// signals to whoever needs to listen for these signals
+			//  Initialize the channel to send out [de/]activation
+			//  signals to whoever needs to listen for these signals
 			if parsed.Services[name].Active == nil {
 				parsed.Services[name].Active = make(chan bool, 10)
 			}
@@ -259,7 +260,10 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Version = "RELEASE.2021-09-24T00-24-24Z"
 			}
 
-			parsed.Services[name].Image = "minio/minio"
+			if parsed.Services[name].Image == "" {
+				parsed.Services[name].Image = "minio/minio"
+			}
+
 			parsed.Services[name].HealthEndpoint = "/minio/health/live"
 
 		case "mailhog":
@@ -272,7 +276,9 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Version = "v1.0.1"
 			}
 
-			parsed.Services[name].Image = "mailhog/mailhog"
+			if parsed.Services[name].Image == "" {
+				parsed.Services[name].Image = "mailhog/mailhog"
+			}
 
 		case "auth":
 
@@ -284,7 +290,10 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Version = "sha-b0d04e8"
 			}
 
-			parsed.Services[name].Image = "nhost/hasura-auth"
+			if parsed.Services[name].Image == "" {
+				parsed.Services[name].Image = "nhost/hasura-auth"
+			}
+
 			parsed.Services[name].HealthEndpoint = "/healthz"
 			parsed.Services[name].Handles = []Route{
 				{Name: "Authentication", Source: "/", Destination: "/v1/auth/", Show: true},
@@ -301,7 +310,10 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Version = "sha-e7fc9c9"
 			}
 
-			parsed.Services[name].Image = "nhost/hasura-storage"
+			if parsed.Services[name].Image == "" {
+				parsed.Services[name].Image = "nhost/hasura-storage"
+			}
+
 			parsed.Services[name].HealthEndpoint = "/healthz"
 			parsed.Services[name].Handles = []Route{
 				{Name: "Storage", Source: "/", Destination: "/v1/storage/", Show: true},
@@ -314,8 +326,13 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Port = GetPort(5000, 5999)
 			}
 
-			parsed.Services[name].Image = "nhost/postgres"
-			parsed.Services[name].Version = parsed.Services["postgres"].Version
+			if parsed.Services[name].Version == nil {
+				parsed.Services[name].Version = "12-v0.0.6"
+			}
+
+			if parsed.Services[name].Image == "" {
+				parsed.Services[name].Image = "nhost/postgres"
+			}
 
 		case "hasura":
 
@@ -323,9 +340,15 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Port = GetPort(9200, 9300)
 			}
 
-			parsed.Services[name].Image = parsed.Services["hasura"].Image
-			// parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
-			parsed.Services[name].Version = parsed.Services["hasura"].Version
+			if parsed.Services[name].Version == nil {
+				parsed.Services[name].Version = "v2.0.8"
+			}
+
+			if parsed.Services[name].Image == "" {
+				//  parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
+				parsed.Services[name].Image = "hasura/graphql-engine"
+			}
+
 			parsed.Services[name].HealthEndpoint = "/healthz"
 			parsed.Services[name].Handles = []Route{
 				{Name: "GraphQL", Source: "/v1/graphql", Destination: "/v1/graphql", Show: true},
@@ -339,16 +362,16 @@ func (c *Configuration) Wrap() error {
 		//	Update service address subject to their ports
 		parsed.Services[name].Address = parsed.Services[name].GetAddress()
 
-		// Initialize configuration for the service
+		//  Initialize configuration for the service
 		parsed.Services[name].InitConfig()
 	}
 
-	// update the environment configuration
+	//  update the environment configuration
 	*c = parsed
 	return nil
 }
 
-// Reset the service ID, port, address and any other fields
+//  Reset the service ID, port, address and any other fields
 func (s *Service) Reset() {
 	s.Lock()
 	s.ID = ""
@@ -356,7 +379,7 @@ func (s *Service) Reset() {
 	s.Unlock()
 }
 
-// Generate service address based on assigned port
+//  Generate service address based on assigned port
 func (s *Service) GetAddress() string {
 
 	switch s.Name {
@@ -367,11 +390,11 @@ func (s *Service) GetAddress() string {
 	}
 }
 
-// start a fresh container in background and connect it to specified network
+//  start a fresh container in background and connect it to specified network
 func (s *Service) Run(client *client.Client, ctx context.Context, networkID string) error {
 
-	// first search if the container already exists
-	// if it does, use that one
+	//  first search if the container already exists
+	//  if it does, use that one
 	if s.ID != "" {
 
 		log.WithFields(logrus.Fields{
@@ -382,8 +405,8 @@ func (s *Service) Run(client *client.Client, ctx context.Context, networkID stri
 
 	} else {
 
-		// if the container doesn't already exist,
-		// create a new one and attach it to the network
+		//  if the container doesn't already exist,
+		//  create a new one and attach it to the network
 
 		log.WithFields(logrus.Fields{
 			"type":      "container",
@@ -395,20 +418,20 @@ func (s *Service) Run(client *client.Client, ctx context.Context, networkID stri
 			return err
 		}
 
-		// Save the it's ID for future use
+		//  Save the it's ID for future use
 		s.ID = service.ID
 
-		// Connect the newly created container to Nhost docker network
+		//  Connect the newly created container to Nhost docker network
 		if err := client.NetworkConnect(ctx, networkID, s.ID, nil); err != nil {
 			return err
 		}
 
-		// Start the newly created container
+		//  Start the newly created container
 		return s.Run(client, ctx, networkID)
 
 	}
 	/*
-		// avoid using the code below if you want to run the containers in background
+		//  avoid using the code below if you want to run the containers in background
 
 		statusCh, errCh := client.ContainerWait(ctx, cont.ID, container.WaitConditionNotRunning)
 		select {
@@ -421,8 +444,8 @@ func (s *Service) Run(client *client.Client, ctx context.Context, networkID stri
 	*/
 }
 
-// Fetches container's configuration, mount points and host configuration,
-// and validates them against configuration initialized by Nhost for it's respective service.
+//  Fetches container's configuration, mount points and host configuration,
+//  and validates them against configuration initialized by Nhost for it's respective service.
 func (s *Service) Inspect(client *client.Client, ctx context.Context) error {
 
 	log.WithFields(logrus.Fields{
@@ -435,7 +458,7 @@ func (s *Service) Inspect(client *client.Client, ctx context.Context) error {
 		return err
 	}
 
-	// Validate the fetched configuration against the loaded one
+	//  Validate the fetched configuration against the loaded one
 	if data.Config == s.Config && data.HostConfig == s.HostConfig {
 		return nil
 	}
@@ -443,7 +466,7 @@ func (s *Service) Inspect(client *client.Client, ctx context.Context) error {
 	return errors.New("invalid configuration")
 }
 
-// Checks whether the service's container already exists. Returns container ID string if true.
+//  Checks whether the service's container already exists. Returns container ID string if true.
 func (s *Service) Exists(client *client.Client, ctx context.Context) string {
 
 	log.WithFields(logrus.Fields{
@@ -556,36 +579,36 @@ func (s *Service) InitConfig() {
 		ExposedPorts: nat.PortSet{nat.Port(fmt.Sprint(s.Port)): struct{}{}},
 	}
 	s.HostConfig = &container.HostConfig{
-		// AutoRemove:   true,
+		//  AutoRemove:   true,
 		PortBindings: map[nat.Port][]nat.PortBinding{nat.Port(fmt.Sprintf("%v", s.Port)): {{HostIP: "127.0.0.1", HostPort: fmt.Sprintf("%v", s.Port)}}},
 		RestartPolicy: container.RestartPolicy{
 			Name: "always",
 		},
-		// running following commands on launch were throwing errors,
-		// server is running and responding absolutely fine without these commands
+		//  running following commands on launch were throwing errors,
+		//  server is running and responding absolutely fine without these commands
 		//Cmd:          []string{"graphql-engine", "serve"},
 	}
 }
 
-// Sends out the activation signal
-// to whoever is listening,
-// or whichever resource is waiting for this signal
+//  Sends out the activation signal
+//  to whoever is listening,
+//  or whichever resource is waiting for this signal
 func (s *Service) Activate() {
 	s.Lock()
 	s.Active = true
 	s.Unlock()
 }
 
-// Sends out the de-activation signal
-// to whoever is listening,
-// or whichever resource is waiting for this signal
+//  Sends out the de-activation signal
+//  to whoever is listening,
+//  or whichever resource is waiting for this signal
 func (s *Service) Deactivate() {
 	s.Lock()
 	s.Active = false
 	s.Unlock()
 }
 
-// Stops given container
+//  Stops given container
 func (s *Service) Stop(client *client.Client, ctx context.Context) error {
 
 	log.WithFields(logrus.Fields{
@@ -597,7 +620,7 @@ func (s *Service) Stop(client *client.Client, ctx context.Context) error {
 	return client.ContainerStop(ctx, s.ID, &timeout)
 }
 
-// Removes given container
+//  Removes given container
 func (s *Service) Remove(client *client.Client, ctx context.Context) error {
 
 	log.WithFields(logrus.Fields{
@@ -607,7 +630,7 @@ func (s *Service) Remove(client *client.Client, ctx context.Context) error {
 
 	removeOptions := types.ContainerRemoveOptions{
 		RemoveVolumes: true,
-		// RemoveLinks:   true,
+		//  RemoveLinks:   true,
 		Force: true,
 	}
 
@@ -617,13 +640,13 @@ func (s *Service) Remove(client *client.Client, ctx context.Context) error {
 func (config *Configuration) Init(port string) error {
 
 	//
-	// This section initializes any environment variables,
-	// commands or mount points required by containers
+	//  This section initializes any environment variables,
+	//  commands or mount points required by containers
 	//
 
 	log.Debug("Configuring services")
 
-	// segregate configurations for different services
+	//  segregate configurations for different services
 	postgresConfig := config.Services["postgres"]
 	hasuraConfig := config.Services["hasura"]
 	storageConfig := config.Services["storage"]
@@ -631,14 +654,14 @@ func (config *Configuration) Init(port string) error {
 	minioConfig := config.Services["minio"]
 	mailhogConfig := config.Services["mailhog"]
 
-	// load .env.development
-	envVars, _ := Env()
+	//  load .env.development
+	devVars, _ := Env()
 
-	// properly log the location from where you are mounting the data
-	dataTarget, _ := filepath.Rel(WORKING_DIR, DOT_NHOST)
+	//  properly log the location from where you are mounting the data
+	dataTarget, _ := filepath.Rel(util.WORKING_DIR, DOT_NHOST)
 	log.WithField("service", "data").Debugln("Mounting data from ", dataTarget)
 
-	// create mount points if they doesn't exist
+	//  create mount points if they doesn't exist
 	mountPoints := []mount.Mount{
 		{
 			Type:   mount.TypeBind,
@@ -660,52 +683,41 @@ func (config *Configuration) Init(port string) error {
 		"POSTGRES_PASSWORD=postgres",
 	}
 
-	// append service specific environment variables
+	//  append service specific environment variables
 	for key, value := range postgresConfig.Environment {
 		postgresConfig.Config.Env = append(postgresConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
 
-	// prepare env variables for following container
+	//  prepare env variables for following container
 	containerVariables := []string{
 		fmt.Sprintf("HASURA_GRAPHQL_SERVER_PORT=%v", config.Services["hasura"].Port),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		"HASURA_GRAPHQL_ENABLE_CONSOLE=false",
 		"HASURA_GRAPHQL_ENABLED_LOG_TYPES=startup, http-log, webhook-log, websocket-log, query-log",
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
-		fmt.Sprintf("NHOST_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT=%d", 20),
 		fmt.Sprintf("HASURA_GRAPHQL_NO_OF_RETRIES=%d", 20),
 		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE=public",
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
-		fmt.Sprintf("NHOST_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
-		fmt.Sprintf("NHOST_WEBHOOK_SECRET=%v", WEBHOOK_SECRET),
 	}
-	containerVariables = append(containerVariables, envVars...)
 
-	// append service specific environment variables
+	//	Append .env.development variables
+	containerVariables = append(containerVariables, devVars...)
+
+	//  Append service specific environment variables
 	for key, value := range hasuraConfig.Environment {
 		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
 
-	// Append NHOST_FUNCTIONS env var to Hasura
-	// to allow NHOST_FUNCTIONS to be reachable from Hasura Event Triggers.
-	// This is being done over here, because development proxy port is required
-	var localhost string
-	switch runtime.GOOS {
-	case "darwin", "windows":
-		localhost = "host.docker.internal"
-	default:
-		localhost = fmt.Sprint(getOutboundIP())
-	}
+	//  Append network based runtime variables,
+	//  to allow NHOST FUNCTIONS, and other addresses,
+	//	to be reachable from Hasura Event Triggers.
+	//  This is being done over here, because development proxy port is required.
 	containerVariables = append(
 		containerVariables,
-		fmt.Sprintf("NHOST_FUNCTIONS=http://%s:%v/v1/functions", localhost, port),
-		fmt.Sprintf("LOCALHOST=http://%s", localhost),
-		fmt.Sprintf("NHOST_BACKEND_URL=http://%s:%v", localhost, port),
+		util.MapToStringArray(util.RuntimeVars(port, true))...,
 	)
 
 	/*
-		// create mount points if they doesn't exist
+		//  create mount points if they doesn't exist
 		mountPoints = []mount.Mount{
 				{
 					Type:   mount.TypeBind,
@@ -714,14 +726,14 @@ func (config *Configuration) Init(port string) error {
 				},
 		}
 
-					// parse the metadata directory tree
+					//  parse the metadata directory tree
 					meta_files, err := ioutil.ReadDir(METADATA_DIR)
 					if err != nil {
 						log.Error("Failed to parse the tree of metadata directory")
 						return err
 					}
 
-					// mount the metadata directory if meta files exist
+					//  mount the metadata directory if meta files exist
 					if len(meta_files) > 0 {
 						mountPoints = append(mountPoints, mount.Mount{
 							Type:   mount.TypeBind,
@@ -742,7 +754,7 @@ func (config *Configuration) Init(port string) error {
 	//	hasuraConfig.Config.Cmd = append(hasuraConfig.Config.Cmd, "export", "$(grep -v '^#' /env_file | xargs)")
 	hasuraConfig.Config.Env = containerVariables
 
-	// create mount points if they doesn't exit
+	//  create mount points if they doesn't exit
 	mountPoints = []mount.Mount{
 		{
 			Type:   mount.TypeBind,
@@ -768,7 +780,7 @@ func (config *Configuration) Init(port string) error {
 		"MINIO_ROOT_PASSWORD=minioaccesskey123123",
 	}
 
-	// append service specific environment variables
+	//  append service specific environment variables
 	for key, value := range minioConfig.Environment {
 		minioConfig.Config.Env = append(minioConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
@@ -780,31 +792,34 @@ func (config *Configuration) Init(port string) error {
 	//User:  "999:1001",
 	minioConfig.Config.Entrypoint = []string{"sh"}
 
-	// prepare env variables for following container
+	//  prepare env variables for following container
 	containerVariables = []string{
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		fmt.Sprintf("HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql", config.Services["hasura"].Name, config.Services["hasura"].Port),
-		fmt.Sprintf("HASURA_GRAPHQL_JWT_SECRET=%v", fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY)),
 		fmt.Sprintf("AUTH_PORT=%v", config.Services["auth"].Port),
 		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v/v1/auth", port),
-		//	fmt.Sprintf("AUTH_CLIENT_URL=http://localhost:%v", "3000"),
 		fmt.Sprintf("AUTH_CLIENT_URL=%v", config.Auth["client_url"]),
 
-		// set the defaults
+		//  set the defaults
 		"AUTH_LOG_LEVEL=info",
 		"AUTH_HOST=0.0.0.0",
 	}
 
-	// append social auth credentials and other env vars
+	//	Append runtime variables
+	containerVariables = append(
+		containerVariables,
+		util.MapToStringArray(util.RuntimeVars(port, true))...,
+	)
+
+	//  append social auth credentials and other env vars
 	containerVariables = append(containerVariables, ParseEnvVarsFromConfig(config.Auth, "AUTH")...)
 
-	// append service specific environment variables
+	//  append service specific environment variables
 	for key, value := range authConfig.Environment {
 		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
 
-	// create mount point if it doesn't exit
+	//  create mount point if it doesn't exit
 	customMountPoint := filepath.Join(DOT_NHOST, "custom", "keys")
 	if err := os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
 		log.Errorf("Failed to create %s directory", customMountPoint)
@@ -826,16 +841,15 @@ func (config *Configuration) Init(port string) error {
 		},
 	}
 
-	// prepare env variables for following container
+	//  prepare env variables for following container
 	containerVariables = []string{
 		fmt.Sprintf("STORAGE_PORT=%v", config.Services["storage"].Port),
 		fmt.Sprintf("STORAGE_PUBLIC_URL=%v", config.Services["storage"].Address),
 		"HASURA_GRAPHQL_GRAPHQL_URL=" + fmt.Sprintf(`http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
-		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%v", ADMIN_SECRET),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
 		fmt.Sprintf("S3_ENDPOINT=http://%s:%v", config.Services["minio"].Name, config.Services["minio"].Port),
 
-		// additional default
+		//  additional default
 		"S3_ACCESS_KEY=minioaccesskey123123",
 		"S3_SECRET_KEY=minioaccesskey123123",
 		"STORAGE_HOST=0.0.0.0",
@@ -846,17 +860,23 @@ func (config *Configuration) Init(port string) error {
 		"S3_BUCKET=nhost",
 	}
 
-	// append service specific environment variables
+	//	Append runtime variables
+	containerVariables = append(
+		containerVariables,
+		util.MapToStringArray(util.RuntimeVars(port, true))...,
+	)
+
+	//  append service specific environment variables
 	for key, value := range storageConfig.Environment {
 		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
 
-	// append storage env vars
+	//  append storage env vars
 	containerVariables = append(containerVariables, ParseEnvVarsFromConfig(config.Storage, "STORAGE")...)
 	storageConfig.Config.Env = containerVariables
 
-	// prepare env variables for following container
-	//	containerVariables = appendEnvVars(config.Auth["smtp"].(map[interface{}]interface{}), "SMTP")
+	//  prepare env variables for following container
+	//	containerVariables = appenddevVars(config.Auth["smtp"].(map[interface{}]interface{}), "SMTP")
 	var smtpPort int
 	for _, item := range authVars {
 		payload := strings.Split(item, "=")
@@ -877,7 +897,7 @@ func (config *Configuration) Init(port string) error {
 		*/
 	}
 
-	// append service specific environment variables
+	//  append service specific environment variables
 	for key, value := range mailhogConfig.Environment {
 		containerVariables = append(containerVariables, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
 	}
@@ -902,8 +922,8 @@ func (config *Configuration) Init(port string) error {
 	return nil
 }
 
-// fetches the logs of a specific container
-// and writes them to a log file
+//  fetches the logs of a specific container
+//  and writes them to a log file
 func (s *Service) Logs(cli *client.Client, ctx context.Context) ([]byte, error) {
 
 	log.WithFields(logrus.Fields{
@@ -939,39 +959,28 @@ func (s *Service) Exec(docker *client.Client, ctx context.Context, command []str
 	return docker.ContainerExecCreate(ctx, s.ID, config)
 }
 
-// generates fresh config.yaml for /nhost dir
+//  generates fresh config.yaml for /nhost dir
 func GenerateConfig(options App) Configuration {
 
 	log.Debug("Generating app configuration")
 
 	hasura := Service{
-		Version: "v2.0.7",
-		Image:   "hasura/graphql-engine",
 		Environment: map[string]interface{}{
 			"hasura_graphql_enable_remote_schema_permissions": false,
 		},
 	}
 
-	/*
-		// check if a loaded remote project has been passed
-		if options.HasuraGQEVersion != "" {
-			hasura.Version = options.HasuraGQEVersion
-		}
-
-		if options.PostgresVersion != "" {
-			postgres.Version = options.PostgresVersion
-		}
-	*/
-
-	postgres := Service{
-		Version: "12-v0.0.6",
+	//	Hasura's image is still not natively working on Apple Silicon.
+	//	If it's an Apple Silicon processor,
+	//	then add the custom Hasura image, as a temporary fix.
+	if runningSilicon() {
+		hasura.Image = "fedormelexin/graphql-engine-arm64"
 	}
 
 	return Configuration{
 		Version: 3,
 		Services: map[string]*Service{
-			"postgres": &postgres,
-			"hasura":   &hasura,
+			"hasura": &hasura,
 		},
 		MetadataDirectory: "metadata",
 		Storage: map[interface{}]interface{}{
@@ -1155,7 +1164,7 @@ func (s *Session) Spawn() {
 		if filepath.IsAbs(s.Dir) {
 			cmd.Dir = s.Dir
 		} else {
-			cmd.Dir = filepath.Join(WORKING_DIR, s.Dir)
+			cmd.Dir = filepath.Join(util.WORKING_DIR, s.Dir)
 		}
 	}
 
@@ -1166,32 +1175,32 @@ func (s *Session) Spawn() {
 	}
 }
 
-// fetches saved credentials from auth file
+//  fetches saved credentials from auth file
 func LoadCredentials() (Credentials, error) {
 
 	log.Debug("Fetching saved auth credentials")
 
-	// we initialize our credentials array
+	//  we initialize our credentials array
 	var credentials Credentials
 
-	// Open our jsonFile
+	//  Open our jsonFile
 	jsonFile, err := os.Open(AUTH_PATH)
-	// if we os.Open returns an error then handle it
+	//  if we os.Open returns an error then handle it
 	if err != nil {
 		return credentials, err
 	}
 
-	// defer the closing of our jsonFile so that we can parse it later on
+	//  defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 
-	// read our opened xmlFile as a byte array.
+	//  read our opened xmlFile as a byte array.
 	byteValue, err := ioutil.ReadAll(jsonFile)
 	if err != nil {
 		return credentials, err
 	}
 
-	// we unmarshal our byteArray which contains our
-	// jsonFile's content into 'credentials' which we defined above
+	//  we unmarshal our byteArray which contains our
+	//  jsonFile's content into 'credentials' which we defined above
 	err = json.Unmarshal(byteValue, &credentials)
 
 	return credentials, err

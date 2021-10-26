@@ -29,14 +29,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// logoutCmd represents the logout command
+//  logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
 	Short: "Log out from your Nhost account",
 	Long:  "Remove locally installed authentication configuration, and log out from your Nhost account.",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// check if auth file exists
+		//  check if auth file exists
 		if !util.PathExists(nhost.AUTH_PATH) {
 			log.Fatal(ErrNotLoggedIn)
 		} else {
@@ -55,13 +55,13 @@ var logoutCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(logoutCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// logoutCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
+	//  logoutCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// logoutCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
+	//  logoutCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

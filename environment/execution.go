@@ -8,25 +8,25 @@ import (
 	"github.com/nhost/cli/util"
 )
 
-// Explain what it does
+//  Explain what it does
 func (e *Environment) Execute() error {
 
 	var err error
 
-	// Update environment state
+	//  Update environment state
 	e.UpdateState(Executing)
 
 	//	Cancel the execution context as soon as this function completed
 	defer e.ExecutionCancel()
 
-	// check if this is the first time dev env is running
+	//  check if this is the first time dev env is running
 	firstRun := !util.PathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
 	if firstRun {
 		log.Info("First run takes longer, please be patient")
 	}
 
-	// Validate the availability of required docker images,
-	// and download the ones that are missing
+	//  Validate the availability of required docker images,
+	//  and download the ones that are missing
 	if err := e.CheckImages(); err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (e *Environment) Execute() error {
 		return err
 	}
 
-	// create and start the conatiners
+	//	Create and start the containers
 	for _, item := range e.Config.Services {
 
 		//	Only those services which have a container configuration
@@ -70,23 +70,24 @@ func (e *Environment) Execute() error {
 	//	Wrap fetched containers as services in the environment
 	_ = e.WrapContainersAsServices(containers)
 
+	log.Info("Running a quick health check on services")
 	if err := e.HealthCheck(e.ExecutionContext); err != nil {
 		return err
 	}
 
-	// Now that Hasura container is active,
-	// initialize the Hasura client.
+	//  Now that Hasura container is active,
+	//  initialize the Hasura client.
 	e.Hasura = &hasura.Client{}
 	if err := e.Hasura.Init(
 		e.Config.Services["hasura"].Address,
-		nhost.ADMIN_SECRET,
+		util.ADMIN_SECRET,
 		nil,
 	); err != nil {
 		return err
 	}
 
 	//
-	// Apply migrations and metadata
+	//  Apply migrations and metadata
 	//
 	log.Info("Preparing your data")
 	if err = e.Prepare(); err != nil {
@@ -94,7 +95,7 @@ func (e *Environment) Execute() error {
 	}
 
 	//
-	// Apply Seeds if required
+	//  Apply Seeds if required
 	//
 	if firstRun && util.PathExists(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)) {
 		if err = e.Seed(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)); err != nil {

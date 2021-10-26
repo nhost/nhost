@@ -41,13 +41,13 @@ type (
 		Value string `json:"devValue,omitempty"`
 	}
 
-	// Error structure
+	//  Error structure
 	Error struct {
 		Code  string
 		Email string
 	}
 
-	// Authentication validation response
+	//  Authentication validation response
 	Response struct {
 		Project           Project `json:",omitempty"`
 		User              User
@@ -57,7 +57,7 @@ type (
 		VerifiedToken     string `json:"token"`
 	}
 
-	// Nhost individual team structure
+	//  Nhost individual team structure
 	TeamData struct {
 		Team Team `json:",omitempty"`
 	}
@@ -68,7 +68,7 @@ type (
 		Projects []Project `json:",omitempty"`
 	}
 
-	// Nhost project structure
+	//  Nhost project structure
 	Project struct {
 		ID                          string                   `json:"id" yaml:"project_id"`
 		UserID                      string                   `json:"user_id"`
@@ -89,12 +89,12 @@ type (
 		ProjectEnvVars              []map[string]interface{} `json:"project_env_vars,omitempty"`
 	}
 
-	// Nhost project domains
+	//  Nhost project domains
 	Domains struct {
 		Hasura string `json:"hasura_domain,omitempty"`
 	}
 
-	// Session struct
+	//  Session struct
 	Session struct {
 		Command string
 		Dir     string
@@ -102,7 +102,7 @@ type (
 		Browser string
 	}
 
-	// Nhost config.yaml root structure
+	//  Nhost config.yaml root structure
 	Configuration struct {
 		MetadataDirectory string                      `yaml:"metadata_directory,omitempty"`
 		Services          map[string]*Service         `yaml:",omitempty"`
@@ -110,10 +110,10 @@ type (
 		Storage           map[interface{}]interface{} `yaml:",omitempty"`
 		Version           int                         `yaml:",omitempty"`
 		Sessions          map[string]Session          `yaml:",omitempty"`
-		// Environment       map[string]interface{} `yaml:",omitempty"`
+		//  Environment       map[string]interface{} `yaml:",omitempty"`
 	}
 
-	// Nhost config.yaml authentication structure
+	//  Nhost config.yaml authentication structure
 	Authentication struct {
 		Endpoints map[string]interface{} `yaml:",omitempty"`
 		Providers map[string]interface{} `yaml:",omitempty"`
@@ -124,7 +124,7 @@ type (
 		Gravatar  map[string]interface{} `yaml:",omitempty"`
 	}
 
-	// Nhost config.yaml service structure
+	//  Nhost config.yaml service structure
 	Service struct {
 		Port    int         `yaml:",omitempty"`
 		Version interface{} `yaml:",omitempty"`
@@ -140,10 +140,10 @@ type (
 		HealthEndpoint string                 `yaml:",omitempty"`
 		Environment    map[string]interface{} `yaml:",omitempty"`
 
-		// Channels are best thought of as queues (FIFO).
-		// Therefore you can't really skip around.
-		// We need a mutex to lock the service
-		// before updating it's channels.
+		//  Channels are best thought of as queues (FIFO).
+		//  Therefore you can't really skip around.
+		//  We need a mutex to lock the service
+		//  before updating it's channels.
 		sync.Mutex `yaml:",omitempty"`
 		Active     bool `yaml:",omitempty"`
 
@@ -152,14 +152,14 @@ type (
 		//	Handler func(http.ResponseWriter, *http.Request) `yaml:",omitempty"`
 	}
 
-	// .nhost/nhost.yaml information
+	//  .nhost/nhost.yaml information
 	Information struct {
 		ProjectID string `yaml:"project_id,omitempty"`
 		ID        string `yaml:",omitempty"`
 		Name      string `yaml:",omitempty"`
 	}
 
-	// Nhost servers structure
+	//  Nhost servers structure
 	Server struct {
 		ID          string
 		Name        string
@@ -167,13 +167,13 @@ type (
 		City        string
 	}
 
-	// Authentication credentials structure
+	//  Authentication credentials structure
 	Credentials struct {
 		ID    string `json:"id,omitempty"`
 		Token string `json:"token,omitempty"`
 	}
 
-	// GitHub Release API reponse structure
+	//  GitHub Release API reponse structure
 	Release struct {
 		URL         string  `json:",omitempty"`
 		Name        string  `json:",omitempty"`
@@ -185,7 +185,7 @@ type (
 		Assets      []Asset `json:",omitempty"`
 	}
 
-	// GitHub Release API Assets structure
+	//  GitHub Release API Assets structure
 	Asset struct {
 		URL                string `json:",omitempty"`
 		Name               string `json:",omitempty"`

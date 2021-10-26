@@ -17,20 +17,20 @@ type (
 
 		Name string
 
-		// Records the current state of the environment
+		//  Records the current state of the environment
 		State State
 
 		//	Channel in which state changes are updated for listeners
 		//	stateChan chan State
 
-		// List of all HTTP servers registered with our environment.
+		//  List of all HTTP servers registered with our environment.
 		Servers []*http.Server
 
-		// Parent cancellable context
+		//  Parent cancellable context
 		Context context.Context
 		Cancel  context.CancelFunc
 
-		// Execution specific cancellable context
+		//  Execution specific cancellable context
 		ExecutionContext context.Context
 		ExecutionCancel  context.CancelFunc
 

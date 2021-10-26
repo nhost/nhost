@@ -1,7 +1,6 @@
 package nhost
 
 import (
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
@@ -11,21 +10,9 @@ import (
 	"runtime"
 	"strconv"
 	"strings"
+	"syscall"
 	"time"
 )
-
-// Get preferred outbound ip of this machine
-func getOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return nil
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
-}
 
 func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) []string {
 	var response []string
@@ -42,30 +29,23 @@ func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) 
 	return response
 }
 
-// generate a random 128 byte key
-func generateRandomKey(len int) string {
-	key := make([]byte, len)
-	rand.Read(key)
-	return hex.EncodeToString(key)
-}
-
 func GetPort(low, hi int) int {
 
 	//
-	// Initialize the seed
+	//  Initialize the seed
 	//
-	// This is done to prevent Go from choosing pseudo-random numbers
+	//  This is done to prevent Go from choosing pseudo-random numbers
 	rand.Seed(time.Now().UnixNano())
 
-	// generate a random port value
+	//  generate a random port value
 	port := strconv.Itoa(low + rand.Intn(hi-low))
 
-	// validate wehther the port is available
+	//  validate wehther the port is available
 	if !PortAvaiable(port) {
 		return GetPort(low, hi)
 	}
 
-	// return the value, if it's available
+	//  return the value, if it's available
 	response, _ := strconv.Atoi(port)
 	return response
 }
@@ -113,4 +93,17 @@ func GetCurrentBranch() string {
 	}
 	payload := strings.Split(string(data), " ")
 	return strings.TrimSpace(filepath.Base(payload[1]))
+}
+
+//	Detects whether the host machine is running on Apple Silicon processor.
+func runningSilicon() bool {
+
+	r, err := syscall.Sysctl("sysctl.proc_translated")
+	if err != nil {
+		if err.Error() == "no such file or directory" {
+			return false
+		}
+	}
+
+	return r == "\x00\x00\x00" || r == "\x01\x00\x00"
 }

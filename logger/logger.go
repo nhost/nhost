@@ -19,12 +19,12 @@ var (
 
 func Init() {
 
-	// initialize the Logger for all commands,
-	// including subcommands
+	//  initialize the Logger for all commands,
+	//  including subcommands
 
 	Log.SetOutput(colorable.NewColorableStdout())
 
-	// initialize Logger formatter
+	//  initialize Logger formatter
 	formatter := &Formatter{
 		HideKeys:      true,
 		ShowFullLevel: true,
@@ -32,26 +32,26 @@ func Init() {
 		Timestamps:    false,
 	}
 
-	// if DEBUG flag is true, show Logger level to debug
+	//  if DEBUG flag is true, show Logger level to debug
 	if DEBUG {
 		Log.SetLevel(logrus.DebugLevel)
 	}
 
-	// if JSON flag has been supplied,
-	// format the Logs to JSON
+	//  if JSON flag has been supplied,
+	//  format the Logs to JSON
 	if JSON {
 		Log.SetFormatter(&logrus.JSONFormatter{
 			TimestampFormat: time.Stamp,
 		})
 	} else {
 
-		// otherwise set the pre-configured formatter
+		//  otherwise set the pre-configured formatter
 		Log.SetFormatter(formatter)
 	}
 
-	// if the user has specified a Log write,
+	//  if the user has specified a Log write,
 	//simultaneously write Logs to that file as well
-	// along with stdOut
+	//  along with stdOut
 
 	if LOG_FILE != "" {
 

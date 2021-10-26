@@ -35,10 +35,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// initialize flag to bypass approval prompt
+//  initialize flag to bypass approval prompt
 var approve bool
 
-// uninstallCmd removed Nhost CLI from system
+//  uninstallCmd removed Nhost CLI from system
 var uninstallCmd = &cobra.Command{
 	Use:   "uninstall",
 	Short: "Remove the installed CLI from system permanently",
@@ -49,11 +49,11 @@ but without hurting local Nhost apps and their data.`,
 		log.Warn("This will permanently remove the installed CLI utility")
 		log.Info("This, however, won't affect your existing Nhost apps and their data")
 
-		// if the use has not pre-approved the uninstall,
-		// take the user's approval manually
+		//  if the use has not pre-approved the uninstall,
+		//  take the user's approval manually
 		if !approve {
 
-			// configure interative prompt
+			//  configure interative prompt
 			prompt := promptui.Prompt{
 				Label:     "Are you sure you want to continue",
 				IsConfirm: true,
@@ -66,13 +66,13 @@ but without hurting local Nhost apps and their data.`,
 
 		}
 
-		// first delete the Nhost Root directory
+		//  first delete the Nhost Root directory
 		if err := util.DeleteAllPaths(nhost.ROOT); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to delete ", filepath.Base(nhost.ROOT))
 		}
 
-		// now delete the installed binary
+		//  now delete the installed binary
 		cli, err := exec.LookPath("nhost")
 		if err != nil {
 			log.Debug(err)
@@ -83,7 +83,7 @@ but without hurting local Nhost apps and their data.`,
 			log.Fatal("Failed to delete the installed binary from ", cli)
 		}
 
-		// remove NHOST ROOT Dir as well
+		//  remove NHOST ROOT Dir as well
 		if err := util.DeleteAllPaths(nhost.ROOT); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to delete Nhost root directory", nhost.ROOT)
@@ -96,12 +96,12 @@ but without hurting local Nhost apps and their data.`,
 func init() {
 	rootCmd.AddCommand(uninstallCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
 	uninstallCmd.Flags().BoolVarP(&approve, "approve", "a", false, "Approve uninstall")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
 }

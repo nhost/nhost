@@ -42,11 +42,13 @@ var (
 	remote  bool
 )
 
-// initCmd represents the init command
+//  initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:                "init",
-	Short:              "Initialize current directory as Nhost app",
-	Long:               `Initialize current working directory as an Nhost application.`,
+	Use:   "init [--remote]",
+	Short: "Initialize current directory as Nhost app",
+	Long: `Initialize current working directory as an Nhost application.
+
+--remote flag must be added in the of the command.`,
 	DisableFlagParsing: true,
 	PreRun: func(cmd *cobra.Command, args []string) {
 
@@ -98,19 +100,19 @@ var initCmd = &cobra.Command{
 
 		var selectedProject nhost.App
 
-		// if user has already passed remote_project as a flag,
-		// then fetch list of remote projects,
-		// iterate through those projects and filter that project
+		//  if user has already passed remote_project as a flag,
+		//  then fetch list of remote projects,
+		//  iterate through those projects and filter that project
 		if remote {
 
-			// validate authentication
+			//  validate authentication
 			user, err := getUser(nhost.AUTH_PATH)
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to fetch user information")
 			}
 
-			// concatenate personal and team projects
+			//  concatenate personal and team projects
 			projects := prepareAppList(user)
 
 			if len(projects) == 0 {
@@ -119,7 +121,7 @@ var initCmd = &cobra.Command{
 				return
 			}
 
-			// if flag is empty, present selection list
+			//  if flag is empty, present selection list
 			if project != "" {
 
 				for _, item := range projects {
@@ -134,7 +136,7 @@ var initCmd = &cobra.Command{
 				}
 			} else {
 
-				// configure interactive prompt template
+				//  configure interactive prompt template
 				templates := promptui.SelectTemplates{
 					//Label:    "{{ . }}?",
 					Active:   `{{ "✔" | green | bold }} {{ .Name | cyan | bold }} {{ .Workspace | faint }}`,
@@ -142,7 +144,7 @@ var initCmd = &cobra.Command{
 					Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Name | cyan }}  {{ .Workspace | faint }}`,
 				}
 
-				// configure interative prompt
+				//  configure interative prompt
 				prompt := promptui.Select{
 					Label:     "Select app",
 					Items:     projects,
@@ -164,27 +166,36 @@ var initCmd = &cobra.Command{
 				log.Debug(err)
 				log.WithField("component", filepath.Base(*dir)).Fatal("Failed to create directory")
 			}
+			log.Debug("Created ", util.Rel(*dir))
 		}
 
 		//	if required files don't exist, then create them
 		for _, file := range requiredFiles {
-			if _, err := os.Create(*file); err != nil {
-				log.Debug(err)
-				log.WithField("component", filepath.Base(*file)).Fatal("Failed to create file")
+
+			//	#106: Don't create file if it already exists.
+			//	Otherwise, it will reset the contents of the file.
+			if !util.PathExists(*file) {
+				if _, err := os.Create(*file); err != nil {
+					log.Debug(err)
+					log.WithField("component", filepath.Base(*file)).Fatal("Failed to create file")
+				}
+				log.Debug("Created ", util.Rel(*file))
+			} else {
+				log.Debug("Found existing ", util.Rel(*file))
 			}
 		}
 
-		// generate Nhost configuration
-		// which will contain the information for GraphQL, Minio and other services
+		//  generate Nhost configuration
+		//  which will contain the information for GraphQL, Minio and other services
 		nhostConfig := nhost.GenerateConfig(selectedProject)
 
-		// save the Nhost configuration
+		//  save the Nhost configuration
 		if err := nhostConfig.Save(); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to save Nhost configuration")
 		}
 
-		// save the default templates
+		//  save the default templates
 		for _, item := range entities {
 			if item.Default {
 
@@ -196,14 +207,16 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		// append to .gitignore
+		//  append to .gitignore
+		log.Debug("Writing ", util.Rel(nhost.GITIGNORE))
 		if err := writeToFile(
 			nhost.GITIGNORE,
-			fmt.Sprintf("%v\n%v\n%v\n%v",
-				nhost.DOT_NHOST,
-				filepath.Join(nhost.WEB_DIR, "node_modules"),
-				filepath.Join(nhost.WORKING_DIR, "node_modules"),
-				filepath.Join(nhost.API_DIR, "node_modules")), "end"); err != nil {
+			strings.Join([]string{
+				".nhost",
+				util.Rel(filepath.Join(nhost.WEB_DIR, "node_modules")),
+				util.Rel(filepath.Join(util.WORKING_DIR, "node_modules")),
+				util.Rel(filepath.Join(nhost.API_DIR, "node_modules")),
+			}, "\n"), "end"); err != nil {
 			log.Debug(err)
 			log.Error("Failed to write to .gitignore file")
 		}
@@ -221,7 +234,7 @@ var initCmd = &cobra.Command{
 			adminSecret := selectedProject.GraphQLAdminSecret
 			//	adminSecret := "hasura-admin-secret"
 
-			// create new hasura client
+			//  create new hasura client
 			hasuraClient := hasura.Client{}
 			if err := hasuraClient.Init(hasuraEndpoint, adminSecret, nil); err != nil {
 				log.Debug(err)
@@ -230,26 +243,27 @@ var initCmd = &cobra.Command{
 
 			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
 
-			// clear current migration information from remote
+			//  clear current migration information from remote
 			if err := hasuraClient.ClearMigration(); err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to clear migrations from remote")
 			}
 
-			// create migrations from remote
+			//  create migrations from remote
 			_, err := pullMigration(hasuraClient, "init", commonOptions)
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to pull migrations from remote")
 			}
 
-			// write ENV variables to .env.development
+			//  write ENV variables to .env.development
 			var envArray []string
 			for _, row := range selectedProject.EnvVars {
 				envArray = append(envArray, fmt.Sprintf(`%s=%s`, row.Name, row.Value))
 			}
 
 			envData := strings.Join(envArray, "\n")
+			log.Debug("Saving environment variables")
 			if err = writeToFile(nhost.ENV_FILE, envData, "end"); err != nil {
 				log.Debug(err)
 				log.Errorf("Failed to write app environment variables to %s file", util.Rel(nhost.ENV_FILE))
@@ -312,9 +326,9 @@ func getProviders(endpoint, secret string) ([]string, error) {
 	var responseData map[string]interface{}
 	json.Unmarshal(body, &responseData)
 
-	// Remove the first row/head and filter providers from following rows
-	// Following is a sample result:
-	// [github facebook twitter google apple linkedin windowslive]
+	//  Remove the first row/head and filter providers from following rows
+	//  Following is a sample result:
+	//  [github facebook twitter google apple linkedin windowslive]
 	result := responseData["result"].([]interface{})[1:]
 
 	for _, value := range result {
@@ -361,9 +375,9 @@ func getRoles(endpoint, secret string) ([]string, error) {
 	var responseData map[string]interface{}
 	json.Unmarshal(body, &responseData)
 
-	// Remove the first row/head and filter roles from following rows
-	// Following is a sample result:
-	// [user me anonymous]
+	//  Remove the first row/head and filter roles from following rows
+	//  Following is a sample result:
+	//  [user me anonymous]
 	result := responseData["result"].([]interface{})[1:]
 
 	for _, value := range result {
@@ -377,15 +391,15 @@ func getEnumTablesFromMetadata(filePath string) ([]string, error) {
 
 	log.Debug("Fetching enum tables from metadata")
 
-	// initalize empty list of tables from which seeds will be created
+	//  initalize empty list of tables from which seeds will be created
 	var fromTables []string
 
-	// if tables metadata file doesn't exists, return error
+	//  if tables metadata file doesn't exists, return error
 	if !pathExists(filePath) {
 		return fromTables, errors.New("metadata file doesn't exist")
 	}
 
-	// open and read the contents of the file
+	//  open and read the contents of the file
 	f, _ := ioutil.ReadFile(filePath)
 
 	var tables []Table
@@ -393,10 +407,10 @@ func getEnumTablesFromMetadata(filePath string) ([]string, error) {
 
 	for _, table := range tables {
 
-		// check if the table "is_enum: true"
+		//  check if the table "is_enum: true"
 		if table.IsEnum {
 
-			// append to seed tables if true
+			//  append to seed tables if true
 			fromTables = append(fromTables, "--from-table")
 			fromTables = append(fromTables, fmt.Sprintf(
 				`%s.%s`,
@@ -492,15 +506,15 @@ func clearMigration(endpoint, secret string) error {
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
+	//  initCmd.PersistentFlags().String("foo", "", "A help for foo")
 	initCmd.Flags().StringVarP(&project, "remote", "r", "", "Name of a remote app")
 	initCmd.Flags().BoolVarP(&approve, "yes", "y", false, "Approve & bypass app initialization prompt")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
+	//  initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -1,4 +1,4 @@
-## nhost
+# Nhost
 
 Open Source Firebase Alternative with GraphQL
 
@@ -24,9 +24,8 @@ nhost [flags]
 ### Options
 
 ```
-      --config string     config file (default is $HOME/.nhost.yaml)
   -d, --debug             Show debugging level logs
-      --endpoint string   Auth endpoint - for internal testing (default "https://nuno.nhost.dev/v1/functions")
+      --domain string     Auth domain - for internal testing (default "nhost.run")
   -h, --help              help for nhost
   -j, --json              Print JSON formatted logs
   -f, --log-file string   Write logs to given file

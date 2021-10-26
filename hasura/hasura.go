@@ -20,7 +20,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// initialize the binary path
+//  initialize the binary path
 var binaryPath = getBinary()
 
 var log = &logger.Log
@@ -34,12 +34,17 @@ func getBinary() string {
 	}
 }
 
-// if the required binary exists in $HOME/.nhost
-// this function returns it's exact path
-// and if the binary doesn't exist,
-// it downloads it from specifically supplied URL
-// based on user's OS and ARCH
+//  if the required binary exists in $HOME/.nhost
+//  this function returns it's exact path
+//  and if the binary doesn't exist,
+//  it downloads it from specifically supplied URL
+//  based on user's OS and ARCH
 func Binary() (string, error) {
+
+	//  search for installed binary
+	if pathExists(binaryPath) {
+		return binaryPath, nil
+	}
 
 	var url string
 
@@ -60,12 +65,7 @@ func Binary() (string, error) {
 
 	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, architecture)
 
-	// search for installed binary
-	if pathExists(binaryPath) {
-		return binaryPath, nil
-	}
-
-	// create the binary path
+	//  create the binary path
 	if err := os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {
 		return "", err
 	}
@@ -76,7 +76,7 @@ func Binary() (string, error) {
 
 	defer out.Close()
 
-	// update binary download URL depending upon the OS
+	//  update binary download URL depending upon the OS
 	if runtime.GOOS == "windows" {
 		url += ".exe"
 	}
@@ -96,8 +96,8 @@ func Binary() (string, error) {
 		return "", err
 	}
 
-	// Change permissions so that the download file
-	// can become accessible and executable
+	//  Change permissions so that the download file
+	//  can become accessible and executable
 	err = os.Chmod(binaryPath, 0777)
 
 	if err != nil {
@@ -105,11 +105,11 @@ func Binary() (string, error) {
 	}
 
 	//return the path at which binary has been
-	// downloaded and saved
+	//  downloaded and saved
 	return binaryPath, nil
 }
 
-// validates whether a given folder/file path exists or not
+//  validates whether a given folder/file path exists or not
 func pathExists(filePath string) bool {
 	_, err := os.Stat(filePath)
 	return err == nil
@@ -148,10 +148,10 @@ func (c *Client) GetSchemas() ([]string, error) {
 	var responseData map[string]interface{}
 	json.Unmarshal(body, &responseData)
 
-	// Remove the first row/head and filter schemas from following rows
-	// Following is a sample result:
-	// From the list: [schema_name] [pg_toast] [pg_temp_1] [pg_toast_temp_1] [pg_catalog] [public] [information_schema] [hdb_catalog] [hdb_views] [auth]
-	// Only output: [public]
+	//  Remove the first row/head and filter schemas from following rows
+	//  Following is a sample result:
+	//  From the list: [schema_name] [pg_toast] [pg_temp_1] [pg_toast_temp_1] [pg_catalog] [public] [information_schema] [hdb_catalog] [hdb_views] [auth]
+	//  Only output: [public]
 	result := responseData["result"].([]interface{})[1:]
 
 	schemasToBeExcluded := []string{"information_schema", "auth", "storage"}
@@ -197,7 +197,7 @@ func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
 		return response, err
 	}
 
-	// fmt.Println(string(body))
+	//  fmt.Println(string(body))
 
 	return UnmarshalHasuraMetadataV2(body)
 }
@@ -235,7 +235,7 @@ func (c *Client) Seed(payload string) error {
 
 func (c *Client) ClearMigration() error {
 
-	log.Debug("Clearing Migration")
+	log.Debug("Clearing migration")
 
 	args := []string{c.CLI,
 		"migrate",
@@ -325,12 +325,12 @@ func (c *Client) GetExtensions() ([]string, error) {
 	var responseData map[string]interface{}
 	json.Unmarshal(body, &responseData)
 
-	// Remove the first row/head and filter extensions from following rows
-	// Following is a sample result:
-	// [plpgsql pgcrypto citext]
+	//  Remove the first row/head and filter extensions from following rows
+	//  Following is a sample result:
+	//  [plpgsql pgcrypto citext]
 	result := responseData["result"].([]interface{})[1:]
 
-	// convert from []interface{} to []string before returning
+	//  convert from []interface{} to []string before returning
 	for _, value := range result {
 		enumerable_value := value.([]interface{})
 		for index, ext := range enumerable_value {
@@ -536,7 +536,7 @@ func GetTablesFromLocalMetadata() ([]TableEntry, error) {
 	return response, nil
 }
 
-// check whether source array contains value or not
+//  check whether source array contains value or not
 func contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

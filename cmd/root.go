@@ -39,7 +39,7 @@ import (
 
 var (
 
-	// rootCmd represents the base command when called without any subcommands
+	//  rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
 		Use:   "nhost",
 		Short: "Open Source Firebase Alternative with GraphQL",
@@ -57,27 +57,27 @@ var (
   `, Version),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 
-			// reset the umask before creating directories anywhere in this program
-			// otherwise applied permissions, might get affected
-			// resetUmask()
+			//  reset the umask before creating directories anywhere in this program
+			//  otherwise applied permissions, might get affected
+			//  resetUmask()
 
 			logger.Init()
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 
-			// check if project is already initialized
+			//  check if project is already initialized
 			if util.PathExists(nhost.NHOST_DIR) {
 
-				// start the "dev" command
+				//  start the "dev" command
 				devCmd.Run(cmd, args)
 
 			} else {
 
-				// start the "init" command
+				//  start the "init" command
 				initCmd.Run(cmd, args)
 
-				// offer to clone templates
-				// templatesCmd.Run(cmd, args)
+				//  offer to clone templates
+				//  templatesCmd.Run(cmd, args)
 				for _, item := range entities {
 					if !item.Default {
 						prompt := promptui.Prompt{
@@ -92,7 +92,7 @@ var (
 
 						selected = item
 
-						// start the "templates" command
+						//  start the "templates" command
 						templatesCmd.Run(cmd, args)
 
 						//	reset selected template choice
@@ -100,7 +100,7 @@ var (
 					}
 				}
 
-				// start the "dev" command
+				//  start the "dev" command
 				devCmd.Run(cmd, args)
 			}
 
@@ -108,26 +108,26 @@ var (
 	}
 )
 
-// Initialize common constants and variables used by multiple commands
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+//  Initialize common constants and variables used by multiple commands
+//  Execute adds all child commands to the root command and sets flags appropriately.
+//  This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
 
-	// un-comment the following to auto-generate documentation
+	//  un-comment the following to auto-generate documentation
 	//	generateDocumentation()
 
 }
 
-// auto-generate utility documentation in all required formats
+//  auto-generate utility documentation in all required formats
 func generateDocumentation() {
 
-	docsDir := filepath.Join(nhost.WORKING_DIR, "docs")
+	docsDir := filepath.Join(util.WORKING_DIR, "docs")
 
-	// Generate Markdown docs
+	//  Generate Markdown docs
 	err := doc.GenMarkdownTree(rootCmd, docsDir)
 	if err != nil {
 		log.Fatal(err)
@@ -138,14 +138,14 @@ func init() {
 
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
+	//  Here you will define your flags and configuration settings.
+	//  Cobra supports persistent flags, which, if defined here,
+	//  will be global for your application.
 
 	//	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.nhost.yaml)")
 
 	rootCmd.PersistentFlags().BoolVarP(&logger.JSON, "json", "j", false, "Print JSON formatted logs")
-	rootCmd.PersistentFlags().StringVar(&nhost.API, "endpoint", "https://nuno.nhost.dev/v1/functions", "Auth endpoint - for internal testing")
+	rootCmd.PersistentFlags().StringVar(&nhost.DOMAIN, "domain", "nhost.run", "Auth domain - for internal testing")
 	//rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
 	//rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
 	//viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
@@ -156,8 +156,8 @@ func init() {
 	//rootCmd.AddCommand(versionCmd)
 	//rootCmd.AddCommand(initCmd)
 
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	//  Cobra also supports local flags, which will only run
+	//  when this action is called directly.
 	rootCmd.PersistentFlags().StringVarP(&logger.LOG_FILE, "log-file", "f", "", "Write logs to given file")
 	rootCmd.PersistentFlags().BoolVarP(&logger.DEBUG, "debug", "d", false, "Show debugging level logs")
 }
@@ -165,29 +165,29 @@ func init() {
 /*
 func resetUmask() {
 
-	// windows doesn't use umask for applying permissions,
-	// so skip it for windows
+	//  windows doesn't use umask for applying permissions,
+	//  so skip it for windows
 	if runtime.GOOS != "windows" {
 		syscall.Umask(0)
 	}
 }
 */
 
-// initConfig reads in config file and ENV variables if set.
+//  initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	if cfgFile != "" {
-		// Use config file from the flag.
+		//  Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
 
-		// Search config in home directory with name ".nhost" (without extension).
+		//  Search config in home directory with name ".nhost" (without extension).
 		viper.AddConfigPath(nhost.HOME)
 		viper.SetConfigName(".nhost")
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	viper.AutomaticEnv() //  read in environment variables that match
 
-	// If a config file is found, read it in.
+	//  If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
 		log.Println("using config file:", viper.ConfigFileUsed())
 	}

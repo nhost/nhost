@@ -11,53 +11,53 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Formatter - logrus formatter, implements logrus.Formatter
+//  Formatter - logrus formatter, implements logrus.Formatter
 type Formatter struct {
-	// FieldsOrder - default: fields sorted alphabetically
+	//  FieldsOrder - default: fields sorted alphabetically
 	FieldsOrder []string
 
-	// TimestampFormat - default: time.StampMilli = "Jan _2 15:04:05.000"
+	//  TimestampFormat - default: time.StampMilli = "Jan _2 15:04:05.000"
 	TimestampFormat string
 
-	// HideKeys - show [fieldValue] instead of [fieldKey:fieldValue]
+	//  HideKeys - show [fieldValue] instead of [fieldKey:fieldValue]
 	HideKeys bool
 
-	// NoColors - disable colors
+	//  NoColors - disable colors
 	NoColors bool
 
-	// NoFieldsColors - apply colors only to the level, default is level + fields
+	//  NoFieldsColors - apply colors only to the level, default is level + fields
 	NoFieldsColors bool
 
-	// NoFieldsSpace - no space between fields
+	//  NoFieldsSpace - no space between fields
 	NoFieldsSpace bool
 
-	// ShowFullLevel - show a full level [WARNING] instead of [WARN]
+	//  ShowFullLevel - show a full level [WARNING] instead of [WARN]
 	ShowFullLevel bool
 
-	// NoUppercaseLevel - no upper case for level value
+	//  NoUppercaseLevel - no upper case for level value
 	NoUppercaseLevel bool
 
-	// TrimMessages - trim whitespaces on messages
+	//  TrimMessages - trim whitespaces on messages
 	TrimMessages bool
 
-	// CallerFirst - print caller info first
+	//  CallerFirst - print caller info first
 	CallerFirst bool
 
-	// CallerFirst - print caller info first
+	//  CallerFirst - print caller info first
 	Timestamps bool
 
-	// CustomCallerFormatter - set custom formatter for caller info
+	//  CustomCallerFormatter - set custom formatter for caller info
 	CustomCallerFormatter func(*runtime.Frame) string
 }
 
-// Format an log entry
+//  Format an log entry
 func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	levelColor := getColorByLevel(entry.Level)
 
-	// output buffer
+	//  output buffer
 	b := &bytes.Buffer{}
 
-	// write time
+	//  write time
 	if f.Timestamps {
 		timestampFormat := f.TimestampFormat
 		if timestampFormat == "" {
@@ -66,7 +66,7 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 		b.WriteString(entry.Time.Format(timestampFormat) + " ")
 	}
 
-	// write level
+	//  write level
 	var level string
 	if f.NoUppercaseLevel {
 		level = entry.Level.String()
@@ -98,7 +98,7 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 		b.WriteString("\x1b[0m")
 	}
 
-	// write fields
+	//  write fields
 	if f.FieldsOrder == nil {
 		f.writeFields(b, entry)
 	} else {
@@ -113,7 +113,7 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 		b.WriteString("\x1b[0m")
 	}
 
-	// write message
+	//  write message
 	if f.TrimMessages {
 		b.WriteString(strings.TrimSpace(entry.Message))
 	} else {

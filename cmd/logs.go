@@ -33,20 +33,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// logsCmd prints the logs from containers and HBP_Catalog
+//  logsCmd prints the logs from containers and HBP_Catalog
 var logsCmd = &cobra.Command{
 	Use:     "logs",
 	Aliases: []string{"log"},
 	Short:   "Read container logs of any service",
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// Initialize the runtime environment
+		//  Initialize the runtime environment
 		if err := env.Init(); err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to initialize the environment")
 		}
 
-		// if no containers found - abort the execution
+		//  if no containers found - abort the execution
 		if len(env.Config.Services) == 0 {
 			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
@@ -55,7 +55,7 @@ var logsCmd = &cobra.Command{
 
 		if service == "" {
 
-			// load the saved Nhost configuration
+			//  load the saved Nhost configuration
 			type Option struct {
 				Key   string
 				Value string
@@ -69,14 +69,14 @@ var logsCmd = &cobra.Command{
 				})
 			}
 
-			// configure interactive prompt template
+			//  configure interactive prompt template
 			templates := promptui.SelectTemplates{
 				Active:   `{{ "✔" | green | bold }} {{ .Key | cyan | bold }}`,
 				Inactive: `   {{ .Key | cyan }}`,
 				Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Key | cyan }}`,
 			}
 
-			// configure interative prompt
+			//  configure interative prompt
 			prompt := promptui.Select{
 				Label:     "Select Service",
 				Items:     services,
@@ -102,7 +102,7 @@ var logsCmd = &cobra.Command{
 			log.Fatal("No such service found")
 		}
 
-		// fetch the logs of selected container
+		//  fetch the logs of selected container
 		logs, err := selected.Logs(env.Docker, env.Context)
 		if err != nil {
 			log.WithField("component", selected.Name).Debug(err)

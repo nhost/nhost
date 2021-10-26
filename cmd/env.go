@@ -34,13 +34,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// envCmd represents the env command
+//  envCmd represents the env command
 var envCmd = &cobra.Command{
 	Use:   "env",
 	Short: "Manage your Nhost env vars",
 }
 
-// lsCmd getches env vars from remote
+//  lsCmd getches env vars from remote
 var lsCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
@@ -62,7 +62,7 @@ var lsCmd = &cobra.Command{
 			log.Fatal("Failed to fetch user data from remote")
 		}
 
-		// concatenate personal and team projects
+		//  concatenate personal and team projects
 		var projects []nhost.App
 		for _, member := range user.WorkspaceMembers {
 			projects = append(projects, member.Workspace.Apps...)
@@ -81,7 +81,7 @@ var lsCmd = &cobra.Command{
 			}
 		}
 
-		// print the filtered env vars
+		//  print the filtered env vars
 		fmt.Println()
 		w := tabwriter.NewWriter(os.Stdout, 1, 1, 1, ' ', 0)
 
@@ -99,7 +99,7 @@ var lsCmd = &cobra.Command{
 	},
 }
 
-// pullCmd syncs env vars from remote with local environment
+//  pullCmd syncs env vars from remote with local environment
 var envPullCmd = &cobra.Command{
 	Use:   "pull",
 	Short: "Sync env vars from remote with local env",
@@ -118,7 +118,7 @@ var envPullCmd = &cobra.Command{
 			log.Fatal("Failed to fetch user data from remote")
 		}
 
-		// concatenate personal and team projects
+		//  concatenate personal and team projects
 		var projects []nhost.App
 		for _, member := range user.WorkspaceMembers {
 			projects = append(projects, member.Workspace.Apps...)
@@ -173,10 +173,10 @@ var envPullCmd = &cobra.Command{
 			envArray = append(envArray, fmt.Sprintf("%v=%v", item.Name, item.Value))
 		}
 
-		// delete the existing .env.development file
+		//  delete the existing .env.development file
 		util.DeletePath(nhost.ENV_FILE)
 
-		// create a fresh one
+		//  create a fresh one
 		f, err := os.Create(nhost.ENV_FILE)
 		if err != nil {
 			log.Debug(err)
@@ -199,13 +199,13 @@ func init() {
 	envCmd.AddCommand(lsCmd)
 	envCmd.AddCommand(envPullCmd)
 
-	// Here you will define your flags and configuration settings.
+	//  Here you will define your flags and configuration settings.
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// envCmd.PersistentFlags().String("foo", "", "A help for foo")
+	//  Cobra supports Persistent Flags which will work for this command
+	//  and all subcommands, e.g.:
+	//  envCmd.PersistentFlags().String("foo", "", "A help for foo")
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// envCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	//  Cobra supports local flags which will only run when this command
+	//  is called directly, e.g.:
+	//  envCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

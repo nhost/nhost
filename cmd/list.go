@@ -32,7 +32,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// listCmd fetches and lists the user's projects
+//  listCmd fetches and lists the user's projects
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
@@ -41,12 +41,12 @@ var listCmd = &cobra.Command{
 for the logged in user from Nhost console.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		// validate authentication
+		//  validate authentication
 		user, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
 
-			// begin the login procedure
+			//  begin the login procedure
 			loginCmd.Run(cmd, args)
 		}
 
@@ -60,7 +60,7 @@ for the logged in user from Nhost console.`,
 		p.print("", "App", fmt.Sprint(Gray, "Workspace", Reset))
 		p.print("header", "", "")
 
-		// log every project for the user
+		//  log every project for the user
 		for _, member := range user.WorkspaceMembers {
 			for _, app := range member.Workspace.Apps {
 				p.print("", app.Name, fmt.Sprint(Gray, member.Workspace.Name, Reset))

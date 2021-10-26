@@ -17,9 +17,9 @@ type Watcher struct {
 	//	It's inherently an fsnotify Watcher under the hood.
 	*fsnotify.Watcher
 
-	// In the following format:
-	// Key - Absolute File Name to Watch
-	// Value - Function to execute
+	//  In the following format:
+	//  Key - Absolute File Name to Watch
+	//  Value - Function to execute
 	Map map[string]Operation
 
 	//	(Optional) Context to use for stopping of watcher.
@@ -69,8 +69,8 @@ func New(ctx context.Context) *Watcher {
 	}
 }
 
-// Infinite function which listens for
-// fsnotify events once launched
+//  Infinite function which listens for
+//  fsnotify events once launched
 func (w *Watcher) Start() {
 
 	w.log.WithField("component", "watcher").Debug("Activated")
@@ -78,7 +78,7 @@ func (w *Watcher) Start() {
 	for {
 		select {
 
-		// Inactivate the watch when the environment shuts does
+		//  Inactivate the watch when the environment shuts does
 		case <-w.context.Done():
 			w.log.WithField("component", "watcher").Debug("Inactivated")
 			return
@@ -90,7 +90,7 @@ func (w *Watcher) Start() {
 			if event.Op&fsnotify.Write == fsnotify.Write ||
 				event.Op&fsnotify.Create == fsnotify.Create {
 
-				// run the operation
+				//  run the operation
 				go func() {
 					if err := w.Map[event.Name](); err != nil {
 						w.log.WithField("component", "watcher").Debug(err)
