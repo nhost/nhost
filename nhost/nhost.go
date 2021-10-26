@@ -11,7 +11,6 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strconv"
@@ -1148,30 +1147,6 @@ func generateProviders() map[string]interface{} {
 			"client_id":     "",
 			"client_secret": "",
 		},
-	}
-}
-
-func (s *Session) Spawn() {
-
-	cmd := exec.Command(s.Command)
-
-	if s.Log {
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-	}
-
-	if s.Dir != "" {
-		if filepath.IsAbs(s.Dir) {
-			cmd.Dir = s.Dir
-		} else {
-			cmd.Dir = filepath.Join(util.WORKING_DIR, s.Dir)
-		}
-	}
-
-	go cmd.Run()
-
-	if s.Browser != "" {
-		openbrowser(s.Browser)
 	}
 }
 
