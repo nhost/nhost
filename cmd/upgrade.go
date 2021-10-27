@@ -84,8 +84,8 @@ CLI and upgrade to it.`,
 				log.WithField("component", release.TagName).Fatal("Version not yet available. Try again in a moment!")
 			}
 
-			//  fetch nhost installation directory
-			target, err := exec.LookPath("nhost")
+			//  Fetch installed binary location
+			target, err := os.Executable()
 			if err != nil {
 				log.Error("Failed to find installed CLI")
 				log.Info("Please download it manually from: github.com/%s", nhost.REPOSITORY)
@@ -115,8 +115,8 @@ CLI and upgrade to it.`,
 	PostRun: func(cmd *cobra.Command, args []string) {
 
 		//  Check new version
-		cli, _ := exec.LookPath("nhost")
-		if output, err := exec.Command(cli, "version").CombinedOutput(); err != nil {
+		target, _ := os.Executable()
+		if output, err := exec.Command(target, "version").CombinedOutput(); err != nil {
 			log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
 		} else {
 			os.Stdout.Write(output)

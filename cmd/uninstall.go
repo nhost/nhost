@@ -26,7 +26,6 @@ package cmd
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/manifoldco/promptui"
@@ -75,7 +74,7 @@ but without hurting local Nhost apps and their data.`,
 		}
 
 		//  now delete the installed binary
-		cli, err := exec.LookPath("nhost")
+		cli, err := os.Executable()
 		if err != nil {
 			log.Debug(err)
 			log.Fatal("Failed to find `nhost` installed in the system")
