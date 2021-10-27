@@ -63,7 +63,9 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 1. Remove the installed CLI: `npm uninstall nhost` or `nhost uninstall`
 1. Install the new one: 
 
-    sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+```
+sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+```
 
 If your installed version is >= `v0.5.0`, then your CLI version already supports the `upgrade` command to automatically check the latest available version of the CLI and install it depending on your operating system and architecture. To use this, run the following:
 

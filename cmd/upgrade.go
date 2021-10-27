@@ -28,12 +28,10 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
-	"path/filepath"
 	"runtime"
 
 	"github.com/hashicorp/go-getter"
 	"github.com/nhost/cli/nhost"
-	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -85,37 +83,28 @@ CLI and upgrade to it.`,
 			//  fetch nhost installation directory
 			target, err := exec.LookPath("nhost")
 			if err != nil {
-				log.Debug(err)
-				target = util.WORKING_DIR
-			} else {
-				if err = os.Remove(target); err != nil {
-					log.Fatal("Failed to remove existing CLI from: ", target)
-				}
-				target = filepath.Dir(target)
+				log.Error("Failed to find installed CLI")
+				log.Info("Please download it manually from: github.com/%s", nhost.REPOSITORY)
+				os.Exit(0)
 			}
 
-			//  initialize hashicorp go-getter client
+			//	Delete the existing CLI
+			if err = os.Remove(target); err != nil {
+				log.Fatal("Failed to remove existing CLI from: ", target)
+			}
+
+			//  Initialize hashicorp go-getter client
 			client := &getter.Client{
-				Ctx: context.Background(),
-				//  Define the destination to where the directory will be stored.
-				//  This will create the directory if it doesnt exist
+				Ctx:  context.Background(),
 				Dst:  target,
-				Dir:  false,
 				Src:  asset.BrowserDownloadURL,
-				Mode: getter.ClientModeDir,
+				Mode: getter.ClientModeFile,
 			}
 
-			//  download the files
+			//  Download the files
 			if err := client.Get(); err != nil {
 				log.WithField("compnent", release.TagName).Debug(err)
 				log.WithField("compnent", release.TagName).Fatal("Failed to download release")
-			}
-
-			if target == util.WORKING_DIR {
-				instructions := getInstallInstructions()
-				if instructions != "" {
-					log.Infoln("Install using: ", instructions)
-				}
 			}
 		}
 	},
