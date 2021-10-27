@@ -165,19 +165,6 @@ func isRoot() bool {
 	return false
 }
 
-func getInstallInstructions() string {
-
-	switch runtime.GOOS {
-	case "linux", "darwin":
-		response := "/usr/local/bin/nhost"
-		return "sudo mv ./nhost " + response
-	case "windows":
-		return "Ren nhost-xxx.exe nhost"
-	default:
-		return ""
-	}
-}
-
 func init() {
 	rootCmd.AddCommand(upgradeCmd)
 
