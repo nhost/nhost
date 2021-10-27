@@ -41,11 +41,12 @@ var repoSource string
 
 //  upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
-	Use:   "upgrade",
-	Short: "Upgrade this version of Nhost CLI to latest version",
+	Use:        "upgrade",
+	SuggestFor: []string{"version"},
+	Short:      "Upgrade this version of Nhost CLI to latest version",
 	Long: `Automatically check for the latest available version of this
 CLI and upgrade to it.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		switch runtime.GOOS {
 		case "windows":
@@ -55,6 +56,8 @@ CLI and upgrade to it.`,
 				log.Fatal("Run this command with root/sudo permissions")
 			}
 		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		if repoSource == "" {
 			repoSource = nhost.REPOSITORY
@@ -114,14 +117,16 @@ CLI and upgrade to it.`,
 					log.Infoln("Install using: ", instructions)
 				}
 			}
+		}
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
 
-			//  check new version
-			cli, _ := exec.LookPath("nhost")
-			if output, err := exec.Command(cli, "version").CombinedOutput(); err != nil {
-				log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
-			} else {
-				os.Stdout.Write(output)
-			}
+		//  Check new version
+		cli, _ := exec.LookPath("nhost")
+		if output, err := exec.Command(cli, "version").CombinedOutput(); err != nil {
+			log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
+		} else {
+			os.Stdout.Write(output)
 		}
 	},
 }

@@ -44,7 +44,7 @@ var uninstallCmd = &cobra.Command{
 	Short: "Remove the installed CLI from system permanently",
 	Long: `Remove the installed CLI from system permanently
 but without hurting local Nhost apps and their data.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		log.Warn("This will permanently remove the installed CLI utility")
 		log.Info("This, however, won't affect your existing Nhost apps and their data")
@@ -65,6 +65,8 @@ but without hurting local Nhost apps and their data.`,
 			}
 
 		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		//  first delete the Nhost Root directory
 		if err := util.DeleteAllPaths(nhost.ROOT); err != nil {
@@ -88,8 +90,10 @@ but without hurting local Nhost apps and their data.`,
 			log.Debug(err)
 			log.Fatal("Failed to delete Nhost root directory", nhost.ROOT)
 		}
-
+	},
+	PostRun: func(cmd *cobra.Command, args []string) {
 		log.Info("Uninstall complete! We are sad to see you go :(")
+		log.Info("To download the CLI again, visit: https://github.com/nhost/cli#installation")
 	},
 }
 

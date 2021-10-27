@@ -82,10 +82,11 @@ var (
 
 //  devCmd represents the dev command
 var devCmd = &cobra.Command{
-	Use:     "dev [-p port]",
-	Aliases: []string{"start", "up"},
-	Short:   "Start local development environment",
-	Long:    `Initialize a local Nhost environment for development and testing.`,
+	Use:        "dev [-p port]",
+	Aliases:    []string{"start", "up"},
+	SuggestFor: []string{"list", "init"},
+	Short:      "Start local development environment",
+	Long:       `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.Info("Starting your app")
@@ -198,8 +199,14 @@ var devCmd = &cobra.Command{
 		//  the environment has been started.
 		//
 
-		//  Start functions
-		go ServeFuncs()
+		go func() {
+
+			//  Start functions
+			ServeFuncs()
+
+			//  After launching, register the functions server in our environment
+			env.Servers = append(env.Servers, functionServer.Server)
+		}()
 
 		//  Register the functions server in our environment
 		//	env.Servers = append(env.Servers, functionServer)
@@ -313,19 +320,6 @@ var devCmd = &cobra.Command{
 		env.UpdateState(environment.Active)
 
 		log.Warn("Use Ctrl + C to stop running evironment")
-
-		/*
-			//  launch sessions
-			for key, item := range env.Config.Sessions {
-
-				log.WithFields(logrus.Fields{
-					"type":  "session",
-					"value": key,
-				}).Debug("Spawning")
-
-				item.Spawn()
-			}
-		*/
 
 		//  wait for Ctrl+C
 		end_waiter.Wait()

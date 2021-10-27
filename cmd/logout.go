@@ -31,19 +31,22 @@ import (
 
 //  logoutCmd represents the logout command
 var logoutCmd = &cobra.Command{
-	Use:   "logout",
-	Short: "Log out from your Nhost account",
-	Long:  "Remove locally installed authentication configuration, and log out from your Nhost account.",
-	Run: func(cmd *cobra.Command, args []string) {
+	Use:        "logout",
+	SuggestFor: []string{"login"},
+	Short:      "Log out from your Nhost account",
+	Long:       "Remove locally installed authentication configuration, and log out from your Nhost account.",
+	PreRun: func(cmd *cobra.Command, args []string) {
 
 		//  check if auth file exists
 		if !util.PathExists(nhost.AUTH_PATH) {
 			log.Fatal(ErrNotLoggedIn)
-		} else {
-			if err := util.DeletePath(nhost.AUTH_PATH); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to delete existing auth credentials, hence failed to logout")
-			}
+		}
+	},
+	Run: func(cmd *cobra.Command, args []string) {
+
+		if err := util.DeletePath(nhost.AUTH_PATH); err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to delete existing auth credentials, hence failed to logout")
 		}
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {

@@ -34,10 +34,11 @@ import (
 
 //  versionCmd represents the version command
 var versionCmd = &cobra.Command{
-	Use:     "version",
-	Aliases: []string{"v"},
-	Short:   "Show the current version of Nhost CLI you have installed",
-	Long:    `All softwares have versions. This is Nhost's.`,
+	Use:        "version",
+	Aliases:    []string{"v"},
+	SuggestFor: []string{"upgrade"},
+	Short:      "Show the current version of Nhost CLI you have installed",
+	Long:       `All softwares have versions. This is Nhost's.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		log.WithFields(logrus.Fields{

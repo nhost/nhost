@@ -189,10 +189,11 @@ var envPullCmd = &cobra.Command{
 			log.Fatal("Failed to write fresh .env.development file")
 		}
 		f.Sync()
-
-		log.Info("Local environment vars successfully synced with remote")
 	},
-}
+	PostRun: func(cmd *cobra.Command, args []string) {
+		log.Info("Local environment variables successfully synced with remote")
+		log.Info("You can start your app using `nhost`")
+	}}
 
 func init() {
 	rootCmd.AddCommand(envCmd)

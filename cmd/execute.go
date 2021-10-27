@@ -54,8 +54,9 @@ type ExecResult struct {
 
 //  executeCmd represents the execute command
 var executeCmd = &cobra.Command{
-	Use:   "execute",
-	Short: "Execute commands inside your Nhost containers",
+	Use:        "execute",
+	SuggestFor: []string{"logs"},
+	Short:      "Execute commands inside your Nhost containers",
 	Long: `Run shell commands directly inside your 
 already running Nhost service containers.`,
 	Run: func(cmd *cobra.Command, args []string) {

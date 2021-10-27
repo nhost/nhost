@@ -228,12 +228,14 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		if err := os.MkdirAll(filepath.Join(tempDir, f.Base), os.ModePerm); err != nil {
 			s.log.WithField("route", f.Route).Debug(err)
 			s.log.WithField("route", f.Route).Error("Failed to prepare location to cache function file")
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
 		if err := f.Prepare(); err != nil {
 			s.log.WithField("route", f.Route).Debug(err)
 			s.log.WithField("route", f.Route).Error("Failed to build the function")
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
@@ -274,6 +276,7 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			s.log.WithField("runtime", "NodeJS").Debug(err)
 			s.log.WithField("runtime", "NodeJS").Error("Runtime not installed")
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 			return
 		}
 
@@ -284,6 +287,8 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		if err := f.BuildNodeServer(jsPort); err != nil {
 			s.log.WithField("runtime", "NodeJS").Debug(err)
 			s.log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
 
 		//  prepare the execution command
@@ -299,6 +304,8 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		if err := cmd.Start(); err != nil {
 			s.log.WithField("runtime", "NodeJS").Debug(err)
 			s.log.WithField("runtime", "NodeJS").Error("Failed to start the runtime server")
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
 		}
 
 		//	update request URL
