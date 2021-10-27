@@ -1,6 +1,9 @@
 package nhost
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"reflect"
 	"testing"
 )
@@ -8,7 +11,14 @@ import (
 func TestSearchRelease(t *testing.T) {
 
 	//	Initialize list of releases
-	var releases []Release
+	releases, _ := GetReleases()
+
+	//	Load the dump.json to retrieve the release we want
+	var want Release
+	data, _ := ioutil.ReadFile("dump.json")
+	json.Unmarshal(data, &want)
+
+	fmt.Println("Release we want", want.TagName)
 
 	type args struct {
 		releases []Release
@@ -20,17 +30,30 @@ func TestSearchRelease(t *testing.T) {
 		want    Release
 		wantErr bool
 	}{
-		struct {
-			name    string
-			args    args
-			want    Release
-			wantErr bool
-		}{
+		{
 			name: "default latest public release",
 			args: args{
 				releases: releases,
 				version:  "",
 			},
+			want:    want,
+			wantErr: false,
+		},
+		{
+			name: "backdated public release",
+			args: args{
+				releases: releases,
+				version:  "v0.5.4",
+			},
+			wantErr: false,
+		},
+		{
+			name: "faulty release input",
+			args: args{
+				releases: releases,
+				version:  "056",
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {

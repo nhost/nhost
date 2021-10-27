@@ -3,12 +3,12 @@
 name: Release
 
 on:
-  release:
-    types: # This configuration does not affect the page_build event above
-      - created
-  #push:
-    #tags:
-     # - '**'           # Push events to every tag including hierarchical tags like v1.0/beta
+  #release:
+    #types: # This configuration does not affect the page_build event above
+      #- created
+  push:
+    tags:
+      - '**'           # Push events to every tag including hierarchical tags like v1.0/beta
 
 jobs:
   releases-matrix:
@@ -30,8 +30,22 @@ jobs:
       - name: Set VERSION env
         run: |
           echo VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
-          echo $(basename ${GITHUB_REF}) 
-  
+          echo $(basename ${GITHUB_REF})
+
+      # Cache go build cache, used to speedup go test
+      - name: Go Build Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-build }}
+          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
+
+      # Cache go mod cache, used to speedup builds
+      - name: Go Mod Cache
+        uses: actions/cache@v2
+        with:
+          path: ${{ steps.go-cache-paths.outputs.go-mod }}
+          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
+            
       - name: Generate Binary
         uses: wangyoucao577/go-release-action@v1.20
         with:

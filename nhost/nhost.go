@@ -203,7 +203,7 @@ func SearchRelease(releases []Release, version string) (Release, error) {
 		for _, item := range releases {
 
 			//	Else, search for latest release fit for public use.
-			if !strings.Contains(item.TagName, "-gamma") {
+			if !strings.Contains(item.TagName, "internal") {
 				return item, nil
 			}
 		}
@@ -942,7 +942,7 @@ func (config *Configuration) Init(port string) error {
 	//	If the SMTP port is busy,
 	//	choose a random one
 	if !PortAvaiable(strconv.Itoa(smtpPort)) {
-		log.WithField("component", "smtp").Errorf("Port %s not available", smtpPort)
+		log.WithField("component", "smtp").Errorf("Port %v not available", smtpPort)
 		log.WithField("component", "smtp").Info("Change your SMTP port in ./nhost/config.yaml")
 		return fmt.Errorf("SMTP port %v not available", smtpPort)
 		/*
