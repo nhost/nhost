@@ -25,6 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"fmt"
 	"runtime"
 
 	"github.com/nhost/cli/nhost"
@@ -46,21 +47,31 @@ var versionCmd = &cobra.Command{
 			"arch": runtime.GOARCH,
 		}).Info(Version)
 
-		if repoSource == "" {
-			repoSource = nhost.REPOSITORY
-		}
-
-		release, err := nhost.LatestRelease(repoSource)
+		//	Get all the releases
+		releases, err := nhost.GetReleases()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to fetch latest release")
+			log.Fatal("Failed to fetch releases")
+		}
+
+		//	Search for our required release from the list
+		release, err := nhost.SearchRelease(releases, versionForDownload)
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to fetch release")
 		}
 
 		if release.TagName == Version {
 			log.Info("You have the latest version. Hurray!")
 		} else {
-			log.WithField("component", release.TagName).Info("New version available")
-			log.Info("Upgrade with `nhost upgrade`")
+
+			//	Update changelog
+			changelog, _ := release.Changes(releases)
+			release.Body += changelog
+
+			log.WithField("component", release.TagName).Info("New version available with following changes")
+			fmt.Println(release.Body)
+			log.Infoln("Upgrade with `nhost upgrade`")
 		}
 	},
 }
@@ -73,7 +84,8 @@ func init() {
 	//  Cobra supports Persistent Flags which will work for this command
 	//  and all subcommands, e.g.:
 	//  versionCmd.PersistentFlags().String("foo", "", "A help for foo")
-	versionCmd.PersistentFlags().StringVarP(&repoSource, "source", "s", "", "Custom repository source")
+	versionCmd.PersistentFlags().StringVarP(&nhost.REPOSITORY, "source", "s", nhost.REPOSITORY, "Custom repository source")
+	versionCmd.PersistentFlags().StringVarP(&versionForDownload, "compare", "c", "", "Specific version to compare")
 
 	//  Cobra supports local flags which will only run when this command
 	//  is called directly, e.g.:

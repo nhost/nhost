@@ -179,7 +179,7 @@ type (
 		Name        string  `json:",omitempty"`
 		TagName     string  `json:"tag_name,omitempty"`
 		Prerelease  string  `json:",omitempty"`
-		CreatedAt   string  `json:",omitempty"`
+		CreatedAt   string  `json:"created_at,omitempty"`
 		PublishedAt string  `json:",omitempty"`
 		Body        string  `json:",omitempty"`
 		Assets      []Asset `json:",omitempty"`

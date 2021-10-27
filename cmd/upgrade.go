@@ -35,7 +35,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var repoSource string
+var versionForDownload string
 
 //  upgradeCmd represents the upgrade command
 var upgradeCmd = &cobra.Command{
@@ -57,14 +57,18 @@ CLI and upgrade to it.`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if repoSource == "" {
-			repoSource = nhost.REPOSITORY
-		}
-
-		release, err := nhost.LatestRelease(repoSource)
+		//	Get all the releases
+		releases, err := nhost.GetReleases()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to fetch latest release")
+			log.Fatal("Failed to fetch releases")
+		}
+
+		//	Search for our required release from the list
+		release, err := nhost.SearchRelease(releases, versionForDownload)
+		if err != nil {
+			log.Debug(err)
+			log.Fatal("Failed to fetch release")
 		}
 
 		if release.TagName == Version {
@@ -172,7 +176,8 @@ func init() {
 
 	//  Cobra supports Persistent Flags which will work for this command
 	//  and all subcommands, e.g.:
-	upgradeCmd.PersistentFlags().StringVarP(&repoSource, "source", "s", "", "Custom repository source")
+	upgradeCmd.PersistentFlags().StringVarP(&nhost.REPOSITORY, "source", "s", nhost.REPOSITORY, "Custom repository source")
+	upgradeCmd.PersistentFlags().StringVarP(&versionForDownload, "version", "v", "", "Specific version to download")
 
 	//  Cobra supports local flags which will only run when this command
 	//  is called directly, e.g.:

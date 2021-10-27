@@ -154,26 +154,81 @@ func (release *Release) Asset() Asset {
 	return response
 }
 
-//  fetches the details of latest binary release
-func LatestRelease(source string) (Release, error) {
+func (r *Release) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r)
+}
+
+//	Compares and updates the changelog for specified release
+func (r *Release) Changes(releases []Release) (string, error) {
+
+	var response string
+	for _, item := range releases {
+		item_time, _ := time.Parse(time.RFC3339, item.CreatedAt)
+		release_time, _ := time.Parse(time.RFC3339, r.CreatedAt)
+
+		//	If the release is older,
+		//	update changelog
+		if item_time.After(release_time) {
+			response += item.Body
+		}
+	}
+
+	return response, nil
+}
+
+//  Seaches for required release from supplied list of releases, and returns it.
+func SearchRelease(releases []Release, version string) (Release, error) {
 
 	log.Debug("Fetching latest release")
 
 	var response Release
 
-	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases/latest", source))
+	//	If a custom version has been passed,
+	//	search for that one ONLY.
+	if version != "" {
+		for _, item := range releases {
+			if item.TagName == strings.ToLower(version) {
+				return item, nil
+			}
+		}
+		return response, errors.New("no such release found")
+
+	} else {
+
+		//	Following loop is used under the assumption,
+		//	that GitHub's API will always return release list,
+		//	in descending order of timestamps.
+		//	That is, the latest release being on index 0.
+
+		for _, item := range releases {
+
+			//	Else, search for latest release fit for public use.
+			if !strings.Contains(item.TagName, "-gamma") {
+				return item, nil
+			}
+		}
+	}
+
+	return response, errors.New("latest asset cannot be fetched")
+}
+
+//	Downloads the list of all releases from GitHub API
+func GetReleases() ([]Release, error) {
+
+	log.Debug("Fetching list of all releases")
+
+	var array []Release
+
+	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases", REPOSITORY))
 	if err != nil {
-		return response, err
+		return array, err
 	}
 
 	//  read our opened xmlFile as a byte array.
 	body, _ := ioutil.ReadAll(resp.Body)
-
 	defer resp.Body.Close()
-
-	json.Unmarshal(body, &response)
-
-	return response, nil
+	json.Unmarshal(body, &array)
+	return array, nil
 }
 
 //  fetches the list of Nhost production servers
