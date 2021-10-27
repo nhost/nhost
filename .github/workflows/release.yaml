@@ -31,20 +31,6 @@ jobs:
         run: |
           echo VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
           echo $(basename ${GITHUB_REF})
-
-      # Cache go build cache, used to speedup go test
-      - name: Go Build Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-build }}
-          key: ${{ runner.os }}-go-build-${{ hashFiles('**/go.sum') }}
-
-      # Cache go mod cache, used to speedup builds
-      - name: Go Mod Cache
-        uses: actions/cache@v2
-        with:
-          path: ${{ steps.go-cache-paths.outputs.go-mod }}
-          key: ${{ runner.os }}-go-mod-${{ hashFiles('**/go.sum') }}
             
       - name: Generate Binary
         uses: wangyoucao577/go-release-action@v1.20
