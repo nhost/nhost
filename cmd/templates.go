@@ -25,8 +25,13 @@ SOFTWARE.
 package cmd
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/nhost/cli/nhost"
@@ -50,7 +55,6 @@ var (
 type Entity struct {
 	Name        string
 	Value       string
-	Source      string
 	Command     []string
 	Templates   []Template
 	NextSteps   string
@@ -58,13 +62,15 @@ type Entity struct {
 	Ignore      []string
 	Destination string
 	Default     bool
+	Path        string
+	Repository  string
 }
 
 //	Returns boolean, if entity contains templates or not.
 func (e *Entity) contains(choice string) bool {
 
 	for _, item := range e.Templates {
-		if item.Value == choice {
+		if item.Path == choice {
 			return true
 		}
 	}
@@ -85,8 +91,8 @@ func exists(list []Entity, child string) bool {
 }
 
 type Template struct {
-	Name  string
-	Value string
+	Name string
+	Path string
 }
 
 var entities = []Entity{
@@ -94,42 +100,28 @@ var entities = []Entity{
 		Name:        "Web or Front-end",
 		Value:       "web",
 		Destination: nhost.WEB_DIR,
-		Source:      "github.com/nhost/nhost/templates/web/",
-		Templates: []Template{
-			//	{Name: "NuxtJs", Value: "nuxt"},
-			{Name: "NextJs", Value: "next"},
-			{Name: "ReactJs", Value: "react"},
-		},
-		NextSteps: "Use `cd web && npm install`",
-		Manual:    "git clone github.com/nhost/nhost/templates/web/" + choice,
+		Repository:  "nhost/nhost",
+		Path:        "templates/web",
+		NextSteps:   "Use `cd web && npm install`",
+		Manual:      "git clone github.com/nhost/nhost/templates/web/" + choice,
 	},
 	{
 		Name:        "Functions",
 		Value:       "functions",
 		Destination: nhost.API_DIR,
-		Source:      "github.com/nhost/nhost/templates/functions/",
-		Templates: []Template{
-			{Name: "Golang", Value: "go"},
-			{Name: "NodeJs", Value: "node"},
-		},
-		NextSteps: "",
-		Manual:    "git clone github.com/nhost/nhost/templates/functions/" + choice,
+		Repository:  "nhost/nhost",
+		Path:        "templates/functions",
+		NextSteps:   "",
+		Manual:      "git clone github.com/nhost/nhost/templates/functions/" + choice,
 	},
 	{
 		Name:        "Emails",
 		Value:       "emails",
 		Default:     true,
 		Destination: nhost.EMAILS_DIR,
-		Source:      "github.com/nhost/hasura-auth/email-templates/",
-		/*
-			Templates: []Template{
-				{Name: "Passwordless", Value: "passwordless"},
-				{Name: "Reset Email", Value: "reset-email"},
-				{Name: "Reset Password", Value: "reset-password"},
-				{Name: "Verify Email", Value: "verify-email"},
-			},
-		*/
-		Manual: "git clone github.com/nhost/hasura-auth/email-templates/" + choice,
+		Repository:  "nhost/hasura-auth",
+		Path:        "email-templates",
+		Manual:      "git clone github.com/nhost/hasura-auth/email-templates/" + choice,
 	},
 }
 
@@ -176,6 +168,13 @@ And you can immediately start developing on that template.`,
 
 		if len(choice) == 0 {
 
+			selected.Templates, _ = getTemplates(fmt.Sprintf("https://api.github.com/repos/%s/contents/%s", selected.Repository, selected.Path))
+
+			//	Refine the template names
+			for i := 0; i < len(selected.Templates); i++ {
+				selected.Templates[i].Name = strings.Title(selected.Templates[i].Name)
+			}
+
 			if len(selected.Templates) > 0 {
 
 				//  propose boilerplate options
@@ -190,7 +189,7 @@ And you can immediately start developing on that template.`,
 					os.Exit(0)
 				}
 
-				choice = selected.Templates[index].Value
+				choice = selected.Templates[index].Path
 			}
 
 		} else if !selected.contains(choice) {
@@ -198,10 +197,10 @@ And you can immediately start developing on that template.`,
 		}
 
 		//  append the chosen result template to source URL
-		selected.Source += choice
+		src := fmt.Sprintf("github.com/%s/%s", selected.Repository, choice)
 
 		//  clone the data
-		if err := clone(selected.Source, selected.Destination); err != nil {
+		if err := clone(src, selected.Destination); err != nil {
 			log.WithField("compnent", selected.Value).Debug(err)
 			log.WithField("compnent", selected.Value).Error("Failed to clone template")
 			log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
@@ -227,10 +226,10 @@ And you can immediately start developing on that template.`,
 	},
 }
 
-/* //  fetches list of templates from nhost/nhost/templates
-func getTemplates(url string) ([]string, error) {
+//  fetches list of templates from nhost/nhost/templates
+func getTemplates(url string) ([]Template, error) {
 
-	var response []string
+	var response []Template
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -244,28 +243,10 @@ func getTemplates(url string) ([]string, error) {
 		return response, err
 	}
 
-	var raw map[string]interface{}
-	if err = json.Unmarshal(body, &raw); err != nil {
-		return response, err
-	}
-
-	var list []map[string]interface{}
-	tree, err := json.Marshal(raw["tree"])
-	if err != nil {
-		return response, err
-	}
-
-	if err = json.Unmarshal(tree, &list); err != nil {
-		return response, err
-	}
-
-	for _, item := range list {
-		response = append(response, item["path"].(string))
-	}
-
+	json.Unmarshal(body, &response)
 	return response, nil
 }
-*/
+
 func init() {
 	rootCmd.AddCommand(templatesCmd)
 

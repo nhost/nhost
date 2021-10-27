@@ -42,6 +42,20 @@ jobs:
           # binary_name: cli
           ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}" -X "github.com/${{ github.repository }}/nhost.REPOSITORY=${{ github.repository }}"
 
+  # After the release has been created,
+  # merge the release branch into `main` branch
+  sync-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Merge release branch into 'main'
+        uses: devmasx/merge-branch@master
+        with:
+          type: now
+          target_branch: main
+          github_token: ${{ github.token }}
+            
       #- name: Notify Community
         #uses: sarisia/actions-status-discord@v1
         #with:

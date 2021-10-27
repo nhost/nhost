@@ -200,7 +200,7 @@ var initCmd = &cobra.Command{
 			if item.Default {
 
 				//	download the files
-				if err := clone(item.Source, item.Destination); err != nil {
+				if err := clone(fmt.Sprintf("github.com/%s/%s", item.Repository, item.Path), item.Destination); err != nil {
 					log.WithField("compnent", "templates").Debug(err)
 					log.Error("Failed to clone template")
 				}
