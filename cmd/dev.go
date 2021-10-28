@@ -239,6 +239,13 @@ var devCmd = &cobra.Command{
 				Dir: nhost.NHOST_DIR,
 			}
 
+			//	If the `--no-browser` flag is passed,
+			//	don't open the console window in browser automatically
+			if noBrowser {
+				cmd.Args = append(cmd.Args, "--no-browser")
+			}
+
+			//	Start the command
 			if err := cmd.Start(); err != nil {
 				log.WithField("component", "console").Debug(err)
 			}
@@ -248,8 +255,11 @@ var devCmd = &cobra.Command{
 			}
 		}()
 
-		//  launch mailhog UI
-		go openbrowser(env.Config.Services["mailhog"].Address)
+		if !noBrowser {
+
+			//  Launch mailhog UI
+			go openbrowser(env.Config.Services["mailhog"].Address)
+		}
 
 		//  Initialize a reverse proxy server,
 		//  to make all our locally running Nhost services
@@ -302,7 +312,7 @@ var devCmd = &cobra.Command{
 		//  give example of using Functions inside Hasura
 		p.print("info", "ProTip: You can call Functions inside Hasura!", "")
 		p.print("header", "", "")
-		p.print("", fmt.Sprintf("%s{{NHOST_FUNCTIONS}}%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves ./functions", Reset, "/hello.js"))
+		p.print("", fmt.Sprintf("%s{{NHOST_BACKEND_URL}}/1/functions%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves ./functions", Reset, "/hello.js"))
 		p.close()
 
 		/*
@@ -369,7 +379,8 @@ func init() {
 	//  Cobra supports Persistent Flags which will work for this command
 	//  and all subcommands, e.g.:
 	devCmd.PersistentFlags().StringVarP(&env.Port, "port", "p", "1337", "Port for dev proxy")
-	//  devCmd.PersistentFlags().BoolVarP(&expose, "expose", "e", false, "Expose local environment to public internet")
+	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
+	//	devCmd.PersistentFlags().BoolVarP(&expose, "expose", "e", false, "Expose local environment to public internet")
 
 	//  Cobra supports local flags which will only run when this command
 	//  is called directly, e.g.:

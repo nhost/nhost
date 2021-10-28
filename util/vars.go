@@ -4,7 +4,7 @@ import "fmt"
 
 var (
 
-	//  initiaze JWT key for Hasura Authentication
+	//  Initiaze JWT key for Hasura Authentication
 	JWT_KEY = generateRandomKey(32)
 
 	//	Map of environment specific variables generated dynamically on runtime.
