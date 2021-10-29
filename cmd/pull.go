@@ -25,7 +25,6 @@ SOFTWARE.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os/exec"
 
@@ -157,7 +156,7 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 
 	output, err := execute.CombinedOutput()
 	if err != nil {
-		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		log.Debug(string(output))
 		return migration, err
 	}
 
@@ -174,7 +173,7 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 
 	output, err = execute.CombinedOutput()
 	if err != nil {
-		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		log.Debug(string(output))
 		return migration, err
 	}
 
@@ -191,7 +190,7 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 
 	output, err = execute.CombinedOutput()
 	if err != nil {
-		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		log.Debug(string(output))
 		return migration, err
 	}
 
@@ -208,7 +207,7 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 
 	output, err = execute.CombinedOutput()
 	if err != nil {
-		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		log.Debug(string(output))
 		return migration, err
 	}
 

@@ -2,7 +2,6 @@ package environment
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -148,7 +147,7 @@ func (e *Environment) Prepare() error {
 
 		output, err := execute.CombinedOutput()
 		if err != nil {
-			log.Debug(json.MarshalIndent(string(output), "", "    "))
+			log.Debug(string(output))
 			log.Error("Failed to apply migrations")
 			return err
 		}
@@ -169,7 +168,7 @@ func (e *Environment) Prepare() error {
 
 		output, err := execute.CombinedOutput()
 		if err != nil {
-			log.Debug(json.MarshalIndent(string(output), "", "  "))
+			log.Debug(string(output))
 			log.Error("Failed to export metadata")
 			return err
 		}
@@ -185,12 +184,12 @@ func (e *Environment) Prepare() error {
 	execute.Dir = nhost.NHOST_DIR
 
 	cmdArgs := []string{e.Hasura.CLI, "metadata", "apply"}
-	cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
+	//	cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
 	execute.Args = cmdArgs
 
 	output, err := execute.CombinedOutput()
 	if err != nil {
-		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		log.Debug(string(output))
 		log.Error("Failed to apply metadata")
 		return err
 	}

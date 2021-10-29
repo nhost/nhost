@@ -103,7 +103,7 @@ var initCmd = &cobra.Command{
 		//  iterate through those projects and filter that project
 		if remote {
 
-			//  validate authentication
+			//  Validate authentication
 			user, err := getUser(nhost.AUTH_PATH)
 			if err != nil {
 

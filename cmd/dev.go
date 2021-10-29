@@ -207,9 +207,6 @@ var devCmd = &cobra.Command{
 			env.Servers = append(env.Servers, functionServer.Server)
 		}()
 
-		//  Register the functions server in our environment
-		//	env.Servers = append(env.Servers, functionServer)
-
 		//  Print the proxy routes
 		p := newPrinter()
 		p.print("header", "", "")
