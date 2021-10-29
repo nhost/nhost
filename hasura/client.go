@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"net/http"
+
+	"github.com/nhost/cli/nhost"
 )
 
 type RequestBody struct {
@@ -13,10 +15,12 @@ type RequestBody struct {
 }
 
 type Client struct {
-	Endpoint    string
-	AdminSecret string
-	Client      *http.Client
-	CLI         string
+	Endpoint               string
+	AdminSecret            string
+	Client                 *http.Client
+	CLI                    string
+	CommonOptions          []string
+	CommonOptionsWithoutDB []string
 }
 
 func (r *RequestBody) Marshal() ([]byte, error) {
@@ -58,6 +62,17 @@ func (c *Client) Init(endpoint, adminSecret string, client *http.Client) error {
 	c.CLI = cli
 	c.Endpoint = endpoint
 	c.AdminSecret = adminSecret
+	c.CommonOptions = []string{
+		"--endpoint", c.Endpoint,
+		"--admin-secret", c.AdminSecret,
+		"--database-name", nhost.DATABASE,
+		"--skip-update-check",
+	}
+	c.CommonOptionsWithoutDB = []string{
+		"--endpoint", c.Endpoint,
+		"--admin-secret", c.AdminSecret,
+		"--skip-update-check",
+	}
 
 	if client == nil {
 		c.Client = &http.Client{}

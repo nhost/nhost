@@ -108,14 +108,6 @@ func (e *Environment) Init() error {
 
 func (e *Environment) Prepare() error {
 
-	var commandOptions = []string{
-		"--endpoint",
-		e.Hasura.Endpoint,
-		"--admin-secret",
-		e.Hasura.AdminSecret,
-		"--skip-update-check",
-	}
-
 	//  Send out de-activation signal before starting migrations,
 	//  to inform any other resource which using Hasura
 	//  e.Config.Services["hasura"].Deactivate()
@@ -150,8 +142,8 @@ func (e *Environment) Prepare() error {
 		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 		execute.Dir = nhost.NHOST_DIR
 
-		cmdArgs := []string{e.Hasura.CLI, "migrate", "apply", "--database-name", nhost.DATABASE}
-		cmdArgs = append(cmdArgs, commandOptions...)
+		cmdArgs := []string{e.Hasura.CLI, "migrate", "apply"}
+		cmdArgs = append(cmdArgs, e.Hasura.CommonOptions...)
 		execute.Args = cmdArgs
 
 		output, err := execute.CombinedOutput()
@@ -172,12 +164,12 @@ func (e *Environment) Prepare() error {
 		execute.Dir = nhost.NHOST_DIR
 
 		cmdArgs := []string{e.Hasura.CLI, "metadata", "export"}
-		cmdArgs = append(cmdArgs, commandOptions...)
+		cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
 		execute.Args = cmdArgs
 
 		output, err := execute.CombinedOutput()
 		if err != nil {
-			log.Debug(json.MarshalIndent(string(output), "", "    "))
+			log.Debug(json.MarshalIndent(string(output), "", "  "))
 			log.Error("Failed to export metadata")
 			return err
 		}
@@ -193,12 +185,12 @@ func (e *Environment) Prepare() error {
 	execute.Dir = nhost.NHOST_DIR
 
 	cmdArgs := []string{e.Hasura.CLI, "metadata", "apply"}
-	cmdArgs = append(cmdArgs, commandOptions...)
+	cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
 	execute.Args = cmdArgs
 
 	output, err := execute.CombinedOutput()
 	if err != nil {
-		log.Debug(json.MarshalIndent(string(output), "", "    "))
+		log.Debug(json.MarshalIndent(string(output), "", "  "))
 		log.Error("Failed to apply metadata")
 		return err
 	}

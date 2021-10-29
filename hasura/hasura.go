@@ -259,7 +259,7 @@ func (c *Client) ClearMigration() error {
 	}
 	output, err := execute.CombinedOutput()
 	if err != nil {
-		fmt.Println(string(output))
+		log.Debug(string(output))
 		return err
 	}
 

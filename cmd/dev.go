@@ -213,6 +213,7 @@ var devCmd = &cobra.Command{
 		//  Print the proxy routes
 		p := newPrinter()
 		p.print("header", "", "")
+		p.print("", strings.Title("backend"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, env.Port, Reset))
 
 		//spawn hasura console
 		consolePort := nhost.GetPort(9301, 9400)
@@ -307,7 +308,6 @@ var devCmd = &cobra.Command{
 
 		//  print Hasura console URLs
 		p.print("", strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, consolePort, Reset))
-		p.print("", strings.Title("backend"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, env.Port, Reset))
 		p.print("footer", "", "")
 		p.close()
 

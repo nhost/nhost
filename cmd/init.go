@@ -49,7 +49,6 @@ var initCmd = &cobra.Command{
 	Long: `Initialize current working directory as an Nhost application.
 
 --remote flag must be added in the of the command.`,
-	DisableFlagParsing: true,
 	PreRun: func(cmd *cobra.Command, args []string) {
 
 		if util.PathExists(nhost.NHOST_DIR) {
@@ -58,11 +57,10 @@ var initCmd = &cobra.Command{
 			os.Exit(0)
 		}
 
-		cmd.Flags().Parse(args)
-		if contains(args, "-r") || contains(args, "--remote") {
-			remote = true
-		}
-
+		/* 		if contains(args, "-r") || contains(args, "--remote") {
+		   			remote = true
+		   		}
+		*/
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
@@ -243,17 +241,15 @@ var initCmd = &cobra.Command{
 				log.Debug(err)
 				log.Fatal("Failed to initialize Hasura client")
 			}
+			/*
+				//  clear current migration from remote
+				if err := hasuraClient.ClearMigration(); err != nil {
+					log.Debug(err)
+					log.Fatal("Failed to clear migrations from remote")
+				}
 
-			commonOptions := []string{"--endpoint", hasuraEndpoint, "--admin-secret", adminSecret, "--skip-update-check"}
-
-			//  clear current migration information from remote
-			if err := hasuraClient.ClearMigration(); err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to clear migrations from remote")
-			}
-
-			//  create migrations from remote
-			_, err := pullMigration(hasuraClient, "init", commonOptions)
+			*/ //  create migrations from remote
+			_, err := pullMigration(hasuraClient, "init")
 			if err != nil {
 				log.Debug(err)
 				log.Fatal("Failed to pull migrations from remote")
@@ -514,7 +510,8 @@ func init() {
 	//  Cobra supports Persistent Flags which will work for this command
 	//  and all subcommands, e.g.:
 	//  initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	initCmd.Flags().StringVarP(&project, "remote", "r", "", "Name of a remote app")
+	//	initCmd.Flags().StringVarP(&project, "remote", "r", "", "Name of a remote app")
+	initCmd.Flags().BoolVarP(&remote, "remote", "r", false, "Initialize app from remote?")
 	initCmd.Flags().BoolVarP(&approve, "yes", "y", false, "Approve & bypass app initialization prompt")
 
 	//  Cobra supports local flags which will only run when this command
