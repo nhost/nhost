@@ -11,7 +11,7 @@ import (
 
 var (
 	log    = &logger.Log
-	DOMAIN = "nuno.run"
+	DOMAIN = "nhost.run"
 	API    = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
 
 	//  fetch current working directory

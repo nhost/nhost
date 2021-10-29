@@ -108,8 +108,9 @@ var initCmd = &cobra.Command{
 			//  validate authentication
 			user, err := getUser(nhost.AUTH_PATH)
 			if err != nil {
-				log.Debug(err)
-				log.Fatal("Failed to fetch user information")
+
+				//	Login the user
+				loginCmd.Run(cmd, args)
 			}
 
 			//  concatenate personal and team projects
@@ -118,7 +119,7 @@ var initCmd = &cobra.Command{
 			if len(projects) == 0 {
 				log.Error("No remote apps found")
 				log.Info("Run `nhost init` to create new one locally")
-				return
+				os.Exit(0)
 			}
 
 			//  if flag is empty, present selection list
@@ -159,6 +160,8 @@ var initCmd = &cobra.Command{
 				selectedProject = projects[index]
 			}
 		}
+
+		log.Info("Creating your app")
 
 		//	if required directories don't exist, then create them
 		for _, dir := range requiredDirs {

@@ -74,6 +74,8 @@ var loginCmd = &cobra.Command{
 			password = payload
 		}
 
+		fmt.Println()
+		log.Info("Authenticating")
 		credentials, err := login(nhost.API, email, password)
 		if err != nil {
 			log.Debug(err)
