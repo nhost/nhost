@@ -25,11 +25,9 @@ SOFTWARE.
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
 	"os/exec"
-	"path/filepath"
-	"strconv"
 
 	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/nhost"
@@ -119,271 +117,100 @@ and sync them with your local app.`,
 	*/
 }
 
-func pullMigration(client hasura.Client, name string, commonOptions []string) (hasura.Migration, error) {
+func pullMigration(client hasura.Client, name string) (hasura.Migration, error) {
 
 	log.Debugf("Creating migration '%s'", name)
 
-	//  prepare response
 	migration := hasura.Migration{
 		Name: name,
 	}
 
 	migration = migration.Init()
-
-	metadata, err := client.GetMetadata()
-	if err != nil {
-		return migration, err
-	}
-
-	//  Fetch list of all ALLOWED schemas before applying
-	schemas, err := client.GetSchemas()
-	if err != nil {
-		log.Debug("Failed to get list of schemas")
-		return migration, err
-	}
-
-	migrationTables := getMigrationTables(schemas, metadata.Tables)
-
 	/*
-		//  fetch migrations
-		migrationArgs := []string{hasuraCLI, "migrate", "create", name, "--from-server"}
-		migrationArgs = append(migrationArgs, getMigrationTables(schemas, tables)...)
-		migrationArgs = append(migrationArgs, commonOptions...)
 
-		execute = exec.Cmd{
-			Path: hasuraCLI,
-			Args: migrationArgs,
-			Dir:  nhost.NHOST_DIR,
-		}
-
-		output, err = execute.CombinedOutput()
+		metadata, err := client.GetMetadata()
 		if err != nil {
-			log.Debug(string(output))
 			return migration, err
 		}
+
+		//  Fetch list of all ALLOWED schemas before applying
+		schemas, err := client.GetSchemas()
+		if err != nil {
+			log.Debug("Failed to get list of schemas")
+			return migration, err
+		}
+
+		migrationTables := getMigrationTables(schemas, metadata.Tables)
 	*/
 
-	if len(migrationTables) > 0 {
-
-		log.Debug("Creating initial migration")
-
-		migration.Data, err = client.Migration(migrationTables)
-		if err != nil {
-			log.Debug("Failed to get migration data")
-			return migration, err
-		}
-
-		//  create migration file
-		if err := os.MkdirAll(migration.Location, os.ModePerm); err != nil {
-			log.Debug("Failed to create migration directory")
-			return migration, err
-		}
-
-		f, err := os.Create(filepath.Join(migration.Location, "up.sql"))
-		if err != nil {
-			log.Debug("Failed to create migration file")
-			return migration, err
-		}
-
-		//  add enum seeds
-		enumTables := filterEnumTables(metadata.Tables)
-
-		if len(enumTables) > 0 {
-
-			log.Debug("Appending enum table seeds to initial migration")
-			seeds, err := client.ApplySeeds(enumTables)
-			if err != nil {
-				log.Debug("Failed to fetch seeds for enum tables")
-				return migration, err
-			}
-
-			//  append the fetched seed data
-			migration.Data = append(migration.Data, seeds...)
-		}
-
-		/*
-			//  format migration data before writing it
-			migration.Data = []byte(migration.Format(string(migration.Data)))
-
-			//  prepend extensions to migration data
-			//  add or update extensions to new migration
-			//  add extensions to init migration
-			extensions, err := client.GetExtensions()
-			if err != nil {
-				log.Debug("Failed to fetch migration extensions")
-				return migration, err
-			}
-
-			//  prepend the fetched extensions
-			migration.Data = migration.AddExtensions(extensions)
-		*/
-
-		if _, err = f.Write(migration.Data); err != nil {
-			log.Debug("Failed to write migration file")
-			return migration, err
-		}
-
-		f.Sync()
-		f.Close()
-
-		/*
-			var mig fs.FileInfo
-
-			//  search and load created migration
-			files, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
-			if err != nil {
-				return migration, err
-			}
-
-			for _, file := range files {
-				if strings.Contains(file.Name(), name) {
-					mig = file
-				}
-			}
-
-			v := strings.Split(mig.Name(), "_")[0]
-		*/
-
-		//  If migrations directory is already mounted to nhost_hasura container,
-		//  then Hasura must be auto-applying migrations
-		//  hence, manually applying migrations doesn't make sense
-
-		//  apply init migration on remote
-		//  to prevent this init migration being run again
-		//  in production
-		migrationArgs := []string{client.CLI, "migrate", "apply", "--version", strconv.FormatInt(migration.Version, 10), "--skip-execution"}
-		migrationArgs = append(migrationArgs, commonOptions...)
-
-		execute := exec.Cmd{
-			Path: client.CLI,
-			Args: migrationArgs,
-			Dir:  nhost.NHOST_DIR,
-		}
-
-		output, err := execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			return migration, err
-		}
-
-	}
-	/*
-		//  save metadata
-		metadataToBeSaved := []map[string]interface{}{
-			{"key": "tables", "value": metadata.Tables},
-			{"key": "query_collections", "value": metadata.QueryCollections},
-			{"key": "cron_triggers", "value": metadata.CronTriggers},
-			{"key": "actions", "value": metadata.Actions},
-			{"key": "allow_list", "value": metadata.Allowlist},
-			{"key": "remote_schemas", "value": metadata.RemoteSchemas},
-			{"key": "version", "value": metadata.Version},
-			{"key": "functions", "value": metadata.Functions},
-		}
-
-		for _, item := range metadataToBeSaved {
-
-			file, err := os.Create(filepath.Join(nhost.METADATA_DIR, fmt.Sprintf("%s.yaml", item["key"])))
-			if err != nil {
-				return migration, err
-			}
-
-			payload, err := yaml.Marshal(item["value"])
-			if err != nil {
-				return migration, err
-			}
-			_, err = file.Write(payload)
-			if err != nil {
-				return migration, err
-			}
-
-			if err = file.Close(); err != nil {
-				return migration, err
-			}
-		}
-	*/
-
-	//  any enum compatible tables that might exist
-	//  all enum compatible tables must contain at least one row
-	//  https://hasura.io/docs/1.0/graphql/core/schema/enums.html#creating-an-enum-compatible-table
-
-	//  use the saved tables metadata to check whether this project has enum compatible tables
-	//  if tables metadata doesn't exit, fetch from API
-	//  make sure all required tables are being tracked
-	/*
-		metadata, err := getMetadata(client.Endpoint, client.AdminSecret)
-		if err != nil {
-			return migration, err
-		}
-	*/
-	//  fetch metadata
-	metadataArgs := []string{client.CLI, "metadata", "export"}
-	metadataArgs = append(metadataArgs, commonOptions...)
+	//  fetch migrations
+	log.Debug("Creating initial migration")
+	args := []string{client.CLI, "migrate", "create", name, "--from-server"}
+	//	migrationArgs = append(migrationArgs, getMigrationTables(schemas, tables)...)
+	args = append(args, client.CommonOptions...)
 
 	execute := exec.Cmd{
 		Path: client.CLI,
-		Args: metadataArgs,
+		Args: args,
 		Dir:  nhost.NHOST_DIR,
 	}
 
-	if err := execute.Run(); err != nil {
+	output, err := execute.CombinedOutput()
+	if err != nil {
+		log.Debug(json.MarshalIndent(string(output), "", "  "))
 		return migration, err
 	}
 
-	/*
-		//  LEGACY CODE
-		//  Uses hasura CLI for creating seeds
+	log.Debug("Clearing remote migrations")
 
-		//  first check if seeds already exist
-		//  in which case skip seed creation
+	args = []string{client.CLI, "migrate", "delete", "--all", "--server", "--force"}
+	args = append(args, client.CommonOptions...)
 
-		seeds, err := os.ReadDir(nhost.SEEDS_DIR)
-		if err != nil {
-			return migration, err
-		}
+	execute = exec.Cmd{
+		Path: client.CLI,
+		Args: args,
+		Dir:  nhost.NHOST_DIR,
+	}
 
-		//  only add seeds if enum tables exist, otherwise skip this step
-			for _, table := range tables {
+	output, err = execute.CombinedOutput()
+	if err != nil {
+		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		return migration, err
+	}
 
-				applied := false
+	log.Debug("Applying migrations")
 
-				for _, item := range seeds {
-					if strings.Split(item.Name(), "_")[1] == (table.Table.Name + ".sql") {
-						applied = true
-					}
-				}
+	args = []string{client.CLI, "migrate", "apply", "--skip-execution"}
+	args = append(args, client.CommonOptions...)
 
-				if !applied {
+	execute = exec.Cmd{
+		Path: client.CLI,
+		Args: args,
+		Dir:  nhost.NHOST_DIR,
+	}
 
-					//  apply seed for every single table
-					seedArgs := []string{hasuraCLI, "seeds", "create", table.Table.Name, "--from-table", table.Table.Schema + "." + table.Table.Name}
-					seedArgs = append(seedArgs, commonOptions...)
+	output, err = execute.CombinedOutput()
+	if err != nil {
+		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		return migration, err
+	}
 
-					execute := exec.Cmd{
-						Path: hasuraCLI,
-						Args: seedArgs,
-						Dir:  nhost.NHOST_DIR,
-					}
+	log.Debug("Export metadata")
 
-					output, err := execute.CombinedOutput()
-					if err != nil {
-						log.Debug(string(output))
-						log.Debug(err)
-						log.WithField("component", table.Table.Name).Error("Failed to create seeds for enum table")
-						log.Warn("Skipping seed creation")
-					}
+	args = []string{client.CLI, "metadata", "export"}
+	args = append(args, client.CommonOptionsWithoutDB...)
 
-					//  append the insert data of new seeds for enum tables
-					//  to the relevant migration file
-					//  explain reason...
+	execute = exec.Cmd{
+		Path: client.CLI,
+		Args: args,
+		Dir:  nhost.NHOST_DIR,
+	}
 
-					if err = copySeedToMigration(table.Table.Name, filepath.Join(migrationFile.Name(), "up.sql")); err != nil {
-						log.Debug(err)
-						log.WithField("component", table.Table.Name).Errorf("Failed to append table seed data to migration: %v", name)
-						log.Warn("Skipping seed creation")
-					}
-				}
-			}
-	*/
+	output, err = execute.CombinedOutput()
+	if err != nil {
+		log.Debug(json.MarshalIndent(string(output), "", "  "))
+		return migration, err
+	}
 
 	return migration, nil
 }
