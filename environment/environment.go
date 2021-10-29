@@ -2,6 +2,7 @@ package environment
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -60,7 +61,6 @@ func (e *Environment) Init() error {
 	//  break execution if docker deamon is not running
 	_, err = e.Docker.Info(e.Context)
 	if err != nil {
-		log.Error(util.ErrDockerNotFound)
 		log.Warn(util.WarnDockerNotFound)
 		log.Info(util.InfoDockerDownload)
 		return err
@@ -156,7 +156,7 @@ func (e *Environment) Prepare() error {
 
 		output, err := execute.CombinedOutput()
 		if err != nil {
-			log.Debug(string(output))
+			log.Debug(json.MarshalIndent(string(output), "", "    "))
 			log.Error("Failed to apply migrations")
 			return err
 		}
@@ -177,7 +177,7 @@ func (e *Environment) Prepare() error {
 
 		output, err := execute.CombinedOutput()
 		if err != nil {
-			log.Debug(string(output))
+			log.Debug(json.MarshalIndent(string(output), "", "    "))
 			log.Error("Failed to export metadata")
 			return err
 		}
@@ -198,7 +198,7 @@ func (e *Environment) Prepare() error {
 
 	output, err := execute.CombinedOutput()
 	if err != nil {
-		log.Debug(string(output))
+		log.Debug(json.MarshalIndent(string(output), "", "    "))
 		log.Error("Failed to apply metadata")
 		return err
 	}

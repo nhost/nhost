@@ -211,7 +211,7 @@ var devCmd = &cobra.Command{
 		//  Register the functions server in our environment
 		//	env.Servers = append(env.Servers, functionServer)
 
-		//  print the proxy routes
+		//  Print the proxy routes
 		p := newPrinter()
 		p.print("header", "", "")
 
@@ -312,7 +312,7 @@ var devCmd = &cobra.Command{
 		//  give example of using Functions inside Hasura
 		p.print("info", "ProTip: You can call Functions inside Hasura!", "")
 		p.print("header", "", "")
-		p.print("", fmt.Sprintf("%s{{NHOST_BACKEND_URL}}/1/functions%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves ./functions", Reset, "/hello.js"))
+		p.print("", fmt.Sprintf("%s{{NHOST_BACKEND_URL}}/1/functions%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves functions", Reset, "/hello.js"))
 		p.close()
 
 		/*
