@@ -118,7 +118,7 @@ var loginCmd = &cobra.Command{
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
 		log.Info("Email verified, and you are logged in!")
-		log.Info("Type `nhost list` to see your apps")
+		log.Info("Type `nhost list` to see your remote apps")
 	},
 }
 
