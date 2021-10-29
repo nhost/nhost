@@ -64,6 +64,11 @@ const PROVIDERS = {
               'displayName',
             ]);
           },
+          get scope() {
+            return castStringArrayEnv('AUTH_PROVIDER_FACEBOOK_SCOPE', [
+              'email',
+            ]);
+          },
         };
   },
 

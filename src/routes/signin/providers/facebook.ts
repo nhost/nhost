@@ -10,7 +10,7 @@ export default (router: Router): void => {
     router,
     'facebook',
     Strategy,
-    { profileFields: PROVIDERS.facebook?.profileFields },
+    { profileFields: PROVIDERS.facebook?.profileFields, scope: PROVIDERS.facebook?.scope },
     (req, res, next) => {
       if (!PROVIDERS.facebook) {
         return res.boom.notImplemented(`Facebook sign-in is not enabled`);
