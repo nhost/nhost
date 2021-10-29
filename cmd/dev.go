@@ -31,7 +31,6 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -291,12 +290,13 @@ var devCmd = &cobra.Command{
 					return
 				}
 
-				//  print the name and handle
-				for _, route := range item.Handles {
-					if route.Show {
-						p.print("", route.Name, fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(route.Destination)))
-					}
-				}
+				/* 				//  print the name and handle
+				   				for _, route := range item.Handles {
+				   					if route.Show {
+				   						p.print("", route.Name, fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(route.Destination)))
+				   					}
+				   				}
+				*/
 			}
 
 			switch name {
@@ -307,23 +307,25 @@ var devCmd = &cobra.Command{
 
 		//  print Hasura console URLs
 		p.print("", strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, consolePort, Reset))
-		p.close()
-
-		//  give example of using Functions inside Hasura
-		p.print("info", "ProTip: You can call Functions inside Hasura!", "")
-		p.print("header", "", "")
-		p.print("", fmt.Sprintf("%s{{NHOST_BACKEND_URL}}/1/functions%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves functions", Reset, "/hello.js"))
+		p.print("", strings.Title("backend"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, env.Port, Reset))
+		p.print("footer", "", "")
 		p.close()
 
 		/*
-			//	Print list of runtime variables
-			p.print("info", "ProTip: Runtime variables available inside Functions & Hasura!", "")
+			//  give example of using Functions inside Hasura
+			p.print("info", "ProTip: You can call Functions inside Hasura!", "")
 			p.print("header", "", "")
-			runtimeVars := env.RuntimeVars()
-			for key, value := range runtimeVars {
-				p.print("", key, fmt.Sprintf("%s%v%s", Gray, value, Reset))
-			}
+			p.print("", fmt.Sprintf("%s{{NHOST_BACKEND_URL}}/v1/functions%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves functions", Reset, "/hello.js"))
 			p.close()
+
+			//	Print list of runtime variables
+				p.print("info", "ProTip: Runtime variables available inside Functions & Hasura!", "")
+				p.print("header", "", "")
+				runtimeVars := env.RuntimeVars()
+				for key, value := range runtimeVars {
+					p.print("", key, fmt.Sprintf("%s%v%s", Gray, value, Reset))
+				}
+				p.close()
 		*/
 
 		//  Update environment state

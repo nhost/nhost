@@ -52,7 +52,6 @@ type Formatter struct {
 
 //  Format an log entry
 func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
-	levelColor := getColorByLevel(entry.Level)
 
 	//  output buffer
 	b := &bytes.Buffer{}
@@ -67,13 +66,14 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 	}
 
 	//  write level
-	var level string
-	if f.NoUppercaseLevel {
-		level = entry.Level.String()
-	} else {
-		level = strings.ToUpper(entry.Level.String())
-	}
-
+	levelColor := getColorByLevel(entry.Level)
+	/* 	var level string
+	   	if f.NoUppercaseLevel {
+	   		level = entry.Level.String()
+	   	} else {
+	   		level = strings.ToUpper(entry.Level.String())
+	   	}
+	*/
 	if f.CallerFirst {
 		f.writeCaller(b, entry)
 	}
@@ -82,14 +82,16 @@ func (f *Formatter) Format(entry *logrus.Entry) ([]byte, error) {
 		fmt.Fprintf(b, "\x1b[%dm", levelColor)
 	}
 
-	b.WriteString("[")
-	if f.ShowFullLevel {
-		b.WriteString(level)
-	} else {
-		b.WriteString(level[:4])
-	}
-	b.WriteString("]")
-
+	/*
+		b.WriteString("[")
+		if f.ShowFullLevel {
+			b.WriteString(level)
+		} else {
+			b.WriteString(level[:4])
+		}
+		b.WriteString("]")
+	*/
+	b.WriteString(">")
 	if !f.NoFieldsSpace {
 		b.WriteString(" ")
 	}
