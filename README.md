@@ -35,7 +35,7 @@
 
 - **Email and Password** - simple email and password method.
 - **Email** - also called **passwordless email** or **magic link**.
-- **SMS** - Also called **passwordless sms**.
+- **SMS** - also called **passwordless sms**.
 - **Anonymous** - sign in users without any method. Anonymous users can be
   converted to _regular_ users.
 - **OAuth providers**:
