@@ -32,7 +32,6 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
   * [Installing On Windows](#installing-on-windows)
   * [Installing Using Go](#installing-using-go)
   * [OS & Platform Support](#os--platform-support)
-      * [Apple Silicon (M1)](#apple-silicon-m1)
 - [Getting Started](#getting-started)
 - [Front-end Support](#frontend-support)
 - [Usage](#usage)
@@ -89,14 +88,8 @@ This command will install the `nhost` executable binary along with its dependenc
 ## OS & Platform Support
 
 - [x] Linux
-- [x] MacOS
+- [x] MacOS (including Apple Silicon)
 - [x] Windows
-
-### Apple Silicon (M1)
-
-You can use the CLI binary without any issues on M1 chip, by saving a custom built Hasura image (`fedormelexin/graphql-engine-arm64`) in your `{app_root}/nhost/config.yaml`.
-
-This is because Hasura has still not released an M1 optimized version for their GraphQL engine image, and the current one has some issues running natively on M1. This will not cause any issues/changes in your app's production environment since the `nhost/config.yaml` file is only used for local development. This workaround is only to ease out the pain in your local development experience.
 
 # Getting Started
 

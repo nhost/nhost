@@ -65,15 +65,20 @@ func (e *Environment) Init() error {
 		return err
 	}
 
-	//  get running containers with prefix "nhost_"
-	containers, err := e.GetContainers()
-	if err != nil {
-		log.Error(util.ErrServicesNotFound)
-		return err
-	}
+	/*
+		//	Commenting the following, because we are purging the containers
+		//	on Ctrl+C after `dev` command
 
-	//  wrap the fetched containers inside the environment
-	_ = e.WrapContainersAsServices(containers)
+		//  get running containers with prefix "nhost_"
+		containers, err := e.GetContainers()
+		if err != nil {
+			log.Error(util.ErrServicesNotFound)
+			return err
+		}
+
+		//  wrap the fetched containers inside the environment
+		_ = e.WrapContainersAsServices(containers)
+	*/
 
 	//	Initialize a new watcher for the environment
 	e.Watcher = watcher.New(e.Context)
@@ -184,7 +189,7 @@ func (e *Environment) Prepare() error {
 	execute.Dir = nhost.NHOST_DIR
 
 	cmdArgs := []string{e.Hasura.CLI, "metadata", "apply"}
-	//	cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
+	cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
 	execute.Args = cmdArgs
 
 	output, err := execute.CombinedOutput()
