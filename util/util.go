@@ -135,7 +135,7 @@ func RuntimeVars(port string, networkBased bool) map[string]interface{} {
 	if networkBased {
 		localhost = GetLocalhost()
 	}
-	payload["NHOST_BACKEND_URL"] = fmt.Sprintf("http://localhost:%v", port)
+	payload["NHOST_BACKEND_URL"] = fmt.Sprintf("http://%s:%v", localhost, port)
 	//	payload["NHOST_FUNCTIONS"] = fmt.Sprintf("http://%s:%v/v1/functions", localhost, port)
 	payload["LOCALHOST"] = fmt.Sprintf("http://%s", localhost)
 
