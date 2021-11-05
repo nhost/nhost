@@ -121,7 +121,7 @@ var entities = []Entity{
 		Destination: nhost.EMAILS_DIR,
 		Repository:  "nhost/hasura-auth",
 		Path:        "email-templates",
-		Manual:      "git clone github.com/nhost/hasura-auth/email-templates/" + choice,
+		Manual:      "git clone github.com/nhost/hasura-auth/email-templates" + choice,
 	},
 }
 
