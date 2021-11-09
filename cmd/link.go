@@ -250,8 +250,6 @@ var linkCmd = &cobra.Command{
 
 func updateNhostProject(app nhost.App) error {
 
-	log.Debug("Saving app information in ", util.Rel(nhost.INFO_PATH))
-
 	//  create .nhost, if it doesn't exists
 	if util.PathExists(nhost.INFO_PATH) {
 
@@ -260,6 +258,8 @@ func updateNhostProject(app nhost.App) error {
 			return err
 		}
 	}
+
+	log.Debug("Saving app information in ", util.Rel(nhost.INFO_PATH))
 
 	//  create nhost.yaml to write it
 	f, err := os.Create(nhost.INFO_PATH)

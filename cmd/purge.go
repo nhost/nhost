@@ -24,8 +24,6 @@ SOFTWARE.
 package cmd
 
 import (
-	"context"
-
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
@@ -54,7 +52,7 @@ And re-create them next time you run 'nhost dev'`,
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if err := env.Shutdown(true, context.Background()); err != nil {
+		if err := env.Shutdown(true, env.Context); err != nil {
 			log.Debug(err)
 			log.Error("Failed to shut down Nhost services")
 		}
@@ -80,6 +78,7 @@ And re-create them next time you run 'nhost dev'`,
 		env.RemoveNetwork()
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
+
 		log.Info("Purge complete. See you later, grasshopper!")
 	},
 }

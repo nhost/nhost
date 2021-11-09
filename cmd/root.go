@@ -27,6 +27,7 @@ package cmd
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/nhost/cli/logger"
@@ -81,7 +82,7 @@ var (
 				for _, item := range entities {
 					if !item.Default {
 						prompt := promptui.Prompt{
-							Label:     fmt.Sprintf("Do you want to install %s templates", item.Name),
+							Label:     fmt.Sprintf("Do you want to install %s templates", strings.ToLower(item.Name)),
 							IsConfirm: true,
 						}
 

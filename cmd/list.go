@@ -29,6 +29,7 @@ import (
 	"os"
 
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -63,13 +64,13 @@ for the logged in user from Nhost console.`,
 		}
 
 		p := newPrinter()
-		p.print("", "App", fmt.Sprint(Gray, "Workspace", Reset))
+		p.print("", "App", fmt.Sprint(util.Gray, "Workspace", util.Reset))
 		p.print("header", "", "")
 
 		//  log every project for the user
 		for _, member := range User.WorkspaceMembers {
 			for _, app := range member.Workspace.Apps {
-				p.print("", app.Name, fmt.Sprint(Gray, member.Workspace.Name, Reset))
+				p.print("", app.Name, fmt.Sprint(util.Gray, member.Workspace.Name, util.Reset))
 			}
 		}
 		p.print("footer", "", "")

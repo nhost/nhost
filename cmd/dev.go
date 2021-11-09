@@ -32,7 +32,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"strconv"
-	"strings"
 	"sync"
 	"syscall"
 	"text/tabwriter"
@@ -88,11 +87,9 @@ var devCmd = &cobra.Command{
 	Long:       `Initialize a local Nhost environment for development and testing.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.Info("Starting your app")
-
 		//  check if /nhost exists
 		if !util.PathExists(nhost.NHOST_DIR) {
-			log.Info("Initialize new app by running 'nhost'")
+			log.Info("Initialize new app by running 'nhost init'")
 			log.Fatal("App not found in this directory")
 		}
 
@@ -115,8 +112,11 @@ var devCmd = &cobra.Command{
 		//  Initialize the runtime environment
 		if err = env.Init(); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to initialize the environment")
+			//	log.Error("Failed to start the app")
+			os.Exit(0)
 		}
+
+		env.UpdateState(environment.Executing)
 
 		//  Parse the nhost/config.yaml
 		if err = env.Config.Wrap(); err != nil {
@@ -142,6 +142,7 @@ var devCmd = &cobra.Command{
 			env.Cleanup()
 
 			end_waiter.Done()
+			fmt.Println()
 			os.Exit(0)
 		}()
 
@@ -207,11 +208,6 @@ var devCmd = &cobra.Command{
 			env.Servers = append(env.Servers, functionServer.Server)
 		}()
 
-		//  Print the proxy routes
-		p := newPrinter()
-		p.print("header", "", "")
-		p.print("", strings.Title("backend"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, env.Port, Reset))
-
 		//spawn hasura console
 		consolePort := nhost.GetPort(9301, 9400)
 
@@ -252,10 +248,20 @@ var devCmd = &cobra.Command{
 			}
 		}()
 
-		if !noBrowser {
+		//  Register Hasura Console as a service to route it's UI port
+		env.Config.Services["console"] = &nhost.Service{
+			Name:    "console",
+			Handles: []nhost.Route{{Name: "Console", Source: "/", Destination: "/"}},
+			Proxy:   true,
+			Port:    consolePort,
+		}
 
-			//  Launch mailhog UI
-			go openbrowser(env.Config.Services["mailhog"].Address)
+		//  Register Mailhog as a service to route it's UI port
+		env.Config.Services["emails"] = &nhost.Service{
+			Name:    "emails",
+			Handles: []nhost.Route{{Name: "Mailhog", Source: "/", Destination: "/emails"}},
+			Proxy:   true,
+			Port:    env.Config.Services["mailhog"].Port,
 		}
 
 		//  Initialize a reverse proxy server,
@@ -287,48 +293,14 @@ var devCmd = &cobra.Command{
 					env.Cleanup()
 					return
 				}
-
-				/* 				//  print the name and handle
-				   				for _, route := range item.Handles {
-				   					if route.Show {
-				   						p.print("", route.Name, fmt.Sprintf("%shttp://localhost:%v%s%s", Gray, env.Port, Reset, filepath.Clean(route.Destination)))
-				   					}
-				   				}
-				*/
-			}
-
-			switch name {
-			case "mailhog":
-				p.print("", strings.Title(strings.ToLower(name)), fmt.Sprintf("%shttp://localhost:%v%s", Gray, item.Port, Reset))
 			}
 		}
 
-		//  print Hasura console URLs
-		p.print("", strings.Title("console"), fmt.Sprintf("%shttp://localhost:%v%s", Gray, consolePort, Reset))
-		p.print("footer", "", "")
-		p.close()
-
-		/*
-			//  give example of using Functions inside Hasura
-			p.print("info", "ProTip: You can call Functions inside Hasura!", "")
-			p.print("header", "", "")
-			p.print("", fmt.Sprintf("%s{{NHOST_BACKEND_URL}}/v1/functions%s/hello", Gray, Reset), fmt.Sprint(Gray, "Serves functions", Reset, "/hello.js"))
-			p.close()
-
-			//	Print list of runtime variables
-				p.print("info", "ProTip: Runtime variables available inside Functions & Hasura!", "")
-				p.print("header", "", "")
-				runtimeVars := env.RuntimeVars()
-				for key, value := range runtimeVars {
-					p.print("", key, fmt.Sprintf("%s%v%s", Gray, value, Reset))
-				}
-				p.close()
-		*/
-
 		//  Update environment state
+		env.Status.Reset()
 		env.UpdateState(environment.Active)
 
-		log.Warn("Use Ctrl + C to stop the app")
+		fmt.Println(util.Blue, "!", util.Reset, " Use Ctrl + C to stop the app")
 
 		//  wait for Ctrl+C
 		end_waiter.Wait()
@@ -354,9 +326,9 @@ func (p *Printer) print(loc, head, tail string) {
 	switch loc {
 	case "header":
 		fmt.Fprintln(p)
-		fmt.Fprintln(p, "---\t\t-----")
+		//	fmt.Fprintln(p, "---\t\t-----")
 	case "footer":
-		fmt.Fprintln(p, "---\t\t-----")
+		//	fmt.Fprintln(p, "---\t\t-----")
 	case "info":
 		log.Info(head)
 	default:

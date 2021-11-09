@@ -23,7 +23,7 @@ var (
 const (
 
 	//	Common Error Codes
-	WarnDockerNotFound  = "Please start docker and re-run `nhost`"
+	WarnDockerNotFound  = "Make sure Docker is running and re-run `nhost dev`"
 	ErrDockerNotFound   = "Docker not running"
 	ErrServicesNotFound = "No services found currently running for this app"
 

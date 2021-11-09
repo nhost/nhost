@@ -32,6 +32,7 @@ import (
 
 	"github.com/hashicorp/go-getter"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -117,7 +118,7 @@ CLI and upgrade to it.`,
 		//  Check new version
 		target, _ := os.Executable()
 		if output, err := exec.Command(target, "version").CombinedOutput(); err != nil {
-			log.Infof("Check new version with: %vnhost version%v", Bold, Reset)
+			log.Infof("Check new version with: %vnhost version%v", util.Bold, util.Reset)
 		} else {
 			os.Stdout.Write(output)
 		}

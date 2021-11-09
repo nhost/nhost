@@ -86,9 +86,6 @@ func (e *Environment) Shutdown(purge bool, ctx context.Context) error {
 
 	log.Debug("Shutting down running services")
 
-	//  Update environment state
-	e.UpdateState(ShuttingDown)
-
 	var response error
 	var end_waiter sync.WaitGroup
 
@@ -115,9 +112,6 @@ func (e *Environment) Shutdown(purge bool, ctx context.Context) error {
 			}(container)
 		}
 	}
-
-	//  Update environment state
-	e.UpdateState(Inactive)
 
 	end_waiter.Wait()
 	return response

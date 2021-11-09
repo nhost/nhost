@@ -12,7 +12,6 @@ import (
 	"time"
 
 	client "github.com/docker/docker/client"
-	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/nhost/cli/watcher"
@@ -30,20 +29,47 @@ const (
 	Executing
 	Active
 	ShuttingDown
-	Inactive //  keep it always last
+	Inactive
+	Failed //  keep it always last
 )
 
 func (e *Environment) UpdateState(state State) {
 	e.Lock()
 	e.State = state
+
+	switch e.State {
+	case Executing:
+		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Yellow, util.GEAR, util.Reset)
+		e.Status.Text = "Starting your app"
+	case Initializing:
+		e.Status.Icon = fmt.Sprintf("%s%s%s", util.GEAR, util.GEAR, util.Reset)
+		e.Status.Text = "Initializing environment"
+	case ShuttingDown:
+		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Yellow, util.GEAR, util.Reset)
+		e.Status.Text = "Please wait while we cleanup"
+	case Active:
+		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Green, util.CHECK, util.Reset)
+		e.Status.Text = fmt.Sprintf("Your app is running at %shttp://localhost:%s%s", util.Blue, e.Port, util.Reset)
+	case Inactive:
+		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Green, util.CHECK, util.Reset)
+		e.Status.Text = "Cleanup complete. See you later, grasshopper!"
+	case Failed:
+		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Red, util.CANCEL, util.Reset)
+		e.Status.Text = "App has crashed"
+	}
 	e.Unlock()
+
+	e.Status.Print()
 }
 
 func (e *Environment) Init() error {
 
 	var err error
 
-	log.WithField("component", e.Name).Debug("Initializing environment")
+	log.Debug("Initializing environment")
+
+	//	Initialize the status handler
+	e.Status.Init()
 
 	//  Update environment state
 	e.UpdateState(Initializing)
@@ -61,7 +87,6 @@ func (e *Environment) Init() error {
 	_, err = e.Docker.Info(e.Context)
 	if err != nil {
 		log.Warn(util.WarnDockerNotFound)
-		log.Info(util.InfoDockerDownload)
 		return err
 	}
 
@@ -142,6 +167,7 @@ func (e *Environment) Prepare() error {
 	if len(files) > 0 {
 
 		log.Debug("Applying migrations")
+		e.Status.Update(1)
 
 		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 		execute.Dir = nhost.NHOST_DIR
@@ -156,6 +182,8 @@ func (e *Environment) Prepare() error {
 			log.Error("Failed to apply migrations")
 			return err
 		}
+
+		e.Status.Increment(1)
 	}
 
 	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
@@ -164,6 +192,9 @@ func (e *Environment) Prepare() error {
 	}
 
 	if len(metaFiles) == 0 {
+
+		e.Status.Update(1)
+
 		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 		execute.Dir = nhost.NHOST_DIR
 
@@ -177,6 +208,8 @@ func (e *Environment) Prepare() error {
 			log.Error("Failed to export metadata")
 			return err
 		}
+
+		e.Status.Increment(1)
 	}
 
 	//  If metadata directory is already mounted to nhost_hasura container,
@@ -185,6 +218,8 @@ func (e *Environment) Prepare() error {
 
 	//  apply metadata
 	log.Debug("Applying metadata")
+	e.Status.Update(1)
+
 	execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 	execute.Dir = nhost.NHOST_DIR
 
@@ -199,6 +234,7 @@ func (e *Environment) Prepare() error {
 		return err
 	}
 
+	e.Status.Increment(1)
 	return nil
 }
 
@@ -210,13 +246,11 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 
 	log.Debug("Starting health check")
 
-	var i int
-	var l int
 	var err error
 	var health_waiter sync.WaitGroup
 	for _, service := range e.Config.Services {
 		if service.HealthEndpoint != "" {
-			l += 1
+			e.Status.Update(1)
 			health_waiter.Add(1)
 			go func(service *nhost.Service) {
 
@@ -230,10 +264,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 						return
 					default:
 						if healthy := service.Healthz(); healthy {
-							if !logger.DEBUG {
-								i += 1
-								fmt.Printf("\rComplete: (%d/%d)", i, l)
-							}
+							e.Status.Increment(1)
 							log.WithFields(logrus.Fields{
 								"type":      "service",
 								"container": service.Name,
@@ -276,9 +307,6 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 
 	//  wait for all healthchecks to pass
 	health_waiter.Wait()
-	if !logger.DEBUG {
-		fmt.Printf("\r")
-	}
 	return err
 }
 
@@ -403,6 +431,8 @@ func (e *Environment) isActive() bool {
 
 func (e *Environment) Cleanup() {
 
+	e.UpdateState(ShuttingDown)
+
 	//  Gracefully shut down all registered servers of the environment
 	for _, server := range e.Servers {
 		server.Shutdown(e.Context)
@@ -412,7 +442,7 @@ func (e *Environment) Cleanup() {
 	e.Watcher.Close()
 
 	if e.State >= Executing {
-		log.Warn("Please wait while we cleanup")
+		//	log.Warn("Please wait while we cleanup")
 
 		//	Pass the parent context of the environment,
 		//	because this is the final cleanup procedure
@@ -421,9 +451,9 @@ func (e *Environment) Cleanup() {
 			log.Debug(err)
 			log.Fatal("Failed to stop running services")
 		}
-
-		log.Info("Cleanup complete. See you later, grasshopper!")
 	}
+
+	e.UpdateState(Inactive)
 
 	//  Don't cancel the contexts before shutting down the containers
 	e.Cancel()

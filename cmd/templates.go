@@ -97,7 +97,7 @@ type Template struct {
 
 var entities = []Entity{
 	{
-		Name:        "Web or Front-end",
+		Name:        "Frontend",
 		Value:       "web",
 		Destination: nhost.WEB_DIR,
 		Repository:  "nhost/nhost",

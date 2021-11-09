@@ -129,7 +129,7 @@ func readInput(key string, hide bool) (string, error) {
 	var response string
 	var err error
 
-	fmt.Print(Bold + strings.Title(key) + ": " + Reset)
+	fmt.Print(util.Bold + strings.Title(key) + ": " + util.Reset)
 	if !hide {
 		response, err = reader.ReadString('\n')
 	} else {

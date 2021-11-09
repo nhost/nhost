@@ -30,7 +30,6 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"plugin"
 	"strings"
 	"sync"
 	"syscall"
@@ -48,11 +47,6 @@ var (
 	//  initialize functions server and multiplexer
 	functionServer *functions.Server
 )
-
-type GoPlugin struct {
-	Data   []byte
-	Plugin *plugin.Plugin
-}
 
 //  uninstallCmd removed Nhost CLI from system
 var functionsCmd = &cobra.Command{

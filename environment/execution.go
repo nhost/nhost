@@ -21,9 +21,6 @@ func (e *Environment) Execute() error {
 
 	//  check if this is the first time dev env is running
 	firstRun := !util.PathExists(filepath.Join(nhost.DOT_NHOST, "db_data"))
-	if firstRun {
-		log.Info("First run takes longer, please be patient")
-	}
 
 	//  Validate the availability of required docker images,
 	//  and download the ones that are missing
@@ -70,7 +67,7 @@ func (e *Environment) Execute() error {
 	//	Wrap fetched containers as services in the environment
 	_ = e.WrapContainersAsServices(containers)
 
-	log.Info("Running a quick health check on services")
+	//	log.Info("Running a quick health check on services")
 	if err := e.HealthCheck(e.ExecutionContext); err != nil {
 		return err
 	}
@@ -89,7 +86,7 @@ func (e *Environment) Execute() error {
 	//
 	//  Apply migrations and metadata
 	//
-	log.Info("Preparing your data")
+	//	log.Info("Preparing your data")
 	if err = e.Prepare(); err != nil {
 		return err
 	}

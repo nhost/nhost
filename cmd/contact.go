@@ -32,6 +32,7 @@ import (
 
 	"github.com/manifoldco/promptui"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 )
 
@@ -93,7 +94,7 @@ Or even chat with our team and start a new discussion.`,
 
 				ok = true
 				if noBrowser {
-					log.Info(item["text"], " @ ", Bold, item["value"], Reset)
+					log.Info(item["text"], " @ ", util.Bold, item["value"], util.Reset)
 				} else if err := openbrowser(item["value"].(string)); err != nil {
 					log.Debug(err)
 					log.Error("Failed to launch browser")
@@ -128,7 +129,7 @@ Or even chat with our team and start a new discussion.`,
 		selected := options[index]
 
 		if noBrowser {
-			log.Info(selected["text"], " @ ", Bold, selected["value"], Reset)
+			log.Info(selected["text"], " @ ", util.Bold, selected["value"], util.Reset)
 		} else {
 			//  launch browser
 			if err := openbrowser(selected["value"].(string)); err != nil {
