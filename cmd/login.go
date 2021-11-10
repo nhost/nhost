@@ -53,7 +53,7 @@ var loginCmd = &cobra.Command{
 
 		//  if user is already logged in, ask to logout
 		if _, err := getUser(nhost.AUTH_PATH); err == nil {
-			log.Fatal(ErrLoggedIn)
+			status.Fatal(ErrLoggedIn)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -79,14 +79,14 @@ var loginCmd = &cobra.Command{
 		credentials, err := login(nhost.API, email, password)
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to login with that email")
+			status.Fatal("Failed to login with that email")
 		}
 
 		//  delete any existing auth files
 		if util.PathExists(nhost.AUTH_PATH) {
 			if err = util.DeletePath(nhost.AUTH_PATH); err != nil {
 				log.Debug(err)
-				log.Fatalf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH)
+				status.Fatal(fmt.Sprintf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH))
 			}
 		}
 
@@ -94,14 +94,14 @@ var loginCmd = &cobra.Command{
 		err = os.MkdirAll(nhost.ROOT, os.ModePerm)
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to initialize Nhost root directory: ", nhost.ROOT)
+			status.Fatal("Failed to initialize Nhost root directory: " + nhost.ROOT)
 		}
 
 		//  create the auth file to write it
 		f, err := os.Create(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to create auth configuration file")
+			status.Fatal("Failed to create auth configuration file")
 		}
 
 		defer f.Close()
@@ -112,7 +112,7 @@ var loginCmd = &cobra.Command{
 
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to save auth configuration")
+			status.Fatal("Failed to save auth configuration")
 		}
 
 	},

@@ -8,7 +8,6 @@ import (
 	client "github.com/docker/docker/client"
 	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/nhost"
-	"github.com/nhost/cli/util"
 	"github.com/nhost/cli/watcher"
 )
 
@@ -40,8 +39,5 @@ type (
 		Network string
 
 		Watcher *watcher.Watcher
-
-		//	Current status to be displayed
-		Status util.Status
 	}
 )

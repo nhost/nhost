@@ -52,7 +52,7 @@ var initCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 
 		if util.PathExists(nhost.NHOST_DIR) {
-			log.Error("App already exists in this directory")
+			status.Error("App already exists in this directory")
 			log.Info("To start development environment, run 'nhost' or 'nhost dev'")
 			os.Exit(0)
 		}
@@ -115,7 +115,7 @@ var initCmd = &cobra.Command{
 			projects := prepareAppList(user)
 
 			if len(projects) == 0 {
-				log.Error("No remote apps found")
+				status.Error("No remote apps found")
 				log.Info("Run `nhost init` to create new one locally")
 				os.Exit(0)
 			}
@@ -130,8 +130,7 @@ var initCmd = &cobra.Command{
 				}
 
 				if selectedProject.ID == "" {
-					log.Errorf("Remote app '%v' not found", project)
-					os.Exit(0)
+					status.Fatal(fmt.Sprintf("Remote app '%v' not found", project))
 				}
 			} else {
 
@@ -193,7 +192,7 @@ var initCmd = &cobra.Command{
 		//  save the Nhost configuration
 		if err := nhostConfig.Save(); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to save Nhost configuration")
+			status.Fatal("Failed to save Nhost configuration")
 		}
 
 		//  save the default templates
@@ -203,7 +202,7 @@ var initCmd = &cobra.Command{
 				//	download the files
 				if err := clone(fmt.Sprintf("github.com/%s/%s", item.Repository, item.Path), item.Destination); err != nil {
 					log.WithField("compnent", "templates").Debug(err)
-					log.Error("Failed to clone template")
+					status.Errorln("Failed to clone template")
 				}
 			}
 		}
@@ -219,7 +218,7 @@ var initCmd = &cobra.Command{
 				util.Rel(filepath.Join(nhost.API_DIR, "node_modules")),
 			}, "\n"), "end"); err != nil {
 			log.Debug(err)
-			log.Error("Failed to write to .gitignore file")
+			status.Errorln("Failed to write to .gitignore file")
 		}
 
 		if remote {
@@ -227,7 +226,7 @@ var initCmd = &cobra.Command{
 			//	Save the app information
 			if err := updateNhostProject(selectedProject); err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to save app configuration")
+				status.Fatal("Failed to save app configuration")
 			}
 
 			hasuraEndpoint := fmt.Sprintf("https://%s.%s", selectedProject.Subdomain, nhost.DOMAIN)
@@ -239,20 +238,20 @@ var initCmd = &cobra.Command{
 			hasuraClient := hasura.Client{}
 			if err := hasuraClient.Init(hasuraEndpoint, adminSecret, nil); err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to initialize Hasura client")
+				status.Fatal("Failed to initialize Hasura client")
 			}
 			/*
 				//  clear current migration from remote
 				if err := hasuraClient.ClearMigration(); err != nil {
 					log.Debug(err)
-					log.Fatal("Failed to clear migrations from remote")
+					status.Fatal("Failed to clear migrations from remote")
 				}
 
 			*/ //  create migrations from remote
 			_, err := pullMigration(hasuraClient, "init")
 			if err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to pull migrations from remote")
+				status.Fatal("Failed to pull migrations from remote")
 			}
 
 			//  write ENV variables to .env.development
@@ -265,7 +264,7 @@ var initCmd = &cobra.Command{
 			log.Debug("Saving environment variables")
 			if err = writeToFile(nhost.ENV_FILE, envData, "end"); err != nil {
 				log.Debug(err)
-				log.Errorf("Failed to write app environment variables to %s file", util.Rel(nhost.ENV_FILE))
+				status.Errorln(fmt.Sprintf("Failed to write app environment variables to %s file", util.Rel(nhost.ENV_FILE)))
 			}
 		}
 	},

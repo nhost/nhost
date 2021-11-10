@@ -113,19 +113,15 @@ var devCmd = &cobra.Command{
 		//  Initialize the runtime environment
 		if err = env.Init(); err != nil {
 			log.Debug(err)
-			env.Status.Clean()
-			log.Warn(util.WarnDockerNotFound)
-			os.Exit(0)
+			status.Fatal(util.WarnDockerNotFound)
 		}
 
 		env.UpdateState(environment.Executing)
-		log.Info("Starting your app...")
 
 		//  Parse the nhost/config.yaml
 		if err = env.Config.Wrap(); err != nil {
 			log.Debug(err)
-			env.Status.Clean()
-			log.Fatal("Failed to read Nhost config")
+			status.Fatal("Failed to read Nhost config")
 		}
 
 		//	Start the Watcher
@@ -191,7 +187,7 @@ var devCmd = &cobra.Command{
 			}
 			*/
 			log.Debug(err)
-			log.Error("Failed to initialize your environment")
+			status.Errorln("Failed to initialize your environment")
 			env.Cleanup()
 			end_waiter.Done()
 			return
@@ -289,15 +285,13 @@ var devCmd = &cobra.Command{
 
 				if err := item.IssueProxy(mux, env.Context); err != nil {
 					log.WithField("component", "server").Debug(err)
-					log.WithField("component", "server").Error("Failed to proxy ", name)
-					env.Cleanup()
+					status.Errorln("Failed to proxy " + name)
 					return
 				}
 			}
 		}
 
 		//  Update environment state
-		env.Status.Reset()
 		env.UpdateState(environment.Active)
 
 		//  wait for Ctrl+C

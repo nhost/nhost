@@ -5,6 +5,7 @@ import (
 
 	"github.com/nhost/cli/environment"
 	"github.com/nhost/cli/logger"
+	"github.com/nhost/cli/util"
 )
 
 const (
@@ -18,6 +19,7 @@ var (
 
 	cfgFile string
 	log     = &logger.Log
+	status  = &util.Writer
 
 	Client = http.Client{}
 	env    = environment.Environment{}

@@ -39,37 +39,25 @@ func (e *Environment) UpdateState(state State) {
 	e.State = state
 
 	if e.State != HealthChecks {
-		e.Status.Reset()
-		e.Status.Clean()
+		status.Reset()
 	}
 
 	switch e.State {
 	case Executing:
-		e.Status.Icon = util.GetIcon(util.GEAR, util.Yellow)
-		//	e.Status.Set("Give us a moment")
-		/*
-
-			case Initializing:
-				e.Status.Icon = util.GetIcon(util.GEAR, util.Gray)
-				//	e.Status.Set("Initializing environment")
-				log.Info("Initializing environment")
-		*/
+		status.Executing("Starting your app")
+	case Initializing:
+		status.Executing("Initializing environment")
 	case ShuttingDown:
-		e.Status.Icon = util.GetIcon(util.GEAR, util.Yellow)
-		e.Status.Set("Please wait while we cleanup")
+		status.Executing("Please wait while we cleanup")
 	case HealthChecks:
-		e.Status.Icon = util.GetIcon(util.GEAR, util.Blue)
-		e.Status.Set("Running quick health checks")
+		status.Executing("Running quick health checks")
 	case Active:
-		e.Status.Icon = util.GetIcon(util.CHECK, util.Green)
-		//	e.Status.Set(fmt.Sprintf("Your app is running at %slocalhost:%s%s %s(Ctrl+C to stop)%s", util.Blue, e.Port, util.Reset, util.Gray, util.Reset))
-		log.Info(fmt.Sprintf("Your app is running at %slocalhost:%s%s %s(Ctrl+C to stop)%s", util.Blue, e.Port, util.Reset, util.Gray, util.Reset))
+		status.Success(fmt.Sprintf("Your app is running at %shttp://localhost:%s%s %s(Ctrl+C to stop)%s", util.Blue, e.Port, util.Reset, util.Gray, util.Reset))
+		status.Infoln(fmt.Sprintf("%sEmails will be sent to http://localhost:%d%s", util.Gray, e.Config.Services["mailhog"].Port, util.Reset))
 	case Inactive:
-		e.Status.Icon = util.GetIcon(util.CHECK, util.Green)
-		e.Status.Set("See you later, grasshopper!")
+		status.Success("See you later, grasshopper!")
 	case Failed:
-		e.Status.Icon = util.GetIcon(util.CANCEL, util.Red)
-		e.Status.Set("App has crashed")
+		status.Fatal("App has crashed")
 	}
 	e.Unlock()
 
@@ -80,9 +68,6 @@ func (e *Environment) Init() error {
 	var err error
 
 	log.Debug("Initializing environment")
-
-	//	Initialize the status handler
-	e.Status.Init()
 
 	//  Update environment state
 	e.UpdateState(Initializing)
@@ -255,7 +240,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 	var health_waiter sync.WaitGroup
 	for _, service := range e.Config.Services {
 		if service.HealthEndpoint != "" {
-			e.Status.Update(1)
+			status.Update(1)
 			health_waiter.Add(1)
 			go func(service *nhost.Service) {
 
@@ -269,7 +254,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 						return
 					default:
 						if healthy := service.Healthz(); healthy {
-							e.Status.Increment(1)
+							status.Increment(1)
 							log.WithFields(logrus.Fields{
 								"type":      "service",
 								"container": service.Name,
