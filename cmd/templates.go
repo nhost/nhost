@@ -221,7 +221,7 @@ And you can immediately start developing on that template.`,
 	PostRun: func(cmd *cobra.Command, args []string) {
 		log.WithField("compnent", selected.Value).Info("Template cloned successfully")
 		if selected.NextSteps != "" {
-			log.Info(selected.NextSteps)
+			status.Info(selected.NextSteps)
 		}
 	},
 }

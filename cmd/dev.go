@@ -90,7 +90,7 @@ var devCmd = &cobra.Command{
 
 		//  check if /nhost exists
 		if !util.PathExists(nhost.NHOST_DIR) {
-			log.Info("Initialize new app by running 'nhost init'")
+			status.Info("Initialize new app by running 'nhost init'")
 			log.Fatal("App not found in this directory")
 		}
 
@@ -103,8 +103,8 @@ var devCmd = &cobra.Command{
 		//	If the default port is not available,
 		//	choose a random one
 		if !nhost.PortAvaiable(env.Port) {
-			log.Errorf("Port %s not available", env.Port)
-			log.Info("Choose a different port with `nhost dev [--port]`")
+			status.Errorln(fmt.Sprintf("Port %s not available", env.Port))
+			status.Info("Choose a different port with `nhost dev [--port]`")
 			os.Exit(0)
 		}
 
@@ -142,7 +142,6 @@ var devCmd = &cobra.Command{
 			env.Cleanup()
 
 			end_waiter.Done()
-			fmt.Println()
 			os.Exit(0)
 		}()
 
@@ -180,7 +179,7 @@ var devCmd = &cobra.Command{
 			   			}
 			if env.State <= environment.Executing {
 				log.Debug(err)
-				log.Error("Failed to initialize your environment")
+				status.Errorln("Failed to initialize your environment")
 				env.Cleanup()
 				end_waiter.Done()
 					return
@@ -322,7 +321,7 @@ func (p *Printer) print(loc, head, tail string) {
 	case "footer":
 		//	fmt.Fprintln(p, "---\t\t-----")
 	case "info":
-		log.Info(head)
+		status.Info(head)
 	default:
 		fmt.Fprintf(p, "%v\t\t%v", head, tail)
 		fmt.Fprintln(p)

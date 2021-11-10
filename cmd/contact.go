@@ -94,11 +94,11 @@ Or even chat with our team and start a new discussion.`,
 
 				ok = true
 				if noBrowser {
-					log.Info(item["text"], " @ ", util.Bold, item["value"], util.Reset)
+					status.Info(fmt.Sprintf(item["text"].(string), " @ ", util.Bold, item["value"], util.Reset))
 				} else if err := openbrowser(item["value"].(string)); err != nil {
 					log.Debug(err)
-					log.Error("Failed to launch browser")
-					log.Info(item["text"], " @ ", item["value"])
+					status.Errorln("Failed to launch browser")
+					status.Info(fmt.Sprintf(item["text"].(string), " @ ", item["value"]))
 				}
 			}
 		}
@@ -129,13 +129,13 @@ Or even chat with our team and start a new discussion.`,
 		selected := options[index]
 
 		if noBrowser {
-			log.Info(selected["text"], " @ ", util.Bold, selected["value"], util.Reset)
+			status.Info(selected["text"].(string) + " @ " + util.Bold + selected["value"].(string) + util.Reset)
 		} else {
 			//  launch browser
 			if err := openbrowser(selected["value"].(string)); err != nil {
 				log.Debug(err)
-				log.Error("Failed to launch browser")
-				log.Info(selected["text"], " @ ", selected["value"])
+				status.Errorln("Failed to launch browser")
+				status.Info(selected["text"].(string) + " @ " + selected["value"].(string))
 			}
 		}
 	},

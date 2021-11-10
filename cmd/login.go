@@ -75,7 +75,7 @@ var loginCmd = &cobra.Command{
 		}
 
 		fmt.Println()
-		log.Info("Authenticating")
+		status.Info("Authenticating")
 		credentials, err := login(nhost.API, email, password)
 		if err != nil {
 			log.Debug(err)
@@ -117,8 +117,8 @@ var loginCmd = &cobra.Command{
 
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		log.Info("Email verified, and you are logged in!")
-		log.Info("Type `nhost list` to see your remote apps")
+		status.Info("Email verified, and you are logged in!")
+		status.Info("Type `nhost list` to see your remote apps")
 	},
 }
 

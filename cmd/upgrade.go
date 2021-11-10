@@ -25,6 +25,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
@@ -88,8 +89,8 @@ CLI and upgrade to it.`,
 			//  Fetch installed binary location
 			target, err := os.Executable()
 			if err != nil {
-				log.Error("Failed to find installed CLI")
-				log.Info("Please download it manually from: github.com/%s", nhost.REPOSITORY)
+				status.Errorln("Failed to find installed CLI")
+				status.Info("Please download it manually from: github.com/" + nhost.REPOSITORY)
 				os.Exit(0)
 			}
 
@@ -118,7 +119,7 @@ CLI and upgrade to it.`,
 		//  Check new version
 		target, _ := os.Executable()
 		if output, err := exec.Command(target, "version").CombinedOutput(); err != nil {
-			log.Infof("Check new version with: %vnhost version%v", util.Bold, util.Reset)
+			status.Info(fmt.Sprintf("Check new version with: %vnhost version%v", util.Bold, util.Reset))
 		} else {
 			os.Stdout.Write(output)
 		}

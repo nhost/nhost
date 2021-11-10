@@ -93,7 +93,7 @@ func (e *Environment) Init() error {
 		//  get running containers with prefix "nhost_"
 		containers, err := e.GetContainers()
 		if err != nil {
-			log.Error(util.ErrServicesNotFound)
+			status.Errorln(util.ErrServicesNotFound)
 			return err
 		}
 
@@ -174,7 +174,7 @@ func (e *Environment) Prepare() error {
 		output, err := execute.CombinedOutput()
 		if err != nil {
 			log.Debug(string(output))
-			log.Error("Failed to apply migrations")
+			status.Errorln("Failed to apply migrations")
 			return err
 		}
 
@@ -197,7 +197,7 @@ func (e *Environment) Prepare() error {
 		output, err := execute.CombinedOutput()
 		if err != nil {
 			log.Debug(string(output))
-			log.Error("Failed to export metadata")
+			status.Errorln("Failed to export metadata")
 			return err
 		}
 
@@ -220,7 +220,7 @@ func (e *Environment) Prepare() error {
 	output, err := execute.CombinedOutput()
 	if err != nil {
 		log.Debug(string(output))
-		log.Error("Failed to apply metadata")
+		status.Errorln("Failed to apply metadata")
 		return err
 	}
 
@@ -275,10 +275,7 @@ func (e *Environment) HealthCheck(ctx context.Context) error {
 					}
 				}
 
-				log.WithFields(logrus.Fields{
-					"type":      "service",
-					"container": service.Name,
-				}).Error("Health check failed")
+				status.Error("Health check failed for " + service.Name)
 				err = errors.New("health check of at least 1 service has failed")
 
 			}(service)
@@ -318,13 +315,13 @@ func (e *Environment) Seed(path string) error {
 		//  read seed file
 		data, err := ioutil.ReadFile(filepath.Join(path, item.Name()))
 		if err != nil {
-			log.WithField("component", "seeds").Errorln("Failed to open:", item.Name())
+			status.Errorln("Failed to open:" + item.Name())
 			return err
 		}
 
 		//  apply seed data
 		if err := e.Hasura.Seed(string(data)); err != nil {
-			log.WithField("component", "seeds").Errorln("Failed to apply:", item.Name())
+			status.Errorln("Failed to apply:" + item.Name())
 			return err
 		}
 		/*
@@ -333,7 +330,7 @@ func (e *Environment) Seed(path string) error {
 			execute.Args = cmdArgs
 
 			if err = execute.Run(); err != nil {
-				log.Error("Failed to apply seeds")
+				status.Errorln("Failed to apply seeds")
 				return err
 			}
 		*/
@@ -438,7 +435,7 @@ func (e *Environment) Cleanup() {
 		//	and we are going to cancel this context shortly after
 		if err := e.Shutdown(true, e.Context); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to stop running services")
+			status.Error("Failed to stop running services")
 		}
 	}
 

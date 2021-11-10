@@ -46,7 +46,7 @@ and sync them with your local app.`,
 
 			//  warn the user of upcoming dangers
 			log.Warn("This can potentially break your local changes")
-			log.Info("Backup your local changes before proceeding ahead")
+			status.Info("Backup your local changes before proceeding ahead")
 
 			//  configure interative prompt
 			confirmationPrompt := promptui.Prompt{
@@ -64,7 +64,7 @@ and sync them with your local app.`,
 			user, err := validateAuth(nhost.AUTH_PATH)
 			if err != nil {
 				log.Debug(err)
-				log.Error("Failed to validate authentication")
+				status.Errorln("Failed to validate authentication")
 
 				//  begin the login procedure
 				loginCmd.Run(cmd, args)
@@ -110,8 +110,8 @@ and sync them with your local app.`,
 			}
 
 
-			log.Info("Migrations pulled from remote")
-			log.Info("To apply the new migrations use `nhost dev`")
+			status.Info("Migrations pulled from remote")
+			status.Info("To apply the new migrations use `nhost dev`")
 		},
 	*/
 }

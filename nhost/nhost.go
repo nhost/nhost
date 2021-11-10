@@ -783,7 +783,7 @@ func (config *Configuration) Init(port string) error {
 					//  parse the metadata directory tree
 					meta_files, err := ioutil.ReadDir(METADATA_DIR)
 					if err != nil {
-						log.Error("Failed to parse the tree of metadata directory")
+						status.Errorln("Failed to parse the tree of metadata directory")
 						return err
 					}
 
@@ -876,7 +876,7 @@ func (config *Configuration) Init(port string) error {
 	//  create mount point if it doesn't exit
 	customMountPoint := filepath.Join(DOT_NHOST, "custom", "keys")
 	if err := os.MkdirAll(customMountPoint, os.ModePerm); err != nil {
-		log.Errorf("Failed to create %s directory", customMountPoint)
+		status.Errorln(fmt.Sprintf("Failed to create %s directory", customMountPoint))
 		return err
 	}
 

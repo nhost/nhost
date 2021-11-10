@@ -54,7 +54,7 @@ And re-create them next time you run 'nhost dev'`,
 
 		if err := env.Shutdown(true, env.Context); err != nil {
 			log.Debug(err)
-			log.Error("Failed to shut down Nhost services")
+			status.Errorln("Failed to shut down Nhost services")
 		}
 
 		if purgeData {
@@ -79,7 +79,7 @@ And re-create them next time you run 'nhost dev'`,
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
 
-		log.Info("Purge complete. See you later, grasshopper!")
+		status.Info("Purge complete. See you later, grasshopper!")
 	},
 }
 

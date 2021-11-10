@@ -11,6 +11,7 @@ import (
 
 var (
 	log    = &logger.Log
+	status = &util.Writer
 	DOMAIN = "nhost.run"
 	API    = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
 

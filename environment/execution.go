@@ -67,7 +67,7 @@ func (e *Environment) Execute() error {
 	//	Wrap fetched containers as services in the environment
 	_ = e.WrapContainersAsServices(containers)
 
-	//	log.Info("Running a quick health check on services")
+	//	status.Info("Running a quick health check on services")
 	if err := e.HealthCheck(e.ExecutionContext); err != nil {
 		return err
 	}
@@ -89,7 +89,7 @@ func (e *Environment) Execute() error {
 	//
 	//  Apply migrations and metadata
 	//
-	//	log.Info("Preparing your data")
+	//	status.Info("Preparing your data")
 	if err = e.Prepare(); err != nil {
 		return err
 	}

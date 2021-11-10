@@ -122,7 +122,7 @@ func (function *Function) Prepare() error {
 		//  Build the plugin
 		p, err := function.BuildGoPlugin()
 		if err != nil {
-			function.log.Error("Failed to build Go plugin: ", filepath.Join(function.Base, filepath.Base(function.Path)))
+			status.Errorln("Failed to build Go plugin: " + filepath.Join(function.Base, filepath.Base(function.Path)))
 			return err
 		}
 

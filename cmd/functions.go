@@ -74,8 +74,8 @@ var functionsCmd = &cobra.Command{
 		}()
 
 		ServeFuncs()
-		//	log.Info("Nhost functions serving at: http://localhost:", funcPort, filepath.Clean(functionHandler))
-		log.Info("Nhost functions serving at: http://localhost:", funcPort)
+		//	status.Info("Nhost functions serving at: http://localhost:", funcPort, filepath.Clean(functionHandler))
+		status.Info("Nhost functions serving at: http://localhost:" + funcPort)
 
 		//  Wait for execution to complete
 		end_waiter.Wait()

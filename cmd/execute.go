@@ -62,8 +62,8 @@ already running Nhost service containers.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if command == "" {
-			log.Error("Invalid arguments")
-			log.Info("Run `nhost execute --help` to understand how to use this command")
+			status.Errorln("Invalid arguments")
+			status.Info("Run `nhost execute --help` to understand how to use this command")
 			os.Exit(0)
 		}
 

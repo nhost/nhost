@@ -53,7 +53,7 @@ var initCmd = &cobra.Command{
 
 		if util.PathExists(nhost.NHOST_DIR) {
 			status.Error("App already exists in this directory")
-			log.Info("To start development environment, run 'nhost' or 'nhost dev'")
+			status.Infoln("To start development environment, run 'nhost' or 'nhost dev'")
 			os.Exit(0)
 		}
 
@@ -115,8 +115,8 @@ var initCmd = &cobra.Command{
 			projects := prepareAppList(user)
 
 			if len(projects) == 0 {
-				status.Error("No remote apps found")
-				log.Info("Run `nhost init` to create new one locally")
+				status.Errorln("No remote apps found")
+				status.Infoln("Run `nhost init` to create new one locally")
 				os.Exit(0)
 			}
 
@@ -158,7 +158,7 @@ var initCmd = &cobra.Command{
 			}
 		}
 
-		log.Info("Creating your app")
+		status.Executing("Creating your app...")
 
 		//	if required directories don't exist, then create them
 		for _, dir := range requiredDirs {
@@ -269,7 +269,7 @@ var initCmd = &cobra.Command{
 		}
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		log.Info("Successful! Start your app with `nhost dev`")
+		status.Success("Successful! Start your app with `nhost dev`")
 	},
 }
 

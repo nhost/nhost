@@ -46,7 +46,7 @@ but without hurting local Nhost apps and their data.`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 
 		log.Warn("This will permanently remove the installed CLI utility")
-		log.Info("This, however, won't affect your existing Nhost apps and their data")
+		status.Info("This, however, won't affect your existing Nhost apps and their data")
 
 		//  if the use has not pre-approved the uninstall,
 		//  take the user's approval manually
@@ -91,8 +91,8 @@ but without hurting local Nhost apps and their data.`,
 		}
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		log.Info("Uninstall complete! We are sad to see you go :(")
-		log.Info("To download the CLI again, visit: https://github.com/nhost/cli#installation")
+		status.Info("Uninstall complete! We are sad to see you go :(")
+		status.Info("To download the CLI again, visit: https://github.com/nhost/cli#installation")
 	},
 }
 

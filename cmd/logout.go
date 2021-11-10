@@ -51,7 +51,7 @@ var logoutCmd = &cobra.Command{
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
 		log.Warn("You are now logged out")
-		log.Info("To login again use `nhost login`")
+		status.Info("To login again use `nhost login`")
 	},
 }
 

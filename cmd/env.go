@@ -48,7 +48,7 @@ var lsCmd = &cobra.Command{
 	Long:    `List your environment variables stored on remote.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.Info("Fetching variables from remote")
+		status.Info("Fetching variables from remote")
 
 		app, err := nhost.Info()
 		if err != nil {
@@ -69,7 +69,7 @@ var lsCmd = &cobra.Command{
 		}
 
 		if len(projects) == 0 {
-			log.Info("Go to https://console.nhost.io/new and create a new apps")
+			status.Info("Go to https://console.nhost.io/new and create a new apps")
 			log.Fatal("We couldn't find any apps related to this account")
 		}
 
@@ -94,8 +94,7 @@ var lsCmd = &cobra.Command{
 		w.Flush()
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		fmt.Println()
-		log.Info("You can edit local variables in ", util.Rel(nhost.ENV_FILE))
+		status.Infoln("You can edit local variables in " + util.Rel(nhost.ENV_FILE))
 	},
 }
 
@@ -125,7 +124,7 @@ var envPullCmd = &cobra.Command{
 		}
 
 		if len(projects) == 0 {
-			log.Info("Go to https://console.nhost.io/new and create a new apps")
+			status.Info("Go to https://console.nhost.io/new and create a new apps")
 			log.Fatal("We couldn't find any apps related to this account")
 		}
 
@@ -137,7 +136,7 @@ var envPullCmd = &cobra.Command{
 			}
 		}
 
-		log.Infof("Downloading development environment variables for app: %s", savedProject.Name)
+		status.Info("Downloading development environment variables for app: " + savedProject.Name)
 
 		vars, err := nhost.Env()
 		if err != nil {
@@ -191,8 +190,8 @@ var envPullCmd = &cobra.Command{
 		f.Sync()
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		log.Info("Local environment variables successfully synced with remote")
-		log.Info("You can start your app using `nhost`")
+		status.Info("Local environment variables successfully synced with remote")
+		status.Info("You can start your app using `nhost`")
 	}}
 
 func init() {

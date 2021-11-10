@@ -62,7 +62,7 @@ var versionCmd = &cobra.Command{
 		}
 
 		if release.TagName == Version {
-			log.Info("You have the latest version. Hurray!")
+			status.Info("You have the latest version. Hurray!")
 		} else {
 
 			//	Update changelog
@@ -71,7 +71,7 @@ var versionCmd = &cobra.Command{
 
 			log.WithField("component", release.TagName).Info("New version available with following changes")
 			fmt.Println(release.Body)
-			log.Infoln("Upgrade with `nhost upgrade`")
+			status.Infoln("Upgrade with `nhost upgrade`")
 		}
 	},
 }

@@ -47,7 +47,7 @@ for the logged in user from Nhost console.`,
 		response, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
-			log.Error("Failed to validate authentication")
+			status.Errorln("Failed to validate authentication")
 
 			//  begin the login procedure
 			loginCmd.Run(cmd, args)
@@ -58,8 +58,8 @@ for the logged in user from Nhost console.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		if !(len(User.WorkspaceMembers) > 0) {
-			log.Error("No workspaces found")
-			log.Info("Create new app with `nhost link`")
+			status.Errorln("No workspaces found")
+			status.Info("Create new app with `nhost link`")
 			os.Exit(0)
 		}
 

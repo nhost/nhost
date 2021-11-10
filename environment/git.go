@@ -67,7 +67,7 @@ func (e *Environment) restartMigrations() error {
 	if e.State == Active {
 
 		//  Inform the user of detection
-		log.Info("We've detected change in local git commit")
+		status.Info("We've detected change in local git commit")
 		log.Warn("We're fixing your data accordingly. Give us a moment!")
 
 		//  Initialize cancellable context ONLY for this shutdown oepration
@@ -78,7 +78,7 @@ func (e *Environment) restartMigrations() error {
 			return err
 		}
 
-		log.Info("Done! Please continue with your work.")
+		status.Info("Done! Please continue with your work.")
 	}
 
 	return nil
@@ -103,7 +103,7 @@ func (e *Environment) restartAfterCheckout() error {
 	//		- This must be true in an infinite loop fashion
 
 	//  Inform the user of detection
-	log.Info("We've detected change in local git branch")
+	status.Info("We've detected change in local git branch")
 
 	if e.State >= Executing {
 
@@ -151,6 +151,6 @@ func (e *Environment) restartAfterCheckout() error {
 		return err
 	}
 
-	log.Info("Done! Please continue with your work.")
+	status.Info("Done! Please continue with your work.")
 	return nil
 }

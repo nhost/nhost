@@ -1,5 +1,7 @@
 package functions
 
+import "github.com/nhost/cli/util"
+
 var (
 
 	//  vars to store server state during each runtime
@@ -10,6 +12,8 @@ var (
 
 	//  runtime environment variables
 	envVars []string
+
+	status = &util.Writer
 
 	defaultFilesToAvoid = []string{
 		"node_modules",

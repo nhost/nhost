@@ -27,6 +27,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -52,7 +53,7 @@ var linkCmd = &cobra.Command{
 		response, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
 			log.Debug(err)
-			log.Error("Failed to validate authentication")
+			status.Errorln("Failed to validate authentication")
 
 			//  begin the login procedure
 			loginCmd.Run(cmd, args)
@@ -128,7 +129,7 @@ var linkCmd = &cobra.Command{
 				}
 
 				if contains(names, project.Name) {
-					log.Error("App with that name already exists")
+					status.Errorln("App with that name already exists")
 				}
 			}
 
@@ -218,7 +219,7 @@ var linkCmd = &cobra.Command{
 
 			//  provide confirmation prompt
 			log.Warn("If you linked to the wrong app, you could break your production environment.")
-			log.Info("Therefore we need confirmation you are serious about this.")
+			status.Info("Therefore we need confirmation you are serious about this.")
 
 			//  configure interative prompt
 			confirmationPrompt := promptui.Prompt{
@@ -244,7 +245,7 @@ var linkCmd = &cobra.Command{
 		//  project linking complete
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		log.Info("App linked to local Nhost environment")
+		status.Info("App linked to local Nhost environment")
 	},
 }
 
@@ -277,7 +278,7 @@ func updateNhostProject(app nhost.App) error {
 		string(payload),
 		"start",
 	); err != nil {
-		log.Errorf("Failed to save %s config", util.Rel(nhost.INFO_PATH))
+		status.Errorln(fmt.Sprintf("Failed to save %s config", util.Rel(nhost.INFO_PATH)))
 	}
 
 	return err

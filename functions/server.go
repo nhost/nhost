@@ -320,7 +320,7 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 
 		//  kill the command execution once the req is served
 		if err := cmd.Process.Kill(); err != nil {
-			s.log.Error("failed to kill process: ", err)
+			status.Errorln("failed to kill process: " + err.Error())
 		}
 
 		//  delete the node server configuration

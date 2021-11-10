@@ -11,10 +11,12 @@ type (
 
 	// Status is an in-line output structure that holds the status text and icon
 	Status struct {
-		Value int
-		Total int
-		Text  string
-		Icon  string
+		Value     int
+		Total     int
+		Text      string
+		Icon      string
+		color     string
+		showIcons bool
 	}
 )
 
@@ -34,14 +36,16 @@ const (
 var (
 
 	//  New base writer for all tasks
-	Writer = New()
+	Writer = New(false)
 )
 
 func Init() {}
 
 // Returns a new Status object
-func New() Status {
-	return Status{}
+func New(showIcons bool) Status {
+	return Status{
+		showIcons: showIcons,
+	}
 }
 
 //	Set the status text
@@ -52,7 +56,8 @@ func (s *Status) Set(text string) {
 
 //	Change the status icon to error, and set the text
 func (s *Status) Error(text string) {
-	s.Icon = GetIcon(CANCEL, Red)
+	s.Icon = CANCEL
+	s.color = Red
 	s.Set(text)
 }
 
@@ -71,7 +76,8 @@ func (s *Status) Fatal(text string) {
 
 //	Change the status icon to success, and set the text
 func (s *Status) Success(text string) {
-	s.Icon = GetIcon(CHECK, Green)
+	s.Icon = CHECK
+	s.color = Green
 	s.Set(text)
 }
 
@@ -83,7 +89,8 @@ func (s *Status) Successln(text string) {
 
 //	Change the status icon to info, and set the text
 func (s *Status) Info(text string) {
-	s.Icon = GetIcon(INFO, Blue)
+	s.Icon = INFO
+	s.color = Blue
 	s.Set(text)
 }
 
@@ -95,7 +102,8 @@ func (s *Status) Infoln(text string) {
 
 //	Change the status icon to warning, and set the text
 func (s *Status) Warn(text string) {
-	s.Icon = GetIcon(WARN, Yellow)
+	s.Icon = WARN
+	s.color = Yellow
 	s.Set(text)
 }
 
@@ -107,7 +115,8 @@ func (s *Status) Warnln(text string) {
 
 //	Change the status icon to yellow coloured gear, and set the text
 func (s *Status) Executing(text string) {
-	s.Icon = GetIcon(GEAR, Yellow)
+	s.Icon = GEAR
+	s.color = Yellow
 	s.Set(text)
 }
 
@@ -119,7 +128,8 @@ func (s *Status) Executingln(text string) {
 
 //	Change the status icon to gray coloured gear, and set the text
 func (s *Status) Suppressed(text string) {
-	s.Icon = GetIcon(GEAR, Gray)
+	s.Icon = GEAR
+	s.color = Gray
 	s.Set(text)
 }
 
@@ -157,10 +167,16 @@ func (s *Status) Print() {
 	if !logger.DEBUG {
 		s.Clean()
 		log.Debug(s.Text)
+		prefix := ""
 		if s.Total > 0 {
-			fmt.Printf("%s %s (%d%s)", s.Icon, s.Text, int((float64(s.Value)/float64(s.Total))*100), "%")
+			if s.showIcons {
+				prefix = fmt.Sprintf("%s ", GetIcon(s.Icon, s.color))
+			} else {
+				prefix = fmt.Sprintf("%s ", GetIcon(">", s.color))
+			}
+			fmt.Printf(prefix+"%s (%d%s)", s.Text, int((float64(s.Value)/float64(s.Total))*100), "%")
 		} else {
-			fmt.Printf("%s %s", s.Icon, s.Text)
+			fmt.Print(prefix + s.Text)
 		}
 	}
 }
