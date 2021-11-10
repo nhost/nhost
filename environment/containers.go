@@ -62,13 +62,13 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 								smtpPort, _ = strconv.Atoi(payload[1])
 							}
 						}
-						if int(port.PublicPort) == smtpPort {
-							continue
+						if int(port.PublicPort) != smtpPort {
+							e.Config.Services[name].Port = int(port.PublicPort)
+
+							//  Update the service address based on the new port
+							e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
 						}
-					}
-
-					if e.Config.Services[name].Port != int(port.PublicPort) {
-
+					} else {
 						e.Config.Services[name].Port = int(port.PublicPort)
 
 						//  Update the service address based on the new port

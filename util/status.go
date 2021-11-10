@@ -15,8 +15,6 @@ type (
 	}
 )
 
-type Colour string
-
 //  Initialize console colours
 const (
 	Bold   = "\033[1m"
@@ -52,12 +50,16 @@ func (s *Status) Reset() {
 	s.Print()
 }
 
+func (s *Status) Clean() {
+	fmt.Printf("\033[2K\r")
+}
+
 func (s *Status) Print() {
 	if !logger.DEBUG {
 		if s.Total > 0 {
-			fmt.Printf("\r%s %s (%d%s)", s.Icon, s.Text, int((float64(s.Value)/float64(s.Total))*100), "%")
+			fmt.Printf("\033[2K\r%s %s (%d%s)", s.Icon, s.Text, int((float64(s.Value)/float64(s.Total))*100), "%")
 		} else {
-			fmt.Printf("\r%s %s", s.Icon, s.Text)
+			fmt.Printf("\033[2K\r%s %s", s.Icon, s.Text)
 		}
 	}
 }

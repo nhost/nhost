@@ -72,6 +72,9 @@ func (e *Environment) Execute() error {
 		return err
 	}
 
+	e.UpdateState(Executing)
+	//	e.Status.Set("Preparing your data")
+
 	//  Now that Hasura container is active,
 	//  initialize the Hasura client.
 	e.Hasura = &hasura.Client{}

@@ -27,6 +27,7 @@ const (
 	Initializing
 	Intialized
 	Executing
+	HealthChecks
 	Active
 	ShuttingDown
 	Inactive
@@ -37,29 +38,37 @@ func (e *Environment) UpdateState(state State) {
 	e.Lock()
 	e.State = state
 
+	if e.State != HealthChecks {
+		e.Status.Reset()
+	}
+
 	switch e.State {
 	case Executing:
-		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Yellow, util.GEAR, util.Reset)
-		e.Status.Text = "Starting your app"
+		e.Status.Icon = util.GetIcon(util.GEAR, util.Yellow)
+		e.Status.Set("Starting your app")
 	case Initializing:
-		e.Status.Icon = fmt.Sprintf("%s%s%s", util.GEAR, util.GEAR, util.Reset)
-		e.Status.Text = "Initializing environment"
+		e.Status.Icon = util.GetIcon(util.GEAR, util.Gray)
+		e.Status.Set("Initializing environment")
+		//	log.Info("Initializing environment")
 	case ShuttingDown:
-		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Yellow, util.GEAR, util.Reset)
-		e.Status.Text = "Please wait while we cleanup"
+		e.Status.Icon = util.GetIcon(util.GEAR, util.Yellow)
+		e.Status.Set("Please wait while we cleanup")
+		//	log.Warn("Please wait while we cleanup")
+	case HealthChecks:
+		e.Status.Icon = util.GetIcon(util.GEAR, util.Blue)
+		e.Status.Set("Running quick health checks")
 	case Active:
-		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Green, util.CHECK, util.Reset)
-		e.Status.Text = fmt.Sprintf("Your app is running at %shttp://localhost:%s%s", util.Blue, e.Port, util.Reset)
+		e.Status.Icon = util.GetIcon(util.CHECK, util.Green)
+		e.Status.Set(fmt.Sprintf("Your app is running at %slocalhost:%s%s %s(Ctrl+C to stop)%s", util.Blue, e.Port, util.Reset, util.Gray, util.Reset))
 	case Inactive:
-		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Green, util.CHECK, util.Reset)
-		e.Status.Text = "Cleanup complete. See you later, grasshopper!"
+		e.Status.Icon = util.GetIcon(util.CHECK, util.Green)
+		e.Status.Set("See you later, grasshopper!")
 	case Failed:
-		e.Status.Icon = fmt.Sprintf("%s%s%s", util.Red, util.CANCEL, util.Reset)
-		e.Status.Text = "App has crashed"
+		e.Status.Icon = util.GetIcon(util.CANCEL, util.Red)
+		e.Status.Set("App has crashed")
 	}
 	e.Unlock()
 
-	e.Status.Print()
 }
 
 func (e *Environment) Init() error {
@@ -78,7 +87,6 @@ func (e *Environment) Init() error {
 	e.Context, e.Cancel = context.WithCancel(context.Background())
 	e.Docker, err = client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
-		log.Error(util.ErrDockerNotFound)
 		return err
 	}
 	defer e.Docker.Close()
@@ -86,7 +94,6 @@ func (e *Environment) Init() error {
 	//  break execution if docker deamon is not running
 	_, err = e.Docker.Info(e.Context)
 	if err != nil {
-		log.Warn(util.WarnDockerNotFound)
 		return err
 	}
 
@@ -167,7 +174,6 @@ func (e *Environment) Prepare() error {
 	if len(files) > 0 {
 
 		log.Debug("Applying migrations")
-		e.Status.Update(1)
 
 		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 		execute.Dir = nhost.NHOST_DIR
@@ -183,7 +189,6 @@ func (e *Environment) Prepare() error {
 			return err
 		}
 
-		e.Status.Increment(1)
 	}
 
 	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
@@ -192,8 +197,6 @@ func (e *Environment) Prepare() error {
 	}
 
 	if len(metaFiles) == 0 {
-
-		e.Status.Update(1)
 
 		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 		execute.Dir = nhost.NHOST_DIR
@@ -209,7 +212,6 @@ func (e *Environment) Prepare() error {
 			return err
 		}
 
-		e.Status.Increment(1)
 	}
 
 	//  If metadata directory is already mounted to nhost_hasura container,
@@ -218,7 +220,6 @@ func (e *Environment) Prepare() error {
 
 	//  apply metadata
 	log.Debug("Applying metadata")
-	e.Status.Update(1)
 
 	execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 	execute.Dir = nhost.NHOST_DIR
@@ -234,7 +235,6 @@ func (e *Environment) Prepare() error {
 		return err
 	}
 
-	e.Status.Increment(1)
 	return nil
 }
 
@@ -244,6 +244,7 @@ func (e *Environment) Prepare() error {
 //  Also, supports process cancellation from contexts.
 func (e *Environment) HealthCheck(ctx context.Context) error {
 
+	e.UpdateState(HealthChecks)
 	log.Debug("Starting health check")
 
 	var err error
@@ -442,7 +443,6 @@ func (e *Environment) Cleanup() {
 	e.Watcher.Close()
 
 	if e.State >= Executing {
-		//	log.Warn("Please wait while we cleanup")
 
 		//	Pass the parent context of the environment,
 		//	because this is the final cleanup procedure

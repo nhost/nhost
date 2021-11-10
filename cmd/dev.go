@@ -35,6 +35,7 @@ import (
 	"sync"
 	"syscall"
 	"text/tabwriter"
+	"time"
 
 	"github.com/nhost/cli/environment"
 	"github.com/nhost/cli/nhost"
@@ -112,7 +113,8 @@ var devCmd = &cobra.Command{
 		//  Initialize the runtime environment
 		if err = env.Init(); err != nil {
 			log.Debug(err)
-			//	log.Error("Failed to start the app")
+			env.Status.Clean()
+			log.Warn(util.WarnDockerNotFound)
 			os.Exit(0)
 		}
 
@@ -121,6 +123,7 @@ var devCmd = &cobra.Command{
 		//  Parse the nhost/config.yaml
 		if err = env.Config.Wrap(); err != nil {
 			log.Debug(err)
+			env.Status.Clean()
 			log.Fatal("Failed to read Nhost config")
 		}
 
@@ -228,19 +231,23 @@ var devCmd = &cobra.Command{
 					"--api-port",
 					fmt.Sprint(nhost.GetPort(8301, 9400)),
 					"--skip-update-check",
+					"--no-browser",
 				},
 				Dir: nhost.NHOST_DIR,
-			}
-
-			//	If the `--no-browser` flag is passed,
-			//	don't open the console window in browser automatically
-			if noBrowser {
-				cmd.Args = append(cmd.Args, "--no-browser")
 			}
 
 			//	Start the command
 			if err := cmd.Start(); err != nil {
 				log.WithField("component", "console").Debug(err)
+			}
+
+			//	Add a 1 second delay
+			time.Sleep(1 * time.Second)
+
+			//	If the `--no-browser` flag is passed,
+			//	don't open the console window in browser automatically
+			if !noBrowser {
+				go openbrowser("http://localhost:" + env.Port)
 			}
 
 			if err := cmd.Wait(); err != nil {
@@ -254,14 +261,6 @@ var devCmd = &cobra.Command{
 			Handles: []nhost.Route{{Name: "Console", Source: "/", Destination: "/"}},
 			Proxy:   true,
 			Port:    consolePort,
-		}
-
-		//  Register Mailhog as a service to route it's UI port
-		env.Config.Services["emails"] = &nhost.Service{
-			Name:    "emails",
-			Handles: []nhost.Route{{Name: "Mailhog", Source: "/", Destination: "/emails"}},
-			Proxy:   true,
-			Port:    env.Config.Services["mailhog"].Port,
 		}
 
 		//  Initialize a reverse proxy server,
@@ -299,8 +298,6 @@ var devCmd = &cobra.Command{
 		//  Update environment state
 		env.Status.Reset()
 		env.UpdateState(environment.Active)
-
-		fmt.Println(util.Blue, "!", util.Reset, " Use Ctrl + C to stop the app")
 
 		//  wait for Ctrl+C
 		end_waiter.Wait()
