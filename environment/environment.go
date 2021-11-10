@@ -40,26 +40,30 @@ func (e *Environment) UpdateState(state State) {
 
 	if e.State != HealthChecks {
 		e.Status.Reset()
+		e.Status.Clean()
 	}
 
 	switch e.State {
 	case Executing:
 		e.Status.Icon = util.GetIcon(util.GEAR, util.Yellow)
-		e.Status.Set("Starting your app")
-	case Initializing:
-		e.Status.Icon = util.GetIcon(util.GEAR, util.Gray)
-		e.Status.Set("Initializing environment")
-		//	log.Info("Initializing environment")
+		//	e.Status.Set("Give us a moment")
+		/*
+
+			case Initializing:
+				e.Status.Icon = util.GetIcon(util.GEAR, util.Gray)
+				//	e.Status.Set("Initializing environment")
+				log.Info("Initializing environment")
+		*/
 	case ShuttingDown:
 		e.Status.Icon = util.GetIcon(util.GEAR, util.Yellow)
 		e.Status.Set("Please wait while we cleanup")
-		//	log.Warn("Please wait while we cleanup")
 	case HealthChecks:
 		e.Status.Icon = util.GetIcon(util.GEAR, util.Blue)
 		e.Status.Set("Running quick health checks")
 	case Active:
 		e.Status.Icon = util.GetIcon(util.CHECK, util.Green)
-		e.Status.Set(fmt.Sprintf("Your app is running at %slocalhost:%s%s %s(Ctrl+C to stop)%s", util.Blue, e.Port, util.Reset, util.Gray, util.Reset))
+		//	e.Status.Set(fmt.Sprintf("Your app is running at %slocalhost:%s%s %s(Ctrl+C to stop)%s", util.Blue, e.Port, util.Reset, util.Gray, util.Reset))
+		log.Info(fmt.Sprintf("Your app is running at %slocalhost:%s%s %s(Ctrl+C to stop)%s", util.Blue, e.Port, util.Reset, util.Gray, util.Reset))
 	case Inactive:
 		e.Status.Icon = util.GetIcon(util.CHECK, util.Green)
 		e.Status.Set("See you later, grasshopper!")

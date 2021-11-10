@@ -119,6 +119,7 @@ var devCmd = &cobra.Command{
 		}
 
 		env.UpdateState(environment.Executing)
+		log.Info("Starting your app...")
 
 		//  Parse the nhost/config.yaml
 		if err = env.Config.Wrap(); err != nil {
