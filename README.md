@@ -124,10 +124,6 @@ Nhost libraries and tools
 
 First and foremost: **Star and watch this repository** to stay up-to-date.
 
-<a href="https://trackgit.com">
-<img src="https://us-central1-trackgit-analytics.cloudfunctions.net/token/ping/kun9irgyk1wtp693b5kk" alt="trackgit-views" />
-</a>
-
 Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discussions), our [Blog](https://nhost.io/blog), and on [Twitter](https://twitter.com/nhostio). You can chat with the team and other members on [Discord](https://discord.com/invite/9V7Qb2U), and follow our tutorials and other video material at [YouTube](https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg?view_as=subscriber).
 
 ## Nhost is Open Source
