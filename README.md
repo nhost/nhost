@@ -28,7 +28,7 @@ We have a free tier launching soon. Please star this repo to receive updates. Th
   <img width="550" src="https://raw.githubusercontent.com/nhost/nhost/master/assets/follow-us-banner.png"/>
 </p>
 
-**Nhost is an backend for your web and mobile apps.** Nhost consists of open
+**Nhost is a serverless backend for web and mobile apps.** Nhost consists of open
 source software pre-configured to make it fast to get started and easy to scale.
 
 This is what you get with Nhost:
