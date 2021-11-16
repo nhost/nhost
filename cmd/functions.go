@@ -50,11 +50,10 @@ var (
 
 //  uninstallCmd removed Nhost CLI from system
 var functionsCmd = &cobra.Command{
-	Use:        "functions [-p port]",
-	SuggestFor: []string{"dev"},
-	Hidden:     true,
-	Short:      "Serve and manage serverless functions",
-	Long:       `Serve and manage serverless functions.`,
+	Use:    "functions [-p port]",
+	Hidden: true,
+	Short:  "Serve and manage serverless functions",
+	Long:   `Serve and manage serverless functions.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var end_waiter sync.WaitGroup

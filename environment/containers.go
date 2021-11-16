@@ -3,7 +3,6 @@ package environment
 import (
 	"context"
 	"fmt"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
@@ -252,6 +251,8 @@ func (e *Environment) GetNetwork() (string, error) {
 //
 func (e *Environment) CheckImages() error {
 
+	var err error
+
 	log.Debug("Checking for required Nhost container images")
 
 	//  check if a required image already exists
@@ -272,8 +273,10 @@ func (e *Environment) CheckImages() error {
 		return err
 	}
 
-	for _, requiredImage := range requiredImages {
+	//	image waiter group
+	var image_waiter sync.WaitGroup
 
+	for _, requiredImage := range requiredImages {
 		available := false
 		for _, image := range availableImages {
 
@@ -285,32 +288,39 @@ func (e *Environment) CheckImages() error {
 
 		//  if it NOT available, then pull the image
 		if !available {
-			if err = pullImage(e.Docker, requiredImage); err != nil {
-				log.Debug(err)
-				log.WithField("component", requiredImage).Error("Failed to pull image")
-				log.WithField("component", requiredImage).Infof("Pull it manually with `docker image pull %v && nhost dev`", requiredImage)
-				return err
-			}
+			image_waiter.Add(1)
+			status.Total += 1
+			go func(image string, client *client.Client) {
+				err = pullImage(client, image)
+				image_waiter.Done()
+				status.Value += 1
+				if err != nil {
+					log.Debug(err)
+					status.Error("Failed to pull image: " + image)
+					status.Infoln("Pull it manually with `docker image pull " + image + " && nhost dev`")
+				}
+			}(requiredImage, e.Docker)
 		}
 	}
 
-	return nil
+	image_waiter.Wait()
+
+	return err
 }
 
 func pullImage(cli *client.Client, tag string) error {
 
-	log.WithField("component", tag).Info("Pulling container image")
+	log.WithField("component", tag).Debug("Pulling container image")
 
-	/*
-		out, err := cli.ImagePull(context.Background(), tag, types.ImagePullConfiguration{})
-		out.Close()
+	/* 	out, err := cli.ImagePull(context.Background(), tag, types.ImagePullOptions{})
+	   	out.Close()
 	*/
-
 	dockerCLI, _ := exec.LookPath("docker")
 	cmd := exec.Cmd{
-		Args:   []string{dockerCLI, "image", "pull", tag},
-		Path:   dockerCLI,
-		Stdout: os.Stdout,
+		Args: []string{dockerCLI, "image", "pull", tag},
+		Path: dockerCLI,
+		//	Stdout: os.Stdout,
 	}
+
 	return cmd.Run()
 }

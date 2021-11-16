@@ -36,7 +36,7 @@ const (
 var (
 
 	//  New base writer for all tasks
-	Writer = New(false)
+	Writer = New(true)
 )
 
 func Init() {}
@@ -168,12 +168,12 @@ func (s *Status) Print() {
 		s.Clean()
 		log.Debug(s.Text)
 		prefix := ""
+		if s.showIcons {
+			prefix = fmt.Sprintf("%s ", GetIcon(s.Icon, s.color))
+		} else {
+			prefix = fmt.Sprintf("%s ", GetIcon(">", s.color))
+		}
 		if s.Total > 0 {
-			if s.showIcons {
-				prefix = fmt.Sprintf("%s ", GetIcon(s.Icon, s.color))
-			} else {
-				prefix = fmt.Sprintf("%s ", GetIcon(">", s.color))
-			}
 			fmt.Printf(prefix+"%s (%d%s)", s.Text, int((float64(s.Value)/float64(s.Total))*100), "%")
 		} else {
 			fmt.Print(prefix + s.Text)

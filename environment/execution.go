@@ -24,6 +24,7 @@ func (e *Environment) Execute() error {
 
 	//  Validate the availability of required docker images,
 	//  and download the ones that are missing
+	status.Set("Validating required images")
 	if err := e.CheckImages(); err != nil {
 		return err
 	}
@@ -40,6 +41,7 @@ func (e *Environment) Execute() error {
 	}
 
 	//	Create and start the containers
+	status.Set("Starting services")
 	for _, item := range e.Config.Services {
 
 		//	Only those services which have a container configuration
