@@ -86,20 +86,15 @@ func (e *Environment) Init() error {
 		return err
 	}
 
-	/*
-		//	Commenting the following, because we are purging the containers
-		//	on Ctrl+C after `dev` command
+	//  get running containers with prefix "nhost_"
+	containers, err := e.GetContainers()
+	if err != nil {
+		status.Errorln(util.ErrServicesNotFound)
+		return err
+	}
 
-		//  get running containers with prefix "nhost_"
-		containers, err := e.GetContainers()
-		if err != nil {
-			status.Errorln(util.ErrServicesNotFound)
-			return err
-		}
-
-		//  wrap the fetched containers inside the environment
-		_ = e.WrapContainersAsServices(containers)
-	*/
+	//  wrap the fetched containers inside the environment
+	_ = e.WrapContainersAsServices(containers)
 
 	//	Initialize a new watcher for the environment
 	e.Watcher = watcher.New(e.Context)
