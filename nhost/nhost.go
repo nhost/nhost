@@ -24,6 +24,7 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
+	"github.com/gorilla/websocket"
 	"github.com/koding/websocketproxy"
 	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
@@ -581,6 +582,15 @@ func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
 
 		httpProxy := httputil.NewSingleHostReverseProxy(httpOrigin)
 		wsProxy := websocketproxy.NewProxy(wsOrigin)
+
+		wsProxy.Upgrader = &websocket.Upgrader{
+			ReadBufferSize:    4096,
+			WriteBufferSize:   4096,
+			EnableCompression: true,
+			CheckOrigin: func(r *http.Request) bool {
+				return true
+			},
+		}
 
 		log.WithFields(logrus.Fields{
 			"value": s.Name,
