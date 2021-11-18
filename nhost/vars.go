@@ -80,6 +80,6 @@ var (
 	REPOSITORY = "nhost/cli"
 
 	//  initialize the project prefix
-	PREFIX = filepath.Base(util.WORKING_DIR)
-	//PREFIX = "nhost"
+	//	PREFIX = filepath.Base(util.WORKING_DIR)
+	PREFIX = "nhost"
 )
