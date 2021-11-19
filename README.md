@@ -135,7 +135,7 @@ This repository, and most of our other open source projects, are licensed under 
 Here are some ways of contributing to making Nhost better:
 
 - **[Try out Nhost]()**, and think of ways of how you can make the service better.
-- Join our [Discord]() and connect with other members to share and learn from.
+- Join our [Discord](https://discord.com/invite/9V7Qb2U) and connect with other members to share and learn from.
 - Send a pull request to any our [open source repositories](https://github.com/nhost) on Github. We're looking forward to your contribution!
 
 ## Security
