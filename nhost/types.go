@@ -178,7 +178,7 @@ type (
 		URL         string  `json:",omitempty"`
 		Name        string  `json:",omitempty"`
 		TagName     string  `json:"tag_name,omitempty"`
-		Prerelease  string  `json:",omitempty"`
+		Prerelease  bool    `json:",omitempty"`
 		CreatedAt   string  `json:"created_at,omitempty"`
 		PublishedAt string  `json:",omitempty"`
 		Body        string  `json:",omitempty"`
