@@ -33,7 +33,7 @@ jobs:
           echo $(basename ${GITHUB_REF})
             
       - name: Generate Binary
-        uses: wangyoucao577/go-release-action@v1.20
+        uses: wangyoucao577/go-release-action@v1.22
         with:
           overwrite: true
           github_token: ${{ secrets.GITHUB_TOKEN }}
