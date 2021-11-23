@@ -220,6 +220,7 @@ func SearchRelease(releases []Release, version string) (Release, error) {
 				   			}
 			*/
 
+			//	Skip the pre-releases.
 			if !item.Prerelease {
 				return item, nil
 			}

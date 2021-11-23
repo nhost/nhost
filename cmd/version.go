@@ -29,7 +29,6 @@ import (
 	"runtime"
 
 	"github.com/nhost/cli/nhost"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -42,34 +41,31 @@ var versionCmd = &cobra.Command{
 	Long:       `All softwares have versions. This is Nhost's.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
-		log.WithFields(logrus.Fields{
-			"os":   runtime.GOOS,
-			"arch": runtime.GOARCH,
-		}).Info(Version)
+		status.Info(fmt.Sprintf("Nhost CLI %s for %s-%s", Version, runtime.GOOS, runtime.GOARCH))
 
 		//	Get all the releases
 		releases, err := nhost.GetReleases()
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to fetch releases")
+			status.Fatal("Failed to fetch releases")
 		}
 
 		//	Search for our required release from the list
 		release, err := nhost.SearchRelease(releases, versionForDownload)
 		if err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to fetch release")
+			status.Fatal("Failed to fetch release")
 		}
 
 		if release.TagName == Version {
-			status.Info("You have the latest version. Hurray!")
+			status.Successln("You have the latest version. Hurray!")
 		} else {
 
 			//	Update changelog
 			changelog, _ := release.Changes(releases)
 			release.Body += changelog
 
-			log.WithField("component", release.TagName).Info("New version available with following changes")
+			status.Infoln("New version " + release.TagName + " available with following changes")
 			fmt.Println(release.Body)
 			status.Infoln("Upgrade with `nhost upgrade`")
 		}
