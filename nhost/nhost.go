@@ -186,6 +186,9 @@ func SearchRelease(releases []Release, version string) (Release, error) {
 
 	//	If a custom version has been passed,
 	//	search for that one ONLY.
+	//	Otherwise, search for the latest release.
+	//	If no release is found, return an error.
+	//	If a release is found, return it.
 	if version != "" {
 		for _, item := range releases {
 			if item.TagName == strings.ToLower(version) {
@@ -194,23 +197,33 @@ func SearchRelease(releases []Release, version string) (Release, error) {
 		}
 		return response, errors.New("no such release found")
 
-	} else {
+	} /*
 
-		//	Following loop is used under the assumption,
-		//	that GitHub's API will always return release list,
-		//	in descending order of timestamps.
-		//	That is, the latest release being on index 0.
+		//	If no custom version has been passed,
+		//	search for the latest release.
+		//	If there are no releases, return an error.
+		//	If there are releases, return the latest one.
+		//	If there are multiple releases, return the latest one.
+		//
+		//	Following code has been commented because we are shifting
+		//	from "internal" releases to pre-releases.
 
-		for _, item := range releases {
+		else {
 
-			//	Else, search for latest release fit for public use.
-			if !strings.Contains(item.TagName, "internal") {
-				return item, nil
+			//	Following loop is used under the assumption,
+			//	that GitHub's API will always return release list,
+			//	in descending order of timestamps.
+			//	That is, the latest release being on index 0.
+			for _, item := range releases {
+
+				//	Else, search for latest release fit for public use.
+				if !strings.Contains(item.TagName, "internal") {
+					return item, nil
+				}
 			}
 		}
-	}
-
-	return response, errors.New("latest asset cannot be fetched")
+	*/
+	return releases[0], nil
 }
 
 //	Downloads the list of all releases from GitHub API

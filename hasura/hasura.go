@@ -17,12 +17,13 @@ import (
 
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 )
 
 //  initialize the binary path
 var binaryPath = getBinary()
-
+var status = &util.Writer
 var log = &logger.Log
 
 func getBinary() string {
@@ -81,7 +82,7 @@ func Binary() (string, error) {
 		url += ".exe"
 	}
 
-	log.WithField("component", fmt.Sprintf("%s-%s", runtime.GOOS, runtime.GOARCH)).Infof("Downloading %s binary", binary)
+	status.Executing(fmt.Sprintf("Downloading %s binary for %s-%s", binary, runtime.GOOS, runtime.GOARCH))
 
 	resp, err := http.Get(url)
 	if err != nil {

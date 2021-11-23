@@ -65,6 +65,7 @@ func (s *Status) Error(text string) {
 func (s *Status) Errorln(text string) {
 	fmt.Println()
 	s.Error(text)
+	fmt.Println()
 }
 
 //	Set the status error and exit CLI
@@ -85,6 +86,7 @@ func (s *Status) Success(text string) {
 func (s *Status) Successln(text string) {
 	fmt.Println()
 	s.Success(text)
+	fmt.Println()
 }
 
 //	Change the status icon to info, and set the text
@@ -98,6 +100,7 @@ func (s *Status) Info(text string) {
 func (s *Status) Infoln(text string) {
 	fmt.Println()
 	s.Info(text)
+	fmt.Println()
 }
 
 //	Change the status icon to warning, and set the text
@@ -111,6 +114,7 @@ func (s *Status) Warn(text string) {
 func (s *Status) Warnln(text string) {
 	fmt.Println()
 	s.Warn(text)
+	fmt.Println()
 }
 
 //	Change the status icon to yellow coloured gear, and set the text
@@ -124,6 +128,7 @@ func (s *Status) Executing(text string) {
 func (s *Status) Executingln(text string) {
 	fmt.Println()
 	s.Executing(text)
+	fmt.Println()
 }
 
 //	Change the status icon to gray coloured gear, and set the text
@@ -137,6 +142,7 @@ func (s *Status) Suppressed(text string) {
 func (s *Status) Suppressedln(text string) {
 	fmt.Println()
 	s.Suppressed(text)
+	fmt.Println()
 }
 
 //	Increase the status value
