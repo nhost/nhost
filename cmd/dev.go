@@ -204,6 +204,15 @@ var devCmd = &cobra.Command{
 
 		go func() {
 
+			//  Prepare functions server
+			if err := prepareFunctionServer(); err != nil {
+				log.Debug(err)
+				status.Errorln("Failed to initialize functions server")
+				env.Cleanup()
+				end_waiter.Done()
+				return
+			}
+
 			//  Start functions
 			ServeFuncs()
 

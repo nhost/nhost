@@ -82,7 +82,7 @@ func (function *Function) BuildNodeServer(port int) error {
 	//  save the nodeJS server config
 	file, err := ioutil.TempFile(filepath.Join(tempDir, function.Base), "*.js")
 	if err != nil {
-		function.log.WithField("runtime", "NodeJS").Error("Failed to create server configuration file")
+		status.Errorln("Failed to create server configuration file")
 		return err
 	}
 
@@ -92,7 +92,7 @@ func (function *Function) BuildNodeServer(port int) error {
 	defer file.Close()
 
 	if _, err := file.Write([]byte(nodeServerCode)); err != nil {
-		function.log.WithField("runtime", "NodeJS").Error("Failed to save server configuration")
+		status.Errorln("Failed to save server configuration")
 		return err
 	}
 
@@ -132,7 +132,7 @@ func (function *Function) Prepare() error {
 		//  Lookup - Searches for a symbol name in the plugin
 		symbol, err := function.Plugin.Lookup("Handler")
 		if err != nil {
-			function.log.WithField("plugin", function.Route).Error("Failed to lookup handler")
+			status.Errorln("Failed to lookup handler: " + function.Route)
 			return err
 		}
 

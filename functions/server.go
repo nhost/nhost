@@ -173,6 +173,8 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		return nil
 	}
 
+	fmt.Println(nhost.API_DIR)
+
 	if err := filepath.Walk(nhost.API_DIR, getRoute); err != nil {
 		s.log.WithField("component", "server").Debug(err)
 		s.log.WithField("component", "server").Error("No function found on this route")

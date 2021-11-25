@@ -26,6 +26,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -46,6 +47,8 @@ var (
 
 	//  initialize functions server and multiplexer
 	functionServer *functions.Server
+
+	buildDir string
 )
 
 //  uninstallCmd removed Nhost CLI from system
@@ -83,7 +86,7 @@ var functionsCmd = &cobra.Command{
 	},
 }
 
-func ServeFuncs() {
+func prepareFunctionServer() error {
 
 	prepareNode := fileExistsByExtension(nhost.API_DIR, ".js") || fileExistsByExtension(nhost.API_DIR, ".ts")
 	prepareGo := fileExistsByExtension(nhost.API_DIR, ".go")
@@ -95,7 +98,6 @@ func ServeFuncs() {
 
 	//  if npm dependencies haven't been confirmed,
 	//  just install them on first run
-	var buildDir string
 	if prepareNode {
 
 		//  first, check for runtime installation
@@ -105,15 +107,21 @@ func ServeFuncs() {
 		if util.PathExists(filepath.Join(nhost.API_DIR, "package.json")) {
 			buildDir = nhost.API_DIR
 		} else if !util.PathExists(filepath.Join(util.WORKING_DIR, "package.json")) {
-			log.WithField("runtime", "NodeJS").Error("Neither a local, nor a root package.json found")
-			log.WithField("runtime", "NodeJS").Warn("Run `npm init && npm i && npm i express` to use functions")
+			status.Warnln("Run `npm init && npm i && npm i express` to use functions")
+			return errors.New("neither a local, nor a root package.json found")
 		}
 	}
+
+	return nil
+}
+
+func ServeFuncs() error {
 
 	//	Initialize a new functions server
 	serverConfig := functions.ServerConfig{
 		BuildDir:    buildDir,
 		Environment: &env,
+		Log:         log,
 	}
 
 	//	If the default/supplied port is available,
@@ -130,6 +138,8 @@ func ServeFuncs() {
 			log.WithFields(logrus.Fields{"component": "functions", "value": funcPort}).Debug(err)
 		}
 	}()
+
+	return nil
 }
 
 func fileExistsByExtension(directory, ext string) bool {

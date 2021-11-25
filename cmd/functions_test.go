@@ -24,39 +24,154 @@ SOFTWARE.
 
 package cmd
 
-/*
-func TestServeFuncs(t *testing.T) {
+import (
+	"context"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"reflect"
+	"testing"
 
-	//	Initialize a temporary directory to store test function files
-	dir := t.TempDir()
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
+)
 
-	tests := []struct {
-		name string
-		f    func() error
-	}{
-		{
-			name: "js-without-modules",
-			f: func() error {
+var tempFunctionFile *os.File
 
-				f, err := ioutil.TempFile(dir, "test.js")
-				if err != nil {
-					return err
-				}
+const js = "module.exports = (req, res) => { res.status(200).send(`Nhost, from Javascript, pays it's respects to ${req.query.name}!`); };"
 
-				f.WriteString(js)
-				f.Sync()
-				f.Close()
+var jsFunctionTest = test{
+	name:      "basic javascript function",
+	wantErr:   false,
+	prerun:    saveJSFunction,
+	operation: ServeFuncs,
+	validator: callJSFunction,
+	postrun: func() error {
+		tempFunctionFile.Close()
+		util.DeleteAllPaths(tempFunctionFile.Name())
+		functionServer.Shutdown(context.Background())
+		return nil
+	},
+}
 
-				return nil
-			},
-		},
-	}
+func TestFunctions(t *testing.T) {
+
+	InitTests(t)
+
+	nhost.API_DIR = filepath.Join(util.WORKING_DIR, "functions")
+	buildDir = nhost.API_DIR
+
+	tests := []test{jsFunctionTest}
+
+	//	Run tests
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			ServeFuncs()
-		})
+		tt.run(t)
 	}
 }
 
-const js = "module.exports = (req, res) => { res.status(200).send(`Nhost, from Javascript, pays it's respects to ${req.query.name}!`); };"
-*/
+func saveJSFunction() error {
+
+	var err error
+
+	//	Initialize a temporary directory to store test function files
+	if err := os.MkdirAll(nhost.API_DIR, os.ModePerm); err != nil {
+		return err
+	}
+
+	// Run `npm init`
+	npm, err := exec.LookPath("npm")
+	if err != nil {
+		return err
+	}
+
+	cmd := exec.Cmd{
+		Path: npm,
+		Args: []string{npm, "init", "--yes"},
+		Dir:  nhost.API_DIR,
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(string(output))
+		return err
+	}
+
+	// Run `npm install`
+	cmd = exec.Cmd{
+		Path: npm,
+		Args: []string{npm, "i"},
+		Dir:  nhost.API_DIR,
+	}
+
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(string(output))
+		return err
+	}
+
+	// Run `npm install`express
+	cmd = exec.Cmd{
+		Path: npm,
+		Args: []string{npm, "i", "express"},
+		Dir:  nhost.API_DIR,
+	}
+
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println(string(output))
+		return err
+	}
+
+	//	Create a test function file
+	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "test.js"))
+	if err != nil {
+		return err
+	}
+
+	//  Log the contents of API directory
+	files, _ := ioutil.ReadDir(nhost.API_DIR)
+	fmt.Println("Files in API directory:")
+	for _, item := range files {
+		log.Println(item.Name())
+	}
+
+	//	Write the test function file
+	tempFunctionFile.WriteString(js)
+
+	//	save the file
+	return tempFunctionFile.Sync()
+}
+
+func callJSFunction() error {
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%s/test", funcPort), nil)
+	if err != nil {
+		return err
+	}
+
+	q := req.URL.Query()
+	q.Add("name", "Nhost")
+	req.URL.RawQuery = q.Encode()
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+
+	if !reflect.DeepEqual(body, []byte("Nhost, from Javascript, pays it's respects to Nhost!")) {
+		return errors.New("response body does not match")
+	}
+
+	return nil
+}

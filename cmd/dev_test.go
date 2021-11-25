@@ -48,7 +48,7 @@ var firstRunDevTest = test{
 
 func Test_Pipeline(t *testing.T) {
 
-	InitTests()
+	InitTests(t)
 
 	tests := []test{
 		newLocalAppTest,

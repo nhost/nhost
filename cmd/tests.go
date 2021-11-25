@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"testing"
 
 	"github.com/nhost/cli/logger"
@@ -9,14 +8,14 @@ import (
 	"github.com/nhost/cli/util"
 )
 
-func InitTests() {
+func InitTests(t *testing.T) {
 
 	//	Create temporary directory for testing
-	path, _ := ioutil.TempDir("", "nhost")
+	path := t.TempDir()
 	rootCmd.Flag("path").Value.Set(path)
 
 	logger.DEBUG = true
-	home, _ := ioutil.TempDir("", "home")
+	home := t.TempDir()
 	nhost.UpdateLocations(util.WORKING_DIR, path)
 	util.WORKING_DIR = path
 
@@ -44,12 +43,16 @@ func (tt *test) run(t *testing.T) {
 			}
 		}
 
-		if got := tt.operation(); (got != nil) != tt.wantErr {
-			t.Errorf("operation() error = %v", got)
+		if tt.operation != nil {
+			if got := tt.operation(); (got != nil) != tt.wantErr {
+				t.Errorf("operation() error = %v", got)
+			}
 		}
 
-		if got := tt.validator(); (got != nil) != tt.wantErr {
-			t.Errorf("validator() error = %v", got)
+		if tt.validator != nil {
+			if got := tt.validator(); (got != nil) != tt.wantErr {
+				t.Errorf("validator() error = %v", got)
+			}
 		}
 
 		if tt.postrun != nil {

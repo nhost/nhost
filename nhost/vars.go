@@ -236,6 +236,15 @@ func Init() {
 // Updates the directory paths in all variables
 func UpdateLocations(old, new string) {
 
+	//  Add all locations to the list
+	//  including non-mandatory ones
+	LOCATIONS.Directories = append(LOCATIONS.Directories, []*string{
+		&API_DIR,
+		&GIT_DIR,
+		&NODE_MODULES_PATH,
+		&WEB_DIR,
+	}...)
+
 	for _, item := range LOCATIONS.Directories {
 		*item = strings.ReplaceAll(*item, old, new)
 	}
