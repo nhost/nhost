@@ -29,24 +29,33 @@ type test struct {
 	wantErr   bool
 	err       error
 	validator func() error
-	prerun    func()
+	prerun    func() error
 	operation func() error
-	postrun   func()
+	postrun   func() error
 }
 
 func (tt *test) run(t *testing.T) {
 
 	t.Run(tt.name, func(t *testing.T) {
 
-		//	Pre-run
-		tt.prerun()
-
-		if got := tt.operation(); (got != nil) != tt.wantErr {
-			t.Errorf("error = %v", got)
+		if tt.prerun != nil {
+			if got := tt.prerun(); (got != nil) != tt.wantErr {
+				t.Errorf("prerun() error = %v", got)
+			}
 		}
 
-		if err := tt.validator(); (err != nil) != tt.wantErr {
-			t.Errorf("operation() error = %v", err)
+		if got := tt.operation(); (got != nil) != tt.wantErr {
+			t.Errorf("operation() error = %v", got)
+		}
+
+		if got := tt.validator(); (got != nil) != tt.wantErr {
+			t.Errorf("validator() error = %v", got)
+		}
+
+		if tt.postrun != nil {
+			if got := tt.postrun(); (got != nil) != tt.wantErr {
+				t.Errorf("postrun() error = %v", got)
+			}
 		}
 	})
 }

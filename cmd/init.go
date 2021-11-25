@@ -44,10 +44,6 @@ var (
 )
 
 //  initCmd represents the init command
-func NewInitCmd() *cobra.Command {
-	return initCmd
-}
-
 var initCmd = &cobra.Command{
 	Use:   "init [--remote]",
 	Short: "Initialize current directory as Nhost app",

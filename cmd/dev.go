@@ -80,10 +80,6 @@ var (
 			This will ensure that the new port is used for attaching a reverse proxy to this service, if required.
 */
 
-func NewDevCmd() *cobra.Command {
-	return devCmd
-}
-
 //  devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:        "dev [-p port]",

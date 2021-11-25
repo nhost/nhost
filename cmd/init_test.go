@@ -18,6 +18,7 @@ func TestLocations(t *testing.T) {
 			wantErr:   false,
 			operation: nhost.InitLocations,
 			validator: pathsCreated,
+			postrun:   deletePaths,
 		},
 		{
 			name:      "required paths unavailable",
@@ -27,6 +28,7 @@ func TestLocations(t *testing.T) {
 				deletePaths()
 				return pathsCreated()
 			},
+			postrun: deletePaths,
 		},
 	}
 
@@ -34,9 +36,6 @@ func TestLocations(t *testing.T) {
 	for _, tt := range tests {
 		tt.run(t)
 	}
-
-	//	Cleanup
-	deletePaths()
 }
 
 func TestNewInitCmd(t *testing.T) {
@@ -58,12 +57,14 @@ var newLocalAppTest = test{
 	name:    "new_local_app",
 	err:     nil,
 	wantErr: false,
-	prerun: func() {
+	prerun: func() error {
 
 		os.Args = append(os.Args, "init")
 
 		//	Add test app name
 		initCmd.Flag("name").Value.Set("test")
+
+		return nil
 	},
 	validator: pathsCreated,
 	operation: initCmd.Execute,
@@ -73,20 +74,17 @@ var newRemoteAppTest = test{
 	name:    "new_remote_app",
 	err:     nil,
 	wantErr: false,
-	prerun: func() {
+	prerun: func() error {
 
 		os.Args = append(os.Args, "init")
 
 		//	Add test app name
 		initCmd.Flag("name").Value.Set("test")
 
+		return nil
 	},
 	validator: pathsCreated,
-	operation: func() error {
-
-		return initCmd.Execute()
-
-	},
+	operation: initCmd.Execute,
 }
 
 func pathsCreated() error {
