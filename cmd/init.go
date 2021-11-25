@@ -145,15 +145,17 @@ var initCmd = &cobra.Command{
 				}
 			}
 
+			location := filepath.Join(util.WORKING_DIR, name)
+
 			//  Create the app directory
-			if err := os.MkdirAll(name, os.ModePerm); err != nil {
+			if err := os.MkdirAll(location, os.ModePerm); err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to create app directory")
 			}
 
 			//  Update Working Directory
-			nhost.UpdateWorkingDir(filepath.Join(util.WORKING_DIR, name))
-
+			nhost.UpdateLocations(util.WORKING_DIR, location)
+			util.WORKING_DIR = location
 		}
 
 		status.Executing("Creating your app...")

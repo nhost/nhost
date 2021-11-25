@@ -233,16 +233,14 @@ func Init() {
 	}
 }
 
-// Updates the current working directory in all locations
-func UpdateWorkingDir(newlocation string) {
+// Updates the directory paths in all variables
+func UpdateLocations(old, new string) {
 
 	for _, item := range LOCATIONS.Directories {
-		*item = strings.ReplaceAll(*item, util.WORKING_DIR, newlocation)
+		*item = strings.ReplaceAll(*item, old, new)
 	}
 
 	for _, item := range LOCATIONS.Files {
-		*item = strings.ReplaceAll(*item, util.WORKING_DIR, newlocation)
+		*item = strings.ReplaceAll(*item, old, new)
 	}
-
-	util.WORKING_DIR = newlocation
 }

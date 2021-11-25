@@ -1,4 +1,4 @@
-package tests
+package cmd
 
 import (
 	"os"
@@ -10,7 +10,9 @@ import (
 
 func TestLocations(t *testing.T) {
 
-	tests := tests{
+	InitTests()
+
+	tests := []test{
 		{
 			name:      "required paths available",
 			wantErr:   false,
@@ -29,7 +31,9 @@ func TestLocations(t *testing.T) {
 	}
 
 	//	Run tests
-	run(tests, t)
+	for _, tt := range tests {
+		tt.run(t)
+	}
 
 	//	Cleanup
 	deletePaths()
@@ -37,10 +41,14 @@ func TestLocations(t *testing.T) {
 
 func TestNewInitCmd(t *testing.T) {
 
-	tests := tests{newLocalAppTest}
+	InitTests()
+
+	tests := []test{newLocalAppTest}
 
 	//	Run tests
-	run(tests, t)
+	for _, tt := range tests {
+		tt.run(t)
+	}
 
 	//	Cleanup
 	deletePaths()
@@ -56,10 +64,29 @@ var newLocalAppTest = test{
 
 		//	Add test app name
 		initCmd.Flag("name").Value.Set("test")
-
 	},
 	validator: pathsCreated,
 	operation: initCmd.Execute,
+}
+
+var newRemoteAppTest = test{
+	name:    "new_remote_app",
+	err:     nil,
+	wantErr: false,
+	prerun: func() {
+
+		os.Args = append(os.Args, "init")
+
+		//	Add test app name
+		initCmd.Flag("name").Value.Set("test")
+
+	},
+	validator: pathsCreated,
+	operation: func() error {
+
+		return initCmd.Execute()
+
+	},
 }
 
 func pathsCreated() error {
