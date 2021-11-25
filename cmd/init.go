@@ -40,9 +40,14 @@ import (
 var (
 	project string
 	remote  bool
+	name    string
 )
 
 //  initCmd represents the init command
+func NewInitCmd() *cobra.Command {
+	return initCmd
+}
+
 var initCmd = &cobra.Command{
 	Use:   "init [--remote]",
 	Short: "Initialize current directory as Nhost app",
@@ -52,8 +57,8 @@ var initCmd = &cobra.Command{
 	PreRun: func(cmd *cobra.Command, args []string) {
 
 		if util.PathExists(nhost.NHOST_DIR) {
-			status.Error("App already exists in this directory")
-			status.Infoln("To start development environment, run 'nhost' or 'nhost dev'")
+			status.Info("To start development environment, run 'nhost' or 'nhost dev'")
+			status.Errorln("App already exists in this directory")
 			os.Exit(0)
 		}
 
@@ -61,40 +66,31 @@ var initCmd = &cobra.Command{
 		   			remote = true
 		   		}
 		*/
+
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
-		if !approve {
+		var err error
+
+		if name == "" {
 			prompt := promptui.Prompt{
-				Label:     "Do you want to initialize a new Nhost app in this directory",
-				IsConfirm: true,
+				Label: "Name of your new app",
 			}
 
-			_, err := prompt.Run()
+			name, err = prompt.Run()
 			if err != nil {
 				os.Exit(0)
 			}
 		}
 
-		//	Prepare list of required directories before you create them
-		requiredDirs := []*string{
-			&nhost.ROOT,
-			&nhost.NHOST_DIR,
-			&nhost.MIGRATIONS_DIR,
-			&nhost.METADATA_DIR,
-			&nhost.SEEDS_DIR,
-			&nhost.EMAILS_DIR,
-			&nhost.DOT_NHOST,
-			&nhost.EMAILS_DIR,
+		//  Create the app directory
+		if err := os.MkdirAll(name, os.ModePerm); err != nil {
+			log.Debug(err)
+			status.Fatal("Failed to create app directory")
 		}
 
-		//	Prepare list of required files before you create them
-		requiredFiles := []*string{
-			&nhost.CONFIG_PATH,
-			&nhost.ENV_FILE,
-			&nhost.GITIGNORE,
-			&nhost.INFO_PATH,
-		}
+		//  Update Working Directory
+		nhost.UpdateWorkingDir(filepath.Join(util.WORKING_DIR, name))
 
 		var selectedProject nhost.App
 
@@ -160,29 +156,9 @@ var initCmd = &cobra.Command{
 
 		status.Executing("Creating your app...")
 
-		//	if required directories don't exist, then create them
-		for _, dir := range requiredDirs {
-			if err := os.MkdirAll(*dir, os.ModePerm); err != nil {
-				log.Debug(err)
-				log.WithField("component", filepath.Base(*dir)).Fatal("Failed to create directory")
-			}
-			log.Debug("Created ", util.Rel(*dir))
-		}
-
-		//	if required files don't exist, then create them
-		for _, file := range requiredFiles {
-
-			//	#106: Don't create file if it already exists.
-			//	Otherwise, it will reset the contents of the file.
-			if !util.PathExists(*file) {
-				if _, err := os.Create(*file); err != nil {
-					log.Debug(err)
-					log.WithField("component", filepath.Base(*file)).Fatal("Failed to create file")
-				}
-				log.Debug("Created ", util.Rel(*file))
-			} else {
-				log.Debug("Found existing ", util.Rel(*file))
-			}
+		//  prepare all the mandatorily required locations
+		if err := nhost.InitLocations(); err != nil {
+			status.Errorln(err.Error())
 		}
 
 		//  generate Nhost configuration
@@ -202,7 +178,7 @@ var initCmd = &cobra.Command{
 				//	download the files
 				if err := clone(fmt.Sprintf("github.com/%s/%s", item.Repository, item.Path), item.Destination); err != nil {
 					log.WithField("compnent", "templates").Debug(err)
-					status.Errorln("Failed to clone template")
+					status.Errorln("Failed to clone templates for " + item.Name)
 				}
 			}
 		}
@@ -509,7 +485,7 @@ func init() {
 	//  Cobra supports Persistent Flags which will work for this command
 	//  and all subcommands, e.g.:
 	//  initCmd.PersistentFlags().String("foo", "", "A help for foo")
-	//	initCmd.Flags().StringVarP(&project, "remote", "r", "", "Name of a remote app")
+	initCmd.Flags().StringVarP(&name, "name", "n", "", "Name of new app")
 	initCmd.Flags().BoolVarP(&remote, "remote", "r", false, "Initialize app from remote?")
 	initCmd.Flags().BoolVarP(&approve, "yes", "y", false, "Approve & bypass app initialization prompt")
 

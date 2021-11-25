@@ -7,6 +7,10 @@ import (
 )
 
 type (
+	Required struct {
+		Directories []*string
+		Files       []*string
+	}
 
 	//	Nhost user structure
 	User struct {

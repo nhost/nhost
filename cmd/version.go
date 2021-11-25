@@ -26,6 +26,7 @@ package cmd
 
 import (
 	"fmt"
+	"reflect"
 	"runtime"
 
 	"github.com/nhost/cli/nhost"
@@ -39,9 +40,10 @@ var versionCmd = &cobra.Command{
 	SuggestFor: []string{"upgrade"},
 	Short:      "Show the current version of Nhost CLI you have installed",
 	Long:       `All softwares have versions. This is Nhost's.`,
-	Run: func(cmd *cobra.Command, args []string) {
-
+	PreRun: func(cmd *cobra.Command, args []string) {
 		status.Info(fmt.Sprintf("Nhost CLI %s for %s-%s", Version, runtime.GOOS, runtime.GOARCH))
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		//	Get all the releases
 		releases, err := nhost.GetReleases()
@@ -57,7 +59,7 @@ var versionCmd = &cobra.Command{
 			status.Fatal("Failed to fetch release")
 		}
 
-		if release.TagName == Version {
+		if reflect.DeepEqual(release.TagName, Version) {
 			status.Successln("You have the latest version. Hurray!")
 		} else {
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/util"
@@ -12,74 +13,236 @@ import (
 var (
 	log    = &logger.Log
 	status = &util.Writer
-	DOMAIN = "nhost.run"
-	API    = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
+	DOMAIN string
+	API    string
 
 	//  fetch current working directory
-	NHOST_DIR    = filepath.Join(util.WORKING_DIR, "nhost")
-	DOT_NHOST, _ = GetDotNhost()
+	NHOST_DIR string
+	DOT_NHOST string
 
 	//  initialize the names of all Nhost services in the stack
-	SERVICES = []string{"hasura", "auth", "storage", "mailhog", "postgres", "minio"}
+	SERVICES []string
 
 	//  find user's home directory
-	HOME, _ = os.UserHomeDir()
+	HOME string
 
-	//  generate Nhost root directory for HOME
-	ROOT = filepath.Join(HOME, ".nhost")
+	//  Nhost root directory for HOME
+	ROOT string
 
-	//  generate authentication file location
-	AUTH_PATH = filepath.Join(ROOT, "auth.json")
+	//  authentication file location
+	AUTH_PATH string
 
-	//  generate path for migrations
-	MIGRATIONS_DIR = filepath.Join(NHOST_DIR, "migrations")
+	//  path for migrations
+	MIGRATIONS_DIR string
 
-	//  generate path for metadata
-	METADATA_DIR = filepath.Join(NHOST_DIR, "metadata")
+	//  path for metadata
+	METADATA_DIR string
 
 	//  default Nhost database
-	DATABASE = "default"
+	DATABASE string
 
-	//  generate path for seeds
-	SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds")
+	//  path for seeds
+	SEEDS_DIR string
 
-	//  generate path for frontend
-	WEB_DIR = filepath.Join(util.WORKING_DIR, "web")
+	//  path for frontend
+	WEB_DIR string
 
-	//  generate path for API code
-	API_DIR = filepath.Join(util.WORKING_DIR, "functions")
+	//  path for API code
+	API_DIR string
 
-	//  generate path for email templates
-	EMAILS_DIR = filepath.Join(NHOST_DIR, "emails")
+	//  path for email templates
+	EMAILS_DIR string
 
-	//  generate path for legacy migrations
-	LEGACY_DIR = filepath.Join(DOT_NHOST, "legacy")
+	//  path for legacy migrations
+	LEGACY_DIR string
 
-	//  generate path for local git directory
-	GIT_DIR = filepath.Join(util.WORKING_DIR, ".git")
+	//  path for local git directory
+	GIT_DIR string
 
 	//  default git repository remote to watch for git ops
-	REMOTE = "origin"
+	REMOTE string
 
-	//  generate path for .env.development
-	ENV_FILE = filepath.Join(util.WORKING_DIR, ".env.development")
+	//  path for .env.development
+	ENV_FILE string
 
-	//  generate path for .config.yaml file
-	CONFIG_PATH = filepath.Join(NHOST_DIR, "config.yaml")
+	//  path for config.yaml file
+	CONFIG_PATH string
 
-	//  generate path for .gitignore file
-	GITIGNORE = filepath.Join(util.WORKING_DIR, ".gitignore")
+	//  path for .gitignore file
+	GITIGNORE string
 
-	//  generate path for .nhost/nhost.yaml file
-	INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
+	//  path for .nhost/nhost.yaml file
+	INFO_PATH string
 
-	//  generate path for express NPM modules
-	NODE_MODULES_PATH = filepath.Join(ROOT, "node_modules")
+	//  path for express NPM modules
+	NODE_MODULES_PATH string
 
 	//  package repository to download latest release from
-	REPOSITORY = "nhost/cli"
+	REPOSITORY string
+
+	//  initialize the project prefix
+	PREFIX string
+
+	//	mandatorily required locations
+	LOCATIONS Required
+)
+
+//	Initialize Nhost variables for runtime
+func Init() {
+
+	if DOMAIN == "" {
+		DOMAIN = "nhost.run"
+	}
+
+	if API == "" {
+		API = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
+	}
+
+	//  fetch current working directory
+	if NHOST_DIR == "" {
+		NHOST_DIR = filepath.Join(util.WORKING_DIR, "nhost")
+	}
+
+	if DOT_NHOST == "" {
+		DOT_NHOST, _ = GetDotNhost()
+	}
+
+	//  initialize the names of all Nhost services in the stack
+	if SERVICES == nil {
+		SERVICES = []string{"hasura", "auth", "storage", "mailhog", "postgres", "minio"}
+	}
+
+	//  find user's home directory
+	if HOME == "" {
+		HOME, _ = os.UserHomeDir()
+	}
+
+	//  Nhost root directory for HOME
+	if ROOT == "" {
+		ROOT = filepath.Join(HOME, ".nhost")
+	}
+
+	//  authentication file location
+	if AUTH_PATH == "" {
+		AUTH_PATH = filepath.Join(ROOT, "auth.json")
+	}
+
+	//  path for migrations
+	if MIGRATIONS_DIR == "" {
+		MIGRATIONS_DIR = filepath.Join(NHOST_DIR, "migrations")
+	}
+
+	//  path for metadata
+	if METADATA_DIR == "" {
+		METADATA_DIR = filepath.Join(NHOST_DIR, "metadata")
+	}
+
+	//  default Nhost database
+	if DATABASE == "" {
+		DATABASE = "default"
+	}
+
+	//  path for seeds
+	if SEEDS_DIR == "" {
+		SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds")
+	}
+
+	//  path for frontend
+	if WEB_DIR == "" {
+		WEB_DIR = filepath.Join(util.WORKING_DIR, "web")
+	}
+
+	//  path for API code
+	if API_DIR == "" {
+		API_DIR = filepath.Join(util.WORKING_DIR, "functions")
+	}
+
+	//  path for email templates
+	if EMAILS_DIR == "" {
+		EMAILS_DIR = filepath.Join(NHOST_DIR, "emails")
+	}
+
+	//  path for legacy migrations
+	if LEGACY_DIR == "" {
+		LEGACY_DIR = filepath.Join(DOT_NHOST, "legacy")
+	}
+
+	//  path for local git directory
+	if GIT_DIR == "" {
+		GIT_DIR = filepath.Join(util.WORKING_DIR, ".git")
+	}
+
+	//  default git repository remote to watch for git ops
+	if REMOTE == "" {
+		REMOTE = "origin"
+	}
+
+	//  path for .env.development
+	if ENV_FILE == "" {
+		ENV_FILE = filepath.Join(util.WORKING_DIR, ".env.development")
+	}
+
+	//  path for .config.yaml file
+	if CONFIG_PATH == "" {
+		CONFIG_PATH = filepath.Join(NHOST_DIR, "config.yaml")
+	}
+
+	//  path for .gitignore file
+	if GITIGNORE == "" {
+		GITIGNORE = filepath.Join(util.WORKING_DIR, ".gitignore")
+	}
+
+	//  path for .nhost/nhost.yaml file
+	if INFO_PATH == "" {
+		INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
+	}
+
+	//  path for express NPM modules
+	if NODE_MODULES_PATH == "" {
+		NODE_MODULES_PATH = filepath.Join(ROOT, "node_modules")
+	}
+
+	//  package repository to download latest release from
+	if REPOSITORY == "" {
+		REPOSITORY = "nhost/cli"
+	}
 
 	//  initialize the project prefix
 	//	PREFIX = filepath.Base(util.WORKING_DIR)
-	PREFIX = "nhost"
-)
+	if PREFIX == "" {
+		PREFIX = "nhost"
+	}
+
+	//	mandatorily required locations
+	LOCATIONS = Required{
+		Directories: []*string{
+			&ROOT,
+			&NHOST_DIR,
+			&MIGRATIONS_DIR,
+			&METADATA_DIR,
+			&SEEDS_DIR,
+			&EMAILS_DIR,
+			&DOT_NHOST,
+		},
+		Files: []*string{
+			&CONFIG_PATH,
+			&ENV_FILE,
+			&GITIGNORE,
+			&INFO_PATH,
+		},
+	}
+}
+
+// Updates the current working directory in all locations
+func UpdateWorkingDir(newlocation string) {
+
+	for _, item := range LOCATIONS.Directories {
+		*item = strings.ReplaceAll(*item, util.WORKING_DIR, newlocation)
+	}
+
+	for _, item := range LOCATIONS.Files {
+		*item = strings.ReplaceAll(*item, util.WORKING_DIR, newlocation)
+	}
+
+	util.WORKING_DIR = newlocation
+}

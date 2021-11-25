@@ -202,8 +202,8 @@ And you can immediately start developing on that template.`,
 		//  clone the data
 		if err := clone(src, selected.Destination); err != nil {
 			log.WithField("compnent", selected.Value).Debug(err)
-			log.WithField("compnent", selected.Value).Error("Failed to clone template")
-			log.WithField("compnent", selected.Value).Info("Please install it manually with: ", selected.Manual)
+			status.Errorln("Failed to clone template " + selected.Value)
+			status.Info("Please install it manually with: " + selected.Manual)
 			os.Exit(1)
 		}
 
@@ -213,15 +213,15 @@ And you can immediately start developing on that template.`,
 		for _, file := range selected.Ignore {
 			if err := writeToFile(filepath.Join(util.WORKING_DIR, ".gitignore"), "\n"+file, "end"); err != nil {
 				log.Debug(err)
-				log.Warnf("Failed to add `%s` to .gitignore", file)
+				status.Warnln(fmt.Sprintf("Failed to add `%s` to .gitignore", file))
 			}
 		}
 
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		log.WithField("compnent", selected.Value).Info("Template cloned successfully")
+		status.Info("Template cloned successfully: " + selected.Value)
 		if selected.NextSteps != "" {
-			status.Info(selected.NextSteps)
+			status.Infoln(selected.NextSteps)
 		}
 	},
 }

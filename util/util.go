@@ -17,13 +17,13 @@ var (
 	//	Import commong logger used by the entire utility
 	log = &logger.Log
 
-	WORKING_DIR, _ = os.Getwd()
+	WORKING_DIR string
 )
 
 const (
 
 	//	Common Error Codes
-	WarnDockerNotFound  = "Make sure Docker is running and re-run `nhost dev`"
+	WarnDockerNotFound  = "Make sure Docker is running and restart `nhost dev`"
 	ErrDockerNotFound   = "Docker not running"
 	ErrServicesNotFound = "No services found currently running for this app"
 
@@ -31,6 +31,22 @@ const (
 	InfoDockerDownload  = "Download docker from: https://www.docker.com/products/docker-desktop"
 	InfoServicesRunning = "Start your app with `nhost dev`"
 )
+
+type Config struct {
+	WorkingDir string
+	Writer     *Status
+}
+
+func Init(config Config) {
+
+	if config.WorkingDir == "" {
+		WORKING_DIR, _ = os.Getwd()
+	}
+
+	if config.Writer == nil {
+		Writer = New(true)
+	}
+}
 
 //  check whether source array contains value or not
 func Contains(s []string, e string) bool {

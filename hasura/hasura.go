@@ -22,7 +22,6 @@ import (
 )
 
 //  initialize the binary path
-var binaryPath = getBinary()
 var status = &util.Writer
 var log = &logger.Log
 
@@ -41,6 +40,8 @@ func getBinary() string {
 //  it downloads it from specifically supplied URL
 //  based on user's OS and ARCH
 func Binary() (string, error) {
+
+	binaryPath := getBinary()
 
 	//  search for installed binary
 	if pathExists(binaryPath) {
@@ -70,6 +71,7 @@ func Binary() (string, error) {
 	if err := os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {
 		return "", err
 	}
+
 	out, err := os.Create(binaryPath)
 	if err != nil {
 		return "", err

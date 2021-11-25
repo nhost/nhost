@@ -49,6 +49,32 @@ func (r *Configuration) MarshalJSON() ([]byte, error) {
 	return json.Marshal(r)
 }
 
+func InitLocations() error {
+
+	//	if required directories don't exist, then create them
+	for _, dir := range LOCATIONS.Directories {
+		if err := os.MkdirAll(*dir, os.ModePerm); err != nil {
+			return err
+		}
+		log.Debug("Created ", util.Rel(*dir))
+	}
+
+	//	#106: Don't create file if it already exists.
+	//	Otherwise, it will reset the contents of the file.
+	for _, file := range LOCATIONS.Files {
+		if !util.PathExists(*file) {
+			if _, err := os.Create(*file); err != nil {
+				return err
+			}
+			log.Debug("Created ", util.Rel(*file))
+		} else {
+			log.Debug("Found existing ", util.Rel(*file))
+		}
+	}
+
+	return nil
+}
+
 func (config *Configuration) Save() error {
 
 	log.Debug("Saving app configuration")
@@ -1086,9 +1112,9 @@ func GenerateConfig(options App) Configuration {
 				"hibp_enabled": false,
 			},
 			"user": map[interface{}]interface{}{
-				"default_role":                   "user",
-				"default_allowed_roles":          "user,me",
-				"allowed_roles":                  "user,me",
+				"default_role":          "user",
+				"default_allowed_roles": "user,me",
+				"allowed_roles":         "user,me",
 				"mfa": map[interface{}]interface{}{
 					"enabled": false,
 					"issuer":  "nhost",
@@ -1116,9 +1142,9 @@ func GenerateConfig(options App) Configuration {
 				"secure": false,
 			},
 			"email": map[interface{}]interface{}{
-				"enabled":            false,
-        "signin_email_verified_required": true,
-				"template_fetch_url": "",
+				"enabled":                        false,
+				"signin_email_verified_required": true,
+				"template_fetch_url":             "",
 				"passwordless": map[interface{}]interface{}{
 					"enabled": false,
 				},

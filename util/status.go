@@ -36,10 +36,8 @@ const (
 var (
 
 	//  New base writer for all tasks
-	Writer = New(true)
+	Writer Status
 )
-
-func Init() {}
 
 // Returns a new Status object
 func New(showIcons bool) Status {

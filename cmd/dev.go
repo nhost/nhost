@@ -26,6 +26,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
@@ -79,6 +80,10 @@ var (
 			This will ensure that the new port is used for attaching a reverse proxy to this service, if required.
 */
 
+func NewDevCmd() *cobra.Command {
+	return devCmd
+}
+
 //  devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:        "dev [-p port]",
@@ -86,27 +91,30 @@ var devCmd = &cobra.Command{
 	SuggestFor: []string{"list", "init"},
 	Short:      "Start local development environment",
 	Long:       `Initialize a local Nhost environment for development and testing.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	PreRunE: func(cmd *cobra.Command, args []string) error {
 
-		//  check if /nhost exists
+		//  check if nhost/ exists
 		if !util.PathExists(nhost.NHOST_DIR) {
 			status.Info("Initialize new app by running 'nhost init'")
-			log.Fatal("App not found in this directory")
+			return errors.New("app not found in this directory")
 		}
 
-		//  create /.nhost if it doesn't exist
+		//  create .nhost/ if it doesn't exist
 		if err := os.MkdirAll(nhost.DOT_NHOST, os.ModePerm); err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to initialize nhost data directory")
+			status.Errorln("Failed to initialize nhost data directory")
+			return err
 		}
 
 		//	If the default port is not available,
 		//	choose a random one
 		if !nhost.PortAvaiable(env.Port) {
-			status.Errorln(fmt.Sprintf("Port %s not available", env.Port))
 			status.Info("Choose a different port with `nhost dev [--port]`")
-			os.Exit(0)
+			return fmt.Errorf("port %s not available", env.Port)
 		}
+
+		return nil
+	},
+	Run: func(cmd *cobra.Command, args []string) {
 
 		var err error
 

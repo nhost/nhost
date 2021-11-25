@@ -24,5 +24,7 @@ var (
 	Client = http.Client{}
 	env    = environment.Environment{}
 
+	path string
+
 	//	tunnelAddress = "tunnel.mrinalwahal.com"
 )

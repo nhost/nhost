@@ -63,16 +63,15 @@ var (
 			//  resetUmask()
 
 			logger.Init()
+			util.Init(util.Config{
+				WorkingDir: path,
+			})
+			nhost.Init()
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 
 			//  check if project is already initialized
-			if util.PathExists(nhost.NHOST_DIR) {
-
-				//  start the "dev" command
-				devCmd.Run(cmd, args)
-
-			} else {
+			if !util.PathExists(nhost.NHOST_DIR) {
 
 				//  start the "init" command
 				initCmd.Run(cmd, args)
@@ -100,14 +99,21 @@ var (
 						choice = ""
 					}
 				}
-
-				//  start the "dev" command
-				devCmd.Run(cmd, args)
 			}
 
+			//  start the "dev" command
+			if err := devCmd.PreRunE(cmd, args); err != nil {
+				log.Debug(err)
+			}
+
+			devCmd.Run(cmd, args)
 		},
 	}
 )
+
+func NewRootCmd() *cobra.Command {
+	return rootCmd
+}
 
 //  Initialize common constants and variables used by multiple commands
 //  Execute adds all child commands to the root command and sets flags appropriately.
@@ -161,6 +167,7 @@ func init() {
 	//  when this action is called directly.
 	rootCmd.PersistentFlags().StringVarP(&logger.LOG_FILE, "log-file", "f", "", "Write logs to given file")
 	rootCmd.PersistentFlags().BoolVarP(&logger.DEBUG, "debug", "d", false, "Show debugging level logs")
+	rootCmd.PersistentFlags().StringVar(&path, "path", "", "Current working directory to execute CLI in")
 }
 
 /*
