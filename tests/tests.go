@@ -17,6 +17,8 @@ var (
 
 	//	Create temporary directory for testing
 	path, _ = ioutil.TempDir("", "nhost-test")
+
+	log = &logger.Log
 )
 
 func Init() {

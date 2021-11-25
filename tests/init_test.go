@@ -9,6 +9,7 @@ import (
 )
 
 func TestInitLocations(t *testing.T) {
+	Init()
 	tests := []struct {
 		name      string
 		wantErr   bool
@@ -20,17 +21,21 @@ func TestInitLocations(t *testing.T) {
 			operation: pathsCreated,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := nhost.InitLocations(); (err != nil) != tt.wantErr {
-				t.Errorf("InitLocations() error = %v, wantErr %v", err, tt.wantErr)
+			if err := nhost.InitLocations(); err != nil {
+				t.Errorf("InitLocations() error = %v", err)
+			}
+
+			if err := tt.operation(); err != nil {
+				t.Errorf("operation() error = %v", err)
 			}
 		})
 	}
 
 	//	Cleanup
 	deletePaths()
-
 }
 
 func TestNewInitCmd(t *testing.T) {

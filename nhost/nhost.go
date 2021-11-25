@@ -53,10 +53,10 @@ func InitLocations() error {
 
 	//	if required directories don't exist, then create them
 	for _, dir := range LOCATIONS.Directories {
-		if err := os.MkdirAll(*dir, os.ModePerm); err != nil {
-			return err
-		}
-		log.Debug("Created ", util.Rel(*dir))
+		/* 		if err := os.MkdirAll(*dir, os.ModePerm); err != nil {
+		   			return err
+		   		}
+		*/log.Debug("Created ", util.Rel(*dir))
 	}
 
 	//	#106: Don't create file if it already exists.
