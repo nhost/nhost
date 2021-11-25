@@ -8,31 +8,28 @@ import (
 	"github.com/nhost/cli/util"
 )
 
-func TestInitLocations(t *testing.T) {
-	Init()
-	tests := []struct {
-		name      string
-		wantErr   bool
-		operation func() error
-	}{
+func TestLocations(t *testing.T) {
+
+	tests := tests{
 		{
-			name:      "required paths",
+			name:      "required paths available",
 			wantErr:   false,
-			operation: pathsCreated,
+			operation: nhost.InitLocations,
+			validator: pathsCreated,
+		},
+		{
+			name:      "required paths unavailable",
+			wantErr:   true,
+			operation: nhost.InitLocations,
+			validator: func() error {
+				deletePaths()
+				return pathsCreated()
+			},
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := nhost.InitLocations(); err != nil {
-				t.Errorf("InitLocations() error = %v", err)
-			}
-
-			if err := tt.operation(); err != nil {
-				t.Errorf("operation() error = %v", err)
-			}
-		})
-	}
+	//	Run tests
+	run(tests, t)
 
 	//	Cleanup
 	deletePaths()
@@ -40,33 +37,29 @@ func TestInitLocations(t *testing.T) {
 
 func TestNewInitCmd(t *testing.T) {
 
-	os.Args = append(os.Args, "init")
+	tests := tests{newLocalAppTest}
 
-	//	Bypass confirmation prompt
-	initCmd.Flag("yes").Value.Set("true")
-
-	tests := []struct {
-		name      string
-		want      error
-		operation func() error
-	}{
-		{
-			name:      "required paths",
-			want:      nil,
-			operation: pathsCreated,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if got := initCmd.Execute(); got != tt.want {
-				t.Errorf("error = %v", got)
-			}
-		})
-	}
+	//	Run tests
+	run(tests, t)
 
 	//	Cleanup
 	deletePaths()
+}
+
+var newLocalAppTest = test{
+	name:    "new_local_app",
+	err:     nil,
+	wantErr: false,
+	prerun: func() {
+
+		os.Args = append(os.Args, "init")
+
+		//	Add test app name
+		initCmd.Flag("name").Value.Set("test")
+
+	},
+	validator: pathsCreated,
+	operation: initCmd.Execute,
 }
 
 func pathsCreated() error {

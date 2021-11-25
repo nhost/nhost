@@ -60,7 +60,7 @@ type Entity struct {
 	NextSteps   string
 	Manual      string
 	Ignore      []string
-	Destination string
+	Destination *string
 	Default     bool
 	Path        string
 	Repository  string
@@ -99,7 +99,7 @@ var entities = []Entity{
 	{
 		Name:        "Frontend",
 		Value:       "web",
-		Destination: nhost.WEB_DIR,
+		Destination: &nhost.WEB_DIR,
 		Repository:  "nhost/nhost",
 		Path:        "templates/web",
 		NextSteps:   "Use `cd web && npm install`",
@@ -108,7 +108,7 @@ var entities = []Entity{
 	{
 		Name:        "Functions",
 		Value:       "functions",
-		Destination: nhost.API_DIR,
+		Destination: &nhost.API_DIR,
 		Repository:  "nhost/nhost",
 		Path:        "templates/functions",
 		NextSteps:   "",
@@ -118,7 +118,7 @@ var entities = []Entity{
 		Name:        "Emails",
 		Value:       "emails",
 		Default:     true,
-		Destination: nhost.EMAILS_DIR,
+		Destination: &nhost.EMAILS_DIR,
 		Repository:  "nhost/hasura-auth",
 		Path:        "email-templates",
 		Manual:      "git clone github.com/nhost/hasura-auth/email-templates" + choice,
@@ -200,11 +200,11 @@ And you can immediately start developing on that template.`,
 		src := fmt.Sprintf("github.com/%s/%s", selected.Repository, choice)
 
 		//  clone the data
-		if err := clone(src, selected.Destination); err != nil {
-			log.WithField("compnent", selected.Value).Debug(err)
+		if err := clone(src, *selected.Destination); err != nil {
+			log.WithField("component", selected.Value).Debug(err)
 			status.Errorln("Failed to clone template " + selected.Value)
-			status.Info("Please install it manually with: " + selected.Manual)
-			os.Exit(1)
+			status.Info("Install it manually with: " + selected.Manual)
+			return
 		}
 
 		//  if there are any ignore files,

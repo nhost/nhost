@@ -72,26 +72,6 @@ var initCmd = &cobra.Command{
 
 		var err error
 
-		if name == "" {
-			prompt := promptui.Prompt{
-				Label: "Name of your new app",
-			}
-
-			name, err = prompt.Run()
-			if err != nil {
-				os.Exit(0)
-			}
-		}
-
-		//  Create the app directory
-		if err := os.MkdirAll(name, os.ModePerm); err != nil {
-			log.Debug(err)
-			status.Fatal("Failed to create app directory")
-		}
-
-		//  Update Working Directory
-		nhost.UpdateWorkingDir(filepath.Join(util.WORKING_DIR, name))
-
 		var selectedProject nhost.App
 
 		//  if user has already passed remote_project as a flag,
@@ -152,6 +132,28 @@ var initCmd = &cobra.Command{
 
 				selectedProject = projects[index]
 			}
+		} else {
+
+			if name == "" {
+				prompt := promptui.Prompt{
+					Label: "Name of your new app",
+				}
+
+				name, err = prompt.Run()
+				if err != nil {
+					os.Exit(0)
+				}
+			}
+
+			//  Create the app directory
+			if err := os.MkdirAll(name, os.ModePerm); err != nil {
+				log.Debug(err)
+				status.Fatal("Failed to create app directory")
+			}
+
+			//  Update Working Directory
+			nhost.UpdateWorkingDir(filepath.Join(util.WORKING_DIR, name))
+
 		}
 
 		status.Executing("Creating your app...")
@@ -176,7 +178,7 @@ var initCmd = &cobra.Command{
 			if item.Default {
 
 				//	download the files
-				if err := clone(fmt.Sprintf("github.com/%s/%s", item.Repository, item.Path), item.Destination); err != nil {
+				if err := clone(fmt.Sprintf("github.com/%s/%s", item.Repository, item.Path), *item.Destination); err != nil {
 					log.WithField("compnent", "templates").Debug(err)
 					status.Errorln("Failed to clone templates for " + item.Name)
 				}

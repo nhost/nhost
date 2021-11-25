@@ -11,7 +11,7 @@ import (
 //  download a remote directory/file to local
 func clone(src, dest string) error {
 
-	log.Debug("Cloning ", src)
+	log.Debug("Cloning ", src, " to ", util.Rel(dest))
 
 	//  initialize hashicorp go-getter client
 	client := &getter.Client{
