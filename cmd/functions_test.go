@@ -43,13 +43,44 @@ import (
 var tempFunctionFile *os.File
 
 const js = "module.exports = (req, res) => { res.status(200).send(`Nhost, from Javascript, pays it's respects to ${req.query.name}!`); };"
+const golang = `
+package main
+
+import (
+	"fmt"
+	"net/http"
+)
+
+func Handler(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Query().Get("name")
+	fmt.Fprintf(w, "Nhost pays it's respects to %s!", name)
+}
+`
 
 var jsFunctionTest = test{
 	name:      "basic javascript function",
 	wantErr:   false,
 	prerun:    saveJSFunction,
 	operation: ServeFuncs,
-	validator: callJSFunction,
+	validator: func() error {
+		return callFunction(fmt.Sprintf("http://localhost:%s/javascript", funcPort), "Nhost, from Javascript, pays it's respects to Nhost!")
+	},
+	postrun: func() error {
+		tempFunctionFile.Close()
+		util.DeleteAllPaths(tempFunctionFile.Name())
+		functionServer.Shutdown(context.Background())
+		return nil
+	},
+}
+
+var goFunctionTest = test{
+	name:      "basic golang function",
+	wantErr:   false,
+	prerun:    saveGoFunction,
+	operation: ServeFuncs,
+	validator: func() error {
+		return callFunction(fmt.Sprintf("http://localhost:%s/golang", funcPort), "Nhost pays it's respects to Nhost!")
+	},
 	postrun: func() error {
 		tempFunctionFile.Close()
 		util.DeleteAllPaths(tempFunctionFile.Name())
@@ -65,7 +96,12 @@ func TestFunctions(t *testing.T) {
 	nhost.API_DIR = filepath.Join(util.WORKING_DIR, "functions")
 	buildDir = nhost.API_DIR
 
-	tests := []test{jsFunctionTest}
+	//	Initialize a temporary directory to store test function files
+	if err := os.MkdirAll(nhost.API_DIR, os.ModePerm); err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []test{jsFunctionTest, goFunctionTest}
 
 	//	Run tests
 	for _, tt := range tests {
@@ -76,11 +112,6 @@ func TestFunctions(t *testing.T) {
 func saveJSFunction() error {
 
 	var err error
-
-	//	Initialize a temporary directory to store test function files
-	if err := os.MkdirAll(nhost.API_DIR, os.ModePerm); err != nil {
-		return err
-	}
 
 	// Run `npm init`
 	npm, err := exec.LookPath("npm")
@@ -127,7 +158,7 @@ func saveJSFunction() error {
 	}
 
 	//	Create a test function file
-	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "test.js"))
+	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "javascript.js"))
 	if err != nil {
 		return err
 	}
@@ -146,9 +177,33 @@ func saveJSFunction() error {
 	return tempFunctionFile.Sync()
 }
 
-func callJSFunction() error {
+func saveGoFunction() error {
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://localhost:%s/test", funcPort), nil)
+	var err error
+
+	//	Create a test function file
+	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "golang.go"))
+	if err != nil {
+		return err
+	}
+
+	//  Log the contents of API directory
+	files, _ := ioutil.ReadDir(nhost.API_DIR)
+	fmt.Println("Files in API directory:")
+	for _, item := range files {
+		log.Println(item.Name())
+	}
+
+	//	Write the test function file
+	tempFunctionFile.WriteString(golang)
+
+	//	save the file
+	return tempFunctionFile.Sync()
+}
+
+func callFunction(url, response string) error {
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
 	}
@@ -169,7 +224,7 @@ func callJSFunction() error {
 		return err
 	}
 
-	if !reflect.DeepEqual(body, []byte("Nhost, from Javascript, pays it's respects to Nhost!")) {
+	if !reflect.DeepEqual(body, []byte(response)) {
 		return errors.New("response body does not match")
 	}
 
