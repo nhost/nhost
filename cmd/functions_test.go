@@ -60,7 +60,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 var jsFunctionTest = test{
 	name:      "basic javascript function",
 	wantErr:   false,
-	prerun:    saveJSFunction,
+	prerun:    func() error { return saveJSFunction("javascript") },
 	operation: ServeFuncs,
 	validator: func() error {
 		return callFunction(fmt.Sprintf("http://localhost:%s/javascript", funcPort), "Nhost, from Javascript, pays it's respects to Nhost!")
@@ -76,7 +76,7 @@ var jsFunctionTest = test{
 var goFunctionTest = test{
 	name:      "basic golang function",
 	wantErr:   false,
-	prerun:    saveGoFunction,
+	prerun:    func() error { return saveGoFunction("golang") },
 	operation: ServeFuncs,
 	validator: func() error {
 		return callFunction(fmt.Sprintf("http://localhost:%s/golang", funcPort), "Nhost pays it's respects to Nhost!")
@@ -86,6 +86,42 @@ var goFunctionTest = test{
 		util.DeleteAllPaths(tempFunctionFile.Name())
 		functionServer.Shutdown(context.Background())
 		return nil
+	},
+}
+
+var unavailableStaticRouteTest = test{
+	name:      "unavailable static function routes",
+	wantErr:   false,
+	operation: ServeFuncs,
+	validator: func() error {
+
+		if code := check200(fmt.Sprintf("http://localhost:%s/golang", funcPort)); code != http.StatusNotFound {
+			return fmt.Errorf("expected %d, got: %d", http.StatusNotFound, code)
+		}
+
+		return nil
+	},
+	postrun: func() error {
+		return functionServer.Shutdown(context.Background())
+	},
+}
+
+var indexRouteTest = test{
+	name:      "index function route",
+	wantErr:   false,
+	prerun:    func() error { return saveGoFunction("index") },
+	operation: ServeFuncs,
+	validator: func() error {
+
+		if resp, err := call(fmt.Sprintf("http://localhost:%s", funcPort)); err != nil {
+			fmt.Errorf("recevied: %s", resp)
+			return err
+		}
+
+		return nil
+	},
+	postrun: func() error {
+		return functionServer.Shutdown(context.Background())
 	},
 }
 
@@ -101,7 +137,12 @@ func TestFunctions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	tests := []test{jsFunctionTest, goFunctionTest}
+	tests := []test{
+		goFunctionTest,
+		jsFunctionTest,
+		unavailableStaticRouteTest,
+		indexRouteTest,
+	}
 
 	//	Run tests
 	for _, tt := range tests {
@@ -109,7 +150,7 @@ func TestFunctions(t *testing.T) {
 	}
 }
 
-func saveJSFunction() error {
+func saveJSFunction(name string) error {
 
 	var err error
 
@@ -158,16 +199,9 @@ func saveJSFunction() error {
 	}
 
 	//	Create a test function file
-	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "javascript.js"))
+	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, name+".js"))
 	if err != nil {
 		return err
-	}
-
-	//  Log the contents of API directory
-	files, _ := ioutil.ReadDir(nhost.API_DIR)
-	fmt.Println("Files in API directory:")
-	for _, item := range files {
-		log.Println(item.Name())
 	}
 
 	//	Write the test function file
@@ -177,21 +211,14 @@ func saveJSFunction() error {
 	return tempFunctionFile.Sync()
 }
 
-func saveGoFunction() error {
+func saveGoFunction(name string) error {
 
 	var err error
 
 	//	Create a test function file
-	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "golang.go"))
+	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, name+".go"))
 	if err != nil {
 		return err
-	}
-
-	//  Log the contents of API directory
-	files, _ := ioutil.ReadDir(nhost.API_DIR)
-	fmt.Println("Files in API directory:")
-	for _, item := range files {
-		log.Println(item.Name())
 	}
 
 	//	Write the test function file

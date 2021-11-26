@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"testing"
 )
@@ -39,6 +42,11 @@ var firstRunDevTest = test{
 	validator: pathsCreated,
 }
 
+var healthTest = test{
+	name:      "health",
+	validator: healthCheck,
+}
+
 func Test_Pipeline(t *testing.T) {
 
 	InitTests(t)
@@ -55,8 +63,9 @@ func Test_Pipeline(t *testing.T) {
 	tests := []test{
 		newLocalAppTest,
 		firstRunDevTest,
-		jsFunctionTest,
-		goFunctionTest,
+		healthTest,
+		//	jsFunctionTest,
+		//	goFunctionTest,
 	}
 
 	//	Run tests
@@ -66,4 +75,45 @@ func Test_Pipeline(t *testing.T) {
 
 	//	Cleanup
 	env.Cleanup()
+}
+
+func healthCheck() error {
+
+	for _, item := range env.Config.Services {
+		if item.HealthEndpoint != "" {
+			if code := check200(item.HealthEndpoint); code != 200 {
+				return fmt.Errorf("%s: expected 200 response, got - %v", item.Name, code)
+			}
+		}
+	}
+
+	return nil
+}
+
+//	Performs a basic ping request and returns status code.
+func check200(url string) int {
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return 0
+	}
+
+	return resp.StatusCode
+}
+
+//	Performs a basic ping request and returns response body.
+func call(url string) (string, error) {
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }
