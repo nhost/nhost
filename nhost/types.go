@@ -137,8 +137,6 @@ type (
 		Name           string                 `yaml:",omitempty"`
 		Address        string                 `yaml:",omitempty"`
 		ID             string                 `yaml:",omitempty"`
-		Handles        []Route                `yaml:",omitempty"`
-		Proxy          bool                   `yaml:",omitempty"`
 		Config         *container.Config      `yaml:",omitempty"`
 		HostConfig     *container.HostConfig  `yaml:",omitempty"`
 		HealthEndpoint string                 `yaml:",omitempty"`
@@ -197,13 +195,5 @@ type (
 		Label              string `json:",omitempty"`
 		BrowserDownloadURL string `json:"browser_download_url,omitempty"`
 		Size               int    `json:",omitempty"`
-	}
-
-	//	Proxy Route URL structure
-	Route struct {
-		Name        string
-		Source      string
-		Destination string
-		Show        bool
 	}
 )

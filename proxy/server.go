@@ -7,7 +7,6 @@ import (
 
 	"github.com/nhost/cli/environment"
 	"github.com/nhost/cli/logger"
-	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 )
@@ -29,6 +28,9 @@ type Server struct {
 
 	//	(Optional) Environment to attach to this server.
 	environment *environment.Environment
+
+	//  All the services attached to this server.
+	services []*Service
 }
 
 //	Server configuration that the user can decide to load inside the functions server.
@@ -58,7 +60,7 @@ type ServerConfig struct {
 func New(config *ServerConfig) *Server {
 
 	if config.Port == "" {
-		config.Port = fmt.Sprint(nhost.GetPort(3000, 3999))
+		config.Port = fmt.Sprint(util.GetPort(3000, 3999))
 	}
 
 	if config.Handle == "" {
@@ -92,7 +94,22 @@ func New(config *ServerConfig) *Server {
 	}
 
 	//	Attach the request handler
-	server.config.Mux.HandleFunc(config.Handle, server.FunctionHandler)
+	//	server.config.Mux.HandleFunc(config.Handle, server.Handler)
 
 	return server
 }
+
+//	Attaches a service to this server.
+func (s *Server) AddService(service *Service) {
+	service.log = *s.log
+
+	//	TODO: add logs to temporary logs location.
+
+	// Finally, attach the service to the server.
+	s.services = append(s.services, service)
+}
+
+/* func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
+
+}
+*/

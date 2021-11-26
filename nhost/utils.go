@@ -3,12 +3,8 @@ package nhost
 import (
 	"fmt"
 	"io/ioutil"
-	"math/rand"
-	"net"
 	"path/filepath"
-	"strconv"
 	"strings"
-	"time"
 )
 
 func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) []string {
@@ -24,39 +20,6 @@ func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) 
 		}
 	}
 	return response
-}
-
-func GetPort(low, hi int) int {
-
-	//
-	//  Initialize the seed
-	//
-	//  This is done to prevent Go from choosing pseudo-random numbers
-	rand.Seed(time.Now().UnixNano())
-
-	//  generate a random port value
-	port := strconv.Itoa(low + rand.Intn(hi-low))
-
-	//  validate wehther the port is available
-	if !PortAvaiable(port) {
-		return GetPort(low, hi)
-	}
-
-	//  return the value, if it's available
-	response, _ := strconv.Atoi(port)
-	return response
-}
-
-func PortAvaiable(port string) bool {
-
-	ln, err := net.Listen("tcp", ":"+port)
-
-	if err != nil {
-		return false
-	}
-
-	ln.Close()
-	return true
 }
 
 func GetContainerName(name string) string {

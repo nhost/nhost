@@ -76,7 +76,7 @@ func New(config *ServerConfig) *Server {
 	tempDir, _ = ioutil.TempDir("", "")
 
 	if config.Port == "" {
-		config.Port = fmt.Sprint(nhost.GetPort(3000, 3999))
+		config.Port = fmt.Sprint(util.GetPort(3000, 3999))
 	}
 
 	if config.Handle == "" {
@@ -172,8 +172,6 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 
 		return nil
 	}
-
-	fmt.Println(nhost.API_DIR)
 
 	if err := filepath.Walk(nhost.API_DIR, getRoute); err != nil {
 		s.log.WithField("component", "server").Debug(err)
@@ -283,7 +281,7 @@ func (s *Server) FunctionHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		//  initialize random port to serve the file
-		jsPort := nhost.GetPort(9401, 9500)
+		jsPort := util.GetPort(9401, 9500)
 
 		//  prepare the node server configuration
 		if err := f.BuildNodeServer(jsPort); err != nil {

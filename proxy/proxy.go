@@ -10,7 +10,6 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/koding/websocketproxy"
-	"github.com/nhost/cli/nhost"
 	"github.com/sirupsen/logrus"
 )
 
@@ -22,15 +21,38 @@ type Route struct {
 	Show        bool
 }
 
+type Service struct {
+	Name    string
+	Address string
+	Port    string
+	Routes  []Route
+
+	//	Service specific logger
+	log logrus.Logger
+}
+
+//	Issue proxy to all services attached to the server.
+//	Supports a custom connection multiplexer, and custom request context.
+func (s *Server) IssueAll(ctx context.Context) error {
+
+	for _, item := range s.services {
+		err := item.Issue(s.config.Mux, ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 //	Issues an HTTP and WS reverse proxy to the respective service.
-//	Supports a custom connection multiplexer,
-//	and custom request context.
-func (s *nhost.Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
+//	Supports a custom connection multiplexer, and custom request context.
+func (s *Service) Issue(mux *http.ServeMux, ctx context.Context) error {
 
 	//	Loop over all handles to be proxied
-	for _, item := range s.Handles {
+	for _, item := range s.Routes {
 
-		httpAddress := s.GetAddress()
+		httpAddress := s.Address
 		wsAddress := fmt.Sprintf("ws://localhost:%v", s.Port)
 
 		httpOrigin, err := url.Parse(httpAddress)
@@ -50,6 +72,8 @@ func (s *nhost.Service) IssueProxy(mux *http.ServeMux, ctx context.Context) erro
 		httpProxy := httputil.NewSingleHostReverseProxy(httpOrigin)
 		wsProxy := websocketproxy.NewProxy(wsOrigin)
 
+		//	Fix: Add the custom upgrader.
+		//	To avoid the following error: "websocket: failed to upgrade the request to web-socket"
 		wsProxy.Upgrader = &websocket.Upgrader{
 			ReadBufferSize:    4096,
 			WriteBufferSize:   4096,
@@ -59,7 +83,7 @@ func (s *nhost.Service) IssueProxy(mux *http.ServeMux, ctx context.Context) erro
 			},
 		}
 
-		log.WithFields(logrus.Fields{
+		s.log.WithFields(logrus.Fields{
 			"value": s.Name,
 			"type":  "proxy",
 		}).Debugf("%s --> %s", httpAddress, item.Destination)
@@ -67,7 +91,7 @@ func (s *nhost.Service) IssueProxy(mux *http.ServeMux, ctx context.Context) erro
 		mux.HandleFunc(item.Destination, func(w http.ResponseWriter, r *http.Request) {
 
 			//	Log every incoming request
-			log.WithFields(logrus.Fields{
+			s.log.WithFields(logrus.Fields{
 				"component": "proxy",
 				"method":    r.Method,
 			}).Debug(r.URL.Path)
