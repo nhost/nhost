@@ -49,7 +49,7 @@ func (s *Server) IssueAll(ctx context.Context) error {
 //	Supports a custom connection multiplexer, and custom request context.
 func (s *Service) Issue(mux *http.ServeMux, ctx context.Context) error {
 
-	//	Loop over all handles to be proxied
+	//	Loop over all routes to be proxied
 	for _, item := range s.Routes {
 
 		httpAddress := s.Address
