@@ -42,6 +42,39 @@ var firstRunDevTest = test{
 	validator: pathsCreated,
 }
 
+var cleanupTest = test{
+	name: "cleanup",
+	operation: func() error {
+
+		//	First, initiate the cleanup
+		env.Cleanup()
+
+		return nil
+	},
+	validator: func() error {
+
+		//  Fetch list of containers and ensure they are all stopped
+		env.Context, env.Cancel = context.WithCancel(context.Background())
+		containers, err := env.GetContainers()
+		if err != nil {
+			return err
+		}
+
+		if len(containers) > 0 {
+			return fmt.Errorf("Expected no containers, got %d", len(containers))
+		}
+
+		//  Make HTTP requests to ensure reverse proxy has stopped.
+		if _, err := call(fmt.Sprintf("http://localhost:" + env.Port)); err == nil {
+			return fmt.Errorf("Expected reverse proxy to be stopped, but it returned no error")
+		}
+
+		env.Context.Done()
+
+		return nil
+	},
+}
+
 var healthTest = test{
 	name:      "health",
 	validator: healthCheck,
@@ -51,21 +84,13 @@ func Test_Pipeline(t *testing.T) {
 
 	InitTests(t)
 
-	/* 	nhost.API_DIR = filepath.Join(util.WORKING_DIR, "functions")
-	   	buildDir = nhost.API_DIR
-
-	   	//	Initialize a temporary directory to store test function files
-	   	if err := os.MkdirAll(nhost.API_DIR, os.ModePerm); err != nil {
-	   		t.Fatal(err)
-	   	}
-	*/
-
 	tests := []test{
 		newLocalAppTest,
 		firstRunDevTest,
 		healthTest,
-		//	jsFunctionTest,
-		//	goFunctionTest,
+		jsFunctionTestWithServer,
+		goFunctionTestWithServer,
+		cleanupTest,
 	}
 
 	//	Run tests
@@ -73,15 +98,15 @@ func Test_Pipeline(t *testing.T) {
 		tt.run(t)
 	}
 
-	//	Cleanup
-	env.Cleanup()
+	//	Delete the temporary directory for tests
+	deletePaths()
 }
 
 func healthCheck() error {
 
 	for _, item := range env.Config.Services {
 		if item.HealthEndpoint != "" {
-			if code := check200(item.HealthEndpoint); code != 200 {
+			if code := check200(item.Address + item.HealthEndpoint); code != 200 {
 				return fmt.Errorf("%s: expected 200 response, got - %v", item.Name, code)
 			}
 		}
