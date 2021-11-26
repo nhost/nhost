@@ -68,7 +68,7 @@ func (e *Environment) restartMigrations() error {
 
 		//  Inform the user of detection
 		status.Info("We've detected change in local git commit")
-		log.Warn("We're fixing your data accordingly. Give us a moment!")
+		status.Warnln("We're fixing your data accordingly. Give us a moment!")
 
 		//  Initialize cancellable context ONLY for this shutdown oepration
 		e.ExecutionContext, e.ExecutionCancel = context.WithCancel(e.Context)
@@ -128,7 +128,7 @@ func (e *Environment) restartAfterCheckout() error {
 		e.ExecutionCancel()
 	}
 
-	log.Warn("We're recreating your environment accordingly. Give us a moment!")
+	status.Warnln("We're recreating your environment accordingly. Give us a moment!")
 
 	//  update DOT_NHOST directory
 	nhost.DOT_NHOST, _ = nhost.GetDotNhost()

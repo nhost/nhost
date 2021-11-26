@@ -37,6 +37,19 @@ var firstRunDevTest = test{
 			return err
 		}
 
+		//	Ensure required number of containers have been launched
+		//
+		//	Since, we are already performing multiple health checks, we can
+		//	safely just fetch the number of running containers.
+		containers, err := env.GetContainers()
+		if err != nil {
+			return err
+		}
+
+		if len(containers) != len(env.Config.Services) {
+			return fmt.Errorf("expected %d containers, got %d", len(env.Config.Services), len(containers))
+		}
+
 		return nil
 	},
 	validator: pathsCreated,
