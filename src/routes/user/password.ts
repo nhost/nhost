@@ -56,9 +56,6 @@ export const userPasswordHandler = async (
     : await bcrypt.compare(oldPassword, user.passwordHash);
 
   if (!isPasswordCorrect) {
-    console.log(user.passwordHash);
-    console.log(oldPassword);
-
     return res.boom.badRequest('Incorrect old password');
   }
 

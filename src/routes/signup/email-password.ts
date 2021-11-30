@@ -84,7 +84,7 @@ export const signUpEmailPasswordHandler = async (
 
   // create ticket
   const ticket = `verifyEmail:${uuidv4()}`;
-  const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
+  const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
 
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = allowedRoles.map((role: string) => ({ role }));
