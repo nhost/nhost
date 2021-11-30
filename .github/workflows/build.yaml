@@ -1,10 +1,28 @@
 # .github/workflows/build.yaml
 
-name: Build
+name: Test & Build
 
 on: [push, pull_request]
 
 jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2.3.4
+
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.16.5
+
+      - name: Install Dependencies
+        run: go get
+
+      - name: Run Tests
+        run: go test -timeout 30m -run ^Test_Pipeline$ github.com/${{ github.repository }}/cmd
+
   build:
     name: Build
     runs-on: ubuntu-latest
@@ -18,6 +36,8 @@ jobs:
             goos: darwin 
           - goarch: arm64
             goos: windows
+          - goarch: arm64
+            goos: linux
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2.3.4
@@ -30,5 +50,5 @@ jobs:
       - name: Install Dependencies
         run: go get
 
-      - name: Build
+      - name: Build Binary
         run: go build

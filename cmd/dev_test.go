@@ -2,11 +2,16 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"testing"
+
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 )
 
 var firstRunDevTest = test{
@@ -28,6 +33,11 @@ var firstRunDevTest = test{
 		}
 
 		if err := env.Config.Wrap(); err != nil {
+			return err
+		}
+
+		//	Validate environment variables
+		if err := testRuntimeVars(env.Port, false); err != nil {
 			return err
 		}
 
@@ -111,8 +121,11 @@ func Test_Pipeline(t *testing.T) {
 		tt.run(t)
 	}
 
-	//	Delete the temporary directory for tests
-	deletePaths()
+	//	Forcefully remove .nhost/ because minio data dir won't let you have permissions to do this normally
+	if output, err := exec.Command("sudo", "rm", "-rf", nhost.DOT_NHOST).CombinedOutput(); err != nil {
+		t.Error(string(output))
+		t.Errorf("Failed to remove temp dir: %v", err)
+	}
 }
 
 func healthCheck() error {
@@ -154,4 +167,40 @@ func call(url string) (string, error) {
 		return "", err
 	}
 	return string(body), nil
+}
+
+func testRuntimeVars(port string, network bool) error {
+
+	payload := util.RuntimeVars(port, network)
+
+	for name, item := range payload {
+		switch name {
+		case "HASURA_GRAPHQL_ADMIN_SECRET":
+			if item != util.ADMIN_SECRET {
+				return errors.New("HASURA_GRAPHQL_ADMIN_SECRET is incorrect")
+			}
+		case "NHOST_ADMIN_SECRET":
+			if item != util.ADMIN_SECRET {
+				return errors.New("NHOST_ADMIN_SECRET is incorrect")
+			}
+		case "HASURA_GRAPHQL_JWT_SECRET":
+			if item != fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, util.JWT_KEY) {
+				return errors.New("HASURA_GRAPHQL_JWT_SECRET is incorrect")
+			}
+		case "NHOST_JWT_SECRET":
+			if item != fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, util.JWT_KEY) {
+				return errors.New("NHOST_JWT_SECRET is incorrect")
+			}
+		case "NHOST_BACKEND_URL":
+			if item != fmt.Sprintf(`http://localhost:%v`, port) {
+				return errors.New("NHOST_BACKEND_URL is incorrect")
+			}
+		case "NHOST_WEBHOOK_SECRET":
+			if item != util.WEBHOOK_SECRET {
+				return errors.New("NHOST_WEBHOOK_SECRET is incorrect")
+			}
+		}
+	}
+
+	return nil
 }
