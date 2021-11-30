@@ -157,6 +157,7 @@ func (s *Status) Update(value int) {
 
 //	Reset total status value
 func (s *Status) Reset() {
+	s.Value = 0
 	s.Total = 0
 	s.Print()
 }

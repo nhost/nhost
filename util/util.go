@@ -4,10 +4,8 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"net"
 	"os"
 	"path/filepath"
-	"runtime"
 
 	"github.com/nhost/cli/logger"
 )
@@ -101,36 +99,6 @@ func MapToStringArray(payload map[string]interface{}) []string {
 	}
 
 	return response
-}
-
-//
-//	Returns preferred local address value
-//	for accessing resources throughout docker containers,
-//	depending on the Operating System.
-//
-//	For Mac and Windows, the address value is "host.docker.internal".
-//	And for Linux, we are using the Outbound IP of host machine.
-//
-func GetLocalhost() string {
-	switch runtime.GOOS {
-	case "darwin", "windows":
-		return "host.docker.internal"
-	default:
-		return fmt.Sprint(getOutboundIP())
-	}
-}
-
-//  Get preferred outbound IP of host machine
-func getOutboundIP() net.IP {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
-	if err != nil {
-		return nil
-	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP
 }
 
 //

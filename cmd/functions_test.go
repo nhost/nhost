@@ -57,13 +57,72 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 }
 `
 
-var jsFunctionTest = test{
-	name:      "basic javascript function",
-	wantErr:   false,
-	prerun:    saveJSFunction,
-	operation: ServeFuncs,
+var jsFunctionTestWithServer = test{
+	name:    "basic javascript function with server",
+	wantErr: false,
+	prerun:  createFunctionsDir,
+	operation: func() error {
+
+		if err := saveJSFunction("javascript"); err != nil {
+			return err
+		}
+
+		return ServeFuncs()
+	},
 	validator: func() error {
 		return callFunction(fmt.Sprintf("http://localhost:%s/javascript", funcPort), "Nhost, from Javascript, pays it's respects to Nhost!")
+	},
+	postrun: func() error {
+		tempFunctionFile.Close()
+		util.DeleteAllPaths(tempFunctionFile.Name())
+		functionServer.Shutdown(context.Background())
+		return nil
+	},
+}
+
+var jsFunctionTest = test{
+	name:    "basic javascript function",
+	wantErr: false,
+	prerun:  createFunctionsDir,
+	operation: func() error {
+
+		return saveJSFunction("javascript")
+	},
+	validator: func() error {
+		return callFunction(fmt.Sprintf("http://localhost:%s/v1/functions/javascript", env.Port), "Nhost, from Javascript, pays it's respects to Nhost!")
+	},
+	postrun: func() error {
+		tempFunctionFile.Close()
+		util.DeleteAllPaths(tempFunctionFile.Name())
+		functionServer.Shutdown(context.Background())
+		return nil
+	},
+}
+
+func createFunctionsDir() error {
+
+	nhost.API_DIR = filepath.Join(util.WORKING_DIR, "functions")
+	buildDir = nhost.API_DIR
+
+	//	Initialize a temporary directory to store test function files
+	return os.MkdirAll(nhost.API_DIR, os.ModePerm)
+
+}
+
+var goFunctionTestWithServer = test{
+	name:    "basic golang function with server",
+	wantErr: false,
+	prerun:  createFunctionsDir,
+	operation: func() error {
+
+		if err := saveGoFunction("golang"); err != nil {
+			return err
+		}
+
+		return ServeFuncs()
+	},
+	validator: func() error {
+		return callFunction(fmt.Sprintf("http://localhost:%s/golang", funcPort), "Nhost pays it's respects to Nhost!")
 	},
 	postrun: func() error {
 		tempFunctionFile.Close()
@@ -76,10 +135,10 @@ var jsFunctionTest = test{
 var goFunctionTest = test{
 	name:      "basic golang function",
 	wantErr:   false,
-	prerun:    saveGoFunction,
-	operation: ServeFuncs,
+	operation: func() error { return saveGoFunction("golang") },
+	prerun:    createFunctionsDir,
 	validator: func() error {
-		return callFunction(fmt.Sprintf("http://localhost:%s/golang", funcPort), "Nhost pays it's respects to Nhost!")
+		return callFunction(fmt.Sprintf("http://localhost:%s/v1/functions/golang", env.Port), "Nhost pays it's respects to Nhost!")
 	},
 	postrun: func() error {
 		tempFunctionFile.Close()
@@ -89,19 +148,52 @@ var goFunctionTest = test{
 	},
 }
 
+var unavailableStaticRouteTest = test{
+	name:      "unavailable static function routes",
+	wantErr:   false,
+	operation: ServeFuncs,
+	validator: func() error {
+
+		if code := check200(fmt.Sprintf("http://localhost:%s/golang", funcPort)); code != http.StatusNotFound {
+			return fmt.Errorf("expected %d, got: %d", http.StatusNotFound, code)
+		}
+
+		return nil
+	},
+	postrun: func() error {
+		return functionServer.Shutdown(context.Background())
+	},
+}
+
+var indexRouteTest = test{
+	name:      "index function route",
+	wantErr:   false,
+	prerun:    func() error { return saveGoFunction("index") },
+	operation: ServeFuncs,
+	validator: func() error {
+
+		if resp, err := call(fmt.Sprintf("http://localhost:%s", funcPort)); err != nil {
+			fmt.Errorf("recevied: %s", resp)
+			return err
+		}
+
+		return nil
+	},
+	postrun: func() error {
+		return functionServer.Shutdown(context.Background())
+	},
+}
+
 func TestFunctions(t *testing.T) {
 
 	InitTests(t)
 
-	nhost.API_DIR = filepath.Join(util.WORKING_DIR, "functions")
-	buildDir = nhost.API_DIR
-
-	//	Initialize a temporary directory to store test function files
-	if err := os.MkdirAll(nhost.API_DIR, os.ModePerm); err != nil {
-		t.Fatal(err)
+	tests := []test{
+		goFunctionTest,
+		jsFunctionTest,
+		unavailableStaticRouteTest,
+		indexRouteTest,
 	}
-
-	tests := []test{jsFunctionTest, goFunctionTest}
 
 	//	Run tests
 	for _, tt := range tests {
@@ -109,7 +201,7 @@ func TestFunctions(t *testing.T) {
 	}
 }
 
-func saveJSFunction() error {
+func saveJSFunction(name string) error {
 
 	var err error
 
@@ -158,16 +250,9 @@ func saveJSFunction() error {
 	}
 
 	//	Create a test function file
-	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "javascript.js"))
+	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, name+".js"))
 	if err != nil {
 		return err
-	}
-
-	//  Log the contents of API directory
-	files, _ := ioutil.ReadDir(nhost.API_DIR)
-	fmt.Println("Files in API directory:")
-	for _, item := range files {
-		log.Println(item.Name())
 	}
 
 	//	Write the test function file
@@ -177,21 +262,14 @@ func saveJSFunction() error {
 	return tempFunctionFile.Sync()
 }
 
-func saveGoFunction() error {
+func saveGoFunction(name string) error {
 
 	var err error
 
 	//	Create a test function file
-	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, "golang.go"))
+	tempFunctionFile, err = os.Create(filepath.Join(nhost.API_DIR, name+".go"))
 	if err != nil {
 		return err
-	}
-
-	//  Log the contents of API directory
-	files, _ := ioutil.ReadDir(nhost.API_DIR)
-	fmt.Println("Files in API directory:")
-	for _, item := range files {
-		log.Println(item.Name())
 	}
 
 	//	Write the test function file

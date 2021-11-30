@@ -28,11 +28,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
-	"strconv"
 	"sync"
 	"syscall"
 	"text/tabwriter"
@@ -40,6 +38,7 @@ import (
 
 	"github.com/nhost/cli/environment"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/proxy"
 	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
@@ -103,7 +102,7 @@ var devCmd = &cobra.Command{
 
 		//	If the default port is not available,
 		//	choose a random one
-		if !nhost.PortAvaiable(env.Port) {
+		if !util.PortAvaiable(env.Port) {
 			status.Info("Choose a different port with `nhost dev [--port]`")
 			return fmt.Errorf("port %s not available", env.Port)
 		}
@@ -149,19 +148,27 @@ var devCmd = &cobra.Command{
 			os.Exit(0)
 		}()
 
-		//  Register functions as a service in our environment
-		funcPortStr, _ := strconv.Atoi(funcPort)
-		env.Config.Services["functions"] = &nhost.Service{
+		//  Initialize a reverse proxy server,
+		//  to make all our locally running Nhost services
+		//  available from a single port
+		reverseproxy := proxy.New(&proxy.ServerConfig{
+			Port:        env.Port,
+			Environment: &env,
+			Log:         log,
+		})
+
+		//  Register Functions as a service to the reverse proxy to route it's UI port
+		reverseproxy.AddService(&proxy.Service{
 			Name:    "functions",
-			Handles: []nhost.Route{{Name: "Functions", Source: "/", Destination: "/v1/functions/", Show: true}},
-			Proxy:   true,
-			Port:    funcPortStr,
+			Routes:  []proxy.Route{{Name: "Functions", Source: "/", Destination: "/v1/functions/"}},
+			Port:    funcPort,
+			Address: fmt.Sprintf("http://localhost:%v", funcPort),
 
 			//	Initialize this function service,
 			//	directly with functions HTTP handler.
 			//	This will allow us to avoid launching a separate functions server.
 			//	Handler: functionServer.Handler,
-		}
+		})
 
 		//  Initialize cancellable context for this specific execution
 		env.ExecutionContext, env.ExecutionCancel = context.WithCancel(env.Context)
@@ -221,7 +228,7 @@ var devCmd = &cobra.Command{
 		}()
 
 		//spawn hasura console
-		consolePort := nhost.GetPort(9301, 9400)
+		consolePort := util.GetPort(9301, 9400)
 
 		go func() {
 
@@ -238,7 +245,7 @@ var devCmd = &cobra.Command{
 					"--console-port",
 					fmt.Sprint(consolePort),
 					"--api-port",
-					fmt.Sprint(nhost.GetPort(8301, 9400)),
+					fmt.Sprint(util.GetPort(8301, 9400)),
 					"--skip-update-check",
 					"--no-browser",
 				},
@@ -256,7 +263,7 @@ var devCmd = &cobra.Command{
 			//	If the `--no-browser` flag is passed,
 			//	don't open the console window in browser automatically
 			if !noBrowser {
-				go openbrowser("http://localhost:" + env.Port)
+				go openbrowser(fmt.Sprintf("http://localhost:%s", env.Port))
 			}
 
 			if err := cmd.Wait(); err != nil {
@@ -264,44 +271,59 @@ var devCmd = &cobra.Command{
 			}
 		}()
 
-		//  Register Hasura Console as a service to route it's UI port
-		env.Config.Services["console"] = &nhost.Service{
-			Name:    "console",
-			Handles: []nhost.Route{{Name: "Console", Source: "/", Destination: "/"}},
-			Proxy:   true,
-			Port:    consolePort,
+		//	Register all services along with their proxy routes.
+		for name, item := range env.Config.Services {
+
+			var routes []proxy.Route
+
+			switch name {
+			case "auth":
+				routes = []proxy.Route{{Name: "Authentication", Source: "/", Destination: "/v1/auth/", Show: true}}
+			case "storage":
+				routes = []proxy.Route{{Name: "Storage", Source: "/", Destination: "/v1/storage/", Show: true}}
+			case "hasura":
+				routes = []proxy.Route{
+					{Name: "GraphQL", Source: "/v1/graphql", Destination: "/v1/graphql", Show: true},
+					{Name: "Query", Source: "/v2/query", Destination: "/v2/query"},
+					{Name: "Metadata", Source: "/v1/metadata", Destination: "/v1/metadata"},
+					{Name: "Config", Source: "/v1/config", Destination: "/v1/config"},
+				}
+			}
+
+			if len(routes) > 0 {
+				reverseproxy.AddService(&proxy.Service{
+					Name:    item.Name,
+					Routes:  routes,
+					Port:    fmt.Sprint(item.Port),
+					Address: nhost.GetAddress(item),
+				})
+			}
 		}
 
-		//  Initialize a reverse proxy server,
-		//  to make all our locally running Nhost services
-		//  available from a single port
-		mux := http.NewServeMux()
-		proxy := &http.Server{Addr: ":" + env.Port, Handler: mux}
+		//  Register Hasura Console as a service to the reverse proxy to route it's UI port
+		reverseproxy.AddService(&proxy.Service{
+			Name:    "console",
+			Routes:  []proxy.Route{{Name: "Console", Source: "/", Destination: "/"}},
+			Port:    fmt.Sprint(consolePort),
+			Address: fmt.Sprintf("http://localhost:%v", consolePort),
+		})
 
 		go func() {
 
+			//	Issue proxies of all registered services
+			if err := reverseproxy.IssueAll(env.Context); err != nil {
+				log.WithField("component", "reverseproxy").Debug(err)
+				status.Errorln("Failed to issue proxies")
+			}
+
 			//  Before launching, register the proxy server in our environment
-			env.Servers = append(env.Servers, proxy)
+			env.Servers = append(env.Servers, reverseproxy.Server)
 
 			//  Now start the server
-			if err := proxy.ListenAndServe(); err != nil {
+			if err := reverseproxy.ListenAndServe(); err != nil {
 				log.WithFields(logrus.Fields{"component": "proxy", "value": env.Port}).Debug(err)
 			}
 		}()
-
-		for name, item := range env.Config.Services {
-
-			//  Only issue a proxy to those,
-			//  which have proxy enabled
-			if item.Proxy {
-
-				if err := item.IssueProxy(mux, env.Context); err != nil {
-					log.WithField("component", "server").Debug(err)
-					status.Errorln("Failed to proxy " + name)
-					return
-				}
-			}
-		}
 
 		//  Update environment state
 		env.UpdateState(environment.Active)

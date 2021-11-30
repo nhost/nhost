@@ -65,13 +65,13 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 							e.Config.Services[name].Port = int(port.PublicPort)
 
 							//  Update the service address based on the new port
-							e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
+							e.Config.Services[name].Address = nhost.GetAddress(e.Config.Services[name])
 						}
 					} else {
 						e.Config.Services[name].Port = int(port.PublicPort)
 
 						//  Update the service address based on the new port
-						e.Config.Services[name].Address = e.Config.Services[name].GetAddress()
+						e.Config.Services[name].Address = nhost.GetAddress(e.Config.Services[name])
 					}
 				}
 			}

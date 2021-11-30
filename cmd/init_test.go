@@ -150,15 +150,19 @@ func pathsCreated() error {
 
 func deletePaths() error {
 
-	//	Delete all created directories
-	for _, item := range nhost.LOCATIONS.Directories {
-		util.DeleteAllPaths(*item)
-	}
+	//	Delete temporary directory
+	return util.DeleteAllPaths(util.WORKING_DIR)
 
-	//	Delete all created files
-	for _, item := range nhost.LOCATIONS.Files {
-		util.DeleteAllPaths(*item)
-	}
+	/* 	//	Delete all created directories
+	   	for _, item := range nhost.LOCATIONS.Directories {
+	   		util.DeleteAllPaths(*item)
+	   	}
 
-	return nil
+	   	//	Delete all created files
+	   	for _, item := range nhost.LOCATIONS.Files {
+	   		util.DeleteAllPaths(*item)
+	   	}
+
+	   	return nil
+	*/
 }

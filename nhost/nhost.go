@@ -8,8 +8,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"net/http/httputil"
-	"net/url"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -24,8 +22,6 @@ import (
 	"github.com/docker/docker/api/types/mount"
 	"github.com/docker/docker/client"
 	"github.com/docker/go-connections/nat"
-	"github.com/gorilla/websocket"
-	"github.com/koding/websocketproxy"
 	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
 	"github.com/subosito/gotenv"
@@ -350,7 +346,7 @@ func (c *Configuration) Wrap() error {
 		case "minio":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = GetPort(8200, 8500)
+				parsed.Services[name].Port = util.GetPort(8200, 8500)
 			}
 
 			if parsed.Services[name].Version == nil {
@@ -366,7 +362,7 @@ func (c *Configuration) Wrap() error {
 		case "mailhog":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = GetPort(8800, 8900)
+				parsed.Services[name].Port = util.GetPort(8800, 8900)
 			}
 
 			if parsed.Services[name].Version == nil {
@@ -380,7 +376,7 @@ func (c *Configuration) Wrap() error {
 		case "auth":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = GetPort(9000, 9100)
+				parsed.Services[name].Port = util.GetPort(9000, 9100)
 			}
 
 			if parsed.Services[name].Version == nil {
@@ -392,15 +388,11 @@ func (c *Configuration) Wrap() error {
 			}
 
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = []Route{
-				{Name: "Authentication", Source: "/", Destination: "/v1/auth/", Show: true},
-			}
-			parsed.Services[name].Proxy = true
 
 		case "storage":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = GetPort(8501, 8799)
+				parsed.Services[name].Port = util.GetPort(8501, 8799)
 			}
 
 			if parsed.Services[name].Version == nil {
@@ -412,15 +404,11 @@ func (c *Configuration) Wrap() error {
 			}
 
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = []Route{
-				{Name: "Storage", Source: "/", Destination: "/v1/storage/", Show: true},
-			}
-			parsed.Services[name].Proxy = true
 
 		case "postgres":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = GetPort(5000, 5999)
+				parsed.Services[name].Port = util.GetPort(5000, 5999)
 			}
 
 			if parsed.Services[name].Version == nil {
@@ -434,7 +422,7 @@ func (c *Configuration) Wrap() error {
 		case "hasura":
 
 			if parsed.Services[name].Port == 0 {
-				parsed.Services[name].Port = GetPort(9200, 9300)
+				parsed.Services[name].Port = util.GetPort(9200, 9300)
 			}
 
 			if parsed.Services[name].Version == nil {
@@ -447,17 +435,11 @@ func (c *Configuration) Wrap() error {
 			}
 
 			parsed.Services[name].HealthEndpoint = "/healthz"
-			parsed.Services[name].Handles = []Route{
-				{Name: "GraphQL", Source: "/v1/graphql", Destination: "/v1/graphql", Show: true},
-				{Name: "Query", Source: "/v2/query", Destination: "/v2/query"},
-				{Name: "Metadata", Source: "/v1/metadata", Destination: "/v1/metadata"},
-				{Name: "Config", Source: "/v1/config", Destination: "/v1/config"},
-			}
-			parsed.Services[name].Proxy = true
+
 		}
 
 		//	Update service address subject to their ports
-		parsed.Services[name].Address = parsed.Services[name].GetAddress()
+		parsed.Services[name].Address = GetAddress(parsed.Services[name])
 
 		//  Initialize configuration for the service
 		parsed.Services[name].InitConfig()
@@ -477,7 +459,7 @@ func (s *Service) Reset() {
 }
 
 //  Generate service address based on assigned port
-func (s *Service) GetAddress() string {
+func GetAddress(s *Service) string {
 
 	switch s.Name {
 	case GetContainerName("postgres"):
@@ -595,82 +577,6 @@ func (s *Service) Healthz() bool {
 	}
 
 	return resp.StatusCode == 200
-}
-
-//	Issues an HTTP and WS reverse proxy to the respective service.
-//	Supports a custom connection multiplexer,
-//	and custom request context.
-func (s *Service) IssueProxy(mux *http.ServeMux, ctx context.Context) error {
-
-	//	Loop over all handles to be proxied
-	for _, item := range s.Handles {
-
-		httpAddress := s.GetAddress()
-		wsAddress := fmt.Sprintf("ws://localhost:%v", s.Port)
-
-		httpOrigin, err := url.Parse(httpAddress)
-		if err != nil {
-			return err
-		}
-
-		if item.Source != "/" {
-			httpAddress += item.Source
-		}
-
-		wsOrigin, err := url.Parse(wsAddress)
-		if err != nil {
-			return err
-		}
-
-		httpProxy := httputil.NewSingleHostReverseProxy(httpOrigin)
-		wsProxy := websocketproxy.NewProxy(wsOrigin)
-
-		wsProxy.Upgrader = &websocket.Upgrader{
-			ReadBufferSize:    4096,
-			WriteBufferSize:   4096,
-			EnableCompression: true,
-			CheckOrigin: func(r *http.Request) bool {
-				return true
-			},
-		}
-
-		log.WithFields(logrus.Fields{
-			"value": s.Name,
-			"type":  "proxy",
-		}).Debugf("%s --> %s", httpAddress, item.Destination)
-
-		mux.HandleFunc(item.Destination, func(w http.ResponseWriter, r *http.Request) {
-
-			//	Log every incoming request
-			log.WithFields(logrus.Fields{
-				"component": "proxy",
-				"method":    r.Method,
-			}).Debug(r.URL.Path)
-
-			//	If the supplied context is not nil,
-			//	wrap the incoming request over the context
-			if ctx != nil {
-				r = r.WithContext(ctx)
-			}
-
-			//	If the client has passed Web-socket protocol header,
-			//	then serve the request through web-socket proxy
-			for item := range r.Header {
-				if strings.ToLower(item) == "sec-websocket-protocol" {
-					wsProxy.ServeHTTP(w, r)
-					return
-				}
-			}
-
-			//	Otherwise, serve it through normal HTTP proxy
-
-			//	Get the original service URL without Nhost specific routes
-			r.URL.Path = strings.ReplaceAll(r.URL.Path, item.Destination, item.Source)
-			httpProxy.ServeHTTP(w, r)
-		})
-	}
-
-	return nil
 }
 
 func (s *Service) InitConfig() {
@@ -993,12 +899,12 @@ func (config *Configuration) Init(port string) error {
 
 	//	If the SMTP port is busy,
 	//	choose a random one
-	if !PortAvaiable(strconv.Itoa(smtpPort)) {
+	if !util.PortAvaiable(strconv.Itoa(smtpPort)) {
 		log.WithField("component", "smtp").Errorf("Port %v not available", smtpPort)
 		log.WithField("component", "smtp").Info("Change your SMTP port in ./nhost/config.yaml")
 		return fmt.Errorf("SMTP port %v not available", smtpPort)
 		/*
-			smtpPort = GetPort(1000, 1999)
+			smtpPort = util.GetPort(1000, 1999)
 			log.WithField("component", "smtp").Debugf("Running SMTP server on port %s", smtpPort)
 		*/
 	}
@@ -1134,7 +1040,7 @@ func GenerateConfig(options App) Configuration {
 			},
 			"smtp": map[interface{}]interface{}{
 				"host":   PREFIX + "_mailhog",
-				"port":   GetPort(1000, 1999),
+				"port":   util.GetPort(1000, 1999),
 				"user":   "user",
 				"pass":   "password",
 				"sender": "hasura-auth@example.com",
