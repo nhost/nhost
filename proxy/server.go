@@ -108,8 +108,3 @@ func (s *Server) AddService(service *Service) {
 	// Finally, attach the service to the server.
 	s.services = append(s.services, service)
 }
-
-/* func (s *Server) Handler(w http.ResponseWriter, r *http.Request) {
-
-}
-*/

@@ -263,7 +263,7 @@ var devCmd = &cobra.Command{
 			//	If the `--no-browser` flag is passed,
 			//	don't open the console window in browser automatically
 			if !noBrowser {
-				go openbrowser("http://localhost:" + env.Port)
+				go openbrowser(fmt.Sprintf("http://localhost:%s", env.Port))
 			}
 
 			if err := cmd.Wait(); err != nil {

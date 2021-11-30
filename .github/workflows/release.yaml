@@ -24,6 +24,8 @@ jobs:
             goos: darwin 
           - goarch: arm64
             goos: windows
+          - goarch: arm64
+            goos: linux
     steps:
       - uses: actions/checkout@v2.3.4
 
