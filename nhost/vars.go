@@ -13,8 +13,8 @@ import (
 var (
 	log    = &logger.Log
 	status = &util.Writer
-	DOMAIN string
-	API    string
+	DOMAIN = "nhost.run"
+	API    = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
 
 	//  fetch current working directory
 	NHOST_DIR string
@@ -24,13 +24,13 @@ var (
 	SERVICES []string
 
 	//  find user's home directory
-	HOME string
+	HOME, _ = os.UserHomeDir()
 
 	//  Nhost root directory for HOME
-	ROOT string
+	ROOT = filepath.Join(HOME, ".nhost")
 
 	//  authentication file location
-	AUTH_PATH string
+	AUTH_PATH = filepath.Join(ROOT, "auth.json")
 
 	//  path for migrations
 	MIGRATIONS_DIR string
@@ -39,7 +39,7 @@ var (
 	METADATA_DIR string
 
 	//  default Nhost database
-	DATABASE string
+	DATABASE = "default"
 
 	//  path for seeds
 	SEEDS_DIR string
@@ -60,7 +60,7 @@ var (
 	GIT_DIR string
 
 	//  default git repository remote to watch for git ops
-	REMOTE string
+	REMOTE = "origin"
 
 	//  path for .env.development
 	ENV_FILE string
@@ -78,10 +78,10 @@ var (
 	NODE_MODULES_PATH string
 
 	//  package repository to download latest release from
-	REPOSITORY string
+	REPOSITORY = "nhost/cli"
 
 	//  initialize the project prefix
-	PREFIX string
+	PREFIX = "nhost"
 
 	//	mandatorily required locations
 	LOCATIONS Required
@@ -90,22 +90,9 @@ var (
 //	Initialize Nhost variables for runtime
 func Init() {
 
-	if DOMAIN == "" {
-		DOMAIN = "nhost.run"
-	}
-
-	if API == "" {
-		API = fmt.Sprintf("https://%s/v1/functions", DOMAIN)
-	}
-
 	//  fetch current working directory
 	if NHOST_DIR == "" {
 		NHOST_DIR = filepath.Join(util.WORKING_DIR, "nhost")
-	}
-
-	//  path for .nhost/nhost.yaml file
-	if INFO_PATH == "" {
-		INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
 	}
 
 	if DOT_NHOST == "" {
@@ -117,21 +104,6 @@ func Init() {
 		SERVICES = []string{"hasura", "auth", "storage", "mailhog", "postgres", "minio"}
 	}
 
-	//  find user's home directory
-	if HOME == "" {
-		HOME, _ = os.UserHomeDir()
-	}
-
-	//  Nhost root directory for HOME
-	if ROOT == "" {
-		ROOT = filepath.Join(HOME, ".nhost")
-	}
-
-	//  authentication file location
-	if AUTH_PATH == "" {
-		AUTH_PATH = filepath.Join(ROOT, "auth.json")
-	}
-
 	//  path for migrations
 	if MIGRATIONS_DIR == "" {
 		MIGRATIONS_DIR = filepath.Join(NHOST_DIR, "migrations")
@@ -140,11 +112,6 @@ func Init() {
 	//  path for metadata
 	if METADATA_DIR == "" {
 		METADATA_DIR = filepath.Join(NHOST_DIR, "metadata")
-	}
-
-	//  default Nhost database
-	if DATABASE == "" {
-		DATABASE = "default"
 	}
 
 	//  path for seeds
@@ -177,11 +144,6 @@ func Init() {
 		GIT_DIR = filepath.Join(util.WORKING_DIR, ".git")
 	}
 
-	//  default git repository remote to watch for git ops
-	if REMOTE == "" {
-		REMOTE = "origin"
-	}
-
 	//  path for .env.development
 	if ENV_FILE == "" {
 		ENV_FILE = filepath.Join(util.WORKING_DIR, ".env.development")
@@ -197,20 +159,14 @@ func Init() {
 		GITIGNORE = filepath.Join(util.WORKING_DIR, ".gitignore")
 	}
 
+	//  path for .nhost/nhost.yaml file
+	if INFO_PATH == "" {
+		INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
+	}
+
 	//  path for express NPM modules
 	if NODE_MODULES_PATH == "" {
 		NODE_MODULES_PATH = filepath.Join(ROOT, "node_modules")
-	}
-
-	//  package repository to download latest release from
-	if REPOSITORY == "" {
-		REPOSITORY = "nhost/cli"
-	}
-
-	//  initialize the project prefix
-	//	PREFIX = filepath.Base(util.WORKING_DIR)
-	if PREFIX == "" {
-		PREFIX = "nhost"
 	}
 
 	//	mandatorily required locations

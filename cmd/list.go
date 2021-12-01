@@ -46,11 +46,12 @@ for the logged in user from Nhost console.`,
 		//  validate authentication
 		response, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
-			log.Debug(err)
-			status.Errorln("Failed to validate authentication")
 
 			//  begin the login procedure
-			loginCmd.Run(cmd, args)
+			if err := loginCmd.RunE(cmd, args); err != nil {
+				log.Debug(err)
+				status.Fatal("Failed to authenticate")
+			}
 		}
 
 		User = response
@@ -64,8 +65,9 @@ for the logged in user from Nhost console.`,
 		}
 
 		p := newPrinter()
-		p.print("", "App", fmt.Sprint(util.Gray, "Workspace", util.Reset))
 		p.print("header", "", "")
+		p.print("", "App", fmt.Sprint(util.Gray, "Workspace", util.Reset))
+		p.print("", "----", "---------")
 
 		//  log every project for the user
 		for _, member := range User.WorkspaceMembers {

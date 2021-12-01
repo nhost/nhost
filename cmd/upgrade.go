@@ -50,10 +50,10 @@ CLI and upgrade to it.`,
 
 		switch runtime.GOOS {
 		case "windows":
-			log.Warn("Make sure you are running this environment with root privileges")
+			status.Warn("Make sure you are running this environment with root privileges")
 		default:
 			if !isRoot() {
-				log.Fatal("Run this command with root/sudo permissions")
+				status.Fatal("Run this command with root/sudo permissions")
 			}
 		}
 	},

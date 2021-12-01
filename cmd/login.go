@@ -53,7 +53,7 @@ var loginCmd = &cobra.Command{
 
 		//  if user is already logged in, ask to logout
 		if _, err := getUser(nhost.AUTH_PATH); err == nil {
-			status.Error(ErrLoggedIn)
+			status.Fatal(ErrLoggedIn)
 		}
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {

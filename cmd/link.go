@@ -52,14 +52,17 @@ var linkCmd = &cobra.Command{
 		//  validate authentication
 		response, err := getUser(nhost.AUTH_PATH)
 		if err != nil {
-			log.Debug(err)
-			status.Errorln("Failed to validate authentication")
 
 			//  begin the login procedure
-			loginCmd.Run(cmd, args)
+			if err := loginCmd.RunE(cmd, args); err != nil {
+				log.Debug(err)
+				status.Fatal("Failed to authenticate")
+			}
 		}
 
 		User = response
+
+		fmt.Println(User.Name)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
