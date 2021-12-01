@@ -30,7 +30,6 @@ Launch Blazingly Fast Development Environments For Your Nhost Stack
 
 - [Installation](#installation)
   * [Installing On Windows](#installing-on-windows)
-  * [Installing Using Go](#installing-using-go)
   * [OS & Platform Support](#os--platform-support)
 - [Getting Started](#getting-started)
 - [Front-end Support](#frontend-support)
@@ -75,15 +74,6 @@ If your installed version is >= `v0.5.0`, then your CLI version already supports
 If you have `curl` and `Windows Subsytem for Linux` in your windows environment, you can safely use the above command, and it should download the `.exe` variant of the binary in your current working directory.
 
 However, if you do not have the above dependencies, then you can manually download the [latest release](https://github.com/nhost/cli/releases) binary depending on your platform architecture from [here](https://github.com/nhost/cli/releases).
-
-## Installing Using Go
-
-If you have go installed in your system, and would like to download using that,
-please use the following command:
-
-    go get -u github.com/nhost/cli
-
-This command will install the `nhost` executable binary along with its dependencies.
 
 ## OS & Platform Support
 
