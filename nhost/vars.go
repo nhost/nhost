@@ -103,6 +103,11 @@ func Init() {
 		NHOST_DIR = filepath.Join(util.WORKING_DIR, "nhost")
 	}
 
+	//  path for .nhost/nhost.yaml file
+	if INFO_PATH == "" {
+		INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
+	}
+
 	if DOT_NHOST == "" {
 		DOT_NHOST, _ = GetDotNhost()
 	}
@@ -190,11 +195,6 @@ func Init() {
 	//  path for .gitignore file
 	if GITIGNORE == "" {
 		GITIGNORE = filepath.Join(util.WORKING_DIR, ".gitignore")
-	}
-
-	//  path for .nhost/nhost.yaml file
-	if INFO_PATH == "" {
-		INFO_PATH = filepath.Join(DOT_NHOST, "nhost.yaml")
 	}
 
 	//  path for express NPM modules
