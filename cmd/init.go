@@ -38,18 +38,26 @@ import (
 )
 
 var (
-	project string
-	remote  bool
-	name    string
+	subdomain string
+	remote    bool
+	name      string
 )
 
 //  initCmd represents the init command
 var initCmd = &cobra.Command{
-	Use:   "init [--remote]",
+	Use:   "init [--remote | --remote <sudomain>]",
 	Short: "Initialize current directory as Nhost app",
 	Long: `Initialize current working directory as an Nhost application.
 
---remote flag must be added in the of the command.`,
+Without specifying --remote flag, only a blank Nhost app will be initialized.
+
+Specifying --remote flag will initialize a locla app from console.nhost.io 
+
+To bypass remoet app selection prompt, add your remote app's subdomain after --remote flag,
+in the following manner:
+
+	nhost init --remote <subdomain>
+`,
 	PreRun: func(cmd *cobra.Command, args []string) {
 
 		if util.PathExists(nhost.NHOST_DIR) {
@@ -69,6 +77,11 @@ var initCmd = &cobra.Command{
 		var err error
 		var location string
 		var selectedProject nhost.App
+
+		//	Read project ID from arguments, if remote is true
+		if remote && len(args) > 0 {
+			subdomain = args[0]
+		}
 
 		//  if user has already passed remote_project as a flag,
 		//  then fetch list of remote projects,
@@ -93,16 +106,16 @@ var initCmd = &cobra.Command{
 			}
 
 			//  if flag is empty, present selection list
-			if project != "" {
+			if subdomain != "" {
 
 				for _, item := range projects {
-					if item.Name == project {
+					if item.Subdomain == subdomain {
 						selectedProject = item
 					}
 				}
 
 				if selectedProject.ID == "" {
-					status.Fatal(fmt.Sprintf("Remote app '%v' not found", project))
+					status.Fatal(fmt.Sprintf("No remote app found with subdomain: %v", subdomain))
 				}
 			} else {
 
