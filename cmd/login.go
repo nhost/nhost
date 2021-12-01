@@ -53,10 +53,10 @@ var loginCmd = &cobra.Command{
 
 		//  if user is already logged in, ask to logout
 		if _, err := getUser(nhost.AUTH_PATH); err == nil {
-			status.Fatal(ErrLoggedIn)
+			status.Error(ErrLoggedIn)
 		}
 	},
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 
 		if email == "" {
 			readEmail, err := readInput("email", false)
@@ -74,46 +74,40 @@ var loginCmd = &cobra.Command{
 			password = payload
 		}
 
-		fmt.Println()
 		status.Info("Authenticating")
 		credentials, err := login(nhost.API, email, password)
 		if err != nil {
-			log.Debug(err)
-			status.Fatal("Failed to login with that email")
+			status.Error("Failed to login with that email")
+			return err
 		}
 
 		//  delete any existing auth files
 		if util.PathExists(nhost.AUTH_PATH) {
 			if err = util.DeletePath(nhost.AUTH_PATH); err != nil {
-				log.Debug(err)
-				status.Fatal(fmt.Sprintf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH))
+				status.Error(fmt.Sprintf("Failed to reset the auth file, please delete it manually from: %s, and re-run `nhost login`", nhost.AUTH_PATH))
+				return err
 			}
 		}
 
 		//  create the auth file path if it doesn't exist
 		err = os.MkdirAll(nhost.ROOT, os.ModePerm)
 		if err != nil {
-			log.Debug(err)
-			status.Fatal("Failed to initialize Nhost root directory: " + nhost.ROOT)
+			status.Error("Failed to initialize Nhost root directory: " + nhost.ROOT)
+			return err
 		}
 
 		//  create the auth file to write it
 		f, err := os.Create(nhost.AUTH_PATH)
 		if err != nil {
-			log.Debug(err)
-			status.Fatal("Failed to create auth configuration file")
+			status.Error("Failed to create auth configuration file")
+			return err
 		}
 
 		defer f.Close()
 
 		//  write auth file
 		output, _ := json.Marshal(credentials)
-		err = writeToFile(nhost.AUTH_PATH, string(output), "end")
-
-		if err != nil {
-			log.Debug(err)
-			status.Fatal("Failed to save auth configuration")
-		}
+		return writeToFile(nhost.AUTH_PATH, string(output), "end")
 
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {

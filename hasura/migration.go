@@ -37,7 +37,7 @@ func (m *Migration) Init() Migration {
 
 	var response Migration
 	response.Version = getTime()
-	response.Location = path.Join(nhost.MIGRATIONS_DIR, fmt.Sprintf("%v_%v", response.Version, m.Name))
+	response.Location = path.Join(nhost.MIGRATIONS_DIR, nhost.DATABASE, fmt.Sprintf("%v_%v", response.Version, m.Name))
 
 	return response
 }

@@ -131,12 +131,13 @@ func (c *Client) GetSchemas() ([]string, error) {
 			"sql": "SELECT schema_name FROM information_schema.schemata;",
 		},
 	}
+
 	body, err := reqBody.Marshal()
 	if err != nil {
 		return response, err
 	}
 
-	resp, err := c.Request(body, "/v1/query")
+	resp, err := c.Request(body, "/v2/query")
 	if err != nil {
 		return response, err
 	}
@@ -173,16 +174,15 @@ func (c *Client) GetSchemas() ([]string, error) {
 	return response, nil
 }
 
-func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
+func (c *Client) GetMetadata() (HasuraMetadataV3, error) {
 
 	log.Debug("Fetching metadata")
 
-	var response HasuraMetadataV2
+	var response HasuraMetadataV3
 
 	reqBody := RequestBody{
 		Type:    "export_metadata",
 		Version: 2,
-		Args:    map[string]string{},
 	}
 	body, err := reqBody.Marshal()
 	if err != nil {
@@ -200,9 +200,15 @@ func (c *Client) GetMetadata() (HasuraMetadataV2, error) {
 		return response, err
 	}
 
-	//  fmt.Println(string(body))
+	var responseData map[string]interface{}
+	json.Unmarshal(body, &responseData)
 
-	return UnmarshalHasuraMetadataV2(body)
+	payload, err := json.Marshal(responseData["metadata"])
+	if err != nil {
+		return response, err
+	}
+
+	return UnmarshalHasuraMetadataV3(payload)
 }
 
 func (c *Client) Seed(payload string) error {

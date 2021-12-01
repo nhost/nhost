@@ -1,0 +1,4 @@
+table:
+  name: enum
+  schema: public
+is_enum: true

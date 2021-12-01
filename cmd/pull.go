@@ -26,7 +26,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/nhost"
@@ -118,47 +120,121 @@ and sync them with your local app.`,
 
 func pullMigration(client hasura.Client, name string) (hasura.Migration, error) {
 
+	var args []string
+	var migration hasura.Migration
+	var execute exec.Cmd
+
 	log.Debugf("Creating migration '%s'", name)
 
-	migration := hasura.Migration{
+	migration = hasura.Migration{
 		Name: name,
 	}
 
 	migration = migration.Init()
-	/*
 
-		metadata, err := client.GetMetadata()
-		if err != nil {
-			return migration, err
-		}
-
-		//  Fetch list of all ALLOWED schemas before applying
-		schemas, err := client.GetSchemas()
-		if err != nil {
-			log.Debug("Failed to get list of schemas")
-			return migration, err
-		}
-
-		migrationTables := getMigrationTables(schemas, metadata.Tables)
-	*/
-
-	//  fetch migrations
-	log.Debug("Creating initial migration")
-	args := []string{client.CLI, "migrate", "create", name, "--from-server"}
-	//	migrationArgs = append(migrationArgs, getMigrationTables(schemas, tables)...)
-	args = append(args, client.CommonOptions...)
-
-	execute := exec.Cmd{
-		Path: client.CLI,
-		Args: args,
-		Dir:  nhost.NHOST_DIR,
-	}
-
-	output, err := execute.CombinedOutput()
+	metadata, err := client.GetMetadata()
 	if err != nil {
-		log.Debug(string(output))
 		return migration, err
 	}
+
+	//  Fetch list of all ALLOWED schemas before applying
+	schemas, err := client.GetSchemas()
+	if err != nil {
+		log.Debug("Failed to get list of schemas")
+		return migration, err
+	}
+
+	var enumTables []hasura.TableEntry
+	var migrationTables []string
+	for _, source := range metadata.Sources {
+
+		//  Filter enum tables
+		enumTables = append(enumTables, filterEnumTables(source.Tables)...)
+
+		//	Filter migration tables
+		migrationTables = append(migrationTables, getMigrationTables(schemas, source.Tables)...)
+	}
+
+	fmt.Println("migration enums", enumTables)
+
+	//  fetch migrations
+	if len(migrationTables) > 0 {
+
+		log.Debug("Creating initial migration")
+
+		migration.Data, err = client.Migration(migrationTables)
+		if err != nil {
+			log.Debug("Failed to get migration data")
+			return migration, err
+		}
+
+		// create migration file
+		if err := os.MkdirAll(migration.Location, os.ModePerm); err != nil {
+			log.Debug("Failed to create migration directory")
+			return migration, err
+		}
+
+		f, err := os.Create(filepath.Join(migration.Location, "up.sql"))
+		if err != nil {
+			log.Debug("Failed to create migration file")
+			return migration, err
+		}
+
+		if len(enumTables) > 0 {
+
+			log.Debug("Appending enum table seeds to initial migration")
+			seeds, err := client.ApplySeeds(enumTables)
+			if err != nil {
+				log.Debug("Failed to fetch seeds for enum tables")
+				return migration, err
+			}
+
+			// append the fetched seed data
+			migration.Data = append(migration.Data, seeds...)
+		}
+
+		if _, err = f.Write(migration.Data); err != nil {
+			log.Debug("Failed to write migration file")
+			return migration, err
+		}
+
+		f.Sync()
+		f.Close()
+	}
+	/*
+
+					args := []string{client.CLI, "migrate", "create", name, "--from-server"}
+		//	migrationArgs = append(migrationArgs, getMigrationTables(schemas, tables)...)
+		args = append(args, client.CommonOptions...)
+
+		execute := exec.Cmd{
+			Path: client.CLI,
+			Args: args,
+			Dir:  nhost.NHOST_DIR,
+		}
+
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			return migration, err
+		}
+
+					var mig fs.FileInfo
+
+					// search and load created migration
+					files, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
+					if err != nil {
+						return migration, err
+					}
+
+					for _, file := range files {
+						if strings.Contains(file.Name(), name) {
+							mig = file
+						}
+					}
+
+					v := strings.Split(mig.Name(), "_")[0]
+	*/
 
 	log.Debug("Clearing remote migrations")
 
@@ -171,7 +247,7 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 		Dir:  nhost.NHOST_DIR,
 	}
 
-	output, err = execute.CombinedOutput()
+	output, err := execute.CombinedOutput()
 	if err != nil {
 		log.Debug(string(output))
 		return migration, err
