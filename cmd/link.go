@@ -139,7 +139,7 @@ var linkCmd = &cobra.Command{
 				}
 
 				if contains(names, project.Name) {
-					status.Errorln("App with that name already exists")
+					status.Fatal("App with that name already exists")
 				}
 			}
 
@@ -147,7 +147,7 @@ var linkCmd = &cobra.Command{
 			servers, err := nhost.Servers()
 			if err != nil {
 				log.Debug(err)
-				log.Fatal("Failed to fetch list of servers")
+				status.Fatal("Failed to fetch list of servers")
 			}
 
 			//  configure interactive prompt template
@@ -216,7 +216,7 @@ var linkCmd = &cobra.Command{
 				project.ID, err = createProject(project.Name, selectedServer, User.ID, User.WorkspaceMembers[index].ID)
 				if err != nil {
 					log.Debug(err)
-					log.Fatal("Failed to create a new app")
+					status.Fatal("Failed to create a new app")
 				}
 
 			}
@@ -226,10 +226,6 @@ var linkCmd = &cobra.Command{
 			if err != nil {
 				return
 			}
-
-			//  provide confirmation prompt
-			log.Warn("If you linked to the wrong app, you could break your production environment.")
-			status.Info("Therefore we need confirmation you are serious about this.")
 
 			//  configure interative prompt
 			confirmationPrompt := promptui.Prompt{
@@ -242,14 +238,14 @@ var linkCmd = &cobra.Command{
 			}
 
 			if strings.ToLower(response) != project.Name {
-				log.Fatal("Invalid email. Linking aborted.")
+				status.Fatal("Invalid email. Linking aborted.")
 			}
 		}
 
 		//  update the project ID
 		if err = updateNhostProject(project); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to update Nhost app configuration locally")
+			status.Fatal("Failed to update Nhost app configuration locally")
 		}
 
 		//  project linking complete

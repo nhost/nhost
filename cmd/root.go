@@ -26,6 +26,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -163,7 +164,9 @@ func init() {
 	//  when this action is called directly.
 	rootCmd.PersistentFlags().StringVarP(&logger.LOG_FILE, "log-file", "f", "", "Write logs to given file")
 	rootCmd.PersistentFlags().BoolVarP(&logger.DEBUG, "debug", "d", false, "Show debugging level logs")
-	rootCmd.PersistentFlags().StringVar(&path, "path", "", "Current working directory to execute CLI in")
+
+	path, _ := os.Getwd()
+	rootCmd.PersistentFlags().StringVar(&path, "path", path, "Current working directory to execute CLI in")
 }
 
 /*
