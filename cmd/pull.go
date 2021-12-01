@@ -126,16 +126,16 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 
 	log.Debugf("Creating migration '%s'", name)
 
-	migration = hasura.Migration{
-		Name: name,
-	}
-
-	migration = migration.Init()
-
 	metadata, err := client.GetMetadata()
 	if err != nil {
 		return migration, err
 	}
+
+	migration = hasura.Migration{
+		Name: name,
+	}
+
+	migration = migration.Init(metadata.Sources[0].Name)
 
 	//  Fetch list of all ALLOWED schemas before applying
 	schemas, err := client.GetSchemas()
@@ -153,9 +153,8 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 
 		//	Filter migration tables
 		migrationTables = append(migrationTables, getMigrationTables(schemas, source.Tables)...)
-	}
 
-	fmt.Println("migration enums", enumTables)
+	}
 
 	//  fetch migrations
 	if len(migrationTables) > 0 {
@@ -201,55 +200,10 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 		f.Sync()
 		f.Close()
 	}
-	/*
 
-					args := []string{client.CLI, "migrate", "create", name, "--from-server"}
-		//	migrationArgs = append(migrationArgs, getMigrationTables(schemas, tables)...)
-		args = append(args, client.CommonOptions...)
+	log.Debug("Clearing remote migration for source: ", metadata.Sources[0].Name)
 
-		execute := exec.Cmd{
-			Path: client.CLI,
-			Args: args,
-			Dir:  nhost.NHOST_DIR,
-		}
-
-		output, err := execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			return migration, err
-		}
-
-					var mig fs.FileInfo
-
-					// search and load created migration
-					files, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
-					if err != nil {
-						return migration, err
-					}
-
-					for _, file := range files {
-						if strings.Contains(file.Name(), name) {
-							mig = file
-						}
-					}
-
-					v := strings.Split(mig.Name(), "_")[0]
-	*/
-
-	log.Debug("Clearing remote migrations")
-
-	args = []string{client.CLI, "migrate", "delete", "--all", "--server", "--force"}
-	args = append(args, client.CommonOptions...)
-
-	execute = exec.Cmd{
-		Path: client.CLI,
-		Args: args,
-		Dir:  nhost.NHOST_DIR,
-	}
-
-	output, err := execute.CombinedOutput()
-	if err != nil {
-		log.Debug(string(output))
+	if err := client.ClearMigration(metadata.Sources[0].Name); err != nil {
 		return migration, err
 	}
 
@@ -264,7 +218,7 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 		Dir:  nhost.NHOST_DIR,
 	}
 
-	output, err = execute.CombinedOutput()
+	output, err := execute.CombinedOutput()
 	if err != nil {
 		log.Debug(string(output))
 		return migration, err
@@ -290,62 +244,18 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 	return migration, nil
 }
 
-/*
-func copySeedToMigration(seed, migration string) error {
+func filterEnumTables(tables []hasura.TableEntry) []hasura.TableEntry {
 
-	//  first, search for the newly created seed file
-	seedFile, err := searchFile(seed, nhost.SEEDS_DIR)
-	if err != nil {
-		return err
-	}
+	var fromTables []hasura.TableEntry
 
-	//  now read it's data
-	data, err := os.ReadFile(filepath.Join(nhost.SEEDS_DIR, seedFile.Name()))
-	if err != nil {
-		return err
-	}
-
-	//  finally append the seed data to migration file
-	if err = writeToFile(filepath.Join(nhost.MIGRATIONS_DIR, migration), string(data), "end"); err != nil {
-		return err
-	}
-
-	//  delete the seed file so that it's not applied again
-	if err = deleteAllPaths(filepath.Join(nhost.SEEDS_DIR, seedFile.Name())); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func searchFile(name, directory string) (fs.DirEntry, error) {
-
-	migrations, err := os.ReadDir(directory)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, item := range migrations {
-		if strings.Contains(item.Name(), name) {
-			return item, nil
+	for _, table := range tables {
+		if table.IsEnum != nil {
+			fromTables = append(fromTables, table)
 		}
 	}
 
-	return nil, errors.New("failed to find file %v in %v")
+	return fromTables
 }
-
-
-func getFormattedSchemas(list []string) []string {
-
-	var response []string
-
-	for _, item := range list {
-		response = append(response, "--schema")
-		response = append(response, item)
-	}
-	return response
-}
-*/
 
 func getMigrationTables(schemas []string, tables []hasura.TableEntry) []string {
 

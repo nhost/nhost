@@ -242,7 +242,7 @@ func (c *Client) Seed(payload string) error {
 	return nil
 }
 
-func (c *Client) ClearMigration() error {
+func (c *Client) ClearMigration(source string) error {
 
 	log.Debug("Clearing migration")
 
@@ -256,7 +256,7 @@ func (c *Client) ClearMigration() error {
 		"--admin-secret",
 		c.AdminSecret,
 		"--database-name",
-		nhost.DATABASE,
+		source,
 		"--skip-update-check",
 		"--force",
 	}
@@ -272,33 +272,28 @@ func (c *Client) ClearMigration() error {
 		return err
 	}
 
-	/*
-		reqBody := RequestBody{
-			Type: "run_sql",
-			Args: map[string]string{
-				"source": nhost.DATABASE,
-				"sql":    "TRUNCATE hdb_catalog.schema_migrations;",
-			},
-		}
-		body, err := reqBody.Marshal()
-		if err != nil {
-			return err
-		}
+	/* 	reqBody := RequestBody{
+	   		Type: "run_sql",
+	   		Args: map[string]string{
+	   			"source": source,
+	   			"sql":    "TRUNCATE hdb_catalog.schema_migrations;",
+	   		},
+	   	}
 
-		resp, err := c.Request(body, "/v2/query")
-		if err != nil {
-			return err
-		}
+	   	body, err := reqBody.Marshal()
+	   	if err != nil {
+	   		return err
+	   	}
 
-		body, _ = ioutil.ReadAll(resp.Body)
-		fmt.Println(string(body))
+	   	resp, err := c.Request(body, "/v2/query")
+	   	if err != nil {
+	   		return err
+	   	}
 
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			return errors.New("failed to clear migration")
-		}
+	   	if resp.StatusCode != http.StatusOK {
+	   		return errors.New("failed to clear migration")
+	   	}
 	*/
-
 	return nil
 }
 

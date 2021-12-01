@@ -33,11 +33,11 @@ type Migration struct {
 	Data      []byte
 }
 
-func (m *Migration) Init() Migration {
+func (m *Migration) Init(source string) Migration {
 
 	var response Migration
 	response.Version = getTime()
-	response.Location = path.Join(nhost.MIGRATIONS_DIR, nhost.DATABASE, fmt.Sprintf("%v_%v", response.Version, m.Name))
+	response.Location = path.Join(nhost.MIGRATIONS_DIR, source, fmt.Sprintf("%v_%v", response.Version, m.Name))
 
 	return response
 }

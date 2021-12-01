@@ -67,7 +67,7 @@ var initCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var err error
-
+		var location string
 		var selectedProject nhost.App
 
 		//  if user has already passed remote_project as a flag,
@@ -127,6 +127,7 @@ var initCmd = &cobra.Command{
 				}
 
 				selectedProject = projects[index]
+				location = strings.ReplaceAll(selectedProject.Name, " ", "_")
 			}
 		} else {
 
@@ -141,18 +142,18 @@ var initCmd = &cobra.Command{
 				}
 			}
 
-			location := filepath.Join(util.WORKING_DIR, name)
-
-			//  Create the app directory
-			if err := os.MkdirAll(location, os.ModePerm); err != nil {
-				log.Debug(err)
-				status.Fatal("Failed to create app directory")
-			}
-
-			//  Update Working Directory
-			nhost.UpdateLocations(util.WORKING_DIR, location)
-			util.WORKING_DIR = location
+			location = filepath.Join(util.WORKING_DIR, name)
 		}
+
+		//  Create the app directory
+		if err := os.MkdirAll(location, os.ModePerm); err != nil {
+			log.Debug(err)
+			status.Fatal("Failed to create app directory")
+		}
+
+		//  Update Working Directory
+		nhost.UpdateLocations(util.WORKING_DIR, location)
+		util.WORKING_DIR = location
 
 		status.Executing("Creating your app...")
 
@@ -216,14 +217,8 @@ var initCmd = &cobra.Command{
 				log.Debug(err)
 				status.Fatal("Failed to initialize Hasura client")
 			}
-			/*
-				//  clear current migration from remote
-				if err := hasuraClient.ClearMigration(); err != nil {
-					log.Debug(err)
-					status.Fatal("Failed to clear migrations from remote")
-				}
 
-			*/ //  create migrations from remote
+			//  create migrations from remote
 			_, err := pullMigration(hasuraClient, "init")
 			if err != nil {
 				log.Debug(err)
@@ -361,120 +356,6 @@ func getRoles(endpoint, secret string) ([]string, error) {
 	return roles, nil
 }
 
-func getEnumTablesFromMetadata(filePath string) ([]string, error) {
-
-	log.Debug("Fetching enum tables from metadata")
-
-	//  initalize empty list of tables from which seeds will be created
-	var fromTables []string
-
-	//  if tables metadata file doesn't exists, return error
-	if !pathExists(filePath) {
-		return fromTables, errors.New("metadata file doesn't exist")
-	}
-
-	//  open and read the contents of the file
-	f, _ := ioutil.ReadFile(filePath)
-
-	var tables []Table
-	yaml.Unmarshal(f, &tables)
-
-	for _, table := range tables {
-
-		//  check if the table "is_enum: true"
-		if table.IsEnum {
-
-			//  append to seed tables if true
-			fromTables = append(fromTables, "--from-table")
-			fromTables = append(fromTables, fmt.Sprintf(
-				`%s.%s`,
-				table.Data.Schema,
-				table.Data.Name,
-			))
-		}
-	}
-
-	return fromTables, nil
-}
-*/
-
-func filterEnumTables(tables []hasura.TableEntry) []hasura.TableEntry {
-
-	var fromTables []hasura.TableEntry
-
-	for _, table := range tables {
-		if table.IsEnum != nil {
-			fromTables = append(fromTables, table)
-		}
-	}
-
-	return fromTables
-}
-
-/*
-func getMetadata(endpoint, secret string) (hasura.HasuraMetadataV2, error) {
-
-	log.Debug("Fetching metadata from remote")
-
-	var response hasura.HasuraMetadataV2
-
-	//Encode the data
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"type": "export_metadata",
-		"args": map[string]string{},
-	})
-
-	req, _ := http.NewRequest(
-		http.MethodPost,
-		endpoint+"/v1/query",
-		bytes.NewBuffer(postBody),
-	)
-
-	req.Header.Set("X-Hasura-Admin-Secret", secret)
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		return response, err
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	response, err = hasura.UnmarshalHasuraMetadataV2(body)
-	return response, err
-}
-
-func clearMigration(endpoint, secret string) error {
-
-	log.Debug("Clearing migration information from remote")
-
-	//Encode the data
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"type": "run_sql",
-		"args": map[string]string{
-			"sql": "TRUNCATE hdb_catalog.schema_migrations;",
-		},
-	})
-
-	req, _ := http.NewRequest(
-		http.MethodPost,
-		endpoint+"/v1/query",
-		bytes.NewBuffer(postBody),
-	)
-
-	req.Header.Set("x-hasura-admin-secret", secret)
-	req.Header.Set("Content-Type", "application/json")
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	_, err := client.Do(req)
-	return err
-}
 */
 
 func init() {
