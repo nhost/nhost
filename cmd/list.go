@@ -54,6 +54,11 @@ for the logged in user from Nhost console.`,
 			}
 		}
 
+		response, err = getUser(nhost.AUTH_PATH)
+		if err != nil {
+			status.Fatal("Failed to authenticate")
+		}
+
 		User = response
 	},
 	Run: func(cmd *cobra.Command, args []string) {

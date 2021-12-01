@@ -46,7 +46,7 @@ func (function *Function) BuildNodePackage() error {
 	})
 
 	if len(result.Errors) > 0 {
-		function.log.WithField("file", function.File.Name()).Error("Failed to run esbuild")
+		function.log.WithField("file", function.File.Name()).Debug("Failed to run esbuild")
 		return errors.New(result.Errors[0].Text)
 	}
 

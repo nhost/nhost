@@ -60,14 +60,21 @@ var linkCmd = &cobra.Command{
 			}
 		}
 
-		User = response
+		response, err = getUser(nhost.AUTH_PATH)
+		if err != nil {
+			status.Fatal("Failed to authenticate")
+		}
 
-		fmt.Println(User.Name)
+		User = response
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 
 		//  concatenate personal and team projects
 		projects := prepareAppList(User)
+
+		if len(projects) == 0 {
+			status.Fatal("No apps found")
+		}
 
 		/*
 			//  add the option of a new project to the existing selection payload
