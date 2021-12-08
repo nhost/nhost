@@ -1,5 +1,4 @@
 import { Response } from 'express';
-import bcrypt from 'bcryptjs';
 import {
   ContainerTypes,
   ValidatedRequest,
@@ -12,7 +11,6 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 
 type BodyType = {
-  oldPassword: string;
   newPassword: string;
 };
 
@@ -24,9 +22,12 @@ export const userPasswordHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('inside user password handler');
+  // check if user is logged in
+  if (!req.auth?.userId) {
+    return res.status(401).send('Incorrect access token');
+  }
 
-  const { oldPassword, newPassword } = req.body;
+  const { newPassword } = req.body;
 
   // check if password is compromised
   if (ENV.AUTH_PASSWORD_HIBP_ENABLED && (await pwnedPassword(newPassword))) {
@@ -34,10 +35,6 @@ export const userPasswordHandler = async (
   }
 
   const newPasswordHash = await hashPassword(newPassword);
-
-  if (!req.auth?.userId) {
-    return res.boom.unauthorized('User must be signed in');
-  }
 
   const { userId } = req.auth;
 
@@ -47,16 +44,6 @@ export const userPasswordHandler = async (
 
   if (!user) {
     throw new Error('Unable to get user');
-  }
-
-  // const oldPasswordHash = await hashPassword(oldPassword);
-  // if no password is set, don't care about the old password
-  const isPasswordCorrect = !user.passwordHash
-    ? true
-    : await bcrypt.compare(oldPassword, user.passwordHash);
-
-  if (!isPasswordCorrect) {
-    return res.boom.badRequest('Incorrect old password');
   }
 
   // set new password for user

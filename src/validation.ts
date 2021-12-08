@@ -88,7 +88,6 @@ export const userPasswordResetSchema = Joi.object({
 });
 
 export const userPasswordSchema = Joi.object({
-  oldPassword: Joi.string().required(),
   newPassword: Joi.string().required(),
 });
 
