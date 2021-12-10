@@ -93,7 +93,22 @@ in the following manner:
 			if err != nil {
 
 				//	Login the user
-				loginCmd.Run(cmd, args)
+				if err := loginCmd.RunE(cmd, args); err != nil {
+
+					status.Errorln("Failed to authenticate user")
+					status.Infoln("Run `nhost login` and try again")
+					os.Exit(0)
+
+				} else {
+
+					//	Get user again
+					user, err = getUser(nhost.AUTH_PATH)
+					if err != nil {
+						status.Fatal("Failed to fetch user data")
+					}
+
+				}
+
 			}
 
 			//  concatenate personal and team projects

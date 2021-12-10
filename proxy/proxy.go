@@ -105,7 +105,11 @@ func (s *Service) Issue(mux *http.ServeMux, ctx context.Context) error {
 			//	If the client has passed Web-socket protocol header,
 			//	then serve the request through web-socket proxy
 			for item := range r.Header {
-				if strings.ToLower(item) == "sec-websocket-protocol" {
+				if strings.ToLower(item) == "sec-websocket-protocol" &&
+
+					//  Fixes #130: Along with passing the Web-socket protocol header,
+					//	the client must also decalre connection header for "upgrade"
+					r.Header.Get(strings.ToLower("connection")) == strings.ToLower("upgrade") {
 					wsProxy.ServeHTTP(w, r)
 					return
 				}
