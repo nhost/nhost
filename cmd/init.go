@@ -41,6 +41,7 @@ var (
 	subdomain string
 	remote    bool
 	name      string
+	location  string
 )
 
 //  initCmd represents the init command
@@ -75,7 +76,6 @@ in the following manner:
 	Run: func(cmd *cobra.Command, args []string) {
 
 		var err error
-		var location string
 		var selectedProject nhost.App
 
 		//	Read project ID from arguments, if remote is true
@@ -268,7 +268,7 @@ in the following manner:
 		}
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		status.Success("Successful! Start your app with `nhost dev`")
+		status.Success(fmt.Sprintf("Successful! Start your app with `cd %s && nhost dev`", location))
 	},
 }
 
