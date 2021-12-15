@@ -267,7 +267,18 @@ var devCmd = &cobra.Command{
 			}
 
 			if err := cmd.Wait(); err != nil {
-				log.WithField("component", "console").Debug(err)
+
+				//	If it's a signal interruption error,
+				//	kill the process forcefully.
+				if err.Error() == "signal: interrupt" {
+					if err := cmd.Process.Kill(); err != nil {
+						log.WithField("component", "console").Debug(err)
+					} else {
+						log.WithField("component", "console").Debug("process killed")
+					}
+				} else {
+					log.WithField("component", "console").Debug(err)
+				}
 			}
 		}()
 
