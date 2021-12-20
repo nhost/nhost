@@ -100,16 +100,18 @@ var devCmd = &cobra.Command{
 			return err
 		}
 
-		//	If the default port is not available,
-		//	choose a random one
-		if !util.PortAvaiable(env.Port) {
-			status.Info("Choose a different port with `nhost dev [--port]`")
-			return fmt.Errorf("port %s not available", env.Port)
-		}
-
 		return nil
 	},
 	Run: func(cmd *cobra.Command, args []string) {
+
+		//	Fixes GH #129, by moving it from pre-run to run.
+		//
+		//	If the default port is not available,
+		//	choose a random one.
+		if !util.PortAvaiable(env.Port) {
+			status.Info("Choose a different port with `nhost dev [--port]`")
+			status.Fatal(fmt.Sprintf("port %s not available", env.Port))
+		}
 
 		var err error
 
