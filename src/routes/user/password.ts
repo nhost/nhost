@@ -4,11 +4,10 @@ import {
   ValidatedRequest,
   ValidatedRequestSchema,
 } from 'express-joi-validation';
-import { pwnedPassword } from 'hibp';
 
 import { hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@/utils/env';
+import { isPasswordValid } from '@/utils/password';
 
 type BodyType = {
   newPassword: string;
@@ -30,8 +29,9 @@ export const userPasswordHandler = async (
   const { newPassword } = req.body;
 
   // check if password is compromised
-  if (ENV.AUTH_PASSWORD_HIBP_ENABLED && (await pwnedPassword(newPassword))) {
-    return res.boom.badRequest('Password is too weak');
+  if (!(await isPasswordValid({ password: newPassword, res }))) {
+    // function send potential error via `res`
+    return;
   }
 
   const newPasswordHash = await hashPassword(newPassword);
