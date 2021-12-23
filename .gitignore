@@ -1,7 +1,4 @@
 dist
-.env*
-!.env.test
-!.env*.example
 *.log
 coverage
 private.pem
