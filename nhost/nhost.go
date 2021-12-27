@@ -426,7 +426,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "v2.0.8"
+				parsed.Services[name].Version = "v2.1.0"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -982,12 +982,17 @@ func GenerateConfig(options App) Configuration {
 		},
 	}
 
+	//	This is no longer required from Hasura >= v2.1.0,
+	//	because it officially supports Apple Silicon machines.
+	//
 	//	Hasura's image is still not natively working on Apple Silicon.
 	//	If it's an Apple Silicon processor,
 	//	then add the custom Hasura image, as a temporary fix.
-	if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
-		hasura.Image = "fedormelexin/graphql-engine-arm64"
-	}
+	/*
+		if runtime.GOOS == "darwin" && runtime.GOARCH == "arm64" {
+			hasura.Image = "fedormelexin/graphql-engine-arm64"
+		}
+	*/
 
 	return Configuration{
 		Version: 3,
