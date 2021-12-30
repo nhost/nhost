@@ -82,7 +82,7 @@ var (
 //  devCmd represents the dev command
 var devCmd = &cobra.Command{
 	Use:        "dev [-p port]",
-	Aliases:    []string{"start", "up"},
+	Aliases:    []string{"up"},
 	SuggestFor: []string{"list", "init"},
 	Short:      "Start local development environment",
 	Long:       `Initialize a local Nhost environment for development and testing.`,
