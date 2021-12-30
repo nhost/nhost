@@ -31,6 +31,7 @@ import (
 //  startCmd starts a self-hosted environment
 var startCmd = &cobra.Command{
 	Use:        "start",
+	Hidden:     true,
 	SuggestFor: []string{"dev"},
 	Short:      "Start self-hosted environment",
 	Long: `Starts the Nhost environment for self-hosting.
@@ -39,6 +40,12 @@ Optionally with custom remote connection configuration.`,
 
 		//	Disable the browser launch
 		noBrowser = false
+
+		//	Validate the dev environment
+		if err := devCmd.PreRunE(cmd, args); err != nil {
+			log.Debug(err)
+			status.Fatal("Failed to validate the environment for launch")
+		}
 
 		//	Launch the dev environment
 		devCmd.Run(cmd, args)
