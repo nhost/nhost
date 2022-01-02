@@ -10,6 +10,14 @@ import (
 	"github.com/nhost/cli/util"
 )
 
+const (
+	DB_USER     = "postgres"
+	DB_PASSWORD = "postgres"
+
+	MINIO_USER     = "minioaccesskey123123"
+	MINIO_PASSWORD = "minioaccesskey123123"
+)
+
 var (
 	log    = &logger.Log
 	status = &util.Writer

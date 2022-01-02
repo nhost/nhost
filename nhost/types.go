@@ -142,6 +142,10 @@ type (
 		HealthEndpoint string                 `yaml:",omitempty"`
 		Environment    map[string]interface{} `yaml:",omitempty"`
 
+		//	If custom address is mentioned,
+		//	do not launch the container
+		NoContainer bool `yaml:",omitempty"`
+
 		//  Channels are best thought of as queues (FIFO).
 		//  Therefore you can't really skip around.
 		//  We need a mutex to lock the service

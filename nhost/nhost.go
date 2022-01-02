@@ -438,8 +438,17 @@ func (c *Configuration) Wrap() error {
 
 		}
 
-		//	Update service address subject to their ports
-		parsed.Services[name].Address = GetAddress(parsed.Services[name])
+		//	If no custom address is mentioned,
+		//	save the default container address
+		if parsed.Services[name].Address == "" {
+
+			parsed.Services[name].Address = GetAddress(parsed.Services[name])
+
+		} else {
+
+			//	Do not launch the container if custom address exists
+			parsed.Services[name].NoContainer = true
+		}
 
 		//  Initialize configuration for the service
 		parsed.Services[name].InitConfig()
@@ -463,7 +472,7 @@ func GetAddress(s *Service) string {
 
 	switch s.Name {
 	case GetContainerName("postgres"):
-		return fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, "postgres", "postgres", GetContainerName("postgres"), s.Port)
+		return fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, s.Environment["postgres_user"], s.Environment["postgres_password"], GetContainerName("postgres"), s.Port)
 	default:
 		return fmt.Sprintf("http://localhost:%v", s.Port)
 	}
@@ -472,42 +481,48 @@ func GetAddress(s *Service) string {
 //  start a fresh container in background and connect it to specified network
 func (s *Service) Run(client *client.Client, ctx context.Context, networkID string) error {
 
-	//  first search if the container already exists
-	//  if it does, use that one
-	if s.ID != "" {
+	//	If a remote service is being used,
+	//	and no container needs to be launched,
+	//	then don't create or start the container.
+	if !s.NoContainer {
 
-		log.WithFields(logrus.Fields{
-			"type":      "container",
-			"component": s.Name,
-		}).Debug("Starting")
-		return client.ContainerStart(ctx, s.ID, types.ContainerStartOptions{})
+		//  first search if the container already exists
+		//  if it does, use that one
+		if s.ID != "" {
 
-	} else {
+			log.WithFields(logrus.Fields{
+				"type":      "container",
+				"component": s.Name,
+			}).Debug("Starting")
+			return client.ContainerStart(ctx, s.ID, types.ContainerStartOptions{})
 
-		//  if the container doesn't already exist,
-		//  create a new one and attach it to the network
+		} else {
 
-		log.WithFields(logrus.Fields{
-			"type":      "container",
-			"component": s.Name,
-		}).Debug("Creating")
+			//  if the container doesn't already exist,
+			//  create a new one and attach it to the network
 
-		service, err := client.ContainerCreate(ctx, s.Config, s.HostConfig, nil, nil, s.Name)
-		if err != nil {
-			return err
+			log.WithFields(logrus.Fields{
+				"type":      "container",
+				"component": s.Name,
+			}).Debug("Creating")
+
+			service, err := client.ContainerCreate(ctx, s.Config, s.HostConfig, nil, nil, s.Name)
+			if err != nil {
+				return err
+			}
+
+			//  Save the it's ID for future use
+			s.ID = service.ID
+
+			//  Connect the newly created container to Nhost docker network
+			if err := client.NetworkConnect(ctx, networkID, s.ID, nil); err != nil {
+				return err
+			}
+
+			//  Start the newly created container
+			return s.Run(client, ctx, networkID)
+
 		}
-
-		//  Save the it's ID for future use
-		s.ID = service.ID
-
-		//  Connect the newly created container to Nhost docker network
-		if err := client.NetworkConnect(ctx, networkID, s.ID, nil); err != nil {
-			return err
-		}
-
-		//  Start the newly created container
-		return s.Run(client, ctx, networkID)
-
 	}
 	/*
 		//  avoid using the code below if you want to run the containers in background
@@ -521,6 +536,7 @@ func (s *Service) Run(client *client.Client, ctx context.Context, networkID stri
 		case <-statusCh:
 		}
 	*/
+	return nil
 }
 
 //  Fetches container's configuration, mount points and host configuration,
@@ -690,10 +706,6 @@ func (config *Configuration) Init(port string) error {
 
 	postgresConfig.Config.Cmd = []string{"-p", fmt.Sprint(config.Services["postgres"].Port)}
 	postgresConfig.HostConfig.Mounts = mountPoints
-	postgresConfig.Config.Env = []string{
-		"POSTGRES_USER=postgres",
-		"POSTGRES_PASSWORD=postgres",
-	}
 
 	//  append service specific environment variables
 	for key, value := range postgresConfig.Environment {
@@ -787,10 +799,6 @@ func (config *Configuration) Init(port string) error {
 	}
 
 	minioConfig.HostConfig.Mounts = mountPoints
-	minioConfig.Config.Env = []string{
-		"MINIO_ROOT_USER=minioaccesskey123123",
-		"MINIO_ROOT_PASSWORD=minioaccesskey123123",
-	}
 
 	//  append service specific environment variables
 	for key, value := range minioConfig.Environment {
@@ -807,7 +815,7 @@ func (config *Configuration) Init(port string) error {
 	//  prepare env variables for following container
 	containerVariables = []string{
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
-		fmt.Sprintf("HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql", config.Services["hasura"].Name, config.Services["hasura"].Port),
+		fmt.Sprintf(`HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
 		fmt.Sprintf("AUTH_PORT=%v", config.Services["auth"].Port),
 		fmt.Sprintf("AUTH_SERVER_URL=http://localhost:%v/v1/auth", port),
 		fmt.Sprintf("AUTH_CLIENT_URL=%v", config.Auth["client_url"]),
@@ -857,13 +865,13 @@ func (config *Configuration) Init(port string) error {
 	containerVariables = []string{
 		fmt.Sprintf("STORAGE_PORT=%v", config.Services["storage"].Port),
 		fmt.Sprintf("STORAGE_PUBLIC_URL=%v", config.Services["storage"].Address),
-		"HASURA_GRAPHQL_GRAPHQL_URL=" + fmt.Sprintf(`http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
+		fmt.Sprintf(`HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
-		fmt.Sprintf("S3_ENDPOINT=http://%s:%v", config.Services["minio"].Name, config.Services["minio"].Port),
+		fmt.Sprintf("S3_ENDPOINT=%s", config.Services["minio"].Address),
 
 		//  additional default
-		"S3_ACCESS_KEY=minioaccesskey123123",
-		"S3_SECRET_KEY=minioaccesskey123123",
+		fmt.Sprintf("S3_ACCESS_KEY=%v", minioConfig.Environment["minio_root_user"]),
+		fmt.Sprintf("S3_SECRET_KEY=%v", minioConfig.Environment["minio_root_password"]),
 		"STORAGE_HOST=0.0.0.0",
 		"STORAGE_STANDALONE_MODE=false",
 		"STORAGE_LOG_LEVEL=info",
@@ -982,6 +990,20 @@ func GenerateConfig(options App) Configuration {
 		},
 	}
 
+	postgres := Service{
+		Environment: map[string]interface{}{
+			"postgres_user":     DB_USER,
+			"postgres_password": DB_PASSWORD,
+		},
+	}
+
+	minio := Service{
+		Environment: map[string]interface{}{
+			"minio_root_user":     MINIO_USER,
+			"minio_root_password": MINIO_PASSWORD,
+		},
+	}
+
 	//	This is no longer required from Hasura >= v2.1.0,
 	//	because it officially supports Apple Silicon machines.
 	//
@@ -997,7 +1019,9 @@ func GenerateConfig(options App) Configuration {
 	return Configuration{
 		Version: 3,
 		Services: map[string]*Service{
-			"hasura": &hasura,
+			"hasura":   &hasura,
+			"postgres": &postgres,
+			"minio":    &minio,
 		},
 		MetadataDirectory: "metadata",
 		Storage: map[interface{}]interface{}{

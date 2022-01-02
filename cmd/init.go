@@ -268,7 +268,7 @@ in the following manner:
 		}
 	},
 	PostRun: func(cmd *cobra.Command, args []string) {
-		status.Success(fmt.Sprintf("Successful! Start your app with `cd %s && nhost dev`", location))
+		status.Success(fmt.Sprintf("Successful! Start your app with `cd %s && nhost dev`", filepath.Base(location)))
 	},
 }
 
