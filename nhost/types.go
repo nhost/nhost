@@ -139,7 +139,7 @@ type (
 		ID             string                 `yaml:",omitempty"`
 		Config         *container.Config      `yaml:",omitempty"`
 		HostConfig     *container.HostConfig  `yaml:",omitempty"`
-		HealthEndpoint string                 `yaml:health_endpoint",omitempty"`
+		HealthEndpoint string                 `yaml:"health_endpoint,omitempty"`
 		Environment    map[string]interface{} `yaml:",omitempty"`
 
 		//	If custom address is mentioned,
