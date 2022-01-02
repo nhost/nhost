@@ -474,7 +474,11 @@ func GetAddress(s *Service) string {
 	case GetContainerName("postgres"):
 		return fmt.Sprintf(`postgres://%v:%v@%s:%v/postgres`, s.Environment["postgres_user"], s.Environment["postgres_password"], GetContainerName("postgres"), s.Port)
 	default:
-		return fmt.Sprintf("http://localhost:%v", s.Port)
+		if s.NoContainer {
+			return s.Address
+		} else {
+			return fmt.Sprintf("http://localhost:%v", s.Port)
+		}
 	}
 }
 
@@ -809,6 +813,7 @@ func (config *Configuration) Init(port string) error {
 		"-c",
 		fmt.Sprintf(`mkdir -p /data/nhost && /opt/bin/minio server --address :%v /data`, config.Services["minio"].Port),
 	}
+
 	//User:  "999:1001",
 	minioConfig.Config.Entrypoint = []string{"sh"}
 
@@ -878,6 +883,19 @@ func (config *Configuration) Init(port string) error {
 		"STORAGE_SWAGGER_ENABLED=false",
 		"S3_SSL_ENABLED=false",
 		"S3_BUCKET=nhost",
+	}
+
+	//	Add S3 endpoint
+	if config.Services["minio"].NoContainer {
+		containerVariables = append(
+			containerVariables,
+			fmt.Sprintf("S3_ENDPOINT=%s", config.Services["minio"].Address),
+		)
+	} else {
+		containerVariables = append(
+			containerVariables,
+			fmt.Sprintf("S3_ENDPOINT=http://%s:%v", config.Services["minio"].Name, config.Services["minio"].Port),
+		)
 	}
 
 	//	Append runtime variables
