@@ -449,6 +449,7 @@ func (c *Configuration) Wrap() error {
 		} else {
 
 			//	Do not launch the container if custom address exists
+			log.WithField("service", parsed.Services[name]).Debug("Disabling container launch")
 			parsed.Services[name].NoContainer = true
 		}
 
@@ -874,7 +875,6 @@ func (config *Configuration) Init(port string) error {
 		fmt.Sprintf("STORAGE_PUBLIC_URL=%v", config.Services["storage"].Address),
 		fmt.Sprintf(`HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
 		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
-		fmt.Sprintf("S3_ENDPOINT=%s", config.Services["minio"].Address),
 
 		//  additional default
 		fmt.Sprintf("S3_ACCESS_KEY=%v", minioConfig.Environment["minio_root_user"]),
@@ -922,6 +922,15 @@ func (config *Configuration) Init(port string) error {
 		payload := strings.Split(item, "=")
 		if payload[0] == "AUTH_SMTP_PORT" {
 			smtpPort, _ = strconv.Atoi(payload[1])
+		}
+
+		//	If the SMTP server address inside config.yaml
+		//	doesn't match the container name,
+		//	i.e. it is a custom server address,
+		//	then don't launch the mailhog container
+		if payload[0] == "AUTH_SMTP_HOST" && payload[1] != GetContainerName("mailhog") {
+			log.WithField("service", "mailhog").Debug("Disabling container launch")
+			config.Services["mailhog"].NoContainer = true
 		}
 	}
 
@@ -1088,7 +1097,7 @@ func GenerateConfig(options App) Configuration {
 				"allowed": "en",
 			},
 			"smtp": map[interface{}]interface{}{
-				"host":   PREFIX + "_mailhog",
+				"host":   GetContainerName("mailhog"),
 				"port":   util.GetPort(1000, 1999),
 				"user":   "user",
 				"pass":   "password",
