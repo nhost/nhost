@@ -357,8 +357,6 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Image = "minio/minio"
 			}
 
-			parsed.Services[name].HealthEndpoint = "/minio/health/live"
-
 		case "mailhog":
 
 			if parsed.Services[name].Port == 0 {
@@ -387,7 +385,9 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Image = "nhost/hasura-auth"
 			}
 
-			parsed.Services[name].HealthEndpoint = "/healthz"
+			if parsed.Services[name].HealthEndpoint == "" {
+				parsed.Services[name].HealthEndpoint = "/healthz"
+			}
 
 		case "storage":
 
@@ -403,7 +403,9 @@ func (c *Configuration) Wrap() error {
 				parsed.Services[name].Image = "nhost/hasura-storage"
 			}
 
-			parsed.Services[name].HealthEndpoint = "/healthz"
+			if parsed.Services[name].HealthEndpoint == "" {
+				parsed.Services[name].HealthEndpoint = "/healthz"
+			}
 
 		case "postgres":
 
@@ -430,12 +432,12 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Image == "" {
-				//  parsed.Services[name].Version = fmt.Sprintf("%v.%s", parsed.Services["hasura"].Version, "cli-migrations-v3")
 				parsed.Services[name].Image = "hasura/graphql-engine"
 			}
 
-			parsed.Services[name].HealthEndpoint = "/healthz"
-
+			if parsed.Services[name].HealthEndpoint == "" {
+				parsed.Services[name].HealthEndpoint = "/healthz"
+			}
 		}
 
 		//	If no custom address is mentioned,
