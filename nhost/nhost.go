@@ -714,10 +714,43 @@ func (config *Configuration) Init(port string) error {
 	postgresConfig.Config.Cmd = []string{"-p", fmt.Sprint(config.Services["postgres"].Port)}
 	postgresConfig.HostConfig.Mounts = mountPoints
 
+	var pgUser, pgPass string
+
 	//  append service specific environment variables
 	for key, value := range postgresConfig.Environment {
 		postgresConfig.Config.Env = append(postgresConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
+
+		switch strings.ToLower(key) {
+		case "postgres_user":
+			pgUser = value.(string)
+		case "postgres_password":
+			pgPass = value.(string)
+		}
 	}
+
+	//
+	//	Backward compatibility for CLI < v0.6.
+	//
+	//	If the environment interface is nil,
+	//	then initialize a blank one.
+	if config.Services["postgres"].Environment == nil {
+		config.Services["postgres"].Environment = make(map[string]interface{})
+	}
+	//
+	//	If credentials are not available in config.yaml,
+	//	add the default ones.
+	if pgUser == "" {
+		config.Services["postgres"].Environment["postgres_user"] = DB_USER
+		postgresConfig.Config.Env = append(postgresConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper("postgres_user"), DB_USER))
+	}
+
+	if pgPass == "" {
+		config.Services["postgres"].Environment["postgres_password"] = DB_PASSWORD
+		postgresConfig.Config.Env = append(postgresConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper("postgres_password"), DB_PASSWORD))
+	}
+
+	//	Update the service address
+	config.Services["postgres"].Address = GetAddress(config.Services["postgres"])
 
 	//  prepare env variables for following container
 	containerVariables := []string{
@@ -807,10 +840,43 @@ func (config *Configuration) Init(port string) error {
 
 	minioConfig.HostConfig.Mounts = mountPoints
 
+	var minioUser, minioPass string
+
 	//  append service specific environment variables
 	for key, value := range minioConfig.Environment {
 		minioConfig.Config.Env = append(minioConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper(key), value))
+
+		switch strings.ToLower(key) {
+		case "minio_root_user":
+			minioUser = value.(string)
+		case "minio_root_password":
+			minioPass = value.(string)
+		}
 	}
+
+	//
+	//	Backward compatibility for CLI < v0.6.
+	//
+	//	If the environment interface is nil,
+	//	then initialize a blank one.
+	if config.Services["minio"].Environment == nil {
+		config.Services["minio"].Environment = make(map[string]interface{})
+	}
+	//
+	//	If credentials are not available in config.yaml,
+	//	add the default ones.
+	if minioUser == "" {
+		config.Services["minio"].Environment["minio_root_user"] = MINIO_USER
+		minioConfig.Config.Env = append(minioConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper("minio_root_user"), MINIO_USER))
+	}
+
+	if minioPass == "" {
+		config.Services["minio"].Environment["minio_root_password"] = MINIO_PASSWORD
+		minioConfig.Config.Env = append(minioConfig.Config.Env, fmt.Sprintf("%v=%v", strings.ToUpper("minio_root_password"), MINIO_PASSWORD))
+	}
+
+	//	Update the service address
+	config.Services["minio"].Address = GetAddress(config.Services["minio"])
 
 	minioConfig.Config.Cmd = []string{
 		"-c",
