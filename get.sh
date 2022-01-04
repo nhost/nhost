@@ -112,7 +112,7 @@ try mv cli nhost
 # install and test
 log "${GREEN}Download complete!${NC}"
 echo
-try sudo_maybe mv ./nhost ${INSTALL_PATH}/nhost
+try sudo mv ./nhost ${INSTALL_PATH}/nhost
 nhost version
 echo
 log "${BLUE}Use Nhost CLI with: nhost --help${NC}"
