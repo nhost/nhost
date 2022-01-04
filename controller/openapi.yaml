@@ -1,0 +1,387 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/OAI/OpenAPI-Specification/main/schemas/v3.0/schema.yaml
+---
+openapi: 3.0.0
+info:
+  description: Hasura Storage is amazing
+  version: 1.0.0
+  title: Hasura Storage
+  license:
+    name: LICENSE-TBD
+    url: https://LICENSE-TBD
+servers:
+  - url: http://{domain}:{port}/api/v1
+    description: The development API server
+    variables:
+      domain:
+        default: localhost
+      port:
+        default: '8000'
+security:
+  - hasuraJWT: []
+components:
+  securitySchemes:
+    hasuraJWT:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: API key to authorize requests.
+  schemas:
+    VersionInformation:
+      type: object
+      properties:
+        buildDate:
+          type: string
+          format: date-time
+        buildBranch:
+          type: string
+        buildUser:
+          type: string
+        buildVersion:
+          type: string
+        buildCommit:
+          type: string
+    FileMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        size:
+          type: number
+        bucketId:
+          type: string
+        eTag:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        isUploaded:
+          type: boolean
+        mimeType:
+          type: string
+        uploadedByUserId:
+          type: string
+    UploadFileMetadata:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+paths:
+  /openapi.yaml:
+    get:
+      summary: Return this schema definition
+      tags:
+        - documentation
+      responses:
+        '200':
+          description: Return this schema definition
+          content:
+            application/x-yaml:
+              schema:
+                type: object
+  /version:
+    get:
+      summary: Retrieve build information about the server
+      tags:
+        - documentation
+      responses:
+        '200':
+          description: Return build information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VersionInformation'
+                
+  /files/:
+    post:
+      summary: Upload one or more files
+      description: You can upload more than one file by sending several file[]. Sending the metadata[] for files is optional but if you are uploading many files you need to either specify the metadata for all or for none.
+      tags:
+        - storage
+      security:
+        - hasuraJWT: []
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                bucket_id:
+                  type: string
+                  description: Bucket to upload the files to
+                metadata[]:
+                  type: array
+                  description: (Optional) Set the following metadata for the uploaded files instead of letting the server do it automatically. See "UploadFileMetadata".
+                  items:
+                    $ref: '#/components/schemas/UploadFileMetadata'
+                file[]:
+                  description: Array of files to upload.
+                  type: array
+                  items: {}
+            encoding:
+              file[]:
+                contentType: application/octet-stream
+      responses:
+        '201':
+          description: File was uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ProcessedFiles:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileMetadata'
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /files/{id}:
+    head:
+      summary: Retrieve information about a file
+      description: Retrieve information about a file
+      tags:
+        - storage
+      security:
+        - hasuraJWT: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: if-match
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+          in: header
+          schema:
+            type: string
+        - name: if-none-match
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: if-modified-since
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+          in: header
+          schema:
+            type: string
+        - name: if-unmodified-since
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File information gathered successfully
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+        '304':
+          description: |
+            File hasn't been modified based on:
+            - file modification time is older than If-Modified-Since
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+        '412':
+          description: |
+            Some of the conditions specified in the headers failed to match. For instance:
+              - etag doesn't match one of If-Match
+              - etag matches one of If-None-Match
+              - if-unmodified-since is false
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+        default:
+          description: Some error occurred
+          headers:
+            X-Error:
+              description: An error message
+              schema:
+                type: string
+    get:
+      summary: Retrieve information about a file
+      description: Retrieve information about a file
+      tags:
+        - storage
+      security:
+        - hasuraJWT: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: if-match
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+          in: header
+          schema:
+            type: string
+        - name: if-none-match
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: if-modified-since
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+          in: header
+          schema:
+            type: string
+        - name: if-unmodified-since
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
+          in: header
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File gathered successfully
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+          content:
+            application/octet-stream: {}
+        '304':
+          description: |
+            File hasn't been modified based on:
+            - file modification time is older than If-Modified-Since
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+        '412':
+          description: |
+            Some of the conditions specified in the headers failed to match. For instance:
+              - etag doesn't match one of If-Match
+              - etag matches one of If-None-Match
+              - if-unmodified-since is false
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+        default:
+          description: Some error occurred
+          headers:
+            X-Error:
+              description: An error message
+              schema:
+                type: string

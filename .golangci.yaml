@@ -1,0 +1,37 @@
+---
+linters:
+    enable-all: true
+    disable:
+      # - gochecknoglobals
+      # - gochecknoinits
+      # - lll
+      # - gomnd
+      # - gofumpt
+      # - paralleltest
+      # - testpackage
+      # - forbidigo
+      - gomoddirectives
+      - nlreturn
+      - wsl
+      - exhaustivestruct
+      - maligned  # deprecated
+      - scopelint  # deprecated
+      - interfacer  # deprecated
+      - golint  # deprecated
+
+issues:
+  exclude-rules:
+    - linters:
+        - lll
+      source: "^//go:generate "
+    - path: controller/version.go
+      linters:
+        - gochecknoglobals
+    - path: controller/get_file_test.go  # this needs to be removed eventually
+      linters:
+        - typecheck
+    - path: _test\.go
+      linters:
+        - funlen
+        - ireturn
+        - varnamelen

@@ -1,0 +1,88 @@
+MODULE=github.com/nhost/hasura-storage
+GITSHA=$(shell git rev-parse HEAD)
+BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
+DATE=$(shell date -u +%Y-%m-%dT%TZ)
+BUILD_USER?=$(shell whoami)
+VERSION=$(shell cat VERSION)
+
+GOLANGCI_LINT_VER="v1.43.0"
+GOTEST_OPTIONS?=-v
+
+LDFLAGS="\
+		-X $(MODULE)/controller.buildVersion=${VERSION} \
+		-X $(MODULE)/controller.buildCommit=${GITSHA} \
+		-X $(MODULE)/controller.buildBranch=${BRANCH} \
+		-X $(MODULE)/controller.buildDate=${DATE} \
+		-X $(MODULE)/controller.buildUser=${BUILD_USER} \
+		"
+
+DEV_ENV_PATH=build/dev/docker
+
+
+.PHONY: info
+info: ## Echo common env vars
+	@echo BRANCH:     $(BRANCH)
+	@echo DATE:       $(DATE)
+	@echo VERSION:    $(VERSION)
+	@echo BUILD_USER: $(BUILD_USER)
+
+
+.PHONY: help
+help: ## Show this help.
+	@IFS=$$'\n' ; \
+	lines=(`fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//'`); \
+	for line in $${lines[@]}; do \
+		IFS=$$'#' ; \
+		split=($$line) ; \
+		command=`echo $${split[0]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
+		info=`echo $${split[2]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
+		printf "%-30s %s\n" $$command $$info ; \
+	done
+
+
+.PHONY: tests
+tests: ## Run go test
+	go test $(GOTEST_OPTIONS) ./...
+
+
+.PHONY: integration-tests
+integration-tests: ## Run go test with integration flags
+	go test -tags=integration $(GOTEST_OPTIONS) -integration
+
+
+.PHONY: install-linter
+install-linter: ## Install golangci-linet
+	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_LINT_VER)
+
+
+.PHONY: lint
+lint: ## Run Go linters in a Docker container
+	bin/golangci-lint \
+		run \
+		--timeout 300s
+
+
+.PHONY: build
+build: ## Build application
+	 go build \
+		 -ldflags ${LDFLAGS} \
+		 -o ./bin/hasura-storage \
+		 ./cmd/*.go
+
+
+.PHONY: dev-env-up
+dev-env-up: dev-env-down dev-env-build  ## Starts development environment
+	docker-compose -f ${DEV_ENV_PATH}/docker-compose.yaml up -d
+
+
+.PHONY: dev-env-down
+dev-env-down:  ## Stops development environment
+	docker-compose -f ${DEV_ENV_PATH}/docker-compose.yaml down
+
+.PHONY: dev-env-build
+dev-env-build:  ## Builds development environment
+	docker-compose  -f ${DEV_ENV_PATH}/docker-compose.yaml build --build-arg BUILD_USER=$(BUILD_USER)
+
+.PHONY: dev-jwt
+dev-jwt:
+	@sh ./build/dev/docker/jwt-gen/get-jwt.sh
