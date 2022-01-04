@@ -54,10 +54,10 @@ func (e *Environment) WrapContainersAsServices(containers []types.Container) err
 						//  we don't want to save mailhog's smtp port
 						//  this is done to avoid double port loading issue
 						var smtpPort int
-						vars := nhost.ParseEnvVarsFromConfig(e.Config.Auth, "SMTP")
+						vars := nhost.ParseEnvVarsFromConfig(e.Config.Auth, "AUTH")
 						for _, item := range vars {
 							payload := strings.Split(item, "=")
-							if payload[0] == "AUTH_SMTP_PORT" {
+							if strings.ToUpper(payload[0]) == "AUTH_SMTP_PORT" {
 								smtpPort, _ = strconv.Atoi(payload[1])
 							}
 						}

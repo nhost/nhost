@@ -91,8 +91,18 @@ else
     arch='386'
 fi
 
+# some variables
+suffix="-${platform}-${arch}"
+
+if [[ "$platform" != 'windows' ]]; then
+    extension=".tar.gz"
+else 
+    extension='.zip'
+fi
+
 # variables for install
-targetFile="cli-${version}-${platform}-${arch}.tar.gz"
+targetFile="cli-$version$suffix$extension"
+
 url="https://github.com/${REPO}/releases/download/${version}/${targetFile}"
 
 # remove previous download
@@ -105,14 +115,26 @@ log "${PURPLE}Downloading Nhost ${version} for ${platform}-${arch} to ${targetFi
 
 # download and extract files
 try curl -L -f -o $targetFile "$url"
-try tar -xvf $targetFile
+try chmod +x $targetFile
+
+if [[ "$platform" != 'windows' ]]; then
+    try tar -xvf $targetFile
+else 
+    try unzip $targetFile
+fi
+
 try rm ./$targetFile
-try mv cli nhost
 
 # install and test
 log "${GREEN}Download complete!${NC}"
 echo
-try sudo mv ./nhost ${INSTALL_PATH}/nhost
-nhost version
-echo
-log "${BLUE}Use Nhost CLI with: nhost --help${NC}"
+
+if [[ "$platform" != 'windows' ]]; then
+    try sudo mv ./cli ${INSTALL_PATH}/nhost
+    nhost version
+    echo
+    log "${BLUE}Use Nhost CLI with: nhost --help${NC}"
+else
+    try mv cli.exe nhost.exe
+    log "${BLUE}Please copy nhost.exe in a directory covered by your Windows path"
+fi
