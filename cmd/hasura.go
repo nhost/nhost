@@ -35,7 +35,6 @@ import (
 )
 
 var production bool
-var dbName string
 
 //  hasuraCmd represents the hasura command
 var hasuraCmd = &cobra.Command{
@@ -141,7 +140,6 @@ along with your original command.
 		cmdArgs := []string{env.Hasura.CLI}
 		cmdArgs = append(cmdArgs, args...)
 		cmdArgs = append(cmdArgs, env.Hasura.CommonOptionsWithoutDB...)
-		cmdArgs = append(cmdArgs, "--database-name", dbName)
 
 		execute := exec.Cmd{
 			Path:   env.Hasura.CLI,
@@ -170,5 +168,4 @@ func init() {
 	//  Cobra supports local flags which will only run when this command
 	//  is called directly, e.g.:
 	hasuraCmd.Flags().BoolVar(&production, "prod", false, "Use production credentials")
-	hasuraCmd.Flags().StringVar(&dbName, "database-name", "", "Specify database name")
 }
