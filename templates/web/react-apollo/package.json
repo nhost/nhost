@@ -1,11 +1,10 @@
 {
   "name": "react-apollo",
   "version": "0.1.0",
-  "private": true,
   "dependencies": {
     "@apollo/client": "^3.4.16",
-    "@nhost/nhost-js": "^0.1.1",
-    "@nhost/react-apollo": "^2.0.5",
+    "@nhost/nhost-js": "^0.3.3",
+    "@nhost/react-apollo": "^2.0.6",
     "@nhost/react-auth": "^2.0.3",
     "@testing-library/jest-dom": "^5.11.4",
     "@testing-library/react": "^11.1.0",
