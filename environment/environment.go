@@ -98,7 +98,9 @@ func (e *Environment) Init() error {
 	}
 
 	//  wrap the fetched containers inside the environment
-	_ = e.WrapContainersAsServices(containers)
+	if err := e.WrapContainersAsServices(containers); err != nil {
+		return err
+	}
 
 	//	Initialize a new watcher for the environment
 	e.Watcher = watcher.New(e.Context)

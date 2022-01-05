@@ -152,7 +152,7 @@ func Info() (App, error) {
 		return response, err
 	}
 
-	err = yaml.Unmarshal(file, &response)
+	err = json.Unmarshal(file, &response)
 	return response, err
 }
 

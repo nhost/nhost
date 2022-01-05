@@ -44,12 +44,12 @@ var logsCmd = &cobra.Command{
 		//  Initialize the runtime environment
 		if err := env.Init(); err != nil {
 			log.Debug(err)
-			log.Fatal("Failed to initialize the environment")
+			status.Fatal("Failed to initialize the environment")
 		}
 
 		//  if no containers found - abort the execution
 		if len(env.Config.Services) == 0 {
-			log.Fatal("Make sure your Nhost environment is running with `nhost dev`")
+			status.Fatal("Make sure your Nhost environment is running with `nhost dev`")
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
