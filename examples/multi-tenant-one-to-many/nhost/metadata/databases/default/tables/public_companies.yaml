@@ -1,0 +1,11 @@
+table:
+  name: companies
+  schema: public
+array_relationships:
+- name: profiles
+  using:
+    foreign_key_constraint_on:
+      column: company_id
+      table:
+        name: profiles
+        schema: public
