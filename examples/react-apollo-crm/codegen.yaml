@@ -1,0 +1,15 @@
+overwrite: true
+schema: http://localhost:1337/v1/graphql
+headers:
+  x-hasura-admin-secret: nhost-admin-secret
+documents:
+  - "src/**/*.graphql"
+  - "src/**/*.gql"
+generates:
+  src/utils/__generated__/graphql.ts:
+    plugins:
+      - "typescript"
+      - "typescript-operations"
+      - "typescript-react-apollo"
+    config:
+      withRefetchFn: true

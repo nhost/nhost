@@ -1,0 +1,33 @@
+mutation insertCustomerComment(
+  $customerComment: customerComments_insert_input!
+) {
+  insertCustomerComment(object: $customerComment) {
+    id
+  }
+}
+
+subscription getCustomers {
+  customers {
+    id
+    name
+  }
+}
+
+subscription getCustomerComments($where: customerComments_bool_exp!) {
+  customerComments(where: $where, order_by: { createdAt: desc }) {
+    id
+    createdAt
+    text
+    file {
+      id
+      name
+      mimeType
+      size
+    }
+    user {
+      id
+      displayName
+      avatarUrl
+    }
+  }
+}
