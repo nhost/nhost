@@ -2,6 +2,13 @@ table:
   name: companies
   schema: public
 array_relationships:
+- name: customers
+  using:
+    foreign_key_constraint_on:
+      column: company_id
+      table:
+        name: customers
+        schema: public
 - name: profiles
   using:
     foreign_key_constraint_on:
@@ -9,3 +16,27 @@ array_relationships:
       table:
         name: profiles
         schema: public
+select_permissions:
+- permission:
+    columns:
+    - id
+    - created_at
+    - updated_at
+    - name
+    - address
+    filter:
+      profiles:
+        user_id:
+          _eq: X-Hasura-User-Id
+  role: user
+update_permissions:
+- permission:
+    check: null
+    columns:
+    - address
+    - name
+    filter:
+      profiles:
+        user_id:
+          _eq: X-Hasura-User-Id
+  role: user

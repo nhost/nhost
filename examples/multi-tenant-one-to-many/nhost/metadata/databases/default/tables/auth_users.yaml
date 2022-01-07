@@ -70,6 +70,19 @@ array_relationships:
       table:
         name: user_providers
         schema: auth
+select_permissions:
+- permission:
+    columns:
+    - avatar_url
+    - display_name
+    - id
+    filter:
+      profile:
+        company:
+          profiles:
+            user_id:
+              _eq: X-Hasura-User-Id
+  role: user
 event_triggers:
 - definition:
     enable_manual: false

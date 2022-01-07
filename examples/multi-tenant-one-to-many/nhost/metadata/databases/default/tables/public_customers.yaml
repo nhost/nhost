@@ -1,0 +1,62 @@
+table:
+  name: customers
+  schema: public
+object_relationships:
+- name: company
+  using:
+    foreign_key_constraint_on: company_id
+array_relationships:
+- name: customer_comments
+  using:
+    foreign_key_constraint_on:
+      column: customer_id
+      table:
+        name: customer_comments
+        schema: public
+insert_permissions:
+- permission:
+    backend_only: false
+    check:
+      company:
+        profiles:
+          user_id:
+            _eq: X-Hasura-User-Id
+    columns:
+    - address
+    - name
+  role: user
+select_permissions:
+- permission:
+    columns:
+    - address
+    - name
+    - created_at
+    - updated_at
+    - company_id
+    - id
+    filter:
+      company:
+        profiles:
+          user_id:
+            _eq: X-Hasura-User-Id
+  role: user
+update_permissions:
+- permission:
+    check: null
+    columns:
+    - address
+    - name
+    filter:
+      company:
+        profiles:
+          user_id:
+            _eq: X-Hasura-User-Id
+  role: user
+delete_permissions:
+- permission:
+    filter:
+      company:
+        profiles:
+          user_id:
+            _eq: X-Hasura-User-Id
+  role: user

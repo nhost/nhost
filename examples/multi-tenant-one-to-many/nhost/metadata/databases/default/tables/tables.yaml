@@ -6,6 +6,8 @@
 - "!include auth_user_roles.yaml"
 - "!include auth_users.yaml"
 - "!include public_companies.yaml"
+- "!include public_customer_comments.yaml"
+- "!include public_customers.yaml"
 - "!include public_profiles.yaml"
 - "!include storage_buckets.yaml"
 - "!include storage_files.yaml"
