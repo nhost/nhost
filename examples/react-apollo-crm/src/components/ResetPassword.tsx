@@ -1,12 +1,10 @@
 import { useNhostAuth } from "@nhost/react-auth";
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { Link } from "react-router-dom";
 import { nhost } from "../utils/nhost";
 
-export function SignIn() {
+export function ResetPassword() {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
 
   const { isAuthenticated } = useNhostAuth();
 
@@ -15,13 +13,13 @@ export function SignIn() {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const { error } = await nhost.auth.signIn({ email, password });
+    const { error } = await nhost.auth.resetPassword({ email });
 
     if (error) {
       return alert(error.message);
     }
 
-    navigate("/", { replace: true });
+    alert("Check out email inbox");
   };
 
   if (isAuthenticated) {
@@ -36,7 +34,7 @@ export function SignIn() {
             <div className="text-2xl font-bold text-blue-700">AquaSystem</div>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">
-            Sign In to AquaSystem
+            Reset Password
           </h2>
         </div>
 
@@ -66,54 +64,15 @@ export function SignIn() {
               </div>
 
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Password
-                </label>
-                <div className="mt-1">
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                    className="block w-full px-3 py-2 placeholder-gray-400 border border-gray-300 rounded-md shadow-sm appearance-none focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    tabIndex={2}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="text-sm">
-                  <Link
-                    to="/reset-password"
-                    className="font-medium text-blue-600 hover:text-blue-500"
-                  >
-                    Forgot your password?
-                  </Link>
-                </div>
-              </div>
-
-              <div>
                 <button
                   type="submit"
                   className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   tabIndex={3}
                 >
-                  Sign in
+                  Reset Password
                 </button>
               </div>
             </form>
-          </div>
-          <div className="text-center py-4">
-            Don't have an account?{" "}
-            <Link to="/sign-up" className="text-blue-600 hover:text-blue-500">
-              Sign Up
-            </Link>
           </div>
         </div>
       </div>

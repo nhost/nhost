@@ -28,19 +28,41 @@ This includes among others the following features:
 
 This example app has some work in progress:
 
-### Create customer
+### Customers: New
 
 - [ ] Add zipcode, town and country to new users
 - [ ] Toast for submits
 
-### Render customer
+### Customers: Customer
 
-- [ ] Render customer's information
+- [ ] Render single customer
 
-### Customers listing
+### Customers: List
 
 - [ ] Show correct current and total results
 - [ ] Correct pagination
+
+## Orders: List
+
+- [ ] List existing orders
+
+## Orders: New
+
+- [ ] Create new order
+
+## Orders: Order
+
+- [ ] Render single order
+
+## Settings
+
+- [ ] Update company name and address
+- [ ] Add company logo
+- [ ] ~ Client-side cropping to company logo before uploading
+
+## Search:
+
+- [ ] Make top-level search bar working
 
 ---
 

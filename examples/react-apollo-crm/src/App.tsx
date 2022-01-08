@@ -11,6 +11,7 @@ import { RequireAuth } from "./components/RequireAuth";
 import { Customer } from "./components/Customer";
 import { SignUp } from "./components/SignUp";
 import { SignIn } from "./components/SignIn";
+import { ResetPassword } from "./components/ResetPassword";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function AppRouter() {
     <Routes>
       <Route path="/sign-up" element={<SignUp />} />
       <Route path="/sign-in" element={<SignIn />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/"
         element={

@@ -1,8 +1,6 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Menu, Transition } from "@headlessui/react";
 import {
-  BellIcon,
-  ChartBarIcon,
   FolderIcon,
   HomeIcon,
   InboxIcon,
@@ -11,15 +9,15 @@ import {
   XIcon,
 } from "@heroicons/react/outline";
 import { SearchIcon } from "@heroicons/react/solid";
-import { Link, NavLink } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { nhost } from "../../utils/nhost";
+import { ChangePasswordModal } from "../ChangePasswordModal";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
   { name: "Orders", href: "/orders", icon: UsersIcon, current: false },
   { name: "Customers", href: "/customers", icon: FolderIcon, current: false },
   { name: "Settings", href: "/settings", icon: InboxIcon, current: false },
-  { name: "Reports", href: "/reports", icon: ChartBarIcon, current: false },
 ];
 
 function classNames(...classes: string[]) {
@@ -28,17 +26,21 @@ function classNames(...classes: string[]) {
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+
+  useEffect(() => {
+    console.log("useEffect RUN");
+
+    if (window.location.hash.search("type=passwordReset") !== -1) {
+      console.log("FOUND!");
+
+      setShowChangePasswordModal(true);
+    }
+  }, []);
 
   return (
     <>
-      {/*
-        This example requires updating your template:
-
-        ```
-        <html class="h-full bg-gray-100">
-        <body class="h-full">
-        ```
-      */}
+      {showChangePasswordModal && <ChangePasswordModal />}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
           <Dialog
@@ -195,13 +197,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 </form>
               </div>
               <div className="flex items-center ml-4 md:ml-6">
-                <button
+                {/* <button
                   type="button"
                   className="p-1 text-gray-400 bg-white rounded-full hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                 >
                   <span className="sr-only">View notifications</span>
                   <BellIcon className="w-6 h-6" aria-hidden="true" />
-                </button>
+                </button> */}
 
                 {/* Profile dropdown */}
                 <Menu as="div" className="relative ml-3">
@@ -210,7 +212,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       <span className="sr-only">Open user menu</span>
                       <img
                         className="w-8 h-8 rounded-full"
-                        src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80"
+                        src={nhost.auth.getUser()?.avatarUrl}
                         alt=""
                       />
                     </Menu.Button>
@@ -225,19 +227,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     leaveTo="transform opacity-0 scale-95"
                   >
                     <Menu.Items className="absolute right-0 w-48 py-1 mt-2 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                      <Menu.Item>
-                        {({ active }) => (
-                          <Link
-                            to={"/"}
-                            className={classNames(
-                              active ? "bg-gray-100" : "",
-                              "block px-4 py-2 text-sm text-gray-700"
-                            )}
-                          >
-                            123
-                          </Link>
-                        )}
-                      </Menu.Item>
                       <Menu.Item>
                         {({ active }) => (
                           <div
