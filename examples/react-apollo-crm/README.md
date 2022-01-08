@@ -55,7 +55,7 @@ npm install
 2. Terminal 1: Start Nhost
 
 ```
-nhos dev
+nhost dev
 ```
 
 2. Terminal 2: Start React App
