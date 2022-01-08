@@ -378,7 +378,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "sha-b0d04e8"
+				parsed.Services[name].Version = "sha-994af31"
 			}
 
 			if parsed.Services[name].Image == "" {
