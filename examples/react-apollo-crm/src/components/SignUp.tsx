@@ -15,15 +15,17 @@ export function SignUp() {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    await nhost.auth.signUp({ email, password });
+    const { error } = await nhost.auth.signUp({ email, password });
+
+    if (error) {
+      return alert(error.message);
+    }
 
     navigate("/", { replace: true });
   };
 
-  console.log({ isAuthenticated });
-
   if (isAuthenticated) {
-    // navigate("/");
+    navigate("/");
   }
 
   return (
