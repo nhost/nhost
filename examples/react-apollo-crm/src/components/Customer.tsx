@@ -5,7 +5,7 @@ import { PageHeader } from "./ui/PageHeader";
 
 import { useParams } from "react-router";
 import { useCustomerQuery } from "../utils/__generated__/graphql";
-import { NavLink } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import classNames from "classnames";
 import { CustomerActivities } from "./CustomerActivities";
 import { CustomerAddComment } from "./CustomerAddComment";
@@ -13,7 +13,6 @@ import { CustomerAddComment } from "./CustomerAddComment";
 const tabs = [
   { name: "Overview", href: "" },
   { name: "Orders", href: "orders" },
-  { name: "Offers", href: "offers" },
   { name: "Files", href: "files" },
 ];
 
@@ -85,7 +84,9 @@ export function Customer() {
         </div>
       </div>
 
-      <div className="py-12 border-b">Details</div>
+      <div className="py-12 border-b">
+        Details: <Outlet />
+      </div>
 
       <div className="grid grid-cols-2 py-10 space-x-4">
         <div className="">

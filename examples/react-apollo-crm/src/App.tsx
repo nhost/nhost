@@ -43,7 +43,11 @@ function AppRouter() {
         </Route>
         <Route path="/customers">
           <Route path="" element={<Customers />} />
-          <Route path=":customerId" element={<Customer />} />
+          <Route path=":customerId" element={<Customer />}>
+            <Route path="" element={<div>some information</div>} />
+            <Route path="orders" element={<div>Orders..</div>} />
+            <Route path="files" element={<div>Files..</div>} />
+          </Route>
           <Route path="new" element={<NewCustomer />} />
         </Route>
         <Route path="/settings">
