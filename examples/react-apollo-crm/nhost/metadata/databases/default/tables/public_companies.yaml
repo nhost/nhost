@@ -1,6 +1,22 @@
 table:
   name: companies
   schema: public
+configuration:
+  custom_column_names:
+    created_at: createdAt
+    email_domain: emailDomain
+    updated_at: updatedAt
+  custom_name: companies
+  custom_root_fields:
+    delete: deleteCompanies
+    delete_by_pk: deleteCompany
+    insert: insertCompanies
+    insert_one: insertCompany
+    select: companies
+    select_aggregate: companiesAggregate
+    select_by_pk: company
+    update: updateCompanies
+    update_by_pk: updateCompany
 array_relationships:
 - name: companyUsers
   using:

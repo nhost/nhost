@@ -8,7 +8,17 @@ configuration:
     id: id
     updated_at: updatedAt
     user_id: userId
-  custom_root_fields: {}
+  custom_name: companyUsers
+  custom_root_fields:
+    delete: deleteCompanyUsers
+    delete_by_pk: deleteCompanyUser
+    insert: insertCompanyUsers
+    insert_one: insertCompanyUser
+    select: companyUsers
+    select_aggregate: companyUserAggregate
+    select_by_pk: companyUser
+    update: updateCompanyUsers
+    update_by_pk: updateCompanyUser
 object_relationships:
 - name: company
   using:

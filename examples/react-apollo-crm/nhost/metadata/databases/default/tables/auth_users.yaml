@@ -100,3 +100,17 @@ select_permissions:
             user_id:
               _eq: X-Hasura-User-Id
   role: user
+event_triggers:
+- definition:
+    enable_manual: false
+    insert:
+      columns: "*"
+  headers:
+  - name: nhost-webhook-secret
+    value_from_env: NHOST_WEBHOOK_SECRET
+  name: users-insert-create-company-connection
+  retry_conf:
+    interval_sec: 10
+    num_retries: 0
+    timeout_sec: 60
+  webhook: "{{NHOST_BACKEND_URL}}/v1/functions/users/insert/create-company-connection"
