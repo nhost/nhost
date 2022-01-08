@@ -1,6 +1,6 @@
-# CRM
+# CRM Example App with Nhost
 
-A CRM example app with Nhost.
+![Customers](assets/customers.png)
 
 Using the following technologies:
 
