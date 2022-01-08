@@ -33,43 +33,22 @@ function AppRouter() {
         path="/"
         element={
           <RequireAuth>
-            <Layout>
-              <Dashboard />
-            </Layout>
+            <Layout />
           </RequireAuth>
         }
-      />
-      <Route path="/customers">
-        <Route
-          path=""
-          element={
-            <RequireAuth>
-              <Layout>
-                <Customers />
-              </Layout>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path=":customerId"
-          element={
-            <RequireAuth>
-              <Layout>
-                <Customer />
-              </Layout>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="new"
-          element={
-            <RequireAuth>
-              <Layout>
-                <NewCustomer />
-              </Layout>
-            </RequireAuth>
-          }
-        />
+      >
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/orders">
+          <Route path="" element={<div>Coming soon...</div>} />
+        </Route>
+        <Route path="/customers">
+          <Route path="" element={<Customers />} />
+          <Route path=":customerId" element={<Customer />} />
+          <Route path="new" element={<NewCustomer />} />
+        </Route>
+        <Route path="/settings">
+          <Route path="" element={<div>Coming soon...</div>} />
+        </Route>
       </Route>
     </Routes>
   );

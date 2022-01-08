@@ -9,7 +9,7 @@ import {
   XIcon,
 } from "@heroicons/react/outline";
 import { SearchIcon } from "@heroicons/react/solid";
-import { NavLink } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { nhost } from "../../utils/nhost";
 import { ChangePasswordModal } from "../ChangePasswordModal";
 
@@ -24,9 +24,11 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+
+  console.log("Layout Reload");
 
   useEffect(() => {
     console.log("useEffect RUN");
@@ -251,7 +253,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </div>
 
           <main>
-            <div className="py-6">{children}</div>
+            <div className="py-6">
+              <Outlet />
+            </div>
           </main>
         </div>
       </div>
