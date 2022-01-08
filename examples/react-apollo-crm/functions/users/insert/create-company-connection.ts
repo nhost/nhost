@@ -8,12 +8,13 @@ const handler = async (req: Request, res: Response) => {
     return res.status(401).send("Unauthorized");
   }
 
+  // User who just signed up
   const user = req.body.event.data.new;
 
-  // check if company with email domain exists
+  // Get the user's email domain
   const emailDomain = user.email.split("@")[1];
 
-  // if company exists, attach user to copmany
+  // Check if a company with the user's email domain already exists.
   const GET_COMPANY_WITH_EMAIL_DOMAIN = `
   query getCompanyWithEmailDomain($emailDomain: String!) {
     companies(where: { emailDomain: { _eq: $emailDomain } }) {
@@ -40,12 +41,11 @@ const handler = async (req: Request, res: Response) => {
   const { companies } = data as any;
 
   let companyId;
-  // copmany exists
   if (companies.length === 1) {
+    // if a company already exists, use that company's id
     companyId = companies[0].id;
   } else {
-    // create company
-
+    // else, create a new company for the newly created user with the same email domain as the user
     const CREATE_NEW_COMPANY = `
   mutation insertCompany($emailDomain: String!) {
     insertCompany(object: { name: $emailDomain, emailDomain: $emailDomain }) {
@@ -74,6 +74,9 @@ const handler = async (req: Request, res: Response) => {
     companyId = insertCompany.id;
   }
 
+  // We now have the company id of an existing, or a newly created company.
+  // Now let's add the user to the company.
+
   const ADD_USER_TO_COMPANY = `
   mutation addUserToCompany($userId: uuid!, $companyId: uuid!) {
     insertCompanyUser(object: {userId: $userId, companyId: $companyId}) {
@@ -94,16 +97,11 @@ const handler = async (req: Request, res: Response) => {
     }
   );
 
-  console.log(data);
-  console.log(error);
-
   if (addUserToCompanyError) {
     return res.status(500).send(error);
   }
 
-  // else (company does not exist), create company and attach user to company
-
-  res.status(200).send(`Hello ${req.query.name}!`);
+  res.status(200).send(`OK`);
 };
 
 export default handler;
