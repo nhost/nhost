@@ -4,13 +4,14 @@ A CRM example app with Nhost.
 
 Using the following technologies:
 
-- Nhost (obviously)
-- React
-- TypeScript
-- GraphQL Codegens
-- TailwindCSS
+- [Nhost](https://nhost.io) (obviously)
+- [React]()
+- [TypeScript]()
+- [GraphQL Codegen](https://www.graphql-code-generator.com/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Tailwind UI](https://tailwindui.com/)
 
-Showing off:
+This includes among others the following features:
 
 - GraphQL
 - Permissions
