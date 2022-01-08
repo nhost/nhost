@@ -1,0 +1,42 @@
+table:
+  name: company_users
+  schema: public
+configuration:
+  custom_column_names:
+    company_id: companyId
+    created_at: createdAt
+    id: id
+    updated_at: updatedAt
+    user_id: userId
+  custom_name: companyUsers
+  custom_root_fields:
+    delete: deleteCompanyUsers
+    delete_by_pk: deleteCompanyUser
+    insert: insertCompanyUsers
+    insert_one: insertCompanyUser
+    select: companyUsers
+    select_aggregate: companyUserAggregate
+    select_by_pk: companyUser
+    update: updateCompanyUsers
+    update_by_pk: updateCompanyUser
+object_relationships:
+- name: company
+  using:
+    foreign_key_constraint_on: company_id
+- name: user
+  using:
+    foreign_key_constraint_on: user_id
+select_permissions:
+- permission:
+    columns:
+    - id
+    - created_at
+    - updated_at
+    - company_id
+    - user_id
+    filter:
+      company:
+        companyUsers:
+          user_id:
+            _eq: X-Hasura-User-Id
+  role: user

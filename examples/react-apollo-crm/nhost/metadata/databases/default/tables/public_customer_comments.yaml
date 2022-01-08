@@ -1,0 +1,83 @@
+table:
+  name: customer_comments
+  schema: public
+configuration:
+  custom_column_names:
+    created_at: createdAt
+    customer_id: customerId
+    file_id: fileId
+    updated_at: updatedAt
+    user_id: userId
+  custom_name: customerComments
+  custom_root_fields:
+    delete: deleteCustomerComments
+    delete_by_pk: deleteCustomerComment
+    insert: insertCustomerComments
+    insert_one: insertCustomerComment
+    select: customerComments
+    select_by_pk: customerComment
+    update: updateCustomerComments
+    update_by_pk: updateCustomerComment
+object_relationships:
+- name: customer
+  using:
+    foreign_key_constraint_on: customer_id
+- name: file
+  using:
+    foreign_key_constraint_on: file_id
+- name: user
+  using:
+    foreign_key_constraint_on: user_id
+insert_permissions:
+- permission:
+    backend_only: false
+    check:
+      customer:
+        company:
+          companyUsers:
+            user_id:
+              _eq: X-Hasura-User-Id
+    columns:
+    - customer_id
+    - file_id
+    - text
+    set:
+      user_id: x-hasura-user-id
+  role: user
+select_permissions:
+- permission:
+    columns:
+    - created_at
+    - customer_id
+    - file_id
+    - id
+    - text
+    - updated_at
+    - user_id
+    filter:
+      customer:
+        company:
+          companyUsers:
+            user_id:
+              _eq: X-Hasura-User-Id
+  role: user
+update_permissions:
+- permission:
+    check: null
+    columns: []
+    filter:
+      customer:
+        company:
+          companyUsers:
+            user_id:
+              _eq: X-Hasura-User-Id
+  role: user
+delete_permissions:
+- permission:
+    filter:
+      customer:
+        company:
+          companyUsers:
+            user_id:
+              _eq: X-Hasura-User-Id
+  role: user

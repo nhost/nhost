@@ -1,0 +1,46 @@
+table:
+  name: companies
+  schema: public
+configuration:
+  custom_column_names:
+    created_at: createdAt
+    email_domain: emailDomain
+    updated_at: updatedAt
+  custom_name: companies
+  custom_root_fields:
+    delete: deleteCompanies
+    delete_by_pk: deleteCompany
+    insert: insertCompanies
+    insert_one: insertCompany
+    select: companies
+    select_aggregate: companiesAggregate
+    select_by_pk: company
+    update: updateCompanies
+    update_by_pk: updateCompany
+array_relationships:
+- name: companyUsers
+  using:
+    foreign_key_constraint_on:
+      column: company_id
+      table:
+        name: company_users
+        schema: public
+- name: customers
+  using:
+    foreign_key_constraint_on:
+      column: company_id
+      table:
+        name: customers
+        schema: public
+select_permissions:
+- permission:
+    columns:
+    - id
+    - created_at
+    - updated_at
+    - name
+    filter:
+      companyUsers:
+        user_id:
+          _eq: X-Hasura-User-Id
+  role: user

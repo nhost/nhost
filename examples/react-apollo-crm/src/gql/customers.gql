@@ -1,0 +1,13 @@
+mutation insertCustomer($customer: customers_insert_input!) {
+  insertCustomer(object: $customer) {
+    id
+  }
+}
+
+query customer($customerId: uuid!) {
+  customer(id: $customerId) {
+    id
+    name
+    addressLine1
+  }
+}

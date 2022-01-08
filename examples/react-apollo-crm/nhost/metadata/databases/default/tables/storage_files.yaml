@@ -1,0 +1,75 @@
+table:
+  name: files
+  schema: storage
+configuration:
+  custom_column_names:
+    bucket_id: bucketId
+    created_at: createdAt
+    etag: etag
+    id: id
+    is_uploaded: isUploaded
+    mime_type: mimeType
+    name: name
+    size: size
+    updated_at: updatedAt
+    uploaded_by_user_id: uploadedByUserId
+  custom_name: files
+  custom_root_fields:
+    delete: deleteFiles
+    delete_by_pk: deleteFile
+    insert: insertFiles
+    insert_one: insertFile
+    select: files
+    select_aggregate: filesAggregate
+    select_by_pk: file
+    update: updateFiles
+    update_by_pk: updateFile
+object_relationships:
+- name: bucket
+  using:
+    foreign_key_constraint_on: bucket_id
+array_relationships:
+- name: customerCommentFiles
+  using:
+    manual_configuration:
+      column_mapping:
+        id: file_id
+      insertion_order: null
+      remote_table:
+        name: customer_comments
+        schema: public
+insert_permissions:
+- permission:
+    backend_only: false
+    check:
+      _or:
+      - bucket_id:
+          _eq: customerComments
+    columns:
+    - bucket_id
+    - id
+    - mime_type
+    - name
+  role: user
+select_permissions:
+- permission:
+    columns:
+    - id
+    - created_at
+    - updated_at
+    - bucket_id
+    - name
+    - size
+    - mime_type
+    - etag
+    - is_uploaded
+    - uploaded_by_user_id
+    filter:
+      _or:
+      - customerCommentFiles:
+          customer:
+            company:
+              companyUsers:
+                user_id:
+                  _eq: X-Hasura-User-Id
+  role: user
