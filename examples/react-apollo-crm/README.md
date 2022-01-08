@@ -30,22 +30,24 @@ This includes among others the following features:
 npm install
 ```
 
-2. Start Nhost (in terminal window 1)
+2. Terminal 1: Start Nhost
 
 ```
 nhos dev
 ```
 
-2. Start React App (in terminal window 2)
+2. Terminal 2: Start React App
 
 ```
 npm run start
 ```
 
-3. Start GraphQL Codegens (in terminal window 3)
-
-(Make sure that the Nhost backend in step 2 has started and is available)
+3. Terminal 3: Start GraphQL Codegens
 
 ```
 npm run codegen -- -w
 ```
+
+> Make sure that the Nhost backend in step 2 has started and is available
+
+---
