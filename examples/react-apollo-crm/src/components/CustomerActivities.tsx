@@ -1,10 +1,10 @@
-import { Fragment } from "react";
 import { ChatAltIcon } from "@heroicons/react/solid";
 import { useGetCustomerCommentsSubscription } from "../utils/__generated__/graphql";
 import { useParams } from "react-router";
 import { nhost } from "../utils/nhost";
 import { PhotographIcon } from "@heroicons/react/outline";
 import prettyBytes from "pretty-bytes";
+import { formatDistanceToNow, parseISO } from "date-fns";
 
 export function CustomerActivities() {
   const { customerId } = useParams();
@@ -63,15 +63,14 @@ export function CustomerActivities() {
                     <div className="flex-1 min-w-0">
                       <div>
                         <div className="text-sm">
-                          <a
-                            href={comment.user.id}
-                            className="font-medium text-gray-900"
-                          >
+                          <span className="font-medium text-gray-900">
                             {comment.user.displayName}
-                          </a>
+                          </span>
                         </div>
                         <p className="mt-0.5 text-sm text-gray-500">
-                          Commented {comment.createdAt}
+                          {formatDistanceToNow(parseISO(comment.createdAt), {
+                            addSuffix: true,
+                          })}
                         </p>
                       </div>
                       <div className="mt-2 text-sm text-gray-700">
@@ -81,17 +80,16 @@ export function CustomerActivities() {
                         <div
                           className="flex items-center mt-3 text-sm text-gray-700 cursor-pointer"
                           onClick={async () => {
-                            const url = await nhost.storage.getUrl({
-                              fileId: comment.file!.id,
-                            });
+                            const { presignedUrl, error } =
+                              await nhost.storage.getPresignedUrl({
+                                fileId: comment.file!.id,
+                              });
 
-                            // console.log(presignedUrl);
+                            if (error) {
+                              return alert(error.message);
+                            }
 
-                            // if (error) {
-                            //   return;
-                            // }
-
-                            window.open(url, "_blank");
+                            window.open(presignedUrl?.url, "_blank");
                           }}
                         >
                           <div>

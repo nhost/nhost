@@ -20,6 +20,7 @@
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
     "classnames": "^2.3.1",
+    "date-fns": "^2.28.0",
     "graphql": "^15.8.0",
     "graphql-tag": "^2.12.6",
     "pretty-bytes": "^5.6.0",

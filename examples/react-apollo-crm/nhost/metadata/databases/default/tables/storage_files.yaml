@@ -64,20 +64,6 @@ select_permissions:
     - etag
     - is_uploaded
     - uploaded_by_user_id
-    filter: {}
-  role: public
-- permission:
-    columns:
-    - id
-    - created_at
-    - updated_at
-    - bucket_id
-    - name
-    - size
-    - mime_type
-    - etag
-    - is_uploaded
-    - uploaded_by_user_id
     filter:
       _or:
       - customerCommentFiles:
