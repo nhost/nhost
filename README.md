@@ -93,7 +93,8 @@ Now you're ready to use these fundamental building blocks to build a unique expe
 
 ### Examples and tutorials
 
-- [Native Mobile App](https://github.com/nhost/nhost-dart/tree/main/packages/nhost_flutter_graphql/example) with Dart and Flutter
+- [CRM Example App](https://github.com/nhost/nhost/tree/main/examples/react-apollo-crm)
+- [Multi-tenant App](https://github.com/nhost/nhost/tree/main/examples/multi-tenant-one-to-many)
 
 # Backend development
 
