@@ -92,7 +92,7 @@ npm run start
 
 3. Terminal 3: Start GraphQL Codegens
 
-> Make sure that the Nhost backend in step 2 has started and is available
+> Make sure that the Nhost backend in step 2 has started and is available before you run this command
 
 ```
 npm run codegen -- -w
