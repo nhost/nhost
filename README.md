@@ -93,8 +93,8 @@ Now you're ready to use these fundamental building blocks to build a unique expe
 
 ### Examples and tutorials
 
-- [Todo App](https://github.com/nhost/nhost/tree/main/examples/create-react-app-apollo) with React
-- [Full App Template](https://github.com/nhost/nhost/tree/main/examples/nextjs-apollo) with Next.js
+- [Todo App](https://github.com/nhost/nhost/tree/main/templates/web/react-apollo) with React
+- [Full App Template](https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo) with Next.js
 - [Native Mobile App](https://github.com/nhost/nhost-dart/tree/main/packages/nhost_flutter_graphql/example) with Dart and Flutter
 - [Nuxt](https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo) with Apollo.
 
