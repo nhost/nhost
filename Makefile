@@ -48,7 +48,11 @@ tests: dev-env-up _wait integration-tests dev-env-down ## Run go test
 
 .PHONY: integration-tests
 integration-tests: ## Run go test with integration flags
-	@HASURA_AUTH_BEARER=$(shell make dev-jwt) go test -tags=integration $(GOTEST_OPTIONS) ./...
+	@HASURA_AUTH_BEARER=$(shell make dev-jwt) \
+	 TEST_S3_ACCESS_KEY=$(shell make dev-s3-access-key) \
+	 TEST_S3_SECRET_KEY=$(shell make dev-s3-secret-key) \
+	 GIN_MODE=release \
+		go test -tags=integration $(GOTEST_OPTIONS) ./...
 
 
 .PHONY: install-linter
@@ -86,3 +90,11 @@ dev-env-build:  ## Builds development environment
 .PHONY: dev-jwt
 dev-jwt:
 	@sh ./build/dev/docker/jwt-gen/get-jwt.sh
+
+.PHONY: dev-s3-access-key
+dev-s3-access-key:
+	@docker exec -i minio bash -c 'echo $$MINIO_ROOT_USER'
+
+.PHONY: dev-s3-secret-key
+dev-s3-secret-key:
+	@docker exec -i minio bash -c 'echo $$MINIO_ROOT_PASSWORD'

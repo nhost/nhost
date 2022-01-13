@@ -89,3 +89,16 @@ func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, 
 
 	return url, nil
 }
+
+func (s *S3) DeleteFile(filepath string) *controller.APIError {
+	_, err := s.session.DeleteObject(
+		&s3.DeleteObjectInput{
+			Bucket: s.bucket,
+			Key:    &filepath,
+		})
+	if err != nil {
+		return parseS3Error(fmt.Errorf("problem deleting file in s3: %w", err))
+	}
+
+	return nil
+}

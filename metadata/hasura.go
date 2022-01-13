@@ -44,6 +44,19 @@ type BucketMetadata struct {
 	CacheControl         graphql.String  `graphql:"cache_control"`
 }
 
+func (md BucketMetadata) ToControllerType() controller.BucketMetadata {
+	return controller.BucketMetadata{
+		ID:                   string(md.ID),
+		MinUploadFile:        int(md.MinUploadFile),
+		MaxUploadFile:        int(md.MaxUploadFile),
+		PresignedURLsEnabled: bool(md.PresignedURLsEnabled),
+		DownloadExpiration:   int(md.DownloadExpiration),
+		CreatedAt:            string(md.CreatedAt),
+		UpdatedAt:            string(md.UpdatedAt),
+		CacheControl:         string(md.CacheControl),
+	}
+}
+
 type FileMetadata struct {
 	ID               graphql.String  `graphql:"id"`
 	Name             graphql.String  `graphql:"name"`
@@ -57,9 +70,31 @@ type FileMetadata struct {
 	UploadedByUserID graphql.String  `graphql:"uploaded_by_user_id"`
 }
 
+func (md FileMetadata) ToControllerType() controller.FileMetadata {
+	return controller.FileMetadata{
+		ID:               string(md.ID),
+		Name:             string(md.Name),
+		Size:             int64(md.Size),
+		BucketID:         string(md.BucketID),
+		ETag:             string(md.ETag),
+		CreatedAt:        string(md.CreatedAt),
+		UpdatedAt:        string(md.UpdatedAt),
+		IsUploaded:       bool(md.IsUploaded),
+		MimeType:         string(md.MimeType),
+		UploadedByUserID: string(md.UploadedByUserID),
+	}
+}
+
 type FileMetadataWithBucket struct {
 	FileMetadata
 	Bucket BucketMetadata `graphql:"bucket"`
+}
+
+func (md FileMetadataWithBucket) ToControllerType() controller.FileMetadataWithBucket {
+	return controller.FileMetadataWithBucket{
+		FileMetadata: md.FileMetadata.ToControllerType(),
+		Bucket:       md.Bucket.ToControllerType(),
+	}
 }
 
 type HasuraAuthorizer func(in http.Header) graphql.RequestModifier
@@ -110,16 +145,7 @@ func (h *Hasura) GetBucketByID(
 		return controller.BucketMetadata{}, controller.ErrBucketNotFound
 	}
 
-	return controller.BucketMetadata{
-		ID:                   string(query.StorageBucketsByPK.ID),
-		MinUploadFile:        int(query.StorageBucketsByPK.MinUploadFile),
-		MaxUploadFile:        int(query.StorageBucketsByPK.MaxUploadFile),
-		PresignedURLsEnabled: bool(query.StorageBucketsByPK.PresignedURLsEnabled),
-		DownloadExpiration:   int(query.StorageBucketsByPK.DownloadExpiration),
-		CreatedAt:            string(query.StorageBucketsByPK.CreatedAt),
-		UpdatedAt:            string(query.StorageBucketsByPK.UpdatedAt),
-		CacheControl:         string(query.StorageBucketsByPK.CacheControl),
-	}, nil
+	return query.StorageBucketsByPK.ToControllerType(), nil
 }
 
 func (h *Hasura) InitializeFile(ctx context.Context, fileID string, headers http.Header) *controller.APIError {
@@ -173,18 +199,7 @@ func (h *Hasura) PopulateMetadata(
 		return controller.FileMetadata{}, controller.ErrFileNotFound
 	}
 
-	return controller.FileMetadata{
-		ID:               string(query.UpdateStorageFile.ID),
-		Name:             string(query.UpdateStorageFile.Name),
-		Size:             int64(query.UpdateStorageFile.Size),
-		BucketID:         string(query.UpdateStorageFile.BucketID),
-		ETag:             string(query.UpdateStorageFile.ETag),
-		CreatedAt:        string(query.UpdateStorageFile.CreatedAt),
-		UpdatedAt:        string(query.UpdateStorageFile.UpdatedAt),
-		IsUploaded:       bool(query.UpdateStorageFile.IsUploaded),
-		MimeType:         string(query.UpdateStorageFile.MimeType),
-		UploadedByUserID: string(query.UpdateStorageFile.UploadedByUserID),
-	}, nil
+	return query.UpdateStorageFile.ToControllerType(), nil
 }
 
 func (h *Hasura) GetFileByID(
@@ -211,30 +226,61 @@ func (h *Hasura) GetFileByID(
 		return controller.FileMetadataWithBucket{}, controller.ErrFileNotFound
 	}
 
-	return controller.FileMetadataWithBucket{
-		FileMetadata: controller.FileMetadata{
-			ID:               fileID,
-			Name:             string(query.StorageFilesByPK.Name),
-			Size:             int64(query.StorageFilesByPK.Size),
-			BucketID:         string(query.StorageFilesByPK.BucketID),
-			ETag:             string(query.StorageFilesByPK.ETag),
-			CreatedAt:        string(query.StorageFilesByPK.CreatedAt),
-			UpdatedAt:        string(query.StorageFilesByPK.UpdatedAt),
-			IsUploaded:       bool(query.StorageFilesByPK.IsUploaded),
-			MimeType:         string(query.StorageFilesByPK.MimeType),
-			UploadedByUserID: string(query.StorageFilesByPK.UploadedByUserID),
-		},
-		Bucket: controller.BucketMetadata{
-			ID:                   string(query.StorageFilesByPK.Bucket.ID),
-			MinUploadFile:        int(query.StorageFilesByPK.Bucket.MinUploadFile),
-			MaxUploadFile:        int(query.StorageFilesByPK.Bucket.MaxUploadFile),
-			PresignedURLsEnabled: bool(query.StorageFilesByPK.Bucket.PresignedURLsEnabled),
-			DownloadExpiration:   int(query.StorageFilesByPK.Bucket.DownloadExpiration),
-			CreatedAt:            string(query.StorageFilesByPK.Bucket.CreatedAt),
-			UpdatedAt:            string(query.StorageFilesByPK.Bucket.UpdatedAt),
-			CacheControl:         string(query.StorageFilesByPK.Bucket.CacheControl),
-		},
-	}, nil
+	return query.StorageFilesByPK.ToControllerType(), nil
+}
+
+func (h *Hasura) SetIsUploaded(
+	ctx context.Context, fileID string, isUploaded bool, headers http.Header,
+) *controller.APIError {
+	var query struct {
+		UpdateStorageFile struct {
+			ID graphql.String `graphql:"id"`
+		} `graphql:"update_storage_files_by_pk(pk_columns: {id: $id}, _set: {is_uploaded: $is_uploaded})"`
+	}
+
+	variables := map[string]interface{}{
+		"id":          uuid(fileID),
+		"is_uploaded": graphql.Boolean(isUploaded),
+	}
+
+	client := h.client.WithRequestModifier(h.authorizer(headers))
+	err := client.Mutate(ctx, &query, variables)
+	if err != nil {
+		return parseGraphqlError(err)
+	}
+
+	if query.UpdateStorageFile.ID == "" {
+		return controller.ErrFileNotFound
+	}
+
+	return nil
+}
+
+func (h *Hasura) DeleteFileByID(
+	ctx context.Context,
+	fileID string,
+	headers http.Header,
+) (controller.FileMetadataWithBucket, *controller.APIError) {
+	var query struct {
+		StorageFileByPK FileMetadataWithBucket `graphql:"delete_storage_files_by_pk(id: $id)"`
+	}
+
+	variables := map[string]interface{}{
+		"id": uuid(fileID),
+	}
+
+	client := h.client.WithRequestModifier(h.authorizer(headers))
+	err := client.Mutate(ctx, &query, variables)
+	if err != nil {
+		aerr := parseGraphqlError(err)
+		return controller.FileMetadataWithBucket{}, aerr.ExtendError("problem executing query")
+	}
+
+	if query.StorageFileByPK.ID == graphql.String("") {
+		return controller.FileMetadataWithBucket{}, controller.ErrFileNotFound
+	}
+
+	return query.StorageFileByPK.ToControllerType(), nil
 }
 
 func (h *Hasura) SetIsUploaded(

@@ -50,6 +50,7 @@ type MetadataStorage interface {
 		headers http.Header) (FileMetadata, *APIError,
 	)
 	SetIsUploaded(ctx context.Context, fileID string, isUploaded bool, headers http.Header) *APIError
+	DeleteFileByID(ctx context.Context, fileID string, headers http.Header) (FileMetadataWithBucket, *APIError)
 }
 
 //go:generate mockgen -destination mock_controller/content_storage.go -package mock_controller . ContentStorage
@@ -57,6 +58,7 @@ type ContentStorage interface {
 	PutFile(content io.ReadSeeker, filepath, contentType string) (string, *APIError)
 	GetFile(id string) (io.ReadCloser, *APIError)
 	CreatePresignedURL(filepath string, expire time.Duration) (string, *APIError)
+	DeleteFile(filepath string) *APIError
 }
 
 type Controller struct {
@@ -97,6 +99,7 @@ func (ctrl *Controller) SetupRouter(logger gin.HandlerFunc) *gin.Engine {
 		files.GET("/:id", ctrl.GetFile)
 		files.HEAD("/:id", ctrl.GetFileInformation)
 		files.PUT("/:id", ctrl.UpdateFile)
+		files.DELETE("/:id", ctrl.DeleteFile)
 	}
 
 	return router

@@ -89,6 +89,7 @@ func (ctrl *Controller) upload(
 		filepath := bucket.ID + "/" + file.ID
 		etag, contentType, err := ctrl.uploadSingleFile(file, filepath)
 		if err != nil {
+			_, _ = ctrl.metadataStorage.DeleteFileByID(ctx, file.ID, request.headers)
 			return filesMetadata, InternalServerError(fmt.Errorf("problem processing file %s: %w", file.Name, err))
 		}
 

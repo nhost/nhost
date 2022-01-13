@@ -88,7 +88,20 @@ curl $URL/$FILE_ID \
   -H "$AUTH" \
   -H "If-Unmodified-Since: Thu, 22 Dec 2021 10:00:00 UTC"
 
+echo "🟢 Get file"
 curl $URL/$FILE_ID \
    --output /dev/null \
+  -v \
+  -H "$AUTH"
+
+echo "🟢 Delete file"
+curl $URL/$FILE_ID \
+  -X DELETE \
+  -v \
+  -H "$AUTH"
+
+echo "🟡 Get file, should get 404"
+curl $URL/$FILE_ID \
+  --output /dev/null \
   -v \
   -H "$AUTH"
