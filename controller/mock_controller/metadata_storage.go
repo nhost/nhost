@@ -94,3 +94,17 @@ func (mr *MockMetadataStorageMockRecorder) PopulateMetadata(arg0, arg1, arg2, ar
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PopulateMetadata", reflect.TypeOf((*MockMetadataStorage)(nil).PopulateMetadata), arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7, arg8)
 }
+
+// SetIsUploaded mocks base method.
+func (m *MockMetadataStorage) SetIsUploaded(arg0 context.Context, arg1 string, arg2 bool, arg3 http.Header) *controller.APIError {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetIsUploaded", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*controller.APIError)
+	return ret0
+}
+
+// SetIsUploaded indicates an expected call of SetIsUploaded.
+func (mr *MockMetadataStorageMockRecorder) SetIsUploaded(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetIsUploaded", reflect.TypeOf((*MockMetadataStorage)(nil).SetIsUploaded), arg0, arg1, arg2, arg3)
+}

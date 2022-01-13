@@ -72,6 +72,11 @@ components:
           type: string
         name:
           type: string
+    UpdateFileMetadata:
+      type: object
+      properties:
+        name:
+          type: string
     Error:
       type: object
       properties:
@@ -268,8 +273,8 @@ paths:
               schema:
                 type: string
     get:
-      summary: Retrieve information about a file
-      description: Retrieve information about a file
+      summary: Retrieve contents of file
+      description: Retrieve contents of file
       tags:
         - storage
       security:
@@ -385,3 +390,48 @@ paths:
               description: An error message
               schema:
                 type: string
+    put:
+      summary: Replace an existing file with a new one
+      description: |
+        Replace the contents of an existing file. The workflow to replace a file is as follows:
+          1. Set isUploaded flag to false
+          2. Replace contents of the file in the storage backend
+          3. Update file metadata (size, mime-type, isUploaded, etc)
+          
+        Each individual state is atomic but if a step fails, previous steps won't be undone 
+      tags:
+        - storage
+      security:
+        - hasuraJWT: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                metadata:
+                  $ref: '#/components/schemas/UpdateFileMetadata'
+                file:
+                  description: New contents of the file to upload.
+            encoding:
+              file:
+                contentType: application/octet-stream
+      responses:
+        '200':
+          description: File was uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileMetadata'
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

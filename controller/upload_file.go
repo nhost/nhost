@@ -14,7 +14,7 @@ import (
 )
 
 // this type is used to ensure we respond consistently no matter the case.
-type UploadResponse struct {
+type UploadFileResponse struct {
 	ProcessedFiles []FileMetadata `json:"processedFiles,omitempty"`
 	Error          *ErrorResponse `json:"error,omitempty"`
 }
@@ -25,7 +25,7 @@ type fileData struct {
 	header *multipart.FileHeader
 }
 
-type uploadRequest struct {
+type uploadFileRequest struct {
 	bucketID string
 	files    []fileData
 	headers  http.Header
@@ -41,58 +41,33 @@ func checkFileSize(file *multipart.FileHeader, minSize, maxSize int) *APIError {
 	return nil
 }
 
-func (ctrl *Controller) uploadFile(
-	ctx context.Context,
+func (ctrl *Controller) uploadSingleFile(
 	file fileData,
-	bucket BucketMetadata,
-	headers http.Header,
-) (FileMetadata, *APIError) {
+	filePath string,
+) (string, string, *APIError) {
 	fileContent, err := file.header.Open()
 	if err != nil {
-		return FileMetadata{}, InternalServerError(fmt.Errorf("problem opening file %s: %w", file.Name, err))
+		return "", "", InternalServerError(fmt.Errorf("problem opening file %s: %w", file.Name, err))
 	}
 	defer fileContent.Close()
 
 	contentType, err := mimetype.DetectReader(fileContent)
 	if err != nil {
-		return FileMetadata{},
+		return "", "",
 			InternalServerError(fmt.Errorf("problem figuring out content type for file %s: %w", file.Name, err))
 	}
 
-	apiErr := ctrl.metadataStorage.InitializeFile(ctx, file.ID, headers)
+	etag, apiErr := ctrl.contentStorage.PutFile(fileContent, filePath, contentType.String())
 	if apiErr != nil {
-		return FileMetadata{}, apiErr
+		return "", "", apiErr.ExtendError("problem uploading file to storage")
 	}
 
-	filepath := bucket.ID + "/" + file.ID
-	etag, apiErr := ctrl.contentStorage.PutFile(fileContent, filepath, contentType.String())
-	if apiErr != nil {
-		return FileMetadata{}, apiErr.ExtendError("problem uploading file to storage")
-	}
-
-	if bucket.PresignedURLsEnabled {
-		_, aerr := ctrl.contentStorage.CreatePresignedURL(filepath, time.Duration(bucket.DownloadExpiration)*time.Minute)
-		if aerr != nil {
-			return FileMetadata{},
-				aerr.ExtendError(fmt.Sprintf("problem creating presigned URL for file %s", file.Name))
-		}
-	}
-
-	metadata, aerr := ctrl.metadataStorage.PopulateMetadata(
-		ctx,
-		file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType.String(),
-		headers,
-	)
-	if err != nil {
-		return FileMetadata{}, aerr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
-	}
-
-	return metadata, nil
+	return etag, contentType.String(), nil
 }
 
 func (ctrl *Controller) upload(
 	ctx context.Context,
-	request uploadRequest,
+	request uploadFileRequest,
 ) ([]FileMetadata, *APIError) {
 	bucket, err := ctrl.metadataStorage.GetBucketByID(ctx, request.bucketID, request.headers)
 	if err != nil {
@@ -106,11 +81,35 @@ func (ctrl *Controller) upload(
 			return filesMetadata, InternalServerError(fmt.Errorf("problem checking file size %s: %w", file.Name, err))
 		}
 
-		md, err := ctrl.uploadFile(ctx, file, bucket, request.headers)
+		apiErr := ctrl.metadataStorage.InitializeFile(ctx, file.ID, request.headers)
+		if apiErr != nil {
+			return filesMetadata, apiErr
+		}
+
+		filepath := bucket.ID + "/" + file.ID
+		etag, contentType, err := ctrl.uploadSingleFile(file, filepath)
 		if err != nil {
 			return filesMetadata, InternalServerError(fmt.Errorf("problem processing file %s: %w", file.Name, err))
 		}
-		filesMetadata = append(filesMetadata, md)
+
+		metadata, apiErr := ctrl.metadataStorage.PopulateMetadata(
+			ctx,
+			file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType,
+			request.headers,
+		)
+		if err != nil {
+			return filesMetadata, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
+		}
+
+		filesMetadata = append(filesMetadata, metadata)
+
+		if bucket.PresignedURLsEnabled {
+			_, apiErr := ctrl.contentStorage.CreatePresignedURL(filepath, time.Duration(bucket.DownloadExpiration)*time.Minute)
+			if apiErr != nil {
+				return filesMetadata,
+					apiErr.ExtendError(fmt.Sprintf("problem creating presigned URL for file %s", file.Name))
+			}
+		}
 	}
 
 	return filesMetadata, nil
@@ -141,10 +140,10 @@ func getBucketIDFromFormValue(md map[string][]string) string {
 	return "default"
 }
 
-func parseFilesData(ctx *gin.Context) ([]fileData, string, *APIError) {
+func parseUploadRequest(ctx *gin.Context) (uploadFileRequest, *APIError) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
-		return nil, "", InternalServerError(fmt.Errorf("problem reading multipart form: %w", err))
+		return uploadFileRequest{}, InternalServerError(fmt.Errorf("problem reading multipart form: %w", err))
 	}
 
 	files := form.File["file[]"]
@@ -152,15 +151,15 @@ func parseFilesData(ctx *gin.Context) ([]fileData, string, *APIError) {
 	md, ok := form.Value["metadata[]"]
 	if ok {
 		if len(md) != len(files) {
-			return nil, "", ErrMetadataLength
+			return uploadFileRequest{}, ErrMetadataLength
 		}
 	}
-	res := make([]fileData, len(files))
+	processedFiles := make([]fileData, len(files))
 
 	for idx, fileHeader := range files {
 		fileReq, err := fileDataFromFormValue(form.Value, fileHeader, idx)
 		if err != nil {
-			return []fileData{}, "", err
+			return uploadFileRequest{}, err
 		}
 		if fileReq.Name == "" {
 			fileReq.Name = fileHeader.Filename
@@ -168,43 +167,35 @@ func parseFilesData(ctx *gin.Context) ([]fileData, string, *APIError) {
 		if fileReq.ID == "" {
 			fileReq.ID = uuid.New().String()
 		}
-		res[idx] = fileReq
+		processedFiles[idx] = fileReq
 	}
 
-	return res, getBucketIDFromFormValue(form.Value), nil
-}
-
-func parseUploadRequest(ctx *gin.Context) (uploadRequest, *APIError) {
-	files, bucketID, err := parseFilesData(ctx)
-	if err != nil {
-		return uploadRequest{}, err
-	}
-
-	return uploadRequest{
-		bucketID: bucketID,
-		files:    files,
+	return uploadFileRequest{
+		bucketID: getBucketIDFromFormValue(form.Value),
+		files:    processedFiles,
 		headers:  ctx.Request.Header,
 	}, nil
 }
 
-func (ctrl *Controller) Upload(ctx *gin.Context) {
+func (ctrl *Controller) uploadFile(ctx *gin.Context) ([]FileMetadata, *APIError) {
 	request, apiErr := parseUploadRequest(ctx)
 	if apiErr != nil {
-		_ = ctx.Error(fmt.Errorf("problem parsing request: %w", apiErr))
-
-		ctx.JSON(apiErr.statusCode, UploadResponse{nil, apiErr.PublicResponse()})
-
-		return
+		return nil, apiErr
 	}
 
 	filesMetadata, apiErr := ctrl.upload(ctx.Request.Context(), request)
+	return filesMetadata, apiErr
+}
+
+func (ctrl *Controller) UploadFile(ctx *gin.Context) {
+	filesMetadata, apiErr := ctrl.uploadFile(ctx)
 	if apiErr != nil {
 		_ = ctx.Error(fmt.Errorf("problem processing request: %w", apiErr))
 
-		ctx.JSON(apiErr.statusCode, UploadResponse{filesMetadata, apiErr.PublicResponse()})
+		ctx.JSON(apiErr.statusCode, UploadFileResponse{filesMetadata, apiErr.PublicResponse()})
 
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, UploadResponse{filesMetadata, nil})
+	ctx.JSON(http.StatusCreated, UploadFileResponse{filesMetadata, nil})
 }

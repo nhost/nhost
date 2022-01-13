@@ -23,6 +23,8 @@ func parseGraphqlError(err error) *controller.APIError {
 		switch code {
 		case "access-denied", "validation-failed":
 			return controller.ForbiddenError(ghErr, "you are not authorized")
+		case "data-exception":
+			return controller.BadDataError(err, ghErr.Error())
 		default:
 			return controller.InternalServerError(err)
 		}
@@ -147,7 +149,7 @@ func (h *Hasura) PopulateMetadata(
 	headers http.Header,
 ) (controller.FileMetadata, *controller.APIError) {
 	var query struct {
-		InsertStorageFiles FileMetadata `graphql:"update_storage_files_by_pk(pk_columns: {id: $id}, _set: {bucket_id: $bucket_id, etag: $etag, is_uploaded: $is_uploaded, mime_type: $mime_type, name: $name, size: $size})"` // nolint
+		UpdateStorageFile FileMetadata `graphql:"update_storage_files_by_pk(pk_columns: {id: $id}, _set: {bucket_id: $bucket_id, etag: $etag, is_uploaded: $is_uploaded, mime_type: $mime_type, name: $name, size: $size})"` // nolint
 	}
 
 	variables := map[string]interface{}{
@@ -167,17 +169,21 @@ func (h *Hasura) PopulateMetadata(
 		return controller.FileMetadata{}, aerr.ExtendError("problem initializing file metadata")
 	}
 
+	if query.UpdateStorageFile.ID == "" {
+		return controller.FileMetadata{}, controller.ErrFileNotFound
+	}
+
 	return controller.FileMetadata{
-		ID:               string(query.InsertStorageFiles.ID),
-		Name:             string(query.InsertStorageFiles.Name),
-		Size:             int64(query.InsertStorageFiles.Size),
-		BucketID:         string(query.InsertStorageFiles.BucketID),
-		ETag:             string(query.InsertStorageFiles.ETag),
-		CreatedAt:        string(query.InsertStorageFiles.CreatedAt),
-		UpdatedAt:        string(query.InsertStorageFiles.UpdatedAt),
-		IsUploaded:       bool(query.InsertStorageFiles.IsUploaded),
-		MimeType:         string(query.InsertStorageFiles.MimeType),
-		UploadedByUserID: string(query.InsertStorageFiles.UploadedByUserID),
+		ID:               string(query.UpdateStorageFile.ID),
+		Name:             string(query.UpdateStorageFile.Name),
+		Size:             int64(query.UpdateStorageFile.Size),
+		BucketID:         string(query.UpdateStorageFile.BucketID),
+		ETag:             string(query.UpdateStorageFile.ETag),
+		CreatedAt:        string(query.UpdateStorageFile.CreatedAt),
+		UpdatedAt:        string(query.UpdateStorageFile.UpdatedAt),
+		IsUploaded:       bool(query.UpdateStorageFile.IsUploaded),
+		MimeType:         string(query.UpdateStorageFile.MimeType),
+		UploadedByUserID: string(query.UpdateStorageFile.UploadedByUserID),
 	}, nil
 }
 
@@ -229,4 +235,31 @@ func (h *Hasura) GetFileByID(
 			CacheControl:         string(query.StorageFilesByPK.Bucket.CacheControl),
 		},
 	}, nil
+}
+
+func (h *Hasura) SetIsUploaded(
+	ctx context.Context, fileID string, isUploaded bool, headers http.Header,
+) *controller.APIError {
+	var query struct {
+		UpdateStorageFile struct {
+			ID graphql.String `graphql:"id"`
+		} `graphql:"update_storage_files_by_pk(pk_columns: {id: $id}, _set: {is_uploaded: $is_uploaded})"`
+	}
+
+	variables := map[string]interface{}{
+		"id":          uuid(fileID),
+		"is_uploaded": graphql.Boolean(isUploaded),
+	}
+
+	client := h.client.WithRequestModifier(h.authorizer(headers))
+	err := client.Mutate(ctx, &query, variables)
+	if err != nil {
+		return parseGraphqlError(err)
+	}
+
+	if query.UpdateStorageFile.ID == "" {
+		return controller.ErrFileNotFound
+	}
+
+	return nil
 }

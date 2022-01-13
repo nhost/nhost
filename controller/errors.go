@@ -7,6 +7,12 @@ import (
 )
 
 var (
+	ErrMultipartFileWrong = &APIError{
+		http.StatusBadRequest,
+		"wrong file data in multipart form, one needs to be specified",
+		errors.New("wrong file data in multipart form, one needs to be specified"), // nolint
+		nil,
+	}
 	ErrWrongDate = &APIError{
 		http.StatusBadRequest,
 		"couldn't parse date",
@@ -15,8 +21,8 @@ var (
 	}
 	ErrMetadataLength = &APIError{
 		http.StatusBadRequest,
-		"file metadata missing for some files",
-		errors.New("file metadata missing for some files"), // nolint
+		"file metadata length doesn't match number of files in request",
+		errors.New("file metadata length doesn't match number of files in request"), // nolint
 		nil,
 	}
 	ErrBucketNotFound = &APIError{
@@ -27,16 +33,22 @@ var (
 	}
 	ErrFileNotFound = &APIError{
 		http.StatusNotFound,
-		"bucket not found",
+		"file not found",
 		errors.New("file not found"), // nolint
+		nil,
+	}
+	ErrFileNotUploaded = &APIError{
+		http.StatusForbidden,
+		"file not uploaded",
+		errors.New("file not uploaded"), // nolint
 		nil,
 	}
 )
 
 // Used to standardized the output of the handers' response.
 type ErrorResponse struct {
-	Message string
-	Data    map[string]interface{}
+	Message string                 `json:"message"`
+	Data    map[string]interface{} `json:"data,omitempty"`
 }
 
 type APIError struct {
@@ -103,6 +115,14 @@ func WrongMetadataFormatError(err error) *APIError {
 	return &APIError{
 		statusCode:    http.StatusBadRequest,
 		publicMessage: "couldn't decode metadata",
+		err:           err,
+	}
+}
+
+func BadDataError(err error, publicMessage string) *APIError {
+	return &APIError{
+		statusCode:    http.StatusBadRequest,
+		publicMessage: publicMessage,
 		err:           err,
 	}
 }

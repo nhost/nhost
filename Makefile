@@ -40,14 +40,15 @@ help: ## Show this help.
 	done
 
 
-.PHONY: tests
-tests: ## Run go test
-	go test $(GOTEST_OPTIONS) ./...
+_wait:
+	sleep 20
 
+.PHONY: tests
+tests: dev-env-up _wait integration-tests dev-env-down ## Run go test
 
 .PHONY: integration-tests
 integration-tests: ## Run go test with integration flags
-	go test -tags=integration $(GOTEST_OPTIONS) -integration
+	@HASURA_AUTH_BEARER=$(shell make dev-jwt) go test -tags=integration $(GOTEST_OPTIONS) ./...
 
 
 .PHONY: install-linter
@@ -68,7 +69,6 @@ build: ## Build application
 		 -ldflags ${LDFLAGS} \
 		 -o ./bin/hasura-storage \
 		 ./cmd/*.go
-
 
 .PHONY: dev-env-up
 dev-env-up: dev-env-down dev-env-build  ## Starts development environment

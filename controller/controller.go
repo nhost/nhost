@@ -49,6 +49,7 @@ type MetadataStorage interface {
 		id, name string, size int64, bucketID, etag string, IsUploaded bool, mimeType string,
 		headers http.Header) (FileMetadata, *APIError,
 	)
+	SetIsUploaded(ctx context.Context, fileID string, isUploaded bool, headers http.Header) *APIError
 }
 
 //go:generate mockgen -destination mock_controller/content_storage.go -package mock_controller . ContentStorage
@@ -92,9 +93,10 @@ func (ctrl *Controller) SetupRouter(logger gin.HandlerFunc) *gin.Engine {
 	}
 	files := apiV1.Group("/files")
 	{
-		files.POST("/", ctrl.Upload)
+		files.POST("/", ctrl.UploadFile)
 		files.GET("/:id", ctrl.GetFile)
 		files.HEAD("/:id", ctrl.GetFileInformation)
+		files.PUT("/:id", ctrl.UpdateFile)
 	}
 
 	return router

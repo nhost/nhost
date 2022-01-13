@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/gin-gonic/gin"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/metadata"
 	"github.com/nhost/hasura-storage/storage"
@@ -53,6 +54,10 @@ func main() {
 
 	if viper.GetBool("debug") {
 		logger.SetLevel(logrus.DebugLevel)
+		gin.SetMode(gin.DebugMode)
+	} else {
+		logger.SetLevel(logrus.InfoLevel)
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	logger.WithFields(

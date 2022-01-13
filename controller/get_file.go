@@ -34,10 +34,10 @@ func (ctrl *Controller) GetFile(ctx *gin.Context) {
 	defer object.Close()
 
 	if statusCode == http.StatusOK {
-		if _, e := io.Copy(ctx.Writer, object); e != nil {
-			_ = ctx.Error(fmt.Errorf("problem writing response: %w", e))
+		if _, err := io.Copy(ctx.Writer, object); err != nil {
+			_ = ctx.Error(fmt.Errorf("problem writing response: %w", err))
 
-			ctx.JSON(apiErr.statusCode, getFileResponse{apiErr.PublicResponse()})
+			ctx.JSON(http.StatusInternalServerError, getFileResponse{InternalServerError(err).PublicResponse()})
 
 			return
 		}

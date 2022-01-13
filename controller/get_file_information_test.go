@@ -93,6 +93,7 @@ func TestGetFileInfo(t *testing.T) {
 	cases := getFileTestCases()
 
 	logger := logrus.New()
+	logger.SetLevel(logrus.ErrorLevel)
 
 	for _, tc := range cases {
 		tc := tc

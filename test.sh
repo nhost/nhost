@@ -89,7 +89,6 @@ curl $URL/$FILE_ID \
   -H "If-Unmodified-Since: Thu, 22 Dec 2021 10:00:00 UTC"
 
 curl $URL/$FILE_ID \
+   --output /dev/null \
   -v \
-  -s \
-  -X GET \
   -H "$AUTH"

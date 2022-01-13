@@ -50,7 +50,7 @@ services:
     ports:
       - '8000:8000'
     environment:
-      DEBUG: true
+      DEBUG: "true"
       GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1/graphql
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-hello123}
       S3_ENDPOINT: http://minio:9000

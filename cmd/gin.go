@@ -46,7 +46,7 @@ func getGin(
 	debug bool,
 ) *gin.Engine {
 	if !debug {
-		gin.SetMode("release")
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	ctrl := controller.New(metadataStorage, contentStorage, logger)

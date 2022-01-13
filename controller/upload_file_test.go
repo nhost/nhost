@@ -103,6 +103,7 @@ func TestUploadFile(t *testing.T) {
 			t.Parallel()
 
 			logger := logrus.New()
+			logger.SetLevel(logrus.ErrorLevel)
 
 			files := []fakeFile{
 				{"some content", fakeFileMetadata{"a_file.txt", uuid.New().String()}},
@@ -194,11 +195,11 @@ func TestUploadFile(t *testing.T) {
 
 			assert(t, 201, responseRecorder.Code)
 
-			resp := &controller.UploadResponse{}
+			resp := &controller.UploadFileResponse{}
 			if err := json.Unmarshal(responseRecorder.Body.Bytes(), &resp); err != nil {
 				t.Fatal(err)
 			}
-			assert(t, &controller.UploadResponse{
+			assert(t, &controller.UploadFileResponse{
 				ProcessedFiles: []controller.FileMetadata{
 					{
 						ID:               "38288c85-02af-416b-b075-11c4dae9",
