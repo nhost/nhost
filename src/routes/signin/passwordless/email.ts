@@ -32,7 +32,7 @@ export const signInPasswordlessEmailHandler = async (
   // check if redirectTo is valid
   const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
   if (!isValidRedirectTo({ redirectTo })) {
-    return res.boom.badRequest(`'redirectTo' is not allowed`);
+    return res.boom.badRequest(`'redirectTo' is not valid.`);
   }
 
   // check if email already exist

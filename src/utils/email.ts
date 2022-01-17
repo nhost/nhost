@@ -38,14 +38,14 @@ export const isValidEmail = async ({
   // check if email is blocked
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS.includes(emailDomain)) {
     if (res) {
-      res.boom.forbidden('Email domain is not allowed');
+      res.boom.forbidden('Email domain is not valid');
     }
     return false;
   }
 
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAILS.includes(email)) {
     if (res) {
-      res.boom.forbidden('Email is not allowed');
+      res.boom.forbidden('Email is not valid');
     }
     return false;
   }
@@ -73,7 +73,7 @@ export const isValidEmail = async ({
   }
 
   if (res) {
-    res.boom.forbidden('Email is not allowed');
+    res.boom.forbidden('Email is not valid');
   }
   return false;
 };
