@@ -22,7 +22,7 @@ func getMetadataStorage(endpoint string) *metadata.Hasura {
 	return metadata.NewHasura(endpoint, metadata.ForWardHeadersAuthorizer)
 }
 
-func getContentStorage(s3Endpoint, region, s3AccessKey, s3SecretKey, bucket string, logger *logrus.Logger) *storage.S3 {
+func getContentStorage(s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string, logger *logrus.Logger) *storage.S3 {
 	config := &aws.Config{ // nolint: exhaustivestruct
 		Credentials:      credentials.NewStaticCredentials(s3AccessKey, s3SecretKey, ""),
 		Endpoint:         aws.String(s3Endpoint),
@@ -31,7 +31,7 @@ func getContentStorage(s3Endpoint, region, s3AccessKey, s3SecretKey, bucket stri
 		S3ForcePathStyle: aws.Bool(true),
 	}
 
-	st, err := storage.NewS3(config, bucket, logger)
+	st, err := storage.NewS3(config, bucket, rootFolder, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -81,6 +81,7 @@ func main() {
 		viper.GetString("s3_access_key"),
 		viper.GetString("s3_secret_key"),
 		viper.GetString("s3_bucket"),
+		viper.GetString("s3_root_folder"),
 		logger,
 	)
 

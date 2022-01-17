@@ -27,7 +27,7 @@ func getS3() *storage.S3 {
 
 	logger := logrus.New()
 
-	st, err := storage.NewS3(config, "default", logger)
+	st, err := storage.NewS3(config, "default", "a-root-folder", logger)
 	if err != nil {
 		panic(err)
 	}

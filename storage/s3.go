@@ -17,21 +17,23 @@ func parseS3Error(err error) *controller.APIError {
 }
 
 type S3 struct {
-	session *s3.S3
-	bucket  *string
-	logger  *logrus.Logger
+	session    *s3.S3
+	bucket     *string
+	rootFolder string
+	logger     *logrus.Logger
 }
 
-func NewS3(config *aws.Config, bucket string, logger *logrus.Logger) (*S3, *controller.APIError) {
+func NewS3(config *aws.Config, bucket string, rootFolder string, logger *logrus.Logger) (*S3, *controller.APIError) {
 	session, err := session.NewSession(config)
 	if err != nil {
 		return nil, parseS3Error(fmt.Errorf("problem creating S3 session: %w", err))
 	}
 
 	return &S3{
-		session: s3.New(session),
-		bucket:  aws.String(bucket),
-		logger:  logger,
+		session:    s3.New(session),
+		bucket:     aws.String(bucket),
+		rootFolder: rootFolder,
+		logger:     logger,
 	}, nil
 }
 
@@ -45,7 +47,7 @@ func (s *S3) PutFile(content io.ReadSeeker, filepath string, contentType string)
 		&s3.PutObjectInput{
 			Body:        content,
 			Bucket:      s.bucket,
-			Key:         aws.String(filepath),
+			Key:         aws.String(s.rootFolder + "/" + filepath),
 			ContentType: aws.String(contentType),
 		},
 	)
@@ -78,7 +80,7 @@ func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, 
 	request, _ := s.session.GetObjectRequest(
 		&s3.GetObjectInput{ // nolint:exhaustivestruct
 			Bucket: s.bucket,
-			Key:    aws.String(filepath),
+			Key:    aws.String(s.rootFolder + "/" + filepath),
 		},
 	)
 
@@ -94,7 +96,7 @@ func (s *S3) DeleteFile(filepath string) *controller.APIError {
 	_, err := s.session.DeleteObject(
 		&s3.DeleteObjectInput{
 			Bucket: s.bucket,
-			Key:    &filepath,
+			Key:    aws.String(s.rootFolder + "/" + filepath),
 		})
 	if err != nil {
 		return parseS3Error(fmt.Errorf("problem deleting file in s3: %w", err))

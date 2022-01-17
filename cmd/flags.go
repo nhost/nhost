@@ -22,6 +22,7 @@ func initFlags() {
 		pflag.String("s3_secret_key", "", "S3 Secret key")
 		pflag.String("s3_region", "", "S3 region")
 		pflag.String("s3_bucket", "", "S3 bucket")
+		pflag.String("s3_root_folder", "", "All buckets will be created inside this root")
 	}
 
 	pflag.Parse()

@@ -58,3 +58,4 @@ services:
       S3_SECRET_KEY: ${S3_SECRET_KEY:-9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8}
       S3_REGION: "Us-east-1"
       S3_BUCKET: "default"
+      S3_ROOT_FOLDER: "f215cf48-7458-4596-9aa5-2159fc6a3caf"

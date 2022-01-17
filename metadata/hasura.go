@@ -282,30 +282,3 @@ func (h *Hasura) DeleteFileByID(
 
 	return query.StorageFileByPK.ToControllerType(), nil
 }
-
-func (h *Hasura) SetIsUploaded(
-	ctx context.Context, fileID string, isUploaded bool, headers http.Header,
-) *controller.APIError {
-	var query struct {
-		UpdateStorageFile struct {
-			ID graphql.String `graphql:"id"`
-		} `graphql:"update_storage_files_by_pk(pk_columns: {id: $id}, _set: {is_uploaded: $is_uploaded})"`
-	}
-
-	variables := map[string]interface{}{
-		"id":          uuid(fileID),
-		"is_uploaded": graphql.Boolean(isUploaded),
-	}
-
-	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Mutate(ctx, &query, variables)
-	if err != nil {
-		return parseGraphqlError(err)
-	}
-
-	if query.UpdateStorageFile.ID == "" {
-		return controller.ErrFileNotFound
-	}
-
-	return nil
-}
