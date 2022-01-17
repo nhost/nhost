@@ -92,7 +92,7 @@ export const signInPasswordlessEmailHandler = async (
   }
 
   // create ticket
-  const ticket = `passwordlessEmai:${uuidv4()}`;
+  const ticket = `passwordlessEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
   await gqlSdk.updateUser({
