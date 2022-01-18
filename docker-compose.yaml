@@ -1,10 +1,11 @@
 version: '3.6'
 services:
   postgres:
-    image: nhost/postgres:12-v0.0.6
+    image: postgres
     restart: always
     volumes:
-      - ./docker/db_data/db:/var/lib/postgresql/data
+      - ./docker/data/db:/var/lib/postgresql/data
+      - ./docker/initdb.d:/docker-entrypoint-initdb.d:ro
     environment:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpgpassword}
     ports:
@@ -12,7 +13,7 @@ services:
   graphql-engine:
     image: hasura/graphql-engine:v2.1.1
     depends_on:
-      - 'postgres'
+      - postgres
     restart: always
     environment:
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres
@@ -36,4 +37,4 @@ services:
       - 1025:1025 # smtp server
       - 8025:8025 # web ui
     volumes:
-      - ./docker/mailhog:/maildir
+      - ./docker/data/mailhog:/maildir
