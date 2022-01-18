@@ -1,24 +1,13 @@
 name: Release
-on: workflow_dispatch
+on:
+  release:
+    types: [created, published]
 jobs:
   test:
     uses: nhost/hasura-auth/.github/workflows/test.yml@main
-  release:
+  publish:
     needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-      - name: git config
-        run: |
-          git config user.name "nhost"
-          git config user.email "nhost@users.noreply.github.com"
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '14'
-          cache: 'yarn'
-      - name: Install dependencies
-        run: yarn
-      - run: yarn release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    uses: nhost/hasura-auth/.github/workflows/publish.yml@main
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
