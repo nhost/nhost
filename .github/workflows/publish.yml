@@ -20,6 +20,7 @@ jobs:
           images: |
             nhost/hasura-auth
           # generate Docker tags based on the following events/attributes
+          # TODO add 'latest' tag when on last commit of 'main' branch
           tags: |
             type=schedule
             type=ref,event=branch
@@ -41,8 +42,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          # push: ${{ github.event_name != 'pull_request' }}
-          # TODO set to the above
-          push: false
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

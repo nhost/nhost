@@ -19,8 +19,7 @@ jobs:
           cache: 'yarn'
       - name: Install dependencies
         run: yarn
-      # TODO yarn release
-      - run: yarn release-it --dry-run
+      - run: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   publish:
