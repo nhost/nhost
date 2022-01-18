@@ -1,6 +1,6 @@
 FROM node:14-alpine AS builder
 WORKDIR /app
-COPY package.json yarn.lock tsconfig.json prod-paths.js ./
+COPY package.json yarn.lock tsconfig.json tsconfig.build.json ./
 RUN yarn install
 COPY src/ ./src/
 COPY types/ ./types/

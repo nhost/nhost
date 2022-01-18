@@ -27,8 +27,6 @@ export const userEmailSendVerificationEmailHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('inside user email reset handler');
-
   const { email, options } = req.body;
 
   // check if redirectTo is valid

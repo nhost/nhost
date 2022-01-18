@@ -5,7 +5,7 @@ import { request } from '../../../server';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../../utils';
 
 describe('passwordless email (magic link)', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({

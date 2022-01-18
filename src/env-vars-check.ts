@@ -1,7 +1,7 @@
 import { PROVIDERS } from '@config/index';
 import { logger } from './logger';
 
-function isUnset(val: any) {
+function isUnset(val?: string) {
   return (
     typeof val === 'undefined' || (typeof val === 'string' && val.length === 0)
   );

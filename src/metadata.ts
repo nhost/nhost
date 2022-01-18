@@ -49,7 +49,10 @@ interface RelationshipArgs {
   };
 }
 
-export const runMetadataRequest = async (args: any) => {
+export const runMetadataRequest = async (args: {
+  type: string;
+  args: TableArgs;
+}) => {
   await axios.post(
     ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/metadata'),
     args,
@@ -68,7 +71,7 @@ export const trackTable = async (args: TableArgs) => {
       type: 'pg_track_table',
       args,
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.response.data.code !== 'already-tracked') {
       logger.error(error);
       throw new Error(`Error tracking table ${args.table.name}`);
@@ -86,7 +89,7 @@ export const setTableCustomization = async (args: TableArgs) => {
       type: 'pg_set_table_customization',
       args,
     });
-  } catch (error) {
+  } catch (error: any) {
     logger.error(error);
     throw new Error('error setting customization for table ' + args.table.name);
   }
@@ -99,7 +102,7 @@ export const createObjectRelationship = async (args: RelationshipArgs) => {
       type: 'pg_create_object_relationship',
       args,
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.response.data.code !== 'already-exists') {
       throw new Error(
         `Error creating object relationship for table ${args.table.name}`
@@ -119,7 +122,7 @@ export const createArrayRelationship = async (args: RelationshipArgs) => {
       type: 'pg_create_array_relationship',
       args,
     });
-  } catch (error) {
+  } catch (error: any) {
     if (error.response.data.code !== 'already-exists') {
       throw new Error(
         `Error creating array relationship for table ${args.table.name}`

@@ -6,7 +6,7 @@ import { SignInResponse } from '../../../src/types';
 import { authenticator } from 'otplib';
 
 describe('mfa totp', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({

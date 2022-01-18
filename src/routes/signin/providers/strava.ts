@@ -17,10 +17,6 @@ export default (router: Router): void => {
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Strava OAuth`);
       } else {
-        console.log('next function 0');
-        console.log(next);
-        console.log(JSON.stringify(next, null, 2));
-
         return next();
       }
     }

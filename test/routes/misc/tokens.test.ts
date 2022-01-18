@@ -5,7 +5,7 @@ import { request } from '../../server';
 import { decodeAccessToken, isValidAccessToken } from '../../utils';
 
 describe('token', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({

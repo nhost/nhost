@@ -55,26 +55,25 @@ export function generatePermissionVariables(user: UserFieldsFragment): {
   }
 
   // custom user session variables
-  const customUserSessionVariables = {} as any;
+  const customUserSessionVariables: Record<string, unknown> = {};
   ENV.AUTH_USER_SESSION_VARIABLE_FIELDS.forEach((field) => {
     if (!(field in user)) {
       throw new Error('field not in user');
     }
 
-    // make user any type
-    const userAny = user as any;
+    const keyField = field as keyof UserFieldsFragment;
 
     // value to set for the session variable
     let value;
 
-    const type = typeof userAny[field] as ClaimValueType;
+    const type = typeof user[keyField];
 
     if (type === 'string') {
-      value = userAny[field];
-    } else if (Array.isArray(userAny[field])) {
-      value = toPgArray(userAny[field] as string[]);
+      value = user[keyField];
+    } else if (Array.isArray(user[keyField])) {
+      value = toPgArray(user[keyField] as string[]);
     } else {
-      value = JSON.stringify(userAny[field] ?? null);
+      value = JSON.stringify(user[keyField] ?? null);
     }
 
     // we've made sure `field` is part of `user` in the check above
@@ -138,7 +137,7 @@ export const getPermissionVariablesFromClaims = (
   claims: Claims
 ): PermissionVariables => {
   // remove `x-hasura-` from claim props
-  const claimsSanitized: { [k: string]: any } = {};
+  const claimsSanitized: Record<string, unknown> = {};
   for (const claimKey in claims) {
     claimsSanitized[claimKey.replace('x-hasura-', '') as string] =
       claims[claimKey];

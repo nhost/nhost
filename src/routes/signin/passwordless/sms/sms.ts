@@ -101,8 +101,6 @@ export const signInPasswordlessSmsHandler = async (
         to: phoneNumber,
       });
     } catch (error) {
-      console.log(error);
-
       // delete user that was inserted because we were not able to send the SMS
       await gqlSdk.deleteUser({
         userId,

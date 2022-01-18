@@ -83,7 +83,6 @@ export const signInPasswordlessEmailHandler = async (
       .then((res) => res.insertUser);
 
     if (!insertedUser) {
-      console.log('unable to insert new user');
       throw new Error('Unable to insert new user');
     }
 

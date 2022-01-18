@@ -20,8 +20,6 @@ export const mfatotpGenerateHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('mfa totp generate handler');
-
   if (!ENV.AUTH_MFA_ENABLED) {
     return res.boom.notFound();
   }
@@ -47,9 +45,6 @@ export const mfatotpGenerateHandler = async (
   });
 
   const imageUrl = await createQR(otpAuth);
-
-  console.log({ imageUrl });
-  console.log({ totpSecret });
 
   return res.send({ imageUrl, totpSecret });
 };

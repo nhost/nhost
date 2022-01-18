@@ -280,6 +280,7 @@ export const initProvider = <T extends Strategy>(
         await next();
       }
     ),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (req: RequestWithState<ProviderQuerySchema>, ...rest: any) => {
       return passport.authenticate(strategyName, {
         session: false,

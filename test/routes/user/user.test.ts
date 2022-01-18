@@ -6,7 +6,7 @@ import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
 
 describe('user password', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({

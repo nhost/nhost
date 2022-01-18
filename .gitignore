@@ -7,4 +7,5 @@ data
 yarn-error.log
 package-lock.json
 
-/docker/dev/db_data
+db_data
+.env

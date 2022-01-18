@@ -1,0 +1,39 @@
+version: '3.6'
+services:
+  postgres:
+    image: nhost/postgres:12-v0.0.6
+    restart: always
+    volumes:
+      - ./docker/db_data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secretpgpassword}
+    ports:
+      - '5432:5432'
+  graphql-engine:
+    image: hasura/graphql-engine:v2.1.1
+    depends_on:
+      - 'postgres'
+    restart: always
+    environment:
+      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres
+      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
+      HASURA_GRAPHQL_UNAUTHORIZED_ROLE: public
+      HASURA_GRAPHQL_LOG_LEVEL: debug
+      HASURA_GRAPHQL_ENABLE_CONSOLE: 'true'
+    ports:
+      - '8080:8080'
+  mailhog:
+    image: mailhog/mailhog
+    environment:
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      SMTP_PASS: ${AUTH_SMTP_PASS}
+      SMTP_USER: ${AUTH_SMTP_USER}
+      SMTP_SECURE: '${AUTH_SMTP_SECURE}'
+      SMTP_SENDER: ${AUTH_SMTP_SENDER}
+    ports:
+      - 1025:1025 # smtp server
+      - 8025:8025 # web ui
+    volumes:
+      - ./docker/mailhog:/maildir

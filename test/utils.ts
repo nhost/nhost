@@ -1,110 +1,8 @@
 import { JWT } from 'jose';
 import fetch, { Response } from 'node-fetch';
-import { SuperTest, Test } from 'supertest';
 
 import { ENV } from '../src/utils/env';
-import { getClaims } from '../src/utils/tokens';
 import { JwtSecret, Token } from '../src/types';
-
-export interface UserLoginData {
-  email: string;
-  password: string;
-}
-
-export type UserData = UserLoginData & {
-  id: string;
-  token: string;
-  refreshToken: string;
-  jwtToken: string;
-};
-
-export const generateRandomString = (): string =>
-  Math.random().toString(36).replace('0.', '');
-
-export const generateRandomEmail = () =>
-  `${generateRandomString()}@${generateRandomString()}.com`;
-
-const getUserId = (token: string): string =>
-  token && getClaims(token)['x-hasura-user-id'];
-
-export function withEnv(
-  env: Record<string, string>,
-  agent: SuperTest<Test>,
-  cb: (done: (...args: any[]) => any) => any,
-  done: (...args: any[]) => any
-) {
-  agent
-    .post('/change-env')
-    .send(env)
-    .then(() => {
-      cb((...args: any[]) => {
-        agent
-          .post('/reset-env')
-          .then(() => done(...args))
-          .catch(() => done(...args));
-      });
-    });
-}
-
-export const createAccountLoginData = (): UserLoginData => ({
-  email: `${generateRandomString()}@${generateRandomString()}.com`,
-  password: generateRandomString(),
-});
-
-export const registerAccount = async (
-  agent: SuperTest<Test>,
-  customRegisterData: Record<string, unknown> = {}
-): Promise<UserLoginData> => {
-  const userLoginData = createAccountLoginData();
-
-  return new Promise((resolve, reject) => {
-    withEnv(
-      {
-        JWT_CUSTOM_FIELDS: Object.keys(customRegisterData).join(','),
-      },
-      agent,
-      async (done) => {
-        await agent
-          .post('/register')
-          .send({
-            ...userLoginData,
-            customRegisterData,
-          })
-          .then((r) => {
-            if (r.body.error) console.log('zzzz', r.body);
-            done(userLoginData);
-          })
-          .catch(reject);
-      },
-      resolve
-    );
-  });
-};
-
-export const loginAccount = async (
-  agent: SuperTest<Test>,
-  userLoginData: UserLoginData
-): Promise<UserData> => {
-  const login = await agent.post('/login').send(userLoginData);
-
-  if (login.body.error) {
-    throw new Error(
-      `${login.body.statusCode} ${login.body.error}: ${login.body.message}`
-    );
-  }
-
-  return {
-    ...userLoginData,
-    token: login.body.jwtToken as string,
-    refreshToken: login.body.refreshToken as string,
-    jwtToken: login.body.jwtToken as string,
-    id: getUserId(login.body.jwtToken),
-  };
-};
-
-export const registerAndLoginAccount = async (agent: SuperTest<Test>) => {
-  return await loginAccount(agent, await registerAccount(agent));
-};
 
 interface MailhogEmailAddress {
   Relays: string | null;
@@ -141,7 +39,7 @@ interface MailhogMessage {
   };
 }
 
-export interface MailhogSearchResult {
+interface MailhogSearchResult {
   total: number;
   count: number;
   start: number;
@@ -159,7 +57,7 @@ export const mailHogSearch = async (
   return (jsonBody as MailhogSearchResult).items;
 };
 
-export const deleteMailHogEmail = async ({
+const deleteMailHogEmail = async ({
   ID,
 }: MailhogMessage): Promise<Response> => {
   return await fetch(
@@ -199,16 +97,6 @@ export const getHeaderFromLatestEmailAndDelete = async (
   await deleteMailHogEmail(message);
 
   return headerValue;
-};
-
-export const deleteUser = async (
-  agent: SuperTest<Test>,
-  user: UserLoginData
-): Promise<void> => {
-  // * Delete the user
-  await agent.post('/delete');
-  // * Remove any message sent to this user
-  await deleteEmailsOfAccount(user.email);
 };
 
 /**

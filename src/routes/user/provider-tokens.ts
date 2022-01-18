@@ -31,8 +31,6 @@ const rotate = async ({ providerId, userId }: BodyType) => {
     authUserProvider.refreshToken,
     async (err: unknown, accessToken: string, refreshToken: string) => {
       if (err) {
-        console.error('error:');
-        console.error(err);
         throw new Error('error refreshing tokens');
       }
 

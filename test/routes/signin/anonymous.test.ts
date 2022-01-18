@@ -13,7 +13,7 @@ let request: SuperTest<Test>;
 let server: Server;
 
 describe('anonymous', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({

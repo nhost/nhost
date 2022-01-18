@@ -57,7 +57,7 @@ Use [Nhost](https://nhost.io) to start using Hasura Auth in seconds.
 
 ## 🤝 Contributing
 
-Contributions and issues are welcome.
+Contributions and issues are welcome. Please have a look at the [developer's guide]('./DEVELOPERS.md') if you want to prepare a pull request.
 
 Feel free to check the issues page.
 

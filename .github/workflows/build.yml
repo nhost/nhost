@@ -72,7 +72,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: '14.x'
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn cache dir)"
@@ -120,6 +120,6 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           repository: nhost/hasura-auth
           path: .
-          dockerfile: docker/prod/Dockerfile
+          dockerfile: Dockerfile
           tag_with_ref: true
           tag_with_sha: true

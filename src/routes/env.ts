@@ -5,7 +5,7 @@ export default (router: Router) => {
   // They allows us to programmatically enable/disable
   // functionality needed for specific tests.
 
-  const envStack: any[] = [];
+  const envStack: unknown[] = [];
 
   router.post('/change-env', (req, res) => {
     if (process.env.NODE_ENV === 'production') {

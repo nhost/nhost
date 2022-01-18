@@ -59,7 +59,7 @@ const convertFieldToFileName = (field: EmailField) => {
 /**
  * Reusable email client.
  */
-export const emailClient: Email<any> = new Email({
+export const emailClient = new Email({
   transport,
   message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,

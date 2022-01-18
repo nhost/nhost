@@ -6,7 +6,7 @@ import { SignInResponse } from '../../../src/types';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
 
 describe('email-password', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({

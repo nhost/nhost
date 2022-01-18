@@ -165,7 +165,6 @@ export const providerCallbackQuery = Joi.object({
   state: Joi.string().uuid().required(),
 }).unknown(true);
 
-export type ProviderCallbackQuery = {
+export type ProviderCallbackQuery = Record<string, unknown> & {
   state: string;
-  [key: string]: any;
 };

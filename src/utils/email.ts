@@ -16,8 +16,6 @@ export const isValidEmail = async ({
   // check if email is valid
   if (!EmailValidator.validate(email)) {
     if (res) {
-      console.log({ email });
-
       res.boom.badRequest('The email is not a valid email address');
     }
     return false;

@@ -20,8 +20,6 @@ export const userMFAHandler = async (
   req: ValidatedRequest<Schema>,
   res: Response
 ): Promise<unknown> => {
-  console.log('user mfa handler');
-
   // check if user is logged in
   if (!req.auth?.userId) {
     return res.status(401).send('Incorrect access token');

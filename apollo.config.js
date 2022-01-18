@@ -1,12 +1,13 @@
+require('dotenv').config();
 module.exports = {
   client: {
     service: {
-      name: "Hasura Auth",
-      url: "http://localhost:8080/v1/graphql",
+      name: 'Hasura Auth',
+      url: process.env.HASURA_GRAPHQL_GRAPHQL_URL,
       headers: {
-        "x-hasura-admin-secret": "hello123",
+        'x-hasura-admin-secret': process.env.HASURA_GRAPHQL_ADMIN_SECRET,
       },
     },
-    includes: ["src/**/*.graphql"],
+    includes: ['src/**/*.graphql'],
   },
 };

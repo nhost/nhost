@@ -5,7 +5,7 @@ import { request } from '../../server';
 import { deleteAllMailHogEmails, isValidAccessToken } from '../../utils';
 
 describe('email-password', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({

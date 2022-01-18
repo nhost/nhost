@@ -7,7 +7,7 @@ import { SignInResponse } from '../../../src/types';
 import { mailHogSearch } from '../../utils';
 
 describe('user email', () => {
-  let client: any;
+  let client: Client;
 
   beforeAll(async () => {
     client = new Client({
@@ -57,7 +57,6 @@ describe('user email', () => {
 
     const newEmail = 'newemail@example.com';
 
-    console.log('1');
     await request
       .post('/user/email/change')
       // .set('Authorization', `Bearer ${accessToken}`)
@@ -81,7 +80,6 @@ describe('user email', () => {
     const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('email-confirm-change');
 
-    console.log('2');
     // wrong ticket should fail
     await request
       .get(
@@ -96,7 +94,6 @@ describe('user email', () => {
       )
       .expect(302);
 
-    console.log('3');
     // fail to signin with old email
     await request
       .post('/signin/email-password')
