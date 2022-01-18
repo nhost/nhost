@@ -85,6 +85,9 @@ export const signOutSchema = Joi.object({
 
 export const userPasswordResetSchema = Joi.object({
   email: emailRule.required(),
+  options: {
+    redirectTo: Joi.string(),
+  },
 });
 
 export const userPasswordSchema = Joi.object({

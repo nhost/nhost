@@ -1,15 +1,21 @@
 import { Client } from 'pg';
-// import { v4 as uuidv4 } from 'uuid';
+import * as faker from 'faker';
 
 import { request } from '../../server';
 import { ENV } from '../../../src/utils/env';
-import { SignInResponse } from '../../../src/types';
 import { mailHogSearch } from '../../utils';
 
 describe('user password', () => {
   let client: Client;
+  let accessToken: string | undefined;
+  const email = faker.internet.email();
+  const password = faker.internet.password();
 
   beforeAll(async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+    });
     client = new Client({
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
@@ -22,37 +28,23 @@ describe('user password', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
-  });
-
-  it('should change password with password', async () => {
-    await request.post('/change-env').send({
-      AUTH_DISABLE_NEW_USERS: false,
-      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-    });
-
-    const email = 'asdasd@asdasd.com';
-    const password = '123123123';
-
-    await request
+    const response = await request
       .post('/signup/email-password')
       .send({ email, password })
       .expect(200);
+    accessToken = response.body.session.accessToken;
+  });
 
-    const { body }: { body: SignInResponse } = await request
+  it('should authenticate with password', async () => {
+    await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(200);
+  });
 
-    expect(body.session).toBeTruthy();
-
-    if (!body.session) {
-      throw new Error('session is not set');
-    }
-
-    const { accessToken } = body.session;
-
+  it('should change password with old password', async () => {
     const oldPassword = password;
-    const newPassword = '543543543';
+    const newPassword = faker.internet.password();
 
     await request
       .post('/user/password')
@@ -72,21 +64,6 @@ describe('user password', () => {
   });
 
   it('should change password with ticket', async () => {
-    await request.post('/change-env').send({
-      AUTH_DISABLE_NEW_USERS: false,
-      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-    });
-
-    // const accessToken = '';
-
-    const email = 'asdasd@asdasd.com';
-    const password = '123123123';
-
-    await request
-      .post('/signup/email-password')
-      .send({ email, password })
-      .expect(200);
-
     await request.post('/user/password/reset').send({ email }).expect(200);
 
     // get ticket from email
@@ -140,5 +117,32 @@ describe('user password', () => {
     //   .post('/signin/email-password')
     //   .send({ email, password: newPassword })
     //   .expect(200);
+  });
+
+  it('should be able to pass "redirectTo" when changing password with ticket when ', async () => {
+    const options = {
+      redirectTo: 'http://localhost:3000/change-password-redirect',
+    };
+
+    await request
+      .post('/user/password/reset')
+      .send({ email, options })
+      .expect(200);
+
+    // get ticket from email
+    const [message] = await mailHogSearch(email);
+    expect(message).toBeTruthy();
+
+    const ticket = message.Content.Headers['X-Ticket'][0];
+    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
+
+    // use password reset link
+    await request
+      .get(
+        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
+      )
+      .expect(302);
+
+    expect(redirectTo).toStrictEqual(options.redirectTo);
   });
 });
