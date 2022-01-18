@@ -5,7 +5,7 @@
     "url": "git://github.com/nhost/hasura-auth.git",
     "type": "git"
   },
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "dist/start.js",
   "scripts": {
     "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",
@@ -16,7 +16,8 @@
     "dev": "concurrently \"yarn dev:start\" \"yarn codegen --watch\"",
     "codegen": "dotenv graphql-codegen --config codegen.yaml",
     "dev:start": "ts-node-dev -r tsconfig-paths/register --respawn --clear  --unhandled-rejections=strict src/start.ts",
-    "test": "AUTH_LOG_LEVEL=error jest --runInBand"
+    "test": "AUTH_LOG_LEVEL=error jest --runInBand",
+    "release": "release-it"
   },
   "dependencies": {
     "@djgrant/postgres-migrations": "^4.1.0-rc.1",
@@ -65,11 +66,14 @@
     "uuid": "7.0.3"
   },
   "devDependencies": {
+    "@commitlint/cli": "^16.0.2",
+    "@commitlint/config-conventional": "^16.0.0",
     "@graphql-codegen/add": "^3.1.1",
     "@graphql-codegen/cli": "^2.3.1",
     "@graphql-codegen/typescript": "^2.4.2",
     "@graphql-codegen/typescript-graphql-request": "^4.3.3",
     "@graphql-codegen/typescript-operations": "^2.2.2",
+    "@release-it/conventional-changelog": "^4.1.0",
     "@types/bcryptjs": "^2.4.2",
     "@types/body-parser": "1.19.0",
     "@types/cors": "2.8.6",
@@ -104,6 +108,7 @@
     "@typescript-eslint/parser": "2.28.0",
     "@vuepress/plugin-back-to-top": "1.4.1",
     "codecov": "^3.7.1",
+    "commitizen": "^4.2.4",
     "concurrently": "^6.2.0",
     "cz-conventional-changelog": "3.1.0",
     "dotenv-cli": "^4.1.1",
@@ -113,12 +118,14 @@
     "eslint-plugin-prettier": "3.1.3",
     "faker": "^5.5.3",
     "get-port": "^5.1.1",
-    "husky": "4.2.5",
+    "git-cz": "^4.8.0",
+    "husky": "^7.0.4",
     "jest": "^27.4.7",
     "jest-extended": "0.11.5",
     "lint-staged": "10.1.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.3.2",
+    "release-it": "^14.12.3",
     "rimraf": "^3.0.2",
     "supertest": "^6.1.6",
     "ts-jest": "^27.1.3",
@@ -129,5 +136,20 @@
   },
   "engines": {
     "node": ">=14"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ],
+    "rules": {
+      "subject-case": [
+        2,
+        "never",
+        [
+          "start-case",
+          "pascal-case"
+        ]
+      ]
+    }
   }
 }

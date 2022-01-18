@@ -1,0 +1,20 @@
+{
+  "npm": {
+    "publish": false,
+    "ignoreVersion": false,
+    "skipChecks": false
+  },
+  "git": {
+    "commitMessage": "chore: release v${version}"
+  },
+  "github": {
+    "release": true,
+    "releaseNotes": "generate-release-notes.sh --from=${latestTag} --to=${tagName}"
+  },
+  "plugins": {
+    "@release-it/conventional-changelog": {
+      "preset": "angular",
+      "infile": "CHANGELOG.md"
+    }
+  }
+}
