@@ -4,7 +4,7 @@ jobs:
   test:
     uses: nhost/hasura-auth/.github/workflows/test.yml@main
   release:
-    # needs: test
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
