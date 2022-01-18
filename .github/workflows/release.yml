@@ -1,31 +1,19 @@
 name: Release
 on: workflow_dispatch
 jobs:
+  test:
+    uses: nhost/hasura-auth/.github/workflows/test.yml@v1
   release:
+    needs: test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Setup Node
-        uses: actions/setup-node@v1
-        with:
-          node-version: '14.x'
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: Cache dependencies
-        uses: actions/cache@v1
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
       - name: git config
         run: |
           git config user.name "nhost"
           git config user.email "nhost@users.noreply.github.com"
-      - run: yarn
-      - run: yarn run release
+      - run: yarn release-it --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  publish:
+    needs: release
+    uses: nhost/hasura-auth/.github/workflows/publish.yml@v1
