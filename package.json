@@ -17,7 +17,8 @@
     "codegen": "dotenv graphql-codegen --config codegen.yaml",
     "dev:start": "ts-node-dev -r tsconfig-paths/register --respawn --clear  --unhandled-rejections=strict src/start.ts",
     "test": "AUTH_LOG_LEVEL=error jest --runInBand",
-    "release": "release-it"
+    "release": "release-it",
+    "release:preview": "release-it --release-version"
   },
   "dependencies": {
     "@djgrant/postgres-migrations": "^4.1.0-rc.1",

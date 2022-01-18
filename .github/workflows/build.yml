@@ -14,14 +14,6 @@ on:
       - '!docs/**'
       - '!examples/**'
       - '!*.md'
-# TODO
-# release:
-#   types: [published]
-env:
-  HASURA_GRAPHQL_ADMIN_SECRET: test_secret_key
-  JWT_ALGORITHM: HS256
-  JWT_KEY: never_use_this_secret_key_in_production_this_is_only_for_CI_testing_098hu32r4389ufb4n38994321
-  POSTGRES_PASSWORD: postgrespassword
 jobs:
   test:
     uses: nhost/hasura-auth/.github/workflows/test.yml@main

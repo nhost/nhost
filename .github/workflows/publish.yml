@@ -20,10 +20,10 @@ jobs:
           images: |
             nhost/hasura-auth
           # generate Docker tags based on the following events/attributes
-          # TODO add 'latest' tag when on last commit of 'main' branch
           tags: |
             type=schedule
-            type=ref,event=branch
+            type=raw,value=latest,enable=${{ github.event_name == 'push' && endsWith(github.ref, github.event.repository.default_branch) }}
+            type=ref,event=branch,enable=${{ !endsWith(github.ref, github.event.repository.default_branch) }}
             type=ref,event=pr
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -41,7 +41,7 @@ jobs:
       - name: Build and publish to Docker Hub
         uses: docker/build-push-action@v2
         with:
-          # TODO use cache
+          # TODO use cache https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md
           context: .
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
