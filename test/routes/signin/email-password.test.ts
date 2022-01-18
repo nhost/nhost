@@ -54,7 +54,7 @@ describe('email-password', () => {
 
   it('should only allow emails that are allowed', async () => {
     // sign up
-    await await request.post('/change-env').send({
+    await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: '',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: '',

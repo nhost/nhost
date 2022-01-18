@@ -94,14 +94,14 @@ export const userPasswordSchema = Joi.object({
 export const userEmailChangeSchema = Joi.object({
   newEmail: emailRule,
   options: {
-    redirecTo: Joi.string(),
+    redirectTo: Joi.string(),
   },
 });
 
 export const userEmailSendVerificationEmailSchema = Joi.object({
   email: emailRule.required(),
   options: {
-    redirecTo: Joi.string(),
+    redirectTo: Joi.string(),
   },
 });
 
