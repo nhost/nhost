@@ -28,7 +28,7 @@ jobs:
           cache: 'yarn'
       - name: Install dependencies
         run: yarn
-      - run: yarn release --dry-run --preRelease=${{ inputs.type != 'release'  && inputs.type}} --github.preRelease=${{ input.type != 'release' }}
+      - run: yarn release --dry-run --preRelease=${{ inputs.type != 'release'  && inputs.type}} --github.preRelease=${{ inputs.type != 'release' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   # publish:
