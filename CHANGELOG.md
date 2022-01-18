@@ -1,5 +1,7 @@
 ## 0.0.3 (2022-01-18)
 
+## 0.0.3 (2022-01-18)
+
 # [1.1.0](https://github.com/nhost/hasura-auth/compare/v0.0.1-canary.0...v1.1.0) (2022-01-18)
 
 
