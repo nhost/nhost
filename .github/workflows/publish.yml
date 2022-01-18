@@ -1,5 +1,8 @@
 name: Publish
-on: workflow_call
+on:
+  - workflow_call
+  # TODO remove workfow dispatch
+  - workflow_dispatch
 jobs:
   publish:
     needs: release
