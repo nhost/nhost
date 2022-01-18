@@ -1,7 +1,7 @@
 name: Release
 on:
   release:
-    types: [created, published]
+    types: [published]
 jobs:
   test:
     uses: nhost/hasura-auth/.github/workflows/test.yml@main
