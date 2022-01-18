@@ -11,6 +11,6 @@ jobs:
           git config user.name "nhost"
           git config user.email "nhost@users.noreply.github.com"
       - run: yarn
-      - run: yarn run release --dry-run
+      - run: yarn run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
