@@ -9,7 +9,7 @@
   },
   "github": {
     "release": true,
-    "releaseNotes": "generate-release-notes.sh --from=${latestTag} --to=${tagName}"
+    "autoGenerate": true
   },
   "plugins": {
     "@release-it/conventional-changelog": {
