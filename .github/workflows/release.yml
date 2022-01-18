@@ -2,7 +2,7 @@ name: Release
 on: workflow_dispatch
 jobs:
   test:
-    uses: nhost/hasura-auth/.github/workflows/test.yml@v1
+    uses: nhost/hasura-auth/.github/workflows/test.yml@main
   release:
     needs: test
     runs-on: ubuntu-latest
@@ -16,4 +16,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   publish:
     needs: release
-    uses: nhost/hasura-auth/.github/workflows/publish.yml@v1
+    uses: nhost/hasura-auth/.github/workflows/publish.yml@main
