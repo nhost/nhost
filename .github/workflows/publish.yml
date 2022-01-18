@@ -1,8 +1,11 @@
 name: Publish
 on:
-  - workflow_call
-  # TODO remove workfow dispatch
-  - workflow_dispatch
+  workflow_call:
+    secrets:
+      DOCKER_USERNAME:
+        required: true
+      DOCKER_PASSWORD:
+        required: true
 jobs:
   publish:
     runs-on: ubuntu-latest

@@ -19,9 +19,13 @@ jobs:
           cache: 'yarn'
       - name: Install dependencies
         run: yarn
+      # TODO yarn release
       - run: yarn release-it --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   publish:
     needs: release
     uses: nhost/hasura-auth/.github/workflows/publish.yml@main
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
