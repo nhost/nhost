@@ -13,6 +13,12 @@ jobs:
         run: |
           git config user.name "nhost"
           git config user.email "nhost@users.noreply.github.com"
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+          cache: 'yarn'
+      - name: Install dependencies
+        run: yarn
       - run: yarn release-it --dry-run
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
