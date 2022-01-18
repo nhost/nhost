@@ -7,7 +7,7 @@ on:
       DOCKER_PASSWORD:
         required: true
   release:
-    types: [published]
+    types: [created, published]
 jobs:
   publish:
     runs-on: ubuntu-latest
