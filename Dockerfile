@@ -13,7 +13,7 @@ ENV AUTH_HOST localhost
 ENV AUTH_PORT 4000
 WORKDIR /app
 COPY package.json yarn.lock ./
-RUN yarn install --production
+RUN yarn install --production && yarn cache clean
 COPY migrations/ ./migrations/
 COPY email-templates/ ./email-templates
 COPY --from=builder ./app/dist dist/
