@@ -14,8 +14,9 @@ on:
       - '!docs/**'
       - '!examples/**'
       - '!*.md'
-  release:
-    types: [published]
+# TODO
+# release:
+#   types: [published]
 env:
   HASURA_GRAPHQL_ADMIN_SECRET: test_secret_key
   JWT_ALGORITHM: HS256
