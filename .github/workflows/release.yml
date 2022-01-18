@@ -1,5 +1,14 @@
 name: Release
-on: workflow_dispatch
+on:
+  workflow_dispatch:
+    inputs:
+      type:
+        type: choice
+        description: Release type
+        options:
+          - release
+          - beta
+          - rc
 jobs:
   test:
     uses: nhost/hasura-auth/.github/workflows/test.yml@main
@@ -17,14 +26,15 @@ jobs:
         with:
           node-version: '14'
           cache: 'yarn'
-      - name: Install dependencies
-        run: yarn
-      - run: yarn release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  publish:
-    needs: release
-    uses: nhost/hasura-auth/.github/workflows/publish.yml@main
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      - run: echo ${{ inputs.type != 'release'  && inputs.type}}
+      # - name: Install dependencies
+      #   run: yarn
+      # - run: yarn release --preRelease=${{ inputs.type != 'release'  && inputs.type}}
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # publish:
+  #   needs: release
+  #   uses: nhost/hasura-auth/.github/workflows/publish.yml@main
+  #   secrets:
+  #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  #     DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
