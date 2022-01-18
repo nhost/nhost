@@ -22,9 +22,3 @@ jobs:
       - run: yarn release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  publish:
-    needs: release
-    uses: nhost/hasura-auth/.github/workflows/publish.yml@main
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
