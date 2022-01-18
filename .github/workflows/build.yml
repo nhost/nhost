@@ -39,7 +39,7 @@ jobs:
         with:
           file: ./coverage/clover.xml
   publish:
-    needs: release
+    needs: test
     uses: nhost/hasura-auth/.github/workflows/publish.yml@main
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
