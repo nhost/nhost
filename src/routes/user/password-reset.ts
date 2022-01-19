@@ -16,6 +16,7 @@ type BodyType = {
   email: string;
   options?: {
     redirectTo?: string;
+    locale?: string;
   };
 };
 
@@ -58,7 +59,7 @@ export const userPasswordResetHandler = async (
     locals: {
       ticket,
       redirectTo,
-      locale: user.locale,
+      locale: options?.locale ?? user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
       displayName: user.displayName,
       serverUrl: ENV.AUTH_SERVER_URL,
       clientUrl: ENV.AUTH_CLIENT_URL,

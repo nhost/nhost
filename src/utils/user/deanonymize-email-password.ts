@@ -15,6 +15,7 @@ export type BodyTypeEmailPassword = {
   email: string;
   password: string;
   options: {
+    locale?: string;
     allowedRoles?: string[];
     defaultRole?: string;
     redirectTo?: string;
@@ -129,7 +130,7 @@ export const handleDeanonymizeUserEmailPassword = async (
         email,
         ticket,
         redirectTo,
-        locale: user.locale,
+        locale: options?.locale ?? user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
         serverUrl: ENV.AUTH_SERVER_URL,
         clientUrl: ENV.AUTH_CLIENT_URL,
       },
