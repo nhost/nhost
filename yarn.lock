@@ -2343,6 +2343,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/rfc2047@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/rfc2047/-/rfc2047-2.0.1.tgz#42eb43c161a52fd404a935f032360880ec84d400"
+  integrity sha512-slgtykv+XXME7EperkdqfdBBUGcs28ru+a21BK0zOQY4IoxE7tEqvIcvAFAz5DJVxyOmoAUXo30Oxpm3KS+TBQ==
+
 "@types/serve-static@*":
   version "1.13.10"
   resolved "https://registry.yarnpkg.com/@types/serve-static/-/serve-static-1.13.10.tgz#f5e0ce8797d2d7cc5ebeda48a52c96c4fa47a8d9"
@@ -6298,6 +6303,11 @@ iconv-lite@0.4.24, iconv-lite@^0.4.24:
   integrity sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==
   dependencies:
     safer-buffer ">= 2.1.2 < 3"
+
+iconv-lite@0.4.5:
+  version "0.4.5"
+  resolved "https://registry.yarnpkg.com/iconv-lite/-/iconv-lite-0.4.5.tgz#9c574b70c30d615859f2064d2be4335ad6b1a8d6"
+  integrity sha1-nFdLcMMNYVhZ8gZNK+QzWtaxqNY=
 
 iconv-lite@0.5.0:
   version "0.5.0"
@@ -10261,6 +10271,13 @@ reusify@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/reusify/-/reusify-1.0.4.tgz#90da382b1e126efc02146e90845a88db12925d76"
   integrity sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==
+
+rfc2047@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/rfc2047/-/rfc2047-3.0.1.tgz#7b4491d21be9d07ac6c1e0c50e805f1566567883"
+  integrity sha512-XlPpflkoON+4884qmLzSBx7QKjw3XTncID8bPsFLv6Y7eXkrGweYRnWPz1i2UXwAxnnB1H40pqePoAp2bytC/w==
+  dependencies:
+    iconv-lite "0.4.5"
 
 right-align@^0.1.1:
   version "0.1.3"

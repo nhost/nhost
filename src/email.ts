@@ -56,6 +56,28 @@ const convertFieldToFileName = (field: EmailField) => {
   return null;
 };
 
+const readFile = (view: string, locals: Record<string, string>): string => {
+  const viewSplit = view.split('/');
+  const id = viewSplit[0];
+  const field = viewSplit[1] as EmailField;
+  const { locale } = locals;
+  // generate path to template
+  const emailPath = path.join(ENV.PWD, 'email-templates', locale, id);
+  const fileName = convertFieldToFileName(field);
+  const fullPath = `${emailPath}/${fileName}`;
+  logger.debug(`Using email template: ${fullPath}`);
+  try {
+    return fs.readFileSync(fullPath).toString();
+  } catch (error) {
+    if (locale !== ENV.AUTH_LOCALE_DEFAULT)
+      return readFile(view, { ...locals, locale: ENV.AUTH_LOCALE_DEFAULT });
+    else {
+      logger.warn(`No template found at ${fullPath}`);
+      throw Error();
+    }
+  }
+};
+
 /**
  * Reusable email client.
  */
@@ -64,29 +86,11 @@ export const emailClient = new Email({
   message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,
   render: async (view, locals) => {
-    const viewSplit = view.split('/');
-
-    const id = viewSplit[0];
-    const field = viewSplit[1] as EmailField;
-    const { locale } = locals;
-
-    // generate path to template
-    const emailPath = path.join(ENV.PWD, 'email-templates', locale, id);
-
-    const fileName = convertFieldToFileName(field);
-
-    const fullPath = `${emailPath}/${fileName}`;
-
-    logger.debug(`Using email template: ${fullPath}`);
-
-    let content;
     try {
-      content = fs.readFileSync(fullPath).toString();
+      const content = readFile(view, locals);
+      return templateEngine({ content, variables: locals });
     } catch (error) {
-      logger.warn(`No template found at ${fullPath}`);
       return null;
     }
-
-    return templateEngine({ content, variables: locals });
   },
 });
