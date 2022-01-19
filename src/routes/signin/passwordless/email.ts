@@ -1,5 +1,10 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  ContainerTypes,
+  ValidatedRequest,
+  ValidatedRequestSchema,
+} from 'express-joi-validation';
 
 import { getGravatarUrl, getUserByEmail, isValidRedirectTo } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
@@ -9,11 +14,7 @@ import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
 import { PasswordLessEmailBody } from '@/types';
 import { generateTicketExpiresAt } from '@/utils/ticket';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { logger } from '@/logger';
 
 interface Schema extends ValidatedRequestSchema {
   [ContainerTypes.Body]: PasswordLessEmailBody;
@@ -88,6 +89,11 @@ export const signInPasswordlessEmailHandler = async (
 
     user = insertedUser;
     userId = insertedUser.id;
+  }
+
+  if (user?.disabled) {
+    logger.debug('User is disabled');
+    return res.boom.unauthorized('User is disabled');
   }
 
   // create ticket

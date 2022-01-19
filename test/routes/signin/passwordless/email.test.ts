@@ -80,6 +80,18 @@ describe('passwordless email (magic link)', () => {
     );
   });
 
+  it('should not be possible to sign it when new users are disabled', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: true,
+    });
+    await request
+      .post('/signin/passwordless/email')
+      .send({
+        email: faker.internet.email(),
+      })
+      .expect(401);
+  });
+
   it('should fallback to the default locale when giving a wrong locale', async () => {
     const email = faker.internet.email();
     await request
