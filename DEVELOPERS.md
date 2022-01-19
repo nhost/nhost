@@ -1,6 +1,6 @@
-## Developer guide
+# Developer guide
 
-## Getting this ready
+## Getting things ready
 
 First, clone this repository:
 
@@ -15,7 +15,7 @@ cd hasura-auth
 cp .env.example .env
 ```
 
-## Run Hasura-auth in dev mode
+## Start
 
 Run Hasura, PostgreSQL and the mock email server MailHog:
 
@@ -37,17 +37,15 @@ Don't forget to stop the docker-compose stack once you're done:
 docker-compose down
 ```
 
-## Run tests
+## Test
+
+First, you have to make sure the docker-compose stack is running.
 
 ```sh
 yarn test
 ```
 
-### Watch tests
-
-```sh
-yarn test --watch
-```
+You can also run Jest in watch mode in using `yarn test --watch`
 
 ## Build
 
@@ -64,3 +62,22 @@ yarn build:docker
 # Equivalent command:
 # docker build -t nhost/hasura-auth:local .
 ```
+
+## Commit changes
+
+This repository is [commitizen-friendly](https://github.com/commitizen/cz-cli#making-your-repo-commitizen-friendly) and follows the [conventional-changelog conventions](https://github.com/conventional-changelog/conventional-changelog).
+Commits are linted so we can automatically bump semantic versions and changelog.
+
+It is then recommended to commit your changes with `git cz`, or else (if commitizen is not installed) to use the command `yarn cz`.
+
+## Release a new version
+
+Thanks to the wonderful [release-it](https://github.com/release-it/release-it), maintainers of this repository can release a new version calculated from conventional commits, with the following command:
+
+```sh
+# Print what would be the next version
+yarn release:preview
+yarn release
+```
+
+It will then tag the branch, push to GitHub, and trigger a GitHub relase. A GitHub action will then takeover to test, build and tag the docker image, and publish it to [Docker Hub](https://hub.docker.com/r/nhost/hasura-auth).
