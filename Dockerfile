@@ -1,7 +1,7 @@
 FROM node:14-alpine AS builder
 WORKDIR /app
 COPY package.json yarn.lock tsconfig.json tsconfig.build.json ./
-RUN yarn install
+RUN yarn install --frozen-lockfile --network-timeout 1000000
 COPY src/ ./src/
 COPY types/ ./types/
 RUN yarn build
@@ -13,7 +13,7 @@ ENV AUTH_HOST localhost
 ENV AUTH_PORT 4000
 WORKDIR /app
 COPY package.json yarn.lock ./
-RUN yarn install --production && yarn cache clean
+RUN yarn install --production --frozen-lockfile --network-timeout 1000000 && yarn cache clean
 COPY migrations/ ./migrations/
 COPY email-templates/ ./email-templates
 COPY --from=builder ./app/dist dist/
