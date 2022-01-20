@@ -67,9 +67,9 @@ $ flutter i nhost-dart-sdk
 In your project, initialize the SDK with the endpoint of your new Nhost App:
 
 ```js
-import { createClient } from "nhost-js-sdk";
+import { NhostClient } from '@nhost/nhost-js';
 
-const nhost = createClient({
+const nhost = new NhostClient({
   baseURL: "https://project-id.nhost.app",
 });
 
@@ -86,8 +86,7 @@ Now you're ready to use these fundamental building blocks to build a unique expe
 - [Authentication](https://docs.nhost.io/platform/authentication) with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
 - [Real-time database](https://docs.nhost.io/platform/database) with GraphQL and Postgres to keep your data in sync.
 - [File Storage](https://docs.nhost.io/platform/storage) with image transformation.
-- [Email Templates](https://docs.nhost.io/auth/email-templates) for your users.
-- [Payment]() powered by Stripe _(coming soon)_.
+- [Payment](https://github.com/nhost/nhost) powered by Stripe _(coming soon)_.
 
 [Full Documentation](https://docs.nhost.io)
 
@@ -131,9 +130,9 @@ This repository, and most of our other open source projects, are licensed under 
 
 Here are some ways of contributing to making Nhost better:
 
-- **[Try out Nhost]()**, and think of ways of how you can make the service better.
+- **[Try out Nhost](https://docs.nhost.io/get-started/quick-start)**, and think of ways of how you can make the service better.
 - Join our [Discord](https://discord.com/invite/9V7Qb2U) and connect with other members to share and learn from.
-- Send a pull request to any our [open source repositories](https://github.com/nhost) on Github. We're looking forward to your contribution!
+- Send a pull request to any of our [open source repositories](https://github.com/nhost) on Github. Check our [contribution guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) for more details about how to contribute. We're looking forward to your contribution!
 
 ## Security
 
