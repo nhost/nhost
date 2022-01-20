@@ -8,7 +8,6 @@ env:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
     services:
       postgres:
         image: nhost/postgres:12-v0.0.6
