@@ -43,7 +43,7 @@ func getFileTestCases() []struct {
 		},
 		{
 			name:           "if-none-match matches",
-			expectedStatus: 412,
+			expectedStatus: 304,
 			requestHeaders: http.Header{
 				"if-none-match": {"\"55af1e60-0f28-454e-885e-ea6aab2bb288\""},
 			},

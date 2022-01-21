@@ -23,7 +23,7 @@ func parseGraphqlError(err error) *controller.APIError {
 		switch code {
 		case "access-denied", "validation-failed":
 			return controller.ForbiddenError(ghErr, "you are not authorized")
-		case "data-exception":
+		case "data-exception", "constraint-violation":
 			return controller.BadDataError(err, ghErr.Error())
 		default:
 			return controller.InternalServerError(err)

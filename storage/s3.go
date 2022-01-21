@@ -58,11 +58,11 @@ func (s *S3) PutFile(content io.ReadSeeker, filepath string, contentType string)
 	return *object.ETag, nil
 }
 
-func (s *S3) GetFile(id string) (io.ReadCloser, *controller.APIError) {
+func (s *S3) GetFile(filepath string) (io.ReadCloser, *controller.APIError) {
 	object, err := s.session.GetObject(
 		&s3.GetObjectInput{
 			Bucket: s.bucket,
-			Key:    &id,
+			Key:    aws.String(s.rootFolder + "/" + filepath),
 			// IfMatch:           new(string),
 			// IfModifiedSince:   &time.Time{},
 			// IfNoneMatch:       new(string),

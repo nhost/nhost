@@ -81,7 +81,7 @@ func checkConditionals( // nolint: cyclop
 	}
 
 	if len(headers.IfNoneMatch) > 0 && etagFound(fileMetadata.ETag, headers.IfNoneMatch) {
-		return http.StatusPreconditionFailed, nil
+		return http.StatusNotModified, nil
 	}
 
 	if headers.IfModifiedSince != "" {
@@ -122,32 +122,32 @@ func writeCachingHeaders(ctx *gin.Context, fileMetadata FileMetadataWithBucket) 
 	return nil
 }
 
-func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (string, int, *APIError) {
+func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (string, string, int, *APIError) {
 	req, apiErr := ctrl.getFileParse(ctx)
 	if apiErr != nil {
-		return "", 0, apiErr
+		return "", "", 0, apiErr
 	}
 
 	id := ctx.Param("id")
 	fileMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, ctx.Request.Header)
 	if apiErr != nil {
-		return "", 0, apiErr
+		return "", "", 0, apiErr
 	}
 
 	statusCode, apiErr := checkConditionals(fileMetadata, req.headers)
 	if apiErr != nil {
-		return "", 0, apiErr
+		return "", "", 0, apiErr
 	}
 
 	if apiErr := writeCachingHeaders(ctx, fileMetadata); apiErr != nil {
-		return "", 0, apiErr
+		return "", "", 0, apiErr
 	}
 
-	return fmt.Sprintf("%s/%s", fileMetadata.BucketID, req.fileID), statusCode, nil
+	return fmt.Sprintf("%s/%s", fileMetadata.BucketID, req.fileID), fileMetadata.Name, statusCode, nil
 }
 
 func (ctrl *Controller) GetFileInformation(ctx *gin.Context) {
-	_, statusCode, apiErr := ctrl.getFileInformationProcess(ctx)
+	_, _, statusCode, apiErr := ctrl.getFileInformationProcess(ctx)
 	if apiErr != nil {
 		_ = ctx.Error(fmt.Errorf("problem parsing request: %w", apiErr))
 

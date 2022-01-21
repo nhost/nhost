@@ -228,6 +228,7 @@ paths:
           description: |
             File hasn't been modified based on:
             - file modification time is older than If-Modified-Since
+            - etag matches one of If-None-Match
           headers:
             Cache-Control:
               description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
@@ -253,7 +254,6 @@ paths:
           description: |
             Some of the conditions specified in the headers failed to match. For instance:
               - etag doesn't match one of If-Match
-              - etag matches one of If-None-Match
               - if-unmodified-since is false
           headers:
             Cache-Control:

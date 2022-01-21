@@ -187,8 +187,6 @@ func TestUploadFile(t *testing.T) {
 
 			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/api/v1/files/", body)
 
-			req.Header.Add("x-hasura-user-id", "some-valid-uuid")
-
 			req.Header.Set("Content-Type", contentType)
 
 			router.ServeHTTP(responseRecorder, req)

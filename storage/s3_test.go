@@ -4,11 +4,11 @@ package storage_test
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/google/go-cmp/cmp"
 	"github.com/nhost/hasura-storage/storage"
 	"github.com/sirupsen/logrus"
 )
@@ -105,14 +105,10 @@ func TestDeleteFile(t *testing.T) {
 
 func TestListFiles(t *testing.T) {
 	cases := []struct {
-		name     string
-		expected []string
+		name string
 	}{
 		{
 			name: "success",
-			expected: []string{
-				"f215cf48-7458-4596-9aa5-2159fc6a3caf/default/asd",
-			},
 		},
 	}
 	s3 := getS3()
@@ -120,14 +116,19 @@ func TestListFiles(t *testing.T) {
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
-			tc := tc
 			got, err := s3.ListFiles()
 			if err != nil {
 				t.Error(err)
 			}
 
-			if !cmp.Equal(got, tc.expected) {
-				t.Error(cmp.Diff(got, tc.expected))
+			if len(got) == 0 {
+				t.Error("found no files")
+			}
+
+			for _, f := range got {
+				if !strings.HasPrefix(f, "f215cf48-7458-4596-9aa5-2159fc6a3caf/default/") {
+					t.Errorf("found extraneous file: %s", f)
+				}
 			}
 		})
 	}

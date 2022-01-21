@@ -21,6 +21,9 @@ linters:
 
 issues:
   exclude-rules:
+    - text: "variable name 'b' is too short for the scope of its usage"
+      linters:
+        - varnamelen
     - linters:
         - lll
       source: "^//go:generate "
@@ -32,13 +35,3 @@ issues:
         - funlen
         - ireturn
         - varnamelen
-    - text: "NopCloser not declared by package io" # needs to go away
-      linters:
-        - typecheck
-    - text: "ReadAll not declared by package io"   # needs to go away
-      linters:
-        - typecheck
-    - text: "New not declared by package iofs"     # needs to go away
-      linters:
-        - typecheck
-
