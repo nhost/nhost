@@ -80,6 +80,21 @@ func (mr *MockContentStorageMockRecorder) GetFile(arg0 interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockContentStorage)(nil).GetFile), arg0)
 }
 
+// ListFiles mocks base method.
+func (m *MockContentStorage) ListFiles() ([]string, *controller.APIError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListFiles")
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(*controller.APIError)
+	return ret0, ret1
+}
+
+// ListFiles indicates an expected call of ListFiles.
+func (mr *MockContentStorageMockRecorder) ListFiles() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFiles", reflect.TypeOf((*MockContentStorage)(nil).ListFiles))
+}
+
 // PutFile mocks base method.
 func (m *MockContentStorage) PutFile(arg0 io.ReadSeeker, arg1, arg2 string) (string, *controller.APIError) {
 	m.ctrl.T.Helper()

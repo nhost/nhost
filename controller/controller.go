@@ -10,6 +10,13 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type FileSummary struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	IsUploaded bool   `json:"isUploaded"`
+	BucketID   string `json:"bucketId"`
+}
+
 type BucketMetadata struct {
 	ID                   string
 	MinUploadFile        int
@@ -51,6 +58,7 @@ type MetadataStorage interface {
 	)
 	SetIsUploaded(ctx context.Context, fileID string, isUploaded bool, headers http.Header) *APIError
 	DeleteFileByID(ctx context.Context, fileID string, headers http.Header) (FileMetadataWithBucket, *APIError)
+	ListFiles(ctx context.Context, headers http.Header) ([]FileSummary, *APIError)
 }
 
 //go:generate mockgen -destination mock_controller/content_storage.go -package mock_controller . ContentStorage
@@ -59,6 +67,7 @@ type ContentStorage interface {
 	GetFile(id string) (io.ReadCloser, *APIError)
 	CreatePresignedURL(filepath string, expire time.Duration) (string, *APIError)
 	DeleteFile(filepath string) *APIError
+	ListFiles() ([]string, *APIError)
 }
 
 type Controller struct {
@@ -102,6 +111,14 @@ func (ctrl *Controller) SetupRouter(logger gin.HandlerFunc) *gin.Engine {
 		files.DELETE("/:id", ctrl.DeleteFile)
 	}
 
+	ops := apiV1.Group("/ops")
+	{
+		ops.POST("list-orphans", ctrl.ListOrphans)
+		ops.POST("delete-orphans", ctrl.DeleteOrphans)
+		ops.POST("list-broken-metadata", ctrl.ListBrokenMetadata)
+		ops.POST("delete-broken-metadata", ctrl.DeleteBrokenMetadata)
+		ops.POST("list-not-uploaded", ctrl.ListNotUploaded)
+	}
 	return router
 }
 

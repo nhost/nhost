@@ -52,7 +52,7 @@ integration-tests: ## Run go test with integration flags
 	 TEST_S3_ACCESS_KEY=$(shell make dev-s3-access-key) \
 	 TEST_S3_SECRET_KEY=$(shell make dev-s3-secret-key) \
 	 GIN_MODE=release \
-		go test -tags=integration $(GOTEST_OPTIONS) ./...
+		go test -tags=integration $(GOTEST_OPTIONS) ./... #-run=TestListFiles
 
 
 .PHONY: install-linter

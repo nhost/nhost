@@ -102,6 +102,6 @@ curl $URL/$FILE_ID \
 
 echo "🟡 Get file, should get 404"
 curl $URL/$FILE_ID \
-  --output /dev/null \
+   --output /dev/null \
   -v \
   -H "$AUTH"

@@ -33,6 +33,33 @@ func parseGraphqlError(err error) *controller.APIError {
 	return controller.InternalServerError(err)
 }
 
+type FileSummaryList []FileSummary
+
+func (md FileSummaryList) ToControllerType() []controller.FileSummary {
+	res := make([]controller.FileSummary, len(md))
+
+	for i, x := range md {
+		res[i] = x.ToControllerType()
+	}
+	return res
+}
+
+type FileSummary struct {
+	ID         graphql.String  `graphql:"id"`
+	Name       graphql.String  `graphql:"name"`
+	BucketID   graphql.String  `graphql:"bucket_id"`
+	IsUploaded graphql.Boolean `graphql:"is_uploaded"`
+}
+
+func (md FileSummary) ToControllerType() controller.FileSummary {
+	return controller.FileSummary{
+		ID:         string(md.ID),
+		Name:       string(md.Name),
+		BucketID:   string(md.BucketID),
+		IsUploaded: bool(md.IsUploaded),
+	}
+}
+
 type BucketMetadata struct {
 	ID                   graphql.String  `graphql:"id"`
 	MinUploadFile        graphql.Int     `graphql:"min_upload_file_size"`
@@ -281,4 +308,21 @@ func (h *Hasura) DeleteFileByID(
 	}
 
 	return query.StorageFileByPK.ToControllerType(), nil
+}
+
+func (h *Hasura) ListFiles(ctx context.Context, headers http.Header) ([]controller.FileSummary, *controller.APIError) {
+	var query struct {
+		StorageFilesSummary FileSummaryList `graphql:"storage_files"`
+	}
+
+	variables := map[string]interface{}{}
+
+	client := h.client.WithRequestModifier(h.authorizer(headers))
+	err := client.Query(ctx, &query, variables)
+	if err != nil {
+		aerr := parseGraphqlError(err)
+		return nil, aerr.ExtendError("problem executing query")
+	}
+
+	return query.StorageFilesSummary.ToControllerType(), nil
 }

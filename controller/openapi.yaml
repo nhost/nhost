@@ -40,6 +40,17 @@ components:
           type: string
         buildCommit:
           type: string
+    FileSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        bucketId:
+          type: string
+        isUploaded:
+          type: boolean
     FileMetadata:
       type: object
       properties:
@@ -451,6 +462,141 @@ paths:
       responses:
         '204':
           description: File was deleted successfully
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ops/list-orphans:
+    post:
+      summary: Lists orphaned files
+      description: Orphaned files are files that are present in the storage but have no associated metadata
+      tags:
+        - operations
+      security:
+        - hasuraJWT: []
+      responses:
+        '200':
+          description: Successfully computed orphaned files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: string
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ops/delete-orphans:
+    post:
+      summary: Deletes orphaned files
+      description: Orphaned files are files that are present in the storage but have no associated metadata
+      tags:
+        - operations
+      security:
+        - hasuraJWT: []
+      responses:
+        '200':
+          description: Successfully deleted orphaned files
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  files:
+                    type: array
+                    items:
+                      type: string
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ops/list-broken-metadata:
+    post:
+      summary: Lists broken metadata
+      description: Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it
+      tags:
+        - operations
+      security:
+        - hasuraJWT: []
+      responses:
+        '200':
+          description: Successfully computed broken metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileSummary'
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  
+  /ops/delete-broken-metadata:
+    post:
+      summary: Delete broken metadata
+      description: Broken metadata is defined as metadata that has isUploaded = true but there is no file in the storage matching it
+      tags:
+        - operations
+      security:
+        - hasuraJWT: []
+      responses:
+        '200':
+          description: Successfully deleted broken metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileSummary'
+        default:
+          description: En error occured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /ops/list-not-uploaded:
+    post:
+      summary: Lists files that haven't been uploaded
+      description: That is, metadata that has isUploaded = false
+      tags:
+        - operations
+      security:
+        - hasuraJWT: []
+      responses:
+        '200':
+          description: Successfully checked files not uploaded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  metadata:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FileSummary'
         default:
           description: En error occured
           content:
