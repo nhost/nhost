@@ -9,6 +9,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/google/uuid"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/metadata"
 )
@@ -21,7 +23,86 @@ func getAuthHeader() http.Header {
 	return headers
 }
 
-func TestSetUploadPending(t *testing.T) {
+func TestGetBucketByID(t *testing.T) {
+	t.Parallel()
+
+	cases := []struct {
+		name                   string
+		bucketID               string
+		headers                http.Header
+		expectedStatusCode     int
+		expectedPublicResponse *controller.ErrorResponse
+		expected               controller.BucketMetadata
+	}{
+		{
+			name:                   "success",
+			bucketID:               "default",
+			headers:                getAuthHeader(),
+			expectedStatusCode:     0,
+			expectedPublicResponse: &controller.ErrorResponse{},
+			expected: controller.BucketMetadata{
+				ID:                   "default",
+				MinUploadFile:        1,
+				MaxUploadFile:        50000000,
+				PresignedURLsEnabled: true,
+				DownloadExpiration:   30,
+				CreatedAt:            "",
+				UpdatedAt:            "",
+				CacheControl:         "max-age=3600",
+			},
+		},
+		{
+			name:               "not found",
+			bucketID:           "asdsad",
+			headers:            getAuthHeader(),
+			expectedStatusCode: 404,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "bucket not found",
+			},
+			expected: controller.BucketMetadata{},
+		},
+		{
+			name:               "not authorized",
+			bucketID:           "asdsad",
+			expectedStatusCode: 403,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "you are not authorized",
+			},
+			expected: controller.BucketMetadata{},
+		},
+	}
+
+	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc := tc
+
+			bucket, err := hasura.GetBucketByID(context.Background(), tc.bucketID, tc.headers)
+
+			if tc.expectedStatusCode != err.StatusCode() {
+				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+			}
+
+			if err != nil {
+				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
+					t.Error(cmp.Diff(err.PublicResponse(), tc.expectedPublicResponse))
+				}
+			} else {
+				opts := cmp.Options{
+					cmpopts.IgnoreFields(controller.BucketMetadata{}, "CreatedAt", "UpdatedAt"),
+				}
+				if !cmp.Equal(bucket, tc.expected, opts...) {
+					t.Error(cmp.Diff(bucket, tc.expected, opts...))
+				}
+			}
+		})
+	}
+}
+
+func TestInitializeFile(t *testing.T) {
 	t.Parallel()
 
 	cases := []struct {
@@ -33,7 +114,277 @@ func TestSetUploadPending(t *testing.T) {
 	}{
 		{
 			name:                   "success",
-			fileID:                 "fe07bc9c-2a18-42b4-817f-97cfdc8f79bb",
+			fileID:                 uuid.New().String(),
+			headers:                getAuthHeader(),
+			expectedStatusCode:     0,
+			expectedPublicResponse: &controller.ErrorResponse{},
+		},
+		{
+			name:               "wrong format",
+			fileID:             "asdsad",
+			headers:            getAuthHeader(),
+			expectedStatusCode: 400,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "Message: invalid input syntax for type uuid: \"asdsad\", Locations: []",
+			},
+		},
+		{
+			name:               "not authorized",
+			fileID:             "asdsad",
+			expectedStatusCode: 403,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "you are not authorized",
+			},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc := tc
+
+			hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+
+			err := hasura.InitializeFile(context.Background(), tc.fileID, tc.headers)
+
+			if tc.expectedStatusCode != err.StatusCode() {
+				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+			}
+			if err != nil {
+				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
+					t.Error(cmp.Diff(err.PublicResponse(), tc.expectedPublicResponse))
+				}
+			}
+		})
+	}
+}
+
+func TestPopulateMetadata(t *testing.T) {
+	t.Parallel()
+
+	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	cases := []struct {
+		name                   string
+		fileID                 string
+		headers                http.Header
+		expectedStatusCode     int
+		expectedPublicResponse *controller.ErrorResponse
+		expected               controller.FileMetadata
+	}{
+		{
+			name:                   "success",
+			fileID:                 fileID,
+			headers:                getAuthHeader(),
+			expectedStatusCode:     0,
+			expectedPublicResponse: &controller.ErrorResponse{},
+			expected: controller.FileMetadata{
+				ID:               fileID,
+				Name:             "name",
+				Size:             123,
+				BucketID:         "default",
+				ETag:             "asdasd",
+				CreatedAt:        "",
+				UpdatedAt:        "",
+				IsUploaded:       true,
+				MimeType:         "text",
+				UploadedByUserID: "",
+			},
+		},
+		{
+			name:               "wrong format",
+			fileID:             "asdasdasd",
+			headers:            getAuthHeader(),
+			expectedStatusCode: 400,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: []`,
+			},
+			expected: controller.FileMetadata{},
+		},
+		{
+			name:               "not found",
+			fileID:             uuid.New().String(),
+			headers:            getAuthHeader(),
+			expectedStatusCode: 404,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "file not found",
+			},
+			expected: controller.FileMetadata{},
+		},
+		{
+			name:               "not authorized",
+			expectedStatusCode: 403,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "you are not authorized",
+			},
+			expected: controller.FileMetadata{},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc := tc
+
+			got, err := hasura.PopulateMetadata(context.Background(), tc.fileID, "name", 123, "default", "asdasd", true, "text", tc.headers)
+
+			if tc.expectedStatusCode != err.StatusCode() {
+				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+			}
+			if err != nil {
+				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
+					t.Error(cmp.Diff(err.PublicResponse(), tc.expectedPublicResponse))
+				}
+			} else {
+				opts := cmp.Options{
+					cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"),
+				}
+				if !cmp.Equal(got, tc.expected, opts...) {
+					t.Error(cmp.Diff(got, tc.expected, opts...))
+				}
+			}
+		})
+	}
+}
+
+func TestGetFileByID(t *testing.T) {
+	t.Parallel()
+
+	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	cases := []struct {
+		name                   string
+		fileID                 string
+		headers                http.Header
+		expectedStatusCode     int
+		expectedPublicResponse *controller.ErrorResponse
+		expected               controller.FileMetadataWithBucket
+	}{
+		{
+			name:                   "success",
+			fileID:                 fileID,
+			headers:                getAuthHeader(),
+			expectedStatusCode:     0,
+			expectedPublicResponse: &controller.ErrorResponse{},
+			expected: controller.FileMetadataWithBucket{
+				FileMetadata: controller.FileMetadata{
+					ID:               fileID,
+					Name:             "name",
+					Size:             123,
+					BucketID:         "default",
+					ETag:             "asdasd",
+					CreatedAt:        "",
+					UpdatedAt:        "",
+					IsUploaded:       true,
+					MimeType:         "text",
+					UploadedByUserID: "",
+				},
+				Bucket: controller.BucketMetadata{
+					ID:                   "default",
+					MinUploadFile:        1,
+					MaxUploadFile:        50000000,
+					PresignedURLsEnabled: true,
+					DownloadExpiration:   30,
+					CreatedAt:            "",
+					UpdatedAt:            "",
+					CacheControl:         "max-age=3600",
+				},
+			},
+		},
+		{
+			name:               "wrong format",
+			fileID:             "asdasdasd",
+			headers:            getAuthHeader(),
+			expectedStatusCode: 400,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: []`,
+			},
+			expected: controller.FileMetadataWithBucket{},
+		},
+		{
+			name:               "not found",
+			fileID:             uuid.New().String(),
+			headers:            getAuthHeader(),
+			expectedStatusCode: 404,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "file not found",
+			},
+			expected: controller.FileMetadataWithBucket{},
+		},
+		{
+			name:               "not authorized",
+			expectedStatusCode: 403,
+			expectedPublicResponse: &controller.ErrorResponse{
+				Message: "you are not authorized",
+			},
+			expected: controller.FileMetadataWithBucket{},
+		},
+	}
+
+	for _, tc := range cases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			tc := tc
+
+			got, err := hasura.GetFileByID(context.Background(), tc.fileID, tc.headers)
+
+			if tc.expectedStatusCode != err.StatusCode() {
+				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
+			}
+			if err != nil {
+				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
+					t.Error(cmp.Diff(err.PublicResponse(), tc.expectedPublicResponse))
+				}
+			} else {
+				opts := cmp.Options{
+					cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"),
+					cmpopts.IgnoreFields(controller.BucketMetadata{}, "CreatedAt", "UpdatedAt"),
+				}
+				if !cmp.Equal(got, tc.expected, opts...) {
+					t.Error(cmp.Diff(got, tc.expected, opts...))
+				}
+			}
+		})
+	}
+}
+
+func TestSetIsUploaded(t *testing.T) {
+	t.Parallel()
+
+	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	cases := []struct {
+		name                   string
+		fileID                 string
+		headers                http.Header
+		expectedStatusCode     int
+		expectedPublicResponse *controller.ErrorResponse
+	}{
+		{
+			name:                   "success",
+			fileID:                 fileID,
 			headers:                getAuthHeader(),
 			expectedStatusCode:     0,
 			expectedPublicResponse: &controller.ErrorResponse{},
@@ -67,8 +418,6 @@ func TestSetUploadPending(t *testing.T) {
 		},
 	}
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
-
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
@@ -76,8 +425,8 @@ func TestSetUploadPending(t *testing.T) {
 			tc := tc
 
 			err := hasura.SetIsUploaded(context.Background(), tc.fileID, true, tc.headers)
-			if err != nil && tc.expectedStatusCode == 0 {
-				t.Error(err)
+			if tc.expectedStatusCode != err.StatusCode() {
+				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
 			}
 
 			if err != nil {
@@ -92,30 +441,41 @@ func TestSetUploadPending(t *testing.T) {
 func TestDeleteFileByID(t *testing.T) {
 	t.Parallel()
 
+	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+		panic(err)
+	}
+
 	cases := []struct {
 		name                   string
 		fileID                 string
 		headers                http.Header
-		expectedMd             controller.FileMetadataWithBucket
+		expected               controller.FileMetadataWithBucket
 		expectedStatusCode     int
 		expectedPublicResponse *controller.ErrorResponse
 	}{
 		{
 			name:    "success",
-			fileID:  "57bddc2b-fdc6-4af2-9dba-5ee689936619",
+			fileID:  fileID,
 			headers: getAuthHeader(),
-			expectedMd: controller.FileMetadataWithBucket{
+			expected: controller.FileMetadataWithBucket{
 				FileMetadata: controller.FileMetadata{
-					ID:               "57bddc2b-fdc6-4af2-9dba-5ee689936619",
-					Name:             "some-file.txt",
-					Size:             17,
+					ID:               fileID,
+					Name:             "name",
+					Size:             123,
 					BucketID:         "default",
-					ETag:             "\"nbdfgyrejhg324hjgadnbv\"",
-					CreatedAt:        "2022-01-04T16:47:37.762868+00:00",
-					UpdatedAt:        "2022-01-04T16:47:37.762868+00:00",
+					ETag:             "asdasd",
+					CreatedAt:        "",
+					UpdatedAt:        "",
 					IsUploaded:       true,
-					MimeType:         "text/plain; charset=utf-8",
-					UploadedByUserID: "a3dcdb8f-d1c7-4cfb-829b-57881633dadc",
+					MimeType:         "text",
+					UploadedByUserID: "",
 				},
 				Bucket: controller.BucketMetadata{
 					ID:                   "default",
@@ -160,26 +520,27 @@ func TestDeleteFileByID(t *testing.T) {
 		},
 	}
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
-
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			md, err := hasura.DeleteFileByID(context.Background(), tc.fileID, tc.headers)
-			if err != nil && tc.expectedStatusCode == 0 {
-				t.Error(err)
-			} else {
-				if !cmp.Equal(md, tc.expectedMd) {
-					t.Error(cmp.Diff(md, tc.expectedMd))
-				}
+			got, err := hasura.DeleteFileByID(context.Background(), tc.fileID, tc.headers)
+			if tc.expectedStatusCode != err.StatusCode() {
+				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
 			}
-
 			if err != nil {
 				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
 					t.Error(cmp.Diff(err.PublicResponse(), tc.expectedPublicResponse))
+				}
+			} else {
+				opts := cmp.Options{
+					cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"),
+					cmpopts.IgnoreFields(controller.BucketMetadata{}, "CreatedAt", "UpdatedAt"),
+				}
+				if !cmp.Equal(got, tc.expected, opts...) {
+					t.Error(cmp.Diff(got, tc.expected, opts...))
 				}
 			}
 		})
@@ -187,63 +548,71 @@ func TestDeleteFileByID(t *testing.T) {
 }
 
 func TestListFiles(t *testing.T) {
+	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+
+	fileID := uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	fileID = uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+		panic(err)
+	}
+
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "asdads", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+		panic(err)
+	}
+
 	cases := []struct {
 		name                   string
 		headers                http.Header
-		expectedList           []controller.FileSummary
 		expectedStatusCode     int
 		expectedPublicResponse *controller.ErrorResponse
 	}{
 		{
-			name:    "success",
-			headers: getAuthHeader(),
-			expectedList: []controller.FileSummary{
-				{
-					ID:         "fe07bc9c-2a18-42b4-817f-97cfdc8f79bb",
-					Name:       "some-file.txt",
-					IsUploaded: true,
-					BucketID:   "default",
-				},
-				{
-					ID:         "57bddc2b-fdc6-4af2-9dba-5ee689936619",
-					Name:       "some-file.txt",
-					IsUploaded: true,
-					BucketID:   "default",
-				},
-			},
+			name:                   "success",
+			headers:                getAuthHeader(),
 			expectedStatusCode:     0,
 			expectedPublicResponse: &controller.ErrorResponse{},
 		},
 		{
 			name:               "unauthorized",
 			headers:            map[string][]string{},
-			expectedList:       nil,
-			expectedStatusCode: 503,
+			expectedStatusCode: 403,
 			expectedPublicResponse: &controller.ErrorResponse{
 				Message: "you are not authorized",
 			},
 		},
 	}
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
-
 	for _, tc := range cases {
 		tc := tc
 		t.Run(tc.name, func(t *testing.T) {
 			tc := tc
 
-			md, err := hasura.ListFiles(context.Background(), tc.headers)
-			if err != nil && tc.expectedStatusCode == 0 {
-				t.Error(err)
-			} else {
-				if !cmp.Equal(md, tc.expectedList) {
-					t.Error(cmp.Diff(md, tc.expectedList))
-				}
+			got, err := hasura.ListFiles(context.Background(), tc.headers)
+			if tc.expectedStatusCode != err.StatusCode() {
+				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
 			}
 
 			if err != nil {
 				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
 					t.Error(cmp.Diff(err.PublicResponse(), tc.expectedPublicResponse))
+				}
+			} else {
+				if len(got) == 0 {
+					t.Error("we got an empty list")
+				}
+
+				for _, f := range got {
+					if !f.IsUploaded || f.BucketID == "" || f.ID == "" || f.Name == "" {
+						t.Errorf("some element in the list is missing data: %v", f)
+					}
 				}
 			}
 		})

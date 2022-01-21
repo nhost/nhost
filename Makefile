@@ -19,6 +19,9 @@ LDFLAGS="\
 DEV_ENV_PATH=build/dev/docker
 
 
+MIGRATION_DIR=$(PWD)/migrations/
+MIGRATION_CMD=docker run --rm -v $(MIGRATION_DIR):/migrations migrate/migrate -path=/migrations/
+
 .PHONY: info
 info: ## Echo common env vars
 	@echo BRANCH:     $(BRANCH)
@@ -40,11 +43,8 @@ help: ## Show this help.
 	done
 
 
-_wait:
-	sleep 20
-
 .PHONY: tests
-tests: dev-env-up _wait integration-tests dev-env-down ## Run go test
+tests: dev-env-up integration-tests dev-env-down ## Run go test
 
 .PHONY: integration-tests
 integration-tests: ## Run go test with integration flags
@@ -98,3 +98,7 @@ dev-s3-access-key:
 .PHONY: dev-s3-secret-key
 dev-s3-secret-key:
 	@docker exec -i minio bash -c 'echo $$MINIO_ROOT_PASSWORD'
+
+.PHONY: migrations-add
+migrations-add:
+	$(MIGRATION_CMD) create -dir /migrations -ext sql -seq $(MIGRATION_NAME)

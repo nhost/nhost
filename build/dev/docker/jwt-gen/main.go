@@ -39,9 +39,9 @@ func main() {
 		"exp": exp,
 		"https://hasura.io/jwt/claims": map[string]interface{}{
 			"x-hasura-allowed-roles": []string{
-				"user",
+				"admin",
 			},
-			"x-hasura-default-role":     "user",
+			"x-hasura-default-role":     "admin",
 			"x-hasura-user-id":          "ab5ba58e-932a-40dc-87e8-733998794ec2",
 			"x-hasura-user-isAnonymous": "false",
 		},

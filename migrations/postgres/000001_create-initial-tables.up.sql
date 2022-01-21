@@ -13,7 +13,7 @@ BEGIN
 END;
 $a$;
 
-CREATE OR REPLACE FUNCTION protect_default_bucket_delete ()
+CREATE OR REPLACE FUNCTION storage.protect_default_bucket_delete ()
   RETURNS TRIGGER
   LANGUAGE plpgsql
   AS $a$
@@ -25,7 +25,7 @@ BEGIN
 END;
 $a$;
 
-CREATE OR REPLACE FUNCTION protect_default_bucket_update ()
+CREATE OR REPLACE FUNCTION storage.protect_default_bucket_update ()
   RETURNS TRIGGER
   LANGUAGE plpgsql
   AS $a$
@@ -38,7 +38,7 @@ END;
 $a$;
 
 -- tables
-CREATE TABLE storage.buckets (
+CREATE TABLE IF NOT EXISTS storage.buckets (
   id text NOT NULL PRIMARY KEY,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   updated_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -49,7 +49,7 @@ CREATE TABLE storage.buckets (
   presigned_urls_enabled boolean NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE storage.files (
+CREATE TABLE IF NOT EXISTS storage.files (
   id uuid DEFAULT public.gen_random_uuid () NOT NULL PRIMARY KEY,
   created_at timestamp with time zone DEFAULT now() NOT NULL,
   updated_at timestamp with time zone DEFAULT now() NOT NULL,
@@ -63,8 +63,18 @@ CREATE TABLE storage.files (
 );
 
 -- constraints
-ALTER TABLE storage.files
-  ADD CONSTRAINT fk_bucket FOREIGN KEY (bucket_id) REFERENCES storage.buckets (id) ON UPDATE CASCADE ON DELETE CASCADE;
+DO $$
+BEGIN
+  IF NOT EXISTS(SELECT table_name
+            FROM information_schema.table_constraints
+            WHERE table_schema = 'storage'
+              AND table_name = 'files'
+              AND constraint_name = 'fk_bucket')
+  THEN
+    ALTER TABLE storage.files
+      ADD CONSTRAINT fk_bucket FOREIGN KEY (bucket_id) REFERENCES storage.buckets (id) ON UPDATE CASCADE ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- add constraints if auth.users table exists and there is not an existing constraint
 DO $$
@@ -77,7 +87,7 @@ BEGIN
               FROM information_schema.table_constraints
             WHERE table_schema = 'storage'
               AND table_name = 'files'
-              AND constraint_name = 'fk_users')
+              AND constraint_name = 'fk_user')
   THEN
     ALTER TABLE storage.files
       ADD CONSTRAINT fk_user FOREIGN KEY (uploaded_by_user_id) REFERENCES auth.users (id) ON DELETE SET NULL;
@@ -85,12 +95,12 @@ BEGIN
 END $$;
 
 -- triggers
-CREATE TRIGGER set_storage_buckets_updated_at
+CREATE OR REPLACE TRIGGER set_storage_buckets_updated_at
   BEFORE UPDATE ON storage.buckets
   FOR EACH ROW
   EXECUTE FUNCTION storage.set_current_timestamp_updated_at ();
 
-CREATE TRIGGER set_storage_files_updated_at
+CREATE OR REPLACE TRIGGER set_storage_files_updated_at
   BEFORE UPDATE ON storage.files
   FOR EACH ROW
   EXECUTE FUNCTION storage.set_current_timestamp_updated_at ();
@@ -98,42 +108,23 @@ CREATE TRIGGER set_storage_files_updated_at
 CREATE TRIGGER check_default_bucket_delete
   BEFORE DELETE ON storage.buckets
   FOR EACH ROW
-  EXECUTE PROCEDURE protect_default_bucket_delete ();
+    EXECUTE PROCEDURE storage.protect_default_bucket_delete ();
 
 CREATE TRIGGER check_default_bucket_update
   BEFORE UPDATE ON storage.buckets
   FOR EACH ROW
-  EXECUTE PROCEDURE protect_default_bucket_update ();
+    EXECUTE PROCEDURE storage.protect_default_bucket_update ();
 
 -- data
-INSERT INTO storage.buckets (id, created_at, updated_at)
-  VALUES ('default', '2022-01-05T19:02:58.387709+00:00', '2022-01-05T19:02:58.387709+00:00');
+DO $$
+BEGIN
+  IF NOT EXISTS(SELECT id
+            FROM storage.buckets
+            WHERE id = 'default')
+  THEN
+    INSERT INTO storage.buckets (id)
+      VALUES ('default');
+  END IF;
+END $$;
 
-INSERT INTO storage.files (id, created_at, updated_at, bucket_id, name, size, mime_type, etag, is_uploaded, uploaded_by_user_id)
-  VALUES (
-    'fe07bc9c-2a18-42b4-817f-97cfdc8f79bb',
-    '2022-01-04T16:47:37.762868+00:00',
-    '2022-01-04T16:47:37.762868+00:00',
-    'default',
-    'some-file.txt',
-    17,
-    'text/plain; charset=utf-8',
-    '"nbdfgyrejhg324hjgadnbv"',
-    true,
-    'a3dcdb8f-d1c7-4cfb-829b-57881633dadc'
-);
-
-INSERT INTO storage.files (id, created_at, updated_at, bucket_id, name, size, mime_type, etag, is_uploaded, uploaded_by_user_id)
-  VALUES (
-    '57bddc2b-fdc6-4af2-9dba-5ee689936619',
-    '2022-01-04T16:47:37.762868+00:00',
-    '2022-01-04T16:47:37.762868+00:00',
-    'default',
-    'some-file.txt',
-    17,
-    'text/plain; charset=utf-8',
-    '"nbdfgyrejhg324hjgadnbv"',
-    true,
-    'a3dcdb8f-d1c7-4cfb-829b-57881633dadc'
-);
 COMMIT;

@@ -127,6 +127,13 @@ func BadDataError(err error, publicMessage string) *APIError {
 	}
 }
 
+func (a *APIError) StatusCode() int {
+	if a == nil {
+		return 0
+	}
+	return a.statusCode
+}
+
 func (a *APIError) PublicResponse() *ErrorResponse {
 	return &ErrorResponse{
 		Message: a.publicMessage,

@@ -24,6 +24,14 @@ func initFlags() {
 		pflag.String("s3_bucket", "", "S3 bucket")
 		pflag.String("s3_root_folder", "", "All buckets will be created inside this root")
 	}
+	{
+		pflag.Bool("postgres-migrations", false, "Apply Postgres migrations")
+		pflag.String("postgres-migrations-source", "", "postgres connection, i.e. postgres://user@pass:localhost:5432/mydb")
+	}
+	{
+		pflag.Bool("hasura-metadata", false, "Apply Hasura's metadata")
+		pflag.String("hasura-metadata-admin-secret", "", "")
+	}
 
 	pflag.Parse()
 

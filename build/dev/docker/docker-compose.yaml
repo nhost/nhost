@@ -16,6 +16,8 @@ services:
     depends_on:
       - postgres
       - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/healthz"]
     ports:
       - '8080:8080'
     environment:
@@ -46,12 +48,13 @@ services:
       args:
         BUILD_USER: ${BUILD_USER:-docker}
     depends_on:
-      - graphql-engine
+      graphql-engine:
+        condition: service_healthy
     ports:
       - '8000:8000'
     environment:
       DEBUG: "true"
-      GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1/graphql
+      GRAPHQL_ENDPOINT: http://graphql-engine:8080/v1
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-hello123}
       S3_ENDPOINT: http://minio:9000
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
@@ -59,3 +62,4 @@ services:
       S3_REGION: "Us-east-1"
       S3_BUCKET: "default"
       S3_ROOT_FOLDER: "f215cf48-7458-4596-9aa5-2159fc6a3caf"
+    command: --postgres-migrations --postgres-migrations-source ${HASURA_GRAPHQL_DATABASE_URL:-postgres://postgres:hejsan@postgres:5432/postgres?sslmode=disable} --hasura-metadata --hasura-metadata-admin-secret ${HASURA_GRAPHQL_ADMIN_SECRET:-hello123} 
