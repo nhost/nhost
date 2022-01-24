@@ -209,15 +209,18 @@ export const applyMetadata = async (): Promise<void> => {
         delete_by_pk: 'deleteUser',
       },
       custom_column_names: {
-        id: 'id',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // id: 'id',
         created_at: 'createdAt',
         updated_at: 'updatedAt',
         last_seen: 'lastSeen',
-        disabled: 'disabled',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // disabled: 'disabled',
         display_name: 'displayName',
         avatar_url: 'avatarUrl',
-        locale: 'locale',
-        email: 'email',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // locale: 'locale',
+        // email: 'email',
         phone_number: 'phoneNumber',
         password_hash: 'passwordHash',
         email_verified: 'emailVerified',
@@ -230,7 +233,8 @@ export const applyMetadata = async (): Promise<void> => {
         is_anonymous: 'isAnonymous',
         totp_secret: 'totpSecret',
         active_mfa_type: 'activeMfaType',
-        ticket: 'ticket',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // ticket: 'ticket',
         ticket_expires_at: 'ticketExpiresAt',
       },
     },
@@ -256,10 +260,12 @@ export const applyMetadata = async (): Promise<void> => {
         delete_by_pk: 'deleteAuthUserRole',
       },
       custom_column_names: {
-        id: 'id',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // id: 'id',
         created_at: 'createdAt',
         user_id: 'userId',
-        role: 'role',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // role: 'role',
       },
     },
   });
@@ -283,7 +289,8 @@ export const applyMetadata = async (): Promise<void> => {
         delete_by_pk: 'deleteAuthUserProvider',
       },
       custom_column_names: {
-        id: 'id',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // id: 'id',
         created_at: 'createdAt',
         updated_at: 'updatedAt',
         user_id: 'userId',
@@ -314,7 +321,8 @@ export const applyMetadata = async (): Promise<void> => {
         delete_by_pk: 'deleteAuthProvider',
       },
       custom_column_names: {
-        id: 'id',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // id: 'id',
       },
     },
   });
@@ -365,7 +373,8 @@ export const applyMetadata = async (): Promise<void> => {
         delete_by_pk: 'deleteAuthRole',
       },
       custom_column_names: {
-        role: 'role',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // role: 'role',
       },
     },
   });
@@ -389,7 +398,8 @@ export const applyMetadata = async (): Promise<void> => {
         delete_by_pk: 'deleteAuthProviderRequest',
       },
       custom_column_names: {
-        id: 'id',
+        // * See: https://github.com/hasura/graphql-engine/issues/8020
+        // id: 'id',
         redirect_url: 'redirectUrl',
       },
     },
