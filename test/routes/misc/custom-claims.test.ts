@@ -189,9 +189,26 @@ describe('custom JWT claims', () => {
     }
   });
 
-  it('should handle an invalid configuration', async () => {
+  it('should handle an invalid configuration (unparsable)', async () => {
     await request.post('/change-env').send({
       AUTH_JWT_CUSTOM_CLAIMS: '{"project-ids": unquoted value }',
+    });
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const {
+      body: {
+        session: { user },
+      },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+    expect(user?.id).toBeString();
+  });
+
+  it('should handle an invalid configuration (parsable, but not an object)', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: 'string value',
     });
     const email = faker.internet.email();
     const password = faker.internet.password();
