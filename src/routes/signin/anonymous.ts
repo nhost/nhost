@@ -5,13 +5,14 @@ import {
   ValidatedRequestSchema,
 } from 'express-joi-validation';
 
-import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 import { getSignInResponse } from '@/utils/tokens';
+import { insertUser } from '@/utils/user';
 
 type BodyType = {
   locale?: string;
   displayName?: string;
+  custom?: Record<string, unknown>;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -34,23 +35,16 @@ export const signInAnonymousHandler = async (
   const displayName = req.body.displayName ?? 'Anonymous User';
 
   // insert user
-  const user = await gqlSdk
-    .insertUser({
-      user: {
-        displayName,
-        locale,
-        defaultRole: 'anonymous',
-        roles: {
-          data: userRoles,
-        },
-        isAnonymous: true,
-      },
-    })
-    .then((res) => res.insertUser);
-
-  if (!user) {
-    throw new Error('Unable to insert new user');
-  }
+  const user = await insertUser({
+    displayName,
+    locale,
+    roles: {
+      data: userRoles,
+    },
+    defaultRole: 'anonymous',
+    isAnonymous: true,
+    custom: {},
+  });
 
   const signInResponse = await getSignInResponse({
     userId: user.id,

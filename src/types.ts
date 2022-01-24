@@ -1,3 +1,5 @@
+import { UserQuery } from './utils/__generated__/graphql-request';
+
 export type ClaimValueType =
   | string
   | string[]
@@ -44,24 +46,34 @@ export type Token = {
 };
 
 // Session and user
+type CustomData = Record<string, unknown>;
+
+export type UserRegistrationOptions = {
+  locale?: string;
+  allowedRoles?: string[];
+  defaultRole?: string;
+  displayName?: string;
+  custom?: CustomData;
+};
+
+export type User = Pick<
+  NonNullable<UserQuery['user']>,
+  | 'id'
+  | 'createdAt'
+  | 'displayName'
+  | 'avatarUrl'
+  | 'locale'
+  | 'email'
+  | 'isAnonymous'
+  | 'defaultRole'
+  | 'custom'
+> & { roles: string[] };
 
 export type Session = {
   accessToken: string;
   accessTokenExpiresIn: number;
   refreshToken: string;
-  user: User | null;
-};
-
-export type User = {
-  id: string;
-  createdAt: string;
-  displayName: string;
-  avatarUrl: string;
-  locale: string;
-  email?: string;
-  isAnonymous: boolean;
-  defaultRole: string;
-  roles: string[];
+  user?: User;
 };
 
 export type Mfa = {
@@ -75,23 +87,14 @@ export type SignInResponse = {
 
 export type PasswordLessEmailBody = {
   email: string;
-  options?: {
-    locale?: string;
-    allowedRoles?: string[];
-    defaultRole?: string;
-    displayName?: string;
+  options?: UserRegistrationOptions & {
     redirectTo?: string;
   };
 };
 
 export type PasswordLessSmsBody = {
   phoneNumber: string;
-  options?: {
-    locale?: string;
-    allowedRoles?: string[];
-    defaultRole?: string;
-    displayName?: string;
-  };
+  options?: UserRegistrationOptions;
 };
 
 export type OtpSmsBody = {

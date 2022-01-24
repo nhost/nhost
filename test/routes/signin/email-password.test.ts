@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import * as faker from 'faker';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
@@ -8,6 +9,12 @@ describe('email-password', () => {
   let client: Client;
 
   beforeAll(async () => {
+    // set env vars
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: false,
+    });
     client = new Client({
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
@@ -15,8 +22,8 @@ describe('email-password', () => {
     await deleteAllMailHogEmails();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {
@@ -24,23 +31,16 @@ describe('email-password', () => {
   });
 
   it('should sign in user and return valid tokens', async () => {
-    // set env vars
-    await request.post('/change-env').send({
-      AUTH_DISABLE_NEW_USERS: false,
-      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_ANONYMOUS_USERS_ENABLED: false,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
-    });
-
+    const email = faker.internet.email();
+    const password = faker.internet.password();
     await request
       .post('/signup/email-password')
-      .send({ email: 'joedoe@example.com', password: '123456' })
+      .send({ email, password })
       .expect(200);
 
-    // const { status, body } = await request
     const { body } = await request
       .post('/signin/email-password')
-      .send({ email: 'joedoe@example.com', password: '123456' })
+      .send({ email, password })
       .expect(200);
 
     const { accessToken, accessTokenExpiresIn, refreshToken } = body.session;
@@ -52,42 +52,61 @@ describe('email-password', () => {
     expect(mfa).toBe(null);
   });
 
-  it('should only allow emails that are allowed', async () => {
-    // sign up
+  it('should sign in user with custom data', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const customInput = JSON.parse(faker.datatype.json());
+
+    await request
+      .post('/signup/email-password')
+      .send({ email, password, options: { custom: customInput } })
+      .expect(200);
+
+    const { body } = await request
+      .post('/signin/email-password')
+      .send({ email, password })
+      .expect(200);
+
+    const {
+      accessToken,
+      accessTokenExpiresIn,
+      refreshToken,
+      user: { custom },
+    } = body.session;
+    const { mfa } = body;
+    expect(custom).toStrictEqual(customInput);
+    expect(isValidAccessToken(accessToken)).toBe(true);
+    expect(typeof accessTokenExpiresIn).toBe('number');
+    expect(typeof refreshToken).toBe('string');
+    expect(mfa).toBe(null);
+  });
+
+  it('should only sign in users with allowed emails', async () => {
+    const a = {
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+    };
+    const b = {
+      email: faker.internet.email(),
+      password: faker.internet.password(),
+    };
+
     await request.post('/change-env').send({
-      AUTH_DISABLE_NEW_USERS: false,
       AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: '',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: '',
       AUTH_ACCESS_CONTROL_BLOCKED_EMAILS: '',
       AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS: '',
     });
 
-    await request
-      .post('/signup/email-password')
-      .send({ email: 'aaa@nhost.io', password: '123456' })
-      .expect(200);
-
-    await request
-      .post('/signup/email-password')
-      .send({ email: 'bbb@nhost.io', password: '123456' })
-      .expect(200);
+    await request.post('/signup/email-password').send(a).expect(200);
+    await request.post('/signup/email-password').send(b).expect(200);
 
     // sign in
-    await await request.post('/change-env').send({
-      AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: 'aaa@nhost.io',
-      AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: '',
-      AUTH_ACCESS_CONTROL_BLOCKED_EMAILS: '',
-      AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS: '',
+    await request.post('/change-env').send({
+      AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: a.email,
     });
 
-    await request
-      .post('/signin/email-password')
-      .send({ email: 'aaa@nhost.io', password: '123456' })
-      .expect(200);
-
-    await request
-      .post('/signin/email-password')
-      .send({ email: 'bbb@nhost.io', password: '123456' })
-      .expect(403);
+    await request.post('/signin/email-password').send(a).expect(200);
+    await request.post('/signin/email-password').send(b).expect(403);
   });
 });

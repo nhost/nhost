@@ -6,7 +6,7 @@ import { ENV } from '@/utils/env';
 import { isRolesValid } from '@/utils/roles';
 import { getNewOneTimePasswordData } from '@/utils/otp';
 import { PasswordLessSmsBody } from '@/types';
-import { getUserByPhoneNumber } from '@/utils/user';
+import { getUserByPhoneNumber, insertUser } from '@/utils/user';
 import {
   ContainerTypes,
   ValidatedRequest,
@@ -30,8 +30,6 @@ export const signInPasswordlessSmsHandler = async (
   // check if email already exist
   let user = await getUserByPhoneNumber({ phoneNumber });
 
-  let userId = user ? user.id : undefined;
-
   // if no user exists, create the user
   if (!user) {
     // check roles
@@ -52,35 +50,25 @@ export const signInPasswordlessSmsHandler = async (
     const avatarUrl = '';
 
     // create new user
-    const insertedUser = await gqlSdk
-      .insertUser({
-        user: {
-          disabled: ENV.AUTH_DISABLE_NEW_USERS,
-          displayName,
-          avatarUrl,
-          phoneNumber,
-          locale,
-          defaultRole,
-          roles: {
-            data: userRoles,
-          },
-        },
-      })
-      .then((response) => response.insertUser);
-
-    if (!insertedUser) {
-      throw new Error('Unable to insert new user');
-    }
-
-    user = insertedUser;
-    userId = insertedUser.id;
+    user = await insertUser({
+      disabled: ENV.AUTH_DISABLE_NEW_USERS,
+      displayName,
+      avatarUrl,
+      phoneNumber,
+      locale,
+      defaultRole,
+      roles: {
+        data: userRoles,
+      },
+      custom: options?.custom || {},
+    });
   }
 
   // set otp for user that will be sent in the email
   const { otp, otpHash, otpHashExpiresAt } = await getNewOneTimePasswordData();
 
   await gqlSdk.updateUser({
-    id: userId,
+    id: user.id,
     user: {
       otpMethodLastUsed: 'sms',
       otpHash,
@@ -103,7 +91,7 @@ export const signInPasswordlessSmsHandler = async (
     } catch (error) {
       // delete user that was inserted because we were not able to send the SMS
       await gqlSdk.deleteUser({
-        userId,
+        userId: user.id,
       });
 
       return res.boom.internal('Error sending SMS');

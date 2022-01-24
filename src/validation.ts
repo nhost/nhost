@@ -9,14 +9,18 @@ const emailRule = Joi.string().email(); //.required(); //.allowedDomains();
 
 const localeRule = Joi.string().length(2);
 
+const registrationOptions = Joi.object({
+  locale: localeRule,
+  defaultRole: Joi.string(),
+  allowedRoles: Joi.array().items(Joi.string()),
+  displayName: Joi.string(),
+  custom: Joi.object(),
+});
+
 export const signUpEmailPasswordSchema = Joi.object({
   email: emailRule.required(),
   password: passwordRule.required(),
-  options: Joi.object({
-    locale: localeRule,
-    defaultRole: Joi.string(),
-    allowedRoles: Joi.array().items(Joi.string()),
-    displayName: Joi.string(),
+  options: registrationOptions.keys({
     redirectTo: Joi.string(),
   }),
 });
@@ -34,23 +38,14 @@ export const signInEmailPasswordSchema = Joi.object({
 
 export const signInPasswordlessEmailSchema = Joi.object({
   email: emailRule.required(),
-  options: Joi.object({
-    locale: localeRule,
-    defaultRole: Joi.string(),
-    allowedRoles: Joi.array().items(Joi.string()),
-    displayName: Joi.string(),
+  options: registrationOptions.keys({
     redirectTo: Joi.string(),
   }),
 });
 
 export const signInPasswordlessSmsSchema = Joi.object({
   phoneNumber: Joi.string().required(),
-  options: Joi.object({
-    locale: localeRule,
-    defaultRole: Joi.string(),
-    allowedRoles: Joi.array().items(Joi.string()),
-    displayName: Joi.string(),
-  }),
+  options: registrationOptions,
 });
 
 export const signInOtpSchema = Joi.object({
@@ -72,6 +67,7 @@ export const signInMfaPhoneNumberSchema = Joi.object({
 export const signInAnonymousSchema = Joi.object({
   locale: localeRule,
   displayName: Joi.string(),
+  custom: Joi.object(),
 });
 
 // -- SIGN OUT--

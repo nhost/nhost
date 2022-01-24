@@ -12,7 +12,6 @@ import {
   hashPassword,
   isValidRedirectTo,
 } from '@/helpers';
-import { gqlSdk } from '@/utils/gqlSDK';
 import { emailClient } from '@/email';
 import { isValidEmail } from '@/utils/email';
 import { isPasswordValid } from '@/utils/password';
@@ -20,15 +19,13 @@ import { isRolesValid } from '@/utils/roles';
 import { ENV } from '@/utils/env';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { getSignInResponse } from '@/utils/tokens';
+import { insertUser } from '@/utils/user';
+import { UserRegistrationOptions } from '@/types';
 
 type BodyType = {
   email: string;
   password: string;
-  options?: {
-    locale?: string;
-    allowedRoles?: string[];
-    defaultRole?: string;
-    displayName?: string;
+  options?: UserRegistrationOptions & {
     redirectTo?: string;
   };
 };
@@ -95,29 +92,22 @@ export const signUpEmailPasswordHandler = async (
   req.log.debug({ displayName, avatarUrl });
 
   // insert user
-  const user = await gqlSdk
-    .insertUser({
-      user: {
-        disabled: ENV.AUTH_DISABLE_NEW_USERS,
-        displayName,
-        avatarUrl,
-        email,
-        passwordHash,
-        ticket,
-        ticketExpiresAt,
-        emailVerified: false,
-        locale,
-        defaultRole,
-        roles: {
-          data: userRoles,
-        },
-      },
-    })
-    .then((res) => res.insertUser);
-
-  if (!user) {
-    throw new Error('Unable to insert new user');
-  }
+  const user = await insertUser({
+    disabled: ENV.AUTH_DISABLE_NEW_USERS,
+    displayName,
+    avatarUrl,
+    email,
+    passwordHash,
+    ticket,
+    ticketExpiresAt,
+    emailVerified: false,
+    locale,
+    defaultRole,
+    roles: {
+      data: userRoles,
+    },
+    custom: options?.custom || {},
+  });
 
   // user is now inserted. Continue sending out activation email
   if (

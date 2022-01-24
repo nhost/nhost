@@ -14,7 +14,7 @@ import { isValidEmail } from '@/utils/email';
 import { isRolesValid } from '@/utils/roles';
 import { PasswordLessEmailBody } from '@/types';
 import { generateTicketExpiresAt } from '@/utils/ticket';
-import { logger } from '@/logger';
+import { insertUser } from '@/utils/user';
 
 interface Schema extends ValidatedRequestSchema {
   [ContainerTypes.Body]: PasswordLessEmailBody;
@@ -38,8 +38,6 @@ export const signInPasswordlessEmailHandler = async (
 
   // check if email already exist
   let user = await getUserByEmail(email);
-
-  let userId = user ? user.id : undefined;
 
   // if no user exists, create the user
   if (!user) {
@@ -67,32 +65,21 @@ export const signInPasswordlessEmailHandler = async (
     const avatarUrl = getGravatarUrl(email);
 
     // create new user
-    const insertedUser = await gqlSdk
-      .insertUser({
-        user: {
-          disabled: ENV.AUTH_DISABLE_NEW_USERS,
-          displayName,
-          avatarUrl,
-          email,
-          locale,
-          defaultRole,
-          roles: {
-            data: userRoles,
-          },
-        },
-      })
-      .then((res) => res.insertUser);
-
-    if (!insertedUser) {
-      throw new Error('Unable to insert new user');
-    }
-
-    user = insertedUser;
-    userId = insertedUser.id;
+    user = await insertUser({
+      displayName,
+      locale,
+      roles: {
+        data: userRoles,
+      },
+      disabled: ENV.AUTH_DISABLE_NEW_USERS,
+      avatarUrl,
+      email,
+      defaultRole,
+      custom: options?.custom || {},
+    });
   }
 
   if (user?.disabled) {
-    logger.debug('User is disabled');
     return res.boom.unauthorized('User is disabled');
   }
 
@@ -101,7 +88,7 @@ export const signInPasswordlessEmailHandler = async (
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 
   await gqlSdk.updateUser({
-    id: userId,
+    id: user.id,
     user: {
       ticket,
       ticketExpiresAt,

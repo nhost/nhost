@@ -15,6 +15,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   citext: any;
+  jsonb: any;
   timestamptz: any;
   uuid: any;
 };
@@ -1088,6 +1089,29 @@ export type Citext_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['citext']>;
 };
 
+/** Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'. */
+export type Jsonb_Comparison_Exp = {
+  /** is the column contained in the given json value */
+  _contained_in?: InputMaybe<Scalars['jsonb']>;
+  /** does the column contain the given json value at the top level */
+  _contains?: InputMaybe<Scalars['jsonb']>;
+  _eq?: InputMaybe<Scalars['jsonb']>;
+  _gt?: InputMaybe<Scalars['jsonb']>;
+  _gte?: InputMaybe<Scalars['jsonb']>;
+  /** does the string exist as a top-level key in the column */
+  _has_key?: InputMaybe<Scalars['String']>;
+  /** do all of these strings exist as top-level keys in the column */
+  _has_keys_all?: InputMaybe<Array<Scalars['String']>>;
+  /** do any of these strings exist as top-level keys in the column */
+  _has_keys_any?: InputMaybe<Array<Scalars['String']>>;
+  _in?: InputMaybe<Array<Scalars['jsonb']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Scalars['jsonb']>;
+  _lte?: InputMaybe<Scalars['jsonb']>;
+  _neq?: InputMaybe<Scalars['jsonb']>;
+  _nin?: InputMaybe<Array<Scalars['jsonb']>>;
+};
+
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
@@ -1446,6 +1470,11 @@ export type Mutation_RootUpdateAuthUserRolesArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateUserArgs = {
+  _append?: InputMaybe<Users_Append_Input>;
+  _delete_at_path?: InputMaybe<Users_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Users_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
+  _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   pk_columns: Users_Pk_Columns_Input;
 };
@@ -1453,6 +1482,11 @@ export type Mutation_RootUpdateUserArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateUsersArgs = {
+  _append?: InputMaybe<Users_Append_Input>;
+  _delete_at_path?: InputMaybe<Users_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Users_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
+  _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
 };
@@ -1906,6 +1940,7 @@ export type Users = {
   activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl: Scalars['String'];
   createdAt: Scalars['timestamptz'];
+  custom?: Maybe<Scalars['jsonb']>;
   defaultRole: Scalars['String'];
   /** An object relationship */
   defaultRoleByRole: AuthRoles;
@@ -1940,6 +1975,12 @@ export type Users = {
   userProviders: Array<AuthUserProviders>;
   /** An aggregate relationship */
   userProviders_aggregate: AuthUserProviders_Aggregate;
+};
+
+
+/** columns and relationships of "auth.users" */
+export type UsersCustomArgs = {
+  path?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -2031,6 +2072,11 @@ export type Users_Aggregate_Order_By = {
   min?: InputMaybe<Users_Min_Order_By>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Users_Append_Input = {
+  custom?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** input type for inserting array relation for remote table "auth.users" */
 export type Users_Arr_Rel_Insert_Input = {
   data: Array<Users_Insert_Input>;
@@ -2046,6 +2092,7 @@ export type Users_Bool_Exp = {
   activeMfaType?: InputMaybe<String_Comparison_Exp>;
   avatarUrl?: InputMaybe<String_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
+  custom?: InputMaybe<Jsonb_Comparison_Exp>;
   defaultRole?: InputMaybe<String_Comparison_Exp>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Bool_Exp>;
   disabled?: InputMaybe<Boolean_Comparison_Exp>;
@@ -2082,11 +2129,27 @@ export enum Users_Constraint {
   UsersPkey = 'users_pkey'
 }
 
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Users_Delete_At_Path_Input = {
+  custom?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Users_Delete_Elem_Input = {
+  custom?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Users_Delete_Key_Input = {
+  custom?: InputMaybe<Scalars['String']>;
+};
+
 /** input type for inserting data into table "auth.users" */
 export type Users_Insert_Input = {
   activeMfaType?: InputMaybe<Scalars['String']>;
   avatarUrl?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  custom?: InputMaybe<Scalars['jsonb']>;
   defaultRole?: InputMaybe<Scalars['String']>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Obj_Rel_Insert_Input>;
   disabled?: InputMaybe<Scalars['Boolean']>;
@@ -2235,6 +2298,7 @@ export type Users_Order_By = {
   activeMfaType?: InputMaybe<Order_By>;
   avatarUrl?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
+  custom?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Order_By>;
   disabled?: InputMaybe<Order_By>;
@@ -2266,6 +2330,11 @@ export type Users_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Users_Prepend_Input = {
+  custom?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** select columns of table "auth.users" */
 export enum Users_Select_Column {
   /** column name */
@@ -2274,6 +2343,8 @@ export enum Users_Select_Column {
   AvatarUrl = 'avatarUrl',
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  Custom = 'custom',
   /** column name */
   DefaultRole = 'defaultRole',
   /** column name */
@@ -2321,6 +2392,7 @@ export type Users_Set_Input = {
   activeMfaType?: InputMaybe<Scalars['String']>;
   avatarUrl?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
+  custom?: InputMaybe<Scalars['jsonb']>;
   defaultRole?: InputMaybe<Scalars['String']>;
   disabled?: InputMaybe<Scalars['Boolean']>;
   displayName?: InputMaybe<Scalars['String']>;
@@ -2351,6 +2423,8 @@ export enum Users_Update_Column {
   AvatarUrl = 'avatarUrl',
   /** column name */
   CreatedAt = 'createdAt',
+  /** column name */
+  Custom = 'custom',
   /** column name */
   DefaultRole = 'defaultRole',
   /** column name */
@@ -2491,21 +2565,21 @@ export type DeleteUserRolesByUserIdMutationVariables = Exact<{
 
 export type DeleteUserRolesByUserIdMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null | undefined };
 
-export type UserFieldsFragment = { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> };
+export type UserFieldsFragment = { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> };
 
 export type UserQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type UserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type UserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
 
 export type UsersQueryVariables = Exact<{
   where: Users_Bool_Exp;
 }>;
 
 
-export type UsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
+export type UsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
 
 export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariables = Exact<{
   refreshToken: Scalars['uuid'];
@@ -2513,14 +2587,14 @@ export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariable
 }>;
 
 
-export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = { __typename?: 'mutation_root', updateAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', returning: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> } | null | undefined };
+export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = { __typename?: 'mutation_root', updateAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', returning: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> } | null | undefined };
 
 export type GetUsersByRefreshTokenOldQueryVariables = Exact<{
   refreshToken: Scalars['uuid'];
 }>;
 
 
-export type GetUsersByRefreshTokenOldQuery = { __typename?: 'query_root', authRefreshTokens: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> };
+export type GetUsersByRefreshTokenOldQuery = { __typename?: 'query_root', authRefreshTokens: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> };
 
 export type UpdateUserMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -2528,7 +2602,7 @@ export type UpdateUserMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
 
 export type UpdateUserWhereMutationVariables = Exact<{
   where: Users_Bool_Exp;
@@ -2555,21 +2629,21 @@ export type ChangeEmailsByTicketMutationVariables = Exact<{
 }>;
 
 
-export type ChangeEmailsByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null | undefined };
+export type ChangeEmailsByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null | undefined };
 
 export type InsertUserMutationVariables = Exact<{
   user: Users_Insert_Input;
 }>;
 
 
-export type InsertUserMutation = { __typename?: 'mutation_root', insertUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type InsertUserMutation = { __typename?: 'mutation_root', insertUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
 
 export type DeleteUserMutationVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type DeleteUserMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null | undefined, deleteUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type DeleteUserMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null | undefined, deleteUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
 
 export type DeanonymizeUserMutationVariables = Exact<{
   userId: Scalars['uuid'];
@@ -2592,7 +2666,7 @@ export type GetUserByTicketQueryVariables = Exact<{
 }>;
 
 
-export type GetUserByTicketQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
+export type GetUserByTicketQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
 
 export type UpdateUsersByTicketMutationVariables = Exact<{
   ticket: Scalars['String'];
@@ -2600,7 +2674,7 @@ export type UpdateUsersByTicketMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUsersByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null | undefined };
+export type UpdateUsersByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, custom?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null | undefined };
 
 export const UserFieldsFragmentDoc = gql`
     fragment userFields on users {
@@ -2621,6 +2695,7 @@ export const UserFieldsFragmentDoc = gql`
   activeMfaType
   newEmail
   locale
+  custom
   roles {
     role
   }

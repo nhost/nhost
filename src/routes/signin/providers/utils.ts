@@ -29,6 +29,7 @@ import { UserFieldsFragment } from '@/utils/__generated__/graphql-request';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
+import { insertUser } from '@/utils/user';
 
 interface RequestWithState<T extends ValidatedRequestSchema>
   extends ValidatedRequest<T> {
@@ -120,40 +121,32 @@ const manageProviderStrategy =
       }
     }
 
-    const insertUser = await gqlSdk
-      .insertUser({
-        user: {
-          email,
-          passwordHash: null,
-          emailVerified: true,
-          defaultRole: ENV.AUTH_USER_DEFAULT_ROLE,
-          locale: ENV.AUTH_LOCALE_DEFAULT,
-          roles: {
-            data: ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.map((role) => ({
-              role,
-            })),
+    const insertedUser = await insertUser({
+      email,
+      passwordHash: null,
+      emailVerified: true,
+      defaultRole: ENV.AUTH_USER_DEFAULT_ROLE,
+      locale: ENV.AUTH_LOCALE_DEFAULT,
+      roles: {
+        data: ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.map((role) => ({
+          role,
+        })),
+      },
+      displayName: displayName || email,
+      avatarUrl,
+      userProviders: {
+        data: [
+          {
+            providerUserId: id.toString(),
+            accessToken,
+            refreshToken,
+            providerId: provider,
           },
-          displayName: displayName || email,
-          avatarUrl,
-          userProviders: {
-            data: [
-              {
-                providerUserId: id.toString(),
-                accessToken,
-                refreshToken,
-                providerId: provider,
-              },
-            ],
-          },
-        },
-      })
-      .then((res) => res.insertUser);
+        ],
+      },
+    });
 
-    if (!insertUser) {
-      throw new Error('Could not insert user');
-    }
-
-    return done(null, insertUser);
+    return done(null, insertedUser);
   };
 
 const providerCallback = asyncWrapper(
