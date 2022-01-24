@@ -46,8 +46,6 @@ describe('custom fields', () => {
         },
       })
       .expect(200);
-
-    console.log(session.user);
-    // TODO check session.user.custom.first_name
+    expect(session.user.custom.first_name).toEqual(firstName);
   });
 });
