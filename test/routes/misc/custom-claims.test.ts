@@ -109,7 +109,6 @@ describe('custom JWT claims', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_JWT_CUSTOM_CLAIMS: '{"organisation-id":"profile.organisation.id"}',
     });
   });
 
