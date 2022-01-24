@@ -22,6 +22,7 @@ describe('custom fields', () => {
 
   afterAll(async () => {
     await reloadMetadata();
+    await client.end();
   });
 
   beforeEach(async () => {
