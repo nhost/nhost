@@ -181,46 +181,13 @@ describe('custom JWT claims', () => {
     });
 
     const jwt = decodeAccessToken(body.session.accessToken);
+    expect(jwt).toBeObject();
     if (jwt) {
       expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
       expect(
         jwt['https://hasura.io/jwt/claims']['x-hasura-organisation-id']
       ).toEqual(organisationId);
     }
-  });
-
-  it('should handle an invalid configuration (unparsable)', async () => {
-    await request.post('/change-env').send({
-      AUTH_JWT_CUSTOM_CLAIMS: '{"project-ids": unquoted value }',
-    });
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const {
-      body: {
-        session: { user },
-      },
-    } = await request.post('/signup/email-password').send({
-      email,
-      password,
-    });
-    expect(user?.id).toBeString();
-  });
-
-  it('should handle an invalid configuration (parsable, but not an object)', async () => {
-    await request.post('/change-env').send({
-      AUTH_JWT_CUSTOM_CLAIMS: 'string value',
-    });
-    const email = faker.internet.email();
-    const password = faker.internet.password();
-    const {
-      body: {
-        session: { user },
-      },
-    } = await request.post('/signup/email-password').send({
-      email,
-      password,
-    });
-    expect(user?.id).toBeString();
   });
 
   it('should add a custom claim from a nested array relationship', async () => {
@@ -261,6 +228,84 @@ describe('custom JWT claims', () => {
       expect(
         jwt['https://hasura.io/jwt/claims']['x-hasura-project-ids']
       ).toEqual(escapeValueToPg(userProjects));
+    }
+  });
+
+  it('should handle an invalid configuration (unparsable)', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: '{"invalid JSON": unquoted value }',
+    });
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const {
+      body: {
+        session: { user },
+      },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+    expect(user?.id).toBeString();
+  });
+
+  it('should handle an invalid configuration (parsable, but not an object)', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: 'string value',
+    });
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const {
+      body: {
+        session: { user },
+      },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+    expect(user?.id).toBeString();
+  });
+
+  it('should handle an valid configuration with invalid GraphQL path', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: '{"key": "path.does.not-exist" }',
+    });
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const {
+      body: { session },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+    expect(session?.user?.id).toBeString();
+    const jwt = decodeAccessToken(session.accessToken);
+    if (jwt) {
+      expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
+      expect(
+        jwt['https://hasura.io/jwt/claims']['x-hasura-key']
+      ).toBeUndefined();
+    }
+  });
+
+  it('should handle an valid configuration with invalid JSONata path', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: '{"key": "invalid jsonata path!?!" }',
+    });
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const {
+      body: { session },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+    expect(session?.user?.id).toBeString();
+    const jwt = decodeAccessToken(session.accessToken);
+    if (jwt) {
+      expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
+      expect(
+        jwt['https://hasura.io/jwt/claims']['x-hasura-key']
+      ).toBeUndefined();
     }
   });
 });

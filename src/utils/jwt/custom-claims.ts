@@ -4,6 +4,7 @@ import jsonata from 'jsonata';
 
 import { ENV } from '../env';
 import { client } from '../gqlSDK';
+import { logger } from '@/logger';
 
 /**
  * Convert array to Postgres array
@@ -55,22 +56,31 @@ const createCustomFieldQuery = (jwtFields: Record<string, string>): string => {
 
 export const generateCustomClaims = async (userId: string) => {
   if (Object.keys(ENV.AUTH_JWT_CUSTOM_CLAIMS).length === 0) return {};
-  const {
-    data: { user },
-  } = await client.rawRequest(
-    createCustomFieldQuery(ENV.AUTH_JWT_CUSTOM_CLAIMS),
-    {
+  const request = createCustomFieldQuery(ENV.AUTH_JWT_CUSTOM_CLAIMS);
+  try {
+    const {
+      data: { user },
+    } = await client.rawRequest(request, {
       userId,
-    }
-  );
+    });
 
-  return Object.entries(ENV.AUTH_JWT_CUSTOM_CLAIMS).reduce<
-    Record<string, unknown>
-  >((aggr, [name, path]) => {
-    const expression = jsonata(path);
-    aggr[`x-hasura-${name}`] = escapeValueToPg(
-      expression.evaluate(user, expression)
-    );
-    return aggr;
-  }, {});
+    return Object.entries(ENV.AUTH_JWT_CUSTOM_CLAIMS).reduce<
+      Record<string, unknown>
+    >((aggr, [name, path]) => {
+      const expression = jsonata(path);
+      try {
+        const jsonataValue = escapeValueToPg(
+          expression.evaluate(user, expression)
+        );
+        aggr[`x-hasura-${name}`] = jsonataValue;
+      } catch {
+        logger.warn(`Invalid JSONata expression`, { user, expression });
+        aggr[`x-hasura-${name}`] = null;
+      }
+      return aggr;
+    }, {});
+  } catch {
+    logger.warn(`Invalid custom JWT GraphQL Query`, { request });
+    return {};
+  }
 };
