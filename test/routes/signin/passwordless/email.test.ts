@@ -26,7 +26,6 @@ describe('passwordless email (magic link)', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: '',
       AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS: '',
       AUTH_ACCESS_CONTROL_BLOCKED_EMAILS: '',

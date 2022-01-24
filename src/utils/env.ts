@@ -1,6 +1,8 @@
+import { logger } from '@/logger';
 import {
   castBooleanEnv,
   castIntEnv,
+  castObjectEnv,
   castStringArrayEnv,
   castStringEnv,
 } from '../config/utils';
@@ -171,9 +173,6 @@ export const ENV = {
   get AUTH_REFRESH_TOKEN_EXPIRES_IN() {
     return castIntEnv('AUTH_REFRESH_TOKEN_EXPIRES_IN', 43200);
   },
-  get AUTH_USER_SESSION_VARIABLE_FIELDS() {
-    return castStringArrayEnv('AUTH_USER_SESSION_VARIABLE_FIELDS', []);
-  },
 
   // EMAIL TEMPLATES
   get AUTH_EMAIL_TEMPLATE_FETCH_URL() {
@@ -183,5 +182,17 @@ export const ENV = {
   // LOGS
   get AUTH_LOG_LEVEL() {
     return castStringEnv('AUTH_LOG_LEVEL', 'info');
+  },
+
+  get AUTH_JWT_CUSTOM_CLAIMS() {
+    // TODO check environment variable format on startup
+    return castObjectEnv<Record<string, string>>('AUTH_JWT_CUSTOM_CLAIMS');
+  },
+
+  get AUTH_USER_SESSION_VARIABLE_FIELDS(): Record<string, string> {
+    logger.warn(
+      `The 'AUTH_USER_SESSION_VARIABLE_FIELDS' environment variable is deprecated. Use 'AUTH_JWT_CUSTOM_CLAIMS' instead`
+    );
+    return this.AUTH_USER_SESSION_VARIABLE_FIELDS;
   },
 };

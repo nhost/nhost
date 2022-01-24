@@ -2,7 +2,7 @@ import { Client } from 'pg';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
-import { decodeAccessToken, isValidAccessToken } from '../../utils';
+import { isValidAccessToken } from '../../utils';
 
 describe('token', () => {
   let client: Client;
@@ -14,8 +14,8 @@ describe('token', () => {
     await client.connect();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {
@@ -27,7 +27,6 @@ describe('token', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body } = await request.post('/signin/anonymous').send().expect(200);
@@ -39,43 +38,5 @@ describe('token', () => {
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
     expect(mfa).toBe(null);
-  });
-
-  it('should should sign in and get access token with email user fields', async () => {
-    // set env vars
-    await request.post('/change-env').send({
-      AUTH_DISABLE_NEW_USERS: false,
-      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: 'email',
-    });
-
-    const email = 'joedoe@example.com';
-    const password = '123123123123';
-
-    await request
-      .post('/signup/email-password')
-      .send({
-        email,
-        password,
-      })
-      .expect(200);
-
-    const { body } = await request
-      .post('/signin/email-password')
-      .send({
-        email,
-        password,
-      })
-      .expect(200);
-
-    const token = decodeAccessToken(body.session.accessToken);
-
-    if (!token) {
-      throw new Error('Token not set');
-    }
-
-    expect(token['https://hasura.io/jwt/claims']['x-hasura-user-email']).toBe(
-      email
-    );
   });
 });

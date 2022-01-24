@@ -27,3 +27,17 @@ export const castStringArrayEnv = (
     ? (process.env[envVar] as string).split(',').map((field) => field.trim())
     : defaultValue;
 };
+
+export const castObjectEnv = <T extends Record<string, unknown>>(
+  envVar: string,
+  defaultValue: T = {} as T
+): T => {
+  const env = process.env[envVar];
+  if (env) {
+    try {
+      return JSON.parse(env);
+    } catch {
+      return defaultValue;
+    }
+  } else return defaultValue;
+};
