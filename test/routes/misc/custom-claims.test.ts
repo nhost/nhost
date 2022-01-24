@@ -189,6 +189,23 @@ describe('custom JWT claims', () => {
     }
   });
 
+  it('should handle an invalid configuration', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: '{"project-ids": unquoted value }',
+    });
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const {
+      body: {
+        session: { user },
+      },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+    expect(user?.id).toBeString();
+  });
+
   it('should add a custom claim from a nested array relationship', async () => {
     await request.post('/change-env').send({
       AUTH_JWT_CUSTOM_CLAIMS:

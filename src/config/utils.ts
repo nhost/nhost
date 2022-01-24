@@ -34,10 +34,6 @@ export const castObjectEnv = <T extends Record<string, unknown>>(
 ): T => {
   const env = process.env[envVar];
   if (env) {
-    try {
-      return JSON.parse(env);
-    } catch {
-      return defaultValue;
-    }
+    return JSON.parse(env);
   } else return defaultValue;
 };
