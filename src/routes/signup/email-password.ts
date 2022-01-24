@@ -149,7 +149,7 @@ export const signUpEmailPasswordHandler = async (
         email,
         ticket,
         redirectTo,
-        locale: options?.locale ?? user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
+        locale: user.locale,
         serverUrl: ENV.AUTH_SERVER_URL,
         clientUrl: ENV.AUTH_CLIENT_URL,
       },

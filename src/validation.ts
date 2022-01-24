@@ -26,7 +26,6 @@ export const signInEmailPasswordSchema = Joi.object({
   email: emailRule.required(),
   password: passwordRule.required(),
   options: Joi.object({
-    locale: localeRule,
     defaultRole: Joi.string(),
     allowedRoles: Joi.array().items(Joi.string()),
     displayName: Joi.string(),
@@ -86,7 +85,6 @@ export const signOutSchema = Joi.object({
 export const userPasswordResetSchema = Joi.object({
   email: emailRule.required(),
   options: Joi.object({
-    locale: localeRule,
     redirectTo: Joi.string(),
   }),
 });
@@ -98,7 +96,6 @@ export const userPasswordSchema = Joi.object({
 export const userEmailChangeSchema = Joi.object({
   newEmail: emailRule,
   options: Joi.object({
-    locale: localeRule,
     redirectTo: Joi.string(),
   }),
 });
@@ -106,7 +103,6 @@ export const userEmailChangeSchema = Joi.object({
 export const userEmailSendVerificationEmailSchema = Joi.object({
   email: emailRule.required(),
   options: Joi.object({
-    locale: localeRule,
     redirectTo: Joi.string(),
   }),
 });
