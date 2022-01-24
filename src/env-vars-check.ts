@@ -1,4 +1,5 @@
 import { PROVIDERS } from '@config/index';
+import { isSet } from 'util/types';
 import { logger } from './logger';
 
 function isUnset(val?: string) {
@@ -8,6 +9,14 @@ function isUnset(val?: string) {
 }
 
 const errors: string[] = [];
+const warnings: string[] = [];
+
+if (!isSet('AUTH_USER_SESSION_VARIABLE_FIELDS')) {
+  // TODO check environment variable format on startup
+  warnings.push(
+    `The 'AUTH_USER_SESSION_VARIABLE_FIELDS' environment variable is deprecated. Use 'AUTH_JWT_CUSTOM_CLAIMS' instead`
+  );
+}
 
 [
   'HASURA_GRAPHQL_JWT_SECRET',
@@ -156,3 +165,5 @@ if (errors.length) {
   logger.error(errors.join('\n'));
   throw new Error('Invalid configuration');
 }
+
+warnings.forEach((warn) => logger.warn(warn));

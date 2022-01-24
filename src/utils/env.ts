@@ -1,4 +1,3 @@
-import { logger } from '@/logger';
 import {
   castBooleanEnv,
   castIntEnv,
@@ -185,14 +184,10 @@ export const ENV = {
   },
 
   get AUTH_JWT_CUSTOM_CLAIMS() {
-    // TODO check environment variable format on startup
     return castObjectEnv<Record<string, string>>('AUTH_JWT_CUSTOM_CLAIMS');
   },
 
   get AUTH_USER_SESSION_VARIABLE_FIELDS(): Record<string, string> {
-    logger.warn(
-      `The 'AUTH_USER_SESSION_VARIABLE_FIELDS' environment variable is deprecated. Use 'AUTH_JWT_CUSTOM_CLAIMS' instead`
-    );
     return this.AUTH_USER_SESSION_VARIABLE_FIELDS;
   },
 };
