@@ -1,7 +1,7 @@
 import { jsonToGraphQLQuery, VariableType } from 'json-to-graphql-query';
 import { set } from 'dot-prop';
+import jsonata from 'jsonata';
 
-import { get } from 'dot-prop';
 import { ENV } from '../env';
 import { client } from '../gqlSDK';
 
@@ -15,7 +15,10 @@ function toPgArray(arr: string[]): string {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const escapeValueToPg = (value: any): string => {
+export const escapeValueToPg = (value: any): string => {
+  // ? Why escaping values? See:
+  // * https://hasura.io/docs/latest/graphql/core/auth/authorization/roles-variables.html#format-of-session-variables
+  // * https://github.com/hasura/graphql-engine/issues/1902
   const type = typeof value;
   if (type === 'string') {
     return value;
@@ -47,7 +50,7 @@ const createCustomFieldQuery = (jwtFields: Record<string, string>): string => {
       },
     },
   };
-  return jsonToGraphQLQuery(query, { pretty: true });
+  return jsonToGraphQLQuery(query);
 };
 
 export const generateCustomClaims = async (userId: string) => {
@@ -64,7 +67,10 @@ export const generateCustomClaims = async (userId: string) => {
   return Object.entries(ENV.AUTH_JWT_CUSTOM_CLAIMS).reduce<
     Record<string, unknown>
   >((aggr, [name, path]) => {
-    aggr[`x-hasura-${name}`] = escapeValueToPg(get(user, path));
+    const expression = jsonata(path);
+    aggr[`x-hasura-${name}`] = escapeValueToPg(
+      expression.evaluate(user, expression)
+    );
     return aggr;
   }, {});
 };
