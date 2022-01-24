@@ -15,8 +15,8 @@ describe('email-password', () => {
     await deleteAllMailHogEmails();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {
@@ -37,7 +37,7 @@ describe('email-password', () => {
 
   it('should fail to sign up with same email', async () => {
     // set env vars
-    await await request.post('/change-env').send({
+    await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
     });
 
@@ -54,7 +54,7 @@ describe('email-password', () => {
 
   it('should fail with weak password', async () => {
     // set env vars
-    await await request.post('/change-env').send({
+    await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_PASSWORD_HIBP_ENABLED: true,
     });
@@ -67,7 +67,7 @@ describe('email-password', () => {
 
   it('should succeed to sign up with different emails', async () => {
     // set env vars
-    await await request.post('/change-env').send({
+    await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_PASSWORD_HIBP_ENABLED: false,
     });
@@ -85,7 +85,7 @@ describe('email-password', () => {
 
   it('should success with SMTP settings', async () => {
     // set env vars
-    await await request.post('/change-env').send({
+    await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_HIBP_ENABLED: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
@@ -121,7 +121,7 @@ describe('email-password', () => {
 
   it('allowed roles must be subset of env var ALLOWED_USER_ROLES', async () => {
     // set env vars
-    await await request.post('/change-env').send({
+    await request.post('/change-env').send({
       ALLOWED_USER_ROLES: 'user,editor',
     });
 
@@ -153,13 +153,6 @@ describe('email-password', () => {
       .post('/signup/email-password')
       .send({ email, password })
       .expect((res) => (res.status != 200 ? console.log(res.body) : 0));
-    // .expect(200)
-    // .end((err, res) => {
-    //   if (err) {
-    //     console.error(res.error);
-    //   }
-    //   done(err);
-    // });
 
     await request
       .post('/signin/email-password')

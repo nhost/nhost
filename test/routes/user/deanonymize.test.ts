@@ -16,8 +16,8 @@ describe('email-password', () => {
     await client.connect();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {
@@ -31,7 +31,6 @@ describe('email-password', () => {
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -97,7 +96,6 @@ describe('email-password', () => {
       AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -157,7 +155,6 @@ describe('email-password', () => {
       AUTH_EMAIL_PASSWORDLESS_ENABLED: true,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request

@@ -16,8 +16,8 @@ describe('passwordless email (magic link)', () => {
     deleteAllMailHogEmails();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {
@@ -35,8 +35,6 @@ describe('passwordless email (magic link)', () => {
   });
 
   it('should sign in', async () => {
-    // set env vars
-
     const email = faker.internet.email();
 
     await request
@@ -145,7 +143,6 @@ describe('passwordless email (magic link)', () => {
   });
 
   it('should fail to sign if email is not valid', async () => {
-    // set env vars
     await request.post('/change-env').send({
       AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: 'vip@example.com',
     });

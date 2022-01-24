@@ -2,6 +2,7 @@ import { SuperTest, Test, agent } from 'supertest';
 import { Server } from 'http';
 import getPort from 'get-port';
 import { Client } from 'pg';
+import * as faker from 'faker';
 
 import { ENV } from '../../../src/utils/env';
 import { app } from '../../../src/server';
@@ -22,8 +23,8 @@ describe('anonymous', () => {
     await client.connect();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {
@@ -42,7 +43,6 @@ describe('anonymous', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: true,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     const { body }: { body: SignInResponse } = await request
@@ -68,7 +68,7 @@ describe('anonymous', () => {
     await request
       .post('/signin/anonymous')
       .send({
-        email: 'test@hello.com',
+        email: faker.internet.email(),
       })
       .expect(400);
   });
@@ -78,7 +78,6 @@ describe('anonymous', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_ANONYMOUS_USERS_ENABLED: false,
-      AUTH_USER_SESSION_VARIABLE_FIELDS: '',
     });
 
     await request.post('/signin/anonymous').expect(404);
