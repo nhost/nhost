@@ -128,12 +128,6 @@ export const ENV = {
       this.AUTH_USER_DEFAULT_ROLE,
     ]);
   },
-  get AUTH_ALLOWED_USER_ROLES() {
-    return castStringArrayEnv(
-      'ALLOWED_USER_ROLES',
-      this.AUTH_USER_DEFAULT_ALLOWED_ROLES
-    );
-  },
   get AUTH_LOCALE_DEFAULT() {
     return castStringEnv('AUTH_LOCALE_DEFAULT', 'en');
   },
