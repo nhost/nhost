@@ -16,12 +16,6 @@
 </div>
 
 <p align="center">
-<strong>
-We have a free tier launching soon. Please star this repo to receive updates. Thanks for your support!
-</strong>
-</p>
-
-<p align="center">
   <img width="550" src="https://reporoster.com/stars/nhost/nhost" />
 </p>
 <p align="center">
