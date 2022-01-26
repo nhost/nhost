@@ -187,7 +187,7 @@ describe('passwordless email (magic link)', () => {
     // set env vars
     await request.post('/change-env').send({
       AUTH_USER_DEFAULT_ROLE: 'user',
-      AUTH_DEFAULT_ALLOWED_USER_ROLES: 'user',
+      AUTH_USER_DEFAULT_ALLOWED_ROLES: 'user',
     });
 
     await request

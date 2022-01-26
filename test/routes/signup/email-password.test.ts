@@ -119,7 +119,7 @@ describe('email-password', () => {
       .expect(400);
   });
 
-  it('allowed roles must be subset of env var ALLOWED_USER_ROLES', async () => {
+  it('allowed roles must be subset of env var AUTH_USER_DEFAULT_ALLOWED_ROLES', async () => {
     // set env vars
     await request.post('/change-env').send({
       ALLOWED_USER_ROLES: 'user,editor',
@@ -143,7 +143,7 @@ describe('email-password', () => {
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
-      ALLOWED_USER_ROLES: '',
+      AUTH_USER_DEFAULT_ALLOWED_ROLES: '',
     });
 
     const email = 'joedoe@example.com';
