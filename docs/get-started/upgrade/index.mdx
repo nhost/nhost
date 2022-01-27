@@ -1,0 +1,85 @@
+---
+title: 'Upgrade from v1 to v2'
+---
+
+Upgrading from Nhost v1 to v2 requires changes to the database schema and hasura metadata.
+
+## Need help?
+
+If you need help migrating from v1 to v2 please contact Johan: johan@nhost.io
+
+---
+
+## Upgrade steps
+
+### Prepare a new directory
+
+```sh
+mkdir -p nhost-v2/nhost
+echo "version: 2" > nhost-v2/nhost/config.yaml
+```
+
+### Export current migrations and metadata from Nhost v1
+
+Inside `nhost-v2/`
+
+```sh
+hasura migrate create init --from-server --endpoint=[v1-endpoint] --admin-secret=[v1-admin-secret]
+hasura metadata export --endpoint=[v1-endpoint] --admin-secret=[v1-admin-secret]
+```
+
+### Edit migrations
+
+Edit the up.sql migration created.
+
+- Delete all `auth.*` tables and functions.
+- Delete `public.users` table
+- Update FK references from `public.users` to `auth.users`.
+- Add `OR REPLACE` after `CREATE` for the `public.set_current_timestamp_updated_at` function
+
+### Edit metadata
+
+Update metadata.
+
+- Delete tracking all tables in the `auth` schema.
+- Delete tracking the `public.users` table.
+- Update all references to users from `public` to `auth` schema.
+
+### Start nhost
+
+Start Nohst CLI
+
+```sh
+nhost -d
+```
+
+### Restart Auth and Storage containers
+
+Open Docker UI and restart Hasura Auth and Hasura Storage. This will reapply migrations and metadata for the `auth` and the `storage` schema.
+
+### Move migrations
+
+Move the current `migrations` folder to ex `migrations-bk`.
+
+### Change config version
+
+Change config version from `config: 2` to `config: 3` in the `nhost/config.yaml` file.
+
+### Export local metadata in new format
+
+```sh
+hasura metadata export --endpoint=http://localhost:1337 --admin-secret=nhost-admin-secret
+```
+
+### Move migrations folder
+
+To match hasura config v3, move all migrations inside `migrations/default` folder.
+
+```sh
+mkdir -p migrations/default
+cp -r migrations/* migrations/default/
+```
+
+### Done
+
+Database migrations and metadata are now pulled from the remote Nhost v1 backend, edited for Nhost v2 and updated for Hasura Configuration v3.
