@@ -46,7 +46,7 @@ JS/TS and Flutter SDKs to make it easy to work with.
 
 ## Managed at Nhost.io
 
-[Sign up](https://console.nhost.io) and create your first app on [https://console.nhost.io](https://console.nhost.io).
+[Sign up](https://app.nhost.io) and create your first app on [https://app.nhost.io/new](https://console.nhost.io).
 
 ![Nhost](assets/get-started.png)
 
