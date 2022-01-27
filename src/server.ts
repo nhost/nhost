@@ -11,7 +11,7 @@ import { waitForHasura } from './helpers';
 import router from './routes';
 import { errors } from './errors';
 import { authMiddleware } from './middleware/auth';
-import { pino, logger } from './logger';
+import { pino, logger, LOG_LEVEL } from './logger';
 import { Server } from 'http';
 
 const app = express();
@@ -44,7 +44,7 @@ export const start = async (): Promise<Server> => {
   return new Promise((resolve) => {
     const server = app.listen(ENV.AUTH_PORT, ENV.AUTH_HOST, () => {
       logger.info('Log level');
-      logger.info(ENV.AUTH_LOG_LEVEL);
+      logger.info(LOG_LEVEL);
       if (ENV.AUTH_HOST) {
         logger.info(`Running on http://${ENV.AUTH_HOST}:${ENV.AUTH_PORT}`);
       } else {

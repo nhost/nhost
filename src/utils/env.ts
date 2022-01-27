@@ -1,6 +1,8 @@
+import { logger } from '@/logger';
 import {
   castBooleanEnv,
   castIntEnv,
+  castObjectEnv,
   castStringArrayEnv,
   castStringEnv,
 } from '../config/utils';
@@ -165,17 +167,24 @@ export const ENV = {
   get AUTH_REFRESH_TOKEN_EXPIRES_IN() {
     return castIntEnv('AUTH_REFRESH_TOKEN_EXPIRES_IN', 43200);
   },
-  get AUTH_USER_SESSION_VARIABLE_FIELDS() {
-    return castStringArrayEnv('AUTH_USER_SESSION_VARIABLE_FIELDS', []);
-  },
 
   // EMAIL TEMPLATES
   get AUTH_EMAIL_TEMPLATE_FETCH_URL() {
     return castStringEnv('AUTH_EMAIL_TEMPLATE_FETCH_URL', '');
   },
 
-  // LOGS
-  get AUTH_LOG_LEVEL() {
-    return castStringEnv('AUTH_LOG_LEVEL', 'info');
+  get AUTH_JWT_CUSTOM_CLAIMS() {
+    try {
+      return castObjectEnv<Record<string, string>>('AUTH_JWT_CUSTOM_CLAIMS');
+    } catch {
+      logger.warn(
+        'AUTH_JWT_CUSTOM_CLAIMS cannot be parsed. Will ignore custom claims.'
+      );
+      return {};
+    }
+  },
+
+  get AUTH_USER_SESSION_VARIABLE_FIELDS(): Record<string, string> {
+    return this.AUTH_USER_SESSION_VARIABLE_FIELDS;
   },
 };

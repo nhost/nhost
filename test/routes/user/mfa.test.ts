@@ -15,8 +15,8 @@ describe('mfa totp', () => {
     await client.connect();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {

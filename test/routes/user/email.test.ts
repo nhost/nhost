@@ -9,7 +9,7 @@ import { mailHogSearch } from '../../utils';
 describe('user email', () => {
   let client: Client;
   let accessToken: string | undefined;
-  let body: SignInResponse | undefined
+  let body: SignInResponse | undefined;
   const email = 'asdasd@asdasd.com';
   const password = '123123123';
 
@@ -20,8 +20,8 @@ describe('user email', () => {
     await client.connect();
   });
 
-  afterAll(() => {
-    client.end();
+  afterAll(async () => {
+    await client.end();
   });
 
   beforeEach(async () => {
@@ -40,7 +40,7 @@ describe('user email', () => {
       .post('/signin/email-password')
       .send({ email, password })
       .expect(200);
-    body = response.body
+    body = response.body;
 
     if (!body?.session) {
       throw new Error('session is not set');
@@ -110,8 +110,8 @@ describe('user email', () => {
     expect(body?.session).toBeTruthy();
 
     const options = {
-      redirectTo: 'http://localhost:3000/email-redirect'
-    }
+      redirectTo: 'http://localhost:3000/email-redirect',
+    };
 
     const newEmail = 'newemail@example.com';
 
@@ -136,8 +136,7 @@ describe('user email', () => {
         `/verify?ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
       .expect(302);
-    expect(redirectTo).toStrictEqual(options.redirectTo)
-
+    expect(redirectTo).toStrictEqual(options.redirectTo);
   });
 
   it('send email verification', async () => {
@@ -164,17 +163,14 @@ describe('user email', () => {
 
     // confirm change email
     await request
-      .get(
-        `/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`
-      )
+      .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
       .expect(302);
-
   });
 
   it('send email verification with redirect', async () => {
     const options = {
-      redirectTo: 'http://localhost:3000/validation-email-redirect'
-    }
+      redirectTo: 'http://localhost:3000/validation-email-redirect',
+    };
 
     await request
       .post('/user/email/send-verification-email')
@@ -191,10 +187,8 @@ describe('user email', () => {
 
     // confirm change email
     await request
-      .get(
-        `/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`
-      )
+      .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
       .expect(302);
-    expect(redirectTo).toStrictEqual(options.redirectTo)
+    expect(redirectTo).toStrictEqual(options.redirectTo);
   });
 });

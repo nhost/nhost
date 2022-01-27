@@ -13,31 +13,45 @@ interface Table {
 }
 
 interface TableArgs {
-  source: string;
+  source?: string;
   table: Table;
-  configuration?: {
-    custom_name?: string;
-    identifier?: string;
-    custom_root_fields?: {
-      select?: string;
-      select_by_pk?: string;
-      select_aggregate?: string;
-      insert?: string;
-      insert_one?: string;
-      update?: string;
-      update_by_pk?: string;
-      delete?: string;
-      delete_by_pk?: string;
-    };
-    custom_column_names?: {
-      [key: string]: string;
-    };
-  };
 }
 
-interface RelationshipArgs {
-  source: string;
-  table: Table;
+type TableConfig = {
+  custom_name?: string;
+  identifier?: string;
+  custom_root_fields?: {
+    select?: string;
+    select_by_pk?: string;
+    select_aggregate?: string;
+    insert?: string;
+    insert_one?: string;
+    update?: string;
+    update_by_pk?: string;
+    delete?: string;
+    delete_by_pk?: string;
+  };
+  custom_column_names?: {
+    [key: string]: string;
+  };
+};
+
+type TrackTableArgs = TableArgs & {
+  configuration?: TableConfig;
+};
+type UntrackTableArgs = TableArgs & {
+  cascade?: boolean;
+};
+
+type TableCustomisationArgs = TableArgs & {
+  configuration?: TableConfig;
+};
+
+type DropRelationshipArgs = TableArgs & {
+  relationship: string;
+};
+
+type CreateRelationshipArgs = TableArgs & {
   name: string;
   using: {
     foreign_key_constraint_on:
@@ -47,12 +61,9 @@ interface RelationshipArgs {
         }
       | string[];
   };
-}
+};
 
-export const runMetadataRequest = async (args: {
-  type: string;
-  args: TableArgs;
-}) => {
+export const runMetadataRequest = async (args: { type: string; args: {} }) => {
   await axios.post(
     ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/metadata'),
     args,
@@ -65,7 +76,7 @@ export const runMetadataRequest = async (args: {
 };
 
 // https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/table-view.html#track-table-v2
-export const trackTable = async (args: TableArgs) => {
+export const trackTable = async (args: TrackTableArgs) => {
   try {
     await runMetadataRequest({
       type: 'pg_track_table',
@@ -81,7 +92,32 @@ export const trackTable = async (args: TableArgs) => {
   }
 };
 
-export const setTableCustomization = async (args: TableArgs) => {
+// https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/table-view.html#untrack-table
+export const untrackTable = async (args: UntrackTableArgs) => {
+  try {
+    await runMetadataRequest({
+      type: 'pg_untrack_table',
+      args,
+    });
+  } catch (error: any) {
+    logger.error(error);
+    throw new Error(`Error untracking table ${args.table.name}`);
+  }
+};
+
+export const reloadMetadata = async (
+  args: {
+    reload_remote_schemas?: boolean;
+    reload_sources?: boolean;
+    recreate_event_triggers?: boolean;
+  } = {}
+) => {
+  await runMetadataRequest({
+    type: 'reload_metadata',
+    args,
+  });
+};
+export const setTableCustomization = async (args: TableCustomisationArgs) => {
   logger.info(`Set table customization for ${args.table.name}`);
 
   try {
@@ -95,7 +131,9 @@ export const setTableCustomization = async (args: TableArgs) => {
   }
 };
 
-export const createObjectRelationship = async (args: RelationshipArgs) => {
+export const createObjectRelationship = async (
+  args: CreateRelationshipArgs
+) => {
   logger.info(`Set object relationship ${args.name} for ${args.table.name}`);
   try {
     await runMetadataRequest({
@@ -115,7 +153,7 @@ export const createObjectRelationship = async (args: RelationshipArgs) => {
   }
 };
 
-export const createArrayRelationship = async (args: RelationshipArgs) => {
+export const createArrayRelationship = async (args: CreateRelationshipArgs) => {
   logger.info(`create array relationship ${args.name} for ${args.table.name}`);
   try {
     await runMetadataRequest({
@@ -131,6 +169,26 @@ export const createArrayRelationship = async (args: RelationshipArgs) => {
     logger.debug(
       `Array relationship ${args.name} on table ${args.table.name} is already created`
     );
+  }
+};
+
+export const dropRelationship = async (args: DropRelationshipArgs) => {
+  logger.info(`Drop relationship ${args.relationship} for ${args.table.name}`);
+  try {
+    await runMetadataRequest({
+      type: 'pg_drop_relationship',
+      args,
+    });
+  } catch (error: any) {
+    if (error.response.data.code !== 'already-exists') {
+      throw new Error(
+        `Error dropping relationship for table ${args.table.name}`
+      );
+    } else {
+      logger.debug(
+        `Object relationship ${args.relationship} on table ${args.table.name} is already created`
+      );
+    }
   }
 };
 
