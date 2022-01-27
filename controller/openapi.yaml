@@ -29,16 +29,7 @@ components:
     VersionInformation:
       type: object
       properties:
-        buildDate:
-          type: string
-          format: date-time
-        buildBranch:
-          type: string
-        buildUser:
-          type: string
         buildVersion:
-          type: string
-        buildCommit:
           type: string
     FileSummary:
       type: object

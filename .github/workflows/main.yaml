@@ -5,25 +5,38 @@ on:
   - pull_request
 jobs:
   tests:
-    name: Tests
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        go: [ '1.17' ]
-    steps:
-    - uses: actions/checkout@v2
-    - name: Setup go
-      uses: actions/setup-go@v1
-      with:
-        go-version: ${{ matrix.go }}
-    - name: Run tests
-      run: make tests
-  linter:
-    name: linter
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: golangci-lint
-      uses: golangci/golangci-lint-action@v2
       with:
-        version: v1.43.0
+        fetch-depth: 0
+
+    # - run: |
+    #     mkdir -m 0755 ~/.nix
+    #     mkdir -p -m 0755 ~/.config/nix
+    #     echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
+    #     echo "sandbox = false" >> ~/.config/nix/nix.conf
+    #     curl -sL -o artifacts.zip https://gitlab.com/proot/proot/-/jobs/2004651048/artifacts/download
+    #     unzip artifacts.zip
+    #     ./dist/proot -b ~/.nix:/nix
+    #     curl -L https://nixos.org/nix/install | sh
+
+    - uses: nixbuild/nix-quick-install-action@v9
+      with:
+        nix_version: 2.4
+        nix_conf: |
+          experimental-features = nix-command flakes
+          sandbox = false
+
+
+    - name: Cache nix store
+      uses: actions/cache@v2
+      with:
+        path: /nix
+        key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix') }}
+
+    - name: "Start containters for integration tests"
+      run: make dev-env-up
+
+    - name: "Run checks"
+      run: make check

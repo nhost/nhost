@@ -1,34 +1,6 @@
-MODULE=github.com/nhost/hasura-storage
-GITSHA=$(shell git rev-parse HEAD)
-BRANCH=$(shell git rev-parse --abbrev-ref HEAD)
-DATE=$(shell date -u +%Y-%m-%dT%TZ)
-BUILD_USER?=$(shell whoami)
-VERSION=$(shell cat VERSION)
-
-GOLANGCI_LINT_VER="v1.43.0"
-GOTEST_OPTIONS?=-v
-
-LDFLAGS="\
-		-X $(MODULE)/controller.buildVersion=${VERSION} \
-		-X $(MODULE)/controller.buildCommit=${GITSHA} \
-		-X $(MODULE)/controller.buildBranch=${BRANCH} \
-		-X $(MODULE)/controller.buildDate=${DATE} \
-		-X $(MODULE)/controller.buildUser=${BUILD_USER} \
-		"
-
 DEV_ENV_PATH=build/dev/docker
-
-
-MIGRATION_DIR=$(PWD)/migrations/
-MIGRATION_CMD=docker run --rm -v $(MIGRATION_DIR):/migrations migrate/migrate -path=/migrations/
-
-.PHONY: info
-info: ## Echo common env vars
-	@echo BRANCH:     $(BRANCH)
-	@echo DATE:       $(DATE)
-	@echo VERSION:    $(VERSION)
-	@echo BUILD_USER: $(BUILD_USER)
-
+GITHUB_REF_NAME?="0.0.0-dev"
+VERSION=$(shell echo $(GITHUB_REF_NAME) | sed -e 's/^v//g' -e 's/\//_/g')
 
 .PHONY: help
 help: ## Show this help.
@@ -39,12 +11,16 @@ help: ## Show this help.
 		split=($$line) ; \
 		command=`echo $${split[0]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
 		info=`echo $${split[2]} | sed -e 's/^ *//' -e 's/ *$$//'` ; \
-		printf "%-30s %s\n" $$command $$info ; \
+		printf "%-38s %s\n" $$command $$info ; \
 	done
 
 
 .PHONY: tests
-tests: dev-env-up integration-tests dev-env-down ## Run go test
+tests:  dev-env-up check  ## Spin environment and run nix flake check
+
+.PHONY: check
+check:   ## Run nix flake check
+	nix flake check --print-build-logs
 
 .PHONY: integration-tests
 integration-tests: ## Run go test with integration flags
@@ -55,24 +31,19 @@ integration-tests: ## Run go test with integration flags
 		go test -tags=integration $(GOTEST_OPTIONS) ./... #-run=TestListFiles
 
 
-.PHONY: install-linter
-install-linter: ## Install golangci-linet
-	curl -sfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s $(GOLANGCI_LINT_VER)
-
-
-.PHONY: lint
-lint: ## Run Go linters in a Docker container
-	bin/golangci-lint \
-		run \
-		--timeout 300s
-
-
 .PHONY: build
-build: ## Build application
-	 go build \
-		 -ldflags ${LDFLAGS} \
-		 -o ./bin/hasura-storage \
-		 ./cmd/*.go
+build:  ## Build application and places the binary under ./result/bin
+	@echo $(VERSION) > VERSION
+	nix build --print-build-logs
+
+
+.PHONY: build-docker-image
+build-docker-image:  ## Build docker container
+	@echo $(VERSION) > VERSION
+	nix build .\#dockerImage --print-build-logs
+	docker load -q < result
+	docker tag hasura-storage:$(VERSION) hasura-storage:latest
+
 
 .PHONY: dev-env-up
 dev-env-up: dev-env-down dev-env-build  ## Starts development environment
@@ -83,22 +54,27 @@ dev-env-up: dev-env-down dev-env-build  ## Starts development environment
 dev-env-down:  ## Stops development environment
 	docker-compose -f ${DEV_ENV_PATH}/docker-compose.yaml down
 
+
 .PHONY: dev-env-build
-dev-env-build:  ## Builds development environment
-	docker-compose  -f ${DEV_ENV_PATH}/docker-compose.yaml build --build-arg BUILD_USER=$(BUILD_USER)
+dev-env-build: build-docker-image  ## Builds development environment
+	docker-compose -f ${DEV_ENV_PATH}/docker-compose.yaml build
+
 
 .PHONY: dev-jwt
-dev-jwt:
-	@sh ./build/dev/docker/jwt-gen/get-jwt.sh
+dev-jwt:  ## return a jwt valid for development environment
+	@sh ./$(DEV_ENV_PATH)/jwt-gen/get-jwt.sh
+
 
 .PHONY: dev-s3-access-key
-dev-s3-access-key:
+dev-s3-access-key:  ## return s3 access key for development environment
 	@docker exec -i minio bash -c 'echo $$MINIO_ROOT_USER'
 
+
 .PHONY: dev-s3-secret-key
-dev-s3-secret-key:
+dev-s3-secret-key:  ## restun s3 secret key for development environment
 	@docker exec -i minio bash -c 'echo $$MINIO_ROOT_PASSWORD'
 
+
 .PHONY: migrations-add
-migrations-add:
-	$(MIGRATION_CMD) create -dir /migrations -ext sql -seq $(MIGRATION_NAME)
+migrations-add:  ## add a migration with NAME in the migrations folder
+	migrate create -dir ./migrations/postgres -ext sql -seq $(MIGRATION_NAME)

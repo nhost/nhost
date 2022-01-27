@@ -15,6 +15,10 @@ import (
 	"github.com/nhost/hasura-storage/metadata"
 )
 
+const (
+	hasuraURL = "http://localhost:8080/v1/graphql"
+)
+
 func getAuthHeader() http.Header {
 	headers := http.Header{}
 	bearer := os.Getenv("HASURA_AUTH_BEARER")
@@ -72,7 +76,7 @@ func TestGetBucketByID(t *testing.T) {
 		},
 	}
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
 
 	for _, tc := range cases {
 		tc := tc
@@ -144,7 +148,7 @@ func TestInitializeFile(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+			hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
 
 			err := hasura.InitializeFile(context.Background(), tc.fileID, tc.headers)
 
@@ -163,7 +167,7 @@ func TestInitializeFile(t *testing.T) {
 func TestPopulateMetadata(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
@@ -257,7 +261,7 @@ func TestPopulateMetadata(t *testing.T) {
 func TestGetFileByID(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
@@ -368,7 +372,7 @@ func TestGetFileByID(t *testing.T) {
 func TestSetIsUploaded(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
@@ -441,7 +445,7 @@ func TestSetIsUploaded(t *testing.T) {
 func TestDeleteFileByID(t *testing.T) {
 	t.Parallel()
 
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
 
 	fileID := uuid.New().String()
 	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
@@ -548,23 +552,23 @@ func TestDeleteFileByID(t *testing.T) {
 }
 
 func TestListFiles(t *testing.T) {
-	hasura := metadata.NewHasura("http://localhost:8080/v1/graphql", metadata.ForWardHeadersAuthorizer)
+	hasura := metadata.NewHasura(hasuraURL, metadata.ForWardHeadersAuthorizer)
 
-	fileID := uuid.New().String()
-	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+	fileID1 := uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID1, getAuthHeader()); err != nil {
 		panic(err)
 	}
 
-	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID1, "name", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
 		panic(err)
 	}
 
-	fileID = uuid.New().String()
-	if err := hasura.InitializeFile(context.Background(), fileID, getAuthHeader()); err != nil {
+	fileID2 := uuid.New().String()
+	if err := hasura.InitializeFile(context.Background(), fileID2, getAuthHeader()); err != nil {
 		panic(err)
 	}
 
-	if _, err := hasura.PopulateMetadata(context.Background(), fileID, "asdads", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
+	if _, err := hasura.PopulateMetadata(context.Background(), fileID2, "asdads", 123, "default", "asdasd", true, "text", getAuthHeader()); err != nil {
 		panic(err)
 	}
 
@@ -609,10 +613,17 @@ func TestListFiles(t *testing.T) {
 					t.Error("we got an empty list")
 				}
 
+				found1 := false
+				found2 := false
 				for _, f := range got {
-					if !f.IsUploaded || f.BucketID == "" || f.ID == "" || f.Name == "" {
-						t.Errorf("some element in the list is missing data: %v", f)
+					if f.ID == fileID1 {
+						found1 = true
+					} else if f.ID == fileID2 {
+						found2 = true
 					}
+				}
+				if !found1 || !found2 {
+					t.Error("couldn't find some files in the list")
 				}
 			}
 		})

@@ -42,11 +42,7 @@ services:
       - '32765:32765'
 
   storage:
-    build:
-      context: ../../..
-      dockerfile: Dockerfile
-      args:
-        BUILD_USER: ${BUILD_USER:-docker}
+    image: hasura-storage:latest
     depends_on:
       graphql-engine:
         condition: service_healthy
