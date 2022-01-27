@@ -1,0 +1,35 @@
+name: Publish documentation
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'docs/**'
+jobs:
+  build-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout current repository
+        uses: actions/checkout@master
+        with:
+          path: 'content'
+      - uses: actions/setup-node@v2
+      - name: Check out documentation doc-builder
+        uses: actions/checkout@master
+        with:
+          repository: nhost/documentation-builder
+          path: 'doc-builder'
+          token: ${{ secrets.PAT }}
+      - name: remove content from doc-builder
+        run: rm -rf doc-builder/content/*
+      - name: Copy the content to the right place
+        run: cp -iR content/docs doc-builder/content/
+      - name: Setup Vercel
+        run: npm install -g vercel
+      - name: Publish to Vercel
+        working-directory: doc-builder
+        run: vercel --token=$TOKEN
+        env:
+          VERCEL_ORG_ID: ${{ secrets.ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
+          TOKEN: ${{ secrets.VERCEL_TOKEN }}
