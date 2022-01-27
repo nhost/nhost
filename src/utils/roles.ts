@@ -21,7 +21,7 @@ export const isRolesValid = async ({
   // check if allowedRoles is a subset of allowed user roles
   if (
     !allowedRoles.every((role: string) => {
-      return ENV.AUTH_ALLOWED_USER_ROLES.includes(role);
+      return ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.includes(role);
     })
   ) {
     res.boom.badRequest('Allowed roles must be a subset of allowedRoles');
