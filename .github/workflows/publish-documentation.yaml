@@ -28,7 +28,7 @@ jobs:
         run: npm install -g vercel
       - name: Publish to Vercel
         working-directory: doc-builder
-        run: vercel --token=$TOKEN
+        run: vercel --prod --token=$TOKEN
         env:
           VERCEL_ORG_ID: ${{ secrets.ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.PROJECT_ID }}
