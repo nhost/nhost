@@ -33,6 +33,7 @@ jobs:
           file: ./coverage/clover.xml
   publish:
     needs: test
+    if: github.event_name == 'push'
     uses: nhost/hasura-auth/.github/workflows/publish.yml@main
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
