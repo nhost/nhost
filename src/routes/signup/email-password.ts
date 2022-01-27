@@ -106,7 +106,7 @@ export const signUpEmailPasswordHandler = async (
     roles: {
       data: userRoles,
     },
-    custom: options?.custom || {},
+    metadata: options?.metadata || {},
   });
 
   // user is now inserted. Continue sending out activation email

@@ -14,7 +14,7 @@ const registrationOptions = Joi.object({
   defaultRole: Joi.string(),
   allowedRoles: Joi.array().items(Joi.string()),
   displayName: Joi.string(),
-  custom: Joi.object(),
+  metadata: Joi.object(),
 });
 
 export const signUpEmailPasswordSchema = Joi.object({
@@ -67,7 +67,7 @@ export const signInMfaPhoneNumberSchema = Joi.object({
 export const signInAnonymousSchema = Joi.object({
   locale: localeRule,
   displayName: Joi.string(),
-  custom: Joi.object(),
+  metadata: Joi.object(),
 });
 
 // -- SIGN OUT--

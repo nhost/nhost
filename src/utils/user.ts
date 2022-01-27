@@ -44,7 +44,7 @@ export const getUser = async ({
     isAnonymous,
     defaultRole,
     roles,
-    custom,
+    metadata,
   } = user;
 
   const userRoles = roles.map((role) => role.role);
@@ -59,7 +59,7 @@ export const getUser = async ({
     isAnonymous,
     defaultRole,
     roles: userRoles,
-    custom,
+    metadata,
   };
 };
 

@@ -12,7 +12,7 @@ import { insertUser } from '@/utils/user';
 type BodyType = {
   locale?: string;
   displayName?: string;
-  custom?: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
 };
 
 interface Schema extends ValidatedRequestSchema {
@@ -43,7 +43,7 @@ export const signInAnonymousHandler = async (
     },
     defaultRole: 'anonymous',
     isAnonymous: true,
-    custom: {},
+    metadata: {},
   });
 
   const signInResponse = await getSignInResponse({

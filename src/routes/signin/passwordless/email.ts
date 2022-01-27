@@ -75,7 +75,7 @@ export const signInPasswordlessEmailHandler = async (
       avatarUrl,
       email,
       defaultRole,
-      custom: options?.custom || {},
+      metadata: options?.metadata || {},
     });
   }
 

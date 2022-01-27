@@ -4,7 +4,7 @@ import { reloadMetadata } from '@/metadata';
 import { ENV } from '@/utils/env';
 import { request } from '../../server';
 
-describe('custom fields', () => {
+describe('metadata fields', () => {
   const firstName = faker.name.firstName();
   let client: Client;
 
@@ -29,7 +29,7 @@ describe('custom fields', () => {
     await client.query(`DELETE FROM auth.users;`);
   });
 
-  it('should add custom fields on user registration', async () => {
+  it('should add metadata fields on user registration', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
 
@@ -41,12 +41,12 @@ describe('custom fields', () => {
         email,
         password,
         options: {
-          custom: {
+          metadata: {
             first_name: firstName,
           },
         },
       })
       .expect(200);
-    expect(session.user.custom.first_name).toEqual(firstName);
+    expect(session.user.metadata.first_name).toEqual(firstName);
   });
 });

@@ -60,7 +60,7 @@ export const signInPasswordlessSmsHandler = async (
       roles: {
         data: userRoles,
       },
-      custom: options?.custom || {},
+      metadata: options?.metadata || {},
     });
   }
 

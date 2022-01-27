@@ -16,7 +16,7 @@ fragment userFields on users {
   activeMfaType
   newEmail
   locale
-  custom
+  metadata
   roles {
     role
   }

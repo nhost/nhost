@@ -46,14 +46,14 @@ export type Token = {
 };
 
 // Session and user
-type CustomData = Record<string, unknown>;
+type Metadata = Record<string, unknown>;
 
 export type UserRegistrationOptions = {
   locale?: string;
   allowedRoles?: string[];
   defaultRole?: string;
   displayName?: string;
-  custom?: CustomData;
+  metadata?: Metadata;
 };
 
 export type User = Pick<
@@ -66,7 +66,7 @@ export type User = Pick<
   | 'email'
   | 'isAnonymous'
   | 'defaultRole'
-  | 'custom'
+  | 'metadata'
 > & { roles: string[] };
 
 export type Session = {

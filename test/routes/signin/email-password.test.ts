@@ -52,14 +52,14 @@ describe('email-password', () => {
     expect(mfa).toBe(null);
   });
 
-  it('should sign in user with custom data', async () => {
+  it('should sign in user with metadata', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
-    const customInput = JSON.parse(faker.datatype.json());
+    const metadataInput = JSON.parse(faker.datatype.json());
 
     await request
       .post('/signup/email-password')
-      .send({ email, password, options: { custom: customInput } })
+      .send({ email, password, options: { metadata: metadataInput } })
       .expect(200);
 
     const { body } = await request
@@ -71,10 +71,10 @@ describe('email-password', () => {
       accessToken,
       accessTokenExpiresIn,
       refreshToken,
-      user: { custom },
+      user: { metadata },
     } = body.session;
     const { mfa } = body;
-    expect(custom).toStrictEqual(customInput);
+    expect(metadata).toStrictEqual(metadataInput);
     expect(isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
