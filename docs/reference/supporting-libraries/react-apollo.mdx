@@ -1,0 +1,91 @@
+---
+title: '@nhost/react-apollo'
+---
+
+`@nhost/react-apollo` makes it easy to use Apollo in your React app with Nhost.
+
+## Install
+
+Install `@nhost/react-apollo` and its dependencies.
+
+```sh
+npm install @nhost/nhost-js @nhost/react-apollo @apollo/client graphql
+```
+
+---
+
+## Usage
+
+`@nhost/react-apollo` exposes one component: `<NhostApolloProvider>`. Wrap this component around your whole App.
+
+```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+import { NhostClient } from '@nhost/nhost-js'
+import { NhostApolloProvider } from '@nhost/react-apollo'
+
+import App from './App'
+
+const nhost = new NhostClient({
+  backendUrl: 'https://[app-subdomain].nhost.run'
+})
+
+ReactDOM.render(
+  <React.StrictMode>
+    <NhostApolloProvider nhost={nhost}>
+      <App />
+    </NhostApolloProvider>
+  </React.StrictMode>,
+  document.getElementById('root')
+)
+```
+
+Now you can use Apollo Client anywhere in your app:
+
+```js
+import { useQuery, gql } from '@apollo/client'
+
+export function App() {
+  const { loading, data } = useQuery(gql`
+    query {
+      todos {
+        id
+        name
+      }
+    }
+  `)
+
+  if (loading) {
+    return <div>Loading</div>
+  }
+
+  if (!data) {
+    return <div>No data</div>
+  }
+
+  return (
+    <div>
+      <ul>
+        {data.todos.map((todo) => {
+          return <li key={todo.id}>{todo.name}</li>
+        })}
+      </ul>
+    </div>
+  )
+}
+```
+
+---
+
+## Permissions
+
+If you use @nhost/react-apollo and NhostApolloProvider without authentication (auth property) all GraphQL requests will be made with the public role.
+
+---
+
+## Read more
+
+More information about the dependent packages:
+
+- [`@apollo/client`](https://www.npmjs.com/package/@apollo/client)
+- [`graphql`](https://www.npmjs.com/package/graphql)
