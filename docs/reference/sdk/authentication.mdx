@@ -115,3 +115,16 @@ Reset password for a user. This will send an email to the user with a link to re
 ```js
 nhost.auth.resetPassword({ email });
 ```
+
+## `nhost.auth.onAuthStateChanged(event, session)`
+
+Use `onAuthStateChanged` to add a custom function that will trigger
+whenever the state of the user changed. Ex from signed in to signed out or
+vice versa.
+
+```js
+nhost.auth.onAuthStateChanged(({event, session}) => {
+  // event = 'SIGNED_IN' | 'SIGNED_OUT'
+  console.log(`auth state changed. State is not ${event} with session: ${session}`)
+});
+```
