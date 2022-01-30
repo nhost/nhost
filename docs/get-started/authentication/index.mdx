@@ -2,15 +2,15 @@
 title: 'Authenticate users'
 ---
 
-In the previous section you defined `select` permissions for the `public` role. You will now add `insert` and `create` permissions for authenticated users to secure your app's GraphQL API with authentication.
+You defined `select` permissions for the `public` role in the previous section. You will now add `insert` and `create` permissions for authenticated users to secure your app's GraphQL API with authentication.
 
-> Nhost's authentication service allows you to deliver a frictionless registration and login experiences to your users. We support the vast majority of social providers and different methods (passwordless, SMS, etc).
+> Nhost's authentication service lets you deliver frictionless registration and login experiences to your users. We support most social providers and different methods such as email & password and passwordless (magic lin).
 
 ---
 
 ## Insert a test user
 
-Manually create a user by going to the **Users** tab (top menu) of your app and clicking on **Add User**. 
+Manually create a user by going to your app's **Users** tab (top menu) and clicking on **Add User**.
 
 ![Add user](/images/quick-start/add-user.gif)
 
@@ -26,14 +26,14 @@ Add the following code to sign in the new user and request the list of todos aga
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://[app-subdomain].nhost.run'
+  backendUrl: 'https://[app-subdomain].nhost.run',
 })
 
 (async () => {
   // Sign in user
   const signInResponse = await nhost.auth.signIn({
     email: 'joe@example.com',
-    password: 'securepassword'
+    password: 'securepassword',
   })
 
   // Handle sign-in error
@@ -79,7 +79,7 @@ Now we'll add permissions for the `user` role.
 
 First, we'll set the **Insert permission**.
 
-A user can only insert `name` because all other columns will be set automatically. More specifically, `user_id` will be set to the id of the user making the request (`x-hasura-user-id`) and is configured in the `Column presets` section. See the image below.
+A user can only insert `name` because all other columns will be set automatically. More specifically, `user_id` is set to the user's id making the request (`x-hasura-user-id`) and is configured in the `Column presets` section. See the image below.
 
 ![User insert permission](/images/quick-start/user-insert-permission.png)
 
@@ -89,4 +89,4 @@ For **Select permission**, set a **custom check** so users can only select todos
 
 ![User select permission](/images/quick-start/user-select-permission.png)
 
-Now run the app again. New todos are inserted and only todos for the user are fetched and displayed. Your backend is succesfully secured!
+Now rerun the app. New todos are inserted, and only todos for the user are fetched and displayed. Your backend is successfully secured!
