@@ -46,7 +46,7 @@ Enter the following code into this file. It will initialize a new `NhostClient` 
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-    backendUrl: 'https://[app-subdomain].nhost.run', // replace this with the backend URL of your app
+  backendUrl: 'https://[app-subdomain].nhost.run', // replace this with the backend URL of your app
 })
 
 console.log(nhost.graphql.getUrl())
@@ -68,12 +68,12 @@ If you now add the following GraphQL query to the client, let's see what happens
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-    backendUrl: 'https://[app-subdomain].nhost.run',
+  backendUrl: 'https://[app-subdomain].nhost.run',
 })
 
 (async () => {
-    // nhost.graphql.request returns a promise, so we use await here
-    const todos = await nhost.graphql.request(`
+  // nhost.graphql.request returns a promise, so we use await here
+  const todos = await nhost.graphql.request(`
     query {
       todos {
         id
@@ -84,8 +84,8 @@ const nhost = new NhostClient({
     }
   `)
 
-    // Print todos to console
-    console.log(JSON.stringify(todos.data, null, 2))
+  // Print todos to console
+  console.log(JSON.stringify(todos.data, null, 2))
 })()
 ```
 
