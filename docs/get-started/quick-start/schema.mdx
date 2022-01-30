@@ -1,18 +1,18 @@
 ---
-title: "Define schema"
+title: 'Define schema'
 ---
 
-To implement an app for managing a todo list, let's make sure we have database tables for storing todos and users.
+To implement an app for managing a todo list, let's ensure we have database tables for storing todos and users.
 
 ---
 
 ## Open Hasura Console
 
-Hasura generates real-time GraphQL APIs but it also provides a web console for manipulating the schema and data of your database.
+Hasura generates real-time GraphQL APIs, but it also provides a web console for manipulating the schema and data of your database.
 
-On your app's dashboard, go to the **Data** tab and select **Open Hasura**. Remember to copy the admin secret.
+Go to the **Data** tab on your app's dashboard and select **Open Hasura**. Remember to copy the admin secret.
 
-The Hasura Console of your app's dedicated Hasura instance will open in a new tab. You can use Hasura Console to manage your app's schema, data, permissions and event triggers.
+The Hasura Console of your app's dedicated Hasura instance will open in a new tab. You can use Hasura Console to manage your app's schema, data, permissions, and event triggers.
 
 ![Data -> Open Hasura](/images/quick-start/data-tab.png)
 
@@ -20,7 +20,7 @@ The Hasura Console of your app's dedicated Hasura instance will open in a new ta
 
 ## Users table
 
-You should see all your database tables in the left-hand side of the screen. You should see multiple different **schemas** displayed as folders:
+You should see all your database tables on the left-hand side of the screen. You should see multiple different **schemas** displayed as folders:
 
 - `public` schema for your app's custom tables
 - `auth` and `storage` schemas for Nhost's user management and file storage
@@ -37,12 +37,12 @@ In Hasura Console, go to the **data** tab, then click **Create Table**. Name thi
 
 ### Add frequently used columns
 
-`id` and `created_at` columns are very common, and can be added with just two clicks. Click **Frequently used columns** and create them:
+`id` and `created_at` columns are standard and can be added with two clicks. Click **Frequently used columns** and create them:
 
 - `id` (UUID)
 - `created_at` (timestamp)
 
-This ensures the columns get the right name, type and default value.
+Using frequently used columns ensures the columns get the right name, type, and default value.
 
 ![Frequently used columns in the Hasura console](/images/quick-start/frequently-used-columns.png)
 
@@ -57,7 +57,7 @@ Make sure to set the default value of `is_completed` to `false`.
 
 ![Create a table in the Hasura console](/images/quick-start/create-table.png)
 
-This is all we need! A new table is going to be created when you click **Add Table**.
+This is all we need! A new table will be created when you click **Add Table**.
 
 ---
 
@@ -71,7 +71,7 @@ Go to the **Insert Row** tab to add some data to your database.
 
 ## Query data
 
-Now that we have data in our database, we can retrieve it via a GraphQL API. Go to the **API** tab in the main menu. This view can be used to make GraphQL requests that query or mutate data in your database.
+Now that we have data in our database, we can retrieve it via a GraphQL API. Go to the **API** tab in the main menu. You can use this view to make GraphQL requests that query or mutate data in your database.
 
 Paste the following GraphQL query into the form and press the "play" button:
 
@@ -90,4 +90,4 @@ You should see the todos you just inserted show up as output on the right-hand s
 
 ### Admin role
 
-All requests Hasura Console is the `admin` role is assumed by the request.
+All requests in the Hasura Console use the `admin` role by default. This role has access to all tables and permissions.

@@ -1,28 +1,26 @@
 ---
-title: "Set permissions"
+title: 'Set permissions'
 ---
 
-Hasura supports role-based access control. You create rules for each role, table and operation (select, insert, update and delete) that can check dynamic session variables, like user ID.
+In the previous section, you could fetch the todos because the **admin** role is enabled by default when using Hasura Console. When building your applications, you want to define permissions using **roles** that your users can assume when making requests.
 
-In the previous section you were able to fetch the todos because the **admin** role is enabled by default when using Hasura Console. When building your applications, you will want to define permissions by using roles that your users can assume when making requests.
-
----
+Hasura supports role-based access control. You create rules for each role, table, and operation (select, insert, update and delete) that can check dynamic session variables, like user ID.
 
 ## Unauthenticated users
 
-When you want some data to be accessed by anyone without being signed in, use the `public` role in permissions. This is the default role in all unauthenticated requests.
+Use the `public` role in permissions when you want some data to be accessed by anyone without being signed in. The `public` role is the default role in all unauthenticated requests.
 
 Generally speaking, the `public` role should not have insert, update or delete permissions defined.
 
 ### Setting `public` permissions
 
-In Hasura Console, go to the **Data** tab, click on the **todos** table, then click **Permissions**. Add a new role called `public` and click on **select**. The permission options for the select operation will open below.
+In Hasura Console, go to the **Data** tab, click on the **todos** table, then click **Permissions**. Add a new role called `public` and click on **select**. The permission options for the select operation show up below.
 
 Add the following permissions:
 
 ![Public role](/images/quick-start/permissions-public-select.png)
 
-If you now run the program again, you should now see todos in the output:
+Rerun the program. Now you see all todos.
 
 ```sh
 ➜ node index.js
@@ -47,9 +45,9 @@ If you now run the program again, you should now see todos in the output:
 
 ---
 
-There are 2 reasons why the request succeeded:
+There are two reasons why the request succeeded:
 
 1. Nhost sets the `public` role for every unauthenticated GraphQL request.
 2. You explicitly defined permissions for the `public` role.
 
-It is important to understand that Hasura has a **allow nothing by default** policy to make sure that only roles and permissions you define explicitly, are actually available.
+It is essential to understand that Hasura has an **allow nothing by default** policy to ensure that only roles and permissions you define explicitly have access to the GraphQL API.
