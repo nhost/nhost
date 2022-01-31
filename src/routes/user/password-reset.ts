@@ -56,6 +56,7 @@ export const userPasswordResetHandler = async (
   await emailClient.send({
     template,
     locals: {
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=passwordReset&redirectTo=${redirectTo}`,
       ticket,
       redirectTo,
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

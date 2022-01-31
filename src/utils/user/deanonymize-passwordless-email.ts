@@ -126,6 +126,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
         },
       },
       locals: {
+        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`,
         displayName: user.displayName,
         email,
         ticket,

@@ -64,6 +64,7 @@ export const userEmailChange = async (
   await emailClient.send({
     template,
     locals: {
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`,
       displayName: user.displayName,
       ticket,
       redirectTo,

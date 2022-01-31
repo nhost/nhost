@@ -80,6 +80,7 @@ export const userEmailSendVerificationEmailHandler = async (
       },
     },
     locals: {
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailVerify&redirectTo=${redirectTo}`,
       displayName: user.displayName,
       ticket,
       redirectTo,

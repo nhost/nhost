@@ -135,6 +135,7 @@ export const signUpEmailPasswordHandler = async (
         },
       },
       locals: {
+        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailVerify&redirectTo=${redirectTo}`,
         displayName,
         email,
         ticket,
