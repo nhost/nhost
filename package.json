@@ -67,6 +67,7 @@
     "qrcode": "1.4.4",
     "random-number-csprng": "^1.0.2",
     "twilio": "^3.67.1",
+    "url-join": "^4.0.1",
     "uuid": "7.0.3"
   },
   "devDependencies": {
@@ -107,6 +108,7 @@
     "@types/random-number-csprng": "^1.0.0",
     "@types/rfc2047": "^2.0.1",
     "@types/supertest": "^2.0.8",
+    "@types/url-join": "^4.0.1",
     "@types/uuid": "7.0.2",
     "@typescript-eslint/eslint-plugin": "2.28.0",
     "@typescript-eslint/parser": "2.28.0",

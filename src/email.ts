@@ -1,6 +1,8 @@
 import Email from 'email-templates';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
+import axios from 'axios';
+import urlJoin from 'url-join';
 
 import { ENV } from './utils/env';
 import path from 'path';
@@ -56,15 +58,23 @@ const convertFieldToFileName = (field: EmailField) => {
   return null;
 };
 
-const readFile = (view: string, locals: Record<string, string>): string => {
+const getFileName = (view: string, locals: Record<string, string>) => {
+  // generate path to template
   const viewSplit = view.split('/');
   const id = viewSplit[0];
   const field = viewSplit[1] as EmailField;
   const { locale } = locals;
-  // generate path to template
-  const emailPath = path.join(ENV.PWD, 'email-templates', locale, id);
   const fileName = convertFieldToFileName(field);
-  const fullPath = `${emailPath}/${fileName}`;
+  return `${locale}/${id}/${fileName}`;
+};
+
+const readFile = (view: string, locals: Record<string, string>): string => {
+  const { locale } = locals;
+  const fullPath = path.join(
+    ENV.PWD,
+    'email-templates',
+    getFileName(view, locals)
+  );
   logger.debug(`Using email template: ${fullPath}`);
   try {
     return fs.readFileSync(fullPath).toString();
@@ -73,6 +83,30 @@ const readFile = (view: string, locals: Record<string, string>): string => {
       return readFile(view, { ...locals, locale: ENV.AUTH_LOCALE_DEFAULT });
     else {
       logger.warn(`No template found at ${fullPath}`);
+      throw Error();
+    }
+  }
+};
+
+const readRemoteTemplate = async (
+  view: string,
+  locals: Record<string, string>
+): Promise<string> => {
+  const { locale } = locals;
+  const fileName = getFileName(view, locals);
+  const url = urlJoin(ENV.AUTH_EMAIL_TEMPLATE_FETCH_URL, fileName);
+  logger.debug(`Using email template: ${url}`);
+  try {
+    const result = await axios.get(url);
+    return result.data;
+  } catch (error) {
+    if (locale !== ENV.AUTH_LOCALE_DEFAULT)
+      return readRemoteTemplate(view, {
+        ...locals,
+        locale: ENV.AUTH_LOCALE_DEFAULT,
+      });
+    else {
+      logger.warn(`No template found at ${url}`);
       throw Error();
     }
   }
@@ -87,7 +121,9 @@ export const emailClient = new Email({
   send: true,
   render: async (view, locals) => {
     try {
-      const content = readFile(view, locals);
+      const content = ENV.AUTH_EMAIL_TEMPLATE_FETCH_URL
+        ? await readRemoteTemplate(view, locals)
+        : readFile(view, locals);
       return templateEngine({ content, variables: locals });
     } catch (error) {
       return null;
