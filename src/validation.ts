@@ -135,14 +135,6 @@ export const userProviderTokensSchema = Joi.object({
   userId: Joi.string().regex(uuidRegex),
 });
 
-export const emailTemplatesSchema = Joi.object({
-  id: Joi.string().required(),
-  locale: Joi.string().required(),
-  subject: Joi.string(),
-  html: Joi.string(),
-  text: Joi.string(),
-});
-
 // -- TOKEN --
 
 export const tokenSchema = Joi.object({
