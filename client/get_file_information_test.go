@@ -18,12 +18,17 @@ func TestGetFileInformation(t *testing.T) {
 	baseURL := "http://localhost:8000/api/v1"
 	cl := client.New(baseURL, os.Getenv("HASURA_AUTH_BEARER"))
 
-	file := fileHelper{
-		path: "testdata/alphabet.txt",
-		id:   uuid.NewString(),
+	files := []fileHelper{
+		{
+			path: "testdata/alphabet.txt",
+			id:   uuid.NewString(),
+		},
+		{
+			path: "testdata/nhost.jpg",
+			id:   uuid.NewString(),
+		},
 	}
-
-	testFile, err := uploadFiles(t, cl, file)
+	testFiles, err := uploadFiles(t, cl, files...)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,8 +42,8 @@ func TestGetFileInformation(t *testing.T) {
 	}{
 		{
 			name: "get file information, if-match==etag",
-			id:   testFile.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFile.ProcessedFiles[0].ETag)},
+			id:   testFiles.ProcessedFiles[0].ID,
+			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFiles.ProcessedFiles[0].ETag)},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 63,
@@ -51,7 +56,7 @@ func TestGetFileInformation(t *testing.T) {
 		{
 
 			name: "get file information, if-match!=etag",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfMatch("garbage")},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
@@ -65,8 +70,8 @@ func TestGetFileInformation(t *testing.T) {
 		{
 
 			name: "get file information, if-none-match==etag",
-			id:   testFile.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithNoneMatch(testFile.ProcessedFiles[0].ETag)},
+			id:   testFiles.ProcessedFiles[0].ID,
+			opts: []client.GetFileInformationOpt{client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag)},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
 				ContentLength: 0,
@@ -79,7 +84,7 @@ func TestGetFileInformation(t *testing.T) {
 		{
 
 			name: "get file information, if-none-match!=etag",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithNoneMatch("garbage")},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
@@ -93,7 +98,7 @@ func TestGetFileInformation(t *testing.T) {
 		{
 
 			name: "get file information, if-modified-since!=date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
@@ -107,7 +112,7 @@ func TestGetFileInformation(t *testing.T) {
 		{
 
 			name: "get file information, if-modified-since==date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
@@ -121,7 +126,7 @@ func TestGetFileInformation(t *testing.T) {
 		{
 
 			name: "get file information, if-unmodified-since!=date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
@@ -135,7 +140,7 @@ func TestGetFileInformation(t *testing.T) {
 		{
 
 			name: "get file information, if-unmodified-since==date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
@@ -166,6 +171,72 @@ func TestGetFileInformation(t *testing.T) {
 				StatusCode: 404,
 				ErrorResponse: &controller.ErrorResponse{
 					Message: "file not found",
+				},
+				Response: nil,
+			},
+		},
+		{
+			name: "image",
+			id:   testFiles.ProcessedFiles[1].ID,
+			expected: &client.FileInformationHeader{
+				CacheControl:  "max-age=3600",
+				ContentLength: 33399,
+				ContentType:   "image/jpeg",
+				Etag:          `"78b676e65ebc31f0bb1f2f0d05098572"`,
+				LastModified:  "",
+				Error:         "",
+				StatusCode:    200,
+			},
+			expectedErr: nil,
+			opts:        []client.GetFileInformationOpt{},
+		},
+		{
+			name: "image/blur",
+			id:   testFiles.ProcessedFiles[1].ID,
+			expected: &client.FileInformationHeader{
+				CacheControl:  "max-age=3600",
+				ContentLength: 25860,
+				ContentType:   "image/jpeg",
+				Etag:          `"1c09c3c99b93297f4ea53174d4fb1f5e493faae59e1a106ace855ae316bf7d79"`,
+				LastModified:  "",
+				Error:         "",
+				StatusCode:    200,
+			},
+			expectedErr: nil,
+			opts: []client.GetFileInformationOpt{
+				client.WithImageBlur(2),
+			},
+		},
+		{
+			name: "image/resized",
+			id:   testFiles.ProcessedFiles[1].ID,
+			expected: &client.FileInformationHeader{
+				CacheControl:  "max-age=3600",
+				ContentLength: 10802,
+				ContentType:   "image/jpeg",
+				Etag:          `"46a94212e38b1bb3fbf769c4bd3c2ff90ccee38ca21ad635281f90c1a316eada"`,
+				LastModified:  "",
+				Error:         "",
+				StatusCode:    200,
+			},
+			expectedErr: nil,
+			opts: []client.GetFileInformationOpt{
+				client.WithImageSize(200, 200),
+				client.WithImageQuality(90),
+			},
+		},
+		{
+			name: "get text file manipulated",
+			id:   testFiles.ProcessedFiles[0].ID,
+			opts: []client.GetFileInformationOpt{
+				client.WithImageSize(600, 200),
+				client.WithImageQuality(50),
+				client.WithImageBlur(5),
+			},
+			expectedErr: &client.APIResponseError{
+				StatusCode: 400,
+				ErrorResponse: &controller.ErrorResponse{
+					Message: "image manipulation features are not supported for 'text/plain; charset=utf-8'",
 				},
 				Response: nil,
 			},

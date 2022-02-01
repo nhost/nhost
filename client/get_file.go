@@ -58,7 +58,7 @@ func (c *Client) GetFile(
 	req.Header.Set("Authorization", "Bearer "+c.jwt)
 
 	for _, o := range opts {
-		o(req.Header)
+		o(req)
 	}
 
 	resp, err := c.httpCliebt.Do(req)

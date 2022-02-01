@@ -40,8 +40,18 @@ build:  ## Build application and places the binary under ./result/bin
 .PHONY: build-docker-image
 build-docker-image:  ## Build docker container
 	@echo $(VERSION) > VERSION
+ifeq ($(shell uname), Linux)
 	nix build .\#dockerImage --print-build-logs
 	docker load -q < result
+else
+	docker run --rm -it \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v $(PWD):/build \
+		-w /build \
+		--entrypoint sh \
+		nixos/nix:latest \
+		-c "nix-env -iA nixpkgs.docker-client nixpkgs.git && nix build .\#dockerImage --extra-experimental-features nix-command --extra-experimental-features flakes && docker load < result"
+endif
 	docker tag hasura-storage:$(VERSION) hasura-storage:latest
 
 

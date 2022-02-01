@@ -3,6 +3,8 @@
 package client_test
 
 import (
+	"crypto/sha256"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -19,28 +21,34 @@ func TestGetFile(t *testing.T) {
 	baseURL := "http://localhost:8000/api/v1"
 	cl := client.New(baseURL, os.Getenv("HASURA_AUTH_BEARER"))
 
-	file := fileHelper{
-		path: "testdata/alphabet.txt",
-		id:   uuid.NewString(),
+	files := []fileHelper{
+		{
+			path: "testdata/alphabet.txt",
+			id:   uuid.NewString(),
+		},
+		{
+			path: "testdata/nhost.jpg",
+			id:   uuid.NewString(),
+		},
 	}
 
-	testFile, err := uploadFiles(t, cl, file)
+	testFiles, err := uploadFiles(t, cl, files...)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	cases := []struct {
-		name         string
-		id           string
-		expected     *client.FileInformationHeaderWithReader
-		expectedBody string
-		expectedErr  error
-		opts         []client.GetFileInformationOpt
+		name        string
+		id          string
+		expected    *client.FileInformationHeaderWithReader
+		expectedSha string
+		expectedErr error
+		opts        []client.GetFileInformationOpt
 	}{
 		{
 			name: "get file, if-match==etag",
-			id:   testFile.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFile.ProcessedFiles[0].ETag)},
+			id:   testFiles.ProcessedFiles[0].ID,
+			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFiles.ProcessedFiles[0].ETag)},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "alphabet.txt",
 				FileInformationHeader: &client.FileInformationHeader{
@@ -52,12 +60,12 @@ func TestGetFile(t *testing.T) {
 					StatusCode:    200,
 				},
 			},
-			expectedBody: "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789\n",
+			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
 		},
 		{
 
 			name: "get file, if-match!=etag",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfMatch("garbage")},
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
@@ -73,8 +81,8 @@ func TestGetFile(t *testing.T) {
 		{
 
 			name: "get file, if-none-match==etag",
-			id:   testFile.ProcessedFiles[0].ID,
-			opts: []client.GetFileInformationOpt{client.WithNoneMatch(testFile.ProcessedFiles[0].ETag)},
+			id:   testFiles.ProcessedFiles[0].ID,
+			opts: []client.GetFileInformationOpt{client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag)},
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
 					CacheControl:  "max-age=3600",
@@ -87,9 +95,8 @@ func TestGetFile(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file, if-none-match!=etag",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithNoneMatch("garbage")},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "alphabet.txt",
@@ -102,12 +109,12 @@ func TestGetFile(t *testing.T) {
 					StatusCode:    200,
 				},
 			},
-			expectedBody: "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789\n",
+			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
 		},
 		{
 
 			name: "get file, if-modified-since!=date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
@@ -123,7 +130,7 @@ func TestGetFile(t *testing.T) {
 		{
 
 			name: "get file, if-modified-since==date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "alphabet.txt",
@@ -136,12 +143,12 @@ func TestGetFile(t *testing.T) {
 					StatusCode:    200,
 				},
 			},
-			expectedBody: "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789\n",
+			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
 		},
 		{
 
 			name: "get file, if-unmodified-since!=date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
 			expected: &client.FileInformationHeaderWithReader{
 				Filename: "alphabet.txt",
@@ -154,11 +161,11 @@ func TestGetFile(t *testing.T) {
 					StatusCode:    200,
 				},
 			},
-			expectedBody: "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789\n",
+			expectedSha: "2e7ef00280a48b02e0d77d4727db841b311a7c12e755b43f66ead3e451a9611e",
 		},
 		{
 			name: "get file, if-unmodified-since==date",
-			id:   testFile.ProcessedFiles[0].ID,
+			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
 			expected: &client.FileInformationHeaderWithReader{
 				FileInformationHeader: &client.FileInformationHeader{
@@ -195,6 +202,83 @@ func TestGetFile(t *testing.T) {
 				Response: nil,
 			},
 		},
+
+		{
+			name: "get image, if-match==etag",
+			id:   testFiles.ProcessedFiles[1].ID,
+			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFiles.ProcessedFiles[1].ETag)},
+			expected: &client.FileInformationHeaderWithReader{
+				Filename: "nhost.jpg",
+				FileInformationHeader: &client.FileInformationHeader{
+					CacheControl:  "max-age=3600",
+					ContentLength: 33399,
+					ContentType:   "image/jpeg",
+					Etag:          `"78b676e65ebc31f0bb1f2f0d05098572"`,
+					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
+					StatusCode:    200,
+				},
+			},
+			expectedSha: "7f2ed9ccb9259bef6e317b4e51e935f61e632dbad5d2ac36430c51b0390aab64",
+		},
+		{
+			name: "get image manipulated, if-match==etag",
+			id:   testFiles.ProcessedFiles[1].ID,
+			opts: []client.GetFileInformationOpt{
+				client.WithIfMatch(`"f588a0f872083ce0dbe69c08f9741eba0eb32c8b84aa8bc261e7df68785fcdd6"`),
+				client.WithImageSize(600, 200),
+				client.WithImageQuality(50),
+				client.WithImageBlur(5),
+			},
+			expected: &client.FileInformationHeaderWithReader{
+				Filename: "nhost.jpg",
+				FileInformationHeader: &client.FileInformationHeader{
+					CacheControl:  "max-age=3600",
+					ContentLength: 11286,
+					ContentType:   "image/jpeg",
+					Etag:          `"f588a0f872083ce0dbe69c08f9741eba0eb32c8b84aa8bc261e7df68785fcdd6"`,
+					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
+					StatusCode:    200,
+				},
+			},
+			expectedSha: "f588a0f872083ce0dbe69c08f9741eba0eb32c8b84aa8bc261e7df68785fcdd6",
+		},
+		{
+			name: "get image manipulated, if-match!=etag",
+			id:   testFiles.ProcessedFiles[1].ID,
+			opts: []client.GetFileInformationOpt{
+				client.WithIfMatch(`"I don't match"`),
+				client.WithImageSize(600, 200),
+				client.WithImageQuality(50),
+				client.WithImageBlur(5),
+			},
+			expected: &client.FileInformationHeaderWithReader{
+				FileInformationHeader: &client.FileInformationHeader{
+					CacheControl:  "max-age=3600",
+					ContentLength: 11286,
+					ContentType:   "image/jpeg",
+					Etag:          `"f588a0f872083ce0dbe69c08f9741eba0eb32c8b84aa8bc261e7df68785fcdd6"`,
+					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
+					StatusCode:    412,
+				},
+			},
+			expectedSha: "",
+		},
+		{
+			name: "get text file manipulated",
+			id:   testFiles.ProcessedFiles[0].ID,
+			opts: []client.GetFileInformationOpt{
+				client.WithImageSize(600, 200),
+				client.WithImageQuality(50),
+				client.WithImageBlur(5),
+			},
+			expectedErr: &client.APIResponseError{
+				StatusCode: 400,
+				ErrorResponse: &controller.ErrorResponse{
+					Message: "image manipulation features are not supported for 'text/plain; charset=utf-8'",
+				},
+				Response: nil,
+			},
+		},
 	}
 
 	for _, tc := range cases {
@@ -221,18 +305,20 @@ func TestGetFile(t *testing.T) {
 				return
 			}
 
-			if got.Body == nil && tc.expectedBody != "" {
+			if got.Body == nil && tc.expectedSha != "" {
 				t.Error("expected a file but got no body")
-			} else if got.Body != nil && tc.expectedBody == "" {
+			} else if got.Body != nil && tc.expectedSha == "" {
 				t.Error("didn't expect a body but got one")
-			} else if got.Body == nil && tc.expectedBody == "" {
+			} else if got.Body == nil && tc.expectedSha == "" {
 			} else {
-				b, err := io.ReadAll(got.Body)
+				hash := sha256.New()
+				_, err := io.Copy(hash, got.Body)
 				if err != nil {
 					t.Fatal(err)
 				}
-				if !cmp.Equal(string(b), tc.expectedBody) {
-					t.Error(cmp.Diff(string(b), tc.expectedBody))
+				sha := fmt.Sprintf("%x", hash.Sum(nil))
+				if !cmp.Equal(sha, tc.expectedSha) {
+					t.Error(cmp.Diff(sha, tc.expectedSha))
 				}
 			}
 		})

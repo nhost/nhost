@@ -17,10 +17,10 @@ servers:
       port:
         default: '8000'
 security:
-  - hasuraJWT: []
+  - Authorization: []
 components:
   securitySchemes:
-    hasuraJWT:
+    Authorization:
       type: http
       scheme: bearer
       bearerFormat: JWT
@@ -117,7 +117,7 @@ paths:
       tags:
         - storage
       security:
-        - hasuraJWT: []
+        - Authorization: []
       requestBody:
         content:
           multipart/form-data:
@@ -164,7 +164,7 @@ paths:
       tags:
         - storage
       security:
-        - hasuraJWT: []
+        - Authorization: []
       parameters:
         - name: id
           required: true
@@ -191,6 +191,26 @@ paths:
           in: header
           schema:
             type: string
+        - name: q
+          description: Quality of the image. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: h
+          description: Resize image up to h maintaining aspect ratio. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: w
+          description: Resize image up to w maintaining aspect ratio. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: b
+          description: Blur the image according to this sigma value. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
       responses:
         '200':
           description: File information gathered successfully
@@ -280,7 +300,7 @@ paths:
       tags:
         - storage
       security:
-        - hasuraJWT: []
+        - Authorization: []
       parameters:
         - name: id
           required: true
@@ -307,6 +327,26 @@ paths:
           in: header
           schema:
             type: string
+        - name: q
+          description: Quality of the image. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: h
+          description: Resize image up to h maintaining aspect ratio. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: w
+          description: Resize image up to w maintaining aspect ratio. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: b
+          description: Blur the image according to this sigma value. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
       responses:
         '200':
           description: File gathered successfully
@@ -404,7 +444,7 @@ paths:
       tags:
         - storage
       security:
-        - hasuraJWT: []
+        - Authorization: []
       parameters:
         - name: id
           required: true
@@ -443,7 +483,7 @@ paths:
       tags:
         - storage
       security:
-        - hasuraJWT: []
+        - Authorization: []
       parameters:
         - name: id
           required: true
@@ -467,7 +507,7 @@ paths:
       tags:
         - operations
       security:
-        - hasuraJWT: []
+        - Authorization: []
       responses:
         '200':
           description: Successfully computed orphaned files
@@ -494,7 +534,7 @@ paths:
       tags:
         - operations
       security:
-        - hasuraJWT: []
+        - Authorization: []
       responses:
         '200':
           description: Successfully deleted orphaned files
@@ -521,7 +561,7 @@ paths:
       tags:
         - operations
       security:
-        - hasuraJWT: []
+        - Authorization: []
       responses:
         '200':
           description: Successfully computed broken metadata
@@ -548,7 +588,7 @@ paths:
       tags:
         - operations
       security:
-        - hasuraJWT: []
+        - Authorization: []
       responses:
         '200':
           description: Successfully deleted broken metadata
@@ -575,7 +615,7 @@ paths:
       tags:
         - operations
       security:
-        - hasuraJWT: []
+        - Authorization: []
       responses:
         '200':
           description: Successfully checked files not uploaded

@@ -2,7 +2,7 @@
   description = "Nhost Hasura Storage";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/release-21.11";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nix-filter.url = "github:numtide/nix-filter";
     flake-utils.url = "github:numtide/flake-utils";
   };
@@ -27,11 +27,14 @@
           ];
         };
 
-        buildInputs = [ ];
+        buildInputs = with pkgs; [
+          imagemagick
+        ];
 
         nativeBuildInputs = with pkgs; [
           go
           clang
+          pkg-config
         ];
 
         name = "hasura-storage";
@@ -85,7 +88,7 @@
               nativeBuildInputs = with pkgs; [
                 docker-client
                 docker-compose
-              ] ++ nativeBuildInputs;
+              ] ++ buildInputs ++ nativeBuildInputs;
             }
             ''
               export GOCACHE=$TMPDIR/.cache/go-build
@@ -131,14 +134,10 @@
               tag = version;
               created = "now";
               contents = [
-                pkgs.cacert
-              ];
+              ] ++ buildInputs;
               config = {
                 Entrypoint = [
-                  "${pkgs.callPackage ./nix/hasura-storage.nix {
-                      inherit name version ldflags tags buildInputs nativeBuildInputs;
-                      GOOS = "linux";
-                    }}/bin/hasura-storage"
+                  "${self.packages.${system}.hasuraStorage}/bin/hasura-storage"
                 ];
               };
             };
@@ -147,7 +146,17 @@
 
         defaultPackage = self.packages.${system}.hasuraStorage;
 
+        apps = flake-utils.lib.flattenTree
+          {
+            hasuraStorage = self.packages.${system}.hasuraStorage;
+            golangci-lint = pkgs.golangci-lint;
+          };
+
+        defaultApp = self.packages.${system}.hasuraStorage;
+
       }
+
+
 
     );
 

@@ -122,32 +122,46 @@ func writeCachingHeaders(ctx *gin.Context, fileMetadata FileMetadataWithBucket) 
 	return nil
 }
 
-func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (string, string, int, *APIError) {
+func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (int, *APIError) {
 	req, apiErr := ctrl.getFileParse(ctx)
 	if apiErr != nil {
-		return "", "", 0, apiErr
+		return 0, apiErr
 	}
 
 	id := ctx.Param("id")
 	fileMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, ctx.Request.Header)
 	if apiErr != nil {
-		return "", "", 0, apiErr
+		return 0, apiErr
 	}
 
 	statusCode, apiErr := checkConditionals(fileMetadata, req.headers)
 	if apiErr != nil {
-		return "", "", 0, apiErr
+		return 0, apiErr
+	}
+
+	opts, apiErr := getImageManipulationOptions(ctx, fileMetadata.MimeType)
+	if apiErr != nil {
+		return 0, apiErr
+	}
+	if len(opts) > 0 {
+		filepath := fmt.Sprintf("%s/%s", fileMetadata.BucketID, fileMetadata.ID)
+		_, etag, n, apiErr := ctrl.modifyImage(ctx, filepath, opts...)
+		if apiErr != nil {
+			return 0, apiErr
+		}
+		fileMetadata.Size = int64(n)
+		fileMetadata.ETag = etag
 	}
 
 	if apiErr := writeCachingHeaders(ctx, fileMetadata); apiErr != nil {
-		return "", "", 0, apiErr
+		return 0, apiErr
 	}
 
-	return fmt.Sprintf("%s/%s", fileMetadata.BucketID, req.fileID), fileMetadata.Name, statusCode, nil
+	return statusCode, nil
 }
 
 func (ctrl *Controller) GetFileInformation(ctx *gin.Context) {
-	_, _, statusCode, apiErr := ctrl.getFileInformationProcess(ctx)
+	statusCode, apiErr := ctrl.getFileInformationProcess(ctx)
 	if apiErr != nil {
 		_ = ctx.Error(fmt.Errorf("problem parsing request: %w", apiErr))
 

@@ -21,24 +21,28 @@ final: prev: rec {
     });
   };
 
-  vips = (
-    prev.vips.override { }
-  ).overrideAttrs (
-    oldAttrs: rec {
-      version = "8.12.1";
-
-      src = final.fetchFromGitHub {
-        owner = "libvips";
-        repo = "libvips";
-        rev = "v${version}";
-        sha256 = "sha256-Zo1Y4pYa+o55+ASrAiDUO7SAC4zpcAniEKkTFvIoU6o=";
-        # Remove unicode file names which leads to different checksums on HFS+
-        # vs. other filesystems because of unicode normalisation.
-        extraPostFetch = ''
-          rm -r $out/test/test-suite/images/
-        '';
-      };
-    }
-  );
+  imagemagick = prev.imagemagick.override {
+    bzip2 = null;
+    zlib = null;
+    libX11 = null;
+    libXext = null;
+    libXt = null;
+    fontconfig = null;
+    freetype = null;
+    ghostscript = null;
+    # libjpeg = null;
+    djvulibre = null;
+    lcms2 = null;
+    openexr = null;
+    libjxl = null;
+    # libpng = null;
+    liblqr1 = null;
+    librsvg = null;
+    # libtiff = null;
+    # libxml2 = null;
+    # openjpeg = null;
+    # libwebp = null;
+    libheif = null;
+  };
 
 }

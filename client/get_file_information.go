@@ -50,33 +50,58 @@ func fileInformationFromResponse(resp *http.Response) (*FileInformationHeader, e
 	return info, nil
 }
 
-type GetFileInformationOpt func(header http.Header)
+type GetFileInformationOpt func(req *http.Request)
 
-func WithIfMatch(etags ...string) func(header http.Header) {
-	return func(header http.Header) {
+func WithIfMatch(etags ...string) GetFileInformationOpt {
+	return func(req *http.Request) {
 		for _, e := range etags {
-			header.Add("if-match", e)
+			req.Header.Add("if-match", e)
 		}
 	}
 }
 
-func WithNoneMatch(etags ...string) func(header http.Header) {
-	return func(header http.Header) {
+func WithNoneMatch(etags ...string) GetFileInformationOpt {
+	return func(req *http.Request) {
 		for _, e := range etags {
-			header.Add("if-none-match", e)
+			req.Header.Add("if-none-match", e)
 		}
 	}
 }
 
-func WithIfModifiedSince(modifiedSince string) func(header http.Header) {
-	return func(header http.Header) {
-		header.Add("if-modified-since", modifiedSince)
+func WithIfModifiedSince(modifiedSince string) GetFileInformationOpt {
+	return func(req *http.Request) {
+		req.Header.Add("if-modified-since", modifiedSince)
 	}
 }
 
-func WithIfUnmodifiedSince(modifiedSince string) func(header http.Header) {
-	return func(header http.Header) {
-		header.Add("if-unmodified-since", modifiedSince)
+func WithIfUnmodifiedSince(modifiedSince string) GetFileInformationOpt {
+	return func(req *http.Request) {
+		req.Header.Add("if-unmodified-since", modifiedSince)
+	}
+}
+
+func WithImageSize(newSizeX, newSizeY int) GetFileInformationOpt {
+	return func(req *http.Request) {
+		q := req.URL.Query()
+		q.Add("x", fmt.Sprintf("%d", newSizeX))
+		q.Add("y", fmt.Sprintf("%d", newSizeY))
+		req.URL.RawQuery = q.Encode()
+	}
+}
+
+func WithImageQuality(quality int) GetFileInformationOpt {
+	return func(req *http.Request) {
+		q := req.URL.Query()
+		q.Add("q", fmt.Sprintf("%d", quality))
+		req.URL.RawQuery = q.Encode()
+	}
+}
+
+func WithImageBlur(blur int) GetFileInformationOpt {
+	return func(req *http.Request) {
+		q := req.URL.Query()
+		q.Add("b", fmt.Sprintf("%d", blur))
+		req.URL.RawQuery = q.Encode()
 	}
 }
 
@@ -92,7 +117,7 @@ func (c *Client) GetFileInformation(
 	req.Header.Set("Authorization", "Bearer "+c.jwt)
 
 	for _, o := range opts {
-		o(req.Header)
+		o(req)
 	}
 
 	resp, err := c.httpCliebt.Do(req)
