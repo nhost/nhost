@@ -23,8 +23,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Preprocess environment
         id: preprocess-environment
-        # TODO configured for the STAGING environment
-        run: echo "::set-output name=aws_account_id::${{ secrets.AWS_STAGING_ACCOUNT_ID }}"
+        run: echo "::set-output name=aws_account_id::${{ secrets.AWS_PRODUCTION_ACCOUNT_ID }}"
       - name: Docker meta
         id: meta
         uses: docker/metadata-action@v3
