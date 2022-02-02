@@ -17,7 +17,12 @@ import { Strategy } from 'passport';
 import { v4 as uuidv4 } from 'uuid';
 
 import { PROVIDERS } from '@config/index';
-import { asyncWrapper, getGravatarUrl, getUserByEmail } from '@/helpers';
+import {
+  asyncWrapper,
+  getGravatarUrl,
+  getUserByEmail,
+  isValidRedirectTo,
+} from '@/helpers';
 import {
   ProviderCallbackQuery,
   providerCallbackQuery,
@@ -254,10 +259,7 @@ export const initProvider = <T extends Strategy>(
           return res.boom.badRequest('Redirect URL is undefined');
         }
 
-        if (
-          ENV.AUTH_CLIENT_URL !== redirectTo &&
-          !ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.includes(redirectTo)
-        ) {
+        if (!isValidRedirectTo(redirectTo)) {
           return res.boom.badRequest(
             `'redirectTo' is not the same as AUTH_CLIENT_URL nor is it in AUTH_ACCSS_CONTROL_ALLOWED_REDIRECT_URLS`
           );

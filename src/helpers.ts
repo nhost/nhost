@@ -147,11 +147,7 @@ export function getNewPasswordlessCode() {
   return otp;
 }
 
-export function isValidRedirectTo({
-  redirectTo,
-}: {
-  redirectTo: string;
-}): boolean {
+export function isValidRedirectTo(redirectTo: string): boolean {
   if (!redirectTo) {
     return false;
   }
