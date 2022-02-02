@@ -7,3 +7,7 @@ s3_secret_key: "9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8
 s3_region: "us-east-1"
 s3_bucket: "default"
 s3_root_folder: "f215cf48-7458-4596-9aa5-2159fc6a3caf"
+postgres-migrations: true
+postgres-migrations-source: postgres://postgres:hejsan@localhost:5432/postgres?sslmode=disable
+hasura-metadata: true
+hasura-metadata-admin-secret: hello123

@@ -21,6 +21,10 @@ linters:
 
 issues:
   exclude-rules:
+    - path: cmd/
+      linters:
+        - gochecknoinits
+        - gochecknoglobals
     - text: "variable name 'ok' is too short for the scope of its usage"
       linters:
         - varnamelen

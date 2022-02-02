@@ -54,6 +54,9 @@ else
 endif
 	docker tag hasura-storage:$(VERSION) hasura-storage:latest
 
+.PHONY: dev-env-up-short
+dev-env-up-short:  ## Starts development environment without hasura-storage
+	docker-compose -f ${DEV_ENV_PATH}/docker-compose.yaml up -d postgres graphql-engine minio
 
 .PHONY: dev-env-up
 dev-env-up: dev-env-down dev-env-build  ## Starts development environment

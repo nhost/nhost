@@ -3,6 +3,7 @@ package image_test
 import (
 	"context"
 	"crypto/sha256"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -17,37 +18,23 @@ func TestManipulate(t *testing.T) {
 	cases := []struct {
 		name     string
 		filename string
-		hash     []byte
+		sum      string
 	}{
 		{
 			name:     "jpg",
 			filename: "testdata/nhost.jpg",
-			hash: []byte{
-				0x04, 0xe0, 0x9f, 0x14, 0x03, 0xe1, 0x31, 0xec,
-				0x13, 0xc0, 0x64, 0x82, 0x2f, 0xae, 0x33, 0x7e,
-				0x3a, 0x2f, 0x13, 0x32, 0x4a, 0xfb, 0x08, 0x92,
-				0x6f, 0x44, 0x04, 0xb0, 0x2d, 0x91, 0xdf, 0x4c,
-			},
+			sum:      "04e09f1403e131ec13c064822fae337e3a2f13324afb08926f4404b02d91df4c",
 		},
-		{
-			name:     "png",
-			filename: "testdata/nhost.png",
-			hash: []byte{
-				0xac, 0x21, 0x3b, 0x07, 0x53, 0xf3, 0xd9, 0xb9,
-				0xe5, 0xac, 0xac, 0xea, 0x55, 0x7b, 0x51, 0x89,
-				0x2c, 0xb5, 0xdf, 0xde, 0x3f, 0x2c, 0xab, 0xf9,
-				0xe9, 0x7a, 0x83, 0xa3, 0x6d, 0x8a, 0x93, 0x2c,
-			},
-		},
+		// png is disabled because metadata contains info that causes the sum to change every time
+		// {
+		// 	name:     "png",
+		// 	filename: "testdata/nhost.png",
+		// 	sum:      "ac213b0753f3d9b9e5acacea557b51892cb5dfde3f2cabf9e97a83a36d8a932c",
+		// },
 		{
 			name:     "webp",
 			filename: "testdata/nhost.webp",
-			hash: []byte{
-				0x2c, 0xae, 0x57, 0x24, 0xda, 0x19, 0x49, 0xc9,
-				0xd9, 0xdd, 0x20, 0x6a, 0xd1, 0xa6, 0x6c, 0xe3,
-				0x08, 0xf3, 0xcd, 0x56, 0x0a, 0x1c, 0x23, 0x5c,
-				0x79, 0x47, 0xae, 0x4c, 0x33, 0x4e, 0x54, 0x48,
-			},
+			sum:      "2cae5724da1949c9d9dd206ad1a66ce308f3cd560a1c235c7947ae4c334e5448",
 		},
 	}
 
@@ -64,14 +51,13 @@ func TestManipulate(t *testing.T) {
 			defer orig.Close()
 
 			hasher := sha256.New()
-
 			if err := image.Manipulate(context.Background(), orig, hasher, image.WithNewSize(300, 100)); err != nil {
 				t.Fatal(err)
 			}
 
-			got := hasher.Sum(nil)
-			if !cmp.Equal(got, tc.hash) {
-				t.Error(cmp.Diff(got, tc.hash))
+			got := fmt.Sprintf("%x", hasher.Sum(nil))
+			if !cmp.Equal(got, tc.sum) {
+				t.Error(cmp.Diff(got, tc.sum))
 			}
 		})
 	}

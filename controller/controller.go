@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"time"
@@ -88,8 +89,11 @@ func New(
 	}
 }
 
-func (ctrl *Controller) SetupRouter(logger gin.HandlerFunc) *gin.Engine {
+func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerFunc) (*gin.Engine, error) {
 	router := gin.New()
+	if err := router.SetTrustedProxies(trustedProxies); err != nil {
+		return nil, fmt.Errorf("problem setting trusted proxies: %w", err)
+	}
 
 	router.MaxMultipartMemory = 8 << 20 // nolint:gomnd  // 8MB
 	router.Use(gin.Recovery())
@@ -119,7 +123,7 @@ func (ctrl *Controller) SetupRouter(logger gin.HandlerFunc) *gin.Engine {
 		ops.POST("delete-broken-metadata", ctrl.DeleteBrokenMetadata)
 		ops.POST("list-not-uploaded", ctrl.ListNotUploaded)
 	}
-	return router
+	return router, nil
 }
 
 func (ctrl *Controller) Health(ctx *gin.Context) {

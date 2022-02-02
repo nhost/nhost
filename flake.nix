@@ -39,7 +39,7 @@
 
         name = "hasura-storage";
         version = nixpkgs.lib.fileContents ./VERSION;
-        module = "github.com/nhost/fleetcontrol";
+        module = "github.com/nhost/hasura-storage";
 
         tags = "integration";
 

@@ -16,6 +16,12 @@ const (
 	timeout = 10
 )
 
+type hasuraErrResponse struct {
+	Path  string `json:"path"`
+	Error string `json:"error"`
+	Code  string `json:"code"`
+}
+
 func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 	client := &http.Client{
 		Timeout: time.Second * timeout,
@@ -41,7 +47,14 @@ func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		var errResponse *hasuraErrResponse
 		b, _ := io.ReadAll(resp.Body)
+		if err := json.Unmarshal(b, &errResponse); err != nil {
+			return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) // nolint: goerr113
+		}
+		if errResponse.Code == "already-tracked" || errResponse.Code == "already-exists" {
+			return nil
+		}
 		return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) // nolint: goerr113
 	}
 

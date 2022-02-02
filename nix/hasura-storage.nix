@@ -53,7 +53,7 @@ let
             -ldflags="${ldflags}" \
             -o hasura-storage-bin \
             -trimpath \
-            cmd/*.go
+            main.go
 
         runHook postBuild
       '';

@@ -145,7 +145,7 @@ func TestUpdateFile(t *testing.T) {
 
 			ctrl := controller.New(metadataStorage, contentStorage, logger)
 
-			router := ctrl.SetupRouter(ginLogger(logger))
+			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
 
 			body, contentType := createUpdateMultiForm(t, file)
 
