@@ -1,0 +1,10 @@
+---
+name: Run tests and linters
+on:
+  - push
+  - pull_request
+jobs:
+  tests:
+    uses: nhost/hasura-storage/.github/workflows/test.yaml@main
+    secrets:
+      CACHIX_AUTH_TOKEN: ${{ secrets.CACHIX_AUTH_TOKEN }}

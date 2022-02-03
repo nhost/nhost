@@ -1,25 +1,21 @@
 ---
 name: Run tests and linters
+
 on:
-  - push
-  - pull_request
+  workflow_call:
+    secrets:
+      CACHIX_AUTH_TOKEN:
+        required: true
+
+
 jobs:
   tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - name: Check out repository
+      uses: actions/checkout@v2
       with:
         fetch-depth: 0
-
-    # - run: |
-    #     mkdir -m 0755 ~/.nix
-    #     mkdir -p -m 0755 ~/.config/nix
-    #     echo "experimental-features = nix-command flakes" >> ~/.config/nix/nix.conf
-    #     echo "sandbox = false" >> ~/.config/nix/nix.conf
-    #     curl -sL -o artifacts.zip https://gitlab.com/proot/proot/-/jobs/2004651048/artifacts/download
-    #     unzip artifacts.zip
-    #     ./dist/proot -b ~/.nix:/nix
-    #     curl -L https://nixos.org/nix/install | sh
 
     - uses: nixbuild/nix-quick-install-action@v9
       with:
@@ -28,12 +24,16 @@ jobs:
           experimental-features = nix-command flakes
           sandbox = false
 
-
     - name: Cache nix store
       uses: actions/cache@v2
       with:
         path: /nix
         key: nix-${{ runner.os }}-${{ hashFiles('**/*.nix') }}
+
+    - uses: cachix/cachix-action@v10
+      with:
+        name: hasura-storage
+        authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
 
     - name: "Start containters for integration tests"
       run: make dev-env-up

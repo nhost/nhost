@@ -2,6 +2,7 @@ DEV_ENV_PATH=build/dev/docker
 GITHUB_REF_NAME?="0.0.0-dev"
 VERSION=$(shell echo $(GITHUB_REF_NAME) | sed -e 's/^v//g' -e 's/\//_/g')
 
+
 .PHONY: help
 help: ## Show this help.
 	@IFS=$$'\n' ; \
@@ -15,12 +16,20 @@ help: ## Show this help.
 	done
 
 
+.PHONY: get-version
+get-version:  ## Return version
+	@echo $(VERSION) > VERSION
+	@echo $(VERSION)
+
+
 .PHONY: tests
 tests:  dev-env-up check  ## Spin environment and run nix flake check
+
 
 .PHONY: check
 check:   ## Run nix flake check
 	nix flake check --print-build-logs
+
 
 .PHONY: integration-tests
 integration-tests: ## Run go test with integration flags
@@ -38,7 +47,7 @@ build:  ## Build application and places the binary under ./result/bin
 
 
 .PHONY: build-docker-image
-build-docker-image:  ## Build docker container
+build-docker-image:  ## Build docker container for native architecture
 	@echo $(VERSION) > VERSION
 ifeq ($(shell uname), Linux)
 	nix build .\#dockerImage --print-build-logs
@@ -54,9 +63,11 @@ else
 endif
 	docker tag hasura-storage:$(VERSION) hasura-storage:latest
 
+
 .PHONY: dev-env-up-short
 dev-env-up-short:  ## Starts development environment without hasura-storage
 	docker-compose -f ${DEV_ENV_PATH}/docker-compose.yaml up -d postgres graphql-engine minio
+
 
 .PHONY: dev-env-up
 dev-env-up: dev-env-down dev-env-build  ## Starts development environment
