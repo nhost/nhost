@@ -81,7 +81,7 @@ func TestDeleteOrphans(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/api/v1/ops/delete-orphans", nil)
+			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/storage/ops/delete-orphans", nil)
 
 			router.ServeHTTP(responseRecorder, req)
 

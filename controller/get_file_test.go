@@ -77,7 +77,7 @@ func TestGetFile(t *testing.T) {
 			req, _ := http.NewRequestWithContext(
 				context.Background(),
 				"GET",
-				"/api/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288",
+				"/v1/storage/files/55af1e60-0f28-454e-885e-ea6aab2bb288",
 				nil,
 			)
 

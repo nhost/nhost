@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetFileInformation(t *testing.T) {
-	baseURL := "http://localhost:8000/api/v1"
+	baseURL := "http://localhost:8000/v1/storage"
 	cl := client.New(baseURL, os.Getenv("HASURA_AUTH_BEARER"))
 
 	files := []fileHelper{

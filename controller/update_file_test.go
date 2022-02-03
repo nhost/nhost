@@ -151,7 +151,7 @@ func TestUpdateFile(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "PUT", "/api/v1/files/"+file.md.ID, body)
+			req, _ := http.NewRequestWithContext(context.Background(), "PUT", "/v1/storage/files/"+file.md.ID, body)
 
 			req.Header.Add("x-hasura-user-id", "some-valid-uuid")
 
