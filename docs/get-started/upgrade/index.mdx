@@ -2,84 +2,91 @@
 title: 'Upgrade from v1 to v2'
 ---
 
-Upgrading from Nhost v1 to v2 requires changes to the database schema and hasura metadata.
-
-## Need help?
-
-If you need help migrating from v1 to v2 please contact Johan: johan@nhost.io
+Upgrading from Nhost v1 to v2 requires database schema and Hasura metadata changes.
 
 ---
 
-## Upgrade steps
+## Upgrade Steps
 
-### Prepare a new directory
+### Create a new Nhost v2 app locally
+
+> Make sure you have the [Nhost CLI](/reference/cli) installed
 
 ```sh
-mkdir -p nhost-v2/nhost
-echo "version: 2" > nhost-v2/nhost/config.yaml
+nhost init my-nhost-v2-app
+cd my-nhost-v2-app
 ```
+
+### Update config
+
+Update `config: 3` to `config: 2` in `nhost/config.yaml`. This will update Hasura's configuration version, and we need to downgrade the version when we export migrations and metadata.
 
 ### Export current migrations and metadata from Nhost v1
 
-Inside `nhost-v2/`
+Inside the `nhost/` folder of your app, run:
 
 ```sh
 hasura migrate create init --from-server --endpoint=[v1-endpoint] --admin-secret=[v1-admin-secret]
+
 hasura metadata export --endpoint=[v1-endpoint] --admin-secret=[v1-admin-secret]
 ```
 
-### Edit migrations
+### Update Migrations
 
-Edit the up.sql migration created.
+Make the following changes manually to your migrations.
 
-- Delete all `auth.*` tables and functions.
-- Delete `public.users` table
-- Update FK references from `public.users` to `auth.users`.
+> The migration file is located at `nhost/migrations/[timestamp]/up.sql`.
+
 - Add `OR REPLACE` after `CREATE` for the `public.set_current_timestamp_updated_at` function
+- Delete all `auth.*` tables and functions (if any).
+- Delete `public.users` table and everything related to the table such as constraints, triggers, etc.
+- Update FK references from `public.users` to `auth.users` (if any).
 
-### Edit metadata
+### Update Metadata
 
-Update metadata.
+Make the following changes manually to your metadata.
+
+> The metadata is located at `nhost/metadata/tables.yaml`.
 
 - Delete tracking all tables in the `auth` schema.
 - Delete tracking the `public.users` table.
-- Update all references to users from `public` to `auth` schema.
+- Update all references to `users` from the `public` to `auth` schema.
 
 ### Start nhost
 
-Start Nohst CLI
+Start Nhost locally using the [CLI](/reference/cli). From the root of your app, run:
 
 ```sh
 nhost -d
 ```
 
+> Running Nhost applies your local database migrations and Hasura metadata.
+
 ### Restart Auth and Storage containers
 
-Open Docker UI and restart Hasura Auth and Hasura Storage. This will reapply migrations and metadata for the `auth` and the `storage` schema.
+Open Docker UI and restart Hasura Auth and Hasura Storage. Restarting those containers applies new metadata, effectively tracking everything in the `auth` and the `storage` schema.
 
-### Move migrations
+### Delete migrations and metadata
 
-Move the current `migrations` folder to ex `migrations-bk`.
+Delete the local migrations and metadata.
 
-### Change config version
-
-Change config version from `config: 2` to `config: 3` in the `nhost/config.yaml` file.
-
-### Export local metadata in new format
-
-```sh
-hasura metadata export --endpoint=http://localhost:1337 --admin-secret=nhost-admin-secret
+```
+rm -rf nhost/migrations nhost/metadata
 ```
 
-### Move migrations folder
+### Update config (again)
 
-To match hasura config v3, move all migrations inside `migrations/default` folder.
+Update `config: 2` to `config: 3` in `nhost/config.yaml`.
 
-```sh
-mkdir -p migrations/default
-cp -r migrations/* migrations/default/
+### Pull migrations and metadata from our local instance
+
+> You can not use port `1337` in these requests. You have to use the specific port Huasra uses. Go to the Hasura Console under API and look what port Hasura is using under GraphQL Endpoint.
+
+```
+hasura migrate create init --from-server --endpoint=http://localhost:[hasura-port] --admin-secret=nhost-admin-secret
+hasura metadata export --from-server --endpoint=http://localhost:[hasura-port] --admin-secret=nhost-admin-secret
 ```
 
 ### Done
 
-Database migrations and metadata are now pulled from the remote Nhost v1 backend, edited for Nhost v2 and updated for Hasura Configuration v3.
+You now have a Nhost v2 project locally with correct migrations and metadata. Happy hacking!
