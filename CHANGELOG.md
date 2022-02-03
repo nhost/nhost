@@ -1,28 +1,113 @@
 # [0.2.0](https://github.com/nhost/hasura-auth/compare/v0.1.0...v0.2.0) (2022-02-03)
 
+## What's new
+
+### Custom JWT claims
+
+Hasura comes with a [powerful authorisation system](https://hasura.io/docs/latest/graphql/core/auth/authorization/index.html). Hasura Auth is already configured to add `x-hasura-user-id`, `x-hasura-allowed-roles`, and `x-hasura-user-isAnonymous` to the JSON Web Tokens it generates.
+
+This release introduces the ability to define custom claims to add to the JWT, so they can be used by Hasura to determine the permissions of the received GraphQL operation.
+
+Each custom claim is defined by a pair of a key and a value:
+
+- The key determines the name of the claim, prefixed by `x-hasura`. For instance, `organisation-id`will become `x-hasura-organisation-id`.
+- The value is a representation of the path to look at to determine the value of the claim. For instance `[profile.organisation.id](http://profile.organisation.id)` will look for the `user.profile` Hasura relationship, and the `profile.organisation` Hasura relationship. Array values are transformed into Postgres syntax so Hasura can interpret them. See the official Hasura documentation to understand the [session variables format](https://hasura.io/docs/latest/graphql/core/auth/authorization/roles-variables.html#format-of-session-variables).
+
+```bash
+AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"profile.organisation.id", "project-ids":"profile.contributesTo.project.id"}
+```
+
+Will automatically generate and fetch the following GraphQL query:
+
+```graphql
+{
+  user(id: "<user-id>") {
+    profile {
+      organisation {
+        id
+      }
+      contributesTo {
+        project {
+          id
+        }
+      }
+    }
+  }
+}
+```
+
+It will then use the same expressions e.g. `profile.contributesTo.project.id` to evaluate the result with [JSONata](https://jsonata.org/), and possibly transform arrays into Hasura-readable, PostgreSQL arrays.Finally, it adds the custom claims to the JWT in the `https://hasura.io/jwt/claims` namespace:
+
+```json
+{
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-organisation-id": "8bdc4f57-7d64-4146-a663-6bcb05ea2ac1",
+    "x-hasura-project-ids": "{\"3af1b33f-fd0f-425e-92e2-0db09c8b2e29\",\"979cb94c-d873-4d5b-8ee0-74527428f58f\"}",
+    "x-hasura-allowed-roles": [ "me", "user" ],
+    "x-hasura-default-role": "user",
+    "x-hasura-user-id": "121bbea4-908e-4540-ac5d-52c7f6f93bec",
+    "x-hasura-user-isAnonymous": "false"
+  }
+  "sub": "f8776768-4bbd-46f8-bae1-3c40da4a89ff",
+  "iss": "hasura-auth",
+  "iat": 1643040189,
+  "exp": 1643041089
+}
+```
+
+### `metadata` user field
+
+A basic JSONB column in the `auth.users` table, that is passed on as an option on registration:
+
+```json
+{
+  "email": "bob@bob.com",
+  "passord": "12345678",
+  "options": {
+    "metadata": {
+      "first_name": "Bob"
+    }
+  }
+}
+```
+
+### Remote custom email templates
+
+When running Hasura Auth in its own infrastructure, it is possible to mount a volume with custom `email-templates` directory. However, in some cases, we may want to fetch templates from an external HTTP endpoint. Hence the introduction of a new `AUTH_EMAIL_TEMPLATE_FETCH_URL` environment variable:
+
+```bash
+AUTH_EMAIL_TEMPLATE_FETCH_URL=https://github.com/nhost/nhost/tree/custom-email-templates-example/examples/custom-email-templates
+```
+
+In the above example, on every email creation, the server will use this URL to fetch its templates, depending on the locale, email type and field.
+
+For instance, the template for english verification email body will the fetched in [https://raw.githubusercontent.com/nhost/nhost/custom-email-templates-example/examples/custom-email-templates/en/email-verify/body.html](https://raw.githubusercontent.com/nhost/nhost/custom-email-templates-example/examples/custom-email-templates/en/email-verify/body.html).
+
+See the [example in the main nhost/nhost repository](https://github.com/nhost/nhost/tree/main/examples/custom-email-templates).
+
+The context variables in email templates have been simplified: the `${link}` variable contains the entire redirection url the recipient needs to follow.
+
+## Changelog
 
 ### Bug Fixes
 
-* allow redirect urls in Oauth that starts with the one defined in the server ([c00bff8](https://github.com/nhost/hasura-auth/commit/c00bff8283a657c38fce3b5cbfb7c56cb17f82ab))
-* **email-templates:** fallback to the default template when the requested template doesn't exist ([6a70c10](https://github.com/nhost/hasura-auth/commit/6a70c103dff19b6c3f6e9e93b0cbfa0dabbdc01a))
-* **email-templates:** use the locale given as an option, then the existing user locale, then default ([31d4a89](https://github.com/nhost/hasura-auth/commit/31d4a89d58d5571c920d93839638daa07ec018ff))
-* **metadata:** show column values when the column name is the same as the graphql field name ([a595941](https://github.com/nhost/hasura-auth/commit/a5959413322415a23012d67773ca65387235503d)), closes [#76](https://github.com/nhost/hasura-auth/issues/76)
-* **passwordless:** don't send passwordless email when the user is disabled ([3ec9c76](https://github.com/nhost/hasura-auth/commit/3ec9c763f1b1abbda62a5b9d4c01b475a62c460b))
-* remove email-templates endpoint ([5c6dbf5](https://github.com/nhost/hasura-auth/commit/5c6dbf503ff729ef928f9df105998d740c5c75e8)), closes [#75](https://github.com/nhost/hasura-auth/issues/75)
-
+- allow redirect urls in Oauth that starts with the one defined in the server ([c00bff8](https://github.com/nhost/hasura-auth/commit/c00bff8283a657c38fce3b5cbfb7c56cb17f82ab))
+- **email-templates:** fallback to the default template when the requested template doesn't exist ([6a70c10](https://github.com/nhost/hasura-auth/commit/6a70c103dff19b6c3f6e9e93b0cbfa0dabbdc01a))
+- **email-templates:** use the locale given as an option, then the existing user locale, then default ([31d4a89](https://github.com/nhost/hasura-auth/commit/31d4a89d58d5571c920d93839638daa07ec018ff))
+- **metadata:** show column values when the column name is the same as the graphql field name ([a595941](https://github.com/nhost/hasura-auth/commit/a5959413322415a23012d67773ca65387235503d)), closes [#76](https://github.com/nhost/hasura-auth/issues/76)
+- **passwordless:** don't send passwordless email when the user is disabled ([3ec9c76](https://github.com/nhost/hasura-auth/commit/3ec9c763f1b1abbda62a5b9d4c01b475a62c460b))
+- remove email-templates endpoint ([5c6dbf5](https://github.com/nhost/hasura-auth/commit/5c6dbf503ff729ef928f9df105998d740c5c75e8)), closes [#75](https://github.com/nhost/hasura-auth/issues/75)
 
 ### Features
 
-* custom claims ([01c0207](https://github.com/nhost/hasura-auth/commit/01c0207fd13446d37375e261772ee4a5ca27d108)), closes [#49](https://github.com/nhost/hasura-auth/issues/49)
-* custom json object user property ([ee43fe3](https://github.com/nhost/hasura-auth/commit/ee43fe374f46135e126f02d2841ad275815ebbb3)), closes [#31](https://github.com/nhost/hasura-auth/issues/31)
-* implement remote email templates with AUTH_EMAIL_TEMPLATE_FETCH_URL ([2458651](https://github.com/nhost/hasura-auth/commit/2458651a415f43e01a8917f0f8aaa75bdae11897))
-* simplify email templates context ([b94cdf2](https://github.com/nhost/hasura-auth/commit/b94cdf20973b22601705a0ed0395bfc9e2699309)), closes [#64](https://github.com/nhost/hasura-auth/issues/64)
-* use array custom JWT claims ([53a286a](https://github.com/nhost/hasura-auth/commit/53a286a74f74d315282c6a92b679f490a3d7336e))
-
+- custom claims ([01c0207](https://github.com/nhost/hasura-auth/commit/01c0207fd13446d37375e261772ee4a5ca27d108)), closes [#49](https://github.com/nhost/hasura-auth/issues/49)
+- implement remote email templates with AUTH_EMAIL_TEMPLATE_FETCH_URL ([2458651](https://github.com/nhost/hasura-auth/commit/2458651a415f43e01a8917f0f8aaa75bdae11897))
+- simplify email templates context ([b94cdf2](https://github.com/nhost/hasura-auth/commit/b94cdf20973b22601705a0ed0395bfc9e2699309)), closes [#64](https://github.com/nhost/hasura-auth/issues/64)
+- use array custom JWT claims ([53a286a](https://github.com/nhost/hasura-auth/commit/53a286a74f74d315282c6a92b679f490a3d7336e))
 
 ### BREAKING CHANGES
 
-* deactivate the `/email-templates` endpoint
+- deactivate the `/email-templates` endpoint
 
 # [0.1.0](https://github.com/nhost/hasura-auth/compare/v0.0.1-canary.0...v0.1.0) (2022-01-18)
 
