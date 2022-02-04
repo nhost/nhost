@@ -1,0 +1,31 @@
+language: go
+sudo: false
+
+go:
+  - 1.11.x
+  - 1.12.x
+  - 1.13.x
+  - 1.14.x
+  - master
+
+matrix:
+  fast_finish: true
+  include:
+  - go: 1.11.x
+    env: GO111MODULE=on
+  - go: 1.12.x
+    env: GO111MODULE=on
+
+script:
+  - go test -v -covermode=atomic -coverprofile=coverage.out
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/acc2c57482e94b44f557
+    on_success: change
+    on_failure: always
+    on_start: false
