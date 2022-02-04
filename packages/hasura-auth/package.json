@@ -1,0 +1,52 @@
+{
+  "name": "@nhost/hasura-auth-js",
+  "version": "0.1.10",
+  "description": "Hasura-auth client",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost-js/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost-jsjs.git"
+  },
+  "scripts": {
+    "type": "tsc --noEmit && tsc --project tests/tsconfig.json",
+    "build": "pnpm build:cjs && pnpm build:esm",
+    "build:cjs": "tsc --module commonjs --outDir lib",
+    "build:esm": "tsc --module es2020 --outDir esm && pnpm esm:extensions",
+    "esm:extensions": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" ../../.config/esm-transformer.ts",
+    "test": "pnpm jest --runInBand --detectOpenHandles"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "module": "./esm/index.js",
+  "exports": {
+    "import": "./esm/index.js",
+    "require": "./lib/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "axios": "^0.25.0",
+    "graphql": "16.2.0",
+    "jwt-decode": "^3.1.2",
+    "query-string": "^7.1.0"
+  },
+  "devDependencies": {
+    "@types/faker": "5",
+    "faker": "5",
+    "html-urls": "^2.4.27",
+    "mailhog": "^4.16.0"
+  }
+}

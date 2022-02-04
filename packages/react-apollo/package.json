@@ -1,0 +1,61 @@
+{
+  "name": "@nhost/react-apollo",
+  "version": "2.1.0",
+  "description": "Nhost React Apollo client",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "storage",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime",
+    "react",
+    "apollo"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost-js/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost-js.git"
+  },
+  "scripts": {
+    "type": "tsc --noEmit && tsc --project tests/tsconfig.json",
+    "build": "pnpm build:cjs && pnpm build:esm",
+    "build:cjs": "tsc --module commonjs --outDir lib",
+    "build:esm": "tsc --module es2020 --outDir esm && pnpm esm:extensions",
+    "esm:extensions": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" ../../.config/esm-transformer.ts",
+    "test": "pnpm jest --runInBand"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "module": "./esm/index.js",
+  "exports": {
+    "import": "./esm/index.js",
+    "require": "./lib/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:*",
+    "subscriptions-transport-ws": "^0.11.0"
+  },
+  "peerDependencies": {
+    "@apollo/client": "^3.0.0",
+    "graphql": "^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0",
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0",
+    "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@apollo/client": "^3.0.0",
+    "@types/react": "^17.0.17",
+    "@types/ws": "^8.2.0",
+    "graphql": "^16.3.0",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

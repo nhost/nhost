@@ -1,0 +1,47 @@
+.DS_Store
+*.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Cache
+.axe/
+.bundle/
+.happo/
+.idea/
+.npm/
+.vagrant/
+/.vscode/
+.eslintcache
+.yarnclean
+.husky
+
+# Directories
+coverage/
+dist/
+lib/
+node_modules/
+tmp/
+.docz/
+.pnpm-store
+.turbo
+.env
+
+# Custom
+*.min.js
+*.map
+todo.md
+
+# Generated configs 
+.eslintignore
+.eslintrc.js
+.prettierignore
+prettier.config.js
+
+*.tsbuildinfo
+
+# Local Netlify folder
+.netlify
+.monorepo-example
+

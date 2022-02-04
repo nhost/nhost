@@ -1,0 +1,51 @@
+{
+  "name": "@nhost/nhost-js",
+  "version": "0.2.4",
+  "description": "Nhost JavaScript SDK",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "storage",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost-js/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost-js.git"
+  },
+  "scripts": {
+    "type": "tsc --noEmit && tsc --project tests/tsconfig.json",
+    "build": "pnpm build:cjs && pnpm build:esm",
+    "build:cjs": "tsc --module commonjs --outDir lib",
+    "build:esm": "tsc --module es2020 --outDir esm && pnpm esm:extensions",
+    "esm:extensions": "ts-node --compiler-options \"{\\\"module\\\":\\\"commonjs\\\"}\" ../../.config/esm-transformer.ts",
+    "test": "pnpm jest --runInBand"
+  },
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "module": "./esm/index.js",
+  "exports": {
+    "import": "./esm/index.js",
+    "require": "./lib/index.js"
+  },
+
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@nhost/hasura-auth-js": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
+    "axios": "^0.23.0",
+    "jwt-decode": "^3.1.2",
+    "query-string": "^7.0.1"
+  },
+  "devDependencies": {
+  }
+}

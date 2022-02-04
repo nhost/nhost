@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "extends": "./tsconfig.options.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "lib": ["dom", "dom.iterable", "esnext"]
+  },
+  "include": [
+    "packages/*/*.js",
+    "packages/*/src/**/*.ts",
+    "packages/*/test/**/*.ts",
+    "packages/*/tests/**/*.ts",
+    "packages/*/*.jsx",
+    "packages/*/src/**/*.tsx",
+    "packages/*/test/**/*.tsx",
+    "packages/*/tests/**/*.tsx",
+    "examples/**/*.ts",
+    "examples/**/*.js",
+    "examples/**/*.tsx"
+  ]
+}
