@@ -1,7 +1,7 @@
 import { PrettierConfig } from '@beemo/driver-prettier'
 
 const config: PrettierConfig = {
-  ignore: [],
+  ignore: ['esm'],
   useTabs: false,
   tabWidth: 2,
   singleQuote: true,

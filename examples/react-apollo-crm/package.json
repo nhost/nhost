@@ -7,9 +7,9 @@
     "@craco/craco": "^6.4.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
-    "@nhost/nhost-js": "^0.3.4",
-    "@nhost/react-apollo": "^2.0.7-0",
-    "@nhost/react-auth": "^2.0.3",
+    "@nhost/nhost-js": "workspace:^0.3.6",
+    "@nhost/react-apollo": "workspace:^2.1.0",
+    "@nhost/react-auth": "workspace:^2.0.3",
     "@saeris/apollo-server-vercel": "^1.0.1",
     "@tailwindcss/forms": "^0.3.4",
     "@testing-library/jest-dom": "^5.11.4",
@@ -32,8 +32,8 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
+    "start": "SKIP_PREFLIGHT_CHECK=true craco start",
+    "build": "SKIP_PREFLIGHT_CHECK=true craco build",
     "test": "craco test",
     "eject": "react-scripts eject",
     "codegen": "graphql-codegen --config codegen.yaml --errors-only"

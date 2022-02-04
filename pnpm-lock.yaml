@@ -60,7 +60,7 @@ importers:
       express: ^4.17.2
       typescript: ^4.5.4
     dependencies:
-      '@nhost/nhost-js': 0.3.6
+      '@nhost/nhost-js': link:../../packages/nhost
     devDependencies:
       '@types/express': 4.17.13
       express: 4.17.2
@@ -77,9 +77,9 @@ importers:
       '@graphql-codegen/typescript-react-apollo': ^3.1.6
       '@headlessui/react': ^1.4.2
       '@heroicons/react': ^1.0.5
-      '@nhost/nhost-js': ^0.3.4
-      '@nhost/react-apollo': ^2.0.7-0
-      '@nhost/react-auth': ^2.0.3
+      '@nhost/nhost-js': workspace:^0.3.6
+      '@nhost/react-apollo': workspace:^2.1.0
+      '@nhost/react-auth': workspace:^2.0.3
       '@saeris/apollo-server-vercel': ^1.0.1
       '@tailwindcss/forms': ^0.3.4
       '@testing-library/dom': ^8.11.3
@@ -111,7 +111,7 @@ importers:
       '@craco/craco': 6.4.3_4aa4ff7e3a066977318d29b1bedd23d1
       '@headlessui/react': 1.4.3_react-dom@17.0.2+react@17.0.2
       '@heroicons/react': 1.0.5_react@17.0.2
-      '@nhost/nhost-js': 0.3.6
+      '@nhost/nhost-js': link:../../packages/nhost
       '@nhost/react-apollo': link:../../packages/react-apollo
       '@nhost/react-auth': link:../../packages/react-auth
       '@saeris/apollo-server-vercel': 1.0.1_graphql@15.7.2
@@ -167,15 +167,10 @@ importers:
       react-dom: ^17.0.2
       react-scripts: 5.0.0
       react-use: ^17.3.2
-      typescript: ^4.5.5
       uuid: ^8.3.2
-      web-vitals: ^2.1.4
       ws: ^8.0.0
       xstate: ^4.29.0
     dependencies:
-      '@types/node': 16.11.22
-      '@types/react': 17.0.39
-      '@types/react-dom': 17.0.11
       '@xstate/immer': 0.3.1_immer@9.0.12+xstate@4.29.0
       '@xstate/react': 2.0.0_b2730fbad1dada8c45d201a94f0d2c3b
       axios: 0.25.0
@@ -184,14 +179,15 @@ importers:
       react-dom: 17.0.2_react@17.0.2
       react-scripts: 5.0.0_9fbe955933964981eb31e1f3f282904e
       react-use: 17.3.2_react-dom@17.0.2+react@17.0.2
-      typescript: 4.5.5
       uuid: 8.3.2
-      web-vitals: 2.1.4
       xstate: 4.29.0
     devDependencies:
       '@babel/core': 7.17.0
       '@babel/plugin-syntax-flow': 7.16.7_@babel+core@7.17.0
       '@babel/plugin-transform-react-jsx': 7.16.7_@babel+core@7.17.0
+      '@types/node': 16.11.22
+      '@types/react': 17.0.39
+      '@types/react-dom': 17.0.11
       '@types/uuid': 8.3.4
       '@xstate/inspect': 0.6.2_ws@8.4.2
       autoprefixer: 10.4.2_postcss@8.4.6
@@ -244,10 +240,10 @@ importers:
 
   packages/react-apollo:
     specifiers:
-      '@apollo/client': ^3.0.0
+      '@apollo/client': ^3.5.8
       '@nhost/nhost-js': workspace:*
-      '@types/react': ^17.0.17
-      '@types/ws': ^8.2.0
+      '@types/react': ^17.0.39
+      '@types/ws': ^8.2.2
       graphql: 15.7.2
       react: ^17.0.2
       react-dom: ^17.0.2
@@ -257,7 +253,7 @@ importers:
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.5.8_03bf9288e5c3a1c712f16f9f9a62dbf9
-      '@types/react': 17.0.38
+      '@types/react': 17.0.39
       '@types/ws': 8.2.2
       graphql: 15.7.2
       react: 17.0.2
@@ -3619,37 +3615,6 @@ packages:
       graphql: 15.7.2
     dev: true
 
-  /@nhost/hasura-auth-js/0.1.10:
-    resolution: {integrity: sha512-rq8YDh2aqLiruYNzKaJiuN4/ZFYZIGUwRyQlk/iH5ml+0CupvFGCZ84lb1Rn71Yuq1AjLqpFE5G3UYpxUXCxSw==}
-    dependencies:
-      '@types/jwt-decode': 2.2.1
-      axios: 0.21.4
-      jwt-decode: 2.2.0
-      query-string: 7.1.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /@nhost/hasura-storage-js/0.0.6:
-    resolution: {integrity: sha512-zAbzDYgUAHi45pZhjgovtyXjVmuYz2ZQ2ryO8JdSTuShT7jclim2VkIw4rNJ1NpWSr7NHFsyMvBgZlmNyixXyA==}
-    dependencies:
-      axios: 0.21.4
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /@nhost/nhost-js/0.3.6:
-    resolution: {integrity: sha512-zhoi2upG7Cg+iPcNqYHvY9t5sfQOn5gy7uzU/iDJzDZk2KRw3KaURN9XN+2t+kb4vudRng1ckJkq8B4DUvwrAQ==}
-    dependencies:
-      '@nhost/hasura-auth-js': 0.1.10
-      '@nhost/hasura-storage-js': 0.0.6
-      axios: 0.23.0
-      jwt-decode: 3.1.2
-      query-string: 7.1.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /@nicolo-ribaudo/chokidar-2/2.1.8-no-fsevents.3:
     resolution: {integrity: sha512-s88O1aVtXftvp5bCPB7WnmXc5IwOZZ7YPuwNPt+GtOOXpPvad1LfbmjYv+qII7zP6RU2QGnqve27dnLycEnyEQ==}
     requiresBuild: true
@@ -4451,10 +4416,6 @@ packages:
       '@types/node': 17.0.14
     dev: true
 
-  /@types/jwt-decode/2.2.1:
-    resolution: {integrity: sha512-aWw2YTtAdT7CskFyxEX2K21/zSDStuf/ikI3yBqmwpwJF0pS+/IX5DWv+1UFffZIbruP6cnT9/LAJV1gFwAT1A==}
-    dev: false
-
   /@types/keygrip/1.0.2:
     resolution: {integrity: sha512-GJhpTepz2udxGexqos8wgaBx4I/zWIDPh/KOGEwAqtuGDkOUJu5eFvwmdBX4AmB8Odsr+9pHCQqiAqDL/yKMKw==}
     dev: false
@@ -4510,10 +4471,7 @@ packages:
 
   /@types/node/16.11.22:
     resolution: {integrity: sha512-DYNtJWauMQ9RNpesl4aVothr97/tIJM8HbyOXJ0AYT1Z2bEjLHyfjOBPAQQVMLf8h3kSShYfNk8Wnto8B2zHUA==}
-    dev: false
-
-  /@types/node/17.0.13:
-    resolution: {integrity: sha512-Y86MAxASe25hNzlDbsviXl8jQHb0RDvKt4c40ZJQ1Don0AAL0STLZSs4N+6gLEO55pedy7r2cLwS+ZDxPm/2Bw==}
+    dev: true
 
   /@types/node/17.0.14:
     resolution: {integrity: sha512-SbjLmERksKOGzWzPNuW7fJM7fk3YXVTFiZWB/Hs99gwhk+/dnrQRPBQjPW9aO+fi1tAffi9PrwFvsmOKmDTyng==}
@@ -4544,7 +4502,6 @@ packages:
     resolution: {integrity: sha512-f96K3k+24RaLGVu/Y2Ng3e1EbZ8/cVJvypZWd7cy0ofCBaf2lcM46xNhycMZ2xGwbBjRql7hOlZ+e2WlJ5MH3Q==}
     dependencies:
       '@types/react': 17.0.39
-    dev: false
 
   /@types/react/17.0.38:
     resolution: {integrity: sha512-SI92X1IA+FMnP3qM5m4QReluXzhcmovhZnLNm3pyeQlooi02qI7sLiepEYqT678uNiyc25XfCqxREFpy3W7YhQ==}
@@ -4667,7 +4624,7 @@ packages:
   /@types/ws/8.2.2:
     resolution: {integrity: sha512-NOn5eIcgWLOo6qW8AcuLZ7G8PycXu0xTxxkS6Q18VWFxgPUSOwV0pBj2a/4viNZVu25i7RIB7GttdkAIUUXOOg==}
     dependencies:
-      '@types/node': 17.0.13
+      '@types/node': 17.0.14
 
   /@types/yargs-parser/20.2.1:
     resolution: {integrity: sha512-7tFImggNeNBVMsn0vLrpn1H1uPrUBdnARPTpZoitY37ZrdJREzf7I16tMrlK3hen349gr1NYh8CmZQa7CTG6Aw==}
@@ -6076,7 +6033,7 @@ packages:
   /axios/0.23.0:
     resolution: {integrity: sha512-NmvAE4i0YAv5cKq8zlDoPd1VLKAqX5oLuZKs8xkJa4qi6RGn0uhCYFjWtHHC9EM/MwOwYWOs53W+V0aqEXq1sg==}
     dependencies:
-      follow-redirects: 1.14.7_debug@4.3.3
+      follow-redirects: 1.14.7
     transitivePeerDependencies:
       - debug
     dev: false
@@ -13075,10 +13032,6 @@ packages:
       safe-buffer: 5.2.1
     dev: true
 
-  /jwt-decode/2.2.0:
-    resolution: {integrity: sha1-fYa9VmefWM5qhHBKZX3TkruoGnk=}
-    dev: false
-
   /jwt-decode/3.1.2:
     resolution: {integrity: sha512-UfpWE/VZn0iP50d8cz9NrZLM9lSWhcJ+0Gt/nm4by88UL+J1SiKN8/5dkjMmbEzwL2CAe+67GsegCbIKtbp75A==}
     dev: false
@@ -20004,10 +19957,6 @@ packages:
 
   /web-vitals/1.1.2:
     resolution: {integrity: sha512-PFMKIY+bRSXlMxVAQ+m2aw9c/ioUYfDgrYot0YUa+/xa0sakubWhSDyxAKwzymvXVdF4CZI71g06W+mqhzu6ig==}
-    dev: false
-
-  /web-vitals/2.1.4:
-    resolution: {integrity: sha512-sVWcwhU5mX6crfI5Vd2dC4qchyTqxV8URinzt25XqVh+bHEPGH4C3NPrNionCP7Obx59wrYEbNlw4Z8sjALzZg==}
     dev: false
 
   /webidl-conversions/3.0.1:
