@@ -47,7 +47,7 @@ type FileMetadataWithBucket struct {
 	Bucket BucketMetadata
 }
 
-//go:generate mockgen -destination mock_controller/metadata_storage.go -package mock_controller . MetadataStorage
+//go:generate mockgen --build_flags=--mod=mod -destination mock_controller/metadata_storage.go -package mock_controller . MetadataStorage
 type MetadataStorage interface {
 	GetBucketByID(ctx context.Context, id string, headers http.Header) (BucketMetadata, *APIError)
 	GetFileByID(ctx context.Context, id string, headers http.Header) (FileMetadataWithBucket, *APIError)
@@ -62,7 +62,7 @@ type MetadataStorage interface {
 	ListFiles(ctx context.Context, headers http.Header) ([]FileSummary, *APIError)
 }
 
-//go:generate mockgen -destination mock_controller/content_storage.go -package mock_controller . ContentStorage
+//go:generate mockgen --build_flags=--mod=mod -destination mock_controller/content_storage.go -package mock_controller . ContentStorage
 type ContentStorage interface {
 	PutFile(content io.ReadSeeker, filepath, contentType string) (string, *APIError)
 	GetFile(id string) (io.ReadCloser, *APIError)
@@ -113,6 +113,7 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerF
 		files.HEAD("/:id", ctrl.GetFileInformation)
 		files.PUT("/:id", ctrl.UpdateFile)
 		files.DELETE("/:id", ctrl.DeleteFile)
+		files.GET("/:id/presignedurl", ctrl.GetFilePresignedURL)
 	}
 
 	ops := apiRoot.Group("/ops")

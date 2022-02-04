@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"mime/multipart"
 	"net/http"
-	"time"
 
 	"github.com/gabriel-vasile/mimetype"
 	"github.com/gin-gonic/gin"
@@ -103,14 +102,6 @@ func (ctrl *Controller) upload(
 		}
 
 		filesMetadata = append(filesMetadata, metadata)
-
-		if bucket.PresignedURLsEnabled {
-			_, apiErr := ctrl.contentStorage.CreatePresignedURL(filepath, time.Duration(bucket.DownloadExpiration)*time.Minute)
-			if apiErr != nil {
-				return filesMetadata,
-					apiErr.ExtendError(fmt.Sprintf("problem creating presigned URL for file %s", file.Name))
-			}
-		}
 	}
 
 	return filesMetadata, nil

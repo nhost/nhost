@@ -83,7 +83,6 @@ func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, 
 			Key:    aws.String(s.rootFolder + "/" + filepath),
 		},
 	)
-
 	url, err := request.Presign(expire)
 	if err != nil {
 		return "", parseS3Error(fmt.Errorf("problem generating pre-signed URL: %w", err))

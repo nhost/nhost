@@ -10,7 +10,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/google/go-cmp/cmp/cmpopts"
@@ -143,13 +142,6 @@ func TestUploadFile(t *testing.T) {
 					"blah/"+file.md.ID,
 					"text/plain; charset=utf-8",
 				).Return("some-etag", nil)
-
-				if tc.presigned {
-					contentStorage.EXPECT().CreatePresignedURL(
-						"blah/"+file.md.ID,
-						time.Minute*30,
-					).Return("https://some-url", nil)
-				}
 
 				metadataStorage.EXPECT().PopulateMetadata(
 					gomock.Any(),
