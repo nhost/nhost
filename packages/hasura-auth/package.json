@@ -24,7 +24,7 @@
     "build": "pnpm build:cjs && pnpm build:esm",
     "build:cjs": "tsc --module commonjs --outDir lib",
     "build:esm": "tsc --module es2020 --outDir esm",
-    "test": "pnpm jest --runInBand --detectOpenHandles"
+    "test": "pnpm jest --runInBand"
   },
   "main": "./lib/index.js",
   "types": "./lib/index.d.ts",

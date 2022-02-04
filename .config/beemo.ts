@@ -3,8 +3,7 @@ const config = {
   drivers: {
     eslint: {
       args: ['--cache-location', './node_modules/.cache/eslint', '--cache']
-    },
-    prettier: true
+    }
   },
   settings: {
     useBuiltIns: false,

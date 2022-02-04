@@ -13,7 +13,6 @@ importers:
       '@beemo/cli': ^2.0.5
       '@beemo/core': ^2.1.3
       '@beemo/dev': ^1.7.5
-      '@beemo/driver-prettier': ^2.0.5
       '@changesets/cli': ^2.20.0
       '@faker-js/faker': ^6.0.0-alpha.5
       '@types/jest': ^27.4.0
@@ -36,7 +35,6 @@ importers:
       '@beemo/cli': 2.0.5_ac10f3ecfe58a11419fa6e369f271787
       '@beemo/core': 2.1.3_typescript@4.5.5
       '@beemo/dev': 1.7.5_ts-node@10.4.0
-      '@beemo/driver-prettier': 2.0.5_@beemo+core@2.1.3+prettier@2.5.1
       '@changesets/cli': 2.20.0
       '@faker-js/faker': 6.0.0-alpha.5
       '@types/jest': 27.4.0

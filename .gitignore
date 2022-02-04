@@ -36,12 +36,11 @@ todo.md
 # Generated configs 
 .eslintignore
 .eslintrc.js
-.prettierignore
-prettier.config.js
 
 *.tsbuildinfo
 
 # Local Netlify folder
 .netlify
 .monorepo-example
+esm
 

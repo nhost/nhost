@@ -34,7 +34,6 @@
   "scripts": {
     "start": "SKIP_PREFLIGHT_CHECK=true craco start",
     "build": "SKIP_PREFLIGHT_CHECK=true craco build",
-    "test": "craco test",
     "eject": "react-scripts eject",
     "codegen": "graphql-codegen --config codegen.yaml --errors-only"
   },
