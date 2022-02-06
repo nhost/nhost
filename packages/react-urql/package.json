@@ -23,7 +23,7 @@
     "url": "git+https://github.com/nhost/nhost-js.git"
   },
   "scripts": {
-    "build": "vite build --config ../../vite.react.js",
+    "build": "vite build --config ../../vite.lib.react.js",
     "test": "pnpm jest --runInBand",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",

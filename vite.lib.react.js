@@ -2,9 +2,9 @@ import fs from 'fs'
 
 import { defineConfig } from 'vite'
 
-import reactRefresh from '@vitejs/plugin-react-refresh'
+import react from '@vitejs/plugin-react'
 
-import { basePlugins, lib } from './vite.base'
+import { basePlugins, lib } from './vite.lib'
 
 if (!fs.existsSync(lib.entry)) {
   lib.entry = lib.entry.replace('.ts', '.tsx')
@@ -14,7 +14,7 @@ if (!fs.existsSync(lib.entry)) {
  * @type {import('vite').UserConfig}
  */
 export default defineConfig({
-  plugins: [reactRefresh(), ...basePlugins],
+  plugins: [react(), ...basePlugins],
   build: {
     lib,
     rollupOptions: {
