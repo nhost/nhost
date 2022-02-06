@@ -1,6 +1,5 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import './index.css'
 import App from './App'
 import { NhostProvider } from './react-auth'
 import { createNhostMachine } from './state'
