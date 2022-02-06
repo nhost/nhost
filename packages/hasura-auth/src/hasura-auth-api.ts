@@ -1,4 +1,5 @@
 import axios, { AxiosError, AxiosInstance } from 'axios'
+
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -40,9 +41,7 @@ export class HasuraAuthApi {
     // convert axios error to custom ApiError
     this.httpClient.interceptors.response.use(
       (response) => response,
-      // eslint-disable-next-line promise/prefer-await-to-callbacks
       (error: AxiosError<{ message: string }>) =>
-        // eslint-disable-next-line prefer-promise-reject-errors, promise/no-promise-in-callback
         Promise.reject({
           message: error.response?.data?.message ?? error.message ?? JSON.stringify(error),
           status: error.response?.status ?? SERVER_ERROR_CODE

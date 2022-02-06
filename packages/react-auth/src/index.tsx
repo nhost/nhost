@@ -1,4 +1,5 @@
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+
 import { NhostClient } from '@nhost/nhost-js'
 
 export const AuthContext = createContext({

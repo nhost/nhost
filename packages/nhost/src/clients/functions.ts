@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+
 import { FunctionCallResponse } from '../types'
 
 export interface NhostFunctionsConstructorParams {

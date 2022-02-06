@@ -1,6 +1,7 @@
 import axios from 'axios'
 import faker from 'faker'
 import htmlUrls from 'html-urls'
+
 import { auth, mailhog } from './helpers'
 
 describe('emails', () => {
@@ -26,7 +27,8 @@ describe('emails', () => {
 
     // get verify email link
     const verifyEmailLink = htmlUrls({ html: message.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
+      (href: { value: string; url: string; uri: string }) =>
+        href.url.includes('verifyEmail')
     )
 
     // verify email
@@ -59,7 +61,8 @@ describe('emails', () => {
 
     // get verify email link
     const changeEmailLink = htmlUrls({ html: changeEmailEmail.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('emailConfirmChange')
+      (href: { value: string; url: string; uri: string }) =>
+        href.url.includes('emailConfirmChange')
     )
 
     // verify email
@@ -111,7 +114,8 @@ describe('emails', () => {
     // test email link
     // get verify email link
     const verifyEmailLink = htmlUrls({ html: verifyEmailEmail.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
+      (href: { value: string; url: string; uri: string }) =>
+        href.url.includes('verifyEmail')
     )
 
     // verify email

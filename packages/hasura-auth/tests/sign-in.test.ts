@@ -1,6 +1,7 @@
 import axios from 'axios'
 import faker from 'faker'
 import htmlUrls from 'html-urls'
+
 import { auth, mailhog, signUpAndVerifyUser } from './helpers'
 
 describe('sign-in', () => {
@@ -61,7 +62,8 @@ describe('sign-in', () => {
 
     // get passwordless email ink
     const emailLink = htmlUrls({ html: message.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('signinPasswordless')
+      (href: { value: string; url: string; uri: string }) =>
+        href.url.includes('signinPasswordless')
     )
 
     // verify email

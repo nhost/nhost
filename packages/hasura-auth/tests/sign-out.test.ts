@@ -1,4 +1,5 @@
 import faker from 'faker'
+
 import { auth, signUpAndInUser } from './helpers'
 
 describe('sign-out', () => {

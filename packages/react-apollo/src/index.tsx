@@ -1,12 +1,12 @@
 /* eslint-disable no-console */
-/* eslint-disable unicorn/prefer-spread */
 /* eslint-disable prefer-destructuring */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import { ReactNode, useState } from 'react'
+import React, { ReactNode, useState } from 'react'
 import { SubscriptionClient } from 'subscriptions-transport-ws'
+
 import {
   ApolloClient,
   ApolloClientOptions,

@@ -1,17 +1,9 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "lib",
-    "rootDir": "src",
-    
+    "outDir": "dist",
+    "composite": true
   },
-  "exclude": [
-    "lib",
-    "tests"
-  ],
-  "extends": "../../tsconfig.options.json",
-  "include": [
-    "src/**/*",
-    "types/**/*",
-    "../../types/**/*"
-  ]
+  "include": ["src/**/*", "types/**/*", "../../types/**/*"],
+  "references": [{ "path": "../hasura-auth" }, { "path": "../hasura-storage" }]
 }

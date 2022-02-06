@@ -5,6 +5,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import fetch from 'isomorphic-unfetch'
 import ws from 'isomorphic-ws'
+import React from 'react'
 import { SubscriptionClient } from 'subscriptions-transport-ws'
 import {
   cacheExchange,
@@ -15,6 +16,7 @@ import {
   Provider,
   subscriptionExchange
 } from 'urql'
+
 import { AuthConfig, authExchange } from '@urql/exchange-auth'
 
 export function generateUrqlClient(

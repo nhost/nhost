@@ -1,6 +1,7 @@
 import axios from 'axios'
 import htmlUrls from 'html-urls'
 import createMailhogClient from 'mailhog'
+
 import { HasuraAuthClient, SignUpParams } from '../src'
 
 const AUTH_BACKEND_URL = 'http://localhost:1337/v1/auth'
@@ -31,7 +32,8 @@ export const signUpAndVerifyUser = async (params: SignUpParams) => {
 
   // get verify email link
   const verifyEmailLink = htmlUrls({ html: message.html }).find(
-    (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
+    (href: { value: string; url: string; uri: string }) =>
+      href.url.includes('verifyEmail')
   )
 
   // verify email
@@ -56,7 +58,8 @@ export const signUpAndInUser = async (params: SignUpParams) => {
 
   // get verify email link
   const verifyEmailLink = htmlUrls({ html: message.html }).find(
-    (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
+    (href: { value: string; url: string; uri: string }) =>
+      href.url.includes('verifyEmail')
   )
 
   // verify email

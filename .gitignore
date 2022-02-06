@@ -33,14 +33,9 @@ tmp/
 *.map
 todo.md
 
-# Generated configs 
-.eslintignore
-.eslintrc.js
-
 *.tsbuildinfo
 
 # Local Netlify folder
 .netlify
 .monorepo-example
-esm
 

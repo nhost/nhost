@@ -1,6 +1,7 @@
 import axios from 'axios'
 import faker from 'faker'
 import htmlUrls from 'html-urls'
+
 import { auth, mailhog, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 
 describe('passwords', () => {
@@ -55,8 +56,10 @@ describe('passwords', () => {
     }
 
     // get verify email link
-    const resetPasswordLink = htmlUrls({ html: messageResetPassword.html }).find(
-      (href: { value: string; url: string; uri: string }) => href.url.includes('passwordReset')
+    const resetPasswordLink = htmlUrls({
+      html: messageResetPassword.html
+    }).find((href: { value: string; url: string; uri: string }) =>
+      href.url.includes('passwordReset')
     )
 
     // verify email

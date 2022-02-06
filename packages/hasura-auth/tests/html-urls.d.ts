@@ -1,1 +1,1 @@
-declare module 'html-urls';
+declare module 'html-urls'

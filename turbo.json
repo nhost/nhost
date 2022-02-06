@@ -4,15 +4,13 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["lib/**", "esm/**", ".next"]
-    },
-    "type": {
-      "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": ["dist/**", "build/**", ".next"]
     },
     "test": {
       "dependsOn": ["^build"],
       "outputs": []
-    }
+    },
+    "lint": { "outputs": [] },
+    "lint:fix": { "outputs": [] }
   }
 }

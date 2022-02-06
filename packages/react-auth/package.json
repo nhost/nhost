@@ -22,21 +22,25 @@
     "url": "git+https://github.com/nhost/nhost-js.git"
   },
   "scripts": {
-    "type": "tsc --noEmit && tsc --project tests/tsconfig.json",
-    "build": "pnpm build:cjs && pnpm build:esm",
-    "build:cjs": "tsc --module commonjs --outDir lib",
-    "build:esm": "tsc --module es2020 --outDir esm",
-    "test": "pnpm jest --runInBand"
+    "build": "vite build --config ../../vite.react.js",
+    "test": "pnpm jest --runInBand",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
-  "module": "./esm/index.js",
-  "exports": {
-    "import": "./esm/index.js",
-    "require": "./lib/index.js"
-  },
+  "main": "src/index.tsx",
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "main": "dist/index.umd.js",
+    "module": "dist/index.es.js",
+    "typings": "dist/index.d.ts"
+  },
+  "exports": {
+    "import": "./dist/index.es.js",
+    "require": "./dist/index.umd.js"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*"

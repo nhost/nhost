@@ -1,4 +1,5 @@
 import faker from 'faker'
+
 import { auth } from './helpers'
 
 describe('sign-up', () => {

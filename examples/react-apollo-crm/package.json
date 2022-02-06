@@ -7,9 +7,9 @@
     "@craco/craco": "^6.4.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
-    "@nhost/nhost-js": "workspace:^0.3.6",
-    "@nhost/react-apollo": "workspace:^2.1.0",
-    "@nhost/react-auth": "workspace:^2.0.3",
+    "@nhost/nhost-js": "workspace:*",
+    "@nhost/react-apollo": "workspace:*",
+    "@nhost/react-auth": "workspace:*",
     "@saeris/apollo-server-vercel": "^1.0.1",
     "@tailwindcss/forms": "^0.3.4",
     "@testing-library/jest-dom": "^5.11.4",
@@ -34,6 +34,7 @@
   "scripts": {
     "start": "SKIP_PREFLIGHT_CHECK=true craco start",
     "build": "SKIP_PREFLIGHT_CHECK=true craco build",
+    "test": "SKIP_PREFLIGHT_CHECK=true craco test",
     "eject": "react-scripts eject",
     "codegen": "graphql-codegen --config codegen.yaml --errors-only"
   },
@@ -61,7 +62,6 @@
     "@graphql-codegen/typescript": "^2.2.4",
     "@graphql-codegen/typescript-operations": "^2.1.8",
     "@graphql-codegen/typescript-react-apollo": "^3.1.6",
-    "@testing-library/dom": "^8.11.3",
     "@types/express": "^4.17.13",
     "autoprefixer": "^9.8.8",
     "express": "^4.17.1",

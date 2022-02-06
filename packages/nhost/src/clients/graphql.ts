@@ -1,4 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+
 import { GraphqlRequestResponse, GraphqlResponse } from '../types'
 
 export interface NhostGraphqlConstructorParams {
@@ -52,7 +53,10 @@ export class NhostGraphqlClient {
         return { data: null, error }
       }
       console.error(error)
-      return { data: null, error: new Error('Unable to get do GraphQL request') }
+      return {
+        data: null,
+        error: new Error('Unable to get do GraphQL request')
+      }
     }
 
     if (typeof responseData !== 'object' || Array.isArray(responseData) || responseData === null) {
