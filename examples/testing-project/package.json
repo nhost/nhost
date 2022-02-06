@@ -1,5 +1,5 @@
 {
-  "name": "@nhost-examples/simple-project",
+  "name": "@nhost-examples/testing-project",
   "private": true,
   "version": "1.0.0",
   "description": "Wrapper to run the Nhost CLI for development and testing",
