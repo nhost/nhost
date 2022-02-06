@@ -21,7 +21,7 @@ const { data, error } = await nhost.graphql.request(`
       public
     }
   }
-`);
+`)
 ```
 
 ## `nhost.graphql.getUrl()`
@@ -29,5 +29,5 @@ const { data, error } = await nhost.graphql.request(`
 Returns the GraphQL API endpoint of the Nhost app.
 
 ```js
-const graphqlEndpoint = nhost.graphql.getUrl();
+const graphqlEndpoint = nhost.graphql.getUrl()
 ```
