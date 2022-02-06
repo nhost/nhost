@@ -14,7 +14,7 @@ Upload a file. Stores a new file or replaces an existing file.
 | `name`            | String                                                        |                                                                                                              |
 
 ```js
-const { fileMetadata, error } = await nhost.storage.upload({ file });
+const { fileMetadata, error } = await nhost.storage.upload({ file })
 ```
 
 ---
@@ -24,7 +24,7 @@ const { fileMetadata, error } = await nhost.storage.upload({ file });
 Get the public URL of a file. To access the file via public URL, the file must have the `select` permission for the `public` role.
 
 ```js
-const url = nhost.storage.getUrl({ fileId });
+const url = nhost.storage.getUrl({ fileId })
 ```
 
 ---
@@ -34,7 +34,7 @@ const url = nhost.storage.getUrl({ fileId });
 Get a presigned URL for a file. To generate a presigned URL for the file, a user has to be logged in and have `select` permission to the file.
 
 ```js
-const { presignedUrl, error } = await nhost.storage.getPresignedUrl({ fileId });
+const { presignedUrl, error } = await nhost.storage.getPresignedUrl({ fileId })
 ```
 
 ---
@@ -44,5 +44,5 @@ const { presignedUrl, error } = await nhost.storage.getPresignedUrl({ fileId });
 Delete a file.
 
 ```js
-const { error } = await nhost.storage.delete({ fileId });
+const { error } = await nhost.storage.delete({ fileId })
 ```
