@@ -1,6 +1,5 @@
 import { createMachine } from 'xstate'
 import { assign } from '@xstate/immer'
-import axios from 'axios'
 import { validate as uuidValidate } from 'uuid'
 import produce from 'immer'
 import { defaultStorageGetter, defaultStorageSetter, StorageGetter, StorageSetter } from './storage'
@@ -13,6 +12,7 @@ import {
   REFRESH_TOKEN_RETRY_MAX_ATTEMPTS,
   TOKEN_REFRESH_MARGIN
 } from './constants'
+import { createBackendServices } from './backend-services'
 
 export type NhostMachineOptions = {
   backendUrl: string
@@ -431,53 +431,7 @@ export const createNhostMachine = ({
         invalidRefreshToken: (_, e) => !uuidValidate(e.token)
       },
       services: {
-        signInPassword: async ({ email, password }) => {
-          //   TODO options
-          console.log(email, password)
-          const { data } = await axios.post(`${backendUrl}/v1/auth/signin/email-password`, {
-            email,
-            password
-          })
-          return data
-        },
-        signInPasswordlessEmail: async ({ email }) => {
-          //   TODO options
-          console.log('passwordless', email)
-          const { data } = await axios.post(`${backendUrl}/v1/auth/signin/passwordless/email`, {
-            email
-          })
-          return data
-        },
-        signout: async (ctx, e) => {
-          await axios.post(`${backendUrl}/v1/auth/signout`, {
-            refreshToken: ctx.refreshToken.value,
-            all: !!e.all
-          })
-        },
-
-        registerUser: async ({ email, password }) => {
-          //   TODO options
-          const { data } = await axios.post(`${backendUrl}/v1/auth/signup/email-password`, {
-            email,
-            password
-          })
-          return data
-        },
-
-        refreshToken: async ({ refreshToken: { value } }) => {
-          const { data } = await axios.post(`${backendUrl}/v1/auth/token`, {
-            refreshToken: value
-          })
-          return data
-        },
-
-        validateNewToken: async (_, event) => {
-          const { data } = await axios.post(`${backendUrl}/v1/auth/token`, {
-            refreshToken: event.token
-          })
-          return data
-        },
-
+        ...createBackendServices(backendUrl),
         startTokenTimer: () => (cb) => {
           const interval = setInterval(
             () => cb('TICK'),
