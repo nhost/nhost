@@ -4,7 +4,7 @@ import React, { useEffect, createContext } from 'react'
 import { useLocation } from 'react-use'
 import { InterpreterFrom } from 'xstate'
 
-import { NhostMachine, REFRESH_TOKEN_KEY } from '../state'
+import { NhostMachine, NHOST_REFRESH_TOKEN } from '../state'
 
 if (process.env.NODE_ENV) {
   inspect({
@@ -47,9 +47,9 @@ export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUr
   useEffect(() => {
     // TODO Move into the machine
     // * Side effect: persist the refresh token if found
-    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
+    if (refreshToken) localStorage.setItem(NHOST_REFRESH_TOKEN, refreshToken)
     else {
-      localStorage.removeItem(REFRESH_TOKEN_KEY)
+      localStorage.removeItem(NHOST_REFRESH_TOKEN)
     }
   }, [refreshToken])
   return (

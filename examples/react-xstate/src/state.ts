@@ -4,7 +4,7 @@ import { produce } from 'immer'
 import axios from 'axios'
 import { validate as uuidValidate } from 'uuid'
 
-export const REFRESH_TOKEN_KEY = 'refresh-token'
+export const NHOST_REFRESH_TOKEN = 'nhostRefreshToken'
 
 const DEFAULT_TOKEN_EXPIRATION = 900
 const MIN_PASSWORD_LENGTH = 3
@@ -69,7 +69,7 @@ export const createNhostMachine = ({ backendUrl }: NhostMachineOptions) => {
       id: 'authentication',
       type: 'parallel',
       context: produce(initialContext, (ctx) => {
-        ctx.refreshToken.value = localStorage.getItem(REFRESH_TOKEN_KEY)
+        ctx.refreshToken.value = localStorage.getItem(NHOST_REFRESH_TOKEN)
       }),
       states: {
         authentication: {
