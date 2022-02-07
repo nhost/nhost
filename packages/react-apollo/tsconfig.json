@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "lib",
+    "composite": true
+  },
+  "include": ["src/**/*", "types/**/*", "../../types/**/*"],
+  "references": [{ "path": "../nhost" }]
+}
