@@ -38,6 +38,8 @@ services:
       AUTH_SMTP_PORT: 1025
     ports:
       - '4000:4000'
+    volumes:
+      - ./email-templates:/app/email-templates
   mailhog:
     image: mailhog/mailhog
     environment:
