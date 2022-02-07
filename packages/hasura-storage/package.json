@@ -18,8 +18,8 @@
     "url": "https://github.com/nhost/hasura-storage-js.git"
   },
   "scripts": {
-    "build": "vite build --config ../../.config/vite.lib.js",
-    "test": "pnpm jest --runInBand --config ../../.config/jest.config.base.js",
+    "build": "vite build --config ../../vite.lib.js",
+    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
