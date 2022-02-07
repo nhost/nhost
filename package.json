@@ -1,17 +1,17 @@
 {
-  "name": "nhost-js-root",
+  "name": "nhost-root",
   "private": true,
   "version": "0.0.0",
-  "description": "Nhost Javascript SDK",
+  "description": "Nhost Monorepo",
   "author": "Nhost",
   "license": "MIT",
   "homepage": "https://nhost.io",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nhost/nhost-js.git"
+    "url": "git+https://github.com/nhost/nhost.git"
   },
   "bugs": {
-    "url": "https://github.com/nhost/nhost-js/issues"
+    "url": "https://github.com/nhost/nhost/issues"
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
