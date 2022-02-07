@@ -4,6 +4,6 @@
     "outDir": "lib",
     "composite": true
   },
-  "include": ["src/**/*", "types/**/*", "../../types/**/*"],
-  "references": [{ "path": "../nhost" }]
+  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"],
+  "references": [{ "path": "../nhost-js" }]
 }

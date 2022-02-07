@@ -17,7 +17,7 @@ export const lib = {
 export const basePlugins = [
   tsconfigPaths(),
   dts({
-    exclude: ['**/*.spec.ts', '**/*.test.ts'],
+    exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],
     afterBuild: () => {
       const types = fs.readdirSync(path.join(PWD, 'dist/src'))
       types.forEach((file) => {

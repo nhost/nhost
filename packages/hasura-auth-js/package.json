@@ -47,7 +47,6 @@
   ],
   "dependencies": {
     "axios": "^0.25.0",
-    "graphql": "16.2.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.1.0"
   },

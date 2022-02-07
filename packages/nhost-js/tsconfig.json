@@ -4,6 +4,6 @@
     "outDir": "dist",
     "composite": true
   },
-  "include": ["src/**/*", "types/**/*", "../../types/**/*"],
-  "references": [{ "path": "../hasura-auth" }, { "path": "../hasura-storage" }]
+  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"],
+  "references": [{ "path": "../hasura-auth-js" }, { "path": "../hasura-storage-js" }]
 }
