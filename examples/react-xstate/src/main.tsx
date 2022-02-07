@@ -1,6 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
+import { NhostApolloProvider } from './react-apollo'
 import { NhostProvider } from './react-auth'
 import { createNhostMachine } from './state'
 
@@ -11,7 +12,9 @@ const machine = createNhostMachine({
 ReactDOM.render(
   <React.StrictMode>
     <NhostProvider machine={machine}>
-      <App />
+      <NhostApolloProvider>
+        <App />
+      </NhostApolloProvider>
     </NhostProvider>
   </React.StrictMode>,
   document.getElementById('root')

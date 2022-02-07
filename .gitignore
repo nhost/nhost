@@ -33,6 +33,16 @@ tmp/
 *.map
 todo.md
 
+# Generated configs 
+.eslintignore
+.eslintrc
+.prettierignore
+prettier.config.js
+vite.*.js
+jest.*.js
+
+!.config/**
+
 *.tsbuildinfo
 
 # Local Netlify folder

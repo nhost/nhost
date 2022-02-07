@@ -16,7 +16,7 @@
 /* eslint-disable complexity */
 /* eslint-disable @typescript-eslint/ban-types */
 import queryString from 'query-string'
-
+import { HasuraAuthApi } from './hasura-auth-api'
 import { NHOST_REFRESH_TOKEN } from './utils/constants'
 import { inMemoryLocalStorage, isBrowser } from './utils/helpers'
 import {
@@ -41,7 +41,6 @@ import {
   SignUpParams,
   SignUpResponse
 } from './utils/types'
-import { HasuraAuthApi } from './hasura-auth-api'
 
 export class HasuraAuthClient {
   private api: HasuraAuthApi

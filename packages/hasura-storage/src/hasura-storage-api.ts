@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import axios, { AxiosInstance } from 'axios'
-
 import {
   ApiDeleteParams,
   ApiDeleteResponse,

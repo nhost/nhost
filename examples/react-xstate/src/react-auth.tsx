@@ -1,6 +1,6 @@
 import { useSelector, useInterpret, useActor } from '@xstate/react'
 import { inspect } from '@xstate/inspect'
-import React, { useEffect, createContext, useContext } from 'react'
+import React, { useEffect, createContext, useContext, useCallback } from 'react'
 import { useLocation } from 'react-use'
 import { InterpreterFrom } from 'xstate'
 
@@ -18,6 +18,7 @@ type Context = {
 export const GlobalStateContext = createContext<Context>({} as Context)
 
 export const NhostProvider: React.FC<{ machine: NhostMachine }> = ({ machine, ...props }) => {
+  console.log('Nhost provider')
   const authService = useInterpret(machine, { devTools: true })
   const refreshToken = useSelector(authService, (state) => state.context.refreshToken.value)
   const location = useLocation()
@@ -181,4 +182,9 @@ export const useUserLocale = () => {
 export const useUserRoles = () => {
   const service = useAuthService()
   return useSelector(service, (state) => state.context.user?.roles)
+}
+
+export const useNhostUrl = () => {
+  const service = useAuthService()
+  return useSelector(service, (state) => state.context.endpoint)
 }

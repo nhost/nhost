@@ -1,6 +1,3 @@
-.monorepo-example/
-.nhost/
-pnpm-lock.yaml
 node_modules/
 build/
 cjs/
@@ -12,4 +9,8 @@ lib/
 mjs/
 umd/
 CHANGELOG.md
-esm
+lerna.json
+package.json
+tsconfig.json
+tsconfig.*.json
+*.d.ts
