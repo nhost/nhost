@@ -34,7 +34,7 @@ export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUr
     const token = params.get('refreshToken')
     if (token) {
       const type = params.get('type')
-      if (type === 'signinPasswordless') {
+      if (type === 'signinPasswordless' || type === 'emailVerify') {
         authService.send({ type: 'UPDATE_REFRESH_TOKEN', token })
       } else {
         console.warn(

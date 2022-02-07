@@ -102,7 +102,7 @@ export const createNhostMachine = ({
 }: NhostMachineOptions) => {
   return createMachine<NhostContext>(
     {
-      id: 'authentication',
+      id: 'nhost',
       type: 'parallel',
       context: produce(INTIAL_CONTEXT, (ctx) => {
         ctx.refreshToken.value = storageGetter(NHOST_REFRESH_TOKEN)
@@ -130,7 +130,7 @@ export const createNhostMachine = ({
                     cond: 'invalidPassword'
                   },
                   {
-                    target: 'authenticating',
+                    target: 'authenticating.password',
                     actions: ['saveEmail', 'savePassword']
                   }
                 ],
@@ -140,7 +140,7 @@ export const createNhostMachine = ({
                     cond: 'invalidEmail'
                   },
                   {
-                    target: 'authenticating',
+                    target: 'authenticating.passwordless',
                     actions: 'saveEmail'
                   }
                 ],
@@ -176,42 +176,69 @@ export const createNhostMachine = ({
               }
             },
             authenticating: {
-              invoke: {
-                id: 'authenticateUser',
-                src: 'signIn',
-                onDone: [
-                  {
-                    cond: 'hasUser',
-                    target: 'signedIn',
-                    actions: ['saveUser', 'clearForm']
-                  },
-                  {
-                    target: 'signedOut.awaitingVerification'
+              states: {
+                passwordless: {
+                  invoke: {
+                    id: 'authenticatePasswordlessEmail',
+                    src: 'signInPasswordlessEmail',
+                    onDone: [
+                      {
+                        target: '#nhost.authentication.signedOut.awaitingVerification'
+                      }
+                    ],
+                    onError: [
+                      {
+                        cond: 'networkError',
+                        target: '#nhost.authentication.signedOut.failed.network',
+                        actions: 'saveError'
+                      },
+                      {
+                        cond: 'unauthorized',
+                        target: '#nhost.authentication.signedOut.failed.unauthorized',
+                        actions: 'saveError'
+                      },
+                      {
+                        target: '#nhost.authentication.signedOut.failed',
+                        actions: 'saveError'
+                      }
+                    ]
                   }
-                  // TODO other authentication methods
-                ],
-                onError: [
-                  {
-                    cond: 'networkError',
-                    target: 'signedOut.failed.network',
-                    actions: ['saveError']
-                  },
-                  {
-                    cond: 'unverified',
-                    target: 'signedOut.awaitingVerification',
-                    actions: 'saveError'
-                  },
-                  {
-                    cond: 'unauthorized',
-                    target: 'signedOut.failed.unauthorized',
-                    actions: 'saveError'
-                  },
-                  {
-                    target: 'signedOut.failed',
-                    actions: 'saveError'
+                },
+                password: {
+                  invoke: {
+                    id: 'authenticateUserWithPassword',
+                    src: 'signInPassword',
+                    onDone: [
+                      {
+                        target: '#nhost.authentication.signedIn',
+                        actions: 'saveUser'
+                      }
+                    ],
+                    onError: [
+                      {
+                        cond: 'networkError',
+                        target: '#nhost.authentication.signedOut.failed.network',
+                        actions: ['saveError']
+                      },
+                      {
+                        cond: 'unverified',
+                        target: '#nhost.authentication.signedOut.awaitingVerification',
+                        actions: 'saveError'
+                      },
+                      {
+                        cond: 'unauthorized',
+                        target: '#nhost.authentication.signedOut.failed.unauthorized',
+                        actions: 'saveError'
+                      },
+                      {
+                        target: '#nhost.authentication.signedOut.failed',
+                        actions: 'saveError'
+                      }
+                    ]
                   }
-                ]
-              }
+                }
+              },
+              exit: ['clearForm']
             },
             registering: {
               invoke: {
@@ -221,9 +248,9 @@ export const createNhostMachine = ({
                   {
                     target: 'signedIn',
                     cond: 'hasUser',
-                    actions: ['saveUser', 'clearForm']
+                    actions: ['saveUser']
                   },
-                  { target: 'authenticating', actions: ['clearForm'] }
+                  { target: 'authenticating.password' }
                 ],
                 onError: [
                   {
@@ -236,7 +263,8 @@ export const createNhostMachine = ({
                     actions: 'saveError'
                   }
                 ]
-              }
+              },
+              exit: ['clearForm']
             },
             signedIn: {
               entry: ['persistRefreshToken'],
@@ -476,20 +504,22 @@ export const createNhostMachine = ({
         invalidRefreshToken: (_, e) => !uuidValidate(e.token)
       },
       services: {
-        signIn: async ({ email, password }) => {
+        signInPassword: async ({ email, password }) => {
           //   TODO options
-          if (password) {
-            const { data } = await axios.post(`${backendUrl}/v1/auth/signin/email-password`, {
-              email,
-              password
-            })
-            return data
-          } else {
-            const { data } = await axios.post(`${backendUrl}/v1/auth/signin/passwordless/email`, {
-              email
-            })
-            return data
-          }
+          console.log(email, password)
+          const { data } = await axios.post(`${backendUrl}/v1/auth/signin/email-password`, {
+            email,
+            password
+          })
+          return data
+        },
+        signInPasswordlessEmail: async ({ email }) => {
+          //   TODO options
+          console.log('passwordless', email)
+          const { data } = await axios.post(`${backendUrl}/v1/auth/signin/passwordless/email`, {
+            email
+          })
+          return data
         },
         signout: async (ctx, e) => {
           await axios.post(`${backendUrl}/v1/auth/signout`, {
