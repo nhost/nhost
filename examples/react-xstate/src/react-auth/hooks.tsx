@@ -83,7 +83,7 @@ export const useEmailPasswordlessSignIn = (email: string) => {
     })
 }
 
-export const useRefreshToken = (): [string | undefined, (v: string) => void] => {
+export const useRefreshToken = (): [string | null, (v: string) => void] => {
   const service = useAuthService()
   const value = useSelector(service, (state) => state.context.accessToken.value)
   const setValue = (token: string) => {

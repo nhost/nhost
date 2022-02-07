@@ -1,10 +1,10 @@
-import { useSelector, useInterpret } from '@xstate/react'
+import { useInterpret } from '@xstate/react'
 import { inspect } from '@xstate/inspect'
 import React, { useEffect, createContext } from 'react'
 import { useLocation } from 'react-use'
 import { InterpreterFrom } from 'xstate'
 
-import { NhostMachine, NHOST_REFRESH_TOKEN } from '../state'
+import { NhostMachine } from '../state'
 
 if (process.env.NODE_ENV) {
   inspect({
@@ -24,8 +24,8 @@ export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUr
   nhost: { machine, backendUrl },
   ...props
 }) => {
-  const authService = useInterpret(machine, { devTools: true })
-  const refreshToken = useSelector(authService, (state) => state.context.refreshToken.value)
+  const authService = useInterpret(machine, { devTools: !!process.env.NODE_ENV })
+
   const location = useLocation()
 
   useEffect(() => {
@@ -44,14 +44,6 @@ export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUr
     }
   }, [location, authService])
 
-  useEffect(() => {
-    // TODO Move into the machine
-    // * Side effect: persist the refresh token if found
-    if (refreshToken) localStorage.setItem(NHOST_REFRESH_TOKEN, refreshToken)
-    else {
-      localStorage.removeItem(NHOST_REFRESH_TOKEN)
-    }
-  }, [refreshToken])
   return (
     <NhostContext.Provider value={{ authService, backendUrl }}>
       {props.children}

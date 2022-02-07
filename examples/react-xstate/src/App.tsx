@@ -33,9 +33,7 @@ function App() {
   const passwordlessSignIn = useEmailPasswordlessSignIn(email)
   const [, updateToken] = useRefreshToken()
 
-  // const options = useMemo(() => ({ skip: !isAuthenticated }), [isAuthenticated])
   const { loading, data } = useAuthQuery(GET_GREETING)
-  // if (loading) return <p>Loading ...</p>;
 
   return (
     <div className="App">
