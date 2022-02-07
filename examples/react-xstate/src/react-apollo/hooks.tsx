@@ -8,7 +8,7 @@ import {
   QueryHookOptions
 } from '@apollo/client'
 
-import { useAuthenticated } from '../react-auth'
+import { useAuthenticated } from '../react'
 
 export function useAuthQuery<TData = any, TVariables = OperationVariables>(
   query: DocumentNode | TypedDocumentNode<TData, TVariables>,

@@ -4,7 +4,7 @@ import React, { useEffect, createContext } from 'react'
 import { useLocation } from 'react-use'
 import { InterpreterFrom } from 'xstate'
 
-import { NhostMachine } from '../state'
+import { NhostMachine } from '../nhost'
 
 if (process.env.NODE_ENV) {
   inspect({

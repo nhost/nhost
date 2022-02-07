@@ -3,97 +3,24 @@ import { assign } from '@xstate/immer'
 import axios from 'axios'
 import { validate as uuidValidate } from 'uuid'
 import produce from 'immer'
+import { defaultStorageGetter, defaultStorageSetter, StorageGetter, StorageSetter } from './storage'
+import { INTIAL_CONTEXT, NhostContext } from './context'
+import {
+  MIN_PASSWORD_LENGTH,
+  MIN_TOKEN_REFRESH_INTERVAL,
+  NHOST_REFRESH_TOKEN,
+  REFRESH_TOKEN_RETRY_INTERVAL,
+  REFRESH_TOKEN_RETRY_MAX_ATTEMPTS,
+  TOKEN_REFRESH_MARGIN
+} from './constants'
 
-export const NHOST_REFRESH_TOKEN = 'nhostRefreshToken'
-
-const DEFAULT_TOKEN_EXPIRATION = 900
-const MIN_PASSWORD_LENGTH = 3
-
-// * Minimum number of seconds before the JWT expiration and the refresh
-const TOKEN_REFRESH_MARGIN = 900
-// const TOKEN_REFRESH_MARGIN = 180
-const MIN_TOKEN_REFRESH_INTERVAL = 60
-// const MIN_TOKEN_REFRESH_INTERVAL = 10
-const REFRESH_TOKEN_RETRY_INTERVAL = 10
-// const REFRESH_TOKEN_RETRY_INTERVAL = 5
-const REFRESH_TOKEN_RETRY_MAX_ATTEMPTS = 30
-// const REFRESH_TOKEN_RETRY_MAX_ATTEMPTS = 10
-
-// TODO better typing
-type User = Record<string, unknown>
-
-export type NhostContext = {
-  user: User | null
-  mfa: boolean
-  accessToken: { value: string | null; expiresIn: number }
-  refreshToken: { value: string | null; timer: { elapsed: number; attempts: number } }
-  error?: unknown
-  email?: string
-  password?: string
-}
-
-export type NhostMachine = ReturnType<typeof createNhostMachine>
-
-type StorageGetter = (key: string) => string | null
-type StorageSetter = (key: string, value: string | null) => void
-
-type NhostMachineOptions = {
+export type NhostMachineOptions = {
   backendUrl: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
 }
 
-export type Nhost = {
-  machine: NhostMachine
-  backendUrl: string
-}
-
-export const initNhost = (options: NhostMachineOptions): Nhost => {
-  return {
-    backendUrl: options.backendUrl,
-    machine: createNhostMachine(options)
-  }
-}
-
-export const INTIAL_CONTEXT: NhostContext = {
-  user: null,
-  mfa: false,
-  accessToken: {
-    value: null,
-    expiresIn: DEFAULT_TOKEN_EXPIRATION
-  },
-  refreshToken: {
-    value: null,
-    timer: {
-      elapsed: 0,
-      attempts: 0
-    }
-  },
-  error: undefined,
-  email: undefined,
-  password: undefined
-}
-
-const defaultStorageGetter: StorageGetter = (key) => {
-  if (localStorage) return localStorage.getItem(key)
-  else
-    throw Error(
-      'localStorage is not available and no custom storageGetter has been set as an option'
-    )
-}
-
-const defaultStorageSetter: StorageSetter = (key, value) => {
-  if (localStorage) {
-    if (value) {
-      localStorage.setItem(NHOST_REFRESH_TOKEN, value)
-    } else {
-      localStorage.removeItem(NHOST_REFRESH_TOKEN)
-    }
-  } else
-    throw Error(
-      'localStorage is not available and no custom storageSetter has been set as an option'
-    )
-}
+export type NhostMachine = ReturnType<typeof createNhostMachine>
 
 export const createNhostMachine = ({
   backendUrl,

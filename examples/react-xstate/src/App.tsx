@@ -10,7 +10,7 @@ import {
   useEmailPasswordSignIn,
   useRefreshToken,
   useSignUpEmailPassword
-} from './react-auth'
+} from './react'
 import { useAuthQuery } from './react-apollo'
 
 const GET_GREETING = gql`
