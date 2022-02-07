@@ -6,7 +6,7 @@ import { createApolloClient, NhostApolloClientOptions } from '../apollo'
 import { NhostContext } from '../react-auth'
 
 export const NhostApolloProvider: React.FC<
-  Omit<NhostApolloClientOptions, 'nhostUrl' | 'authService'>
+  Omit<NhostApolloClientOptions, 'backendUrl' | 'authService'>
 > = ({ children, ...options }) => {
   const nhostContext = useContext(NhostContext)
 

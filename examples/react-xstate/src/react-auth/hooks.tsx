@@ -8,9 +8,9 @@ export const useAuthService = () => {
   return globalServices.authService
 }
 
-export const useNhostUrl = () => {
+export const useNhostbackendUrl = () => {
   const globalServices = useContext(NhostContext)
-  return globalServices.nhostUrl
+  return globalServices.backendUrl
 }
 
 export const useAuthActor = () => {

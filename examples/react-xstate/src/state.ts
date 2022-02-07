@@ -30,10 +30,22 @@ type NhostContext = {
   password?: string
 }
 
-type NhostMachineOptions = { endpoint: string }
+type NhostMachineOptions = { backendUrl: string }
 export type NhostMachine = ReturnType<typeof createNhostMachine>
 
-export const createNhostMachine = ({ endpoint }: NhostMachineOptions) => {
+export type Nhost = {
+  machine: NhostMachine
+  backendUrl: string
+}
+
+export const initNhost = ({ backendUrl }: NhostMachineOptions): Nhost => {
+  return {
+    backendUrl,
+    machine: createNhostMachine({ backendUrl })
+  }
+}
+
+export const createNhostMachine = ({ backendUrl }: NhostMachineOptions) => {
   const initialContext: NhostContext = {
     user: undefined,
     mfa: undefined,
@@ -420,20 +432,20 @@ export const createNhostMachine = ({ endpoint }: NhostMachineOptions) => {
         signIn: async ({ email, password }) => {
           //   TODO options
           if (password) {
-            const { data } = await axios.post(`${endpoint}/v1/auth/signin/email-password`, {
+            const { data } = await axios.post(`${backendUrl}/v1/auth/signin/email-password`, {
               email,
               password
             })
             return data
           } else {
-            const { data } = await axios.post(`${endpoint}/v1/auth/signin/passwordless/email`, {
+            const { data } = await axios.post(`${backendUrl}/v1/auth/signin/passwordless/email`, {
               email
             })
             return data
           }
         },
         signout: async (ctx, e) => {
-          await axios.post(`${endpoint}/v1/auth/signout`, {
+          await axios.post(`${backendUrl}/v1/auth/signout`, {
             refreshToken: ctx.refreshToken.value,
             all: !!e.all
           })
@@ -441,7 +453,7 @@ export const createNhostMachine = ({ endpoint }: NhostMachineOptions) => {
 
         registerUser: async ({ email, password }) => {
           //   TODO options
-          const { data } = await axios.post(`${endpoint}/v1/auth/signup/email-password`, {
+          const { data } = await axios.post(`${backendUrl}/v1/auth/signup/email-password`, {
             email,
             password
           })
@@ -449,14 +461,14 @@ export const createNhostMachine = ({ endpoint }: NhostMachineOptions) => {
         },
 
         refreshToken: async ({ refreshToken: { value } }) => {
-          const { data } = await axios.post(`${endpoint}/v1/auth/token`, {
+          const { data } = await axios.post(`${backendUrl}/v1/auth/token`, {
             refreshToken: value
           })
           return data
         },
 
         validateNewToken: async (_, event) => {
-          const { data } = await axios.post(`${endpoint}/v1/auth/token`, {
+          const { data } = await axios.post(`${backendUrl}/v1/auth/token`, {
             refreshToken: event.token
           })
           return data

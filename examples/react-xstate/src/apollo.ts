@@ -20,7 +20,7 @@ const isBrowser = () => typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
   authService: InterpreterFrom<NhostMachine>
-  nhostUrl?: string
+  backendUrl?: string
   graphqlUrl?: string
   headers?: any
   publicRole?: string
@@ -32,7 +32,7 @@ export type NhostApolloClientOptions = {
 
 export const createApolloClient = ({
   authService,
-  nhostUrl,
+  backendUrl,
   graphqlUrl,
   headers = {},
   publicRole = 'public',
@@ -65,8 +65,8 @@ export const createApolloClient = ({
   let uri = ''
   if (graphqlUrl) {
     uri = graphqlUrl
-  } else if (nhostUrl) {
-    uri = `${nhostUrl}/v1/graphql`
+  } else if (backendUrl) {
+    uri = `${backendUrl}/v1/graphql`
   } else {
     throw new Error('no GraphQL URL')
   }

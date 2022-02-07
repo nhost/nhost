@@ -15,14 +15,13 @@ if (process.env.NODE_ENV) {
 
 type Context = {
   authService: InterpreterFrom<NhostMachine>
-  nhostUrl: string
+  backendUrl: string
 }
 
 export const NhostContext = createContext<Context>({} as Context)
 
-export const NhostProvider: React.FC<{ machine: NhostMachine; nhostUrl: string }> = ({
-  machine,
-  nhostUrl,
+export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUrl: string } }> = ({
+  nhost: { machine, backendUrl },
   ...props
 }) => {
   const authService = useInterpret(machine, { devTools: true })
@@ -54,7 +53,7 @@ export const NhostProvider: React.FC<{ machine: NhostMachine; nhostUrl: string }
     }
   }, [refreshToken])
   return (
-    <NhostContext.Provider value={{ authService, nhostUrl }}>
+    <NhostContext.Provider value={{ authService, backendUrl }}>
       {props.children}
     </NhostContext.Provider>
   )

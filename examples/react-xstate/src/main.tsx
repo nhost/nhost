@@ -3,15 +3,15 @@ import ReactDOM from 'react-dom'
 import App from './App'
 import { NhostApolloProvider } from './react-apollo'
 import { NhostProvider } from './react-auth'
-import { createNhostMachine } from './state'
+import { initNhost } from './state'
 
-const machine = createNhostMachine({
-  endpoint: 'http://127.0.0.1:1337'
+const nhost = initNhost({
+  backendUrl: 'http://127.0.0.1:1337'
 })
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostProvider machine={machine} nhostUrl={'http://127.0.0.1:1337'}>
+    <NhostProvider nhost={nhost}>
       <NhostApolloProvider>
         <App />
       </NhostApolloProvider>
