@@ -1,29 +1,27 @@
 import './App.css'
 
-import { gql, useQuery } from '@apollo/client'
-import { useState, useEffect } from 'react'
+import { gql } from '@apollo/client'
+import { useState } from 'react'
 import {
   useEmailPasswordlessSignIn,
-  useLoading,
   useAuthenticated,
   useAccessToken,
   useSignOut,
   useEmailPasswordSignIn,
   useRefreshToken,
-  useSignUpEmailPassword,
-  useUserData
+  useSignUpEmailPassword
 } from './react-auth'
+import { useAuthQuery } from './react-apollo'
 
 const GET_GREETING = gql`
-  query GetGreeting($language: String!) {
-    greeting(language: $language) {
-      message
+  query MyQuery {
+    test {
+      id
     }
   }
 `
 function App() {
   const isAuthenticated = useAuthenticated()
-
   const email = 'pilou@pilou.com'
   const password = 'piloupilou'
   const [token, setToken] = useState('')
@@ -35,9 +33,8 @@ function App() {
   const passwordlessSignIn = useEmailPasswordlessSignIn(email)
   const [, updateToken] = useRefreshToken()
 
-  const { loading, error, data } = useQuery(GET_GREETING, {
-    variables: { language: 'english' }
-  })
+  // const options = useMemo(() => ({ skip: !isAuthenticated }), [isAuthenticated])
+  const { loading, data } = useAuthQuery(GET_GREETING)
   // if (loading) return <p>Loading ...</p>;
 
   return (
@@ -53,7 +50,7 @@ function App() {
 
         <p>JWT</p>
         <div>{jwt}</div>
-        {loading ? <div>loading</div> : <div>ok</div>}
+        {!loading && <div>ok{JSON.stringify(data)}</div>}
       </header>
     </div>
   )

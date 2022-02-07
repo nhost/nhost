@@ -1,63 +1,16 @@
-import { useSelector, useInterpret, useActor } from '@xstate/react'
-import { inspect } from '@xstate/inspect'
-import React, { useEffect, createContext, useContext, useCallback } from 'react'
-import { useLocation } from 'react-use'
-import { InterpreterFrom } from 'xstate'
+import { useSelector, useActor } from '@xstate/react'
+import { useContext } from 'react'
 
-import { NhostMachine, REFRESH_TOKEN_KEY } from './state'
-
-inspect({
-  url: 'https://statecharts.io/inspect',
-  iframe: false
-})
-
-type Context = {
-  authService: InterpreterFrom<NhostMachine>
-}
-
-export const GlobalStateContext = createContext<Context>({} as Context)
-
-export const NhostProvider: React.FC<{ machine: NhostMachine }> = ({ machine, ...props }) => {
-  console.log('Nhost provider')
-  const authService = useInterpret(machine, { devTools: true })
-  const refreshToken = useSelector(authService, (state) => state.context.refreshToken.value)
-  const location = useLocation()
-
-  useEffect(() => {
-    if (!location.hash) return
-    const params = new URLSearchParams(location.hash.slice(1))
-    const token = params.get('refreshToken')
-    if (token) {
-      const type = params.get('type')
-      if (type === 'signinPasswordless') {
-        authService.send({ type: 'UPDATE_REFRESH_TOKEN', token })
-      } else {
-        console.warn(
-          `Found a refresh token in the url but the redirect type is not implemented: ${type}`
-        )
-      }
-    }
-  }, [location, authService])
-
-  useEffect(() => {
-    // ? Move into the machine ?
-    // * Side effect: persist the refresh token if found
-    if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken)
-    else {
-      localStorage.removeItem(REFRESH_TOKEN_KEY)
-    }
-  }, [refreshToken])
-
-  return (
-    <GlobalStateContext.Provider value={{ authService }}>
-      {props.children}
-    </GlobalStateContext.Provider>
-  )
-}
+import { NhostContext } from './provider'
 
 export const useAuthService = () => {
-  const globalServices = useContext(GlobalStateContext)
+  const globalServices = useContext(NhostContext)
   return globalServices.authService
+}
+
+export const useNhostUrl = () => {
+  const globalServices = useContext(NhostContext)
+  return globalServices.nhostUrl
 }
 
 export const useAuthActor = () => {
@@ -182,9 +135,4 @@ export const useUserLocale = () => {
 export const useUserRoles = () => {
   const service = useAuthService()
   return useSelector(service, (state) => state.context.user?.roles)
-}
-
-export const useNhostUrl = () => {
-  const service = useAuthService()
-  return useSelector(service, (state) => state.context.endpoint)
 }

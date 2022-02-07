@@ -11,7 +11,7 @@ const machine = createNhostMachine({
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostProvider machine={machine}>
+    <NhostProvider machine={machine} nhostUrl={'http://127.0.0.1:1337'}>
       <NhostApolloProvider>
         <App />
       </NhostApolloProvider>

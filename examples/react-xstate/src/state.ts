@@ -21,7 +21,6 @@ const REFRESH_TOKEN_RETRY_MAX_ATTEMPTS = 30
 
 type User = Record<string, unknown>
 type NhostContext = {
-  endpoint: string
   user?: User
   mfa?: boolean
   accessToken: { value?: string; expiresIn: number }
@@ -36,7 +35,6 @@ export type NhostMachine = ReturnType<typeof createNhostMachine>
 
 export const createNhostMachine = ({ endpoint }: NhostMachineOptions) => {
   const initialContext: NhostContext = {
-    endpoint,
     user: undefined,
     mfa: undefined,
     accessToken: {

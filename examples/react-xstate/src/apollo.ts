@@ -8,16 +8,18 @@ import {
   InMemoryCache,
   RequestHandler,
   split,
-  WatchQueryFetchPolicy,
-  makeVar
+  WatchQueryFetchPolicy
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
+import { InterpreterFrom } from 'xstate'
+import { NhostMachine } from './state'
 
 const isBrowser = () => typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
+  authService: InterpreterFrom<NhostMachine>
   nhostUrl?: string
   graphqlUrl?: string
   headers?: any
@@ -28,9 +30,8 @@ export type NhostApolloClientOptions = {
   onError?: RequestHandler
 }
 
-export const token = makeVar<string | null>(null)
-
 export const createApolloClient = ({
+  authService,
   nhostUrl,
   graphqlUrl,
   headers = {},
@@ -40,6 +41,8 @@ export const createApolloClient = ({
   connectToDevTools = process.env.NODE_ENV === 'development',
   onError
 }: NhostApolloClientOptions) => {
+  let token: string | null = null
+
   const getAuthHeaders = () => {
     // add headers
     const resHeaders = {
@@ -49,9 +52,10 @@ export const createApolloClient = ({
 
     // add auth headers if signed in
     // or add 'public' role if not signed in
-    if (token()) {
-      resHeaders.authorization = `Bearer ${token()}`
+    if (token) {
+      resHeaders.authorization = `Bearer ${token}`
     } else {
+      // ? Not sure it changes anything for Hasura
       resHeaders.role = publicRole
     }
 
@@ -69,41 +73,14 @@ export const createApolloClient = ({
 
   const wsUri = uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws')
 
-  let wsLink: WebSocketLink | null = null
+  let webSocketClient: SubscriptionClient | null = null
   if (isBrowser()) {
-    const webSocketClient = new SubscriptionClient(wsUri, {
+    webSocketClient = new SubscriptionClient(wsUri, {
       lazy: true,
       reconnect: true,
       connectionParams: () => ({
         headers: getAuthHeaders()
       })
-    })
-    wsLink = new WebSocketLink(webSocketClient)
-    token.onNextChange((value) => {
-      console.log('TOKEN CHANGED!!!')
-      if (value) {
-        if (webSocketClient.status === 1) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          webSocketClient.tryReconnect()
-        }
-      } else {
-        if (webSocketClient.status === 1) {
-          // must close first to avoid race conditions
-          webSocketClient.close()
-          // reconnect
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-expect-error
-          webSocketClient.tryReconnect()
-        }
-        // TODO
-        //   if (event === 'SIGNED_OUT') {
-        //     await client.resetStore().catch((error) => {
-        //       console.error('Error resetting Apollo client cache')
-        //       console.error(error)
-        //     })
-        //   }
-      }
     })
   }
 
@@ -111,14 +88,16 @@ export const createApolloClient = ({
     uri
   })
 
-  const authLink = setContext((_, previousContext) => ({
-    headers: {
-      ...getAuthHeaders(),
-      ...previousContext?.headers
+  const authLink = setContext((_, { headers }) => {
+    return {
+      headers: {
+        ...headers,
+        ...getAuthHeaders()
+      }
     }
-  }))
+  })
 
-  const link = wsLink
+  const link = webSocketClient
     ? split(
         ({ query }) => {
           const mainDefinition = getMainDefinition(query)
@@ -131,7 +110,7 @@ export const createApolloClient = ({
 
           return kind === 'OperationDefinition' && operation === 'subscription'
         },
-        wsLink,
+        new WebSocketLink(webSocketClient),
         authLink.concat(httplink)
       )
     : httplink
@@ -151,6 +130,36 @@ export const createApolloClient = ({
   apolloClientOptions.link = typeof onError === 'function' ? from([onError, link]) : from([link])
 
   const client = new ApolloClient(apolloClientOptions)
-  console.log(client)
+
+  authService.onTransition(async (state, event) => {
+    const newToken = state.context.accessToken.value ?? null
+
+    if (token !== newToken) {
+      token = newToken
+      client.reFetchObservableQueries()
+      if (isBrowser() && webSocketClient) {
+        if (newToken) {
+          if (webSocketClient.status === 1) {
+            // @ts-expect-error
+            webSocketClient.tryReconnect()
+          }
+        } else {
+          if (webSocketClient.status === 1) {
+            // must close first to avoid race conditions
+            webSocketClient.close()
+            // reconnect
+            // @ts-expect-error
+            webSocketClient.tryReconnect()
+          }
+          if (event.type === 'done.invoke.signingOut') {
+            await client.resetStore().catch((error) => {
+              console.error('Error resetting Apollo client cache')
+              console.error(error)
+            })
+          }
+        }
+      }
+    }
+  })
   return client
 }
