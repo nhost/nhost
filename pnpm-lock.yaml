@@ -80,7 +80,7 @@ importers:
       express: ^4.17.2
       typescript: ^4.5.4
     dependencies:
-      '@nhost/nhost-js': link:../../packages/nhost
+      '@nhost/nhost-js': link:../../packages/nhost-js
     devDependencies:
       '@types/express': 4.17.13
       express: 4.17.2
@@ -130,7 +130,7 @@ importers:
       '@craco/craco': 6.4.3_4aa4ff7e3a066977318d29b1bedd23d1
       '@headlessui/react': 1.4.3_react-dom@17.0.2+react@17.0.2
       '@heroicons/react': 1.0.5_react@17.0.2
-      '@nhost/nhost-js': link:../../packages/nhost
+      '@nhost/nhost-js': link:../../packages/nhost-js
       '@nhost/react-apollo': link:../../packages/react-apollo
       '@nhost/react-auth': link:../../packages/react-auth
       '@saeris/apollo-server-vercel': 1.0.1_graphql@15.7.2
@@ -211,7 +211,7 @@ importers:
   examples/testing-project:
     specifiers: {}
 
-  packages/hasura-auth:
+  packages/hasura-auth-js:
     specifiers:
       '@types/faker': '5'
       axios: ^0.25.0
@@ -232,13 +232,13 @@ importers:
       html-urls: 2.4.27
       mailhog: 4.16.0
 
-  packages/hasura-storage:
+  packages/hasura-storage-js:
     specifiers:
       axios: ^0.21.1
     dependencies:
       axios: 0.21.4
 
-  packages/nhost:
+  packages/nhost-js:
     specifiers:
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
@@ -246,8 +246,8 @@ importers:
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
     dependencies:
-      '@nhost/hasura-auth-js': link:../hasura-auth
-      '@nhost/hasura-storage-js': link:../hasura-storage
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
+      '@nhost/hasura-storage-js': link:../hasura-storage-js
       axios: 0.23.0
       jwt-decode: 3.1.2
       query-string: 7.1.1
@@ -263,7 +263,7 @@ importers:
       react-dom: ^17.0.2
       subscriptions-transport-ws: ^0.11.0
     dependencies:
-      '@nhost/nhost-js': link:../nhost
+      '@nhost/nhost-js': link:../nhost-js
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.5.8_03bf9288e5c3a1c712f16f9f9a62dbf9
@@ -280,7 +280,7 @@ importers:
       react: ^17.0.2
       react-dom: ^17.0.2
     dependencies:
-      '@nhost/nhost-js': link:../nhost
+      '@nhost/nhost-js': link:../nhost-js
     devDependencies:
       '@types/react': 17.0.39
       react: 17.0.2
