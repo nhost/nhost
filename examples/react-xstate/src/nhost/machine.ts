@@ -253,8 +253,11 @@ export const createNhostMachine = ({
               ]
             },
             pending: {
-              invoke: {
-                src: 'startTokenTimer'
+              after: {
+                1000: {
+                  actions: 'tickTokenTimer',
+                  target: 'pending'
+                }
               },
               always: [
                 {
@@ -263,9 +266,6 @@ export const createNhostMachine = ({
                 }
               ],
               on: {
-                TICK: {
-                  actions: 'tickTokenTimer'
-                },
                 SIGNOUT: {
                   target: 'stopped',
                   actions: 'resetRefreshTokenTimer'
@@ -360,7 +360,7 @@ export const createNhostMachine = ({
           ctx.refreshToken.timer.attempts = 0
         }),
         tickTokenTimer: assign((ctx) => {
-          ctx.refreshToken.timer.elapsed += 1 // * One second
+          ctx.refreshToken.timer.elapsed += 1
         }),
         retryTokenRefresh: assign((ctx) => {
           ctx.accessToken.expiresIn = REFRESH_TOKEN_RETRY_INTERVAL
@@ -405,17 +405,7 @@ export const createNhostMachine = ({
         invalidPassword: (_, e) => e.password.length <= MIN_PASSWORD_LENGTH,
         invalidRefreshToken: (_, e) => !uuidValidate(e.token)
       },
-      services: {
-        ...createBackendServices(backendUrl),
-        // TODO use xstate 'delay' builtin
-        startTokenTimer: () => (cb) => {
-          const interval = setInterval(
-            () => cb('TICK'),
-            1000 // * One tick per second
-          )
-          return () => clearInterval(interval)
-        }
-      }
+      services: createBackendServices(backendUrl)
     }
   )
 }
