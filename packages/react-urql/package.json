@@ -1,0 +1,65 @@
+{
+  "name": "@nhost/react-urql",
+  "version": "0.0.1",
+  "description": "Nhost React URQL client",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "storage",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime",
+    "react",
+    "urql"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost-js/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost-js.git"
+  },
+  "scripts": {
+    "build": "vite build --config ../../vite.lib.react.js",
+    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
+  },
+  "main": "src/index.tsx",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.umd.js",
+    "module": "dist/index.es.js",
+    "typings": "dist/index.d.ts"
+  },
+  "exports": {
+    "import": "./dist/index.es.js",
+    "require": "./dist/index.umd.js"
+  },
+  "dependencies": {
+    "@urql/exchange-auth": "^0.1.7",
+    "isomorphic-unfetch": "^3.1.0",
+    "isomorphic-ws": "^4.0.1",
+    "regenerator-runtime": "^0.13.9",
+    "subscriptions-transport-ws": "^0.9.19",
+    "urql": "^1.11.6"
+  },
+  "peerDependencies": {
+    "react": "^16.0.0 || ^17.0.0 || ^18.0.0",
+    "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.39",
+    "graphql": "15",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "ws": "^8.4.2"
+  }
+}

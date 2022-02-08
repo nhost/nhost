@@ -16,12 +16,6 @@
 </div>
 
 <p align="center">
-<strong>
-We have a free tier launching soon. Please star this repo to receive updates. Thanks for your support!
-</strong>
-</p>
-
-<p align="center">
   <img width="550" src="https://reporoster.com/stars/nhost/nhost" />
 </p>
 <p align="center">
@@ -52,11 +46,11 @@ JS/TS and Flutter SDKs to make it easy to work with.
 
 ## Managed at Nhost.io
 
-[Sign up](https://console.nhost.io) and create your first app on [https://console.nhost.io](https://console.nhost.io).
+[Sign up](https://app.nhost.io) and create your first app [here](https://app.nhost.io/new).
 
 ![Nhost](assets/get-started.png)
 
-Then connect to your new Nhost app using the [JavaScript/TypeScript SDK](https://docs.nhost.io/libraries/nhost-js-sdk) or [Flutter SDK](https://github.com/nhost/nhost-dart).
+Then connect to your new Nhost app using the [JavaScript/TypeScript SDK](https://docs.nhost.io/get-started/quick-start/javascript-client) or [Flutter SDK](https://github.com/nhost/nhost-dart).
 
 ```bash
 $ npm install nhost-js-sdk
@@ -67,13 +61,13 @@ $ flutter i nhost-dart-sdk
 In your project, initialize the SDK with the endpoint of your new Nhost App:
 
 ```js
-import { createClient } from "nhost-js-sdk";
+import { NhostClient } from '@nhost/nhost-js'
 
-const nhost = createClient({
-  baseURL: "https://project-id.nhost.app",
-});
+const nhost = new NhostClient({
+  baseURL: 'https://project-id.nhost.app'
+})
 
-export { nhost };
+export { nhost }
 ```
 
 Now you're ready to develop your app.
@@ -82,12 +76,11 @@ Now you're ready to develop your app.
 
 Now you're ready to use these fundamental building blocks to build a unique experience:
 
-- [Quick Start](https://docs.nhost.io/quick-start): Create an app with React
-- [Authentication](https://docs.nhost.io/auth) with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
-- [Real-time database](https://docs.nhost.io/hasura) with GraphQL and Postgres to keep your data in sync.
-- [File Storage](https://docs.nhost.io/storage) with image transformation.
-- [Email Templates](https://docs.nhost.io/auth/email-templates) for your users.
-- [Payment]() powered by Stripe _(coming soon)_.
+- [Quick Start](https://docs.nhost.io/get-started/quick-start): Create an app with React
+- [Authentication](https://docs.nhost.io/platform/authentication) with email/password, magic link or social logins (Google, GitHub, Facebook, etc).
+- [Real-time database](https://docs.nhost.io/platform/database) with GraphQL and Postgres to keep your data in sync.
+- [File Storage](https://docs.nhost.io/platform/storage) with image transformation.
+- [Payment](https://github.com/nhost/nhost) powered by Stripe _(coming soon)_.
 
 [Full Documentation](https://docs.nhost.io)
 
@@ -97,15 +90,17 @@ Now you're ready to use these fundamental building blocks to build a unique expe
 - [Full App Template](https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo) with Next.js
 - [Native Mobile App](https://github.com/nhost/nhost-dart/tree/main/packages/nhost_flutter_graphql/example) with Dart and Flutter
 - [Nuxt](https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo) with Apollo.
+- [CRM Example App](https://github.com/nhost/nhost/tree/main/examples/react-apollo-crm)
+- [Multi-tenant App](https://github.com/nhost/nhost/tree/main/examples/multi-tenant-one-to-many)
 
 # Backend development
 
 To further develop your backend, deep dive into these topics:
 
-- [Serverless Functions](https://docs.nhost.io/custom-api)
-- [User Permissions](https://docs.nhost.io/hasura/permissions)
-- [Database events and webhooks](https://docs.nhost.io/hasura/event-triggers)
-- [Local development with the Nhost CLI](https://docs.nhost.io/cli)
+- [Serverless Functions](https://docs.nhost.io/platform/serverless-functions)
+- [User Permissions](https://docs.nhost.io/platform/database/permissions)
+- [Database events and webhooks](https://docs.nhost.io/platform/serverless-functions/event-triggers)
+- [Local development with the Nhost CLI](https://docs.nhost.io/platform/nhost/local-development)
 
 [Full Documentation](https://docs.nhost.io)
 
@@ -113,12 +108,11 @@ To further develop your backend, deep dive into these topics:
 
 Nhost libraries and tools
 
-- [JavaScript/TypeScript SDK](https://docs.nhost.io/libraries/nhost-js-sdk)
+- [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/sdk)
 - [Dart and Flutter SDK](https://github.com/nhost/nhost-dart)
-- [Nhost CLI](https://docs.nhost.io/cli)
-- [Nhost React Auth](https://docs.nhost.io/libraries/react-auth)
-- [Nhost React Apollo](https://docs.nhost.io/libraries/react-apollo)
-- [Nhost Nuxt](https://docs.nhost.io/libraries/nhost-nuxt)
+- [Nhost CLI](https://docs.nhost.io/reference/cli)
+- [Nhost React Auth](https://docs.nhost.io/reference/supporting-libraries/react-auth)
+- [Nhost React Apollo](https://docs.nhost.io/reference/supporting-libraries/react-apollo)
 
 ## Community ❤️
 
@@ -134,9 +128,9 @@ This repository, and most of our other open source projects, are licensed under 
 
 Here are some ways of contributing to making Nhost better:
 
-- **[Try out Nhost]()**, and think of ways of how you can make the service better.
+- **[Try out Nhost](https://docs.nhost.io/get-started/quick-start)**, and think of ways of how you can make the service better.
 - Join our [Discord](https://discord.com/invite/9V7Qb2U) and connect with other members to share and learn from.
-- Send a pull request to any our [open source repositories](https://github.com/nhost) on Github. We're looking forward to your contribution!
+- Send a pull request to any of our [open source repositories](https://github.com/nhost) on Github. Check our [contribution guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) for more details about how to contribute. We're looking forward to your contribution!
 
 ## Security
 

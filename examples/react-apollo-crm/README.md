@@ -2,25 +2,29 @@
 
 ![Customers](assets/customers.png)
 
-Using the following technologies:
+### Using the following technologies:
 
 - [Nhost](https://nhost.io) (obviously)
-- [React]()
-- [TypeScript]()
+- [React](https://reactjs.org/)
+- [React Router v6](https://reactrouter.com/docs/en/v6)
+- [TypeScript](https://www.typescriptlang.org/)
 - [GraphQL Codegen](https://www.graphql-code-generator.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Tailwind UI](https://tailwindui.com/)
 
-This includes among others the following features:
+### Some features showcased in this example
 
+- Postgres
 - GraphQL
 - Permissions
 - Authentication
   - Sign Up
   - Sign In
+  - Reset Password
 - Storage
   - Upload
   - Download (with presigned URLs)
+- Serverless functions
 
 ---
 
@@ -88,7 +92,7 @@ npm run start
 
 3. Terminal 3: Start GraphQL Codegens
 
-> Make sure that the Nhost backend in step 2 has started and is available
+> Make sure that the Nhost backend in step 2 has started and is available before you run this command
 
 ```
 npm run codegen -- -w
