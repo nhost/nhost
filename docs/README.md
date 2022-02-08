@@ -1,4 +1,4 @@
-# Documentations Nhost V2.0
+# Nhost Documentation
 
 ## Get started
 
