@@ -1,5 +1,3 @@
-import { NHOST_REFRESH_TOKEN } from './constants'
-
 export type StorageGetter = (key: string) => string | null
 export type StorageSetter = (key: string, value: string | null) => void
 
@@ -14,9 +12,9 @@ export const defaultStorageGetter: StorageGetter = (key) => {
 export const defaultStorageSetter: StorageSetter = (key, value) => {
   if (localStorage) {
     if (value) {
-      localStorage.setItem(NHOST_REFRESH_TOKEN, value)
+      localStorage.setItem(key, value)
     } else {
-      localStorage.removeItem(NHOST_REFRESH_TOKEN)
+      localStorage.removeItem(key)
     }
   } else
     throw Error(

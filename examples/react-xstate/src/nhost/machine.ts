@@ -34,6 +34,7 @@ export const createNhostMachine = ({
       }
     },
     {
+      // TODO type events in actions
       actions: {
         ...authenticationActions,
         ...tokenActions(storageSetter),
