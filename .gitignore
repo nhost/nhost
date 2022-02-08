@@ -49,3 +49,4 @@ jest.*.js
 .netlify
 .monorepo-example
 
+.next
