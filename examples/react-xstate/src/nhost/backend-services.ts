@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { AnyEventObject } from 'xstate'
 import { NhostContext } from './context'
 
@@ -33,9 +33,10 @@ export const createBackendServices: (backendUrl: string) => Record<string, Servi
 
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
-    data?: D
+    data?: D,
+    config?: AxiosRequestConfig<D>
   ): Promise<R> => {
-    const result = await client.post(url, data)
+    const result = await client.post(url, data, config)
     return result.data
   }
 
@@ -73,6 +74,17 @@ export const createBackendServices: (backendUrl: string) => Record<string, Servi
     validateNewToken: (_, event) =>
       postRequest('/v1/auth/token', {
         refreshToken: event.token
-      })
+      }),
+
+    requestNewEmail: ({ email, accessToken }) =>
+      postRequest(
+        '/v1/auth/user/email/change',
+        { newEmail: email },
+        {
+          headers: {
+            authorization: `Bearer ${accessToken.value}`
+          }
+        }
+      )
   }
 }

@@ -8,10 +8,15 @@ export type NhostContext = {
   user: User | null
   mfa: boolean
   accessToken: { value: string | null; expiresIn: number }
-  refreshToken: { value: string | null; timer: { elapsed: number; attempts: number } }
-  error?: ApiError
+  refreshToken: {
+    value: string | null
+    timer: { elapsed: number; attempts: number; error: ApiError | null }
+    newToken: { error: ApiError | null }
+  }
+  error: ApiError | null
   email?: string
   password?: string
+  newEmail: { error: ApiError | null }
 }
 
 export const INTIAL_CONTEXT: NhostContext = {
@@ -25,10 +30,15 @@ export const INTIAL_CONTEXT: NhostContext = {
     value: null,
     timer: {
       elapsed: 0,
-      attempts: 0
-    }
+      attempts: 0,
+      error: null
+    },
+    newToken: { error: null }
   },
-  error: undefined,
+  newEmail: {
+    error: null
+  },
+  error: null,
   email: undefined,
   password: undefined
 }

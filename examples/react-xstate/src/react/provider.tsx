@@ -34,7 +34,12 @@ export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUr
     const token = params.get('refreshToken')
     if (token) {
       const type = params.get('type')
-      if (type === 'signinPasswordless' || type === 'emailVerify') {
+      if (
+        type === 'signinPasswordless' ||
+        type === 'emailVerify' ||
+        type === 'emailConfirmChange'
+      ) {
+        // TODO send somehow the information to other tabs
         authService.send({ type: 'UPDATE_REFRESH_TOKEN', token })
         // * remove hash from the current url after consumming the token
         window.history.pushState({}, '', location.pathname)

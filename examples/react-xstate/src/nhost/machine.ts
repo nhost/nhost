@@ -49,11 +49,11 @@ export const createNhostMachine = ({
               on: {
                 SIGNIN: [
                   {
-                    target: '.ininvalidEmail',
+                    target: '.invalidEmail',
                     cond: 'invalidEmail'
                   },
                   {
-                    target: '.ininvalidPassword',
+                    target: '.invalidPassword',
                     cond: 'invalidPassword'
                   },
                   {
@@ -63,21 +63,21 @@ export const createNhostMachine = ({
                 ],
                 SIGNIN_PASSWORDLESS_EMAIL: [
                   {
-                    target: '.ininvalidEmail',
+                    target: '.invalidEmail',
                     cond: 'invalidEmail'
                   },
                   {
-                    target: 'authenticating.passwordless',
+                    target: 'authenticating.passwordlessEmail',
                     actions: 'saveEmail'
                   }
                 ],
                 REGISTER: [
                   {
-                    target: '.ininvalidEmail',
+                    target: '.invalidEmail',
                     cond: 'invalidEmail'
                   },
                   {
-                    target: '.ininvalidPassword',
+                    target: '.invalidPassword',
                     cond: 'invalidPassword'
                   },
                   {
@@ -88,8 +88,8 @@ export const createNhostMachine = ({
               },
               states: {
                 noErrors: {},
-                ininvalidEmail: {},
-                ininvalidPassword: {},
+                invalidEmail: {},
+                invalidPassword: {},
                 awaitingVerification: {},
                 failing: {
                   always: [
@@ -109,30 +109,31 @@ export const createNhostMachine = ({
                       cond: 'unauthorized',
                       target: '#nhost.authentication.signedOut.failed.unauthorized'
                     },
-                    { target: '#nhost.authentication.signedOut.failed.unkwown' }
+                    { target: '#nhost.authentication.signedOut.failed.other' }
                   ]
                 },
                 failed: {
-                  initial: 'unkwown',
+                  initial: 'other',
                   states: {
-                    unkwown: {},
+                    other: {},
                     network: {},
                     existingUser: {},
                     unauthorized: {}
-                  }
+                  },
+                  exit: 'resetAuthenticationError'
                 }
               }
             },
             authenticating: {
               states: {
-                passwordless: {
+                passwordlessEmail: {
                   invoke: {
                     id: 'authenticatePasswordlessEmail',
                     src: 'signInPasswordlessEmail',
                     onDone: '#nhost.authentication.signedOut.awaitingVerification',
                     onError: {
                       target: '#nhost.authentication.signedOut.failing',
-                      actions: 'saveError'
+                      actions: 'saveAuthenticationError'
                     }
                   }
                 },
@@ -146,7 +147,7 @@ export const createNhostMachine = ({
                     },
                     onError: {
                       target: '#nhost.authentication.signedOut.failing',
-                      actions: 'saveError'
+                      actions: 'saveAuthenticationError'
                     }
                   }
                 }
@@ -167,17 +168,66 @@ export const createNhostMachine = ({
                 ],
                 onError: {
                   target: 'signedOut.failing',
-                  actions: 'saveError'
+                  actions: 'saveAuthenticationError'
                 }
               },
-              exit: ['clearForm']
+              exit: 'clearForm'
             },
             signedIn: {
+              type: 'parallel',
               entry: ['persistRefreshToken'],
-              on: {
-                SIGNOUT: {
-                  target: 'signingOut'
+              states: {
+                changeEmail: {
+                  initial: 'idle',
+                  states: {
+                    idle: {
+                      initial: 'noErrors',
+                      on: {
+                        CHANGE_EMAIL: [
+                          {
+                            cond: 'invalidEmail',
+                            target: '.invalidEmail'
+                          },
+                          {
+                            target: 'requesting',
+                            actions: 'saveEmail'
+                          }
+                        ]
+                      },
+                      states: {
+                        noErrors: {},
+                        failed: {
+                          exit: 'resetNewEmailError'
+                        },
+                        invalidEmail: {}
+                      }
+                    },
+
+                    requesting: {
+                      invoke: {
+                        id: 'requestNewEmail',
+                        src: 'requestNewEmail',
+                        onDone: 'awaitingVerification',
+                        onError: {
+                          target: 'failing',
+                          actions: 'saveNewEmailError'
+                        }
+                      }
+                    },
+                    failing: {
+                      always: [
+                        // TODO capture error types
+                        'idle.failed'
+                      ]
+                    },
+                    awaitingVerification: {
+                      // TODO change back state to idle when email is verified
+                    }
+                  }
                 }
+              },
+              on: {
+                SIGNOUT: 'signingOut'
               }
             },
             signingOut: {
@@ -190,14 +240,14 @@ export const createNhostMachine = ({
                 },
                 onError: { target: 'signedOut', actions: 'resetSession' }
               },
-              exit: ['persistRefreshToken']
+              exit: 'persistRefreshToken'
             }
           }
         },
         newRefreshToken: {
-          initial: 'standby',
+          initial: 'idle',
           states: {
-            standby: {
+            idle: {
               initial: 'noErrors',
               on: {
                 UPDATE_REFRESH_TOKEN: [
@@ -205,33 +255,44 @@ export const createNhostMachine = ({
                     cond: 'invalidRefreshToken',
                     target: '.invalid'
                   },
-                  { target: 'validating' }
+                  'validating'
                 ]
               },
               states: {
                 noErrors: {},
-                error: {},
-                invalid: {},
-                network: {}
+                failed: {
+                  initial: 'other',
+                  exit: 'resetNewTokenError',
+                  states: { other: {}, network: {} }
+                },
+                invalid: {}
               }
             },
             validating: {
               invoke: {
                 src: 'validateNewToken',
                 onDone: {
-                  target: 'standby',
-                  actions: ['saveToken', 'resetRefreshTokenTimer']
+                  target: 'validated',
+                  actions: ['saveToken', 'resetTokenRefresher']
                 },
-                onError: [
-                  {
-                    target: 'standby.network',
-                    cond: 'networkError'
-                  },
-                  {
-                    target: 'standby.error'
-                  }
-                ]
+                onError: {
+                  target: 'failing',
+                  actions: 'saveNewTokenError'
+                }
               }
+            },
+            validated: {
+              exit: 'persistRefreshToken',
+              always: 'idle'
+            },
+            failing: {
+              always: [
+                {
+                  target: 'idle.failed.network',
+                  cond: 'newTokenNetworkError'
+                },
+                'idle.failed'
+              ]
             }
           }
         },
@@ -255,7 +316,7 @@ export const createNhostMachine = ({
             pending: {
               after: {
                 1000: {
-                  actions: 'tickTokenTimer',
+                  actions: 'tickTokenRefresher',
                   target: 'pending'
                 }
               },
@@ -268,7 +329,7 @@ export const createNhostMachine = ({
               on: {
                 SIGNOUT: {
                   target: 'stopped',
-                  actions: 'resetRefreshTokenTimer'
+                  actions: 'resetTokenRefresher'
                 }
               }
             },
@@ -278,7 +339,7 @@ export const createNhostMachine = ({
                 src: 'refreshToken',
                 onDone: {
                   target: 'refreshed',
-                  actions: ['saveToken', 'resetRefreshTokenTimer']
+                  actions: ['saveToken', 'resetTokenRefresher']
                 },
                 onError: [
                   {
@@ -287,16 +348,20 @@ export const createNhostMachine = ({
                     actions: 'retryTokenRefresh'
                   },
                   {
-                    target: 'failed.network',
-                    cond: 'networkError',
-                    actions: 'resetRefreshTokenTimer'
-                  },
-                  {
-                    target: 'failed',
-                    actions: 'resetRefreshTokenTimer'
+                    target: 'failing',
+                    actions: ['saveTokenTimerError', 'resetTokenRefresher']
                   }
                 ]
               }
+            },
+            failing: {
+              always: [
+                {
+                  target: 'failed.network',
+                  cond: 'tokenRefresherNetworkError'
+                },
+                'failed'
+              ]
             },
             refreshed: {
               always: {
@@ -305,9 +370,10 @@ export const createNhostMachine = ({
               entry: 'persistRefreshToken'
             },
             failed: {
-              initial: 'invalid',
+              initial: 'other',
+              exit: 'resetTokenRefresherError',
               states: {
-                invalid: {},
+                other: {},
                 network: {}
               }
             }
@@ -317,10 +383,14 @@ export const createNhostMachine = ({
     },
     {
       actions: {
-        clearForm: assign((ctx) => {
-          ctx.email = undefined
-          ctx.password = undefined
+        resetSession: assign<NhostContext>((ctx) => {
+          ctx.user = null
+          ctx.mfa = false
+          ctx.accessToken.value = null
+          ctx.refreshToken.value = null
         }),
+
+        // * Save information received after registration or login
         saveUser: assign((ctx, e) => {
           ctx.user = e.data.session.user
           ctx.accessToken.value = e.data.session.accessToken
@@ -331,6 +401,7 @@ export const createNhostMachine = ({
           ctx.refreshToken.value = e.data.session.refreshToken
           ctx.mfa = e.data.mfa
         }),
+        // * Save information after receiving token information
         saveToken: assign((ctx, e) => {
           ctx.user = e.data.user
           ctx.accessToken.value = e.data.accessToken
@@ -340,8 +411,40 @@ export const createNhostMachine = ({
           )
           ctx.refreshToken.value = e.data.refreshToken
         }),
-        saveError: assign((ctx, { data: { error } }) => {
+
+        // * Authenticaiton errors
+        saveAuthenticationError: assign((ctx, { data: { error } }) => {
           ctx.error = error
+        }),
+        resetAuthenticationError: assign((ctx) => {
+          ctx.error = null
+        }),
+        // * 'New email' errors
+        saveNewEmailError: assign((ctx, { data: { error } }) => {
+          ctx.newEmail.error = error
+        }),
+        resetNewEmailError: assign((ctx) => {
+          ctx.newEmail.error = null
+        }),
+        // * 'New token' errors
+        resetNewTokenError: assign((ctx) => {
+          ctx.refreshToken.newToken.error = null
+        }),
+        saveNewTokenError: assign((ctx, { data: { error } }) => {
+          ctx.refreshToken.newToken.error = error
+        }),
+        // * 'Token timer' errors
+        resetTokenRefresherError: assign((ctx) => {
+          ctx.refreshToken.timer.error = null
+        }),
+        saveTokenTimerError: assign((ctx, { data: { error } }) => {
+          ctx.refreshToken.timer.error = error
+        }),
+
+        // * Form
+        clearForm: assign((ctx) => {
+          ctx.email = undefined
+          ctx.password = undefined
         }),
         saveEmail: assign((ctx, e) => {
           ctx.email = e.email
@@ -349,17 +452,13 @@ export const createNhostMachine = ({
         savePassword: assign((ctx, e) => {
           ctx.password = e.password
         }),
-        resetSession: assign((ctx) => {
-          ctx.user = null
-          ctx.mfa = false
-          ctx.accessToken.value = null
-          ctx.refreshToken.value = null
-        }),
-        resetRefreshTokenTimer: assign((ctx) => {
+
+        // * Refresh token timer
+        resetTokenRefresher: assign((ctx) => {
           ctx.refreshToken.timer.elapsed = 0
           ctx.refreshToken.timer.attempts = 0
         }),
-        tickTokenTimer: assign((ctx) => {
+        tickTokenRefresher: assign((ctx) => {
           ctx.refreshToken.timer.elapsed += 1
         }),
         retryTokenRefresh: assign((ctx) => {
@@ -367,6 +466,8 @@ export const createNhostMachine = ({
           ctx.refreshToken.timer.elapsed = 0
           ctx.refreshToken.timer.attempts += 1
         }),
+
+        // * Persist the refresh token outside of the machine
         persistRefreshToken: (ctx) => {
           storageSetter(NHOST_REFRESH_TOKEN, ctx.refreshToken.value)
         }
@@ -379,12 +480,19 @@ export const createNhostMachine = ({
         shouldRefreshToken: (ctx) =>
           ctx.refreshToken.timer.elapsed >= ctx.accessToken.expiresIn || !ctx.user,
         isUserSet: (ctx) => !!ctx.user,
+
+        // * Authentication errors
         unverified: (ctx) =>
           ctx.error?.status === 401 && ctx.error.message === 'Email is not verified',
         existingUser: (ctx) => ctx.error?.status === 409,
         unauthorized: (ctx) => ctx.error?.status === 401,
         networkError: (ctx, e) => ctx.error?.status === 0,
 
+        // * Refresh token timer errors
+        tokenRefresherNetworkError: (ctx, e) => ctx.refreshToken.timer.error?.status === 0,
+
+        // * New refresh token errors
+        newTokenNetworkError: (ctx, e) => ctx.refreshToken.newToken.error?.status === 0,
         // * Hybrid guards
         // can retry token refresh only if number of attempts is not reached, and there is a network error
         canRetryTokenRefresh: (ctx, event) => {
