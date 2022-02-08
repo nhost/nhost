@@ -68,6 +68,15 @@ export const useChangeEmail = (email: string) => {
     })
 }
 
+export const useChangePassword = (password: string) => {
+  const service = useAuthService()
+  return () =>
+    service.send({
+      type: 'CHANGE_PASSWORD',
+      password
+    })
+}
+
 export const useSignOut = (all = false) => {
   const service = useAuthService()
   return () => service.send({ type: 'SIGNOUT', all })

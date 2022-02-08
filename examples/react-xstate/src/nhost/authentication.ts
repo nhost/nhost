@@ -1,8 +1,8 @@
 import { assign } from '@xstate/immer'
 import { ActionFunctionMap, StatesConfig } from 'xstate'
 import { NhostContext } from './context'
-import { changeEmailState } from './change-email'
 import { MIN_TOKEN_REFRESH_INTERVAL, TOKEN_REFRESH_MARGIN } from './constants'
+import { userActions, userConfig, userGuards } from './user'
 
 export const authenticationConfig: StatesConfig<NhostContext, any, any> = {
   authentication: {
@@ -147,7 +147,7 @@ export const authenticationConfig: StatesConfig<NhostContext, any, any> = {
         type: 'parallel',
         entry: ['persistRefreshToken'],
         states: {
-          ...changeEmailState
+          ...userConfig
         },
         on: {
           SIGNOUT: 'signingOut'
@@ -170,6 +170,7 @@ export const authenticationConfig: StatesConfig<NhostContext, any, any> = {
 }
 
 export const authenticationActions: ActionFunctionMap<NhostContext, any, any> = {
+  ...userActions,
   resetSession: assign<NhostContext>((ctx) => {
     ctx.user = null
     ctx.mfa = false
@@ -199,8 +200,9 @@ export const authenticationActions: ActionFunctionMap<NhostContext, any, any> = 
 }
 
 export const authenticationGuards: Record<string, (ctx: NhostContext, e: any) => boolean> = {
-  isUserSet: (ctx) => !!ctx.user,
+  ...userGuards,
 
+  isUserSet: (ctx) => !!ctx.user,
   // * Authentication errors
   unverified: (ctx) => ctx.error?.status === 401 && ctx.error.message === 'Email is not verified',
   existingUser: (ctx) => ctx.error?.status === 409,

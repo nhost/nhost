@@ -85,6 +85,16 @@ export const createBackendServices: (backendUrl: string) => Record<string, Servi
             authorization: `Bearer ${accessToken.value}`
           }
         }
+      ),
+    changePassword: ({ password, accessToken }) =>
+      postRequest(
+        '/v1/auth/user/password',
+        { newPassword: password },
+        {
+          headers: {
+            authorization: `Bearer ${accessToken.value}`
+          }
+        }
       )
   }
 }

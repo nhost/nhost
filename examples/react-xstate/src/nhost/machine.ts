@@ -4,7 +4,6 @@ import { defaultStorageGetter, defaultStorageSetter, StorageGetter, StorageSette
 import { INTIAL_CONTEXT, NhostContext } from './context'
 import { NHOST_REFRESH_TOKEN } from './constants'
 import { createBackendServices } from './backend-services'
-import { changeEmailActions } from './change-email'
 import { tokenActions, tokenConfig, tokenGuards } from './token'
 import { authenticationActions, authenticationConfig, authenticationGuards } from './authentication'
 import { inputsActions, inputsGuards } from './inputs'
@@ -37,7 +36,6 @@ export const createNhostMachine = ({
     {
       actions: {
         ...authenticationActions,
-        ...changeEmailActions, // TODO move to userActions
         ...tokenActions(storageSetter),
         ...inputsActions
       },

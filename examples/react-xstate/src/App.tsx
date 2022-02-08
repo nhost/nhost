@@ -10,7 +10,8 @@ import {
   useEmailPasswordSignIn,
   useRefreshToken,
   useSignUpEmailPassword,
-  useChangeEmail
+  useChangeEmail,
+  useChangePassword
 } from './react'
 import { useAuthQuery } from './react-apollo'
 
@@ -34,7 +35,7 @@ function App() {
   const passwordlessSignIn = useEmailPasswordlessSignIn(email)
   const [, updateToken] = useRefreshToken()
   const changeEmail = useChangeEmail('bidon@bidon.com')
-
+  const changePassword = useChangePassword('12345678')
   const { loading, data } = useAuthQuery(GET_GREETING)
 
   return (
@@ -44,6 +45,7 @@ function App() {
           <>
             <button onClick={signOut}>Logout</button>
             <button onClick={changeEmail}>Change email</button>
+            <button onClick={changePassword}>Change password</button>
           </>
         ) : (
           <>

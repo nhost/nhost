@@ -28,5 +28,5 @@ export const inputsGuards: Record<string, (ctx: NhostContext, e: any) => boolean
       .match(
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
       ),
-  invalidPassword: (_, e) => e.password.length <= MIN_PASSWORD_LENGTH
+  invalidPassword: (_, e) => !e.password || e.password.length <= MIN_PASSWORD_LENGTH
 }

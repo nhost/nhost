@@ -17,6 +17,7 @@ export type NhostContext = {
   email?: string
   password?: string
   newEmail: { error: ApiError | null }
+  newPassword: { error: ApiError | null }
 }
 
 export const INTIAL_CONTEXT: NhostContext = {
@@ -36,6 +37,9 @@ export const INTIAL_CONTEXT: NhostContext = {
     newToken: { error: null }
   },
   newEmail: {
+    error: null
+  },
+  newPassword: {
     error: null
   },
   error: null,

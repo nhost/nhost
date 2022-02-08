@@ -1,8 +1,8 @@
 import { assign } from '@xstate/immer'
 import { ActionFunctionMap, StatesConfig } from 'xstate'
-import { NhostContext } from './context'
+import { NhostContext } from '../context'
 
-export const changeEmailState: StatesConfig<NhostContext, any, any> = {
+export const changeEmailConfig: StatesConfig<NhostContext, any, any> = {
   changeEmail: {
     initial: 'idle',
     states: {
