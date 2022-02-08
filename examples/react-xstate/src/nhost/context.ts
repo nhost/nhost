@@ -1,3 +1,4 @@
+import { ApiError } from './backend-services'
 import { DEFAULT_TOKEN_EXPIRATION } from './constants'
 
 // TODO better typing
@@ -8,7 +9,7 @@ export type NhostContext = {
   mfa: boolean
   accessToken: { value: string | null; expiresIn: number }
   refreshToken: { value: string | null; timer: { elapsed: number; attempts: number } }
-  error?: unknown
+  error?: ApiError
   email?: string
   password?: string
 }

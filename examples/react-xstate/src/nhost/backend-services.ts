@@ -1,13 +1,36 @@
-import axios, { AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { AnyEventObject } from 'xstate'
 import { NhostContext } from './context'
 
 type Service = (context: NhostContext, event: AnyEventObject) => Promise<any>
 
+export type ApiError = {
+  error: string
+  status: number
+  message: string
+}
+
 export const createBackendServices: (backendUrl: string) => Record<string, Service> = (
   backendUrl
 ) => {
-  const client = axios.create({ baseURL: backendUrl })
+  const client = axios.create({ baseURL: backendUrl, timeout: 10_000 })
+
+  client.interceptors.response.use(
+    (response) => response,
+    (error: AxiosError<{ message: string; error?: string; statusCode?: number }>) =>
+      Promise.reject({
+        error: {
+          message:
+            error.response?.data?.message ??
+            error.message ??
+            error.request.responseText ??
+            JSON.stringify(error),
+          status: error.response?.status ?? error.response?.data.statusCode ?? 0,
+          error: error.response?.data.error || error.request.statusText || 'network'
+        }
+      })
+  )
+
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
     data?: D
@@ -15,7 +38,7 @@ export const createBackendServices: (backendUrl: string) => Record<string, Servi
     const result = await client.post(url, data)
     return result.data
   }
-  // post<T = any, R = AxiosResponse<T>, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<R>;
+
   return {
     // TODO options
     signInPassword: ({ email, password }) =>

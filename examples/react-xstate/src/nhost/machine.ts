@@ -91,6 +91,27 @@ export const createNhostMachine = ({
                 ininvalidEmail: {},
                 ininvalidPassword: {},
                 awaitingVerification: {},
+                failing: {
+                  always: [
+                    {
+                      cond: 'networkError',
+                      target: '#nhost.authentication.signedOut.failed.network'
+                    },
+                    {
+                      cond: 'existingUser',
+                      target: '#nhost.authentication.signedOut.failed.existingUser'
+                    },
+                    {
+                      cond: 'unverified',
+                      target: '#nhost.authentication.signedOut.awaitingVerification'
+                    },
+                    {
+                      cond: 'unauthorized',
+                      target: '#nhost.authentication.signedOut.failed.unauthorized'
+                    },
+                    { target: '#nhost.authentication.signedOut.failed.unkwown' }
+                  ]
+                },
                 failed: {
                   initial: 'unkwown',
                   states: {
@@ -108,60 +129,25 @@ export const createNhostMachine = ({
                   invoke: {
                     id: 'authenticatePasswordlessEmail',
                     src: 'signInPasswordlessEmail',
-                    onDone: [
-                      {
-                        target: '#nhost.authentication.signedOut.awaitingVerification'
-                      }
-                    ],
-                    onError: [
-                      {
-                        cond: 'networkError',
-                        target: '#nhost.authentication.signedOut.failed.network',
-                        actions: 'saveError'
-                      },
-                      {
-                        cond: 'unauthorized',
-                        target: '#nhost.authentication.signedOut.failed.unauthorized',
-                        actions: 'saveError'
-                      },
-                      {
-                        target: '#nhost.authentication.signedOut.failed',
-                        actions: 'saveError'
-                      }
-                    ]
+                    onDone: '#nhost.authentication.signedOut.awaitingVerification',
+                    onError: {
+                      target: '#nhost.authentication.signedOut.failing',
+                      actions: 'saveError'
+                    }
                   }
                 },
                 password: {
                   invoke: {
                     id: 'authenticateUserWithPassword',
                     src: 'signInPassword',
-                    onDone: [
-                      {
-                        target: '#nhost.authentication.signedIn',
-                        actions: 'saveUser'
-                      }
-                    ],
-                    onError: [
-                      {
-                        cond: 'networkError',
-                        target: '#nhost.authentication.signedOut.failed.network',
-                        actions: ['saveError']
-                      },
-                      {
-                        cond: 'unverified',
-                        target: '#nhost.authentication.signedOut.awaitingVerification',
-                        actions: 'saveError'
-                      },
-                      {
-                        cond: 'unauthorized',
-                        target: '#nhost.authentication.signedOut.failed.unauthorized',
-                        actions: 'saveError'
-                      },
-                      {
-                        target: '#nhost.authentication.signedOut.failed',
-                        actions: 'saveError'
-                      }
-                    ]
+                    onDone: {
+                      target: '#nhost.authentication.signedIn',
+                      actions: 'saveUser'
+                    },
+                    onError: {
+                      target: '#nhost.authentication.signedOut.failing',
+                      actions: 'saveError'
+                    }
                   }
                 }
               },
@@ -179,17 +165,10 @@ export const createNhostMachine = ({
                   },
                   { target: 'authenticating.password' }
                 ],
-                onError: [
-                  {
-                    cond: 'existingUser',
-                    target: 'signedOut.failed.existingUser',
-                    actions: 'saveError'
-                  },
-                  {
-                    target: 'signedOut.failed',
-                    actions: 'saveError'
-                  }
-                ]
+                onError: {
+                  target: 'signedOut.failing',
+                  actions: 'saveError'
+                }
               },
               exit: ['clearForm']
             },
@@ -361,12 +340,8 @@ export const createNhostMachine = ({
           )
           ctx.refreshToken.value = e.data.refreshToken
         }),
-        saveError: assign((ctx, { data: { response, request } }) => {
-          ctx.error = {
-            error: response?.data.error || request.statusText || 'network',
-            message: response?.data.message || request.responseText || 'Network error',
-            statusCode: response?.data.statusCode || request.status || 0
-          }
+        saveError: assign((ctx, { data: { error } }) => {
+          ctx.error = error
         }),
         saveEmail: assign((ctx, e) => {
           ctx.email = e.email
@@ -396,6 +371,7 @@ export const createNhostMachine = ({
           storageSetter(NHOST_REFRESH_TOKEN, ctx.refreshToken.value)
         }
       },
+      // TODO type events in guards
       guards: {
         // * Context guards
         shouldStartTokenTimer: (ctx) => !!ctx.refreshToken.value,
@@ -403,6 +379,11 @@ export const createNhostMachine = ({
         shouldRefreshToken: (ctx) =>
           ctx.refreshToken.timer.elapsed >= ctx.accessToken.expiresIn || !ctx.user,
         isUserSet: (ctx) => !!ctx.user,
+        unverified: (ctx) =>
+          ctx.error?.status === 401 && ctx.error.message === 'Email is not verified',
+        existingUser: (ctx) => ctx.error?.status === 409,
+        unauthorized: (ctx) => ctx.error?.status === 401,
+        networkError: (ctx, e) => ctx.error?.status === 0,
 
         // * Hybrid guards
         // can retry token refresh only if number of attempts is not reached, and there is a network error
@@ -415,12 +396,6 @@ export const createNhostMachine = ({
 
         // * Event guards
         hasUser: (_, e) => !!e.data.session,
-        unverified: (_, e) =>
-          e.data.response?.data?.statusCode === 401 &&
-          e.data.response?.data?.message === 'Email is not verified',
-        existingUser: (_, e) => e.data.response?.data.statusCode === 409,
-        unauthorized: (_, e) => e.data.response?.data.statusCode === 401,
-        networkError: (_, e) => !e.data.response && !e.data.request.status,
         invalidEmail: (_, e) =>
           !String(e.email)
             .toLowerCase()
@@ -432,6 +407,7 @@ export const createNhostMachine = ({
       },
       services: {
         ...createBackendServices(backendUrl),
+        // TODO use xstate 'delay' builtin
         startTokenTimer: () => (cb) => {
           const interval = setInterval(
             () => cb('TICK'),
