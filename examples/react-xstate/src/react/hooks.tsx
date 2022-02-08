@@ -86,7 +86,7 @@ export const useEmailPasswordSignIn = (email: string, password: string) => {
   const service = useAuthService()
   return () =>
     service.send({
-      type: 'SIGNIN',
+      type: 'SIGNIN_PASSWORD',
       email,
       password
     })

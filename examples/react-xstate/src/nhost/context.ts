@@ -20,7 +20,7 @@ export type NhostContext = {
   newPassword: { error: ApiError | null }
 }
 
-export const INTIAL_CONTEXT: NhostContext = {
+export const INITIAL_CONTEXT: NhostContext = {
   user: null,
   mfa: false,
   accessToken: {
