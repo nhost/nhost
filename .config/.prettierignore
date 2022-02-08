@@ -14,3 +14,4 @@ package.json
 tsconfig.json
 tsconfig.*.json
 *.d.ts
+.next

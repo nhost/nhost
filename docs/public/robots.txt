@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://docs.nhost.io/
+
+# Sitemaps
+Sitemap: https://docs.nhost.io/sitemap.xml
