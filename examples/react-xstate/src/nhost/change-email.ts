@@ -1,12 +1,12 @@
 import { AxiosInstance } from 'axios'
 import { createMachine, sendParent } from 'xstate'
 import { ErrorEvent } from './backend-services'
-import { isValidPassword } from './validators'
+import { isValidEmail } from './validators'
 
 type Context = {}
 const initialContext: Context = {}
 
-export const createChangePasswordMachine = (api: AxiosInstance) =>
+export const createChangeEmailMachine = (api: AxiosInstance) =>
   createMachine(
     {
       id: 'remote',
@@ -17,7 +17,7 @@ export const createChangePasswordMachine = (api: AxiosInstance) =>
           on: {
             REQUEST_CHANGE: [
               {
-                cond: 'invalidPassword',
+                cond: 'invalidEmail',
                 actions: 'sendInvalid'
               },
               {
@@ -49,22 +49,22 @@ export const createChangePasswordMachine = (api: AxiosInstance) =>
     },
     {
       actions: {
-        sendLoading: sendParent('CHANGE_PASSWORD_LOADING'),
-        sendInvalid: sendParent('CHANGE_PASSWORD_INVALID'),
-        sendSuccess: sendParent('CHANGE_PASSWORD_SUCCESS'),
+        sendLoading: sendParent('CHANGE_EMAIL_LOADING'),
+        sendInvalid: sendParent('CHANGE_EMAIL_INVALID'),
+        sendSuccess: sendParent('CHANGE_EMAIL_SUCCESS'),
         sendError: sendParent<Context, any, ErrorEvent>((_, { data: { error } }) => ({
-          type: 'CHANGE_PASSWORD_ERROR',
+          type: 'CHANGE_EMAIL_ERROR',
           error
         }))
       },
       guards: {
-        invalidPassword: (_, { password }) => !isValidPassword(password)
+        invalidEmail: (_, { email }) => !isValidEmail(email)
       },
       services: {
-        requestChange: async (_, { password, accessToken }) =>
+        requestChange: async (_, { email, accessToken }) =>
           await api.post(
-            '/v1/auth/user/password',
-            { newPassword: password },
+            '/v1/auth/user/email/change',
+            { newPassword: email },
             {
               headers: {
                 authorization: `Bearer ${accessToken}`
@@ -74,4 +74,4 @@ export const createChangePasswordMachine = (api: AxiosInstance) =>
       }
     }
   )
-export type ChangePasswordMachine = typeof createChangePasswordMachine
+export type ChangePasswordMachine = typeof createChangeEmailMachine

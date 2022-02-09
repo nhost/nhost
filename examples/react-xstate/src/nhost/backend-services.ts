@@ -86,17 +86,6 @@ export const createBackendServices: (client: AxiosInstance) => Record<string, Se
     validateNewToken: (_, event) =>
       postRequest('/v1/auth/token', {
         refreshToken: event.token
-      }),
-
-    requestNewEmail: ({ email, accessToken }) =>
-      postRequest(
-        '/v1/auth/user/email/change',
-        { newEmail: email },
-        {
-          headers: {
-            authorization: `Bearer ${accessToken.value}`
-          }
-        }
-      )
+      })
   }
 }

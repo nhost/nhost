@@ -2,6 +2,7 @@ import { assign as immerAssign } from '@xstate/immer'
 import { validate as uuidValidate } from 'uuid'
 import { assign, createMachine, send, spawn } from 'xstate'
 import { createChangePasswordMachine } from './change-password'
+import { createChangeEmailMachine } from './change-email'
 import { INITIAL_CONTEXT, NhostContext } from './context'
 import { StorageGetter, StorageSetter } from './storage'
 
@@ -11,10 +12,10 @@ import {
   TOKEN_REFRESH_MARGIN,
   MIN_TOKEN_REFRESH_INTERVAL,
   NHOST_REFRESH_TOKEN,
-  REFRESH_TOKEN_RETRY_MAX_ATTEMPTS,
-  MIN_PASSWORD_LENGTH
+  REFRESH_TOKEN_RETRY_MAX_ATTEMPTS
 } from './constants'
 import produce from 'immer'
+import { isValidEmail, isValidPassword } from './validators'
 
 export type NhostInitOptions = {
   backendUrl: string
@@ -194,6 +195,7 @@ export const nhostMachineWithConfig = ({
             },
             signedIn: {
               type: 'parallel',
+              entry: ['persistRefreshToken', 'assignSignedinMachines'],
               on: {
                 SIGNOUT: {
                   target: '#nhost.authentication.signingOut'
@@ -207,53 +209,34 @@ export const nhostMachineWithConfig = ({
                       initial: 'noErrors',
                       states: {
                         noErrors: {},
+                        invalid: {},
+                        success: {},
+                        needsVerification: {},
                         failed: {
-                          exit: 'resetNewEmailError'
-                        },
-                        invalidEmail: {}
+                          exit: 'resetEmailChangeError'
+                        }
                       },
                       on: {
-                        CHANGE_EMAIL: [
-                          {
-                            cond: 'invalidEmail',
-                            target: '#nhost.authentication.signedIn.changeEmail.idle.invalidEmail'
-                          },
-                          {
-                            actions: 'saveEmail',
-                            target: '#nhost.authentication.signedIn.changeEmail.requesting'
-                          }
-                        ]
+                        CHANGE_EMAIL: {
+                          actions: 'requestEmailChange'
+                        },
+                        CHANGE_EMAIL_LOADING: 'running',
+                        CHANGE_EMAIL_INVALID: 'idle.invalid'
                       }
                     },
-                    requesting: {
-                      invoke: {
-                        src: 'requestNewEmail',
-                        id: 'requestNewEmail',
-                        onDone: [
-                          {
-                            target:
-                              '#nhost.authentication.signedIn.changeEmail.awaitingVerification'
-                          }
-                        ],
-                        onError: [
-                          {
-                            actions: 'saveNewEmailError',
-                            target: '#nhost.authentication.signedIn.changeEmail.failing'
-                          }
-                        ]
+                    running: {
+                      on: {
+                        CHANGE_EMAIL_SUCCESS: 'idle.needsVerification',
+                        CHANGE_EMAIL_ERROR: {
+                          target: 'idle.failed',
+                          actions: 'saveEmailChangeError'
+                        }
                       }
-                    },
-                    failing: {
-                      always: {
-                        target: '#nhost.authentication.signedIn.changeEmail.idle.failed'
-                      }
-                    },
-                    awaitingVerification: {}
+                    }
                   }
                 },
                 changePassword: {
                   initial: 'idle',
-                  entry: ['persistRefreshToken', 'assignChangePasswordMachine'],
                   states: {
                     idle: {
                       initial: 'noErrors',
@@ -266,17 +249,17 @@ export const nhostMachineWithConfig = ({
                         }
                       },
                       on: {
-                        PASSWORD_CHANGE: {
+                        CHANGE_PASSWORD: {
                           actions: 'requestPasswordChange'
                         },
-                        PASSWORD_CHANGE_LOADING: 'loading',
-                        PASSWORD_CHANGE_INVALID: 'idle.invalid'
+                        CHANGE_PASSWORD_LOADING: 'running',
+                        CHANGE_PASSWORD_INVALID: 'idle.invalid'
                       }
                     },
-                    loading: {
+                    running: {
                       on: {
-                        PASSWORD_CHANGE_SUCCESS: 'idle.success',
-                        PASSWORD_CHANGE_ERROR: {
+                        CHANGE_PASSWORD_SUCCESS: 'idle.success',
+                        CHANGE_PASSWORD_ERROR: {
                           target: 'idle.failed',
                           actions: 'savePasswordChangeError'
                         }
@@ -519,15 +502,6 @@ export const nhostMachineWithConfig = ({
         savePassword: immerAssign((ctx, e) => {
           ctx.password = e.password
         }),
-        // * 'New email' errors
-        saveNewEmailError: immerAssign<NhostContext, AxiosErrorResponseEvent>(
-          (ctx, { data: { error } }) => {
-            ctx.newEmail.error = error
-          }
-        ),
-        resetNewEmailError: immerAssign((ctx) => {
-          ctx.newEmail.error = null
-        }),
 
         resetSession: immerAssign<NhostContext>((ctx) => {
           ctx.user = null
@@ -558,10 +532,13 @@ export const nhostMachineWithConfig = ({
           ctx.error = null
         }),
 
-        // * Password change
-        assignChangePasswordMachine: assign({
-          changePasswordMachine: (_) => spawn(createChangePasswordMachine(api), 'changePassword')
+        // * Spawn machines when signed up
+        assignSignedinMachines: assign({
+          changePasswordMachine: (_) => spawn(createChangePasswordMachine(api), 'changePassword'),
+          changeEmailMachine: (_) => spawn(createChangeEmailMachine(api), 'changeEmail')
         }),
+
+        // * Change password
         requestPasswordChange: send<any, any>(
           (ctx, { password }) => ({
             type: 'REQUEST_CHANGE',
@@ -576,6 +553,24 @@ export const nhostMachineWithConfig = ({
           newPassword: (_, { error }) => error
         }),
         resetPasswordChangeError: assign<NhostContext>({
+          newPassword: () => null
+        }),
+
+        // * Change email
+        requestEmailChange: send<any, any>(
+          (ctx, { email }) => ({
+            type: 'REQUEST_CHANGE',
+            email,
+            accessToken: ctx.accessToken.value
+          }),
+          {
+            to: (ctx) => ctx.changeEmailMachine
+          }
+        ),
+        saveEmailChangeError: assign<NhostContext, ErrorEvent>({
+          newPassword: (_, { error }) => error
+        }),
+        resetEmailChangeError: assign<NhostContext>({
           newPassword: () => null
         })
       },
@@ -610,14 +605,9 @@ export const nhostMachineWithConfig = ({
         // TODO type event
         hasUser: (_, e) => !!e.data.session,
         // TODO type event
-        invalidEmail: (_, e) =>
-          !String(e.email)
-            .toLowerCase()
-            .match(
-              /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-            ),
+        invalidEmail: (_, { email }) => !isValidEmail(email),
         // TODO type event
-        invalidPassword: (_, e) => !e.password || e.password.length <= MIN_PASSWORD_LENGTH
+        invalidPassword: (_, { password }) => !isValidPassword(password)
       },
       services: { ...createBackendServices(api) }
     }

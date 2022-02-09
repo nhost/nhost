@@ -17,9 +17,10 @@ export type NhostContext = {
   error: ApiError | null
   email?: string
   password?: string
-  newEmail: { error: ApiError | null }
+  newEmail: ApiError | null
   newPassword: ApiError | null
   changePasswordMachine?: ActorRef<any>
+  changeEmailMachine?: ActorRef<any>
 }
 
 export const INITIAL_CONTEXT: NhostContext = {
@@ -38,12 +39,11 @@ export const INITIAL_CONTEXT: NhostContext = {
     },
     newToken: { error: null }
   },
-  newEmail: {
-    error: null
-  },
+  newEmail: null,
   newPassword: null,
   error: null,
   email: undefined,
   password: undefined,
-  changePasswordMachine: undefined
+  changePasswordMachine: undefined,
+  changeEmailMachine: undefined
 }

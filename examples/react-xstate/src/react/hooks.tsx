@@ -72,7 +72,7 @@ export const useChangePassword = (password: string) => {
   const service = useAuthService()
   return () =>
     service.send({
-      type: 'PASSWORD_CHANGE',
+      type: 'CHANGE_PASSWORD',
       password
     })
 }
