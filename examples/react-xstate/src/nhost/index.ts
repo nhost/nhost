@@ -1,8 +1,4 @@
-import { produce } from 'immer'
-import { NhostInitOptions, nhostMachineWithConfig } from './config'
-import { NHOST_REFRESH_TOKEN } from './constants'
-import { INITIAL_CONTEXT } from './context'
-import { NhostMachine } from './machine'
+import { NhostMachine, nhostMachineWithConfig, NhostInitOptions } from './machine'
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
 
 type Nhost = {
@@ -18,10 +14,6 @@ export const initNhost = ({
 }: NhostInitOptions): Nhost => {
   return {
     backendUrl,
-    machine: nhostMachineWithConfig({ backendUrl, storageGetter, storageSetter }).withContext(
-      produce(INITIAL_CONTEXT, (ctx) => {
-        ctx.refreshToken.value = storageGetter(NHOST_REFRESH_TOKEN)
-      })
-    )
+    machine: nhostMachineWithConfig({ backendUrl, storageGetter, storageSetter })
   }
 }

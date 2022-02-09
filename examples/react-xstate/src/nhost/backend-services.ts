@@ -1,7 +1,8 @@
-import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { AnyEventObject } from 'xstate'
 import { NhostContext } from './context'
 
+// TODO better event types
 type Service = (context: NhostContext, event: AnyEventObject) => Promise<any>
 
 export type ApiError = {
@@ -10,9 +11,14 @@ export type ApiError = {
   message: string
 }
 
-export const createBackendServices: (backendUrl: string) => Record<string, Service> = (
-  backendUrl
-) => {
+export type AxiosErrorResponseEvent = {
+  type: string
+  data: { error: ApiError }
+}
+
+export type ErrorEvent = { type: string; error: ApiError }
+
+export const nhostApiClient = (backendUrl: string) => {
   const client = axios.create({ baseURL: backendUrl, timeout: 10_000 })
 
   client.interceptors.response.use(
@@ -30,7 +36,12 @@ export const createBackendServices: (backendUrl: string) => Record<string, Servi
         }
       })
   )
+  return client
+}
 
+export const createBackendServices: (client: AxiosInstance) => Record<string, Service> = (
+  client
+) => {
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
     data?: D,
@@ -60,12 +71,13 @@ export const createBackendServices: (backendUrl: string) => Record<string, Servi
       }),
 
     //   TODO options
-    registerUser: ({ email, password }) =>
-      postRequest('/v1/auth/signup/email-password', {
+    registerUser: ({ email, password }) => {
+      console.log('Register')
+      return postRequest('/v1/auth/signup/email-password', {
         email,
         password
-      }),
-
+      })
+    },
     refreshToken: ({ refreshToken: { value } }) =>
       postRequest('/v1/auth/token', {
         refreshToken: value
@@ -80,16 +92,6 @@ export const createBackendServices: (backendUrl: string) => Record<string, Servi
       postRequest(
         '/v1/auth/user/email/change',
         { newEmail: email },
-        {
-          headers: {
-            authorization: `Bearer ${accessToken.value}`
-          }
-        }
-      ),
-    changePassword: ({ password, accessToken }) =>
-      postRequest(
-        '/v1/auth/user/password',
-        { newPassword: password },
         {
           headers: {
             authorization: `Bearer ${accessToken.value}`

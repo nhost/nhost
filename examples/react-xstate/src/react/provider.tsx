@@ -28,6 +28,7 @@ export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUr
 
   const location = useLocation()
 
+  // TODO no need to wrap it into an effect - run it once on startup
   useEffect(() => {
     if (!location.hash) return
     const params = new URLSearchParams(location.hash.slice(1))

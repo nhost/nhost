@@ -1,3 +1,4 @@
+import { ActorRef } from 'xstate'
 import { ApiError } from './backend-services'
 import { DEFAULT_TOKEN_EXPIRATION } from './constants'
 
@@ -17,7 +18,8 @@ export type NhostContext = {
   email?: string
   password?: string
   newEmail: { error: ApiError | null }
-  newPassword: { error: ApiError | null }
+  newPassword: ApiError | null
+  changePasswordMachine?: ActorRef<any>
 }
 
 export const INITIAL_CONTEXT: NhostContext = {
@@ -39,10 +41,9 @@ export const INITIAL_CONTEXT: NhostContext = {
   newEmail: {
     error: null
   },
-  newPassword: {
-    error: null
-  },
+  newPassword: null,
   error: null,
   email: undefined,
-  password: undefined
+  password: undefined,
+  changePasswordMachine: undefined
 }
