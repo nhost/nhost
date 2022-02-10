@@ -15,6 +15,7 @@ export const orderTwo = {
   reference: {
     sdk: ['index', 'graphql', 'authentication', 'storage', 'functions'],
     cli: ['index'],
-    'supporting-libraries': ['react-apollo', 'react-auth']
+    'supporting-libraries': ['react-apollo', 'react-auth'],
+    'hasura-auth': ['index', 'installation', 'configuration', 'environment-variables', 'api-reference']
   }
 }
