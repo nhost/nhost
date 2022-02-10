@@ -6,13 +6,6 @@ export type ApiError = {
   message: string
 }
 
-export type AxiosErrorResponseEvent = {
-  type: string
-  data: { error: ApiError }
-}
-
-export type ErrorEvent = { type: string; error: ApiError }
-
 export const nhostApiClient = (backendUrl: string) => {
   const client = axios.create({ baseURL: backendUrl, timeout: 10_000 })
 

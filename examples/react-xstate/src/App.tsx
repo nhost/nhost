@@ -29,13 +29,13 @@ function App() {
   const [token, setToken] = useState('')
   const changeToken = (event: React.ChangeEvent<HTMLInputElement>) => setToken(event.target.value)
   const jwt = useAccessToken()
-  const signOut = useSignOut()
-  const signUp = useSignUpEmailPassword(email, password)
-  const signIn = useEmailPasswordSignIn(email, password)
-  const passwordlessSignIn = useEmailPasswordlessSignIn(email)
+  const { signOut } = useSignOut()
+  const { signUp, ...signUpResult } = useSignUpEmailPassword(email, password)
+  const { signIn } = useEmailPasswordSignIn(email, password)
+  const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
   const [, updateToken] = useRefreshToken()
-  const changeEmail = useChangeEmail('bidon@bidon.com')
-  const changePassword = useChangePassword('12345678')
+  const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
+  const { change: changePassword } = useChangePassword('12345678')
   const { loading, data } = useAuthQuery(GET_GREETING)
 
   return (
@@ -45,11 +45,13 @@ function App() {
           <>
             <button onClick={signOut}>Logout</button>
             <button onClick={changeEmail}>Change email</button>
+            <div>{JSON.stringify(changeEmailResult)}</div>
             <button onClick={changePassword}>Change password</button>
           </>
         ) : (
           <>
             <button onClick={signUp}>Register</button>
+            <div>{JSON.stringify(signUpResult)}</div>
             <button onClick={signIn}>Email + password signin</button>
             <button onClick={passwordlessSignIn}>Passwordless signin</button>
           </>

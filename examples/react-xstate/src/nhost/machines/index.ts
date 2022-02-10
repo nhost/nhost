@@ -68,6 +68,7 @@ export const createNhostMachine = ({
           },
           states: {
             signedOut: {
+              tags: ['ready'],
               initial: 'noErrors',
               entry: 'saveSession',
               states: {
@@ -75,16 +76,7 @@ export const createNhostMachine = ({
                 invalid: {
                   states: { password: {}, email: {} }
                 },
-                awaitingVerification: {},
-                failing: {
-                  always: [
-                    {
-                      cond: 'unverified',
-                      target: 'awaitingVerification'
-                    },
-                    'failed'
-                  ]
-                },
+                needsVerification: {},
                 failed: {
                   exit: 'resetAuthenticationError'
                 }
@@ -136,11 +128,11 @@ export const createNhostMachine = ({
                     src: 'signInPasswordlessEmail',
                     id: 'authenticatePasswordlessEmail',
                     onDone: {
-                      target: '#nhost.authentication.signedOut.awaitingVerification'
+                      target: '#nhost.authentication.signedOut.needsVerification'
                     },
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failing'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -152,10 +144,16 @@ export const createNhostMachine = ({
                       actions: ['saveSession', 'emitToken'],
                       target: '#nhost.authentication.signedIn'
                     },
-                    onError: {
-                      actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failing'
-                    }
+                    onError: [
+                      {
+                        cond: 'unverified',
+                        target: '#nhost.authentication.signedOut.needsVerification'
+                      },
+                      {
+                        actions: 'saveAuthenticationError',
+                        target: '#nhost.authentication.signedOut.failed'
+                      }
+                    ]
                   }
                 }
               }
@@ -171,13 +169,19 @@ export const createNhostMachine = ({
                     target: '#nhost.authentication.signedIn'
                   },
                   {
-                    target: '#nhost.authentication.signedOut.awaitingVerification'
+                    target: '#nhost.authentication.signedOut.needsVerification'
                   }
                 ],
-                onError: {
-                  actions: 'saveAuthenticationError',
-                  target: '#nhost.authentication.signedOut.failing'
-                }
+                onError: [
+                  {
+                    cond: 'unverified',
+                    target: '#nhost.authentication.signedOut.needsVerification'
+                  },
+                  {
+                    actions: 'saveAuthenticationError',
+                    target: '#nhost.authentication.signedOut.failed'
+                  }
+                ]
               }
             },
             signingOut: {
@@ -190,6 +194,7 @@ export const createNhostMachine = ({
               }
             },
             signedIn: {
+              tags: ['ready'],
               type: 'parallel',
               on: {
                 SIGNOUT: {
@@ -340,9 +345,9 @@ export const createNhostMachine = ({
       guards: {
         isUserSet: (ctx) => !!ctx.user,
         // * Authentication errors
-        unverified: (ctx) =>
-          ctx.errors.authentication?.status === 401 &&
-          ctx.errors.authentication.message === 'Email is not verified',
+        // TODO type
+        unverified: (ctx, { data: { error } }: any) =>
+          error.status === 401 && error.message === 'Email is not verified',
 
         // * Event guards
         hasUser: (_, e) => !!e.data?.session,

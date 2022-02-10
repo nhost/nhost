@@ -111,7 +111,7 @@ export interface Typegen0 {
     invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
     invalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
     isUserSet: ''
-    unverified: ''
+    unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
   }
   eventsCausingDelays: {}
   matchesStates:
@@ -121,8 +121,7 @@ export interface Typegen0 {
     | 'authentication.signedOut.invalid'
     | 'authentication.signedOut.invalid.password'
     | 'authentication.signedOut.invalid.email'
-    | 'authentication.signedOut.awaitingVerification'
-    | 'authentication.signedOut.failing'
+    | 'authentication.signedOut.needsVerification'
     | 'authentication.signedOut.failed'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
@@ -156,8 +155,7 @@ export interface Typegen0 {
               signedOut?:
                 | 'noErrors'
                 | 'invalid'
-                | 'awaitingVerification'
-                | 'failing'
+                | 'needsVerification'
                 | 'failed'
                 | { invalid?: 'password' | 'email' }
               authenticating?: 'passwordlessEmail' | 'password'
@@ -178,5 +176,5 @@ export interface Typegen0 {
                   }
             }
       }
-  tags: never
+  tags: 'ready'
 }
