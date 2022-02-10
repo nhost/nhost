@@ -12,4 +12,4 @@ or
 
 ## Documentation
 
-[https://docs.nhost.io/libraries/react-apollo](https://docs.nhost.io/libraries/react-apollo)
+[https://docs.nhost.io/reference/supporting-libraries/react-apollo](https://docs.nhost.io/reference/supporting-libraries/react-apollo)
