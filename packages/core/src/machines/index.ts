@@ -1,16 +1,16 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { assign, createMachine, forwardTo, send } from 'xstate'
 
-import { StorageGetter, StorageSetter } from '../storage'
+import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
+import { StorageGetter, StorageSetter } from '../storage'
 import { isValidEmail, isValidPassword } from '../validators'
 
-import { createChangePasswordMachine } from './change-password'
 import { createChangeEmailMachine } from './change-email'
+import { createChangePasswordMachine } from './change-password'
 import { INITIAL_CONTEXT, NhostContext } from './context'
-import { createTokenRefresherMachine } from './token-refresher'
 import { NhostEvents } from './events'
-import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
+import { createTokenRefresherMachine } from './token-refresher'
 import { urlParser } from './url-parser'
 
 export type NhostInitOptions = {

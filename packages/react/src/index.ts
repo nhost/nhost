@@ -5,5 +5,5 @@ inspect({
   iframe: false
 })
 
-export * from './provider'
 export * from './hooks'
+export * from './provider'

@@ -168,6 +168,9 @@ importers:
   examples/react-xstate:
     specifiers:
       '@apollo/client': ^3.5.8
+      '@nhost/apollo': workspace:^0.1.0
+      '@nhost/core': workspace:^0.1.0
+      '@nhost/react': workspace:^0.1.0
       '@types/react': ^17.0.39
       '@types/react-dom': ^17.0.11
       '@types/uuid': ^8.3.4
@@ -175,6 +178,7 @@ importers:
       '@xstate/inspect': ^0.6.2
       '@xstate/react': ^2.0.0
       axios: ^0.25.0
+      graphql: 15.7.2
       react: ^17.0.2
       react-dom: ^17.0.2
       subscriptions-transport-ws: ^0.11.0
@@ -184,6 +188,9 @@ importers:
       ws: ^8.4.2
       xstate: ^4.29.0
     dependencies:
+      '@nhost/apollo': link:../../packages/apollo
+      '@nhost/core': link:../../packages/core
+      '@nhost/react': link:../../packages/react
       '@xstate/react': 2.0.0_b2730fbad1dada8c45d201a94f0d2c3b
       axios: 0.25.0
       react: 17.0.2
@@ -191,13 +198,14 @@ importers:
       uuid: 8.3.2
       xstate: 4.29.0
     devDependencies:
-      '@apollo/client': 3.5.8_cbd8c9fa2001af7e0ced74f4858d2097
+      '@apollo/client': 3.5.8_03bf9288e5c3a1c712f16f9f9a62dbf9
       '@types/react': 17.0.39
       '@types/react-dom': 17.0.11
       '@types/uuid': 8.3.4
       '@vitejs/plugin-react': 1.1.4
       '@xstate/inspect': 0.6.2_ws@8.4.2
-      subscriptions-transport-ws: 0.11.0
+      graphql: 15.7.2
+      subscriptions-transport-ws: 0.11.0_graphql@15.7.2
       typescript: 4.5.5
       vite: 2.7.13
       ws: 8.4.2
@@ -205,19 +213,37 @@ importers:
   examples/testing-project:
     specifiers: {}
 
+  packages/apollo:
+    specifiers:
+      '@apollo/client': ^3.5.8
+      '@nhost/core': workspace:^0.1.0
+      graphql: 15.7.2
+      subscriptions-transport-ws: ^0.11.0
+    dependencies:
+      '@apollo/client': 3.5.8_f3f7eb5e21785ef7d5faca94c1a68824
+      '@nhost/core': link:../core
+      graphql: 15.7.2
+      subscriptions-transport-ws: 0.11.0_graphql@15.7.2
+
+  packages/core:
+    specifiers:
+      axios: ^0.25.0
+      xstate: ^4.29.0
+    dependencies:
+      axios: 0.25.0
+      xstate: 4.29.0
+
   packages/hasura-auth-js:
     specifiers:
       '@types/faker': '5'
       axios: ^0.25.0
       faker: '5'
-      graphql: 15.7.2
       html-urls: ^2.4.27
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
       query-string: ^7.1.0
     dependencies:
       axios: 0.25.0
-      graphql: 15.7.2
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
@@ -245,6 +271,21 @@ importers:
       axios: 0.23.0
       jwt-decode: 3.1.2
       query-string: 7.1.1
+
+  packages/react:
+    specifiers:
+      '@nhost/core': workspace:^0.1.0
+      '@xstate/inspect': ^0.6.2
+      '@xstate/react': ^2.0.0
+      react: ^17.0.2
+      ws: ^8.4.2
+    dependencies:
+      '@nhost/core': link:../core
+      '@xstate/react': 2.0.0_react@17.0.2
+    devDependencies:
+      '@xstate/inspect': 0.6.2_ws@8.4.2
+      react: 17.0.2
+      ws: 8.4.2
 
   packages/react-apollo:
     specifiers:
@@ -344,7 +385,7 @@ packages:
       zen-observable-ts: 1.2.3
     dev: true
 
-  /@apollo/client/3.5.8_cbd8c9fa2001af7e0ced74f4858d2097:
+  /@apollo/client/3.5.8_f3f7eb5e21785ef7d5faca94c1a68824:
     resolution: {integrity: sha512-MAm05+I1ullr64VLpZwon/ISnkMuNLf6vDqgo9wiMhHYBGT4yOAbAIseRdjCHZwfSx/7AUuBgaTNOssZPIr6FQ==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
@@ -356,21 +397,21 @@ packages:
       subscriptions-transport-ws:
         optional: true
     dependencies:
-      '@graphql-typed-document-node/core': 3.1.1
+      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
       '@wry/context': 0.6.1
       '@wry/equality': 0.5.2
       '@wry/trie': 0.3.1
-      graphql-tag: 2.12.6
+      graphql: 15.7.2
+      graphql-tag: 2.12.6_graphql@15.7.2
       hoist-non-react-statics: 3.3.2
       optimism: 0.16.1
       prop-types: 15.8.1
-      react: 17.0.2
-      subscriptions-transport-ws: 0.11.0
+      subscriptions-transport-ws: 0.11.0_graphql@15.7.2
       symbol-observable: 4.0.0
       ts-invariant: 0.9.4
       tslib: 2.3.1
       zen-observable-ts: 1.2.3
-    dev: true
+    dev: false
 
   /@apollo/client/3.5.8_graphql@15.7.2+react@17.0.2:
     resolution: {integrity: sha512-MAm05+I1ullr64VLpZwon/ISnkMuNLf6vDqgo9wiMhHYBGT4yOAbAIseRdjCHZwfSx/7AUuBgaTNOssZPIr6FQ==}
@@ -2591,12 +2632,6 @@ packages:
       value-or-promise: 1.0.11
     dev: true
 
-  /@graphql-typed-document-node/core/3.1.1:
-    resolution: {integrity: sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==}
-    peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-    dev: true
-
   /@graphql-typed-document-node/core/3.1.1_graphql@15.7.2:
     resolution: {integrity: sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==}
     peerDependencies:
@@ -4517,6 +4552,25 @@ packages:
       use-isomorphic-layout-effect: 1.1.1_a0c521d4794c7ad97f5f4c1c4a7d5818
       use-subscription: 1.5.1_react@17.0.2
       xstate: 4.29.0
+    transitivePeerDependencies:
+      - '@types/react'
+    dev: false
+
+  /@xstate/react/2.0.0_react@17.0.2:
+    resolution: {integrity: sha512-Pw8uHkamrMxoV8cwnVHv570Zun7o2ktokn5bkUOrv6PufFg5JHL2URiGvbyR9JqmIxfJdXregWvCGa3pqXd7Cg==}
+    peerDependencies:
+      '@xstate/fsm': ^1.6.4
+      react: ^16.8.0 || ^17.0.0
+      xstate: ^4.29.0
+    peerDependenciesMeta:
+      '@xstate/fsm':
+        optional: true
+      xstate:
+        optional: true
+    dependencies:
+      react: 17.0.2
+      use-isomorphic-layout-effect: 1.1.1_react@17.0.2
+      use-subscription: 1.5.1_react@17.0.2
     transitivePeerDependencies:
       - '@types/react'
     dev: false
@@ -9205,15 +9259,6 @@ packages:
       graphql: '>=0.11 <=16'
     dependencies:
       graphql: 15.7.2
-    dev: true
-
-  /graphql-tag/2.12.6:
-    resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      tslib: 2.3.1
     dev: true
 
   /graphql-tag/2.12.6_graphql@15.7.2:
@@ -15770,21 +15815,6 @@ packages:
       postcss-selector-parser: 3.1.2
     dev: false
 
-  /subscriptions-transport-ws/0.11.0:
-    resolution: {integrity: sha512-8D4C6DIH5tGiAIpp5I0wD/xRlNiZAPGHygzCe7VzyzUoxHtawzjNAY9SUTXU05/EY2NMY9/9GF0ycizkXr1CWQ==}
-    peerDependencies:
-      graphql: ^15.7.2 || ^16.0.0
-    dependencies:
-      backo2: 1.0.2
-      eventemitter3: 3.1.2
-      iterall: 1.3.0
-      symbol-observable: 1.2.0
-      ws: 7.5.6
-    transitivePeerDependencies:
-      - bufferutil
-      - utf-8-validate
-    dev: true
-
   /subscriptions-transport-ws/0.11.0_graphql@15.7.2:
     resolution: {integrity: sha512-8D4C6DIH5tGiAIpp5I0wD/xRlNiZAPGHygzCe7VzyzUoxHtawzjNAY9SUTXU05/EY2NMY9/9GF0ycizkXr1CWQ==}
     peerDependencies:
@@ -16758,6 +16788,18 @@ packages:
         optional: true
     dependencies:
       '@types/react': 17.0.39
+      react: 17.0.2
+    dev: false
+
+  /use-isomorphic-layout-effect/1.1.1_react@17.0.2:
+    resolution: {integrity: sha512-L7Evj8FGcwo/wpbv/qvSfrkHFtOpCzvM5yl2KVyDJoylVuSvzphiiasmjgQPttIGBAy2WKiBNR98q8w7PiNgKQ==}
+    peerDependencies:
+      '@types/react': '*'
+      react: ^16.8.0 || ^17.0.0
+    peerDependenciesMeta:
+      '@types/react':
+        optional: true
+    dependencies:
       react: 17.0.2
     dev: false
 

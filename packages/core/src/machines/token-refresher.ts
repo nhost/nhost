@@ -1,6 +1,5 @@
 import { AxiosInstance } from 'axios'
-
-import { createMachine, sendParent, assign } from 'xstate'
+import { assign, createMachine, sendParent } from 'xstate'
 
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
@@ -38,7 +37,7 @@ export const createTokenRefresherMachine = (
         context: {} as TokenRefresherContext,
         events: {} as TokenRefresherEvents
       },
-      tsTypes: {} as import("./token-refresher.typegen").Typegen0,
+      tsTypes: {} as import('./token-refresher.typegen').Typegen0,
       id: 'token',
       context: {
         token: storageGetter(NHOST_REFRESH_TOKEN),

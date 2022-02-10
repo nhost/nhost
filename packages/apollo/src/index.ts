@@ -1,4 +1,5 @@
 import { SubscriptionClient } from 'subscriptions-transport-ws'
+import { InterpreterFrom } from 'xstate'
 
 import {
   ApolloClient,
@@ -13,8 +14,7 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { InterpreterFrom } from 'xstate'
-import type { NhostMachine } from './nhost'
+import type { NhostMachine } from '@nhost/core'
 
 const isBrowser = () => typeof window !== 'undefined'
 

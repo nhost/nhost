@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+
 import { NETWORK_ERROR_CODE } from './errors'
 
 export const nhostApiClient = (backendUrl: string) => {

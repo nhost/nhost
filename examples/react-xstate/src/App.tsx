@@ -10,7 +10,7 @@ import {
   useSignUpEmailPassword,
   useChangeEmail,
   useChangePassword
-} from './react'
+} from '@nhost/react'
 import { useAuthQuery } from './react-apollo'
 
 const GET_GREETING = gql`

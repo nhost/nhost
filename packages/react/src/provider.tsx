@@ -1,9 +1,9 @@
-import { useInterpret } from '@xstate/react'
-import { inspect } from '@xstate/inspect'
 import React, { createContext } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { Nhost, NhostMachine } from '../nhost'
+import { Nhost, NhostMachine } from '@nhost/core'
+import { inspect } from '@xstate/inspect'
+import { useInterpret } from '@xstate/react'
 
 if (process.env.NODE_ENV) {
   inspect({

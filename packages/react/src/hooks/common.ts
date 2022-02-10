@@ -1,5 +1,6 @@
-import { useSelector, useActor } from '@xstate/react'
 import { useContext } from 'react'
+
+import { useActor, useSelector } from '@xstate/react'
 
 import { NhostContext } from '../provider'
 

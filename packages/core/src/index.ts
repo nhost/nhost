@@ -1,4 +1,4 @@
-import { NhostMachine, createNhostMachine, NhostInitOptions } from './machines'
+import { createNhostMachine, NhostInitOptions, NhostMachine } from './machines'
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
 
 export type Nhost = {

@@ -2,8 +2,8 @@ import React, { useContext, useEffect, useState } from 'react'
 
 import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client'
 
-import { createApolloClient, NhostApolloClientOptions } from '../apollo'
-import { NhostContext } from '../react'
+import { createApolloClient, NhostApolloClientOptions } from '@nhost/apollo'
+import { NhostContext } from '@nhost/react'
 
 export const NhostApolloProvider: React.FC<
   Omit<NhostApolloClientOptions, 'backendUrl' | 'authService'>

@@ -1,4 +1,5 @@
 import { createMachine, sendParent } from 'xstate'
+
 import { NhostEvents } from './events'
 
 export type UrlParserContext = {}

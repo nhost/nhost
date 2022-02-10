@@ -1,5 +1,7 @@
-import { useSelector } from '@xstate/react'
 import { useMemo } from 'react'
+
+import { useSelector } from '@xstate/react'
+
 import { useAuthenticated, useAuthService, useReady } from './common'
 
 export const useSignUpEmailPassword = (email: string, password: string) => {

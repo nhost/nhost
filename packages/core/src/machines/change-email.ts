@@ -1,20 +1,27 @@
 import { AxiosInstance } from 'axios'
 import { createMachine, sendParent } from 'xstate'
-import { INVALID_PASSWORD_ERROR } from '../errors'
-import { isValidPassword } from '../validators'
 
-export type ChangePasswordContext = {}
-export type ChangePasswordEvents = { type: 'REQUEST_CHANGE'; password: string; accessToken: string }
+import { INVALID_EMAIL_ERROR } from '../errors'
+import { isValidEmail } from '../validators'
 
-export const createChangePasswordMachine = (api: AxiosInstance) =>
+export type ChangeEmailContext = {
+  test?: string
+}
+export type ChangeEmailEvents = {
+  type: 'REQUEST_CHANGE'
+  email: string
+  accessToken: string | null
+}
+
+export const createChangeEmailMachine = (api: AxiosInstance) =>
   createMachine(
     {
       schema: {
-        context: {} as ChangePasswordContext,
-        events: {} as ChangePasswordEvents
+        context: {} as ChangeEmailContext,
+        events: {} as ChangeEmailEvents
       },
-      tsTypes: {} as import('./change-password.typegen').Typegen0,
-      id: 'changePassword',
+      tsTypes: {} as import('./change-email.typegen').Typegen0,
+      id: 'changeEmail',
       initial: 'idle',
       context: {},
       states: {
@@ -22,7 +29,7 @@ export const createChangePasswordMachine = (api: AxiosInstance) =>
           on: {
             REQUEST_CHANGE: [
               {
-                cond: 'invalidPassword',
+                cond: 'invalidEmail',
                 actions: 'sendInvalid'
               },
               {
@@ -54,31 +61,33 @@ export const createChangePasswordMachine = (api: AxiosInstance) =>
     },
     {
       actions: {
-        sendLoading: sendParent('CHANGE_PASSWORD_LOADING'),
-        sendInvalid: sendParent({ type: 'CHANGE_PASSWORD_INVALID', error: INVALID_PASSWORD_ERROR }),
-        sendSuccess: sendParent('CHANGE_PASSWORD_SUCCESS'),
+        sendLoading: sendParent('CHANGE_EMAIL_LOADING'),
+        sendInvalid: sendParent({ type: 'CHANGE_EMAIL_INVALID', error: INVALID_EMAIL_ERROR }),
+        sendSuccess: sendParent('CHANGE_EMAIL_SUCCESS'),
         sendError: sendParent(
           // TODO types
           (_, { data: { error } }: any) => ({
-            type: 'CHANGE_PASSWORD_ERROR',
+            type: 'CHANGE_EMAIL_ERROR',
             error
           })
         )
       },
       guards: {
-        invalidPassword: (_, { password }) => !isValidPassword(password)
+        invalidEmail: (_, { email }) => !isValidEmail(email)
       },
       services: {
-        requestChange: async (_, { password, accessToken }) =>
-          await api.post(
-            '/v1/auth/user/password',
-            { newPassword: password },
+        requestChange: async (_, { email, accessToken }) => {
+          const res = await api.post(
+            '/v1/auth/user/email/change',
+            { newEmail: email },
             {
               headers: {
                 authorization: `Bearer ${accessToken}`
               }
             }
           )
+          return res.data
+        }
       }
     }
   )
