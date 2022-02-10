@@ -6,6 +6,7 @@
   "keywords": [
     "nhost",
     "hasura",
+    "storage",
     "auth",
     "authentication",
     "graphql",

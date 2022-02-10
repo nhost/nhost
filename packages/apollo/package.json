@@ -6,11 +6,13 @@
   "keywords": [
     "nhost",
     "hasura",
+    "storage",
     "auth",
     "authentication",
     "graphql",
     "postgresql",
-    "realtime"
+    "realtime",
+    "apollo"
   ],
   "author": "Nhost",
   "homepage": "https://nhost.io",
