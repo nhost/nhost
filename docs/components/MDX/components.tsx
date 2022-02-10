@@ -19,7 +19,7 @@ function Note({ children }) {
 
 function Video({ src }) {
   return (
-    <div className="flex justify-center mt-8 mb-8 mx-10">
+    <div className="flex justify-center my-8 mx-10">
       <video width="800" controls>
         <source src={src} type="video/mp4" />
       </video>
