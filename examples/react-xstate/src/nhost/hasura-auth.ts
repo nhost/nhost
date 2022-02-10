@@ -1,11 +1,5 @@
 import axios, { AxiosError } from 'axios'
-import { NETWORK_ERROR_CODE } from './constants'
-
-export type ApiError = {
-  error: string
-  status: number
-  message: string
-}
+import { NETWORK_ERROR_CODE } from './errors'
 
 export const nhostApiClient = (backendUrl: string) => {
   const client = axios.create({ baseURL: backendUrl })

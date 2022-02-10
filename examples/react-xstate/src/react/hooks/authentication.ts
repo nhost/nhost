@@ -11,10 +11,6 @@ export const useEmailPasswordSignIn = (email: string, password: string) => {
     })
 
   const error = useSelector(service, (state) => state.context.errors.authentication)
-  const isValid = useSelector(
-    service,
-    (state) => !state.matches({ authentication: { signedOut: 'invalid' } })
-  )
   const success = useAuthenticated()
   const loading = useSelector(service, (state) =>
     state.matches({ authentication: { authenticating: 'password' } })
@@ -27,7 +23,7 @@ export const useEmailPasswordSignIn = (email: string, password: string) => {
     state.matches({ authentication: { signedOut: 'failed' } })
   )
 
-  return { signIn, loading, success, needsVerification, hasError, error, isValid }
+  return { signIn, loading, success, needsVerification, hasError, error }
 }
 
 export const useEmailPasswordlessSignIn = (email: string) => {
@@ -39,10 +35,6 @@ export const useEmailPasswordlessSignIn = (email: string) => {
     })
 
   const error = useSelector(service, (state) => state.context.errors.authentication)
-  const isValid = useSelector(
-    service,
-    (state) => !state.matches({ authentication: { signedOut: 'invalid' } })
-  )
   const loading = useSelector(service, (state) =>
     state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
   )
@@ -53,5 +45,5 @@ export const useEmailPasswordlessSignIn = (email: string) => {
   const hasError = useSelector(service, (state) =>
     state.matches({ authentication: { signedOut: 'failed' } })
   )
-  return { signIn, loading, sent, hasError, error, isValid }
+  return { signIn, loading, sent, hasError, error }
 }

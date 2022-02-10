@@ -10,6 +10,7 @@ import { createChangeEmailMachine } from './change-email'
 import { INITIAL_CONTEXT, NhostContext } from './context'
 import { createTokenRefresherMachine } from './token-refresher'
 import { NhostEvents } from './events'
+import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
 
 export type NhostInitOptions = {
   backendUrl: string
@@ -73,12 +74,25 @@ export const createNhostMachine = ({
               entry: 'saveSession',
               states: {
                 noErrors: {},
-                invalid: {
-                  states: { password: {}, email: {} }
-                },
                 needsVerification: {},
                 failed: {
-                  exit: 'resetAuthenticationError'
+                  exit: 'resetAuthenticationError',
+                  initial: 'server',
+                  states: {
+                    server: {
+                      entry: 'saveAuthenticationError'
+                    },
+                    validation: {
+                      states: {
+                        password: {
+                          entry: 'saveInvalidPassword'
+                        },
+                        email: {
+                          entry: 'saveInvalidEmail'
+                        }
+                      }
+                    }
+                  }
                 }
               },
               always: {
@@ -89,35 +103,31 @@ export const createNhostMachine = ({
                 SIGNIN_PASSWORD: [
                   {
                     cond: 'invalidEmail',
-                    target: '.invalid.email'
+                    target: '.failed.validation.email'
                   },
                   {
                     cond: 'invalidPassword',
-                    target: '.invalid.password'
+                    target: '.failed.validation.password'
                   },
-                  {
-                    target: '#nhost.authentication.authenticating.password'
-                  }
+                  '#nhost.authentication.authenticating.password'
                 ],
                 SIGNIN_PASSWORDLESS_EMAIL: [
                   {
                     cond: 'invalidEmail',
-                    target: '.invalid.email'
+                    target: '.failed.validation.email'
                   },
                   '#nhost.authentication.authenticating.passwordlessEmail'
                 ],
                 REGISTER: [
                   {
                     cond: 'invalidEmail',
-                    target: '.invalid.email'
+                    target: '.failed.validation.email'
                   },
                   {
                     cond: 'invalidPassword',
-                    target: '.invalid.password'
+                    target: '.failed.validation.password'
                   },
-                  {
-                    target: '#nhost.authentication.registering'
-                  }
+                  '#nhost.authentication.registering'
                 ]
               }
             },
@@ -127,13 +137,8 @@ export const createNhostMachine = ({
                   invoke: {
                     src: 'signInPasswordlessEmail',
                     id: 'authenticatePasswordlessEmail',
-                    onDone: {
-                      target: '#nhost.authentication.signedOut.needsVerification'
-                    },
-                    onError: {
-                      actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed'
-                    }
+                    onDone: '#nhost.authentication.signedOut.needsVerification',
+                    onError: '#nhost.authentication.signedOut.failed.server'
                   }
                 },
                 password: {
@@ -150,8 +155,7 @@ export const createNhostMachine = ({
                         target: '#nhost.authentication.signedOut.needsVerification'
                       },
                       {
-                        actions: 'saveAuthenticationError',
-                        target: '#nhost.authentication.signedOut.failed'
+                        target: '#nhost.authentication.signedOut.failed.server'
                       }
                     ]
                   }
@@ -178,8 +182,7 @@ export const createNhostMachine = ({
                     target: '#nhost.authentication.signedOut.needsVerification'
                   },
                   {
-                    actions: 'saveAuthenticationError',
-                    target: '#nhost.authentication.signedOut.failed'
+                    target: '#nhost.authentication.signedOut.failed.server'
                   }
                 ]
               }
@@ -197,9 +200,7 @@ export const createNhostMachine = ({
               tags: ['ready'],
               type: 'parallel',
               on: {
-                SIGNOUT: {
-                  target: '#nhost.authentication.signingOut'
-                }
+                SIGNOUT: '#nhost.authentication.signingOut'
               },
               states: {
                 changeEmail: {
@@ -213,23 +214,25 @@ export const createNhostMachine = ({
                       actions: 'requestEmailChange'
                     },
                     CHANGE_EMAIL_LOADING: '.running',
-                    CHANGE_EMAIL_INVALID: '.idle.invalid',
+                    CHANGE_EMAIL_INVALID: '.idle.failed.validation',
                     CHANGE_EMAIL_SUCCESS: '.idle.needsVerification',
-                    CHANGE_EMAIL_ERROR: {
-                      target: '.idle.failed',
-                      actions: 'saveEmailChangeError'
-                    }
+                    CHANGE_EMAIL_ERROR: '.idle.failed.server'
                   },
                   states: {
                     idle: {
                       initial: 'noErrors',
                       states: {
                         noErrors: {},
-                        invalid: {},
                         success: {},
                         needsVerification: {},
                         failed: {
-                          exit: 'resetEmailChangeError'
+                          initial: 'server',
+                          entry: 'saveEmailChangeError',
+                          exit: 'resetEmailChangeError',
+                          states: {
+                            server: {},
+                            validation: {}
+                          }
                         }
                       }
                     },
@@ -249,22 +252,21 @@ export const createNhostMachine = ({
                       actions: 'requestPasswordChange'
                     },
                     CHANGE_PASSWORD_LOADING: '.running',
-                    CHANGE_PASSWORD_INVALID: '.idle.invalid',
+                    CHANGE_PASSWORD_INVALID: '.idle.failed.validation',
                     CHANGE_PASSWORD_SUCCESS: '.idle.success',
-                    CHANGE_PASSWORD_ERROR: {
-                      target: '.idle.failed',
-                      actions: 'savePasswordChangeError'
-                    }
+                    CHANGE_PASSWORD_ERROR: '.idle.failed.server'
                   },
                   states: {
                     idle: {
                       initial: 'noErrors',
                       states: {
                         noErrors: {},
-                        invalid: {},
                         success: {},
                         failed: {
-                          exit: 'resetPasswordChangeError'
+                          initial: 'server',
+                          entry: 'savePasswordChangeError',
+                          exit: 'resetPasswordChangeError',
+                          states: { server: {}, validation: {} }
                         }
                       }
                     },
@@ -304,6 +306,12 @@ export const createNhostMachine = ({
         resetAuthenticationError: assign({
           errors: ({ errors: { authentication, ...errors } }) => errors
         }),
+        saveInvalidEmail: assign({
+          errors: ({ errors }) => ({ ...errors, authentication: INVALID_EMAIL_ERROR })
+        }),
+        saveInvalidPassword: assign({
+          errors: ({ errors }) => ({ ...errors, authentication: INVALID_PASSWORD_ERROR })
+        }),
 
         // * Change password
         requestPasswordChange: send(
@@ -317,7 +325,8 @@ export const createNhostMachine = ({
           }
         ),
         savePasswordChangeError: assign({
-          errors: ({ errors }, { error }) => ({ ...errors, newPassword: error })
+          // TODO type
+          errors: ({ errors }, { error }: any) => ({ ...errors, newPassword: error })
         }),
         resetPasswordChangeError: assign({
           errors: ({ errors: { newPassword, ...errors } }) => errors
@@ -335,7 +344,8 @@ export const createNhostMachine = ({
           }
         ),
         saveEmailChangeError: assign({
-          errors: ({ errors }, { error }) => ({ ...errors, newEmail: error })
+          // TODO type
+          errors: ({ errors }, { error }: any) => ({ ...errors, newEmail: error })
         }),
         resetEmailChangeError: assign({
           errors: ({ errors: { newEmail, ...errors } }) => errors

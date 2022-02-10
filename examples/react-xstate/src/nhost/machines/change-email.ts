@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios'
 import { createMachine, sendParent } from 'xstate'
+import { INVALID_EMAIL_ERROR } from '../errors'
 import { isValidEmail } from '../validators'
 
 export type ChangeEmailContext = {
@@ -60,7 +61,7 @@ export const createChangeEmailMachine = (api: AxiosInstance) =>
     {
       actions: {
         sendLoading: sendParent('CHANGE_EMAIL_LOADING'),
-        sendInvalid: sendParent('CHANGE_EMAIL_INVALID'),
+        sendInvalid: sendParent({ type: 'CHANGE_EMAIL_INVALID', error: INVALID_EMAIL_ERROR }),
         sendSuccess: sendParent('CHANGE_EMAIL_SUCCESS'),
         sendError: sendParent(
           // TODO types

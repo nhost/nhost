@@ -10,19 +10,21 @@ export interface Typegen0 {
       | 'done.invoke.registerUser'
       | 'done.invoke.signingOut'
       | 'error.platform.signingOut'
+    emitToken: 'done.invoke.authenticateUserWithPassword'
+    requestEmailChange: 'CHANGE_EMAIL'
+    requestPasswordChange: 'CHANGE_PASSWORD'
+    resetAuthenticationError: 'xstate.init'
     saveAuthenticationError:
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.registerUser'
-    emitToken: 'done.invoke.authenticateUserWithPassword'
-    requestEmailChange: 'CHANGE_EMAIL'
-    saveEmailChangeError: 'CHANGE_EMAIL_ERROR'
-    requestPasswordChange: 'CHANGE_PASSWORD'
-    savePasswordChangeError: 'CHANGE_PASSWORD_ERROR'
-    resetAuthenticationError: 'xstate.init'
+    saveInvalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
+    saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
     emitLogout: 'xstate.init'
     resetEmailChangeError: 'xstate.init'
+    saveEmailChangeError: 'xstate.init'
     resetPasswordChangeError: 'xstate.init'
+    savePasswordChangeError: 'xstate.init'
   }
   internalEvents: {
     'done.invoke.authenticateUserWithPassword': {
@@ -118,11 +120,12 @@ export interface Typegen0 {
     | 'authentication'
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
-    | 'authentication.signedOut.invalid'
-    | 'authentication.signedOut.invalid.password'
-    | 'authentication.signedOut.invalid.email'
     | 'authentication.signedOut.needsVerification'
     | 'authentication.signedOut.failed'
+    | 'authentication.signedOut.failed.server'
+    | 'authentication.signedOut.failed.validation'
+    | 'authentication.signedOut.failed.validation.password'
+    | 'authentication.signedOut.failed.validation.email'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
     | 'authentication.authenticating.password'
@@ -132,17 +135,19 @@ export interface Typegen0 {
     | 'authentication.signedIn.changeEmail'
     | 'authentication.signedIn.changeEmail.idle'
     | 'authentication.signedIn.changeEmail.idle.noErrors'
-    | 'authentication.signedIn.changeEmail.idle.invalid'
     | 'authentication.signedIn.changeEmail.idle.success'
     | 'authentication.signedIn.changeEmail.idle.needsVerification'
     | 'authentication.signedIn.changeEmail.idle.failed'
+    | 'authentication.signedIn.changeEmail.idle.failed.server'
+    | 'authentication.signedIn.changeEmail.idle.failed.validation'
     | 'authentication.signedIn.changeEmail.running'
     | 'authentication.signedIn.changePassword'
     | 'authentication.signedIn.changePassword.idle'
     | 'authentication.signedIn.changePassword.idle.noErrors'
-    | 'authentication.signedIn.changePassword.idle.invalid'
     | 'authentication.signedIn.changePassword.idle.success'
     | 'authentication.signedIn.changePassword.idle.failed'
+    | 'authentication.signedIn.changePassword.idle.failed.server'
+    | 'authentication.signedIn.changePassword.idle.failed.validation'
     | 'authentication.signedIn.changePassword.running'
     | {
         authentication?:
@@ -154,10 +159,9 @@ export interface Typegen0 {
           | {
               signedOut?:
                 | 'noErrors'
-                | 'invalid'
                 | 'needsVerification'
                 | 'failed'
-                | { invalid?: 'password' | 'email' }
+                | { failed?: 'server' | 'validation' | { validation?: 'password' | 'email' } }
               authenticating?: 'passwordlessEmail' | 'password'
               signedIn?:
                 | 'changeEmail'
@@ -167,12 +171,23 @@ export interface Typegen0 {
                       | 'idle'
                       | 'running'
                       | {
-                          idle?: 'noErrors' | 'invalid' | 'success' | 'needsVerification' | 'failed'
+                          idle?:
+                            | 'noErrors'
+                            | 'success'
+                            | 'needsVerification'
+                            | 'failed'
+                            | { failed?: 'server' | 'validation' }
                         }
                     changePassword?:
                       | 'idle'
                       | 'running'
-                      | { idle?: 'noErrors' | 'invalid' | 'success' | 'failed' }
+                      | {
+                          idle?:
+                            | 'noErrors'
+                            | 'success'
+                            | 'failed'
+                            | { failed?: 'server' | 'validation' }
+                        }
                   }
             }
       }

@@ -1,4 +1,4 @@
-import { ApiError } from '../hasura-auth'
+import { ErrorPayload } from '../errors'
 
 // TODO better typing
 type User = any //Record<string, unknown>
@@ -8,9 +8,9 @@ export type NhostContext = {
   mfa: boolean
   accessToken: string | null
   refreshToken: string | null
-  errors: Partial<Record<'newPassword' | 'newEmail' | 'registration' | 'authentication', ApiError>>
-  newEmail: ApiError | null
-  newPassword: ApiError | null
+  errors: Partial<
+    Record<'newPassword' | 'newEmail' | 'registration' | 'authentication', ErrorPayload>
+  >
 }
 
 export const INITIAL_CONTEXT: NhostContext = {
@@ -18,7 +18,5 @@ export const INITIAL_CONTEXT: NhostContext = {
   mfa: false,
   accessToken: null,
   refreshToken: null,
-  newEmail: null,
-  newPassword: null,
   errors: {}
 }

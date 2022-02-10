@@ -1,5 +1,6 @@
 import { AxiosInstance } from 'axios'
 import { createMachine, sendParent } from 'xstate'
+import { INVALID_PASSWORD_ERROR } from '../errors'
 import { isValidPassword } from '../validators'
 
 export type ChangePasswordContext = {}
@@ -54,7 +55,7 @@ export const createChangePasswordMachine = (api: AxiosInstance) =>
     {
       actions: {
         sendLoading: sendParent('CHANGE_PASSWORD_LOADING'),
-        sendInvalid: sendParent('CHANGE_PASSWORD_INVALID'),
+        sendInvalid: sendParent({ type: 'CHANGE_PASSWORD_INVALID', error: INVALID_PASSWORD_ERROR }),
         sendSuccess: sendParent('CHANGE_PASSWORD_SUCCESS'),
         sendError: sendParent(
           // TODO types

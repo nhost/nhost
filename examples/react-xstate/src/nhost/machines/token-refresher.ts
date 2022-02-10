@@ -2,12 +2,12 @@ import { AxiosInstance } from 'axios'
 import { createMachine, sendParent, assign } from 'xstate'
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
-  NETWORK_ERROR_CODE,
   NHOST_REFRESH_TOKEN,
   REFRESH_TOKEN_RETRY_INTERVAL,
   REFRESH_TOKEN_RETRY_MAX_ATTEMPTS,
   TOKEN_REFRESH_MARGIN
 } from '../constants'
+import { NETWORK_ERROR_CODE } from '../errors'
 import { StorageGetter, StorageSetter } from '../storage'
 
 type TokenRefresherContext = {

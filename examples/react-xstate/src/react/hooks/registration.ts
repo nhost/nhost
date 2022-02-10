@@ -8,10 +8,6 @@ export const useSignUpEmailPassword = (email: string, password: string) => {
     state.matches({ authentication: { signedOut: 'failed' } })
   )
   const error = useSelector(service, (state) => state.context.errors.authentication)
-  const isValid = useSelector(
-    service,
-    (state) => !state.matches({ authentication: { signedOut: 'invalid' } })
-  )
   const ready = useReady()
   const success = useAuthenticated()
   const loading = useMemo(() => !ready && !success, [ready, success])
@@ -31,7 +27,6 @@ export const useSignUpEmailPassword = (email: string, password: string) => {
     success,
     hasError,
     error,
-    isValid,
     needsVerification
   }
 }

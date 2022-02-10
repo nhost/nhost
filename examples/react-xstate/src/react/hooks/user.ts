@@ -7,11 +7,6 @@ export const useChangeEmail = (email: string) => {
     state.matches({ authentication: { signedIn: { changeEmail: { idle: 'failed' } } } })
   )
   const error = useSelector(service, (state) => state.context.errors.newEmail)
-  const isValid = useSelector(
-    service,
-    (state) =>
-      !state.matches({ authentication: { signedIn: { changeEmail: { idle: 'invalid' } } } })
-  )
   const loading = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changeEmail: 'running' } } })
   )
@@ -28,7 +23,7 @@ export const useChangeEmail = (email: string) => {
       type: 'CHANGE_EMAIL',
       email
     })
-  return { change, loading, success, needsVerification, hasError, error, isValid }
+  return { change, loading, success, needsVerification, hasError, error }
 }
 
 export const useChangePassword = (password: string) => {
@@ -38,11 +33,6 @@ export const useChangePassword = (password: string) => {
     state.matches({ authentication: { signedIn: { changePassword: { idle: 'failed' } } } })
   )
   const error = useSelector(service, (state) => state.context.errors.newPassword)
-  const isValid = useSelector(
-    service,
-    (state) =>
-      !state.matches({ authentication: { signedIn: { changePassword: { idle: 'invalid' } } } })
-  )
   const loading = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changePassword: 'running' } } })
   )
@@ -55,7 +45,7 @@ export const useChangePassword = (password: string) => {
       type: 'CHANGE_PASSWORD',
       password
     })
-  return { change, loading, success, hasError, error, isValid }
+  return { change, loading, success, hasError, error }
 }
 
 export const useUserData = () => {
