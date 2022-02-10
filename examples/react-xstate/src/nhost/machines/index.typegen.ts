@@ -10,8 +10,6 @@ export interface Typegen0 {
       | 'done.invoke.registerUser'
       | 'done.invoke.signingOut'
       | 'error.platform.signingOut'
-    saveEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
-    savePassword: 'SIGNIN_PASSWORD' | 'REGISTER'
     saveAuthenticationError:
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
@@ -22,7 +20,6 @@ export interface Typegen0 {
     requestPasswordChange: 'CHANGE_PASSWORD'
     savePasswordChangeError: 'CHANGE_PASSWORD_ERROR'
     resetAuthenticationError: 'xstate.init'
-    clearForm: 'xstate.init'
     emitLogout: 'xstate.init'
     resetEmailChangeError: 'xstate.init'
     resetPasswordChangeError: 'xstate.init'
@@ -121,8 +118,9 @@ export interface Typegen0 {
     | 'authentication'
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
-    | 'authentication.signedOut.invalidEmail'
-    | 'authentication.signedOut.invalidPassword'
+    | 'authentication.signedOut.invalid'
+    | 'authentication.signedOut.invalid.password'
+    | 'authentication.signedOut.invalid.email'
     | 'authentication.signedOut.awaitingVerification'
     | 'authentication.signedOut.failing'
     | 'authentication.signedOut.failed'
@@ -157,11 +155,11 @@ export interface Typegen0 {
           | {
               signedOut?:
                 | 'noErrors'
-                | 'invalidEmail'
-                | 'invalidPassword'
+                | 'invalid'
                 | 'awaitingVerification'
                 | 'failing'
                 | 'failed'
+                | { invalid?: 'password' | 'email' }
               authenticating?: 'passwordlessEmail' | 'password'
               signedIn?:
                 | 'changeEmail'

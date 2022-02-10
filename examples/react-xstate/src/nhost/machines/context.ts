@@ -8,10 +8,7 @@ export type NhostContext = {
   mfa: boolean
   accessToken: string | null
   refreshToken: string | null
-  error: ApiError | null
-  email: string | null
-  password: string | null
-  errors: Partial<Record<'newPassword' | 'newEmail', ApiError>>
+  errors: Partial<Record<'newPassword' | 'newEmail' | 'registration' | 'authentication', ApiError>>
   newEmail: ApiError | null
   newPassword: ApiError | null
 }
@@ -23,8 +20,5 @@ export const INITIAL_CONTEXT: NhostContext = {
   refreshToken: null,
   newEmail: null,
   newPassword: null,
-  error: null,
-  email: null,
-  password: null,
   errors: {}
 }

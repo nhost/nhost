@@ -72,9 +72,9 @@ export const createNhostMachine = ({
               entry: 'saveSession',
               states: {
                 noErrors: {},
-                // TODO merge to a single 'invalid' state and store the details in context
-                invalidEmail: {},
-                invalidPassword: {},
+                invalid: {
+                  states: { password: {}, email: {} }
+                },
                 awaitingVerification: {},
                 failing: {
                   always: [
@@ -97,47 +97,39 @@ export const createNhostMachine = ({
                 SIGNIN_PASSWORD: [
                   {
                     cond: 'invalidEmail',
-                    target: '.invalidEmail'
+                    target: '.invalid.email'
                   },
                   {
                     cond: 'invalidPassword',
-                    target: '.invalidPassword'
+                    target: '.invalid.password'
                   },
                   {
-                    // TODO merge into 'saveForm'
-                    // TODO or, do not store and send email/password straight from the event to a service
-                    actions: ['saveEmail', 'savePassword'],
                     target: '#nhost.authentication.authenticating.password'
                   }
                 ],
                 SIGNIN_PASSWORDLESS_EMAIL: [
                   {
                     cond: 'invalidEmail',
-                    target: '.invalidEmail'
+                    target: '.invalid.email'
                   },
-                  {
-                    actions: 'saveEmail',
-                    target: '#nhost.authentication.authenticating.passwordlessEmail'
-                  }
+                  '#nhost.authentication.authenticating.passwordlessEmail'
                 ],
                 REGISTER: [
                   {
                     cond: 'invalidEmail',
-                    target: '.invalidEmail'
+                    target: '.invalid.email'
                   },
                   {
                     cond: 'invalidPassword',
-                    target: '.invalidPassword'
+                    target: '.invalid.password'
                   },
                   {
-                    actions: ['saveEmail', 'savePassword'],
                     target: '#nhost.authentication.registering'
                   }
                 ]
               }
             },
             authenticating: {
-              exit: 'clearForm',
               states: {
                 passwordlessEmail: {
                   invoke: {
@@ -169,7 +161,6 @@ export const createNhostMachine = ({
               }
             },
             registering: {
-              exit: 'clearForm',
               invoke: {
                 src: 'registerUser',
                 id: 'registerUser',
@@ -300,26 +291,13 @@ export const createNhostMachine = ({
           }
         ),
 
-        // * Form
-        clearForm: assign({
-          email: (_) => null,
-          password: (_) => null
-        }),
-
-        saveEmail: assign({
-          email: (_, e) => e.email
-        }),
-        savePassword: assign({
-          password: (_, e) => e.password
-        }),
-
         // * Authenticaiton errors
         saveAuthenticationError: assign({
           // TODO type
-          error: (_, e: any) => e.data.error
+          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
         resetAuthenticationError: assign({
-          error: (_) => null
+          errors: ({ errors: { authentication, ...errors } }) => errors
         }),
 
         // * Change password
@@ -363,7 +341,8 @@ export const createNhostMachine = ({
         isUserSet: (ctx) => !!ctx.user,
         // * Authentication errors
         unverified: (ctx) =>
-          ctx.error?.status === 401 && ctx.error.message === 'Email is not verified',
+          ctx.errors.authentication?.status === 401 &&
+          ctx.errors.authentication.message === 'Email is not verified',
 
         // * Event guards
         hasUser: (_, e) => !!e.data?.session,
@@ -377,13 +356,12 @@ export const createNhostMachine = ({
         changeEmailMachine: createChangeEmailMachine(api),
 
         // TODO options
-        signInPassword: ({ email, password }) =>
+        signInPassword: (_, { email, password }) =>
           postRequest('/v1/auth/signin/email-password', {
             email,
             password
           }),
-
-        signInPasswordlessEmail: ({ email }) =>
+        signInPasswordlessEmail: (_, { email }) =>
           postRequest('/v1/auth/signin/passwordless/email', {
             email
           }),
@@ -395,12 +373,11 @@ export const createNhostMachine = ({
           }),
 
         //   TODO options
-        registerUser: ({ email, password }) => {
-          return postRequest('/v1/auth/signup/email-password', {
+        registerUser: (_, { email, password }) =>
+          postRequest('/v1/auth/signup/email-password', {
             email,
             password
           })
-        }
       }
     }
   )
