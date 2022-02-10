@@ -2,7 +2,7 @@ import { MenuIcon } from '@heroicons/react/outline'
 import clsx from 'clsx'
 import { useRouter } from 'next/dist/client/router'
 import Link from 'next/link'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useState } from 'react'
 
 import Button from '../components/ui/Button'
@@ -10,6 +10,36 @@ import Button from '../components/ui/Button'
 export default function Header() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const router = useRouter()
+  const GithubStarsCounter = () => {
+    const repoUrl = `https://api.github.com/repos/nhost/nhost`
+    const [count, setCount] = useState(null);
+    const format = n => n > 1000 ? `${(n / 1000).toFixed(1)}k` : n;
+
+    useEffect(() => {
+      (async () => {
+        const data = await fetch(repoUrl).then(res => res.json());
+        setCount(data.stargazers_count);
+      })();
+    }, []);
+
+    return (
+      <a
+        className="text-base font-medium leading-snug flex flex-row items-center justify-center px-2.5 py-1.5 rounded opacity-50 hover:opacity-100 mr-8"
+        href="https://github.com/nhost/nhost"
+        target="_blank"
+        rel="noreferrer"
+      >
+        <img
+          className="mr-2"
+          src="/logos/Github2.svg"
+          width={20}
+          height={20}
+          alt="Nhost on GitHub"
+        />
+        {count === null ? 0 : format(count)}
+      </a>
+    )
+  }
   return (
     <div className="bg-white md:max-w-full drop">
       {mobileMenu ? (
@@ -74,6 +104,7 @@ export default function Header() {
               </div>
             </div>
             <div className="hidden sm:flex self-center">
+              <GithubStarsCounter />
               <Button
                 className="self-center"
                 variant="primary"
