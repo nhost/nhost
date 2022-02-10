@@ -40,7 +40,6 @@ export const NhostProvider: React.FC<{ nhost: Nhost }> = ({
         type === 'emailVerify' ||
         type === 'emailConfirmChange'
       ) {
-        console.log('HERE', token)
         // TODO send somehow the information to other tabs
         authService.send({ type: 'LOAD_TOKEN', data: { refreshToken: token } })
         // * remove hash from the current url after consumming the token

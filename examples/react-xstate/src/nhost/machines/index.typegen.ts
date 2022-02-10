@@ -102,7 +102,7 @@ export interface Typegen0 {
   }
   eventsCausingServices: {
     tokenRefresher: 'xstate.init'
-    signInPassword: 'SIGNIN_PASSWORD' | 'done.invoke.registerUser'
+    signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'REGISTER'
     signout: 'SIGNOUT'

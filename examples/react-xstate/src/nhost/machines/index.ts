@@ -72,6 +72,7 @@ export const createNhostMachine = ({
               entry: 'saveSession',
               states: {
                 noErrors: {},
+                // TODO merge to a single 'invalid' state and store the details in context
                 invalidEmail: {},
                 invalidPassword: {},
                 awaitingVerification: {},
@@ -103,6 +104,8 @@ export const createNhostMachine = ({
                     target: '.invalidPassword'
                   },
                   {
+                    // TODO merge into 'saveForm'
+                    // TODO or, do not store and send email/password straight from the event to a service
                     actions: ['saveEmail', 'savePassword'],
                     target: '#nhost.authentication.authenticating.password'
                   }
@@ -177,7 +180,7 @@ export const createNhostMachine = ({
                     target: '#nhost.authentication.signedIn'
                   },
                   {
-                    target: '#nhost.authentication.authenticating.password'
+                    target: '#nhost.authentication.signedOut.awaitingVerification'
                   }
                 ],
                 onError: {
