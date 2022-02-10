@@ -20,6 +20,7 @@ export const useAuthActor = () => {
 
 export const useLoading = () => {
   const service = useAuthService()
+  // TODO review: add xstate 'tags' ?
   return useSelector(service, (state) =>
     state.matches({
       authentication: 'signedOut',
@@ -35,7 +36,8 @@ export const useAuthenticated = () => {
 
 export const useNhostAuth = () => {
   const [state] = useAuthActor()
-  const isLoading = state.matches({
+  // TODO review: add xstate 'tags' ?
+  const isLoading = !state.matches({
     authentication: 'signedOut',
     tokenRefresher: 'refreshing'
   })
@@ -46,7 +48,7 @@ export const useNhostAuth = () => {
 
 export const useAccessToken = () => {
   const service = useAuthService()
-  return useSelector(service, (state) => state.context.accessToken.value)
+  return useSelector(service, (state) => state.context.accessToken)
 }
 
 export const useSignUpEmailPassword = (email: string, password: string) => {
@@ -103,9 +105,9 @@ export const useEmailPasswordlessSignIn = (email: string) => {
 
 export const useRefreshToken = (): [string | null, (v: string) => void] => {
   const service = useAuthService()
-  const value = useSelector(service, (state) => state.context.accessToken.value)
+  const value = useSelector(service, (state) => state.context.accessToken)
   const setValue = (token: string) => {
-    service.send({ type: 'UPDATE_REFRESH_TOKEN', token })
+    service.send({ type: 'LOAD_TOKEN', data: { refreshToken: token } })
   }
   return [value, setValue]
 }

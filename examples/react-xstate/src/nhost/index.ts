@@ -1,7 +1,7 @@
-import { NhostMachine, nhostMachineWithConfig, NhostInitOptions } from './machine'
+import { NhostMachine, createNhostMachine, NhostInitOptions } from './machines'
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
 
-type Nhost = {
+export type Nhost = {
   machine: NhostMachine
   backendUrl: string
 }
@@ -14,6 +14,6 @@ export const initNhost = ({
 }: NhostInitOptions): Nhost => {
   return {
     backendUrl,
-    machine: nhostMachineWithConfig({ backendUrl, storageGetter, storageSetter })
+    machine: createNhostMachine({ backendUrl, storageGetter, storageSetter })
   }
 }

@@ -132,7 +132,7 @@ export const createApolloClient = ({
   const client = new ApolloClient(apolloClientOptions)
 
   authService.onTransition(async (state, event) => {
-    const newToken = state.context.accessToken.value ?? null
+    const newToken = state.context.accessToken
 
     if (token !== newToken) {
       token = newToken
@@ -151,7 +151,7 @@ export const createApolloClient = ({
             // @ts-expect-error
             webSocketClient.tryReconnect()
           }
-          if (event.type === 'done.invoke.signingOut') {
+          if (event.type === 'SIGNOUT') {
             await client.resetStore().catch((error) => {
               console.error('Error resetting Apollo client cache')
               console.error(error)

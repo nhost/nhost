@@ -4,7 +4,7 @@ import React, { useEffect, createContext } from 'react'
 import { useLocation } from 'react-use'
 import { InterpreterFrom } from 'xstate'
 
-import { NhostMachine } from '../nhost'
+import { Nhost, NhostMachine } from '../nhost'
 
 if (process.env.NODE_ENV) {
   inspect({
@@ -20,7 +20,7 @@ type Context = {
 
 export const NhostContext = createContext<Context>({} as Context)
 
-export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUrl: string } }> = ({
+export const NhostProvider: React.FC<{ nhost: Nhost }> = ({
   nhost: { machine, backendUrl },
   ...props
 }) => {
@@ -40,8 +40,9 @@ export const NhostProvider: React.FC<{ nhost: { machine: NhostMachine; backendUr
         type === 'emailVerify' ||
         type === 'emailConfirmChange'
       ) {
+        console.log('HERE', token)
         // TODO send somehow the information to other tabs
-        authService.send({ type: 'UPDATE_REFRESH_TOKEN', token })
+        authService.send({ type: 'LOAD_TOKEN', data: { refreshToken: token } })
         // * remove hash from the current url after consumming the token
         window.history.pushState({}, '', location.pathname)
       } else {

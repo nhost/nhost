@@ -172,11 +172,9 @@ importers:
       '@types/react-dom': ^17.0.11
       '@types/uuid': ^8.3.4
       '@vitejs/plugin-react': ^1.1.4
-      '@xstate/immer': ^0.3.1
       '@xstate/inspect': ^0.6.2
       '@xstate/react': ^2.0.0
       axios: ^0.25.0
-      immer: ^9.0.12
       react: ^17.0.2
       react-dom: ^17.0.2
       react-use: ^17.3.2
@@ -187,10 +185,8 @@ importers:
       ws: ^8.4.2
       xstate: ^4.29.0
     dependencies:
-      '@xstate/immer': 0.3.1_immer@9.0.12+xstate@4.29.0
       '@xstate/react': 2.0.0_b2730fbad1dada8c45d201a94f0d2c3b
       axios: 0.25.0
-      immer: 9.0.12
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
       react-use: 17.3.2_react-dom@17.0.2+react@17.0.2
@@ -4502,16 +4498,6 @@ packages:
     resolution: {integrity: sha512-N8tkAACJx2ww8vFMneJmaAgmjAG1tnVBZJRLRcx061tmsLRZHSEZSLuGWnwPtunsSLvSqXQ2wfp7Mgqg1I+2dQ==}
     dev: false
 
-  /@xstate/immer/0.3.1_immer@9.0.12+xstate@4.29.0:
-    resolution: {integrity: sha512-YE+KY08IjEEmXo6XKKpeSGW4j9LfcXw+5JVixLLUO3fWQ3M95joWJ40VtGzx0w0zQSzoCNk8NgfvwWBGSbIaTA==}
-    peerDependencies:
-      immer: ^9.0.6
-      xstate: ^4.29.0
-    dependencies:
-      immer: 9.0.12
-      xstate: 4.29.0
-    dev: false
-
   /@xstate/inspect/0.6.2_ws@8.4.2:
     resolution: {integrity: sha512-ZDJ0NETucV7wyT2Tyr3VeEgVD45TUGMTwbzmU2JfzUOjJQMyqn/XjcXGa3wxzgSvz2I0L4xC5ahRZN85j7oh1Q==}
     peerDependencies:
@@ -5197,7 +5183,7 @@ packages:
   /axios/0.25.0:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.7_debug@4.3.3
+      follow-redirects: 1.14.7
     transitivePeerDependencies:
       - debug
     dev: false
@@ -8826,6 +8812,16 @@ packages:
       readable-stream: 2.3.7
     dev: false
 
+  /follow-redirects/1.14.7:
+    resolution: {integrity: sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: false
+
   /follow-redirects/1.14.7_debug@4.3.3:
     resolution: {integrity: sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==}
     engines: {node: '>=4.0'}
@@ -9712,10 +9708,6 @@ packages:
 
   /immer/8.0.1:
     resolution: {integrity: sha512-aqXhGP7//Gui2+UrEtvxZxSquQVXTpZ7KDxfCcKAF3Vysvw0CViVaW9RZ1j1xlIYqaaaipBoqdqeibkc18PNvA==}
-    dev: false
-
-  /immer/9.0.12:
-    resolution: {integrity: sha512-lk7UNmSbAukB5B6dh9fnh5D0bJTOFKxVg2cyJWTYrWRfhLrLMBquONcUs3aFq507hNoIZEDDh8lb8UtOizSMhA==}
     dev: false
 
   /immutable/3.7.6:
