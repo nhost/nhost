@@ -1,14 +1,12 @@
 import './App.css'
 
 import { gql } from '@apollo/client'
-import { useState } from 'react'
 import {
   useEmailPasswordlessSignIn,
   useAuthenticated,
   useAccessToken,
   useSignOut,
   useEmailPasswordSignIn,
-  useRefreshToken,
   useSignUpEmailPassword,
   useChangeEmail,
   useChangePassword
@@ -26,14 +24,11 @@ function App() {
   const isAuthenticated = useAuthenticated()
   const email = 'pilou@pilou.com'
   const password = 'piloupilou'
-  const [token, setToken] = useState('')
-  const changeToken = (event: React.ChangeEvent<HTMLInputElement>) => setToken(event.target.value)
   const jwt = useAccessToken()
   const { signOut } = useSignOut()
   const { signUp, ...signUpResult } = useSignUpEmailPassword(email, password)
   const { signIn } = useEmailPasswordSignIn(email, password)
   const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
-  const [, updateToken] = useRefreshToken()
   const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
   const { change: changePassword } = useChangePassword('12345678')
   const { loading, data } = useAuthQuery(GET_GREETING)
@@ -56,9 +51,6 @@ function App() {
             <button onClick={passwordlessSignIn}>Passwordless signin</button>
           </>
         )}
-
-        <input type="text" value={token} onChange={changeToken} />
-        <button onClick={() => updateToken(token)}>Set refresh token</button>
 
         <p>JWT</p>
         <div>{jwt}</div>

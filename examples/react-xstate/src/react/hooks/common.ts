@@ -49,12 +49,3 @@ export const useSignOut = (all = false) => {
   const success = useSelector(service, (state) => state.matches({ authentication: 'signedOut' }))
   return { signOut, success }
 }
-
-export const useRefreshToken = (): [string | null, (v: string) => void] => {
-  const service = useAuthService()
-  const value = useSelector(service, (state) => state.context.accessToken)
-  const setValue = (token: string) => {
-    service.send({ type: 'LOAD_TOKEN', data: { refreshToken: token } })
-  }
-  return [value, setValue]
-}

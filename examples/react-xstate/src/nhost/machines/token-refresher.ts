@@ -1,5 +1,7 @@
 import { AxiosInstance } from 'axios'
+
 import { createMachine, sendParent, assign } from 'xstate'
+
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
   NHOST_REFRESH_TOKEN,
@@ -18,8 +20,9 @@ type TokenRefresherContext = {
   session: any
 }
 type TokenRefresherEvents =
-  | { type: 'LOAD_TOKEN'; data: any } // TODO types
+  | { type: 'SESSION_LOAD'; data: any } // TODO types
   | { type: 'SIGNOUT'; all?: boolean }
+  | { type: 'TRY_TOKEN'; token: string }
 
 const expiration = (expiresIn: number) =>
   Math.max(expiresIn - TOKEN_REFRESH_MARGIN, MIN_TOKEN_REFRESH_INTERVAL)
@@ -35,9 +38,8 @@ export const createTokenRefresherMachine = (
         context: {} as TokenRefresherContext,
         events: {} as TokenRefresherEvents
       },
-      tsTypes: {} as import('./token-refresher.typegen').Typegen0,
+      tsTypes: {} as import("./token-refresher.typegen").Typegen0,
       id: 'token',
-      initial: 'idle',
       context: {
         token: storageGetter(NHOST_REFRESH_TOKEN),
         elapsed: 0,
@@ -46,77 +48,114 @@ export const createTokenRefresherMachine = (
         session: null
       },
       on: {
-        LOAD_TOKEN: {
-          // TODO check the new token before saving it
+        SESSION_LOAD: {
           actions: ['save', 'persist'],
-          target: 'idle'
+          target: 'timer.idle'
         }
       },
+      type: 'parallel',
       states: {
-        stopped: {
-          always: {
-            cond: 'noToken',
-            target: 'idle'
-          }
-        },
-        idle: {
-          always: [
-            {
-              cond: 'token',
-              target: 'running.refreshing'
-            }
-          ]
-        },
-        running: {
-          initial: 'pending',
+        refesher: {
+          initial: 'idle',
+          on: {
+            TRY_TOKEN: '.running'
+          },
           states: {
-            pending: {
-              after: {
-                '1000': {
-                  actions: 'tick',
-                  target: 'pending'
-                }
-              },
-              always: {
-                cond: 'shouldRefresh',
-                target: 'refreshing'
-              },
-              on: {
-                //   TODO
-                SIGNOUT: {
-                  actions: 'reset',
-                  target: '#token.stopped'
-                }
-              }
+            idle: {
+              initial: 'noError',
+              states: { noError: {}, error: {} }
             },
-            refreshing: {
+            running: {
               invoke: {
                 src: 'refreshToken',
                 id: 'refreshToken',
                 onDone: [
                   {
-                    actions: ['save', 'reset', 'persist', 'emit'],
-                    target: 'pending'
+                    actions: ['save', 'resetTimer', 'persist', 'emit'],
+                    target: 'idle'
                   }
                 ],
                 onError: [
                   {
-                    actions: 'retry',
-                    cond: 'canRetry',
-                    target: 'pending'
-                  },
-                  {
-                    actions: ['sendError', 'reset'],
-                    target: '#token.stopped'
+                    actions: ['sendError'],
+                    target: 'idle.error'
                   }
                 ]
               }
             }
           }
         },
+        timer: {
+          id: 'timer',
+          initial: 'idle',
+          states: {
+            stopped: {
+              always: {
+                cond: 'noToken',
+                target: 'idle'
+              }
+            },
+            idle: {
+              always: [
+                {
+                  cond: 'token',
+                  target: 'running.refreshing'
+                }
+              ]
+            },
+            running: {
+              initial: 'pending',
+              states: {
+                pending: {
+                  after: {
+                    '1000': {
+                      actions: 'tick',
+                      target: 'pending'
+                    }
+                  },
+                  always: {
+                    cond: 'shouldRefresh',
+                    target: 'refreshing'
+                  },
+                  on: {
+                    //   TODO
+                    SIGNOUT: {
+                      actions: ['resetTimer', 'resetToken'],
+                      target: '#token.timer.stopped'
+                    }
+                  }
+                },
 
-        failed: {
-          exit: 'resetTokenRefresherError'
+                refreshing: {
+                  invoke: {
+                    src: 'refreshToken',
+                    id: 'refreshToken',
+                    onDone: [
+                      {
+                        actions: ['save', 'resetTimer', 'persist', 'emit'],
+                        target: 'pending'
+                      }
+                    ],
+                    onError: [
+                      {
+                        actions: 'retry',
+                        cond: 'canRetry',
+                        target: 'pending'
+                      },
+                      {
+                        actions: ['sendError', 'resetTimer', 'resetToken'],
+                        target: '#token.timer.stopped'
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+
+            failed: {
+              exit: 'resetTokenRefresherError'
+            }
+          }
         }
       }
     },
@@ -134,9 +173,12 @@ export const createTokenRefresherMachine = (
         tick: assign({
           elapsed: (ctx) => ctx.elapsed + 1
         }),
-        reset: assign({
+        resetTimer: assign({
           elapsed: (_) => 0,
           attempts: (_) => 0
+        }),
+        resetToken: assign({
+          token: (_) => null
         }),
 
         retry: assign({
@@ -167,7 +209,10 @@ export const createTokenRefresherMachine = (
         }
       },
       services: {
-        refreshToken: async ({ token }) => {
+        // TODO find a way not to store the token in the context before refreshing it
+        refreshToken: async (ctx, e: any) => {
+          console.log('service')
+          const token = e.token || ctx.token
           const result = await api.post('/v1/auth/token', {
             refreshToken: token
           })

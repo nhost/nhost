@@ -11,6 +11,7 @@ import { INITIAL_CONTEXT, NhostContext } from './context'
 import { createTokenRefresherMachine } from './token-refresher'
 import { NhostEvents } from './events'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
+import { urlParser } from './url-parser'
 
 export type NhostInitOptions = {
   backendUrl: string
@@ -45,24 +46,24 @@ export const createNhostMachine = ({
       context: INITIAL_CONTEXT,
       id: 'nhost',
       type: 'parallel',
-      on: {
-        LOAD_TOKEN: {
-          actions: 'forwardToRefresher'
-        }
-      },
-
       states: {
         authentication: {
           initial: 'signedOut',
-          invoke: {
-            id: 'tokenRefresher',
-            src: 'tokenRefresher'
-          },
+          invoke: [
+            {
+              id: 'tokenRefresher',
+              src: 'tokenRefresher'
+            },
+            { id: 'urlParser', src: 'urlParser' }
+          ],
           on: {
+            TRY_TOKEN: {
+              actions: 'forwardToRefresher'
+            },
             SESSION_UPDATE: [
               {
                 cond: 'hasUser',
-                actions: 'saveSession'
+                actions: ['saveSession', 'forwardToRefresher']
               },
               '.signedOut'
             ]
@@ -146,7 +147,7 @@ export const createNhostMachine = ({
                     src: 'signInPassword',
                     id: 'authenticateUserWithPassword',
                     onDone: {
-                      actions: ['saveSession', 'emitToken'],
+                      actions: ['saveSession', 'emitSession'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: [
@@ -288,11 +289,11 @@ export const createNhostMachine = ({
           mfa: (_, e) => e.data?.mfa ?? false
         }),
 
-        emitLogout: send('LOAD_TOKEN', { to: 'tokenRefresher' }),
+        emitLogout: send('SESSION_LOAD', { to: 'tokenRefresher' }),
         forwardToRefresher: forwardTo('tokenRefresher'),
-        emitToken: send(
+        emitSession: send(
           // TODO type
-          (_, { data: { session } }: any) => ({ type: 'LOAD_TOKEN', data: session }),
+          (_, { data: { session } }: any) => ({ type: 'SESSION_LOAD', data: session }),
           {
             to: 'tokenRefresher'
           }
@@ -392,7 +393,9 @@ export const createNhostMachine = ({
           postRequest('/v1/auth/signup/email-password', {
             email,
             password
-          })
+          }),
+
+        urlParser
       }
     }
   )

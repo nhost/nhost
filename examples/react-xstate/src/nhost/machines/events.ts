@@ -1,8 +1,8 @@
 import { ErrorPayload } from '../errors'
 
 export type NhostEvents =
-  | { type: 'LOAD_TOKEN'; data: any } // TODO type
   | { type: 'SESSION_UPDATE'; data: any } // TODO type
+  | { type: 'TRY_TOKEN'; token: string }
   | { type: 'SIGNIN_PASSWORD'; email: string; password: string }
   | { type: 'SIGNIN_PASSWORDLESS_EMAIL'; email: string }
   | { type: 'REGISTER'; email: string; password: string }

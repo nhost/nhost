@@ -3,14 +3,14 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
-    forwardToRefresher: 'LOAD_TOKEN'
+    forwardToRefresher: 'TRY_TOKEN' | 'SESSION_UPDATE'
     saveSession:
       | 'SESSION_UPDATE'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.registerUser'
       | 'done.invoke.signingOut'
       | 'error.platform.signingOut'
-    emitToken: 'done.invoke.authenticateUserWithPassword'
+    emitSession: 'done.invoke.authenticateUserWithPassword'
     requestEmailChange: 'CHANGE_EMAIL'
     requestPasswordChange: 'CHANGE_PASSWORD'
     resetAuthenticationError: 'xstate.init'
@@ -60,6 +60,12 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.tokenRefresher': { type: 'error.platform.tokenRefresher'; data: unknown }
+    'done.invoke.urlParser': {
+      type: 'done.invoke.urlParser'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'error.platform.urlParser': { type: 'error.platform.urlParser'; data: unknown }
     'done.invoke.authenticatePasswordlessEmail': {
       type: 'done.invoke.authenticatePasswordlessEmail'
       data: unknown
@@ -86,6 +92,7 @@ export interface Typegen0 {
   }
   invokeSrcNameMap: {
     tokenRefresher: 'done.invoke.tokenRefresher'
+    urlParser: 'done.invoke.urlParser'
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
     registerUser: 'done.invoke.registerUser'
@@ -101,6 +108,7 @@ export interface Typegen0 {
   }
   eventsCausingServices: {
     tokenRefresher: 'xstate.init'
+    urlParser: 'xstate.init'
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'REGISTER'

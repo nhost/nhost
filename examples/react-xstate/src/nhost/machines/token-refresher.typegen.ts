@@ -3,13 +3,14 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
-    save: 'LOAD_TOKEN' | 'done.invoke.refreshToken'
-    persist: 'LOAD_TOKEN' | 'done.invoke.refreshToken'
-    reset: 'SIGNOUT' | 'done.invoke.refreshToken' | 'error.platform.refreshToken'
-    tick: 'xstate.after(1000)#token.running.pending'
+    save: 'SESSION_LOAD' | 'done.invoke.refreshToken'
+    persist: 'SESSION_LOAD' | 'done.invoke.refreshToken'
+    resetTimer: 'done.invoke.refreshToken' | 'SIGNOUT' | 'error.platform.refreshToken'
     emit: 'done.invoke.refreshToken'
-    retry: 'error.platform.refreshToken'
     sendError: 'error.platform.refreshToken'
+    resetToken: 'SIGNOUT' | 'error.platform.refreshToken'
+    tick: 'xstate.after(1000)#token.timer.running.pending'
+    retry: 'error.platform.refreshToken'
     resetTokenRefresherError: 'xstate.init'
   }
   internalEvents: {
@@ -19,7 +20,9 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
-    'xstate.after(1000)#token.running.pending': { type: 'xstate.after(1000)#token.running.pending' }
+    'xstate.after(1000)#token.timer.running.pending': {
+      type: 'xstate.after(1000)#token.timer.running.pending'
+    }
     '': { type: '' }
     'xstate.init': { type: 'xstate.init' }
   }
@@ -33,7 +36,7 @@ export interface Typegen0 {
     delays: never
   }
   eventsCausingServices: {
-    refreshToken: ''
+    refreshToken: 'TRY_TOKEN' | ''
   }
   eventsCausingGuards: {
     noToken: ''
@@ -43,12 +46,21 @@ export interface Typegen0 {
   }
   eventsCausingDelays: {}
   matchesStates:
-    | 'stopped'
-    | 'idle'
-    | 'running'
-    | 'running.pending'
-    | 'running.refreshing'
-    | 'failed'
-    | { running?: 'pending' | 'refreshing' }
+    | 'refesher'
+    | 'refesher.idle'
+    | 'refesher.idle.noError'
+    | 'refesher.idle.error'
+    | 'refesher.running'
+    | 'timer'
+    | 'timer.stopped'
+    | 'timer.idle'
+    | 'timer.running'
+    | 'timer.running.pending'
+    | 'timer.running.refreshing'
+    | 'timer.failed'
+    | {
+        refesher?: 'idle' | 'running' | { idle?: 'noError' | 'error' }
+        timer?: 'stopped' | 'idle' | 'running' | 'failed' | { running?: 'pending' | 'refreshing' }
+      }
   tags: never
 }
