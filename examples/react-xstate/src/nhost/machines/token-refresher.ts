@@ -2,6 +2,7 @@ import { AxiosInstance } from 'axios'
 import { createMachine, sendParent, assign } from 'xstate'
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
+  NETWORK_ERROR_CODE,
   NHOST_REFRESH_TOKEN,
   REFRESH_TOKEN_RETRY_INTERVAL,
   REFRESH_TOKEN_RETRY_MAX_ATTEMPTS,
@@ -161,7 +162,7 @@ export const createTokenRefresherMachine = (
         // TODO types
         canRetry: (ctx, event: any) => {
           const remainingAttempts = ctx.attempts < REFRESH_TOKEN_RETRY_MAX_ATTEMPTS
-          const isNetworkError = event.data.error.status === 0
+          const isNetworkError = event.data.error.status === NETWORK_ERROR_CODE
           return remainingAttempts && isNetworkError
         }
       },

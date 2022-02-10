@@ -1,4 +1,5 @@
 import axios, { AxiosError } from 'axios'
+import { NETWORK_ERROR_CODE } from './constants'
 
 export type ApiError = {
   error: string
@@ -7,7 +8,7 @@ export type ApiError = {
 }
 
 export const nhostApiClient = (backendUrl: string) => {
-  const client = axios.create({ baseURL: backendUrl, timeout: 10_000 })
+  const client = axios.create({ baseURL: backendUrl })
 
   client.interceptors.response.use(
     (response) => response,
@@ -19,7 +20,7 @@ export const nhostApiClient = (backendUrl: string) => {
             error.message ??
             error.request.responseText ??
             JSON.stringify(error),
-          status: error.response?.status ?? error.response?.data.statusCode ?? 0,
+          status: error.response?.status ?? error.response?.data.statusCode ?? NETWORK_ERROR_CODE,
           error: error.response?.data.error || error.request.statusText || 'network'
         }
       })
