@@ -1,0 +1,23 @@
+{
+  "order": [
+    {
+      "id": "get-started",
+      "name": "get-started",
+      "description": "get-started",
+      "pages": [
+        {
+          "route": "quickstart",
+          "display": "Quick Start"
+        },
+        {
+          "route": "app-development",
+          "display": "App Development"
+        },
+        {
+          "route": "workflow",
+          "display": "Workflow"
+        }
+      ]
+    }
+  ]
+}

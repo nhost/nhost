@@ -18,6 +18,7 @@
     "create-config": "cp -r .config/. ./",
     "prepare": "pnpm create-config",
     "build": "pnpm turbo run build --scope='@nhost/*'",
+    "build:docs": "pnpm run build --filter=nhost-documentation",
     "clean:all": "pnpm clean && rm -rf ./packages/*/node_modules node_modules",
     "clean": "rm -rf ./packages/*/dist",
     "ci": "pnpm turbo run build test --concurrency=4 --scope='@nhost/*' && pnpm run lint",
@@ -34,7 +35,8 @@
   },
   "workspaces": [
     "packages/*",
-    "examples/*"
+    "examples/*",
+    "docs"
   ],
   "devDependencies": {
     "@babel/core": "^7.17.0",

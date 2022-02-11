@@ -1,0 +1,121 @@
+---
+title: 'Authentication'
+---
+
+## nhost.auth.signIn()
+
+Sign in a user with one of the following methods:
+
+- Email and Password
+- Passwordless Email (Magic Link)
+- Passwordless SMS
+- OAuth Provider
+
+If the user does not exist, the user is created. Only exception is when using Email and Password. To sign in a user with Email and password a user first must sign up.
+
+### Examples
+
+#### Sign in with Email and Password
+
+```js
+const { session, mfa, error } = await nhost.auth.signIn({
+  email: 'username@gmail.com',
+  password: 'my-secret-password'
+})
+```
+
+### Sign in with Passwordless Email (Magic link)
+
+An email will be sent to the user's email with a link. When the user clicks on the link the user will be automatically redirected and signed-in to your app.
+
+```js
+const { error } = await nhost.auth.signIn({
+  email: 'username@gmail.com'
+})
+```
+
+### Sign in with Passwordless SMS
+
+Start the sign-in process for a user using SMS. This will send a One-time Password (OTP) to the user:
+
+```js
+const { session, error } = await nhost.auth.signIn({
+  phoneNumber: '+46123456789'
+})
+```
+
+To verify the phone number and to sign in the user, combine the phone number and the OTP for the user:
+
+```js
+const { session, error } = await nhost.auth.signIn({
+  phoneNumber: '+46123456789',
+  otp: '<otp-from-sms>'
+})
+```
+
+### Sign in with OAuth Provider
+
+The following providers are available:
+
+- `google`
+- `github`
+- `facebook`
+- `spotify`
+
+```js
+const { session, providerUrl, provider, error } = await nhost.auth.signIn({
+  provider: 'google'
+})
+```
+
+---
+
+## `nhost.auth.signUp()`
+
+Sign up a new user using email and password.
+
+```js
+const { session, error } = await nhost.auth.signUp({
+  email: 'username@gmail.com',
+  password: 'my-secret-password',
+  options: {
+    displayName: 'John Doe'
+  }
+})
+```
+
+## `nhost.auth.signOut()`
+
+Sign Out the current user.
+
+## `nhost.auth.getUser()`
+
+Get information about the current user.
+
+```js
+const user = nhost.auth.getUser()
+```
+
+## `nhost.auth.changeEmail()`
+
+Change the email of the current user. For the new email to be in effect, the user must verify the new email address by clicking on the link in the email that is sent out after executing this method.
+
+```js
+const { error } = await nhost.auth.changeEmail({ newEmail })
+```
+
+## `nhost.auth.changePassword()`
+
+Change the password of the current user. The old password is not needed when changing the password.
+
+```js
+const { error } = await nhost.auth.changePassword({ newPassword })
+```
+
+## `nhost.auth.resetPassword()`
+
+Reset password for a user. Calling this function sends an email to the user with a link to reset their password.
+
+```js
+cosnt { error } = await nhost.auth.resetPassword({ email })
+```
