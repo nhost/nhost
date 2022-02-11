@@ -14,10 +14,10 @@
   ],
   "author": "Nhost",
   "homepage": "https://nhost.io",
-  "bugs": "https://github.com/nhost/nhost-js/issues",
+  "bugs": "https://github.com/nhost/nhost/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nhost/nhost-jsjs.git"
+    "url": "https://github.com/nhost/nhost.git"
   },
   "scripts": {
     "build": "vite build --config ../../vite.lib.js",
