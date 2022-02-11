@@ -18,7 +18,7 @@
   "bugs": "https://github.com/nhost/nhost/issues",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nhost/nhost-js.git"
+    "url": "git+https://github.com/nhost/nhost.git"
   },
   "exports": {
     ".": {

@@ -30,6 +30,6 @@
     { "path": "./packages/nhost-js/" },
     { "path": "./packages/react/" },
     { "path": "./packages/react-apollo/" },
-    { "path": "./packages/react-auth/" },
+    { "path": "./packages/react-auth/" }
   ]
 }

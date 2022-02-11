@@ -380,33 +380,6 @@ importers:
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
 
-  packages/react-urql:
-    specifiers:
-      '@types/react': ^17.0.39
-      '@urql/exchange-auth': ^0.1.7
-      graphql: 15.7.2
-      isomorphic-unfetch: ^3.1.0
-      isomorphic-ws: ^4.0.1
-      react: ^17.0.2
-      react-dom: ^17.0.2
-      regenerator-runtime: ^0.13.9
-      subscriptions-transport-ws: ^0.9.19
-      urql: ^1.11.6
-      ws: ^8.4.2
-    dependencies:
-      '@urql/exchange-auth': 0.1.7_graphql@15.7.2
-      isomorphic-unfetch: 3.1.0
-      isomorphic-ws: 4.0.1_ws@8.4.2
-      regenerator-runtime: 0.13.9
-      subscriptions-transport-ws: 0.9.19_graphql@15.7.2
-      urql: 1.11.6_graphql@15.7.2+react@17.0.2
-    devDependencies:
-      '@types/react': 17.0.39
-      graphql: 15.7.2
-      react: 17.0.2
-      react-dom: 17.0.2_react@17.0.2
-      ws: 8.4.2
-
 packages:
 
   /@ampproject/remapping/2.0.4:
@@ -4660,36 +4633,6 @@ packages:
       '@typescript-eslint/types': 5.10.2
       eslint-visitor-keys: 3.2.0
 
-  /@urql/core/1.16.2_graphql@15.7.2:
-    resolution: {integrity: sha512-Be2ekFcRovpLx6EKu/w7M3jJdC32Ev3eXJgXcJD7pVDgjv/RfUbYC4tGU87VrvQDJOg+t4gHFtIR6Vr9ws7mbg==}
-    peerDependencies:
-      graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-    dependencies:
-      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
-      graphql: 15.7.2
-      wonka: 4.0.15
-    dev: false
-
-  /@urql/core/2.4.1_graphql@15.7.2:
-    resolution: {integrity: sha512-HnS54oNwO4pAACKl/2/tNLbRrxAxKawVJuG9UPiixqeEVekiecUQQnCjb9SpOW4Qr54HYzCMDbr3c5px3hfEEg==}
-    peerDependencies:
-      graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
-      graphql: 15.7.2
-      wonka: 4.0.15
-    dev: false
-
-  /@urql/exchange-auth/0.1.7_graphql@15.7.2:
-    resolution: {integrity: sha512-4Bmmi6YMW1YjZnTdr0Gfp9IoIY1fpNGq/fo1XHWEFEYe+IEOEDQhKT1CyhztyvvKpFw2C46D32MJRWJHQUPo/g==}
-    peerDependencies:
-      graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      '@urql/core': 2.4.1_graphql@15.7.2
-      graphql: 15.7.2
-      wonka: 4.0.15
-    dev: false
-
   /@vercel/node/1.12.1:
     resolution: {integrity: sha512-NcawIY05BvVkWlsowaxF2hl/hJg475U8JvT2FnGykFPMx31q1/FtqyTw/awSrKfOSRXR0InrbEIDIelmS9NzPA==}
     dependencies:
@@ -5583,7 +5526,7 @@ packages:
   /axios/0.24.0:
     resolution: {integrity: sha512-Q6cWsys88HoPgAaFAVUb0WpPk0O8iTeisR9IMqy9G8AbO4NlpVknrnQS03zzF9PGAWgO3cgletO3VjV/P7VztA==}
     dependencies:
-      follow-redirects: 1.14.7
+      follow-redirects: 1.14.7_debug@4.3.3
     transitivePeerDependencies:
       - debug
     dev: false
@@ -9453,16 +9396,6 @@ packages:
       readable-stream: 2.3.7
     dev: false
 
-  /follow-redirects/1.14.7:
-    resolution: {integrity: sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dev: false
-
   /follow-redirects/1.14.7_debug@4.3.3:
     resolution: {integrity: sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==}
     engines: {node: '>=4.0'}
@@ -11139,21 +11072,13 @@ packages:
       - encoding
     dev: true
 
-  /isomorphic-unfetch/3.1.0:
-    resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
-    dependencies:
-      node-fetch: 2.6.7
-      unfetch: 4.2.0
-    transitivePeerDependencies:
-      - encoding
-    dev: false
-
   /isomorphic-ws/4.0.1_ws@8.4.2:
     resolution: {integrity: sha512-BhBvN2MBpWTaSHdWRb/bwdZJ1WaehQ2L1KngkCkfLUGF0mAWAT1sQUQacEmQ0jXkFw/czDXPNQSL5u2/Krsz1w==}
     peerDependencies:
       ws: '*'
     dependencies:
       ws: 8.4.2
+    dev: true
 
   /isostring/0.0.1:
     resolution: {integrity: sha1-3bYI77/InNqG25yxa+CQp4gTTH8=}
@@ -17770,10 +17695,6 @@ packages:
     engines: {node: '>=12.18'}
     dev: true
 
-  /unfetch/4.2.0:
-    resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
-    dev: false
-
   /unherit/1.1.3:
     resolution: {integrity: sha512-Ft16BJcnapDKp0+J/rqFC3Rrk6Y/Ng4nzsC028k2jdDII/rdZ7Wd3pPT/6+vIIxRagwRc9K0IUX0Ra4fKvw+WQ==}
     dependencies:
@@ -18003,18 +17924,6 @@ packages:
     dependencies:
       punycode: 1.3.2
       querystring: 0.2.0
-    dev: false
-
-  /urql/1.11.6_graphql@15.7.2+react@17.0.2:
-    resolution: {integrity: sha512-PpXzZiCKStcg52M9hJZTbcU5wIvQlYqu0vVofdaEv144JbvOhKIwzcX0+qkc3yJMyDm2isYo4D1vQQY+meRVqg==}
-    peerDependencies:
-      graphql: ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0
-      react: '>= 16.8.0'
-    dependencies:
-      '@urql/core': 1.16.2_graphql@15.7.2
-      graphql: 15.7.2
-      react: 17.0.2
-      wonka: 4.0.15
     dev: false
 
   /use-isomorphic-layout-effect/1.1.1_a0c521d4794c7ad97f5f4c1c4a7d5818:
@@ -18546,10 +18455,6 @@ packages:
     dependencies:
       string-width: 4.2.3
     dev: true
-
-  /wonka/4.0.15:
-    resolution: {integrity: sha512-U0IUQHKXXn6PFo9nqsHphVCE5m3IntqZNB9Jjn7EB1lrR7YTDY3YWgFvEvwniTzXSvOH/XMzAZaIfJF/LvHYXg==}
-    dev: false
 
   /word-wrap/1.2.3:
     resolution: {integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==}
