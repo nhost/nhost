@@ -20,3 +20,12 @@ export function useAuthQuery<TData = any, TVariables = OperationVariables>(
   )
   return useQuery(query, newOptions)
 }
+
+// TODO useAuthLazyQuery
+// TODO useAuthMutation
+// TODO useAuthSubscription
+
+// TODO useRoleQuery
+// TODO useRoleLazyQuery
+// TODO useRoleMutation
+// TODO useRoleSubscription
