@@ -11,7 +11,7 @@ import {
   useChangeEmail,
   useChangePassword
 } from '@nhost/react'
-import { useAuthQuery } from './react-apollo'
+import { useAuthQuery } from '@nhost/react-apollo'
 
 const GET_GREETING = gql`
   query MyQuery {

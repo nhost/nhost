@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@nhost/apollo": "workspace:^0.1.0",
     "@nhost/core": "workspace:^0.1.0",
     "@nhost/react": "workspace:^0.1.0",
+    "@nhost/react-apollo": "workspace:^2.2.0",
     "@xstate/react": "^2.0.0",
     "axios": "^0.25.0",
     "react": "^17.0.2",

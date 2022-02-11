@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
-import { NhostApolloProvider } from './react-apollo'
+import { NhostApolloProvider } from '@nhost/react-apollo'
 import { NhostProvider } from '@nhost/react'
 import { initNhost } from '@nhost/core'
 

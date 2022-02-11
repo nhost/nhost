@@ -1,7 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 
-import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client'
-
+import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
 import { createApolloClient, NhostApolloClientOptions } from '@nhost/apollo'
 import { NhostContext } from '@nhost/react'
 

@@ -1,13 +1,12 @@
 import { useMemo } from 'react'
 
 import {
-  useQuery,
-  OperationVariables,
   DocumentNode,
+  OperationVariables,
+  QueryHookOptions,
   TypedDocumentNode,
-  QueryHookOptions
+  useQuery
 } from '@apollo/client'
-
 import { useAuthenticated } from '@nhost/react'
 
 export function useAuthQuery<TData = any, TVariables = OperationVariables>(

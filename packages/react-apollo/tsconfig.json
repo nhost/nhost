@@ -1,9 +1,8 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "lib",
+    "outDir": "dist",
     "composite": true
   },
-  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"],
-  "references": [{ "path": "../nhost-js" }]
+  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"]
 }
