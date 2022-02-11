@@ -1,4 +1,4 @@
-# Xstate & Nhost
+# Simple React Apollo example
 
 ```sh
 # Start the Nhost CLI in the background

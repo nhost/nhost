@@ -1,5 +1,5 @@
 {
-  "name": "@nhost-examples/react-xstate",
+  "name": "@nhost-examples/react-apollo-simple",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
