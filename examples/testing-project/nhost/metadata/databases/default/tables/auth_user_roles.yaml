@@ -1,0 +1,27 @@
+table:
+  name: user_roles
+  schema: auth
+configuration:
+  custom_column_names:
+    created_at: createdAt
+    id: id
+    role: role
+    user_id: userId
+  custom_name: authUserRoles
+  custom_root_fields:
+    delete: deleteAuthUserRoles
+    delete_by_pk: deleteAuthUserRole
+    insert: insertAuthUserRoles
+    insert_one: insertAuthUserRole
+    select: authUserRoles
+    select_aggregate: authUserRolesAggregate
+    select_by_pk: authUserRole
+    update: updateAuthUserRoles
+    update_by_pk: updateAuthUserRole
+object_relationships:
+- name: roleByRole
+  using:
+    foreign_key_constraint_on: role
+- name: user
+  using:
+    foreign_key_constraint_on: user_id

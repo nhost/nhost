@@ -1,0 +1,69 @@
+{
+  "name": "@nhost/react-apollo",
+  "version": "2.2.0",
+  "description": "Nhost React Apollo client",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "storage",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime",
+    "react",
+    "apollo"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nhost/nhost.git"
+  },
+  "scripts": {
+    "build": "vite build --config ../../vite.lib.react.js",
+    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
+  },
+  "main": "src/index.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.umd.js",
+    "module": "dist/index.es.js",
+    "typings": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": "./dist/index.es.js",
+        "require": "./dist/index.umd.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@nhost/apollo": "workspace:*",
+    "@nhost/react": "workspace:*"
+  },
+  "peerDependencies": {
+    "graphql": "^16.0.0",
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0",
+    "@apollo/client": "^3.5.8"
+  },
+  "devDependencies": {
+    "@apollo/client": "^3.5.8",
+    "@types/react": "^17.0.39",
+    "@types/ws": "^8.2.2",
+    "graphql": "16",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "nhost-documentation",
+  "private": true,
+  "scripts": {
+    "dev": "next",
+    "build:next": "next build",
+    "build:sitemap": "next-sitemap",
+    "build": "run-s build:next build:sitemap",
+    "start": "next start",
+    "sitemap": "next-sitemap",
+    "lint": "next lint",
+    "format": "prettier --write \"./**/*.{js,ts,tsx,jsx,json,md,mdx}\""
+  },
+  "dependencies": {
+    "@heroicons/react": "^1.0.5",
+    "@mailchimp/mailchimp_marketing": "^3.0.74",
+    "axios": "^0.24.0",
+    "classnames": "^2.3.1",
+    "clsx": "^1.1.1",
+    "eslint": "8.3.0",
+    "eslint-config-next": "^12.0.4",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.25.3",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "framer-motion": "^5.3.3",
+    "gray-matter": "^4.0.3",
+    "next": "^12.0.8",
+    "next-mdx-remote": "^3.0.8",
+    "next-seo": "^4.28.1",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2",
+    "react-merge-refs": "^1.1.0",
+    "react-syntax-highlighter": "^15.4.5"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.37",
+    "autoprefixer": "^10.4.0",
+    "next-sitemap": "^1.6.203",
+    "npm-run-all": "^4.1.5",
+    "postcss": "^8.4.1",
+    "prettier": "^2.5.0",
+    "tailwindcss": "^2.2.19",
+    "typescript": "^4.5.2"
+  },
+  "prettier": "../prettier.config.js"
+}

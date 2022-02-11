@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "noImplicitAny": false,
+    "removeComments": true,
+    "noLib": false,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es6",
+    "sourceMap": true,
+    "module": "commonjs",
+    "jsx": "preserve",
+    "strict": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "lib": ["dom", "dom.iterable", "esnext", "webworker"],
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "composite": true
+  },
+  "exclude": ["node_modules", "**/*/dist", "**/*/build", "**/*/.next"],
+  "references": [
+    { "path": "./packages/apollo/" },
+    { "path": "./packages/core/" },
+    { "path": "./packages/hasura-auth-js/" },
+    { "path": "./packages/hasura-storage-js/" },
+    { "path": "./packages/nhost-js/" },
+    { "path": "./packages/react/" },
+    { "path": "./packages/react-apollo/" },
+    { "path": "./packages/react-auth/" }
+  ]
+}

@@ -16,12 +16,6 @@
 </div>
 
 <p align="center">
-<strong>
-We have a free tier launching soon. Please star this repo to receive updates. Thanks for your support!
-</strong>
-</p>
-
-<p align="center">
   <img width="550" src="https://reporoster.com/stars/nhost/nhost" />
 </p>
 <p align="center">
@@ -52,7 +46,7 @@ JS/TS and Flutter SDKs to make it easy to work with.
 
 ## Managed at Nhost.io
 
-[Sign up](https://console.nhost.io) and create your first app on [https://console.nhost.io](https://console.nhost.io).
+[Sign up](https://app.nhost.io) and create your first app [here](https://app.nhost.io/new).
 
 ![Nhost](assets/get-started.png)
 
@@ -67,13 +61,13 @@ $ flutter i nhost-dart-sdk
 In your project, initialize the SDK with the endpoint of your new Nhost App:
 
 ```js
-import { NhostClient } from '@nhost/nhost-js';
+import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  baseURL: "https://project-id.nhost.app",
-});
+  baseURL: 'https://project-id.nhost.app'
+})
 
-export { nhost };
+export { nhost }
 ```
 
 Now you're ready to develop your app.
@@ -92,6 +86,10 @@ Now you're ready to use these fundamental building blocks to build a unique expe
 
 ### Examples and tutorials
 
+- [Todo App](https://github.com/nhost/nhost/tree/main/templates/web/react-apollo) with React
+- [Full App Template](https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo) with Next.js
+- [Native Mobile App](https://github.com/nhost/nhost-dart/tree/main/packages/nhost_flutter_graphql/example) with Dart and Flutter
+- [Nuxt](https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo) with Apollo.
 - [CRM Example App](https://github.com/nhost/nhost/tree/main/examples/react-apollo-crm)
 - [Multi-tenant App](https://github.com/nhost/nhost/tree/main/examples/multi-tenant-one-to-many)
 

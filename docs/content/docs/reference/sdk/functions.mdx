@@ -1,0 +1,13 @@
+---
+title: 'Functions'
+---
+
+## `nhost.functions.call()`
+
+Send a request to a serverless function:
+
+```js
+const { res, error } = await nhost.functions.call('/test', { name: 'Johan' })
+```
+
+If the user is signed in, the user's access token is attached in the `Authorization` header.
