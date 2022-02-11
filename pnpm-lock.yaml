@@ -168,9 +168,9 @@ importers:
   examples/react-xstate:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/apollo': workspace:^0.1.0
       '@nhost/core': workspace:^0.1.0
       '@nhost/react': workspace:^0.1.0
+      '@nhost/react-apollo': workspace:^2.2.0
       '@types/react': ^17.0.39
       '@types/react-dom': ^17.0.11
       '@types/uuid': ^8.3.4
@@ -188,9 +188,9 @@ importers:
       ws: ^8.4.2
       xstate: ^4.29.0
     dependencies:
-      '@nhost/apollo': link:../../packages/apollo
       '@nhost/core': link:../../packages/core
       '@nhost/react': link:../../packages/react
+      '@nhost/react-apollo': link:../../packages/react-apollo
       '@xstate/react': 2.0.0_b2730fbad1dada8c45d201a94f0d2c3b
       axios: 0.25.0
       react: 17.0.2
@@ -290,18 +290,18 @@ importers:
   packages/react-apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/nhost-js': workspace:*
+      '@nhost/apollo': workspace:*
+      '@nhost/react': workspace:*
       '@types/react': ^17.0.39
       '@types/ws': ^8.2.2
       graphql: 15.7.2
       react: ^17.0.2
       react-dom: ^17.0.2
-      subscriptions-transport-ws: ^0.11.0
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
-      subscriptions-transport-ws: 0.11.0_graphql@15.7.2
+      '@nhost/apollo': link:../apollo
+      '@nhost/react': link:../react
     devDependencies:
-      '@apollo/client': 3.5.8_03bf9288e5c3a1c712f16f9f9a62dbf9
+      '@apollo/client': 3.5.8_graphql@15.7.2+react@17.0.2
       '@types/react': 17.0.39
       '@types/ws': 8.2.2
       graphql: 15.7.2
@@ -439,7 +439,6 @@ packages:
       ts-invariant: 0.9.4
       tslib: 2.3.1
       zen-observable-ts: 1.2.3
-    dev: false
 
   /@apollo/protobufjs/1.2.2:
     resolution: {integrity: sha512-vF+zxhPiLtkwxONs6YanSt1EpwpGilThpneExUN5K3tCymuxNnVq2yojTvnpRjv2QfsEIt/n7ozPIIzBLwGIDQ==}
@@ -5227,7 +5226,7 @@ packages:
   /axios/0.25.0:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.7
+      follow-redirects: 1.14.7_debug@4.3.3
     transitivePeerDependencies:
       - debug
     dev: false
@@ -8833,16 +8832,6 @@ packages:
     dependencies:
       inherits: 2.0.4
       readable-stream: 2.3.7
-    dev: false
-
-  /follow-redirects/1.14.7:
-    resolution: {integrity: sha512-+hbxoLbFMbRKDwohX8GkTataGqO6Jb7jGwpAlwgy2bIz25XtRm7KEzJM76R1WiNT5SwZkX4Y75SwBolkpmE7iQ==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
     dev: false
 
   /follow-redirects/1.14.7_debug@4.3.3:
