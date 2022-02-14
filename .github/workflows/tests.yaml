@@ -56,6 +56,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ matrix.node-version }}
 
+      - name: Install nhost CLI
+        run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
       - name: Start Nhost Backend
         run: |
           cd examples/testing-project
