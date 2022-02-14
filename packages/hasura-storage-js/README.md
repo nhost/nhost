@@ -4,7 +4,7 @@ Hasura Auth JS SDK to handle **Auth** with [Hasura](https://hasura.io/).
 
 ## Install
 
-`$ npm install @nhost/hasura-storage-js`
+`$ npm install @pilou/hasura-storage-js`
 
 ## Documentation
 

@@ -29,9 +29,9 @@ yarn init -y
 Install Nhost JavaScript SDK:
 
 ```sh
-npm install @nhost/nhost-js
+npm install @pilou/nhost-js
 # or
-yarn add @nhost/nhost-js
+yarn add @pilou/nhost-js
 ```
 
 ---
@@ -43,7 +43,7 @@ In the new directory, create a file called `index.js`.
 Enter the following code into this file. It will initialize a new `NhostClient` that will interact with your backend:
 
 ```js
-import { NhostClient } from '@nhost/nhost-js'
+import { NhostClient } from '@pilou/nhost-js'
 
 const nhost = new NhostClient({
   backendUrl: 'https://[app-subdomain].nhost.run' // replace this with the backend URL of your app
@@ -65,7 +65,7 @@ https://[app-subdomain].nhost.run/v1/graphql
 If you now add the following GraphQL query to the client, let's see what happens when you run the updated version:
 
 ```js
-import { NhostClient } from '@nhost/nhost-js'
+import { NhostClient } from '@pilou/nhost-js'
 
 const nhost = new NhostClient({
   backendUrl: 'https://[app-subdomain].nhost.run'

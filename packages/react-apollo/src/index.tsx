@@ -21,7 +21,7 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { NhostClient } from '@nhost/nhost-js'
+import { NhostClient } from '@pilou/nhost-js'
 
 const isBrowser = () => typeof window !== 'undefined'
 

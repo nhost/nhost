@@ -4,11 +4,11 @@ For easy usage of Apollo and React with [Nhost](https://nhost.io).
 
 ## Install
 
-`$ npm install @nhost/react-apollo`
+`$ npm install @pilou/react-apollo`
 
 or
 
-`$ yarn add @nhost/react-apollo`
+`$ yarn add @pilou/react-apollo`
 
 ## Documentation
 

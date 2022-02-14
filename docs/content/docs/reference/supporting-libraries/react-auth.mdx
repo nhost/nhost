@@ -1,30 +1,30 @@
 ---
-title: '@nhost/react-auth'
+title: '@pilou/react-auth'
 ---
 
-`@nhost/react-auth` makes it easy to use authenticate with Nhost in your React app.
+`@pilou/react-auth` makes it easy to use authenticate with Nhost in your React app.
 
 ---
 
 ## Install
 
-Install `@nhost/react-auth` and its dependencies:
+Install `@pilou/react-auth` and its dependencies:
 
 ```
-npm install @nhost/nhost-js @nhost/react-auth
+npm install @pilou/nhost-js @pilou/react-auth
 ```
 
 ---
 
 ## Usage
 
-`@nhost/react-auth` exports a React provider `NhostAuthProvider` that can handle authentication state in your app. Wrap this component around your whole App.
+`@pilou/react-auth` exports a React provider `NhostAuthProvider` that can handle authentication state in your app. Wrap this component around your whole App.
 
 ```js
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { NhostClient } from '@nhost/nhost-js'
-import { NhostAuthProvider } from '@nhost/react-auth'
+import { NhostClient } from '@pilou/nhost-js'
+import { NhostAuthProvider } from '@pilou/react-auth'
 
 import App from './App'
 
@@ -67,11 +67,11 @@ console.log('User is authenticated')
 
 ### React
 
-When using [React Router](https://reactrouter.com/web/guides/quick-start) with `@nhost/react-auth`, you can protect routes by creating an `AuthGate` component:
+When using [React Router](https://reactrouter.com/web/guides/quick-start) with `@pilou/react-auth`, you can protect routes by creating an `AuthGate` component:
 
 ```js
 import { Redirect } from 'react-router-dom'
-import { useNhostAuth } from '@nhost/react-auth'
+import { useNhostAuth } from '@pilou/react-auth'
 
 export function AuthGate(children) {
   const { isLoading, isAuthenticated } = useNhostAuth()
@@ -113,7 +113,7 @@ Create a `auth-protected.js` file:
 
 ```js
 import { useRouter } from 'next/router'
-import { useNhostAuth } from '@nhost/react-auth'
+import { useNhostAuth } from '@pilou/react-auth'
 
 export function authProtected(Comp) {
   return function AuthProtected(props) {

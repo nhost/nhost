@@ -1,8 +1,8 @@
 import React from "react";
 import logo from "./logo.svg";
 import "./App.css";
-import { NhostAuthProvider } from "@nhost/react-auth";
-import { NhostApolloProvider } from "@nhost/react-apollo";
+import { NhostAuthProvider } from "@pilou/react-auth";
+import { NhostApolloProvider } from "@pilou/react-apollo";
 import { nhost } from "./utils/nhost";
 
 function App() {

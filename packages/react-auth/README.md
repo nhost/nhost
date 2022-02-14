@@ -4,11 +4,11 @@ For easy usage of Auth with [Nhost](https://nhost.io).
 
 ## Install
 
-`$ npm install @nhost/react-auth`
+`$ npm install @pilou/react-auth`
 
 or
 
-`$ yarn add @nhost/react-auth`
+`$ yarn add @pilou/react-auth`
 
 ## Documentation
 

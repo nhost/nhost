@@ -1,5 +1,5 @@
-import { ClientStorage, ClientStorageType, HasuraAuthClient } from '@nhost/hasura-auth-js'
-import { HasuraStorageClient } from '@nhost/hasura-storage-js'
+import { ClientStorage, ClientStorageType, HasuraAuthClient } from '@pilou/hasura-auth-js'
+import { HasuraStorageClient } from '@pilou/hasura-storage-js'
 
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'

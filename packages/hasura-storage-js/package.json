@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/hasura-storage-js",
+  "name": "@pilou/hasura-storage-js",
   "version": "0.0.6",
   "description": "Hasura-storage client",
   "license": "MIT",

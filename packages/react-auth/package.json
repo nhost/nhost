@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/react-auth",
+  "name": "@pilou/react-auth",
   "version": "2.0.3",
   "description": "Nhost React client",
   "license": "MIT",
@@ -43,7 +43,7 @@
     "require": "./dist/index.umd.js"
   },
   "dependencies": {
-    "@nhost/nhost-js": "workspace:*"
+    "@pilou/nhost-js": "workspace:*"
   },
   "peerDependencies": {
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0",

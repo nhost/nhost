@@ -61,7 +61,7 @@ $ flutter i nhost-dart-sdk
 In your project, initialize the SDK with the endpoint of your new Nhost App:
 
 ```js
-import { NhostClient } from '@nhost/nhost-js'
+import { NhostClient } from '@pilou/nhost-js'
 
 const nhost = new NhostClient({
   baseURL: 'https://project-id.nhost.app'

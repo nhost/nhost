@@ -1,7 +1,7 @@
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-import { NhostAuthProvider } from "@nhost/react-auth";
-import { NhostApolloProvider } from "@nhost/react-apollo";
+import { NhostAuthProvider } from "@pilou/react-auth";
+import { NhostApolloProvider } from "@pilou/react-apollo";
 
 import { nhost } from "../utils/nhost";
 

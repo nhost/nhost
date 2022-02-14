@@ -1,4 +1,4 @@
-import { useNhostAuth } from "@nhost/react-auth";
+import { useNhostAuth } from "@pilou/react-auth";
 import React from "react";
 import { Navigate, useLocation } from "react-router";
 

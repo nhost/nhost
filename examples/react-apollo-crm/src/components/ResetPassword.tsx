@@ -1,4 +1,4 @@
-import { useNhostAuth } from "@nhost/react-auth";
+import { useNhostAuth } from "@pilou/react-auth";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { nhost } from "../utils/nhost";

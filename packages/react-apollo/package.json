@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/react-apollo",
+  "name": "@pilou/react-apollo",
   "version": "2.1.0",
   "description": "Nhost React Apollo client",
   "license": "MIT",
@@ -44,7 +44,7 @@
     "require": "./dist/index.umd.js"
   },
   "dependencies": {
-    "@nhost/nhost-js": "workspace:*",
+    "@pilou/nhost-js": "workspace:*",
     "subscriptions-transport-ws": "^0.11.0"
   },
   "peerDependencies": {

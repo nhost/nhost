@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/nhost-js",
+  "name": "@pilou/nhost-js",
   "version": "0.3.6",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
@@ -47,8 +47,8 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@nhost/hasura-auth-js": "workspace:*",
-    "@nhost/hasura-storage-js": "workspace:*",
+    "@pilou/hasura-auth-js": "workspace:*",
+    "@pilou/hasura-storage-js": "workspace:*",
     "axios": "^0.23.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"

@@ -1,6 +1,6 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
-import { NhostClient } from '@nhost/nhost-js'
+import { NhostClient } from '@pilou/nhost-js'
 
 export const AuthContext = createContext({
   user: null,

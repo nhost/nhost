@@ -1,9 +1,9 @@
-<h1 align="center">@nhost/nhost-js</h1>
+<h1 align="center">@pilou/nhost-js</h1>
 <h2 align="center">Nhost JavaScript SDK</h2>
 
 <p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/nhost-js">
-  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/nhost-js">
+  <img alt="npm" src="https://img.shields.io/npm/v/@pilou/nhost-js">
+  <img alt="npm" src="https://img.shields.io/npm/dm/@pilou/nhost-js">
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
   </a>
@@ -17,15 +17,15 @@
 ### Install
 
 ```
-npm install @nhost/nhost-js
+npm install @pilou/nhost-js
 # or yarn
-yarn add @nhost/nhost-js
+yarn add @pilou/nhost-js
 ```
 
 ### Initialize
 
 ```js
-import { NhostClient } from '@nhost/nhost-js'
+import { NhostClient } from '@pilou/nhost-js'
 
 const nhost = new NhostClient({
   backendUrl: 'https://xxx.nhost.run'

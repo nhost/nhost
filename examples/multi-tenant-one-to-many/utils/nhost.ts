@@ -1,4 +1,4 @@
-import { NhostClient } from "@nhost/nhost-js";
+import { NhostClient } from "@pilou/nhost-js";
 
 const nhost = new NhostClient({
   backendUrl: "http://localhost:1337",

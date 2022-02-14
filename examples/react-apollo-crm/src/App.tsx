@@ -1,6 +1,6 @@
 import "./App.css";
-import { NhostAuthProvider } from "@nhost/react-auth";
-import { NhostApolloProvider } from "@nhost/react-apollo";
+import { NhostAuthProvider } from "@pilou/react-auth";
+import { NhostApolloProvider } from "@pilou/react-apollo";
 import { nhost } from "./utils/nhost";
 import { Route, Routes } from "react-router";
 import { Layout } from "./components/ui/Layout";

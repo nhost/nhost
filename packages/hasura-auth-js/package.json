@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/hasura-auth-js",
+  "name": "@pilou/hasura-auth-js",
   "version": "0.1.10",
   "description": "Hasura-auth client",
   "license": "MIT",
