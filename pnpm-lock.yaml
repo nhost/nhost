@@ -134,12 +134,12 @@ importers:
 
   examples/multi-tenant-one-to-many:
     specifiers:
-      '@nhost/nhost-js': ^0.3.3
+      '@pilou/nhost-js': ^0.3.3
       '@types/express': ^4.17.13
       express: ^4.17.2
       typescript: ^4.5.4
     dependencies:
-      '@nhost/nhost-js': link:../../packages/nhost-js
+      '@pilou/nhost-js': link:../../packages/nhost-js
     devDependencies:
       '@types/express': 4.17.13
       express: 4.17.2
@@ -156,9 +156,9 @@ importers:
       '@graphql-codegen/typescript-react-apollo': ^3.1.6
       '@headlessui/react': ^1.4.2
       '@heroicons/react': ^1.0.5
-      '@nhost/nhost-js': ^0.3.6
-      '@nhost/react-apollo': ^2.1.0
-      '@nhost/react-auth': ^2.0.3
+      '@pilou/nhost-js': ^0.3.6
+      '@pilou/react-apollo': ^2.1.0
+      '@pilou/react-auth': ^2.0.3
       '@saeris/apollo-server-vercel': ^1.0.1
       '@tailwindcss/forms': ^0.3.4
       '@testing-library/jest-dom': ^5.11.4
@@ -189,9 +189,9 @@ importers:
       '@craco/craco': 6.4.3_4aa4ff7e3a066977318d29b1bedd23d1
       '@headlessui/react': 1.4.3_react-dom@17.0.2+react@17.0.2
       '@heroicons/react': 1.0.5_react@17.0.2
-      '@nhost/nhost-js': link:../../packages/nhost-js
-      '@nhost/react-apollo': link:../../packages/react-apollo
-      '@nhost/react-auth': link:../../packages/react-auth
+      '@pilou/nhost-js': link:../../packages/nhost-js
+      '@pilou/react-apollo': link:../../packages/react-apollo
+      '@pilou/react-auth': link:../../packages/react-auth
       '@saeris/apollo-server-vercel': 1.0.1_graphql@15.7.2
       '@tailwindcss/forms': 0.3.4_00c8fcea36e7ebb784460590946ebc50
       '@testing-library/jest-dom': 5.16.2
@@ -297,14 +297,14 @@ importers:
 
   packages/nhost-js:
     specifiers:
-      '@nhost/hasura-auth-js': workspace:*
-      '@nhost/hasura-storage-js': workspace:*
+      '@pilou/hasura-auth-js': workspace:*
+      '@pilou/hasura-storage-js': workspace:*
       axios: ^0.23.0
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
     dependencies:
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
-      '@nhost/hasura-storage-js': link:../hasura-storage-js
+      '@pilou/hasura-auth-js': link:../hasura-auth-js
+      '@pilou/hasura-storage-js': link:../hasura-storage-js
       axios: 0.23.0
       jwt-decode: 3.1.2
       query-string: 7.1.1
@@ -312,7 +312,7 @@ importers:
   packages/react-apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/nhost-js': workspace:*
+      '@pilou/nhost-js': workspace:*
       '@types/react': ^17.0.39
       '@types/ws': ^8.2.2
       graphql: 15.7.2
@@ -320,7 +320,7 @@ importers:
       react-dom: ^17.0.2
       subscriptions-transport-ws: ^0.11.0
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
+      '@pilou/nhost-js': link:../nhost-js
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.5.8_03bf9288e5c3a1c712f16f9f9a62dbf9
@@ -332,12 +332,12 @@ importers:
 
   packages/react-auth:
     specifiers:
-      '@nhost/nhost-js': workspace:*
+      '@pilou/nhost-js': workspace:*
       '@types/react': ^17.0.38
       react: ^17.0.2
       react-dom: ^17.0.2
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
+      '@pilou/nhost-js': link:../nhost-js
     devDependencies:
       '@types/react': 17.0.39
       react: 17.0.2
