@@ -1,5 +1,6 @@
 import hoc from '@nhost/nextjs'
+import { NHOST_URL } from './nhost-url'
 
 export const withNhost = hoc({
-  backendUrl: 'http://127.0.0.1:1337'
+  backendUrl: NHOST_URL
 })
