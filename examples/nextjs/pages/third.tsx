@@ -1,12 +1,9 @@
-import { NetworkStatus, useQuery } from '@apollo/client'
+import { useQuery } from '@apollo/client'
 import { getDataFromTree } from '@apollo/client/react/ssr'
-import type { NextPage } from 'next'
-import { useState, useEffect } from 'react'
-import { QUERY, QUERY_INDEX } from '../helpers'
-import withApollo from '../attempts/with-apollo'
+import { QUERY_INDEX, withApollo } from '../helpers'
 
 const Third: React.FC = () => {
-  const { data, loading, networkStatus, error, refetch } = useQuery(QUERY_INDEX, {
+  const { data, loading } = useQuery(QUERY_INDEX, {
     // notifyOnNetworkStatusChange: true
   })
 

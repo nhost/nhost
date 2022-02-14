@@ -8,6 +8,7 @@ export interface Typegen0 {
       | 'SESSION_UPDATE'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.registerUser'
+      | ''
       | 'done.invoke.signingOut'
       | 'error.platform.signingOut'
     emitSession: 'done.invoke.authenticateUserWithPassword'
@@ -37,6 +38,7 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    '': { type: '' }
     'done.invoke.signingOut': {
       type: 'done.invoke.signingOut'
       data: unknown
@@ -52,7 +54,6 @@ export interface Typegen0 {
       data: unknown
     }
     'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
-    '': { type: '' }
     'xstate.init': { type: 'xstate.init' }
     'done.invoke.tokenRefresher': {
       type: 'done.invoke.tokenRefresher'
@@ -117,15 +118,16 @@ export interface Typegen0 {
     changeEmailMachine: 'xstate.init'
   }
   eventsCausingGuards: {
-    hasUser: 'SESSION_UPDATE' | 'done.invoke.registerUser'
+    hasSession: 'SESSION_UPDATE' | 'done.invoke.registerUser'
+    isSignedIn: ''
     invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
     invalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
-    isUserSet: ''
     unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
   }
   eventsCausingDelays: {}
   matchesStates:
     | 'authentication'
+    | 'authentication.starting'
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
     | 'authentication.signedOut.needsVerification'
@@ -159,6 +161,7 @@ export interface Typegen0 {
     | 'authentication.signedIn.changePassword.running'
     | {
         authentication?:
+          | 'starting'
           | 'signedOut'
           | 'authenticating'
           | 'registering'

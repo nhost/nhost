@@ -1,7 +1,7 @@
 {
-  "name": "@nhost/core",
+  "name": "@nhost/nextjs",
   "version": "0.1.0",
-  "description": "Nhost core client library",
+  "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
     "nhost",
@@ -11,7 +11,10 @@
     "authentication",
     "graphql",
     "postgresql",
-    "realtime"
+    "realtime",
+    "next",
+    "nextjs",
+    "ssr"
   ],
   "author": "Nhost",
   "homepage": "https://nhost.io",
@@ -21,7 +24,7 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.js",
+    "build": "vite build --config ../../vite.lib.react.js",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -47,8 +50,17 @@
     "dist"
   ],
   "dependencies": {
-    "axios": "^0.25.0",
-    "js-cookie": "^3.0.1",
-    "xstate": "^4.29.0"
+    "@nhost/react": "workspace:*",
+    "cookie": "^0.4.2"
+  },
+  "peerDependencies": {
+    "next": "^10.0.8",
+    "react": "^17.0.0 || ^18.0.0",
+    "react-dom": "^17.0.0 || ^18.0.0"
+  },
+  "devDependencies": {
+    "next": "12.0.10",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
   }
 }

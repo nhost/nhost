@@ -27,6 +27,7 @@
     { "path": "./packages/core/" },
     { "path": "./packages/hasura-auth-js/" },
     { "path": "./packages/hasura-storage-js/" },
+    { "path": "./packages/nextjs/" },
     { "path": "./packages/nhost-js/" },
     { "path": "./packages/react/" },
     { "path": "./packages/react-apollo/" },

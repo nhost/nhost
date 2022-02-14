@@ -74,18 +74,14 @@ export const createTokenRefresherMachine = ({
               invoke: {
                 src: 'refreshToken',
                 id: 'refreshToken',
-                onDone: [
-                  {
-                    actions: ['save', 'resetTimer', 'persist', 'emit'],
-                    target: 'idle'
-                  }
-                ],
-                onError: [
-                  {
-                    actions: ['sendError'],
-                    target: 'idle.error'
-                  }
-                ]
+                onDone: {
+                  actions: ['save', 'resetTimer', 'persist', 'emit'],
+                  target: 'idle'
+                },
+                onError: {
+                  actions: ['sendError'],
+                  target: 'idle.error'
+                }
               }
             }
           }
@@ -101,12 +97,10 @@ export const createTokenRefresherMachine = ({
               }
             },
             idle: {
-              always: [
-                {
-                  cond: 'token',
-                  target: 'running.refreshing'
-                }
-              ]
+              always: {
+                cond: 'token',
+                target: 'running.refreshing'
+              }
             },
             running: {
               initial: 'pending',
@@ -135,12 +129,10 @@ export const createTokenRefresherMachine = ({
                   invoke: {
                     src: 'refreshToken',
                     id: 'refreshToken',
-                    onDone: [
-                      {
-                        actions: ['save', 'resetTimer', 'persist', 'emit'],
-                        target: 'pending'
-                      }
-                    ],
+                    onDone: {
+                      actions: ['save', 'resetTimer', 'persist', 'emit'],
+                      target: 'pending'
+                    },
                     onError: [
                       {
                         actions: 'retry',
@@ -219,14 +211,16 @@ export const createTokenRefresherMachine = ({
           const token = e.token || ctx.token
           if (ssr && typeof window !== 'undefined') {
             // TODO don't hardcode '/_refresh'
-            // TODO include cookies
-            const result = await axios.get(`${window.location.origin}/_refresh`, {
-              withCredentials: true
-            })
-            console.log('refreshToken call result', result.headers)
-            return {
-              refreshToken: '__cookie__',
-              accessTokenExpiresIn: 900 // TODO get fromresult.headers
+            try {
+              const { data } = await axios.get(`${window.location.origin}/_refresh`, {
+                withCredentials: true
+              })
+              return {
+                ...data,
+                refreshToken: '__cookie__'
+              }
+            } catch {
+              console.warn('Error in ssr /_refresh')
             }
           }
           const result = await api.post('/v1/auth/token', {

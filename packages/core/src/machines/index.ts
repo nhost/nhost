@@ -1,8 +1,6 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
-import Cookies from 'js-cookie'
 import { assign, createMachine, forwardTo, send } from 'xstate'
 
-import { NHOST_REFRESH_TOKEN_KEY } from '../constants'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
 import { ErrorPayload } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
@@ -52,8 +50,6 @@ export const createNhostMachine = ({
     const result = await api.post(url, data, config)
     return result.data
   }
-  // TODO initial accessToken from cookie when SSR on the client side
-
   return createMachine(
     {
       schema: {
@@ -65,15 +61,15 @@ export const createNhostMachine = ({
         user: null,
         mfa: false,
         // TODO NOT THAT WAY AS IT IS ONLY FOR SSR CLIENT-MODE
-        accessToken: Cookies.get('jwt') ?? null,
-        refreshToken: Cookies.get(NHOST_REFRESH_TOKEN_KEY) ?? null,
+        accessToken: null,
+        refreshToken: null,
         errors: {}
       },
       id: 'nhost',
       type: 'parallel',
       states: {
         authentication: {
-          initial: 'signedOut',
+          initial: 'starting',
           invoke: [
             {
               id: 'tokenRefresher',
@@ -87,13 +83,22 @@ export const createNhostMachine = ({
             },
             SESSION_UPDATE: [
               {
-                cond: 'hasUser',
+                cond: 'hasSession',
                 actions: ['saveSession', 'forwardToRefresher']
               },
               '.signedOut'
             ]
           },
           states: {
+            starting: {
+              always: [
+                {
+                  cond: 'isSignedIn',
+                  target: 'signedIn'
+                },
+                'signedOut'
+              ]
+            },
             signedOut: {
               tags: ['ready'],
               initial: 'noErrors',
@@ -120,10 +125,6 @@ export const createNhostMachine = ({
                     }
                   }
                 }
-              },
-              always: {
-                cond: 'isUserSet',
-                target: '#nhost.authentication.signedIn'
               },
               on: {
                 SIGNIN_PASSWORD: [
@@ -195,7 +196,7 @@ export const createNhostMachine = ({
                 onDone: [
                   {
                     actions: 'saveSession',
-                    cond: 'hasUser',
+                    cond: 'hasSession',
                     target: '#nhost.authentication.signedIn'
                   },
                   {
@@ -308,7 +309,8 @@ export const createNhostMachine = ({
     {
       actions: {
         saveSession: assign({
-          user: (_, e) => e.data?.session?.user,
+          // TODO type
+          user: (_, e: any) => e.data?.session?.user,
           accessToken: (_, e) => e.data?.session?.accessToken,
           refreshToken: (_, e) => e.data?.session?.refreshToken,
           mfa: (_, e) => e.data?.mfa ?? false
@@ -379,14 +381,17 @@ export const createNhostMachine = ({
       },
 
       guards: {
-        isUserSet: (ctx) => !!ctx.user,
+        isSignedIn: (ctx) => {
+          // TODO better definition
+          return !!ctx.user && !!ctx.refreshToken && !!ctx.accessToken
+        },
         // * Authentication errors
         // TODO type
         unverified: (ctx, { data: { error } }: any) =>
           error.status === 401 && error.message === 'Email is not verified',
 
         // * Event guards
-        hasUser: (_, e) => !!e.data?.session,
+        hasSession: (_, e) => !!e.data?.session,
         invalidEmail: (_, { email }) => !isValidEmail(email),
         invalidPassword: (_, { password }) => !isValidPassword(password)
       },

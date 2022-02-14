@@ -1,17 +1,16 @@
-import { interpret, InterpreterFrom } from 'xstate'
-
-import { createNhostMachine, NhostInitOptions, NhostMachine } from './machines'
+import { createNhostMachine, NhostContext, NhostInitOptions, NhostMachine } from './machines'
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
 
 export * from './constants'
 
-export type NhostInterpreter = InterpreterFrom<NhostMachine>
 export type Nhost = {
   backendUrl: string
-  interpreter: NhostInterpreter
+  machine: NhostMachine
 }
-export type { NhostMachine }
+export type { NhostContext, NhostInitOptions, NhostMachine }
+
 let _nhost: Nhost | null
+
 export const getNhost = () => _nhost
 
 export const initNhost = ({
@@ -20,11 +19,14 @@ export const initNhost = ({
   storageSetter = defaultStorageSetter,
   ssr = false
 }: NhostInitOptions): Nhost => {
-  const machine = createNhostMachine({ backendUrl, storageGetter, storageSetter, ssr })
-  const interpreter = interpret(machine)
-  interpreter.start()
+  const machine = createNhostMachine({
+    backendUrl,
+    storageGetter,
+    storageSetter,
+    ssr
+  })
   const nhost = {
-    interpreter,
+    machine,
     backendUrl
   }
   _nhost = nhost

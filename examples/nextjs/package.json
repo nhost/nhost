@@ -8,20 +8,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@nhost/nextjs": "workspace:^0.1.0",
     "@nhost/react-apollo": "workspace:^2.2.0",
     "@xstate/react": "^2.0.0",
-    "axios": "^0.25.0",
-    "cookie": "^0.4.2",
-    "cookies": "^0.8.0",
-    "isomorphic-unfetch": "^3.1.0",
-    "js-cookie": "^3.0.1",
     "next": "12.0.10",
     "next-with-apollo": "^5.2.1",
     "react": "17.0.2",
-    "react-cookie": "^4.1.1",
     "react-dom": "17.0.2",
-    "subscriptions-transport-ws": "^0.11.0",
-    "xstate": "^4.29.0"
+    "subscriptions-transport-ws": "^0.11.0"
   },
   "devDependencies": {
     "@apollo/client": "^3.5.8",
@@ -34,6 +28,7 @@
     "@xstate/inspect": "^0.6.2",
     "eslint": "8.8.0",
     "eslint-config-next": "12.0.10",
+    "graphql": "16",
     "next-transpile-modules": "^9.0.0",
     "typescript": "4.5.5",
     "ws": "^8.4.2"

@@ -1,7 +1,4 @@
-import { NetworkStatus, useQuery } from '@apollo/client'
-import { getDataFromTree } from '@apollo/client/react/ssr'
-import type { GetServerSideProps, NextPage } from 'next'
-import { useEffect, useState } from 'react'
+import type { NextPage } from 'next'
 import {
   useEmailPasswordlessSignIn,
   useAuthenticated,
@@ -12,30 +9,10 @@ import {
   useChangeEmail,
   useChangePassword
 } from '@nhost/react'
-// import { nhost } from './_app'
-
-export const getServerSideProps: GetServerSideProps = async ({ req, res, locale }) => {
-  console.log('-----> getserverprops')
-  // res.removeHeader('authorization')
-
-  return {
-    props: {}
-  }
-}
+import { withNhost } from '../helpers'
 
 // * Reference: https://blog.codepen.io/2021/09/01/331-next-js-apollo-server-side-rendering-ssr/
 
-// export const getServerSideProps: GetServerSideProps = async ({ req, res, locale }) => {
-//   console.log('server side index', req.cookies)
-
-//   // const interpreter = interpret(nhost.machine)
-//   // const client = createApolloClient({ interpreter, backendUrl: nhost.backendUrl })
-//   // Will be passed to the page component as props
-
-//   return {
-//     props: {}
-//   }
-// }
 const Home: NextPage = () => {
   const isAuthenticated = useAuthenticated()
   const email = 'pilou@pilou.com'
@@ -74,4 +51,4 @@ const Home: NextPage = () => {
   )
 }
 
-export default Home
+export default withNhost(Home)

@@ -2,15 +2,15 @@ import { useContext } from 'react'
 
 import { useActor, useSelector } from '@xstate/react'
 
-import { NhostContext } from '../provider'
+import { NhostReactContext } from '../provider'
 
 export const useNhostInterpreter = () => {
-  const globalServices = useContext(NhostContext)
+  const globalServices = useContext(NhostReactContext)
   return globalServices.interpreter
 }
 
 export const useNhostBackendUrl = () => {
-  const globalServices = useContext(NhostContext)
+  const globalServices = useContext(NhostReactContext)
   return globalServices.backendUrl
 }
 
