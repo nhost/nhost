@@ -16,7 +16,7 @@ sleep 10
 #     -o hasura_metadata.json
 
 curl \
-    -H "X-Hasura-admin-secret: $HASURA_GRAPHQL_ADMIN_SECRET" \
+    -H "X-Hasura-admin-secret: $HASURA_ADMIN_SECRET" \
     -d'{"type":"replace_metadata", "args":'$(cat hasura_metadata.json)'}' \
     http://localhost:8080/v1/metadata
 

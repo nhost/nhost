@@ -53,7 +53,7 @@ func (c *Client) UploadFile(ctx context.Context, files ...*File) (*controller.Up
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Authorization", "Bearer "+c.jwt)
 
-	resp, err := c.httpCliebt.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("problem executing request: %w", err)
 	}

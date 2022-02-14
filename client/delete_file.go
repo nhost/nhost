@@ -19,7 +19,7 @@ func (c *Client) DeleteFile(
 	}
 	req.Header.Set("Authorization", "Bearer "+c.jwt)
 
-	resp, err := c.httpCliebt.Do(req)
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("problem executing request: %w", err)
 	}

@@ -1,4 +1,4 @@
-FROM hasura/graphql-engine:v2.1.1
+FROM hasura/graphql-engine:v2.2.0
 
 RUN apt-get update && apt-get install -y curl
 
