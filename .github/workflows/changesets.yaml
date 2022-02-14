@@ -17,7 +17,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      build:
         - uses: actions/checkout@v2
 
         - name: Cache pnpm modules
