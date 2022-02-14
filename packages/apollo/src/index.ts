@@ -1,5 +1,4 @@
 import { SubscriptionClient } from 'subscriptions-transport-ws'
-import { InterpreterFrom } from 'xstate'
 
 import {
   ApolloClient,
@@ -14,14 +13,11 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import type { NhostMachine } from '@nhost/core'
+import { getNhost } from '@nhost/core'
 
 const isBrowser = () => typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
-  authService: InterpreterFrom<NhostMachine>
-  backendUrl?: string
-  graphqlUrl?: string
   headers?: any
   publicRole?: string
   fetchPolicy?: WatchQueryFetchPolicy
@@ -31,16 +27,18 @@ export type NhostApolloClientOptions = {
 }
 
 export const createApolloClient = ({
-  authService,
-  backendUrl,
-  graphqlUrl,
   headers = {},
   publicRole = 'public',
   fetchPolicy,
   cache = new InMemoryCache(),
-  connectToDevTools = process.env.NODE_ENV === 'development',
+  connectToDevTools = isBrowser() && process.env.NODE_ENV === 'development',
   onError
 }: NhostApolloClientOptions) => {
+  const nhost = getNhost()
+  if (!nhost) {
+    throw Error("Nhost has not be initiated! Apollo client can't be created")
+  }
+  const { backendUrl, interpreter } = nhost
   let token: string | null = null
 
   const getAuthHeaders = () => {
@@ -62,14 +60,14 @@ export const createApolloClient = ({
     return resHeaders
   }
 
-  let uri = ''
-  if (graphqlUrl) {
-    uri = graphqlUrl
-  } else if (backendUrl) {
-    uri = `${backendUrl}/v1/graphql`
-  } else {
-    throw new Error('no GraphQL URL')
-  }
+  const uri = `${backendUrl}/v1/graphql`
+  // if (graphqlUrl) {
+  //   uri = graphqlUrl
+  // } else if (backendUrl) {
+  //   uri = `${backendUrl}/v1/graphql`
+  // } else {
+  //   throw new Error('no GraphQL URL')
+  // }
 
   const wsUri = uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws')
 
@@ -131,7 +129,7 @@ export const createApolloClient = ({
 
   const client = new ApolloClient(apolloClientOptions)
 
-  authService.onTransition(async (state, event) => {
+  interpreter.onTransition(async (state, event) => {
     const newToken = state.context.accessToken
 
     if (token !== newToken) {
@@ -161,5 +159,6 @@ export const createApolloClient = ({
       }
     }
   })
+
   return client
 }

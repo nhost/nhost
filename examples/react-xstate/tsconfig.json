@@ -1,5 +1,7 @@
 {
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
+    "composite": true,
     "target": "es5",
     "lib": [
       "dom",
@@ -18,9 +20,21 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-    "jsx": "react-jsx"
+    "jsx": "react-jsx",
+    "baseUrl": "./src",
+    "paths": {
+      "@nhost/core": ["../../packages/core/src/index"],
+      "@nhost/core/*": ["../../packages/core/src/*"],
+      
+      // "@your-org/ui-lib/*": ["../../../packages/ui-lib/src/*"],
+      // "@your-org/ui-lib": ["../../../packages/ui-lib/src/index"],
+      // "@your-org/core-lib/*": ["../../../packages/core-lib/src/*"],
+      // "@your-org/core-lib": ["../../../packages/core-lib/src/index"],
+      // "@your-org/db-main-prisma": ["../../../packages/db-main-prisma/src/index"]
+    }
   },
   "include": [
     "src"
-  ]
+  ],
+  
 }

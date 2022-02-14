@@ -1,9 +1,9 @@
-import { AxiosInstance } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 import { assign, createMachine, sendParent } from 'xstate'
 
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
-  NHOST_REFRESH_TOKEN,
+  NHOST_REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_RETRY_INTERVAL,
   REFRESH_TOKEN_RETRY_MAX_ATTEMPTS,
   TOKEN_REFRESH_MARGIN
@@ -26,11 +26,17 @@ type TokenRefresherEvents =
 const expiration = (expiresIn: number) =>
   Math.max(expiresIn - TOKEN_REFRESH_MARGIN, MIN_TOKEN_REFRESH_INTERVAL)
 
-export const createTokenRefresherMachine = (
-  api: AxiosInstance,
-  storageGetter: StorageGetter,
+export const createTokenRefresherMachine = ({
+  api,
+  storageGetter,
+  storageSetter,
+  ssr
+}: {
+  api: AxiosInstance
+  storageGetter: StorageGetter
   storageSetter: StorageSetter
-) =>
+  ssr: boolean
+}) =>
   createMachine(
     {
       schema: {
@@ -40,10 +46,10 @@ export const createTokenRefresherMachine = (
       tsTypes: {} as import('./token-refresher.typegen').Typegen0,
       id: 'token',
       context: {
-        token: storageGetter(NHOST_REFRESH_TOKEN),
+        token: storageGetter(NHOST_REFRESH_TOKEN_KEY, { ssr }), // TODO get token from cookie when SSR on the SERVER side
         elapsed: 0,
         attempts: 0,
-        expiration: 0,
+        expiration: 0, // TODO get expiration from cookie when SSR on the CLIENT side
         session: null
       },
       on: {
@@ -163,7 +169,7 @@ export const createTokenRefresherMachine = (
       actions: {
         // * Persist the refresh token outside of the machine
         persist: (_, { data }) => {
-          storageSetter(NHOST_REFRESH_TOKEN, data?.refreshToken)
+          storageSetter(NHOST_REFRESH_TOKEN_KEY, data?.refreshToken, { ssr })
         },
         save: assign({
           token: (_, event) => event.data?.refreshToken,
@@ -210,8 +216,19 @@ export const createTokenRefresherMachine = (
       services: {
         // TODO find a way not to store the token in the context before refreshing it
         refreshToken: async (ctx, e: any) => {
-          console.log('service')
           const token = e.token || ctx.token
+          if (ssr && typeof window !== 'undefined') {
+            // TODO don't hardcode '/_refresh'
+            // TODO include cookies
+            const result = await axios.get(`${window.location.origin}/_refresh`, {
+              withCredentials: true
+            })
+            console.log('refreshToken call result', result.headers)
+            return {
+              refreshToken: '__cookie__',
+              accessTokenExpiresIn: 900 // TODO get fromresult.headers
+            }
+          }
           const result = await api.post('/v1/auth/token', {
             refreshToken: token
           })

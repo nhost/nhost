@@ -5,8 +5,17 @@ import { NhostApolloProvider } from '@nhost/react-apollo'
 import { NhostProvider } from '@nhost/react'
 import { initNhost } from '@nhost/core'
 
+import { inspect } from '@xstate/inspect'
+
+if (process.env.NODE_ENV) {
+  inspect({
+    url: 'https://statecharts.io/inspect',
+    iframe: false
+  })
+}
+
 const nhost = initNhost({
-  backendUrl: 'http://127.0.0.1:1337'
+  backendUrl: 'http://localhost:1337'
 })
 
 ReactDOM.render(

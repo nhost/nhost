@@ -1,22 +1,38 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
+import Cookies from 'js-cookie'
 import { assign, createMachine, forwardTo, send } from 'xstate'
 
+import { NHOST_REFRESH_TOKEN_KEY } from '../constants'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
+import { ErrorPayload } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
 import { isValidEmail, isValidPassword } from '../validators'
 
 import { createChangeEmailMachine } from './change-email'
 import { createChangePasswordMachine } from './change-password'
-import { INITIAL_CONTEXT, NhostContext } from './context'
 import { NhostEvents } from './events'
 import { createTokenRefresherMachine } from './token-refresher'
 import { urlParser } from './url-parser'
+
+// TODO better typing
+type User = any //Record<string, unknown>
+
+export type NhostContext = {
+  user: User | null
+  mfa: boolean
+  accessToken: string | null
+  refreshToken: string | null
+  errors: Partial<
+    Record<'newPassword' | 'newEmail' | 'registration' | 'authentication', ErrorPayload>
+  >
+}
 
 export type NhostInitOptions = {
   backendUrl: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
+  ssr?: boolean
 }
 
 export type NhostMachine = ReturnType<typeof createNhostMachine>
@@ -24,7 +40,8 @@ export type NhostMachine = ReturnType<typeof createNhostMachine>
 export const createNhostMachine = ({
   backendUrl,
   storageSetter,
-  storageGetter
+  storageGetter,
+  ssr
 }: Required<NhostInitOptions>) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
@@ -35,6 +52,7 @@ export const createNhostMachine = ({
     const result = await api.post(url, data, config)
     return result.data
   }
+  // TODO initial accessToken from cookie when SSR on the client side
 
   return createMachine(
     {
@@ -43,7 +61,14 @@ export const createNhostMachine = ({
         events: {} as NhostEvents
       },
       tsTypes: {} as import('./index.typegen').Typegen0,
-      context: INITIAL_CONTEXT,
+      context: {
+        user: null,
+        mfa: false,
+        // TODO NOT THAT WAY AS IT IS ONLY FOR SSR CLIENT-MODE
+        accessToken: Cookies.get('jwt') ?? null,
+        refreshToken: Cookies.get(NHOST_REFRESH_TOKEN_KEY) ?? null,
+        errors: {}
+      },
       id: 'nhost',
       type: 'parallel',
       states: {
@@ -367,7 +392,7 @@ export const createNhostMachine = ({
       },
 
       services: {
-        tokenRefresher: createTokenRefresherMachine(api, storageGetter, storageSetter),
+        tokenRefresher: createTokenRefresherMachine({ api, storageGetter, storageSetter, ssr }),
         changePasswordMachine: createChangePasswordMachine(api),
         changeEmailMachine: createChangeEmailMachine(api),
 

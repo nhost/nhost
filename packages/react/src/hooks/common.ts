@@ -4,35 +4,35 @@ import { useActor, useSelector } from '@xstate/react'
 
 import { NhostContext } from '../provider'
 
-export const useAuthService = () => {
+export const useNhostInterpreter = () => {
   const globalServices = useContext(NhostContext)
-  return globalServices.authService
+  return globalServices.interpreter
 }
 
-export const useNhostbackendUrl = () => {
+export const useNhostBackendUrl = () => {
   const globalServices = useContext(NhostContext)
   return globalServices.backendUrl
 }
 
 export const useAuthActor = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useActor(service)
 }
 
 export const useReady = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.hasTag('ready'))
 }
 
 export const useLoading = () => !useReady()
 
 export const useAuthenticated = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.matches({ authentication: 'signedIn' }))
 }
 
 export const useNhostAuth = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => ({
     isLoading: !state.hasTag('ready'),
     isAuthenticated: state.matches({ authentication: 'signedIn' })
@@ -40,12 +40,12 @@ export const useNhostAuth = () => {
 }
 
 export const useAccessToken = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.accessToken)
 }
 
 export const useSignOut = (all = false) => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   const signOut = () => service.send({ type: 'SIGNOUT', all })
   const success = useSelector(service, (state) => state.matches({ authentication: 'signedOut' }))
   return { signOut, success }

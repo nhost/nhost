@@ -11,6 +11,13 @@ insert_permissions:
 select_permissions:
 - permission:
     columns:
+    - bidon
+    - id
+    filter: {}
+  role: public
+- permission:
+    columns:
+    - bidon
     - id
     filter: {}
   role: user

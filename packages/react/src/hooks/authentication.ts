@@ -1,9 +1,9 @@
 import { useSelector } from '@xstate/react'
 
-import { useAuthenticated, useAuthService } from './common'
+import { useAuthenticated, useNhostInterpreter } from './common'
 
 export const useEmailPasswordSignIn = (email: string, password: string) => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   const signIn = () =>
     service.send({
       type: 'SIGNIN_PASSWORD',
@@ -28,7 +28,7 @@ export const useEmailPasswordSignIn = (email: string, password: string) => {
 }
 
 export const useEmailPasswordlessSignIn = (email: string) => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   const signIn = () =>
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',

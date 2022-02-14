@@ -1,9 +1,9 @@
 import { useSelector } from '@xstate/react'
 
-import { useAuthService } from './common'
+import { useNhostInterpreter } from './common'
 
 export const useChangeEmail = (email: string) => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   const hasError = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changeEmail: { idle: 'failed' } } } })
   )
@@ -28,7 +28,7 @@ export const useChangeEmail = (email: string) => {
 }
 
 export const useChangePassword = (password: string) => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
 
   const hasError = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changePassword: { idle: 'failed' } } } })
@@ -50,46 +50,46 @@ export const useChangePassword = (password: string) => {
 }
 
 export const useUserData = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user)
 }
 
 export const useAvatarUrl = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.avatarUrl)
 }
 
 export const useDefaultRole = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.defaultRole)
 }
 
 export const useDisplayName = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.displayName)
 }
 
 export const useEmail = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.email)
 }
 
 export const useUserId = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.id)
 }
 
 export const useIsAnonymous = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.isAnonymous)
 }
 
 export const useUserLocale = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.locale)
 }
 
 export const useUserRoles = () => {
-  const service = useAuthService()
+  const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.roles)
 }

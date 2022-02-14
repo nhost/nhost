@@ -52,7 +52,7 @@ export const urlParser = createMachine(
               ) {
                 console.log(token)
                 // TODO send somehow the information to other tabs
-                //   authService.send({ type: 'TRY_TOKEN', token })
+                //   interpreter.send({ type: 'TRY_TOKEN', token })
                 // * remove hash from the current url after consumming the token
                 window.history.pushState({}, '', location.pathname)
                 return token
