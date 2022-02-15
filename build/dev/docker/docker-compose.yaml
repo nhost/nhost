@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   postgres:
-    image: postgres
+    image: postgres:13
     volumes:
       - ./initdb.d:/docker-entrypoint-initdb.d:ro
     ports:
