@@ -7,7 +7,7 @@ export interface User {
   email?: string
   isAnonymous: boolean
   defaultRole: string
-  roles: Record<string, string>
+  roles: string[]
 }
 
 export interface Session {
