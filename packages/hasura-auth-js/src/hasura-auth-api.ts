@@ -34,8 +34,7 @@ export class HasuraAuthApi {
     this.url = url
 
     this.httpClient = axios.create({
-      baseURL: this.url,
-      timeout: 10_000
+      baseURL: this.url
     })
 
     // convert axios error to custom ApiError
