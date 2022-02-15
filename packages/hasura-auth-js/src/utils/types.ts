@@ -32,6 +32,7 @@ export interface SignUpEmailPasswordParams {
     defaultRole?: string
     displayName?: string
     redirectTo?: string
+    metadata?: Record<string, unknown>
   }
 }
 
@@ -55,6 +56,7 @@ export interface SignInPasswordlessEmailParams {
     defaultRole?: string
     displayName?: string
     redirectTo?: string
+    metadata?: Record<string, unknown>
   }
 }
 
@@ -66,6 +68,7 @@ export interface SignInPasswordlessSmsParams {
     defaultRole?: string
     displayName?: string
     redirectTo?: string
+    metadata?: Record<string, unknown>
   }
 }
 
@@ -92,6 +95,7 @@ export interface SignInWithProviderOptions {
     defaultRole?: string
     displayName?: string
     redirectTo?: string
+    metadata?: Record<string, unknown>
   }
 }
 

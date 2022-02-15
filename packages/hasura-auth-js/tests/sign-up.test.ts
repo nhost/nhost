@@ -20,6 +20,24 @@ describe('sign-up', () => {
     expect(session).toBeNull()
   })
 
+  test('sign up with metadata', async () => {
+    const email = faker.internet.email().toLocaleLowerCase()
+    const password = faker.internet.password(8)
+
+    const { session, error } = await auth.signUp({
+      email,
+      password,
+      options: {
+        metadata: {
+          birthDate: '1990-01-01'
+        }
+      }
+    })
+
+    expect(error).toBeNull()
+    expect(session).toBeNull()
+  })
+
   it('sign up with options', async () => {
     const email = faker.internet.email().toLocaleLowerCase()
     const password = faker.internet.password(8)
