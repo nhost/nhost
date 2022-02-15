@@ -3,17 +3,17 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
-    forwardToRefresher: 'TRY_TOKEN' | 'SESSION_UPDATE'
-    saveSession:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.registerUser'
-      | ''
-      | 'done.invoke.signingOut'
-      | 'error.platform.signingOut'
+    forwardToRefresher: 'TRY_TOKEN'
     emitSession: 'done.invoke.authenticateUserWithPassword'
     requestEmailChange: 'CHANGE_EMAIL'
     requestPasswordChange: 'CHANGE_PASSWORD'
+    saveSession:
+      | 'SESSION_UPDATE'
+      | ''
+      | 'done.invoke.signingOut'
+      | 'error.platform.signingOut'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.registerUser'
     resetAuthenticationError: 'xstate.init'
     saveAuthenticationError:
       | 'error.platform.authenticatePasswordlessEmail'
@@ -21,6 +21,7 @@ export interface Typegen0 {
       | 'error.platform.registerUser'
     saveInvalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
+    emitTryToken: ''
     emitLogout: 'xstate.init'
     resetEmailChangeError: 'xstate.init'
     saveEmailChangeError: 'xstate.init'
@@ -33,11 +34,6 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'done.invoke.registerUser': {
-      type: 'done.invoke.registerUser'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
     '': { type: '' }
     'done.invoke.signingOut': {
       type: 'done.invoke.signingOut'
@@ -45,6 +41,11 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
+    'done.invoke.registerUser': {
+      type: 'done.invoke.registerUser'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
       data: unknown
@@ -120,6 +121,7 @@ export interface Typegen0 {
   eventsCausingGuards: {
     hasSession: 'SESSION_UPDATE' | 'done.invoke.registerUser'
     isSignedIn: ''
+    hasRefreshToken: ''
     invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
     invalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
     unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
@@ -139,6 +141,7 @@ export interface Typegen0 {
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
     | 'authentication.authenticating.password'
+    | 'authentication.authenticating.token'
     | 'authentication.registering'
     | 'authentication.signingOut'
     | 'authentication.signedIn'
@@ -173,7 +176,7 @@ export interface Typegen0 {
                 | 'needsVerification'
                 | 'failed'
                 | { failed?: 'server' | 'validation' | { validation?: 'password' | 'email' } }
-              authenticating?: 'passwordlessEmail' | 'password'
+              authenticating?: 'passwordlessEmail' | 'password' | 'token'
               signedIn?:
                 | 'changeEmail'
                 | 'changePassword'

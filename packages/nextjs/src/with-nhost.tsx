@@ -1,4 +1,4 @@
-import cookie from 'cookie'
+import Cookies from 'cookies'
 import { NextPage, NextPageContext } from 'next'
 import App, { AppContext } from 'next/app'
 import React from 'react'
@@ -6,36 +6,37 @@ import React from 'react'
 import {
   initNhost,
   Nhost,
-  NHOST_ACCESS_TOKEN_KEY,
+  NHOST_NEXT_REFRESH_KEY,
   NHOST_REFRESH_TOKEN_KEY,
-  NHOST_USER_KEY,
   NhostInitOptions
 } from '@nhost/core'
 import { NhostProvider } from '@nhost/react'
 
-export interface NhostPageContext extends NextPageContext {
+import { refresh } from './utils'
+
+interface NhostPageContext extends NextPageContext {
   nhost: Nhost
 }
-export interface NhostApolloAppContext extends AppContext {
+interface NhostApolloAppContext extends AppContext {
   ctx: NhostPageContext
   AppTree: any
 }
-export declare type NhostContext = NhostPageContext | NhostApolloAppContext
+declare type NhostContext = NhostPageContext | NhostApolloAppContext
 
 // Gets the display name of a JSX component for dev tools
 function getDisplayName(Component: React.ComponentType<any>) {
   return Component.displayName || Component.name || 'Unknown'
 }
 
-export const withNhost = (options: Omit<NhostInitOptions, 'ssr'>) => {
-  type NhostProps = Partial<{ nhostCookie: any; nhost: Nhost }>
+export const configureNhostSSR = (options: Omit<NhostInitOptions, 'ssr'>) => {
+  type NhostProps = Partial<{ session: any; nhost: Nhost }>
   const nhost = initNhost({ ...options, ssr: true })
 
   return (Page: NextPage<any> | typeof App) => {
     const getInitialProps = Page.getInitialProps
-    function WithNhost({ nhostCookie, ...props }: NhostProps) {
+    function WithNhost({ session, ...props }: NhostProps) {
       return (
-        <NhostProvider nhost={nhost} initialContext={nhostCookie}>
+        <NhostProvider nhost={nhost} initialContext={session}>
           <Page {...props} nhost={nhost} />
         </NhostProvider>
       )
@@ -55,19 +56,37 @@ export const withNhost = (options: Omit<NhostInitOptions, 'ssr'>) => {
         if (ctx.res && (ctx.res.headersSent || ctx.res.writableEnded)) {
           return pageProps
         }
+        // !
+        // ! 'Refresh' runs twice on login
+        // !
+        // ! 'Refresh' runs after logging in!
+        // !
+        // ? hasura-auth call could be here
+        // ? and then, a custom API to refresh the token
+        if (ctx.req && ctx.res) {
+          const cookies = Cookies(ctx.req, ctx.res)
 
-        if (ctx.req?.headers.cookie) {
-          const c = cookie.parse(ctx.req.headers.cookie)
-          const userCookie = c[NHOST_USER_KEY]
-          const nhostCookie = {
-            user: userCookie ? JSON.parse(userCookie) : null,
-            refreshToken: c[NHOST_REFRESH_TOKEN_KEY] ?? null,
-            accessToken: c[NHOST_ACCESS_TOKEN_KEY] ?? null
+          const refreshToken = cookies.get(NHOST_REFRESH_TOKEN_KEY) ?? null
+          if (refreshToken) {
+            const session = await refresh(options.backendUrl, refreshToken)
+            cookies.set(NHOST_REFRESH_TOKEN_KEY, session.refreshToken, {
+              httpOnly: false,
+              sameSite: true
+            })
+            cookies.set(
+              NHOST_NEXT_REFRESH_KEY,
+              new Date(Date.now() + session.accessTokenExpiresIn * 1_000).toISOString(),
+              {
+                httpOnly: false,
+                sameSite: true
+              }
+            )
+            return {
+              ...pageProps,
+              session
+            }
           }
-          return {
-            ...pageProps,
-            nhostCookie
-          }
+          return pageProps
         }
       }
 

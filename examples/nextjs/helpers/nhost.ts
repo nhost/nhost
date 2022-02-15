@@ -1,6 +1,6 @@
-import hoc from '@nhost/nextjs'
+import { configureNhostSSR } from '@nhost/nextjs'
 import { NHOST_URL } from './nhost-url'
 
-export const withNhost = hoc({
+export const withNhost = configureNhostSSR({
   backendUrl: NHOST_URL
 })

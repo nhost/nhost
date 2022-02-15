@@ -8,8 +8,8 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@nhost/nextjs": "workspace:^0.1.0",
-    "@nhost/react-apollo": "workspace:^2.2.0",
+    "@nhost/nextjs": "workspace:*",
+    "@nhost/react-apollo": "workspace:*",
     "@xstate/react": "^2.0.0",
     "next": "12.0.10",
     "next-with-apollo": "^5.2.1",
@@ -19,9 +19,9 @@
   },
   "devDependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/apollo": "workspace:^0.1.0",
-    "@nhost/core": "workspace:^0.1.0",
-    "@nhost/react": "workspace:^0.1.0",
+    "@nhost/apollo": "workspace:*",
+    "@nhost/core": "workspace:*",
+    "@nhost/react": "workspace:*",
     "@types/js-cookie": "^3.0.1",
     "@types/node": "17.0.17",
     "@types/react": "17.0.39",

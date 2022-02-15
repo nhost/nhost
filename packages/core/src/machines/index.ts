@@ -1,32 +1,23 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { assign, createMachine, forwardTo, send } from 'xstate'
 
+import { NHOST_REFRESH_TOKEN_KEY } from '../constants'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
-import { ErrorPayload } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
 import { isValidEmail, isValidPassword } from '../validators'
 
 import { createChangeEmailMachine } from './change-email'
 import { createChangePasswordMachine } from './change-password'
+import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
 import { NhostEvents } from './events'
 import { createTokenRefresherMachine } from './token-refresher'
 import { urlParser } from './url-parser'
 
-// TODO better typing
-type User = any //Record<string, unknown>
+export type { NhostContext, NhostEvents }
+export { INITIAL_MACHINE_CONTEXT }
 
-export type NhostContext = {
-  user: User | null
-  mfa: boolean
-  accessToken: string | null
-  refreshToken: string | null
-  errors: Partial<
-    Record<'newPassword' | 'newEmail' | 'registration' | 'authentication', ErrorPayload>
-  >
-}
-
-export type NhostInitOptions = {
+export type NhostMachineOptions = {
   backendUrl: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
@@ -40,7 +31,7 @@ export const createNhostMachine = ({
   storageSetter,
   storageGetter,
   ssr
-}: Required<NhostInitOptions>) => {
+}: Required<NhostMachineOptions>) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
@@ -58,12 +49,8 @@ export const createNhostMachine = ({
       },
       tsTypes: {} as import('./index.typegen').Typegen0,
       context: {
-        user: null,
-        mfa: false,
-        // TODO NOT THAT WAY AS IT IS ONLY FOR SSR CLIENT-MODE
-        accessToken: null,
-        refreshToken: null,
-        errors: {}
+        ...INITIAL_MACHINE_CONTEXT,
+        refreshToken: storageGetter(NHOST_REFRESH_TOKEN_KEY, { ssr })
       },
       id: 'nhost',
       type: 'parallel',
@@ -84,7 +71,7 @@ export const createNhostMachine = ({
             SESSION_UPDATE: [
               {
                 cond: 'hasSession',
-                actions: ['saveSession', 'forwardToRefresher']
+                target: '.signedIn'
               },
               '.signedOut'
             ]
@@ -95,6 +82,10 @@ export const createNhostMachine = ({
                 {
                   cond: 'isSignedIn',
                   target: 'signedIn'
+                },
+                {
+                  cond: 'hasRefreshToken',
+                  target: 'authenticating.token'
                 },
                 'signedOut'
               ]
@@ -173,7 +164,7 @@ export const createNhostMachine = ({
                     src: 'signInPassword',
                     id: 'authenticateUserWithPassword',
                     onDone: {
-                      actions: ['saveSession', 'emitSession'],
+                      actions: 'emitSession',
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: [
@@ -186,6 +177,9 @@ export const createNhostMachine = ({
                       }
                     ]
                   }
+                },
+                token: {
+                  entry: 'emitTryToken'
                 }
               }
             },
@@ -195,7 +189,6 @@ export const createNhostMachine = ({
                 id: 'registerUser',
                 onDone: [
                   {
-                    actions: 'saveSession',
                     cond: 'hasSession',
                     target: '#nhost.authentication.signedIn'
                   },
@@ -224,6 +217,7 @@ export const createNhostMachine = ({
               }
             },
             signedIn: {
+              entry: 'saveSession',
               tags: ['ready'],
               type: 'parallel',
               on: {
@@ -318,6 +312,9 @@ export const createNhostMachine = ({
 
         emitLogout: send('SESSION_LOAD', { to: 'tokenRefresher' }),
         forwardToRefresher: forwardTo('tokenRefresher'),
+        emitTryToken: send((ctx) => ({ type: 'TRY_TOKEN', token: ctx.refreshToken }), {
+          to: 'tokenRefresher'
+        }),
         emitSession: send(
           // TODO type
           (_, { data: { session } }: any) => ({ type: 'SESSION_LOAD', data: session }),
@@ -381,10 +378,9 @@ export const createNhostMachine = ({
       },
 
       guards: {
-        isSignedIn: (ctx) => {
-          // TODO better definition
-          return !!ctx.user && !!ctx.refreshToken && !!ctx.accessToken
-        },
+        isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken && !!ctx.accessToken,
+        hasRefreshToken: (ctx) => !!ctx.refreshToken,
+
         // * Authentication errors
         // TODO type
         unverified: (ctx, { data: { error } }: any) =>

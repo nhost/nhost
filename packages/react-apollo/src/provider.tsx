@@ -2,12 +2,11 @@ import React, { useContext, useEffect, useState } from 'react'
 
 import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
 import { createApolloClient, NhostApolloClientOptions } from '@nhost/apollo'
-import { NhostContext } from '@nhost/react'
+import { NhostReactContext } from '@nhost/react'
 
-export const NhostApolloProvider: React.FC<
-  Omit<NhostApolloClientOptions, 'backendUrl' | 'authService'>
-> = ({ children, ...options }) => {
-  const nhostContext = useContext(NhostContext)
+type Props = Omit<NhostApolloClientOptions, 'backendUrl' | 'authService'>
+const Wrapper: React.FC<Props> = ({ children, ...options }) => {
+  const nhostContext = useContext(NhostReactContext)
 
   const [client, setClient] = useState<ApolloClient<InMemoryCache>>()
 
@@ -18,4 +17,9 @@ export const NhostApolloProvider: React.FC<
 
   if (client) return <ApolloProvider client={client}>{children}</ApolloProvider>
   else return <div>no Apollo client</div>
+}
+
+export const NhostApolloProvider: React.FC<Props> = (props) => {
+  // * Wrap to make sure the nhost context is fully loaded
+  return <Wrapper {...props} />
 }

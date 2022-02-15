@@ -1,2 +1,3 @@
 export * from './middleware'
-export { withNhost as default } from './with-nhost'
+export * from './with-nhost'
+export * from '@nhost/react'

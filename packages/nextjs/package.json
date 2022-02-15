@@ -51,7 +51,7 @@
   ],
   "dependencies": {
     "@nhost/react": "workspace:*",
-    "cookie": "^0.4.2"
+    "cookies": "^0.8.0"
   },
   "peerDependencies": {
     "next": "^10.0.8",

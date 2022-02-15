@@ -1,18 +1,17 @@
 export const NHOST_REFRESH_TOKEN_KEY = 'nhostRefreshToken'
-export const NHOST_ACCESS_TOKEN_KEY = 'jwt'
-export const NHOST_USER_KEY = 'user'
-
-export const DEFAULT_ACCESS_TOKEN_EXPIRATION = 900
-export const DEFAULT_REFRESH_TOKEN_EXPIRATION = 43200
+export const NHOST_NEXT_REFRESH_KEY = 'nhostNextRefresh'
 
 export const MIN_PASSWORD_LENGTH = 3
 
-// * Minimum number of seconds before the JWT expiration and the refresh
+// * Minimum time in seconds before the JWT expiration and the first refresh attempt
 export const TOKEN_REFRESH_MARGIN = 900
-// const TOKEN_REFRESH_MARGIN = 180
-// export const MIN_TOKEN_REFRESH_INTERVAL = 60
-export const MIN_TOKEN_REFRESH_INTERVAL = 10
+
+// * Minimum time in seconds for a refresh regardless ot the JWT expiration
+export const MIN_TOKEN_REFRESH_INTERVAL = 60
+
+// * Number of seconds before retrying a token refresh after an error
 export const REFRESH_TOKEN_RETRY_INTERVAL = 10
-// const REFRESH_TOKEN_RETRY_INTERVAL = 5
+
+// * Maximum number of attempts to refresh a token before stopping the timer and logging out
+// TODO try when offline for a long time: maybe we could keep state as 'signedIn'
 export const REFRESH_TOKEN_RETRY_MAX_ATTEMPTS = 30
-// const REFRESH_TOKEN_RETRY_MAX_ATTEMPTS = 10

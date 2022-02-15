@@ -129,7 +129,7 @@ export const createApolloClient = ({
 
   const client = new ApolloClient(apolloClientOptions)
 
-  interpreter.onTransition(async (state, event) => {
+  interpreter?.onTransition(async (state, event) => {
     const newToken = state.context.accessToken
 
     if (token !== newToken) {

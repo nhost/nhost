@@ -3,6 +3,7 @@ import { assign, createMachine, sendParent } from 'xstate'
 
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
+  NHOST_NEXT_REFRESH_KEY,
   NHOST_REFRESH_TOKEN_KEY,
   REFRESH_TOKEN_RETRY_INTERVAL,
   REFRESH_TOKEN_RETRY_MAX_ATTEMPTS,
@@ -23,7 +24,7 @@ type TokenRefresherEvents =
   | { type: 'SIGNOUT'; all?: boolean }
   | { type: 'TRY_TOKEN'; token: string }
 
-const expiration = (expiresIn: number) =>
+const getExpiration = (expiresIn: number) =>
   Math.max(expiresIn - TOKEN_REFRESH_MARGIN, MIN_TOKEN_REFRESH_INTERVAL)
 
 export const createTokenRefresherMachine = ({
@@ -36,8 +37,13 @@ export const createTokenRefresherMachine = ({
   storageGetter: StorageGetter
   storageSetter: StorageSetter
   ssr: boolean
-}) =>
-  createMachine(
+}) => {
+  const strExpirationDate = storageGetter(NHOST_NEXT_REFRESH_KEY, { ssr })
+  let expiration = 0
+  if (strExpirationDate) {
+    expiration = getExpiration((new Date(strExpirationDate).getTime() - Date.now()) / 1_000)
+  }
+  return createMachine(
     {
       schema: {
         context: {} as TokenRefresherContext,
@@ -49,7 +55,7 @@ export const createTokenRefresherMachine = ({
         token: storageGetter(NHOST_REFRESH_TOKEN_KEY, { ssr }), // TODO get token from cookie when SSR on the SERVER side
         elapsed: 0,
         attempts: 0,
-        expiration: 0, // TODO get expiration from cookie when SSR on the CLIENT side
+        expiration,
         session: null
       },
       on: {
@@ -99,7 +105,7 @@ export const createTokenRefresherMachine = ({
             idle: {
               always: {
                 cond: 'token',
-                target: 'running.refreshing'
+                target: 'running'
               }
             },
             running: {
@@ -117,7 +123,6 @@ export const createTokenRefresherMachine = ({
                     target: 'refreshing'
                   },
                   on: {
-                    //   TODO
                     SIGNOUT: {
                       actions: ['resetTimer', 'resetToken'],
                       target: '#token.timer.stopped'
@@ -159,13 +164,21 @@ export const createTokenRefresherMachine = ({
 
     {
       actions: {
-        // * Persist the refresh token outside of the machine
+        // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }) => {
           storageSetter(NHOST_REFRESH_TOKEN_KEY, data?.refreshToken, { ssr })
+          if (data?.accessTokenExpiresIn) {
+            const nextRefresh = new Date(
+              Date.now() + getExpiration(data.accessTokenExpiresIn) * 1_000
+            ).toISOString()
+            storageSetter(NHOST_NEXT_REFRESH_KEY, nextRefresh, { ssr })
+          } else {
+            storageSetter(NHOST_NEXT_REFRESH_KEY, null, { ssr })
+          }
         },
         save: assign({
           token: (_, event) => event.data?.refreshToken,
-          expiration: (_, event) => expiration(event.data?.accessTokenExpiresIn)
+          expiration: (_, event) => getExpiration(event.data?.accessTokenExpiresIn)
         }),
         tick: assign({
           elapsed: (ctx) => ctx.elapsed + 1
@@ -179,6 +192,7 @@ export const createTokenRefresherMachine = ({
         }),
 
         retry: assign({
+          // TODO getExpiration
           expiration: (_) => REFRESH_TOKEN_RETRY_INTERVAL,
           elapsed: (_) => 0,
           attempts: (ctx) => ctx.attempts + 1
@@ -215,10 +229,7 @@ export const createTokenRefresherMachine = ({
               const { data } = await axios.get(`${window.location.origin}/_refresh`, {
                 withCredentials: true
               })
-              return {
-                ...data,
-                refreshToken: '__cookie__'
-              }
+              return data
             } catch {
               console.warn('Error in ssr /_refresh')
             }
@@ -226,9 +237,9 @@ export const createTokenRefresherMachine = ({
           const result = await api.post('/v1/auth/token', {
             refreshToken: token
           })
-
           return result.data
         }
       }
     }
   )
+}

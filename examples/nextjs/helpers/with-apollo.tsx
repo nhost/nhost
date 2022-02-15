@@ -1,15 +1,6 @@
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client'
-import hoc, { ApolloAppContext, ApolloPageContext } from 'next-with-apollo'
+import hoc from 'next-with-apollo'
 import { NHOST_URL } from './nhost-url'
-
-export interface NhostPageContext<C = any> extends ApolloPageContext {
-  additionalData: string
-}
-export interface NhostAppContext<C = any> extends ApolloAppContext {
-  ctx: NhostPageContext<C>
-  AppTree: any
-}
-export declare type NhostContext<C = any> = NhostPageContext<C> | NhostAppContext<C>
 
 export const withApollo = hoc(
   ({ initialState }) => {

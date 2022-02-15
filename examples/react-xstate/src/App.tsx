@@ -31,8 +31,7 @@ function App() {
   const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
   const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
   const { change: changePassword } = useChangePassword('12345678')
-  const { loading, data } = useAuthQuery(GET_GREETING)
-
+  const { loading, data, error } = useAuthQuery(GET_GREETING)
   return (
     <div className="App">
       <header className="App-header">
@@ -54,7 +53,14 @@ function App() {
 
         <p>JWT</p>
         <div>{jwt}</div>
-        {!loading && <div>ok {JSON.stringify(data)}</div>}
+        {isAuthenticated && (
+          <ul>
+            {data?.test.map((item) => (
+              <li key={item.id}>{item.id}</li>
+            ))}
+          </ul>
+        )}
+        {!loading && error && <div>ok {JSON.stringify(error)}</div>}
       </header>
     </div>
   )

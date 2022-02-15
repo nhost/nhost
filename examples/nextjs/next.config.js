@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// * Only required to make it work with the monorepo. Is not required otherwise
 const nextConfig = {
   reactStrictMode: true,
   typescript: {
