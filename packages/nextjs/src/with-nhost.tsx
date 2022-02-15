@@ -4,6 +4,9 @@ import App, { AppContext } from 'next/app'
 import React from 'react'
 
 import {
+  cookieStorageGetter,
+  cookieStorageSetter,
+  INITIAL_MACHINE_CONTEXT,
   initNhost,
   Nhost,
   NHOST_NEXT_REFRESH_KEY,
@@ -12,12 +15,12 @@ import {
 } from '@nhost/core'
 import { NhostProvider } from '@nhost/react'
 
-import { refresh } from './utils'
+import { refresh, Session } from './utils'
 
-interface NhostPageContext extends NextPageContext {
+export interface NhostPageContext extends NextPageContext {
   nhost: Nhost
 }
-interface NhostApolloAppContext extends AppContext {
+export interface NhostApolloAppContext extends AppContext {
   ctx: NhostPageContext
   AppTree: any
 }
@@ -28,15 +31,22 @@ function getDisplayName(Component: React.ComponentType<any>) {
   return Component.displayName || Component.name || 'Unknown'
 }
 
-export const configureNhostSSR = (options: Omit<NhostInitOptions, 'ssr'>) => {
-  type NhostProps = Partial<{ session: any; nhost: Nhost }>
-  const nhost = initNhost({ ...options, ssr: true })
+export const configureNhostSSR = (options: NhostInitOptions) => {
+  type NhostProps = Partial<{ session: Session; nhost: Nhost }>
+  const nhost = initNhost({
+    ...options,
+    storageGetter: cookieStorageGetter,
+    storageSetter: cookieStorageSetter
+  })
 
   return (Page: NextPage<any> | typeof App) => {
     const getInitialProps = Page.getInitialProps
     function WithNhost({ session, ...props }: NhostProps) {
+      if (session) {
+        nhost.machine = nhost.machine.withContext({ ...INITIAL_MACHINE_CONTEXT, ...session })
+      }
       return (
-        <NhostProvider nhost={nhost} initialContext={session}>
+        <NhostProvider nhost={nhost}>
           <Page {...props} nhost={nhost} />
         </NhostProvider>
       )

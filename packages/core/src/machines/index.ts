@@ -21,7 +21,6 @@ export type NhostMachineOptions = {
   backendUrl: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
-  ssr?: boolean
 }
 
 export type NhostMachine = ReturnType<typeof createNhostMachine>
@@ -29,8 +28,7 @@ export type NhostMachine = ReturnType<typeof createNhostMachine>
 export const createNhostMachine = ({
   backendUrl,
   storageSetter,
-  storageGetter,
-  ssr
+  storageGetter
 }: Required<NhostMachineOptions>) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
@@ -50,7 +48,7 @@ export const createNhostMachine = ({
       tsTypes: {} as import('./index.typegen').Typegen0,
       context: {
         ...INITIAL_MACHINE_CONTEXT,
-        refreshToken: storageGetter(NHOST_REFRESH_TOKEN_KEY, { ssr })
+        refreshToken: storageGetter(NHOST_REFRESH_TOKEN_KEY)
       },
       id: 'nhost',
       type: 'parallel',
@@ -164,7 +162,7 @@ export const createNhostMachine = ({
                     src: 'signInPassword',
                     id: 'authenticateUserWithPassword',
                     onDone: {
-                      actions: 'emitSession',
+                      actions: ['saveSession', 'emitSession'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: [
@@ -190,7 +188,8 @@ export const createNhostMachine = ({
                 onDone: [
                   {
                     cond: 'hasSession',
-                    target: '#nhost.authentication.signedIn'
+                    target: '#nhost.authentication.signedIn',
+                    actions: ['saveSession', 'emitSession']
                   },
                   {
                     target: '#nhost.authentication.signedOut.needsVerification'
@@ -217,7 +216,6 @@ export const createNhostMachine = ({
               }
             },
             signedIn: {
-              entry: 'saveSession',
               tags: ['ready'],
               type: 'parallel',
               on: {
@@ -393,7 +391,7 @@ export const createNhostMachine = ({
       },
 
       services: {
-        tokenRefresher: createTokenRefresherMachine({ api, storageGetter, storageSetter, ssr }),
+        tokenRefresher: createTokenRefresherMachine({ api, storageGetter, storageSetter }),
         changePasswordMachine: createChangePasswordMachine(api),
         changeEmailMachine: createChangeEmailMachine(api),
 

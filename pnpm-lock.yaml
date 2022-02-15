@@ -139,7 +139,7 @@ importers:
       express: ^4.17.2
       typescript: ^4.5.4
     dependencies:
-      '@nhost/nhost-js': link:../../packages/nhost-js
+      '@nhost/nhost-js': 0.3.7
     devDependencies:
       '@types/express': 4.17.13
       express: 4.17.2
@@ -148,11 +148,11 @@ importers:
   examples/nextjs:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/apollo': workspace:*
-      '@nhost/core': workspace:*
-      '@nhost/nextjs': workspace:*
-      '@nhost/react': workspace:*
-      '@nhost/react-apollo': workspace:*
+      '@nhost/apollo': workspace:^0.1.0
+      '@nhost/core': workspace:^0.1.0
+      '@nhost/nextjs': workspace:^0.1.0
+      '@nhost/react': workspace:^0.1.0
+      '@nhost/react-apollo': workspace:^2.2.0
       '@types/js-cookie': ^3.0.1
       '@types/node': 17.0.17
       '@types/react': 17.0.39
@@ -170,7 +170,10 @@ importers:
       typescript: 4.5.5
       ws: ^8.4.2
     dependencies:
+      '@nhost/apollo': link:../../packages/apollo
+      '@nhost/core': link:../../packages/core
       '@nhost/nextjs': link:../../packages/nextjs
+      '@nhost/react': link:../../packages/react
       '@nhost/react-apollo': link:../../packages/react-apollo
       '@xstate/react': 2.0.0_a0c521d4794c7ad97f5f4c1c4a7d5818
       next: 12.0.10_1f052611af68d50dd06fb71ef47b7941
@@ -180,9 +183,6 @@ importers:
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.5.8_03bf9288e5c3a1c712f16f9f9a62dbf9
-      '@nhost/apollo': link:../../packages/apollo
-      '@nhost/core': link:../../packages/core
-      '@nhost/react': link:../../packages/react
       '@types/js-cookie': 3.0.1
       '@types/node': 17.0.17
       '@types/react': 17.0.39
@@ -238,9 +238,9 @@ importers:
       '@craco/craco': 6.4.3_4aa4ff7e3a066977318d29b1bedd23d1
       '@headlessui/react': 1.4.3_react-dom@17.0.2+react@17.0.2
       '@heroicons/react': 1.0.5_react@17.0.2
-      '@nhost/nhost-js': link:../../packages/nhost-js
+      '@nhost/nhost-js': 0.3.7
       '@nhost/react-apollo': link:../../packages/react-apollo
-      '@nhost/react-auth': link:../../packages/react-auth
+      '@nhost/react-auth': 2.0.4_react-dom@17.0.2+react@17.0.2
       '@saeris/apollo-server-vercel': 1.0.1_graphql@15.7.2
       '@tailwindcss/forms': 0.3.4_00c8fcea36e7ebb784460590946ebc50
       '@testing-library/jest-dom': 5.16.2
@@ -370,12 +370,14 @@ importers:
 
   packages/nextjs:
     specifiers:
+      '@nhost/core': workspace:^0.1.0
       '@nhost/react': workspace:*
       cookies: ^0.8.0
       next: 12.0.10
       react: ^17.0.2
       react-dom: ^17.0.2
     dependencies:
+      '@nhost/core': link:../core
       '@nhost/react': link:../react
       cookies: 0.8.0
     devDependencies:
@@ -3520,6 +3522,49 @@ packages:
     os: [win32]
     requiresBuild: true
     optional: true
+
+  /@nhost/hasura-auth-js/0.1.11:
+    resolution: {integrity: sha512-PN4awX3rNaNKoNVPsUd7F76Zo0pwXLnQ5Ftavsm6W9s6ufulu8byPkmO94uPltmrENtCappIFOSWZWwRtFS7DQ==}
+    dependencies:
+      axios: 0.25.0
+      jwt-decode: 3.1.2
+      query-string: 7.1.1
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/hasura-storage-js/0.0.7:
+    resolution: {integrity: sha512-Dz8+PPb42q7zpN3AFrWi5VqAjWBJBmMmtMNSQ8iEMF8yzGqPlE7C6QrZVc5m8w+KpaleJZOq+Mv5DqBpey/Mtw==}
+    dependencies:
+      axios: 0.21.4
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/nhost-js/0.3.7:
+    resolution: {integrity: sha512-wJa5B09yKZZiI/qqtbrkOyU3Mts1OZV/Vo8s+wFrZDP1khrukmloD5ZzJRC+aMvMSdiOMCj3v46AsQSrd6dYjQ==}
+    dependencies:
+      '@nhost/hasura-auth-js': 0.1.11
+      '@nhost/hasura-storage-js': 0.0.7
+      axios: 0.23.0
+      jwt-decode: 3.1.2
+      query-string: 7.1.1
+    transitivePeerDependencies:
+      - debug
+    dev: false
+
+  /@nhost/react-auth/2.0.4_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-+k51KHLpstgKGSdtZk8mETkOnrmmBJW3ooYzfeJDQWNI2gkywx54KKEtT3LwJkA9pmZX4Aguxb4Y1G7MGOsOKA==}
+    peerDependencies:
+      react: ^16.0.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.0.0 || ^17.0.0 || ^18.0.0
+    dependencies:
+      '@nhost/nhost-js': 0.3.7
+      react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
+    transitivePeerDependencies:
+      - debug
+    dev: false
 
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}

@@ -10,6 +10,7 @@ import {
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
 
 export * from './constants'
+export * from './storage'
 
 export type NhostInitOptions = NhostMachineOptions & {
   start?: boolean
@@ -31,14 +32,12 @@ export const getNhost = () => _nhost
 export const initNhost = ({
   backendUrl,
   storageGetter = defaultStorageGetter,
-  storageSetter = defaultStorageSetter,
-  ssr = false
+  storageSetter = defaultStorageSetter
 }: NhostInitOptions): Nhost => {
   const machine = createNhostMachine({
     backendUrl,
     storageGetter,
-    storageSetter,
-    ssr
+    storageSetter
   })
   const nhost: Nhost = {
     machine,

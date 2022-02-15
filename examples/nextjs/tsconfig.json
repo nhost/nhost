@@ -22,8 +22,7 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
-, "attempts/STOP_document.tsx"  ],
+    "**/*.tsx"],
   "exclude": [
     "node_modules"
   ]

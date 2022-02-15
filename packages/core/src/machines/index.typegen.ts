@@ -4,16 +4,16 @@ export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
     forwardToRefresher: 'TRY_TOKEN'
-    emitSession: 'done.invoke.authenticateUserWithPassword'
-    requestEmailChange: 'CHANGE_EMAIL'
-    requestPasswordChange: 'CHANGE_PASSWORD'
     saveSession:
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.registerUser'
       | 'SESSION_UPDATE'
       | ''
       | 'done.invoke.signingOut'
       | 'error.platform.signingOut'
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.registerUser'
+    emitSession: 'done.invoke.authenticateUserWithPassword' | 'done.invoke.registerUser'
+    requestEmailChange: 'CHANGE_EMAIL'
+    requestPasswordChange: 'CHANGE_PASSWORD'
     resetAuthenticationError: 'xstate.init'
     saveAuthenticationError:
       | 'error.platform.authenticatePasswordlessEmail'
@@ -34,6 +34,11 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    'done.invoke.registerUser': {
+      type: 'done.invoke.registerUser'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     '': { type: '' }
     'done.invoke.signingOut': {
       type: 'done.invoke.signingOut'
@@ -41,11 +46,6 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
-    'done.invoke.registerUser': {
-      type: 'done.invoke.registerUser'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
       data: unknown

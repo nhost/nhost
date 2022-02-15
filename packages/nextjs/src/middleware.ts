@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
 
 import { NHOST_NEXT_REFRESH_KEY, NHOST_REFRESH_TOKEN_KEY } from '@nhost/core'
 
@@ -6,7 +6,11 @@ import { refresh } from './utils'
 
 // ? move to @nhost/core?
 const REFRESH_URL = '/_refresh'
+// TODO remove this: with no http-only, the client can set the cookie on its own, so there is no need of this proxy anymore
 export const nhostNextMiddleware = (backendUrl: string) => async (request: NextRequest) => {
+  // * 'next/server' is only available when running this code on server-side.
+  // * To import it in the module scope make NextJS dev/build fail
+  const { NextResponse } = await import('next/server')
   // * Assumption: if request.page.name is null, then it's an asset e.g. favicon
   // if (!request.page.name && request.nextUrl.pathname !== REFRESH_URL) return NextResponse.next()
   console.log('in middleware', request.nextUrl.pathname)

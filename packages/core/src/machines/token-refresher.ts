@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios'
+import type { AxiosInstance } from 'axios'
 import { assign, createMachine, sendParent } from 'xstate'
 
 import {
@@ -30,15 +30,13 @@ const getExpiration = (expiresIn: number) =>
 export const createTokenRefresherMachine = ({
   api,
   storageGetter,
-  storageSetter,
-  ssr
+  storageSetter
 }: {
   api: AxiosInstance
   storageGetter: StorageGetter
   storageSetter: StorageSetter
-  ssr: boolean
 }) => {
-  const strExpirationDate = storageGetter(NHOST_NEXT_REFRESH_KEY, { ssr })
+  const strExpirationDate = storageGetter(NHOST_NEXT_REFRESH_KEY)
   let expiration = 0
   if (strExpirationDate) {
     expiration = getExpiration((new Date(strExpirationDate).getTime() - Date.now()) / 1_000)
@@ -52,7 +50,7 @@ export const createTokenRefresherMachine = ({
       tsTypes: {} as import('./token-refresher.typegen').Typegen0,
       id: 'token',
       context: {
-        token: storageGetter(NHOST_REFRESH_TOKEN_KEY, { ssr }), // TODO get token from cookie when SSR on the SERVER side
+        token: storageGetter(NHOST_REFRESH_TOKEN_KEY),
         elapsed: 0,
         attempts: 0,
         expiration,
@@ -166,14 +164,14 @@ export const createTokenRefresherMachine = ({
       actions: {
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }) => {
-          storageSetter(NHOST_REFRESH_TOKEN_KEY, data?.refreshToken, { ssr })
+          storageSetter(NHOST_REFRESH_TOKEN_KEY, data?.refreshToken)
           if (data?.accessTokenExpiresIn) {
             const nextRefresh = new Date(
               Date.now() + getExpiration(data.accessTokenExpiresIn) * 1_000
             ).toISOString()
-            storageSetter(NHOST_NEXT_REFRESH_KEY, nextRefresh, { ssr })
+            storageSetter(NHOST_NEXT_REFRESH_KEY, nextRefresh)
           } else {
-            storageSetter(NHOST_NEXT_REFRESH_KEY, null, { ssr })
+            storageSetter(NHOST_NEXT_REFRESH_KEY, null)
           }
         },
         save: assign({
@@ -223,17 +221,17 @@ export const createTokenRefresherMachine = ({
         // TODO find a way not to store the token in the context before refreshing it
         refreshToken: async (ctx, e: any) => {
           const token = e.token || ctx.token
-          if (ssr && typeof window !== 'undefined') {
-            // TODO don't hardcode '/_refresh'
-            try {
-              const { data } = await axios.get(`${window.location.origin}/_refresh`, {
-                withCredentials: true
-              })
-              return data
-            } catch {
-              console.warn('Error in ssr /_refresh')
-            }
-          }
+          // if (ssr && typeof window !== 'undefined') {
+          //   // TODO don't hardcode '/_refresh'
+          //   try {
+          //     const { data } = await axios.get(`${window.location.origin}/_refresh`, {
+          //       withCredentials: true
+          //     })
+          //     return data
+          //   } catch {
+          //     console.warn('Error in ssr /_refresh')
+          //   }
+          // }
           const result = await api.post('/v1/auth/token', {
             refreshToken: token
           })
