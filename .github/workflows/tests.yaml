@@ -1,0 +1,71 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Poached from https://github.com/hayes/pothos/tree/main/.github/workflows, thanks to the original author
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'templates/**'
+      - 'examples/**'
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - 'templates/**'
+      - 'examples/**'
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [12.x, 14.x, 16.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cache pnpm modules
+        uses: actions/cache@v2
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: 6.30.1
+          run_install: true
+
+      - name: Cache turbo
+        uses: actions/cache@v2
+        with:
+          path: ./node_modules/.cache
+          key: ${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.node-version }}
+
+      - name: Install nhost CLI
+        run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+
+      - name: Start Nhost Backend
+        run: |
+          cd examples/testing-project
+
+          nhost dev -d --no-browser &
+      - name: Wait for Nhost Backend to start
+        run: |
+          pnpm dlx wait-on http://localhost:1337/v1/auth/healthz -i 500 -t 120000
+
+      - run: pnpm run ci
