@@ -145,7 +145,7 @@ importers:
       express: 4.17.2
       typescript: 4.5.5
 
-  examples/nextjs:
+  examples/nextjs-apollo:
     specifiers:
       '@apollo/client': ^3.5.8
       '@nhost/apollo': workspace:^0.1.0
@@ -192,6 +192,39 @@ importers:
       graphql: 15.7.2
       next-transpile-modules: 9.0.0
       typescript: 4.5.5
+      ws: 8.4.2
+
+  examples/react-apollo:
+    specifiers:
+      '@apollo/client': ^3.5.9
+      '@nhost/core': workspace:^0.1.0
+      '@nhost/react': workspace:^0.1.0
+      '@nhost/react-apollo': workspace:^2.2.0
+      '@types/react': ^17.0.39
+      '@types/react-dom': ^17.0.11
+      '@vitejs/plugin-react': ^1.1.4
+      '@xstate/inspect': ^0.6.2
+      graphql: ^16.3.0
+      react: ^17.0.2
+      react-dom: ^17.0.2
+      typescript: ^4.5.5
+      vite: ^2.7.13
+      ws: ^8.4.2
+    dependencies:
+      '@nhost/react-apollo': link:../../packages/react-apollo
+      react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
+    devDependencies:
+      '@apollo/client': 3.5.9_graphql@16.3.0+react@17.0.2
+      '@nhost/core': link:../../packages/core
+      '@nhost/react': link:../../packages/react
+      '@types/react': 17.0.39
+      '@types/react-dom': 17.0.11
+      '@vitejs/plugin-react': 1.1.4
+      '@xstate/inspect': 0.6.2_ws@8.4.2
+      graphql: 16.3.0
+      typescript: 4.5.5
+      vite: 2.7.13
       ws: 8.4.2
 
   examples/react-apollo-crm:
@@ -273,51 +306,6 @@ importers:
       postcss: 7.0.39
       tailwindcss: /@tailwindcss/postcss7-compat/2.2.17
 
-  examples/react-xstate:
-    specifiers:
-      '@apollo/client': ^3.5.8
-      '@nhost/core': workspace:^0.1.0
-      '@nhost/react': workspace:^0.1.0
-      '@nhost/react-apollo': workspace:^2.2.0
-      '@types/react': ^17.0.39
-      '@types/react-dom': ^17.0.11
-      '@types/uuid': ^8.3.4
-      '@vitejs/plugin-react': ^1.1.4
-      '@xstate/inspect': ^0.6.2
-      '@xstate/react': ^2.0.0
-      axios: ^0.25.0
-      graphql: 15.7.2
-      react: ^17.0.2
-      react-dom: ^17.0.2
-      subscriptions-transport-ws: ^0.11.0
-      typescript: ^4.5.5
-      uuid: ^8.3.2
-      vite: ^2.7.13
-      ws: ^8.4.2
-      xstate: ^4.29.0
-    dependencies:
-      '@nhost/core': link:../../packages/core
-      '@nhost/react': link:../../packages/react
-      '@nhost/react-apollo': link:../../packages/react-apollo
-      '@xstate/react': 2.0.0_b2730fbad1dada8c45d201a94f0d2c3b
-      axios: 0.25.0
-      react: 17.0.2
-      react-dom: 17.0.2_react@17.0.2
-      uuid: 8.3.2
-      xstate: 4.29.0
-    devDependencies:
-      '@apollo/client': 3.5.8_03bf9288e5c3a1c712f16f9f9a62dbf9
-      '@types/react': 17.0.39
-      '@types/react-dom': 17.0.11
-      '@types/uuid': 8.3.4
-      '@vitejs/plugin-react': 1.1.4
-      '@xstate/inspect': 0.6.2_ws@8.4.2
-      graphql: 15.7.2
-      subscriptions-transport-ws: 0.11.0_graphql@15.7.2
-      typescript: 4.5.5
-      vite: 2.7.13
-      ws: 8.4.2
-
   examples/testing-project:
     specifiers: {}
 
@@ -327,11 +315,14 @@ importers:
       '@nhost/core': workspace:^0.1.0
       graphql: 15.7.2
       subscriptions-transport-ws: ^0.11.0
+      xstate: ^4.29.0
     dependencies:
       '@apollo/client': 3.5.8_f3f7eb5e21785ef7d5faca94c1a68824
       '@nhost/core': link:../core
       graphql: 15.7.2
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
+    devDependencies:
+      xstate: 4.29.0
 
   packages/core:
     specifiers:
@@ -377,6 +368,7 @@ importers:
       next: 12.0.10
       react: ^17.0.2
       react-dom: ^17.0.2
+      xstate: ^4.29.0
     dependencies:
       '@nhost/react': link:../react
       cookies: 0.8.0
@@ -384,6 +376,7 @@ importers:
       next: 12.0.10_1f052611af68d50dd06fb71ef47b7941
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
+      xstate: 4.29.0
 
   packages/nhost-js:
     specifiers:
@@ -401,18 +394,20 @@ importers:
 
   packages/react:
     specifiers:
-      '@nhost/core': workspace:^0.1.0
+      '@nhost/core': workspace:*
       '@xstate/inspect': ^0.6.2
       '@xstate/react': ^2.0.0
       react: ^17.0.2
       ws: ^8.4.2
+      xstate: ^4.29.0
     dependencies:
       '@nhost/core': link:../core
-      '@xstate/react': 2.0.0_react@17.0.2
+      '@xstate/react': 2.0.0_react@17.0.2+xstate@4.29.0
     devDependencies:
       '@xstate/inspect': 0.6.2_ws@8.4.2
       react: 17.0.2
       ws: 8.4.2
+      xstate: 4.29.0
 
   packages/react-apollo:
     specifiers:
@@ -539,6 +534,34 @@ packages:
       ts-invariant: 0.9.4
       tslib: 2.3.1
       zen-observable-ts: 1.2.3
+
+  /@apollo/client/3.5.9_graphql@16.3.0+react@17.0.2:
+    resolution: {integrity: sha512-Qq3OE3GpyPG2fYXBzi1n4QXcKZ11c6jHdrXK2Kkn9SD+vUymSrllXsldqnKUK9tslxKqkKzNrkCXkLv7PxwfSQ==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+      react: ^16.8.0 || ^17.0.0
+      subscriptions-transport-ws: ^0.9.0 || ^0.11.0
+    peerDependenciesMeta:
+      react:
+        optional: true
+      subscriptions-transport-ws:
+        optional: true
+    dependencies:
+      '@graphql-typed-document-node/core': 3.1.1_graphql@16.3.0
+      '@wry/context': 0.6.1
+      '@wry/equality': 0.5.2
+      '@wry/trie': 0.3.1
+      graphql: 16.3.0
+      graphql-tag: 2.12.6_graphql@16.3.0
+      hoist-non-react-statics: 3.3.2
+      optimism: 0.16.1
+      prop-types: 15.8.1
+      react: 17.0.2
+      symbol-observable: 4.0.0
+      ts-invariant: 0.9.4
+      tslib: 2.3.1
+      zen-observable-ts: 1.2.3
+    dev: true
 
   /@apollo/protobufjs/1.2.2:
     resolution: {integrity: sha512-vF+zxhPiLtkwxONs6YanSt1EpwpGilThpneExUN5K3tCymuxNnVq2yojTvnpRjv2QfsEIt/n7ozPIIzBLwGIDQ==}
@@ -2821,6 +2844,14 @@ packages:
     dependencies:
       graphql: 15.7.2
 
+  /@graphql-typed-document-node/core/3.1.1_graphql@16.3.0:
+    resolution: {integrity: sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==}
+    peerDependencies:
+      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      graphql: 16.3.0
+    dev: true
+
   /@hapi/address/2.1.4:
     resolution: {integrity: sha512-QD1PhQk+s31P1ixsX0H0Suoupp3VMXzIVMSwobR3F3MSUO2YCV0B7xqLcUw/Bh8yuvd3LhpyqLQWTNcRmp6IdQ==}
     deprecated: Moved to 'npm install @sideway/address'
@@ -4371,10 +4402,6 @@ packages:
     resolution: {integrity: sha512-PBjIUxZHOuj0R15/xuwJYjFi+KZdNFrehocChv4g5hu6aFroHue8m0lBP0POdK2nKzbw0cgV1mws8+V/JAcEkQ==}
     dev: false
 
-  /@types/uuid/8.3.4:
-    resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
-    dev: true
-
   /@types/webpack-sources/3.2.0:
     resolution: {integrity: sha512-Ft7YH3lEVRQ6ls8k4Ff1oB4jN6oy/XmU6tQISKdhfh+1mR+viZFphS6WL0IrtDOzvefmJg5a0s7ZQoRXwqTEFg==}
     dependencies:
@@ -4946,27 +4973,7 @@ packages:
       - '@types/react'
     dev: false
 
-  /@xstate/react/2.0.0_b2730fbad1dada8c45d201a94f0d2c3b:
-    resolution: {integrity: sha512-Pw8uHkamrMxoV8cwnVHv570Zun7o2ktokn5bkUOrv6PufFg5JHL2URiGvbyR9JqmIxfJdXregWvCGa3pqXd7Cg==}
-    peerDependencies:
-      '@xstate/fsm': ^1.6.4
-      react: ^16.8.0 || ^17.0.0
-      xstate: ^4.29.0
-    peerDependenciesMeta:
-      '@xstate/fsm':
-        optional: true
-      xstate:
-        optional: true
-    dependencies:
-      react: 17.0.2
-      use-isomorphic-layout-effect: 1.1.1_a0c521d4794c7ad97f5f4c1c4a7d5818
-      use-subscription: 1.5.1_react@17.0.2
-      xstate: 4.29.0
-    transitivePeerDependencies:
-      - '@types/react'
-    dev: false
-
-  /@xstate/react/2.0.0_react@17.0.2:
+  /@xstate/react/2.0.0_react@17.0.2+xstate@4.29.0:
     resolution: {integrity: sha512-Pw8uHkamrMxoV8cwnVHv570Zun7o2ktokn5bkUOrv6PufFg5JHL2URiGvbyR9JqmIxfJdXregWvCGa3pqXd7Cg==}
     peerDependencies:
       '@xstate/fsm': ^1.6.4
@@ -4981,6 +4988,7 @@ packages:
       react: 17.0.2
       use-isomorphic-layout-effect: 1.1.1_react@17.0.2
       use-subscription: 1.5.1_react@17.0.2
+      xstate: 4.29.0
     transitivePeerDependencies:
       - '@types/react'
     dev: false
@@ -10103,6 +10111,16 @@ packages:
       graphql: 15.7.2
       tslib: 2.3.1
 
+  /graphql-tag/2.12.6_graphql@16.3.0:
+    resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      graphql: 16.3.0
+      tslib: 2.3.1
+    dev: true
+
   /graphql-tools/4.0.8_graphql@15.7.2:
     resolution: {integrity: sha512-MW+ioleBrwhRjalKjYaLQbr+920pHBgy9vM/n47sswtns8+96sRn5M/G+J1eu7IMeKWiN/9p6tmwCHU7552VJg==}
     deprecated: This package has been deprecated and now it only exports makeExecutableSchema.\nAnd it will no longer receive updates.\nWe recommend you to migrate to scoped packages such as @graphql-tools/schema, @graphql-tools/utils and etc.\nCheck out https://www.graphql-tools.com to learn what package you should use instead
@@ -10129,6 +10147,11 @@ packages:
   /graphql/15.7.2:
     resolution: {integrity: sha512-AnnKk7hFQFmU/2I9YSQf3xw44ctnSFCfp3zE0N6W174gqe9fWG/2rKaKxROK7CcI3XtERpjEKFqts8o319Kf7A==}
     engines: {node: '>= 10.x'}
+
+  /graphql/16.3.0:
+    resolution: {integrity: sha512-xm+ANmA16BzCT5pLjuXySbQVFwH3oJctUVdy81w1sV0vBU0KgDdBGtxQOUd5zqOBk/JayAFeG8Dlmeq74rjm/A==}
+    engines: {node: ^12.22.0 || ^14.16.0 || >=16.0.0}
+    dev: true
 
   /gray-matter/4.0.3:
     resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
@@ -19054,7 +19077,6 @@ packages:
 
   /xstate/4.29.0:
     resolution: {integrity: sha512-F6WF5s6xG/bm8Oxi2ETuzwGQW8yleL5I4JPxZl49m7Uw7D4LAXu+4dvUK78Uo4D863sM8auqw6+1Xmj9mFlmDQ==}
-    dev: false
 
   /xtend/4.0.2:
     resolution: {integrity: sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==}

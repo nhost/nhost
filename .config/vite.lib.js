@@ -37,26 +37,3 @@ export default defineConfig({
     lib
   }
 })
-
-// export const react = defineConfig({
-//   plugins: [reactRefresh(), ...basePlugins],
-//   build: {
-//     lib,
-//     rollupOptions: {
-//       external: ['react'],
-//       output: {
-//         globals: {
-//           react: 'react'
-//         }
-//       }
-
-//       //   external: ['react', 'vue'],
-//       //   output: {
-//       //     globals: {
-//       //       react: 'react',
-//       //       vue: 'vue'
-//       //     }
-//       //   }
-//     }
-//   }
-// })

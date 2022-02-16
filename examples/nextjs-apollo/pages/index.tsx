@@ -27,27 +27,25 @@ const Home: NextPage = () => {
   const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
   const { change: changePassword } = useChangePassword('12345678')
   return (
-    <div className="App">
-      <header className="App-header">
-        {isAuthenticated ? (
-          <>
-            <button onClick={signOut}>Logout</button>
-            <button onClick={changeEmail}>Change email</button>
-            <div>{JSON.stringify(changeEmailResult)}</div>
-            <button onClick={changePassword}>Change password</button>
-          </>
-        ) : (
-          <>
-            <button onClick={signUp}>Register</button>
-            <div>{JSON.stringify(signUpResult)}</div>
-            <button onClick={signIn}>Email + password signin</button>
-            <button onClick={passwordlessSignIn}>Passwordless signin</button>
-          </>
-        )}
+    <div>
+      {isAuthenticated ? (
+        <>
+          <button onClick={signOut}>Logout</button>
+          <button onClick={changeEmail}>Change email</button>
+          <div>{JSON.stringify(changeEmailResult)}</div>
+          <button onClick={changePassword}>Change password</button>
+        </>
+      ) : (
+        <>
+          <button onClick={signUp}>Register</button>
+          <div>{JSON.stringify(signUpResult)}</div>
+          <button onClick={signIn}>Email + password signin</button>
+          <button onClick={passwordlessSignIn}>Passwordless signin</button>
+        </>
+      )}
 
-        <p>JWT</p>
-        <div>{jwt}</div>
-      </header>
+      <p>JWT</p>
+      <div>{jwt}</div>
     </div>
   )
 }

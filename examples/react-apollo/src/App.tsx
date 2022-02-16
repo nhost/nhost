@@ -35,6 +35,9 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
+        <h1>React & Apollo</h1>
+      </header>
+      <p>
         {isAuthenticated ? (
           <>
             <button onClick={signOut}>Logout</button>
@@ -61,7 +64,7 @@ function App() {
           </ul>
         )}
         {!loading && error && <div>ok {JSON.stringify(error)}</div>}
-      </header>
+      </p>
     </div>
   )
 }

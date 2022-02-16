@@ -1,10 +1,12 @@
 import { useContext } from 'react'
+import { InterpreterFrom } from 'xstate'
 
+import { NhostMachine } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-export const useNhostInterpreter = () => {
+export const useNhostInterpreter = (): InterpreterFrom<NhostMachine> => {
   const globalServices = useContext(NhostReactContext)
   return globalServices.interpreter
 }

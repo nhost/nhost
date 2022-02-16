@@ -25,12 +25,6 @@
     "paths": {
       "@nhost/core": ["../../packages/core/src/index"],
       "@nhost/core/*": ["../../packages/core/src/*"],
-      
-      // "@your-org/ui-lib/*": ["../../../packages/ui-lib/src/*"],
-      // "@your-org/ui-lib": ["../../../packages/ui-lib/src/index"],
-      // "@your-org/core-lib/*": ["../../../packages/core-lib/src/*"],
-      // "@your-org/core-lib": ["../../../packages/core-lib/src/index"],
-      // "@your-org/db-main-prisma": ["../../../packages/db-main-prisma/src/index"]
     }
   },
   "include": [

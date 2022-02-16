@@ -15,7 +15,7 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV) {
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <div>
+    <div className="App">
       <Header />
       <Component {...pageProps} />
     </div>

@@ -48,13 +48,14 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/core": "workspace:^0.1.0",
+    "@nhost/core": "workspace:*",
     "@xstate/react": "^2.0.0"
   },
   "devDependencies": {
     "@xstate/inspect": "^0.6.2",
     "react": "^17.0.2",
-    "ws": "^8.4.2"
+    "ws": "^8.4.2",
+    "xstate": "^4.29.0"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",

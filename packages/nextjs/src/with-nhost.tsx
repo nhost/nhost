@@ -17,14 +17,11 @@ import { NhostProvider } from '@nhost/react'
 
 import { refresh, Session } from './utils'
 
-export interface NhostPageContext extends NextPageContext {
-  nhost: Nhost
-}
-export interface NhostApolloAppContext extends AppContext {
-  ctx: NhostPageContext
+export interface NhostAppContext extends AppContext {
+  ctx: NextPageContext
   AppTree: any
 }
-declare type NhostContext = NhostPageContext | NhostApolloAppContext
+declare type NhostContext = NextPageContext | NhostAppContext
 
 // Gets the display name of a JSX component for dev tools
 function getDisplayName(Component: React.ComponentType<any>) {
@@ -35,21 +32,19 @@ export const configureNhostSSR = (options: NhostInitOptions) => {
   type NhostProps = Partial<{ session: Session; nhost: Nhost }>
 
   return (Page: NextPage<any> | typeof App) => {
-    const nhost = initNhost({
-      ...options,
-      start: false,
-      storageGetter: cookieStorageGetter,
-      storageSetter: cookieStorageSetter
-    })
-
     const getInitialProps = Page.getInitialProps
     function WithNhost({ session, ...props }: NhostProps) {
+      const nhost = initNhost({
+        ...options,
+        storageGetter: cookieStorageGetter,
+        storageSetter: cookieStorageSetter
+      })
       if (session) {
         nhost.machine = nhost.machine.withContext({ ...INITIAL_MACHINE_CONTEXT, ...session })
       }
       return (
         <NhostProvider nhost={nhost}>
-          <Page {...props} nhost={nhost} />
+          <Page {...props} />
         </NhostProvider>
       )
     }
