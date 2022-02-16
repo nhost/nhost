@@ -10,7 +10,7 @@ import Copy from '../icons/Copy'
 // @ts-ignore -> add to types
 SyntaxHighlighter.registerLanguage('js', js)
 
-interface CodeEditorProps {
+export interface CodeEditorProps {
   code: string
   fileName: string
   className: string
