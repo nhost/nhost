@@ -67,7 +67,7 @@ export function Nav(props) {
                   elem.category === router.query.subcategory
 
                 return (
-                  <Link href={pathToLink} passHref key={post.name}>
+                  <Link href={pathToLink} passHref key={pathToLink}>
                     <li
                       className={clsx(
                         'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
