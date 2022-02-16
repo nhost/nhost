@@ -11,7 +11,7 @@
 }
 
 .markdown li {
-  @apply text-sm font-display text-greyscaleDark font-medium leading-7;
+  @apply text-base- font-display text-greyscaleDark font-normal leading-7;
   list-style: disc;
   list-style-type: disc;
   list-style-position: inside;
