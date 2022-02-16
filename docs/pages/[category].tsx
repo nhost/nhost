@@ -21,13 +21,21 @@ export default function Home({ category, frontmatter, mdxSource, convolutedNav, 
   const pathname = `/${router.query.category}`
 
   return (
-    <div className="bg-white">
+    <div className="bg-white pt-2">
       <Head>
         <title>
           {frontmatter.title} – {capitalize(category)} | Nhost Documentation
         </title>
       </Head>
-      <Header />
+      <Header>
+        <Nav
+          categoryTitle={categoryTitle}
+          convolutedNav={convolutedNav}
+          category={category}
+          query={router.query}
+          pathname={pathname}
+        />
+      </Header>
       <Container>
         <Nav
           categoryTitle={categoryTitle}

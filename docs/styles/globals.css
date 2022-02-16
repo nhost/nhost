@@ -93,6 +93,10 @@ body {
   border-radius: 4px;
 }
 
+.menu-card {
+  box-shadow: 0px 1px 4px rgba(14, 24, 39, 0.1), 0px 8px 24px rgba(14, 24, 39, 0.1);
+}
+
 .divider {
   height: 1px;
   left: 0px;

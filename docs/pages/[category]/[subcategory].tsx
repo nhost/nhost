@@ -36,7 +36,15 @@ export default function Post({
           {frontmatter.title} - {capitalize(category)} | Nhost Documentation
         </title>
       </Head>
-      <Header />
+      <Header>
+        <Nav
+          convolutedNav={convolutedNav}
+          category={category}
+          categoryTitle={categoryTitle}
+          query={router.query}
+          pathname={pathname}
+        />
+      </Header>
       <Container>
         <Nav
           convolutedNav={convolutedNav}
