@@ -38,25 +38,18 @@ export function Nav(props) {
       </div>
       {props.convolutedNav.map((elem) => {
         return (
-          <div key={elem.category} className="">
-            {/* <Link
-              href={`/${props.category.replace(" ", "-")}/${elem.category}`}
-              passHref
-            > */}
-            <div className="cursor-pointer">
-              <Link href={`/${props.category.replace(' ', '-')}/${elem.category}/`} passHref>
-                <Text
-                  variant="a"
-                  color="greyscaleGrey"
-                  size="normal"
-                  className="font-medium capitalize px-3"
-                >
-                  {/* Split */}
-                  {fixTitle(elem)}
-                </Text>
-              </Link>
-            </div>
-            {/* </Link> */}
+          <div key={elem.category}>
+            <Link href={`/${props.category.replace(' ', '-')}/${elem.category}/`} passHref>
+              <Text
+                variant="a"
+                color="greyscaleGrey"
+                size="normal"
+                className="font-medium capitalize px-3 py-px block"
+              >
+                {/* Split */}
+                {fixTitle(elem)}
+              </Text>
+            </Link>
 
             <ul className="space-y-1 mt-1 ">
               {elem.posts.map((post) => {
@@ -65,20 +58,20 @@ export function Nav(props) {
                     ? `${props.pathname}/${elem.category}/${post.fileName}`
                     : `${props.pathname}/${elem.category}`
 
-                const shouldHiglight =
+                const shouldHighlight =
                   router.query.subcategory === elem.category && props.query.post === post.fileName
 
-                const shouldHighlightSubCategories =
+                const shouldHighlightSubcategories =
                   !router.query.post &&
                   post.fileName === 'index' &&
                   elem.category === router.query.subcategory
 
                 return (
-                  <Link href={pathToLink} passHref key={post}>
+                  <Link href={pathToLink} passHref key={pathToLink}>
                     <li
                       className={clsx(
                         'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
-                        (shouldHiglight || shouldHighlightSubCategories) && 'bg-veryLightGray'
+                        (shouldHighlight || shouldHighlightSubcategories) && 'bg-veryLightGray'
                       )}
                     >
                       <Text
@@ -87,7 +80,7 @@ export function Nav(props) {
                         size="normal"
                         className={clsx(
                           'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
-                          (shouldHiglight || shouldHighlightSubCategories) && 'font-medium'
+                          (shouldHighlight || shouldHighlightSubcategories) && 'font-medium'
                         )}
                       >
                         {post.title}
