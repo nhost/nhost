@@ -1,3 +1,6 @@
 {
-  "extends": ["next/babel", "next/core-web-vitals"]
+  "extends": ["plugin:@next/next/recommended"],
+  "rules": {
+    "react/react-in-jsx-scope": "off"
+  }
 }

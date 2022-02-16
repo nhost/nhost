@@ -12,9 +12,7 @@ import { defaultStorageGetter, defaultStorageSetter } from './storage'
 export * from './constants'
 export * from './storage'
 
-export type NhostInitOptions = NhostMachineOptions & {
-  start?: boolean
-}
+export type NhostInitOptions = NhostMachineOptions 
 
 export type Nhost = {
   backendUrl: string

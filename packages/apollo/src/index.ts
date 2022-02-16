@@ -1,4 +1,5 @@
 import { SubscriptionClient } from 'subscriptions-transport-ws'
+import type { InterpreterFrom } from 'xstate'
 
 import {
   ApolloClient,
@@ -13,11 +14,12 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { getNhost } from '@nhost/core'
-
+import { NhostMachine } from '@nhost/core'
 const isBrowser = () => typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
+  interpreter?: InterpreterFrom<NhostMachine>
+  backendUrl: string
   headers?: any
   publicRole?: string
   fetchPolicy?: WatchQueryFetchPolicy
@@ -27,6 +29,8 @@ export type NhostApolloClientOptions = {
 }
 
 export const createApolloClient = ({
+  interpreter,
+  backendUrl,
   headers = {},
   publicRole = 'public',
   fetchPolicy,
@@ -34,11 +38,9 @@ export const createApolloClient = ({
   connectToDevTools = isBrowser() && process.env.NODE_ENV === 'development',
   onError
 }: NhostApolloClientOptions) => {
-  const nhost = getNhost()
-  if (!nhost) {
+  if (!interpreter) {
     throw Error("Nhost has not be initiated! Apollo client can't be created")
   }
-  const { backendUrl, interpreter } = nhost
   let token: string | null = null
 
   const getAuthHeaders = () => {

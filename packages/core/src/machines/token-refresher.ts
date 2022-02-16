@@ -83,7 +83,7 @@ export const createTokenRefresherMachine = ({
                   target: 'idle'
                 },
                 onError: {
-                  actions: ['sendError'],
+                  actions: 'sendError',
                   target: 'idle.error'
                 }
               }
@@ -196,10 +196,13 @@ export const createTokenRefresherMachine = ({
           attempts: (ctx) => ctx.attempts + 1
         }),
         // TODO types
-        sendError: sendParent((_, { data: { error } }: any) => ({
-          type: 'TOKEN_REFRESH_ERROR',
-          error
-        })),
+        sendError: sendParent((_, { data: { error } }: any) => {
+          console.log('send error', error)
+          return {
+            type: 'TOKEN_REFRESH_ERROR',
+            error
+          }
+        }),
         // TODO types
         emit: sendParent((_, { data }: any) => ({
           type: 'SESSION_UPDATE',
@@ -218,20 +221,9 @@ export const createTokenRefresherMachine = ({
         }
       },
       services: {
-        // TODO find a way not to store the token in the context before refreshing it
         refreshToken: async (ctx, e: any) => {
+          console.log('REFRESH')
           const token = e.token || ctx.token
-          // if (ssr && typeof window !== 'undefined') {
-          //   // TODO don't hardcode '/_refresh'
-          //   try {
-          //     const { data } = await axios.get(`${window.location.origin}/_refresh`, {
-          //       withCredentials: true
-          //     })
-          //     return data
-          //   } catch {
-          //     console.warn('Error in ssr /_refresh')
-          //   }
-          // }
           const result = await api.post('/v1/auth/token', {
             refreshToken: token
           })

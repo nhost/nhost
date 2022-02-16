@@ -85,7 +85,7 @@ export const configureNhostSSR = (options: NhostInitOptions) => {
             })
             cookies.set(
               NHOST_NEXT_REFRESH_KEY,
-              new Date(Date.now() + session.accessTokenExpiresIn * 1_000).toISOString(),
+              new Date(Date.now() + (session.accessTokenExpiresIn || 0) * 1_000).toISOString(),
               {
                 httpOnly: false,
                 sameSite: true

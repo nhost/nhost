@@ -4,8 +4,9 @@ import { assign, createMachine, forwardTo, send } from 'xstate'
 import { NHOST_REFRESH_TOKEN_KEY } from '../constants'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
-import { StorageGetter, StorageSetter } from '../storage'
+import { defaultStorageSetter, StorageGetter, StorageSetter } from '../storage'
 import { isValidEmail, isValidPassword } from '../validators'
+import { defaultStorageGetter } from '..'
 
 import { createChangeEmailMachine } from './change-email'
 import { createChangePasswordMachine } from './change-password'
@@ -27,9 +28,9 @@ export type NhostMachine = ReturnType<typeof createNhostMachine>
 
 export const createNhostMachine = ({
   backendUrl,
-  storageSetter,
-  storageGetter
-}: Required<NhostMachineOptions>) => {
+  storageSetter = defaultStorageSetter,
+  storageGetter = defaultStorageGetter
+}: NhostMachineOptions) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
@@ -177,7 +178,10 @@ export const createNhostMachine = ({
                   }
                 },
                 token: {
-                  entry: 'emitTryToken'
+                  entry: 'emitTryToken',
+                  on: {
+                    TOKEN_REFRESH_ERROR: { target: '#nhost.authentication.signedOut.failed.server' }
+                  }
                 }
               }
             },
@@ -324,7 +328,7 @@ export const createNhostMachine = ({
         // * Authenticaiton errors
         saveAuthenticationError: assign({
           // TODO type
-          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
+          errors: ({ errors }, { error }: any) => ({ ...errors, authentication: error })
         }),
         resetAuthenticationError: assign({
           errors: ({ errors: { authentication, ...errors } }) => errors

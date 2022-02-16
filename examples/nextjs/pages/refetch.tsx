@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
-import { useQuery, NetworkStatus } from '@apollo/client'
-import { QUERY, withApollo } from '../helpers'
 
+import { NetworkStatus, useQuery } from '@apollo/client'
 import { getDataFromTree } from '@apollo/client/react/ssr'
+
+import { QUERY, withApollo } from '../helpers'
 
 const RefetchPage: React.FC = () => {
   const { data, loading, networkStatus, refetch } = useQuery(QUERY, {
@@ -14,12 +15,13 @@ const RefetchPage: React.FC = () => {
     if (networkStatus !== NetworkStatus.ready) setCached(false)
   }, [networkStatus])
 
-  if (loading) return <div>'Loading...</div>
+  if (loading) return <div>Loading...</div>
 
   return (
     <div>
       <p>
-        This page's data was fetched on the <strong>{cached ? 'Next.js server' : 'client'}</strong>.
+        This page&apos;s data was fetched on the{' '}
+        <strong>{cached ? 'Next.js server' : 'client'}</strong>.
         <br />
         Network Status: <strong>{networkStatus}</strong>{' '}
         <button

@@ -5,9 +5,9 @@ import { useInterpret } from '@xstate/react'
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] }
 
-type Context = WithRequired<Nhost, 'interpreter'>
+type NhostReactContextType = WithRequired<Nhost, 'interpreter'>
 
-export const NhostReactContext = createContext<Context>({} as Context)
+export const NhostReactContext = createContext<NhostReactContextType>({} as NhostReactContextType)
 
 // TODO initialContext must be possibly partial - use immer.produce
 export const NhostProvider: React.FC<{
@@ -18,7 +18,7 @@ export const NhostProvider: React.FC<{
   })
   nhost.interpreter = interpreter
   return (
-    <NhostReactContext.Provider value={nhost as Context}>
+    <NhostReactContext.Provider value={nhost as NhostReactContextType}>
       {props.children}
     </NhostReactContext.Provider>
   )

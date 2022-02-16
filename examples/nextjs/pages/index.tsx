@@ -1,14 +1,16 @@
 import type { NextPage } from 'next'
+
 import {
-  useEmailPasswordlessSignIn,
-  useAuthenticated,
   useAccessToken,
-  useSignOut,
-  useEmailPasswordSignIn,
-  useSignUpEmailPassword,
+  useAuthenticated,
   useChangeEmail,
-  useChangePassword
+  useChangePassword,
+  useEmailPasswordlessSignIn,
+  useEmailPasswordSignIn,
+  useSignOut,
+  useSignUpEmailPassword
 } from '@nhost/react'
+
 import { withNhost } from '../helpers'
 
 // * Reference: https://blog.codepen.io/2021/09/01/331-next-js-apollo-server-side-rendering-ssr/
@@ -24,7 +26,6 @@ const Home: NextPage = () => {
   const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
   const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
   const { change: changePassword } = useChangePassword('12345678')
-
   return (
     <div className="App">
       <header className="App-header">

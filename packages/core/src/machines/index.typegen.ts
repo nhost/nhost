@@ -18,6 +18,7 @@ export interface Typegen0 {
     saveAuthenticationError:
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
+      | 'TOKEN_REFRESH_ERROR'
       | 'error.platform.registerUser'
     saveInvalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'

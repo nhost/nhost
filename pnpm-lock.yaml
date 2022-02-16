@@ -370,14 +370,12 @@ importers:
 
   packages/nextjs:
     specifiers:
-      '@nhost/core': workspace:^0.1.0
       '@nhost/react': workspace:*
       cookies: ^0.8.0
       next: 12.0.10
       react: ^17.0.2
       react-dom: ^17.0.2
     dependencies:
-      '@nhost/core': link:../core
       '@nhost/react': link:../react
       cookies: 0.8.0
     devDependencies:
