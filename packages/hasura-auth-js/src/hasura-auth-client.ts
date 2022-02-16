@@ -26,6 +26,8 @@ import {
   ApiError,
   ApiResetPasswordResponse,
   ApiSendVerificationEmailResponse,
+  ApiSignInResponse,
+  ApiSignOutResponse,
   AuthChangedFunction,
   AuthChangeEvent,
   ChangeEmailParams,
@@ -313,7 +315,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  async signOut(params?: { all?: boolean }): Promise<unknown> {
+  async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const refreshToken = await this._getItem(NHOST_REFRESH_TOKEN)
 
     this._clearSession()
@@ -333,10 +335,8 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  async verifyEmail(params: { email: string; ticket: string }): Promise<unknown> {
-    const { data, error } = await this.api.verifyEmail(params)
-
-    return { data, error }
+  async verifyEmail(params: { email: string; ticket: string }): Promise<ApiSignInResponse> {
+    return await this.api.verifyEmail(params)
   }
 
   /**
