@@ -4,6 +4,7 @@ export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
     emitToken: 'done.invoke.parser'
+    broadcastToken: 'done.invoke.parser'
   }
   internalEvents: {
     'done.invoke.parser': {
@@ -11,6 +12,7 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    '': { type: '' }
     'xstate.init': { type: 'xstate.init' }
     'error.platform.parser': { type: 'error.platform.parser'; data: unknown }
   }
@@ -24,10 +26,12 @@ export interface Typegen0 {
     delays: never
   }
   eventsCausingServices: {
-    parser: 'xstate.init'
+    parser: ''
   }
-  eventsCausingGuards: {}
+  eventsCausingGuards: {
+    enabled: ''
+  }
   eventsCausingDelays: {}
-  matchesStates: 'start' | 'end'
+  matchesStates: 'start' | 'disabled' | 'parsing' | 'end'
   tags: never
 }

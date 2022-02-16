@@ -63,12 +63,12 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.tokenRefresher': { type: 'error.platform.tokenRefresher'; data: unknown }
-    'done.invoke.urlParser': {
-      type: 'done.invoke.urlParser'
+    'done.invoke.autoLogin': {
+      type: 'done.invoke.autoLogin'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.urlParser': { type: 'error.platform.urlParser'; data: unknown }
+    'error.platform.autoLogin': { type: 'error.platform.autoLogin'; data: unknown }
     'done.invoke.authenticatePasswordlessEmail': {
       type: 'done.invoke.authenticatePasswordlessEmail'
       data: unknown
@@ -95,7 +95,7 @@ export interface Typegen0 {
   }
   invokeSrcNameMap: {
     tokenRefresher: 'done.invoke.tokenRefresher'
-    urlParser: 'done.invoke.urlParser'
+    autoLogin: 'done.invoke.autoLogin'
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
     registerUser: 'done.invoke.registerUser'
@@ -111,7 +111,7 @@ export interface Typegen0 {
   }
   eventsCausingServices: {
     tokenRefresher: 'xstate.init'
-    urlParser: 'xstate.init'
+    autoLogin: 'xstate.init'
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'REGISTER'

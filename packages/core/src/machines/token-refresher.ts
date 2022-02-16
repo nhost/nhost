@@ -30,11 +30,13 @@ const getExpiration = (expiresIn: number) =>
 export const createTokenRefresherMachine = ({
   api,
   storageGetter,
-  storageSetter
+  storageSetter,
+  autoRefreshToken
 }: {
   api: AxiosInstance
   storageGetter: StorageGetter
   storageSetter: StorageSetter
+  autoRefreshToken: boolean
 }) => {
   const strExpirationDate = storageGetter(NHOST_NEXT_REFRESH_KEY)
   let expiration = 0
@@ -94,6 +96,7 @@ export const createTokenRefresherMachine = ({
           id: 'timer',
           initial: 'idle',
           states: {
+            disabled: { type: 'final' },
             stopped: {
               always: {
                 cond: 'noToken',
@@ -101,10 +104,13 @@ export const createTokenRefresherMachine = ({
               }
             },
             idle: {
-              always: {
-                cond: 'token',
-                target: 'running'
-              }
+              always: [
+                { cond: 'isTimerDisabled', target: 'disabled' },
+                {
+                  cond: 'token',
+                  target: 'running'
+                }
+              ]
             },
             running: {
               initial: 'pending',
@@ -207,6 +213,7 @@ export const createTokenRefresherMachine = ({
         }))
       },
       guards: {
+        isTimerDisabled: () => !autoRefreshToken,
         noToken: (ctx) => !ctx.token,
         token: (ctx) => !!ctx.token,
         shouldRefresh: (ctx) => ctx.elapsed > ctx.expiration,

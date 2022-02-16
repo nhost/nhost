@@ -33,13 +33,15 @@ function getDisplayName(Component: React.ComponentType<any>) {
 
 export const configureNhostSSR = (options: NhostInitOptions) => {
   type NhostProps = Partial<{ session: Session; nhost: Nhost }>
-  const nhost = initNhost({
-    ...options,
-    storageGetter: cookieStorageGetter,
-    storageSetter: cookieStorageSetter
-  })
 
   return (Page: NextPage<any> | typeof App) => {
+    const nhost = initNhost({
+      ...options,
+      start: false,
+      storageGetter: cookieStorageGetter,
+      storageSetter: cookieStorageSetter
+    })
+
     const getInitialProps = Page.getInitialProps
     function WithNhost({ session, ...props }: NhostProps) {
       if (session) {
@@ -66,13 +68,7 @@ export const configureNhostSSR = (options: NhostInitOptions) => {
         if (ctx.res && (ctx.res.headersSent || ctx.res.writableEnded)) {
           return pageProps
         }
-        // !
-        // ! 'Refresh' runs twice on login
-        // !
-        // ! 'Refresh' runs after logging in!
-        // !
-        // ? hasura-auth call could be here
-        // ? and then, a custom API to refresh the token
+
         if (ctx.req && ctx.res) {
           const cookies = Cookies(ctx.req, ctx.res)
 

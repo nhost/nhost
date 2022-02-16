@@ -40,6 +40,7 @@ export interface Typegen0 {
   }
   eventsCausingGuards: {
     noToken: ''
+    isTimerDisabled: ''
     token: ''
     shouldRefresh: ''
     canRetry: 'error.platform.refreshToken'
@@ -52,6 +53,7 @@ export interface Typegen0 {
     | 'refesher.idle.error'
     | 'refesher.running'
     | 'timer'
+    | 'timer.disabled'
     | 'timer.stopped'
     | 'timer.idle'
     | 'timer.running'
@@ -60,7 +62,13 @@ export interface Typegen0 {
     | 'timer.failed'
     | {
         refesher?: 'idle' | 'running' | { idle?: 'noError' | 'error' }
-        timer?: 'stopped' | 'idle' | 'running' | 'failed' | { running?: 'pending' | 'refreshing' }
+        timer?:
+          | 'disabled'
+          | 'stopped'
+          | 'idle'
+          | 'running'
+          | 'failed'
+          | { running?: 'pending' | 'refreshing' }
       }
   tags: never
 }

@@ -13,7 +13,7 @@ export const nhostNextMiddleware = (backendUrl: string) => async (request: NextR
   const { NextResponse } = await import('next/server')
   // * Assumption: if request.page.name is null, then it's an asset e.g. favicon
   // if (!request.page.name && request.nextUrl.pathname !== REFRESH_URL) return NextResponse.next()
-  console.log('in middleware', request.nextUrl.pathname)
+  // console.log('in middleware', request.nextUrl.pathname)
   if (request.nextUrl.pathname === REFRESH_URL) {
     const oldRefreshToken = request.cookies[NHOST_REFRESH_TOKEN_KEY]
     if (!oldRefreshToken && request.nextUrl.pathname === REFRESH_URL) {

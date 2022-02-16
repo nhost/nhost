@@ -4,16 +4,15 @@ import { assign, createMachine, forwardTo, send } from 'xstate'
 import { NHOST_REFRESH_TOKEN_KEY } from '../constants'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
-import { defaultStorageSetter, StorageGetter, StorageSetter } from '../storage'
+import { StorageGetter, StorageSetter } from '../storage'
 import { isValidEmail, isValidPassword } from '../validators'
-import { defaultStorageGetter } from '..'
 
+import { AutoLoginOption, createAutoLoginMachine } from './auto-login'
 import { createChangeEmailMachine } from './change-email'
 import { createChangePasswordMachine } from './change-password'
 import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
 import { NhostEvents } from './events'
 import { createTokenRefresherMachine } from './token-refresher'
-import { urlParser } from './url-parser'
 
 export type { NhostContext, NhostEvents }
 export { INITIAL_MACHINE_CONTEXT }
@@ -22,15 +21,19 @@ export type NhostMachineOptions = {
   backendUrl: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
+  autoLogin?: AutoLoginOption
+  autoRefreshToken?: boolean
 }
 
 export type NhostMachine = ReturnType<typeof createNhostMachine>
 
 export const createNhostMachine = ({
   backendUrl,
-  storageSetter = defaultStorageSetter,
-  storageGetter = defaultStorageGetter
-}: NhostMachineOptions) => {
+  storageSetter,
+  storageGetter,
+  autoRefreshToken = true,
+  autoLogin = true
+}: Required<NhostMachineOptions>) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
@@ -61,7 +64,7 @@ export const createNhostMachine = ({
               id: 'tokenRefresher',
               src: 'tokenRefresher'
             },
-            { id: 'urlParser', src: 'urlParser' }
+            { id: 'autoLogin', src: 'autoLogin' }
           ],
           on: {
             TRY_TOKEN: {
@@ -395,7 +398,12 @@ export const createNhostMachine = ({
       },
 
       services: {
-        tokenRefresher: createTokenRefresherMachine({ api, storageGetter, storageSetter }),
+        tokenRefresher: createTokenRefresherMachine({
+          api,
+          storageGetter,
+          storageSetter,
+          autoRefreshToken
+        }),
         changePasswordMachine: createChangePasswordMachine(api),
         changeEmailMachine: createChangeEmailMachine(api),
 
@@ -423,7 +431,7 @@ export const createNhostMachine = ({
             password
           }),
 
-        urlParser
+        autoLogin: createAutoLoginMachine({ autoLogin })
       }
     }
   )
