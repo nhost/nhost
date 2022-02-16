@@ -6,12 +6,11 @@ import React from 'react'
 import {
   cookieStorageGetter,
   cookieStorageSetter,
-  INITIAL_MACHINE_CONTEXT,
-  initNhost,
   Nhost,
   NHOST_NEXT_REFRESH_KEY,
   NHOST_REFRESH_TOKEN_KEY,
-  NhostInitOptions
+  NhostClient,
+  NhostClientOptions
 } from '@nhost/core'
 import { NhostProvider } from '@nhost/react'
 
@@ -28,20 +27,18 @@ function getDisplayName(Component: React.ComponentType<any>) {
   return Component.displayName || Component.name || 'Unknown'
 }
 
-export const configureNhostSSR = (options: NhostInitOptions) => {
+export const configureNhostSSR = (options: NhostClientOptions) => {
   type NhostProps = Partial<{ session: Session; nhost: Nhost }>
 
   return (Page: NextPage<any> | typeof App) => {
     const getInitialProps = Page.getInitialProps
     function WithNhost({ session, ...props }: NhostProps) {
-      const nhost = initNhost({
+      const nhost = new NhostClient({
         ...options,
         storageGetter: cookieStorageGetter,
-        storageSetter: cookieStorageSetter
+        storageSetter: cookieStorageSetter,
+        initialContext: session
       })
-      if (session) {
-        nhost.machine = nhost.machine.withContext({ ...INITIAL_MACHINE_CONTEXT, ...session })
-      }
       return (
         <NhostProvider nhost={nhost}>
           <Page {...props} />

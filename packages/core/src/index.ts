@@ -13,66 +13,69 @@ import { defaultStorageGetter, defaultStorageSetter } from './storage'
 export * from './constants'
 export * from './storage'
 
-export type NhostInitOptions = { start?: boolean } & NhostMachineOptions
-
 export type Nhost = {
   backendUrl: string
   machine: NhostMachine
   interpreter?: InterpreterFrom<NhostMachine>
 }
 
+export type NhostClientOptions = NhostMachineOptions & { initialContext?: Partial<NhostContext> }
 export type { NhostContext, NhostMachine, NhostMachineOptions }
 export { INITIAL_MACHINE_CONTEXT }
+export class NhostClient {
+  readonly backendUrl: string
+  readonly machine: NhostMachine
+  #interpreter?: InterpreterFrom<NhostMachine>
+  #channel?: BroadcastChannel
 
-let _nhost: Nhost | null
-
-export const getNhostClient = () => _nhost
-
-/**
- * Creates a Nhost client. By default, the internal state is not started, as it should usually be done
- * inside the context of a specific framework e.g. React or Vue.
- * @param param0
- * @returns
- */
-export const initNhost = ({
-  backendUrl,
-  storageGetter = defaultStorageGetter,
-  storageSetter = defaultStorageSetter,
-  autoLogin = true,
-  autoRefreshToken = true,
-  start = false
-}: NhostInitOptions): Nhost => {
-  const machine = createNhostMachine({
+  constructor({
+    initialContext,
     backendUrl,
-    storageGetter,
-    storageSetter,
-    autoLogin,
-    autoRefreshToken
-  })
-  const nhost: Nhost = {
-    machine,
-    backendUrl
-  }
-  if (start) {
-    nhost.interpreter = interpret(machine)
-    nhost.interpreter?.start()
-  }
-  if (autoLogin) {
-    const channel = new BroadcastChannel<string>('nhost')
-    channel.addEventListener('message', (token) => {
-      const existingToken = nhost.interpreter?.state.context.refreshToken
-      if (nhost.interpreter && token !== existingToken) {
-        nhost.interpreter.send({ type: 'TRY_TOKEN', token })
-      }
-    })
-  }
-  _nhost = nhost
-  return nhost
-}
+    storageGetter = defaultStorageGetter,
+    storageSetter = defaultStorageSetter,
+    autoLogin = true,
+    autoRefreshToken = true
+  }: NhostClientOptions) {
+    this.backendUrl = backendUrl
 
-/**
- * Generic Nhost client. Instanciates the internal state
- * @param options
- * @returns
- */
-export const nhostClient = (options: NhostMachineOptions) => initNhost({ ...options, start: true })
+    const machine = createNhostMachine({
+      backendUrl,
+      storageGetter,
+      storageSetter,
+      autoLogin,
+      autoRefreshToken
+    })
+
+    this.machine = initialContext
+      ? machine.withContext({ ...INITIAL_MACHINE_CONTEXT, ...initialContext })
+      : machine
+
+    if (autoLogin) {
+      this.#channel = new BroadcastChannel<string>('nhost')
+      this.#channel.addEventListener('message', (token) => {
+        const existingToken = this.#interpreter?.state.context.refreshToken
+        if (this.#interpreter && token !== existingToken) {
+          this.#interpreter.send({ type: 'TRY_TOKEN', token })
+        }
+      })
+    }
+  }
+
+  get interpreter(): InterpreterFrom<NhostMachine> {
+    if (!this.#interpreter) {
+      const interpreter = interpret(this.machine, {
+        devTools: typeof window !== 'undefined' && process.env.NODE_ENV === 'development'
+      })
+      interpreter.start()
+      this.#interpreter = interpreter
+    }
+    return this.#interpreter
+  }
+
+  set interpreter(value: InterpreterFrom<NhostMachine>) {
+    if (this.#interpreter) {
+      this.#interpreter.stop()
+    }
+    this.#interpreter = value
+  }
+}

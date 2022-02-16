@@ -6,12 +6,12 @@ import { NhostReactContext } from '@nhost/react'
 
 type Props = Omit<NhostApolloClientOptions, 'backendUrl' | 'authService'>
 const Wrapper: React.FC<Props> = ({ children, ...options }) => {
-  const nhostContext = useContext(NhostReactContext)
+  const { interpreter, backendUrl } = useContext(NhostReactContext)
 
   const [client, setClient] = useState<ApolloClient<InMemoryCache>>()
 
   useEffect(() => {
-    setClient(createApolloClient({ ...nhostContext, ...options }))
+    setClient(createApolloClient({ interpreter, backendUrl, ...options }))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

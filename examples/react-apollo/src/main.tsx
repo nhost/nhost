@@ -3,7 +3,7 @@ import ReactDOM from 'react-dom'
 import App from './App'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { NhostProvider } from '@nhost/react'
-import { initNhost } from '@nhost/core'
+import { NhostClient } from '@nhost/core'
 
 import { inspect } from '@xstate/inspect'
 
@@ -14,7 +14,7 @@ if (process.env.NODE_ENV) {
   })
 }
 
-const nhost = initNhost({
+const nhost = new NhostClient({
   backendUrl: 'http://localhost:1337'
 })
 
