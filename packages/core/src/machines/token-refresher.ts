@@ -196,13 +196,10 @@ export const createTokenRefresherMachine = ({
           attempts: (ctx) => ctx.attempts + 1
         }),
         // TODO types
-        sendError: sendParent((_, { data: { error } }: any) => {
-          console.log('send error', error)
-          return {
-            type: 'TOKEN_REFRESH_ERROR',
-            error
-          }
-        }),
+        sendError: sendParent((_, { data: { error } }: any) => ({
+          type: 'TOKEN_REFRESH_ERROR',
+          error
+        })),
         // TODO types
         emit: sendParent((_, { data }: any) => ({
           type: 'SESSION_UPDATE',
@@ -222,7 +219,6 @@ export const createTokenRefresherMachine = ({
       },
       services: {
         refreshToken: async (ctx, e: any) => {
-          console.log('REFRESH')
           const token = e.token || ctx.token
           const result = await api.post('/v1/auth/token', {
             refreshToken: token
