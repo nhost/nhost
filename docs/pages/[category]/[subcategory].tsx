@@ -33,7 +33,7 @@ export default function Post({
     <div className="bg-white">
       <Head>
         <title>
-          {frontmatter.title} – {capitalize(category)} | Nhost Documentation
+          {frontmatter.title} - {capitalize(category)} | Nhost Documentation
         </title>
       </Head>
       <Header />

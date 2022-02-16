@@ -6,8 +6,7 @@ import React, { useState } from 'react'
 import createKebabCase from '../utils/createKebabCase'
 import Permalink from './icons/Permalink'
 
-// import { ReactNode, useState } from 'react';
-interface AnchorLinkProps {
+export interface AnchorLinkProps {
   children?: any
   id?: string
   size?: 'tiny' | 'small' | 'normal' | 'large' | 'big' | 'heading'
