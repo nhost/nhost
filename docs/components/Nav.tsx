@@ -2,13 +2,38 @@ import Text from '@/components/ui/Text'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
+import { ParsedUrlQuery } from 'querystring'
 import React from 'react'
 import { fixTitle } from '../utils/fixTitle'
 
-export function Nav(props) {
+export type NavProps = {
+  /**
+   * Class name to apply to the wrapper element.
+   */
+  className?: string
+  /**
+   * Category slug.
+   */
+  category: string
+  /**
+   * The category title.
+   */
+  categoryTitle: string
+  /**
+   * Convoluted navigation.
+   */
+  convolutedNav: any[]
+  /**
+   * Custom router query.
+   */
+  query: ParsedUrlQuery
+}
+
+export function Nav({ className, ...props }: NavProps) {
   const router = useRouter()
+
   return (
-    <div className="hidden lg:flex lg:min-w-nav lg:w-nav flex-col space-y-5 antialiased mt-1">
+    <div className={clsx('lg:min-w-nav lg:w-nav flex-col space-y-5 antialiased mt-1', className)}>
       <div>
         <ul>
           <Link href={`/${props.category}`} passHref>
@@ -37,9 +62,11 @@ export function Nav(props) {
         </ul>
       </div>
       {props.convolutedNav.map((elem) => {
+        const parentCategory = props.category.replace(' ', '-')
+
         return (
           <div key={elem.category}>
-            <Link href={`/${props.category.replace(' ', '-')}/${elem.category}/`} passHref>
+            <Link href={`/${parentCategory}/${elem.category}/`} passHref>
               <Text
                 variant="a"
                 color="greyscaleGrey"
@@ -55,8 +82,8 @@ export function Nav(props) {
               {elem.posts.map((post) => {
                 const pathToLink =
                   post.fileName != 'index'
-                    ? `${props.pathname}/${elem.category}/${post.fileName}`
-                    : `${props.pathname}/${elem.category}`
+                    ? `${parentCategory}/${elem.category}/${post.fileName}`
+                    : `${parentCategory}/${elem.category}`
 
                 const shouldHighlight =
                   router.query.subcategory === elem.category && props.query.post === post.fileName

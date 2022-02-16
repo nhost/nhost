@@ -1,27 +1,26 @@
-import { ArrowLeftIcon, MenuIcon } from '@heroicons/react/outline'
+import { useNavigationData } from '@/components/NavigationContext'
+import { ArrowLeftIcon, MenuIcon, RefreshIcon } from '@heroicons/react/outline'
 import clsx from 'clsx'
 import { useRouter } from 'next/dist/client/router'
 import Link from 'next/link'
-import React, { useEffect } from 'react'
-import { useState } from 'react'
-
+import React, { MouseEvent, useEffect, useState } from 'react'
 import Button from '../components/ui/Button'
-import { Nav } from './Nav'
+import { Nav, NavProps } from './Nav'
 
-export default function Header({ children }) {
+export default function Header() {
   const [mobileMenu, setMobileMenu] = useState(false)
   const router = useRouter()
   const GithubStarsCounter = () => {
     const repoUrl = `https://api.github.com/repos/nhost/nhost`
     const [count, setCount] = useState(null)
-    const format = (n) => (n > 1000 ? `${(n / 1000).toFixed(1)}k` : n)
+    const format = (n: number) => (n > 1000 ? `${(n / 1000).toFixed(1)}k` : n)
 
     useEffect(() => {
       ;(async () => {
         const data = await fetch(repoUrl).then((res) => res.json())
         setCount(data.stargazers_count)
       })()
-    }, [])
+    }, [repoUrl])
 
     return (
       <a
@@ -42,12 +41,16 @@ export default function Header({ children }) {
     )
   }
 
+  function handleMobileMenuOpen() {
+    setMobileMenu(true)
+  }
+
+  function handleMobileMenuClose() {
+    setMobileMenu(false)
+  }
+
   if (mobileMenu) {
-    return (
-      <MobileNav setMobileMenu={setMobileMenu} mobileMenu={mobileMenu}>
-        {children}
-      </MobileNav>
-    )
+    return <MobileNav onClose={handleMobileMenuClose} />
   }
 
   return (
@@ -58,7 +61,7 @@ export default function Header({ children }) {
             <button
               className="md:hidden w-8 h-8 flex items-center justify-center cursor-pointer text-greyscaleDark"
               aria-label="Open menu"
-              onClick={() => setMobileMenu(!mobileMenu)}
+              onClick={handleMobileMenuOpen}
             >
               <MenuIcon className="h-6 w-6" />
             </button>
@@ -125,66 +128,135 @@ export default function Header({ children }) {
   )
 }
 
-export function MobileNav({ setMobileMenu, mobileMenu }) {
+export type MobileNavProps = {
+  onClose?: VoidFunction
+}
+
+export function MobileNav({ onClose }: MobileNavProps) {
+  const { availableNavMenus, ...mobileNavProps } = useNavigationData()
   const router = useRouter()
+  const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
+  const [selectedMenuName, setSelectedMenuName] = useState<string | null>(null)
+
+  function handleMenuSelect(event: MouseEvent<HTMLAnchorElement>, slug: string, name: string) {
+    event.preventDefault()
+
+    // todo: rework this to reduce number of state updates required
+    setSelectedMenu(slug)
+    setSelectedMenuName(name)
+  }
 
   return (
     <div className="bg-white menu-card rounded-lg px-4 pb-6 max-w-full mx-2">
       <div className="flex flex-col w-full py-3 mx-auto">
         <div className="grid grid-flow-col justify-between items-center">
-          <button
-            className="md:hidden w-8 h-8 flex items-center justify-center cursor-pointer text-greyscaleDark"
-            aria-label="Close menu"
-            onClick={() => setMobileMenu(!mobileMenu)}
-          >
-            <MenuIcon className="h-6 w-6" aria-hidden="true" />
-          </button>
+          {!selectedMenu && (
+            <>
+              <button
+                className="w-8 h-8 flex items-center justify-center cursor-pointer text-greyscaleDark"
+                aria-label="Close menu"
+                onClick={onClose}
+              >
+                <MenuIcon className="h-6 w-6" aria-hidden="true" />
+              </button>
 
-          <Link href="/" passHref>
-            <a className="md:hidden ml-3 sm:ml-0 self-center flex flex-row cursor-pointer">
-              <img src="/images/nhost-docs.svg" width={110} height={35} alt="Nhost white logo" />
-              <h1 className="self-center ml-5 font-medium text-greyscaleDark">DOCS</h1>
-            </a>
-          </Link>
+              <Link href="/" passHref>
+                <a className="ml-3 sm:ml-0 self-center flex flex-row cursor-pointer">
+                  <img
+                    src="/images/nhost-docs.svg"
+                    width={110}
+                    height={35}
+                    alt="Nhost white logo"
+                  />
+                  <h1 className="self-center ml-5 font-medium text-greyscaleDark">DOCS</h1>
+                </a>
+              </Link>
+            </>
+          )}
+
+          {selectedMenu && (
+            <button
+              className="ml-2 h-8 grid grid-flow-col gap-2 items-center justify-center cursor-pointer text-greyscaleDark"
+              aria-label="Go back to main menu"
+              onClick={() => {
+                setSelectedMenu(null)
+                setSelectedMenuName(null)
+              }}
+            >
+              <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />{' '}
+              <span className="font-medium text-base-">{selectedMenuName}</span>
+            </button>
+          )}
 
           {/* Placeholder for making logo appear correctly in the middle */}
           <div className="w-8 h-8" />
         </div>
-        <div className="flex py-6 mt-4 border-divide border-t border-b">
-          <ul className="flex flex-col font-medium text-greyscaleDark text-base- font-display space-y-4 text-left px-4 ">
-            <li
-              className={clsx(
-                'cursor-pointer text-base-  hover:text-greyscaleDark transition-colors duration-200 text-left ',
-                router.query.category === 'get-started' && 'text-greyscaleDark'
-              )}
-            >
-              <Link href="/get-started" passHref={true}>
-                Get Started
-              </Link>
-            </li>
-            <li
-              className={clsx(
-                'cursor-pointer text-base- hover:text-greyscaleDark transition-colors duration-200 text-left',
-                router.query.category === 'platform' && 'text-greyscaleDark'
-              )}
-            >
-              <Link href="/platform" passHref={true}>
-                <a>Platform</a>
-              </Link>
-            </li>
-            <li
-              className={clsx(
-                'cursor-pointer text-base- hover:text-greyscaleDark transition-colors duration-200',
-                router.query.category === 'reference' && 'text-greyscaleDark'
-              )}
-            >
-              <Link href="/reference" passHref={true}>
-                <a>Reference</a>
-              </Link>
-            </li>
-          </ul>
+
+        <div className="flex flex-col py-6 mt-4 border-divide border-t border-b">
+          {!selectedMenu && (
+            <ul className="flex flex-col font-medium text-greyscaleDark text-base- font-display space-y-4 text-left px-4">
+              <li
+                className={clsx(
+                  'cursor-pointer text-base-  hover:text-greyscaleDark transition-colors duration-200 text-left ',
+                  router.query.category === 'get-started' && 'text-greyscaleDark'
+                )}
+              >
+                <Link href="/get-started" passHref>
+                  <a
+                    className="block"
+                    onClick={(event) => handleMenuSelect(event, 'get-started', 'Get Started')}
+                  >
+                    Get Started
+                  </a>
+                </Link>
+              </li>
+              <li
+                className={clsx(
+                  'cursor-pointer text-base- hover:text-greyscaleDark transition-colors duration-200 text-left',
+                  router.query.category === 'platform' && 'text-greyscaleDark'
+                )}
+              >
+                <Link href="/platform">
+                  <a
+                    className="block"
+                    onClick={(event) => handleMenuSelect(event, 'platform', 'Platform')}
+                  >
+                    Platform
+                  </a>
+                </Link>
+              </li>
+              <li
+                className={clsx(
+                  'cursor-pointer text-base- hover:text-greyscaleDark transition-colors duration-200',
+                  router.query.category === 'reference' && 'text-greyscaleDark'
+                )}
+              >
+                <Link href="/reference">
+                  <a
+                    className="block"
+                    onClick={(event) => handleMenuSelect(event, 'reference', 'Reference')}
+                  >
+                    Reference
+                  </a>
+                </Link>
+              </li>
+            </ul>
+          )}
+
+          {selectedMenu && (
+            <Nav
+              {...mobileNavProps}
+              convolutedNav={
+                availableNavMenus.find((menu) => menu.name === selectedMenu)?.items ||
+                mobileNavProps.convolutedNav
+              }
+              category={selectedMenu}
+              categoryTitle={selectedMenuName}
+            />
+          )}
         </div>
       </div>
+
       <div className="sm:flex self-center py-2">
         <Button
           className="self-center"
