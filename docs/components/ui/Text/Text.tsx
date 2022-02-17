@@ -1,5 +1,12 @@
 import cn from 'classnames'
-import React, { CSSProperties, FunctionComponent, JSXElementConstructor } from 'react'
+import React, {
+  CSSProperties,
+  ForwardedRef,
+  forwardRef,
+  FunctionComponent,
+  JSXElementConstructor
+} from 'react'
+import mergeRefs from 'react-merge-refs'
 import s from './Text.module.css'
 
 export interface TextProps {
@@ -23,20 +30,23 @@ type Size = 'tiny' | 'small' | 'normal' | 'large' | 'big' | 'heading'
 
 type Color = 'dark' | 'grey' | 'blue' | 'greyscaleDark' | 'greyscaleGrey' | 'red' | 'white'
 
-export const Text: FunctionComponent<TextProps> = ({
-  style,
-  className = '',
-  variant = 'body',
-  color,
-  children,
-  html,
-  onClick,
-  size,
-  rel,
-  href,
-  target,
-  name
-}) => {
+export const Text: FunctionComponent<TextProps> = forwardRef(function DefaultText(
+  {
+    style,
+    className = '',
+    variant = 'body',
+    color,
+    children,
+    html,
+    onClick,
+    size,
+    rel,
+    href,
+    target,
+    name
+  },
+  ref: ForwardedRef<HTMLElement>
+) {
   const componentsMap: {
     [P in Variant]: React.ComponentType<any> | string
   } = {
@@ -72,6 +82,7 @@ export const Text: FunctionComponent<TextProps> = ({
 
   return (
     <Component
+      ref={ref}
       className={cn(
         s.root,
         {
@@ -107,6 +118,6 @@ export const Text: FunctionComponent<TextProps> = ({
       {children}
     </Component>
   )
-}
+})
 
 export default Text
