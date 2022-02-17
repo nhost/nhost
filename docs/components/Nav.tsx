@@ -38,68 +38,59 @@ export function Nav(props) {
       </div>
       {props.convolutedNav.map((elem) => {
         return (
-          <>
-            <div key={elem.category} className="">
-              {/* <Link
-              href={`/${props.category.replace(" ", "-")}/${elem.category}`}
-              passHref
-            > */}
-              <div className="cursor-pointer">
-                <Link href={`/${props.category.replace(' ', '-')}/${elem.category}/`} passHref>
-                  <Text
-                    variant="a"
-                    color="greyscaleGrey"
-                    size="normal"
-                    className="font-medium capitalize px-3"
-                  >
-                    {/* Split */}
-                    {fixTitle(elem)}
-                  </Text>
-                </Link>
-              </div>
-              {/* </Link> */}
+          <div key={elem.category}>
+            <Link href={`/${props.category.replace(' ', '-')}/${elem.category}/`} passHref>
+              <Text
+                variant="a"
+                color="greyscaleGrey"
+                size="normal"
+                className="font-medium capitalize px-3 py-px block"
+              >
+                {/* Split */}
+                {fixTitle(elem)}
+              </Text>
+            </Link>
 
-              <ul className="space-y-1 mt-1 ">
-                {elem.posts.map((post) => {
-                  const pathToLink =
-                    post.fileName != 'index'
-                      ? `${props.pathname}/${elem.category}/${post.fileName}`
-                      : `${props.pathname}/${elem.category}`
+            <ul className="space-y-1 mt-1 ">
+              {elem.posts.map((post) => {
+                const pathToLink =
+                  post.fileName != 'index'
+                    ? `${props.pathname}/${elem.category}/${post.fileName}`
+                    : `${props.pathname}/${elem.category}`
 
-                  const shouldHiglight =
-                    router.query.subcategory === elem.category && props.query.post === post.fileName
+                const shouldHighlight =
+                  router.query.subcategory === elem.category && props.query.post === post.fileName
 
-                  const shouldHighlightSubCategories =
-                    !router.query.post &&
-                    post.fileName === 'index' &&
-                    elem.category === router.query.subcategory
+                const shouldHighlightSubcategories =
+                  !router.query.post &&
+                  post.fileName === 'index' &&
+                  elem.category === router.query.subcategory
 
-                  return (
-                    <Link href={pathToLink} passHref key={post}>
-                      <li
+                return (
+                  <Link href={pathToLink} passHref key={pathToLink}>
+                    <li
+                      className={clsx(
+                        'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
+                        (shouldHighlight || shouldHighlightSubcategories) && 'bg-veryLightGray'
+                      )}
+                    >
+                      <Text
+                        variant="a"
+                        color="greyscaleDark"
+                        size="normal"
                         className={clsx(
-                          'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
-                          (shouldHiglight || shouldHighlightSubCategories) && 'bg-veryLightGray'
+                          'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
+                          (shouldHighlight || shouldHighlightSubcategories) && 'font-medium'
                         )}
                       >
-                        <Text
-                          variant="a"
-                          color="greyscaleDark"
-                          size="normal"
-                          className={clsx(
-                            'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
-                            (shouldHiglight || shouldHighlightSubCategories) && 'font-medium'
-                          )}
-                        >
-                          {post.title}
-                        </Text>
-                      </li>
-                    </Link>
-                  )
-                })}
-              </ul>
-            </div>
-          </>
+                        {post.title}
+                      </Text>
+                    </li>
+                  </Link>
+                )
+              })}
+            </ul>
+          </div>
         )
       })}
     </div>

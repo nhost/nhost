@@ -20,8 +20,7 @@ export class HasuraStorageApi {
     this.url = url
 
     this.httpClient = axios.create({
-      baseURL: this.url,
-      timeout: 10_000
+      baseURL: this.url
     })
   }
 

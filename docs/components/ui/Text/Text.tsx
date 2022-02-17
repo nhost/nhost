@@ -2,7 +2,7 @@ import cn from 'classnames'
 import React, { CSSProperties, FunctionComponent, JSXElementConstructor } from 'react'
 import s from './Text.module.css'
 
-interface TextProps {
+export interface TextProps {
   variant?: Variant
   className?: string
   style?: CSSProperties
