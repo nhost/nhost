@@ -5,6 +5,7 @@ import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
 import React, { MouseEvent } from 'react'
 import { fixTitle } from '../utils/fixTitle'
+import { NavItem } from './NavDataContext'
 
 export type NavProps = {
   /**
@@ -22,11 +23,7 @@ export type NavProps = {
   /**
    * Convoluted navigation.
    */
-  convolutedNav: any[]
-  /**
-   * Custom router query.
-   */
-  query: ParsedUrlQuery
+  convolutedNav: NavItem[]
   /**
    * Function to be called when a menu item is selected.
    */
@@ -91,7 +88,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
                     : `/${parentCategory}/${elem.category}`
 
                 const shouldHighlight =
-                  router.query.subcategory === elem.category && props.query.post === post.fileName
+                  router.query.subcategory === elem.category && router.query.post === post.fileName
 
                 const shouldHighlightSubcategories =
                   !router.query.post &&

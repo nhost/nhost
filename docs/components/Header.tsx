@@ -1,4 +1,4 @@
-import { useNavigationData } from '@/components/NavigationContext'
+import { useNavData } from '@/components/NavDataContext'
 import { ArrowLeftIcon, MenuIcon, RefreshIcon } from '@heroicons/react/outline'
 import clsx from 'clsx'
 import { useRouter } from 'next/dist/client/router'
@@ -133,24 +133,28 @@ export type MobileNavProps = {
 }
 
 export function MobileNav({ onClose }: MobileNavProps) {
-  const { availableNavMenus, ...mobileNavProps } = useNavigationData()
+  const { getConvolutedNavByCategory } = useNavData()
   const router = useRouter()
-  const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
+  const [selectedMenuSlug, setSelectedMenuSlug] = useState<string | null>(null)
   const [selectedMenuName, setSelectedMenuName] = useState<string | null>(null)
 
   function handleMenuSelect(event: MouseEvent<HTMLAnchorElement>, slug: string, name: string) {
     event.preventDefault()
 
-    // todo: rework this to reduce number of state updates required
-    setSelectedMenu(slug)
+    setSelectedMenuSlug(slug)
     setSelectedMenuName(name)
+  }
+
+  function clearMenuSelection() {
+    setSelectedMenuSlug(null)
+    setSelectedMenuName(null)
   }
 
   return (
     <div className="bg-white menu-card rounded-lg px-4 pb-6 max-w-full mx-2">
       <div className="flex flex-col w-full py-3 mx-auto">
         <div className="grid grid-flow-col justify-between items-center">
-          {!selectedMenu && (
+          {!selectedMenuSlug && (
             <>
               <button
                 className="w-8 h-8 flex items-center justify-center cursor-pointer text-greyscaleDark"
@@ -160,7 +164,7 @@ export function MobileNav({ onClose }: MobileNavProps) {
                 <MenuIcon className="h-6 w-6" aria-hidden="true" />
               </button>
 
-              <Link href="/" passHref>
+              <Link href="/get-started" passHref>
                 <a className="ml-3 sm:ml-0 self-center flex flex-row cursor-pointer">
                   <img
                     src="/images/nhost-docs.svg"
@@ -174,14 +178,11 @@ export function MobileNav({ onClose }: MobileNavProps) {
             </>
           )}
 
-          {selectedMenu && (
+          {selectedMenuSlug && (
             <button
               className="ml-2 h-8 grid grid-flow-col gap-2 items-center justify-center cursor-pointer text-greyscaleDark"
               aria-label="Go back to main menu"
-              onClick={() => {
-                setSelectedMenu(null)
-                setSelectedMenuName(null)
-              }}
+              onClick={clearMenuSelection}
             >
               <ArrowLeftIcon className="h-4 w-4" aria-hidden="true" />{' '}
               <span className="font-medium text-base-">{selectedMenuName}</span>
@@ -193,7 +194,7 @@ export function MobileNav({ onClose }: MobileNavProps) {
         </div>
 
         <div className="flex flex-col py-6 mt-4 border-divide border-t border-b">
-          {!selectedMenu && (
+          {!selectedMenuSlug && (
             <ul className="flex flex-col font-medium text-greyscaleDark text-base- font-display space-y-4 text-left px-4">
               <li
                 className={clsx(
@@ -243,15 +244,11 @@ export function MobileNav({ onClose }: MobileNavProps) {
             </ul>
           )}
 
-          {selectedMenu && (
+          {selectedMenuSlug && (
             <Nav
-              {...mobileNavProps}
-              convolutedNav={
-                availableNavMenus.find((menu) => menu.name === selectedMenu)?.items ||
-                mobileNavProps.convolutedNav
-              }
-              category={selectedMenu}
+              category={selectedMenuSlug}
               categoryTitle={selectedMenuName}
+              convolutedNav={getConvolutedNavByCategory(selectedMenuSlug)}
               onMenuSelected={onClose}
             />
           )}
@@ -262,7 +259,7 @@ export function MobileNav({ onClose }: MobileNavProps) {
         <Button
           className="self-center"
           variant="primary"
-          href={'https://app.nhost.io'}
+          href="https://app.nhost.io"
           Component="a"
           target="_blank"
           rel="noreferrer"

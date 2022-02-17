@@ -4,7 +4,7 @@ import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import components from '@/components/MDX/components'
 import { Nav } from '@/components/Nav'
-import { NavigationProvider } from '@/components/NavigationContext'
+import { NavDataProvider } from '@/components/NavDataContext'
 import { SubNavigation } from '@/components/SubNavigation'
 import { TopNavigation } from '@/components/TopNavigation'
 import { createConvolutedNav, getAllPosts, removeIndexFile } from '@/lib/post'
@@ -12,11 +12,9 @@ import { capitalize } from '@/utils/capitalize'
 import fs from 'fs'
 import matter from 'gray-matter'
 import { serialize } from 'next-mdx-remote/serialize'
-import { useRouter } from 'next/dist/client/router'
 import Head from 'next/head'
 import { join } from 'path'
 import React from 'react'
-
 import { Main } from '../../../components/Main'
 
 export default function Post({
@@ -25,19 +23,16 @@ export default function Post({
   frontmatter,
   mdxSource,
   convolutedNav,
-  availableMenus,
+  availableCategoryMenus,
   post,
   categoryTitle
 }) {
-  const router = useRouter()
-
   return (
-    <NavigationProvider
-      query={router.query}
+    <NavDataProvider
       category={category}
       categoryTitle={categoryTitle}
       convolutedNav={convolutedNav}
-      availableNavMenus={availableMenus}
+      availableCategoryMenus={availableCategoryMenus}
     >
       <div className="bg-white pt-2">
         <Head>
@@ -53,7 +48,6 @@ export default function Post({
             convolutedNav={convolutedNav}
             category={category}
             categoryTitle={categoryTitle}
-            query={router.query}
           />
 
           <Main>
@@ -71,20 +65,20 @@ export default function Post({
         </Container>
         <Footer />
       </div>
-    </NavigationProvider>
+    </NavDataProvider>
   )
 }
 
 export async function getStaticProps({ params }) {
   const postsDirectory = join(process.cwd(), 'content', 'docs')
   const availableCategories = fs.readdirSync(postsDirectory)
-  const convolutedNavs = availableCategories.map((category) => ({
-    name: category,
+  const availableCategoryMenus = availableCategories.map((category) => ({
+    slug: category,
     items: createConvolutedNav(category)
   }))
 
   const convolutedNav =
-    convolutedNavs.find((nav) => nav.name === params.category).items ||
+    availableCategoryMenus.find(({ slug }) => slug === params.category).items ||
     createConvolutedNav(params.category)
 
   const categoryTitle = matter(
@@ -107,7 +101,7 @@ export async function getStaticProps({ params }) {
       post: params.post,
       frontmatter: { ...data },
       mdxSource,
-      availableMenus: convolutedNavs,
+      availableCategoryMenus,
       convolutedNav
     }
   }
