@@ -252,6 +252,7 @@ export function MobileNav({ onClose }: MobileNavProps) {
               }
               category={selectedMenu}
               categoryTitle={selectedMenuName}
+              onMenuSelected={onClose}
             />
           )}
         </div>

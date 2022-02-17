@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { ParsedUrlQuery } from 'querystring'
-import React from 'react'
+import React, { MouseEvent } from 'react'
 import { fixTitle } from '../utils/fixTitle'
 
 export type NavProps = {
@@ -27,9 +27,13 @@ export type NavProps = {
    * Custom router query.
    */
   query: ParsedUrlQuery
+  /**
+   * Function to be called when a menu item is selected.
+   */
+  onMenuSelected?: (event?: MouseEvent<HTMLAnchorElement, MouseEvent>) => void
 }
 
-export function Nav({ className, ...props }: NavProps) {
+export function Nav({ className, onMenuSelected, ...props }: NavProps) {
   const router = useRouter()
 
   return (
@@ -54,6 +58,7 @@ export function Nav({ className, ...props }: NavProps) {
                   'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
                   'font-medium'
                 )}
+                onClick={onMenuSelected}
               >
                 {props.categoryTitle}
               </Text>
@@ -82,8 +87,8 @@ export function Nav({ className, ...props }: NavProps) {
               {elem.posts.map((post) => {
                 const pathToLink =
                   post.fileName != 'index'
-                    ? `${parentCategory}/${elem.category}/${post.fileName}`
-                    : `${parentCategory}/${elem.category}`
+                    ? `/${parentCategory}/${elem.category}/${post.fileName}`
+                    : `/${parentCategory}/${elem.category}`
 
                 const shouldHighlight =
                   router.query.subcategory === elem.category && props.query.post === post.fileName
@@ -109,6 +114,7 @@ export function Nav({ className, ...props }: NavProps) {
                           'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
                           (shouldHighlight || shouldHighlightSubcategories) && 'font-medium'
                         )}
+                        onClick={onMenuSelected}
                       >
                         {post.title}
                       </Text>

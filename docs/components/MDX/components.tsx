@@ -93,28 +93,28 @@ const components = {
     return (
       <>
         <Divider />
-        <AnchorLink {...props} size="heading" className="cursor-pointer" />
+        <AnchorLink {...props} className="cursor-pointer text-3xl md:text-4xl" />
       </>
     )
   },
   h2: (props: AnchorLinkProps) => {
     return (
       <div className="mt-10">
-        <AnchorLink {...props} size="big" className="cursor-pointer" />
+        <AnchorLink {...props} className="cursor-pointer text-lg sm:text-xl md:text-2.5xl" />
       </div>
     )
   },
   h3: (props: AnchorLinkProps) => {
     return (
       <div className="mt-8">
-        <AnchorLink {...props} size="large" className="cursor-pointer" />
+        <AnchorLink {...props} className="cursor-pointer text-lg" />
       </div>
     )
   },
   h4: (props: AnchorLinkProps) => {
     return (
       <div className="mt-4">
-        <AnchorLink {...props} size="normal" className="font-bold cursor-pointer" />
+        <AnchorLink {...props} className="font-bold cursor-pointer text-base-" />
       </div>
     )
   },

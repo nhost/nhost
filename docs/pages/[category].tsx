@@ -26,7 +26,6 @@ export default function Home({
   categoryTitle
 }) {
   const router = useRouter()
-  const pathname = `/${router.query.category}`
 
   return (
     <NavigationProvider
@@ -35,7 +34,6 @@ export default function Home({
       categoryTitle={categoryTitle}
       convolutedNav={convolutedNav}
       availableNavMenus={availableMenus}
-      pathname={router.pathname}
     >
       <div className="bg-white pt-2">
         <Head>
@@ -52,6 +50,7 @@ export default function Home({
             category={category}
             query={router.query}
           />
+
           <Main>
             <Content mdxSource={mdxSource} components={components} frontmatter={frontmatter} />
           </Main>

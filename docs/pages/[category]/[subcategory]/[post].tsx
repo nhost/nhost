@@ -30,7 +30,7 @@ export default function Post({
   categoryTitle
 }) {
   const router = useRouter()
-  const pathname = `/${router.query.category}`
+
   return (
     <NavigationProvider
       query={router.query}
@@ -38,7 +38,6 @@ export default function Post({
       categoryTitle={categoryTitle}
       convolutedNav={convolutedNav}
       availableNavMenus={availableMenus}
-      pathname={router.pathname}
     >
       <div className="bg-white pt-2">
         <Head>

@@ -7,8 +7,11 @@ import Loading from './ui/Loading'
 
 function NewsletterForm(props) {
   return (
-    <div className=" flex flex-row w-64 mt-5">
-      <form className=" flex flex-row" onSubmit={(e) => props.subscribe(e)}>
+    <div className="flex flex-row w-64 mt-5">
+      <form
+        className="grid grid-flow-row sm:grid-flow-col gap-4"
+        onSubmit={(e) => props.subscribe(e)}
+      >
         <Input
           color="dark"
           placeholder="Email address"
@@ -32,7 +35,7 @@ function NewsletterError({ errorMessage, retry }) {
     ? errorMessage.split('.').slice(0, 2).join('.')
     : errorMessage
   return (
-    <div className="flex flex-row mt-5">
+    <div className="grid grid-flow-row md:grid-flow-col gap-4 mt-5">
       <p className="text-white font-normal text-sm mt-2.5">{formattedError}.</p>
       <button
         className="btn-subscribe font-display text-greyscaleDark font-medium cursor-pointer"

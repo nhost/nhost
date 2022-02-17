@@ -2,7 +2,6 @@ import Text from '@/components/ui/Text'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/dist/client/router'
 import React, { useState } from 'react'
-
 import createKebabCase from '../utils/createKebabCase'
 import Permalink from './icons/Permalink'
 
@@ -71,9 +70,8 @@ export default function AnchorLink({ children, id, size, className }: AnchorLink
           href={createKebabCase(
             `#${isQuoted ? (children.props ? children.props.children : children) : children}`
           )}
-          size={size ? size : 'big'}
           color="greyscaleDark"
-          className="font-medium"
+          className="font-medium break-all"
         >
           {children}
         </Text>
