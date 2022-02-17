@@ -40,9 +40,10 @@ sequenceDiagram
     participant next as Next.js
     participant auth as Hasura Auth
     browser->>auth: Initial refresh token
-    activate browser
+    activate auth
     activate browser
     auth-->>browser: New refresh token + JWT + user data
+    deactivate auth
     browser->>browser: Set the new refresh token in the cookie
     deactivate browser
 ```
@@ -74,7 +75,9 @@ sequenceDiagram
     next->>next: Set the new refresh token in the cookie
     next->>next: getInitialProps - Hydrate JWT + user data
     next->>hasura: GraphQL operation with JWT
+    activate hasura
     hasura-->>next: GraphQL data
+    deactivate hasura
     next->>next: Render page
     next-->>browser: HTML with the new refresh token in the cookie, and JWT + user data
     deactivate next

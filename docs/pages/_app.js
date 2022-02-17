@@ -9,7 +9,8 @@ function MyApp({ Component, pageProps }) {
     <>
       <Script
         src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"
-        strategy="beforeInteractive"
+        strategy="lazyOnload"
+        onLoad={() => mermaid.init({ noteMargin: 10 }, '.mermaid')}
       />
       <DefaultSeo
         openGraph={{

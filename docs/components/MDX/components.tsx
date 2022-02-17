@@ -120,23 +120,7 @@ const components = {
       {...props}
     />
   ),
-  Mermaid({ chart }) {
-    const [html, setHtml] = React.useState('')
-    React.useLayoutEffect(() => {
-      if (chart) {
-        try {
-          ;(window as any).mermaid.mermaidAPI.render(uuid(), chart, (svgCode) => setHtml(svgCode))
-        } catch (e) {
-          setHtml('')
-        }
-      }
-    }, [chart])
-
-    return chart ? <div dangerouslySetInnerHTML={{ __html: html }} /> : null
-  }
+  Mermaid: ({ chart }) => (chart ? <div className="mermaid">{chart}</div> : null)
 }
-
-let currentId = 0
-const uuid = () => `mermaid-${(currentId++).toString()}`
 
 export default components
