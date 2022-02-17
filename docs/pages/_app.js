@@ -7,7 +7,10 @@ import { DefaultSeo } from 'next-seo'
 function MyApp({ Component, pageProps }) {
   return (
     <>
-      <Script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" />
+      <Script
+        src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"
+        strategy="beforeInteractive"
+      />
       <DefaultSeo
         openGraph={{
           type: 'website',
