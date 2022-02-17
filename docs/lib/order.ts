@@ -15,7 +15,7 @@ export const orderTwo = {
   reference: {
     sdk: ['index', 'graphql', 'authentication', 'storage', 'functions'],
     react: ['index', 'hooks', 'apollo'],
-    nextjs: ['index'],
+    nextjs: ['index', 'server-side'],
     cli: ['index'],
     'supporting-libraries': ['react-apollo', 'react-auth']
   }

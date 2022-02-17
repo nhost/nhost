@@ -120,7 +120,20 @@ const components = {
       {...props}
     />
   ),
-  Mermaid: ({ chart }) => (chart ? <div className="mermaid">{chart}</div> : null)
+  Mermaid: ({ chart }) => {
+    const [html, setHtml] = React.useState('')
+    React.useEffect(() => {
+      const start = async () => {
+        const mermaid = (await import('mermaid')).default
+        mermaid.mermaidAPI.render(uuid(), chart, (svgCode) => setHtml(svgCode))
+      }
+      start()
+    }, [chart])
+    return chart ? <div dangerouslySetInnerHTML={{ __html: html }} /> : null
+  }
 }
+
+let currentId = 0
+const uuid = () => `mermaid-${(currentId++).toString()}`
 
 export default components
