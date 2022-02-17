@@ -92,7 +92,9 @@ export async function getStaticProps({ params }) {
   const fileContents = fs.readFileSync(fullPath, 'utf8')
   const { data, content } = matter(fileContents)
   const headings = getHeadingsByPost(content)
-  const mdxSource = await serialize(content)
+  const mdxSource = await serialize(content, {
+    mdxOptions: { remarkPlugins: [require('mdx-mermaid')] }
+  })
 
   return {
     props: {

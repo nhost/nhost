@@ -19,7 +19,7 @@ function Note({ children }) {
 
 function Video({ src }) {
   return (
-    <div className="flex justify-center my-8 mx-10">
+    <div className="flex justify-center mx-10 my-8">
       <video width="800" controls>
         <source src={src} type="video/mp4" />
       </video>
@@ -50,10 +50,10 @@ const components = {
   img: (props) => {
     return (
       <>
-        <span className="block mt-5 mx-10 ">
-          <img src={props.src} alt={props.alt} className="mx-auto border mt-2" />
+        <span className="block mx-10 mt-5 ">
+          <img src={props.src} alt={props.alt} className="mx-auto mt-2 border" />
           {props.alt && (
-            <div className="block text-center text-secondary text-sm mb-8 pt-4">
+            <div className="block pt-4 mb-8 text-sm text-center text-secondary">
               <Text color="greyscaleDark" size="tiny">
                 {props.alt}
               </Text>
@@ -119,7 +119,24 @@ const components = {
       className="my-2 antialiased leading-6"
       {...props}
     />
-  )
+  ),
+  Mermaid({ chart }) {
+    const [html, setHtml] = React.useState('')
+    React.useLayoutEffect(() => {
+      if (chart) {
+        try {
+          ;(window as any).mermaid.mermaidAPI.render(uuid(), chart, (svgCode) => setHtml(svgCode))
+        } catch (e) {
+          setHtml('')
+        }
+      }
+    }, [chart])
+
+    return chart ? <div dangerouslySetInnerHTML={{ __html: html }} /> : null
+  }
 }
+
+let currentId = 0
+const uuid = () => `mermaid-${(currentId++).toString()}`
 
 export default components

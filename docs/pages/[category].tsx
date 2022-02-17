@@ -56,8 +56,9 @@ export async function getStaticProps({ params }) {
   const fullPath = join(postsDirectory, `${params.category}/index.mdx`)
   const fileContents = fs.readFileSync(fullPath, 'utf8')
   const { data, content } = matter(fileContents)
-  const mdxSource = await serialize(content)
-
+  const mdxSource = await serialize(content, {
+    mdxOptions: { remarkPlugins: [require('mdx-mermaid')] }
+  })
   return {
     props: {
       categoryTitle,

@@ -19,12 +19,12 @@ function getGithubLink(category, subcategory, post) {
 export function Content({ mdxSource, components, frontmatter }) {
   const router = useRouter()
   return (
-    <div className="mt-2 h-full w-full flex flex-col">
-      <div className="flex flex-row place-content-between mb-4">
+    <div className="flex flex-col w-full h-full mt-2">
+      <div className="flex flex-row mb-4 place-content-between">
         <Text color="greyscaleDark" className="font-medium cursor-pointer" size="heading">
           {frontmatter.title}
         </Text>
-        <div className="hidden md:block self-center">
+        <div className="self-center hidden md:block">
           <Button
             Component="a"
             variant="secondary"

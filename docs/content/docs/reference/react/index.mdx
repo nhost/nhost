@@ -1,0 +1,44 @@
+---
+title: 'Getting started'
+---
+
+## Installation
+
+With Yarn:
+
+```sh
+yarn add @nhost/react
+```
+
+With Npm:
+
+```sh
+npm install @nhost/react
+```
+
+## Configuration
+
+`@nhost/react` exports a React provider `NhostProvider` that makes the authentication state and the several hooks available in your application. Wrap this component around your whole App.
+
+```js
+import React from 'react'
+import ReactDOM from 'react-dom'
+
+import { NhostProvider } from '@nhost/react'
+import { Nhost } from '@nhost/client'
+
+import App from './App'
+
+const nhost = new Nhost({
+  backendUrl: 'http://localhost:1337'
+})
+
+ReactDOM.render(
+  <React.StrictMode>
+    <NhostProvider nhost={nhost}>
+      <App />
+    </NhostProvider>
+  </React.StrictMode>,
+  document.getElementById('root')
+)
+```

@@ -1,3 +1,4 @@
+import Script from 'next/script'
 import '@/styles/fonts.css'
 import '@/styles/globals.css'
 import '@/styles/style.css'
@@ -6,6 +7,7 @@ import { DefaultSeo } from 'next-seo'
 function MyApp({ Component, pageProps }) {
   return (
     <>
+      <Script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" />
       <DefaultSeo
         openGraph={{
           type: 'website',
