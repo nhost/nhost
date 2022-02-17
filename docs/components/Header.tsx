@@ -166,7 +166,10 @@ export function MobileNav({ onClose }: MobileNavProps) {
               </button>
 
               <Link href="/get-started" passHref>
-                <a className="ml-3 sm:ml-0 self-center flex flex-row cursor-pointer">
+                <a
+                  className="ml-3 sm:ml-0 self-center flex flex-row cursor-pointer"
+                  onClick={onClose}
+                >
                   <img
                     src="/images/nhost-docs.svg"
                     width={110}
