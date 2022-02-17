@@ -48,7 +48,7 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/core": "workspace:*",
+    "@nhost/client": "workspace:*",
     "@xstate/react": "^2.0.0"
   },
   "devDependencies": {

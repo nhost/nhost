@@ -8,7 +8,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@nhost/core": "workspace:^0.1.0",
+    "@nhost/client": "workspace:^0.1.0",
     "@nhost/nextjs": "workspace:^0.1.0",
     "@nhost/react-apollo": "workspace:^2.2.0",
     "@nhost/apollo": "workspace:^0.1.0",

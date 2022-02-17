@@ -18,7 +18,7 @@ const nextConfig = {
 }
 
 const withTM = require('next-transpile-modules')(
-  ['@nhost/core', '@nhost/react', '@nhost/react-apollo', '@nhost/apollo', '@nhost/nextjs'],
+  ['@nhost/client', '@nhost/react', '@nhost/react-apollo', '@nhost/apollo', '@nhost/nextjs'],
   {
     // resolveSymlinks: true
     // debug: true

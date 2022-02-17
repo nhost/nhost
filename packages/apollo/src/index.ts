@@ -14,7 +14,7 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { NhostMachine } from '@nhost/core'
+import { NhostMachine } from '@nhost/client'
 const isBrowser = () => typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {

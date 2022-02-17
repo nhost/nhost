@@ -23,8 +23,8 @@
     "jsx": "react-jsx",
     "baseUrl": "./src",
     "paths": {
-      "@nhost/core": ["../../packages/core/src/index"],
-      "@nhost/core/*": ["../../packages/core/src/*"],
+      "@nhost/client": ["../../packages/core/src/index"],
+      "@nhost/client/*": ["../../packages/core/src/*"],
     }
   },
   "include": [

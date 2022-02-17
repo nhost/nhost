@@ -31,7 +31,7 @@
   },
   "devDependencies": {
     "@apollo/client": "^3.5.9",
-    "@nhost/core": "workspace:^0.1.0",
+    "@nhost/client": "workspace:^0.1.0",
     "@nhost/react": "workspace:^0.1.0",
     "@types/react": "^17.0.39",
     "@types/react-dom": "^17.0.11",

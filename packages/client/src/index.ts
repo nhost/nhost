@@ -13,16 +13,11 @@ import { defaultStorageGetter, defaultStorageSetter } from './storage'
 export * from './constants'
 export * from './storage'
 
-export type Nhost = {
-  backendUrl: string
-  machine: NhostMachine
-  interpreter?: InterpreterFrom<NhostMachine>
-}
-
 export type NhostClientOptions = NhostMachineOptions & { initialContext?: Partial<NhostContext> }
 export type { NhostContext, NhostMachine, NhostMachineOptions }
 export { INITIAL_MACHINE_CONTEXT }
-export class NhostClient {
+
+export class Nhost {
   readonly backendUrl: string
   readonly machine: NhostMachine
   #interpreter?: InterpreterFrom<NhostMachine>

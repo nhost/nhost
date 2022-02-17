@@ -49,7 +49,7 @@
   ],
   "dependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/core": "workspace:^0.1.0",
+    "@nhost/client": "workspace:^0.1.0",
     "graphql": "16",
     "subscriptions-transport-ws": "^0.11.0"
   },

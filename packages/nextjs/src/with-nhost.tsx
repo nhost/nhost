@@ -9,9 +9,8 @@ import {
   Nhost,
   NHOST_NEXT_REFRESH_KEY,
   NHOST_REFRESH_TOKEN_KEY,
-  NhostClient,
   NhostClientOptions
-} from '@nhost/core'
+} from '@nhost/client'
 import { NhostProvider } from '@nhost/react'
 
 import { refresh, Session } from './utils'
@@ -33,7 +32,7 @@ export const configureNhostSSR = (options: NhostClientOptions) => {
   return (Page: NextPage<any> | typeof App) => {
     const getInitialProps = Page.getInitialProps
     function WithNhost({ session, ...props }: NhostProps) {
-      const nhost = new NhostClient({
+      const nhost = new Nhost({
         ...options,
         storageGetter: cookieStorageGetter,
         storageSetter: cookieStorageSetter,
