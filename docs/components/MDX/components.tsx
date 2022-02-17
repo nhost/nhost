@@ -37,7 +37,7 @@ const CustomLink = ({
   href,
   ...props
 }: DetailedHTMLProps<HTMLProps<HTMLAnchorElement>, HTMLAnchorElement>) => {
-  const isInternalLink = href && (href.startsWith('/') || href.startsWith('#'))
+  const isInternalLink = href && ['./', '../', '/', '#'].some((symbol) => href.startsWith(symbol))
 
   if (isInternalLink) {
     return (
@@ -54,6 +54,7 @@ const CustomLink = ({
       target="_blank"
       className={clsx('font-medium text-blue', className)}
       rel="noopener noreferrer"
+      href={href}
       {...props}
     >
       {children}
