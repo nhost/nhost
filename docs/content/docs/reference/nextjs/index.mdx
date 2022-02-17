@@ -8,7 +8,7 @@ When rendering a page from the server side, Next.js needs to get some informatio
 
 The cookie is `same-site` and is used only stores the refresh cookie and the expiration date of the JWT so the browser can proactively ask for a new JWT before it expires.
 
-## Sign-in
+## Signing in
 
 There is no need to activate SSR in the sign-in page as there is not yet any session information to capture. As a result, it is recommended to code it as a classic static page.
 
@@ -16,18 +16,19 @@ The intitial authentication would then work like this diagram:
 
 ```mermaid
 sequenceDiagram
-    participant Browser
-    participant Next.js
-    Browser->>Auth: Authenticate
-    activate Browser
-    activate Auth
-    Auth-->>Browser: New refresh token + JWT + user data
-    deactivate Auth
-    Browser->>Browser: Set the new refresh token in the cookie
-    deactivate Browser
+    participant browser as Browser
+    participant next as Next.js
+    participant auth as Hasura Auth
+    browser->>auth: Authenticate
+    activate browser
+    activate auth
+    auth-->>browser: New refresh token + JWT + user data
+    deactivate auth
+    browser->>browser: Set the new refresh token in the cookie
+    deactivate browser
 ```
 
-## Refresh the JWT token
+## Refreshing the JWT token
 
 For security considerations, the Nhost JS tools never persist the JWT anywhere in the browser either in `localStorage` or in a cookie, and the JWT expires regularily (15 minutes by default). As a result, the Nhost client regularly call the `hasura-auth` service to get a new JWT from a valid refresh tooken. The new JWT is emitted together with a new refresh token, while the old one is invalidated.
 As a result, it is important to ensure both the browser and the Next.js will always use the last refresh token, as it will be the only one that is still valid.
@@ -35,12 +36,15 @@ The above diagram illustrates how a JWT is renewed, while making sure the refres
 
 ```mermaid
 sequenceDiagram
-    Browser->>Auth: Initial refresh token
-    activate Browser
-    activate Auth
-    Auth-->>Browser: New refresh token + JWT + user data
-    Browser->>Browser: Set the new refresh token in the cookie
-    deactivate Browser
+    participant browser as Browser
+    participant next as Next.js
+    participant auth as Hasura Auth
+    browser->>auth: Initial refresh token
+    activate browser
+    activate browser
+    auth-->>browser: New refresh token + JWT + user data
+    browser->>browser: Set the new refresh token in the cookie
+    deactivate browser
 ```
 
 ## Loading a SSR page
@@ -56,28 +60,32 @@ Once the SSR page is loaded, it is still possible to refetch data from Hasura as
 
 ```mermaid
 sequenceDiagram
-    Browser->>Next.js: Request SSR page (refresh token in cookie)
-    activate Browser
-    activate Next.js
-    Next.js->>Auth: Refresh token
-    activate Auth
-    Auth-->>Next.js: New refresh token + JWT + user data
-    deactivate Auth
-    Next.js->>Next.js: Set the new refresh token in the cookie
-    Next.js->>Next.js: getInitialProps - Hydrate JWT + user data
-    Next.js->>Hasura: GraphQL operation with JWT
-    Hasura-->>Next.js: GraphQL data
-    Next.js->>Next.js: Render page
-    Next.js-->>Browser: HTML with JWT + user data + new refresh token in the cookie
-    deactivate Next.js
-    deactivate Browser
-    Browser->>Hasura: Refetch data with JWT
-    activate Browser
-    activate Hasura
-    Hasura-->>Browser: Updated data
-    deactivate Hasura
-    Browser->>Browser: Re-render data
-    deactivate Browser
+    participant browser as Browser
+    participant next as Next.js
+    participant auth as Hasura Auth
+    participant hasura as Hasura
+    browser->>next: Request SSR page (refresh token in cookie)
+    activate browser
+    activate next
+    next->>auth: Refresh token
+    activate auth
+    auth-->>next: New refresh token + JWT + user data
+    deactivate auth
+    next->>next: Set the new refresh token in the cookie
+    next->>next: getInitialProps - Hydrate JWT + user data
+    next->>hasura: GraphQL operation with JWT
+    hasura-->>next: GraphQL data
+    next->>next: Render page
+    next-->>browser: HTML with the new refresh token in the cookie, and JWT + user data
+    deactivate next
+    deactivate browser
+    browser->>hasura: Refetch data with JWT
+    activate browser
+    activate hasura
+    hasura-->>browser: Updated data
+    deactivate hasura
+    browser->>browser: Re-render data
+    deactivate browser
 ```
 
 ## Loading a static page
@@ -86,16 +94,20 @@ It is still possible to use the Nhost SDK in a more classic 'React' mode. It wil
 
 ```mermaid
 sequenceDiagram
-    Browser->>Next.js: Request static page (refresh token in the cookie)
-    activate Browser
-    activate Next.js
-    Next.js-->>Browser: Static page (same cookie)
-    deactivate Next.js
-    Browser->>Browser: Render "loading data" page
-    Browser->>Hasura: GraphQL operation with JWT
-    activate Hasura
-    Hasura-->>Browser: GraphQL data
-    deactivate Hasura
-    Browser->>Browser: Render data
-    deactivate Browser
+    participant browser as Browser
+    participant next as Next.js
+    participant auth as Hasura Auth
+    participant hasura as Hasura
+    browser->>next: Request static page (refresh token in the cookie)
+    activate browser
+    activate next
+    next-->>browser: Static page (same cookie)
+    deactivate next
+    browser->>browser: Render "loading data" page
+    browser->>hasura: GraphQL operation with JWT
+    activate hasura
+    hasura-->>browser: GraphQL data
+    deactivate hasura
+    browser->>browser: Render data
+    deactivate browser
 ```
