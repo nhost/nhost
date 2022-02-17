@@ -37,30 +37,30 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
     <div className={clsx('lg:min-w-nav lg:w-nav flex-col space-y-5 antialiased mt-1', className)}>
       <div>
         <ul>
-          <Link href={`/${props.category}`} passHref>
-            <li
-              className={clsx(
-                'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
-                router.query.category === props.category &&
-                  !router.query.subcategory &&
-                  !router.query.post &&
-                  'bg-veryLightGray'
-              )}
-            >
+          <li
+            className={clsx(
+              'cursor-pointer py-1.5 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
+              router.query.category === props.category &&
+                !router.query.subcategory &&
+                !router.query.post &&
+                'bg-veryLightGray'
+            )}
+          >
+            <Link href={`/${props.category}`} passHref>
               <Text
                 variant="a"
                 color="greyscaleDark"
                 size="normal"
                 className={clsx(
-                  'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
+                  'block transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
                   'font-medium'
                 )}
                 onClick={onMenuSelected}
               >
                 {props.categoryTitle}
               </Text>
-            </li>
-          </Link>
+            </Link>
+          </li>
         </ul>
       </div>
       {props.convolutedNav.map((elem) => {
@@ -74,6 +74,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
                 color="greyscaleGrey"
                 size="normal"
                 className="font-medium capitalize px-3 py-px block"
+                onClick={onMenuSelected}
               >
                 {/* Split */}
                 {fixTitle(elem)}
@@ -96,27 +97,28 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
                   elem.category === router.query.subcategory
 
                 return (
-                  <Link href={pathToLink} passHref key={pathToLink}>
-                    <li
-                      className={clsx(
-                        'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
-                        (shouldHighlight || shouldHighlightSubcategories) && 'bg-veryLightGray'
-                      )}
-                    >
+                  <li
+                    className={clsx(
+                      'cursor-pointer py-1.5 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
+                      (shouldHighlight || shouldHighlightSubcategories) && 'bg-veryLightGray'
+                    )}
+                    key={pathToLink}
+                  >
+                    <Link href={pathToLink} passHref>
                       <Text
                         variant="a"
                         color="greyscaleDark"
                         size="normal"
                         className={clsx(
-                          'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
+                          'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased block',
                           (shouldHighlight || shouldHighlightSubcategories) && 'font-medium'
                         )}
                         onClick={onMenuSelected}
                       >
                         {post.title}
                       </Text>
-                    </li>
-                  </Link>
+                    </Link>
+                  </li>
                 )
               })}
             </ul>

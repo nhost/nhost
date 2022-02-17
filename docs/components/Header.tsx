@@ -1,11 +1,11 @@
 import { useNavData } from '@/components/NavDataContext'
-import { ArrowLeftIcon, MenuIcon, RefreshIcon } from '@heroicons/react/outline'
+import { ArrowLeftIcon, MenuIcon } from '@heroicons/react/outline'
 import clsx from 'clsx'
 import { useRouter } from 'next/dist/client/router'
 import Link from 'next/link'
 import React, { MouseEvent, useEffect, useState } from 'react'
 import Button from '../components/ui/Button'
-import { Nav, NavProps } from './Nav'
+import { Nav } from './Nav'
 
 export default function Header() {
   const [mobileMenu, setMobileMenu] = useState(false)
