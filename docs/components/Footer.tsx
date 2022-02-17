@@ -30,6 +30,7 @@ export default function Footer() {
                 variant="secondary"
                 className="md:visible invisible mr-2 text-white cursor-pointer"
                 href="mailto:hello@nhost.io"
+                type={null}
               >
                 Contact Us
               </Button>
@@ -40,6 +41,7 @@ export default function Footer() {
                 target="_blank"
                 rel="noreferrer"
                 className="cursor-pointer"
+                type={null}
               >
                 <span className="md:block hidden">Sign up or Log in</span>
                 <span className="md:hidden">Sign up</span>

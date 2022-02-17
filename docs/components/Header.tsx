@@ -118,6 +118,7 @@ export default function Header() {
               Component="a"
               target="_blank"
               rel="noreferrer"
+              type={null}
             >
               Go to Nhost
             </Button>
@@ -263,6 +264,7 @@ export function MobileNav({ onClose }: MobileNavProps) {
           Component="a"
           target="_blank"
           rel="noreferrer"
+          type={null}
         >
           Go to Nhost
         </Button>
