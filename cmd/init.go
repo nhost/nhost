@@ -52,9 +52,9 @@ var initCmd = &cobra.Command{
 
 Without specifying --remote flag, only a blank Nhost app will be initialized.
 
-Specifying --remote flag will initialize a locla app from console.nhost.io 
+Specifying --remote flag will initialize a local app from console.nhost.io
 
-To bypass remoet app selection prompt, add your remote app's subdomain after --remote flag,
+To bypass remote app selection prompt, add your remote app's subdomain after --remote flag,
 in the following manner:
 
 	nhost init --remote <subdomain>
