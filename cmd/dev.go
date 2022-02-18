@@ -108,7 +108,7 @@ var devCmd = &cobra.Command{
 		//
 		//	If the default port is not available,
 		//	choose a random one.
-		if !util.PortAvaiable(env.Port) {
+		if !util.PortAvailable(env.Port) {
 			status.Info("Choose a different port with `nhost dev [--port]`")
 			status.Fatal(fmt.Sprintf("port %s not available", env.Port))
 		}
