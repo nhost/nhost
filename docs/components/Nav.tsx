@@ -2,49 +2,79 @@ import Text from '@/components/ui/Text'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import React from 'react'
+import { ParsedUrlQuery } from 'querystring'
+import React, { MouseEvent } from 'react'
 import { fixTitle } from '../utils/fixTitle'
+import { NavItem } from './NavDataContext'
 
-export function Nav(props) {
+export type NavProps = {
+  /**
+   * Class name to apply to the wrapper element.
+   */
+  className?: string
+  /**
+   * Category slug.
+   */
+  category: string
+  /**
+   * The category title.
+   */
+  categoryTitle: string
+  /**
+   * Convoluted navigation.
+   */
+  convolutedNav: NavItem[]
+  /**
+   * Function to be called when a menu item is selected.
+   */
+  onMenuSelected?: (event?: MouseEvent<HTMLAnchorElement, MouseEvent>) => void
+}
+
+export function Nav({ className, onMenuSelected, ...props }: NavProps) {
   const router = useRouter()
+
   return (
-    <div className="hidden lg:flex lg:min-w-nav lg:w-nav flex-col space-y-5 antialiased mt-1">
+    <div className={clsx('lg:min-w-nav lg:w-nav flex-col space-y-5 antialiased mt-1', className)}>
       <div>
         <ul>
-          <Link href={`/${props.category}`} passHref>
-            <li
-              className={clsx(
-                'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
-                router.query.category === props.category &&
-                  !router.query.subcategory &&
-                  !router.query.post &&
-                  'bg-veryLightGray'
-              )}
-            >
+          <li
+            className={clsx(
+              'cursor-pointer py-1.5 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
+              router.query.category === props.category &&
+                !router.query.subcategory &&
+                !router.query.post &&
+                'bg-veryLightGray'
+            )}
+          >
+            <Link href={`/${props.category}`} passHref>
               <Text
                 variant="a"
                 color="greyscaleDark"
                 size="normal"
                 className={clsx(
-                  'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
+                  'block transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
                   'font-medium'
                 )}
+                onClick={onMenuSelected}
               >
                 {props.categoryTitle}
               </Text>
-            </li>
-          </Link>
+            </Link>
+          </li>
         </ul>
       </div>
       {props.convolutedNav.map((elem) => {
+        const parentCategory = props.category.replace(' ', '-')
+
         return (
           <div key={elem.category}>
-            <Link href={`/${props.category.replace(' ', '-')}/${elem.category}/`} passHref>
+            <Link href={`/${parentCategory}/${elem.category}/`} passHref>
               <Text
                 variant="a"
                 color="greyscaleGrey"
                 size="normal"
                 className="font-medium capitalize px-3 py-px block"
+                onClick={onMenuSelected}
               >
                 {/* Split */}
                 {fixTitle(elem)}
@@ -55,11 +85,11 @@ export function Nav(props) {
               {elem.posts.map((post) => {
                 const pathToLink =
                   post.fileName != 'index'
-                    ? `${props.pathname}/${elem.category}/${post.fileName}`
-                    : `${props.pathname}/${elem.category}`
+                    ? `/${parentCategory}/${elem.category}/${post.fileName}`
+                    : `/${parentCategory}/${elem.category}`
 
                 const shouldHighlight =
-                  router.query.subcategory === elem.category && props.query.post === post.fileName
+                  router.query.subcategory === elem.category && router.query.post === post.fileName
 
                 const shouldHighlightSubcategories =
                   !router.query.post &&
@@ -67,26 +97,28 @@ export function Nav(props) {
                   elem.category === router.query.subcategory
 
                 return (
-                  <Link href={pathToLink} passHref key={pathToLink}>
-                    <li
-                      className={clsx(
-                        'cursor-pointer py-1 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
-                        (shouldHighlight || shouldHighlightSubcategories) && 'bg-veryLightGray'
-                      )}
-                    >
+                  <li
+                    className={clsx(
+                      'cursor-pointer py-1.5 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
+                      (shouldHighlight || shouldHighlightSubcategories) && 'bg-veryLightGray'
+                    )}
+                    key={pathToLink}
+                  >
+                    <Link href={pathToLink} passHref>
                       <Text
                         variant="a"
                         color="greyscaleDark"
                         size="normal"
                         className={clsx(
-                          'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
+                          'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased block',
                           (shouldHighlight || shouldHighlightSubcategories) && 'font-medium'
                         )}
+                        onClick={onMenuSelected}
                       >
                         {post.title}
                       </Text>
-                    </li>
-                  </Link>
+                    </Link>
+                  </li>
                 )
               })}
             </ul>
