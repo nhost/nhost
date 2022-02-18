@@ -127,7 +127,7 @@ func ServeFuncs() error {
 	//	If the default/supplied port is available,
 	//	attach it to the configuration,
 	//	otherwise a random port will get selected
-	if util.PortAvaiable(funcPort) {
+	if util.PortAvailable(funcPort) {
 		serverConfig.Port = funcPort
 	}
 

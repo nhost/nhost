@@ -50,8 +50,8 @@ func GetPort(low, hi int) int {
 	//  generate a random port value
 	port := strconv.Itoa(low + rand.Intn(hi-low))
 
-	//  validate wehther the port is available
-	if !PortAvaiable(port) {
+	//  validate whether the port is available
+	if !PortAvailable(port) {
 		return GetPort(low, hi)
 	}
 
@@ -60,7 +60,7 @@ func GetPort(low, hi int) int {
 	return response
 }
 
-func PortAvaiable(port string) bool {
+func PortAvailable(port string) bool {
 
 	ln, err := net.Listen("tcp", ":"+port)
 

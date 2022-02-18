@@ -378,7 +378,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "sha-994af31"
+				parsed.Services[name].Version = "0.2.1"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -428,7 +428,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "v2.1.0"
+				parsed.Services[name].Version = "v2.2.0"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -1002,7 +1002,7 @@ func (config *Configuration) Init(port string) error {
 
 	//	If the SMTP port is busy,
 	//	choose a random one
-	if !util.PortAvaiable(strconv.Itoa(smtpPort)) {
+	if !util.PortAvailable(strconv.Itoa(smtpPort)) {
 		log.WithField("component", "smtp").Errorf("Port %v not available", smtpPort)
 		log.WithField("component", "smtp").Info("Change your SMTP port in ./nhost/config.yaml")
 		return fmt.Errorf("SMTP port %v not available", smtpPort)
