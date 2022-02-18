@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/nhost/hasura-auth/compare/v0.2.0...v0.2.1) (2022-02-18)
+
+
+### Bug Fixes
+
+* reload metadata after applying metadata changes ([26fb2ff](https://github.com/nhost/hasura-auth/commit/26fb2ffdef3cb5baba97a7bce8b5f0b62e58a0a3))
+
 # [0.2.0](https://github.com/nhost/hasura-auth/compare/v0.1.0...v0.2.0) (2022-02-03)
 
 ## What's new
