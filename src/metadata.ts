@@ -650,6 +650,7 @@ export const applyMetadata = async (): Promise<void> => {
       },
     },
   });
-
+  logger.debug('Reloading metadata..');
+  await reloadMetadata();
   logger.debug('Done applying metadata');
 };
