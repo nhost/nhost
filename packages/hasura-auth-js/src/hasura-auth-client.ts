@@ -107,7 +107,6 @@ export class HasuraAuthClient {
     this.initAuthLoading = true
 
     this.session = null
-    // this.user = null;
 
     this.api = new HasuraAuthApi({ url: this.url })
 
