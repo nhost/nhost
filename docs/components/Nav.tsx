@@ -39,7 +39,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
         <ul>
           <li
             className={clsx(
-              'cursor-pointer py-1.5 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
+              'transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
               router.query.category === props.category &&
                 !router.query.subcategory &&
                 !router.query.post &&
@@ -52,7 +52,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
                 color="greyscaleDark"
                 size="normal"
                 className={clsx(
-                  'block transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
+                  'block py-1.5 px-3 transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased',
                   'font-medium'
                 )}
                 onClick={onMenuSelected}
@@ -73,7 +73,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
                 variant="a"
                 color="greyscaleGrey"
                 size="normal"
-                className="font-medium capitalize px-3 py-px block"
+                className="block px-3 py-px font-medium capitalize"
                 onClick={onMenuSelected}
               >
                 {/* Split */}
@@ -81,7 +81,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
               </Text>
             </Link>
 
-            <ul className="space-y-1 mt-1 ">
+            <ul className="mt-1 space-y-1 ">
               {elem.posts.map((post) => {
                 const pathToLink =
                   post.fileName != 'index'
@@ -99,7 +99,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
                 return (
                   <li
                     className={clsx(
-                      'cursor-pointer py-1.5 px-3 transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
+                      'transition duration-300 ease-in-out rounded-md hover:text-black hover:bg-veryLightGray',
                       (shouldHighlight || shouldHighlightSubcategories) && 'bg-veryLightGray'
                     )}
                     key={pathToLink}
@@ -110,7 +110,7 @@ export function Nav({ className, onMenuSelected, ...props }: NavProps) {
                         color="greyscaleDark"
                         size="normal"
                         className={clsx(
-                          'transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased block',
+                          'py-1.5 px-3 block transition-colors duration-300 ease-in-out text-greyscaleDark hover:text-dark subpixel-antialiased block',
                           (shouldHighlight || shouldHighlightSubcategories) && 'font-medium'
                         )}
                         onClick={onMenuSelected}
