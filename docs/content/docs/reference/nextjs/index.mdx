@@ -4,7 +4,7 @@ title: 'Introduction'
 
 It is possible to use [`@nhost/react`](./react) to any Next.js page that would be configured to render on the client side.
 
-When rendering a page from the server side, Next.js needs to get some information from the client to determine their authentication status. Such a communication is only available from cookies, and the the [`@nhost/client`](./supporting-libraries/client) has been designed to enable such a mechanism.
+When rendering a page from the server side, Next.js needs to get some information from the client to determine their authentication status. Such a communication is only available from cookies, and the the Nhost client has been designed to enable such a mechanism.
 
 The cookie is `same-site` and is used only stores the refresh cookie and the expiration date of the JWT so the browser can proactively ask for a new JWT before it expires.
 

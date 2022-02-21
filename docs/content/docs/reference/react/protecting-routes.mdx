@@ -1,0 +1,43 @@
+---
+title: 'Protecting routes'
+---
+
+## React Router
+
+When using [React Router](https://reactrouter.com/web/guides/quick-start) with `@nhost/react`, you can protect routes by creating an `AuthGate` component:
+
+```jsx
+import { Redirect } from 'react-router-dom'
+import { useNhostAuth } from '@nhost/react'
+
+export function AuthGate(children) {
+  const { isLoading, isAuthenticated } = useNhostAuth()
+
+  if (isLoading) {
+    return <div>Loading...</div>
+  }
+
+  if (!isAuthenticated) {
+    return <Redirect to="/login" />
+  }
+
+  return children
+}
+```
+
+Then, in your React Router, wrap the `AuthGate` component around the routes you want to protect:
+
+```jsx
+<Router>
+  <Switch>
+    <Route path="/login">
+      <Login />
+    </Route>
+    <Route path="/" exact>
+      <AuthGate> // <--- Use AuthGate component like this
+        <div>My protected dashboard</div>
+      </AuthGate>
+    </Route>
+  </Switch>
+</Router>
+```
