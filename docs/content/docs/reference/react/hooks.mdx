@@ -7,7 +7,8 @@ title: 'Hooks'
 ### Email + password registration
 
 ```js
-const { signUp, loading, success, hasError, error, needsVerification } = useSignUpEmailPassword(email?: string, password?: string)
+const { signUp, loading, success, hasError, error, needsVerification } =
+  useSignUpEmailPassword(email?: string, password?: string)
 
 signUp()
 
@@ -19,7 +20,8 @@ signUp('email@example.com', 'very-string-password')
 ### Email + password authentication
 
 ```js
-const { signIn, loading, sent, hasError, error } = useEmailPasswordSignIn(email?: string, password?: string)
+const { signIn, loading, sent, hasError, error } =
+  useEmailPasswordSignIn(email?: string, password?: string)
 
 signIn()
 // You can also pass the email and password when calling the action.
@@ -31,7 +33,8 @@ SignIn('email@example.com', 'very-string-password')
 ### Passwordless email authentication
 
 ```js
-const { signIn, loading, sent, hasError, error } = useEmailPasswordlessSignIn(email?: string)
+const { signIn, loading, sent, hasError, error } =
+  useEmailPasswordlessSignIn(email?: string)
 
 signIn()
 // You can also pass the email when calling the action.
@@ -107,7 +110,7 @@ const { change, loading, success, needsVerification, hasError, error } = useChan
 
 #### Usage
 
-```js
+```jsx
 import { useState } from 'react'
 import { useChangeEmail } from '@nhost/react'
 
@@ -143,7 +146,7 @@ const { change, loading, success, hasError, error } = useChangePassword(password
 
 #### Usage
 
-```js
+```jsx
 import { useState } from 'react'
 import { useChangePassword } from '@nhost/react'
 

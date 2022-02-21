@@ -2,6 +2,7 @@ import { lightNhostTheme } from '@/data/lightTheme'
 import { useState } from 'react'
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter'
 import js from 'react-syntax-highlighter/dist/cjs/languages/hljs/javascript'
+import jsx from 'react-syntax-highlighter/dist/cjs/languages/prism/jsx'
 
 import Check from '../icons/Check'
 import Copy from '../icons/Copy'
@@ -9,6 +10,7 @@ import Copy from '../icons/Copy'
 // @ts-ignore -> add to types
 // @ts-ignore -> add to types
 SyntaxHighlighter.registerLanguage('js', js)
+SyntaxHighlighter.registerLanguage('jsx', jsx)
 
 export interface CodeEditorProps {
   code: string

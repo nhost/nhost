@@ -20,7 +20,7 @@ npm install @nhost/react @nhost/react-apollo
 
 Let's add a `NhostApolloProvider`. Make sure the Apollo Provider is nested into `NhostProvider`, as it will need the Nhost context to determine the authentication headers to be sent to the GraphQL endpoint.
 
-```js
+```jsx
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
@@ -50,7 +50,7 @@ All the [Apollo hooks](https://www.apollographql.com/docs/react/api/react/hooks/
 
 As an example:
 
-```js
+```jsx
 import { gql, useQuery } from '@apollo/client'
 import { useAuthenticated } from '@nhost/react'
 
