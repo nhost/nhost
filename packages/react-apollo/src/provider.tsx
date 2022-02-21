@@ -4,6 +4,7 @@ import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
 import { createApolloClient, NhostApolloClientOptions } from '@nhost/apollo'
 import { NhostReactContext } from '@nhost/react'
 
+// TODO check this type
 type Props = Omit<NhostApolloClientOptions, 'backendUrl' | 'authService'>
 const Wrapper: React.FC<Props> = ({ children, ...options }) => {
   const { interpreter, backendUrl } = useContext(NhostReactContext)

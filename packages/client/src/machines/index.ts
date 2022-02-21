@@ -1,7 +1,8 @@
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { assign, createMachine, forwardTo, send } from 'xstate'
+import produce from 'immer'
+import { assign, createMachine, send } from 'xstate'
 
-import { NHOST_REFRESH_TOKEN_KEY } from '../constants'
+import { NHOST_NEXT_REFRESH_KEY, NHOST_REFRESH_TOKEN_KEY } from '../constants'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
@@ -12,10 +13,10 @@ import { createChangeEmailMachine } from './change-email'
 import { createChangePasswordMachine } from './change-password'
 import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
 import { NhostEvents } from './events'
-import { createTokenRefresherMachine } from './token-refresher'
+import { getExpiration } from './expiration'
 
 export type { NhostContext, NhostEvents }
-export { INITIAL_MACHINE_CONTEXT }
+export { getExpiration, INITIAL_MACHINE_CONTEXT }
 
 export type NhostMachineOptions = {
   backendUrl: string
@@ -50,32 +51,24 @@ export const createNhostMachine = ({
         events: {} as NhostEvents
       },
       tsTypes: {} as import('./index.typegen').Typegen0,
-      context: {
-        ...INITIAL_MACHINE_CONTEXT,
-        refreshToken: storageGetter(NHOST_REFRESH_TOKEN_KEY)
-      },
+      context: produce<NhostContext>(INITIAL_MACHINE_CONTEXT, (ctx) => {
+        // TODO accessTokenExpiresIn
+        ctx.refreshToken.value = storageGetter(NHOST_REFRESH_TOKEN_KEY)
+      }),
       id: 'nhost',
       type: 'parallel',
       states: {
         authentication: {
           initial: 'starting',
-          invoke: [
-            {
-              id: 'tokenRefresher',
-              src: 'tokenRefresher'
-            },
-            { id: 'autoLogin', src: 'autoLogin' }
-          ],
+          invoke: [{ id: 'autoLogin', src: 'autoLogin' }],
           on: {
-            TRY_TOKEN: {
-              actions: 'forwardToRefresher'
-            },
+            TRY_TOKEN: '.authenticating.token',
             SESSION_UPDATE: [
               {
                 cond: 'hasSession',
+                actions: ['saveSession', 'persist', 'resetTimer'],
                 target: '.signedIn'
-              },
-              '.signedOut'
+              }
             ]
           },
           states: {
@@ -86,7 +79,7 @@ export const createNhostMachine = ({
                   target: 'signedIn'
                 },
                 {
-                  cond: 'hasRefreshToken',
+                  cond: 'hasRefreshTokenWithoutSession',
                   target: 'authenticating.token'
                 },
                 'signedOut'
@@ -95,7 +88,6 @@ export const createNhostMachine = ({
             signedOut: {
               tags: ['ready'],
               initial: 'noErrors',
-              entry: 'saveSession',
               states: {
                 noErrors: {},
                 needsVerification: {},
@@ -117,9 +109,19 @@ export const createNhostMachine = ({
                       }
                     }
                   }
+                },
+                signingOut: {
+                  entry: 'destroyToken',
+                  invoke: {
+                    src: 'signout',
+                    id: 'signingOut',
+                    onDone: 'noErrors',
+                    onError: 'failed.server' // TODO save error
+                  }
                 }
               },
               on: {
+                // TODO change input validation - see official xstate form example
                 SIGNIN_PASSWORD: [
                   {
                     cond: 'invalidEmail',
@@ -166,7 +168,7 @@ export const createNhostMachine = ({
                     src: 'signInPassword',
                     id: 'authenticateUserWithPassword',
                     onDone: {
-                      actions: ['saveSession', 'emitSession'],
+                      actions: ['saveSession', 'persist'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: [
@@ -180,10 +182,16 @@ export const createNhostMachine = ({
                     ]
                   }
                 },
+                // TODO revoir
                 token: {
-                  entry: 'emitTryToken',
-                  on: {
-                    TOKEN_REFRESH_ERROR: { target: '#nhost.authentication.signedOut.failed.server' }
+                  invoke: {
+                    src: 'refreshToken',
+                    id: 'authenticateWithToken',
+                    onDone: {
+                      actions: ['saveSession', 'persist'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: '#nhost.authentication.signedOut.failed.server'
                   }
                 }
               }
@@ -196,7 +204,7 @@ export const createNhostMachine = ({
                   {
                     cond: 'hasSession',
                     target: '#nhost.authentication.signedIn',
-                    actions: ['saveSession', 'emitSession']
+                    actions: ['saveSession', 'persist']
                   },
                   {
                     target: '#nhost.authentication.signedOut.needsVerification'
@@ -213,22 +221,77 @@ export const createNhostMachine = ({
                 ]
               }
             },
-            signingOut: {
-              exit: ['emitLogout'],
-              invoke: {
-                src: 'signout',
-                id: 'signingOut',
-                onDone: '#nhost.authentication.signedOut',
-                onError: '#nhost.authentication.signedOut'
-              }
-            },
+
             signedIn: {
               tags: ['ready'],
               type: 'parallel',
               on: {
-                SIGNOUT: '#nhost.authentication.signingOut'
+                SIGNOUT: '#nhost.authentication.signedOut.signingOut'
               },
               states: {
+                refreshTimer: {
+                  id: 'timer',
+                  initial: 'idle',
+                  states: {
+                    disabled: { type: 'final' },
+                    stopped: {
+                      always: {
+                        cond: 'noToken',
+                        target: 'idle'
+                      }
+                    },
+                    idle: {
+                      always: [
+                        { cond: 'isAutoRefreshDisabled', target: 'disabled' },
+                        {
+                          cond: 'hasRefreshToken',
+                          target: 'running'
+                        }
+                      ]
+                    },
+                    running: {
+                      initial: 'pending',
+                      entry: 'resetTimer',
+                      states: {
+                        pending: {
+                          after: {
+                            '1000': {
+                              actions: 'tickRefreshTimer',
+                              internal: false,
+                              target: 'pending'
+                            }
+                          },
+                          always: {
+                            cond: 'refreshTimerShouldRefresh',
+                            target: 'refreshing'
+                          }
+                        },
+                        refreshing: {
+                          invoke: {
+                            src: 'refreshToken',
+                            id: 'refreshToken',
+                            onDone: {
+                              actions: ['saveSession', 'persist', 'resetTimer'],
+                              target: 'pending'
+                            },
+                            onError: [
+                              // TODO
+                              // {
+                              //   actions: 'retry',
+                              //   cond: 'canRetry',
+                              //   target: 'pending'
+                              // },
+                              // {
+                              //   actions: ['sendError', 'resetToken'],
+                              //   target: '#timer.stopped'
+                              // }
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
                 changeEmail: {
                   initial: 'idle',
                   invoke: {
@@ -307,26 +370,35 @@ export const createNhostMachine = ({
     },
     {
       actions: {
+        // TODO better naming
         saveSession: assign({
           // TODO type
           user: (_, e: any) => e.data?.session?.user,
-          accessToken: (_, e) => e.data?.session?.accessToken,
-          refreshToken: (_, e) => e.data?.session?.refreshToken,
+          accessToken: (_, e) => ({
+            value: e.data?.session?.accessToken,
+            expiration: getExpiration(e.data?.session?.accessTokenExpiresIn)
+          }),
+          refreshToken: (_, e) => ({ value: e.data?.session?.refreshToken }),
           mfa: (_, e) => e.data?.mfa ?? false
         }),
 
-        emitLogout: send('SESSION_LOAD', { to: 'tokenRefresher' }),
-        forwardToRefresher: forwardTo('tokenRefresher'),
-        emitTryToken: send((ctx) => ({ type: 'TRY_TOKEN', token: ctx.refreshToken }), {
-          to: 'tokenRefresher'
-        }),
-        emitSession: send(
-          // TODO type
-          (_, { data: { session } }: any) => ({ type: 'SESSION_LOAD', data: session }),
-          {
-            to: 'tokenRefresher'
+        resetTimer: assign({
+          refreshTimer: (ctx, e) => {
+            return {
+              elapsed: 0,
+              attempts: 0
+            }
           }
-        ),
+        }),
+
+        tickRefreshTimer: assign({
+          refreshTimer: (ctx, e) => {
+            return {
+              elapsed: ctx.refreshTimer.elapsed + 1,
+              attempts: ctx.refreshTimer.attempts
+            }
+          }
+        }),
 
         // * Authenticaiton errors
         saveAuthenticationError: assign({
@@ -348,7 +420,7 @@ export const createNhostMachine = ({
           (ctx, { password }) => ({
             type: 'REQUEST_CHANGE',
             password,
-            accessToken: ctx.accessToken
+            accessToken: ctx.accessToken.value
           }),
           {
             to: 'changePasswordMachine'
@@ -367,7 +439,7 @@ export const createNhostMachine = ({
           (ctx, { email }) => ({
             type: 'REQUEST_CHANGE',
             email,
-            accessToken: ctx.accessToken
+            accessToken: ctx.accessToken.value
           }),
           {
             to: 'changeEmailMachine'
@@ -379,12 +451,33 @@ export const createNhostMachine = ({
         }),
         resetEmailChangeError: assign({
           errors: ({ errors: { newEmail, ...errors } }) => errors
-        })
+        }),
+        // * Persist the refresh token and the jwt expiration outside of the machine
+        persist: (_, { data }: any) => {
+          storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
+          if (data.session.accessTokenExpiresIn) {
+            const nextRefresh = new Date(
+              Date.now() + getExpiration(data.session.accessTokenExpiresIn) * 1_000
+            ).toISOString()
+            storageSetter(NHOST_NEXT_REFRESH_KEY, nextRefresh)
+          } else {
+            storageSetter(NHOST_NEXT_REFRESH_KEY, null)
+          }
+        },
+        destroyToken: () => {
+          storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+          storageSetter(NHOST_NEXT_REFRESH_KEY, null)
+        }
       },
 
       guards: {
-        isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken && !!ctx.accessToken,
-        hasRefreshToken: (ctx) => !!ctx.refreshToken,
+        isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
+        hasRefreshTokenWithoutSession: (ctx) =>
+          !!ctx.refreshToken.value && !ctx.user && !ctx.accessToken.value,
+        noToken: (ctx) => !ctx.refreshToken.value,
+        hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
+        isAutoRefreshDisabled: () => !autoRefreshToken,
+        refreshTimerShouldRefresh: (ctx) => ctx.refreshTimer.elapsed > ctx.accessToken.expiration,
 
         // * Authentication errors
         // TODO type
@@ -392,18 +485,13 @@ export const createNhostMachine = ({
           error.status === 401 && error.message === 'Email is not verified',
 
         // * Event guards
-        hasSession: (_, e) => !!e.data?.session,
+        // TODO type
+        hasSession: (_, e: any) => !!e.data?.session,
         invalidEmail: (_, { email }) => !isValidEmail(email),
         invalidPassword: (_, { password }) => !isValidPassword(password)
       },
 
       services: {
-        tokenRefresher: createTokenRefresherMachine({
-          api,
-          storageGetter,
-          storageSetter,
-          autoRefreshToken
-        }),
         changePasswordMachine: createChangePasswordMachine(api),
         changeEmailMachine: createChangeEmailMachine(api),
 
@@ -418,9 +506,16 @@ export const createNhostMachine = ({
             email
           }),
 
+        refreshToken: async (ctx, event) => {
+          const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
+          const session = await postRequest('/v1/auth/token', {
+            refreshToken
+          })
+          return { session }
+        },
         signout: (ctx, e) =>
           postRequest('/v1/auth/signout', {
-            refreshToken: ctx.refreshToken,
+            refreshToken: ctx.refreshToken.value,
             all: !!e.all
           }),
 

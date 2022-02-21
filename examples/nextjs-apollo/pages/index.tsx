@@ -3,6 +3,7 @@ import type { NextPage } from 'next'
 import {
   useAccessToken,
   useAuthenticated,
+  useAvatarUrl,
   useChangeEmail,
   useChangePassword,
   useEmailPasswordlessSignIn,
@@ -10,8 +11,9 @@ import {
   useSignOut,
   useSignUpEmailPassword
 } from '@nhost/react'
+import { useAuthQuery } from '@nhost/react-apollo'
 
-import { withNhost } from '../helpers'
+import { QUERY_INDEX } from '../helpers'
 
 // * Reference: https://blog.codepen.io/2021/09/01/331-next-js-apollo-server-side-rendering-ssr/
 
@@ -26,6 +28,7 @@ const Home: NextPage = () => {
   const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
   const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
   const { change: changePassword } = useChangePassword('12345678')
+  const { loading, data, error } = useAuthQuery(QUERY_INDEX)
   return (
     <div>
       {isAuthenticated ? (
@@ -46,8 +49,16 @@ const Home: NextPage = () => {
 
       <p>JWT</p>
       <div>{jwt}</div>
+      {isAuthenticated && (
+        <ul>
+          {data?.test.map((item) => (
+            <li key={item.id}>{item.id}</li>
+          ))}
+        </ul>
+      )}
+      {!loading && error && <div>ok {JSON.stringify(error)}</div>}
     </div>
   )
 }
 
-export default withNhost(Home)
+export default Home

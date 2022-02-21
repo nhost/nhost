@@ -1,1 +1,2 @@
-export * from './with-nhost'
+export * from './get-session'
+export * from '@nhost/client'

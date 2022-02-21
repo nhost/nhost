@@ -15,7 +15,7 @@ import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { NhostMachine } from '@nhost/client'
-const isBrowser = () => typeof window !== 'undefined'
+const isBrowser = typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
   interpreter?: InterpreterFrom<NhostMachine>
@@ -35,7 +35,7 @@ export const createApolloClient = ({
   publicRole = 'public',
   fetchPolicy,
   cache = new InMemoryCache(),
-  connectToDevTools = isBrowser() && process.env.NODE_ENV === 'development',
+  connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError
 }: NhostApolloClientOptions) => {
   if (!interpreter) {
@@ -74,7 +74,7 @@ export const createApolloClient = ({
   const wsUri = uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws')
 
   let webSocketClient: SubscriptionClient | null = null
-  if (isBrowser()) {
+  if (isBrowser) {
     webSocketClient = new SubscriptionClient(wsUri, {
       lazy: true,
       reconnect: true,
@@ -113,11 +113,11 @@ export const createApolloClient = ({
         new WebSocketLink(webSocketClient),
         authLink.concat(httplink)
       )
-    : httplink
+    : authLink.concat(httplink)
 
   const apolloClientOptions: ApolloClientOptions<any> = {
     cache: cache || new InMemoryCache(),
-    ssrMode: !isBrowser(),
+    ssrMode: !isBrowser,
     defaultOptions: {
       watchQuery: {
         fetchPolicy
@@ -132,12 +132,12 @@ export const createApolloClient = ({
   const client = new ApolloClient(apolloClientOptions)
 
   interpreter?.onTransition(async (state, event) => {
-    const newToken = state.context.accessToken
+    const newToken = state.context.accessToken.value
 
     if (token !== newToken) {
       token = newToken
       client.reFetchObservableQueries()
-      if (isBrowser() && webSocketClient) {
+      if (isBrowser && webSocketClient) {
         if (newToken) {
           if (webSocketClient.status === 1) {
             // @ts-expect-error

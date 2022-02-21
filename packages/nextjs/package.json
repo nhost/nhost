@@ -50,6 +50,7 @@
     "dist"
   ],
   "dependencies": {
+    "@nhost/client": "workspace:^0.1.0",
     "@nhost/react": "workspace:*",
     "cookies": "^0.8.0"
   },

@@ -2,4 +2,208 @@
 title: 'Hooks'
 ---
 
-TODO
+## Authentication Hooks
+
+### Email + password registration
+
+```js
+const { signUp, loading, success, hasError, error, needsVerification } = useSignUpEmailPassword(email?: string, password?: string)
+
+signUp()
+
+// You can also pass the email and password when calling the action.
+// It will overrride the arguments possibly used when declaring the hook:
+signUp('email@example.com', 'very-string-password')
+```
+
+### Email + password authentication
+
+```js
+const { signIn, loading, sent, hasError, error } = useEmailPasswordSignIn(email?: string, password?: string)
+
+signIn()
+// You can also pass the email and password when calling the action.
+// It will overrride the arguments possibly used when declaring the hook:
+
+SignIn('email@example.com', 'very-string-password')
+```
+
+### Passwordless email authentication
+
+```js
+const { signIn, loading, sent, hasError, error } = useEmailPasswordlessSignIn(email?: string)
+
+signIn()
+// You can also pass the email when calling the action.
+// It will overrride the arguments possibly used when declaring the hook:
+
+SignIn('email@example.com')
+```
+
+### Sign out
+
+The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
+
+```js
+const { signOut, success } = useSignOut(all?: boolean)
+```
+
+## Status hooks
+
+### Startup
+
+### `useReady`
+
+During startup, the client may need some initial steps to determine the authentication status, like fetching a new JWT from an existing refresh token.
+
+When the authentication status is known, this hook will return `true`.
+
+```js
+const isReady = useReady()
+```
+
+### `useLoading`
+
+`useLoading` is the exact opposite of `useReady`: it will return `true` when the authentication status is not known yet
+
+```js
+const isLoading = useLoading()
+```
+
+### Authentication status
+
+The `useAuthenticated` hook returns `true` if the user is authenticated, `false` if they aren't (either unauthenticated, or if the authentication status is loading)
+
+```js
+const isAuthenticated = useAuthenticated()
+```
+
+You can use the `isLoading` and `isAuthenticated` together with the `useNhostAuth` hook:
+
+```js
+const { isLoading, isAuthenticated } = useNhostAuth()
+```
+
+### Get the JWT access token
+
+```js
+const jwt = useAccessToken()
+```
+
+## User management
+
+### Change email
+
+```js
+const { change, loading, success, needsVerification, hasError, error } = useChangeEmail(email)
+```
+
+- `change: (email?: string) => void` will request the email change. The arguement password will take precedence of the the possible state value used when creating the hook.
+- `loading: boolean` returns `true` when the action is executing, `false` when the action result is available
+- `needsVerification: boolean` returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.
+- `success: boolean` returns `true` if the email has beed successfully changed. Will return `false` if the new email needs to be verified first.
+- `hasError: boolean` returns `true` if an error occurred
+- `error?: {status: number, error: string, message: string}` provides details about the error
+
+#### Usage
+
+```js
+import { useState } from 'react'
+import { useChangeEmail } from '@nhost/react'
+
+const Component = () => {
+  const [email, setEmail] = useState('')
+  const { change, loading, success, hasError, error } = useChangeEmail(password)
+  return (
+    <div>
+      <input value={email} onChange={(event) => setEmail(event.target.value)} />
+      <button onClick={change}>Change password</button>
+      {success && <div>Your email has been changed!</div>}
+      {needsVerification && (
+        <div>
+          Please check your mailbox and follow the verification link to confirm your new email
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### Change password
+
+```js
+const { change, loading, success, hasError, error } = useChangePassword(password?: string)
+```
+
+- `change: (password?: string) => void` will request the pasword change. The arguement password will take precedence of the the possible state value used when creating the hook.
+- `loading: boolean` returns `true` when the action is executing, `false` when the action result is available
+- `success: boolean` returns `true` if the password has beed successfully changed.
+- `hasError: boolean` returns `true` if an error occurred
+- `error?: {status: number, error: string, message: string}` provides details about the error
+
+#### Usage
+
+```js
+import { useState } from 'react'
+import { useChangePassword } from '@nhost/react'
+
+const Component = () => {
+  const [password, setPassword] = useState('')
+  const { change, loading, success, hasError, error } = useChangePassword(password)
+  return (
+    <div>
+      <input value={password} onChange={(event) => setPassword(event.target.value)} />
+      <button onClick={change}>Change password</button>
+    </div>
+  )
+}
+```
+
+## User data
+
+```js
+const userData = useUserData()
+```
+
+### Avatar
+
+```js
+const avatar = useAvatarUrl()
+```
+
+### User roles
+
+```js
+const roles = useUserRoles()
+const defaultRole = useDefaultRole()
+```
+
+### Display name
+
+```js
+const displayName = useDisplayName()
+```
+
+### Email
+
+```js
+const email = useEmail()
+```
+
+### User Id
+
+```js
+const userId = useUserId()
+```
+
+### Anonymous user
+
+```js
+const isAnonymous = useIsAnonymous()
+```
+
+### Locale
+
+```js
+const locale = useUserLocale()
+```

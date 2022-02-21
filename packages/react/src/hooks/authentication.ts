@@ -2,13 +2,13 @@ import { useSelector } from '@xstate/react'
 
 import { useAuthenticated, useNhostInterpreter } from './common'
 
-export const useEmailPasswordSignIn = (email: string, password: string) => {
+export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: string) => {
   const service = useNhostInterpreter()
-  const signIn = () =>
+  const signIn = (valueEmail?: string, valuePassword?: string) =>
     service.send({
       type: 'SIGNIN_PASSWORD',
-      email,
-      password
+      email: valueEmail ?? stateEmail,
+      password: valuePassword ?? statePassword
     })
 
   const error = useSelector(service, (state) => state.context.errors.authentication)
@@ -27,12 +27,12 @@ export const useEmailPasswordSignIn = (email: string, password: string) => {
   return { signIn, loading, success, needsVerification, hasError, error }
 }
 
-export const useEmailPasswordlessSignIn = (email: string) => {
+export const useEmailPasswordlessSignIn = (stateEmail?: string) => {
   const service = useNhostInterpreter()
-  const signIn = () =>
+  const signIn = (valueEmail?: string) =>
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
-      email
+      email: valueEmail ?? stateEmail
     })
 
   const error = useSelector(service, (state) => state.context.errors.authentication)

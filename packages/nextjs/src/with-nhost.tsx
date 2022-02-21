@@ -1,20 +1,8 @@
-import Cookies from 'cookies'
-import { NextPage, NextPageContext } from 'next'
-import App, { AppContext } from 'next/app'
+import { NextPageContext } from 'next'
+import { AppContext } from 'next/app'
 import React from 'react'
 
-import {
-  cookieStorageGetter,
-  cookieStorageSetter,
-  Nhost,
-  NHOST_NEXT_REFRESH_KEY,
-  NHOST_REFRESH_TOKEN_KEY,
-  NhostClientOptions
-} from '@nhost/client'
-import { NhostProvider } from '@nhost/react'
-
-import { refresh, Session } from './utils'
-
+// TODO remove this file - design has been abandonned
 export interface NhostAppContext extends AppContext {
   ctx: NextPageContext
   AppTree: any
@@ -25,19 +13,14 @@ declare type NhostContext = NextPageContext | NhostAppContext
 function getDisplayName(Component: React.ComponentType<any>) {
   return Component.displayName || Component.name || 'Unknown'
 }
-
-export const configureNhostSSR = (options: NhostClientOptions) => {
-  type NhostProps = Partial<{ session: Session; nhost: Nhost }>
+/*
+export const configureNhostSSR = ({ backendUrl, initial = null }: NhostClientOptions) => {
+  type NhostProps = { initial: NhostSession | null; nhost: Nhost }
 
   return (Page: NextPage<any> | typeof App) => {
     const getInitialProps = Page.getInitialProps
-    function WithNhost({ session, ...props }: NhostProps) {
-      const nhost = new Nhost({
-        ...options,
-        storageGetter: cookieStorageGetter,
-        storageSetter: cookieStorageSetter,
-        initialContext: session
-      })
+    function WithNhost({ initial, ...props }: NhostProps) {
+      const nhost: Nhost = props.nhost || new NhostSSR({ backendUrl, session: initial })
       return (
         <NhostProvider nhost={nhost}>
           <Page {...props} />
@@ -55,41 +38,22 @@ export const configureNhostSSR = (options: NhostClientOptions) => {
         pageProps = await getInitialProps(pageCtx as any)
       }
 
-      if (typeof window === 'undefined') {
-        if (ctx.res && (ctx.res.headersSent || ctx.res.writableEnded)) {
-          return pageProps
-        }
+      const initial = await getNhostCookieSession(backendUrl, ctx)
 
-        if (ctx.req && ctx.res) {
-          const cookies = Cookies(ctx.req, ctx.res)
+      const nhost = new NhostSSR({ initial, backendUrl })
 
-          const refreshToken = cookies.get(NHOST_REFRESH_TOKEN_KEY) ?? null
-          if (refreshToken) {
-            const session = await refresh(options.backendUrl, refreshToken)
-            cookies.set(NHOST_REFRESH_TOKEN_KEY, session.refreshToken, {
-              httpOnly: false,
-              sameSite: true
-            })
-            cookies.set(
-              NHOST_NEXT_REFRESH_KEY,
-              new Date(Date.now() + (session.accessTokenExpiresIn || 0) * 1_000).toISOString(),
-              {
-                httpOnly: false,
-                sameSite: true
-              }
-            )
-            return {
-              ...pageProps,
-              session
-            }
-          }
-          return pageProps
-        }
+      ;(nhost as any).toJSON = () => {
+        return null
       }
 
-      return pageProps
+      return {
+        ...pageProps,
+        initial,
+        nhost
+      }
     }
 
     return WithNhost
   }
 }
+*/

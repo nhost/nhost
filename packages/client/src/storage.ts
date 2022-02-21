@@ -40,10 +40,10 @@ export const cookieStorageSetter: StorageSetter = (key, value) => {
   if (isBrowser) {
     if (value) {
       Cookies.set(key, value)
-      localStorage.setItem(key, value)
+      // localStorage.setItem(key, value)
     } else {
       Cookies.remove(key)
-      localStorage.removeItem(key)
+      // localStorage.removeItem(key)
     }
   }
 }

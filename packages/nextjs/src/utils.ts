@@ -1,18 +1,16 @@
-export const refresh = async (baseUrl: string, refreshToken: string): Promise<Session> => {
-  const result = await fetch(`${baseUrl}/v1/auth/token`, {
+import { NhostSession } from '@nhost/client'
+
+export const refresh = async (
+  nhostUrl: string,
+  refreshToken: string
+): Promise<NhostSession | null> => {
+  const result = await fetch(`${nhostUrl}/v1/auth/token`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ refreshToken })
   })
+  if (result.status >= 400) return null
   return await result.json()
-}
-
-// ! copy-paste from hasura-auth
-export type Session = {
-  accessToken: string
-  accessTokenExpiresIn: number
-  refreshToken: string
-  user?: any
 }

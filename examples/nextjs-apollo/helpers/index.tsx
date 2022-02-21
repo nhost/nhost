@@ -1,3 +1,2 @@
 export * from './queries'
-export * from './with-apollo'
-export * from './with-nhost'
+export const BACKEND_URL = 'http://127.0.0.1:1337'

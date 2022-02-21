@@ -2,7 +2,7 @@ import { useSelector } from '@xstate/react'
 
 import { useNhostInterpreter } from './common'
 
-export const useChangeEmail = (email: string) => {
+export const useChangeEmail = (stateEmail?: string) => {
   const service = useNhostInterpreter()
   const hasError = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changeEmail: { idle: 'failed' } } } })
@@ -19,15 +19,15 @@ export const useChangeEmail = (email: string) => {
     state.matches({ authentication: { signedIn: { changeEmail: { idle: 'needsVerification' } } } })
   )
 
-  const change = () =>
+  const change = (valueEmail?: string) =>
     service.send({
       type: 'CHANGE_EMAIL',
-      email
+      email: valueEmail ?? stateEmail
     })
   return { change, loading, success, needsVerification, hasError, error }
 }
 
-export const useChangePassword = (password: string) => {
+export const useChangePassword = (statePassword?: string) => {
   const service = useNhostInterpreter()
 
   const hasError = useSelector(service, (state) =>
@@ -41,10 +41,10 @@ export const useChangePassword = (password: string) => {
     state.matches({ authentication: { signedIn: { changePassword: { idle: 'success' } } } })
   )
 
-  const change = () =>
+  const change = (valuePassword?: string) =>
     service.send({
       type: 'CHANGE_PASSWORD',
-      password
+      password: valuePassword ?? statePassword
     })
   return { change, loading, success, hasError, error }
 }
