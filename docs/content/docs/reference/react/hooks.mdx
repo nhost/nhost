@@ -11,10 +11,10 @@ const { signUp, loading, success, needsVerification, hasError, error } =
   useSignUpEmailPassword(email?: string, password?: string)
 ```
 
-- `signUp: (email?: string, password?: string) => void` will request the email change. The email/password arguments will take precedence over the possible state values used when creating the hook.
+- `signUp: (email?: string, password?: string) => void` triggers the user registration. The email/password arguments will take precedence over the possible state values used when creating the hook.
 - `loading: boolean` returns `true` when the action is executing, `false` when the action result is available.
-- `needsVerification: boolean` returns `true` if the registration has been requested, but that a email has been sent to the user to verify the email.
-- `success: boolean` returns `true` if user registration suceeded. Will return `false` if the new email needs to be verified first, or if an error occurred.
+- `needsVerification: boolean` returns `true` if the registration has been accepted, but a verificaiton email has been sent and is awaiting.
+- `success: boolean` returns `true` if the registration suceeded. Returns `false` if the new email needs to be verified first, or if an error occurred.
 - `hasError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
 
@@ -61,7 +61,7 @@ const { signIn, loading, sent, hasError, error } =
 - `signIn: (email?: string, password?: string) => void` will try to authenticate. The email/password arguments will take precedence over the possible state values used when creating the hook.
 - `loading: boolean` returns `true` when the action is executing, `false` when the action result is available.
 - `needsVerification: boolean` returns `true` if the user email is still pending verification.
-- `success: boolean` returns `true` if the user has successfully authenticated. Will return `false` in case or error or if the new email needs to be verified first.
+- `success: boolean` returns `true` if the user has successfully authenticated. Returns `false` in case or error or if the new email needs to be verified first.
 - `hasError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
 
@@ -108,7 +108,7 @@ const { signIn, loading, sent, hasError, error } =
 
 - `signIn: (email?: string) => void` will send a magic link to the given email The email argument will take precedence over the the possible state value used when creating the hook.
 - `loading: boolean` returns `true` when the action is executing, `false` when the action result is available.
-- `success: boolean` returns `true` if the user has successfully authenticated. Will return `false` in case or error or if the new email needs to be verified first.
+- `success: boolean` returns `true` if the user has successfully authenticated. Returns `false` in case or error or if the new email needs to be verified first.
 - `hasError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
 
@@ -213,10 +213,10 @@ const { change, loading, success, needsVerification, hasError, error } =
   useChangeEmail(email?: string)
 ```
 
-- `change: (email?: string) => void` will request the email change. The arguement password will take precedence over the the possible state value used when creating the hook.
+- `change: (email?: string) => void` requests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.
 - `loading: boolean` returns `true` when the action is executing, `false` when the action result is available.
 - `needsVerification: boolean` returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.
-- `success: boolean` returns `true` if the email has beed successfully changed. Will return `false` if the new email needs to be verified first.
+- `success: boolean` returns `true` if the email has beed successfully changed. Returns `false` if the new email needs to be verified first.
 - `hasError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
 
@@ -250,7 +250,7 @@ const Component = () => {
 const { change, loading, success, hasError, error } = useChangePassword(password?: string)
 ```
 
-- `change: (password?: string) => void` will request the pasword change. The arguement password will take precedence over the the possible state value used when creating the hook.
+- `change: (password?: string) => void` requests the password change. The arguement password will take precedence over the the possible state value used when creating the hook.
 - `loading: boolean` returns `true` when the action is executing, `false` when the action result is available.
 - `success: boolean` returns `true` if the password has beed successfully changed.
 - `hasError: boolean` returns `true` if an error occurred.
