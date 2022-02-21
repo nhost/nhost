@@ -284,21 +284,40 @@ const userData = useUserData()
 
 ### Avatar
 
-```js
-const avatar = useAvatarUrl()
+```jsx
+import { useAvatarUrl } from '@nhost/react'
+
+const Avatar = () => {
+  const avatar = useAvatarUrl()
+  return <img src={avatar} alt="Avatar" />
+}
 ```
 
 ### User roles
 
-```js
-const roles = useUserRoles()
-const defaultRole = useDefaultRole()
+```jsx
+import { useUserRoles, useDefaultRole } from '@nhost/react'
+
+const Avatar = () => {
+  const roles = useUserRoles()
+  const defaultRole = useDefaultRole()
+  return (
+    <div>
+      Your default role is {defaultRole}. You have the following roles: {roles.join(', ')}
+    </div>
+  )
+}
 ```
 
 ### Display name
 
-```js
-const displayName = useDisplayName()
+```jsx
+import { displayName } from '@nhost/react'
+
+const Avatar = () => {
+  const displayName = useDisplayName()
+  return <div>Hello, {displayName}</div>
+}
 ```
 
 ### Email

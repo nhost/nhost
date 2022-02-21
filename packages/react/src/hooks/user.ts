@@ -91,5 +91,5 @@ export const useUserLocale = () => {
 
 export const useUserRoles = () => {
   const service = useNhostInterpreter()
-  return useSelector(service, (state) => state.context.user?.roles)
+  return useSelector(service, (state) => state.context.user?.roles || [])
 }
