@@ -11,6 +11,5 @@ export const refresh = async (
     },
     body: JSON.stringify({ refreshToken })
   })
-  if (result.status >= 400) return null
-  return await result.json()
+  return result.ok ? result.json() : null
 }

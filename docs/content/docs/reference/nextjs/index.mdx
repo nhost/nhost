@@ -6,7 +6,7 @@ It is possible to use [`@nhost/react`](/reference/react) in any Next.js page tha
 
 When rendering a page from the server side, Next.js needs to get some information from the client to determine their authentication status. Such a communication is only available from cookies, and the the Nhost client has been designed to enable such a mechanism.
 
-The cookie is `same-site` and is used only stores the refresh cookie and the expiration date of the JWT so the browser can proactively ask for a new JWT before it expires.
+The cookie is `same-site` and is used only to store the refresh cookie and the expiration date of the JWT so the browser can proactively ask for a new JWT before it expires.
 
 ## Signing in
 
@@ -30,7 +30,7 @@ sequenceDiagram
 
 ## Refreshing the JWT token
 
-For security considerations, the Nhost JS tools never persist the JWT anywhere in the browser either in `localStorage` or in a cookie, and the JWT expires regularily (15 minutes by default). As a result, the Nhost client regularly call the `hasura-auth` service to get a new JWT from a valid refresh tooken. The new JWT is emitted together with a new refresh token, while the old one is invalidated.
+For security considerations, the Nhost JS tools never persist the JWT anywhere in the browser either in `localStorage` or in a cookie, and the JWT expires regularly (15 minutes by default). As a result, the Nhost client regularly calls the `hasura-auth` service to get a new JWT from a valid refresh token. The new JWT is emitted together with a new refresh token, while the old one is invalidated.
 As a result, it is important to ensure both the browser and the Next.js will always use the last refresh token, as it will be the only one that is still valid.
 The above diagram illustrates how a JWT is renewed, while making sure the refresh token is updated:
 
@@ -93,7 +93,7 @@ sequenceDiagram
 
 ## Loading a static page
 
-It is still possible to use the Nhost SDK in a more classic 'React' mode. It will then be handlded in a very similar way, except that the refresh token will be stored in the cookie instead of `localStorage`.
+It is still possible to use the Nhost SDK in a more classic 'React' mode. It will then be handled in a very similar way, except that the refresh token will be stored in the cookie instead of `localStorage`.
 
 ```mermaid
 sequenceDiagram
