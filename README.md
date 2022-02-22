@@ -18,7 +18,7 @@
   <a href="https://twitter.com/nhostio">Twitter</a> 
   </h3>
   
-**Nhost is a serverless backend for web and mobile apps.** Nhost consists of open-source software pre-configured to get started quickly and is easy to scale:
+**Nhost is a serverless backend for web and mobile apps.** Nhost consists of open-source software preconfigured to make it easy to get started and scale up:
 
 - Database: [Postgres](https://www.postgresql.org/)
 - GraphQL API: [Hasura](https://hasura.io/)
