@@ -9,7 +9,7 @@ export const useEmailPasswordSignUp = (stateEmail?: string, statePassword?: stri
   const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedOut: 'failed' } })
   )
-  const error = useSelector(service, (state) => state.context.errors.authentication)
+  const error = useSelector(service, (state) => state.context.errors.registration)
   const loading = useLoading()
   const isSuccess = useAuthenticated()
   const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])

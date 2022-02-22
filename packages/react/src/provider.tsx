@@ -1,7 +1,7 @@
 import produce from 'immer'
 import React, { createContext, useEffect, useRef } from 'react'
 
-import { getExpiration, Nhost, NhostContext, NhostSession } from '@nhost/client'
+import { Nhost, NhostContext, NhostSession } from '@nhost/client'
 import { useInterpret } from '@xstate/react'
 
 export const NhostReactContext = createContext<Nhost>({} as Nhost)
@@ -17,7 +17,7 @@ export const NhostProvider: React.FC<{
         ctx.user = initial.user
         ctx.refreshToken.value = initial.refreshToken ?? null
         ctx.accessToken.value = initial.accessToken ?? null
-        ctx.accessToken.expiration = getExpiration(initial.accessTokenExpiresIn)
+        ctx.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
       }
     })
   })

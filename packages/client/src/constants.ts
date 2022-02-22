@@ -1,5 +1,5 @@
 export const NHOST_REFRESH_TOKEN_KEY = 'nhostRefreshToken'
-export const NHOST_NEXT_REFRESH_KEY = 'nhostNextRefresh'
+export const NHOST_JWT_EXPIRES_AT_KEY = 'nhostRefreshTokenExpiresAt'
 
 export const MIN_PASSWORD_LENGTH = 3
 

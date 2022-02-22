@@ -1,16 +1,12 @@
 import { ErrorPayload } from '../errors'
-
-import { getExpiration } from './expiration'
-
-// TODO better typing
-type User = any //Record<string, unknown>
+import { User } from '../types'
 
 export type NhostContext = {
   user: User | null
   mfa: boolean
   accessToken: {
     value: string | null
-    expiration: number
+    expiresAt: Date
   }
   refreshTimer: {
     elapsed: number
@@ -29,7 +25,7 @@ export const INITIAL_MACHINE_CONTEXT: NhostContext = {
   mfa: false,
   accessToken: {
     value: null,
-    expiration: getExpiration()
+    expiresAt: new Date()
   },
   refreshTimer: {
     elapsed: 0,

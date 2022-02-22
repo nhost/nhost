@@ -16,6 +16,7 @@ export interface Typegen0 {
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
     resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
+    saveRegisrationError: 'error.platform.registerUser'
     tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     requestEmailChange: 'CHANGE_EMAIL'
     requestPasswordChange: 'CHANGE_PASSWORD'
@@ -56,6 +57,7 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     '': { type: '' }
+    'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
@@ -72,7 +74,6 @@ export interface Typegen0 {
       type: 'error.platform.authenticateWithToken'
       data: unknown
     }
-    'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
     'xstate.init': { type: 'xstate.init' }
     'done.invoke.autoLogin': {
       type: 'done.invoke.autoLogin'

@@ -1,7 +1,7 @@
 import Cookies from 'cookies'
 import { NextPageContext } from 'next'
 
-import { NHOST_NEXT_REFRESH_KEY, NHOST_REFRESH_TOKEN_KEY, NhostSession } from '@nhost/client'
+import { NHOST_JWT_EXPIRES_AT_KEY, NHOST_REFRESH_TOKEN_KEY, NhostSession } from '@nhost/client'
 
 import { refresh } from './utils'
 
@@ -22,7 +22,7 @@ export const getNhostSession = async (
           sameSite: true
         })
         cookies.set(
-          NHOST_NEXT_REFRESH_KEY,
+          NHOST_JWT_EXPIRES_AT_KEY,
           new Date(Date.now() + (session.accessTokenExpiresIn || 0) * 1_000).toISOString(),
           {
             httpOnly: false,

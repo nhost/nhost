@@ -2,7 +2,12 @@ import { AxiosRequestConfig, AxiosResponse } from 'axios'
 import produce from 'immer'
 import { assign, createMachine, send } from 'xstate'
 
-import { NHOST_NEXT_REFRESH_KEY, NHOST_REFRESH_TOKEN_KEY } from '../constants'
+import {
+  MIN_TOKEN_REFRESH_INTERVAL,
+  NHOST_JWT_EXPIRES_AT_KEY,
+  NHOST_REFRESH_TOKEN_KEY,
+  TOKEN_REFRESH_MARGIN
+} from '../constants'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
@@ -13,10 +18,8 @@ import { createChangeEmailMachine } from './change-email'
 import { createChangePasswordMachine } from './change-password'
 import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
 import { NhostEvents } from './events'
-import { getExpiration } from './expiration'
 
 export type { NhostContext, NhostEvents }
-export { getExpiration, INITIAL_MACHINE_CONTEXT }
 
 export type NhostMachineOptions = {
   backendUrl: string
@@ -52,7 +55,8 @@ export const createNhostMachine = ({
       },
       tsTypes: {} as import('./index.typegen').Typegen0,
       context: produce<NhostContext>(INITIAL_MACHINE_CONTEXT, (ctx) => {
-        // TODO accessTokenExpiresIn
+        const expiresAt = storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
+        if (expiresAt) ctx.accessToken.expiresAt = new Date(expiresAt)
         ctx.refreshToken.value = storageGetter(NHOST_REFRESH_TOKEN_KEY)
       }),
       id: 'nhost',
@@ -182,7 +186,7 @@ export const createNhostMachine = ({
                     ]
                   }
                 },
-                // TODO revoir
+                // TODO review
                 token: {
                   invoke: {
                     src: 'refreshToken',
@@ -216,6 +220,7 @@ export const createNhostMachine = ({
                     target: '#nhost.authentication.signedOut.needsVerification'
                   },
                   {
+                    actions: 'saveRegisrationError',
                     target: '#nhost.authentication.signedOut.failed.server'
                   }
                 ]
@@ -376,7 +381,7 @@ export const createNhostMachine = ({
           user: (_, e: any) => e.data?.session?.user,
           accessToken: (_, e) => ({
             value: e.data?.session?.accessToken,
-            expiration: getExpiration(e.data?.session?.accessTokenExpiresIn)
+            expiresAt: new Date(Date.now() + e.data?.session?.accessTokenExpiresIn * 1_000)
           }),
           refreshToken: (_, e) => ({ value: e.data?.session?.refreshToken }),
           mfa: (_, e) => e.data?.mfa ?? false
@@ -449,6 +454,10 @@ export const createNhostMachine = ({
           // TODO type
           errors: ({ errors }, { error }: any) => ({ ...errors, newEmail: error })
         }),
+        saveRegisrationError: assign({
+          // TODO type
+          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
+        }),
         resetEmailChangeError: assign({
           errors: ({ errors: { newEmail, ...errors } }) => errors
         }),
@@ -457,16 +466,16 @@ export const createNhostMachine = ({
           storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
           if (data.session.accessTokenExpiresIn) {
             const nextRefresh = new Date(
-              Date.now() + getExpiration(data.session.accessTokenExpiresIn) * 1_000
+              Date.now() + data.session.accessTokenExpiresIn * 1_000
             ).toISOString()
-            storageSetter(NHOST_NEXT_REFRESH_KEY, nextRefresh)
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
           } else {
-            storageSetter(NHOST_NEXT_REFRESH_KEY, null)
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           }
         },
         destroyToken: () => {
           storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
-          storageSetter(NHOST_NEXT_REFRESH_KEY, null)
+          storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
         }
       },
 
@@ -477,7 +486,12 @@ export const createNhostMachine = ({
         noToken: (ctx) => !ctx.refreshToken.value,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
-        refreshTimerShouldRefresh: (ctx) => ctx.refreshTimer.elapsed > ctx.accessToken.expiration,
+        refreshTimerShouldRefresh: (ctx) =>
+          ctx.refreshTimer.elapsed >
+          Math.max(
+            (Date.now() - ctx.accessToken.expiresAt.getTime()) / 1_000 - TOKEN_REFRESH_MARGIN,
+            MIN_TOKEN_REFRESH_INTERVAL
+          ),
 
         // * Authentication errors
         // TODO type
