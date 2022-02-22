@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 0.0.9
+
+### Patch Changes
+
+- 2e1c055: Axios causes some trouble when used NodeJS / CommonJS. Any code importing `axios` now does so in using the `require()` syntax
+
 ## 0.0.8
 
 ### Patch Changes
