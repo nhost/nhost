@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -20,16 +20,11 @@
     "type": "git",
     "url": "git+https://github.com/nhost/nhost.git"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.umd.js"
-    }
-  },
   "main": "src/index.ts",
   "access": "public",
   "publishConfig": {
-    "main": "dist/index.umd.js",
+    "access": "public",
+    "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts"
   },

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "2.2.0",
+  "version": "2.1.2",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
@@ -35,19 +35,11 @@
   "main": "src/index.ts",
   "access": "public",
   "publishConfig": {
-    "main": "dist/index.umd.js",
+    "access": "public",
+    "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
-    "typings": "./dist/index.d.ts",
-    "exports": {
-      ".": {
-        "import": "./dist/index.es.js",
-        "require": "./dist/index.umd.js"
-      }
-    }
+    "typings": "dist/index.d.ts"
   },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "@nhost/apollo": "workspace:*",
     "@nhost/react": "workspace:*"
