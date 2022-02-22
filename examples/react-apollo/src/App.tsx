@@ -7,7 +7,7 @@ import {
   useAccessToken,
   useSignOut,
   useEmailPasswordSignIn,
-  useSignUpEmailPassword,
+  useEmailPasswordSignUp,
   useChangeEmail,
   useChangePassword
 } from '@nhost/react'
@@ -20,17 +20,18 @@ const GET_GREETING = gql`
     }
   }
 `
+
 function App() {
   const isAuthenticated = useAuthenticated()
   const email = 'pilou@pilou.com'
   const password = 'piloupilou'
   const jwt = useAccessToken()
   const { signOut } = useSignOut()
-  const { signUp, ...signUpResult } = useSignUpEmailPassword(email, password)
+  const { signUp, ...signUpResult } = useEmailPasswordSignUp(email, password)
   const { signIn } = useEmailPasswordSignIn(email, password)
   const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
-  const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
-  const { change: changePassword } = useChangePassword('12345678')
+  const { changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
+  const { changePassword } = useChangePassword('12345678')
   const { loading, data, error } = useAuthQuery(GET_GREETING)
   return (
     <div className="App">

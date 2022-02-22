@@ -22,12 +22,10 @@ export const useNhostBackendUrl = () => {
   return nhost.backendUrl
 }
 
-export const useReady = () => {
+export const useLoading = () => {
   const service = useNhostInterpreter()
-  return useSelector(service, (state) => state.hasTag('ready'))
+  return useSelector(service, (state) => !state.hasTag('ready'))
 }
-
-export const useLoading = () => !useReady()
 
 export const useAuthenticated = () => {
   const service = useNhostInterpreter()
@@ -49,8 +47,8 @@ export const useAccessToken = () => {
 
 export const useSignOut = (stateAll: boolean = false) => {
   const service = useNhostInterpreter()
-  const signOut = (valueAll?: boolean) =>
+  const signOut = (valueAll?: boolean | unknown) =>
     service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
-  const success = useSelector(service, (state) => state.matches({ authentication: 'signedOut' }))
-  return { signOut, success }
+  const isSuccess = useSelector(service, (state) => state.matches({ authentication: 'signedOut' }))
+  return { signOut, isSuccess }
 }

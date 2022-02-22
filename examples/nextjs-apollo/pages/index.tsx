@@ -3,13 +3,12 @@ import type { NextPage } from 'next'
 import {
   useAccessToken,
   useAuthenticated,
-  useAvatarUrl,
   useChangeEmail,
   useChangePassword,
   useEmailPasswordlessSignIn,
   useEmailPasswordSignIn,
-  useSignOut,
-  useSignUpEmailPassword
+  useEmailPasswordSignUp,
+  useSignOut
 } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
 
@@ -23,11 +22,11 @@ const Home: NextPage = () => {
   const password = 'piloupilou'
   const jwt = useAccessToken()
   const { signOut } = useSignOut()
-  const { signUp, ...signUpResult } = useSignUpEmailPassword(email, password)
+  const { signUp, ...signUpResult } = useEmailPasswordSignUp(email, password)
   const { signIn } = useEmailPasswordSignIn(email, password)
   const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
-  const { change: changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
-  const { change: changePassword } = useChangePassword('12345678')
+  const { changeEmail, ...changeEmailResult } = useChangeEmail('bidon@bidon.com')
+  const { changePassword } = useChangePassword('12345678')
   const { loading, data, error } = useAuthQuery(QUERY_INDEX)
   return (
     <div>

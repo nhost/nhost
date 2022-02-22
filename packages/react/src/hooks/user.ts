@@ -4,14 +4,14 @@ import { useNhostInterpreter } from './common'
 
 export const useChangeEmail = (stateEmail?: string) => {
   const service = useNhostInterpreter()
-  const hasError = useSelector(service, (state) =>
+  const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changeEmail: { idle: 'failed' } } } })
   )
   const error = useSelector(service, (state) => state.context.errors.newEmail)
-  const loading = useSelector(service, (state) =>
+  const isLoading = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changeEmail: 'running' } } })
   )
-  const success = useSelector(service, (state) =>
+  const isSuccess = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changeEmail: { idle: 'success' } } } })
   )
 
@@ -19,34 +19,34 @@ export const useChangeEmail = (stateEmail?: string) => {
     state.matches({ authentication: { signedIn: { changeEmail: { idle: 'needsVerification' } } } })
   )
 
-  const change = (valueEmail?: string) =>
+  const changeEmail = (valueEmail?: string | unknown) =>
     service.send({
       type: 'CHANGE_EMAIL',
-      email: valueEmail ?? stateEmail
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail
     })
-  return { change, loading, success, needsVerification, hasError, error }
+  return { changeEmail, isLoading, isSuccess, needsVerification, isError, error }
 }
 
 export const useChangePassword = (statePassword?: string) => {
   const service = useNhostInterpreter()
 
-  const hasError = useSelector(service, (state) =>
+  const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changePassword: { idle: 'failed' } } } })
   )
   const error = useSelector(service, (state) => state.context.errors.newPassword)
-  const loading = useSelector(service, (state) =>
+  const isLoading = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changePassword: 'running' } } })
   )
-  const success = useSelector(service, (state) =>
+  const isSuccess = useSelector(service, (state) =>
     state.matches({ authentication: { signedIn: { changePassword: { idle: 'success' } } } })
   )
 
-  const change = (valuePassword?: string) =>
+  const changePassword = (valuePassword?: string | unknown) =>
     service.send({
       type: 'CHANGE_PASSWORD',
-      password: valuePassword ?? statePassword
+      password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
-  return { change, loading, success, hasError, error }
+  return { changePassword, isLoading, isSuccess, isError, error }
 }
 
 export const useUserData = () => {
