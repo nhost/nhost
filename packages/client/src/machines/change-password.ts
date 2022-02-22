@@ -1,4 +1,4 @@
-import { AxiosInstance } from 'axios'
+import type { AxiosInstance } from 'axios'
 import { createMachine, sendParent } from 'xstate'
 
 import { INVALID_PASSWORD_ERROR } from '../errors'
