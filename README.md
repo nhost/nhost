@@ -47,8 +47,8 @@ To see how to Contribute, visit [Contribution Guide](https://github.com/nhost/nh
 <a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo"><img src="assets/nuxtjs.svg"/></a>
 <a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/templates/web/react-apollo"><img src="assets/react.svg"/></a>
 <a style="margin-right: 10px;" href="https://github.com/nhost/nhost-dart/tree/main/packages/nhost_flutter_graphql/example"><img src="assets/react-native.svg"/></a>
-<a style="margin-right: 10px;" href="https://docs.nhost.io/reference/sdk"><img src="assets/svelte.svg"/></a>
-<a style="margin-right: 10px;" href="https://docs.nhost.io/reference/sdk"><img src="assets/vuejs.svg"/></a>
+<a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/svelte.svg"/></a>
+<a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/vuejs.svg"/></a>
 </p>
 </div>
 
