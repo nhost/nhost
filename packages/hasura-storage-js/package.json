@@ -27,16 +27,10 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "exports": {
-    ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.umd.js"
-    }
-  },
   "main": "src/index.ts",
   "publishConfig": {
     "access": "public",
-    "main": "dist/index.umd.js",
+    "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts"
   },
