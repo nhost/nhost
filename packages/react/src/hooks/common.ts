@@ -47,9 +47,10 @@ export const useAccessToken = () => {
   return useSelector(service, (state) => state.context.accessToken.value)
 }
 
-export const useSignOut = (stateAll?: boolean) => {
+export const useSignOut = (stateAll: boolean = false) => {
   const service = useNhostInterpreter()
-  const signOut = (valueAll = false) => service.send({ type: 'SIGNOUT', all: valueAll ?? stateAll })
+  const signOut = (valueAll?: boolean) =>
+    service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
   const success = useSelector(service, (state) => state.matches({ authentication: 'signedOut' }))
   return { signOut, success }
 }

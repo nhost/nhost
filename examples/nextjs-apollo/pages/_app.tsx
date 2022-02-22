@@ -12,7 +12,7 @@ import '../styles/globals.css'
 
 if (typeof window !== 'undefined' && process.env.NODE_ENV) {
   inspect({
-    url: 'https://statecharts.io/inspect',
+    url: 'https://stately.ai/viz?inspect',
     iframe: false
   })
 }

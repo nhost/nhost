@@ -7,8 +7,8 @@ export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: stri
   const signIn = (valueEmail?: string, valuePassword?: string) =>
     service.send({
       type: 'SIGNIN_PASSWORD',
-      email: valueEmail ?? stateEmail,
-      password: valuePassword ?? statePassword
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
+      password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
 
   const error = useSelector(service, (state) => state.context.errors.authentication)
@@ -32,7 +32,7 @@ export const useEmailPasswordlessSignIn = (stateEmail?: string) => {
   const signIn = (valueEmail?: string) =>
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
-      email: valueEmail ?? stateEmail
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail
     })
 
   const error = useSelector(service, (state) => state.context.errors.authentication)
