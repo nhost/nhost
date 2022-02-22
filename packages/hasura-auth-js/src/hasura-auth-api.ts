@@ -1,4 +1,4 @@
-import axios, { AxiosError, AxiosInstance } from 'axios'
+import type { AxiosError, AxiosInstance } from 'axios'
 
 import {
   ApiChangeEmailResponse,
@@ -23,6 +23,8 @@ import {
   SignInPasswordlessSmsParams,
   SignUpEmailPasswordParams
 } from './utils/types'
+
+const axios = require('axios')
 
 const SERVER_ERROR_CODE = 500
 export class HasuraAuthApi {

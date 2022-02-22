@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 0.1.13
+
+### Patch Changes
+
+- 2e1c055: Axios causes some trouble when used NodeJS / CommonJS. Any code importing `axios` now does so in using the `require()` syntax
+
 ## 0.1.12
 
 ### Patch Changes

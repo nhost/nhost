@@ -1,5 +1,12 @@
 # @nhost/react-auth
 
+## 2.0.6
+
+### Patch Changes
+
+- Updated dependencies [2e1c055]
+  - @nhost/nhost-js@0.3.9
+
 ## 2.0.5
 
 ### Patch Changes
