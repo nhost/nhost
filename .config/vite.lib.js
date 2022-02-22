@@ -12,7 +12,8 @@ const pkg = require(path.join(PWD, 'package.json'))
 export const lib = {
   entry: path.resolve(PWD, 'src/index.ts'),
   name: pkg.name,
-  fileName: 'index'
+  fileName: 'index',
+  formats: ['cjs', 'es']
 }
 export const basePlugins = [
   tsconfigPaths(),
