@@ -42,7 +42,7 @@ To see how to Contribute, visit [Contribution Guide](https://github.com/nhost/nh
 ## Works with
 
 <div align="center">
-<p>
+<p style="display: flex; align-items: center;">
 <a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo"><img src="assets/nextjs.svg"/></a>
 <a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo"><img src="assets/nuxtjs.svg"/></a>
 <a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/templates/web/react-apollo"><img src="assets/react.svg"/></a>
