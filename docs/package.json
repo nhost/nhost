@@ -42,5 +42,6 @@
     "tailwindcss": "^2.2.19",
     "typescript": "^4.5.2"
   },
-  "prettier": "../prettier.config.js"
+  "prettier": "../prettier.config.js",
+  "version": null
 }
