@@ -11,7 +11,7 @@
   •
   <a href="https://docs.nhost.io/">Docs</a>
   •
-  <a href="https://discord.com/invite/9V7Qb2U">Community</a>
+  <a href="https://nhost.io/discord">Community</a>
   •
   <a href="https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg">Youtube</a>
   •
