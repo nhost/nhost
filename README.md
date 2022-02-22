@@ -25,7 +25,7 @@
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
 - Storage: [Hasura Storage](https://github.com/nhost/hasura-backend-plus/)
 - Serverless Functions: JavaScript and TypeScript runtimes
-- CLI: [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
+- [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
 For complete documentation, visit [docs.nhost.io](http://docs.nhost.io/).
 
