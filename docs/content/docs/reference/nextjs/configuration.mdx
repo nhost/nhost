@@ -4,6 +4,9 @@ title: 'Configuration'
 
 ## Configuration
 
+To configure Nhost with Next.js follows the same logic as with React, except we are intialising with `NhostSSR` instead of `Nhost`.
+Under the hood, `NhostSSR` uses cookies to store the refresh token, and disables auto-refresh and auto-login when running on the server side.
+
 ```jsx
 // {project-root}/pages/_app.tsx
 import type { AppProps } from 'next/app'
