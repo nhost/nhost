@@ -19,8 +19,8 @@
     "prepare": "pnpm create-config",
     "build": "pnpm turbo run build --scope='@nhost/*' --no-deps --include-dependencies",
     "build:docs": "pnpm run build --filter=nhost-documentation",
-    "clean:all": "pnpm clean && rm -rf ./packages/*/node_modules node_modules",
-    "clean": "rm -rf ./packages/*/dist",
+    "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/node_modules node_modules",
+    "clean": "rm -rf ./{{packages,examples}/*,docs}/{dist,.next,.turbo,coverage}",
     "ci": "pnpm turbo run build test --concurrency=4 --scope='@nhost/*' && pnpm run lint",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
     "coverage": "pnpm run test --coverage",
@@ -31,6 +31,7 @@
     "test": "pnpm turbo run test --scope='@nhost/*' --no-deps --include-dependencies",
     "prerelease": "pnpm clean && pnpm install && pnpm build",
     "release": "pnpm run prerelease && changeset publish && git push --follow-tags && git status && pnpm -r publish",
+    "changeset": "changeset",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview"
   },
   "workspaces": [
@@ -50,6 +51,8 @@
     "@typescript-eslint/eslint-plugin": "^5.10.2",
     "@typescript-eslint/parser": "^5.10.2",
     "@vitejs/plugin-react": "^1.1.4",
+    "esbuild": "^0.14.23",
+    "esbuild-node-externals": "^1.4.1",
     "eslint": "^8.8.0",
     "eslint-config-react-app": "^7.0.0",
     "eslint-plugin-flowtype": "^8.0.3",

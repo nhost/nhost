@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import type { AxiosInstance } from 'axios'
+import axios, { AxiosInstance } from 'axios'
 
 import {
   ApiDeleteParams,
@@ -10,8 +10,6 @@ import {
   ApiUploadResponse,
   UploadHeaders
 } from './utils/types'
-
-const axios = require('axios')
 export class HasuraStorageApi {
   private url: string
   private httpClient: AxiosInstance
