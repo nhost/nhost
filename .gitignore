@@ -40,6 +40,7 @@ todo.md
 prettier.config.js
 vite.*.js
 jest.*.js
+esbuild.*.js
 
 !.config/**
 

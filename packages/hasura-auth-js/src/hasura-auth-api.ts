@@ -1,4 +1,4 @@
-import type { AxiosError, AxiosInstance } from 'axios'
+import axios, { AxiosError, AxiosInstance } from 'axios'
 
 import {
   ApiChangeEmailResponse,
@@ -24,8 +24,6 @@ import {
   SignUpEmailPasswordParams
 } from './utils/types'
 
-const axios = require('axios')
-
 const SERVER_ERROR_CODE = 500
 export class HasuraAuthApi {
   private url: string
@@ -35,9 +33,7 @@ export class HasuraAuthApi {
   constructor({ url = '' }) {
     this.url = url
 
-    this.httpClient = axios.create({
-      baseURL: this.url
-    })
+    this.httpClient = axios.create({ baseURL: this.url })
 
     // convert axios error to custom ApiError
     this.httpClient.interceptors.response.use(
