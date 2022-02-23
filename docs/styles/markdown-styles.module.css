@@ -11,10 +11,19 @@
 }
 
 .markdown li {
-  @apply text-base- font-display text-greyscaleDark font-normal leading-7;
-  list-style: disc;
-  list-style-type: disc;
-  list-style-position: inside;
+  @apply font-normal leading-7 text-base- font-display text-greyscaleDark;
+}
+
+.markdown li::marker {
+  @apply font-normal leading-7 text-base- font-display text-greyscaleDark;
+}
+
+.markdown ul li {
+  list-style: disc inside;
+}
+
+.markdown ol li {
+  list-style: decimal inside;
 }
 
 .markdown table {

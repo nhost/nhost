@@ -65,10 +65,10 @@ const CustomLink = ({
 const components = {
   img: (props: DetailedHTMLProps<HTMLProps<HTMLImageElement>, HTMLImageElement>) => {
     return (
-      <span className="block mt-5 mx-10 ">
-        <img src={props.src} alt={props.alt} className="mx-auto border mt-2" />
+      <span className="block mx-10 mt-5 ">
+        <img src={props.src} alt={props.alt} className="mx-auto mt-2 border" />
         {props.alt && (
-          <div className="block text-center text-secondary text-sm mb-8 pt-4">
+          <div className="block pt-4 mb-8 text-sm text-center text-secondary">
             <Text color="greyscaleDark" size="tiny">
               {props.alt}
             </Text>
@@ -94,7 +94,7 @@ const components = {
     return (
       <>
         <Divider />
-        <AnchorLink {...props} className="cursor-pointer text-3xl md:text-4xl" />
+        <AnchorLink {...props} className="text-3xl cursor-pointer md:text-4xl" />
       </>
     )
   },
@@ -108,7 +108,7 @@ const components = {
   h3: (props: AnchorLinkProps) => {
     return (
       <div className="mt-8">
-        <AnchorLink {...props} className="cursor-pointer text-lg" />
+        <AnchorLink {...props} className="text-lg cursor-pointer" />
       </div>
     )
   },
@@ -119,25 +119,28 @@ const components = {
       </div>
     )
   },
-  p: (props) => (
-    <Text
-      variant="body"
-      size="small"
-      color="dark"
-      className="my-2 antialiased leading-6"
-      {...props}
-    />
-  ),
-  Mermaid: ({ chart }) => {
-    const [html, setHtml] = React.useState('')
-    React.useEffect(() => {
-      const start = async () => {
-        const mermaid = (await import('mermaid')).default
-        mermaid.mermaidAPI.render(uuid(), chart, (svgCode) => setHtml(svgCode))
-      }
-      start()
-    }, [chart])
-    return chart ? <div dangerouslySetInnerHTML={{ __html: html }} /> : null
+  p: (props: TextProps) => {
+    return (
+      <Text
+        variant="body"
+        size="small"
+        color="dark"
+        className="my-2 antialiased leading-6"
+        {...props}
+      />
+    )
+  },
+  th: ({
+    className,
+    ...props
+  }: DetailedHTMLProps<HTMLProps<HTMLTableCellElement>, HTMLTableCellElement>) => {
+    return <th className={clsx('font-display', className)} {...props} />
+  },
+  td: ({
+    className,
+    ...props
+  }: DetailedHTMLProps<HTMLProps<HTMLTableCellElement>, HTMLTableCellElement>) => {
+    return <td className={clsx('font-display', className)} {...props} />
   }
 }
 
