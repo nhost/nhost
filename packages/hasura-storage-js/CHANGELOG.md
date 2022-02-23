@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 0.0.10
+
+### Patch Changes
+
+- c8f2488: build npm package with esbuild instead of vite. Vite does not build isomorphic packages correctly, in particular the dependency to axios
+
 ## 0.0.9
 
 ### Patch Changes

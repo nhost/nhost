@@ -1,5 +1,13 @@
 # @nhost/react-apollo
 
+## 2.1.4
+
+### Patch Changes
+
+- c8f2488: optimize npm packages: only include the `dist` directory, and introduce the `exports` field in package.json as per Vite's recommendations.
+- Updated dependencies [c8f2488]
+  - @nhost/nhost-js@0.3.10
+
 ## 2.1.3
 
 ### Patch Changes
