@@ -31,6 +31,7 @@
     "test": "pnpm turbo run test --scope='@nhost/*' --no-deps --include-dependencies",
     "prerelease": "pnpm clean && pnpm install && pnpm build",
     "release": "pnpm run prerelease && changeset publish && git push --follow-tags && git status && pnpm -r publish",
+    "changeset": "changeset",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview"
   },
   "workspaces": [
