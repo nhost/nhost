@@ -7,7 +7,7 @@ esbuild
     entryPoints: ['./src/index.ts'],
     outfile: 'dist/index.cjs.js',
     bundle: true,
-    minify: false,
+    minify: true,
     platform: 'node',
     format: 'cjs',
     sourcemap: true,
@@ -21,7 +21,7 @@ esbuild
     entryPoints: ['./src/index.ts'],
     outfile: 'dist/index.es.js',
     bundle: true,
-    minify: false, // TODO
+    minify: true,
     platform: 'browser',
     format: 'esm',
     sourcemap: true,
