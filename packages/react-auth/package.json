@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-auth",
-  "version": "2.0.6",
+  "version": "2.0.7",
   "description": "Nhost React client",
   "license": "MIT",
   "keywords": [
@@ -32,12 +32,21 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.tsx",
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.umd.js"
+    }
+  },
   "publishConfig": {
     "access": "public",
-    "main": "dist/index.cjs.js",
+    "main": "dist/index.umd.js",
     "module": "dist/index.es.js",
     "typings": "dist/index.d.ts"
   },
+  "files": [
+    "dist"
+  ],
   "dependencies": {
     "@nhost/nhost-js": "workspace:*"
   },
