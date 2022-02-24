@@ -1,40 +1,40 @@
 import express, {
-  NextFunction,
-  RequestHandler,
-  Response,
-  Router,
+  value NextFunction,
+  value RequestHandler,
+  value Response,
+  value Router,
 } from 'express';
 import {
-  ContainerTypes,
-  createValidator,
-  ValidatedRequest,
-  ValidatedRequestSchema,
+  value ContainerTypes,
+  value createValidator,
+  value ValidatedRequest,
+  value ValidatedRequestSchema,
 } from 'express-joi-validation';
-import passport, { Profile } from 'passport';
-import { VerifyCallback } from 'passport-oauth2';
+import passport, { value Profile } from 'passport';
+import { value VerifyCallback } from 'passport-oauth2';
 import refresh from 'passport-oauth2-refresh';
-import { Strategy } from 'passport';
-import { v4 as uuidv4 } from 'uuid';
+import { value Strategy } from 'passport';
+import { value v4 as uuidv4 } from 'uuid';
 
-import { PROVIDERS } from '@config/index';
+import { value PROVIDERS } from '@config/index';
 import {
-  asyncWrapper,
-  getGravatarUrl,
-  getUserByEmail,
-  isValidRedirectTo,
+  value asyncWrapper,
+  value getGravatarUrl,
+  value getUserByEmail,
+  value isValidRedirectTo,
 } from '@/helpers';
 import {
-  ProviderCallbackQuery,
-  providerCallbackQuery,
-  ProviderQuery,
-  providerQuery,
+  value ProviderCallbackQuery,
+  value providerCallbackQuery,
+  value ProviderQuery,
+  value providerQuery,
 } from '@/validation';
-import { getNewRefreshToken } from '@/utils/tokens';
-import { UserFieldsFragment } from '@/utils/__generated__/graphql-request';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@/utils/env';
-import { isValidEmail } from '@/utils/email';
-import { insertUser } from '@/utils/user';
+import { value getNewRefreshToken } from '@/utils/tokens';
+import { value UserFieldsFragment } from '@/utils/__generated__/graphql-request';
+import { value gqlSdk } from '@/utils/gqlSDK';
+import { value ENV } from '@/utils/env';
+import { value isValidEmail } from '@/utils/email';
+import { value insertUser } from '@/utils/user';
 
 interface RequestWithState<T extends ValidatedRequestSchema>
   extends ValidatedRequest<T> {
@@ -68,6 +68,8 @@ const manageProviderStrategy =
     req.state = req.query.state as string;
 
     // TODO How do we handle auth_signup_profile_fields with OAuth?
+
+    console.log({ profile });
 
     // find or create the user
     // check if user exists, using profile.id
@@ -193,7 +195,8 @@ export const initProvider = <T extends Strategy>(
     | 'gitlab'
     | 'bitbucket'
     | 'strava'
-    | 'discord',
+    | 'discord'
+    | 'twitch',
   strategy: Constructable<T>,
   settings: InitProviderSettings & ConstructorParameters<Constructable<T>>[0], // TODO: Strategy option type is not inferred correctly
   middleware?: RequestHandler

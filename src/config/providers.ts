@@ -238,15 +238,33 @@ const PROVIDERS = {
       ? null
       : {
           get clientID() {
-            return process.env.AUTH_PROVIDER_DISCORD_CLIENT_ID || '';
+            return process.env.AUTH_PROVIDER_DISCORD_CLIENT_ID ?? '';
           },
           get clientSecret() {
-            return process.env.AUTH_PROVIDER_DISCORD_CLIENT_SECRET || '';
+            return process.env.AUTH_PROVIDER_DISCORD_CLIENT_SECRET ?? '';
           },
           get scope() {
             return castStringArrayEnv('AUTH_PROVIDER_DISCORD_SCOPE', [
               'identify',
               'email',
+            ]);
+          },
+        };
+  },
+
+  get twitch() {
+    return !castBooleanEnv('AUTH_PROVIDER_TWITCH_ENABLED')
+      ? null
+      : {
+          get clientID() {
+            return process.env.AUTH_PROVIDER_TWITCH_CLIENT_ID ?? '';
+          },
+          get clientSecret() {
+            return process.env.AUTH_PROVIDER_TWITCH_CLIENT_SECRET ?? '';
+          },
+          get scope() {
+            return castStringArrayEnv('AUTH_PROVIDER_TWITCH_SCOPE', [
+              'user:read:email',
             ]);
           },
         };

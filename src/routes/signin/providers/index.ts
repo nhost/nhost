@@ -12,6 +12,7 @@ import strava from './strava';
 import gitlab from './gitlab';
 import bitbucket from './bitbucket';
 import discord from './discord';
+import twitch from './twitch';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ strava(router);
 gitlab(router);
 bitbucket(router);
 discord(router);
+twitch(router);
 
 export default (parentRouter: Router) => {
   parentRouter.use('/signin/provider', router);
