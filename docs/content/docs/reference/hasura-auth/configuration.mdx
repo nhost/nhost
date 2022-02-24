@@ -2,31 +2,55 @@
 title: Configuration
 ---
 
-<!-- TODO
 ## Email verification
 
-- SMTP settings
-- passwordless authentication
+### SMTP settings
 
-## Gravatar
+### Email templates
 
-## Limit emails that can register
+#### With Docker
+
+<!-- Explain how to mount a folder -->
+
+#### Remote email templates
+
+When running Hasura Auth in its own infrastructure, it is possible to mount a volume with custom `email-templates` directory. However, in some cases, we may want to fetch templates from an external HTTP endpoint. Hence the introduction of a new `AUTH_EMAIL_TEMPLATE_FETCH_URL` environment variable:
+
+```bash
+AUTH_EMAIL_TEMPLATE_FETCH_URL=https://github.com/nhost/nhost/tree/custom-email-templates-example/examples/custom-email-templates
+```
+
+In the above example, on every email creation, the server will use this URL to fetch its templates, depending on the locale, email type and field.
+
+For instance, the template for english verification email body will the fetched in [https://raw.githubusercontent.com/nhost/nhost/main/examples/custom-email-templates/en/email-verify/body.html](https://raw.githubusercontent.com/nhost/nhost/main/examples/custom-email-templates/en/email-verify/body.html).
+
+See the [example in the main nhost/nhost repository](https://github.com/nhost/nhost/tree/main/examples/custom-email-templates).
+
+The context variables in email templates have been simplified: the `${link}` variable contains the entire redirection url the recipient needs to follow.
+
+### Limit emails that can register
 
 ## Multi-factor authentication
 
-## Passord securisation
+### Passwordless with emails
 
-## Email verification
+### Passwordless with SMS
 
-- SMTP settings
-- passwordless authentication
-## SMS passwordless authentication
+### Time-based one-time password (TOTP)
 
 ## OAuth authentication
 
--->
+## Gravatar
 
-## Extend user information (`metadata` user field)
+## Passord securisation
+
+## Extending user schema
+
+<!-- TODO Recommendations
+- do NOT play with the `auth` schema
+- `profile` design -->
+
+### `metadata` user field
 
 A basic JSONB `metadata` column in the `auth.users` table, that is passed on as an option on registration:
 
@@ -42,13 +66,9 @@ A basic JSONB `metadata` column in the `auth.users` table, that is passed on as 
 }
 ```
 
-<!-- TODO
-- do NOT play with the `auth` schema
-- `profile` design
-- explain hooks
- -->
+<!-- TODO hooks on the metadata field -->
 
-## Extend JWT claims
+## Custom Hasura JWT claims
 
 Hasura comes with a [powerful authorisation system](https://hasura.io/docs/latest/graphql/core/auth/authorization/index.html). Hasura Auth is already configured to add `x-hasura-user-id`, `x-hasura-allowed-roles`, and `x-hasura-user-isAnonymous` to the JSON Web Tokens it generates.
 
@@ -100,23 +120,3 @@ It will then use the same expressions e.g. `profile.contributesTo.project.id` to
   "exp": 1643041089
 }
 ```
-
-## Custom email templates
-
-<!-- Explain how to mount a folder -->
-
-### Remote email templates
-
-When running Hasura Auth in its own infrastructure, it is possible to mount a volume with custom `email-templates` directory. However, in some cases, we may want to fetch templates from an external HTTP endpoint. Hence the introduction of a new `AUTH_EMAIL_TEMPLATE_FETCH_URL` environment variable:
-
-```bash
-AUTH_EMAIL_TEMPLATE_FETCH_URL=https://github.com/nhost/nhost/tree/custom-email-templates-example/examples/custom-email-templates
-```
-
-In the above example, on every email creation, the server will use this URL to fetch its templates, depending on the locale, email type and field.
-
-For instance, the template for english verification email body will the fetched in [https://raw.githubusercontent.com/nhost/nhost/main/examples/custom-email-templates/en/email-verify/body.html](https://raw.githubusercontent.com/nhost/nhost/main/examples/custom-email-templates/en/email-verify/body.html).
-
-See the [example in the main nhost/nhost repository](https://github.com/nhost/nhost/tree/main/examples/custom-email-templates).
-
-The context variables in email templates have been simplified: the `${link}` variable contains the entire redirection url the recipient needs to follow.

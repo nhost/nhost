@@ -2,7 +2,7 @@
 title: Installation
 ---
 
-Hasura Auth runs in a container along side Postgres and Hasura.
+Hasura Auth runs in a container alongside Postgres and Hasura.
 
 ## Nhost (recommended)
 
@@ -10,7 +10,7 @@ The recommended way to start using Hasura Auth is by using Nhost. You will get a
 
 Go to [Nhost](https://nhost.io) and start building your app now.
 
-## Self hosting
+## Docker-compose
 
 ```sh
 git clone https://github.com/nhost/hasura-auth.git
@@ -18,3 +18,7 @@ cd hasura-auth
 cp .env.example .env
 docker-compose -f docker-compose-example.yaml up
 ```
+
+Hasura Auth comes with plenty of options. They are explained in the [configuration section](/reference/hasura-auth/configuration).
+
+If you are already familiar with the application, you can also have a look at the [environment variables](/reference/hasura-auth/environment-variables) that can be passed on to your docker container.
