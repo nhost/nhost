@@ -32,6 +32,7 @@ export function Content({ mdxSource, components, frontmatter }) {
             href={getGithubLink(router.query.category, router.query.subcategory, router.query.post)}
             target="_blank"
             rel="noreferrer"
+            type={null}
           >
             Edit This Page
             <GithubIcon className="w-3.5 h-3.5 ml-1.5 text-greyscaleDark self-center" />

@@ -1,7 +1,8 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
 import { FunctionCallResponse } from '../types'
 
+const axios = require('axios')
 export interface NhostFunctionsConstructorParams {
   url: string
 }

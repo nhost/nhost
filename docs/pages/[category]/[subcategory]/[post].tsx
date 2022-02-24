@@ -4,20 +4,17 @@ import Footer from '@/components/Footer'
 import Header from '@/components/Header'
 import components from '@/components/MDX/components'
 import { Nav } from '@/components/Nav'
+import { NavDataProvider } from '@/components/NavDataContext'
 import { SubNavigation } from '@/components/SubNavigation'
 import { TopNavigation } from '@/components/TopNavigation'
-import { createConvolutedNav, getAllPosts, getHeadingsByPost, removeIndexFile } from '@/lib/post'
+import { createConvolutedNav, getAllPosts, removeIndexFile } from '@/lib/post'
 import { capitalize } from '@/utils/capitalize'
 import fs from 'fs'
 import matter from 'gray-matter'
 import { serialize } from 'next-mdx-remote/serialize'
-import { useRouter } from 'next/dist/client/router'
 import Head from 'next/head'
 import { join } from 'path'
 import React from 'react'
-
-// import { PostMetadata } from "../../../components/PostMetadata";
-// import { HeadingsNavigation } from "../../../components/HeadingsNavigation";
 import { Main } from '../../../components/Main'
 
 export default function Post({
@@ -25,61 +22,64 @@ export default function Post({
   subcategory,
   frontmatter,
   mdxSource,
-  nav,
   convolutedNav,
+  availableCategoryMenus,
   post,
-  headings,
   categoryTitle
 }) {
-  const router = useRouter()
-  const pathname = `/${router.query.category}`
   return (
-    <div className="bg-white">
-      <Head>
-        <title>
-          {frontmatter.title} – {capitalize(subcategory)} - {capitalize(category)} | Nhost
-          Documentation
-        </title>
-      </Head>
-      <Header />
-      <Container>
-        <Nav
-          convolutedNav={convolutedNav}
-          category={category}
-          categoryTitle={categoryTitle}
-          nav={nav}
-          query={router.query}
-          pathname={pathname}
-          headings={headings}
-        />
-
-        <Main>
-          <TopNavigation category={category} subcategory={subcategory} />
-
-          <Content mdxSource={mdxSource} components={components} frontmatter={frontmatter} />
-          <SubNavigation
+    <NavDataProvider
+      category={category}
+      categoryTitle={categoryTitle}
+      convolutedNav={convolutedNav}
+      availableCategoryMenus={availableCategoryMenus}
+    >
+      <div className="bg-white pt-2">
+        <Head>
+          <title>
+            {frontmatter.title} - {capitalize(subcategory)} - {capitalize(category)} | Nhost
+            Documentation
+          </title>
+        </Head>
+        <Header />
+        <Container>
+          <Nav
+            className="hidden lg:flex"
             convolutedNav={convolutedNav}
             category={category}
-            post={post}
-            subcategory={subcategory}
+            categoryTitle={categoryTitle}
           />
-          {/* <PostMetadata
-            category={category}
-            subcategory={subcategory}
-            frontmatter={frontmatter}
-            post={post}
-          /> */}
-        </Main>
-        {/* <HeadingsNavigation headings={headings} /> */}
-      </Container>
-      <Footer />
-    </div>
+
+          <Main>
+            <TopNavigation category={category} subcategory={subcategory} />
+
+            <Content mdxSource={mdxSource} components={components} frontmatter={frontmatter} />
+
+            <SubNavigation
+              convolutedNav={convolutedNav}
+              category={category}
+              post={post}
+              subcategory={subcategory}
+            />
+          </Main>
+        </Container>
+        <Footer />
+      </div>
+    </NavDataProvider>
   )
 }
 
 export async function getStaticProps({ params }) {
   const postsDirectory = join(process.cwd(), 'content', 'docs')
-  const convolutedNav = createConvolutedNav(params.category)
+  const availableCategories = fs.readdirSync(postsDirectory)
+  const availableCategoryMenus = availableCategories.map((category) => ({
+    slug: category,
+    items: createConvolutedNav(category)
+  }))
+
+  const convolutedNav =
+    availableCategoryMenus.find(({ slug }) => slug === params.category).items ||
+    createConvolutedNav(params.category)
 
   const categoryTitle = matter(
     fs.readFileSync(join(postsDirectory, `${params.category}/index.mdx`), 'utf8')
@@ -91,7 +91,6 @@ export async function getStaticProps({ params }) {
   )
   const fileContents = fs.readFileSync(fullPath, 'utf8')
   const { data, content } = matter(fileContents)
-  const headings = getHeadingsByPost(content)
   const mdxSource = await serialize(content)
 
   return {
@@ -102,8 +101,8 @@ export async function getStaticProps({ params }) {
       post: params.post,
       frontmatter: { ...data },
       mdxSource,
-      headings: headings,
-      convolutedNav: convolutedNav
+      availableCategoryMenus,
+      convolutedNav
     }
   }
 }

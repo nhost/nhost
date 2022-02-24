@@ -1,6 +1,8 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import type { AxiosInstance, AxiosRequestConfig } from 'axios'
 
 import { GraphqlRequestResponse, GraphqlResponse } from '../types'
+
+const axios = require('axios')
 
 export interface NhostGraphqlConstructorParams {
   url: string
