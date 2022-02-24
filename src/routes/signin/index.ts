@@ -101,7 +101,6 @@ router.post(
 );
 
 // sign in using providers
-// TODO document API
 providers(router);
 
 /**

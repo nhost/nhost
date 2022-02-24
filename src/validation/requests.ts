@@ -125,6 +125,7 @@ export const userMfaSchema = Joi.object({
 }).meta({ className: 'UserMfaSchema' });
 
 // Deanonymize
+// TODO should work with any other authentication methods e.g. Oauth
 export const userDeanonymizeSchema = Joi.object({
   signInMethod: Joi.string()
     .allow('email-password')
@@ -154,7 +155,7 @@ export const tokenSchema = Joi.object({
 
 export const providerQuery = Joi.object({
   redirectUrl: Joi.string(),
-}).meta({ className: 'ProviderQuery' });
+});
 
 export type ProviderQuery = {
   redirectUrl?: string;
@@ -162,9 +163,7 @@ export type ProviderQuery = {
 
 export const providerCallbackQuery = Joi.object({
   state: uuid.required(),
-})
-  .unknown(true)
-  .meta({ className: 'ProviderCallbackQuery' });
+}).unknown(true);
 
 export type ProviderCallbackQuery = Record<string, unknown> & {
   state: string;

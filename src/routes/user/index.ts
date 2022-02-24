@@ -24,7 +24,6 @@ const router = Router();
 /**
  * GET /user
  * @summary Get user information
- * @param {SignInAnonymousSchema} request.body.required
  * @return {User} 200 - User information - application/json
  * @return {UnauthenticatedError} 401 - User is not authenticated
  * @security BearerAuth
@@ -101,21 +100,40 @@ router.post(
  * @return {UnauthenticatedError} 401 - User is not authenticated
  * @security BearerAuth
  * @tags Authentication
- */ router.post(
+ */
+router.post(
   '/user/mfa',
   // ? why is validation deactivated?
   // createValidator().body(userMfaSchema),
   aw(userMFAHandler)
 );
 
-// TODO document API
+/**
+ * POST /user/deanonymize
+ * @summary 'Deanonymize' an anonymous user in adding missing email or email+password, depending on the chosen authentication method. Will send a confirmation email if the server is configured to do so.
+ * @param {UserDeanonymizeSchema} request.body.required
+ * @return {string} 200 - Success - text/plain
+ * @return {string} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @security BearerAuth
+ * @tags Authentication
+ */
 router.post(
   '/user/deanonymize',
   createValidator().body(userDeanonymizeSchema),
   aw(userDeanonymizeHandler)
 );
 
-// TODO document API
+/**
+ * POST /user/provider/tokens
+ * @summary Refresh the Oauth access tokens of a given user. You must be an admin to perform this operation.
+ * @param {UserProviderTokensSchema} request.body.required
+ * @param {string} x-hasura-admin-secret.header.required - Hasura admin secret
+ * @return {string} 200 - Success - text/plain
+ * @return {string} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedError} 401 - Incorrect admin secret header
+ * @tags User management
+ */
 router.post(
   '/user/provider/tokens',
   createValidator().body(userProviderTokensSchema),
