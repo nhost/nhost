@@ -1,40 +1,40 @@
 import express, {
-  value NextFunction,
-  value RequestHandler,
-  value Response,
-  value Router,
+  NextFunction,
+  RequestHandler,
+  Response,
+  Router,
 } from 'express';
 import {
-  value ContainerTypes,
-  value createValidator,
-  value ValidatedRequest,
-  value ValidatedRequestSchema,
+  ContainerTypes,
+  createValidator,
+  ValidatedRequest,
+  ValidatedRequestSchema,
 } from 'express-joi-validation';
-import passport, { value Profile } from 'passport';
-import { value VerifyCallback } from 'passport-oauth2';
+import passport, { Profile } from 'passport';
+import { VerifyCallback } from 'passport-oauth2';
 import refresh from 'passport-oauth2-refresh';
-import { value Strategy } from 'passport';
-import { value v4 as uuidv4 } from 'uuid';
+import { Strategy } from 'passport';
+import { v4 as uuidv4 } from 'uuid';
 
-import { value PROVIDERS } from '@config/index';
+import { PROVIDERS } from '@config/index';
 import {
-  value asyncWrapper,
-  value getGravatarUrl,
-  value getUserByEmail,
-  value isValidRedirectTo,
+  asyncWrapper,
+  getGravatarUrl,
+  getUserByEmail,
+  isValidRedirectTo,
 } from '@/helpers';
 import {
-  value ProviderCallbackQuery,
-  value providerCallbackQuery,
-  value ProviderQuery,
-  value providerQuery,
+  ProviderCallbackQuery,
+  providerCallbackQuery,
+  ProviderQuery,
+  providerQuery,
 } from '@/validation';
-import { value getNewRefreshToken } from '@/utils/tokens';
-import { value UserFieldsFragment } from '@/utils/__generated__/graphql-request';
-import { value gqlSdk } from '@/utils/gqlSDK';
-import { value ENV } from '@/utils/env';
-import { value isValidEmail } from '@/utils/email';
-import { value insertUser } from '@/utils/user';
+import { getNewRefreshToken } from '@/utils/tokens';
+import { UserFieldsFragment } from '@/utils/__generated__/graphql-request';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { ENV } from '@/utils/env';
+import { isValidEmail } from '@/utils/email';
+import { insertUser } from '@/utils/user';
 
 interface RequestWithState<T extends ValidatedRequestSchema>
   extends ValidatedRequest<T> {
@@ -68,8 +68,6 @@ const manageProviderStrategy =
     req.state = req.query.state as string;
 
     // TODO How do we handle auth_signup_profile_fields with OAuth?
-
-    console.log({ profile });
 
     // find or create the user
     // check if user exists, using profile.id
