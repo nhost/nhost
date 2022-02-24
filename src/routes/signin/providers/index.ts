@@ -31,5 +31,6 @@ discord(router);
 twitch(router);
 
 export default (parentRouter: Router) => {
+  // TODO document API
   parentRouter.use('/signin/provider', router);
 };

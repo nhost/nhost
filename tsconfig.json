@@ -19,7 +19,7 @@
     "esModuleInterop": true,
     "moduleResolution": "node",
     "strictNullChecks": true,
-    "resolveJsonModule": false,
+    "resolveJsonModule": true,
     "inlineSourceMap": true
   }
 }

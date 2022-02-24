@@ -13,6 +13,7 @@ export const isRolesValid = async ({
   allowedRoles,
   res,
 }: IsRolesValidParams): Promise<boolean> => {
+  // TODO move to Joi validation
   if (!allowedRoles.includes(defaultRole)) {
     res.boom.badRequest('Default role must be part of allowed roles');
     return false;

@@ -13,6 +13,7 @@ export const isValidEmail = async ({
   email,
   res,
 }: IsValidEmailParams): Promise<boolean> => {
+  // TODO move to Joi
   // check if email is valid
   if (!EmailValidator.validate(email)) {
     if (res) {

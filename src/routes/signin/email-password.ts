@@ -53,6 +53,7 @@ export const signInEmailPasswordHandler = async (
 
   if (!user.passwordHash) {
     logger.debug('User has no password set');
+    // TODO correct error message
     return res.boom.unauthorized('Incorrect email or password');
   }
 

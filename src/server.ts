@@ -3,6 +3,7 @@ import helmet from 'helmet';
 import { json } from 'body-parser';
 import cors from 'cors';
 import passport from 'passport';
+import { Server } from 'http';
 
 import { applyMigrations } from './migrations';
 import { applyMetadata } from './metadata';
@@ -12,13 +13,15 @@ import router from './routes';
 import { errors } from './errors';
 import { authMiddleware } from './middleware/auth';
 import { pino, logger, LOG_LEVEL } from './logger';
-import { Server } from 'http';
+import { addOpenApiRoute } from './openapi';
 
 const app = express();
 
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
+
+addOpenApiRoute(app);
 
 app.use(pino);
 app.use(helmet());

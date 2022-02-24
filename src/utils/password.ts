@@ -11,6 +11,7 @@ export const isPasswordValid = async ({
   password,
   res,
 }: IsPasswordValidParams): Promise<boolean> => {
+  // TODO move to Joi (tricky as express-joi-validation does not handle async validation)
   if (!password) {
     res.boom.badRequest(`Password is not set`);
     return false;

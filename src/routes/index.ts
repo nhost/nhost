@@ -15,7 +15,20 @@ const router = express.Router();
 router.use(boom());
 router.use(nocache());
 
+/**
+ * GET /healthz
+ * @summary Check if the server is up and running
+ * @return 200 - success response - text/plain
+ * @tags General
+ */
 router.get('/healthz', (_req, res) => res.send('OK'));
+
+/**
+ * GET /version
+ * @summary Get the current Hasura-auth version
+ * @return {string} 200 - success response - text/plain
+ * @tags General
+ */
 router.get('/version', (_req, res) =>
   res.send(JSON.stringify({ version: 'v' + process.env.npm_package_version }))
 );
