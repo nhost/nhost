@@ -23,6 +23,7 @@
   "dependencies": {
     "@djgrant/postgres-migrations": "^4.1.0-rc.1",
     "@nicokaiser/passport-apple": "^0.2.1",
+    "@oauth-everything/passport-discord": "^1.0.2",
     "@riderize/passport-strava-oauth2": "^1.1.1",
     "axios": "0.21.1",
     "bcryptjs": "^2.4.3",

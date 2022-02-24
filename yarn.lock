@@ -1591,6 +1591,29 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
+"@oauth-everything/oauth2-types@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@oauth-everything/oauth2-types/-/oauth2-types-1.0.2.tgz#1662a99d1b5f507efb9476e1e2cd7b50be91caea"
+  integrity sha512-fGddJhO8bnvljIhSTMuOSWFilkJ67TDqqgB1/qPVCu6s8swju7qWYZm2Qyit0miBebTtCf1jQ6hcz+GPA7glJw==
+  dependencies:
+    "@types/express" "^4.17.2"
+    "@types/passport-oauth2" "^1.4.8"
+
+"@oauth-everything/passport-discord@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@oauth-everything/passport-discord/-/passport-discord-1.0.2.tgz#c8c227b1e0f50e54281edce3ef8dfec8d4a01f1e"
+  integrity sha512-N+n8ICOADti8vJUBLb9FEHeroMb7Cdvu18moM0BgJIxXb1ZzxiYy02MyiMVyqFZGh/Tw7xJA2z9c7o0nQVQZ7g==
+  dependencies:
+    "@oauth-everything/oauth2-types" "^1.0.2"
+    "@oauth-everything/profile" "^1.0.0"
+    "@types/passport-oauth2" "^1.4.8"
+    passport-oauth2 "^1.5.0"
+
+"@oauth-everything/profile@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@oauth-everything/profile/-/profile-1.0.0.tgz#0b5e78749415519fa312dc83347a677903f456ba"
+  integrity sha512-OmCuBPhjaLHh9MST9P5jRuVBZaP0z7hBk8nH4Yt7Id5kNM1AXGd5uud6CP7W2zuhKl2nk0KsYmeMT7SkzN6VWg==
+
 "@octokit/auth-token@^2.4.4":
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/@octokit/auth-token/-/auth-token-2.5.0.tgz#27c37ea26c205f28443402477ffd261311f21e36"
@@ -1985,7 +2008,7 @@
     "@types/qs" "*"
     "@types/range-parser" "*"
 
-"@types/express@*":
+"@types/express@*", "@types/express@^4.17.2":
   version "4.17.13"
   resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.13.tgz#a76e2995728999bab51a33fabce1d705a3709034"
   integrity sha512-6bSZTPaTIACxn48l50SR+axgrqm6qXFIxrdAKaG6PaJk3+zuUr35hBlgT7vOmJcum+OEaIBLtHV/qloEAFITeA==
@@ -2219,7 +2242,7 @@
     "@types/oauth" "*"
     "@types/passport-oauth2" "*"
 
-"@types/passport-oauth2@*":
+"@types/passport-oauth2@*", "@types/passport-oauth2@^1.4.8":
   version "1.4.11"
   resolved "https://registry.yarnpkg.com/@types/passport-oauth2/-/passport-oauth2-1.4.11.tgz#fbca527ecb44258774d17bcb251630c321515fa9"
   integrity sha512-KUNwmGhe/3xPbjkzkPwwcPmyFwfyiSgtV1qOrPBLaU4i4q9GSCdAOyCbkFG0gUxAyEmYwqo9OAF/rjPjJ6ImdA==

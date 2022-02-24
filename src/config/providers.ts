@@ -232,6 +232,25 @@ const PROVIDERS = {
           },
         };
   },
+
+  get discord() {
+    return !castBooleanEnv('AUTH_PROVIDER_DISCORD_ENABLED')
+      ? null
+      : {
+          get clientID() {
+            return process.env.AUTH_PROVIDER_DISCORD_CLIENT_ID || '';
+          },
+          get clientSecret() {
+            return process.env.AUTH_PROVIDER_DISCORD_CLIENT_SECRET || '';
+          },
+          get scope() {
+            return castStringArrayEnv('AUTH_PROVIDER_DISCORD_SCOPE', [
+              'identify',
+              'email',
+            ]);
+          },
+        };
+  },
 };
 
 export { PROVIDERS };

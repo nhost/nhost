@@ -11,6 +11,7 @@ import spotify from './spotify';
 import strava from './strava';
 import gitlab from './gitlab';
 import bitbucket from './bitbucket';
+import discord from './discord';
 
 const router = Router();
 
@@ -25,6 +26,7 @@ spotify(router);
 strava(router);
 gitlab(router);
 bitbucket(router);
+discord(router);
 
 export default (parentRouter: Router) => {
   parentRouter.use('/signin/provider', router);

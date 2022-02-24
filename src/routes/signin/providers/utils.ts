@@ -192,7 +192,8 @@ export const initProvider = <T extends Strategy>(
     | 'spotify'
     | 'gitlab'
     | 'bitbucket'
-    | 'strava',
+    | 'strava'
+    | 'discord',
   strategy: Constructable<T>,
   settings: InitProviderSettings & ConstructorParameters<Constructable<T>>[0], // TODO: Strategy option type is not inferred correctly
   middleware?: RequestHandler
