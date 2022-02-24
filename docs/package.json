@@ -30,7 +30,8 @@
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-merge-refs": "^1.1.0",
-    "react-syntax-highlighter": "^15.4.5"
+    "react-syntax-highlighter": "^15.4.5",
+    "swagger-ui-react": "^4.5.2"
   },
   "devDependencies": {
     "@types/react": "^17.0.37",

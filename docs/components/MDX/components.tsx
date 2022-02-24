@@ -8,6 +8,7 @@ import React, { DetailedHTMLProps, HTMLProps, PropsWithChildren } from 'react'
 
 import Command from '../Command'
 import Divider from '../Divider'
+import { Swagger } from '../Swagger'
 
 function Note({ children }: PropsWithChildren<unknown>) {
   return (
@@ -141,7 +142,8 @@ const components = {
     ...props
   }: DetailedHTMLProps<HTMLProps<HTMLTableCellElement>, HTMLTableCellElement>) => {
     return <td className={clsx('font-display', className)} {...props} />
-  }
+  },
+  Swagger
 }
 
 export default components

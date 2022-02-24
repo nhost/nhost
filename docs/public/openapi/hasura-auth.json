@@ -1,0 +1,852 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Hasura auth",
+    "description": "Authentication for Hasura",
+    "license": { "name": "MIT", "url": "" },
+    "termsOfService": "",
+    "version": "0.2.1"
+  },
+  "servers": [],
+  "security": [{ "BearerAuth": [] }],
+  "components": {
+    "securitySchemes": { "BearerAuth": { "type": "http", "scheme": "bearer" } },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "description": "Id of the user",
+            "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          },
+          "createdAt": { "type": "string", "format": "date-time" },
+          "displayName": { "type": "string", "example": "John Smith" },
+          "avatarUrl": { "type": "string" },
+          "locale": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "description": "A two-characters locale",
+            "example": "en"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "isAnonymous": { "type": "boolean", "default": false },
+          "defaultRole": { "type": "string", "enum": ["me", "user"], "example": "user" },
+          "metadata": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false,
+            "example": { "firstName": "John", "lastName": "Smith" }
+          }
+        },
+        "required": [
+          "createdAt",
+          "displayName",
+          "avatarUrl",
+          "locale",
+          "email",
+          "isAnonymous",
+          "defaultRole",
+          "metadata"
+        ],
+        "additionalProperties": false
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "accessToken": { "type": "string" },
+          "accessTokenExpiresIn": { "type": "number", "format": "float" },
+          "refreshToken": {
+            "type": "string",
+            "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "description": "Refresh token during authentication or when refreshing the JWT",
+            "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          },
+          "user": { "$ref": "#/components/schemas/User" }
+        },
+        "required": ["accessToken", "accessTokenExpiresIn", "refreshToken"],
+        "additionalProperties": false
+      },
+      "Mfa": {
+        "type": "object",
+        "properties": { "ticket": { "type": "string" } },
+        "additionalProperties": false
+      },
+      "SessionPayload": {
+        "type": "object",
+        "properties": {
+          "session": { "$ref": "#/components/schemas/Session" },
+          "mfa": { "$ref": "#/components/schemas/Mfa" }
+        },
+        "additionalProperties": false
+      },
+      "EmailAlreadyInUseError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number", "format": "float", "enum": [409] },
+          "error": { "type": "string", "enum": ["Conflict"] },
+          "message": { "type": "string", "enum": ["Email already in use"] }
+        },
+        "additionalProperties": false
+      },
+      "UnauthenticatedError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number", "format": "float", "enum": [401] },
+          "error": { "type": "string", "enum": ["Unauthorized"] },
+          "message": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "DisabledUserError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number", "format": "float", "enum": [401] },
+          "error": { "type": "string", "enum": ["Unauthorized"] },
+          "message": { "type": "string", "enum": ["User is disabled"] }
+        },
+        "additionalProperties": false
+      },
+      "UserNotFoundError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number", "format": "float", "enum": [401] },
+          "error": { "type": "string", "enum": ["Unauthorized"] },
+          "message": { "type": "string", "enum": ["Incorrect email or password"] }
+        },
+        "additionalProperties": false
+      },
+      "UserNotVerifiedError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number", "format": "float", "enum": [401] },
+          "error": { "type": "string", "enum": ["Unauthorized"] },
+          "message": { "type": "string", "enum": ["Email is not verified"] }
+        },
+        "additionalProperties": false
+      },
+      "UserHasNoPasswordError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number", "format": "float", "enum": [401] },
+          "error": { "type": "string", "enum": ["Unauthorized"] },
+          "message": { "type": "string", "enum": ["Incorrect email or password"] }
+        },
+        "additionalProperties": false
+      },
+      "PasswordEmailSigninError": {
+        "type": "object",
+        "properties": {
+          "statusCode": { "type": "number", "format": "float", "enum": [401] },
+          "error": { "type": "string", "enum": ["Unauthorized"] },
+          "message": {
+            "type": "string",
+            "enum": ["User is disabled", "Incorrect email or password", "Email is not verified"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SignUpEmailPasswordSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 3,
+            "description": "A password of minimum 3 characters",
+            "example": "Str0ngPassw#ord-94|%"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "locale": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2,
+                "description": "A two-characters locale",
+                "example": "en"
+              },
+              "defaultRole": { "type": "string", "enum": ["me", "user"], "example": "user" },
+              "allowedRoles": {
+                "type": "array",
+                "items": { "type": "string" },
+                "example": ["user", "me"]
+              },
+              "displayName": { "type": "string", "example": "John Smith" },
+              "metadata": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "example": { "firstName": "John", "lastName": "Smith" }
+              },
+              "redirectTo": {
+                "type": "string",
+                "pattern": "^http:\\/\\/localhost:3000",
+                "example": "http://localhost:3000/catch-redirection"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false
+      },
+      "SignInEmailPasswordSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 3,
+            "description": "A password of minimum 3 characters",
+            "example": "Str0ngPassw#ord-94|%"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "defaultRole": { "type": "string", "enum": ["me", "user"], "example": "user" },
+              "allowedRoles": {
+                "type": "array",
+                "items": { "type": "string" },
+                "example": ["user", "me"]
+              },
+              "displayName": { "type": "string", "example": "John Smith" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["email", "password"],
+        "additionalProperties": false
+      },
+      "SignInPasswordlessEmailSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "locale": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2,
+                "description": "A two-characters locale",
+                "example": "en"
+              },
+              "defaultRole": { "type": "string", "enum": ["me", "user"], "example": "user" },
+              "allowedRoles": {
+                "type": "array",
+                "items": { "type": "string" },
+                "example": ["user", "me"]
+              },
+              "displayName": { "type": "string", "example": "John Smith" },
+              "metadata": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "example": { "firstName": "John", "lastName": "Smith" }
+              },
+              "redirectTo": {
+                "type": "string",
+                "pattern": "^http:\\/\\/localhost:3000",
+                "example": "http://localhost:3000/catch-redirection"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["email"],
+        "additionalProperties": false
+      },
+      "SignInPasswordlessSmsSchema": {
+        "type": "object",
+        "properties": {
+          "phoneNumber": { "type": "string" },
+          "options": {
+            "type": "object",
+            "properties": {
+              "locale": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2,
+                "description": "A two-characters locale",
+                "example": "en"
+              },
+              "defaultRole": { "type": "string", "enum": ["me", "user"], "example": "user" },
+              "allowedRoles": {
+                "type": "array",
+                "items": { "type": "string" },
+                "example": ["user", "me"]
+              },
+              "displayName": { "type": "string", "example": "John Smith" },
+              "metadata": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": false,
+                "example": { "firstName": "John", "lastName": "Smith" }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["phoneNumber"],
+        "additionalProperties": false
+      },
+      "SignInOtpSchema": {
+        "type": "object",
+        "properties": { "phoneNumber": { "type": "string" }, "otp": { "type": "string" } },
+        "required": ["phoneNumber", "otp"],
+        "additionalProperties": false
+      },
+      "MfaTotpTicketPattern": {
+        "type": "object",
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "pattern": "mfaTotp:\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "example": "mfaTotp:e08204c7-40af-4434-a7ed-31c6aa37a390"
+          },
+          "otp": { "type": "string" }
+        },
+        "required": ["ticket", "otp"],
+        "additionalProperties": false
+      },
+      "SignInMfaPhoneNumberSchema": {
+        "type": "object",
+        "properties": {
+          "locale": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 2,
+            "description": "A two-characters locale",
+            "example": "en"
+          },
+          "displayName": { "type": "string", "example": "John Smith" },
+          "metadata": {
+            "type": "object",
+            "properties": {},
+            "additionalProperties": false,
+            "example": { "firstName": "John", "lastName": "Smith" }
+          }
+        },
+        "additionalProperties": false
+      },
+      "SignOutSchema": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "description": "Refresh token during authentication or when refreshing the JWT",
+            "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          },
+          "all": {
+            "type": "boolean",
+            "description": "Sign out from all connected devices",
+            "default": false
+          }
+        },
+        "required": ["refreshToken"],
+        "additionalProperties": false
+      },
+      "UserPasswordResetSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "redirectTo": {
+                "type": "string",
+                "pattern": "^http:\\/\\/localhost:3000",
+                "example": "http://localhost:3000/catch-redirection"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["email"],
+        "additionalProperties": false
+      },
+      "UserPasswordSchema": {
+        "type": "object",
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "minLength": 3,
+            "description": "A password of minimum 3 characters",
+            "example": "Str0ngPassw#ord-94|%"
+          }
+        },
+        "required": ["newPassword"],
+        "additionalProperties": false
+      },
+      "UserEmailChangeSchema": {
+        "type": "object",
+        "properties": {
+          "newEmail": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "redirectTo": {
+                "type": "string",
+                "pattern": "^http:\\/\\/localhost:3000",
+                "example": "http://localhost:3000/catch-redirection"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "UserEmailSendVerificationEmailSchema": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "options": {
+            "type": "object",
+            "properties": {
+              "redirectTo": {
+                "type": "string",
+                "pattern": "^http:\\/\\/localhost:3000",
+                "example": "http://localhost:3000/catch-redirection"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": ["email"],
+        "additionalProperties": false
+      },
+      "UserActivateSchema": {
+        "type": "object",
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "pattern": "userActivate:\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "example": "userActivate:dda9a088-df3e-40a3-8b87-fd016f6cc63e"
+          }
+        },
+        "required": ["ticket"],
+        "additionalProperties": false
+      },
+      "UserMfaSchema": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "activeMfaType": { "type": "string", "example": "email" }
+        },
+        "required": ["code", "activeMfaType"],
+        "additionalProperties": false
+      },
+      "UserDeanonymizeSchema": {
+        "type": "object",
+        "properties": {
+          "signInMethod": { "type": "string", "example": "email-password" },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "A valid email",
+            "example": "john.smith@nhost.io"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 3,
+            "description": "A password of minimum 3 characters",
+            "example": "Str0ngPassw#ord-94|%"
+          },
+          "connection": { "type": "string", "example": "email" },
+          "defaultRole": { "type": "string", "enum": ["me", "user"], "example": "user" },
+          "allowedRoles": {
+            "type": "array",
+            "items": { "type": "string" },
+            "example": ["user", "me"]
+          }
+        },
+        "required": ["signInMethod", "email"],
+        "additionalProperties": false
+      },
+      "UserProviderTokensSchema": {
+        "type": "object",
+        "properties": {
+          "providerId": { "type": "string" },
+          "userId": {
+            "type": "string",
+            "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "description": "Id of the user",
+            "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          }
+        },
+        "required": ["providerId"],
+        "additionalProperties": false
+      },
+      "TokenSchema": {
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "description": "Refresh token during authentication or when refreshing the JWT",
+            "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          }
+        },
+        "required": ["refreshToken"],
+        "additionalProperties": false
+      },
+      "ProviderQuery": {
+        "type": "object",
+        "properties": { "redirectUrl": { "type": "string" } },
+        "additionalProperties": false
+      },
+      "ProviderCallbackQuery": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
+            "description": "A valid UUID",
+            "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
+          }
+        },
+        "required": ["state"]
+      }
+    }
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "deprecated": false,
+        "summary": "Check if the server is up and running",
+        "security": [],
+        "responses": { "200": { "description": "success response" } },
+        "parameters": [],
+        "tags": ["General"]
+      }
+    },
+    "/version": {
+      "get": {
+        "deprecated": false,
+        "summary": "Get the current Hasura-auth version",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "success response",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["General"]
+      }
+    },
+    "/signin/email-password": {
+      "post": {
+        "deprecated": false,
+        "summary": "Authenticate with email + password",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Signed in successfully",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+            }
+          },
+          "400": {
+            "description": "Error validating the payload",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PasswordEmailSigninError" }
+              }
+            }
+          },
+          "404": {
+            "description": "Feature is not activated",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignInEmailPasswordSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/signin/passwordless/email": {
+      "post": {
+        "deprecated": false,
+        "summary": "Email passwordless authentication",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Email sent successfully",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "Error validating the payload",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "User is disabled",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/DisabledUserError" } }
+            }
+          },
+          "404": {
+            "description": "Feature is not activated",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignInPasswordlessEmailSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/signin/passwordless/sms": {
+      "post": {
+        "deprecated": false,
+        "summary": "Email passwordless authentication",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "SMS sent successfully",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "Error validating the payload",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "404": {
+            "description": "Feature is not activated",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignInPasswordlessEmailSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/signin/passwordless/sms/otp": {
+      "post": {
+        "deprecated": false,
+        "summary": "Email passwordless authentication",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "User successfully authenticated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+            }
+          },
+          "400": {
+            "description": "Error validating the payload",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "Error processing the request",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          },
+          "404": {
+            "description": "Feature is not activated",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SignInOtpSchema" } }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/signin/anonymous": {
+      "post": {
+        "deprecated": false,
+        "summary": "Anonymous authentication",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "User successfully authenticated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+            }
+          },
+          "400": {
+            "description": "Error validating the payload",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "404": {
+            "description": "Feature is not activated",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignInAnonymousSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/signout": {
+      "post": {
+        "deprecated": false,
+        "summary": "Signout",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Successfully signed out",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "Error validating the payload",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "User must be signed in to sign out from all sessions",
+            "content": { "application/json": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["Signout"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SignOutSchema" } }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/signup/email-password": {
+      "post": {
+        "deprecated": false,
+        "summary": "Signup with email and password",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Successfully registered. Null session means email verification is pending",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+            }
+          },
+          "400": {
+            "description": "Error validating the payload",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "409": {
+            "description": "Email is already present in the database",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/EmailAlreadyInUseError" }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "tags": ["Registration"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignUpEmailPasswordSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/user": {
+      "get": {
+        "deprecated": false,
+        "summary": "Get user information",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "User information",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+          },
+          "401": {
+            "description": "User is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "tags": ["User management"]
+      }
+    }
+  },
+  "tags": []
+}
