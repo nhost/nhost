@@ -529,23 +529,6 @@
         },
         "required": ["refreshToken"],
         "additionalProperties": false
-      },
-      "ProviderQuery": {
-        "type": "object",
-        "properties": { "redirectUrl": { "type": "string" } },
-        "additionalProperties": false
-      },
-      "ProviderCallbackQuery": {
-        "type": "object",
-        "properties": {
-          "state": {
-            "type": "string",
-            "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
-            "description": "A valid UUID",
-            "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
-          }
-        },
-        "required": ["state"]
       }
     }
   },
@@ -582,7 +565,7 @@
         "security": [{ "BearerAuth": [] }],
         "responses": {
           "200": {
-            "description": "XXX",
+            "description": "Success",
             "content": {
               "application/json": { "schema": { "$ref": "#/components/schemas/TotpPayload" } }
             }
@@ -816,6 +799,100 @@
           "description": "",
           "required": true
         }
+      }
+    },
+    "/signin/provider/{provider}": {
+      "get": {
+        "deprecated": false,
+        "summary": "",
+        "security": [],
+        "responses": {
+          "501": {
+            "description": "The provider is not enabled",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "description": "name param description",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "github",
+                "google",
+                "facebook",
+                "twitter",
+                "apple",
+                "windowslive",
+                "linkedin",
+                "spotify",
+                "strava",
+                "gitlab",
+                "bitbucket"
+              ]
+            }
+          },
+          {
+            "name": "redirectUrl",
+            "in": "query",
+            "description": "-",
+            "required": true,
+            "deprecated": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "tags": ["Authentication"]
+      }
+    },
+    "/signin/provider/{provider}/callback": {
+      "get": {
+        "deprecated": false,
+        "summary": "Oauth callback url, that will be used by the Oauth provider, to redirect to the client application. Attention: all providers are using a GET operation, except Apple that uses POST",
+        "security": [],
+        "responses": {
+          "302": {
+            "description": "Redirect to the initial url given as a query parameter in /signin/provider/{provider}",
+            "content": { "application/json": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [
+          {
+            "name": "provider",
+            "in": "path",
+            "description": "name param description",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "github",
+                "google",
+                "facebook",
+                "twitter",
+                "apple",
+                "windowslive",
+                "linkedin",
+                "spotify",
+                "strava",
+                "gitlab",
+                "bitbucket"
+              ]
+            }
+          },
+          {
+            "name": "redirectUrl",
+            "in": "query",
+            "description": "",
+            "required": true,
+            "deprecated": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "tags": ["Authentication"]
       }
     },
     "/signout": {
@@ -1095,6 +1172,87 @@
         "requestBody": {
           "content": {
             "application/json": { "schema": { "$ref": "#/components/schemas/UserMfaSchema" } }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/user/deanonymize": {
+      "post": {
+        "deprecated": false,
+        "summary": "'Deanonymize' an anonymous user in adding missing email or email+password, depending on the chosen authentication method. Will send a confirmation email if the server is configured to do so.",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload format is invalid",
+            "content": { "application/json": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "User is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserDeanonymizeSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/user/provider/tokens": {
+      "post": {
+        "deprecated": false,
+        "summary": "Refresh the Oauth access tokens of a given user. You must be an admin to perform this operation.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload format is invalid",
+            "content": { "application/json": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "Incorrect admin secret header",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "x-hasura-admin-secret",
+            "in": "header",
+            "description": "Hasura admin secret",
+            "required": true,
+            "deprecated": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "tags": ["User management"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserProviderTokensSchema" }
+            }
           },
           "description": "",
           "required": true
