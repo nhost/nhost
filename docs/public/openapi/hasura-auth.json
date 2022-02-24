@@ -87,6 +87,15 @@
         },
         "additionalProperties": false
       },
+      "TotpPayload": {
+        "type": "object",
+        "properties": {
+          "imageUrl": { "type": "string", "description": "Data URL of the QR code" },
+          "totpSecret": { "type": "string", "description": "TOTP secret" }
+        },
+        "required": ["imageUrl", "totpSecret"],
+        "additionalProperties": false
+      },
       "EmailAlreadyInUseError": {
         "type": "object",
         "properties": {
@@ -319,7 +328,7 @@
         "required": ["phoneNumber", "otp"],
         "additionalProperties": false
       },
-      "MfaTotpTicketPattern": {
+      "SignInMfaTotpSchema": {
         "type": "object",
         "properties": {
           "ticket": {
@@ -454,25 +463,17 @@
         "required": ["email"],
         "additionalProperties": false
       },
-      "UserActivateSchema": {
-        "type": "object",
-        "properties": {
-          "ticket": {
-            "type": "string",
-            "pattern": "userActivate:\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
-            "example": "userActivate:dda9a088-df3e-40a3-8b87-fd016f6cc63e"
-          }
-        },
-        "required": ["ticket"],
-        "additionalProperties": false
-      },
       "UserMfaSchema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string" },
-          "activeMfaType": { "type": "string", "example": "email" }
+          "code": { "type": "string", "description": "MFA activation code" },
+          "activeMfaType": {
+            "type": "string",
+            "description": "Multi-factor authentication type. A null value deactivates MFA",
+            "example": "totp"
+          }
         },
-        "required": ["code", "activeMfaType"],
+        "required": ["code"],
         "additionalProperties": false
       },
       "UserDeanonymizeSchema": {
@@ -574,6 +575,35 @@
         "tags": ["General"]
       }
     },
+    "/mfa/totp/generate": {
+      "get": {
+        "deprecated": false,
+        "summary": "Generate a secret to request the activation of Time-based One-Time Password (TOTP) multi-factor authentication",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "XXX",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/TotpPayload" } }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+              }
+            }
+          },
+          "404": {
+            "description": "The feature is not activated",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["User management"]
+      }
+    },
     "/signin/email-password": {
       "post": {
         "deprecated": false,
@@ -587,7 +617,7 @@
             }
           },
           "400": {
-            "description": "Error validating the payload",
+            "description": "The payload is invalid",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "401": {
@@ -599,7 +629,7 @@
             }
           },
           "404": {
-            "description": "Feature is not activated",
+            "description": "The feature is not activated",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           }
         },
@@ -627,7 +657,7 @@
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "400": {
-            "description": "Error validating the payload",
+            "description": "The payload is invalid",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "401": {
@@ -637,7 +667,7 @@
             }
           },
           "404": {
-            "description": "Feature is not activated",
+            "description": "The feature is not activated",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           }
         },
@@ -657,7 +687,7 @@
     "/signin/passwordless/sms": {
       "post": {
         "deprecated": false,
-        "summary": "Email passwordless authentication",
+        "summary": "Send a one-time password by SMS",
         "security": [],
         "responses": {
           "200": {
@@ -665,11 +695,11 @@
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "400": {
-            "description": "Error validating the payload",
+            "description": "The payload is invalid",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "404": {
-            "description": "Feature is not activated",
+            "description": "The feature is not activated",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           }
         },
@@ -689,7 +719,7 @@
     "/signin/passwordless/sms/otp": {
       "post": {
         "deprecated": false,
-        "summary": "Email passwordless authentication",
+        "summary": "Passwordless authentication from a one-time password code received by SMS",
         "security": [],
         "responses": {
           "200": {
@@ -699,7 +729,7 @@
             }
           },
           "400": {
-            "description": "Error validating the payload",
+            "description": "The payload is invalid",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "401": {
@@ -707,7 +737,7 @@
             "content": { "application/json": { "schema": { "type": "object" } } }
           },
           "404": {
-            "description": "Feature is not activated",
+            "description": "The feature is not activated",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           }
         },
@@ -735,11 +765,11 @@
             }
           },
           "400": {
-            "description": "Error validating the payload",
+            "description": "The payload is invalid",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "404": {
-            "description": "Feature is not activated",
+            "description": "The feature is not activated",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           }
         },
@@ -756,10 +786,42 @@
         }
       }
     },
+    "/signin/mfa/totp": {
+      "post": {
+        "deprecated": false,
+        "summary": "Sign in with a Time-base One-Time Password (TOTP) ticket",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "User successfully authenticated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+            }
+          },
+          "400": {
+            "description": "The payload is invalid",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "404": {
+            "description": "The feature is not activated",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/SignInMfaTotpSchema" } }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
     "/signout": {
       "post": {
         "deprecated": false,
-        "summary": "Signout",
+        "summary": "Sign out",
         "security": [{ "BearerAuth": [] }],
         "responses": {
           "200": {
@@ -767,7 +829,7 @@
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "400": {
-            "description": "Error validating the payload",
+            "description": "The payload is invalid",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "401": {
@@ -776,7 +838,7 @@
           }
         },
         "parameters": [],
-        "tags": ["Signout"],
+        "tags": ["Sign out"],
         "requestBody": {
           "content": {
             "application/json": { "schema": { "$ref": "#/components/schemas/SignOutSchema" } }
@@ -799,7 +861,7 @@
             }
           },
           "400": {
-            "description": "Error validating the payload",
+            "description": "The payload is invalid",
             "content": { "text/plain": { "schema": { "type": "string" } } }
           },
           "409": {
@@ -818,6 +880,38 @@
             "application/json": {
               "schema": { "$ref": "#/components/schemas/SignUpEmailPasswordSchema" }
             }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/token": {
+      "post": {
+        "deprecated": false,
+        "summary": "Refresh the access token (JWT) and the refresh token",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "User successfully authenticated",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+            }
+          },
+          "400": {
+            "description": "The payload is invalid",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "User is not authorized to refresh the token",
+            "content": { "application/json": { "schema": { "type": "object" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["General"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/TokenSchema" } }
           },
           "description": "",
           "required": true
@@ -845,6 +939,213 @@
         },
         "parameters": [],
         "tags": ["User management"]
+      }
+    },
+    "/user/password/reset": {
+      "post": {
+        "deprecated": false,
+        "summary": "Send an email asking the user to reset their password",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The email to reset the password has been sent",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload is invalid",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["User management"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserPasswordResetSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/user/password": {
+      "post": {
+        "deprecated": false,
+        "summary": "Set a new password",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "The password has been successfully changed",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload is invalid",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "User is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "tags": ["User management"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserPasswordSchema" } }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/user/email/send-verification-email": {
+      "post": {
+        "deprecated": false,
+        "summary": "Send an email to verify the account",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload format is invalid",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [],
+        "tags": ["User management"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserEmailSendVerificationEmailSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/user/email/change": {
+      "post": {
+        "deprecated": false,
+        "summary": "Change the current user's email",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "A verification email has been sent to the new email",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload format is invalid",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "User is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "tags": ["User management"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/UserEmailChangeSchema" }
+            }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/user/mfa": {
+      "post": {
+        "deprecated": false,
+        "summary": "Activate/deactivate Multi-factor authentication",
+        "security": [{ "BearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": { "text/plain": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload format is invalid",
+            "content": { "application/json": { "schema": { "type": "string" } } }
+          },
+          "401": {
+            "description": "User is not authenticated",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/UnauthenticatedError" }
+              }
+            }
+          }
+        },
+        "parameters": [],
+        "tags": ["Authentication"],
+        "requestBody": {
+          "content": {
+            "application/json": { "schema": { "$ref": "#/components/schemas/UserMfaSchema" } }
+          },
+          "description": "",
+          "required": true
+        }
+      }
+    },
+    "/verify": {
+      "get": {
+        "deprecated": false,
+        "summary": "Verify tickets created by email verification, email passwordless authentication, or password reset",
+        "security": [],
+        "responses": {
+          "302": {
+            "description": "{redirectTo}#refreshToken=${refreshToken}&type=${type}",
+            "content": { "application/json": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "The payload format is invalid",
+            "content": { "application/json": { "schema": { "type": "string" } } }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ticket",
+            "in": "query",
+            "description": "Ticket generated in the previous actions and sent by email",
+            "required": true,
+            "deprecated": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "name param description",
+            "required": true,
+            "deprecated": false,
+            "schema": {
+              "type": "string",
+              "enum": ["emailVerify", "emailConfirmChange", "signinPasswordless", "passwordReset"]
+            }
+          },
+          {
+            "name": "redirectTo",
+            "in": "query",
+            "description": "Redirection link",
+            "required": true,
+            "deprecated": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "tags": ["General"]
       }
     }
   },
