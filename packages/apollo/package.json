@@ -22,7 +22,9 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.js",
+    "build": "run-s build:esbuild build:types",
+    "build:esbuild": "node ../../esbuild.lib.js",
+    "build:types": "tsc --build tsconfig.types.json",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
