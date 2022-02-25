@@ -1,5 +1,5 @@
-import { FlexboxGrid, Panel } from 'rsuite'
-import { Route, Routes } from 'react-router-dom'
+import { Divider, FlexboxGrid, Panel } from 'rsuite'
+import { Link, Route, Routes } from 'react-router-dom'
 import { OAuth } from './oauth'
 import { EmailPasswordless } from './email-passwordless'
 import { Password } from './password'
@@ -15,6 +15,10 @@ export const SignInPage: React.FC = () => {
             <Route path="/password" element={<Password />} />
             <Route path="/verification-email-sent" element={<VerificationEmailSent />} />
           </Routes>
+          <Divider />
+          <div style={{ textAlign: 'center' }}>
+            Don't have an account? <Link to="/sign-up">Sign up</Link>
+          </div>
         </Panel>
       </FlexboxGrid.Item>
     </FlexboxGrid>

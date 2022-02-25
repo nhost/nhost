@@ -11,6 +11,7 @@ import Home from './Home'
 import { ProfilePage } from './profile'
 import { ApolloPage } from './apollo'
 import { SignUpPage } from './sign-up'
+import { AboutPage } from './About'
 
 function App() {
   const isAuthenticated = useAuthenticated()
@@ -36,6 +37,7 @@ function App() {
           <Nav activeKey={location.pathname} onSelect={navigate}>
             {isAuthenticated && <Nav.Item eventKey="/profile">Profile</Nav.Item>}
             {isAuthenticated && <Nav.Item eventKey="/apollo">Apollo GraphQL</Nav.Item>}
+            <Nav.Item eventKey="/about">About</Nav.Item>
           </Nav>
           <Nav pullRight>
             {isAuthenticated && (
@@ -48,7 +50,15 @@ function App() {
       </Header>
       <Content>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route
+            path="/"
+            element={
+              <AuthGate>
+                <Home />
+              </AuthGate>
+            }
+          />
+          <Route path="/about" element={<AboutPage />} />
           <Route path="/sign-in/*" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
           <Route
