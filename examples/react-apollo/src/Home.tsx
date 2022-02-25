@@ -21,7 +21,7 @@ const HomePage: React.FC = () => {
         </FlexboxGrid>
       )}
       <p>This application demonstrates the available features of the Nhost stack.</p>
-      <p>
+      <div>
         Nhost cloud leverages the following services in the backend:
         <ul>
           <li>Hasura</li>
@@ -29,8 +29,8 @@ const HomePage: React.FC = () => {
           <li>Hasura Storage</li>
           <li>Custom functions</li>
         </ul>
-      </p>
-      <p>
+      </div>
+      <div>
         This frontend is built with the following technologies:
         <ul>
           <li>React</li>
@@ -38,7 +38,7 @@ const HomePage: React.FC = () => {
           <li>RSuite</li>
           <li>...and of course, the Nhost React client</li>
         </ul>
-      </p>
+      </div>
     </Panel>
   )
 }
