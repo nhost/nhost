@@ -55,6 +55,15 @@
 
 Use [Nhost](https://nhost.io) to start using Hasura Auth in seconds.
 
+### Using Docker-compose
+
+```sh
+git clone https://github.com/nhost/hasura-auth.git
+cd hasura-auth
+cp .env.example .env
+docker-compose -f docker-compose-example.yaml up
+```
+
 ## 🤝 Contributing
 
 Contributions and issues are welcome. Please have a look at the [developer's guide](./DEVELOPERS.md) if you want to prepare a pull request.
