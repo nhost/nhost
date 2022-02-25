@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "0.0.9",
+  "version": "0.0.10",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -18,7 +18,9 @@
     "url": "https://github.com/nhost/hasura-storage-js.git"
   },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.js",
+    "build": "run-s build:esbuild build:types",
+    "build:esbuild": "node ../../esbuild.lib.js",
+    "build:types": "tsc --build tsconfig.types.json",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -28,7 +30,15 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.ts",
-  "access": "public",
+  "exports": {
+    ".": {
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.es.js"
+      },
+      "require": "./dist/index.cjs.js"
+    }
+  },
   "publishConfig": {
     "access": "public",
     "main": "dist/index.cjs.js",

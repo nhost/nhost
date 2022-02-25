@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 0.1.14
+
+### Patch Changes
+
+- c8f2488: build npm package with esbuild instead of vite. Vite does not build isomorphic packages correctly, in particular the dependency to axios
+
 ## 0.1.13
 
 ### Patch Changes

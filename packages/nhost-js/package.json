@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -21,7 +21,15 @@
     "url": "git+https://github.com/nhost/nhost.git"
   },
   "main": "src/index.ts",
-  "access": "public",
+  "exports": {
+    ".": {
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.es.js"
+      },
+      "require": "./dist/index.cjs.js"
+    }
+  },
   "publishConfig": {
     "access": "public",
     "main": "dist/index.cjs.js",
@@ -32,7 +40,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "vite build --config ../../vite.lib.js",
+    "build": "run-s build:esbuild build:types",
+    "build:esbuild": "node ../../esbuild.lib.js",
+    "build:types": "tsc --build tsconfig.types.json",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",

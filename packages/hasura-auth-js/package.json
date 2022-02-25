@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "0.1.13",
+  "version": "0.1.14",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -20,7 +20,9 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.js",
+    "build": "run-s build:esbuild build:types",
+    "build:esbuild": "node ../../esbuild.lib.js",
+    "build:types": "tsc --build tsconfig.types.json",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -30,7 +32,15 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.ts",
-  "access": "public",
+  "exports": {
+    ".": {
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.es.js"
+      },
+      "require": "./dist/index.cjs.js"
+    }
+  },
   "publishConfig": {
     "access": "public",
     "main": "dist/index.cjs.js",
