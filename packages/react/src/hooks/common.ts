@@ -32,6 +32,7 @@ export const useAuthenticated = () => {
   return useSelector(service, (state) => state.matches({ authentication: 'signedIn' }))
 }
 
+// ! TODO not working!!!!!
 export const useNhostAuth = () => {
   const service = useNhostInterpreter()
   return useSelector(service, (state) => ({

@@ -25,7 +25,6 @@ export interface Typegen0 {
       | 'error.platform.signingOut'
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
-      | 'error.platform.authenticateWithToken'
       | 'error.platform.registerUser'
     saveInvalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
@@ -70,10 +69,6 @@ export interface Typegen0 {
       type: 'error.platform.authenticateUserWithPassword'
       data: unknown
     }
-    'error.platform.authenticateWithToken': {
-      type: 'error.platform.authenticateWithToken'
-      data: unknown
-    }
     'xstate.init': { type: 'xstate.init' }
     'done.invoke.autoLogin': {
       type: 'done.invoke.autoLogin'
@@ -90,6 +85,10 @@ export interface Typegen0 {
       type: 'done.invoke.authenticatePasswordlessEmail'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'error.platform.authenticateWithToken': {
+      type: 'error.platform.authenticateWithToken'
+      data: unknown
     }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'done.invoke.changePasswordMachine': {
@@ -155,6 +154,7 @@ export interface Typegen0 {
     | 'authentication.starting'
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
+    | 'authentication.signedOut.success'
     | 'authentication.signedOut.needsVerification'
     | 'authentication.signedOut.failed'
     | 'authentication.signedOut.failed.server'
@@ -202,6 +202,7 @@ export interface Typegen0 {
           | {
               signedOut?:
                 | 'noErrors'
+                | 'success'
                 | 'needsVerification'
                 | 'failed'
                 | 'signingOut'

@@ -22,10 +22,6 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "baseUrl": "./src",
-    "paths": {
-      "@nhost/client": ["../../packages/core/src/index"],
-      "@nhost/client/*": ["../../packages/core/src/*"],
-    }
   },
   "include": [
     "src"

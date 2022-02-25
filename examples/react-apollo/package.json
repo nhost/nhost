@@ -3,10 +3,17 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@nhost/react-apollo": "workspace:^2.1.3",
+    "@nhost/client": "workspace:*",
+    "@nhost/react": "workspace:*",
+    "@nhost/react-apollo": "workspace:*",
+    "@rsuite/icons": "^1.0.2",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "react-icons": "^4.3.1",
+    "react-router-dom": "6",
+    "rsuite": "^5.6.2"
   },
+  "lib": "workspace:*",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -31,13 +38,12 @@
   },
   "devDependencies": {
     "@apollo/client": "^3.5.9",
-    "@nhost/client": "workspace:^0.1.0",
-    "@nhost/react": "workspace:^0.1.0",
     "@types/react": "^17.0.39",
     "@types/react-dom": "^17.0.11",
     "@vitejs/plugin-react": "^1.1.4",
     "@xstate/inspect": "^0.6.2",
     "graphql": "^16.3.0",
+    "less": "^4.1.2",
     "typescript": "^4.5.5",
     "vite": "^2.7.13",
     "ws": "^8.4.2"

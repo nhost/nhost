@@ -4,6 +4,9 @@ import App from './App'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { NhostProvider } from '@nhost/react'
 import { Nhost } from '@nhost/client'
+import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
+
+import { BrowserRouter } from 'react-router-dom'
 
 import { inspect } from '@xstate/inspect'
 
@@ -20,11 +23,13 @@ const nhost = new Nhost({
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostProvider nhost={nhost}>
-      <NhostApolloProvider>
-        <App />
-      </NhostApolloProvider>
-    </NhostProvider>
+    <BrowserRouter>
+      <NhostProvider nhost={nhost}>
+        <NhostApolloProvider>
+          <App />
+        </NhostApolloProvider>
+      </NhostProvider>
+    </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')
 )

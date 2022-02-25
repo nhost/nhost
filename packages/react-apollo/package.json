@@ -32,18 +32,18 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "main": "src/index.tsx",
-  "exports": {
-    ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.umd.js"
-    }
-  },
+  "main": "src/index.ts",
   "publishConfig": {
     "access": "public",
     "main": "dist/index.umd.js",
     "module": "dist/index.es.js",
-    "typings": "dist/index.d.ts"
+    "typings": "dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": "./dist/index.es.js",
+        "require": "./dist/index.umd.js"
+      }
+    }
   },
   "files": [
     "dist"

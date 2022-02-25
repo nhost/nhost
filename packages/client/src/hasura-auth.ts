@@ -1,9 +1,6 @@
-import type { AxiosError } from 'axios'
+import axios, { AxiosError } from 'axios'
 
 import { NETWORK_ERROR_CODE } from './errors'
-
-// * See: https://github.com/vitejs/vite/discussions/6397
-const axios = require('axios')
 
 export const nhostApiClient = (backendUrl: string) => {
   const client = axios.create({ baseURL: backendUrl })

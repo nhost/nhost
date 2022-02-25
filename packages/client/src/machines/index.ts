@@ -94,6 +94,7 @@ export const createNhostMachine = ({
               initial: 'noErrors',
               states: {
                 noErrors: {},
+                success: {},
                 needsVerification: {},
                 failed: {
                   exit: 'resetAuthenticationError',
@@ -119,7 +120,7 @@ export const createNhostMachine = ({
                   invoke: {
                     src: 'signout',
                     id: 'signingOut',
-                    onDone: 'noErrors',
+                    onDone: 'success',
                     onError: 'failed.server' // TODO save error
                   }
                 }
@@ -195,7 +196,7 @@ export const createNhostMachine = ({
                       actions: ['saveSession', 'persist'],
                       target: '#nhost.authentication.signedIn'
                     },
-                    onError: '#nhost.authentication.signedOut.failed.server'
+                    onError: '#nhost.authentication.signedOut'
                   }
                 }
               }
@@ -408,7 +409,7 @@ export const createNhostMachine = ({
         // * Authenticaiton errors
         saveAuthenticationError: assign({
           // TODO type
-          errors: ({ errors }, { error }: any) => ({ ...errors, authentication: error })
+          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
         resetAuthenticationError: assign({
           errors: ({ errors: { authentication, ...errors } }) => errors
