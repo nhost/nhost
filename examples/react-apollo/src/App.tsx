@@ -6,7 +6,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Container, Header, Navbar, Content, Nav } from 'rsuite'
 import { useEffect } from 'react'
 import { SignInPage } from './sign-in'
-import { AuthGate } from './auth-gates'
+import { AuthGate } from './components/auth-gates'
 import Home from './Home'
 import { ProfilePage } from './profile'
 import { ApolloPage } from './apollo'
@@ -21,6 +21,7 @@ function App() {
   const location = useLocation()
   useEffect(() => {
     if (signedOut) {
+      console.log('signed out')
       navigate('/')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -60,7 +61,7 @@ function App() {
           />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/sign-in/*" element={<SignInPage />} />
-          <Route path="/sign-up" element={<SignUpPage />} />
+          <Route path="/sign-up/*" element={<SignUpPage />} />
           <Route
             path="/profile"
             element={

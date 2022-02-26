@@ -7,7 +7,7 @@ export const EmailPasswordless: React.FC = () => {
     <div>
       <EmailPasswordlessForm />
       <Button as={NavLink} to="/sign-up" block appearance="link">
-        &#8592; Other Login Options
+        &#8592; Other Registration Options
       </Button>
     </div>
   )

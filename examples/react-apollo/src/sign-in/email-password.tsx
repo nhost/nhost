@@ -6,16 +6,22 @@ import { NavLink } from 'react-router-dom'
 export const Password: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { signIn, isError, error } = useEmailPasswordSignIn(email, password)
-  const [showError, setShowError] = useState(true)
+  const { signIn, error } = useEmailPasswordSignIn(email, password)
 
-  const [open, setOpen] = React.useState(false)
-  const handleOpen = () => setOpen(true)
-  const handleClose = () => setOpen(false)
-
+  const [errorMessage, setErrorMessage] = useState('')
+  // * Set error message from the authentication hook errors
   useEffect(() => {
-    setShowError(false)
+    setErrorMessage(error?.message || '')
+  }, [error])
+  // * Reset error message every time the email or password input changed
+  useEffect(() => {
+    setErrorMessage('')
   }, [email, password])
+
+  // * State of the reset password modal
+  const [open, setOpen] = React.useState(false)
+  const handleOpen = () => email && setOpen(true)
+  const handleClose = () => setOpen(false)
 
   return (
     <div>
@@ -36,20 +42,13 @@ export const Password: React.FC = () => {
         style={{ marginBottom: '0.5em' }}
       />
 
-      {showError && isError && (
+      {errorMessage && (
         <Message showIcon type="error">
-          {error?.message}
+          {errorMessage}
         </Message>
       )}
 
-      <Button
-        appearance="primary"
-        onClick={() => {
-          setShowError(true)
-          signIn()
-        }}
-        block
-      >
+      <Button appearance="primary" onClick={signIn} block>
         Sign in
       </Button>
       <Button onClick={handleOpen} block>

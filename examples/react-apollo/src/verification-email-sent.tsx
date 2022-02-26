@@ -12,7 +12,8 @@ export const VerificationEmailSent: React.FC = () => {
   return (
     <div>
       A verification email has been sent. Please check your inbox and follow the link to complete
-      authentication.
+      authentication. This page with automatically redirect to the authenticated home page once the
+      email has been verified.
     </div>
   )
 }
