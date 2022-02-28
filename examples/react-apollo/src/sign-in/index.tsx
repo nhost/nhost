@@ -1,10 +1,12 @@
-import { Button, Divider, FlexboxGrid, IconButton, Panel } from 'rsuite'
 import { Link, NavLink, Route, Routes } from 'react-router-dom'
+import { Button, Divider, FlexboxGrid, IconButton, Panel } from 'rsuite'
+import { Icon } from '@rsuite/icons'
+import { FaLock } from 'react-icons/fa'
+
 import { EmailPasswordlessForm, OAuthLinks } from '../components'
 import { VerificationEmailSent } from '../verification-email-sent'
-import { Icon } from '@rsuite/icons'
 import { Password } from './email-password'
-import { FaLock } from 'react-icons/fa'
+import { ForgotPassword } from './forgot-password'
 
 const Index: React.FC = () => (
   <div>
@@ -36,6 +38,7 @@ export const SignInPage: React.FC = () => {
               <Route path="/email-passwordless" element={<EmailPasswordlessForm />} />
               <Route path="/password" element={<Password />} />
               <Route path="/verification-email-sent" element={<VerificationEmailSent />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
             </Routes>
           </Panel>
         </FlexboxGrid.Item>

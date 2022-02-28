@@ -155,7 +155,8 @@ export const createNhostMachine = ({
                     target: '.failed.validation.password'
                   },
                   '#nhost.authentication.registering'
-                ]
+                ],
+                RESET_PASSWORD: '#nhost.resetPassword.sending'
               }
             },
             authenticating: {
@@ -371,6 +372,29 @@ export const createNhostMachine = ({
               }
             }
           }
+        },
+        resetPassword: {
+          initial: 'idle',
+          states: {
+            idle: {
+              initial: 'noErrors',
+              on: {
+                RESET_PASSWORD: 'sending'
+              },
+              states: { noErrors: {}, sent: {}, failed: { exit: 'resetResetPasswordError' } }
+            },
+            sending: {
+              invoke: {
+                id: 'resetPassword',
+                src: 'resetPassword',
+                onError: {
+                  actions: 'saveResetPasswordError',
+                  target: 'idle.failed'
+                },
+                onDone: 'idle.sent'
+              }
+            }
+          }
         }
       }
     },
@@ -477,7 +501,15 @@ export const createNhostMachine = ({
         destroyToken: () => {
           storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
           storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
-        }
+        },
+
+        saveResetPasswordError: assign({
+          // TODO type
+          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, resetPassword: error })
+        }),
+        resetResetPasswordError: assign({
+          errors: ({ errors: { resetPassword, ...errors } }) => errors
+        })
       },
 
       guards: {
@@ -541,7 +573,12 @@ export const createNhostMachine = ({
             password
           }),
 
-        autoLogin: createAutoLoginMachine({ autoLogin })
+        autoLogin: createAutoLoginMachine({ autoLogin }),
+
+        resetPassword: (_, { email }) =>
+          postRequest('/v1/auth/user/password/reset', {
+            email
+          })
       }
     }
   )

@@ -49,6 +49,24 @@ export const useChangePassword = (statePassword?: string) => {
   return { changePassword, isLoading, isSuccess, isError, error }
 }
 
+export const useResetPassord = (stateEmail?: string) => {
+  const service = useNhostInterpreter()
+
+  const isError = useSelector(service, (state) =>
+    state.matches({ resetPassword: { idle: 'failed' } })
+  )
+  const error = useSelector(service, (state) => state.context.errors.resetPassword)
+  const isLoading = useSelector(service, (state) => state.matches({ resetPassword: 'sending' }))
+  const isSent = useSelector(service, (state) => state.matches({ resetPassword: { idle: 'sent' } }))
+
+  const resetPassword = (valueEmail?: string | unknown) =>
+    service.send({
+      type: 'RESET_PASSWORD',
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail
+    })
+  return { resetPassword, isLoading, isSent, isError, error }
+}
+
 export const useUserData = () => {
   const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user)

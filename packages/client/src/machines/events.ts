@@ -19,3 +19,4 @@ export type NhostEvents =
   | { type: 'CHANGE_PASSWORD_SUCCESS' }
   | { type: 'CHANGE_PASSWORD_LOADING' }
   | { type: 'CHANGE_PASSWORD_ERROR'; error: ErrorPayload }
+  | { type: 'RESET_PASSWORD'; email?: string }

@@ -20,6 +20,7 @@ export interface Typegen0 {
     tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     requestEmailChange: 'CHANGE_EMAIL'
     requestPasswordChange: 'CHANGE_PASSWORD'
+    saveResetPasswordError: 'error.platform.resetPassword'
     resetAuthenticationError: 'xstate.init'
     saveAuthenticationError:
       | 'error.platform.signingOut'
@@ -33,6 +34,7 @@ export interface Typegen0 {
     saveEmailChangeError: 'xstate.init'
     resetPasswordChangeError: 'xstate.init'
     savePasswordChangeError: 'xstate.init'
+    resetResetPasswordError: 'xstate.init'
   }
   internalEvents: {
     'done.invoke.authenticateUserWithPassword': {
@@ -60,6 +62,7 @@ export interface Typegen0 {
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
+    'error.platform.resetPassword': { type: 'error.platform.resetPassword'; data: unknown }
     'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
@@ -109,6 +112,11 @@ export interface Typegen0 {
       type: 'error.platform.changeEmailMachine'
       data: unknown
     }
+    'done.invoke.resetPassword': {
+      type: 'done.invoke.resetPassword'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
   }
   invokeSrcNameMap: {
     autoLogin: 'done.invoke.autoLogin'
@@ -119,6 +127,7 @@ export interface Typegen0 {
     registerUser: 'done.invoke.registerUser'
     changePasswordMachine: 'done.invoke.changePasswordMachine'
     changeEmailMachine: 'done.invoke.changeEmailMachine'
+    resetPassword: 'done.invoke.resetPassword'
   }
   missingImplementations: {
     actions: never
@@ -132,6 +141,7 @@ export interface Typegen0 {
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'REGISTER'
+    resetPassword: 'RESET_PASSWORD'
     signout: 'SIGNOUT'
     changePasswordMachine: 'xstate.init'
     changeEmailMachine: 'xstate.init'
@@ -192,6 +202,12 @@ export interface Typegen0 {
     | 'authentication.signedIn.changePassword.idle.failed.server'
     | 'authentication.signedIn.changePassword.idle.failed.validation'
     | 'authentication.signedIn.changePassword.running'
+    | 'resetPassword'
+    | 'resetPassword.idle'
+    | 'resetPassword.idle.noErrors'
+    | 'resetPassword.idle.sent'
+    | 'resetPassword.idle.failed'
+    | 'resetPassword.sending'
     | {
         authentication?:
           | 'starting'
@@ -242,6 +258,7 @@ export interface Typegen0 {
                         }
                   }
             }
+        resetPassword?: 'idle' | 'sending' | { idle?: 'noErrors' | 'sent' | 'failed' }
       }
   tags: 'ready'
 }

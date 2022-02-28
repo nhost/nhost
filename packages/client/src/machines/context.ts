@@ -16,7 +16,10 @@ export type NhostContext = {
     value: string | null
   }
   errors: Partial<
-    Record<'newPassword' | 'newEmail' | 'registration' | 'authentication', ErrorPayload>
+    Record<
+      'newPassword' | 'newEmail' | 'registration' | 'authentication' | 'resetPassword',
+      ErrorPayload
+    >
   >
 }
 
