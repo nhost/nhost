@@ -17,7 +17,7 @@ export const orderTwo = {
       'index',
       'user-management',
       'sign-in-methods',
-      'social-login',
+      'social-sign-in',
       'sign-in-with-google',
       'sign-in-with-github',
       'sign-in-with-facebook',
