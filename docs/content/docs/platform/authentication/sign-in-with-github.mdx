@@ -1,0 +1,17 @@
+---
+title: Sign In with GitHub
+---
+
+Follow this guide to sign in users with GitHub with your Nhost App.
+
+![GitHub Sign In Preview](/images/platform/social-providers/github-preview.png)
+
+## Sign In users in your app
+
+Use the [Nhost JavaScript client](/reference/sdk) to sign in users in your app:
+
+```js
+nhost.auth.signIn({
+  provider: 'github'
+})
+```

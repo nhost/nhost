@@ -18,7 +18,10 @@ export const orderTwo = {
       'user-management',
       'sign-in-methods',
       'social-login',
-      'sign-in-with-google'
+      'sign-in-with-google',
+      'sign-in-with-github',
+      'sign-in-with-facebook',
+      'sign-in-with-linkedin'
     ],
     storage: ['index'],
     'serverless-functions': ['index', 'event-triggers'],
