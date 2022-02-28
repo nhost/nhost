@@ -11,13 +11,9 @@ export const EmailPassword: React.FC = () => {
   const { signUp, error, needsVerification, isSuccess } = useEmailPasswordSignUp(email, password)
   const [errorMessage, setErrorMessage] = useState('')
   useEffect(() => {
-    if (needsVerification) {
-      console.log('needsVerification')
-      navigate('/sign-up/verification-email-sent')
-    } else if (isSuccess) {
-      console.log('success')
-      navigate('/')
-    }
+    if (needsVerification) navigate('/sign-up/verification-email-sent')
+    else if (isSuccess) navigate('/')
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsVerification, isSuccess])
 
@@ -29,7 +25,11 @@ export const EmailPassword: React.FC = () => {
   useEffect(() => {
     setErrorMessage('')
   }, [email, password])
-
+  // * Show an error message when passwords are different
+  useEffect(() => {
+    if (password !== confirmPassword) setErrorMessage('Provided passwords must be the same')
+    else setErrorMessage('')
+  }, [password, confirmPassword])
   return (
     <div>
       <Input

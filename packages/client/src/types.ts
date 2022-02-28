@@ -21,3 +21,13 @@ export type NhostSession = {
   refreshToken: string
   user: User
 }
+
+export type Provider =
+  | 'apple'
+  | 'facebook'
+  | 'github'
+  | 'google'
+  | 'linkedin'
+  | 'spotify'
+  | 'twitter'
+  | 'windowslive'

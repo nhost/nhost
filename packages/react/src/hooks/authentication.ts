@@ -1,5 +1,7 @@
+import { Provider } from '@nhost/client'
 import { useSelector } from '@xstate/react'
 
+import { useNhost } from './common'
 import { useAuthenticated, useNhostInterpreter } from './common'
 
 export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: string) => {
@@ -47,4 +49,13 @@ export const useEmailPasswordlessSignIn = (stateEmail?: string) => {
     state.matches({ authentication: { signedOut: 'failed' } })
   )
   return { signIn, isLoading, isSuccess, isError, error }
+}
+
+export const useProviderLink = () => {
+  const nhost = useNhost()
+  return new Proxy({} as Record<Provider, string>, {
+    get(_, provider: string) {
+      return `${nhost.backendUrl}/v1/auth/signin/provider/${provider}`
+    }
+  })
 }

@@ -95,6 +95,17 @@ const Component = () => {
 }
 ```
 
+### Oauth providers
+
+```js
+import { useProviderLink } from '@nhost/react'
+
+const Component = () => {
+  const { github } = useProviderLink()
+  return <a href={github}>Authenticate with GitHub</a>
+}
+```
+
 ### Passwordless email authentication
 
 ```js
@@ -173,19 +184,14 @@ During startup, the client may need some initial steps to determine the authenti
 
 `useLoading` will return `true` until the authentication status is known.
 
-You can use the `isLoading` and `isAuthenticated` together with the `useNhostAuth` hook:
-
-```js
-const { isLoading, isAuthenticated } = useNhostAuth()
-```
-
 #### Usage
 
 ```jsx
-import { useLoading } from '@nhost/react'
+import { useLoading, useAuthenticated } from '@nhost/react'
 
 const Component = () => {
-  const { isLoading, isAuthenticated } = useNhostAuth()
+  const isLoading = useLoading()
+  const isAuthenticated = useAuthenticated()
   if (isLoading) return <div>Loading Nhost authentication status...</div>
   else if (isAuthenticated) return <div>User is authenticated</div>
   else return <div>Public section</div>

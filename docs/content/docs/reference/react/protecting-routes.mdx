@@ -8,10 +8,11 @@ When using [React Router](https://reactrouter.com/web/guides/quick-start) with `
 
 ```jsx
 import { Redirect } from 'react-router-dom'
-import { useNhostAuth } from '@nhost/react'
+import { useLoading, useAuthenticated } from '@nhost/react'
 
 export function AuthGate(children) {
-  const { isLoading, isAuthenticated } = useNhostAuth()
+  const isLoading = useLoading()
+  const isAuthenticated = useAuthenticated()
 
   if (isLoading) {
     return <div>Loading...</div>

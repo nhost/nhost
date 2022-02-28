@@ -33,13 +33,13 @@ export const useAuthenticated = () => {
 }
 
 // ! TODO not working!!!!!
-export const useNhostAuth = () => {
-  const service = useNhostInterpreter()
-  return useSelector(service, (state) => ({
-    isLoading: !state.hasTag('ready'),
-    isAuthenticated: state.matches({ authentication: 'signedIn' })
-  }))
-}
+// export const useNhostAuth = () => {
+//   const service = useNhostInterpreter()
+//   return useSelector(service, (state) => ({
+//     isLoading: !state.hasTag('ready'),
+//     isAuthenticated: state.matches({ authentication: 'signedIn' })
+//   }))
+// }
 
 export const useAccessToken = () => {
   const service = useNhostInterpreter()

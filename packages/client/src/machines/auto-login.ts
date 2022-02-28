@@ -61,22 +61,17 @@ export const createAutoLoginMachine = ({ autoLogin }: { autoLogin: AutoLoginOpti
               const params = new URLSearchParams(location.hash.slice(1))
               const token = params.get('refreshToken')
               if (token) {
-                const type = params.get('type')
-                if (
-                  type === 'signinPasswordless' ||
-                  type === 'emailVerify' ||
-                  type === 'emailConfirmChange'
-                ) {
-                  // TODO send somehow the information to other tabs
-                  //   interpreter.send({ type: 'TRY_TOKEN', token })
-                  // * remove hash from the current url after consumming the token
-                  window.history.pushState({}, '', location.pathname)
-                  return token
-                } else {
-                  console.warn(
-                    `Found a refresh token in the url but the redirect type is not implemented: ${type}`
-                  )
-                }
+                // const type = params.get('type')
+                // if (!['signinPasswordless', 'emailVerify', 'emailConfirmChange'].includes(type)) {
+                //   console.warn(
+                //     `Found a refresh token in the url but the redirect type is not implemented: ${type}`,
+                //     location.hash
+                //   )
+                // }
+                //   interpreter.send({ type: 'TRY_TOKEN', token })
+                // * remove hash from the current url after consumming the token
+                window.history.pushState({}, '', location.pathname)
+                return token
               }
             }
             throw Error()

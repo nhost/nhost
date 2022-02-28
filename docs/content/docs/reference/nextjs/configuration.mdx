@@ -43,10 +43,10 @@ import React from 'react'
 import { useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
 
 const ClientSidePage: React.FC = () => {
-  const authenticated = useAuthenticated()
+  const isAuthenticated = useAuthenticated()
   const user = useUserData()
   const jwt = useAccessToken()
-  if (!authenticated) return <div>User it not authenticated</div>
+  if (!isAuthenticated) return <div>User it not authenticated</div>
   return (
     <div>
       <h1>{user?.displayName} is authenticated</h1>
