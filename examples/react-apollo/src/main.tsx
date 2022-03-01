@@ -10,7 +10,7 @@ import { BrowserRouter } from 'react-router-dom'
 
 import { inspect } from '@xstate/inspect'
 
-if (process.env.NODE_ENV) {
+if (process.env.NODE_ENV === 'development') {
   inspect({
     url: 'https://stately.ai/viz?inspect',
     iframe: false
@@ -18,7 +18,7 @@ if (process.env.NODE_ENV) {
 }
 
 const nhost = new Nhost({
-  backendUrl: 'http://localhost:1337'
+  backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337'
 })
 
 ReactDOM.render(
