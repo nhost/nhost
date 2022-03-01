@@ -158,7 +158,8 @@ export const createNhostMachine = ({
                     target: '.failed.validation.password'
                   },
                   '#nhost.authentication.registering'
-                ]
+                ],
+                SIGNIN_ANONYMOUS: '#nhost.authentication.authenticating.anonymous'
               }
             },
             authenticating: {
@@ -190,7 +191,18 @@ export const createNhostMachine = ({
                     ]
                   }
                 },
-                token: {}
+                token: {},
+                anonymous: {
+                  invoke: {
+                    src: 'signInAnonymous',
+                    id: 'authenticateAnonymously',
+                    onDone: {
+                      actions: ['saveSession', 'persist'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: '#nhost.authentication.signedOut.failed.server'
+                  }
+                }
               }
             },
             registering: {
@@ -427,6 +439,7 @@ export const createNhostMachine = ({
                 : options?.redirectTo
             }
           }),
+        signInAnonymous: (_) => postRequest('/v1/auth/signin/anonymous'),
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest('/v1/auth/token', {

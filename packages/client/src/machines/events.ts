@@ -4,6 +4,7 @@ import type { NhostSession, PasswordlessOptions, SignUpOptions } from '../types'
 export type NhostEvents =
   | { type: 'SESSION_UPDATE'; data: { session: NhostSession } }
   | { type: 'TRY_TOKEN'; token: string }
+  | { type: 'SIGNIN_ANONYMOUS' }
   | { type: 'SIGNIN_PASSWORD'; email?: string; password?: string }
   | {
       type: 'SIGNIN_PASSWORDLESS_EMAIL'

@@ -55,6 +55,24 @@ export const useEmailPasswordlessSignIn = (
   return { signIn, isLoading, isSuccess, isError, error }
 }
 
+// TODO documentation
+// TODO deanonymize
+export const useAnonymousSignIn = () => {
+  const service = useNhostInterpreter()
+  const signIn = () => service.send('SIGNIN_ANONYMOUS')
+
+  const error = useSelector(service, (state) => state.context.errors.authentication)
+  const isLoading = useSelector(service, (state) =>
+    state.matches({ authentication: { authenticating: 'anonymous' } })
+  )
+  const isSuccess = useAuthenticated()
+
+  const isError = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
+  return { signIn, isLoading, isSuccess, isError, error }
+}
+
 export const useProviderLink = () => {
   const nhost = useNhost()
   return new Proxy({} as Record<Provider, string>, {

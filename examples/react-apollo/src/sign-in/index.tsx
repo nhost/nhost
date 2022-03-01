@@ -1,4 +1,5 @@
-import { Link, NavLink, Route, Routes } from 'react-router-dom'
+/* eslint-disable jsx-a11y/anchor-is-valid */
+import { NavLink, Route, Routes } from 'react-router-dom'
 import { Button, Divider, FlexboxGrid, IconButton, Panel } from 'rsuite'
 import { Icon } from '@rsuite/icons'
 import { FaLock } from 'react-icons/fa'
@@ -7,6 +8,7 @@ import { EmailPasswordlessForm, OAuthLinks } from '../components'
 import { VerificationEmailSent } from '../verification-email-sent'
 import { Password } from './email-password'
 import { ForgotPassword } from './forgot-password'
+// import { useAnonymousSignIn } from '@nhost/react'
 
 const Index: React.FC = () => (
   <div>
@@ -28,6 +30,7 @@ const Index: React.FC = () => (
 )
 
 export const SignInPage: React.FC = () => {
+  // const { signIn } = useAnonymousSignIn()
   return (
     <div style={{ textAlign: 'center' }}>
       <FlexboxGrid justify="center">
@@ -44,7 +47,10 @@ export const SignInPage: React.FC = () => {
         </FlexboxGrid.Item>
       </FlexboxGrid>
       <Divider />
-      Don't have an account? <Link to="/sign-up">Sign up</Link>
+      {/* Don't have an account? <Link to="/sign-up">Sign up</Link> or{' '}
+      <a href="#" onClick={signIn}>
+        enter the app anonymously
+      </a> */}
     </div>
   )
 }

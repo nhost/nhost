@@ -6,12 +6,14 @@ export interface Typegen0 {
     saveSession:
       | 'SESSION_UPDATE'
       | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
     persist:
       | 'SESSION_UPDATE'
       | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
@@ -23,6 +25,7 @@ export interface Typegen0 {
       | 'error.platform.signingOut'
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
+      | 'error.platform.authenticateAnonymously'
       | 'error.platform.registerUser'
     saveInvalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
@@ -31,6 +34,11 @@ export interface Typegen0 {
   internalEvents: {
     'done.invoke.authenticateUserWithPassword': {
       type: 'done.invoke.authenticateUserWithPassword'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.authenticateAnonymously': {
+      type: 'done.invoke.authenticateAnonymously'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -63,6 +71,10 @@ export interface Typegen0 {
       type: 'error.platform.authenticateUserWithPassword'
       data: unknown
     }
+    'error.platform.authenticateAnonymously': {
+      type: 'error.platform.authenticateAnonymously'
+      data: unknown
+    }
     'xstate.init': { type: 'xstate.init' }
     'done.invoke.autoLogin': {
       type: 'done.invoke.autoLogin'
@@ -91,6 +103,7 @@ export interface Typegen0 {
     signout: 'done.invoke.signingOut'
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
+    signInAnonymous: 'done.invoke.authenticateAnonymously'
     registerUser: 'done.invoke.registerUser'
     refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
   }
@@ -106,6 +119,7 @@ export interface Typegen0 {
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'SIGNUP_EMAIL_PASSWORD'
+    signInAnonymous: 'SIGNIN_ANONYMOUS'
     signout: 'SIGNOUT'
   }
   eventsCausingGuards: {
@@ -138,6 +152,7 @@ export interface Typegen0 {
     | 'authentication.authenticating.passwordlessEmail'
     | 'authentication.authenticating.password'
     | 'authentication.authenticating.token'
+    | 'authentication.authenticating.anonymous'
     | 'authentication.registering'
     | 'authentication.signedIn'
     | 'authentication.signedIn.refreshTimer'
@@ -165,7 +180,7 @@ export interface Typegen0 {
                 | 'failed'
                 | 'signingOut'
                 | { failed?: 'server' | 'validation' | { validation?: 'password' | 'email' } }
-              authenticating?: 'passwordlessEmail' | 'password' | 'token'
+              authenticating?: 'passwordlessEmail' | 'password' | 'token' | 'anonymous'
               signedIn?:
                 | 'refreshTimer'
                 | {
