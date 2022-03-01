@@ -8,7 +8,7 @@ title: 'Hooks'
 
 ```js
 const { signUp, isLoading, isSuccess, needsVerification, isError, error } =
-  useEmailPasswordSignUp(email?: string, password?: string)
+  useEmailPasswordSignUp(email?: string, password?: string, options?: SignUpOptions )
 ```
 
 - `signUp: (email?: string, password?: string) => void` triggers the user registration. The email/password arguments will take precedence over the possible state values used when creating the hook.
@@ -17,6 +17,13 @@ const { signUp, isLoading, isSuccess, needsVerification, isError, error } =
 - `isSuccess: boolean` returns `true` if the registration suceeded. Returns `false` if the new email needs to be verified first, or if an error occurred.
 - `isError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
+- `SignUpOption`:
+  - `locale?: string` locale of the user, in two digits, for instance `en`.
+  - `allowedRoles?: string[]`: allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.
+  - `defaultRole?: string`: default role of the user. Must be part of the default allowed roles defined in Hasura Auth.
+  - `displayName?: string`
+  - `metadata?: Record<string, unknown>`: Custom additional user information stored in the `metadata` column.
+  - `redirectTo?: string`: redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`.
 
 #### Usage
 
@@ -110,7 +117,7 @@ const Component = () => {
 
 ```js
 const { signIn, isLoading, isSuccess, isError, error } =
-  useEmailPasswordlessSignIn(email?: string)
+  useEmailPasswordlessSignIn(email?: string, options?: PasswordlessOptions)
 ```
 
 - `signIn: (email?: string) => void` will send a magic link to the given email The email argument will take precedence over the the possible state value used when creating the hook.
@@ -118,6 +125,13 @@ const { signIn, isLoading, isSuccess, isError, error } =
 - `isSuccess: boolean` returns `true` if the magic link email user has successfully send.
 - `isError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
+- `PasswordlessOptions`:
+  - `locale?: string` locale of the user, in two digits, for instance `en`.
+  - `allowedRoles?: string[]`: allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.
+  - `defaultRole?: string`: default role of the user. Must be part of the default allowed roles defined in Hasura Auth.
+  - `displayName?: string`
+  - `metadata?: Record<string, unknown>`: Custom additional user information stored in the `metadata` column.
+  - `redirectTo?: string`: redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`.
 
 #### Usage
 
@@ -218,7 +232,6 @@ const { change, isLoading, isSuccess, needsVerification, isError, error } =
 - `changeEmail: (email?: string) => void` requests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.
 - `isLoading: boolean` returns `true` when the action is executing, `false` when the action result is available.
 - `needsVerification: boolean` returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.
-- `isSuccess: boolean` returns `true` if the email has beed successfully changed. Returns `false` if the new email needs to be verified first.
 - `isError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
 
@@ -230,12 +243,11 @@ import { useChangeEmail } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { changeEmail, isLoading, isSuccess, isError, error } = useChangeEmail(password)
+  const { changeEmail, isLoading, needsVerification, isError, error } = useChangeEmail(password)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
       <button onClick={changeEmail}>Change password</button>
-      {isSuccess && <div>Your email has been changed!</div>}
       {needsVerification && (
         <div>
           Please check your mailbox and follow the verification link to confirm your new email

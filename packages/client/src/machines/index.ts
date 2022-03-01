@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import produce from 'immer'
-import { assign, createMachine, send } from 'xstate'
+import { assign, createMachine } from 'xstate'
 
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
@@ -14,15 +14,16 @@ import { StorageGetter, StorageSetter } from '../storage'
 import { isValidEmail, isValidPassword } from '../validators'
 
 import { AutoLoginOption, createAutoLoginMachine } from './auto-login'
-import { createChangeEmailMachine } from './change-email'
-import { createChangePasswordMachine } from './change-password'
 import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
 import { NhostEvents } from './events'
 
 export type { NhostContext, NhostEvents }
+export * from './change-email'
+export * from './change-password'
 
 export type NhostMachineOptions = {
   backendUrl: string
+  clientUrl?: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
   autoLogin?: AutoLoginOption
@@ -33,6 +34,7 @@ export type NhostMachine = ReturnType<typeof createNhostMachine>
 
 export const createNhostMachine = ({
   backendUrl,
+  clientUrl,
   storageSetter,
   storageGetter,
   autoRefreshToken = true,
@@ -66,7 +68,7 @@ export const createNhostMachine = ({
           initial: 'starting',
           invoke: [{ id: 'autoLogin', src: 'autoLogin' }],
           on: {
-            TRY_TOKEN: '.authenticating.token',
+            TRY_TOKEN: '#nhost.token.running',
             SESSION_UPDATE: [
               {
                 cond: 'hasSession',
@@ -84,7 +86,7 @@ export const createNhostMachine = ({
                 },
                 {
                   cond: 'hasRefreshTokenWithoutSession',
-                  target: 'authenticating.token'
+                  target: ['authenticating.token', '#nhost.token.running']
                 },
                 'signedOut'
               ]
@@ -145,7 +147,7 @@ export const createNhostMachine = ({
                   },
                   '#nhost.authentication.authenticating.passwordlessEmail'
                 ],
-                REGISTER: [
+                SIGNUP_EMAIL_PASSWORD: [
                   {
                     cond: 'invalidEmail',
                     target: '.failed.validation.email'
@@ -188,18 +190,7 @@ export const createNhostMachine = ({
                     ]
                   }
                 },
-                // TODO review
-                token: {
-                  invoke: {
-                    src: 'refreshToken',
-                    id: 'authenticateWithToken',
-                    onDone: {
-                      actions: ['saveSession', 'persist'],
-                      target: '#nhost.authentication.signedIn'
-                    },
-                    onError: '#nhost.authentication.signedOut'
-                  }
-                }
+                token: {}
               }
             },
             registering: {
@@ -298,76 +289,6 @@ export const createNhostMachine = ({
                       }
                     }
                   }
-                },
-                changeEmail: {
-                  initial: 'idle',
-                  invoke: {
-                    id: 'changePasswordMachine',
-                    src: 'changePasswordMachine'
-                  },
-                  on: {
-                    CHANGE_EMAIL: {
-                      actions: 'requestEmailChange'
-                    },
-                    CHANGE_EMAIL_LOADING: '.running',
-                    CHANGE_EMAIL_INVALID: '.idle.failed.validation',
-                    CHANGE_EMAIL_SUCCESS: '.idle.needsVerification',
-                    CHANGE_EMAIL_ERROR: '.idle.failed.server'
-                  },
-                  states: {
-                    idle: {
-                      initial: 'noErrors',
-                      states: {
-                        noErrors: {},
-                        success: {},
-                        needsVerification: {},
-                        failed: {
-                          initial: 'server',
-                          entry: 'saveEmailChangeError',
-                          exit: 'resetEmailChangeError',
-                          states: {
-                            server: {},
-                            validation: {}
-                          }
-                        }
-                      }
-                    },
-                    running: {}
-                  }
-                },
-                changePassword: {
-                  initial: 'idle',
-                  invoke: [
-                    {
-                      id: 'changeEmailMachine',
-                      src: 'changeEmailMachine'
-                    }
-                  ],
-                  on: {
-                    CHANGE_PASSWORD: {
-                      actions: 'requestPasswordChange'
-                    },
-                    CHANGE_PASSWORD_LOADING: '.running',
-                    CHANGE_PASSWORD_INVALID: '.idle.failed.validation',
-                    CHANGE_PASSWORD_SUCCESS: '.idle.success',
-                    CHANGE_PASSWORD_ERROR: '.idle.failed.server'
-                  },
-                  states: {
-                    idle: {
-                      initial: 'noErrors',
-                      states: {
-                        noErrors: {},
-                        success: {},
-                        failed: {
-                          initial: 'server',
-                          entry: 'savePasswordChangeError',
-                          exit: 'resetPasswordChangeError',
-                          states: { server: {}, validation: {} }
-                        }
-                      }
-                    },
-                    running: {}
-                  }
                 }
               }
             }
@@ -392,6 +313,25 @@ export const createNhostMachine = ({
                   target: 'idle.failed'
                 },
                 onDone: 'idle.sent'
+              }
+            }
+          }
+        },
+        token: {
+          initial: 'idle',
+          states: {
+            idle: {},
+            running: {
+              invoke: {
+                src: 'refreshToken',
+                id: 'authenticateWithToken',
+                onDone: {
+                  actions: ['saveSession', 'persist'],
+                  target: ['#nhost.authentication.signedIn', 'idle']
+                },
+                onError: {
+                  target: ['#nhost.authentication.signedOut', 'idle']
+                }
               }
             }
           }
@@ -445,46 +385,9 @@ export const createNhostMachine = ({
           errors: ({ errors }) => ({ ...errors, authentication: INVALID_PASSWORD_ERROR })
         }),
 
-        // * Change password
-        requestPasswordChange: send(
-          (ctx, { password }) => ({
-            type: 'REQUEST_CHANGE',
-            password,
-            accessToken: ctx.accessToken.value
-          }),
-          {
-            to: 'changePasswordMachine'
-          }
-        ),
-        savePasswordChangeError: assign({
-          // TODO type
-          errors: ({ errors }, { error }: any) => ({ ...errors, newPassword: error })
-        }),
-        resetPasswordChangeError: assign({
-          errors: ({ errors: { newPassword, ...errors } }) => errors
-        }),
-
-        // * Change email
-        requestEmailChange: send(
-          (ctx, { email }) => ({
-            type: 'REQUEST_CHANGE',
-            email,
-            accessToken: ctx.accessToken.value
-          }),
-          {
-            to: 'changeEmailMachine'
-          }
-        ),
-        saveEmailChangeError: assign({
-          // TODO type
-          errors: ({ errors }, { error }: any) => ({ ...errors, newEmail: error })
-        }),
         saveRegisrationError: assign({
           // TODO type
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
-        }),
-        resetEmailChangeError: assign({
-          errors: ({ errors: { newEmail, ...errors } }) => errors
         }),
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }: any) => {
@@ -539,20 +442,22 @@ export const createNhostMachine = ({
       },
 
       services: {
-        changePasswordMachine: createChangePasswordMachine(api),
-        changeEmailMachine: createChangeEmailMachine(api),
-
         // TODO options
         signInPassword: (_, { email, password }) =>
           postRequest('/v1/auth/signin/email-password', {
             email,
             password
           }),
-        signInPasswordlessEmail: (_, { email }) =>
+        signInPasswordlessEmail: (_, { email, options }) =>
           postRequest('/v1/auth/signin/passwordless/email', {
-            email
+            email,
+            options: {
+              ...options,
+              redirectTo: options?.redirectTo?.startsWith('/')
+                ? clientUrl + options.redirectTo
+                : options?.redirectTo
+            }
           }),
-
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest('/v1/auth/token', {
@@ -567,10 +472,16 @@ export const createNhostMachine = ({
           }),
 
         //   TODO options
-        registerUser: (_, { email, password }) =>
+        registerUser: (_, { email, password, options }) =>
           postRequest('/v1/auth/signup/email-password', {
             email,
-            password
+            password,
+            options: {
+              ...options,
+              redirectTo: options?.redirectTo?.startsWith('/')
+                ? clientUrl + options.redirectTo
+                : options?.redirectTo
+            }
           }),
 
         autoLogin: createAutoLoginMachine({ autoLogin }),

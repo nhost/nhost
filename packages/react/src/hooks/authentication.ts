@@ -1,4 +1,4 @@
-import { Provider } from '@nhost/client'
+import { PasswordlessOptions, Provider } from '@nhost/client'
 import { useSelector } from '@xstate/react'
 
 import { useNhost } from './common'
@@ -29,12 +29,16 @@ export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: stri
   return { signIn, isLoading, isSuccess, needsVerification, isError, error }
 }
 
-export const useEmailPasswordlessSignIn = (stateEmail?: string) => {
+export const useEmailPasswordlessSignIn = (
+  stateEmail?: string,
+  stateOptions?: PasswordlessOptions
+) => {
   const service = useNhostInterpreter()
-  const signIn = (valueEmail?: string | unknown) =>
+  const signIn = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
-      email: typeof valueEmail === 'string' ? valueEmail : stateEmail
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
+      options: valueOptions
     })
 
   const error = useSelector(service, (state) => state.context.errors.authentication)

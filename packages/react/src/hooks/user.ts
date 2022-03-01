@@ -1,54 +1,53 @@
-import { useSelector } from '@xstate/react'
+import { useMemo } from 'react'
 
-import { useNhostInterpreter } from './common'
+import {
+  ChangeEmailOptions,
+  createChangeEmailMachine,
+  createChangePasswordMachine
+} from '@nhost/client'
+import { useMachine, useSelector } from '@xstate/react'
 
-export const useChangeEmail = (stateEmail?: string) => {
-  const service = useNhostInterpreter()
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedIn: { changeEmail: { idle: 'failed' } } } })
-  )
-  const error = useSelector(service, (state) => state.context.errors.newEmail)
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: { signedIn: { changeEmail: 'running' } } })
-  )
-  const isSuccess = useSelector(service, (state) =>
-    state.matches({ authentication: { signedIn: { changeEmail: { idle: 'success' } } } })
-  )
+import { useNhost, useNhostInterpreter } from './common'
 
-  const needsVerification = useSelector(service, (state) =>
-    state.matches({ authentication: { signedIn: { changeEmail: { idle: 'needsVerification' } } } })
-  )
+// ? use xstate events to determine success/error
+export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOptions) => {
+  const nhost = useNhost()
+  const machine = useMemo(() => createChangeEmailMachine(nhost), [nhost])
+  const [current, send] = useMachine(machine)
 
-  const changeEmail = (valueEmail?: string | unknown) =>
-    service.send({
-      type: 'CHANGE_EMAIL',
-      email: typeof valueEmail === 'string' ? valueEmail : stateEmail
+  const isError = current.matches({ idle: 'error' })
+  const needsVerification = current.matches({ idle: 'success' })
+  const error = current.context.error
+  const isLoading = current.matches('requesting')
+
+  const changeEmail = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+    send({
+      type: 'REQUEST_CHANGE',
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
+      options: valueOptions
     })
-  return { changeEmail, isLoading, isSuccess, needsVerification, isError, error }
+  return { changeEmail, isLoading, needsVerification, isError, error }
 }
 
 export const useChangePassword = (statePassword?: string) => {
-  const service = useNhostInterpreter()
-
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedIn: { changePassword: { idle: 'failed' } } } })
-  )
-  const error = useSelector(service, (state) => state.context.errors.newPassword)
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: { signedIn: { changePassword: 'running' } } })
-  )
-  const isSuccess = useSelector(service, (state) =>
-    state.matches({ authentication: { signedIn: { changePassword: { idle: 'success' } } } })
-  )
+  const nhost = useNhost()
+  const machine = useMemo(() => createChangePasswordMachine(nhost), [nhost])
+  const [current, send] = useMachine(machine)
+  const isError = current.matches({ idle: 'error' })
+  const isSuccess = current.matches({ idle: 'success' })
+  const error = current.context.error
+  const isLoading = current.matches('requesting')
 
   const changePassword = (valuePassword?: string | unknown) =>
-    service.send({
-      type: 'CHANGE_PASSWORD',
+    send({
+      type: 'REQUEST_CHANGE',
       password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
+
   return { changePassword, isLoading, isSuccess, isError, error }
 }
 
+// ? use xstate events to determine success/error
 export const useResetPassord = (stateEmail?: string) => {
   const service = useNhostInterpreter()
 

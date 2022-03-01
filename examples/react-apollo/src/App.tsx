@@ -20,10 +20,7 @@ function App() {
   const navigate = useNavigate()
   const location = useLocation()
   useEffect(() => {
-    if (signedOut) {
-      console.log('signed out')
-      navigate('/')
-    }
+    if (signedOut) navigate('/')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signedOut])
   return (

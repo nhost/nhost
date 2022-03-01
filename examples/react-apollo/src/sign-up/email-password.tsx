@@ -1,14 +1,24 @@
 import { Button, Input, Message } from 'rsuite'
 import { useEmailPasswordSignUp } from '@nhost/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
 export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const options = useMemo(
+    () => ({ displayName: `${firstName} ${lastName}`, metadata: { firstName, lastName } }),
+    [firstName, lastName]
+  )
   const navigate = useNavigate()
   const [confirmPassword, setConfirmPassword] = useState('')
-  const { signUp, error, needsVerification, isSuccess } = useEmailPasswordSignUp(email, password)
+  const { signUp, error, needsVerification, isSuccess } = useEmailPasswordSignUp(
+    email,
+    password,
+    options
+  )
   const [errorMessage, setErrorMessage] = useState('')
   useEffect(() => {
     if (needsVerification) navigate('/sign-up/verification-email-sent')
@@ -33,11 +43,25 @@ export const EmailPassword: React.FC = () => {
   return (
     <div>
       <Input
+        value={firstName}
+        onChange={setFirstName}
+        placeholder="First name"
+        size="lg"
+        autoFocus
+        style={{ marginBottom: '0.5em' }}
+      />
+      <Input
+        value={lastName}
+        onChange={setLastName}
+        placeholder="Last name"
+        size="lg"
+        style={{ marginBottom: '0.5em' }}
+      />
+      <Input
         value={email}
         onChange={setEmail}
         placeholder="Email Address"
         size="lg"
-        autoFocus
         style={{ marginBottom: '0.5em' }}
       />
       <Input

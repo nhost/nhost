@@ -1,10 +1,15 @@
 import { useMemo } from 'react'
 
+import { SignUpOptions } from '@nhost/client'
 import { useSelector } from '@xstate/react'
 
 import { useAuthenticated, useLoading, useNhostInterpreter } from './common'
 
-export const useEmailPasswordSignUp = (stateEmail?: string, statePassword?: string) => {
+export const useEmailPasswordSignUp = (
+  stateEmail?: string,
+  statePassword?: string,
+  stateOptions?: SignUpOptions
+) => {
   const service = useNhostInterpreter()
   const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedOut: 'failed' } })
@@ -17,11 +22,16 @@ export const useEmailPasswordSignUp = (stateEmail?: string, statePassword?: stri
     state.matches({ authentication: { signedOut: 'needsVerification' } })
   )
 
-  const signUp = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
+  const signUp = (
+    valueEmail?: string | unknown,
+    valuePassword = statePassword,
+    valueOptions = stateOptions
+  ) =>
     service.send({
-      type: 'REGISTER',
+      type: 'SIGNUP_EMAIL_PASSWORD',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-      password: typeof valuePassword === 'string' ? valuePassword : statePassword
+      password: valuePassword,
+      options: valueOptions
     })
   return {
     signUp,

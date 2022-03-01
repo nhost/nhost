@@ -12,11 +12,11 @@ export type ValidationErrorPayload = ErrorPayload & { status: typeof VALIDATION_
 export const INVALID_EMAIL_ERROR: ValidationErrorPayload = {
   status: VALIDATION_ERROR_CODE,
   error: 'invalid-email',
-  message: 'Incorrectly formatted email'
+  message: 'Email is incorrectly formatted'
 }
 
 export const INVALID_PASSWORD_ERROR: ValidationErrorPayload = {
   status: VALIDATION_ERROR_CODE,
   error: 'invalid-password',
-  message: 'Incorrect password'
+  message: 'Password is incorrectly formatted'
 }

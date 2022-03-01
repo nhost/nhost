@@ -6,20 +6,18 @@ export interface Typegen0 {
     saveSession:
       | 'SESSION_UPDATE'
       | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateWithToken'
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
+      | 'done.invoke.authenticateWithToken'
     persist:
       | 'SESSION_UPDATE'
       | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateWithToken'
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
+      | 'done.invoke.authenticateWithToken'
     resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
     saveRegisrationError: 'error.platform.registerUser'
     tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
-    requestEmailChange: 'CHANGE_EMAIL'
-    requestPasswordChange: 'CHANGE_PASSWORD'
     saveResetPasswordError: 'error.platform.resetPassword'
     resetAuthenticationError: 'xstate.init'
     saveAuthenticationError:
@@ -27,23 +25,14 @@ export interface Typegen0 {
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.registerUser'
-    saveInvalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
-    saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
+    saveInvalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
+    saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
     destroyToken: 'SIGNOUT'
-    resetEmailChangeError: 'xstate.init'
-    saveEmailChangeError: 'xstate.init'
-    resetPasswordChangeError: 'xstate.init'
-    savePasswordChangeError: 'xstate.init'
     resetResetPasswordError: 'xstate.init'
   }
   internalEvents: {
     'done.invoke.authenticateUserWithPassword': {
       type: 'done.invoke.authenticateUserWithPassword'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
-    'done.invoke.authenticateWithToken': {
-      type: 'done.invoke.authenticateWithToken'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -54,6 +43,11 @@ export interface Typegen0 {
     }
     'done.invoke.refreshToken': {
       type: 'done.invoke.refreshToken'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.authenticateWithToken': {
+      type: 'done.invoke.authenticateWithToken'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -89,33 +83,15 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.authenticateWithToken': {
-      type: 'error.platform.authenticateWithToken'
-      data: unknown
-    }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
-    'done.invoke.changePasswordMachine': {
-      type: 'done.invoke.changePasswordMachine'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
-    'error.platform.changePasswordMachine': {
-      type: 'error.platform.changePasswordMachine'
-      data: unknown
-    }
-    'done.invoke.changeEmailMachine': {
-      type: 'done.invoke.changeEmailMachine'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
-    'error.platform.changeEmailMachine': {
-      type: 'error.platform.changeEmailMachine'
-      data: unknown
-    }
     'done.invoke.resetPassword': {
       type: 'done.invoke.resetPassword'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'error.platform.authenticateWithToken': {
+      type: 'error.platform.authenticateWithToken'
+      data: unknown
     }
   }
   invokeSrcNameMap: {
@@ -123,10 +99,8 @@ export interface Typegen0 {
     signout: 'done.invoke.signingOut'
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
-    refreshToken: 'done.invoke.authenticateWithToken' | 'done.invoke.refreshToken'
     registerUser: 'done.invoke.registerUser'
-    changePasswordMachine: 'done.invoke.changePasswordMachine'
-    changeEmailMachine: 'done.invoke.changeEmailMachine'
+    refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
     resetPassword: 'done.invoke.resetPassword'
   }
   missingImplementations: {
@@ -140,18 +114,16 @@ export interface Typegen0 {
     refreshToken: 'TRY_TOKEN' | ''
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
-    registerUser: 'REGISTER'
+    registerUser: 'SIGNUP_EMAIL_PASSWORD'
     resetPassword: 'RESET_PASSWORD'
     signout: 'SIGNOUT'
-    changePasswordMachine: 'xstate.init'
-    changeEmailMachine: 'xstate.init'
   }
   eventsCausingGuards: {
     hasSession: 'SESSION_UPDATE' | 'done.invoke.registerUser'
     isSignedIn: ''
     hasRefreshTokenWithoutSession: ''
-    invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'REGISTER'
-    invalidPassword: 'SIGNIN_PASSWORD' | 'REGISTER'
+    invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
+    invalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
     unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
     noToken: ''
     isAutoRefreshDisabled: ''
@@ -185,29 +157,15 @@ export interface Typegen0 {
     | 'authentication.signedIn.refreshTimer.running'
     | 'authentication.signedIn.refreshTimer.running.pending'
     | 'authentication.signedIn.refreshTimer.running.refreshing'
-    | 'authentication.signedIn.changeEmail'
-    | 'authentication.signedIn.changeEmail.idle'
-    | 'authentication.signedIn.changeEmail.idle.noErrors'
-    | 'authentication.signedIn.changeEmail.idle.success'
-    | 'authentication.signedIn.changeEmail.idle.needsVerification'
-    | 'authentication.signedIn.changeEmail.idle.failed'
-    | 'authentication.signedIn.changeEmail.idle.failed.server'
-    | 'authentication.signedIn.changeEmail.idle.failed.validation'
-    | 'authentication.signedIn.changeEmail.running'
-    | 'authentication.signedIn.changePassword'
-    | 'authentication.signedIn.changePassword.idle'
-    | 'authentication.signedIn.changePassword.idle.noErrors'
-    | 'authentication.signedIn.changePassword.idle.success'
-    | 'authentication.signedIn.changePassword.idle.failed'
-    | 'authentication.signedIn.changePassword.idle.failed.server'
-    | 'authentication.signedIn.changePassword.idle.failed.validation'
-    | 'authentication.signedIn.changePassword.running'
     | 'resetPassword'
     | 'resetPassword.idle'
     | 'resetPassword.idle.noErrors'
     | 'resetPassword.idle.sent'
     | 'resetPassword.idle.failed'
     | 'resetPassword.sending'
+    | 'token'
+    | 'token.idle'
+    | 'token.running'
     | {
         authentication?:
           | 'starting'
@@ -226,8 +184,6 @@ export interface Typegen0 {
               authenticating?: 'passwordlessEmail' | 'password' | 'token'
               signedIn?:
                 | 'refreshTimer'
-                | 'changeEmail'
-                | 'changePassword'
                 | {
                     refreshTimer?:
                       | 'disabled'
@@ -235,30 +191,10 @@ export interface Typegen0 {
                       | 'idle'
                       | 'running'
                       | { running?: 'pending' | 'refreshing' }
-                    changeEmail?:
-                      | 'idle'
-                      | 'running'
-                      | {
-                          idle?:
-                            | 'noErrors'
-                            | 'success'
-                            | 'needsVerification'
-                            | 'failed'
-                            | { failed?: 'server' | 'validation' }
-                        }
-                    changePassword?:
-                      | 'idle'
-                      | 'running'
-                      | {
-                          idle?:
-                            | 'noErrors'
-                            | 'success'
-                            | 'failed'
-                            | { failed?: 'server' | 'validation' }
-                        }
                   }
             }
         resetPassword?: 'idle' | 'sending' | { idle?: 'noErrors' | 'sent' | 'failed' }
+        token?: 'idle' | 'running'
       }
   tags: 'ready'
 }

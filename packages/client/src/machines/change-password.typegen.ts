@@ -3,19 +3,17 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
-    sendInvalid: 'REQUEST_CHANGE'
-    sendSuccess: 'done.invoke.requestChange'
-    sendError: 'error.platform.requestChange'
-    sendLoading: 'REQUEST_CHANGE'
+    saveInvalidPasswordError: 'REQUEST_CHANGE'
+    saveRequestError: 'error.platform.requestChange'
   }
   internalEvents: {
+    'error.platform.requestChange': { type: 'error.platform.requestChange'; data: unknown }
+    'xstate.init': { type: 'xstate.init' }
     'done.invoke.requestChange': {
       type: 'done.invoke.requestChange'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.requestChange': { type: 'error.platform.requestChange'; data: unknown }
-    'xstate.init': { type: 'xstate.init' }
   }
   invokeSrcNameMap: {
     requestChange: 'done.invoke.requestChange'
@@ -33,6 +31,12 @@ export interface Typegen0 {
     invalidPassword: 'REQUEST_CHANGE'
   }
   eventsCausingDelays: {}
-  matchesStates: 'idle' | 'requesting'
+  matchesStates:
+    | 'idle'
+    | 'idle.initial'
+    | 'idle.success'
+    | 'idle.error'
+    | 'requesting'
+    | { idle?: 'initial' | 'success' | 'error' }
   tags: never
 }

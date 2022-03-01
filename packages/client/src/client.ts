@@ -8,21 +8,25 @@ export type NhostClientOptions = NhostMachineOptions
 
 export class Nhost {
   readonly backendUrl: string
+  readonly clientUrl: string
   readonly machine: NhostMachine
   interpreter?: InterpreterFrom<NhostMachine>
   #channel?: BroadcastChannel
 
   constructor({
     backendUrl,
+    clientUrl = typeof window !== 'undefined' ? window.location.origin : '',
     storageGetter = defaultStorageGetter,
     storageSetter = defaultStorageSetter,
     autoLogin = true,
     autoRefreshToken = true
   }: NhostClientOptions) {
     this.backendUrl = backendUrl
+    this.clientUrl = clientUrl
 
     const machine = createNhostMachine({
       backendUrl,
+      clientUrl,
       storageGetter,
       storageSetter,
       autoLogin,
