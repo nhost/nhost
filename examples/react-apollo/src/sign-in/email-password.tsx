@@ -3,7 +3,7 @@ import { useEmailPasswordSignIn } from '@nhost/react'
 import React, { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
-export const Password: React.FC = () => {
+export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const { signIn, error } = useEmailPasswordSignIn(email, password)

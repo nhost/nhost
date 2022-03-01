@@ -16,7 +16,11 @@ export const ForgotPassword: React.FC = () => {
   useEffect(() => {
     setErrorMessage('')
   }, [email])
-  toaster.push(<div />)
+  // * See https://github.com/rsuite/rsuite/issues/2336
+  useEffect(() => {
+    toaster.push(<div />)
+  }, [])
+
   useEffect(() => {
     if (isSent) {
       toaster.push(
@@ -48,8 +52,8 @@ export const ForgotPassword: React.FC = () => {
         Reset your password
       </Button>
       <Divider />
-      <Button as={NavLink} to="/sign-in" block appearance="link">
-        &#8592; Login
+      <Button as={NavLink} to="/sign-in/email-password" block appearance="link">
+        &#8592; Sign in with email + password
       </Button>
     </div>
   )

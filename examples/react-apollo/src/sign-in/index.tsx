@@ -4,10 +4,11 @@ import { Button, Divider, FlexboxGrid, IconButton, Panel } from 'rsuite'
 import { Icon } from '@rsuite/icons'
 import { FaLock } from 'react-icons/fa'
 
-import { EmailPasswordlessForm, OAuthLinks } from '../components'
+import { OAuthLinks } from '../components'
 import { VerificationEmailSent } from '../verification-email-sent'
-import { Password } from './email-password'
+import { EmailPassword } from './email-password'
 import { ForgotPassword } from './forgot-password'
+import { EmailPasswordless } from './email-passwordless'
 // import { useAnonymousSignIn } from '@nhost/react'
 
 const Index: React.FC = () => (
@@ -23,7 +24,7 @@ const Index: React.FC = () => (
     >
       Continue with passwordless email
     </IconButton>
-    <Button as={NavLink} to="/sign-in/password" block appearance="link">
+    <Button as={NavLink} to="/sign-in/email-password" block appearance="link">
       Continue with email + password
     </Button>
   </div>
@@ -38,8 +39,8 @@ export const SignInPage: React.FC = () => {
           <Panel header={<h2>Log in to the Application</h2>} bordered>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/email-passwordless" element={<EmailPasswordlessForm />} />
-              <Route path="/password" element={<Password />} />
+              <Route path="/email-passwordless" element={<EmailPasswordless />} />
+              <Route path="/email-password" element={<EmailPassword />} />
               <Route path="/verification-email-sent" element={<VerificationEmailSent />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
             </Routes>
