@@ -7,9 +7,11 @@
     "@nhost/react": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
     "@rsuite/icons": "^1.0.2",
+    "jwt-decode": "^3.1.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-icons": "^4.3.1",
+    "react-json-view": "^1.21.3",
     "react-router-dom": "^6.2.1",
     "rsuite": "^5.6.2"
   },

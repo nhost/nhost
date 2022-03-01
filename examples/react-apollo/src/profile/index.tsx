@@ -1,11 +1,14 @@
-import { useAccessToken } from '@nhost/react'
+import decode from 'jwt-decode'
+import ReactJson from 'react-json-view'
 import { Col, Panel, Row } from 'rsuite'
+import { useAccessToken, useUserData } from '@nhost/react'
+
 import { ChangeEmail } from './change-email'
 import { ChangePassword } from './change-password'
 
 export const ProfilePage: React.FC = () => {
   const jwt = useAccessToken()
-
+  const userData = useUserData()
   return (
     <Panel header="Profile page" bordered>
       <Row>
@@ -16,11 +19,29 @@ export const ProfilePage: React.FC = () => {
           <ChangePassword />
         </Col>
         <Col md={12} sm={24}>
-          <Panel header="TOTP" bordered></Panel>
+          <Panel header="User information" bordered>
+            {userData && (
+              <ReactJson
+                src={userData}
+                displayDataTypes={false}
+                displayObjectSize={false}
+                enableClipboard={false}
+                name={false}
+              />
+            )}
+          </Panel>
         </Col>
         <Col md={12} sm={24}>
           <Panel header="JWT" bordered>
-            <div style={{ overflowWrap: 'break-word' }}>{jwt}</div>
+            {jwt && (
+              <ReactJson
+                src={decode(jwt)}
+                displayDataTypes={false}
+                displayObjectSize={false}
+                enableClipboard={false}
+                name={false}
+              />
+            )}
           </Panel>
         </Col>
       </Row>
