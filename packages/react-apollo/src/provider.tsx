@@ -1,20 +1,15 @@
-import React, { useContext, useEffect, useState } from 'react'
+import React, { useContext } from 'react'
 
-import { ApolloClient, ApolloProvider, InMemoryCache } from '@apollo/client'
+import { ApolloProvider } from '@apollo/client'
 import { createApolloClient, NhostApolloClientOptions } from '@nhost/apollo'
 import { NhostReactContext } from '@nhost/react'
 
-// TODO check this type
 type Props = Omit<NhostApolloClientOptions, 'backendUrl' | 'authService'>
 const Wrapper: React.FC<Props> = ({ children, ...options }) => {
   const { interpreter, backendUrl } = useContext(NhostReactContext)
 
-  const [client, setClient] = useState<ApolloClient<InMemoryCache>>()
-
-  useEffect(() => {
-    setClient(createApolloClient({ interpreter, backendUrl, ...options }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  // * See https://github.com/nhost/nhost/pull/214#pullrequestreview-889730478
+  const client = createApolloClient({ interpreter, backendUrl, ...options })
 
   if (client) return <ApolloProvider client={client}>{children}</ApolloProvider>
   else return <div>no Apollo client</div>
