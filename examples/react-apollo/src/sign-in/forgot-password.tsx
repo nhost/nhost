@@ -5,7 +5,7 @@ import { NavLink } from 'react-router-dom'
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const { resetPassword, isSent, error } = useResetPassord(email, { redirectTo: '/reset' })
+  const { resetPassword, isSent, error } = useResetPassord(email, { redirectTo: '/profile' })
 
   const [errorMessage, setErrorMessage] = useState('')
   // * Set error message from the authentication hook errors
@@ -16,12 +16,13 @@ export const ForgotPassword: React.FC = () => {
   useEffect(() => {
     setErrorMessage('')
   }, [email])
+  toaster.push(<div />)
   useEffect(() => {
     if (isSent) {
       toaster.push(
         <Notification type="info" header="Info" closable>
           An email has been sent with a passwordless authentication link, so you'll be able to
-          authenticate and reset your password.
+          authenticate and change your password.
         </Notification>
       )
     }

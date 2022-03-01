@@ -1,4 +1,5 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { BroadcastChannel } from 'broadcast-channel'
 import produce from 'immer'
 import { assign, createMachine } from 'xstate'
 
@@ -489,6 +490,9 @@ export const createNhostMachine = ({
                 })
                 // * remove hash from the current url after consumming the token
                 window.history.pushState({}, '', location.pathname)
+                const channel = new BroadcastChannel('nhost')
+                // TODO broadcat session instead of token
+                channel.postMessage(refreshToken)
                 return { session }
               }
             }
