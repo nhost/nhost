@@ -18,7 +18,6 @@ export interface Typegen0 {
     resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
     saveRegisrationError: 'error.platform.registerUser'
     tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
-    saveResetPasswordError: 'error.platform.resetPassword'
     resetAuthenticationError: 'xstate.init'
     saveAuthenticationError:
       | 'error.platform.signingOut'
@@ -28,7 +27,6 @@ export interface Typegen0 {
     saveInvalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
     destroyToken: 'SIGNOUT'
-    resetResetPasswordError: 'xstate.init'
   }
   internalEvents: {
     'done.invoke.authenticateUserWithPassword': {
@@ -56,7 +54,6 @@ export interface Typegen0 {
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
-    'error.platform.resetPassword': { type: 'error.platform.resetPassword'; data: unknown }
     'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
@@ -84,11 +81,6 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
-    'done.invoke.resetPassword': {
-      type: 'done.invoke.resetPassword'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
     'error.platform.authenticateWithToken': {
       type: 'error.platform.authenticateWithToken'
       data: unknown
@@ -101,7 +93,6 @@ export interface Typegen0 {
     signInPassword: 'done.invoke.authenticateUserWithPassword'
     registerUser: 'done.invoke.registerUser'
     refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
-    resetPassword: 'done.invoke.resetPassword'
   }
   missingImplementations: {
     actions: never
@@ -115,7 +106,6 @@ export interface Typegen0 {
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'SIGNUP_EMAIL_PASSWORD'
-    resetPassword: 'RESET_PASSWORD'
     signout: 'SIGNOUT'
   }
   eventsCausingGuards: {
@@ -157,12 +147,6 @@ export interface Typegen0 {
     | 'authentication.signedIn.refreshTimer.running'
     | 'authentication.signedIn.refreshTimer.running.pending'
     | 'authentication.signedIn.refreshTimer.running.refreshing'
-    | 'resetPassword'
-    | 'resetPassword.idle'
-    | 'resetPassword.idle.noErrors'
-    | 'resetPassword.idle.sent'
-    | 'resetPassword.idle.failed'
-    | 'resetPassword.sending'
     | 'token'
     | 'token.idle'
     | 'token.running'
@@ -193,7 +177,6 @@ export interface Typegen0 {
                       | { running?: 'pending' | 'refreshing' }
                   }
             }
-        resetPassword?: 'idle' | 'sending' | { idle?: 'noErrors' | 'sent' | 'failed' }
         token?: 'idle' | 'running'
       }
   tags: 'ready'

@@ -20,6 +20,7 @@ import { NhostEvents } from './events'
 export type { NhostContext, NhostEvents }
 export * from './change-email'
 export * from './change-password'
+export * from './reset-password'
 
 export type NhostMachineOptions = {
   backendUrl: string
@@ -157,8 +158,7 @@ export const createNhostMachine = ({
                     target: '.failed.validation.password'
                   },
                   '#nhost.authentication.registering'
-                ],
-                RESET_PASSWORD: '#nhost.resetPassword.sending'
+                ]
               }
             },
             authenticating: {
@@ -294,29 +294,6 @@ export const createNhostMachine = ({
             }
           }
         },
-        resetPassword: {
-          initial: 'idle',
-          states: {
-            idle: {
-              initial: 'noErrors',
-              on: {
-                RESET_PASSWORD: 'sending'
-              },
-              states: { noErrors: {}, sent: {}, failed: { exit: 'resetResetPasswordError' } }
-            },
-            sending: {
-              invoke: {
-                id: 'resetPassword',
-                src: 'resetPassword',
-                onError: {
-                  actions: 'saveResetPasswordError',
-                  target: 'idle.failed'
-                },
-                onDone: 'idle.sent'
-              }
-            }
-          }
-        },
         token: {
           initial: 'idle',
           states: {
@@ -404,15 +381,7 @@ export const createNhostMachine = ({
         destroyToken: () => {
           storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
           storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
-        },
-
-        saveResetPasswordError: assign({
-          // TODO type
-          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, resetPassword: error })
-        }),
-        resetResetPasswordError: assign({
-          errors: ({ errors: { resetPassword, ...errors } }) => errors
-        })
+        }
       },
 
       guards: {
@@ -484,12 +453,7 @@ export const createNhostMachine = ({
             }
           }),
 
-        autoLogin: createAutoLoginMachine({ autoLogin }),
-
-        resetPassword: (_, { email }) =>
-          postRequest('/v1/auth/user/password/reset', {
-            email
-          })
+        autoLogin: createAutoLoginMachine({ autoLogin })
       }
     }
   )

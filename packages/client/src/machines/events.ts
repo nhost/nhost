@@ -13,4 +13,3 @@ export type NhostEvents =
   | { type: 'SIGNUP_EMAIL_PASSWORD'; email?: string; password?: string; options?: SignUpOptions }
   | { type: 'TOKEN_REFRESH_ERROR'; error: ErrorPayload }
   | { type: 'SIGNOUT'; all?: boolean }
-  | { type: 'RESET_PASSWORD'; email?: string }

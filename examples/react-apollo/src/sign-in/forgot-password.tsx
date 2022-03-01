@@ -1,11 +1,11 @@
-import { Button, Divider, Input, Message } from 'rsuite'
+import { Button, Divider, Input, Message, Notification, toaster } from 'rsuite'
 import { useResetPassord } from '@nhost/react'
 import React, { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const { resetPassword, isSent, error } = useResetPassord(email)
+  const { resetPassword, isSent, error } = useResetPassord(email, { redirectTo: '/reset' })
 
   const [errorMessage, setErrorMessage] = useState('')
   // * Set error message from the authentication hook errors
@@ -16,7 +16,16 @@ export const ForgotPassword: React.FC = () => {
   useEffect(() => {
     setErrorMessage('')
   }, [email])
-
+  useEffect(() => {
+    if (isSent) {
+      toaster.push(
+        <Notification type="info" header="Info" closable>
+          An email has been sent with a passwordless authentication link, so you'll be able to
+          authenticate and reset your password.
+        </Notification>
+      )
+    }
+  }, [isSent])
   return (
     <div>
       <Input
@@ -31,13 +40,6 @@ export const ForgotPassword: React.FC = () => {
       {errorMessage && (
         <Message showIcon type="error">
           {errorMessage}
-        </Message>
-      )}
-
-      {isSent && (
-        <Message showIcon type="success">
-          An email has been sent with a passwordless authentication link, so you'll be able to
-          authenticate and reset your password.
         </Message>
       )}
 

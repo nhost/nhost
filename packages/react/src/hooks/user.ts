@@ -3,13 +3,14 @@ import { useMemo } from 'react'
 import {
   ChangeEmailOptions,
   createChangeEmailMachine,
-  createChangePasswordMachine
+  createChangePasswordMachine,
+  createResetPasswordMachine,
+  ResetPasswordOptions
 } from '@nhost/client'
 import { useMachine, useSelector } from '@xstate/react'
 
 import { useNhost, useNhostInterpreter } from './common'
 
-// ? use xstate events to determine success/error
 export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOptions) => {
   const nhost = useNhost()
   const machine = useMemo(() => createChangeEmailMachine(nhost), [nhost])
@@ -47,21 +48,20 @@ export const useChangePassword = (statePassword?: string) => {
   return { changePassword, isLoading, isSuccess, isError, error }
 }
 
-// ? use xstate events to determine success/error
-export const useResetPassord = (stateEmail?: string) => {
-  const service = useNhostInterpreter()
+export const useResetPassord = (stateEmail?: string, stateOptions?: ResetPasswordOptions) => {
+  const nhost = useNhost()
+  const machine = useMemo(() => createResetPasswordMachine(nhost), [nhost])
+  const [current, send] = useMachine(machine)
+  const isError = current.matches({ idle: 'error' })
+  const isSent = current.matches({ idle: 'success' })
+  const error = current.context.error
+  const isLoading = current.matches('requesting')
 
-  const isError = useSelector(service, (state) =>
-    state.matches({ resetPassword: { idle: 'failed' } })
-  )
-  const error = useSelector(service, (state) => state.context.errors.resetPassword)
-  const isLoading = useSelector(service, (state) => state.matches({ resetPassword: 'sending' }))
-  const isSent = useSelector(service, (state) => state.matches({ resetPassword: { idle: 'sent' } }))
-
-  const resetPassword = (valueEmail?: string | unknown) =>
-    service.send({
-      type: 'RESET_PASSWORD',
-      email: typeof valueEmail === 'string' ? valueEmail : stateEmail
+  const resetPassword = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+    send({
+      type: 'REQUEST_CHANGE',
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
+      options: valueOptions
     })
   return { resetPassword, isLoading, isSent, isError, error }
 }

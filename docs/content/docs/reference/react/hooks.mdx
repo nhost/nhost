@@ -226,7 +226,7 @@ const jwt = useAccessToken()
 
 ```js
 const { change, isLoading, isSuccess, needsVerification, isError, error } =
-  useChangeEmail(email?: string)
+  useChangeEmail(email?: string, options?: { redirectTo?: string })
 ```
 
 - `changeEmail: (email?: string) => void` requests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.
@@ -234,6 +234,7 @@ const { change, isLoading, isSuccess, needsVerification, isError, error } =
 - `needsVerification: boolean` returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.
 - `isError: boolean` returns `true` if an error occurred.
 - `error?: {status: number, error: string, message: string}` provides details about the error.
+- `redirectTo?: string`: redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`.
 
 #### Usage
 
@@ -283,6 +284,39 @@ const Component = () => {
     <div>
       <input value={password} onChange={(event) => setPassword(event.target.value)} />
       <button onClick={changePassword}>Change password</button>
+    </div>
+  )
+}
+```
+
+### Reset password
+
+When an user lost their password, we can resend them an email to authenticate, so they can change their password:
+
+```js
+const { resetPassword, isLoading, isSent, isError, error } = useResetPassord(email?: string, options?: { redirectTo?: string })
+```
+
+- `resetPassword: (email?: string) => void` Sends an email with a temporary connection link. The arguement email will take precedence over the the possible state value used when creating the hook.
+- `isLoading: boolean` returns `true` when the action is executing, `false` when the action result is available.
+- `isSent: boolean` returns `true` when the email has been successfully sent.
+- `isError: boolean` returns `true` if an error occurred.
+- `error?: {status: number, error: string, message: string}` provides details about the error.
+- `redirectTo?: string`: redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`.
+
+#### Usage
+
+```jsx
+import { useState } from 'react'
+import { useResetPassord } from '@nhost/react'
+
+const Component = () => {
+  const [email, setEamil] = useState('')
+  const { resetPassword, isLoading, isSent, isError, error } = useResetPassord(email?: string)
+  return (
+    <div>
+      <input value={email} onChange={(event) => setEmail(event.target.value)} />
+      <button onClick={resetPassword}>Send reset link</button>
     </div>
   )
 }
