@@ -57,7 +57,7 @@ router.post(
 /**
  * POST /signin/passwordless/sms
  * @summary Send a one-time password by SMS
- * @param {SignInPasswordlessEmailSchema} request.body.required
+ * @param {SignInPasswordlessSmsSchema} request.body.required
  * @return {string} 200 - SMS sent successfully - text/plain
  * @return {string} 400 - The payload is invalid - text/plain
  * @return {string} 404 - The feature is not activated - text/plain

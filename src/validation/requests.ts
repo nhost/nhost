@@ -34,11 +34,6 @@ export const signUpEmailPasswordSchema = Joi.object({
 export const signInEmailPasswordSchema = Joi.object({
   email: email.required(),
   password: password.required(),
-  options: Joi.object({
-    defaultRole: defaultRole,
-    allowedRoles: allowedRoles,
-    displayName: displayName,
-  }),
 }).meta({ className: 'SignInEmailPasswordSchema' });
 
 export const signInPasswordlessEmailSchema = Joi.object({
