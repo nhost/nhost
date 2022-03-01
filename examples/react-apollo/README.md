@@ -1,9 +1,11 @@
 # React-Apollo example
 
+Once in the example's directory, run the two following commands in parallel:
+
 ```sh
 # Start the Nhost CLI in the background
-pnpm run start --filter @nhost-examples/testing-project
+nhost -d
 
 # Start this project
-pnpm run start --filter @nhost-examples/react-apollo
+pnpm run dev
 ```
