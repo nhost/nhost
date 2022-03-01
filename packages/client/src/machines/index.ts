@@ -13,7 +13,6 @@ import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
 import { isValidEmail, isValidPassword } from '../validators'
 
-import { AutoLoginOption, createAutoLoginMachine } from './auto-login'
 import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
 import { NhostEvents } from './events'
 
@@ -27,7 +26,7 @@ export type NhostMachineOptions = {
   clientUrl?: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
-  autoLogin?: AutoLoginOption
+  autoLogin?: boolean
   autoRefreshToken?: boolean
 }
 
@@ -66,8 +65,7 @@ export const createNhostMachine = ({
       type: 'parallel',
       states: {
         authentication: {
-          initial: 'starting',
-          invoke: [{ id: 'autoLogin', src: 'autoLogin' }],
+          initial: 'checkAutoLogin',
           on: {
             TRY_TOKEN: '#nhost.token.running',
             SESSION_UPDATE: [
@@ -79,6 +77,20 @@ export const createNhostMachine = ({
             ]
           },
           states: {
+            checkAutoLogin: {
+              always: [{ cond: 'isAutoLoginDisabled', target: 'starting' }],
+              invoke: [
+                {
+                  id: 'autoLogin',
+                  src: 'autoLogin',
+                  onDone: {
+                    target: 'signedIn',
+                    actions: ['saveSession', 'persist']
+                  },
+                  onError: 'starting'
+                }
+              ]
+            },
             starting: {
               always: [
                 {
@@ -403,6 +415,7 @@ export const createNhostMachine = ({
         noToken: (ctx) => !ctx.refreshToken.value,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
+        isAutoLoginDisabled: () => !autoLogin,
         refreshTimerShouldRefresh: (ctx) =>
           ctx.refreshTimer.elapsed >
           Math.max(
@@ -423,7 +436,6 @@ export const createNhostMachine = ({
       },
 
       services: {
-        // TODO options
         signInPassword: (_, { email, password }) =>
           postRequest('/v1/auth/signin/email-password', {
             email,
@@ -453,7 +465,6 @@ export const createNhostMachine = ({
             all: !!e.all
           }),
 
-        //   TODO options
         registerUser: (_, { email, password, options }) =>
           postRequest('/v1/auth/signup/email-password', {
             email,
@@ -466,7 +477,24 @@ export const createNhostMachine = ({
             }
           }),
 
-        autoLogin: createAutoLoginMachine({ autoLogin })
+        autoLogin: async () => {
+          if (typeof window !== 'undefined') {
+            const location = window.location
+            if (location.hash) {
+              const params = new URLSearchParams(location.hash.slice(1))
+              const refreshToken = params.get('refreshToken')
+              if (refreshToken) {
+                const session = await postRequest('/v1/auth/token', {
+                  refreshToken
+                })
+                // * remove hash from the current url after consumming the token
+                window.history.pushState({}, '', location.pathname)
+                return { session }
+              }
+            }
+            throw Error()
+          }
+        }
       }
     }
   )
