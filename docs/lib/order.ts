@@ -7,7 +7,7 @@ export const orderTwo = {
   },
   platform: {
     database: ['index', 'permissions', 'graphql'],
-    authentication: ['index', 'user-management', 'sign-in-methods', 'social-login'],
+    authentication: ['index', 'user-management', 'sign-in-methods', 'social-login', 'email-templates'],
     storage: ['index'],
     'serverless-functions': ['index', 'event-triggers'],
     nhost: ['index', 'environment-variables', 'github-integration', 'local-development']

@@ -4,25 +4,35 @@ Welcome and thank you for considering contributing to Nhost!
 
 This document outlines the rules to follow to make the contribution process easy and effective for everyone involved. If you are ever in doubt about anything, we encourage you to reach out [via Discord](https://discord.com/invite/9V7Qb2U).
 
-## Code of Conduct
+## Repo Setup
 
-We take our open source community seriously and hold ourselves and other contributors to high standards of communication. By participating and contributing to this project, you agree to uphold our [Code of Conduct](https://github.com/nhost/nhost/blob/main/CODE_OF_CONDUCT.md).
+The Nhost repo is a monorepo using pnpm workspaces. The package manager used to install and link dependencies must be [pnpm](https://pnpm.io/).
 
-## Getting Started
+<!-- TODO -->
+
+To develop and test the core `vite` package:
+
+1. Run `pnpm i` in Nhost's root folder
+
+<!-- 2. Go to `packages/vite` and run `pnpm run dev`. This starts `rollup` in watch mode. -->
+
+### Repository structure
+
+<!-- ## Getting Started
 
 Contributions are made to Nhost repos via Issues and Pull Requests (PRs). A few general guidelines that cover both:
 
 - Search for existing Issues and PRs before creating your own.
 - We work hard to make sure issues are handled on time, but it could take a while to investigate the root cause depending on the impact. A friendly ping in the comment thread to the submitter or a contributor can help draw attention if your issue is blocking.
-- If you've never contributed before, see [the first-timer's guide](https://github.com/firstcontributions/first-contributions) for resources and tips on getting started.
+- If you've never contributed before, see [the first-timer's guide](https://github.com/firstcontributions/first-contributions) for resources and tips on getting started. -->
 
-### Issues
+## Issues
 
 Issues should be used to report problems with Nhost, request a new feature, or discuss potential changes before a PR is created.
 
 If you find an Issue that addresses the problem you're having, please add your reproduction information to the existing issue rather than creating a new one. Adding a [reaction](https://github.blog/2016-03-10-add-reactions-to-pull-requests-issues-and-comments/) can also help indicate to our maintainers that a particular problem affects more than just the reporter.
 
-### Pull Requests
+## Pull Requests
 
 PRs to our libraries are always welcome and can be a quick way to get your fix or improvement slated for the next release. In general, PRs should:
 
@@ -47,3 +57,7 @@ In general, we follow the ["fork-and-pull" Git workflow](https://github.com/susa
 5. Following any formatting and testing guidelines specific to this repo
 6. Push changes to your fork
 7. Open a PR in our repository and follow the PR template to review the changes efficiently.
+
+## Code of Conduct
+
+We take our open source community seriously and hold ourselves and other contributors to high standards of communication. By participating and contributing to this project, you agree to uphold our [Code of Conduct](https://github.com/nhost/nhost/blob/main/CODE_OF_CONDUCT.md).
