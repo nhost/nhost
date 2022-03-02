@@ -22,7 +22,7 @@ export const useNhostBackendUrl = () => {
   return nhost.backendUrl
 }
 
-export const useLoading = () => {
+export const useAuthLoading = () => {
   const service = useNhostInterpreter()
   return useSelector(service, (state) => !state.hasTag('ready'))
 }

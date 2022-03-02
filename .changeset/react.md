@@ -22,7 +22,7 @@ See the [documentation](https://docs.nhost.io/reference/react) for further infor
 - `useEmailPasswordSignIn`
 - `useEmailPasswordSignUp`
 - `useIsAnonymous`
-- `useLoading`
+- `useAuthLoading`
 - `useNhost`
 - `useNhostBackendUrl`
 - `useNhostInterpreter`
@@ -32,6 +32,6 @@ See the [documentation](https://docs.nhost.io/reference/react) for further infor
 - `useUserId`
 - `useUserLocale`
 - `useUserRoles`
-- the `useNhostAuth` has not been included. Use `useAuthenticated` together with `useLoading` and `useUserData` instead
+- the `useNhostAuth` has not been included. Use `useAuthenticated` together with `useAuthLoading` and `useUserData` instead
 
 Closes [#189](https://github.com/nhost/nhost/issues/189), [#127](https://github.com/nhost/nhost/issues/127), [#186](https://github.com/nhost/nhost/issues/186), and [#195](https://github.com/nhost/nhost/issues/195)

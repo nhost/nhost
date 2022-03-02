@@ -8,10 +8,10 @@ When using [React Router](https://reactrouter.com/web/guides/quick-start) with `
 
 ```jsx
 import { Redirect } from 'react-router-dom'
-import { useLoading, useAuthenticated } from '@nhost/react'
+import { useAuthLoading, useAuthenticated } from '@nhost/react'
 
 export function AuthGate(children) {
-  const isLoading = useLoading()
+  const isLoading = useAuthLoading()
   const isAuthenticated = useAuthenticated()
 
   if (isLoading) {

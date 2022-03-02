@@ -1,9 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthenticated, useLoading } from '@nhost/react'
+import { useAuthenticated, useAuthLoading } from '@nhost/react'
 
 export const AuthGate: React.FC = ({ children }) => {
   const isAuthenticated = useAuthenticated()
-  const isLoading = useLoading()
+  const isLoading = useAuthLoading()
   const location = useLocation()
   if (isLoading) {
     return <div>Loading...</div>
@@ -18,7 +18,7 @@ export const AuthGate: React.FC = ({ children }) => {
 
 export const PublicGate: React.FC = ({ children }) => {
   const isAuthenticated = useAuthenticated()
-  const isLoading = useLoading()
+  const isLoading = useAuthLoading()
   const location = useLocation()
   if (isLoading) {
     return <div>Loading...</div>
