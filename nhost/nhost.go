@@ -248,6 +248,11 @@ func SearchRelease(releases []Release, version string) (Release, error) {
 			}
 		}
 	}
+
+	if len(releases) == 0 {
+		return response, errors.New("no release found")
+	}
+
 	return releases[0], nil
 }
 
