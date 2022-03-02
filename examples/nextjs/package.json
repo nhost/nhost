@@ -1,5 +1,5 @@
 {
-  "name": "@nhost-examples/nextjs-apollo",
+  "name": "@nhost-examples/nextjs",
   "private": true,
   "scripts": {
     "dev": "next dev",
