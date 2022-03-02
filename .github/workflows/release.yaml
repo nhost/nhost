@@ -44,6 +44,10 @@ jobs:
           # binary_name: cli
           ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}" -X "github.com/${{ github.repository }}/nhost.REPOSITORY=${{ github.repository }}"
 
+  update-releases-file:
+    name: Update Releases File
+    runs-on: ubuntu-latest
+    steps:
       - uses: actions/checkout@v3
         with:
           ref: gh-pages
