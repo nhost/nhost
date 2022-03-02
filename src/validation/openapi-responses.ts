@@ -10,7 +10,7 @@ import {
   userId,
 } from './fields';
 
-// ******** THE ABOVE MODELS ARE USED FOR GENERATING OPENAPI SCHEMAS ******** //
+// ******** THE FOLLOWING MODELS ARE USED FOR GENERATING OPENAPI SCHEMAS ******** //
 export const UserModel = Joi.object<User>({
   id: userId,
   createdAt: Joi.date().required(),
