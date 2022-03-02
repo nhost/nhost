@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
+
+
+### Features
+
+* add openapi/swagger endpoint ([6b92546](https://github.com/nhost/hasura-auth/commit/6b9254692810fda654c50483439c4eccc05dc7f7))
+
 ## [0.2.1](https://github.com/nhost/hasura-auth/compare/v0.2.0...v0.2.1) (2022-02-18)
 
 
