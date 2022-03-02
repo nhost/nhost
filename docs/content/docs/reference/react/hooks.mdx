@@ -100,7 +100,7 @@ const Component = () => {
 }
 ```
 
-### Oauth providers
+### Oauth Providers
 
 ```js
 import { useProviderLink } from '@nhost/react'
@@ -155,7 +155,7 @@ const Component = () => {
 }
 ```
 
-### Sign out
+### Sign Out
 
 The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
 
@@ -178,7 +178,7 @@ const Component = () => {
   if (authenticated)
     return (
       <div>
-        <button onClick={signUp}>Sign out</button>
+        <button onClick={signUp}>Sign Out</button>
         {isSuccess && <div>You have successfully signed out!</div>}
       </div>
     )
@@ -221,7 +221,7 @@ const jwt = useAccessToken()
 ### Change email
 
 ```js
-const { change, isLoading, isSuccess, needsVerification, isError, error } =
+const { changeEmail, isLoading, isSuccess, needsVerification, isError, error } =
   useChangeEmail(email?: string, options?: { redirectTo?: string })
 ```
 

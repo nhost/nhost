@@ -40,7 +40,7 @@ function App() {
           <Nav pullRight>
             {isAuthenticated && (
               <Nav.Item icon={<ExitIcon />} onSelect={signOut}>
-                Sign out
+                Sign Out
               </Nav.Item>
             )}
           </Nav>
