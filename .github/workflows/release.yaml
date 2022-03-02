@@ -21,7 +21,7 @@ jobs:
         goarch: ["386", amd64, arm64]
         exclude:
           - goarch: "386"
-            goos: darwin 
+            goos: darwin
           - goarch: arm64
             goos: windows
           - goarch: arm64
@@ -33,7 +33,7 @@ jobs:
         run: |
           echo VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
           echo $(basename ${GITHUB_REF})
-            
+
       - name: Generate Binary
         uses: wangyoucao577/go-release-action@v1.22
         with:
@@ -43,3 +43,37 @@ jobs:
           goarch: ${{ matrix.goarch }}
           # binary_name: cli
           ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}" -X "github.com/${{ github.repository }}/nhost.REPOSITORY=${{ github.repository }}"
+
+      - uses: actions/checkout@v3
+        with:
+          ref: gh-pages
+      - name: Generate releases.json
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          gh api repos/nhost/cli/releases > releases.json
+      - name: Check if there are changes
+        id: changes
+        shell: bash
+        run: |
+          if [[ -z "$(git status --porcelain . )" ]]; then
+           echo "::set-output name=changed::0"
+          else
+           echo "::set-output name=changed::1"
+          fi
+      - name: Committing releases.json
+        shell: bash
+        if: steps.changes.outputs.changed == 1
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "" --allow-empty-message
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        if: steps.changes.outputs.changed == 1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: gh-pages
+          force: true
