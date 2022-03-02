@@ -5,25 +5,7 @@ import * as validators from './validation';
 import { Application } from 'express';
 
 const schema: Record<string, any> & { components: SwaggerSchema } = {
-  tags: [
-    // {
-    //   name: 'default',
-    //   description: 'Everything about your Pets',
-    //   externalDocs: {
-    //     description: 'Find out more',
-    //     url: 'http://swagger.io',
-    //   },
-    // },
-    // { name: 'store', description: 'Access to Petstore orders' },
-    // {
-    //   name: 'user',
-    //   description: 'Operations about user',
-    //   externalDocs: {
-    //     description: 'Find out more about our store',
-    //     url: 'http://swagger.io',
-    //   },
-    // },
-  ],
+  tags: [],
   components: { schemas: {} },
 };
 Object.values(validators).forEach((validator) => {
