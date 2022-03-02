@@ -1,16 +1,15 @@
 # [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
 
-
 ### Features
 
-* add openapi/swagger endpoint ([6b92546](https://github.com/nhost/hasura-auth/commit/6b9254692810fda654c50483439c4eccc05dc7f7))
+- add openapi/swagger endpoint ([6b92546](https://github.com/nhost/hasura-auth/commit/6b9254692810fda654c50483439c4eccc05dc7f7))
+- add Twitch and Discord Oauth providers
 
 ## [0.2.1](https://github.com/nhost/hasura-auth/compare/v0.2.0...v0.2.1) (2022-02-18)
 
-
 ### Bug Fixes
 
-* reload metadata after applying metadata changes ([26fb2ff](https://github.com/nhost/hasura-auth/commit/26fb2ffdef3cb5baba97a7bce8b5f0b62e58a0a3))
+- reload metadata after applying metadata changes ([26fb2ff](https://github.com/nhost/hasura-auth/commit/26fb2ffdef3cb5baba97a7bce8b5f0b62e58a0a3))
 
 # [0.2.0](https://github.com/nhost/hasura-auth/compare/v0.1.0...v0.2.0) (2022-02-03)
 
