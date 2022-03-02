@@ -22,8 +22,7 @@ export const orderTwo = {
       'sign-in-with-github',
       'sign-in-with-facebook',
       'sign-in-with-linkedin',
-      'sign-in-with-spotify',
-      'sign-in-with-microsoft'
+      'sign-in-with-spotify'
     ],
     storage: ['index'],
     'serverless-functions': ['index', 'event-triggers'],
