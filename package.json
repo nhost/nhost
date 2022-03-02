@@ -13,7 +13,7 @@
     "start": "node ./dist/start.js",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint --fix",
-    "dev": "run-p  dev:start \"codegen:graphql --watch\"",
+    "dev": "run-p  dev:start \"codegen --watch\"",
     "codegen": "dotenv graphql-codegen --config codegen.yaml",
     "dev:start": "ts-node-dev -r tsconfig-paths/register --respawn --clear  --unhandled-rejections=strict src/start.ts",
     "test": "AUTH_LOG_LEVEL=error jest --runInBand",
