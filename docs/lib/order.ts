@@ -16,6 +16,6 @@ export const orderTwo = {
     sdk: ['index', 'graphql', 'authentication', 'storage', 'functions'],
     cli: ['index'],
     'supporting-libraries': ['react-apollo', 'react-auth'],
-    'hasura-auth': ['index', 'installation', 'configuration', 'environment-variables', 'api-reference']
+    'hasura-auth': ['index', 'installation', 'configuration', 'environment-variables', 'api-reference', 'schema']
   }
 }
