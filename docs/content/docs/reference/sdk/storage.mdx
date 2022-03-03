@@ -19,12 +19,12 @@ const { fileMetadata, error } = await nhost.storage.upload({ file })
 
 ---
 
-## `nhost.storage.getUrl()`
+## `nhost.storage.getPublicUrl()`
 
 Get the public URL of a file. To access the file via public URL, the file must have the `select` permission for the `public` role.
 
 ```js
-const url = nhost.storage.getUrl({ fileId })
+const url = nhost.storage.getPublicUrl({ fileId })
 ```
 
 ---
