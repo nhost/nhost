@@ -38,7 +38,7 @@ More technically, Nhost is a set of open source softwares:
 
 Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
 
-### Works with Every Frontend Frameworks
+## Nhost Works with Every Frontend Frameworks
 
 Nhost is frontend agnostic, which means Nhost works with **all** current and future frontend frameworks.
 
@@ -61,7 +61,7 @@ Nhost is frontend agnostic, which means Nhost works with **all** current and fut
 
 ### Option 2: Self-hosting
 
-Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
+Since Nhost is 100% open source you can self host the whole Nhost stack. Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
 
 ## Sign in a user and make your first GraphQL query
 
