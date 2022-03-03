@@ -1,8 +1,14 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 
+import type { User } from '@nhost/hasura-auth-js'
 import { NhostClient } from '@nhost/nhost-js'
 
-export const AuthContext = createContext({
+type NhostContext = {
+  isLoading: boolean
+  isAuthenticated: boolean
+  user: User | null
+}
+export const AuthContext = createContext<NhostContext>({
   user: null,
   isLoading: true,
   isAuthenticated: false
@@ -15,7 +21,7 @@ export function NhostAuthProvider({
   children: ReactNode
   nhost: NhostClient
 }) {
-  const [authContext, setAuthContext] = useState({
+  const [authContext, setAuthContext] = useState<NhostContext>({
     user: null,
     isLoading: true,
     isAuthenticated: false

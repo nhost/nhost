@@ -1,13 +1,13 @@
-import AnchorLink, { AnchorLinkProps } from '@/components/AnchorLink'
-import CodeComponent, { CodeEditorProps } from '@/components/MDX/CodeComponent'
-import Text, { TextProps } from '@/components/ui/Text'
-import clsx from 'clsx'
-import Image from 'next/image'
-import Link from 'next/link'
-import React, { DetailedHTMLProps, HTMLProps, PropsWithChildren } from 'react'
+import AnchorLink, { AnchorLinkProps } from '@/components/AnchorLink';
+import CodeComponent, { CodeEditorProps } from '@/components/MDX/CodeComponent';
+import Text, { TextProps } from '@/components/ui/Text';
+import clsx from 'clsx';
+import Image from 'next/image';
+import Link from 'next/link';
+import React, { DetailedHTMLProps, HTMLProps, PropsWithChildren } from 'react';
 
-import Command from '../Command'
-import Divider from '../Divider'
+import Command from '../Command';
+import Divider from '../Divider';
 
 function Note({ children }: PropsWithChildren<unknown>) {
   return (
@@ -66,14 +66,7 @@ const components = {
   img: (props: DetailedHTMLProps<HTMLProps<HTMLImageElement>, HTMLImageElement>) => {
     return (
       <span className="block mx-10 mt-5 ">
-        <img src={props.src} alt={props.alt} className="mx-auto mt-2 border" />
-        {props.alt && (
-          <div className="block pt-4 mb-8 text-sm text-center text-secondary">
-            <Text color="greyscaleDark" size="tiny">
-              {props.alt}
-            </Text>
-          </div>
-        )}
+        <img src={props.src} alt={props.alt} className="mx-auto mt-2" />
       </span>
     )
   },

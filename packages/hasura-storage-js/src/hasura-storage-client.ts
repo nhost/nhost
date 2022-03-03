@@ -48,14 +48,23 @@ export class HasuraStorageClient {
 
   /**
    *
-   * Use `.getUrl` to direct file URL to a file.
-   *
-   * @example
-   *
-   * storage.getUrl({ fileId: 'uuid' })
+   * @deprecated use `.getPublicUrl` instead
    *
    */
   getUrl(params: StorageGetUrlParams): string {
+    return this.getPublicUrl(params)
+  }
+
+  /**
+   *
+   * Use `.getPublicUrl` to direct file URL to a file.
+   *
+   * @example
+   *
+   * storage.getPublicUrl({ fileId: 'uuid' })
+   *
+   */
+  getPublicUrl(params: StorageGetUrlParams): string {
     const { fileId } = params
     return `${this.url}/files/${fileId}`
   }
