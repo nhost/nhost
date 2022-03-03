@@ -20,14 +20,14 @@
   <hr />
 </div>
 
-**Nhost is a serverless backend for web and mobile apps** and is built with a few things in mind:
+**Nhost is a serverless backend for web and mobile apps** and is built with a the following things in mind:
 
 - Open Source
 - Developer Productivity
 - SQL
 - GraphQL
 
-More technically, Nhost is a set of open source softwares:
+Nhost consists of open source software:
 
 - Database: [PostgreSQL](https://www.postgresql.org/)
 - Instant GraphQL API: [Hasura](https://hasura.io/)
