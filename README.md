@@ -38,19 +38,6 @@ Nhost consists of open source software:
 
 Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
 
-## Nhost Works with Every Frontend Frameworks
-
-Nhost is frontend agnostic, which means Nhost works with **all** current and future frontend frameworks.
-
-<div align="center">
-<a href="https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo"><img src="assets/nextjs.svg"/></a>
-<a href="https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo"><img src="assets/nuxtjs.svg"/></a>
-<a href="https://github.com/nhost/nhost/tree/main/templates/web/react-apollo"><img src="assets/react.svg"/></a>
-<img src="assets/react-native.svg"/>
-<a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/svelte.svg"/></a>
-<a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/vuejs.svg"/></a>
-</div>
-
 # How to get started
 
 ### Option 1: One-click deployment with Nhost (recommended)
@@ -84,6 +71,19 @@ await nhost.graphql.request(`{
   }
 }`)
 ```
+
+## Frontend Agnostic
+
+Nhost is frontend agnostic, which means Nhost works with all frontend frameworks.
+
+<div align="center">
+  <a href="https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo"><img src="assets/nextjs.svg"/></a>
+  <a href="https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo"><img src="assets/nuxtjs.svg"/></a>
+  <a href="https://github.com/nhost/nhost/tree/main/templates/web/react-apollo"><img src="assets/react.svg"/></a>
+  <img src="assets/react-native.svg"/>
+  <a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/svelte.svg"/></a>
+  <a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/vuejs.svg"/></a>
+</div>
 
 # Resources
 
