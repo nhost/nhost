@@ -1,64 +1,71 @@
-
 <div align="center">
-
-<p align="center">
   <img width="237" src="https://raw.githubusercontent.com/nhost/nhost/main/assets/logo.png"/>
-</p>
+
+  <br />
+  <br />
+
+<a href="https://docs.nhost.io/get-started">Quickstart</a>
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+<a href="http://nhost.io/">Website</a>
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+<a href="https://docs.nhost.io/get-started">Docs</a>
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+<a href="https://nhost.io/blog">Blog</a>
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+<a href="https://twitter.com/nhostio">Twitter</a>
+<span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+<a href="https://nhost.io/discord">Discord</a>
+<br />
+
+  <hr />
 </div>
 
-<h3 align="center">
-  <b><a href="https://docs.nhost.io/get-started">Get Started</a></b>
-  •
-  <a href="https://docs.nhost.io/">Docs</a>
-  •
-  <a href="https://nhost.io/discord">Community</a>
-  •
-  <a href="https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg">Youtube</a>
-  •
-  <a href="https://twitter.com/nhostio">Twitter</a> 
-  </h3>
-  
-**Nhost is a serverless backend for web and mobile apps.** Nhost consists of open-source software preconfigured to make it easy to get started and scale up:
+**Nhost is a serverless backend for web and mobile apps** and is built with a few things in mind:
 
-- Database: [Postgres](https://www.postgresql.org/)
-- GraphQL API: [Hasura](https://hasura.io/)
+- Open Source
+- Developer Productivity
+- SQL
+- GraphQL
+
+More technically, Nhost is a set of open source softwares:
+
+- Database: [PostgreSQL](https://www.postgresql.org/)
+- Instant GraphQL API: [Hasura](https://hasura.io/)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
 - Storage: [Hasura Storage](https://github.com/nhost/hasura-backend-plus/)
 - Serverless Functions: JavaScript and TypeScript runtimes
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
-For complete documentation, visit [docs.nhost.io](http://docs.nhost.io/).
+Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
 
-### Nhost works with
+### Works with Every Frontend Frameworks
+
+Nhost is frontend agnostic, which means Nhost works with **all** current and future frontend frameworks.
 
 <div align="center">
-<p style="display: flex; align-items: center;">
-<a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo"><img src="assets/nextjs.svg"/></a>
-<a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo"><img src="assets/nuxtjs.svg"/></a>
-<a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/templates/web/react-apollo"><img src="assets/react.svg"/></a>
-<a style="margin-right: 10px;" href="https://github.com/nhost/nhost-dart/tree/main/packages/nhost_flutter_graphql/example"><img src="assets/react-native.svg"/></a>
-<a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/svelte.svg"/></a>
-<a style="margin-right: 10px;" href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/vuejs.svg"/></a>
-</p>
+<a href="https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo"><img src="assets/nextjs.svg"/></a>
+<a href="https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo"><img src="assets/nuxtjs.svg"/></a>
+<a href="https://github.com/nhost/nhost/tree/main/templates/web/react-apollo"><img src="assets/react.svg"/></a>
+<img src="assets/react-native.svg"/>
+<a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/svelte.svg"/></a>
+<a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/vuejs.svg"/></a>
 </div>
 
 # How to get started
 
 ### Option 1: One-click deployment with Nhost (recommended)
 
-1. Create Nhost account
+1. Create [Nhost account](https://app.nhost.io) (you can use GitHub to sign up)
 2. Create Nhost app
-3. App is live! 
+3. Done!
 
 ### Option 2: Self-hosting
 
-*Coming soon*
+Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
 
-## Sign in a user and make your first GraphQL request
+## Sign in a user and make your first GraphQL query
 
-Install the `@nhost/nhost-js` package.
-
-Now you're ready to develop your app:
+Install the `@nhost/nhost-js` package and start build your app:
 
 ```jsx
 import { NhostClient } from '@nhost/nhost-js'
