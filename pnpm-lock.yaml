@@ -462,6 +462,7 @@ importers:
 
   packages/react-auth:
     specifiers:
+      '@nhost/hasura-auth-js': workspace:*
       '@nhost/nhost-js': workspace:*
       '@types/react': ^17.0.38
       react: ^17.0.2
@@ -469,6 +470,7 @@ importers:
     dependencies:
       '@nhost/nhost-js': link:../nhost-js
     devDependencies:
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@types/react': 17.0.39
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
