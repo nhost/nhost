@@ -219,7 +219,7 @@ const Component = () => {
 <!-- TODO better documentation -->
 
 ```js
-const jwt = useAccessToken()
+const accessToken = useAccessToken()
 ```
 
 ## User management
@@ -300,7 +300,7 @@ const Component = () => {
 If a user loses their password, we can resend them an email to authenticate so that they can change it to a new one:
 
 ```js
-const { resetPassword, isLoading, isSent, isError, error } = useResetPassord(email?: string, options?: { redirectTo?: string })
+const { resetPassword, isLoading, isSent, isError, error } = useResetPassword(email?: string, options?: { redirectTo?: string })
 ```
 
 | Name            | Type                                                          | Notes                                                                                                                                                                                                             |
@@ -316,11 +316,11 @@ const { resetPassword, isLoading, isSent, isError, error } = useResetPassord(ema
 
 ```jsx
 import { useState } from 'react'
-import { useResetPassord } from '@nhost/react'
+import { useResetPassword } from '@nhost/react'
 
 const Component = () => {
   const [email, setEamil] = useState('')
-  const { resetPassword, isLoading, isSent, isError, error } = useResetPassord(email?: string)
+  const { resetPassword, isLoading, isSent, isError, error } = useResetPassword(email?: string)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />

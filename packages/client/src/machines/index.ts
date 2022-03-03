@@ -27,7 +27,7 @@ export type NhostMachineOptions = {
   clientUrl?: string
   storageGetter?: StorageGetter
   storageSetter?: StorageSetter
-  autoLogin?: boolean
+  autoSignIn?: boolean
   autoRefreshToken?: boolean
 }
 
@@ -39,7 +39,7 @@ export const createNhostMachine = ({
   storageSetter,
   storageGetter,
   autoRefreshToken = true,
-  autoLogin = true
+  autoSignIn = true
 }: Required<NhostMachineOptions>) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
@@ -66,7 +66,7 @@ export const createNhostMachine = ({
       type: 'parallel',
       states: {
         authentication: {
-          initial: 'checkAutoLogin',
+          initial: 'checkAutoSignIn',
           on: {
             TRY_TOKEN: '#nhost.token.running',
             SESSION_UPDATE: [
@@ -78,12 +78,12 @@ export const createNhostMachine = ({
             ]
           },
           states: {
-            checkAutoLogin: {
-              always: [{ cond: 'isAutoLoginDisabled', target: 'starting' }],
+            checkAutoSignIn: {
+              always: [{ cond: 'isAutoSignInDisabled', target: 'starting' }],
               invoke: [
                 {
-                  id: 'autoLogin',
-                  src: 'autoLogin',
+                  id: 'autoSignIn',
+                  src: 'autoSignIn',
                   onDone: {
                     target: 'signedIn',
                     actions: ['saveSession', 'persist']
@@ -416,7 +416,7 @@ export const createNhostMachine = ({
         noToken: (ctx) => !ctx.refreshToken.value,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
-        isAutoLoginDisabled: () => !autoLogin,
+        isAutoSignInDisabled: () => !autoSignIn,
         refreshTimerShouldRefresh: (ctx) =>
           ctx.refreshTimer.elapsed >
           Math.max(
@@ -478,7 +478,7 @@ export const createNhostMachine = ({
             }
           }),
 
-        autoLogin: async () => {
+        autoSignIn: async () => {
           if (typeof window !== 'undefined') {
             const location = window.location
             if (location.hash) {

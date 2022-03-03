@@ -18,7 +18,7 @@ export class Nhost {
     clientUrl = typeof window !== 'undefined' ? window.location.origin : '',
     storageGetter = defaultStorageGetter,
     storageSetter = defaultStorageSetter,
-    autoLogin = true,
+    autoSignIn = true,
     autoRefreshToken = true
   }: NhostClientOptions) {
     this.backendUrl = backendUrl
@@ -29,13 +29,13 @@ export class Nhost {
       clientUrl,
       storageGetter,
       storageSetter,
-      autoLogin,
+      autoSignIn,
       autoRefreshToken
     })
 
     this.machine = machine
 
-    if (typeof window !== 'undefined' && autoLogin) {
+    if (typeof window !== 'undefined' && autoSignIn) {
       this.#channel = new BroadcastChannel<string>('nhost')
       this.#channel.addEventListener('message', (token) => {
         const existingToken = this.interpreter?.state.context.refreshToken

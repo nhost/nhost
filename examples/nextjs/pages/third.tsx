@@ -16,13 +16,14 @@ export async function getServerSideProps(context: NextPageContext) {
 }
 
 const RefetchPage: React.FC<{ initial: NhostSession }> = () => {
-  const jwt = useAccessToken()
+  const accessToken = useAccessToken()
   const isAuthenticated = useAuthenticated()
   if (!isAuthenticated) return <div>User it not authenticated </div>
   return (
     <div>
-      <h1>THIRD User is authenticated {isAuthenticated ? 'OUI' : 'NON'}</h1>
-      <div>JWT: {jwt}</div>
+      <h1>Third page</h1>
+      User is authenticated: {isAuthenticated ? 'yes' : 'no'}
+      <div>Access token: {accessToken}</div>
     </div>
   )
 }

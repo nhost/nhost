@@ -12,11 +12,8 @@ See the [documentation](https://docs.nhost.io/reference/react) for further infor
 - `useAccessToken`
 - `useAnonymousSignIn`
 - `useAuthenticated`
-- `useAvatarUrl`
 - `useChangeEmail`
 - `useChangePassword`
-- `useDefaultRole`
-- `useDisplayName`
 - `useEmail`
 - `useEmailPasswordlessSignIn`
 - `useEmailPasswordSignIn`
@@ -26,12 +23,10 @@ See the [documentation](https://docs.nhost.io/reference/react) for further infor
 - `useNhost`
 - `useNhostBackendUrl`
 - `useNhostInterpreter`
-- `useResetPassord`
+- `useResetPassword`
 - `useSignOut`
 - `useUserData`
-- `useUserId`
 - `useUserLocale`
-- `useUserRoles`
 - the `useNhostAuth` has not been included. Use `useAuthenticated` together with `useAuthLoading` and `useUserData` instead
 
 Closes [#189](https://github.com/nhost/nhost/issues/189), [#127](https://github.com/nhost/nhost/issues/127), [#186](https://github.com/nhost/nhost/issues/186), and [#195](https://github.com/nhost/nhost/issues/195)

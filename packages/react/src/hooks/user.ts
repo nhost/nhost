@@ -48,7 +48,7 @@ export const useChangePassword = (statePassword?: string) => {
   return { changePassword, isLoading, isSuccess, isError, error }
 }
 
-export const useResetPassord = (stateEmail?: string, stateOptions?: ResetPasswordOptions) => {
+export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswordOptions) => {
   const nhost = useNhost()
   const machine = useMemo(() => createResetPasswordMachine(nhost), [nhost])
   const [current, send] = useMachine(machine)

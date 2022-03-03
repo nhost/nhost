@@ -1,11 +1,11 @@
 import { Button, Divider, Input, Message, Notification, toaster } from 'rsuite'
-import { useResetPassord } from '@nhost/react'
+import { useResetPassword } from '@nhost/react'
 import React, { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const { resetPassword, isSent, error } = useResetPassord(email, { redirectTo: '/profile' })
+  const { resetPassword, isSent, error } = useResetPassword(email, { redirectTo: '/profile' })
 
   const [errorMessage, setErrorMessage] = useState('')
   // * Set error message from the authentication hook errors

@@ -45,12 +45,12 @@ import { useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
 const ClientSidePage: React.FC = () => {
   const isAuthenticated = useAuthenticated()
   const user = useUserData()
-  const jwt = useAccessToken()
+  const accessToken = useAccessToken()
   if (!isAuthenticated) return <div>User it not authenticated</div>
   return (
     <div>
       <h1>{user?.displayName} is authenticated</h1>
-      <div>JWT: {jwt}</div>
+      <div>Access token: {accessToken}</div>
     </div>
   )
 }
@@ -87,12 +87,12 @@ export async function getServerSideProps(context: NextPageContext) {
 const ServerSidePage: React.FC<{ initial: NhostSession }> = () => {
   const authenticated = useAuthenticated()
   const user = useUserData()
-  const jwt = useAccessToken()
+  const accessToken = useAccessToken()
   if (!authenticated) return <div>User it not authenticated</div>
   return (
     <div>
       <h1>{user?.displayName} is authenticated</h1>
-      <div>JWT: {jwt}</div>
+      <div>Access token: {accessToken}</div>
     </div>
   )
 }

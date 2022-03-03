@@ -18,14 +18,13 @@ export async function getServerSideProps(context: NextPageContext) {
 const SecondPage: React.FC<{ initial: NhostSession }> = () => {
   const isAuthenticated = useAuthenticated()
   const user = useUserData()
-  const jwt = useAccessToken()
+  const accessToken = useAccessToken()
   if (!isAuthenticated) return <div>User it not authenticated</div>
   return (
     <div>
-      <h1>
-        SECOND User {user?.displayName} is authenticated {isAuthenticated ? 'OUI' : 'NON'}
-      </h1>
-      <div>JWT: {jwt}</div>
+      <h1>Second page</h1>
+      User {user?.displayName} is authenticated {isAuthenticated ? 'yes' : 'no'}
+      <div>Access token: {accessToken}</div>
     </div>
   )
 }

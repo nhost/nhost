@@ -20,7 +20,7 @@ const Home: NextPage = () => {
   const isAuthenticated = useAuthenticated()
   const email = 'pilou@pilou.com'
   const password = 'piloupilou'
-  const jwt = useAccessToken()
+  const accessToken = useAccessToken()
   const { signOut } = useSignOut()
   const { signUp, ...signUpResult } = useEmailPasswordSignUp(email, password)
   const { signIn } = useEmailPasswordSignIn(email, password)
@@ -46,8 +46,8 @@ const Home: NextPage = () => {
         </>
       )}
 
-      <p>JWT</p>
-      <div>{jwt}</div>
+      <p>Access Token</p>
+      <div>{accessToken}</div>
       {isAuthenticated && (
         <ul>
           {data?.test.map((item) => (

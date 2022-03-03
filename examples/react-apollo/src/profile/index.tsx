@@ -7,7 +7,7 @@ import { ChangeEmail } from './change-email'
 import { ChangePassword } from './change-password'
 
 export const ProfilePage: React.FC = () => {
-  const jwt = useAccessToken()
+  const accessToken = useAccessToken()
   const userData = useUserData()
   return (
     <Panel header="Profile page" bordered>
@@ -33,9 +33,9 @@ export const ProfilePage: React.FC = () => {
         </Col>
         <Col md={12} sm={24}>
           <Panel header="JWT" bordered>
-            {jwt && (
+            {accessToken && (
               <ReactJson
-                src={decode(jwt)}
+                src={decode(accessToken)}
                 displayDataTypes={false}
                 displayObjectSize={false}
                 enableClipboard={false}

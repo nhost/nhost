@@ -1,13 +1,13 @@
-import AnchorLink, { AnchorLinkProps } from '@/components/AnchorLink';
-import CodeComponent, { CodeEditorProps } from '@/components/MDX/CodeComponent';
-import Text, { TextProps } from '@/components/ui/Text';
-import clsx from 'clsx';
-import Image from 'next/image';
-import Link from 'next/link';
-import React, { DetailedHTMLProps, HTMLProps, PropsWithChildren } from 'react';
+import AnchorLink, { AnchorLinkProps } from '@/components/AnchorLink'
+import CodeComponent, { CodeEditorProps } from '@/components/MDX/CodeComponent'
+import Text, { TextProps } from '@/components/ui/Text'
+import clsx from 'clsx'
+import Image from 'next/image'
+import Link from 'next/link'
+import React, { DetailedHTMLProps, HTMLProps, PropsWithChildren } from 'react'
 
-import Command from '../Command';
-import Divider from '../Divider';
+import Command from '../Command'
+import Divider from '../Divider'
 
 function Note({ children }: PropsWithChildren<unknown>) {
   return (
@@ -134,6 +134,17 @@ const components = {
     ...props
   }: DetailedHTMLProps<HTMLProps<HTMLTableCellElement>, HTMLTableCellElement>) => {
     return <td className={clsx('font-display', className)} {...props} />
+  },
+  Mermaid: ({ chart }) => {
+    const [html, setHtml] = React.useState('')
+    React.useEffect(() => {
+      const start = async () => {
+        const mermaid = (await import('mermaid')).default
+        mermaid.mermaidAPI.render(uuid(), chart, (svgCode) => setHtml(svgCode))
+      }
+      start()
+    }, [chart])
+    return chart ? <div dangerouslySetInnerHTML={{ __html: html }} /> : null
   }
 }
 

@@ -2,7 +2,7 @@
 '@nhost/client': minor
 ---
 
-Improvements on `autoLogin`
+Improvements on `autoSignIn`
 
 Auto login enables authentication from a link sent by email.
 It parses the url query parameters of the browser and looks for a possible refresh token to consume and authenticate.

@@ -5,7 +5,7 @@ export interface Typegen0 {
   eventsCausingActions: {
     saveSession:
       | 'SESSION_UPDATE'
-      | 'done.invoke.autoLogin'
+      | 'done.invoke.autoSignIn'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.registerUser'
@@ -13,7 +13,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateWithToken'
     persist:
       | 'SESSION_UPDATE'
-      | 'done.invoke.autoLogin'
+      | 'done.invoke.autoSignIn'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.registerUser'
@@ -34,8 +34,8 @@ export interface Typegen0 {
     destroyToken: 'SIGNOUT'
   }
   internalEvents: {
-    'done.invoke.autoLogin': {
-      type: 'done.invoke.autoLogin'
+    'done.invoke.autoSignIn': {
+      type: 'done.invoke.autoSignIn'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -83,7 +83,7 @@ export interface Typegen0 {
       data: unknown
     }
     'xstate.init': { type: 'xstate.init' }
-    'error.platform.autoLogin': { type: 'error.platform.autoLogin'; data: unknown }
+    'error.platform.autoSignIn': { type: 'error.platform.autoSignIn'; data: unknown }
     'done.invoke.signingOut': {
       type: 'done.invoke.signingOut'
       data: unknown
@@ -101,7 +101,7 @@ export interface Typegen0 {
     }
   }
   invokeSrcNameMap: {
-    autoLogin: 'done.invoke.autoLogin'
+    autoSignIn: 'done.invoke.autoSignIn'
     signout: 'done.invoke.signingOut'
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
@@ -117,7 +117,7 @@ export interface Typegen0 {
   }
   eventsCausingServices: {
     refreshToken: 'TRY_TOKEN' | ''
-    autoLogin: 'xstate.init'
+    autoSignIn: 'xstate.init'
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'SIGNUP_EMAIL_PASSWORD'
@@ -126,7 +126,7 @@ export interface Typegen0 {
   }
   eventsCausingGuards: {
     hasSession: 'SESSION_UPDATE' | 'done.invoke.registerUser'
-    isAutoLoginDisabled: ''
+    isAutoSignInDisabled: ''
     isSignedIn: ''
     hasRefreshTokenWithoutSession: ''
     invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
@@ -140,7 +140,7 @@ export interface Typegen0 {
   eventsCausingDelays: {}
   matchesStates:
     | 'authentication'
-    | 'authentication.checkAutoLogin'
+    | 'authentication.checkAutoSignIn'
     | 'authentication.starting'
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
@@ -171,7 +171,7 @@ export interface Typegen0 {
     | 'token.running'
     | {
         authentication?:
-          | 'checkAutoLogin'
+          | 'checkAutoSignIn'
           | 'starting'
           | 'signedOut'
           | 'authenticating'

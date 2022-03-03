@@ -6,7 +6,7 @@ export class NhostSSR extends Nhost {
   constructor({ backendUrl }: NhostClientOptions) {
     super({
       backendUrl,
-      autoLogin: isBrowser,
+      autoSignIn: isBrowser,
       autoRefreshToken: isBrowser,
       storageGetter: cookieStorageGetter,
       storageSetter: cookieStorageSetter
