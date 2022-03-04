@@ -1,5 +1,13 @@
 # @nhost/hasura-storage-js
 
+## 0.0.11
+
+### Patch Changes
+
+- 35f0ee7: Rename `storage.getUrl` to `storage.getPublicUrl`
+  It aims to make a clear distinction between `storage.getPublicUrl` and `storage.getPresginedUrl`
+  `storage.getUrl` is now deprecated.
+
 ## 0.0.10
 
 ### Patch Changes
