@@ -20,7 +20,7 @@
   <hr />
 </div>
 
-**Nhost is a serverless backend for web and mobile apps** and is built with the following things in mind:
+**Nhost is a serverless backend for web and mobile apps** built with the following things in mind:
 
 - Open Source
 - Developer Productivity
