@@ -34,8 +34,8 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.ts",
-  "access": "public",
   "publishConfig": {
+    "access": "public",
     "main": "dist/index.umd.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts",
