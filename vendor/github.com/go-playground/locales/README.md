@@ -1,5 +1,5 @@
 ## locales
-<img align="right" src="https://raw.githubusercontent.com/go-playground/locales/master/logo.png">![Project status](https://img.shields.io/badge/version-0.13.0-green.svg)
+<img align="right" src="https://raw.githubusercontent.com/go-playground/locales/master/logo.png">![Project status](https://img.shields.io/badge/version-0.14.0-green.svg)
 [![Build Status](https://travis-ci.org/go-playground/locales.svg?branch=master)](https://travis-ci.org/go-playground/locales)
 [![Go Report Card](https://goreportcard.com/badge/github.com/go-playground/locales)](https://goreportcard.com/report/github.com/go-playground/locales)
 [![GoDoc](https://godoc.org/github.com/go-playground/locales?status.svg)](https://godoc.org/github.com/go-playground/locales)
@@ -11,7 +11,7 @@ an i18n package; these were built for use with, but not exclusive to, [Universal
 
 Features
 --------
-- [x] Rules generated from the latest [CLDR](http://cldr.unicode.org/index/downloads) data, v31.0.1
+- [x] Rules generated from the latest [CLDR](http://cldr.unicode.org/index/downloads) data, v36.0.1
 - [x] Contains Cardinal, Ordinal and Range Plural Rules
 - [x] Contains Month, Weekday and Timezone translations built in
 - [x] Contains Date & Time formatting functions

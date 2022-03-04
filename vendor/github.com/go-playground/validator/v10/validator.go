@@ -74,7 +74,7 @@ func (v *validate) validateStruct(ctx context.Context, parent reflect.Value, cur
 				}
 			}
 
-			v.traverseField(ctx, parent, current.Field(f.idx), ns, structNs, f, f.cTags)
+			v.traverseField(ctx, current, current.Field(f.idx), ns, structNs, f, f.cTags)
 		}
 	}
 
@@ -222,12 +222,12 @@ func (v *validate) traverseField(ctx context.Context, parent reflect.Value, curr
 				structNs = append(append(structNs, cf.name...), '.')
 			}
 
-			v.validateStruct(ctx, current, current, typ, ns, structNs, ct)
+			v.validateStruct(ctx, parent, current, typ, ns, structNs, ct)
 			return
 		}
 	}
 
-	if !ct.hasTag {
+	if ct == nil || !ct.hasTag {
 		return
 	}
 

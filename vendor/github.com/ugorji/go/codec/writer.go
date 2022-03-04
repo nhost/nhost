@@ -1,4 +1,4 @@
-// Copyright (c) 2012-2018 Ugorji Nwoke. All rights reserved.
+// Copyright (c) 2012-2020 Ugorji Nwoke. All rights reserved.
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
 package codec
@@ -11,15 +11,17 @@ type encWriter interface {
 	writestr(string)
 	writeqstr(string) // write string wrapped in quotes ie "..."
 	writen1(byte)
+
+	// add convenience functions for writing 2,4
 	writen2(byte, byte)
-	// writen will write up to 7 bytes at a time.
-	writen(b [rwNLen]byte, num uint8)
+	writen4([4]byte)
+	writen8([8]byte)
+
 	end()
 }
 
 // ---------------------------------------------
 
-// bufioEncWriter
 type bufioEncWriter struct {
 	w io.Writer
 
@@ -53,23 +55,22 @@ func (z *bufioEncWriter) reset(w io.Writer, bufsize int, blist *bytesFreelist) {
 	z.buf = z.buf[:cap(z.buf)]
 }
 
-//go:noinline - flush only called intermittently
 func (z *bufioEncWriter) flushErr() (err error) {
 	n, err := z.w.Write(z.buf[:z.n])
 	z.n -= n
-	if z.n > 0 && err == nil {
-		err = io.ErrShortWrite
-	}
-	if n > 0 && z.n > 0 {
-		copy(z.buf, z.buf[n:z.n+n])
+	if z.n > 0 {
+		if err == nil {
+			err = io.ErrShortWrite
+		}
+		if n > 0 {
+			copy(z.buf, z.buf[n:z.n+n])
+		}
 	}
 	return err
 }
 
 func (z *bufioEncWriter) flush() {
-	if err := z.flushErr(); err != nil {
-		panic(err)
-	}
+	halt.onerror(z.flushErr())
 }
 
 func (z *bufioEncWriter) writeb(s []byte) {
@@ -127,7 +128,6 @@ func (z *bufioEncWriter) writen1(b1 byte) {
 	z.buf[z.n] = b1
 	z.n++
 }
-
 func (z *bufioEncWriter) writen2(b1, b2 byte) {
 	if 2 > len(z.buf)-z.n {
 		z.flush()
@@ -136,13 +136,20 @@ func (z *bufioEncWriter) writen2(b1, b2 byte) {
 	z.buf[z.n] = b1
 	z.n += 2
 }
-
-func (z *bufioEncWriter) writen(b [rwNLen]byte, num uint8) {
-	if int(num) > len(z.buf)-z.n {
+func (z *bufioEncWriter) writen4(b [4]byte) {
+	if 4 > len(z.buf)-z.n {
 		z.flush()
 	}
-	copy(z.buf[z.n:], b[:num])
-	z.n += int(num)
+	copy(z.buf[z.n:], b[:])
+	z.n += 4
+}
+
+func (z *bufioEncWriter) writen8(b [8]byte) {
+	if 8 > len(z.buf)-z.n {
+		z.flush()
+	}
+	copy(z.buf[z.n:], b[:])
+	z.n += 8
 }
 
 func (z *bufioEncWriter) endErr() (err error) {
@@ -168,7 +175,6 @@ func (z *bytesEncAppender) writestr(s string) {
 }
 func (z *bytesEncAppender) writeqstr(s string) {
 	z.b = append(append(append(z.b, '"'), s...), '"')
-
 	// z.b = append(z.b, '"')
 	// z.b = append(z.b, s...)
 	// z.b = append(z.b, '"')
@@ -177,13 +183,15 @@ func (z *bytesEncAppender) writen1(b1 byte) {
 	z.b = append(z.b, b1)
 }
 func (z *bytesEncAppender) writen2(b1, b2 byte) {
-	z.b = append(z.b, b1, b2) // cost: 81
+	z.b = append(z.b, b1, b2)
 }
-func (z *bytesEncAppender) writen(s [rwNLen]byte, num uint8) {
-	// if num <= rwNLen {
-	if int(num) <= len(s) {
-		z.b = append(z.b, s[:num]...)
-	}
+func (z *bytesEncAppender) writen4(b [4]byte) {
+	z.b = append(z.b, b[:]...)
+	// z.b = append(z.b, b[0], b[1], b[2], b[3]) // prevents inlining encWr.writen4
+}
+func (z *bytesEncAppender) writen8(b [8]byte) {
+	z.b = append(z.b, b[:]...)
+	// z.b = append(z.b, b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]) // prevents inlining encWr.writen4
 }
 func (z *bytesEncAppender) endErr() error {
 	*(z.out) = z.b
@@ -204,10 +212,15 @@ type encWr struct {
 	c containerState
 
 	calls uint16
-
-	wb bytesEncAppender
-	wf *bufioEncWriter
+	seq   uint16 // sequencer (e.g. used by binc for symbols, etc)
+	wb    bytesEncAppender
+	wf    *bufioEncWriter
 }
+
+// MARKER: manually inline bytesEncAppender.writenx/writeqstr methods,
+// as calling them causes encWr.writenx/writeqstr methods to not be inlined (cost > 80).
+//
+// i.e. e.g. instead of writing z.wb.writen2(b1, b2), use z.wb.b = append(z.wb.b, b1, b2)
 
 func (z *encWr) writeb(s []byte) {
 	if z.bytes {
@@ -218,7 +231,8 @@ func (z *encWr) writeb(s []byte) {
 }
 func (z *encWr) writeqstr(s string) {
 	if z.bytes {
-		z.wb.writeqstr(s)
+		// MARKER: z.wb.writeqstr(s)
+		z.wb.b = append(append(append(z.wb.b, '"'), s...), '"')
 	} else {
 		z.wf.writeqstr(s)
 	}
@@ -237,20 +251,30 @@ func (z *encWr) writen1(b1 byte) {
 		z.wf.writen1(b1)
 	}
 }
+
 func (z *encWr) writen2(b1, b2 byte) {
 	if z.bytes {
-		z.wb.writen2(b1, b2)
+		// MARKER: z.wb.writen2(b1, b2)
+		z.wb.b = append(z.wb.b, b1, b2)
 	} else {
 		z.wf.writen2(b1, b2)
 	}
 }
-func (z *encWr) writen(b [rwNLen]byte, num uint8) {
+func (z *encWr) writen4(b [4]byte) {
 	if z.bytes {
-		z.wb.writen(b, num)
+		z.wb.writen4(b)
 	} else {
-		z.wf.writen(b, num)
+		z.wf.writen4(b)
 	}
 }
+func (z *encWr) writen8(b [8]byte) {
+	if z.bytes {
+		z.wb.writen8(b)
+	} else {
+		z.wf.writen8(b)
+	}
+}
+
 func (z *encWr) endErr() error {
 	if z.bytes {
 		return z.wb.endErr()
@@ -259,9 +283,7 @@ func (z *encWr) endErr() error {
 }
 
 func (z *encWr) end() {
-	if err := z.endErr(); err != nil {
-		panic(err)
-	}
+	halt.onerror(z.endErr())
 }
 
 var _ encWriter = (*encWr)(nil)

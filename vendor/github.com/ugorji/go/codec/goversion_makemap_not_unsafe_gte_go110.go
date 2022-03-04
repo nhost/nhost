@@ -1,15 +1,14 @@
-// Copyright (c) 2012-2018 Ugorji Nwoke. All rights reserved.
+// Copyright (c) 2012-2020 Ugorji Nwoke. All rights reserved.
 // Use of this source code is governed by a MIT license found in the LICENSE file.
 
-// +build go1.9
+//go:build go1.10 && (safe || codec.safe || appengine)
+// +build go1.10
+// +build safe codec.safe appengine
 
 package codec
 
 import "reflect"
 
 func makeMapReflect(t reflect.Type, size int) reflect.Value {
-	if size < 0 {
-		return reflect.MakeMapWithSize(t, 4)
-	}
 	return reflect.MakeMapWithSize(t, size)
 }
