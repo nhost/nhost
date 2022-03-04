@@ -263,7 +263,7 @@ func GetReleases() ([]Release, error) {
 
 	var array []Release
 
-	resp, err := http.Get(fmt.Sprintf("https://api.github.com/repos/%v/releases", REPOSITORY))
+	resp, err := http.Get("https://cli.nhost.io/releases.json")
 	if err != nil {
 		return array, err
 	}
