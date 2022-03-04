@@ -2485,47 +2485,47 @@ export type InsertProviderRequestMutationVariables = Exact<{
 }>;
 
 
-export type InsertProviderRequestMutation = { __typename?: 'mutation_root', insertAuthProviderRequest?: { __typename?: 'authProviderRequests', id: any, redirectUrl: string } | null | undefined };
+export type InsertProviderRequestMutation = { __typename?: 'mutation_root', insertAuthProviderRequest?: { __typename?: 'authProviderRequests', id: any, redirectUrl: string } | null };
 
 export type DeleteProviderRequestMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type DeleteProviderRequestMutation = { __typename?: 'mutation_root', deleteAuthProviderRequest?: { __typename?: 'authProviderRequests', id: any, redirectUrl: string } | null | undefined };
+export type DeleteProviderRequestMutation = { __typename?: 'mutation_root', deleteAuthProviderRequest?: { __typename?: 'authProviderRequests', id: any, redirectUrl: string } | null };
 
 export type ProviderRequestQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type ProviderRequestQuery = { __typename?: 'query_root', authProviderRequest?: { __typename?: 'authProviderRequests', id: any, redirectUrl: string } | null | undefined };
+export type ProviderRequestQuery = { __typename?: 'query_root', authProviderRequest?: { __typename?: 'authProviderRequests', id: any, redirectUrl: string } | null };
 
 export type InsertRefreshTokenMutationVariables = Exact<{
   refreshToken: AuthRefreshTokens_Insert_Input;
 }>;
 
 
-export type InsertRefreshTokenMutation = { __typename?: 'mutation_root', insertAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any } | null | undefined };
+export type InsertRefreshTokenMutation = { __typename?: 'mutation_root', insertAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any } | null };
 
 export type DeleteRefreshTokenMutationVariables = Exact<{
   refreshToken: Scalars['uuid'];
 }>;
 
 
-export type DeleteRefreshTokenMutation = { __typename?: 'mutation_root', deleteAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any, expiresAt: any } | null | undefined };
+export type DeleteRefreshTokenMutation = { __typename?: 'mutation_root', deleteAuthRefreshToken?: { __typename?: 'authRefreshTokens', refreshToken: any, expiresAt: any } | null };
 
 export type DeleteUserRefreshTokensMutationVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type DeleteUserRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null | undefined };
+export type DeleteUserRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
 
 export type DeleteExpiredRefreshTokensMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DeleteExpiredRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null | undefined };
+export type DeleteExpiredRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
 
 export type AuthUserProvidersQueryVariables = Exact<{
   provider: Scalars['String'];
@@ -2541,7 +2541,7 @@ export type UserProviderQueryVariables = Exact<{
 }>;
 
 
-export type UserProviderQuery = { __typename?: 'query_root', authUserProviders: Array<{ __typename?: 'authUserProviders', id: any, refreshToken?: string | null | undefined }> };
+export type UserProviderQuery = { __typename?: 'query_root', authUserProviders: Array<{ __typename?: 'authUserProviders', id: any, refreshToken?: string | null }> };
 
 export type UpdateAuthUserproviderMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -2549,37 +2549,37 @@ export type UpdateAuthUserproviderMutationVariables = Exact<{
 }>;
 
 
-export type UpdateAuthUserproviderMutation = { __typename?: 'mutation_root', updateAuthUserProvider?: { __typename?: 'authUserProviders', id: any } | null | undefined };
+export type UpdateAuthUserproviderMutation = { __typename?: 'mutation_root', updateAuthUserProvider?: { __typename?: 'authUserProviders', id: any } | null };
 
 export type InsertUserRolesMutationVariables = Exact<{
   userRoles: Array<AuthUserRoles_Insert_Input> | AuthUserRoles_Insert_Input;
 }>;
 
 
-export type InsertUserRolesMutation = { __typename?: 'mutation_root', insertAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null | undefined };
+export type InsertUserRolesMutation = { __typename?: 'mutation_root', insertAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
 
 export type DeleteUserRolesByUserIdMutationVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type DeleteUserRolesByUserIdMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null | undefined };
+export type DeleteUserRolesByUserIdMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null };
 
-export type UserFieldsFragment = { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> };
+export type UserFieldsFragment = { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> };
 
 export type UserQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type UserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type UserQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null };
 
 export type UsersQueryVariables = Exact<{
   where: Users_Bool_Exp;
 }>;
 
 
-export type UsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
+export type UsersQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
 
 export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariables = Exact<{
   refreshToken: Scalars['uuid'];
@@ -2587,14 +2587,14 @@ export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutationVariable
 }>;
 
 
-export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = { __typename?: 'mutation_root', updateAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', returning: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> } | null | undefined };
+export type GetUsersByRefreshTokenAndUpdateRefreshTokenExpiresAtMutation = { __typename?: 'mutation_root', updateAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', returning: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> } | null };
 
 export type GetUsersByRefreshTokenOldQueryVariables = Exact<{
   refreshToken: Scalars['uuid'];
 }>;
 
 
-export type GetUsersByRefreshTokenOldQuery = { __typename?: 'query_root', authRefreshTokens: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> };
+export type GetUsersByRefreshTokenOldQuery = { __typename?: 'query_root', authRefreshTokens: Array<{ __typename?: 'authRefreshTokens', refreshToken: any, user: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } }> };
 
 export type UpdateUserMutationVariables = Exact<{
   id: Scalars['uuid'];
@@ -2602,7 +2602,7 @@ export type UpdateUserMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type UpdateUserMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null };
 
 export type UpdateUserWhereMutationVariables = Exact<{
   where: Users_Bool_Exp;
@@ -2610,7 +2610,7 @@ export type UpdateUserWhereMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUserWhereMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number } | null | undefined };
+export type UpdateUserWhereMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number } | null };
 
 export type RotateUsersTicketMutationVariables = Exact<{
   oldTicket: Scalars['String'];
@@ -2619,7 +2619,7 @@ export type RotateUsersTicketMutationVariables = Exact<{
 }>;
 
 
-export type RotateUsersTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number } | null | undefined };
+export type RotateUsersTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number } | null };
 
 export type ChangeEmailsByTicketMutationVariables = Exact<{
   ticket: Scalars['String'];
@@ -2629,21 +2629,21 @@ export type ChangeEmailsByTicketMutationVariables = Exact<{
 }>;
 
 
-export type ChangeEmailsByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null | undefined };
+export type ChangeEmailsByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null };
 
 export type InsertUserMutationVariables = Exact<{
   user: Users_Insert_Input;
 }>;
 
 
-export type InsertUserMutation = { __typename?: 'mutation_root', insertUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type InsertUserMutation = { __typename?: 'mutation_root', insertUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null };
 
 export type DeleteUserMutationVariables = Exact<{
   userId: Scalars['uuid'];
 }>;
 
 
-export type DeleteUserMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null | undefined, deleteUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null | undefined };
+export type DeleteUserMutation = { __typename?: 'mutation_root', deleteAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null, deleteUser?: { __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> } | null };
 
 export type DeanonymizeUserMutationVariables = Exact<{
   userId: Scalars['uuid'];
@@ -2652,21 +2652,21 @@ export type DeanonymizeUserMutationVariables = Exact<{
 }>;
 
 
-export type DeanonymizeUserMutation = { __typename?: 'mutation_root', updateAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null | undefined, updateUser?: { __typename?: 'users', id: any } | null | undefined };
+export type DeanonymizeUserMutation = { __typename?: 'mutation_root', updateAuthUserRoles?: { __typename?: 'authUserRoles_mutation_response', affected_rows: number } | null, updateUser?: { __typename?: 'users', id: any } | null };
 
 export type InsertUserProviderToUserMutationVariables = Exact<{
   userProvider: AuthUserProviders_Insert_Input;
 }>;
 
 
-export type InsertUserProviderToUserMutation = { __typename?: 'mutation_root', insertAuthUserProvider?: { __typename?: 'authUserProviders', id: any } | null | undefined };
+export type InsertUserProviderToUserMutation = { __typename?: 'mutation_root', insertAuthUserProvider?: { __typename?: 'authUserProviders', id: any } | null };
 
 export type GetUserByTicketQueryVariables = Exact<{
   ticket: Scalars['String'];
 }>;
 
 
-export type GetUserByTicketQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
+export type GetUserByTicketQuery = { __typename?: 'query_root', users: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> };
 
 export type UpdateUsersByTicketMutationVariables = Exact<{
   ticket: Scalars['String'];
@@ -2674,7 +2674,7 @@ export type UpdateUsersByTicketMutationVariables = Exact<{
 }>;
 
 
-export type UpdateUsersByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null | undefined, passwordHash?: string | null | undefined, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null | undefined, otpHash?: string | null | undefined, totpSecret?: string | null | undefined, activeMfaType?: string | null | undefined, newEmail?: any | null | undefined, locale: string, metadata?: any | null | undefined, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null | undefined };
+export type UpdateUsersByTicketMutation = { __typename?: 'mutation_root', updateUsers?: { __typename?: 'users_mutation_response', affected_rows: number, returning: Array<{ __typename?: 'users', id: any, createdAt: any, disabled: boolean, displayName: string, avatarUrl: string, email?: any | null, passwordHash?: string | null, emailVerified: boolean, phoneNumberVerified: boolean, defaultRole: string, isAnonymous: boolean, ticket?: string | null, otpHash?: string | null, totpSecret?: string | null, activeMfaType?: string | null, newEmail?: any | null, locale: string, metadata?: any | null, roles: Array<{ __typename?: 'authUserRoles', role: string }> }> } | null };
 
 export const UserFieldsFragmentDoc = gql`
     fragment userFields on users {

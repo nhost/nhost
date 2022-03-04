@@ -37,7 +37,6 @@ jobs:
       env:
         AUTH_HOST: 0.0.0.0
         AUTH_PORT: 4000
-
         HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
         HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${{env.POSTGRES_PASSWORD }}@postgres:5432/postgres
         HASURA_GRAPHQL_GRAPHQL_URL: 'http://graphql-engine:8080/v1/graphql'
@@ -52,16 +51,19 @@ jobs:
       options: --hostname hasura-auth
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - name: Cache pnpm modules
+        uses: actions/cache@v2
         with:
-          node-version: '14'
-          cache: 'yarn'
-      - name: Install dependencies
-        run: yarn
-      # - name: Lint files
-      #   run: yarn run lint
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-
+      - uses: pnpm/action-setup@v2.1.0
+        with:
+          version: 6.28.0
+          run_install: |
+            - args: [--frozen-lockfile]
       - name: Run Jest tests
-        run: yarn run test --coverage
+        run: pnpm run test -- --coverage
       - name: Upload test results
         uses: actions/upload-artifact@v1
         with:
