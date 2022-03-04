@@ -15,7 +15,4 @@
 ### Patch Changes
 
 - Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
   - @nhost/client@0.2.0
