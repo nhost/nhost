@@ -34,13 +34,13 @@ tmp/
 todo.md
 
 # Generated configs 
-.eslintignore
-.eslintrc
-.prettierignore
-prettier.config.js
-vite.*.js
-jest.*.js
-esbuild.*.js
+/.eslintignore
+/.eslintrc
+/.prettierignore
+/prettier.config.js
+/vite.*.js
+/jest.*.js
+/esbuild.*.js
 
 !.config/**
 
