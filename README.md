@@ -32,8 +32,8 @@ Nhost consists of open source software:
 - Database: [PostgreSQL](https://www.postgresql.org/)
 - Instant GraphQL API: [Hasura](https://hasura.io/)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
-- Storage: [Hasura Storage](https://github.com/nhost/hasura-backend-plus/)
-- Serverless Functions: JavaScript and TypeScript runtimes
+- Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
+- Serverless Functions: Node.js (JavaScript and TypeScript)
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
 Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
@@ -109,11 +109,9 @@ This repository, and most of our other open source projects, are licensed under 
 
 Here are some ways of contributing to making Nhost better:
 
-- **[Try out Nhost](https://docs.nhost.io/get-started/quick-start)**, and think of ways to make the service better.
+- **[Try out Nhost](https://docs.nhost.io/get-started/quick-start)**, and think of ways to make the service better. Let us know here on GitHub.
 - Join our [Discord](https://discord.com/invite/9V7Qb2U) and connect with other members to share and learn from.
 - Send a pull request to any of our [open source repositories](https://github.com/nhost) on Github. Check our [contribution guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) for more details about how to contribute. We're looking forward to your contribution!
-
-For more information, read our [Contribution Guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md)
 
 ## Security
 
