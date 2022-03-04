@@ -1,10 +1,9 @@
 import expressJSDocSwagger from 'express-jsdoc-swagger';
-import pkg from '../package.json';
 import j2s, { SwaggerSchema } from 'joi-to-swagger';
 import * as validators from './validation';
 import { Application } from 'express';
 
-const schema: Record<string, any> & { components: SwaggerSchema } = {
+const schema: Record<string, unknown> & { components: SwaggerSchema } = {
   tags: [],
   components: { schemas: {} },
 };
@@ -20,7 +19,7 @@ export const addOpenApiRoute = (app: Application) =>
   expressJSDocSwagger(app)(
     {
       info: {
-        version: pkg.version,
+        version: process.env.npm_package_version || 'unknown',
         title: 'Hasura auth',
         license: {
           name: 'MIT',
@@ -34,7 +33,7 @@ export const addOpenApiRoute = (app: Application) =>
         },
       },
       baseDir: __dirname,
-      filesPattern: './routes/**/*.ts',
+      filesPattern: './routes/**/*.{js,ts}',
       swaggerUIPath: '/api-docs',
       exposeSwaggerUI: true,
       exposeApiDocs: true,
