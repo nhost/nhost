@@ -23,9 +23,13 @@
   },
   "exclude": ["node_modules", "**/*/dist", "**/*/build", "**/*/.next"],
   "references": [
+    { "path": "./packages/apollo/" },
+    { "path": "./packages/client/" },
     { "path": "./packages/hasura-auth-js/" },
     { "path": "./packages/hasura-storage-js/" },
+    { "path": "./packages/nextjs/" },
     { "path": "./packages/nhost-js/" },
+    { "path": "./packages/react/" },
     { "path": "./packages/react-apollo/" },
     { "path": "./packages/react-auth/" }
   ]

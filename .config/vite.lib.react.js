@@ -44,14 +44,6 @@ export default defineConfig({
           react: 'react'
         }
       }
-
-      //   external: ['react', 'vue'],
-      //   output: {
-      //     globals: {
-      //       react: 'react',
-      //       vue: 'vue' // ? check
-      //     }
-      //   }
     }
   }
 })

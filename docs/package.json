@@ -1,6 +1,8 @@
 {
   "name": "nhost-documentation",
   "private": true,
+  "version": "0.0.1",
+
   "scripts": {
     "dev": "next",
     "build:next": "next build",
@@ -24,6 +26,8 @@
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "framer-motion": "^5.3.3",
     "gray-matter": "^4.0.3",
+    "mdx-mermaid": "^1.2.1",
+    "mermaid": "^8.14.0",
     "next": "^12.0.8",
     "next-mdx-remote": "^3.0.8",
     "next-seo": "^4.28.1",
@@ -43,6 +47,5 @@
     "tailwindcss": "^2.2.19",
     "typescript": "^4.5.2"
   },
-  "prettier": "../prettier.config.js",
-  "version": null
+  "prettier": "../prettier.config.js"
 }

@@ -1,0 +1,37 @@
+{
+  "name": "@nhost-examples/nextjs",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@nhost/apollo": "workspace:^0.1.0",
+    "@nhost/client": "workspace:^0.1.0",
+    "@nhost/nextjs": "workspace:^0.1.0",
+    "@nhost/react": "workspace:^0.1.0",
+    "@nhost/react-apollo": "workspace:^2.1.3",
+    "@xstate/react": "^2.0.0",
+    "apollo-boost": "^0.4.9",
+    "apollo-client": "^2.6.10",
+    "next": "12.0.10",
+    "react": "17.0.2",
+    "react-dom": "17.0.2",
+    "subscriptions-transport-ws": "^0.11.0"
+  },
+  "devDependencies": {
+    "@apollo/client": "^3.5.8",
+    "@types/js-cookie": "^3.0.1",
+    "@types/node": "17.0.17",
+    "@types/react": "17.0.39",
+    "@xstate/inspect": "^0.6.2",
+    "eslint": "8.8.0",
+    "eslint-config-next": "12.0.10",
+    "graphql": "16",
+    "next-transpile-modules": "^9.0.0",
+    "typescript": "4.5.5",
+    "ws": "^8.4.2"
+  }
+}

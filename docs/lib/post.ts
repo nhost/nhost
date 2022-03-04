@@ -4,7 +4,6 @@ import { join } from 'path'
 
 import { orderTwo } from './order'
 
-const { execSync } = require('child_process')
 const postsDirectory = join(process.cwd(), 'content', 'docs')
 
 export function createConvolutedNav(category) {

@@ -9,6 +9,8 @@ import Copy from '../icons/Copy'
 // @ts-ignore -> add to types
 // @ts-ignore -> add to types
 SyntaxHighlighter.registerLanguage('js', js)
+// TODO highlight JSX
+SyntaxHighlighter.registerLanguage('jsx', js)
 
 export interface CodeEditorProps {
   code: string
