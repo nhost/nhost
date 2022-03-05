@@ -4,14 +4,15 @@ title: 'Social Sign-In Providers'
 
 Nhost Auth supports the following social sign-in providers:
 
-- GitHub
-- Google
-- Facebook
-- LinkedIn
+- [GitHub](/platform/authentication/sign-in-with-github)
+- [Google](/platform/authentication/sign-in-with-google)
+- [Facebook](/platform/authentication/sign-in-with-facebook)
+- [LinkedIn](/platform/authentication/sign-in-with-linkedin)
+- [Spotify](/platform/authentication/sign-in-with-spotify)
 
 ---
 
-## Enabling social sign-in
+## Enabling Social Sign-In Provider
 
 To start with social sign-in, select your app in Nhost Console and go to **Users** → **Login settings**.
 
@@ -30,6 +31,8 @@ nhost.auth.signIn({
   provider: 'github'
 })
 ```
+
+Users are redirected to your client URL by default. By default your Nhost App's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Login settings** → **Client URL**.
 
 ---
 
