@@ -15,6 +15,11 @@ module.exports = {
         source: '/reference/sdk/javascript-sdk',
         destination: '/reference/sdk',
         permanent: false
+      },
+      {
+        source: '/platform/authentication/social-login',
+        destination: '/platform/authentication/social-sign-in',
+        permanent: false
       }
     ]
   }
