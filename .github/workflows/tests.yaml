@@ -51,10 +51,10 @@ jobs:
       - name: Cache turbo
         uses: actions/cache@v2
         with:
-          path: ./node_modules/.cache
+          path: ./node_modules/.cache/turbo
           key: ${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.node-version }}
+            ${{ runner.os }}-${{ matrix.node-version }}-
 
       - name: Install nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
