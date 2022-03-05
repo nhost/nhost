@@ -52,9 +52,9 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ./node_modules/.cache/turbo
-          key: ${{ runner.os }}-${{ matrix.node-version }}-${{ hashFiles('pnpm-lock.yaml') }}
+          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-${{ matrix.node-version }}-
+            turbo-${{ github.job }}-${{ github.ref_name }}-
 
       - name: Install nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
