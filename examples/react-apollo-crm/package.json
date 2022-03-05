@@ -1,15 +1,15 @@
 {
-  "name": "@nhost-examples/react-apollo",
-  "version": "0.1.1",
+  "name": "@nhost-examples/react-apollo-crm",
+  "version": "0.1.0",
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.4.16",
     "@craco/craco": "^6.4.0",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
-    "@nhost/nhost-js": "^0.3.11",
-    "@nhost/react-apollo": "^3.0.0",
-    "@nhost/react-auth": "^2.0.9",
+    "@nhost/nhost-js": "^0.3.4",
+    "@nhost/react-apollo": "^2.0.7-0",
+    "@nhost/react-auth": "^2.0.3",
     "@saeris/apollo-server-vercel": "^1.0.1",
     "@tailwindcss/forms": "^0.3.4",
     "@testing-library/jest-dom": "^5.11.4",
@@ -32,10 +32,9 @@
     "web-vitals": "^1.0.1"
   },
   "scripts": {
-    "start": "SKIP_PREFLIGHT_CHECK=true craco start",
-    "build": "SKIP_PREFLIGHT_CHECK=true craco build",
-    "watch": "SKIP_PREFLIGHT_CHECK=true craco test",
-    "test": "SKIP_PREFLIGHT_CHECK=true craco test --watchAll=false",
+    "start": "craco start",
+    "build": "craco build",
+    "test": "craco test",
     "eject": "react-scripts eject",
     "codegen": "graphql-codegen --config codegen.yaml --errors-only"
   },

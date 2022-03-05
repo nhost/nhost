@@ -1,5 +1,4 @@
 import { SubscriptionClient } from 'subscriptions-transport-ws'
-import type { InterpreterFrom } from 'xstate'
 
 import {
   ApolloClient,
@@ -14,12 +13,11 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { NhostMachine } from '@nhost/client'
+import { Nhost } from '@nhost/client'
 const isBrowser = typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
-  interpreter?: InterpreterFrom<NhostMachine>
-  backendUrl: string
+  nhost?: Nhost
   headers?: any
   publicRole?: string
   fetchPolicy?: WatchQueryFetchPolicy
@@ -29,8 +27,7 @@ export type NhostApolloClientOptions = {
 }
 
 export const createApolloClient = ({
-  interpreter,
-  backendUrl,
+  nhost,
   headers = {},
   publicRole = 'public',
   fetchPolicy,
@@ -38,9 +35,11 @@ export const createApolloClient = ({
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError
 }: NhostApolloClientOptions) => {
-  if (!interpreter) {
-    throw Error("Nhost has not be initiated! Apollo client can't be created")
+  if (!nhost?.interpreter) {
+    console.error("Nhost has not be initiated. Apollo client can't be created")
+    return null
   }
+  const { interpreter, backendUrl } = nhost
   let token: string | null = null
 
   const getAuthHeaders = () => {
@@ -63,14 +62,6 @@ export const createApolloClient = ({
   }
 
   const uri = `${backendUrl}/v1/graphql`
-  // if (graphqlUrl) {
-  //   uri = graphqlUrl
-  // } else if (backendUrl) {
-  //   uri = `${backendUrl}/v1/graphql`
-  // } else {
-  //   throw new Error('no GraphQL URL')
-  // }
-
   const wsUri = uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws')
 
   let webSocketClient: SubscriptionClient | null = null

@@ -49,14 +49,14 @@
   ],
   "dependencies": {
     "@nhost/client": "workspace:*",
-    "@xstate/react": "^2.0.0",
+    "@xstate/react": "^2.0.1",
     "immer": "^9.0.12"
   },
   "devDependencies": {
     "@xstate/inspect": "^0.6.2",
     "react": "^17.0.2",
     "ws": "^8.4.2",
-    "xstate": "^4.29.0"
+    "xstate": "^4.30.5"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",

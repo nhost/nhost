@@ -7,9 +7,9 @@ This demo is a work in progress, further improvements are to come
 First, clone this repo. Then run the commands:
 
 ```sh
-pnpm i
 cd examples/nextjs
-pnpm run dev
+yarn
+yarn dev
 ```
 
 If you want to use this demo with your own cloud instance:
@@ -20,6 +20,6 @@ If you want to use this demo with your own cloud instance:
 If you want to use a local Nhost instance, start the CLI in parallel to Nextjs:
 
 ```sh
-cd examples/testing-project
+# Inside examples/nextjs
 nhost -d
 ```
