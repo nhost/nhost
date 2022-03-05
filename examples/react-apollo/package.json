@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@nhost/react": "^0.2.0",
-    "@nhost/react-apollo": "^3.0.0",
+    "@nhost/react": "^0.2.1",
+    "@nhost/react-apollo": "^3.1.0",
     "@rsuite/icons": "^1.0.2",
     "jwt-decode": "^3.1.2",
     "react": "^17.0.2",

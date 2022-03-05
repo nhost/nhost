@@ -324,42 +324,42 @@
   resolved "http://localhost:4873/@juggle%2fresize-observer/-/resize-observer-3.3.1.tgz#b50a781709c81e10701004214340f25475a171a0"
   integrity sha512-zMM9Ds+SawiUkakS7y94Ymqx+S0ORzpG3frZirN3l+UlXUmSUR7hF4wxCVqW+ei94JzV5kt0uXBcoOEAuiydrw==
 
-"@nhost/apollo@0.2.0":
-  version "0.2.0"
-  resolved "http://localhost:4873/@nhost%2fapollo/-/apollo-0.2.0.tgz#34c550d8c3f95f0a41c169ac2a5b957283b8b200"
-  integrity sha512-I8TGh8pyoEgmsxjnvsfdiCvpxQIp+gHdaNNAU10fZ9qDgLlOdYQdVfzEaXVm+xuYii4BK9RT9aiIOyLjnNR0Xg==
+"@nhost/apollo@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@nhost/apollo/-/apollo-0.2.1.tgz#de1967490d5d193ea3e1c2acc184e3ee4cea7d1d"
+  integrity sha512-cDC7Y0pW1mHBxl0DCg6T7/iZ2YVUBZ6avk1yFnZmKJOP1Bgga4L3CRQP03+fWIQhnc95hTiX2excw3QAo4s9qw==
   dependencies:
     "@apollo/client" "^3.5.8"
-    "@nhost/client" "^0.2.0"
+    "@nhost/client" "0.2.1"
     graphql "16"
     subscriptions-transport-ws "^0.11.0"
 
-"@nhost/client@0.2.0", "@nhost/client@^0.2.0":
-  version "0.2.0"
-  resolved "http://localhost:4873/@nhost%2fclient/-/client-0.2.0.tgz#ba8596b60f2e6c66b7555616644e61faf47a5fac"
-  integrity sha512-MkJv9zVa9y1GddWUfs5iRcEtEbcSDQ5g1UbQgDPNWQKgbZfbc8n+Z5SKRGYzeZw4t6McEWwQP2jJyc8M7sPuNg==
+"@nhost/client@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@nhost/client/-/client-0.2.1.tgz#81e99432ca1a108c3f67a5ba86658b49de34b7fb"
+  integrity sha512-fen8sQ/pAeJml01pz2uiauKNOln5J/LA857MqW4+hGsBLu72mudM4pTKQH4lEf8ewnQV7WcTbwd3bW2jPZnQtQ==
   dependencies:
     axios "^0.25.0"
     broadcast-channel "^4.10.0"
     immer "^9.0.12"
     js-cookie "^3.0.1"
-    xstate "^4.29.0"
+    xstate "^4.30.5"
 
-"@nhost/react-apollo@^3.0.0":
-  version "3.0.0"
-  resolved "http://localhost:4873/@nhost%2freact-apollo/-/react-apollo-3.0.0.tgz#c774e0bcc57317851c9b34074c49ddeddaa1f502"
-  integrity sha512-/wAK20R69a0L9HpuwjzxfxKQOzGsiJfla9IjARAZUFb8b2vb2QfPNdQchqPt5WT7kZRrOZS76iBFyBG0esrhDQ==
+"@nhost/react-apollo@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@nhost/react-apollo/-/react-apollo-3.1.0.tgz#0893802ff30b168bcc8873084132cc670f77755f"
+  integrity sha512-42r8TJvDB99mGUxHFK7bDxcRpIGwKmwXIyhdq/4b4sNcv7Vfid7IBvd8tVrIhQQn7YUu/gwQr5ByuV5tBzUuMA==
   dependencies:
     "@apollo/client" "^3.5.8"
-    "@nhost/apollo" "0.2.0"
+    "@nhost/apollo" "0.2.1"
 
-"@nhost/react@^0.2.0":
-  version "0.2.0"
-  resolved "http://localhost:4873/@nhost%2freact/-/react-0.2.0.tgz#f06c5b6598969e5a055a56d48c6460a6ac3d6717"
-  integrity sha512-5l7YAK04UMfvZksYVSKQfGzyQ+GrbAlw+1Tkne3iSEqEmBgk94ZI2Mv1YgqlWwb3h72JRofyYwndOGIPnrJigQ==
+"@nhost/react@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@nhost/react/-/react-0.2.1.tgz#6a6b547ae3fc2e333a2729f54aa7a2048f13f125"
+  integrity sha512-+ZbRDGrwIjrUdcAsMkHt5W2RDclygoUd1ttemdZNHeGiU9K9dYLF8lz4tFkb6jayeyqpDuCLmCr+0vfcMAwEYg==
   dependencies:
-    "@nhost/client" "0.2.0"
-    "@xstate/react" "^2.0.0"
+    "@nhost/client" "0.2.1"
+    "@xstate/react" "^2.0.1"
     immer "^9.0.12"
 
 "@qiwi/npm-registry-client@^8.9.1":
@@ -500,9 +500,9 @@
   dependencies:
     fast-safe-stringify "^2.0.7"
 
-"@xstate/react@^2.0.0":
+"@xstate/react@^2.0.1":
   version "2.0.1"
-  resolved "http://localhost:4873/@xstate%2freact/-/react-2.0.1.tgz#2b4717369d419e78a6c67f2dfcd1a3be9abce2d9"
+  resolved "https://registry.yarnpkg.com/@xstate/react/-/react-2.0.1.tgz#2b4717369d419e78a6c67f2dfcd1a3be9abce2d9"
   integrity sha512-sT3hxyzNBw+bm7uT3BP+uXzN0MnRqiaj/U9Yl4OYaMAUJXWsRvSA/ipL7EDf0gVLRGrRhJTCsC0cjWaduAAqnw==
   dependencies:
     use-isomorphic-layout-effect "^1.0.0"
@@ -2686,9 +2686,9 @@ ws@^8.5.0:
   resolved "http://localhost:4873/ws/-/ws-8.5.0.tgz#bfb4be96600757fe5382de12c670dab984a1ed4f"
   integrity sha512-BWX0SWVgLPzYwF8lTzEy1egjhS4S4OEAHfsO8o65WOVsrnSRGaSiUaa9e0ggGlkMTtBlmOpEXiie9RUcBO86qg==
 
-xstate@^4.29.0:
+xstate@^4.30.5:
   version "4.30.5"
-  resolved "http://localhost:4873/xstate/-/xstate-4.30.5.tgz#c2c6753542578bf15e707b759ebb671f55849410"
+  resolved "https://registry.yarnpkg.com/xstate/-/xstate-4.30.5.tgz#c2c6753542578bf15e707b759ebb671f55849410"
   integrity sha512-iZhIoZP8Alq4qI8eN/iAYiBRLfLSbSdI29LYsgk2DUvAwMV2J9xGw6CUT2HcH+5Rp5G3XzG6ByRfRmJJ+eEuDQ==
 
 y18n@^4.0.0:

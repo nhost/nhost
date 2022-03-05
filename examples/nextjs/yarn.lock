@@ -136,20 +136,20 @@
   resolved "http://localhost:4873/@next%2fswc-win32-x64-msvc/-/swc-win32-x64-msvc-12.1.0.tgz#d27e7e76c87a460a4da99c5bfdb1618dcd6cd064"
   integrity sha512-aBvcbMwuanDH4EMrL2TthNJy+4nP59Bimn8egqv6GHMVj0a44cU6Au4PjOhLNqEh9l+IpRGBqMTzec94UdC5xg==
 
-"@nhost/apollo@0.2.0":
-  version "0.2.0"
-  resolved "http://localhost:4873/@nhost%2fapollo/-/apollo-0.2.0.tgz#c36078b2746f8671320129781ae6d824f65f14ad"
-  integrity sha512-/tt5KM4pYipO3jTAHmGSrh8bW7A43ql2alCQtOCzBnbQ3cglKKOqPn9VrxzQu65BFlZWAjxLuUS5ujrY+6aCNA==
+"@nhost/apollo@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@nhost/apollo/-/apollo-0.2.1.tgz#de1967490d5d193ea3e1c2acc184e3ee4cea7d1d"
+  integrity sha512-cDC7Y0pW1mHBxl0DCg6T7/iZ2YVUBZ6avk1yFnZmKJOP1Bgga4L3CRQP03+fWIQhnc95hTiX2excw3QAo4s9qw==
   dependencies:
     "@apollo/client" "^3.5.8"
-    "@nhost/client" "0.2.0"
+    "@nhost/client" "0.2.1"
     graphql "16"
     subscriptions-transport-ws "^0.11.0"
 
-"@nhost/client@0.2.0":
-  version "0.2.0"
-  resolved "http://localhost:4873/@nhost%2fclient/-/client-0.2.0.tgz#e5051c320c491ef07f137cfb9e85fab2a69c4fd7"
-  integrity sha512-exL1C5D+ZWJ3sIIcij9HIjjmy4HcpD24Pqs5O36/NGLX9RWDX7APdeZZgysDx6uNL9I0gvPwZT6bgJBDiXTlTg==
+"@nhost/client@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@nhost/client/-/client-0.2.1.tgz#81e99432ca1a108c3f67a5ba86658b49de34b7fb"
+  integrity sha512-fen8sQ/pAeJml01pz2uiauKNOln5J/LA857MqW4+hGsBLu72mudM4pTKQH4lEf8ewnQV7WcTbwd3bW2jPZnQtQ==
   dependencies:
     axios "^0.25.0"
     broadcast-channel "^4.10.0"
@@ -157,27 +157,27 @@
     js-cookie "^3.0.1"
     xstate "^4.30.5"
 
-"@nhost/nextjs@^0.2.0":
-  version "0.2.0"
-  resolved "http://localhost:4873/@nhost%2fnextjs/-/nextjs-0.2.0.tgz#432ab0dbf16f670c1a59ffb91da94d6ade47f761"
-  integrity sha512-E6il0mUKxjHfl42rEO5cg55mDBWExzdiK0Z6PoyzDe8j7bH5NYg/5Ul8L+1JewMLdy7tb9wtHNMcNfIpuzgAww==
+"@nhost/nextjs@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@nhost/nextjs/-/nextjs-0.3.0.tgz#13eeeedb089c3979e824ea41f15abdcc975aaa42"
+  integrity sha512-Yw6b1LoaRUc20FGxI7soFl4EuJxdZmibmNp/eZVCHyTwaEPtw7LH5gxOSSVtGjSQ2tn6qeE1Wfpi5RDByTuLWg==
   dependencies:
     cookies "^0.8.0"
 
-"@nhost/react-apollo@^3.0.0":
-  version "3.0.0"
-  resolved "http://localhost:4873/@nhost%2freact-apollo/-/react-apollo-3.0.0.tgz#bcfba4b48a0dc9e85f9cc2994e2284b9aa2565e9"
-  integrity sha512-u5KGGZSPyyh6EO8W0sNXU/pwKuA70083zWHMbfFCtt/Er5lXwIUBahZqJOV+q+sPNapTddKg9T+v721YFQOOjw==
+"@nhost/react-apollo@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@nhost/react-apollo/-/react-apollo-3.1.0.tgz#0893802ff30b168bcc8873084132cc670f77755f"
+  integrity sha512-42r8TJvDB99mGUxHFK7bDxcRpIGwKmwXIyhdq/4b4sNcv7Vfid7IBvd8tVrIhQQn7YUu/gwQr5ByuV5tBzUuMA==
   dependencies:
     "@apollo/client" "^3.5.8"
-    "@nhost/apollo" "0.2.0"
+    "@nhost/apollo" "0.2.1"
 
-"@nhost/react@^0.2.0":
-  version "0.2.0"
-  resolved "http://localhost:4873/@nhost%2freact/-/react-0.2.0.tgz#1200c0abb3a25b56fc4468c0acb336a925d801fa"
-  integrity sha512-cHobMZ3cbR99scudjeTr0wxx75Mxn4g3ylcpbXKViCpjTgbCXRbolu57s6JG/vr+CnB0i6EiUE9MItKnXd4osA==
+"@nhost/react@^0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@nhost/react/-/react-0.2.1.tgz#6a6b547ae3fc2e333a2729f54aa7a2048f13f125"
+  integrity sha512-+ZbRDGrwIjrUdcAsMkHt5W2RDclygoUd1ttemdZNHeGiU9K9dYLF8lz4tFkb6jayeyqpDuCLmCr+0vfcMAwEYg==
   dependencies:
-    "@nhost/client" "0.2.0"
+    "@nhost/client" "0.2.1"
     "@xstate/react" "^2.0.1"
     immer "^9.0.12"
 
