@@ -1,6 +1,6 @@
 {
   "name": "@nhost/client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [

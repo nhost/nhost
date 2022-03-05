@@ -1,5 +1,18 @@
 # @nhost/react-apollo
 
+## 3.1.0
+
+### Minor Changes
+
+- 0d8afde: Use `@nhost/react` as a peer dependency
+  `@nhost/react` was bundled where it shouldn't. As a result, `@nhost/react-apollo` did not have access to the Nhost React context, leading to errors
+
+### Patch Changes
+
+- Updated dependencies [0d8afde]
+  - @nhost/apollo@0.2.1
+  - @nhost/react@0.2.1
+
 ## 3.0.0
 
 ### Major Changes
