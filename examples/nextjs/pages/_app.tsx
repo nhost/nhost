@@ -1,6 +1,7 @@
 import type { AppProps } from 'next/app'
+import React from 'react'
 
-import { NhostSSR } from '@nhost/nextjs'
+import { NhostSSR } from '@nhost/client'
 import { NhostProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
@@ -10,7 +11,7 @@ import { BACKEND_URL } from '../helpers'
 
 import '../styles/globals.css'
 
-if (typeof window !== 'undefined' && process.env.NODE_ENV) {
+if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_DEBUG) {
   inspect({
     url: 'https://stately.ai/viz?inspect',
     iframe: false
@@ -19,7 +20,6 @@ if (typeof window !== 'undefined' && process.env.NODE_ENV) {
 const nhost = new NhostSSR({ backendUrl: BACKEND_URL })
 
 function MyApp({ Component, pageProps }: AppProps) {
-  // console.log('PAGE PROPS', pageProps.initial)
   return (
     <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
       <NhostApolloProvider>

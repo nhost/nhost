@@ -2,6 +2,22 @@
 title: 'Configuration'
 ---
 
+## Installation
+
+With yarn:
+
+```sh
+yarn add @nhost/react @nhost/nextjs
+```
+
+With Npm:
+
+```sh
+npm install @nhost/react @nhost/nextjs
+```
+
+---
+
 ## Configuration
 
 Configuring Nhost with Next.js follows the same logic as React, except we are initializing with `NhostSSR` instead of `Nhost`.
@@ -31,6 +47,8 @@ function MyApp({ Component, pageProps }: AppProps) {
 export default MyApp
 ```
 
+---
+
 ## Client-side rendering
 
 The logic is the same as in a classic React application:
@@ -40,7 +58,7 @@ The logic is the same as in a classic React application:
 import { NextPageContext } from 'next'
 import React from 'react'
 
-import { useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
+import { useAccessToken, useAuthenticated, useUserData } from '@nhost/react'
 
 const ClientSidePage: React.FC = () => {
   const isAuthenticated = useAuthenticated()
@@ -58,6 +76,8 @@ const ClientSidePage: React.FC = () => {
 export default ClientSidePage
 ```
 
+---
+
 ## Server-side rendering
 
 You need to load the session from the server first from `getServerSideProps`. Once it is done, the `_app` component will make sure to load or update the session through `pageProps`.
@@ -73,7 +93,7 @@ import {
   useAccessToken,
   useAuthenticated,
   useUserData
-} from '@nhost/nextjs'
+} from '@nhost/react'
 
 export async function getServerSideProps(context: NextPageContext) {
   const nhostSession = await getNhostSession('my-app.nhost.run', context)

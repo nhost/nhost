@@ -13,7 +13,7 @@ import {
 } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
 
-import { QUERY_INDEX } from '../helpers'
+import { BOOKS_QUERY } from '../helpers'
 
 // * Reference: https://blog.codepen.io/2021/09/01/331-next-js-apollo-server-side-rendering-ssr/
 
@@ -30,7 +30,7 @@ const Home: NextPage = () => {
   const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
   const { changeEmail, ...changeEmailResult } = useChangeEmail(newEmail)
   const { changePassword, ...changePasswordResult } = useChangePassword(newPassword)
-  const { loading, data, error } = useAuthQuery(QUERY_INDEX)
+  const { loading, data, error } = useAuthQuery(BOOKS_QUERY)
   return (
     <div>
       {isAuthenticated ? (
@@ -58,8 +58,8 @@ const Home: NextPage = () => {
       <div>{accessToken}</div>
       {isAuthenticated && (
         <ul>
-          {data?.test.map((item) => (
-            <li key={item.id}>{item.id}</li>
+          {data?.books.map((item) => (
+            <li key={item.id}>{item.title}</li>
           ))}
         </ul>
       )}

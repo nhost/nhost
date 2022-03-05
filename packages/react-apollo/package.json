@@ -49,17 +49,18 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/apollo": "workspace:*",
-    "@nhost/react": "workspace:*"
+    "@apollo/client": "^3.5.8",
+    "@nhost/apollo": "workspace:*"
   },
   "peerDependencies": {
+    "@nhost/react": "workspace:*",
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
-    "react-dom": "^17.0.0 || ^18.0.0",
-    "@apollo/client": "^3.5.8"
+    "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.5.8",
+    "@nhost/client": "workspace:*",
+    "@nhost/react": "workspace:*",
     "@types/react": "^17.0.39",
     "@types/ws": "^8.2.2",
     "graphql": "16",

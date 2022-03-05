@@ -53,6 +53,6 @@
     "broadcast-channel": "^4.10.0",
     "immer": "^9.0.12",
     "js-cookie": "^3.0.1",
-    "xstate": "^4.29.0"
+    "xstate": "^4.30.5"
   }
 }

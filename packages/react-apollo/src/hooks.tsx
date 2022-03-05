@@ -1,5 +1,3 @@
-import { useMemo } from 'react'
-
 import {
   DocumentNode,
   OperationVariables,
@@ -14,10 +12,7 @@ export function useAuthQuery<TData = any, TVariables = OperationVariables>(
   options?: QueryHookOptions<TData, TVariables>
 ) {
   const isAuthenticated = useAuthenticated()
-  const newOptions = useMemo(
-    () => ({ ...options, skip: options?.skip || !isAuthenticated }),
-    [isAuthenticated, options]
-  )
+  const newOptions = { ...options, skip: options?.skip || !isAuthenticated }
   return useQuery(query, newOptions)
 }
 
