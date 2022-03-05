@@ -1,4 +1,4 @@
-## Nhost & Next.js example
+## Nhost & Next.js example (WIP)
 
 This demo is a work in progress, further improvements are to come
 
