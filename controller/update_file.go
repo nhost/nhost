@@ -35,7 +35,7 @@ func updateFileParseRequest(ctx *gin.Context) (fileData, *APIError) {
 	res.header = file[0]
 
 	metadata, ok := form.Value["metadata"]
-	if ok {
+	if ok { // nolint: nestif
 		if len(metadata) != len(file) {
 			return fileData{}, ErrMetadataLength
 		}
@@ -47,7 +47,16 @@ func updateFileParseRequest(ctx *gin.Context) (fileData, *APIError) {
 
 		res.Name = d.Name
 	} else {
-		res.Name = res.header.Filename
+		fileName := ctx.Request.Header.Get("x-nhost-file-name")
+		if fileName == "" {
+			fileName = res.header.Filename
+		} else {
+			ctx.Writer.Header().Add(
+				"X-deprecation-warning-old-upload-file-method",
+				"please, update the SDK to leverage new API endpoint or read the API docs to adapt your code",
+			)
+		}
+		res.Name = fileName
 	}
 
 	return res, nil

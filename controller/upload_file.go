@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -132,13 +133,60 @@ func getBucketIDFromFormValue(md map[string][]string) string {
 	return "default"
 }
 
-func parseUploadRequest(ctx *gin.Context) (uploadFileRequest, *APIError) {
+func parseUploadRequestOld(ctx *gin.Context) (uploadFileRequest, *APIError) {
 	form, err := ctx.MultipartForm()
 	if err != nil {
 		return uploadFileRequest{}, InternalServerError(fmt.Errorf("problem reading multipart form: %w", err))
 	}
 
-	files := form.File["file[]"]
+	fileForm, ok := form.File["file"]
+	if !ok {
+		return uploadFileRequest{}, ErrMultipartFormFileNotFound
+	}
+
+	fileHeader := fileForm[0]
+
+	bucketID := ctx.Request.Header.Get("x-nhost-bucket-id")
+	if bucketID == "" {
+		bucketID = "default"
+	}
+	fileName := ctx.Request.Header.Get("x-nhost-file-name")
+	if fileName == "" {
+		fileName = fileHeader.Filename
+	}
+	fileID := ctx.Request.Header.Get("x-nhost-file-id")
+	if fileID == "" {
+		fileID = uuid.New().String()
+	}
+
+	ctx.Writer.Header().Add(
+		"X-deprecation-warning-old-upload-file-method",
+		"please, update the SDK to leverage new API endpoint or read the API docs to adapt your code",
+	)
+
+	return uploadFileRequest{
+		bucketID: bucketID,
+		files: []fileData{
+			{
+				Name:   fileName,
+				ID:     fileID,
+				header: fileHeader,
+			},
+		},
+		headers: ctx.Request.Header,
+	}, nil
+}
+
+func parseUploadRequestNew(ctx *gin.Context) (uploadFileRequest, *APIError) {
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		return uploadFileRequest{}, InternalServerError(fmt.Errorf("problem reading multipart form: %w", err))
+	}
+
+	files, ok := form.File["file[]"]
+	if !ok {
+		return uploadFileRequest{}, ErrMultipartFormFileNotFound
+	}
 
 	md, ok := form.Value["metadata[]"]
 	if ok {
@@ -167,6 +215,14 @@ func parseUploadRequest(ctx *gin.Context) (uploadFileRequest, *APIError) {
 		files:    processedFiles,
 		headers:  ctx.Request.Header,
 	}, nil
+}
+
+func parseUploadRequest(ctx *gin.Context) (uploadFileRequest, *APIError) {
+	req, apiErr := parseUploadRequestNew(ctx)
+	if errors.Is(apiErr, ErrMultipartFormFileNotFound) {
+		req, apiErr = parseUploadRequestOld(ctx)
+	}
+	return req, apiErr
 }
 
 func (ctrl *Controller) uploadFile(ctx *gin.Context) ([]FileMetadata, *APIError) {

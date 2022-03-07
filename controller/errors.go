@@ -7,6 +7,12 @@ import (
 )
 
 var (
+	ErrMultipartFormFileNotFound = &APIError{
+		http.StatusBadRequest,
+		"file[] not found in Multipart form",
+		errors.New("file[] not found in Multipart form"), // nolint
+		nil,
+	}
 	ErrMultipartFileWrong = &APIError{
 		http.StatusBadRequest,
 		"wrong file data in multipart form, one needs to be specified",

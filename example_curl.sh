@@ -7,6 +7,9 @@ BUCKET=default
 FILE_ID=55af1e60-0f28-454e-885e-ea6aab2bb288
 ETAG=\"588be441fe7a59460850b0aa3e1c5a65\"
 
+# we sleep for 1s to make sure a drift in the clocks between client/server doesn't
+# lead to a JWTIssuedAtFuture error
+sleep 1
 
 output=`curl $URL/ \
   -v \
