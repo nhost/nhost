@@ -1,7 +1,7 @@
 import type { AppProps } from 'next/app'
 import React from 'react'
 
-import { NhostSSR } from '@nhost/client'
+import { NhostSSR } from '@nhost/core'
 import { NhostProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'

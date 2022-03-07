@@ -1,7 +1,7 @@
 import { useContext } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { Nhost, NhostMachine } from '@nhost/client'
+import { Nhost, NhostMachine } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'

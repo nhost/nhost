@@ -143,19 +143,19 @@ importers:
   packages/apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/client': workspace:*
+      '@nhost/core': workspace:*
       graphql: 15.7.2
       subscriptions-transport-ws: ^0.11.0
       xstate: ^4.30.5
     dependencies:
       '@apollo/client': 3.5.8_f3f7eb5e21785ef7d5faca94c1a68824
-      '@nhost/client': link:../client
+      '@nhost/core': link:../core
       graphql: 15.7.2
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
     devDependencies:
       xstate: 4.30.5
 
-  packages/client:
+  packages/core:
     specifiers:
       axios: ^0.25.0
       broadcast-channel: ^4.10.0
@@ -196,7 +196,7 @@ importers:
 
   packages/nextjs:
     specifiers:
-      '@nhost/client': workspace:*
+      '@nhost/core': workspace:*
       '@nhost/react': workspace:*
       cookies: ^0.8.0
       next: 12.0.10
@@ -206,7 +206,7 @@ importers:
     dependencies:
       cookies: 0.8.0
     devDependencies:
-      '@nhost/client': link:../client
+      '@nhost/core': link:../core
       '@nhost/react': link:../react
       next: 12.0.10_33bdac975a6e334c49640fab91e2abb4
       react: 17.0.2
@@ -229,7 +229,7 @@ importers:
 
   packages/react:
     specifiers:
-      '@nhost/client': workspace:*
+      '@nhost/core': workspace:*
       '@xstate/inspect': ^0.6.2
       '@xstate/react': ^2.0.1
       immer: ^9.0.12
@@ -237,7 +237,7 @@ importers:
       ws: ^8.4.2
       xstate: ^4.30.5
     dependencies:
-      '@nhost/client': link:../client
+      '@nhost/core': link:../core
       '@xstate/react': 2.0.1_react@17.0.2+xstate@4.30.5
       immer: 9.0.12
     devDependencies:
@@ -250,7 +250,7 @@ importers:
     specifiers:
       '@apollo/client': ^3.5.8
       '@nhost/apollo': workspace:*
-      '@nhost/client': workspace:*
+      '@nhost/core': workspace:*
       '@nhost/react': workspace:*
       '@types/react': ^17.0.39
       '@types/ws': ^8.2.2
@@ -261,7 +261,7 @@ importers:
       '@apollo/client': 3.5.8_graphql@15.7.2+react@17.0.2
       '@nhost/apollo': link:../apollo
     devDependencies:
-      '@nhost/client': link:../client
+      '@nhost/core': link:../core
       '@nhost/react': link:../react
       '@types/react': 17.0.39
       '@types/ws': 8.2.2
@@ -3470,7 +3470,7 @@ packages:
   /broadcast-channel/4.10.0:
     resolution: {integrity: sha512-hOUh312XyHk6JTVyX9cyXaH1UYs+2gHVtnW16oQAu9FL7ALcXGXc/YoJWqlkV8vUn14URQPMmRi4A9q4UrwVEQ==}
     dependencies:
-      '@babel/runtime': 7.17.0
+      '@babel/runtime': 7.17.2
       detect-node: 2.1.0
       microseconds: 0.2.0
       nano-time: 1.0.0
@@ -9915,7 +9915,7 @@ packages:
   /unload/2.3.1:
     resolution: {integrity: sha512-MUZEiDqvAN9AIDRbbBnVYVvfcR6DrjCqeU2YQMmliFZl9uaBUjTkhuDQkBiyAy8ad5bx1TXVbqZ3gg7namsWjA==}
     dependencies:
-      '@babel/runtime': 7.17.0
+      '@babel/runtime': 7.17.2
       detect-node: 2.1.0
     dev: false
 

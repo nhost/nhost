@@ -1,4 +1,4 @@
-import { PasswordlessOptions, Provider } from '@nhost/client'
+import { PasswordlessOptions, Provider } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { useNhost } from './common'

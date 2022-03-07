@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 import { NhostProvider } from '@nhost/react'
-import { Nhost } from '@nhost/client'
+import { Nhost } from '@nhost/core'
 import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
 
 import { BrowserRouter } from 'react-router-dom'

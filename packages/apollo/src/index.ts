@@ -13,7 +13,7 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { Nhost } from '@nhost/client'
+import { Nhost } from '@nhost/core'
 const isBrowser = typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {

@@ -5,5 +5,5 @@
     "composite": true
   },
   "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"],
-  "references": [{"path": "../client"}]
+  "references": [{"path": "../core"}]
 }

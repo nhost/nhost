@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 
-import { SignUpOptions } from '@nhost/client'
+import { SignUpOptions } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { useAuthenticated, useAuthLoading, useNhostInterpreter } from './common'

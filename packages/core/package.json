@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/client",
+  "name": "@nhost/core",
   "version": "0.2.1",
   "description": "Nhost core client library",
   "license": "MIT",

@@ -1,4 +1,4 @@
-# @nhost/client
+# @nhost/core
 
 ## 0.2.1
 
@@ -22,11 +22,11 @@
 
 - 207ae38: Tree-shakable API
 
-  The new `@nhost/client` package is written with tree-shakability in mind. No dead code should be included by a subsequent bundler.
+  The new `@nhost/core` package is written with tree-shakability in mind. No dead code should be included by a subsequent bundler.
 
   See [#198](https://github.com/nhost/nhost/issues/198)
 
 - 207ae38: ## Stable authentication state
 
   Until now, the Nhost SDK authentication state and its context (access Token, refresh token...) was not held with a reliable system, ending in unconsistencies e.g. [#189](https://github.com/nhost/nhost/issues/189), [#202](https://github.com/nhost/nhost/issues/202), [#186](https://github.com/nhost/nhost/issues/186), [#195](https://github.com/nhost/nhost/issues/195).
-  The `@nhost/client` handles authentication state as a finite state machine with [xstate](https://github.com/statelyai/xstate). Xstate is framework agnostic and the authentication state will be easily plugable in most reactive frameworks such as React, Vue and Svelte.
+  The `@nhost/core` handles authentication state as a finite state machine with [xstate](https://github.com/statelyai/xstate). Xstate is framework agnostic and the authentication state will be easily plugable in most reactive frameworks such as React, Vue and Svelte.

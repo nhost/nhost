@@ -6,7 +6,7 @@ import {
   createChangePasswordMachine,
   createResetPasswordMachine,
   ResetPasswordOptions
-} from '@nhost/client'
+} from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/react'
 
 import { useNhost, useNhostInterpreter } from './common'

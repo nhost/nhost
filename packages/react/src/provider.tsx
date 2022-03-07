@@ -1,7 +1,7 @@
 import produce from 'immer'
 import React, { createContext, useEffect, useRef } from 'react'
 
-import { Nhost, NhostContext, NhostSession } from '@nhost/client'
+import { Nhost, NhostContext, NhostSession } from '@nhost/core'
 import { useInterpret } from '@xstate/react'
 
 export const NhostReactContext = createContext<Nhost>({} as Nhost)
