@@ -20,7 +20,7 @@ Access token data is included as headers with every API request. By default, eve
 
 The default role for users is `user`.
 
-> You can add more permission variables
+> You can also [add custom permission](#add-permission-variables) varaibles if you need to.
 
 ---
 
@@ -67,7 +67,7 @@ We also want every new record's `user_id` value to be set to the ID of the user 
 
 You can add extra permission variables in the Nhost console under **Users** and then **Roles and permissions**. These permission varaibles are then available when creating permissions for your GraphQL API in the Hasura console.
 
-![Custom Permission Variables](/images/platform/permission-variables-preview.svg)
+![Permission Variables](/images/platform/permission-variables-preview.svg)
 
 As an example, let's say you add a new permission variable: `x-hasura-organisation-id` with path: `user.profile.organisation.id`. This means that Nhost Auth will generate the following GraphQL query to get the value for `x-hasura-organisation-id`:
 
