@@ -69,10 +69,10 @@ You can add extra permission variables in the Nhost console under **Users** and 
 
 ![Permission Variables](/images/platform/permission-variables-preview.svg)
 
-As an example, let's say you add a new permission variable: `x-hasura-organisation-id` with path: `user.profile.organisation.id`. This means that Nhost Auth will generate the following GraphQL query to get the value for `x-hasura-organisation-id`:
+As an example, let's say you add a new permission variable `x-hasura-organisation-id` with path `user.profile.organisation.id`. This means that Nhost Auth will get the value for `x-hasura-organisation-id` by internally generate the following GraphQL query:
 
 ```graphql
-{
+query {
   user(id: "<user-id>") {
     profile {
       organisation {
