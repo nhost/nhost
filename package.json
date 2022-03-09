@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@djgrant/postgres-migrations": "^4.1.0-rc.1",
+    "@milahu/patch-package-with-pnpm-support": "^6.4.8",
     "@nicokaiser/passport-apple": "^0.2.1",
     "@oauth-everything/passport-discord": "^1.0.2",
     "@oauth-everything/passport-twitch": "^1.0.3",
@@ -69,7 +70,6 @@
     "passport-spotify": "^2.0.0",
     "passport-twitter": "^1.0.4",
     "passport-windowslive": "^1.0.2",
-    "patch-package": "^6.4.7",
     "pg": "^8.6.0",
     "postinstall-postinstall": "^2.1.0",
     "qrcode": "1.4.4",
