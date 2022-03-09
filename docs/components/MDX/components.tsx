@@ -65,7 +65,7 @@ const CustomLink = ({
 const components = {
   img: (props: DetailedHTMLProps<HTMLProps<HTMLImageElement>, HTMLImageElement>) => {
     return (
-      <span className="block mx-10 mt-5 ">
+      <span className="block mx-10 my-10 ">
         <img src={props.src} alt={props.alt} className="mx-auto mt-2" />
       </span>
     )
