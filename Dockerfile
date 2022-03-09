@@ -2,6 +2,7 @@ FROM node:14-alpine AS builder
 WORKDIR /app
 RUN npm i -g pnpm
 COPY package.json pnpm-lock.yaml tsconfig.json tsconfig.build.json ./
+COPY patches/ ./patches/
 RUN pnpm install --frozen-lockfile
 COPY src/ ./src/
 COPY types/ ./types/
