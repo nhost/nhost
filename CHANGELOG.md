@@ -1,5 +1,12 @@
 undefined
 
+## [0.3.2](https://github.com/nhost/hasura-auth/compare/v0.3.1...v0.3.2) (2022-03-09)
+
+
+### Bug Fixes
+
+* patch twitch Oauth provider ([1cd9926](https://github.com/nhost/hasura-auth/commit/1cd992602b22cbd40cd5dbf44947a67ba303ef5f))undefined
+
 ## [0.3.1](https://github.com/nhost/hasura-auth/compare/v0.3.0...v0.3.1) (2022-03-04)
 
 
