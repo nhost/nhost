@@ -4,21 +4,21 @@ export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
     saveInvalidEmailError: 'REQUEST'
-    reportSuccess: 'done.invoke.requestChange'
-    saveRequestError: 'error.platform.requestChange'
-    reportError: 'error.platform.requestChange'
+    reportSuccess: 'done.invoke.request'
+    saveRequestError: 'error.platform.request'
+    reportError: 'error.platform.request'
   }
   internalEvents: {
-    'done.invoke.requestChange': {
-      type: 'done.invoke.requestChange'
+    'done.invoke.request': {
+      type: 'done.invoke.request'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.requestChange': { type: 'error.platform.requestChange'; data: unknown }
+    'error.platform.request': { type: 'error.platform.request'; data: unknown }
     'xstate.init': { type: 'xstate.init' }
   }
   invokeSrcNameMap: {
-    requestChange: 'done.invoke.requestChange'
+    request: 'done.invoke.request'
   }
   missingImplementations: {
     actions: never
@@ -27,7 +27,7 @@ export interface Typegen0 {
     delays: never
   }
   eventsCausingServices: {
-    requestChange: 'REQUEST'
+    request: 'REQUEST'
   }
   eventsCausingGuards: {
     invalidEmail: 'REQUEST'

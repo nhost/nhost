@@ -20,18 +20,19 @@ export interface Typegen0 {
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
     resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
+    saveInvalidEmail: 'SIGNIN_PASSWORD'
+    saveInvalidPassword: 'SIGNIN_PASSWORD'
+    saveInvalidSignUpEmail: 'SIGNUP_EMAIL_PASSWORD'
+    saveInvalidSignUpPassword: 'SIGNUP_EMAIL_PASSWORD'
+    saveAuthenticationError:
+      | 'error.platform.authenticateUserWithPassword'
+      | 'error.platform.authenticateAnonymously'
     saveRegisrationError: 'error.platform.registerUser'
     tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     resetAuthenticationError: 'xstate.init'
-    saveAuthenticationError:
-      | 'error.platform.signingOut'
-      | 'error.platform.authenticatePasswordlessEmail'
-      | 'error.platform.authenticateUserWithPassword'
-      | 'error.platform.authenticateAnonymously'
-      | 'error.platform.registerUser'
-    saveInvalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
-    saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
+    clearContext: 'xstate.init'
     destroyToken: 'SIGNOUT'
+    resetSignUpError: 'SIGNUP_EMAIL_PASSWORD'
   }
   internalEvents: {
     'done.invoke.autoSignIn': {
@@ -65,15 +66,6 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     '': { type: '' }
-    'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
-    'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
-      type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
-    }
-    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
-    'error.platform.authenticatePasswordlessEmail': {
-      type: 'error.platform.authenticatePasswordlessEmail'
-      data: unknown
-    }
     'error.platform.authenticateUserWithPassword': {
       type: 'error.platform.authenticateUserWithPassword'
       data: unknown
@@ -82,6 +74,10 @@ export interface Typegen0 {
       type: 'error.platform.authenticateAnonymously'
       data: unknown
     }
+    'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
+    'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
+      type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
+    }
     'xstate.init': { type: 'xstate.init' }
     'error.platform.autoSignIn': { type: 'error.platform.autoSignIn'; data: unknown }
     'done.invoke.signingOut': {
@@ -89,10 +85,15 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'done.invoke.authenticatePasswordlessEmail': {
       type: 'done.invoke.authenticatePasswordlessEmail'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'error.platform.authenticatePasswordlessEmail': {
+      type: 'error.platform.authenticatePasswordlessEmail'
+      data: unknown
     }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'error.platform.authenticateWithToken': {

@@ -5,7 +5,9 @@ import {
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
-  ResetPasswordOptions
+  createSendVerificationEmailMachine,
+  ResetPasswordOptions,
+  SendVerificationEmailOptions
 } from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/react'
 
@@ -23,7 +25,7 @@ export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOp
 
   const changeEmail = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
     send({
-      type: 'REQUEST_CHANGE',
+      type: 'REQUEST',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       options: valueOptions
     })
@@ -41,7 +43,7 @@ export const useChangePassword = (statePassword?: string) => {
 
   const changePassword = (valuePassword?: string | unknown) =>
     send({
-      type: 'REQUEST_CHANGE',
+      type: 'REQUEST',
       password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
 
@@ -59,7 +61,7 @@ export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswo
 
   const resetPassword = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
     send({
-      type: 'REQUEST_CHANGE',
+      type: 'REQUEST',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       options: valueOptions
     })
@@ -109,4 +111,22 @@ export const useUserLocale = () => {
 export const useUserRoles = () => {
   const service = useNhostInterpreter()
   return useSelector(service, (state) => state.context.user?.roles || [])
+}
+
+export const useSendEmailVerification = (stateEmail?: string, stateOptions?: SendVerificationEmailOptions) => {
+  const nhost = useNhost()
+  const machine = useMemo(() => createSendVerificationEmailMachine(nhost), [nhost])
+  const [current, send] = useMachine(machine)
+  const isError = current.matches({ idle: 'error' })
+  const isSent = current.matches({ idle: 'success' })
+  const error = current.context.error
+  const isLoading = current.matches('requesting')
+
+  const sendEmail = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+    send({
+      type: 'REQUEST',
+      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
+      options: valueOptions
+    })
+  return { sendEmail, isLoading, isSent, isError, error }
 }

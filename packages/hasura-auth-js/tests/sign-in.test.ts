@@ -39,7 +39,6 @@ describe('sign-in', () => {
         roles: expect.any(Array)
       }
     })
-    expect(true).toBe(true)
   })
 
   it('sign in user with passwordless email (magic link)', async () => {

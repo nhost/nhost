@@ -1,24 +1,15 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable no-magic-numbers */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-/* eslint-disable @typescript-eslint/no-misused-promises */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable no-case-declarations */
-/* eslint-disable consistent-return */
-/* eslint-disable @typescript-eslint/no-confusing-void-expression */
-/* eslint-disable @typescript-eslint/no-empty-function */
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable new-cap */
-/* eslint-disable @typescript-eslint/no-unused-expressions */
-/* eslint-disable complexity */
-/* eslint-disable @typescript-eslint/ban-types */
-import queryString from 'query-string'
+import { interpret, InterpreterFrom } from 'xstate'
 
-import { NHOST_REFRESH_TOKEN } from './utils/constants'
-import { inMemoryLocalStorage, isBrowser } from './utils/helpers'
+import {
+  createChangeEmailMachine,
+  createChangePasswordMachine,
+  createResetPasswordMachine,
+  createSendVerificationEmailMachine,
+  Nhost,
+  NhostMachine
+} from '@nhost/core'
+
+import { isBrowser } from './utils/helpers'
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -29,7 +20,6 @@ import {
   ApiSignInResponse,
   ApiSignOutResponse,
   AuthChangedFunction,
-  AuthChangeEvent,
   ChangeEmailParams,
   ChangePasswordParams,
   ClientStorage,
@@ -43,29 +33,21 @@ import {
   SignUpParams,
   SignUpResponse
 } from './utils/types'
-import { HasuraAuthApi } from './hasura-auth-api'
-
+const USER_ALREADY_SIGNED_IN: ApiError = {
+  message: 'User is already signed in',
+  status: 100
+}
+const USER_UNAUTHENTICATED: ApiError = {
+  message: 'User is not authenticated',
+  status: 101
+}
+const EMAIL_NEEDS_VERIFICATION: ApiError = {
+  message: 'Email needs verification',
+  status: 102
+}
 export class HasuraAuthClient {
-  private api: HasuraAuthApi
-
-  private onTokenChangedFunctions: Function[]
-  private onAuthChangedFunctions: AuthChangedFunction[]
-
-  private refreshInterval: any
-  private refreshIntervalTime: number | undefined
-
-  private clientStorage: ClientStorage
-  private clientStorageType: string
-
-  private url: string
-  private autoRefreshToken: boolean
-
-  private session: Session | null
-
-  private initAuthLoading: boolean
-  private refreshSleepCheckInterval: any
-  private refreshIntervalSleepCheckLastSample: number
-  private sampleRate: number
+  private client: Nhost
+  private onTokenChangedSubscriptions: Set<InterpreterFrom<NhostMachine>> = new Set()
 
   constructor({
     url,
@@ -73,7 +55,8 @@ export class HasuraAuthClient {
     autoLogin = true,
     refreshIntervalTime,
     clientStorage,
-    clientStorageType = 'web'
+    clientStorageType = 'web',
+    start = true
   }: {
     url: string
     autoRefreshToken?: boolean
@@ -81,75 +64,26 @@ export class HasuraAuthClient {
     refreshIntervalTime?: number
     clientStorage?: ClientStorage
     clientStorageType?: ClientStorageType
+    start?: boolean
   }) {
-    this.refreshIntervalTime = refreshIntervalTime
+    const backendUrl = url.endsWith('/v1/auth') ? url.replace('/v1/auth', '') : url
 
-    if (!clientStorage) {
-      this.clientStorage = isBrowser() ? localStorage : new inMemoryLocalStorage()
-    } else {
-      this.clientStorage = clientStorage
-    }
-
-    this.clientStorageType = clientStorageType
-
-    this.onTokenChangedFunctions = []
-    this.onAuthChangedFunctions = []
-    this.refreshInterval
-
-    this.refreshSleepCheckInterval = 0
-    this.refreshIntervalSleepCheckLastSample = Date.now()
-    this.sampleRate = 2000 // check every 2 seconds
-
-    this.url = url
-
-    this.autoRefreshToken = autoRefreshToken
-
-    this.initAuthLoading = true
-
-    this.session = null
-
-    this.api = new HasuraAuthApi({ url: this.url })
-
-    // get refresh token from query param (from external OAuth provider callback)
-    let refreshToken: string | null = null
-    let autoLoginFromQueryParameters = false
-
-    // try to auto login using hashtag query parameters
-    // ex if the user came from a magic link
-    if (autoLogin && isBrowser() && window.location) {
-      // try {
-      const urlParams = queryString.parse(window.location.toString().split('#')[1])
-
-      if ('refreshToken' in urlParams) {
-        // We must keep this hash becaus it might cause error during double
-        // render in dev mode for react
-        // https://reactjs.org/docs/strict-mode.html
-        // this.clearHashFromUrl();
-        refreshToken = urlParams.refreshToken as string
-      }
-
-      if ('otp' in urlParams && 'email' in urlParams) {
-        // We must keep this hash becaus it might cause error during double
-        // render in dev mode for react
-        // https://reactjs.org/docs/strict-mode.html
-        // this.clearHashFromUrl();
-        const { otp, email } = urlParams
-        // sign in with OTP
-        this.signIn({
-          otp: otp as string,
-          email: email as string
-        })
-        autoLoginFromQueryParameters = true
-      }
-    }
-
-    // if empty string, then set it to null
-    // refreshToken = refreshToken ? refreshToken : null;
-    if (!autoLoginFromQueryParameters && autoLogin) {
-      this._autoLogin(refreshToken)
-    } else if (refreshToken) {
-      this._setItem(NHOST_REFRESH_TOKEN, refreshToken)
-    }
+    // TODO refreshIntervalTime
+    // TODO custom clientStorage and clientStorageType
+    // ? no warning when using with Nodejs?
+    this.client = new Nhost({
+      backendUrl,
+      autoRefreshToken,
+      autoSignIn: autoLogin,
+      start,
+      storageGetter: () => {
+        return null
+      },
+      storageSetter: () => { }
+    })
+    // this.client.interpreter?.onTransition((state) => {
+    //   console.log('Transition:', state.event)
+    // })
   }
 
   /**
@@ -164,37 +98,28 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async signUp(params: SignUpParams): Promise<SignUpResponse> {
-    const { email, password } = params
+    if (!this.client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
+    const { email, password, options } = params
 
-    // email and password
-    if (email && password) {
-      // sign up with email and password
-      const { data, error } = await this.api.signUpEmailPassword(params)
-
-      if (error) {
-        return { session: null, error }
+    // * Raise an error if the user is already authenticated
+    if (this.isAuthenticated()) {
+      return {
+        session: null,
+        error: USER_ALREADY_SIGNED_IN
       }
-
-      if (!data) {
-        return {
-          session: null,
-          error: { message: 'An error occurred on sign up.', status: 500 }
-        }
-      }
-
-      const { session } = data
-
-      if (session) {
-        await this._setSession(session)
-      }
-
-      return { session, error: null }
     }
 
-    return {
-      session: null,
-      error: { message: 'Incorrect parameters', status: 500 }
-    }
+    return new Promise((resolve) => {
+      this.client.interpreter?.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
+      this.client.interpreter?.onTransition((state) => {
+        if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
+          return resolve({ session: null, error: null })
+        else if (state.matches({ authentication: { signedOut: 'failed' } })) {
+          return resolve({ session: null, error: state.context.errors.registration || null })
+        } else if (state.matches({ authentication: 'signedIn' }))
+          return resolve({ session: this.getSession(), error: null })
+      })
+    })
   }
 
   /**
@@ -221,9 +146,18 @@ export class HasuraAuthClient {
     providerUrl?: string
     provider?: string
   }> {
+    // * Raise an error if the user is already authenticated
+    if (this.isAuthenticated()) {
+      return {
+        session: null,
+        mfa: null,
+        error: USER_ALREADY_SIGNED_IN
+      }
+    }
+
     if ('provider' in params) {
       const { provider } = params
-      const providerUrl = `${this.url}/signin/provider/${provider}`
+      const providerUrl = `${this.client.backendUrl}/v1/auth/signin/provider/${provider}`
 
       if (isBrowser()) {
         window.location.href = providerUrl
@@ -233,53 +167,75 @@ export class HasuraAuthClient {
 
     // email password
     if ('email' in params && 'password' in params) {
-      const { data, error } = await this.api.signInEmailPassword(params)
-
-      if (error) {
-        return { session: null, mfa: null, error }
-      }
-
-      if (!data) {
-        return {
-          session: null,
-          mfa: null,
-          error: { message: 'Incorrect Data', status: 500 }
-        }
-      }
-
-      const { session, mfa } = data
-
-      if (session) {
-        await this._setSession(session)
-      }
-
-      return { session, mfa, error: null }
+      return new Promise((resolve) => {
+        this.client.interpreter?.send({ type: 'SIGNIN_PASSWORD', ...params })
+        this.client.interpreter?.onTransition((state) => {
+          if (state.matches({ authentication: 'signedIn' }))
+            resolve({
+              session: this.getSession(),
+              mfa: null, // TODO MFA
+              error: null
+            })
+          else if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
+            resolve({
+              session: null,
+              mfa: null,
+              error: EMAIL_NEEDS_VERIFICATION
+            })
+          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+            resolve({
+              session: null,
+              mfa: null,
+              error: state.context.errors.authentication || null
+            })
+        })
+      })
     }
 
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
-      const { error } = await this.api.signInPasswordlessEmail(params)
+      return new Promise((resolve) => {
+        this.client.interpreter?.onTransition((state) => {
+          if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
+            resolve({
+              session: null,
+              mfa: null,
+              error: null
+            })
+          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+            resolve({
+              session: null,
+              mfa: null,
+              error: state.context.errors.authentication || null
+            })
+        })
 
-      if (error) {
-        return { session: null, mfa: null, error }
-      }
-
-      return { session: null, mfa: null, error: null }
+        this.client.interpreter?.send({ type: 'SIGNIN_PASSWORDLESS_EMAIL', ...params })
+      })
     }
 
     // passwordless SMS
     if ('phoneNumber' in params && !('otp' in params)) {
-      const { error } = await this.api.signInPasswordlessSms(params)
-
-      if (error) {
-        return { session: null, mfa: null, error }
-      }
-
-      return { session: null, mfa: null, error: null }
+      // TODO implement phoneNumber
+      console.warn('TODO implement OTP')
+      return { session: null, error: null } as any
+      /*
+            const { error } = await this.api.signInPasswordlessSms(params)
+      
+            if (error) {
+              return { session: null, mfa: null, error }
+            }
+      
+            return { session: null, mfa: null, error: null }
+            */
     }
 
     // sign in using OTP
     if ('otp' in params) {
+      // TODO implement OTP
+      console.warn('TODO implement OTP')
+      return { session: null, error: null } as any
+      /*
       const { data, error } = await this.api.signInPasswordlessSmsOtp(params)
 
       if (error) {
@@ -292,11 +248,9 @@ export class HasuraAuthClient {
           error: { message: 'Incorrect data', status: 500 }
         }
       }
-      const { session, mfa } = data
-      if (session) {
-        await this._setSession(session)
-      }
-      return { session, mfa, error: null }
+      const { mfa } = data
+      return { session: this.getSession(), mfa, error: null }
+      */
     }
 
     return {
@@ -315,15 +269,21 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
-    const refreshToken = await this._getItem(NHOST_REFRESH_TOKEN)
-
-    this._clearSession()
-
-    const { error } = await this.api.signOut({
-      refreshToken,
-      all: params?.all
+    if (!this.client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
+    if (!this.isAuthenticated()) {
+      // console.log('not authenticated')
+      return { error: USER_UNAUTHENTICATED }
+    }
+    return new Promise((resolve) => {
+      this.client.interpreter?.send({ type: 'SIGNOUT', all: params?.all })
+      this.client.interpreter?.onTransition((state) => {
+        if (state.matches({ authentication: { signedOut: 'success' } })) resolve({ error: null })
+        // TODO possible errors
+        else {
+          // console.log('SIGNOUT weird stuff', state.value)
+        }
+      })
     })
-    return { error }
   }
 
   /**
@@ -335,7 +295,10 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async verifyEmail(params: { email: string; ticket: string }): Promise<ApiSignInResponse> {
-    return await this.api.verifyEmail(params)
+    // TODO implement
+    // return await this.api.verifyEmail(params)
+    console.warn('TODO implement verifyEmail')
+    return { data: null, error: null } as any
   }
 
   /**
@@ -346,10 +309,16 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  async resetPassword(params: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
-    const { error } = await this.api.resetPassword(params)
-
-    return { error }
+  async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
+    return new Promise((resolve) => {
+      const service = interpret(createResetPasswordMachine(this.client))
+      service.onTransition(({ event }) => {
+        if (event.type === 'ERROR') return resolve({ error: event.error })
+        else if (event.type === 'SUCCESS') return resolve({ error: null })
+      })
+      service.start()
+      service.send({ type: 'REQUEST', email, options })
+    })
   }
 
   /**
@@ -361,9 +330,15 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async changePassword(params: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
-    const { error } = await this.api.changePassword(params)
-
-    return { error }
+    return new Promise((resolve) => {
+      const service = interpret(createChangePasswordMachine(this.client))
+      service.onTransition(({ event }) => {
+        if (event.type === 'ERROR') return resolve({ error: event.error })
+        else if (event.type === 'SUCCESS') return resolve({ error: null })
+      })
+      service.start()
+      service.send({ type: 'REQUEST', password: params.newPassword })
+    })
   }
 
   /**
@@ -378,9 +353,15 @@ export class HasuraAuthClient {
   async sendVerificationEmail(
     params: SendVerificationEmailParams
   ): Promise<ApiSendVerificationEmailResponse> {
-    const { error } = await this.api.sendVerificationEmail(params)
-
-    return { error }
+    return new Promise((resolve) => {
+      const service = interpret(createSendVerificationEmailMachine(this.client))
+      service.onTransition(({ event }) => {
+        if (event.type === 'ERROR') return resolve({ error: event.error })
+        else if (event.type === 'SUCCESS') return resolve({ error: null })
+      })
+      service.start()
+      service.send({ type: 'REQUEST', email: params.email, options: params.options })
+    })
   }
 
   /**
@@ -391,10 +372,16 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  async changeEmail(params: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
-    const { error } = await this.api.changeEmail(params)
-
-    return { error }
+  async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
+    return new Promise((resolve) => {
+      const service = interpret(createChangeEmailMachine(this.client))
+      service.onTransition(({ event }) => {
+        if (event.type === 'ERROR') return resolve({ error: event.error })
+        else if (event.type === 'SUCCESS') return resolve({ error: null })
+      })
+      service.start()
+      service.send({ type: 'REQUEST', email: newEmail, options })
+    })
   }
 
   /**
@@ -406,9 +393,12 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
+    // TODO implement
+    /*
     const { error } = await this.api.deanonymize(params)
-
     return { error }
+    */
+    return { error: null }
   }
 
   /**
@@ -421,23 +411,17 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    this.onTokenChangedFunctions.push(fn)
+    if (this.client.interpreter)
+      this.onTokenChangedSubscriptions.add(
+        this.client.interpreter?.onTransition((state) => {
+          // TODO ONLY WHEN TOKEN CHANGED
+          fn(this.getSession())
+        })
+      )
 
-    // get internal index of this function
-    const index = this.onTokenChangedFunctions.length - 1
-
-    const unsubscribe = () => {
-      try {
-        // replace onTokenChanged with empty function
-        this.onTokenChangedFunctions[index] = () => {}
-      } catch {
-        console.warn(
-          'Unable to unsubscribe onTokenChanged function. Maybe the functions is already unsubscribed?'
-        )
-      }
+    return () => {
+      this.onTokenChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
-
-    return unsubscribe
   }
 
   /**
@@ -453,21 +437,18 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
-    this.onAuthChangedFunctions.push(fn)
+    if (this.client.interpreter)
+      this.onTokenChangedSubscriptions.add(
+        this.client.interpreter?.onTransition((state) => {
+          // TODO ONLY WHEN AUTH STATUS CHANGED
+          fn('SIGNED_IN', this.getSession())
+          fn('SIGNED_OUT', this.getSession())
+        })
+      )
 
-    // get internal index for this functions
-    const index = this.onAuthChangedFunctions.length - 1
-
-    const unsubscribe = () => {
-      try {
-        // replace onAuthStateChanged with empty function
-        this.onAuthChangedFunctions[index] = () => {}
-      } catch {
-        console.warn('Unable to unsubscribe onAuthStateChanged function. Maybe you already did?')
-      }
+    return () => {
+      this.onTokenChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
-
-    return unsubscribe
   }
 
   /**
@@ -488,7 +469,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   isAuthenticated(): boolean {
-    return this.session !== null
+    return !!this.client.interpreter?.state.matches({ authentication: 'signedIn' })
   }
 
   /**
@@ -507,17 +488,12 @@ export class HasuraAuthClient {
   async isAuthenticatedAsync(): Promise<boolean> {
     return new Promise((resolve) => {
       // if init auth loading is already completed, we can return the value of `isAuthenticated`.
-      if (!this.initAuthLoading) {
-        resolve(this.isAuthenticated())
-      }
-      // if no, let's subscribe and wait for an auth state change event and
-      // resolve the promise when we receive the event
-      else {
-        const unsubscribe = this.onAuthStateChanged((event, _session) => {
-          resolve(event === 'SIGNED_IN')
-          unsubscribe()
-        })
-      }
+      if (this.isReady()) resolve(this.isAuthenticated())
+      const interpreter = this.client.interpreter
+      if (!interpreter) resolve(false)
+      interpreter?.onTransition((state) => {
+        if (state.hasTag('ready')) resolve(state.matches({ authentication: 'signedIn' }))
+      })
     })
   }
 
@@ -546,9 +522,8 @@ export class HasuraAuthClient {
     isAuthenticated: boolean
     isLoading: boolean
   } {
-    if (this.initAuthLoading) return { isAuthenticated: false, isLoading: true }
-
-    return { isAuthenticated: this.session !== null, isLoading: false }
+    if (!this.isReady()) return { isAuthenticated: false, isLoading: true }
+    return { isAuthenticated: this.isAuthenticated(), isLoading: false }
   }
 
   /**
@@ -570,11 +545,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getAccessToken(): string | undefined {
-    if (!this.session) {
-      return undefined
-    }
-
-    return this.session.accessToken
+    return this.client.interpreter?.state.context.accessToken.value ?? undefined
   }
 
   /**
@@ -590,6 +561,10 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async refreshSession(refreshToken?: string): Promise<void> {
+    // TODO
+    // TODO 'force' refresh when refreshToken is undefined
+    // TODO wait for the result
+    /* 
     const refreshTokenToUse = refreshToken || (await this._getItem(NHOST_REFRESH_TOKEN))
 
     if (!refreshTokenToUse) {
@@ -597,6 +572,7 @@ export class HasuraAuthClient {
     }
 
     return this._refreshTokens(refreshTokenToUse)
+    */
   }
 
   /**
@@ -609,8 +585,15 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  getSession() {
-    return this.session
+  getSession(): Session | null {
+    const context = this.client.interpreter?.state.context
+    if (!context || !context.accessToken.value || !context.refreshToken.value) return null
+    return {
+      accessToken: context.accessToken.value,
+      accessTokenExpiresIn: (context.accessToken.expiresAt.getTime() - Date.now()) / 1000,
+      refreshToken: context.refreshToken.value,
+      user: context.user
+    }
   }
 
   /**
@@ -624,259 +607,10 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getUser() {
-    return this.session ? this.session.user : null
+    return this.client.interpreter?.state.context.user || null
   }
 
-  private async _setItem(key: string, value: string): Promise<void> {
-    if (typeof value !== 'string') {
-      console.error(`value is not of type "string"`)
-      return
-    }
-
-    switch (this.clientStorageType) {
-      case 'web':
-        if (typeof this.clientStorage.setItem !== 'function') {
-          console.error(`this.clientStorage.setItem is not a function`)
-          break
-        }
-        this.clientStorage.setItem(key, value)
-        break
-      case 'custom':
-      case 'react-native':
-        if (typeof this.clientStorage.setItem !== 'function') {
-          console.error(`this.clientStorage.setItem is not a function`)
-          break
-        }
-        await this.clientStorage.setItem(key, value)
-        break
-      case 'capacitor':
-        if (typeof this.clientStorage.set !== 'function') {
-          console.error(`this.clientStorage.set is not a function`)
-          break
-        }
-        await this.clientStorage.set({ key, value })
-        break
-      case 'expo-secure-storage':
-        if (typeof this.clientStorage.setItemAsync !== 'function') {
-          console.error(`this.clientStorage.setItemAsync is not a function`)
-          break
-        }
-        this.clientStorage.setItemAsync(key, value)
-        break
-      default:
-        break
-    }
+  private isReady() {
+    return !!this.client.interpreter?.state.hasTag('ready')
   }
-
-  private async _getItem(key: string): Promise<string> {
-    switch (this.clientStorageType) {
-      case 'web':
-        if (typeof this.clientStorage.getItem !== 'function') {
-          console.error(`this.clientStorage.getItem is not a function`)
-          break
-        }
-        return this.clientStorage.getItem(key) as string
-      case 'custom':
-      case 'react-native':
-        if (typeof this.clientStorage.getItem !== 'function') {
-          console.error(`this.clientStorage.getItem is not a function`)
-          break
-        }
-        return (await this.clientStorage.getItem(key)) as string
-      case 'capacitor':
-        if (typeof this.clientStorage.get !== 'function') {
-          console.error(`this.clientStorage.get is not a function`)
-          break
-        }
-        const res = await this.clientStorage.get({ key })
-        return res.value as string
-      case 'expo-secure-storage':
-        if (typeof this.clientStorage.getItemAsync !== 'function') {
-          console.error(`this.clientStorage.getItemAsync is not a function`)
-          break
-        }
-        return this.clientStorage.getItemAsync(key) as string
-      default:
-        return ''
-    }
-    return ''
-  }
-
-  private async _removeItem(key: string): Promise<void> {
-    switch (this.clientStorageType) {
-      case 'web':
-        if (typeof this.clientStorage.removeItem !== 'function') {
-          console.error(`this.clientStorage.removeItem is not a function`)
-          break
-        }
-        return void this.clientStorage.removeItem(key)
-      case 'custom':
-      case 'react-native':
-        if (typeof this.clientStorage.removeItem !== 'function') {
-          console.error(`this.clientStorage.removeItem is not a function`)
-          break
-        }
-        return void this.clientStorage.removeItem(key)
-      case 'capacitor':
-        if (typeof this.clientStorage.remove !== 'function') {
-          console.error(`this.clientStorage.remove is not a function`)
-          break
-        }
-        await this.clientStorage.remove({ key })
-        break
-      case 'expo-secure-storage':
-        if (typeof this.clientStorage.deleteItemAsync !== 'function') {
-          console.error(`this.clientStorage.deleteItemAsync is not a function`)
-          break
-        }
-        this.clientStorage.deleteItemAsync(key)
-        break
-      default:
-        break
-    }
-  }
-
-  // private _generateHeaders(): Headers | null {
-  //   if (!this.session) {
-  //     return {};
-  //   }
-
-  //   return {
-  //     Authorization: `Bearer ${this.session.accessToken}`,
-  //   };
-  // }
-
-  private _autoLogin(refreshToken: string | null): void {
-    // Not sure about this...
-    if (!isBrowser()) {
-      return
-    }
-
-    // maybe better to use setTimout hack in _refreshTokens because of SSR / Next.js
-    // if (!refreshToken) {
-    //   this._clearSession();
-    //   return;
-    // }
-
-    this._refreshTokens(refreshToken)
-  }
-
-  private async _refreshTokens(paramRefreshToken: string | null): Promise<void> {
-    const refreshToken = paramRefreshToken || (await this._getItem(NHOST_REFRESH_TOKEN))
-
-    if (!refreshToken) {
-      // place at end of call-stack to let frontend get `null` first (to match SSR)
-      setTimeout(async () => {
-        await this._clearSession()
-      }, 0)
-      return
-    }
-
-    try {
-      // set lock to avoid two refresh token request being sent at the same time with the same token.
-      // If so, the last request will fail because the first request used the refresh token
-
-      const { session, error } = await this.api.refreshToken({ refreshToken })
-
-      if (error && error.status === 401) {
-        await this._clearSession()
-        return
-      }
-
-      if (!session) throw new Error('Invalid session data')
-
-      await this._setSession(session)
-      this.tokenChanged()
-    } catch {
-      // throw new Error(error);
-    }
-  }
-
-  private tokenChanged(): void {
-    for (const tokenChangedFunction of this.onTokenChangedFunctions) {
-      tokenChangedFunction(this.session)
-    }
-  }
-
-  private authStateChanged({
-    event,
-    session
-  }: {
-    event: AuthChangeEvent
-    session: Session | null
-  }): void {
-    if (event === 'SIGNED_IN' && session) {
-      this.api.setAccessToken(session.accessToken)
-    } else {
-      this.api.setAccessToken(undefined)
-    }
-
-    for (const authChangedFunction of this.onAuthChangedFunctions) {
-      authChangedFunction(event, session)
-    }
-  }
-
-  private async _clearSession(): Promise<void> {
-    // get previous state before clearing the session
-    const { isLoading, isAuthenticated } = this.getAuthenticationStatus()
-
-    // clear current session no mather what the previous auth state was
-    this.session = null
-    this.initAuthLoading = false
-
-    await this._removeItem(NHOST_REFRESH_TOKEN)
-
-    // if the user was previously authenticated, clear all intervals and send a
-    // state change call to subscribers
-    if (isLoading || isAuthenticated) {
-      clearInterval(this.refreshInterval)
-      clearInterval(this.refreshSleepCheckInterval)
-
-      this.authStateChanged({ event: 'SIGNED_OUT', session: null })
-    }
-  }
-
-  private async _setSession(session: Session) {
-    const { isAuthenticated } = this.getAuthenticationStatus()
-
-    this.session = session
-
-    await this._setItem(NHOST_REFRESH_TOKEN, session.refreshToken)
-
-    if (this.autoRefreshToken && !isAuthenticated) {
-      // start refresh token interval after logging in
-      const JWTExpiresIn = session.accessTokenExpiresIn
-
-      const refreshIntervalTime = this.refreshIntervalTime
-        ? this.refreshIntervalTime
-        : Math.max(1, JWTExpiresIn - 1) // 1 min before jwt expires
-
-      this.refreshInterval = setInterval(async () => {
-        const refreshToken = await this._getItem(NHOST_REFRESH_TOKEN)
-        await this._refreshTokens(refreshToken)
-      }, refreshIntervalTime * 1000)
-
-      // refresh token after computer has been sleeping
-      // https://stackoverflow.com/questions/14112708/start-calling-js-function-when-pc-wakeup-from-sleep-mode
-      this.refreshIntervalSleepCheckLastSample = Date.now()
-      this.refreshSleepCheckInterval = setInterval(async () => {
-        if (Date.now() - this.refreshIntervalSleepCheckLastSample >= this.sampleRate * 2) {
-          const refreshToken = await this._getItem(NHOST_REFRESH_TOKEN)
-          await this._refreshTokens(refreshToken)
-        }
-        this.refreshIntervalSleepCheckLastSample = Date.now()
-      }, this.sampleRate)
-      this.authStateChanged({ event: 'SIGNED_IN', session: this.session })
-    }
-
-    this.initAuthLoading = false
-  }
-
-  // private clearHashFromUrl() {
-  //   window.history.replaceState(
-  //     {},
-  //     document.title,
-  //     window.location.href.split('#')[0]
-  //   );
-  // }
 }

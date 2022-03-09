@@ -7,10 +7,10 @@ export type NhostEvents =
   | { type: 'SIGNIN_ANONYMOUS' }
   | { type: 'SIGNIN_PASSWORD'; email?: string; password?: string }
   | {
-      type: 'SIGNIN_PASSWORDLESS_EMAIL'
-      email?: string
-      options?: PasswordlessOptions
-    }
+    type: 'SIGNIN_PASSWORDLESS_EMAIL'
+    email?: string
+    options?: PasswordlessOptions
+  }
   | { type: 'SIGNUP_EMAIL_PASSWORD'; email?: string; password?: string; options?: SignUpOptions }
   | { type: 'TOKEN_REFRESH_ERROR'; error: ErrorPayload }
   | { type: 'SIGNOUT'; all?: boolean }

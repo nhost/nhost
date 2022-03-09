@@ -17,6 +17,7 @@ export type PasswordlessOptions = RegistrationOptions & RedirectOption
 export type SignUpOptions = RegistrationOptions & RedirectOption
 export type ChangeEmailOptions = RedirectOption
 export type ResetPasswordOptions = RedirectOption
+export type SendVerificationEmailOptions = RedirectOption
 
 export type User = {
   id: string

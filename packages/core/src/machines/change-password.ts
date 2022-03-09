@@ -1,4 +1,4 @@
-import { assign, createMachine } from 'xstate'
+import { assign, createMachine, send } from 'xstate'
 
 import { Nhost } from '../client'
 import { ErrorPayload, INVALID_PASSWORD_ERROR } from '../errors'
@@ -8,10 +8,13 @@ import { isValidPassword } from '../validators'
 export type ChangePasswordContext = {
   error: ErrorPayload | null
 }
-export type ChangePasswordEvents = {
-  type: 'REQUEST_CHANGE'
-  password?: string
-}
+export type ChangePasswordEvents =
+  | {
+    type: 'REQUEST'
+    password?: string
+  }
+  | { type: 'SUCCESS' }
+  | { type: 'ERROR', error: ErrorPayload | null }
 
 export const createChangePasswordMachine = ({ backendUrl, interpreter }: Nhost) => {
   const api = nhostApiClient(backendUrl)
@@ -21,14 +24,15 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: Nhost) 
         context: {} as ChangePasswordContext,
         events: {} as ChangePasswordEvents
       },
-      tsTypes: {} as import('./change-password.typegen').Typegen0,
+      tsTypes: {} as import("./change-password.typegen").Typegen0,
+      preserveActionOrder: true,
       id: 'changePassword',
       initial: 'idle',
       context: { error: null },
       states: {
         idle: {
           on: {
-            REQUEST_CHANGE: [
+            REQUEST: [
               {
                 cond: 'invalidPassword',
                 actions: 'saveInvalidPasswordError',
@@ -50,8 +54,8 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: Nhost) 
           invoke: {
             src: 'requestChange',
             id: 'requestChange',
-            onDone: 'idle.success',
-            onError: { actions: 'saveRequestError', target: 'idle.error' }
+            onDone: { target: 'idle.success', actions: 'reportSuccess' },
+            onError: { actions: ['saveRequestError', 'reportError'], target: 'idle.error' }
           }
         }
       }
@@ -65,7 +69,9 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: Nhost) 
             console.log(error)
             return error
           }
-        })
+        }),
+        reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
+        reportSuccess: send('SUCCESS')
       },
       guards: {
         invalidPassword: (_, { password }) => !isValidPassword(password)

@@ -21,6 +21,7 @@ export type { NhostContext, NhostEvents }
 export * from './change-email'
 export * from './change-password'
 export * from './reset-password'
+export * from './send-verification-email'
 
 export type NhostMachineOptions = {
   backendUrl: string
@@ -62,6 +63,7 @@ export const createNhostMachine = ({
         if (expiresAt) ctx.accessToken.expiresAt = new Date(expiresAt)
         ctx.refreshToken.value = storageGetter(NHOST_REFRESH_TOKEN_KEY)
       }),
+      preserveActionOrder: true,
       id: 'nhost',
       type: 'parallel',
       states: {
@@ -116,40 +118,41 @@ export const createNhostMachine = ({
                   exit: 'resetAuthenticationError',
                   initial: 'server',
                   states: {
-                    server: {
-                      entry: 'saveAuthenticationError'
-                    },
+                    server: {},
                     validation: {
                       states: {
-                        password: {
-                          entry: 'saveInvalidPassword'
-                        },
-                        email: {
-                          entry: 'saveInvalidEmail'
-                        }
+                        password: {},
+                        email: {}
                       }
                     }
                   }
                 },
                 signingOut: {
                   entry: 'destroyToken',
+                  exit: 'clearContext',
                   invoke: {
                     src: 'signout',
                     id: 'signingOut',
-                    onDone: 'success',
-                    onError: 'failed.server' // TODO save error
-                  }
+                    onDone: {
+                      target: 'success'
+                    },
+                    onError: {
+                      target: 'failed.server'
+                      // TODO save error
+                    }
+                  },
                 }
               },
               on: {
-                // TODO change input validation - see official xstate form example
                 SIGNIN_PASSWORD: [
                   {
                     cond: 'invalidEmail',
+                    actions: ['saveInvalidEmail'],
                     target: '.failed.validation.email'
                   },
                   {
                     cond: 'invalidPassword',
+                    actions: ['saveInvalidPassword'],
                     target: '.failed.validation.password'
                   },
                   '#nhost.authentication.authenticating.password'
@@ -164,10 +167,13 @@ export const createNhostMachine = ({
                 SIGNUP_EMAIL_PASSWORD: [
                   {
                     cond: 'invalidEmail',
+                    // TODO save errorr
+                    actions: 'saveInvalidSignUpEmail',
                     target: '.failed.validation.email'
                   },
                   {
                     cond: 'invalidPassword',
+                    actions: 'saveInvalidSignUpPassword',
                     target: '.failed.validation.password'
                   },
                   '#nhost.authentication.registering'
@@ -196,9 +202,11 @@ export const createNhostMachine = ({
                     onError: [
                       {
                         cond: 'unverified',
+                        // TODO
                         target: '#nhost.authentication.signedOut.needsVerification'
                       },
                       {
+                        actions: 'saveAuthenticationError',
                         target: '#nhost.authentication.signedOut.failed.server'
                       }
                     ]
@@ -213,12 +221,16 @@ export const createNhostMachine = ({
                       actions: ['saveSession', 'persist'],
                       target: '#nhost.authentication.signedIn'
                     },
-                    onError: '#nhost.authentication.signedOut.failed.server'
+                    onError: {
+                      actions: ['saveAuthenticationError'],
+                      target: '#nhost.authentication.signedOut.failed.server'
+                    }
                   }
                 }
               }
             },
             registering: {
+              entry: 'resetSignUpError',
               invoke: {
                 src: 'registerUser',
                 id: 'registerUser',
@@ -343,6 +355,8 @@ export const createNhostMachine = ({
     {
       actions: {
         // TODO better naming
+        clearContext: assign(() => INITIAL_MACHINE_CONTEXT),
+
         saveSession: assign({
           // TODO type
           user: (_, e: any) => e.data?.session?.user,
@@ -386,11 +400,20 @@ export const createNhostMachine = ({
         saveInvalidPassword: assign({
           errors: ({ errors }) => ({ ...errors, authentication: INVALID_PASSWORD_ERROR })
         }),
-
         saveRegisrationError: assign({
           // TODO type
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
+        resetSignUpError: assign({
+          errors: ({ errors: { registration, ...errors } }) => errors
+        }),
+        saveInvalidSignUpPassword: assign({
+          errors: ({ errors }) => ({ ...errors, registration: INVALID_EMAIL_ERROR })
+        }),
+        saveInvalidSignUpEmail: assign({
+          errors: ({ errors }) => ({ ...errors, registration: INVALID_PASSWORD_ERROR })
+        }),
+
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }: any) => {
           storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
@@ -496,8 +519,8 @@ export const createNhostMachine = ({
                 return { session }
               }
             }
-            throw Error()
           }
+          throw Error()
         }
       }
     }

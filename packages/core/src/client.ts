@@ -1,10 +1,10 @@
 import { BroadcastChannel } from 'broadcast-channel'
-import { InterpreterFrom } from 'xstate'
+import { interpret, InterpreterFrom } from 'xstate'
 
 import { createNhostMachine, NhostMachine, NhostMachineOptions } from './machines'
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
 
-export type NhostClientOptions = NhostMachineOptions
+export type NhostClientOptions = NhostMachineOptions & { start?: boolean }
 
 export class Nhost {
   readonly backendUrl: string
@@ -19,12 +19,13 @@ export class Nhost {
     storageGetter = defaultStorageGetter,
     storageSetter = defaultStorageSetter,
     autoSignIn = true,
-    autoRefreshToken = true
+    autoRefreshToken = true,
+    start = true
   }: NhostClientOptions) {
     this.backendUrl = backendUrl
     this.clientUrl = clientUrl
 
-    const machine = createNhostMachine({
+    this.machine = createNhostMachine({
       backendUrl,
       clientUrl,
       storageGetter,
@@ -33,7 +34,10 @@ export class Nhost {
       autoRefreshToken
     })
 
-    this.machine = machine
+    if (start) {
+      this.interpreter = interpret(this.machine)
+      this.interpreter.start()
+    }
 
     if (typeof window !== 'undefined' && autoSignIn) {
       this.#channel = new BroadcastChannel<string>('nhost')

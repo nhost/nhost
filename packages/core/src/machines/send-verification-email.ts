@@ -3,32 +3,37 @@ import { assign, createMachine, send } from 'xstate'
 import { Nhost } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
-import { ChangeEmailOptions } from '../types'
+import { SendVerificationEmailOptions } from '../types'
 import { isValidEmail } from '../validators'
 
-export type ChangeEmailContext = {
+export type SendVerificationEmailContext = {
   error: ErrorPayload | null
 }
 
-export type ChangeEmailEvents = {
-  type: 'REQUEST'
-  email?: string
-  options?: ChangeEmailOptions
-}
+export type SendVerificationEmailEvents =
+  | {
+    type: 'REQUEST'
+    email?: string
+    options?: SendVerificationEmailOptions
+  }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR', error: ErrorPayload | null }
+  | { type: 'ERROR'; error: ErrorPayload | null }
 
-export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }: Nhost) => {
+export const createSendVerificationEmailMachine = ({
+  backendUrl,
+  clientUrl,
+  interpreter
+}: Nhost) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {
       schema: {
-        context: {} as ChangeEmailContext,
-        events: {} as ChangeEmailEvents
+        context: {} as SendVerificationEmailContext,
+        events: {} as SendVerificationEmailEvents
       },
-      tsTypes: {} as import("./change-email.typegen").Typegen0,
+      tsTypes: {} as import("./send-verification-email.typegen").Typegen0,
       preserveActionOrder: true,
-      id: 'changeEmail',
+      id: 'sendVerificationEmail',
       initial: 'idle',
       context: { error: null },
       states: {
@@ -54,8 +59,8 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
         },
         requesting: {
           invoke: {
-            src: 'requestChange',
-            id: 'requestChange',
+            src: 'request',
+            id: 'request',
             onDone: { target: 'idle.success', actions: 'reportSuccess' },
             onError: { actions: ['saveRequestError', 'reportError'], target: 'idle.error' }
           }
@@ -71,29 +76,20 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
         reportSuccess: send('SUCCESS')
-
       },
       guards: {
         invalidEmail: (_, { email }) => !isValidEmail(email)
       },
       services: {
-        requestChange: async (_, { email, options }) => {
-          const res = await api.post(
-            '/v1/auth/user/email/change',
-            {
-              newEmail: email,
-              options: {
-                redirectTo: options?.redirectTo?.startsWith('/')
-                  ? clientUrl + options.redirectTo
-                  : options?.redirectTo
-              }
-            },
-            {
-              headers: {
-                authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
-              }
+        request: async (_, { email, options }) => {
+          const res = await api.post('/v1/auth/user/email/send-verification-email', {
+            email,
+            options: {
+              redirectTo: options?.redirectTo?.startsWith('/')
+                ? clientUrl + options.redirectTo
+                : options?.redirectTo
             }
-          )
+          })
           return res.data
         }
       }

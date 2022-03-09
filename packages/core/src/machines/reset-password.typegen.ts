@@ -3,16 +3,18 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
+    reportSuccess: 'done.invoke.requestChange'
     saveRequestError: 'error.platform.requestChange'
+    reportError: 'error.platform.requestChange'
   }
   internalEvents: {
-    'error.platform.requestChange': { type: 'error.platform.requestChange'; data: unknown }
-    'xstate.init': { type: 'xstate.init' }
     'done.invoke.requestChange': {
       type: 'done.invoke.requestChange'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    'error.platform.requestChange': { type: 'error.platform.requestChange'; data: unknown }
+    'xstate.init': { type: 'xstate.init' }
   }
   invokeSrcNameMap: {
     requestChange: 'done.invoke.requestChange'
@@ -24,7 +26,7 @@ export interface Typegen0 {
     delays: never
   }
   eventsCausingServices: {
-    requestChange: 'REQUEST_CHANGE'
+    requestChange: 'REQUEST'
   }
   eventsCausingGuards: {}
   eventsCausingDelays: {}

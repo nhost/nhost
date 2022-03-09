@@ -171,22 +171,22 @@ importers:
 
   packages/hasura-auth-js:
     specifiers:
+      '@nhost/core': workspace:*
       '@types/faker': '5'
-      axios: ^0.25.0
+      axios: ^0.26.0
       faker: '5'
       html-urls: ^2.4.27
-      jwt-decode: ^3.1.2
       mailhog: ^4.16.0
-      query-string: ^7.1.0
+      xstate: ^4.30.5
     dependencies:
-      axios: 0.25.0
-      jwt-decode: 3.1.2
-      query-string: 7.1.1
+      '@nhost/core': link:../core
     devDependencies:
       '@types/faker': 5.5.9
+      axios: 0.26.0
       faker: 5.5.3
       html-urls: 2.4.27
       mailhog: 4.16.0
+      xstate: 4.30.5
 
   packages/hasura-storage-js:
     specifiers:
@@ -3247,6 +3247,14 @@ packages:
       - debug
     dev: false
 
+  /axios/0.26.0:
+    resolution: {integrity: sha512-lKoGLMYtHvFrPVt3r+RBMp9nh34N0M8zEfCWqdWZx6phynIEhQqAdydpyBAAG211zlhX9Rgu08cOamy6XjE5Og==}
+    dependencies:
+      follow-redirects: 1.14.9
+    transitivePeerDependencies:
+      - debug
+    dev: true
+
   /axobject-query/2.2.0:
     resolution: {integrity: sha512-Td525n+iPOOyUQIeBfcASuG6uJsDOITl7Mds5gFyerkWiX7qhUTdYUBlSgNMyVqtSJqwpt1kXGLdUt6SykLMRA==}
 
@@ -5760,6 +5768,16 @@ packages:
       debug:
         optional: true
     dev: false
+
+  /follow-redirects/1.14.9:
+    resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
+    dev: true
 
   /form-data/2.5.1:
     resolution: {integrity: sha512-m21N3WOmEEURgk6B9GLOE4RuWOFf28Lhh9qGYeNlGq4VDXUlJy2th2slBNU8Gp8EzloYZOibZJ7t5ecIrFSjVA==}
