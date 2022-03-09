@@ -18,7 +18,7 @@ RUN npm i -g pnpm
 COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
 RUN pnpm install --frozen-lockfile --prod && pnpm store prune
-RUN npx patch-package
+RUN pnpm run postinstall
 COPY migrations/ ./migrations/
 COPY email-templates/ ./email-templates
 COPY --from=builder ./app/dist dist/
