@@ -66,7 +66,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: Nhost) => 
       },
       services: {
         requestChange: (_, { email, options }) =>
-          api.post<string, { data: { error?: ErrorPayload } }>('/v1/auth/user/password/reset', {
+          api.post<string, { data: { error?: ErrorPayload } }>('/user/password/reset', {
             email,
             options: {
               redirectTo: options?.redirectTo?.startsWith('/')

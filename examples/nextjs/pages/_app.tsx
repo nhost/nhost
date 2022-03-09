@@ -1,7 +1,7 @@
 import type { AppProps } from 'next/app'
 import React from 'react'
 
-import { NhostSSR } from '@nhost/core'
+import { AuthClientSSR } from '@nhost/core'
 import { NhostProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
@@ -17,7 +17,7 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_DEBUG) {
     iframe: false
   })
 }
-const nhost = new NhostSSR({ backendUrl: BACKEND_URL })
+const nhost = new AuthClientSSR({ backendUrl: BACKEND_URL })
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

@@ -1,40 +1,41 @@
 import { useContext } from 'react'
-import { InterpreterFrom } from 'xstate'
 
-import { Nhost, NhostMachine } from '@nhost/core'
+import { AuthInterpreter } from '@nhost/core'
+import { NhostClient } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-export const useNhost = (): Nhost => {
+export const useNhost = (): NhostClient => {
   const nhost = useContext(NhostReactContext)
   return nhost
 }
 
-export const useNhostInterpreter = (): InterpreterFrom<NhostMachine> => {
+export const useAuthInterpreter = (): AuthInterpreter => {
   const nhost = useContext(NhostReactContext)
-  if (!nhost.interpreter) throw Error('No interpreter')
-  return nhost.interpreter
+  const interpreter = nhost.auth.client.interpreter
+  if (!interpreter) throw Error('No interpreter')
+  return interpreter
 }
 
 export const useNhostBackendUrl = () => {
   const nhost = useContext(NhostReactContext)
-  return nhost.backendUrl
+  return nhost.auth.client.backendUrl
 }
 
 export const useAuthLoading = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => !state.hasTag('ready'))
 }
 
 export const useAuthenticated = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.matches({ authentication: 'signedIn' }))
 }
 
 // ! TODO not working!!!!!
 // export const useNhostAuth = () => {
-//   const service = useNhostInterpreter()
+//   const service = useAuthInterpreter()
 //   return useSelector(service, (state) => ({
 //     isLoading: !state.hasTag('ready'),
 //     isAuthenticated: state.matches({ authentication: 'signedIn' })
@@ -42,12 +43,12 @@ export const useAuthenticated = () => {
 // }
 
 export const useAccessToken = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.accessToken.value)
 }
 
 export const useSignOut = (stateAll: boolean = false) => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>
     service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
   const isSuccess = useSelector(service, (state) =>

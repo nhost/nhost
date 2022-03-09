@@ -79,7 +79,7 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: Nhost) 
       services: {
         requestChange: (_, { password }) =>
           api.post<string, { data: { error?: ErrorPayload } }>(
-            '/v1/auth/user/password',
+            '/user/password',
             { newPassword: password },
             {
               headers: {

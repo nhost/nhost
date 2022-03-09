@@ -3,14 +3,14 @@ import { useMemo } from 'react'
 import { SignUpOptions } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { useAuthenticated, useAuthLoading, useNhostInterpreter } from './common'
+import { useAuthenticated, useAuthInterpreter, useAuthLoading } from './common'
 
 export const useEmailPasswordSignUp = (
   stateEmail?: string,
   statePassword?: string,
   stateOptions?: SignUpOptions
 ) => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedOut: 'failed' } })
   )

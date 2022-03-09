@@ -1,16 +1,17 @@
 import { BroadcastChannel } from 'broadcast-channel'
-import { interpret, InterpreterFrom } from 'xstate'
+import { interpret } from 'xstate'
 
-import { createNhostMachine, NhostMachine, NhostMachineOptions } from './machines'
+import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
+import { AuthInterpreter } from './types'
 
-export type NhostClientOptions = NhostMachineOptions & { start?: boolean }
+export type NhostClientOptions = AuthMachineOptions & { start?: boolean }
 
-export class Nhost {
+export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string
-  readonly machine: NhostMachine
-  interpreter?: InterpreterFrom<NhostMachine>
+  readonly machine: AuthMachine
+  interpreter?: AuthInterpreter
   #channel?: BroadcastChannel
 
   constructor({
@@ -25,7 +26,7 @@ export class Nhost {
     this.backendUrl = backendUrl
     this.clientUrl = clientUrl
 
-    this.machine = createNhostMachine({
+    this.machine = createAuthMachine({
       backendUrl,
       clientUrl,
       storageGetter,

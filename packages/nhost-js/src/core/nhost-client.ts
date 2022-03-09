@@ -11,6 +11,7 @@ export interface NhostClientConstructorParams {
   clientStorageType?: ClientStorageType
   autoRefreshToken?: boolean
   autoLogin?: boolean
+  start?: boolean
 }
 
 export class NhostClient {
@@ -27,25 +28,24 @@ export class NhostClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  constructor(params: NhostClientConstructorParams) {
-    if (!params.backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
-
-    const {
-      backendUrl,
-      refreshIntervalTime,
-      clientStorage,
-      clientStorageType,
-      autoRefreshToken,
-      autoLogin
-    } = params
-
+  constructor({
+    backendUrl,
+    refreshIntervalTime,
+    clientStorage,
+    clientStorageType,
+    autoRefreshToken,
+    autoLogin,
+    start = true
+  }: NhostClientConstructorParams) {
+    if (!backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
     this.auth = new HasuraAuthClient({
       url: `${backendUrl}/v1/auth`,
       refreshIntervalTime,
       clientStorage,
       clientStorageType,
       autoRefreshToken,
-      autoLogin
+      autoLogin,
+      start
     })
 
     this.storage = new HasuraStorageClient({

@@ -26,12 +26,11 @@ npm install @nhost/react
 import React from 'react'
 import ReactDOM from 'react-dom'
 
-import { NhostProvider } from '@nhost/react'
-import { Nhost } from '@nhost/core'
+import { NhostClient, NhostProvider } from '@nhost/react'
 
 import App from './App'
 
-const nhost = new Nhost({
+const nhost = new NhostClient({
   backendUrl: 'http://localhost:1337'
 })
 

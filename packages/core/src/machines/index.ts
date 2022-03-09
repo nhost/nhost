@@ -23,7 +23,7 @@ export * from './change-password'
 export * from './reset-password'
 export * from './send-verification-email'
 
-export type NhostMachineOptions = {
+export type AuthMachineOptions = {
   backendUrl: string
   clientUrl?: string
   storageGetter?: StorageGetter
@@ -32,16 +32,16 @@ export type NhostMachineOptions = {
   autoRefreshToken?: boolean
 }
 
-export type NhostMachine = ReturnType<typeof createNhostMachine>
+export type AuthMachine = ReturnType<typeof createAuthMachine>
 
-export const createNhostMachine = ({
+export const createAuthMachine = ({
   backendUrl,
   clientUrl,
   storageSetter,
   storageGetter,
   autoRefreshToken = true,
   autoSignIn = true
-}: Required<NhostMachineOptions>) => {
+}: Required<AuthMachineOptions>) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
@@ -461,12 +461,12 @@ export const createNhostMachine = ({
 
       services: {
         signInPassword: (_, { email, password }) =>
-          postRequest('/v1/auth/signin/email-password', {
+          postRequest('/signin/email-password', {
             email,
             password
           }),
         signInPasswordlessEmail: (_, { email, options }) =>
-          postRequest('/v1/auth/signin/passwordless/email', {
+          postRequest('/signin/passwordless/email', {
             email,
             options: {
               ...options,
@@ -475,22 +475,22 @@ export const createNhostMachine = ({
                 : options?.redirectTo
             }
           }),
-        signInAnonymous: (_) => postRequest('/v1/auth/signin/anonymous'),
+        signInAnonymous: (_) => postRequest('/signin/anonymous'),
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
-          const session = await postRequest('/v1/auth/token', {
+          const session = await postRequest('/token', {
             refreshToken
           })
           return { session }
         },
         signout: (ctx, e) =>
-          postRequest('/v1/auth/signout', {
+          postRequest('/signout', {
             refreshToken: ctx.refreshToken.value,
             all: !!e.all
           }),
 
         registerUser: (_, { email, password, options }) =>
-          postRequest('/v1/auth/signup/email-password', {
+          postRequest('/signup/email-password', {
             email,
             password,
             options: {
@@ -508,7 +508,7 @@ export const createNhostMachine = ({
               const params = new URLSearchParams(location.hash.slice(1))
               const refreshToken = params.get('refreshToken')
               if (refreshToken) {
-                const session = await postRequest('/v1/auth/token', {
+                const session = await postRequest('/token', {
                   refreshToken
                 })
                 // * remove hash from the current url after consumming the token

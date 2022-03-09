@@ -13,11 +13,12 @@ import {
 import { setContext } from '@apollo/client/link/context'
 import { WebSocketLink } from '@apollo/client/link/ws'
 import { getMainDefinition } from '@apollo/client/utilities'
-import { Nhost } from '@nhost/core'
+import { AuthInterpreter } from '@nhost/core'
 const isBrowser = typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
-  nhost?: Nhost
+  interpreter?: AuthInterpreter,
+  backendUrl: string
   headers?: any
   publicRole?: string
   fetchPolicy?: WatchQueryFetchPolicy
@@ -27,7 +28,8 @@ export type NhostApolloClientOptions = {
 }
 
 export const createApolloClient = ({
-  nhost,
+  interpreter,
+  backendUrl,
   headers = {},
   publicRole = 'public',
   fetchPolicy,
@@ -35,11 +37,11 @@ export const createApolloClient = ({
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError
 }: NhostApolloClientOptions) => {
-  if (!nhost?.interpreter) {
+  if (!interpreter) {
     console.error("Nhost has not be initiated. Apollo client can't be created")
     return null
   }
-  const { interpreter, backendUrl } = nhost
+
   let token: string | null = null
 
   const getAuthHeaders = () => {
@@ -90,20 +92,20 @@ export const createApolloClient = ({
 
   const link = webSocketClient
     ? split(
-        ({ query }) => {
-          const mainDefinition = getMainDefinition(query)
+      ({ query }) => {
+        const mainDefinition = getMainDefinition(query)
 
-          const { kind } = mainDefinition
-          let operation
-          if ('operation' in mainDefinition) {
-            operation = mainDefinition.operation
-          }
+        const { kind } = mainDefinition
+        let operation
+        if ('operation' in mainDefinition) {
+          operation = mainDefinition.operation
+        }
 
-          return kind === 'OperationDefinition' && operation === 'subscription'
-        },
-        new WebSocketLink(webSocketClient),
-        authLink.concat(httplink)
-      )
+        return kind === 'OperationDefinition' && operation === 'subscription'
+      },
+      new WebSocketLink(webSocketClient),
+      authLink.concat(httplink)
+    )
     : authLink.concat(httplink)
 
   const apolloClientOptions: ApolloClientOptions<any> = {

@@ -11,11 +11,11 @@ import {
 } from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/react'
 
-import { useNhost, useNhostInterpreter } from './common'
+import { useAuthInterpreter, useNhost } from './common'
 
 export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOptions) => {
   const nhost = useNhost()
-  const machine = useMemo(() => createChangeEmailMachine(nhost), [nhost])
+  const machine = useMemo(() => createChangeEmailMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
 
   const isError = current.matches({ idle: 'error' })
@@ -34,7 +34,7 @@ export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOp
 
 export const useChangePassword = (statePassword?: string) => {
   const nhost = useNhost()
-  const machine = useMemo(() => createChangePasswordMachine(nhost), [nhost])
+  const machine = useMemo(() => createChangePasswordMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
   const isError = current.matches({ idle: 'error' })
   const isSuccess = current.matches({ idle: 'success' })
@@ -52,7 +52,7 @@ export const useChangePassword = (statePassword?: string) => {
 
 export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswordOptions) => {
   const nhost = useNhost()
-  const machine = useMemo(() => createResetPasswordMachine(nhost), [nhost])
+  const machine = useMemo(() => createResetPasswordMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
   const isError = current.matches({ idle: 'error' })
   const isSent = current.matches({ idle: 'success' })
@@ -69,53 +69,53 @@ export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswo
 }
 
 export const useUserData = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user)
 }
 
 export const useAvatarUrl = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.avatarUrl)
 }
 
 export const useDefaultRole = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.defaultRole)
 }
 
 export const useDisplayName = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.displayName)
 }
 
 export const useEmail = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.email)
 }
 
 export const useUserId = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.id)
 }
 
 export const useIsAnonymous = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.isAnonymous)
 }
 
 export const useUserLocale = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.locale)
 }
 
 export const useUserRoles = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   return useSelector(service, (state) => state.context.user?.roles || [])
 }
 
 export const useSendEmailVerification = (stateEmail?: string, stateOptions?: SendVerificationEmailOptions) => {
   const nhost = useNhost()
-  const machine = useMemo(() => createSendVerificationEmailMachine(nhost), [nhost])
+  const machine = useMemo(() => createSendVerificationEmailMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
   const isError = current.matches({ idle: 'error' })
   const isSent = current.matches({ idle: 'success' })

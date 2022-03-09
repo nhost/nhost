@@ -82,7 +82,7 @@ export const createSendVerificationEmailMachine = ({
       },
       services: {
         request: async (_, { email, options }) => {
-          const res = await api.post('/v1/auth/user/email/send-verification-email', {
+          const res = await api.post('/user/email/send-verification-email', {
             email,
             options: {
               redirectTo: options?.redirectTo?.startsWith('/')

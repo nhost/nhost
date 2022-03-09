@@ -1,6 +1,11 @@
 // TODO create a dedicated package for types
-// TODO import generated typings from 'hasura-auth'
 
+import { InterpreterFrom } from 'xstate'
+
+import { AuthMachine } from './machines'
+
+// TODO import generated typings from 'hasura-auth'
+export type AuthInterpreter = InterpreterFrom<AuthMachine>
 type RegistrationOptions = {
   locale?: string
   allowedRoles?: string[]

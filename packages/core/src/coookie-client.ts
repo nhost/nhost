@@ -1,8 +1,8 @@
-import { Nhost, NhostClientOptions } from './client'
+import { AuthClient, NhostClientOptions } from './client'
 import { cookieStorageGetter, cookieStorageSetter } from './storage'
 const isBrowser = typeof window !== undefined
 
-export class NhostSSR extends Nhost {
+export class AuthClientSSR extends AuthClient {
   constructor({ backendUrl }: NhostClientOptions) {
     super({
       backendUrl,

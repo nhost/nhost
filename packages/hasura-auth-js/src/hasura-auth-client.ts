@@ -1,12 +1,12 @@
-import { interpret, InterpreterFrom } from 'xstate'
+import { interpret } from 'xstate'
 
 import {
+  AuthClient,
+  AuthInterpreter,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
-  createSendVerificationEmailMachine,
-  Nhost,
-  NhostMachine
+  createSendVerificationEmailMachine
 } from '@nhost/core'
 
 import { isBrowser } from './utils/helpers'
@@ -46,8 +46,8 @@ const EMAIL_NEEDS_VERIFICATION: ApiError = {
   status: 102
 }
 export class HasuraAuthClient {
-  private client: Nhost
-  private onTokenChangedSubscriptions: Set<InterpreterFrom<NhostMachine>> = new Set()
+  #client: AuthClient
+  private onTokenChangedSubscriptions: Set<AuthInterpreter> = new Set()
 
   constructor({
     url,
@@ -66,24 +66,20 @@ export class HasuraAuthClient {
     clientStorageType?: ClientStorageType
     start?: boolean
   }) {
-    const backendUrl = url.endsWith('/v1/auth') ? url.replace('/v1/auth', '') : url
-
     // TODO refreshIntervalTime
     // TODO custom clientStorage and clientStorageType
     // ? no warning when using with Nodejs?
-    this.client = new Nhost({
-      backendUrl,
+    this.#client = new AuthClient({
+      backendUrl: url,
       autoRefreshToken,
       autoSignIn: autoLogin,
       start,
+      // TODO
       storageGetter: () => {
         return null
       },
       storageSetter: () => { }
     })
-    // this.client.interpreter?.onTransition((state) => {
-    //   console.log('Transition:', state.event)
-    // })
   }
 
   /**
@@ -98,7 +94,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async signUp(params: SignUpParams): Promise<SignUpResponse> {
-    if (!this.client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
+    if (!this.#client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
     const { email, password, options } = params
 
     // * Raise an error if the user is already authenticated
@@ -110,8 +106,8 @@ export class HasuraAuthClient {
     }
 
     return new Promise((resolve) => {
-      this.client.interpreter?.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
-      this.client.interpreter?.onTransition((state) => {
+      this.#client.interpreter?.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
+      this.#client.interpreter?.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
           return resolve({ session: null, error: null })
         else if (state.matches({ authentication: { signedOut: 'failed' } })) {
@@ -157,7 +153,7 @@ export class HasuraAuthClient {
 
     if ('provider' in params) {
       const { provider } = params
-      const providerUrl = `${this.client.backendUrl}/v1/auth/signin/provider/${provider}`
+      const providerUrl = `${this.#client.backendUrl}/v1/auth/signin/provider/${provider}`
 
       if (isBrowser()) {
         window.location.href = providerUrl
@@ -168,8 +164,8 @@ export class HasuraAuthClient {
     // email password
     if ('email' in params && 'password' in params) {
       return new Promise((resolve) => {
-        this.client.interpreter?.send({ type: 'SIGNIN_PASSWORD', ...params })
-        this.client.interpreter?.onTransition((state) => {
+        this.#client.interpreter?.send({ type: 'SIGNIN_PASSWORD', ...params })
+        this.#client.interpreter?.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' }))
             resolve({
               session: this.getSession(),
@@ -195,7 +191,7 @@ export class HasuraAuthClient {
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
       return new Promise((resolve) => {
-        this.client.interpreter?.onTransition((state) => {
+        this.#client.interpreter?.onTransition((state) => {
           if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
             resolve({
               session: null,
@@ -210,7 +206,7 @@ export class HasuraAuthClient {
             })
         })
 
-        this.client.interpreter?.send({ type: 'SIGNIN_PASSWORDLESS_EMAIL', ...params })
+        this.#client.interpreter?.send({ type: 'SIGNIN_PASSWORDLESS_EMAIL', ...params })
       })
     }
 
@@ -269,14 +265,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
-    if (!this.client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
+    if (!this.#client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
     if (!this.isAuthenticated()) {
       // console.log('not authenticated')
       return { error: USER_UNAUTHENTICATED }
     }
     return new Promise((resolve) => {
-      this.client.interpreter?.send({ type: 'SIGNOUT', all: params?.all })
-      this.client.interpreter?.onTransition((state) => {
+      this.#client.interpreter?.send({ type: 'SIGNOUT', all: params?.all })
+      this.#client.interpreter?.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) resolve({ error: null })
         // TODO possible errors
         else {
@@ -311,7 +307,7 @@ export class HasuraAuthClient {
    */
   async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
     return new Promise((resolve) => {
-      const service = interpret(createResetPasswordMachine(this.client))
+      const service = interpret(createResetPasswordMachine(this.#client))
       service.onTransition(({ event }) => {
         if (event.type === 'ERROR') return resolve({ error: event.error })
         else if (event.type === 'SUCCESS') return resolve({ error: null })
@@ -331,7 +327,7 @@ export class HasuraAuthClient {
    */
   async changePassword(params: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
     return new Promise((resolve) => {
-      const service = interpret(createChangePasswordMachine(this.client))
+      const service = interpret(createChangePasswordMachine(this.#client))
       service.onTransition(({ event }) => {
         if (event.type === 'ERROR') return resolve({ error: event.error })
         else if (event.type === 'SUCCESS') return resolve({ error: null })
@@ -354,7 +350,7 @@ export class HasuraAuthClient {
     params: SendVerificationEmailParams
   ): Promise<ApiSendVerificationEmailResponse> {
     return new Promise((resolve) => {
-      const service = interpret(createSendVerificationEmailMachine(this.client))
+      const service = interpret(createSendVerificationEmailMachine(this.#client))
       service.onTransition(({ event }) => {
         if (event.type === 'ERROR') return resolve({ error: event.error })
         else if (event.type === 'SUCCESS') return resolve({ error: null })
@@ -374,7 +370,7 @@ export class HasuraAuthClient {
    */
   async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
     return new Promise((resolve) => {
-      const service = interpret(createChangeEmailMachine(this.client))
+      const service = interpret(createChangeEmailMachine(this.#client))
       service.onTransition(({ event }) => {
         if (event.type === 'ERROR') return resolve({ error: event.error })
         else if (event.type === 'SUCCESS') return resolve({ error: null })
@@ -411,9 +407,9 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    if (this.client.interpreter)
+    if (this.#client.interpreter)
       this.onTokenChangedSubscriptions.add(
-        this.client.interpreter?.onTransition((state) => {
+        this.#client.interpreter?.onTransition((state) => {
           // TODO ONLY WHEN TOKEN CHANGED
           fn(this.getSession())
         })
@@ -437,9 +433,9 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
-    if (this.client.interpreter)
+    if (this.#client.interpreter)
       this.onTokenChangedSubscriptions.add(
-        this.client.interpreter?.onTransition((state) => {
+        this.#client.interpreter?.onTransition((state) => {
           // TODO ONLY WHEN AUTH STATUS CHANGED
           fn('SIGNED_IN', this.getSession())
           fn('SIGNED_OUT', this.getSession())
@@ -469,7 +465,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   isAuthenticated(): boolean {
-    return !!this.client.interpreter?.state.matches({ authentication: 'signedIn' })
+    return !!this.#client.interpreter?.state.matches({ authentication: 'signedIn' })
   }
 
   /**
@@ -489,7 +485,7 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       // if init auth loading is already completed, we can return the value of `isAuthenticated`.
       if (this.isReady()) resolve(this.isAuthenticated())
-      const interpreter = this.client.interpreter
+      const interpreter = this.#client.interpreter
       if (!interpreter) resolve(false)
       interpreter?.onTransition((state) => {
         if (state.hasTag('ready')) resolve(state.matches({ authentication: 'signedIn' }))
@@ -545,7 +541,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getAccessToken(): string | undefined {
-    return this.client.interpreter?.state.context.accessToken.value ?? undefined
+    return this.#client.interpreter?.state.context.accessToken.value ?? undefined
   }
 
   /**
@@ -586,7 +582,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getSession(): Session | null {
-    const context = this.client.interpreter?.state.context
+    const context = this.#client.interpreter?.state.context
     if (!context || !context.accessToken.value || !context.refreshToken.value) return null
     return {
       accessToken: context.accessToken.value,
@@ -607,10 +603,15 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getUser() {
-    return this.client.interpreter?.state.context.user || null
+    return this.#client.interpreter?.state.context.user || null
   }
 
   private isReady() {
-    return !!this.client.interpreter?.state.hasTag('ready')
+    return !!this.#client.interpreter?.state.hasTag('ready')
   }
+
+  get client() {
+    return this.#client
+  }
+
 }

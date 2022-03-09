@@ -1,11 +1,11 @@
 import { PasswordlessOptions, Provider } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { useNhost } from './common'
-import { useAuthenticated, useNhostInterpreter } from './common'
+import { useNhostBackendUrl } from './common'
+import { useAuthenticated, useAuthInterpreter } from './common'
 
 export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: string) => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   const signIn = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
     service.send({
       type: 'SIGNIN_PASSWORD',
@@ -33,7 +33,7 @@ export const useEmailPasswordlessSignIn = (
   stateEmail?: string,
   stateOptions?: PasswordlessOptions
 ) => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   const signIn = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
@@ -58,7 +58,7 @@ export const useEmailPasswordlessSignIn = (
 // TODO documentation
 // TODO deanonymize
 export const useAnonymousSignIn = () => {
-  const service = useNhostInterpreter()
+  const service = useAuthInterpreter()
   const signIn = () => service.send('SIGNIN_ANONYMOUS')
 
   const error = useSelector(service, (state) => state.context.errors.authentication)
@@ -74,10 +74,10 @@ export const useAnonymousSignIn = () => {
 }
 
 export const useProviderLink = () => {
-  const nhost = useNhost()
+  const backendUrl = useNhostBackendUrl()
   return new Proxy({} as Record<Provider, string>, {
     get(_, provider: string) {
-      return `${nhost.backendUrl}/v1/auth/signin/provider/${provider}`
+      return `${backendUrl}/v1/auth/signin/provider/${provider}`
     }
   })
 }

@@ -79,7 +79,7 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
       services: {
         requestChange: async (_, { email, options }) => {
           const res = await api.post(
-            '/v1/auth/user/email/change',
+            '/user/email/change',
             {
               newEmail: email,
               options: {
