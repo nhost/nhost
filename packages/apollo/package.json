@@ -47,7 +47,6 @@
     }
   },
   "files": [
-    "src",
     "dist"
   ],
   "dependencies": {

@@ -32,27 +32,19 @@ jobs:
         node-version: [14, 16]
     steps:
       - uses: actions/checkout@v2
-        # with:
-        #   fetch-depth: 2
 
       - name: Install nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
-      - run: |
+
+      - name: Start Nhost Backend
+        run: |
           cp -R examples/testing-project /tmp/
           cd /tmp/testing-project
           nhost dev &
-      # - name: Start Nhost Backend
-      #   run: |
-      #     cd examples/testing-project
-      #     nhost dev -d --no-browser --path /tmp &
-      #     until curl -s -f -o /dev/null "http://localhost:1337/v1/auth/healthz"
-      #     do
-      #       sleep 1
-      #     done
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: 6.32.2
+          version: 6.32.3
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
@@ -60,22 +52,19 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
-      # - name: Cache turbo
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: ./node_modules/.cache/turbo
-      #     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-      #     restore-keys: |
-      #       turbo-${{ github.job }}-${{ github.ref_name }}-
+      - name: Cache turbo
+        uses: actions/cache@v2
+        with:
+          path: ./node_modules/.cache/turbo
+          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ github.job }}-${{ github.ref_name }}-
 
       - name: Install dependencies
         run: pnpm install
 
       - name: Wait for Nhost
         run: pnpm run wait
-      # not usefull
-      # - run: pnpm run clean:all
-      # - run: pnpm i
 
       - name: Build, tests and lint
         run: pnpm run ci
