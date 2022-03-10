@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-          cache: 'pnpm'
+          # cache: 'pnpm'
       # - name: Cache turbo
       #   uses: actions/cache@v2
       #   with:
