@@ -37,12 +37,6 @@ jobs:
         run: |
           cd examples/testing-project
           nhost dev -d --no-browser &
-      - uses: nev7n/wait_for_response@v1
-        with:
-          url: 'http://localhost:1337/v1/auth/healthz'
-          responseCode: 200
-          timeout: 120000
-          interval: 500
       # - name: Cache pnpm modules
       #   uses: actions/cache@v2
       #   with:
@@ -66,6 +60,12 @@ jobs:
       #     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
       #     restore-keys: |
       #       turbo-${{ github.job }}-${{ github.ref_name }}-
+      - uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost:1337/v1/auth/healthz'
+          responseCode: 200
+          timeout: 120000
+          interval: 500
 
       - run: pnpm ls -r
       # - name: Wait for Nhost Backend to start
