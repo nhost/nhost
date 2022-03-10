@@ -21,7 +21,7 @@
     "build:docs": "pnpm run build --filter=nhost-documentation",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples}/*,docs}/{dist,.next,.turbo,coverage}",
-    "ci": "pnpm turbo run build test --concurrency=4 && pnpm run lint",
+    "ci": "pnpm turbo run build test --concurrency=4 --scope='@nhost/*' && pnpm run lint",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
     "coverage": "pnpm run test --coverage",
     "prettier": "prettier --check .",
