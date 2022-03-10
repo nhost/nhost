@@ -32,8 +32,7 @@
     "prerelease": "pnpm clean && pnpm install && pnpm build",
     "release": "pnpm run prerelease && changeset publish && git push --follow-tags && git status && pnpm -r publish",
     "changeset": "changeset",
-    "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
-    "wait": "wait-on http://localhost:1337/v1/auth/healthz -i 500 -t 120000"
+    "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview"
   },
   "workspaces": [
     "packages/*",
@@ -73,8 +72,7 @@
     "typescript": "4.5.5",
     "vite": "^2.8.6",
     "vite-plugin-dts": "^0.9.9",
-    "vite-tsconfig-paths": "^3.4.1",
-    "wait-on": "^6.0.1"
+    "vite-tsconfig-paths": "^3.4.1"
   },
   "resolutions": {
     "graphql": "15.7.2"
