@@ -85,6 +85,9 @@ export type Provider =
   | 'spotify'
   | 'discord'
   | 'twitch'
+  | 'apple'
+  | 'twitter'
+  | 'windowslive'
 
 export interface SignInWithProviderOptions {
   provider: Provider
