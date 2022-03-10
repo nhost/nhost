@@ -45,6 +45,7 @@
     "typings": "dist/index.d.ts"
   },
   "files": [
+    "src",
     "dist"
   ],
   "dependencies": {
