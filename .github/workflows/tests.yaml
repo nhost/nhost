@@ -65,6 +65,12 @@ jobs:
       #       turbo-${{ github.job }}-${{ github.ref_name }}-
 
       - run: pnpm install
+      - uses: nev7n/wait_for_response@v1
+        with:
+          url: 'http://localhost:1337/v1/auth/healthz'
+          responseCode: 200
+          timeout: 120000
+          interval: 500
       # - name: Wait for Nhost Backend to start
       #   run: pnpm run wait
       - run: pnpm run ci
