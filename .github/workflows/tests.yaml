@@ -62,16 +62,14 @@ jobs:
       #       turbo-${{ github.job }}-${{ github.ref_name }}-
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Wait for Nhost Backend to start
         run: pnpm run wait
 
-      - run: cat turbo.json
-      - run: pnpm ls -r
-
-      - run: pnpm run clean:all
-      - run: pnpm i
+      # not usefull
+      # - run: pnpm run clean:all
+      # - run: pnpm i
 
       - name: Build, tests and lint
         run: pnpm run ci
