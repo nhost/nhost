@@ -64,9 +64,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --recursive --strict-peer-dependencies
 
-      - name: Wait for Nhost Backend to start
-        run: pnpm run wait
-
       # not usefull
       # - run: pnpm run clean:all
       # - run: pnpm i
