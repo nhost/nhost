@@ -41,7 +41,7 @@ jobs:
       - name: Start Nhost Backend
         run: |
           cd examples/testing-project
-          nhost dev -d --no-browser &
+          nhost dev -d --no-browser --path /tmp &
           until curl -s -f -o /dev/null "http://localhost:1337/v1/auth/healthz"
           do
             sleep 1
