@@ -4,6 +4,7 @@ import {
   ChangeEmailOptions,
   createChangeEmailMachine,
   createChangePasswordMachine,
+  createEnableMfaMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
   ResetPasswordOptions,
@@ -129,4 +130,25 @@ export const useSendEmailVerification = (stateEmail?: string, stateOptions?: Sen
       options: valueOptions
     })
   return { sendEmail, isLoading, isSent, isError, error }
+}
+
+export const useConfigMfa = () => {
+  const nhost = useNhost()
+
+  const machine = useMemo(() => createEnableMfaMachine(nhost.auth.client), [nhost])
+  const [current, send] = useMachine(machine)
+
+  const isError = useMemo(() => {
+    current.matches({ idle: 'error' }) || current.matches({ generated: { idle: 'error' } })
+  }, [current])
+  const isGenerating = current.matches('generating')
+  const isGenerated = current.matches('generated')
+  const isActivating = current.matches({ generated: 'activating' })
+  const isActivated = current.matches({ generated: 'activated' })
+  const error = current.context.error
+  const qrCode = current.context.imageUrl || ''
+
+  const generate = () => send('GENERATE')
+  const activate = (code: string) => send({ type: 'ACTIVATE', activeMfaType: 'totp', code })
+  return { generate, isGenerating, qrCode, isGenerated, activate, isActivating, isActivated, isError, error }
 }

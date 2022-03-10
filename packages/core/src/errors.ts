@@ -15,10 +15,22 @@ export const INVALID_EMAIL_ERROR: ValidationErrorPayload = {
   message: 'Email is incorrectly formatted'
 }
 
+export const INVALID_MFA_TYPE_ERROR: ValidationErrorPayload = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'invalid-mfa-type',
+  message: 'MFA type is invalid'
+}
+
 export const INVALID_PASSWORD_ERROR: ValidationErrorPayload = {
   status: VALIDATION_ERROR_CODE,
   error: 'invalid-password',
   message: 'Password is incorrectly formatted'
+}
+
+export const INVALID_PHONE_NUMBER_ERROR: ValidationErrorPayload = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'invalid-phone-number',
+  message: 'Phone number is incorrectly formatted'
 }
 
 export const NO_MFA_TICKET_ERROR: ValidationErrorPayload = {

@@ -4,7 +4,7 @@ import { useSelector } from '@xstate/react'
 import { useNhostBackendUrl } from './common'
 import { useAuthenticated, useAuthInterpreter } from './common'
 
-export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: string) => {
+export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: string, stateOtp?: string) => {
   const service = useAuthInterpreter()
   const signIn = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
     service.send({
@@ -12,8 +12,8 @@ export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: stri
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
-  const sendMfaTotp = (otp: string) => {
-    service.send({ type: 'SIGNIN_MFA_TOTP', otp })
+  const sendMfaOtp = (valueOtp?: string | unknown) => {
+    service.send({ type: 'SIGNIN_MFA_TOTP', otp: typeof valueOtp === 'string' ? valueOtp : stateOtp })
   }
   const error = useSelector(service, (state) => state.context.errors.authentication)
   const isSuccess = useAuthenticated()
@@ -30,7 +30,7 @@ export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: stri
     state.matches({ authentication: { signedOut: 'failed' } })
   )
 
-  return { signIn, isLoading, isSuccess, needsEmailVerification, needsMfaOtp, sendMfaTotp, isError, error }
+  return { signIn, isLoading, isSuccess, needsEmailVerification, needsMfaOtp, sendMfaOtp, isError, error }
 }
 
 export const useEmailPasswordlessSignIn = (
@@ -85,3 +85,4 @@ export const useProviderLink = () => {
     }
   })
 }
+

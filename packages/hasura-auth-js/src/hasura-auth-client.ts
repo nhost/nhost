@@ -37,8 +37,14 @@ const USER_ALREADY_SIGNED_IN: ApiError = {
   message: 'User is already signed in',
   status: 100
 }
+
 const USER_UNAUTHENTICATED: ApiError = {
   message: 'User is not authenticated',
+  status: 101
+}
+
+const USER_NOT_ANONYMOUS: ApiError = {
+  message: 'User is not anonymous',
   status: 101
 }
 const EMAIL_NEEDS_VERIFICATION: ApiError = {
@@ -75,10 +81,10 @@ export class HasuraAuthClient {
       autoSignIn: autoLogin,
       start,
       // TODO
-      storageGetter: () => {
-        return null
-      },
-      storageSetter: () => { }
+      // storageGetter: () => {
+      //   return null
+      // },
+      // storageSetter: () => { }
     })
   }
 
@@ -94,7 +100,11 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async signUp(params: SignUpParams): Promise<SignUpResponse> {
-    if (!this.#client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
+    const interpreter = this.#client.interpreter
+    if (!interpreter) {
+      throw Error('Auth interpreter not set')
+    }
+
     const { email, password, options } = params
 
     // * Raise an error if the user is already authenticated
@@ -106,8 +116,8 @@ export class HasuraAuthClient {
     }
 
     return new Promise((resolve) => {
-      this.#client.interpreter?.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
-      this.#client.interpreter?.onTransition((state) => {
+      interpreter.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
+      interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
           return resolve({ session: null, error: null })
         else if (state.matches({ authentication: { signedOut: 'failed' } })) {
@@ -142,6 +152,9 @@ export class HasuraAuthClient {
     providerUrl?: string
     provider?: string
   }> {
+    const interpreter = this.#client.interpreter
+    if (!interpreter) throw Error('Auth interpreter not set')
+
     // * Raise an error if the user is already authenticated
     if (this.isAuthenticated()) {
       return {
@@ -164,12 +177,12 @@ export class HasuraAuthClient {
     // email password
     if ('email' in params && 'password' in params) {
       return new Promise((resolve) => {
-        this.#client.interpreter?.send({ type: 'SIGNIN_PASSWORD', ...params })
-        this.#client.interpreter?.onTransition((state) => {
+        interpreter.send({ type: 'SIGNIN_PASSWORD', ...params })
+        interpreter.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' }))
             resolve({
               session: this.getSession(),
-              mfa: null, // TODO MFA
+              mfa: null,
               error: null
             })
           else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
@@ -177,6 +190,12 @@ export class HasuraAuthClient {
               session: null,
               mfa: null,
               error: EMAIL_NEEDS_VERIFICATION
+            })
+          else if (state.matches({ authentication: { signedOut: 'needsMfa' } }))
+            resolve({
+              session: null,
+              mfa: state.context.mfa,
+              error: null
             })
           else if (state.matches({ authentication: { signedOut: 'failed' } }))
             resolve({
@@ -191,7 +210,7 @@ export class HasuraAuthClient {
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
       return new Promise((resolve) => {
-        this.#client.interpreter?.onTransition((state) => {
+        interpreter.onTransition((state) => {
           if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
             resolve({
               session: null,
@@ -206,49 +225,52 @@ export class HasuraAuthClient {
             })
         })
 
-        this.#client.interpreter?.send({ type: 'SIGNIN_PASSWORDLESS_EMAIL', ...params })
+        interpreter.send({ type: 'SIGNIN_PASSWORDLESS_EMAIL', ...params })
       })
     }
 
     // passwordless SMS
     if ('phoneNumber' in params && !('otp' in params)) {
-      // TODO implement phoneNumber
-      console.warn('TODO implement OTP')
-      return { session: null, error: null } as any
-      /*
-            const { error } = await this.api.signInPasswordlessSms(params)
-      
-            if (error) {
-              return { session: null, mfa: null, error }
-            }
-      
-            return { session: null, mfa: null, error: null }
-            */
+      return new Promise((resolve) => {
+        interpreter.onTransition((state) => {
+          if (state.matches({ authentication: { signedOut: 'needsSmsOtp' } }))
+            resolve({
+              session: null,
+              mfa: null,
+              error: null
+            })
+          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+            resolve({
+              session: null,
+              mfa: null,
+              error: state.context.errors.authentication || null
+            })
+        })
+        interpreter.send({ type: 'SIGNIN_PASSWORDLESS_SMS', ...params })
+      })
     }
 
-    // sign in using OTP
+    // sign in using SMS OTP
     if ('otp' in params) {
-      // TODO implement OTP
-      console.warn('TODO implement OTP')
-      return { session: null, error: null } as any
-      /*
-      const { data, error } = await this.api.signInPasswordlessSmsOtp(params)
-
-      if (error) {
-        return { session: null, mfa: null, error }
-      }
-      if (!data) {
-        return {
-          session: null,
-          mfa: null,
-          error: { message: 'Incorrect data', status: 500 }
-        }
-      }
-      const { mfa } = data
-      return { session: this.getSession(), mfa, error: null }
-      */
+      return new Promise((resolve) => {
+        interpreter.onTransition((state) => {
+          if (state.matches({ authentication: 'signedIn' }))
+            resolve({
+              session: this.getSession(),
+              mfa: null,
+              error: null
+            })
+          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+            resolve({
+              session: null,
+              mfa: null,
+              error: state.context.errors.authentication || null
+            })
+        })
+        interpreter.send({ type: 'SIGNIN_PASSWORDLESS_SMS_OTP', ...params })
+      })
     }
-
+    // TODO anonymous sign-in
     return {
       session: null,
       mfa: null,
@@ -265,19 +287,14 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
-    if (!this.#client.interpreter) throw Error('interpreter not set ') // TODO a bit brutal.
-    if (!this.isAuthenticated()) {
-      // console.log('not authenticated')
-      return { error: USER_UNAUTHENTICATED }
-    }
+    const interpreter = this.#client.interpreter
+    if (!interpreter) throw Error('Auth interpreter not set')
+    if (!this.isAuthenticated()) return { error: USER_UNAUTHENTICATED }
     return new Promise((resolve) => {
-      this.#client.interpreter?.send({ type: 'SIGNOUT', all: params?.all })
-      this.#client.interpreter?.onTransition((state) => {
+      interpreter.send({ type: 'SIGNOUT', all: params?.all })
+      interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) resolve({ error: null })
-        // TODO possible errors
-        else {
-          // console.log('SIGNOUT weird stuff', state.value)
-        }
+        else if (state.matches({ authentication: { signedOut: 'failed' } })) resolve({ error: state.context.errors.signout || null })
       })
     })
   }
@@ -389,12 +406,26 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
-    // TODO implement
-    /*
-    const { error } = await this.api.deanonymize(params)
-    return { error }
-    */
-    return { error: null }
+    return new Promise((resolve) => {
+      const interpreter = this.#client.interpreter
+      if (!interpreter) throw Error('Auth interpreter not set')
+      if (!this.isAuthenticated() || !interpreter.state.context.user?.isAnonymous)
+        return { error: USER_NOT_ANONYMOUS }
+      interpreter.onTransition((state) => {
+        if (state.matches({ authentication: { signedIn: { deanonymizing: 'success' } } }))
+          resolve({ error: null })
+        else if (state.matches({ authentication: { signedIn: { deanonymizing: 'error' } } }))
+          resolve({ error: state.context.errors.authentication || null })
+      })
+      interpreter.start()
+      const { signInMethod, connection, ...options } = params
+      interpreter.send({
+        type: 'DEANONYMIZE',
+        signInMethod,
+        connection,
+        options
+      })
+    })
   }
 
   /**
@@ -613,5 +644,4 @@ export class HasuraAuthClient {
   get client() {
     return this.#client
   }
-
 }

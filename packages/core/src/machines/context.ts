@@ -17,7 +17,7 @@ export type NhostContext = {
   refreshToken: {
     value: string | null
   }
-  errors: Partial<Record<'registration' | 'authentication', ErrorPayload>>
+  errors: Partial<Record<'registration' | 'authentication' | 'signout', ErrorPayload>>
 }
 
 export const INITIAL_MACHINE_CONTEXT: NhostContext = {
