@@ -46,13 +46,13 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - name: Cache turbo
-        uses: actions/cache@v2
-        with:
-          path: ./node_modules/.cache/turbo
-          key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
-          restore-keys: |
-            turbo-${{ github.job }}-${{ github.ref_name }}-
+      # - name: Cache turbo
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ./node_modules/.cache/turbo
+      #     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+      #     restore-keys: |
+      #       turbo-${{ github.job }}-${{ github.ref_name }}-
 
       - name: Install nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
