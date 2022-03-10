@@ -70,7 +70,8 @@ jobs:
       - run: cat turbo.json
       - run: pnpm ls -r
 
-      - run: pwd
+      - run: pnpm run clean:all
+      - run: pnpm i
 
       - name: Build, tests and lint
         run: pnpm run ci
