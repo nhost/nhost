@@ -32,6 +32,8 @@ jobs:
         node-version: [14, 16]
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
 
       - name: Install nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
