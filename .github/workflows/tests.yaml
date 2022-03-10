@@ -72,6 +72,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Wait for Nhost
+        run: pnpm run wait
       # not usefull
       # - run: pnpm run clean:all
       # - run: pnpm i
