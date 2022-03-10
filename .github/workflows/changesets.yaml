@@ -28,7 +28,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.1.0
         with:
-          version: 6.30.1
+          version: 6.32.3
           run_install: true
 
       - name: Create PR or Publish release
