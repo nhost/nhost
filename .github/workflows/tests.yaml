@@ -43,6 +43,7 @@ jobs:
           responseCode: 200
           timeout: 120000
           interval: 500
+      - uses: actions/checkout@v2
 
       # - name: Cache pnpm modules
       #   uses: actions/cache@v2
@@ -71,6 +72,7 @@ jobs:
       #       turbo-${{ github.job }}-${{ github.ref_name }}-
 
       - run: pnpm install
+      - run: pnpm ls --depth -1 prints projects
       # - name: Wait for Nhost Backend to start
       #   run: pnpm run wait
       - run: pnpm run ci
