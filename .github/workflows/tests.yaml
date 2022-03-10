@@ -43,8 +43,6 @@ jobs:
           responseCode: 200
           timeout: 120000
           interval: 500
-      - uses: actions/checkout@v2
-
       # - name: Cache pnpm modules
       #   uses: actions/cache@v2
       #   with:
@@ -56,9 +54,7 @@ jobs:
       - uses: pnpm/action-setup@v2.2.1
         with:
           version: 6.32.3
-          # run_install: |
-          #   - recursive: true
-          #     args: [--frozen-lockfile, --strict-peer-dependencies]
+          run_install: true
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
@@ -71,8 +67,7 @@ jobs:
       #     restore-keys: |
       #       turbo-${{ github.job }}-${{ github.ref_name }}-
 
-      - run: pnpm install
-      - run: pnpm ls --depth -1 prints projects
+      - run: pnpm ls -r
       # - name: Wait for Nhost Backend to start
       #   run: pnpm run wait
       - run: pnpm run ci
