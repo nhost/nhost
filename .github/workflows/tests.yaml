@@ -59,6 +59,9 @@ jobs:
           restore-keys: |
             turbo-${{ github.job }}-${{ github.ref_name }}-
 
+      - name: Install dependencies
+        run: pnpm install
+
       - name: Wait for Nhost Backend to start
         run: pnpm run wait
 
