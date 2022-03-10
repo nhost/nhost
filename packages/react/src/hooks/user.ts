@@ -114,7 +114,10 @@ export const useUserRoles = () => {
   return useSelector(service, (state) => state.context.user?.roles || [])
 }
 
-export const useSendEmailVerification = (stateEmail?: string, stateOptions?: SendVerificationEmailOptions) => {
+export const useSendEmailVerification = (
+  stateEmail?: string,
+  stateOptions?: SendVerificationEmailOptions
+) => {
   const nhost = useNhost()
   const machine = useMemo(() => createSendVerificationEmailMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
@@ -132,7 +135,7 @@ export const useSendEmailVerification = (stateEmail?: string, stateOptions?: Sen
   return { sendEmail, isLoading, isSent, isError, error }
 }
 
-export const useConfigMfa = () => {
+export const useConfigMfa = (stateCode?: string) => {
   const nhost = useNhost()
 
   const machine = useMemo(() => createEnableMfaMachine(nhost.auth.client), [nhost])
@@ -149,6 +152,21 @@ export const useConfigMfa = () => {
   const qrCode = current.context.imageUrl || ''
 
   const generate = () => send('GENERATE')
-  const activate = (code: string) => send({ type: 'ACTIVATE', activeMfaType: 'totp', code })
-  return { generate, isGenerating, qrCode, isGenerated, activate, isActivating, isActivated, isError, error }
+  const activate = (valueCode?: string | unknown) =>
+    send({
+      type: 'ACTIVATE',
+      activeMfaType: 'totp',
+      code: typeof valueCode === 'string' ? valueCode : stateCode
+    })
+  return {
+    generate,
+    isGenerating,
+    qrCode,
+    isGenerated,
+    activate,
+    isActivating,
+    isActivated,
+    isError,
+    error
+  }
 }
