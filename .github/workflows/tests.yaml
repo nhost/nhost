@@ -30,8 +30,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      # - name: Install nhost CLI
-      #   run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+      - name: Install nhost CLI
+        run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
 
       # - name: Start Nhost Backend
       #   run: |
