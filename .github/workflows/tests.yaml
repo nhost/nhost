@@ -38,7 +38,7 @@ jobs:
       - name: Install nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
       - run: |
-          cp -R examples/testing-project /tmp/
+          cp -r examples/testing-project /tmp/
           cp /tmp/testing-project
           nhost dev &
       # - name: Start Nhost Backend
