@@ -45,6 +45,10 @@ export type NhostSession = {
   user: User
 }
 
+export type Mfa = {
+  ticket: string
+}
+
 export type Provider =
   | 'apple'
   | 'facebook'

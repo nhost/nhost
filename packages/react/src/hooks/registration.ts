@@ -18,8 +18,8 @@ export const useEmailPasswordSignUp = (
   const loading = useAuthLoading()
   const isSuccess = useAuthenticated()
   const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
-  const needsVerification = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsVerification' } })
+  const needsEmailVerification = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
   )
 
   const signUp = (
@@ -39,6 +39,6 @@ export const useEmailPasswordSignUp = (
     isSuccess,
     isError,
     error,
-    needsVerification
+    needsEmailVerification
   }
 }

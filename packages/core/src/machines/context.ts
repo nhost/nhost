@@ -3,7 +3,9 @@ import { User } from '../types'
 
 export type NhostContext = {
   user: User | null
-  mfa: boolean
+  mfa: {
+    ticket: string
+  } | null
   accessToken: {
     value: string | null
     expiresAt: Date
@@ -20,7 +22,7 @@ export type NhostContext = {
 
 export const INITIAL_MACHINE_CONTEXT: NhostContext = {
   user: null,
-  mfa: false,
+  mfa: null,
   accessToken: {
     value: null,
     expiresAt: new Date()

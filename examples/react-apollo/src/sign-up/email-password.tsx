@@ -14,18 +14,18 @@ export const EmailPassword: React.FC = () => {
   )
   const navigate = useNavigate()
   const [confirmPassword, setConfirmPassword] = useState('')
-  const { signUp, error, needsVerification, isSuccess } = useEmailPasswordSignUp(
+  const { signUp, error, needsEmailVerification, isSuccess } = useEmailPasswordSignUp(
     email,
     password,
     options
   )
   const [errorMessage, setErrorMessage] = useState('')
   useEffect(() => {
-    if (needsVerification) navigate('/sign-up/verification-email-sent')
+    if (needsEmailVerification) navigate('/sign-up/verification-email-sent')
     else if (isSuccess) navigate('/')
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsVerification, isSuccess])
+  }, [needsEmailVerification, isSuccess])
 
   // * Set error message from the registration hook errors
   useEffect(() => {

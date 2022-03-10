@@ -5,13 +5,13 @@ import { Button, FlexboxGrid, Input, Message, Panel, toaster, Notification } fro
 export const ChangeEmail: React.FC = () => {
   const [newEmail, setNewEmail] = useState('')
   const email = useEmail()
-  const { changeEmail, error, needsVerification } = useChangeEmail(newEmail, {
+  const { changeEmail, error, needsEmailVerification } = useChangeEmail(newEmail, {
     redirectTo: '/profile'
   })
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
-    if (needsVerification) {
+    if (needsEmailVerification) {
       toaster.push(
         <Notification type="info" header="Info" closable>
           An email has been sent to {newEmail}. Please check your inbox and follow the link to
@@ -21,7 +21,7 @@ export const ChangeEmail: React.FC = () => {
       setNewEmail('')
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsVerification])
+  }, [needsEmailVerification])
 
   // * Set error message from the registration hook errors
   useEffect(() => {

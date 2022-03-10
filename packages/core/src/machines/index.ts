@@ -9,9 +9,10 @@ import {
   NHOST_REFRESH_TOKEN_KEY,
   TOKEN_REFRESH_MARGIN
 } from '../constants'
-import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../errors'
+import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR, NO_MFA_TICKET_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
+import { Mfa, NhostSession } from '../types'
 import { isValidEmail, isValidPassword } from '../validators'
 
 import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
@@ -57,7 +58,7 @@ export const createAuthMachine = ({
         context: {} as NhostContext,
         events: {} as NhostEvents
       },
-      tsTypes: {} as import('./index.typegen').Typegen0,
+      tsTypes: {} as import("./index.typegen").Typegen0,
       context: produce<NhostContext>(INITIAL_MACHINE_CONTEXT, (ctx) => {
         const expiresAt = storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
         if (expiresAt) ctx.accessToken.expiresAt = new Date(expiresAt)
@@ -113,7 +114,8 @@ export const createAuthMachine = ({
               states: {
                 noErrors: {},
                 success: {},
-                needsVerification: {},
+                needsEmailVerification: {},
+                needsMfa: {},
                 failed: {
                   exit: 'resetAuthenticationError',
                   initial: 'server',
@@ -167,7 +169,6 @@ export const createAuthMachine = ({
                 SIGNUP_EMAIL_PASSWORD: [
                   {
                     cond: 'invalidEmail',
-                    // TODO save errorr
                     actions: 'saveInvalidSignUpEmail',
                     target: '.failed.validation.email'
                   },
@@ -178,7 +179,16 @@ export const createAuthMachine = ({
                   },
                   '#nhost.authentication.registering'
                 ],
-                SIGNIN_ANONYMOUS: '#nhost.authentication.authenticating.anonymous'
+                SIGNIN_ANONYMOUS: '#nhost.authentication.authenticating.anonymous',
+                SIGNIN_MFA_TOTP: [
+                  {
+                    cond: 'noMfaTicket',
+                    actions: ['saveNoMfaTicketError'],
+                    target: '.failed'
+                  },
+                  '#nhost.authentication.authenticating.mfa.totp'
+                ]
+
               }
             },
             authenticating: {
@@ -187,7 +197,7 @@ export const createAuthMachine = ({
                   invoke: {
                     src: 'signInPasswordlessEmail',
                     id: 'authenticatePasswordlessEmail',
-                    onDone: '#nhost.authentication.signedOut.needsVerification',
+                    onDone: '#nhost.authentication.signedOut.needsEmailVerification',
                     onError: '#nhost.authentication.signedOut.failed.server'
                   }
                 },
@@ -195,15 +205,21 @@ export const createAuthMachine = ({
                   invoke: {
                     src: 'signInPassword',
                     id: 'authenticateUserWithPassword',
-                    onDone: {
-                      actions: ['saveSession', 'persist'],
-                      target: '#nhost.authentication.signedIn'
-                    },
+                    onDone: [
+                      {
+                        cond: 'hasMfaTicket',
+                        actions: ['saveMfaTicket'],
+                        target: '#nhost.authentication.signedOut.needsMfa'
+                      },
+                      {
+                        actions: ['saveSession', 'persist'],
+                        target: '#nhost.authentication.signedIn'
+                      }],
                     onError: [
                       {
                         cond: 'unverified',
                         // TODO
-                        target: '#nhost.authentication.signedOut.needsVerification'
+                        target: '#nhost.authentication.signedOut.needsEmailVerification'
                       },
                       {
                         actions: 'saveAuthenticationError',
@@ -226,6 +242,24 @@ export const createAuthMachine = ({
                       target: '#nhost.authentication.signedOut.failed.server'
                     }
                   }
+                },
+                mfa: {
+                  states: {
+                    totp: {
+                      invoke: {
+                        src: 'signInMfaTotp',
+                        id: 'signInMfaTotp',
+                        onDone: {
+                          actions: ['saveSession', 'persist'],
+                          target: '#nhost.authentication.signedIn'
+                        },
+                        onError: {
+                          actions: ['saveAuthenticationError'],
+                          target: '#nhost.authentication.signedOut.failed.server'
+                        }
+                      }
+                    }
+                  }
                 }
               }
             },
@@ -241,13 +275,13 @@ export const createAuthMachine = ({
                     actions: ['saveSession', 'persist']
                   },
                   {
-                    target: '#nhost.authentication.signedOut.needsVerification'
+                    target: '#nhost.authentication.signedOut.needsEmailVerification'
                   }
                 ],
                 onError: [
                   {
                     cond: 'unverified',
-                    target: '#nhost.authentication.signedOut.needsVerification'
+                    target: '#nhost.authentication.signedOut.needsEmailVerification'
                   },
                   {
                     actions: 'saveRegisrationError',
@@ -365,7 +399,11 @@ export const createAuthMachine = ({
             expiresAt: new Date(Date.now() + e.data?.session?.accessTokenExpiresIn * 1_000)
           }),
           refreshToken: (_, e) => ({ value: e.data?.session?.refreshToken }),
-          mfa: (_, e) => e.data?.mfa ?? false
+
+        }),
+        saveMfaTicket: assign({
+          // TODO type
+          mfa: (_, e: any) => e.data?.mfa ?? null
         }),
 
         resetTimer: assign({
@@ -413,7 +451,9 @@ export const createAuthMachine = ({
         saveInvalidSignUpEmail: assign({
           errors: ({ errors }) => ({ ...errors, registration: INVALID_PASSWORD_ERROR })
         }),
-
+        saveNoMfaTicketError: assign({
+          errors: ({ errors }) => ({ ...errors, registration: NO_MFA_TICKET_ERROR })
+        }),
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }: any) => {
           storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
@@ -437,6 +477,7 @@ export const createAuthMachine = ({
         hasRefreshTokenWithoutSession: (ctx) =>
           !!ctx.refreshToken.value && !ctx.user && !ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
+        noMfaTicket: (ctx, { ticket }) => !ticket && !ctx.mfa?.ticket,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         isAutoSignInDisabled: () => !autoSignIn,
@@ -455,6 +496,7 @@ export const createAuthMachine = ({
         // * Event guards
         // TODO type
         hasSession: (_, e: any) => !!e.data?.session,
+        hasMfaTicket: (_, e: any) => !!e.data?.mfa,
         invalidEmail: (_, { email }) => !isValidEmail(email),
         invalidPassword: (_, { password }) => !isValidPassword(password)
       },
@@ -476,6 +518,12 @@ export const createAuthMachine = ({
             }
           }),
         signInAnonymous: (_) => postRequest('/signin/anonymous'),
+        signInMfaTotp: (context, { ticket, otp }) =>
+          postRequest<{ mfa: Mfa | null, session: NhostSession | null }, { mfa: Mfa | null, session: NhostSession | null }>('/signin/mfa/totp', {
+            ticket: ticket || context.mfa?.ticket,
+            otp
+          }),
+
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest('/token', {

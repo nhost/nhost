@@ -20,3 +20,9 @@ export const INVALID_PASSWORD_ERROR: ValidationErrorPayload = {
   error: 'invalid-password',
   message: 'Password is incorrectly formatted'
 }
+
+export const NO_MFA_TICKET_ERROR: ValidationErrorPayload = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'no-mfa-ticket',
+  message: 'No MFA ticket has been provided'
+}

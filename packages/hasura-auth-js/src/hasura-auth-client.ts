@@ -108,7 +108,7 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       this.#client.interpreter?.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
       this.#client.interpreter?.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
+        if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
           return resolve({ session: null, error: null })
         else if (state.matches({ authentication: { signedOut: 'failed' } })) {
           return resolve({ session: null, error: state.context.errors.registration || null })
@@ -172,7 +172,7 @@ export class HasuraAuthClient {
               mfa: null, // TODO MFA
               error: null
             })
-          else if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
+          else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
             resolve({
               session: null,
               mfa: null,
@@ -192,7 +192,7 @@ export class HasuraAuthClient {
     if ('email' in params && !('otp' in params)) {
       return new Promise((resolve) => {
         this.#client.interpreter?.onTransition((state) => {
-          if (state.matches({ authentication: { signedOut: 'needsVerification' } }))
+          if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
             resolve({
               session: null,
               mfa: null,

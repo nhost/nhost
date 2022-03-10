@@ -8,6 +8,7 @@ export interface Typegen0 {
       | 'done.invoke.autoSignIn'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.signInMfaTotp'
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
@@ -16,6 +17,7 @@ export interface Typegen0 {
       | 'done.invoke.autoSignIn'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.signInMfaTotp'
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
@@ -24,9 +26,12 @@ export interface Typegen0 {
     saveInvalidPassword: 'SIGNIN_PASSWORD'
     saveInvalidSignUpEmail: 'SIGNUP_EMAIL_PASSWORD'
     saveInvalidSignUpPassword: 'SIGNUP_EMAIL_PASSWORD'
+    saveNoMfaTicketError: 'SIGNIN_MFA_TOTP'
+    saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     saveAuthenticationError:
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.authenticateAnonymously'
+      | 'error.platform.signInMfaTotp'
     saveRegisrationError: 'error.platform.registerUser'
     tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     resetAuthenticationError: 'xstate.init'
@@ -47,6 +52,11 @@ export interface Typegen0 {
     }
     'done.invoke.authenticateAnonymously': {
       type: 'done.invoke.authenticateAnonymously'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.signInMfaTotp': {
+      type: 'done.invoke.signInMfaTotp'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -74,6 +84,7 @@ export interface Typegen0 {
       type: 'error.platform.authenticateAnonymously'
       data: unknown
     }
+    'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
     'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
@@ -107,6 +118,7 @@ export interface Typegen0 {
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
     signInAnonymous: 'done.invoke.authenticateAnonymously'
+    signInMfaTotp: 'done.invoke.signInMfaTotp'
     registerUser: 'done.invoke.registerUser'
     refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
   }
@@ -123,6 +135,7 @@ export interface Typegen0 {
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     registerUser: 'SIGNUP_EMAIL_PASSWORD'
     signInAnonymous: 'SIGNIN_ANONYMOUS'
+    signInMfaTotp: 'SIGNIN_MFA_TOTP'
     signout: 'SIGNOUT'
   }
   eventsCausingGuards: {
@@ -132,6 +145,8 @@ export interface Typegen0 {
     hasRefreshTokenWithoutSession: ''
     invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
     invalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
+    noMfaTicket: 'SIGNIN_MFA_TOTP'
+    hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
     unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
     noToken: ''
     isAutoRefreshDisabled: ''
@@ -146,7 +161,8 @@ export interface Typegen0 {
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
     | 'authentication.signedOut.success'
-    | 'authentication.signedOut.needsVerification'
+    | 'authentication.signedOut.needsEmailVerification'
+    | 'authentication.signedOut.needsMfa'
     | 'authentication.signedOut.failed'
     | 'authentication.signedOut.failed.server'
     | 'authentication.signedOut.failed.validation'
@@ -158,6 +174,8 @@ export interface Typegen0 {
     | 'authentication.authenticating.password'
     | 'authentication.authenticating.token'
     | 'authentication.authenticating.anonymous'
+    | 'authentication.authenticating.mfa'
+    | 'authentication.authenticating.mfa.totp'
     | 'authentication.registering'
     | 'authentication.signedIn'
     | 'authentication.signedIn.refreshTimer'
@@ -182,11 +200,18 @@ export interface Typegen0 {
               signedOut?:
                 | 'noErrors'
                 | 'success'
-                | 'needsVerification'
+                | 'needsEmailVerification'
+                | 'needsMfa'
                 | 'failed'
                 | 'signingOut'
                 | { failed?: 'server' | 'validation' | { validation?: 'password' | 'email' } }
-              authenticating?: 'passwordlessEmail' | 'password' | 'token' | 'anonymous'
+              authenticating?:
+                | 'passwordlessEmail'
+                | 'password'
+                | 'token'
+                | 'anonymous'
+                | 'mfa'
+                | { mfa?: 'totp' }
               signedIn?:
                 | 'refreshTimer'
                 | {

@@ -19,7 +19,7 @@ export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOp
   const [current, send] = useMachine(machine)
 
   const isError = current.matches({ idle: 'error' })
-  const needsVerification = current.matches({ idle: 'success' })
+  const needsEmailVerification = current.matches({ idle: 'success' })
   const error = current.context.error
   const isLoading = current.matches('requesting')
 
@@ -29,7 +29,7 @@ export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOp
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       options: valueOptions
     })
-  return { changeEmail, isLoading, needsVerification, isError, error }
+  return { changeEmail, isLoading, needsEmailVerification, isError, error }
 }
 
 export const useChangePassword = (statePassword?: string) => {

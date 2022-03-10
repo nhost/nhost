@@ -12,21 +12,25 @@ export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: stri
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
-
+  const sendMfaTotp = (otp: string) => {
+    service.send({ type: 'SIGNIN_MFA_TOTP', otp })
+  }
   const error = useSelector(service, (state) => state.context.errors.authentication)
   const isSuccess = useAuthenticated()
   const isLoading = useSelector(service, (state) =>
     state.matches({ authentication: { authenticating: 'password' } })
   )
-  const needsVerification = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsVerification' } })
+  const needsEmailVerification = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
   )
-
+  const needsMfaOtp = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'needsMfa' } })
+  )
   const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedOut: 'failed' } })
   )
 
-  return { signIn, isLoading, isSuccess, needsVerification, isError, error }
+  return { signIn, isLoading, isSuccess, needsEmailVerification, needsMfaOtp, sendMfaTotp, isError, error }
 }
 
 export const useEmailPasswordlessSignIn = (
@@ -46,7 +50,7 @@ export const useEmailPasswordlessSignIn = (
     state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
   )
   const isSuccess = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsVerification' } })
+    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
   )
 
   const isError = useSelector(service, (state) =>
