@@ -65,6 +65,7 @@ jobs:
       - name: Wait for Nhost Backend to start
         run: pnpm run wait
 
+      - run: cat turbo.json
       - run: pnpm ls -r
 
       - name: Build, tests and lint
