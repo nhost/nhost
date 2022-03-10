@@ -1,4 +1,4 @@
-import { ErrorPayload } from '../errors'
+import type { ErrorPayload } from '../errors'
 import { User } from '../types'
 
 export type NhostContext = {

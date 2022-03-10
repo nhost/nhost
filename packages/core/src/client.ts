@@ -3,7 +3,7 @@ import { interpret } from 'xstate'
 
 import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import { defaultStorageGetter, defaultStorageSetter } from './storage'
-import { AuthInterpreter } from './types'
+import type { AuthInterpreter } from './types'
 
 export type NhostClientOptions = AuthMachineOptions & { start?: boolean }
 

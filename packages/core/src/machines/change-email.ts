@@ -1,6 +1,6 @@
 import { assign, createMachine, send } from 'xstate'
 
-import { Nhost } from '../client'
+import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { ChangeEmailOptions } from '../types'
@@ -18,7 +18,7 @@ export type ChangeEmailEvents = {
   | { type: 'SUCCESS' }
   | { type: 'ERROR', error: ErrorPayload | null }
 
-export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }: Nhost) => {
+export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {

@@ -1,6 +1,6 @@
 import { assign, createMachine, send } from 'xstate'
 
-import { Nhost } from '../client'
+import { AuthClient } from '../client'
 import { ErrorPayload } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { ResetPasswordOptions } from '../types'
@@ -17,7 +17,7 @@ export type ResetPasswordEvents = {
   | { type: 'ERROR', error: ErrorPayload | null }
 
 
-export const createResetPasswordMachine = ({ backendUrl, clientUrl }: Nhost) => {
+export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {

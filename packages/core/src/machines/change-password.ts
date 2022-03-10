@@ -1,6 +1,6 @@
 import { assign, createMachine, send } from 'xstate'
 
-import { Nhost } from '../client'
+import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_PASSWORD_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { isValidPassword } from '../validators'
@@ -16,7 +16,7 @@ export type ChangePasswordEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR', error: ErrorPayload | null }
 
-export const createChangePasswordMachine = ({ backendUrl, interpreter }: Nhost) => {
+export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {

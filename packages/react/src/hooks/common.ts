@@ -1,6 +1,7 @@
 import { useContext } from 'react'
+import { InterpreterFrom } from 'xstate'
 
-import { AuthInterpreter } from '@nhost/core'
+import { AuthMachine } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
@@ -11,7 +12,7 @@ export const useNhost = (): NhostClient => {
   return nhost
 }
 
-export const useAuthInterpreter = (): AuthInterpreter => {
+export const useAuthInterpreter = (): InterpreterFrom<AuthMachine> => {
   const nhost = useContext(NhostReactContext)
   const interpreter = nhost.auth.client.interpreter
   if (!interpreter) throw Error('No interpreter')

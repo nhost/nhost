@@ -1,4 +1,4 @@
-import { ErrorPayload } from '../errors'
+import type { ErrorPayload } from '../errors'
 import type { NhostSession, PasswordlessOptions, SignUpOptions } from '../types'
 
 export type NhostEvents =

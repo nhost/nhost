@@ -1,6 +1,6 @@
 import { assign, createMachine, send } from 'xstate'
 
-import { Nhost } from '../client'
+import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { SendVerificationEmailOptions } from '../types'
@@ -23,7 +23,7 @@ export const createSendVerificationEmailMachine = ({
   backendUrl,
   clientUrl,
   interpreter
-}: Nhost) => {
+}: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {
