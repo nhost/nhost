@@ -34,7 +34,7 @@ const nhost = new NhostClient({
 ReactDOM.render(
   <React.StrictMode>
     <NhostProvider nhost={nhost}>
-      <NhostApolloProvider>
+      <NhostApolloProvider nhost={nhost}>
         <App />
       </NhostApolloProvider>
     </NhostProvider>

@@ -9,7 +9,7 @@ import {
   createSendVerificationEmailMachine
 } from '@nhost/core'
 
-import { isBrowser } from './utils/helpers'
+import { getSession, isBrowser } from './utils/helpers'
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -124,7 +124,7 @@ export class HasuraAuthClient {
         else if (state.matches({ authentication: { signedOut: 'failed' } })) {
           return resolve({ session: null, error: state.context.errors.registration || null })
         } else if (state.matches({ authentication: 'signedIn' }))
-          return resolve({ session: this.getSession(), error: null })
+          return resolve({ session: getSession(state.context), error: null })
       })
     })
   }
@@ -182,7 +182,7 @@ export class HasuraAuthClient {
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' }))
             resolve({
-              session: this.getSession(),
+              session: getSession(state.context),
               mfa: null,
               error: null
             })
@@ -257,7 +257,7 @@ export class HasuraAuthClient {
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' }))
             resolve({
-              session: this.getSession(),
+              session: getSession(state.context),
               mfa: null,
               error: null
             })
@@ -442,8 +442,8 @@ export class HasuraAuthClient {
   onTokenChanged(fn: OnTokenChangedFunction): Function {
     if (this.#client.interpreter)
       this.onTokenChangedSubscriptions.add(
-        this.#client.interpreter?.onTransition(({ event }) => {
-          if (event.type === 'TOKEN_CHANGED') fn(this.getSession())
+        this.#client.interpreter?.onTransition(({ event, context }) => {
+          if (event.type === 'TOKEN_CHANGED') fn(getSession(context))
         })
       )
     return () => {
@@ -466,9 +466,9 @@ export class HasuraAuthClient {
   onAuthStateChanged(fn: AuthChangedFunction): Function {
     if (this.#client.interpreter)
       this.onAuthStateChangedSubscriptions.add(
-        this.#client.interpreter?.onTransition(({ event }) => {
-          if (event.type === 'SIGNED_IN') fn('SIGNED_IN', this.getSession())
-          else if (event.type === 'SIGNED_OUT') fn('SIGNED_OUT', this.getSession())
+        this.#client.interpreter?.onTransition(({ event, context }) => {
+          if (event.type === 'SIGNED_IN') fn('SIGNED_IN', getSession(context))
+          else if (event.type === 'SIGNED_OUT') fn('SIGNED_OUT', getSession(context))
         })
       )
     return () => {
@@ -610,14 +610,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getSession(): Session | null {
-    const context = this.#client.interpreter?.state.context
-    if (!context || !context.accessToken.value || !context.refreshToken.value) return null
-    return {
-      accessToken: context.accessToken.value,
-      accessTokenExpiresIn: (context.accessToken.expiresAt.getTime() - Date.now()) / 1000,
-      refreshToken: context.refreshToken.value,
-      user: context.user
-    }
+    return getSession(this.#client.interpreter?.state.context)
   }
 
   /**

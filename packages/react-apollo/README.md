@@ -15,20 +15,19 @@ or
 ```js
 import React from 'react'
 import ReactDOM from 'react-dom'
-import { NhostApolloProvider } from '@nhost/react-apollo'
+import { NhostClient, NhostApolloProvider } from '@nhost/react-apollo'
 import { NhostProvider } from '@nhost/react'
-import { initNhost } from '@nhost/core'
 
 import App from './App'
 
-const nhost = initNhost({
+const nhost = new NhostClient({
   backendUrl: 'https://[app-subdomain].nhost.run'
 })
 
 ReactDOM.render(
   <React.StrictMode>
     <NhostProvider nhost={nhost}>
-      <NhostApolloProvider>
+      <NhostApolloProvider nhost={nhost}>
         <App />
       </NhostApolloProvider>
     </NhostProvider>

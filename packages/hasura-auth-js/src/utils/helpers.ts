@@ -1,3 +1,5 @@
+import { AuthContext } from '@nhost/core'
+
 export const isBrowser = () => typeof window !== 'undefined'
 
 export class inMemoryLocalStorage {
@@ -15,5 +17,15 @@ export class inMemoryLocalStorage {
   }
   removeItem(key: string): void {
     delete this.memory[key]
+  }
+}
+
+export const getSession = (context?: AuthContext) => {
+  if (!context || !context.accessToken.value || !context.refreshToken.value) return null
+  return {
+    accessToken: context.accessToken.value,
+    accessTokenExpiresIn: (context.accessToken.expiresAt.getTime() - Date.now()) / 1000,
+    refreshToken: context.refreshToken.value,
+    user: context.user
   }
 }

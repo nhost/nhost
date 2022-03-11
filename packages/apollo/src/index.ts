@@ -63,7 +63,7 @@ export const createApolloClient = ({
     return resHeaders
   }
 
-  const uri = `${backendUrl}/v1/graphql`
+  const uri = backendUrl
   const wsUri = uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws')
 
   let webSocketClient: SubscriptionClient | null = null
