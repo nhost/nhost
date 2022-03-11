@@ -6,7 +6,7 @@
 
 - 0d8afde: Bump xstate version 4.30.5
 - Updated dependencies [0d8afde]
-  - @nhost/core@0.2.1
+  - @nhost/client@0.2.1
 
 ## 0.2.0
 
@@ -44,4 +44,4 @@
 ### Patch Changes
 
 - Updated dependencies [207ae38]
-  - @nhost/core@0.2.0
+  - @nhost/client@0.2.0

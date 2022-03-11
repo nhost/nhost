@@ -32,5 +32,5 @@
 ### Patch Changes
 
 - Updated dependencies [207ae38]
-  - @nhost/core@0.2.0
+  - @nhost/client@0.2.0
   - @nhost/react@0.2.0
