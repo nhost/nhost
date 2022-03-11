@@ -1,7 +1,8 @@
 import Cookies from 'js-cookie'
 
-export type StorageGetter = (key: string) => string | null
-export type StorageSetter = (key: string, value: string | null) => void
+export type StorageGetter = (key: string) => string | null | Promise<string | null>
+export type StorageSetter = (key: string, value: string | null) => void | Promise<void>
+
 const isBrowser = typeof window !== 'undefined'
 
 // TODO rename to 'refreshTokenGetter' and 'refreshTokenSetter'
@@ -20,11 +21,6 @@ export const defaultStorageSetter: StorageSetter = (key, value) => {
     } else {
       localStorage.removeItem(key)
     }
-  } else {
-    console.warn('no defaultStorageSetter')
-    // throw Error(
-    //   'localStorage is not available and no custom storageSetter has been set as an option'
-    // )}
   }
 }
 

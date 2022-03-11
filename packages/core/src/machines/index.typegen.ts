@@ -33,6 +33,7 @@ export interface Typegen0 {
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.registerUser'
       | 'done.invoke.authenticateWithToken'
+    saveRefreshToken: 'done.invoke.importRefreshToken'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL'
     saveInvalidPassword: 'SIGNIN_PASSWORD'
     saveInvalidPhoneNumber: 'SIGNIN_PASSWORDLESS_SMS' | 'SIGNIN_PASSWORDLESS_SMS_OTP'
@@ -107,6 +108,11 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     '': { type: '' }
+    'done.invoke.importRefreshToken': {
+      type: 'done.invoke.importRefreshToken'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
       data: unknown
@@ -136,8 +142,12 @@ export interface Typegen0 {
       type: 'error.platform.authenticateWithToken'
       data: unknown
     }
-    'xstate.init': { type: 'xstate.init' }
     'error.platform.autoSignIn': { type: 'error.platform.autoSignIn'; data: unknown }
+    'xstate.init': { type: 'xstate.init' }
+    'error.platform.importRefreshToken': {
+      type: 'error.platform.importRefreshToken'
+      data: unknown
+    }
     'done.invoke.signingOut': {
       type: 'done.invoke.signingOut'
       data: unknown
@@ -158,6 +168,7 @@ export interface Typegen0 {
   }
   invokeSrcNameMap: {
     autoSignIn: 'done.invoke.autoSignIn'
+    importRefreshToken: 'done.invoke.importRefreshToken'
     signout: 'done.invoke.signingOut'
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPasswordlessSms: 'done.invoke.authenticatePasswordlessSms'
@@ -177,6 +188,7 @@ export interface Typegen0 {
   eventsCausingServices: {
     refreshToken: 'TRY_TOKEN' | ''
     autoSignIn: 'xstate.init'
+    importRefreshToken: 'error.platform.autoSignIn' | ''
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     signInPasswordlessSms: 'SIGNIN_PASSWORDLESS_SMS'
@@ -206,6 +218,7 @@ export interface Typegen0 {
   matchesStates:
     | 'authentication'
     | 'authentication.checkAutoSignIn'
+    | 'authentication.importingRefreshToken'
     | 'authentication.starting'
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
@@ -247,6 +260,7 @@ export interface Typegen0 {
     | {
         authentication?:
           | 'checkAutoSignIn'
+          | 'importingRefreshToken'
           | 'starting'
           | 'signedOut'
           | 'authenticating'

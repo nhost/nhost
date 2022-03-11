@@ -1,6 +1,5 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { BroadcastChannel } from 'broadcast-channel'
-import produce from 'immer'
 import { assign, createMachine, send } from 'xstate'
 
 import {
@@ -65,11 +64,7 @@ export const createAuthMachine = ({
         events: {} as AuthEvents
       },
       tsTypes: {} as import("./index.typegen").Typegen0,
-      context: produce<AuthContext>(INITIAL_MACHINE_CONTEXT, (ctx) => {
-        const expiresAt = storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
-        if (expiresAt) ctx.accessToken.expiresAt = new Date(expiresAt)
-        ctx.refreshToken.value = storageGetter(NHOST_REFRESH_TOKEN_KEY)
-      }),
+      context: INITIAL_MACHINE_CONTEXT,
       preserveActionOrder: true,
       id: 'nhost',
       type: 'parallel',
@@ -88,18 +83,24 @@ export const createAuthMachine = ({
           },
           states: {
             checkAutoSignIn: {
-              always: [{ cond: 'isAutoSignInDisabled', target: 'starting' }],
-              invoke: [
-                {
-                  id: 'autoSignIn',
-                  src: 'autoSignIn',
-                  onDone: {
-                    target: 'signedIn',
-                    actions: ['saveSession', 'persist', 'reportTokenChanged']
-                  },
-                  onError: 'starting'
-                }
-              ]
+              always: [{ cond: 'isAutoSignInDisabled', target: 'importingRefreshToken' }],
+              invoke:
+              {
+                id: 'autoSignIn',
+                src: 'autoSignIn',
+                onDone: {
+                  target: 'signedIn',
+                  actions: ['saveSession', 'persist', 'reportTokenChanged']
+                },
+                onError: 'importingRefreshToken'
+              }
+            },
+            importingRefreshToken: {
+              invoke: {
+                id: 'importRefreshToken',
+                src: 'importRefreshToken',
+                onDone: { actions: 'saveRefreshToken', target: 'starting' }
+              }
             },
             starting: {
               always: [
@@ -525,6 +526,11 @@ export const createAuthMachine = ({
         saveNoMfaTicketError: assign({
           errors: ({ errors }) => ({ ...errors, registration: NO_MFA_TICKET_ERROR })
         }),
+        saveRefreshToken: assign({
+          accessToken: (ctx, e: any) => ({ ...ctx.accessToken, expiresAt: e.data.expiresAt }),
+          refreshToken: (ctx, e: any) => ({ ...ctx.refreshToken, value: e.data.refreshToken }),
+
+        }),
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }: any) => {
           storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
@@ -660,6 +666,12 @@ export const createAuthMachine = ({
             }
           }
           throw Error()
+        },
+        importRefreshToken: async () => {
+          const stringExpiresAt = await storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
+          const expiresAt = stringExpiresAt ? new Date(stringExpiresAt) : null
+          const refreshToken = await storageGetter(NHOST_REFRESH_TOKEN_KEY)
+          return { refreshToken, expiresAt }
         }
       }
     }

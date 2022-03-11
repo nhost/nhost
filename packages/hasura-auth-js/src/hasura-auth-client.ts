@@ -60,7 +60,6 @@ export class HasuraAuthClient {
     url,
     autoRefreshToken = true,
     autoLogin = true,
-    refreshIntervalTime,
     clientStorage,
     clientStorageType = 'web',
     start = true,
