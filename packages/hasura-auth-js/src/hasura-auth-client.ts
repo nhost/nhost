@@ -222,8 +222,14 @@ export class HasuraAuthClient {
     provider?: string
   }> {
     if ('provider' in params) {
-      const { provider } = params
-      const providerUrl = `${this.url}/signin/provider/${provider}`
+      const { provider, options } = params
+
+      let providerUrl = `${this.url}/signin/provider/${provider}`
+
+      // add redirect url if exists
+      if (options?.redirectTo) {
+        providerUrl += `?redirectTo=${options.redirectTo}`
+      }
 
       if (isBrowser()) {
         window.location.href = providerUrl
