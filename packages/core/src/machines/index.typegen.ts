@@ -24,6 +24,15 @@ export interface Typegen0 {
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
     resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
+    reportTokenChanged:
+      | 'SESSION_UPDATE'
+      | 'done.invoke.autoSignIn'
+      | 'done.invoke.authenticatePasswordlessSmsOtp'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.registerUser'
+      | 'done.invoke.authenticateWithToken'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL'
     saveInvalidPassword: 'SIGNIN_PASSWORD'
     saveInvalidPhoneNumber: 'SIGNIN_PASSWORDLESS_SMS' | 'SIGNIN_PASSWORDLESS_SMS_OTP'
@@ -40,10 +49,21 @@ export interface Typegen0 {
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     saveRegisrationError: 'error.platform.registerUser'
     tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
+    reportSignedOut: '' | 'error.platform.authenticateWithToken'
     resetAuthenticationError: 'xstate.init'
     clearContext: 'xstate.init'
     destroyToken: 'SIGNOUT'
     resetSignUpError: 'SIGNUP_EMAIL_PASSWORD'
+    reportSignedIn:
+      | 'SESSION_UPDATE'
+      | 'done.invoke.autoSignIn'
+      | ''
+      | 'done.invoke.authenticatePasswordlessSmsOtp'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.registerUser'
+      | 'done.invoke.authenticateWithToken'
   }
   internalEvents: {
     'done.invoke.autoSignIn': {
@@ -112,6 +132,10 @@ export interface Typegen0 {
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
+    'error.platform.authenticateWithToken': {
+      type: 'error.platform.authenticateWithToken'
+      data: unknown
+    }
     'xstate.init': { type: 'xstate.init' }
     'error.platform.autoSignIn': { type: 'error.platform.autoSignIn'; data: unknown }
     'done.invoke.signingOut': {
@@ -131,10 +155,6 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
-    'error.platform.authenticateWithToken': {
-      type: 'error.platform.authenticateWithToken'
-      data: unknown
-    }
   }
   invokeSrcNameMap: {
     autoSignIn: 'done.invoke.autoSignIn'

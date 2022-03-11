@@ -27,3 +27,6 @@ export type AuthEvents =
   | { type: 'TOKEN_REFRESH_ERROR'; error: ErrorPayload }
   | { type: 'SIGNOUT'; all?: boolean }
   | { type: 'SIGNIN_MFA_TOTP', ticket?: string, otp?: string }
+  | { type: "SIGNED_IN" }
+  | { type: "SIGNED_OUT" }
+  | { type: "TOKEN_CHANGED" }

@@ -54,6 +54,7 @@ const EMAIL_NEEDS_VERIFICATION: ApiError = {
 export class HasuraAuthClient {
   #client: AuthClient
   private onTokenChangedSubscriptions: Set<AuthInterpreter> = new Set()
+  private onAuthStateChangedSubscriptions: Set<AuthInterpreter> = new Set()
 
   constructor({
     url,
@@ -79,7 +80,7 @@ export class HasuraAuthClient {
       backendUrl: url,
       autoRefreshToken,
       autoSignIn: autoLogin,
-      start,
+      start
       // TODO
       // storageGetter: () => {
       //   return null
@@ -294,7 +295,8 @@ export class HasuraAuthClient {
       interpreter.send({ type: 'SIGNOUT', all: params?.all })
       interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) resolve({ error: null })
-        else if (state.matches({ authentication: { signedOut: 'failed' } })) resolve({ error: state.context.errors.signout || null })
+        else if (state.matches({ authentication: { signedOut: 'failed' } }))
+          resolve({ error: state.context.errors.signout || null })
       })
     })
   }
@@ -440,12 +442,10 @@ export class HasuraAuthClient {
   onTokenChanged(fn: OnTokenChangedFunction): Function {
     if (this.#client.interpreter)
       this.onTokenChangedSubscriptions.add(
-        this.#client.interpreter?.onTransition((state) => {
-          // TODO ONLY WHEN TOKEN CHANGED
-          fn(this.getSession())
+        this.#client.interpreter?.onTransition(({ event }) => {
+          if (event.type === 'TOKEN_CHANGED') fn(this.getSession())
         })
       )
-
     return () => {
       this.onTokenChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
@@ -465,16 +465,14 @@ export class HasuraAuthClient {
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
     if (this.#client.interpreter)
-      this.onTokenChangedSubscriptions.add(
-        this.#client.interpreter?.onTransition((state) => {
-          // TODO ONLY WHEN AUTH STATUS CHANGED
-          fn('SIGNED_IN', this.getSession())
-          fn('SIGNED_OUT', this.getSession())
+      this.onAuthStateChangedSubscriptions.add(
+        this.#client.interpreter?.onTransition(({ event }) => {
+          if (event.type === 'SIGNED_IN') fn('SIGNED_IN', this.getSession())
+          else if (event.type === 'SIGNED_OUT') fn('SIGNED_OUT', this.getSession())
         })
       )
-
     return () => {
-      this.onTokenChangedSubscriptions.forEach((subscription) => subscription.stop())
+      this.onAuthStateChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
   }
 
@@ -588,7 +586,6 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async refreshSession(refreshToken?: string): Promise<void> {
-    // TODO
     // TODO 'force' refresh when refreshToken is undefined
     // TODO wait for the result
     /* 

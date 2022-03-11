@@ -1,7 +1,7 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
 import { BroadcastChannel } from 'broadcast-channel'
 import produce from 'immer'
-import { assign, createMachine } from 'xstate'
+import { assign, createMachine, send } from 'xstate'
 
 import {
   MIN_TOKEN_REFRESH_INTERVAL,
@@ -81,7 +81,7 @@ export const createAuthMachine = ({
             SESSION_UPDATE: [
               {
                 cond: 'hasSession',
-                actions: ['saveSession', 'persist', 'resetTimer'],
+                actions: ['saveSession', 'persist', 'resetTimer', 'reportTokenChanged'],
                 target: '.signedIn'
               }
             ]
@@ -95,7 +95,7 @@ export const createAuthMachine = ({
                   src: 'autoSignIn',
                   onDone: {
                     target: 'signedIn',
-                    actions: ['saveSession', 'persist']
+                    actions: ['saveSession', 'persist', 'reportTokenChanged']
                   },
                   onError: 'starting'
                 }
@@ -117,6 +117,7 @@ export const createAuthMachine = ({
             signedOut: {
               tags: ['ready'],
               initial: 'noErrors',
+              entry: 'reportSignedOut',
               states: {
                 noErrors: {},
                 success: {},
@@ -244,7 +245,7 @@ export const createAuthMachine = ({
                     src: 'signInPasswordlessSmsOtp',
                     id: 'authenticatePasswordlessSmsOtp',
                     onDone: {
-                      actions: ['saveSession', 'persist'],
+                      actions: ['saveSession', 'persist', 'reportTokenChanged'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: {
@@ -264,7 +265,7 @@ export const createAuthMachine = ({
                         target: '#nhost.authentication.signedOut.needsMfa'
                       },
                       {
-                        actions: ['saveSession', 'persist'],
+                        actions: ['saveSession', 'persist', 'reportTokenChanged'],
                         target: '#nhost.authentication.signedIn'
                       }
                     ],
@@ -286,7 +287,7 @@ export const createAuthMachine = ({
                     src: 'signInAnonymous',
                     id: 'authenticateAnonymously',
                     onDone: {
-                      actions: ['saveSession', 'persist'],
+                      actions: ['saveSession', 'persist', 'reportTokenChanged'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: {
@@ -302,7 +303,7 @@ export const createAuthMachine = ({
                         src: 'signInMfaTotp',
                         id: 'signInMfaTotp',
                         onDone: {
-                          actions: ['saveSession', 'persist'],
+                          actions: ['saveSession', 'persist', 'reportTokenChanged'],
                           target: '#nhost.authentication.signedIn'
                         },
                         onError: {
@@ -324,7 +325,7 @@ export const createAuthMachine = ({
                   {
                     cond: 'hasSession',
                     target: '#nhost.authentication.signedIn',
-                    actions: ['saveSession', 'persist']
+                    actions: ['saveSession', 'persist', 'reportTokenChanged']
                   },
                   {
                     target: '#nhost.authentication.signedOut.needsEmailVerification'
@@ -346,6 +347,7 @@ export const createAuthMachine = ({
             signedIn: {
               tags: ['ready'],
               type: 'parallel',
+              entry: 'reportSignedIn',
               on: {
                 SIGNOUT: '#nhost.authentication.signedOut.signingOut',
                 DEANONYMIZE: {
@@ -438,7 +440,7 @@ export const createAuthMachine = ({
                 src: 'refreshToken',
                 id: 'authenticateWithToken',
                 onDone: {
-                  actions: ['saveSession', 'persist'],
+                  actions: ['saveSession', 'persist', 'reportTokenChanged'],
                   target: ['#nhost.authentication.signedIn', 'idle']
                 },
                 onError: {
@@ -452,6 +454,9 @@ export const createAuthMachine = ({
     },
     {
       actions: {
+        reportSignedIn: send('SIGNED_IN'),
+        reportSignedOut: send('SIGNED_OUT'),
+        reportTokenChanged: send("TOKEN_CHANGED"),
         // TODO better naming
         clearContext: assign(() => INITIAL_MACHINE_CONTEXT),
 
