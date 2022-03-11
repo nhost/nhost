@@ -27,7 +27,7 @@ Under the hood, `NhostClient` uses cookies to store the refresh token, and disab
 // {project-root}/pages/_app.tsx
 import type { AppProps } from 'next/app'
 
-import { NhostClient, NhostProvider } from '@nhost/nextjs'
+import { NhostClient, NhostReactProvider } from '@nhost/nextjs'
 
 import Header from '../components/Header'
 
@@ -35,12 +35,12 @@ const nhost = new NhostClient({ backendUrl: 'my-app.nhost.run' })
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
+    <NhostReactProvider nhost={nhost} initial={pageProps.nhostSession}>
       <div>
         <Header />
         <Component {...pageProps} />
       </div>
-    </NhostProvider>
+    </NhostReactProvider>
   )
 }
 

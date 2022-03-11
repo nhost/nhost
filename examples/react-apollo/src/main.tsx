@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
-import { NhostClient, NhostProvider } from '@nhost/react'
+import { NhostClient, NhostReactProvider } from '@nhost/react'
 import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
 
 import { BrowserRouter } from 'react-router-dom'
@@ -14,11 +14,11 @@ const nhost = new NhostClient({
 ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
-      <NhostProvider nhost={nhost}>
+      <NhostReactProvider nhost={nhost}>
         <NhostApolloProvider>
           <App />
         </NhostApolloProvider>
-      </NhostProvider>
+      </NhostReactProvider>
     </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')

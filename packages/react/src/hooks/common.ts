@@ -7,7 +7,7 @@ import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-export const useNhost = (): NhostClient => {
+export const useNhostClient = (): NhostClient => {
   const nhost = useContext(NhostReactContext)
   return nhost
 }

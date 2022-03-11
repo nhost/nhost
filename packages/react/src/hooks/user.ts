@@ -12,10 +12,10 @@ import {
 } from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/react'
 
-import { useAuthInterpreter, useNhost } from './common'
+import { useAuthInterpreter, useNhostClient } from './common'
 
 export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOptions) => {
-  const nhost = useNhost()
+  const nhost = useNhostClient()
   const machine = useMemo(() => createChangeEmailMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
 
@@ -34,7 +34,7 @@ export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOp
 }
 
 export const useChangePassword = (statePassword?: string) => {
-  const nhost = useNhost()
+  const nhost = useNhostClient()
   const machine = useMemo(() => createChangePasswordMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
   const isError = current.matches({ idle: 'error' })
@@ -52,7 +52,7 @@ export const useChangePassword = (statePassword?: string) => {
 }
 
 export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswordOptions) => {
-  const nhost = useNhost()
+  const nhost = useNhostClient()
   const machine = useMemo(() => createResetPasswordMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
   const isError = current.matches({ idle: 'error' })
@@ -118,7 +118,7 @@ export const useSendEmailVerification = (
   stateEmail?: string,
   stateOptions?: SendVerificationEmailOptions
 ) => {
-  const nhost = useNhost()
+  const nhost = useNhostClient()
   const machine = useMemo(() => createSendVerificationEmailMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
   const isError = current.matches({ idle: 'error' })
@@ -136,7 +136,7 @@ export const useSendEmailVerification = (
 }
 
 export const useConfigMfa = (stateCode?: string) => {
-  const nhost = useNhost()
+  const nhost = useNhostClient()
 
   const machine = useMemo(() => createEnableMfaMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)

@@ -18,14 +18,14 @@ npm install @nhost/react @nhost/react-apollo
 
 ## Configuration
 
-Let's add a `NhostApolloProvider`. Make sure the Apollo Provider is nested into `NhostProvider`, as it will need the Nhost context to determine the authentication headers to be sent to the GraphQL endpoint.
+Let's add a `NhostApolloProvider`. Make sure the Apollo Provider is nested into `NhostReactProvider`, as it will need the Nhost context to determine the authentication headers to be sent to the GraphQL endpoint.
 
 ```jsx
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 import { NhostApolloProvider } from '@nhost/react-apollo'
-import { NhostClient, NhostProvider } from '@nhost/react'
+import { NhostClient, NhostReactProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
   backendUrl: 'http://localhost:1337'
@@ -33,11 +33,11 @@ const nhost = new NhostClient({
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostProvider nhost={nhost}>
+    <NhostReactProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>
         <App />
       </NhostApolloProvider>
-    </NhostProvider>
+    </NhostReactProvider>
   </React.StrictMode>,
   document.getElementById('root')
 )

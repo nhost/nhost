@@ -8,7 +8,7 @@ import { useInterpret } from '@xstate/react'
 export const NhostReactContext = createContext<NhostClient>({} as NhostClient)
 
 // TODO create a NhostClient in @nhost/react that uses {start: false} as an option
-export const NhostProvider: React.FC<{
+export const NhostReactProvider: React.FC<{
   nhost: NhostClient
   initial?: NhostSession
 }> = ({ nhost, initial, ...props }) => {
