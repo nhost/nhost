@@ -63,7 +63,8 @@ export class HasuraAuthClient {
     refreshIntervalTime,
     clientStorage,
     clientStorageType = 'web',
-    start = true
+    start = true,
+    Client = AuthClient
   }: {
     url: string
     autoRefreshToken?: boolean
@@ -71,12 +72,13 @@ export class HasuraAuthClient {
     refreshIntervalTime?: number
     clientStorage?: ClientStorage
     clientStorageType?: ClientStorageType
-    start?: boolean
+    start?: boolean,
+    Client?: typeof AuthClient
   }) {
     // TODO refreshIntervalTime
     // TODO custom clientStorage and clientStorageType
     // ? no warning when using with Nodejs?
-    this.#client = new AuthClient({
+    this.#client = new Client({
       backendUrl: url,
       autoRefreshToken,
       autoSignIn: autoLogin,

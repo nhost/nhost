@@ -3,11 +3,11 @@ import { cookieStorageGetter, cookieStorageSetter } from './storage'
 const isBrowser = typeof window !== undefined
 
 export class AuthClientSSR extends AuthClient {
-  constructor({ backendUrl }: NhostClientOptions) {
+  constructor({ ...options }: Omit<NhostClientOptions, 'storageGetter' | 'storageSetter'>) {
     super({
-      backendUrl,
-      autoSignIn: isBrowser,
-      autoRefreshToken: isBrowser,
+      ...options,
+      autoSignIn: isBrowser && options.autoSignIn,
+      autoRefreshToken: isBrowser && options.autoRefreshToken,
       storageGetter: cookieStorageGetter,
       storageSetter: cookieStorageSetter
     })

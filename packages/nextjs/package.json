@@ -50,6 +50,7 @@
     "dist"
   ],
   "dependencies": {
+    "@nhost/nhost-js": "workspace:*",
     "cookies": "^0.8.0"
   },
   "peerDependencies": {

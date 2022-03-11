@@ -1,6 +1,7 @@
 import { ClientStorage, ClientStorageType, HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
+import { AuthClient } from '../../../hasura-auth-js/node_modules/@nhost/core/src'
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 
@@ -12,6 +13,7 @@ export interface NhostClientConstructorParams {
   autoRefreshToken?: boolean
   autoLogin?: boolean
   start?: boolean
+  Client?: typeof AuthClient
 }
 
 export class NhostClient {
@@ -35,7 +37,8 @@ export class NhostClient {
     clientStorageType,
     autoRefreshToken,
     autoLogin,
-    start = true
+    start = true,
+    Client
   }: NhostClientConstructorParams) {
     if (!backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
     this.auth = new HasuraAuthClient({
@@ -45,7 +48,8 @@ export class NhostClient {
       clientStorageType,
       autoRefreshToken,
       autoLogin,
-      start
+      start,
+      Client
     })
 
     this.storage = new HasuraStorageClient({
