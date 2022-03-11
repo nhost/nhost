@@ -1,7 +1,7 @@
 import produce from 'immer'
 import React, { createContext, useEffect, useRef } from 'react'
 
-import { NhostContext, NhostSession } from '@nhost/core'
+import { AuthContext, NhostSession } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
 import { useInterpret } from '@xstate/react'
 
@@ -15,7 +15,7 @@ export const NhostProvider: React.FC<{
   const machine = nhost.auth.client.machine
   const interpreter = useInterpret(machine, {
     devTools: typeof window !== 'undefined' && process.env.NODE_ENV === 'development',
-    context: produce<NhostContext>(machine.context, (ctx: NhostContext) => {
+    context: produce<AuthContext>(machine.context, (ctx: AuthContext) => {
       if (initial) {
         ctx.user = initial.user
         ctx.refreshToken.value = initial.refreshToken ?? null

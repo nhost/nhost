@@ -20,10 +20,10 @@ import { StorageGetter, StorageSetter } from '../storage'
 import { Mfa, NhostSession } from '../types'
 import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
 
-import { INITIAL_MACHINE_CONTEXT, NhostContext } from './context'
-import { NhostEvents } from './events'
+import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
+import { AuthEvents } from './events'
 
-export type { NhostContext, NhostEvents }
+export type { AuthContext, AuthEvents }
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'
@@ -61,11 +61,11 @@ export const createAuthMachine = ({
   return createMachine(
     {
       schema: {
-        context: {} as NhostContext,
-        events: {} as NhostEvents
+        context: {} as AuthContext,
+        events: {} as AuthEvents
       },
       tsTypes: {} as import("./index.typegen").Typegen0,
-      context: produce<NhostContext>(INITIAL_MACHINE_CONTEXT, (ctx) => {
+      context: produce<AuthContext>(INITIAL_MACHINE_CONTEXT, (ctx) => {
         const expiresAt = storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
         if (expiresAt) ctx.accessToken.expiresAt = new Date(expiresAt)
         ctx.refreshToken.value = storageGetter(NHOST_REFRESH_TOKEN_KEY)

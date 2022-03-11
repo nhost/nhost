@@ -1,7 +1,7 @@
 import type { ErrorPayload } from '../errors'
 import type { DeanonymizeOptions, NhostSession, PasswordlessOptions, SignUpOptions } from '../types'
 
-export type NhostEvents =
+export type AuthEvents =
   | { type: 'SESSION_UPDATE'; data: { session: NhostSession } }
   | { type: 'TRY_TOKEN'; token: string }
   | { type: 'SIGNIN_ANONYMOUS' }

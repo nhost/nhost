@@ -1,7 +1,7 @@
 import type { ErrorPayload } from '../errors'
 import { User } from '../types'
 
-export type NhostContext = {
+export type AuthContext = {
   user: User | null
   mfa: {
     ticket: string
@@ -20,7 +20,7 @@ export type NhostContext = {
   errors: Partial<Record<'registration' | 'authentication' | 'signout', ErrorPayload>>
 }
 
-export const INITIAL_MACHINE_CONTEXT: NhostContext = {
+export const INITIAL_MACHINE_CONTEXT: AuthContext = {
   user: null,
   mfa: null,
   accessToken: {
