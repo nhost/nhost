@@ -78,12 +78,14 @@ export interface SignInPasswordlessSmsOtpParams {
 }
 
 export type Provider =
-  | 'apple'
   | 'facebook'
   | 'github'
   | 'google'
   | 'linkedin'
   | 'spotify'
+  | 'discord'
+  | 'twitch'
+  | 'apple'
   | 'twitter'
   | 'windowslive'
 
