@@ -3,20 +3,20 @@ mutation insertProviderRequest(
 ) {
   insertAuthProviderRequest(object: $providerRequest) {
     id
-    redirectUrl
+    options
   }
 }
 
 mutation deleteProviderRequest($id: uuid!) {
   deleteAuthProviderRequest(id: $id) {
     id
-    redirectUrl
+    options
   }
 }
 
 query providerRequest($id: uuid!) {
   authProviderRequest(id: $id) {
     id
-    redirectUrl
+    options
   }
 }

@@ -1,3 +1,4 @@
+import { UserRegistrationOptions } from '@/types';
 import Joi from 'joi';
 import {
   locale,
@@ -149,11 +150,21 @@ export const tokenSchema = Joi.object({
 // -----------
 
 export const providerQuery = Joi.object({
-  redirectUrl: Joi.string(),
+  redirectTo: Joi.string(),
+  locale,
+  defaultRole,
+  allowedRoles: Joi.string(), // this must be a string because it is a comma separated list in the query (URL)
+  displayName,
+  metadata: Joi.string(),
 });
 
-export type ProviderQuery = {
-  redirectUrl?: string;
+export type ProviderQuery = UserRegistrationOptions & {
+  redirectTo?: string;
+  locale?: string;
+  allowedRoles?: string;
+  defaultRole?: string;
+  displayName?: string;
+  metadata?: string;
 };
 
 export const providerCallbackQuery = Joi.object({

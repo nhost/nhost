@@ -458,7 +458,7 @@ export const applyMetadata = async (): Promise<void> => {
       custom_column_names: {
         // * See: https://github.com/hasura/graphql-engine/issues/8020
         // id: 'id',
-        redirect_url: 'redirectUrl',
+        // redirect_url: 'redirectUrl',
       },
     },
   });

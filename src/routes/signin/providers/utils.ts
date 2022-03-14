@@ -16,6 +16,7 @@ import refresh from 'passport-oauth2-refresh';
 import { Strategy } from 'passport';
 import { v4 as uuidv4 } from 'uuid';
 
+import { UserRegistrationOptions } from '@/types';
 import { PROVIDERS } from '@config/index';
 import {
   asyncWrapper,
@@ -35,6 +36,7 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 import { isValidEmail } from '@/utils/email';
 import { insertUser } from '@/utils/user';
+import { isRolesValid } from '@/utils/roles';
 
 interface RequestWithState<T extends ValidatedRequestSchema>
   extends ValidatedRequest<T> {
@@ -65,9 +67,13 @@ const manageProviderStrategy =
     profile: Profile,
     done: VerifyCallback
   ): Promise<void> => {
-    req.state = req.query.state as string;
+    const state = req.query.state as string;
 
-    // TODO How do we handle auth_signup_profile_fields with OAuth?
+    const requestOptions = await gqlSdk
+      .providerRequest({
+        id: state,
+      })
+      .then((res) => res.authProviderRequest?.options);
 
     // find or create the user
     // check if user exists, using profile.id
@@ -126,19 +132,22 @@ const manageProviderStrategy =
       }
     }
 
+    const { defaultRole, locale, allowedRoles, metadata } = requestOptions;
+
     const insertedUser = await insertUser({
       email,
       passwordHash: null,
       emailVerified: true,
-      defaultRole: ENV.AUTH_USER_DEFAULT_ROLE,
-      locale: ENV.AUTH_LOCALE_DEFAULT,
+      defaultRole: defaultRole,
+      locale,
       roles: {
-        data: ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.map((role) => ({
+        data: (allowedRoles as string[]).map((role) => ({
           role,
         })),
       },
-      displayName: displayName || email,
+      displayName: requestOptions.displayName || displayName || email,
       avatarUrl,
+      metadata,
       userProviders: {
         data: [
           {
@@ -164,18 +173,18 @@ const providerCallback = asyncWrapper(
 
     req.state = req.query.state as string;
 
-    const redirectUrl = await gqlSdk
+    const requestOptions = await gqlSdk
       .deleteProviderRequest({
         id: req.state,
       })
-      .then((res) => res.deleteAuthProviderRequest?.redirectUrl);
+      .then((res) => res.deleteAuthProviderRequest?.options);
 
     const user = req.user as UserFieldsFragment;
 
     const refreshToken = await getNewRefreshToken(user.id);
 
     // redirect back user to app url
-    res.redirect(`${redirectUrl}#refreshToken=${refreshToken}`);
+    res.redirect(`${requestOptions.redirectTo}#refreshToken=${refreshToken}`);
   }
 );
 
@@ -252,6 +261,12 @@ export const initProvider = <T extends Strategy>(
       ) => {
         req.state = uuidv4();
 
+        // create request metadata object
+        const requestOptions: UserRegistrationOptions & {
+          redirectTo?: string;
+        } = {};
+
+        // redirectTo
         const redirectTo =
           'redirectTo' in req.query
             ? (req.query.redirectTo as string)
@@ -267,10 +282,46 @@ export const initProvider = <T extends Strategy>(
           );
         }
 
+        requestOptions.redirectTo = redirectTo;
+
+        // locale
+        const locale = (req.query.locale as string) ?? ENV.AUTH_LOCALE_DEFAULT;
+        requestOptions.locale = locale;
+
+        // roles
+        const defaultRole = req.query.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
+
+        // req.query.allowedRoles is a string with comma separated roles
+        const allowedRoles =
+          (req.query.allowedRoles as string)?.split(',') ??
+          ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
+
+        if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
+          return;
+        }
+
+        requestOptions.defaultRole = defaultRole;
+        requestOptions.allowedRoles = allowedRoles;
+
+        // displayName
+        if (req.query.displayName) {
+          requestOptions.displayName = req.query.displayName;
+        }
+
+        // metadata
+        if (req.query.metadata) {
+          try {
+            requestOptions.metadata = JSON.parse(req.query.metadata as string);
+          } catch (error) {
+            return res.boom.badRequest('metadata is not valid JSON');
+          }
+        }
+
+        // insert request metadata object with the request state as id
         await gqlSdk.insertProviderRequest({
           providerRequest: {
             id: req.state,
-            redirectUrl: redirectTo,
+            options: requestOptions,
           },
         });
 
