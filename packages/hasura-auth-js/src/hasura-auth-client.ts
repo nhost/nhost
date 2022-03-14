@@ -458,7 +458,7 @@ export class HasuraAuthClient {
    * vice versa.
    *
    * @example
-   * auth.onAuthStateChanged(({event, session}) => {
+   * auth.onAuthStateChanged((event, session) => {
    *   console.log(`auth state changed. State is not ${event} with session: ${session}`)
    * });
    *
