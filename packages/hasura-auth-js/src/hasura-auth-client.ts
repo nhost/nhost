@@ -231,13 +231,13 @@ export class HasuraAuthClient {
         providerUrl += `?`
 
         if (options.locale) {
-          providerUrl += `locale=${options.locale}&`
+          providerUrl += `locale=${encodeURIComponent(options.locale)}&`
         }
         if (options.allowedRoles) {
           providerUrl += `allowedRoles=${encodeURIComponent(options.allowedRoles.join(','))}&`
         }
         if (options.defaultRole) {
-          providerUrl += `defaultRole=${options.defaultRole}&`
+          providerUrl += `defaultRole=${encodeURIComponent(options.defaultRole)}&`
         }
         if (options.displayName) {
           providerUrl += `displayName=${encodeURIComponent(options.displayName)}&`
