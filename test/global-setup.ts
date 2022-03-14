@@ -1,4 +1,5 @@
 require('tsconfig-paths/register');
+require('dotenv').config()
 import { Client } from 'pg';
 
 import { applyMetadata } from '@/metadata';
