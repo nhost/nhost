@@ -1,4 +1,16 @@
-undefined
+
+
+# [0.4.0](https://github.com/nhost/hasura-auth/compare/v0.3.2...v0.4.0) (2022-03-14)
+
+
+### Bug Fixes
+
+* provider requests signup data and redirectTo ([#108](https://github.com/nhost/hasura-auth/issues/108)) ([068f9c0](https://github.com/nhost/hasura-auth/commit/068f9c0d650b655656d78af4b719dc2289be0e67))
+
+
+### Features
+
+* error redirects ([#109](https://github.com/nhost/hasura-auth/issues/109)) ([0dcb370](https://github.com/nhost/hasura-auth/commit/0dcb37028ec19cfd546a5c847a7e13f8ea9a5195))undefined
 
 ## [0.3.2](https://github.com/nhost/hasura-auth/compare/v0.3.1...v0.3.2) (2022-03-09)
 
