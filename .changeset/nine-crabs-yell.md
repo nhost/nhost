@@ -3,4 +3,4 @@
 '@nhost/react': minor
 ---
 
-Add useSendEmailVerification and useConfigMfa hooks
+Add useSendVerificationEmail, anonymousSignIn, and useConfigMfa hooks

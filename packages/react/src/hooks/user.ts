@@ -114,7 +114,7 @@ export const useUserRoles = () => {
   return useSelector(service, (state) => state.context.user?.roles || [])
 }
 
-export const useSendEmailVerification = (
+export const useSendVerificationEmail = (
   stateEmail?: string,
   stateOptions?: SendVerificationEmailOptions
 ) => {

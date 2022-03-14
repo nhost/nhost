@@ -6,7 +6,7 @@ import { NavLink } from 'react-router-dom'
 export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { signIn, error } = useEmailPasswordSignIn(email, password)
+  const { emailPasswordSignIn, error } = useEmailPasswordSignIn(email, password)
 
   const [errorMessage, setErrorMessage] = useState('')
   // * Set error message from the authentication hook errors
@@ -43,7 +43,7 @@ export const EmailPassword: React.FC = () => {
         </Message>
       )}
 
-      <Button appearance="primary" onClick={signIn} block>
+      <Button appearance="primary" onClick={emailPasswordSignIn} block>
         Sign in
       </Button>
       <Button as={NavLink} block to="/sign-in/forgot-password">

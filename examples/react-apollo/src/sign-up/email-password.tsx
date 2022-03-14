@@ -1,5 +1,5 @@
 import { Button, Input, Message } from 'rsuite'
-import { useEmailPasswordSignUp } from '@nhost/react'
+import { useSignUpEmailPassword } from '@nhost/react'
 import { useEffect, useMemo, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
@@ -14,7 +14,7 @@ export const EmailPassword: React.FC = () => {
   )
   const navigate = useNavigate()
   const [confirmPassword, setConfirmPassword] = useState('')
-  const { signUp, error, needsEmailVerification, isSuccess } = useEmailPasswordSignUp(
+  const { signUpEmailPassword, error, needsEmailVerification, isSuccess } = useSignUpEmailPassword(
     email,
     password,
     options
@@ -91,7 +91,7 @@ export const EmailPassword: React.FC = () => {
         appearance="primary"
         onClick={() => {
           setErrorMessage('')
-          signUp()
+          signUpEmailPassword()
         }}
         block
       >

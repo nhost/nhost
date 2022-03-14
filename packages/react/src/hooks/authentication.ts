@@ -4,16 +4,23 @@ import { useSelector } from '@xstate/react'
 import { useNhostBackendUrl } from './common'
 import { useAuthenticated, useAuthInterpreter } from './common'
 
-export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: string, stateOtp?: string) => {
+export const useEmailPasswordSignIn = (
+  stateEmail?: string,
+  statePassword?: string,
+  stateOtp?: string
+) => {
   const service = useAuthInterpreter()
-  const signIn = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
+  const emailPasswordSignIn = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
     service.send({
       type: 'SIGNIN_PASSWORD',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
   const sendMfaOtp = (valueOtp?: string | unknown) => {
-    service.send({ type: 'SIGNIN_MFA_TOTP', otp: typeof valueOtp === 'string' ? valueOtp : stateOtp })
+    service.send({
+      type: 'SIGNIN_MFA_TOTP',
+      otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
+    })
   }
   const error = useSelector(service, (state) => state.context.errors.authentication)
   const isSuccess = useAuthenticated()
@@ -30,7 +37,16 @@ export const useEmailPasswordSignIn = (stateEmail?: string, statePassword?: stri
     state.matches({ authentication: { signedOut: 'failed' } })
   )
 
-  return { signIn, isLoading, isSuccess, needsEmailVerification, needsMfaOtp, sendMfaOtp, isError, error }
+  return {
+    emailPasswordSignIn,
+    isLoading,
+    isSuccess,
+    needsEmailVerification,
+    needsMfaOtp,
+    sendMfaOtp,
+    isError,
+    error
+  }
 }
 
 export const useEmailPasswordlessSignIn = (
@@ -38,7 +54,7 @@ export const useEmailPasswordlessSignIn = (
   stateOptions?: PasswordlessOptions
 ) => {
   const service = useAuthInterpreter()
-  const signIn = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+  const emailPasswordlessSignIn = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
@@ -56,14 +72,14 @@ export const useEmailPasswordlessSignIn = (
   const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedOut: 'failed' } })
   )
-  return { signIn, isLoading, isSuccess, isError, error }
+  return { emailPasswordlessSignIn, isLoading, isSuccess, isError, error }
 }
 
 // TODO documentation
 // TODO deanonymize
 export const useAnonymousSignIn = () => {
   const service = useAuthInterpreter()
-  const signIn = () => service.send('SIGNIN_ANONYMOUS')
+  const anonymousSignIn = () => service.send('SIGNIN_ANONYMOUS')
 
   const error = useSelector(service, (state) => state.context.errors.authentication)
   const isLoading = useSelector(service, (state) =>
@@ -74,7 +90,7 @@ export const useAnonymousSignIn = () => {
   const isError = useSelector(service, (state) =>
     state.matches({ authentication: { signedOut: 'failed' } })
   )
-  return { signIn, isLoading, isSuccess, isError, error }
+  return { anonymousSignIn, isLoading, isSuccess, isError, error }
 }
 
 export const useProviderLink = () => {
@@ -85,4 +101,3 @@ export const useProviderLink = () => {
     }
   })
 }
-

@@ -5,7 +5,7 @@ import { useSelector } from '@xstate/react'
 
 import { useAuthenticated, useAuthInterpreter, useAuthLoading } from './common'
 
-export const useEmailPasswordSignUp = (
+export const useSignUpEmailPassword = (
   stateEmail?: string,
   statePassword?: string,
   stateOptions?: SignUpOptions
@@ -22,7 +22,7 @@ export const useEmailPasswordSignUp = (
     state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
   )
 
-  const signUp = (
+  const signUpEmailPassword = (
     valueEmail?: string | unknown,
     valuePassword = statePassword,
     valueOptions = stateOptions
@@ -34,7 +34,7 @@ export const useEmailPasswordSignUp = (
       options: valueOptions
     })
   return {
-    signUp,
+    signUpEmailPassword,
     isLoading,
     isSuccess,
     isError,

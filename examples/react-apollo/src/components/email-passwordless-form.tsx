@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react'
 export const EmailPasswordlessForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
-  const { signIn, isError, isSuccess, error } = useEmailPasswordlessSignIn(email, {
+  const { emailPasswordlessSignIn, isError, isSuccess, error } = useEmailPasswordlessSignIn(email, {
     redirectTo: '/profile'
   })
   const [showError, setShowError] = useState(true)
@@ -42,7 +42,7 @@ export const EmailPasswordlessForm: React.FC = () => {
         style={{ marginTop: '0.5em' }}
         onClick={() => {
           setShowError(true)
-          signIn()
+          emailPasswordlessSignIn()
         }}
       >
         Continue with email
