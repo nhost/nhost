@@ -84,7 +84,7 @@ describe('user email', () => {
       .get(
         `/verify?ticket=${uuidv4()}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
-      .expect(401);
+      .expect(302);
 
     // confirm change email
     await request
@@ -159,7 +159,7 @@ describe('user email', () => {
       .get(
         `/verify?ticket=${uuidv4()}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
-      .expect(401);
+      .expect(302);
 
     // confirm change email
     await request

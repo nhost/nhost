@@ -1,3 +1,4 @@
+import { generateRedirectUrl } from '@/utils';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { getNewRefreshToken } from '@/utils/tokens';
 import { Request, Response } from 'express';
@@ -11,18 +12,29 @@ export const verifyHandler = async (
   const type = req.query.type as string;
   const redirectTo = req.query.redirectTo as string;
 
-  if (!ticket) {
-    return res.boom.badRequest('Missing ticket');
-  }
-
-  if (!type) {
-    return res.boom.badRequest('Missing type');
-  }
-
   if (!redirectTo) {
     return res.boom.badRequest('Missing redirectTo');
   }
 
+  if (!ticket) {
+    const redirectUrl = generateRedirectUrl(redirectTo, {
+      error: 'MissingVerificationTicket',
+      errorDescription: 'Missing verification ticket',
+    });
+
+    return res.redirect(redirectUrl);
+  }
+
+  if (!type) {
+    const redirectUrl = generateRedirectUrl(redirectTo, {
+      error: 'MissingVerificationType',
+      errorDescription: 'Missing verification type',
+    });
+
+    return res.redirect(redirectUrl);
+  }
+
+  // get the user from the ticket
   const user = await gqlSdk
     .users({
       where: {
@@ -43,7 +55,12 @@ export const verifyHandler = async (
     .then((gqlRes) => gqlRes.users[0]);
 
   if (!user) {
-    return res.boom.unauthorized('Invalid or expired ticket');
+    const redirectUrl = generateRedirectUrl(redirectTo, {
+      error: 'InvalidOrExpiredVerificationTicket',
+      errorDescription: 'Invalid or expired verification ticket',
+    });
+
+    return res.redirect(redirectUrl);
   }
 
   // user found, delete current ticket
@@ -80,13 +97,16 @@ export const verifyHandler = async (
     });
   } else if (type === 'passwordReset') {
     // noop
+    // just redirecting the user to the client (as signed-in).
   }
 
   const refreshToken = await getNewRefreshToken(user.id);
 
-  // TODO: Get redirectTo url from user that can be set from the client. if
-  // `redirectTo` is set, use that one instead of `AUTH_CLIENT_URL`
-  return res.redirect(
-    `${redirectTo}#refreshToken=${refreshToken}&type=${type}`
+  const redirectUrl = generateRedirectUrl(
+    redirectTo,
+    {},
+    `#refreshToken=${refreshToken}&type=${type}`
   );
+
+  return res.redirect(redirectUrl);
 };
