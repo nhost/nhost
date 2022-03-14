@@ -17,7 +17,6 @@ import {
   ApiError,
   ApiResetPasswordResponse,
   ApiSendVerificationEmailResponse,
-  ApiSignInResponse,
   ApiSignOutResponse,
   AuthChangedFunction,
   ChangeEmailParams,
@@ -300,21 +299,6 @@ export class HasuraAuthClient {
           resolve({ error: state.context.errors.signout || null })
       })
     })
-  }
-
-  /**
-   * Use `verifyEmail` to verify a user's email using a ticket.
-   *
-   * @example
-   * auth.verifyEmail({email, tricket})
-   *
-   * @docs https://docs.nhost.io/TODO
-   */
-  async verifyEmail(params: { email: string; ticket: string }): Promise<ApiSignInResponse> {
-    // TODO implement
-    // return await this.api.verifyEmail(params)
-    console.warn('TODO implement verifyEmail')
-    return { data: null, error: null } as any
   }
 
   /**
