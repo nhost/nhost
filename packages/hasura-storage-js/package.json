@@ -30,16 +30,16 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.ts",
-  "exports": {
-    ".": {
-      "import": {
-        "node": "./dist/index.cjs.js",
-        "default": "./dist/index.es.js"
-      },
-      "require": "./dist/index.cjs.js"
-    }
-  },
   "publishConfig": {
+    "exports": {
+      ".": {
+        "import": {
+          "node": "./dist/index.cjs.js",
+          "default": "./dist/index.es.js"
+        },
+        "require": "./dist/index.cjs.js"
+      }
+    },
     "access": "public",
     "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
