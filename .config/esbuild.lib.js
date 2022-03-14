@@ -25,6 +25,6 @@ esbuild
     platform: 'browser',
     format: 'esm',
     sourcemap: true,
-    target: 'esnext'
+    target: 'es2019'
   })
   .catch(() => process.exit(1))
