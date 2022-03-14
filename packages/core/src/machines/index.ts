@@ -63,7 +63,7 @@ export const createAuthMachine = ({
         context: {} as AuthContext,
         events: {} as AuthEvents
       },
-      tsTypes: {} as import("./index.typegen").Typegen0,
+      tsTypes: {} as import('./index.typegen').Typegen0,
       context: INITIAL_MACHINE_CONTEXT,
       preserveActionOrder: true,
       id: 'nhost',
@@ -72,7 +72,6 @@ export const createAuthMachine = ({
         authentication: {
           initial: 'checkAutoSignIn',
           on: {
-            TRY_TOKEN: '#nhost.token.running',
             SESSION_UPDATE: [
               {
                 cond: 'hasSession',
@@ -84,8 +83,7 @@ export const createAuthMachine = ({
           states: {
             checkAutoSignIn: {
               always: [{ cond: 'isAutoSignInDisabled', target: 'importingRefreshToken' }],
-              invoke:
-              {
+              invoke: {
                 id: 'autoSignIn',
                 src: 'autoSignIn',
                 onDone: {
@@ -435,18 +433,27 @@ export const createAuthMachine = ({
         token: {
           initial: 'idle',
           states: {
-            idle: {},
+            idle: {
+              on: {
+                TRY_TOKEN: 'running'
+              },
+              initial: 'noErrors',
+              states: { noErrors: {}, error: {} }
+            },
             running: {
               invoke: {
                 src: 'refreshToken',
                 id: 'authenticateWithToken',
                 onDone: {
                   actions: ['saveSession', 'persist', 'reportTokenChanged'],
-                  target: ['#nhost.authentication.signedIn', 'idle']
+                  target: ['#nhost.authentication.signedIn', 'idle.noErrors']
                 },
-                onError: {
-                  target: ['#nhost.authentication.signedOut', 'idle']
-                }
+                onError: [
+                  { cond: 'isSignedIn', target: 'idle.error' },
+                  {
+                    target: ['#nhost.authentication.signedOut', 'idle.error']
+                  }
+                ]
               }
             }
           }
@@ -457,7 +464,7 @@ export const createAuthMachine = ({
       actions: {
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
-        reportTokenChanged: send("TOKEN_CHANGED"),
+        reportTokenChanged: send('TOKEN_CHANGED'),
         // TODO better naming
         clearContext: assign(() => INITIAL_MACHINE_CONTEXT),
 
@@ -528,8 +535,7 @@ export const createAuthMachine = ({
         }),
         saveRefreshToken: assign({
           accessToken: (ctx, e: any) => ({ ...ctx.accessToken, expiresAt: e.data.expiresAt }),
-          refreshToken: (ctx, e: any) => ({ ...ctx.refreshToken, value: e.data.refreshToken }),
-
+          refreshToken: (ctx, e: any) => ({ ...ctx.refreshToken, value: e.data.refreshToken })
         }),
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }: any) => {

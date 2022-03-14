@@ -186,9 +186,9 @@ export interface Typegen0 {
     delays: never
   }
   eventsCausingServices: {
-    refreshToken: 'TRY_TOKEN' | ''
     autoSignIn: 'xstate.init'
     importRefreshToken: 'error.platform.autoSignIn' | ''
+    refreshToken: '' | 'TRY_TOKEN'
     signInPassword: 'SIGNIN_PASSWORD'
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     signInPasswordlessSms: 'SIGNIN_PASSWORDLESS_SMS'
@@ -201,7 +201,7 @@ export interface Typegen0 {
   eventsCausingGuards: {
     hasSession: 'SESSION_UPDATE' | 'done.invoke.registerUser'
     isAutoSignInDisabled: ''
-    isSignedIn: ''
+    isSignedIn: '' | 'error.platform.authenticateWithToken'
     hasRefreshTokenWithoutSession: ''
     invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
     invalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
@@ -256,6 +256,8 @@ export interface Typegen0 {
     | 'authentication.signedIn.deanonymizing.success'
     | 'token'
     | 'token.idle'
+    | 'token.idle.noErrors'
+    | 'token.idle.error'
     | 'token.running'
     | {
         authentication?:
@@ -303,7 +305,7 @@ export interface Typegen0 {
                     deanonymizing?: 'error' | 'success'
                   }
             }
-        token?: 'idle' | 'running'
+        token?: 'idle' | 'running' | { idle?: 'noErrors' | 'error' }
       }
   tags: 'ready'
 }

@@ -71,7 +71,7 @@ export class HasuraAuthClient {
     refreshIntervalTime?: number
     clientStorage?: ClientStorage
     clientStorageType?: ClientStorageType
-    start?: boolean,
+    start?: boolean
     Client?: typeof AuthClient
   }) {
     // TODO refreshIntervalTime
@@ -587,17 +587,20 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async refreshSession(refreshToken?: string): Promise<void> {
-    // TODO 'force' refresh when refreshToken is undefined
-    // TODO wait for the result
-    /* 
-    const refreshTokenToUse = refreshToken || (await this._getItem(NHOST_REFRESH_TOKEN))
-
-    if (!refreshTokenToUse) {
-      console.warn('no refresh token found. No way of refreshing session')
-    }
-
-    return this._refreshTokens(refreshTokenToUse)
-    */
+    return new Promise((resolve) => {
+      const interpreter = this.#client.interpreter
+      if (!interpreter || !interpreter.state.matches({ token: 'idle' })) return resolve()
+      const token = refreshToken || interpreter.state.context.refreshToken.value
+      if (!token) return resolve()
+      interpreter?.onTransition((state) => {
+        if (state.matches({ token: { idle: 'error' } })) resolve()
+        else if (state.event.type === 'TOKEN_CHANGED') resolve()
+      })
+      interpreter.send({
+        type: 'TRY_TOKEN',
+        token
+      })
+    })
   }
 
   /**
