@@ -226,9 +226,31 @@ export class HasuraAuthClient {
 
       let providerUrl = `${this.url}/signin/provider/${provider}`
 
-      // add redirect url if exists
-      if (options?.redirectTo) {
-        providerUrl += `?redirectTo=${options.redirectTo}`
+      // add options to URL
+      if (options) {
+        providerUrl += `?`
+
+        if (options.locale) {
+          providerUrl += `locale=${options.locale}&`
+        }
+        if (options.allowedRoles) {
+          providerUrl += `allowedRoles=${encodeURIComponent(options.allowedRoles.join(','))}&`
+        }
+        if (options.defaultRole) {
+          providerUrl += `defaultRole=${options.defaultRole}&`
+        }
+        if (options.displayName) {
+          providerUrl += `displayName=${encodeURIComponent(options.displayName)}&`
+        }
+        if (options.redirectTo) {
+          providerUrl += `redirectTo=${encodeURIComponent(options.redirectTo)}&`
+        }
+        if (options.metadata) {
+          providerUrl += `metadata=${encodeURIComponent(JSON.stringify(options.metadata))}&`
+        }
+
+        // remove last '&' in providerUrl
+        providerUrl = providerUrl.slice(0, -1)
       }
 
       if (isBrowser()) {

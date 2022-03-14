@@ -92,12 +92,12 @@ export type Provider =
 export interface SignInWithProviderOptions {
   provider: Provider
   options?: {
-    // locale?: string
-    // allowedRoles?: string[]
-    // defaultRole?: string
-    // displayName?: string
+    locale?: string
+    allowedRoles?: string[]
+    defaultRole?: string
+    displayName?: string
     redirectTo?: string
-    // metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>
   }
 }
 
