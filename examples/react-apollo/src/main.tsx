@@ -15,7 +15,7 @@ ReactDOM.render(
   <React.StrictMode>
     <BrowserRouter>
       <NhostReactProvider nhost={nhost}>
-        <NhostApolloProvider>
+        <NhostApolloProvider nhost={nhost}>
           <App />
         </NhostApolloProvider>
       </NhostReactProvider>

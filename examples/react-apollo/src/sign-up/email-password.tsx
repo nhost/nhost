@@ -37,7 +37,7 @@ export const EmailPassword: React.FC = () => {
   }, [email, password])
   // * Show an error message when passwords are different
   useEffect(() => {
-    if (password !== confirmPassword) setErrorMessage('Provided passwords must be the same')
+    if (password !== confirmPassword) setErrorMessage('Both passwords must be the same')
     else setErrorMessage('')
   }, [password, confirmPassword])
   return (

@@ -33,7 +33,8 @@ export const ChangeEmail: React.FC = () => {
   }, [newEmail])
   // * Show an error message when passwords are different
   useEffect(() => {
-    if (email === newEmail) setErrorMessage('You need to set a different email as the current one')
+    if (newEmail && email === newEmail)
+      setErrorMessage('You need to set a different email as the current one')
     else setErrorMessage('')
   }, [email, newEmail])
 

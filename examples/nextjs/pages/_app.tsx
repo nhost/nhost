@@ -21,7 +21,7 @@ const nhost = new NhostClient({ backendUrl: BACKEND_URL })
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
-      <NhostApolloProvider>
+      <NhostApolloProvider nhost={nhost}>
         <div className="App">
           <Header />
           <Component {...pageProps} />
