@@ -13,7 +13,7 @@ specifiers:
   '@nicokaiser/passport-apple': ^0.2.1
   '@oauth-everything/passport-discord': ^1.0.2
   '@oauth-everything/passport-twitch': ^1.0.3
-  '@release-it/conventional-changelog': ^4.1.0
+  '@release-it/conventional-changelog': ^4.2.2
   '@riderize/passport-strava-oauth2': ^1.1.1
   '@types/bcryptjs': ^2.4.2
   '@types/body-parser': 1.19.0
@@ -189,7 +189,7 @@ devDependencies:
   '@graphql-codegen/typescript': 2.4.7_graphql@16.2.0
   '@graphql-codegen/typescript-graphql-request': 4.4.2_8a61ea58d9710812aae6b2acf73347a9
   '@graphql-codegen/typescript-operations': 2.3.4_graphql@16.2.0
-  '@release-it/conventional-changelog': 4.2.1_release-it@14.12.5
+  '@release-it/conventional-changelog': 4.2.2_release-it@14.12.5
   '@types/bcryptjs': 2.4.2
   '@types/body-parser': 1.19.0
   '@types/cors': 2.8.6
@@ -2112,8 +2112,8 @@ packages:
     engines: {node: '>=10.13.0'}
     dev: false
 
-  /@release-it/conventional-changelog/4.2.1_release-it@14.12.5:
-    resolution: {integrity: sha512-JtjrdokCDbka5jGLIJU/Z24pBqc715QwHE3D0IF/4RLlhCfptObeJkmmy/x5oDgD876ql/zkovjH2AHc+FBnxw==}
+  /@release-it/conventional-changelog/4.2.2_release-it@14.12.5:
+    resolution: {integrity: sha512-cbpfMSKTt8VtyltNls6Kt0WXIRmgILNpF1nqGE2oe3acs286Brrb5WFGyPhYR8XUy0nVsnjG1zmUPP6n0Xd6XA==}
     engines: {node: '>=10'}
     peerDependencies:
       release-it: ^14.12.1
@@ -6095,7 +6095,7 @@ packages:
       source-map: 0.6.1
       wordwrap: 1.0.0
     optionalDependencies:
-      uglify-js: 3.15.2
+      uglify-js: 3.15.3
     dev: true
 
   /har-schema/2.0.0:
@@ -11549,8 +11549,8 @@ packages:
       uglify-to-browserify: 1.0.2
     dev: false
 
-  /uglify-js/3.15.2:
-    resolution: {integrity: sha512-peeoTk3hSwYdoc9nrdiEJk+gx1ALCtTjdYuKSXMTDqq7n1W7dHPqWDdSi+BPL0ni2YMeHD7hKUSdbj3TZauY2A==}
+  /uglify-js/3.15.3:
+    resolution: {integrity: sha512-6iCVm2omGJbsu3JWac+p6kUiOpg3wFO2f8lIXjfEb8RrmLjzog1wTPMmwKB7swfzzqxj9YM+sGUM++u1qN4qJg==}
     engines: {node: '>=0.8.0'}
     hasBin: true
     requiresBuild: true

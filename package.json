@@ -86,7 +86,7 @@
     "@graphql-codegen/typescript": "^2.4.2",
     "@graphql-codegen/typescript-graphql-request": "^4.3.3",
     "@graphql-codegen/typescript-operations": "^2.2.2",
-    "@release-it/conventional-changelog": "^4.1.0",
+    "@release-it/conventional-changelog": "^4.2.2",
     "@types/bcryptjs": "^2.4.2",
     "@types/body-parser": "1.19.0",
     "@types/cors": "2.8.6",
