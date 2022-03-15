@@ -17,7 +17,8 @@ WORKDIR /app
 RUN npm i -g pnpm
 COPY package.json pnpm-lock.yaml ./
 COPY patches/ ./patches/
-RUN pnpm install --frozen-lockfile --prod --config.enable-pre-post-scripts=true && pnpm store prune
+RUN pnpm install --frozen-lockfile --prod  && pnpm store prune
+RUN pnpm run postinstall
 COPY migrations/ ./migrations/
 COPY email-templates/ ./email-templates
 COPY --from=builder ./app/dist dist/
