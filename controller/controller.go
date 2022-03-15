@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -98,6 +99,18 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerF
 	router.MaxMultipartMemory = 8 << 20 // nolint:gomnd  // 8MB
 	router.Use(gin.Recovery())
 	router.Use(logger)
+	router.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"*"},
+		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
+		AllowHeaders: []string{
+			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
+		},
+		// AllowWildcard: true,
+		ExposeHeaders: []string{
+			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
+		},
+		MaxAge: 12 * time.Hour, // nolint: gomnd
+	}))
 
 	router.GET("/healthz", ctrl.Health)
 

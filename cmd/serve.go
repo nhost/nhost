@@ -6,7 +6,6 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/metadata"
@@ -242,18 +241,6 @@ var serveCmd = &cobra.Command{
 		cobra.CheckErr(err)
 
 		logger.Info("starting server")
-
-		router.Use(cors.New(cors.Config{
-			AllowOrigins: []string{"*"},
-			AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
-			AllowHeaders: []string{
-				"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
-			},
-			ExposeHeaders: []string{
-				"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
-			},
-			MaxAge: 12 * time.Hour, // nolint: gomnd
-		}))
 
 		logger.Error(router.Run(viper.GetString(bindFlag)))
 	},
