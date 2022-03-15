@@ -37,7 +37,7 @@ integration-tests: ## Run go test with integration flags
 	 TEST_S3_ACCESS_KEY=$(shell make dev-s3-access-key) \
 	 TEST_S3_SECRET_KEY=$(shell make dev-s3-secret-key) \
 	 GIN_MODE=release \
-		go test -tags=integration $(GOTEST_OPTIONS) ./... # -run=TestGetFilePresignedURL
+		richgo test -tags=integration $(GOTEST_OPTIONS) ./... # -run=TestGetFilePresignedURL
 
 
 .PHONY: build
@@ -76,6 +76,7 @@ dev-env-build: build-docker-image  ## Builds development environment
 .PHONY: dev-jwt
 dev-jwt:  ## return a jwt valid for development environment
 	@sh ./$(DEV_ENV_PATH)/jwt-gen/get-jwt.sh
+	@sleep 2
 
 
 .PHONY: dev-s3-access-key

@@ -88,6 +88,7 @@
               nativeBuildInputs = with pkgs; [
                 docker-client
                 docker-compose
+                richgo
               ] ++ buildInputs ++ nativeBuildInputs;
             }
             ''
@@ -120,6 +121,7 @@
             go-migrate
             gnumake
             gnused
+            richgo
           ] ++ buildInputs ++ nativeBuildInputs;
         };
 
@@ -134,6 +136,7 @@
               tag = version;
               created = "now";
               contents = [
+                pkgs.cacert
               ] ++ buildInputs;
               config = {
                 Entrypoint = [
