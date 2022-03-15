@@ -1,6 +1,11 @@
 
 
-## [0.4.1](https://github.com/nhost/hasura-auth/compare/v0.4.0...v0.4.1) (2022-03-15)
+## [0.4.2](https://github.com/nhost/hasura-auth/compare/v0.4.1...v0.4.2) (2022-03-15)
+
+
+### Bug Fixes
+
+* check if photo item exists ([#115](https://github.com/nhost/hasura-auth/issues/115)) ([aab9637](https://github.com/nhost/hasura-auth/commit/aab963758652bf7ee045db7bf3691b6bc5766d17))## [0.4.1](https://github.com/nhost/hasura-auth/compare/v0.4.0...v0.4.1) (2022-03-15)
 
 
 ### Bug Fixes
