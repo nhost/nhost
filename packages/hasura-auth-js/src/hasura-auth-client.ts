@@ -6,7 +6,8 @@ import {
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
-  createSendVerificationEmailMachine
+  createSendVerificationEmailMachine,
+  encodeQueryParameters
 } from '@nhost/core'
 
 import { getSession, isBrowser } from './utils/helpers'
@@ -166,9 +167,11 @@ export class HasuraAuthClient {
     }
 
     if ('provider' in params) {
-      const { provider } = params
-      const providerUrl = `${this.#client.backendUrl}/v1/auth/signin/provider/${provider}`
-
+      const { provider, options } = params
+      const providerUrl = encodeQueryParameters(
+        `${this.#client.backendUrl}/v1/auth/signin/provider/${provider}`,
+        options
+      )
       if (isBrowser()) {
         window.location.href = providerUrl
       }
@@ -431,6 +434,9 @@ export class HasuraAuthClient {
           if (event.type === 'TOKEN_CHANGED') fn(getSession(context))
         })
       )
+      else {
+        console.log('onTokenChanged: no interpreter is set yet', fn)
+      }
     return () => {
       this.onTokenChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
@@ -456,6 +462,9 @@ export class HasuraAuthClient {
           else if (event.type === 'SIGNED_OUT') fn('SIGNED_OUT', getSession(context))
         })
       )
+      else {
+        console.log('onAuthStateChanged: no interpreter is set yet', fn)
+      }
     return () => {
       this.onAuthStateChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
