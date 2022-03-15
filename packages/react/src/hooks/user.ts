@@ -71,47 +71,83 @@ export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswo
 
 export const useUserData = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user)
+  return useSelector(
+    service,
+    (state) => state.context.user,
+    (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  )
 }
 
 export const useAvatarUrl = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.avatarUrl)
+  return useSelector(
+    service,
+    (state) => state.context.user?.avatarUrl,
+    (a, b) => a === b
+  )
 }
 
 export const useDefaultRole = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.defaultRole)
+  return useSelector(
+    service,
+    (state) => state.context.user?.defaultRole,
+    (a, b) => a === b
+  )
 }
 
 export const useDisplayName = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.displayName)
+  return useSelector(
+    service,
+    (state) => state.context.user?.displayName,
+    (a, b) => a === b
+  )
 }
 
 export const useEmail = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.email)
+  return useSelector(
+    service,
+    (state) => state.context.user?.email,
+    (a, b) => a === b
+  )
 }
 
 export const useUserId = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.id)
+  return useSelector(
+    service,
+    (state) => state.context.user?.id,
+    (a, b) => a === b
+  )
 }
 
 export const useIsAnonymous = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.isAnonymous)
+  return useSelector(
+    service,
+    (state) => state.context.user?.isAnonymous,
+    (a, b) => a === b
+  )
 }
 
 export const useUserLocale = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.locale)
+  return useSelector(
+    service,
+    (state) => state.context.user?.locale,
+    (a, b) => a === b
+  )
 }
 
 export const useUserRoles = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => state.context.user?.roles || [])
+  return useSelector(
+    service,
+    (state) => state.context.user?.roles || [],
+    (a, b) => a.every((i) => b.includes(i) && b.every((i) => a.includes(i)))
+  )
 }
 
 export const useSendVerificationEmail = (

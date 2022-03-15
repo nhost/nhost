@@ -11,16 +11,19 @@ export const useSignUpEmailPassword = (
   stateOptions?: SignUpOptions
 ) => {
   const service = useAuthInterpreter()
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
+  const isError =
+    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
+  const error = useSelector(
+    service,
+    (state) => state.context.errors.registration,
+    (a, b) => a?.error === b?.error
   )
-  const error = useSelector(service, (state) => state.context.errors.registration)
   const loading = useAuthLoading()
   const isSuccess = useAuthenticated()
   const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
-  const needsEmailVerification = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
-  )
+  const needsEmailVerification =
+    !!service.status &&
+    service.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
 
   const signUpEmailPassword = (
     valueEmail?: string | unknown,
