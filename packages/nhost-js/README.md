@@ -36,7 +36,7 @@ const nhost = new NhostClient({
 
 ### GraphQL
 
-Access Nhost Auth methods using `nhost.graphql`.
+Access Nhost GraphQL methods using `nhost.graphql`.
 
 ### Authentication
 
