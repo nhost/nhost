@@ -7,7 +7,8 @@ import {
   createChangePasswordMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
-  encodeQueryParameters
+  encodeQueryParameters,
+  rewriteRedirectTo
 } from '@nhost/core'
 
 import { getSession, isBrowser } from './utils/helpers'
@@ -170,7 +171,7 @@ export class HasuraAuthClient {
       const { provider, options } = params
       const providerUrl = encodeQueryParameters(
         `${this.#client.backendUrl}/v1/auth/signin/provider/${provider}`,
-        options
+        rewriteRedirectTo(this.#client.clientUrl, options)
       )
       if (isBrowser()) {
         window.location.href = providerUrl

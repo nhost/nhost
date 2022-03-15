@@ -4,6 +4,7 @@ import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { ChangeEmailOptions } from '../types'
+import { rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../validators'
 
 export type ChangeEmailContext = {
@@ -82,11 +83,7 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
             '/user/email/change',
             {
               newEmail: email,
-              options: {
-                redirectTo: options?.redirectTo?.startsWith('/')
-                  ? clientUrl + options.redirectTo
-                  : options?.redirectTo
-              }
+              options: rewriteRedirectTo(clientUrl, options)
             },
             {
               headers: {

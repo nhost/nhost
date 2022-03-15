@@ -17,6 +17,7 @@ import {
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
 import { Mfa, NhostSession } from '../types'
+import { rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
 
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
@@ -594,12 +595,7 @@ export const createAuthMachine = ({
         signInPasswordlessSms: (_, { phoneNumber, options }) =>
           postRequest('/signin/passwordless/sms', {
             phoneNumber,
-            options: {
-              ...options,
-              redirectTo: options?.redirectTo?.startsWith('/')
-                ? clientUrl + options.redirectTo
-                : options?.redirectTo
-            }
+            options: rewriteRedirectTo(clientUrl, options)
           }),
         signInPasswordlessSmsOtp: (_, { phoneNumber, otp }) =>
           postRequest('/signin/passwordless/sms/otp', {
@@ -610,12 +606,7 @@ export const createAuthMachine = ({
         signInPasswordlessEmail: (_, { email, options }) =>
           postRequest('/signin/passwordless/email', {
             email,
-            options: {
-              ...options,
-              redirectTo: options?.redirectTo?.startsWith('/')
-                ? clientUrl + options.redirectTo
-                : options?.redirectTo
-            }
+            options: rewriteRedirectTo(clientUrl, options)
           }),
         signInAnonymous: (_) => postRequest('/signin/anonymous'),
         signInMfaTotp: (context, { ticket, otp }) =>
@@ -644,12 +635,7 @@ export const createAuthMachine = ({
           postRequest('/signup/email-password', {
             email,
             password,
-            options: {
-              ...options,
-              redirectTo: options?.redirectTo?.startsWith('/')
-                ? clientUrl + options.redirectTo
-                : options?.redirectTo
-            }
+            options: rewriteRedirectTo(clientUrl, options)
           }),
 
         autoSignIn: async () => {

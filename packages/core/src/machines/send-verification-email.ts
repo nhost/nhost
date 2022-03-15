@@ -4,6 +4,7 @@ import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { SendVerificationEmailOptions } from '../types'
+import { rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../validators'
 
 export type SendVerificationEmailContext = {
@@ -84,11 +85,7 @@ export const createSendVerificationEmailMachine = ({
         request: async (_, { email, options }) => {
           const res = await api.post('/user/email/send-verification-email', {
             email,
-            options: {
-              redirectTo: options?.redirectTo?.startsWith('/')
-                ? clientUrl + options.redirectTo
-                : options?.redirectTo
-            }
+            options: rewriteRedirectTo(clientUrl, options)
           })
           return res.data
         }

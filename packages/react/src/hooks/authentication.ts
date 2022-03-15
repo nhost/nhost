@@ -1,6 +1,12 @@
 import { useContext, useMemo } from 'react'
 
-import { encodeQueryParameters, PasswordlessOptions, Provider, ProviderOptions } from '@nhost/core'
+import {
+  encodeQueryParameters,
+  PasswordlessOptions,
+  Provider,
+  ProviderOptions,
+  rewriteRedirectTo
+} from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
@@ -121,7 +127,7 @@ export const useProviderLink = (options?: ProviderOptions) => {
         get(_, provider: string) {
           return encodeQueryParameters(
             `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
-            options
+            rewriteRedirectTo(nhost.auth.client.clientUrl, options)
           )
         }
       }),

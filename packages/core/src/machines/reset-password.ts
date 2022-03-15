@@ -4,6 +4,7 @@ import { AuthClient } from '../client'
 import { ErrorPayload } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { ResetPasswordOptions } from '../types'
+import { rewriteRedirectTo } from '../utils'
 
 export type ResetPasswordContext = {
   error: ErrorPayload | null
@@ -68,11 +69,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
         requestChange: (_, { email, options }) =>
           api.post<string, { data: { error?: ErrorPayload } }>('/user/password/reset', {
             email,
-            options: {
-              redirectTo: options?.redirectTo?.startsWith('/')
-                ? clientUrl + options.redirectTo
-                : options?.redirectTo
-            }
+            options:rewriteRedirectTo(clientUrl, options)
           })
       }
     }
