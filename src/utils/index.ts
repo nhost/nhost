@@ -6,11 +6,15 @@ const generateRedirectUrl = (
   let finalRedirectTo = redirectTo;
 
   // add query paramters
+
+  // if there are query paramters to add:
   // add first ? or & depending on of there are already query parameters
-  if (redirectTo.includes('&')) {
-    finalRedirectTo += '&';
-  } else {
-    finalRedirectTo += '?';
+  if (Object.keys(queryParameters).length !== 0) {
+    if (redirectTo.includes('&')) {
+      finalRedirectTo += '&';
+    } else {
+      finalRedirectTo += '?';
+    }
   }
 
   const nrOfKeys = Object.keys(queryParameters).length;

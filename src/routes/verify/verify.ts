@@ -105,7 +105,7 @@ export const verifyHandler = async (
   const redirectUrl = generateRedirectUrl(
     redirectTo,
     {},
-    `#refreshToken=${refreshToken}&type=${type}`
+    `refreshToken=${refreshToken}&type=${type}`
   );
 
   return res.redirect(redirectUrl);
