@@ -11,8 +11,9 @@ export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string
   readonly machine: AuthMachine
-  interpreter?: AuthInterpreter
+  #interpreter?: AuthInterpreter
   #channel?: BroadcastChannel
+  #subscriptions: Set<(client: AuthClient) => void> = new Set()
 
   constructor({
     backendUrl,
@@ -49,5 +50,19 @@ export class AuthClient {
         }
       })
     }
+  }
+
+  get interpreter(): AuthInterpreter | undefined {
+    return this.#interpreter
+  }
+  set interpreter(interpreter: AuthInterpreter | undefined) {
+    this.#interpreter = interpreter
+    if (interpreter) {
+      this.#subscriptions.forEach(fn => fn(this))
+    }
+  }
+
+  onStart (fn: (interpreter: AuthClient) => void) {
+    this.#subscriptions.add(fn)
   }
 }

@@ -1,7 +1,10 @@
-import { PasswordlessOptions, Provider } from '@nhost/core'
+import { useContext, useMemo } from 'react'
+
+import { encodeQueryParameters, PasswordlessOptions, Provider, ProviderOptions } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { useNhostBackendUrl } from './common'
+import { NhostReactContext } from '../provider'
+
 import { useAuthenticated, useAuthInterpreter } from './common'
 
 export const useEmailPasswordSignIn = (
@@ -22,19 +25,31 @@ export const useEmailPasswordSignIn = (
       otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
     })
   }
-  const error = useSelector(service, (state) => state.context.errors.authentication)
+  const error = useSelector(
+    service,
+    (state) => state.context.errors.authentication,
+    (a, b) => a?.error === b?.error
+  )
   const isSuccess = useAuthenticated()
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: { authenticating: 'password' } })
+  const isLoading = useSelector(
+    service,
+    (state) => state.matches({ authentication: { authenticating: 'password' } }),
+    (a, b) => a === b
   )
-  const needsEmailVerification = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+  const needsEmailVerification = useSelector(
+    service,
+    (state) => state.matches({ authentication: { signedOut: 'needsEmailVerification' } }),
+    (a, b) => a === b
   )
-  const needsMfaOtp = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsMfa' } })
+  const needsMfaOtp = useSelector(
+    service,
+    (state) => state.matches({ authentication: { signedOut: 'needsMfa' } }),
+    (a, b) => a === b
   )
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
+  const isError = useSelector(
+    service,
+    (state) => state.matches({ authentication: { signedOut: 'failed' } }),
+    (a, b) => a === b
   )
 
   return {
@@ -61,17 +76,20 @@ export const useEmailPasswordlessSignIn = (
       options: valueOptions
     })
 
-  const error = useSelector(service, (state) => state.context.errors.authentication)
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
+  const error = useSelector(
+    service,
+    (state) => state.context.errors.authentication,
+    (a, b) => a?.error === b?.error
   )
-  const isSuccess = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
-  )
+  const isLoading =
+    !!service.status &&
+    service.state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
+  const isSuccess =
+    !!service.status &&
+    service.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
 
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
-  )
+  const isError =
+    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
   return { emailPasswordlessSignIn, isLoading, isSuccess, isError, error }
 }
 
@@ -81,23 +99,32 @@ export const useAnonymousSignIn = () => {
   const service = useAuthInterpreter()
   const anonymousSignIn = () => service.send('SIGNIN_ANONYMOUS')
 
-  const error = useSelector(service, (state) => state.context.errors.authentication)
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: { authenticating: 'anonymous' } })
+  const error = useSelector(
+    service,
+    (state) => state.context.errors.authentication,
+    (a, b) => a?.error === b?.error
   )
+  const isLoading =
+    !!service.status && service.state.matches({ authentication: { authenticating: 'anonymous' } })
   const isSuccess = useAuthenticated()
-
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
-  )
+  const isError =
+    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
   return { anonymousSignIn, isLoading, isSuccess, isError, error }
 }
 
-export const useProviderLink = () => {
-  const backendUrl = useNhostBackendUrl()
-  return new Proxy({} as Record<Provider, string>, {
-    get(_, provider: string) {
-      return `${backendUrl}/v1/auth/signin/provider/${provider}`
-    }
-  })
+export const useProviderLink = (options?: ProviderOptions) => {
+  const nhost = useContext(NhostReactContext)
+
+  return useMemo(
+    () =>
+      new Proxy({} as Record<Provider, string>, {
+        get(_, provider: string) {
+          return encodeQueryParameters(
+            `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
+            options
+          )
+        }
+      }),
+    [nhost, options]
+  )
 }

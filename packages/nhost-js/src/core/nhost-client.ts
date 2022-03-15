@@ -1,7 +1,7 @@
+import { AuthClient } from '@nhost/core'
 import { ClientStorage, ClientStorageType, HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
-import { AuthClient } from '../../../hasura-auth-js/node_modules/@nhost/core/src'
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 
@@ -69,18 +69,20 @@ export class NhostClient {
     this.functions.setAccessToken(this.auth.getAccessToken())
     this.graphql.setAccessToken(this.auth.getAccessToken())
 
-    // update access token for clients
-    this.auth.onAuthStateChanged((_event, session) => {
-      this.storage.setAccessToken(session?.accessToken)
-      this.functions.setAccessToken(session?.accessToken)
-      this.graphql.setAccessToken(session?.accessToken)
-    })
+    this.auth.client.onStart(() => {
+      // update access token for clients
+      this.auth.onAuthStateChanged((_event, session) => {
+        this.storage.setAccessToken(session?.accessToken)
+        this.functions.setAccessToken(session?.accessToken)
+        this.graphql.setAccessToken(session?.accessToken)
+      })
 
-    // update access token for clients
-    this.auth.onTokenChanged((session) => {
-      this.storage.setAccessToken(session?.accessToken)
-      this.functions.setAccessToken(session?.accessToken)
-      this.graphql.setAccessToken(session?.accessToken)
+      // update access token for clients
+      this.auth.onTokenChanged((session) => {
+        this.storage.setAccessToken(session?.accessToken)
+        this.functions.setAccessToken(session?.accessToken)
+        this.graphql.setAccessToken(session?.accessToken)
+      })
     })
   }
 }
