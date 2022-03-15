@@ -96,7 +96,7 @@ func TestGetFile(t *testing.T) {
 				assert(t, responseRecorder.Header(), http.Header{
 					"Cache-Control":       {"max-age=3600"},
 					"Content-Length":      {"64"},
-					"Content-Disposition": {`attachment; filename="my-file.txt"`},
+					"Content-Disposition": {`inline; filename="my-file.txt"`},
 					"Content-Type":        {"text/plain; charset=utf-8"},
 					"Etag":                {`"55af1e60-0f28-454e-885e-ea6aab2bb288"`},
 					"Last-Modified":       {"Mon, 27 Dec 2021 09:58:11 UTC"},

@@ -43,11 +43,11 @@ func isImage(mimeType string) bool {
 func getImageManipulationOptions(ctx *gin.Context, mimeType string) ([]image.Options, *APIError) { // nolint: cyclop
 	opts := make([]image.Options, 0, 3) // nolint: gomnd
 	// newSizeX, y, q, b
-	newSizeX, okX, err := getQueryInt(ctx, "x")
+	newSizeX, okX, err := getQueryInt(ctx, "w")
 	if err != nil {
 		return nil, err
 	}
-	newSizeY, okY, err := getQueryInt(ctx, "y")
+	newSizeY, okY, err := getQueryInt(ctx, "h")
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +179,8 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (int, *APIError) {
 	}
 
 	if statusCode == http.StatusOK {
-		ctx.Header("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, fileMetadata.Name))
+		// if we want to download files at some point prepend `attachment;` before filename
+		ctx.Header("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, fileMetadata.Name))
 
 		if _, err := io.Copy(ctx.Writer, object); err != nil {
 			return 0, InternalServerError(err)

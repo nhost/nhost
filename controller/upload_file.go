@@ -98,7 +98,7 @@ func (ctrl *Controller) upload(
 			file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType,
 			request.headers,
 		)
-		if err != nil {
+		if apiErr != nil {
 			return filesMetadata, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
 		}
 
@@ -217,26 +217,28 @@ func parseUploadRequestNew(ctx *gin.Context) (uploadFileRequest, *APIError) {
 	}, nil
 }
 
-func parseUploadRequest(ctx *gin.Context) (uploadFileRequest, *APIError) {
+func parseUploadRequest(ctx *gin.Context) (uploadFileRequest, bool, *APIError) {
+	newMethod := true
 	req, apiErr := parseUploadRequestNew(ctx)
 	if errors.Is(apiErr, ErrMultipartFormFileNotFound) {
 		req, apiErr = parseUploadRequestOld(ctx)
+		newMethod = false
 	}
-	return req, apiErr
+	return req, newMethod, apiErr
 }
 
-func (ctrl *Controller) uploadFile(ctx *gin.Context) ([]FileMetadata, *APIError) {
-	request, apiErr := parseUploadRequest(ctx)
+func (ctrl *Controller) uploadFile(ctx *gin.Context) ([]FileMetadata, bool, *APIError) {
+	request, newMethod, apiErr := parseUploadRequest(ctx)
 	if apiErr != nil {
-		return nil, apiErr
+		return nil, false, apiErr
 	}
 
 	filesMetadata, apiErr := ctrl.upload(ctx.Request.Context(), request)
-	return filesMetadata, apiErr
+	return filesMetadata, newMethod, apiErr
 }
 
 func (ctrl *Controller) UploadFile(ctx *gin.Context) {
-	filesMetadata, apiErr := ctrl.uploadFile(ctx)
+	filesMetadata, newMethod, apiErr := ctrl.uploadFile(ctx)
 	if apiErr != nil {
 		_ = ctx.Error(fmt.Errorf("problem processing request: %w", apiErr))
 
@@ -245,5 +247,9 @@ func (ctrl *Controller) UploadFile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, UploadFileResponse{filesMetadata, nil})
+	if newMethod {
+		ctx.JSON(http.StatusCreated, UploadFileResponse{filesMetadata, nil})
+	} else {
+		ctx.JSON(http.StatusCreated, filesMetadata[0])
+	}
 }

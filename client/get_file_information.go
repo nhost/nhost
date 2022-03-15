@@ -83,8 +83,8 @@ func WithIfUnmodifiedSince(modifiedSince string) GetFileInformationOpt {
 func WithImageSize(newSizeX, newSizeY int) GetFileInformationOpt {
 	return func(req *http.Request) {
 		q := req.URL.Query()
-		q.Add("x", fmt.Sprintf("%d", newSizeX))
-		q.Add("y", fmt.Sprintf("%d", newSizeY))
+		q.Add("w", fmt.Sprintf("%d", newSizeX))
+		q.Add("h", fmt.Sprintf("%d", newSizeY))
 		req.URL.RawQuery = q.Encode()
 	}
 }

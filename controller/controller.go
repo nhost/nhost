@@ -121,6 +121,7 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerF
 	}
 	files := apiRoot.Group("/files")
 	{
+		files.POST("", ctrl.UploadFile) // To delete
 		files.POST("/", ctrl.UploadFile)
 		files.GET("/:id", ctrl.GetFile)
 		files.HEAD("/:id", ctrl.GetFileInformation)
