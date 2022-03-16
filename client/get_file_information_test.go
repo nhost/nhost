@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package client_test
@@ -54,7 +55,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file information, if-match!=etag",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfMatch("garbage")},
@@ -68,7 +68,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file information, if-none-match==etag",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithNoneMatch(testFiles.ProcessedFiles[0].ETag)},
@@ -82,7 +81,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file information, if-none-match!=etag",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithNoneMatch("garbage")},
@@ -96,7 +94,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file information, if-modified-since!=date",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
@@ -110,7 +107,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file information, if-modified-since==date",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfModifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
@@ -124,7 +120,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file information, if-unmodified-since!=date",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2025 10:00:00 UTC")},
@@ -138,7 +133,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "get file information, if-unmodified-since==date",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfUnmodifiedSince("Thu, 23 Dec 2020 10:00:00 UTC")},
@@ -152,7 +146,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "bad id",
 			id:   "asdadasdads",
 			expectedErr: &client.APIResponseError{
@@ -164,7 +157,6 @@ func TestGetFileInformation(t *testing.T) {
 			},
 		},
 		{
-
 			name: "not found",
 			id:   "93aa5806-3050-4810-817a-c917245bb6c1",
 			expectedErr: &client.APIResponseError{
@@ -212,9 +204,9 @@ func TestGetFileInformation(t *testing.T) {
 			id:   testFiles.ProcessedFiles[1].ID,
 			expected: &client.FileInformationHeader{
 				CacheControl:  "max-age=3600",
-				ContentLength: 10802,
+				ContentLength: 11306,
 				ContentType:   "image/jpeg",
-				Etag:          `"46a94212e38b1bb3fbf769c4bd3c2ff90ccee38ca21ad635281f90c1a316eada"`,
+				Etag:          `"1baa94b38cd0cc66cf4289c823c25ff03680d7f9408974bcd6145253e2007dfa"`,
 				LastModified:  "",
 				Error:         "",
 				StatusCode:    200,

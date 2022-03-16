@@ -20,9 +20,14 @@ func WithBlur(sigma int) Options {
 	}
 }
 
-func WithNewSize(x, y int) Options {
+func WithNewSize(x, y int) Options { // nolint: varnamelen
 	return func(args []string) []string {
-		return append(args, "-resize", fmt.Sprintf("%dx%d", x, y))
+		return append(
+			args,
+			"-gravity", "Center",
+			"-resize", fmt.Sprintf("%dx%d^", x, y),
+			"-extent", fmt.Sprintf("%dx%d", x, y),
+		)
 	}
 }
 

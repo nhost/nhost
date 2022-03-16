@@ -23,7 +23,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "jpg",
 			filename: "testdata/nhost.jpg",
-			sum:      "04e09f1403e131ec13c064822fae337e3a2f13324afb08926f4404b02d91df4c",
+			sum:      "e3d7eec66c0c934cf234e78b34b311b7b26962088220b1062f7fe8e26026d946",
 		},
 		// png is disabled because metadata contains info that causes the sum to change every time
 		// {
@@ -34,7 +34,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "webp",
 			filename: "testdata/nhost.webp",
-			sum:      "2cae5724da1949c9d9dd206ad1a66ce308f3cd560a1c235c7947ae4c334e5448",
+			sum:      "f1467434921394f1bf77f06c9df6800997d385fa93d4a2914eed8a37abef4584",
 		},
 	}
 
