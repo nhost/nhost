@@ -622,7 +622,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getUser() {
-    return this.#client.interpreter?.state.context.user || null
+    return this.#client.interpreter?.state.context?.user || null
   }
 
   private isReady() {

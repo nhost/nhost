@@ -146,6 +146,7 @@ importers:
     specifiers:
       '@apollo/client': ^3.5.8
       '@nhost/core': workspace:*
+      '@nhost/nhost-js': workspace:*
       graphql: 15.7.2
       subscriptions-transport-ws: ^0.11.0
       xstate: ^4.30.5
@@ -155,6 +156,7 @@ importers:
       graphql: 15.7.2
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
     devDependencies:
+      '@nhost/nhost-js': link:../nhost-js
       xstate: 4.30.6
 
   packages/core:
