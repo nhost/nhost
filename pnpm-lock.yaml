@@ -217,6 +217,7 @@ importers:
 
   packages/nhost-js:
     specifiers:
+      '@nhost/core': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
       axios: ^0.23.0
@@ -228,6 +229,8 @@ importers:
       axios: 0.23.0
       jwt-decode: 3.1.2
       query-string: 7.1.1
+    devDependencies:
+      '@nhost/core': link:../core
 
   packages/react:
     specifiers:
