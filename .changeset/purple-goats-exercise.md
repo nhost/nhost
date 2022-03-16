@@ -6,6 +6,7 @@
 '@nhost/nextjs': minor
 '@nhost/nhost-js': minor
 '@nhost/react': minor
+'@nhost/react-auth': major
 '@nhost/react-apollo': minor
 ---
 

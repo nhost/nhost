@@ -1,4 +1,4 @@
-import { useContext, useEffect, useMemo, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { InterpreterFrom } from 'xstate'
 
 import { AuthMachine } from '@nhost/core'
@@ -56,11 +56,6 @@ export const useAuthenticated = () => {
 
 }
 
-export const useNhostAuth = () => {
-  const isLoading = useAuthLoading()
-  const isAuthenticated = useAuthenticated()
-  return useMemo(() =>({isLoading, isAuthenticated}), [isLoading, isAuthenticated])
-}
 
 export const useAccessToken = () => {
   const service = useAuthInterpreter()
