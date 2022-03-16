@@ -72,7 +72,6 @@ export const createSendVerificationEmailMachine = ({
       actions: {
         saveInvalidEmailError: assign({ error: (_) => INVALID_EMAIL_ERROR }),
         saveRequestError: assign({
-          // TODO type
           error: (_, { data: { error } }: any) => error
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),

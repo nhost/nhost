@@ -56,7 +56,6 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
     {
       actions: {
         saveRequestError: assign({
-          // TODO type
           error: (_, { data: { error } }: any) => {
             console.log(error)
             return error

@@ -64,7 +64,6 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthCli
       actions: {
         saveInvalidPasswordError: assign({ error: (_) => INVALID_PASSWORD_ERROR }),
         saveRequestError: assign({
-          // TODO type
           error: (_, { data: { error } }: any) => {
             console.log(error)
             return error

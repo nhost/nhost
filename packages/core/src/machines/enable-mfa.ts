@@ -92,11 +92,9 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
       actions: {
         saveInvalidMfaTypeError: assign({ error: (_) => INVALID_MFA_TYPE_ERROR }),
         saveError: assign({
-          // TODO type
           error: (_, { data: { error } }: any) => error
         }),
         saveGeneration: assign({
-          // TODO type
           imageUrl: (_, { data: { imageUrl } }: any) => imageUrl,
           secret: (_, { data: { totpSecret } }: any) => totpSecret
         }),

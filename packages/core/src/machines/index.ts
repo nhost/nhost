@@ -41,6 +41,8 @@ export type AuthMachineOptions = {
 
 export type AuthMachine = ReturnType<typeof createAuthMachine>
 
+// TODO actions typings
+
 export const createAuthMachine = ({
   backendUrl,
   clientUrl,
@@ -402,7 +404,7 @@ export const createAuthMachine = ({
                               target: 'pending'
                             },
                             onError: [
-                              // TODO
+                              // TODO handle error
                               // {
                               //   actions: 'retry',
                               //   cond: 'canRetry',
@@ -466,11 +468,9 @@ export const createAuthMachine = ({
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
         reportTokenChanged: send('TOKEN_CHANGED'),
-        // TODO better naming
         clearContext: assign(() => INITIAL_MACHINE_CONTEXT),
 
         saveSession: assign({
-          // TODO type
           user: (_, e: any) => e.data?.session?.user,
           accessToken: (_, e) => ({
             value: e.data?.session?.accessToken,
@@ -479,7 +479,6 @@ export const createAuthMachine = ({
           refreshToken: (_, e) => ({ value: e.data?.session?.refreshToken })
         }),
         saveMfaTicket: assign({
-          // TODO type
           mfa: (_, e: any) => e.data?.mfa ?? null
         }),
 
@@ -503,7 +502,6 @@ export const createAuthMachine = ({
 
         // * Authenticaiton errors
         saveAuthenticationError: assign({
-          // TODO type
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
         resetAuthenticationError: assign({
@@ -519,7 +517,6 @@ export const createAuthMachine = ({
           errors: ({ errors }) => ({ ...errors, authentication: INVALID_PHONE_NUMBER_ERROR })
         }),
         saveRegisrationError: assign({
-          // TODO type
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
         resetSignUpError: assign({
@@ -573,12 +570,10 @@ export const createAuthMachine = ({
           ),
 
         // * Authentication errors
-        // TODO type
-        unverified: (ctx, { data: { error } }: any) =>
+        unverified: (_, { data: { error } }: any) =>
           error.status === 401 && error.message === 'Email is not verified',
 
         // * Event guards
-        // TODO type
         hasSession: (_, e: any) => !!e.data?.session,
         hasMfaTicket: (_, e: any) => !!e.data?.mfa,
         invalidEmail: (_, { email }) => !isValidEmail(email),
