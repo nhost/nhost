@@ -36,13 +36,13 @@
   "main": "src/index.ts",
   "publishConfig": {
     "access": "public",
-    "main": "dist/index.umd.js",
+    "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts",
     "exports": {
       ".": {
         "import": "./dist/index.es.js",
-        "require": "./dist/index.umd.js"
+        "require": "./dist/index.cjs.js"
       }
     }
   },
