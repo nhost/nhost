@@ -211,6 +211,36 @@ func (c *Client) GetMetadata() (HasuraMetadataV3, error) {
 	return UnmarshalHasuraMetadataV3(payload)
 }
 
+func (c *Client) GetInconsistentMetadata() (InconsistentMetadataResponse, error) {
+
+	log.Debug("Fetching inconsistent metadata")
+
+	var response InconsistentMetadataResponse
+
+	reqBody := RequestBody{
+		Type: "get_inconsistent_metadata",
+	}
+
+	body, err := reqBody.Marshal()
+	if err != nil {
+		return response, err
+	}
+
+	resp, err := c.Request(body, "/v1/metadata")
+	if err != nil {
+		return response, err
+	}
+	defer resp.Body.Close()
+
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return response, err
+	}
+
+	err = json.Unmarshal(body, &response)
+	return response, err
+}
+
 func (c *Client) Seed(payload string) error {
 
 	reqBody := RequestBody{

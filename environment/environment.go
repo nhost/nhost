@@ -188,6 +188,9 @@ func (e *Environment) Prepare() error {
 
 	if len(metaFiles) == 0 {
 
+		//  Export metadata
+		log.Debug("Exporting metadata")
+
 		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
 		execute.Dir = nhost.NHOST_DIR
 
@@ -223,6 +226,58 @@ func (e *Environment) Prepare() error {
 		log.Debug(string(output))
 		status.Errorln("Failed to apply metadata")
 		return err
+	}
+
+	//	Detect inconsistent metadata,
+	//	and restart equivalent containers to fix breaking metadata changes.
+	inconsistentMetadata, err := e.Hasura.GetInconsistentMetadata()
+	if err != nil {
+		return err
+	}
+
+	if !inconsistentMetadata.IsConsistent {
+
+		status.Set("Fixing metadata inconsistency due to Auth/Storage updates")
+
+		for _, object := range inconsistentMetadata.InconsistentObjects {
+			log.Debug(object.Reason)
+
+			//	Fetch the equivalent container
+			for x := range e.Config.Services {
+				if x == object.Definition.Schema {
+
+					//	Restart the container
+					log.Debugf("Restarting %s container", x)
+					if err := e.Docker.ContainerRestart(e.Context, e.Config.Services[x].ID, nil); err != nil {
+						return err
+					}
+				}
+			}
+		}
+
+		//	Restart the health-checks to wait for containers to become active
+		if err := e.HealthCheck(e.ExecutionContext); err != nil {
+			return err
+		}
+
+		//  Export metadata
+		log.Debug("Exporting metadata")
+
+		//	Re-export the new metadata to make sure changes are saved locally
+		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
+		execute.Dir = nhost.NHOST_DIR
+
+		cmdArgs := []string{e.Hasura.CLI, "metadata", "export"}
+		cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
+		execute.Args = cmdArgs
+
+		output, err := execute.CombinedOutput()
+		if err != nil {
+			log.Debug(string(output))
+			status.Errorln("Failed to export metadata")
+			return err
+		}
+
 	}
 
 	return nil
