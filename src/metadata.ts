@@ -258,7 +258,7 @@ export const applyMetadata = async (): Promise<void> => {
       custom_root_fields: {
         select: 'users',
         select_by_pk: 'user',
-        select_aggregate: 'userAggregate',
+        select_aggregate: 'usersAggregate',
         insert: 'insertUsers',
         insert_one: 'insertUser',
         update: 'updateUsers',
