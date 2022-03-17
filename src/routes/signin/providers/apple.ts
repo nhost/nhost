@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Strategy, Profile } from '@nicokaiser/passport-apple';
+import { Strategy, Profile } from 'passport-apple';
 import { PROVIDERS } from '@config/index';
 import { initProvider } from './utils';
 import { getGravatarUrl } from '@/helpers';

@@ -10,7 +10,6 @@ specifiers:
   '@graphql-codegen/typescript-graphql-request': ^4.3.3
   '@graphql-codegen/typescript-operations': ^2.2.2
   '@milahu/patch-package-with-pnpm-support': ^6.4.8
-  '@nicokaiser/passport-apple': ^0.2.1
   '@oauth-everything/passport-discord': ^1.0.2
   '@oauth-everything/passport-twitch': ^1.0.3
   '@release-it/conventional-changelog': ^4.2.2
@@ -32,6 +31,7 @@ specifiers:
   '@types/node-fetch': ^2.5.7
   '@types/nodemailer': 6.4.0
   '@types/passport': 1.0.3
+  '@types/passport-apple': ^1.1.1
   '@types/passport-facebook': ^2.1.9
   '@types/passport-github2': 1.2.4
   '@types/passport-google-oauth20': 2.0.3
@@ -97,6 +97,7 @@ specifiers:
   npm-run-all: ^4.1.5
   otplib: 12.0.1
   passport: 0.4.1
+  passport-apple: ^2.0.1
   passport-bitbucket-oauth2: ^0.1.2
   passport-facebook: ^3.0.0
   passport-github2: 0.1.12
@@ -128,7 +129,6 @@ specifiers:
 dependencies:
   '@djgrant/postgres-migrations': 4.1.0-rc.1
   '@milahu/patch-package-with-pnpm-support': 6.4.8
-  '@nicokaiser/passport-apple': 0.2.1
   '@oauth-everything/passport-discord': 1.0.2
   '@oauth-everything/passport-twitch': 1.0.3
   '@riderize/passport-strava-oauth2': 1.1.1
@@ -163,6 +163,7 @@ dependencies:
   nodemailer: 6.4.16
   otplib: 12.0.1
   passport: 0.4.1
+  passport-apple: 2.0.1
   passport-bitbucket-oauth2: 0.1.2
   passport-facebook: 3.0.0
   passport-github2: 0.1.12
@@ -207,6 +208,7 @@ devDependencies:
   '@types/node-fetch': 2.6.1
   '@types/nodemailer': 6.4.0
   '@types/passport': 1.0.3
+  '@types/passport-apple': 1.1.1
   '@types/passport-facebook': 2.1.11
   '@types/passport-github2': 1.2.4
   '@types/passport-google-oauth20': 2.0.3
@@ -1908,15 +1910,6 @@ packages:
       graphql: 16.2.0
     dev: true
 
-  /@nicokaiser/passport-apple/0.2.1:
-    resolution: {integrity: sha512-5Spi6fl4KabSHkcjpXQEnd5BnmMptNaDNHndCiGLg2fK9OwLVE6OrgQQZi9mZqmjaPtWyivzV1dSegN+uB3xFQ==}
-    dependencies:
-      jsonwebtoken: 8.5.1
-      oauth: 0.9.15
-      passport-strategy: 1.0.0
-      uid2: 0.0.3
-    dev: false
-
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -2477,6 +2470,14 @@ packages:
 
   /@types/parse-json/4.0.0:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
+    dev: true
+
+  /@types/passport-apple/1.1.1:
+    resolution: {integrity: sha512-JpNC+yqkErqs9Vh/sDafoAWW5tJI9g7c7JwL+qYIhlB9A9rK6PFkl0S326DQLSm32vZFH4C0eF7aKCO3gXdp+Q==}
+    dependencies:
+      '@types/express': 4.17.6
+      '@types/passport': 1.0.3
+      '@types/passport-oauth2': 1.4.11
     dev: true
 
   /@types/passport-facebook/2.1.11:
@@ -9183,6 +9184,13 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /passport-apple/2.0.1:
+    resolution: {integrity: sha512-+ssWcwgg/PWyHNSgNn4d1dbsgQeEb13Xgu7TRb+FlHggbCTDvCb2jzm+M+hQ0vmU9y2QOmiRPqD27b3TCRc6PQ==}
+    dependencies:
+      jsonwebtoken: 8.5.1
+      passport-oauth2: 1.6.1
+    dev: false
+
   /passport-bitbucket-oauth2/0.1.2:
     resolution: {integrity: sha1-6zr1zdDQaDCtxJt2rK5K2CKQaTs=}
     engines: {node: '>= 0.4.0'}
@@ -11562,10 +11570,6 @@ packages:
     requiresBuild: true
     dev: false
     optional: true
-
-  /uid2/0.0.3:
-    resolution: {integrity: sha1-SDEm4Rd03y9xuLY53NeZw3YWK4I=}
-    dev: false
 
   /uid2/0.0.4:
     resolution: {integrity: sha512-IevTus0SbGwQzYh3+fRsAMTVVPOoIVufzacXcHPmdlle1jUpq7BRL+mw3dgeLanvGZdwwbWhRV6XrcFNdBmjWA==}
