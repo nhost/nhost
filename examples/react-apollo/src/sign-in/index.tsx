@@ -9,7 +9,7 @@ import { VerificationEmailSent } from '../verification-email-sent'
 import { EmailPassword } from './email-password'
 import { ForgotPassword } from './forgot-password'
 import { EmailPasswordless } from './email-passwordless'
-// import { useAnonymousSignIn } from '@nhost/react'
+// import { useSignInAnonymous } from '@nhost/react'
 
 const Index: React.FC = () => (
   <div>
@@ -31,7 +31,7 @@ const Index: React.FC = () => (
 )
 
 export const SignInPage: React.FC = () => {
-  // const { signIn } = useAnonymousSignIn()
+  // const { signIn } = useSignInAnonymous()
   return (
     <div style={{ textAlign: 'center' }}>
       <FlexboxGrid justify="center">

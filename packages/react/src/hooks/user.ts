@@ -171,6 +171,7 @@ export const useSendVerificationEmail = (
   return { sendEmail, isLoading, isSent, isError, error }
 }
 
+// TODO documentation when available in Nhost Cloud - see changelog
 export const useConfigMfa = (stateCode?: string) => {
   const nhost = useNhostClient()
 

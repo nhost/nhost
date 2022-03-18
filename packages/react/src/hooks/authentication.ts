@@ -99,9 +99,9 @@ export const useSignInEmailPasswordless = (
   return { signInEmailPasswordless, isLoading, isSuccess, isError, error }
 }
 
-// TODO documentation
+// TODO documentation when available in Nhost Cloud - see changelog
 // TODO deanonymize
-export const useAnonymousSignIn = () => {
+export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
   const signInAnonymous = () => service.send('SIGNIN_ANONYMOUS')
 

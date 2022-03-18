@@ -3,7 +3,7 @@
 '@nhost/react': minor
 ---
 
-Introducing `useAnonymousSignIn`
+Introducing `useSignInAnonymous`
 
 Anonymous Sign-In is a feature that allows users to get a temporary id without attaching yet any personal information such as an email or a passowrd.
 
@@ -14,7 +14,7 @@ Anonymous users can then run GraphQL operations, with a specific `public` role t
 **Note 2** The deanonymisation process is not yet available. This is also part of our roadmap.
 
 ```js
-const { signInAnonymous, isLoading, isSuccess, isError, error } = useAnonymousSignIn()
+const { signInAnonymous, isLoading, isSuccess, isError, error } = useSignInAnonymous()
 ```
 
 | Name              | Type                                                          | Notes                                                                                                                         |
@@ -28,10 +28,10 @@ const { signInAnonymous, isLoading, isSuccess, isError, error } = useAnonymousSi
 #### Usage
 
 ```jsx
-import { useAnonymousSignIn } from '@nhost/react'
+import { useSignInAnonymous } from '@nhost/react'
 
 const Component = () => {
-  const { signInAnonymous, isSuccess } = useAnonymousSignIn(email, password)
+  const { signInAnonymous, isSuccess } = useSignInAnonymous(email, password)
   return (
     <div>
       <button onClick={signInAnonymous}>Anonymous sign-in</button>
