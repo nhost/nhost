@@ -236,15 +236,47 @@ export const initProvider = <T extends Strategy>(
   }
 
   if (PROVIDERS[strategyName]) {
-    const strategyToUse = new strategy(
-      {
-        ...PROVIDERS[strategyName],
-        ...options,
-        callbackURL: `${ENV.AUTH_SERVER_URL}/signin/provider/${strategyName}/callback`,
-        passReqToCallback: true,
-      },
-      manageProviderStrategy(strategyName, transformProfile)
-    );
+    let strategyToUse;
+
+    // Apple is special
+    if (strategyName === 'apple') {
+      strategyToUse = new strategy(
+        {
+          ...PROVIDERS[strategyName],
+          ...options,
+          callbackURL: `${ENV.AUTH_SERVER_URL}/signin/provider/${strategyName}/callback`,
+          passReqToCallback: true,
+        },
+        (
+          req: any,
+          accessToken: any,
+          refreshToken: any,
+          idToken: any,
+          profile: any,
+          cb: (arg0: null, arg1: any) => void
+        ) => {
+          console.log('req body:');
+          console.log(req.body);
+
+          console.log({ accessToken });
+          console.log({ refreshToken });
+          console.log({ idToken });
+          console.log({ profile });
+
+          cb(null, idToken);
+        }
+      );
+    } else {
+      strategyToUse = new strategy(
+        {
+          ...PROVIDERS[strategyName],
+          ...options,
+          callbackURL: `${ENV.AUTH_SERVER_URL}/signin/provider/${strategyName}/callback`,
+          passReqToCallback: true,
+        },
+        manageProviderStrategy(strategyName, transformProfile)
+      );
+    }
 
     passport.use(strategyName, strategyToUse);
     // @ts-expect-error
