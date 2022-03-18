@@ -13,13 +13,13 @@ import { NhostReactContext } from '../provider'
 
 import { useAuthenticated, useAuthInterpreter } from './common'
 
-export const useEmailPasswordSignIn = (
+export const useSignInEmailPassword = (
   stateEmail?: string,
   statePassword?: string,
   stateOtp?: string
 ) => {
   const service = useAuthInterpreter()
-  const emailPasswordSignIn = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
+  const signInEmailPassword = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
     service.send({
       type: 'SIGNIN_PASSWORD',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
@@ -59,7 +59,7 @@ export const useEmailPasswordSignIn = (
   )
 
   return {
-    emailPasswordSignIn,
+    signInEmailPassword,
     isLoading,
     isSuccess,
     needsEmailVerification,
@@ -70,12 +70,12 @@ export const useEmailPasswordSignIn = (
   }
 }
 
-export const useEmailPasswordlessSignIn = (
+export const useSignInEmailPasswordless = (
   stateEmail?: string,
   stateOptions?: PasswordlessOptions
 ) => {
   const service = useAuthInterpreter()
-  const emailPasswordlessSignIn = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+  const signInEmailPasswordless = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
@@ -96,7 +96,7 @@ export const useEmailPasswordlessSignIn = (
 
   const isError =
     !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
-  return { emailPasswordlessSignIn, isLoading, isSuccess, isError, error }
+  return { signInEmailPasswordless, isLoading, isSuccess, isError, error }
 }
 
 // TODO documentation

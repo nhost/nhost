@@ -1,5 +1,5 @@
 import { Button, Divider, Input, Message } from 'rsuite'
-import { useEmailPasswordSignIn } from '@nhost/react'
+import { useSignInEmailPassword } from '@nhost/react'
 import React, { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
 
@@ -16,7 +16,7 @@ export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
-  const { emailPasswordSignIn, error, needsMfaOtp, sendMfaOtp } = useEmailPasswordSignIn(
+  const { signInEmailPassword, error, needsMfaOtp, sendMfaOtp } = useSignInEmailPassword(
     email,
     password,
     otp
@@ -80,7 +80,7 @@ export const EmailPassword: React.FC = () => {
           </Message>
         )}
 
-        <Button appearance="primary" onClick={emailPasswordSignIn} block>
+        <Button appearance="primary" onClick={signInEmailPassword} block>
           Sign in
         </Button>
         <Button as={NavLink} block to="/sign-in/forgot-password">
