@@ -4,11 +4,11 @@ For easy usage of Apollo and React with [Nhost](https://nhost.io).
 
 ## Install
 
-`$ npm install @nhost/react-apollo @apollo/client graphql react react-dom`
+`$ npm install @nhost/react-apollo @nhost/react @apollo/client graphql react react-dom`
 
 or
 
-`$ yarn add @nhost/react-apollo @apollo/client graphql react react-dom`
+`$ yarn add @nhost/react-apollo @nhost/react @apollo/client graphql react react-dom`
 
 ## Usage
 

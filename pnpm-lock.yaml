@@ -151,11 +151,11 @@ importers:
       subscriptions-transport-ws: ^0.11.0
       xstate: ^4.30.5
     dependencies:
-      '@apollo/client': 3.5.10_f3f7eb5e21785ef7d5faca94c1a68824
       '@nhost/core': link:../core
       graphql: 15.7.2
       subscriptions-transport-ws: 0.11.0_graphql@15.7.2
     devDependencies:
+      '@apollo/client': 3.5.10_f3f7eb5e21785ef7d5faca94c1a68824
       '@nhost/nhost-js': link:../nhost-js
       xstate: 4.30.6
 
@@ -269,9 +269,9 @@ importers:
       react: ^17.0.2
       react-dom: ^17.0.2
     dependencies:
-      '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
       '@nhost/apollo': link:../apollo
     devDependencies:
+      '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
       '@nhost/core': link:../core
       '@nhost/react': link:../react
       '@types/react': 17.0.40
@@ -332,7 +332,7 @@ packages:
       ts-invariant: 0.9.4
       tslib: 2.3.1
       zen-observable-ts: 1.2.3
-    dev: false
+    dev: true
 
   /@apollo/client/3.5.10_graphql@15.7.2+react@17.0.2:
     resolution: {integrity: sha512-tL3iSpFe9Oldq7gYikZK1dcYxp1c01nlSwtsMz75382HcI6fvQXyFXUCJTTK3wgO2/ckaBvRGw7VqjFREdVoRw==}
@@ -363,7 +363,7 @@ packages:
       ts-invariant: 0.9.4
       tslib: 2.3.1
       zen-observable-ts: 1.2.3
-    dev: false
+    dev: true
 
   /@babel/code-frame/7.16.7:
     resolution: {integrity: sha512-iAXqUn8IIeBTNd72xsFlgaXHkMBMt6y4HJp1tIaK465CWLT/fG1aqB7ykr95gHHmlBdGbFeWWfyB4NJJ0nmeIg==}
@@ -2007,7 +2007,7 @@ packages:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
       graphql: 15.7.2
-    dev: false
+    dev: true
 
   /@hapi/hoek/9.2.1:
     resolution: {integrity: sha512-gfta+H8aziZsm8pZa0vj04KO6biEiisppNgA1kbJvFrrWu9Vm7eaUEy76DIxsuTaWvti5fkJVhllWc6ZTE+Mdw==}
@@ -3031,21 +3031,21 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       tslib: 2.3.1
-    dev: false
+    dev: true
 
   /@wry/equality/0.5.2:
     resolution: {integrity: sha512-oVMxbUXL48EV/C0/M7gLVsoK6qRHPS85x8zECofEZOVvxGmIPLA9o5Z27cc2PoAyZz1S2VoM2A7FLAnpfGlneA==}
     engines: {node: '>=8'}
     dependencies:
       tslib: 2.3.1
-    dev: false
+    dev: true
 
   /@wry/trie/0.3.1:
     resolution: {integrity: sha512-WwB53ikYudh9pIorgxrkHKrQZcCqNM/Q/bDzZBffEaGUKGuHrRb3zZUT9Sh2qw9yogC7SsdRmQ1ER0pqvd3bfw==}
     engines: {node: '>=8'}
     dependencies:
       tslib: 2.3.1
-    dev: false
+    dev: true
 
   /@xstate/inspect/0.6.4_ws@8.5.0+xstate@4.30.6:
     resolution: {integrity: sha512-2Gz5wu/RdpeLEpQ93qWQe/lDybJHQq8NzgWyB/EmDUBhOggCeZu4JqJCT7/RsQ7FNSEenZILFbNTftOY00Kg4A==}
@@ -6074,7 +6074,7 @@ packages:
     dependencies:
       graphql: 15.7.2
       tslib: 2.3.1
-    dev: false
+    dev: true
 
   /graphql/15.7.2:
     resolution: {integrity: sha512-AnnKk7hFQFmU/2I9YSQf3xw44ctnSFCfp3zE0N6W174gqe9fWG/2rKaKxROK7CcI3XtERpjEKFqts8o319Kf7A==}
@@ -6211,7 +6211,7 @@ packages:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
     dependencies:
       react-is: 16.13.1
-    dev: false
+    dev: true
 
   /hosted-git-info/2.8.9:
     resolution: {integrity: sha512-mxIDAb9Lsm6DoOJ7xH+5+X4y1LU/4Hi50L9C5sIswK3JzULS4bwk1FvjdBgvYR4bzT4tuUQiC15FE2f5HbLvYw==}
@@ -8157,7 +8157,7 @@ packages:
     dependencies:
       '@wry/context': 0.6.1
       '@wry/trie': 0.3.1
-    dev: false
+    dev: true
 
   /optionator/0.8.3:
     resolution: {integrity: sha512-+IW9pACdk3XWmmTXG8m3upGUJst5XRGzxMRjXzAuJ1XnIFNvfhjjIuYkDvysnPQ7qzqVzLt78BCruntqRhWQbA==}
@@ -9443,7 +9443,7 @@ packages:
   /symbol-observable/4.0.0:
     resolution: {integrity: sha512-b19dMThMV4HVFynSAM1++gBHAbk2Tc/osgLIBZMKsyqh34jb2e8Os7T6ZW/Bt3pJFdBTd2JwAnAAEQV7rSNvcQ==}
     engines: {node: '>=0.10'}
-    dev: false
+    dev: true
 
   /symbol-tree/3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -9614,7 +9614,7 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       tslib: 2.3.1
-    dev: false
+    dev: true
 
   /ts-jest/27.1.3_d5227bc03288bd6f5160aeb04e31fb5a:
     resolution: {integrity: sha512-6Nlura7s6uM9BVUAoqLH7JHyMXjz8gluryjpPXxr3IxZdAXnU6FhjvVLHFtfd1vsE1p8zD1OJfskkc0jhTSnkA==}
@@ -10449,11 +10449,11 @@ packages:
     resolution: {integrity: sha512-hc/TGiPkAWpByykMwDcem3SdUgA4We+0Qb36bItSuJC9xD0XVBZoFHYoadAomDSNf64CG8Ydj0Qb8Od8BUWz5g==}
     dependencies:
       zen-observable: 0.8.15
-    dev: false
+    dev: true
 
   /zen-observable/0.8.15:
     resolution: {integrity: sha512-PQ2PC7R9rslx84ndNBZB/Dkv8V8fZEpk83RLgXtYd0fwUgEjseMn1Dgajh2x6S8QbZAFa9p2qVCEuYZNgve0dQ==}
-    dev: false
+    dev: true
 
   /zwitch/1.0.5:
     resolution: {integrity: sha512-V50KMwwzqJV0NpZIZFwfOD5/lyny3WlSzRiXgA0G7VUnRlqttta1L6UQIHzd6EuBY/cHGfwTIck7w1yH6Q5zUw==}
