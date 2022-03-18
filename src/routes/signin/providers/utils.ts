@@ -79,11 +79,6 @@ const manageProviderStrategy =
     // check if user exists, using profile.id
     const { id, email, displayName, avatarUrl } = transformProfile(profile);
 
-    // check email
-    if (!(await isValidEmail({ email }))) {
-      return done(new Error('email is not allowed'));
-    }
-
     // check if user already exist with `id` (unique id from provider)
     const userProvider = await gqlSdk
       .authUserProviders({
@@ -108,6 +103,11 @@ const manageProviderStrategy =
     }
 
     if (email) {
+      // check email
+      if (!(await isValidEmail({ email }))) {
+        return done(new Error('email is not allowed'));
+      }
+
       const user = await getUserByEmail(email);
 
       if (user) {
@@ -137,7 +137,7 @@ const manageProviderStrategy =
     const insertedUser = await insertUser({
       email,
       passwordHash: null,
-      emailVerified: true,
+      emailVerified: !!email,
       defaultRole: defaultRole,
       locale,
       roles: {
@@ -221,7 +221,7 @@ export const initProvider = <T extends Strategy>(
       avatarUrl?: string;
     } => ({
       id,
-      email: emails?.[0].value,
+      email: emails?.[0]?.value,
       displayName: displayName,
       avatarUrl: photos?.[0]?.value || getGravatarUrl(emails?.[0].value),
     }),
