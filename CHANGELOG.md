@@ -1,6 +1,11 @@
 
 
-## [0.4.2](https://github.com/nhost/hasura-auth/compare/v0.4.1...v0.4.2) (2022-03-15)
+## [0.4.3](https://github.com/nhost/hasura-auth/compare/v0.4.2...v0.4.3) (2022-03-18)
+
+
+### Bug Fixes
+
+* root field typo ([#117](https://github.com/nhost/hasura-auth/issues/117)) ([ebb19f8](https://github.com/nhost/hasura-auth/commit/ebb19f8cea693f7e26039345a807308d052a532f))## [0.4.2](https://github.com/nhost/hasura-auth/compare/v0.4.1...v0.4.2) (2022-03-15)
 
 
 ### Bug Fixes
