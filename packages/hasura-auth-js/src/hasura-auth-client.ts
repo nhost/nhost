@@ -11,7 +11,7 @@ import {
   rewriteRedirectTo
 } from '@nhost/core'
 
-import { getSession, isBrowser } from './utils/helpers'
+import { getSession, isBrowser, localStorageGetter, localStorageSetter } from './utils/helpers'
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -23,9 +23,8 @@ import {
   AuthChangedFunction,
   ChangeEmailParams,
   ChangePasswordParams,
-  ClientStorage,
-  ClientStorageType,
   DeanonymizeParams,
+  NhostAuthConstructorParams,
   OnTokenChangedFunction,
   ResetPasswordParams,
   SendVerificationEmailParams,
@@ -63,30 +62,22 @@ export class HasuraAuthClient {
     autoLogin = true,
     clientStorage,
     clientStorageType = 'web',
+    clientStorageGetter,
+    clientStorageSetter,
+    refreshIntervalTime,
     start = true,
     Client = AuthClient
-  }: {
-    url: string
-    autoRefreshToken?: boolean
-    autoLogin?: boolean
-    refreshIntervalTime?: number
-    clientStorage?: ClientStorage
-    clientStorageType?: ClientStorageType
-    start?: boolean
-    Client?: typeof AuthClient
-  }) {
-    // TODO refreshIntervalTime
-    // TODO custom clientStorage and clientStorageType
-    // ? no warning when using with Nodejs?
+  }: NhostAuthConstructorParams) {
     this.#client = new Client({
       backendUrl: url,
       autoRefreshToken,
       autoSignIn: autoLogin,
-      start
-      // storageGetter: () => {
-      //   return null
-      // },
-      // storageSetter: () => { }
+      start,
+      clientStorageGetter:
+        clientStorageGetter || localStorageGetter(clientStorageType, clientStorage),
+      clientStorageSetter:
+        clientStorageSetter || localStorageSetter(clientStorageType, clientStorage),
+      refreshIntervalTime
     })
   }
 
@@ -434,9 +425,9 @@ export class HasuraAuthClient {
           if (event.type === 'TOKEN_CHANGED') fn(getSession(context))
         })
       )
-      else {
-        console.log('onTokenChanged: no interpreter is set yet', fn)
-      }
+    else {
+      console.log('onTokenChanged: no interpreter is set yet', fn)
+    }
     return () => {
       this.onTokenChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
@@ -462,9 +453,9 @@ export class HasuraAuthClient {
           else if (event.type === 'SIGNED_OUT') fn('SIGNED_OUT', getSession(context))
         })
       )
-      else {
-        console.log('onAuthStateChanged: no interpreter is set yet', fn)
-      }
+    else {
+      console.log('onAuthStateChanged: no interpreter is set yet', fn)
+    }
     return () => {
       this.onAuthStateChangedSubscriptions.forEach((subscription) => subscription.stop())
     }
@@ -606,7 +597,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  getSession(): Session | null {
+  getSession() {
     return getSession(this.#client.interpreter?.state.context)
   }
 

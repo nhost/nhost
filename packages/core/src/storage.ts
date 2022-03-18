@@ -5,21 +5,25 @@ export type StorageSetter = (key: string, value: string | null) => void | Promis
 
 const isBrowser = typeof window !== 'undefined'
 
-// TODO rename to 'refreshTokenGetter' and 'refreshTokenSetter'
-export const defaultStorageGetter: StorageGetter = (key) => {
+const inMemoryLocalStorage: Map<string, string | null> = new Map()
+
+export const defaultClientStorageGetter: StorageGetter = (key) => {
   if (isBrowser && localStorage) return localStorage.getItem(key)
-  else {
-    console.warn('no defaultStorageGetter')
-    return null
-  }
+  else return inMemoryLocalStorage.get(key) ?? null
 }
 
-export const defaultStorageSetter: StorageSetter = (key, value) => {
+export const defaultClientStorageSetter: StorageSetter = (key, value) => {
   if (isBrowser && localStorage) {
     if (value) {
       localStorage.setItem(key, value)
     } else {
       localStorage.removeItem(key)
+    }
+  } else {
+    if (value) {
+      inMemoryLocalStorage.set(key, value)
+    } else if (inMemoryLocalStorage.has(key)) {
+      inMemoryLocalStorage.delete(key)
     }
   }
 }

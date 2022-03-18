@@ -1,19 +1,11 @@
-import { AuthClient } from '@nhost/core'
-import { ClientStorage, ClientStorageType, HasuraAuthClient } from '@nhost/hasura-auth-js'
+import { HasuraAuthClient, NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 
-export interface NhostClientConstructorParams {
+export type NhostClientConstructorParams = Omit<NhostAuthConstructorParams, 'url'> & {
   backendUrl: string
-  refreshIntervalTime?: number
-  clientStorage?: ClientStorage
-  clientStorageType?: ClientStorageType
-  autoRefreshToken?: boolean
-  autoLogin?: boolean
-  start?: boolean
-  Client?: typeof AuthClient
 }
 
 export class NhostClient {
@@ -33,6 +25,8 @@ export class NhostClient {
   constructor({
     backendUrl,
     refreshIntervalTime,
+    clientStorageGetter,
+    clientStorageSetter,
     clientStorage,
     clientStorageType,
     autoRefreshToken,
@@ -44,6 +38,8 @@ export class NhostClient {
     this.auth = new HasuraAuthClient({
       url: `${backendUrl}/v1/auth`,
       refreshIntervalTime,
+      clientStorageGetter,
+      clientStorageSetter,
       clientStorage,
       clientStorageType,
       autoRefreshToken,

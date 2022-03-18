@@ -3,7 +3,6 @@ import { BroadcastChannel } from 'broadcast-channel'
 import { assign, createMachine, send } from 'xstate'
 
 import {
-  MIN_TOKEN_REFRESH_INTERVAL,
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
   TOKEN_REFRESH_MARGIN
@@ -33,8 +32,9 @@ export * from './send-verification-email'
 export type AuthMachineOptions = {
   backendUrl: string
   clientUrl?: string
-  storageGetter?: StorageGetter
-  storageSetter?: StorageSetter
+  refreshIntervalTime?: number
+  clientStorageGetter?: StorageGetter
+  clientStorageSetter?: StorageSetter
   autoSignIn?: boolean
   autoRefreshToken?: boolean
 }
@@ -46,8 +46,9 @@ export type AuthMachine = ReturnType<typeof createAuthMachine>
 export const createAuthMachine = ({
   backendUrl,
   clientUrl,
-  storageSetter,
-  storageGetter,
+  clientStorageGetter,
+  clientStorageSetter,
+  refreshIntervalTime,
   autoRefreshToken = true,
   autoSignIn = true
 }: Required<AuthMachineOptions>) => {
@@ -537,19 +538,19 @@ export const createAuthMachine = ({
         }),
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }: any) => {
-          storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
+          clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
           if (data.session.accessTokenExpiresIn) {
             const nextRefresh = new Date(
               Date.now() + data.session.accessTokenExpiresIn * 1_000
             ).toISOString()
-            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
+            clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
           } else {
-            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+            clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           }
         },
         destroyToken: () => {
-          storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
-          storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+          clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+          clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
         }
       },
 
@@ -566,7 +567,7 @@ export const createAuthMachine = ({
           ctx.refreshTimer.elapsed >
           Math.max(
             (Date.now() - ctx.accessToken.expiresAt.getTime()) / 1_000 - TOKEN_REFRESH_MARGIN,
-            MIN_TOKEN_REFRESH_INTERVAL
+            refreshIntervalTime
           ),
 
         // * Authentication errors
@@ -655,9 +656,9 @@ export const createAuthMachine = ({
           throw Error()
         },
         importRefreshToken: async () => {
-          const stringExpiresAt = await storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
+          const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)
           const expiresAt = stringExpiresAt ? new Date(stringExpiresAt) : null
-          const refreshToken = await storageGetter(NHOST_REFRESH_TOKEN_KEY)
+          const refreshToken = await clientStorageGetter(NHOST_REFRESH_TOKEN_KEY)
           return { refreshToken, expiresAt }
         }
       }

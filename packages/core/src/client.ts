@@ -1,8 +1,9 @@
 import { BroadcastChannel } from 'broadcast-channel'
 import { interpret } from 'xstate'
 
+import { MIN_TOKEN_REFRESH_INTERVAL } from './constants'
 import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
-import { defaultStorageGetter, defaultStorageSetter } from './storage'
+import { defaultClientStorageGetter, defaultClientStorageSetter } from './storage'
 import type { AuthInterpreter } from './types'
 
 export type NhostClientOptions = AuthMachineOptions & { start?: boolean }
@@ -18,8 +19,9 @@ export class AuthClient {
   constructor({
     backendUrl,
     clientUrl = typeof window !== 'undefined' ? window.location.origin : '',
-    storageGetter = defaultStorageGetter,
-    storageSetter = defaultStorageSetter,
+    clientStorageGetter = defaultClientStorageGetter,
+    clientStorageSetter = defaultClientStorageSetter,
+    refreshIntervalTime = MIN_TOKEN_REFRESH_INTERVAL,
     autoSignIn = true,
     autoRefreshToken = true,
     start = true
@@ -30,8 +32,9 @@ export class AuthClient {
     this.machine = createAuthMachine({
       backendUrl,
       clientUrl,
-      storageGetter,
-      storageSetter,
+      refreshIntervalTime,
+      clientStorageGetter,
+      clientStorageSetter,
       autoSignIn,
       autoRefreshToken
     })
@@ -58,11 +61,11 @@ export class AuthClient {
   set interpreter(interpreter: AuthInterpreter | undefined) {
     this.#interpreter = interpreter
     if (interpreter) {
-      this.#subscriptions.forEach(fn => fn(this))
+      this.#subscriptions.forEach((fn) => fn(this))
     }
   }
 
-  onStart (fn: (interpreter: AuthClient) => void) {
+  onStart(fn: (interpreter: AuthClient) => void) {
     this.#subscriptions.add(fn)
   }
 }
