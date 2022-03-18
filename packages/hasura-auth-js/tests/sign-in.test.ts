@@ -61,8 +61,7 @@ describe('sign-in', () => {
 
     // get passwordless email ink
     const emailLink = htmlUrls({ html: message.html }).find(
-      (href: { value: string; url: string; uri: string }) =>
-        href.url.includes('signinPasswordless')
+      (href: { value: string; url: string; uri: string }) => href.url.includes('signinPasswordless')
     )
 
     // verify email

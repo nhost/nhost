@@ -9,14 +9,14 @@ import { rewriteRedirectTo } from '../utils'
 export type ResetPasswordContext = {
   error: ErrorPayload | null
 }
-export type ResetPasswordEvents = {
-  type: 'REQUEST'
-  email?: string
-  options?: ResetPasswordOptions
-}
+export type ResetPasswordEvents =
+  | {
+      type: 'REQUEST'
+      email?: string
+      options?: ResetPasswordOptions
+    }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR', error: ErrorPayload | null }
-
+  | { type: 'ERROR'; error: ErrorPayload | null }
 
 export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
@@ -26,7 +26,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
         context: {} as ResetPasswordContext,
         events: {} as ResetPasswordEvents
       },
-      tsTypes: {} as import("./reset-password.typegen").Typegen0,
+      tsTypes: {} as import('./reset-password.typegen').Typegen0,
       preserveActionOrder: true,
       id: 'changePassword',
       initial: 'idle',
@@ -68,7 +68,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
         requestChange: (_, { email, options }) =>
           api.post<string, { data: { error?: ErrorPayload } }>('/user/password/reset', {
             email,
-            options:rewriteRedirectTo(clientUrl, options)
+            options: rewriteRedirectTo(clientUrl, options)
           })
       }
     }

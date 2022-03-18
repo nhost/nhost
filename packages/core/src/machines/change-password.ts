@@ -10,11 +10,11 @@ export type ChangePasswordContext = {
 }
 export type ChangePasswordEvents =
   | {
-    type: 'REQUEST'
-    password?: string
-  }
+      type: 'REQUEST'
+      password?: string
+    }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR', error: ErrorPayload | null }
+  | { type: 'ERROR'; error: ErrorPayload | null }
 
 export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
@@ -24,7 +24,7 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthCli
         context: {} as ChangePasswordContext,
         events: {} as ChangePasswordEvents
       },
-      tsTypes: {} as import("./change-password.typegen").Typegen0,
+      tsTypes: {} as import('./change-password.typegen').Typegen0,
       preserveActionOrder: true,
       id: 'changePassword',
       initial: 'idle',

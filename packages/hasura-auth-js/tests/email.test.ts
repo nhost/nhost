@@ -27,8 +27,7 @@ describe('emails', () => {
 
     // get verify email link
     const verifyEmailLink = htmlUrls({ html: message.html }).find(
-      (href: { value: string; url: string; uri: string }) =>
-        href.url.includes('verifyEmail')
+      (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
     )
 
     // verify email
@@ -61,8 +60,7 @@ describe('emails', () => {
 
     // get verify email link
     const changeEmailLink = htmlUrls({ html: changeEmailEmail.html }).find(
-      (href: { value: string; url: string; uri: string }) =>
-        href.url.includes('emailConfirmChange')
+      (href: { value: string; url: string; uri: string }) => href.url.includes('emailConfirmChange')
     )
 
     // verify email
@@ -114,8 +112,7 @@ describe('emails', () => {
     // test email link
     // get verify email link
     const verifyEmailLink = htmlUrls({ html: verifyEmailEmail.html }).find(
-      (href: { value: string; url: string; uri: string }) =>
-        href.url.includes('verifyEmail')
+      (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
     )
 
     // verify email

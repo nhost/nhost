@@ -13,10 +13,10 @@ export type SendVerificationEmailContext = {
 
 export type SendVerificationEmailEvents =
   | {
-    type: 'REQUEST'
-    email?: string
-    options?: SendVerificationEmailOptions
-  }
+      type: 'REQUEST'
+      email?: string
+      options?: SendVerificationEmailOptions
+    }
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
@@ -32,7 +32,7 @@ export const createSendVerificationEmailMachine = ({
         context: {} as SendVerificationEmailContext,
         events: {} as SendVerificationEmailEvents
       },
-      tsTypes: {} as import("./send-verification-email.typegen").Typegen0,
+      tsTypes: {} as import('./send-verification-email.typegen').Typegen0,
       preserveActionOrder: true,
       id: 'sendVerificationEmail',
       initial: 'idle',

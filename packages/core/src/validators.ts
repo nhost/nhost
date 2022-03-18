@@ -13,4 +13,5 @@ export const isValidPassword = (password?: string | null) =>
   !!password && typeof password === 'string' && password.length >= MIN_PASSWORD_LENGTH
 
 // TODO improve validation
-export const isValidPhoneNumber = (phoneNumber?: string | null) => !!phoneNumber && typeof phoneNumber === 'string'
+export const isValidPhoneNumber = (phoneNumber?: string | null) =>
+  !!phoneNumber && typeof phoneNumber === 'string'

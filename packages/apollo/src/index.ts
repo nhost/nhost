@@ -17,7 +17,7 @@ import { NhostClient } from '@nhost/nhost-js'
 const isBrowser = typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
-  nhost?: NhostClient,
+  nhost?: NhostClient
   graphqlUrl?: string
   headers?: any
   publicRole?: string
@@ -94,20 +94,20 @@ export const createApolloClient = ({
 
   const link = webSocketClient
     ? split(
-      ({ query }) => {
-        const mainDefinition = getMainDefinition(query)
+        ({ query }) => {
+          const mainDefinition = getMainDefinition(query)
 
-        const { kind } = mainDefinition
-        let operation
-        if ('operation' in mainDefinition) {
-          operation = mainDefinition.operation
-        }
+          const { kind } = mainDefinition
+          let operation
+          if ('operation' in mainDefinition) {
+            operation = mainDefinition.operation
+          }
 
-        return kind === 'OperationDefinition' && operation === 'subscription'
-      },
-      new WebSocketLink(webSocketClient),
-      authLink.concat(httplink)
-    )
+          return kind === 'OperationDefinition' && operation === 'subscription'
+        },
+        new WebSocketLink(webSocketClient),
+        authLink.concat(httplink)
+      )
     : authLink.concat(httplink)
 
   const apolloClientOptions: ApolloClientOptions<any> = {

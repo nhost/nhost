@@ -4,7 +4,7 @@ For easy usage of Auth with [Nhost](https://nhost.io).
 
 ## Deprecation notice
 
-This package is deprecated. Use `@nhost/react` instead.
+This package is deprecated. It is recommended to use `@nhost/react` instead.
 If you want to continue to use it, don't forget to add `@nhost/react` to your packages as it is now a peer dependency.
 
 ## Install

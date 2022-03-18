@@ -23,7 +23,7 @@ export type SignUpOptions = RegistrationOptions & RedirectOption
 export type ChangeEmailOptions = RedirectOption
 export type ResetPasswordOptions = RedirectOption
 export type SendVerificationEmailOptions = RedirectOption
-export type DeanonymizeOptions = { email?: string, password?: string } & RegistrationOptions
+export type DeanonymizeOptions = { email?: string; password?: string } & RegistrationOptions
 export type ProviderOptions = RegistrationOptions & RedirectOption
 
 export type User = {

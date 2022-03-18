@@ -26,9 +26,7 @@ export const useNhostBackendUrl = () => {
 
 export const useAuthLoading = () => {
   const service = useAuthInterpreter()
-  const [isLoading, setIsLoading] = useState(
-    !service.status || !service?.state?.hasTag('ready')
-  )
+  const [isLoading, setIsLoading] = useState(!service.status || !service?.state?.hasTag('ready'))
   useEffect(() => {
     const subscription = service.subscribe((state) => {
       const newValue = !state.hasTag('ready')
@@ -53,9 +51,7 @@ export const useAuthenticated = () => {
     return subscription.unsubscribe
   }, [service])
   return isAuthenticated
-
 }
-
 
 export const useAccessToken = () => {
   const service = useAuthInterpreter()

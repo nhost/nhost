@@ -11,13 +11,14 @@ export type ChangeEmailContext = {
   error: ErrorPayload | null
 }
 
-export type ChangeEmailEvents = {
-  type: 'REQUEST'
-  email?: string
-  options?: ChangeEmailOptions
-}
+export type ChangeEmailEvents =
+  | {
+      type: 'REQUEST'
+      email?: string
+      options?: ChangeEmailOptions
+    }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR', error: ErrorPayload | null }
+  | { type: 'ERROR'; error: ErrorPayload | null }
 
 export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
@@ -27,7 +28,7 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
         context: {} as ChangeEmailContext,
         events: {} as ChangeEmailEvents
       },
-      tsTypes: {} as import("./change-email.typegen").Typegen0,
+      tsTypes: {} as import('./change-email.typegen').Typegen0,
       preserveActionOrder: true,
       id: 'changeEmail',
       initial: 'idle',
@@ -71,7 +72,6 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
         reportSuccess: send('SUCCESS')
-
       },
       guards: {
         invalidEmail: (_, { email }) => !isValidEmail(email)

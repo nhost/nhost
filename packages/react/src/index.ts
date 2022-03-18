@@ -13,7 +13,7 @@ export * from './provider'
 type NhostReactClientConstructorParams = Omit<NhostClientConstructorParams, 'start' | 'client'>
 
 export class NhostClient extends VanillaClient {
-    constructor(params: NhostReactClientConstructorParams) {
-        super({ ...params, start: false })
-    }
+  constructor(params: NhostReactClientConstructorParams) {
+    super({ ...params, start: false })
+  }
 }

@@ -5,23 +5,24 @@ import { ErrorPayload, INVALID_MFA_TYPE_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 
 export type EnableMfaContext = {
-  error: ErrorPayload | null,
-  imageUrl: string | null,
+  error: ErrorPayload | null
+  imageUrl: string | null
   secret: string | null
 }
 
-export type EnableMfaEvents = {
-  type: 'GENERATE'
-}
+export type EnableMfaEvents =
   | {
-    type: 'ACTIVATE'
-    code?: string
-    activeMfaType: 'totp'
-  }
+      type: 'GENERATE'
+    }
+  | {
+      type: 'ACTIVATE'
+      code?: string
+      activeMfaType: 'totp'
+    }
   | { type: 'GENERATED' }
-  | { type: 'GENERATED_ERROR', error: ErrorPayload | null }
+  | { type: 'GENERATED_ERROR'; error: ErrorPayload | null }
   | { type: 'SUCCESS' }
-  | { type: 'ERROR', error: ErrorPayload | null }
+  | { type: 'ERROR'; error: ErrorPayload | null }
 
 export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
@@ -31,7 +32,7 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
         context: {} as EnableMfaContext,
         events: {} as EnableMfaEvents
       },
-      tsTypes: {} as import("./enable-mfa.typegen").Typegen0,
+      tsTypes: {} as import('./enable-mfa.typegen').Typegen0,
       preserveActionOrder: true,
       id: 'enableMfa',
       initial: 'idle',
@@ -54,7 +55,6 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
             onDone: { target: 'generated', actions: ['reportGeneratedSuccess', 'saveGeneration'] },
             onError: { actions: ['saveError', 'reportGeneratedError'], target: 'idle.error' }
           }
-
         },
         generated: {
           initial: 'idle',
@@ -101,25 +101,20 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
         reportSuccess: send('SUCCESS'),
         reportGeneratedSuccess: send('GENERATED'),
-        reportGeneratedError: send((ctx) => ({ type: 'GENERATED_ERROR', error: ctx.error })),
-
+        reportGeneratedError: send((ctx) => ({ type: 'GENERATED_ERROR', error: ctx.error }))
       },
       guards: {
         invalidMfaType: (_, { activeMfaType }) => !activeMfaType || activeMfaType !== 'totp'
       },
       services: {
         generate: async (_) => {
-          const { data } = await api.get(
-            '/mfa/totp/generate',
-            {
-              headers: {
-                authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
-              }
+          const { data } = await api.get('/mfa/totp/generate', {
+            headers: {
+              authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
             }
-          )
+          })
           return data
-        }
-        ,
+        },
         activate: (_, { code, activeMfaType }) =>
           api.post(
             '/user/mfa',
