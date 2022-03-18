@@ -4,20 +4,21 @@ import { Button, Input, Panel } from 'rsuite'
 
 export const Mfa: React.FC = () => {
   const [code, setCode] = useState('')
-  const { generate, activate, isActivated, isGenerated, qrCode } = useConfigMfa(code)
+  const { generateQrCode, activateMfa, isActivated, isGenerated, qrCodeDataUrl } =
+    useConfigMfa(code)
 
   return (
     <Panel header="Activate 2-step verification" bordered>
       {!isGenerated && (
-        <Button block appearance="primary" onClick={generate}>
+        <Button block appearance="primary" onClick={generateQrCode}>
           Generate
         </Button>
       )}
       {isGenerated && !isActivated && (
         <div>
-          <img alt="qrcode" src={qrCode} />
+          <img alt="qrcode" src={qrCodeDataUrl} />
           <Input value={code} onChange={setCode} placeholder="Enter activation code" />
-          <Button block appearance="primary" onClick={activate}>
+          <Button block appearance="primary" onClick={activateMfa}>
             Activate
           </Button>
         </div>

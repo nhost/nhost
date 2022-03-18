@@ -185,21 +185,21 @@ export const useConfigMfa = (stateCode?: string) => {
   const isActivating = current.matches({ generated: 'activating' })
   const isActivated = current.matches({ generated: 'activated' })
   const error = current.context.error
-  const qrCode = current.context.imageUrl || ''
+  const qrCodeDataUrl = current.context.imageUrl || ''
 
-  const generate = () => send('GENERATE')
-  const activate = (valueCode?: string | unknown) =>
+  const generateQrCode = () => send('GENERATE')
+  const activateMfa = (valueCode?: string | unknown) =>
     send({
       type: 'ACTIVATE',
       activeMfaType: 'totp',
       code: typeof valueCode === 'string' ? valueCode : stateCode
     })
   return {
-    generate,
+    generateQrCode,
     isGenerating,
-    qrCode,
+    qrCodeDataUrl,
     isGenerated,
-    activate,
+    activateMfa,
     isActivating,
     isActivated,
     isError,
