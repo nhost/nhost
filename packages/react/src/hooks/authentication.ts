@@ -103,7 +103,7 @@ export const useSignInEmailPasswordless = (
 // TODO deanonymize
 export const useAnonymousSignIn = () => {
   const service = useAuthInterpreter()
-  const anonymousSignIn = () => service.send('SIGNIN_ANONYMOUS')
+  const signInAnonymous = () => service.send('SIGNIN_ANONYMOUS')
 
   const error = useSelector(
     service,
@@ -115,7 +115,7 @@ export const useAnonymousSignIn = () => {
   const isSuccess = useAuthenticated()
   const isError =
     !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
-  return { anonymousSignIn, isLoading, isSuccess, isError, error }
+  return { signInAnonymous, isLoading, isSuccess, isError, error }
 }
 
 export const useProviderLink = (options?: ProviderOptions) => {
