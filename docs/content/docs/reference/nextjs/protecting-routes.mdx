@@ -6,7 +6,7 @@ Create a `auth-protected.js` file:
 
 ```jsx
 import { useRouter } from 'next/router'
-import { useAuthLoading, useAuthenticated } from '@nhost/react'
+import { useAuthLoading, useAuthenticated } from '@nhost/nextjs'
 
 export function authProtected(Comp) {
   return function AuthProtected(props) {
