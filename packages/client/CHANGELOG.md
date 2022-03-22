@@ -1,5 +1,11 @@
 # @nhost/client
 
+## 0.2.1
+
+### Patch Changes
+
+- 0d8afde: Bump xstate version 4.30.5
+
 ## 0.2.0
 
 ### Minor Changes

@@ -2,12 +2,15 @@
 
 ## Get started
 
-1. Install dependencies: `yarn`
-2. Start dev server: `yarn dev`
+From the **root** of the `nhost/nhost` repository:
 
-## NOTES;
+```bash
+pnpm run clean:all
+pnpm i
+cd docs
+pnpm run dev
+```
 
-The content is copied from the main `nhost/nhost` repo. This repo is only to modify styles/react components.
 
 ## Structure
 

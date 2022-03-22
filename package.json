@@ -32,11 +32,11 @@
     "prerelease": "pnpm clean && pnpm install && pnpm build",
     "release": "pnpm run prerelease && changeset publish && git push --follow-tags && git status && pnpm -r publish",
     "changeset": "changeset",
-    "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview"
+    "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
+    "wait": "wait-on http://localhost:1337/v1/auth/healthz -i 500 -t 120000"
   },
   "workspaces": [
     "packages/*",
-    "examples/*",
     "docs"
   ],
   "devDependencies": {
@@ -44,14 +44,14 @@
     "@babel/eslint-parser": "^7.17.0",
     "@babel/plugin-syntax-flow": "^7.16.7",
     "@babel/plugin-transform-react-jsx": "^7.17.3",
-    "@changesets/cli": "^2.21.0",
-    "@faker-js/faker": "^6.0.0-alpha.7",
+    "@changesets/cli": "^2.21.1",
+    "@faker-js/faker": "^6.0.0-beta.0",
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.21",
-    "@typescript-eslint/eslint-plugin": "^5.13.0",
-    "@typescript-eslint/parser": "^5.13.0",
+    "@typescript-eslint/eslint-plugin": "^5.14.0",
+    "@typescript-eslint/parser": "^5.14.0",
     "@vitejs/plugin-react": "^1.2.0",
-    "esbuild": "^0.14.23",
+    "esbuild": "^0.14.25",
     "esbuild-node-externals": "^1.4.1",
     "eslint": "^8.10.0",
     "eslint-config-react-app": "^7.0.0",
@@ -60,7 +60,7 @@
     "eslint-plugin-jsx-a11y": "^6.5.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.0.0",
-    "eslint-plugin-react": "^7.29.2",
+    "eslint-plugin-react": "^7.29.3",
     "eslint-plugin-react-hooks": "^4.3.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
     "husky": "^7.0.4",
@@ -69,11 +69,12 @@
     "prettier": "^2.5.1",
     "ts-jest": "^27.1.3",
     "tsconfig-paths-jest": "^0.0.1",
-    "turbo": "^1.1.4",
+    "turbo": "1.1.6",
     "typescript": "4.5.5",
-    "vite": "^2.8.5",
+    "vite": "^2.8.6",
     "vite-plugin-dts": "^0.9.9",
-    "vite-tsconfig-paths": "^3.4.1"
+    "vite-tsconfig-paths": "^3.4.1",
+    "wait-on": "^6.0.1"
   },
   "resolutions": {
     "graphql": "15.7.2"

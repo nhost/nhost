@@ -7,5 +7,5 @@ Once in the example's directory, run the two following commands in parallel:
 nhost -d
 
 # Start this project
-pnpm run dev
+yarn run dev
 ```

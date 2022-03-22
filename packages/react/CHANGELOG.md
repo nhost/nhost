@@ -1,5 +1,13 @@
 # @nhost/react
 
+## 0.2.1
+
+### Patch Changes
+
+- 0d8afde: Bump xstate version 4.30.5
+- Updated dependencies [0d8afde]
+  - @nhost/client@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
@@ -35,8 +43,5 @@
 
 ### Patch Changes
 
-- Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
 - Updated dependencies [207ae38]
   - @nhost/client@0.2.0

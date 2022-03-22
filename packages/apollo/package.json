@@ -1,6 +1,6 @@
 {
   "name": "@nhost/apollo",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Nhost Apollo Client library",
   "license": "MIT",
   "keywords": [
@@ -34,8 +34,8 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.ts",
-  "access": "public",
   "publishConfig": {
+    "access": "public",
     "main": "dist/index.umd.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts",
@@ -51,11 +51,11 @@
   ],
   "dependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/client": "workspace:^0.2.0",
+    "@nhost/client": "workspace:*",
     "graphql": "16",
     "subscriptions-transport-ws": "^0.11.0"
   },
   "devDependencies": {
-    "xstate": "^4.29.0"
+    "xstate": "^4.30.5"
   }
 }

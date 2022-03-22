@@ -1,6 +1,6 @@
 {
   "name": "@nhost/client",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [
@@ -33,8 +33,8 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.ts",
-  "access": "public",
   "publishConfig": {
+    "access": "public",
     "main": "dist/index.umd.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts",
@@ -53,6 +53,6 @@
     "broadcast-channel": "^4.10.0",
     "immer": "^9.0.12",
     "js-cookie": "^3.0.1",
-    "xstate": "^4.29.0"
+    "xstate": "^4.30.5"
   }
 }

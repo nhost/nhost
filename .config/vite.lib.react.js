@@ -38,10 +38,11 @@ export default defineConfig({
       fileName: 'index'
     },
     rollupOptions: {
-      external: ['react'],
+      external: ['react', '@nhost/react'],
       output: {
         globals: {
-          react: 'react'
+          react: 'react',
+          '@nhost/react': '@nhost/react'
         }
       }
     }

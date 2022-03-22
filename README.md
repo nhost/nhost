@@ -20,7 +20,7 @@
   <hr />
 </div>
 
-**Nhost is a serverless backend for web and mobile apps** and is built with the following things in mind:
+**Nhost is a serverless backend for web and mobile apps** built with the following things in mind:
 
 - Open Source
 - Developer Productivity
@@ -35,6 +35,13 @@ Nhost consists of open source software:
 - Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
 - Serverless Functions: Node.js (JavaScript and TypeScript)
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
+
+<div align="center">
+  <br />
+  <img src="assets/nhost-diagram.png"/>
+  <br />
+  <br />
+</div>
 
 Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
 

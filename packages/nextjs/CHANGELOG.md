@@ -1,5 +1,26 @@
 # @nhost/nextjs
 
+## 0.3.1
+
+### Patch Changes
+
+- 9bd01e7: Export refresh function
+
+## 0.3.0
+
+### Minor Changes
+
+- 0d8afde: Use `@nhost/react` as a peer dependency
+  `@nhost/react` was bundled where it shouldn't. As a result, `@nhost/react-apollo` did not have access to the Nhost React context, leading to errors
+
+### Patch Changes
+
+- 0d8afde: Bump xstate version 4.30.5
+- 0d8afde: Capture the Nextjs/xstate warning about useLayoutEffect
+  When using Xstate on the server side, Nextjs raises a warning about the use of `useLayoutEffect` whereas xstate is actually using an isomorphic version of layout effects. Such warnings are now captured.
+- Updated dependencies [0d8afde]
+  - @nhost/react@0.2.1
+
 ## 0.2.0
 
 ### Minor Changes
@@ -16,10 +37,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
-- Updated dependencies [207ae38]
 - Updated dependencies [207ae38]
   - @nhost/client@0.2.0
   - @nhost/react@0.2.0

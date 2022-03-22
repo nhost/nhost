@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "0.2.0",
+  "version": "0.3.1",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
@@ -34,8 +34,8 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "main": "src/index.ts",
-  "access": "public",
   "publishConfig": {
+    "access": "public",
     "main": "dist/index.umd.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts",
@@ -50,19 +50,20 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/client": "workspace:^0.2.0",
-    "@nhost/react": "workspace:*",
     "cookies": "^0.8.0"
   },
   "peerDependencies": {
-    "next": "^10.0.8",
+    "@nhost/react": "workspace:*",
+    "next": "^12.0.10",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
+    "@nhost/client": "workspace:*",
+    "@nhost/react": "workspace:*",
     "next": "12.0.10",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "xstate": "^4.29.0"
+    "xstate": "^4.30.5"
   }
 }

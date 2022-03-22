@@ -222,8 +222,36 @@ export class HasuraAuthClient {
     provider?: string
   }> {
     if ('provider' in params) {
-      const { provider } = params
-      const providerUrl = `${this.url}/signin/provider/${provider}`
+      const { provider, options } = params
+
+      let providerUrl = `${this.url}/signin/provider/${provider}`
+
+      // add options to URL
+      if (options) {
+        providerUrl += `?`
+
+        if (options.locale) {
+          providerUrl += `locale=${encodeURIComponent(options.locale)}&`
+        }
+        if (options.allowedRoles) {
+          providerUrl += `allowedRoles=${encodeURIComponent(options.allowedRoles.join(','))}&`
+        }
+        if (options.defaultRole) {
+          providerUrl += `defaultRole=${encodeURIComponent(options.defaultRole)}&`
+        }
+        if (options.displayName) {
+          providerUrl += `displayName=${encodeURIComponent(options.displayName)}&`
+        }
+        if (options.redirectTo) {
+          providerUrl += `redirectTo=${encodeURIComponent(options.redirectTo)}&`
+        }
+        if (options.metadata) {
+          providerUrl += `metadata=${encodeURIComponent(JSON.stringify(options.metadata))}&`
+        }
+
+        // remove last '&' in providerUrl
+        providerUrl = providerUrl.slice(0, -1)
+      }
 
       if (isBrowser()) {
         window.location.href = providerUrl
@@ -446,7 +474,7 @@ export class HasuraAuthClient {
    * vice versa.
    *
    * @example
-   * auth.onAuthStateChanged(({event, session}) => {
+   * auth.onAuthStateChanged((event, session) => {
    *   console.log(`auth state changed. State is not ${event} with session: ${session}`)
    * });
    *
