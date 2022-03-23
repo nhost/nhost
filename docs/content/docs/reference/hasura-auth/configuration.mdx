@@ -76,7 +76,7 @@ It is also possible to only allow [passwords that have not been pwned](https://h
 
 ## Multi-factor authentication
 
-Hasura Auth supports multiple types of Multi-Factor Authentication (MFA).
+Hasura Auth supports different types of Multi-Factor Authentication (MFA): passwordless with emails (magic links), passwordless with SMS, and Time-based one-time passwords.
 
 ### Passwordless with emails
 
@@ -87,6 +87,14 @@ To enable it, you also need to set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true`.
 ### Passwordless with SMS
 
 ### Time-based one-time password (TOTP)
+
+It is possible to add a step to authentication with email and password authentication. Once users registered, they can activate MFA TOTP:
+
+1. Users generate a QR Code, that is then scanned in an authentication app such as [Authy](https://authy.com/) or [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator).
+2. They then send the TOTP code to Hasura Auth. MFA is now activated
+3. Next time they authenticate, Hasura Auth will first expect their email and password, but then, instead of completing authentication, Hasura Auth will expect the TOTP in order to return the refresh and the access tokens.
+
+In order for users to be able to activate MFA TOTP, `AUTH_MFA_ENABLED` must be set to `true`.
 
 ---
 
