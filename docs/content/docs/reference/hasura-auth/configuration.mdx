@@ -100,7 +100,7 @@ There are two recommended ways of extending user information:
 
 ### `metadata` user field
 
-A basic JSONB `metadata` column in the `auth.users` table, that is passed on as an option on registration:
+The `auth.users.metadata` field is a basic JSON column, that can be used as an option on registration:
 
 ```json
 {
@@ -114,9 +114,13 @@ A basic JSONB `metadata` column in the `auth.users` table, that is passed on as 
 }
 ```
 
-<!-- TODO hooks on the metadata field -->
-
 ### Additional user information in the `public` schema
+
+As previously explained, the alteration of the `auth` schema may seriously hamper the functionning of Hasura Auth. The `metadata` field in the `auth.users` table may tackle some use cases, but in some other cases, we want to keep a certain level of structure in the way data is structured.
+
+In that case, it is possible to create a dedicated table in the `public` schema, with a `user_id` foreign key column that would point to the `auth.users.id` column. It is then possible to add an Hasura object relationship that would join the two tables together.
+
+<!-- TODO hooks on the metadata field -->
 
 ---
 
