@@ -47,9 +47,12 @@ See the [example in the main nhost/nhost repository](https://github.com/nhost/nh
 
 The context variables in email templates have been simplified: the `${link}` variable contains the entire redirection url the recipient needs to follow.
 
+<!-- ---
+TODO ## Redirections -->
+
 ---
 
-## Email + password Sign Up
+## Email + password authentication
 
 ### Email checks
 
@@ -72,6 +75,14 @@ Hasura auth does not accepts passwords with less than three characters. This lim
 
 It is also possible to only allow [passwords that have not been pwned](https://haveibeenpwned.com/) in setting `AUTH_PASSWORD_HIBP_ENABLED` to `true`.
 
+<!-- TODO ### Change -->
+<!-- TODO ### Reset email -->
+
+<!-- TODO ### Reset password -->
+
+<!-- ---
+TODO ## Anonymous users -->
+
 ---
 
 ## Multi-factor authentication
@@ -84,7 +95,7 @@ Hasura Auth supports email [passwordless authentication](https://en.wikipedia.or
 
 To enable it, you also need to set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true`.
 
-### Passwordless with SMS
+<!-- TODO ### Passwordless with SMS -->
 
 ### Time-based one-time password (TOTP)
 
@@ -96,9 +107,9 @@ It is possible to add a step to authentication with email and password authentic
 
 In order for users to be able to activate MFA TOTP, `AUTH_MFA_ENABLED` must be set to `true`.
 
----
+<!-- ---
 
-## OAuth authentication
+TODO ## OAuth authentication -->
 
 ---
 
