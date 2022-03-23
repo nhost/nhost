@@ -35,11 +35,38 @@ See the [example in the main nhost/nhost repository](https://github.com/nhost/nh
 
 The context variables in email templates have been simplified: the `${link}` variable contains the entire redirection url the recipient needs to follow.
 
-### Limit emails that can register
+### Sign up
+
+By default, anyone can sign up to Hasura Auth. Signup can be deactivated in setting `AUTH_DISABLE_NEW_USERS` to `true`.
+
+It is also possible to activate additional checks.
+
+#### Email checks
+
+You can specify a list of allowed emails or domains with `AUTH_ACCESS_CONTROL_ALLOWED_EMAILS` and `AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS`.
+
+As an example, the following environment variables will only allow `@nhost.io`, `@example.com` and `bob@smith.com` to register to the application:
+
+```
+AUTH_ACCESS_CONTROL_ALLOWED_EMAILS=bob@smith.com
+AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS=nhost.io,example.com
+```
+
+In the above example, users with the following emails would be able to register `bob@smith.com`, `emma@example.com`, `john@nhost.io`, whereas `mary@firebase.com` won't.
+
+Similarly, it is possible to provide a list of forbidden emails or domains with `AUTH_ACCESS_CONTROL_BLOCKED_EMAILS` and `AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS`.
+
+#### Password checks
+
+Hasura auth does not accepts passwords with less than three characters. This limit can be changed in changing the `AUTH_PASSWORD_MIN_LENGTH` environment variable.
+
+It is also possible to only allow [passwords that have not been pwned](https://haveibeenpwned.com/) in setting `AUTH_PASSWORD_HIBP_ENABLED` to `true`.
 
 ---
 
 ## Multi-factor authentication
+
+Hasura Auth supports multiple types of Multi-Factor Authentication (MFA).
 
 ### Passwordless with emails
 
@@ -60,15 +87,14 @@ It is possible to deactivate the use of Gravatar in setting the `AUTH_GRAVATAR_E
 
 ---
 
-## Passord securisation
-
----
-
 ## Extending user schema
 
-<!-- TODO Recommendations
-- do NOT play with the `auth` schema
-- `profile` design -->
+Adding columns to the user tables may be tempting. However, all the tables and columns have a specific purpose, and changing the structure of the `auth` schema will very likely end in breaking the functionning of Hasura Auth.
+
+There are two recommended ways of extending user information:
+
+- to store information in the `auth.users.metadata` column
+- to store information in a separate table located in the `public` PostgreSQL schema, and to point to `auth.users.id` through a foreign key.
 
 ### `metadata` user field
 
@@ -87,6 +113,8 @@ A basic JSONB `metadata` column in the `auth.users` table, that is passed on as 
 ```
 
 <!-- TODO hooks on the metadata field -->
+
+### Additional user information in the `public` schema
 
 ---
 
