@@ -13,6 +13,16 @@ It is possible to enable the following features in configuring an external SMTP 
 
 ### SMTP settings
 
+```
+AUTH_SMTP_HOST=smtp.example.com
+AUTH_SMTP_PORT=1025
+AUTH_SMTP_USER=user
+AUTH_SMTP_PASS=password
+AUTH_SMTP_SENDER=hasura-auth@example.com
+```
+
+See the [environment variables](/reference/hasura-auth/environment-variables) for additional information about how to connnec to an SMTP server.
+
 ### Email templates
 
 You can create your own templates to customize the emails that will be sent to the users. You can have a look at the [official email templates](https://github.com/nhost/hasura-auth/tree/main/email-templates) to understand how they are structured.
