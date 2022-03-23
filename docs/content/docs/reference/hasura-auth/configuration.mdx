@@ -47,8 +47,20 @@ See the [example in the main nhost/nhost repository](https://github.com/nhost/nh
 
 The context variables in email templates have been simplified: the `${link}` variable contains the entire redirection url the recipient needs to follow.
 
-<!-- ---
-TODO ## Redirections -->
+---
+
+## Redirections
+
+Some authentication operations redirects the users to the frontend application:
+
+- After Oauth providers complete or fail authentication, they redirect to the Hasura Auth callback. Hasura auth then redirects to the frontend
+- Every email sent to the user (passwordless with email, password/email change, password reset) contains a link, that will eventually redirect to the frontend
+
+In order to achieve that, you need to set the `AUTH_CLIENT_URL` environment variable, for instance:
+
+```
+AUTH_CLIENT_URL=https://my-app.vercel.com
+```
 
 ---
 
