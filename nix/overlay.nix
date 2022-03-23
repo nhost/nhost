@@ -1,5 +1,5 @@
 final: prev: rec {
-  go = final.go_1_17;
+  go = final.go_1_18;
 
   golangci-lint = prev.golangci-lint.override rec {
     buildGoModule = args: prev.buildGoModule.override { go = go; } (args // rec {

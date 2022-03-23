@@ -1,6 +1,6 @@
 module github.com/nhost/hasura-storage
 
-go 1.17
+go 1.18
 
 replace github.com/hasura/go-graphql-client => github.com/nhost/go-graphql-client v0.5.2-0.20220117183239-24f1d84e3299
 
