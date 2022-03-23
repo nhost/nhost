@@ -68,6 +68,10 @@ Hasura Auth supports multiple types of Multi-Factor Authentication (MFA).
 
 ### Passwordless with emails
 
+Hasura Auth supports email [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). It requires [SMTP](#email-configuration) to be configured properly.
+
+To enable it, you also need to set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true`.
+
 ### Passwordless with SMS
 
 ### Time-based one-time password (TOTP)
