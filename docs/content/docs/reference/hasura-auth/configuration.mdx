@@ -2,7 +2,14 @@
 title: Configuration
 ---
 
-## Email verification
+## Email configuration
+
+It is possible to enable the following features in configuring an external SMTP email service:
+
+- Sign up
+- Password reset
+- Email change
+- Passwordless with emails
 
 ### SMTP settings
 
@@ -30,6 +37,8 @@ The context variables in email templates have been simplified: the `${link}` var
 
 ### Limit emails that can register
 
+---
+
 ## Multi-factor authentication
 
 ### Passwordless with emails
@@ -38,11 +47,22 @@ The context variables in email templates have been simplified: the `${link}` var
 
 ### Time-based one-time password (TOTP)
 
+---
+
 ## OAuth authentication
+
+---
 
 ## Gravatar
 
+Hasura Auth stores the avatar URL of users in a specific field. By default, it will look for the Gravatar linked to the email, and store it into this field.
+It is possible to deactivate the use of Gravatar in setting the `AUTH_GRAVATAR_ENABLED` environment variable to `false`.
+
+---
+
 ## Passord securisation
+
+---
 
 ## Extending user schema
 
@@ -67,6 +87,8 @@ A basic JSONB `metadata` column in the `auth.users` table, that is passed on as 
 ```
 
 <!-- TODO hooks on the metadata field -->
+
+---
 
 ## Custom Hasura JWT claims
 
