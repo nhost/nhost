@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 0.1.0
+
+### Minor Changes
+
+- ff7ae21: Introducing `setAdminSecret` to allow users of the SDK to use `x-hasura-admin-secret` request header in storage related functions
+
 ## 0.0.12
 
 ### Patch Changes
