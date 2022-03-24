@@ -1,28 +1,31 @@
 import { useMemo } from 'react'
 
-import { SignUpOptions } from '@nhost/client'
+import { SignUpOptions } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { useAuthenticated, useAuthLoading, useNhostInterpreter } from './common'
+import { useAuthenticated, useAuthInterpreter, useAuthLoading } from './common'
 
-export const useEmailPasswordSignUp = (
+export const useSignUpEmailPassword = (
   stateEmail?: string,
   statePassword?: string,
   stateOptions?: SignUpOptions
 ) => {
-  const service = useNhostInterpreter()
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
+  const service = useAuthInterpreter()
+  const isError =
+    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
+  const error = useSelector(
+    service,
+    (state) => state.context.errors.registration,
+    (a, b) => a?.error === b?.error
   )
-  const error = useSelector(service, (state) => state.context.errors.registration)
   const loading = useAuthLoading()
   const isSuccess = useAuthenticated()
   const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
-  const needsVerification = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'needsVerification' } })
-  )
+  const needsEmailVerification =
+    !!service.status &&
+    service.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
 
-  const signUp = (
+  const signUpEmailPassword = (
     valueEmail?: string | unknown,
     valuePassword = statePassword,
     valueOptions = stateOptions
@@ -34,11 +37,11 @@ export const useEmailPasswordSignUp = (
       options: valueOptions
     })
   return {
-    signUp,
+    signUpEmailPassword,
     isLoading,
     isSuccess,
     isError,
     error,
-    needsVerification
+    needsEmailVerification
   }
 }

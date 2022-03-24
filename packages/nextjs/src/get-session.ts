@@ -1,7 +1,7 @@
 import Cookies from 'cookies'
 import { NextPageContext } from 'next'
 
-import { NHOST_JWT_EXPIRES_AT_KEY, NHOST_REFRESH_TOKEN_KEY, NhostSession } from '@nhost/client'
+import { NHOST_JWT_EXPIRES_AT_KEY, NHOST_REFRESH_TOKEN_KEY, NhostSession } from '@nhost/core'
 
 import { refresh } from './utils'
 

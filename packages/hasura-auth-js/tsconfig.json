@@ -4,5 +4,6 @@
     "outDir": "dist",
     "composite": true
   },
-  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"]
+  "include": ["src/**/*", "tests/**/*"],
+  "references": [{ "path": "../core" }]
 }

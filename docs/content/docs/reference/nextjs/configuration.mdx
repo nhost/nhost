@@ -20,27 +20,27 @@ npm install @nhost/react @nhost/nextjs
 
 ## Configuration
 
-Configuring Nhost with Next.js follows the same logic as React, except we are initializing with `NhostSSR` instead of `Nhost`.
-Under the hood, `NhostSSR` uses cookies to store the refresh token, and disables auto-refresh and auto-login when running on the server-side.
+Configuring Nhost with Next.js follows the same logic as React, except we are initializing with the `NhostClient` from the `@nhost/nextjs` package.
+Under the hood, `NhostClient` uses cookies to store the refresh token, and disables auto-refresh and auto-login when running on the server-side.
 
 ```jsx
 // {project-root}/pages/_app.tsx
 import type { AppProps } from 'next/app'
 
-import { NhostSSR, NhostProvider } from '@nhost/nextjs'
+import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 
 import Header from '../components/Header'
 
-const nhost = new NhostSSR({ backendUrl: 'my-app.nhost.run' })
+const nhost = new NhostClient({ backendUrl: 'my-app.nhost.run' })
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
+    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
       <div>
         <Header />
         <Component {...pageProps} />
       </div>
-    </NhostProvider>
+    </NhostNextProvider>
   )
 }
 
@@ -54,7 +54,7 @@ export default MyApp
 The logic is the same as in a classic React application:
 
 ```jsx
-// {project-root}/pages/csr-page.jsx
+// {project-root}/pages/csr-page.tsx
 import { NextPageContext } from 'next'
 import React from 'react'
 
@@ -83,7 +83,7 @@ export default ClientSidePage
 You need to load the session from the server first from `getServerSideProps`. Once it is done, the `_app` component will make sure to load or update the session through `pageProps`.
 
 ```jsx
-// {project-root}/pages/ssr-page.jsx
+// {project-root}/pages/ssr-page.tsx
 import { NextPageContext } from 'next'
 import React from 'react'
 

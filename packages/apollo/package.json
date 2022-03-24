@@ -36,26 +36,30 @@
   "main": "src/index.ts",
   "publishConfig": {
     "access": "public",
-    "main": "dist/index.umd.js",
+    "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
     "typings": "./dist/index.d.ts",
     "exports": {
       ".": {
         "import": "./dist/index.es.js",
-        "require": "./dist/index.umd.js"
+        "require": "./dist/index.cjs.js"
       }
     }
   },
   "files": [
     "dist"
   ],
+  "peerDependencies": {
+    "@apollo/client": "^3.5.8"
+  },
   "dependencies": {
-    "@apollo/client": "^3.5.8",
-    "@nhost/client": "workspace:*",
+    "@nhost/core": "workspace:*",
     "graphql": "16",
     "subscriptions-transport-ws": "^0.11.0"
   },
   "devDependencies": {
-    "xstate": "^4.30.5"
+    "@apollo/client": "^3.5.8",
+    "xstate": "^4.30.5",
+    "@nhost/nhost-js": "workspace:*"
   }
 }

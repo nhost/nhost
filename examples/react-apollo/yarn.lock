@@ -330,11 +330,11 @@
   integrity sha512-I8TGh8pyoEgmsxjnvsfdiCvpxQIp+gHdaNNAU10fZ9qDgLlOdYQdVfzEaXVm+xuYii4BK9RT9aiIOyLjnNR0Xg==
   dependencies:
     "@apollo/client" "^3.5.8"
-    "@nhost/client" "^0.2.0"
+    "@nhost/core" "^0.2.0"
     graphql "16"
     subscriptions-transport-ws "^0.11.0"
 
-"@nhost/client@0.2.0", "@nhost/client@^0.2.0":
+"@nhost/core@0.2.0", "@nhost/core@^0.2.0":
   version "0.2.0"
   resolved "http://localhost:4873/@nhost%2fclient/-/client-0.2.0.tgz#ba8596b60f2e6c66b7555616644e61faf47a5fac"
   integrity sha512-MkJv9zVa9y1GddWUfs5iRcEtEbcSDQ5g1UbQgDPNWQKgbZfbc8n+Z5SKRGYzeZw4t6McEWwQP2jJyc8M7sPuNg==
@@ -358,7 +358,7 @@
   resolved "http://localhost:4873/@nhost%2freact/-/react-0.2.0.tgz#f06c5b6598969e5a055a56d48c6460a6ac3d6717"
   integrity sha512-5l7YAK04UMfvZksYVSKQfGzyQ+GrbAlw+1Tkne3iSEqEmBgk94ZI2Mv1YgqlWwb3h72JRofyYwndOGIPnrJigQ==
   dependencies:
-    "@nhost/client" "0.2.0"
+    "@nhost/core" "0.2.0"
     "@xstate/react" "^2.0.0"
     immer "^9.0.12"
 

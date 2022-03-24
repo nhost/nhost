@@ -6,7 +6,7 @@ import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
 import { Container, Header, Navbar, Content, Nav } from 'rsuite'
 import { useEffect } from 'react'
 import { SignInPage } from './sign-in'
-import { AuthGate } from './components/auth-gates'
+import { AuthGate, PublicGate } from './components/auth-gates'
 import Home from './Home'
 import { ProfilePage } from './profile'
 import { ApolloPage } from './apollo'
@@ -57,8 +57,22 @@ function App() {
             }
           />
           <Route path="/about" element={<AboutPage />} />
-          <Route path="/sign-in/*" element={<SignInPage />} />
-          <Route path="/sign-up/*" element={<SignUpPage />} />
+          <Route
+            path="/sign-in/*"
+            element={
+              <PublicGate>
+                <SignInPage />
+              </PublicGate>
+            }
+          />
+          <Route
+            path="/sign-up/*"
+            element={
+              <PublicGate>
+                <SignUpPage />
+              </PublicGate>
+            }
+          />
           <Route
             path="/profile"
             element={

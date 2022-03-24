@@ -6,9 +6,9 @@ import {
   useAuthenticated,
   useChangeEmail,
   useChangePassword,
-  useEmailPasswordlessSignIn,
-  useEmailPasswordSignIn,
-  useEmailPasswordSignUp,
+  useSignInEmailPasswordless,
+  useSignInEmailPassword,
+  useSignUpEmailPassword,
   useSignOut
 } from '@nhost/react'
 import { useAuthQuery } from '@nhost/react-apollo'
@@ -25,9 +25,9 @@ const Home: NextPage = () => {
   const [newPassword, setNewPassword] = useState('')
   const accessToken = useAccessToken()
   const { signOut } = useSignOut()
-  const { signUp, ...signUpResult } = useEmailPasswordSignUp(email, password)
-  const { signIn } = useEmailPasswordSignIn(email, password)
-  const { signIn: passwordlessSignIn } = useEmailPasswordlessSignIn(email)
+  const { signUpEmailPassword, ...signUpResult } = useSignUpEmailPassword(email, password)
+  const { signInEmailPassword } = useSignInEmailPassword(email, password)
+  const { signInEmailPasswordless } = useSignInEmailPasswordless(email)
   const { changeEmail, ...changeEmailResult } = useChangeEmail(newEmail)
   const { changePassword, ...changePasswordResult } = useChangePassword(newPassword)
   const { loading, data, error } = useAuthQuery(BOOKS_QUERY)
@@ -46,11 +46,11 @@ const Home: NextPage = () => {
       ) : (
         <>
           <input value={email} onChange={(e) => setEmail(e.target.value)} />
-          <button onClick={passwordlessSignIn}>Passwordless signin</button>
+          <button onClick={signInEmailPasswordless}>Passwordless signin</button>
           <div>{JSON.stringify(signUpResult)}</div>
           <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
-          <button onClick={signUp}>Email + password sign-up</button>
-          <button onClick={signIn}>Email + password sign-in</button>
+          <button onClick={signUpEmailPassword}>Email + password sign-up</button>
+          <button onClick={signInEmailPassword}>Email + password sign-in</button>
         </>
       )}
 

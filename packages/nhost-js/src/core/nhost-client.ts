@@ -1,16 +1,11 @@
-import { ClientStorage, ClientStorageType, HasuraAuthClient } from '@nhost/hasura-auth-js'
+import { HasuraAuthClient, NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 
-export interface NhostClientConstructorParams {
+export type NhostClientConstructorParams = Omit<NhostAuthConstructorParams, 'url'> & {
   backendUrl: string
-  refreshIntervalTime?: number
-  clientStorage?: ClientStorage
-  clientStorageType?: ClientStorageType
-  autoRefreshToken?: boolean
-  autoLogin?: boolean
 }
 
 export class NhostClient {
@@ -25,27 +20,32 @@ export class NhostClient {
    * @example
    * const nhost = new NhostClient({ url });
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/sdk#installation
    */
-  constructor(params: NhostClientConstructorParams) {
-    if (!params.backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
-
-    const {
-      backendUrl,
-      refreshIntervalTime,
-      clientStorage,
-      clientStorageType,
-      autoRefreshToken,
-      autoLogin
-    } = params
-
+  constructor({
+    backendUrl,
+    refreshIntervalTime,
+    clientStorageGetter,
+    clientStorageSetter,
+    clientStorage,
+    clientStorageType,
+    autoRefreshToken,
+    autoLogin,
+    start = true,
+    Client
+  }: NhostClientConstructorParams) {
+    if (!backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
     this.auth = new HasuraAuthClient({
       url: `${backendUrl}/v1/auth`,
       refreshIntervalTime,
+      clientStorageGetter,
+      clientStorageSetter,
       clientStorage,
       clientStorageType,
       autoRefreshToken,
-      autoLogin
+      autoLogin,
+      start,
+      Client
     })
 
     this.storage = new HasuraStorageClient({
@@ -65,18 +65,20 @@ export class NhostClient {
     this.functions.setAccessToken(this.auth.getAccessToken())
     this.graphql.setAccessToken(this.auth.getAccessToken())
 
-    // update access token for clients
-    this.auth.onAuthStateChanged((_event, session) => {
-      this.storage.setAccessToken(session?.accessToken)
-      this.functions.setAccessToken(session?.accessToken)
-      this.graphql.setAccessToken(session?.accessToken)
-    })
+    this.auth.client.onStart(() => {
+      // update access token for clients
+      this.auth.onAuthStateChanged((_event, session) => {
+        this.storage.setAccessToken(session?.accessToken)
+        this.functions.setAccessToken(session?.accessToken)
+        this.graphql.setAccessToken(session?.accessToken)
+      })
 
-    // update access token for clients
-    this.auth.onTokenChanged((session) => {
-      this.storage.setAccessToken(session?.accessToken)
-      this.functions.setAccessToken(session?.accessToken)
-      this.graphql.setAccessToken(session?.accessToken)
+      // update access token for clients
+      this.auth.onTokenChanged((session) => {
+        this.storage.setAccessToken(session?.accessToken)
+        this.functions.setAccessToken(session?.accessToken)
+        this.graphql.setAccessToken(session?.accessToken)
+      })
     })
   }
 }

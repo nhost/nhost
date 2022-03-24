@@ -1,8 +1,7 @@
 import type { AppProps } from 'next/app'
 import React from 'react'
 
-import { NhostSSR } from '@nhost/client'
-import { NhostProvider } from '@nhost/react'
+import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
 
@@ -17,18 +16,18 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_DEBUG) {
     iframe: false
   })
 }
-const nhost = new NhostSSR({ backendUrl: BACKEND_URL })
+const nhost = new NhostClient({ backendUrl: BACKEND_URL })
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
-    <NhostProvider nhost={nhost} initial={pageProps.nhostSession}>
-      <NhostApolloProvider>
+    <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
+      <NhostApolloProvider nhost={nhost}>
         <div className="App">
           <Header />
           <Component {...pageProps} />
         </div>
       </NhostApolloProvider>
-    </NhostProvider>
+    </NhostNextProvider>
   )
 }
 
