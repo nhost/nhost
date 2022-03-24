@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import axios, { AxiosInstance } from 'axios'
+
 import {
   ApiDeleteParams,
   ApiDeleteResponse,
@@ -109,7 +110,7 @@ export class HasuraStorageApi {
   }
 
   private generateAuthHeaders() {
-    if (!this.adminSecret) {
+    if (!this.adminSecret && !this.accessToken) {
       return null
     }
 
@@ -117,10 +118,6 @@ export class HasuraStorageApi {
       return {
         'x-hasura-admin-secret': this.adminSecret
       }
-    }
-
-    if (!this.accessToken) {
-      return null
     }
 
     return {

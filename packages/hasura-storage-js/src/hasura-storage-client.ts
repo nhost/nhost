@@ -1,4 +1,3 @@
-import { HasuraStorageApi } from './hasura-storage-api'
 import {
   StorageDeleteParams,
   StorageDeleteResponse,
@@ -8,6 +7,7 @@ import {
   StorageUploadParams,
   StorageUploadResponse
 } from './utils/types'
+import { HasuraStorageApi } from './hasura-storage-api'
 
 export class HasuraStorageClient {
   private url: string
