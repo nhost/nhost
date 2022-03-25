@@ -1,26 +1,26 @@
-import "./App.css";
-import { NhostAuthProvider } from "@nhost/react-auth";
-import { NhostApolloProvider } from "@nhost/react-apollo";
-import { nhost } from "./utils/nhost";
-import { Route, Routes } from "react-router";
-import { Layout } from "./components/ui/Layout";
-import { Customers } from "./components/Customers";
-import { Dashboard } from "./components/Dashboard";
-import { NewCustomer } from "./components/NewCustomer";
-import { RequireAuth } from "./components/RequireAuth";
-import { Customer } from "./components/Customer";
-import { SignUp } from "./components/SignUp";
-import { SignIn } from "./components/SignIn";
-import { ResetPassword } from "./components/ResetPassword";
+import './App.css'
+import { NhostReactProvider } from '@nhost/react'
+import { NhostApolloProvider } from '@nhost/react-apollo'
+import { nhost } from './utils/nhost'
+import { Route, Routes } from 'react-router'
+import { Layout } from './components/ui/Layout'
+import { Customers } from './components/Customers'
+import { Dashboard } from './components/Dashboard'
+import { NewCustomer } from './components/NewCustomer'
+import { RequireAuth } from './components/RequireAuth'
+import { Customer } from './components/Customer'
+import { SignUp } from './components/SignUp'
+import { SignIn } from './components/SignIn'
+import { ResetPassword } from './components/ResetPassword'
 
 function App() {
   return (
-    <NhostAuthProvider nhost={nhost}>
+    <NhostReactProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>
         <AppRouter />
       </NhostApolloProvider>
-    </NhostAuthProvider>
-  );
+    </NhostReactProvider>
+  )
 }
 
 function AppRouter() {
@@ -55,7 +55,7 @@ function AppRouter() {
         </Route>
       </Route>
     </Routes>
-  );
+  )
 }
 
-export default App;
+export default App

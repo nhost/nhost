@@ -1,31 +1,31 @@
-import { useNhostAuth } from "@nhost/react-auth";
-import { useState } from "react";
-import { useNavigate } from "react-router";
-import { Link } from "react-router-dom";
-import { nhost } from "../utils/nhost";
+import { useNhostAuth } from '@nhost/react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router'
+import { Link } from 'react-router-dom'
+import { nhost } from '../utils/nhost'
 
 export function SignIn() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const { isAuthenticated } = useNhostAuth();
+  const { isAuthenticated } = useNhostAuth()
 
-  let navigate = useNavigate();
+  let navigate = useNavigate()
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const { error } = await nhost.auth.signIn({ email, password });
+    const { error } = await nhost.auth.signIn({ email, password })
 
     if (error) {
-      return alert(error.message);
+      return alert(error.message)
     }
 
-    navigate("/", { replace: true });
-  };
+    navigate('/', { replace: true })
+  }
 
   if (isAuthenticated) {
-    navigate("/");
+    navigate('/')
   }
 
   return (
@@ -44,10 +44,7 @@ export function SignIn() {
           <div className="px-4 py-8 bg-white shadow sm:rounded-lg sm:px-10">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email address
                 </label>
                 <div className="mt-1">
@@ -66,10 +63,7 @@ export function SignIn() {
               </div>
 
               <div>
-                <label
-                  htmlFor="password"
-                  className="block text-sm font-medium text-gray-700"
-                >
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <div className="mt-1">
@@ -110,7 +104,7 @@ export function SignIn() {
             </form>
           </div>
           <div className="text-center py-4">
-            Don't have an account?{" "}
+            Don't have an account?{' '}
             <Link to="/sign-up" className="text-blue-600 hover:text-blue-500">
               Sign Up
             </Link>
@@ -118,5 +112,5 @@ export function SignIn() {
         </div>
       </div>
     </>
-  );
+  )
 }
