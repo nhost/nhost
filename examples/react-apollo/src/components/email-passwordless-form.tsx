@@ -1,12 +1,12 @@
 import { Button, Input, Message } from 'rsuite'
 import { useNavigate } from 'react-router-dom'
-import { useEmailPasswordlessSignIn } from '@nhost/react'
+import { useSignInEmailPasswordless } from '@nhost/react'
 import React, { useState, useEffect } from 'react'
 
 export const EmailPasswordlessForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
-  const { signIn, isError, isSuccess, error } = useEmailPasswordlessSignIn(email, {
+  const { signInEmailPasswordless, isError, isSuccess, error } = useSignInEmailPasswordless(email, {
     redirectTo: '/profile'
   })
   const [showError, setShowError] = useState(true)
@@ -42,7 +42,7 @@ export const EmailPasswordlessForm: React.FC = () => {
         style={{ marginTop: '0.5em' }}
         onClick={() => {
           setShowError(true)
-          signIn()
+          signInEmailPasswordless()
         }}
       >
         Continue with email

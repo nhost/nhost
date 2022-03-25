@@ -25,8 +25,7 @@ export const PublicGate: React.FC = ({ children }) => {
   }
 
   if (isAuthenticated) {
-    // ? stay on the same route - is it the best way to do so?
-    return <Navigate to={location} state={{ from: location }} replace />
+    return <Navigate to={'/'} state={{ from: location }} replace />
   }
 
   return <div>{children}</div>

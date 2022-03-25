@@ -4,6 +4,7 @@ import { Icon } from '@rsuite/icons'
 import { useProviderLink } from '@nhost/react'
 
 export const OAuthLinks: React.FC = () => {
+  // TODO show how to use options
   const { github, google, facebook } = useProviderLink()
   return (
     <div>

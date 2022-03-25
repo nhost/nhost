@@ -1,5 +1,11 @@
 # @nhost/nextjs
 
+## 0.3.1
+
+### Patch Changes
+
+- 9bd01e7: Export refresh function
+
 ## 0.3.0
 
 ### Minor Changes

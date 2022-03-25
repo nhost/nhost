@@ -1,5 +1,18 @@
 # @nhost/hasura-storage-js
 
+## 0.1.0
+
+### Minor Changes
+
+- ff7ae21: Introducing `setAdminSecret` to allow users of the SDK to use `x-hasura-admin-secret` request header in storage related functions
+
+## 0.0.12
+
+### Patch Changes
+
+- 8f7643a: Change target ES module build target to es2019
+  Some systems based on older versions of Webpack or Babel don't support the current esbuild configuration e.g, [this issue](https://github.com/nhost/nhost/issues/275).
+
 ## 0.0.11
 
 ### Patch Changes

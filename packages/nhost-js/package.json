@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "0.3.11",
+  "version": "0.3.13",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -21,16 +21,16 @@
     "url": "git+https://github.com/nhost/nhost.git"
   },
   "main": "src/index.ts",
-  "exports": {
-    ".": {
-      "import": {
-        "node": "./dist/index.cjs.js",
-        "default": "./dist/index.es.js"
-      },
-      "require": "./dist/index.cjs.js"
-    }
-  },
   "publishConfig": {
+    "exports": {
+      ".": {
+        "import": {
+          "node": "./dist/index.cjs.js",
+          "default": "./dist/index.es.js"
+        },
+        "require": "./dist/index.cjs.js"
+      }
+    },
     "access": "public",
     "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
@@ -58,5 +58,7 @@
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@nhost/core": "workspace:*"
+  }
 }

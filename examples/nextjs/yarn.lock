@@ -142,6 +142,7 @@
   integrity sha512-cDC7Y0pW1mHBxl0DCg6T7/iZ2YVUBZ6avk1yFnZmKJOP1Bgga4L3CRQP03+fWIQhnc95hTiX2excw3QAo4s9qw==
   dependencies:
     "@apollo/client" "^3.5.8"
+<<<<<<< HEAD
     "@nhost/client" "0.2.1"
     graphql "16"
     subscriptions-transport-ws "^0.11.0"
@@ -150,6 +151,16 @@
   version "0.2.1"
   resolved "https://registry.yarnpkg.com/@nhost/client/-/client-0.2.1.tgz#81e99432ca1a108c3f67a5ba86658b49de34b7fb"
   integrity sha512-fen8sQ/pAeJml01pz2uiauKNOln5J/LA857MqW4+hGsBLu72mudM4pTKQH4lEf8ewnQV7WcTbwd3bW2jPZnQtQ==
+=======
+    "@nhost/core" "0.2.0"
+    graphql "16"
+    subscriptions-transport-ws "^0.11.0"
+
+"@nhost/core@0.2.0":
+  version "0.2.0"
+  resolved "http://localhost:4873/@nhost%2fclient/-/client-0.2.0.tgz#e5051c320c491ef07f137cfb9e85fab2a69c4fd7"
+  integrity sha512-exL1C5D+ZWJ3sIIcij9HIjjmy4HcpD24Pqs5O36/NGLX9RWDX7APdeZZgysDx6uNL9I0gvPwZT6bgJBDiXTlTg==
+>>>>>>> main
   dependencies:
     axios "^0.25.0"
     broadcast-channel "^4.10.0"
@@ -177,7 +188,11 @@
   resolved "https://registry.yarnpkg.com/@nhost/react/-/react-0.2.1.tgz#6a6b547ae3fc2e333a2729f54aa7a2048f13f125"
   integrity sha512-+ZbRDGrwIjrUdcAsMkHt5W2RDclygoUd1ttemdZNHeGiU9K9dYLF8lz4tFkb6jayeyqpDuCLmCr+0vfcMAwEYg==
   dependencies:
+<<<<<<< HEAD
     "@nhost/client" "0.2.1"
+=======
+    "@nhost/core" "0.2.0"
+>>>>>>> main
     "@xstate/react" "^2.0.1"
     immer "^9.0.12"
 

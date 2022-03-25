@@ -32,8 +32,7 @@ export const signUpAndVerifyUser = async (params: SignUpParams) => {
 
   // get verify email link
   const verifyEmailLink = htmlUrls({ html: message.html }).find(
-    (href: { value: string; url: string; uri: string }) =>
-      href.url.includes('verifyEmail')
+    (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
   )
 
   // verify email
@@ -58,8 +57,7 @@ export const signUpAndInUser = async (params: SignUpParams) => {
 
   // get verify email link
   const verifyEmailLink = htmlUrls({ html: message.html }).find(
-    (href: { value: string; url: string; uri: string }) =>
-      href.url.includes('verifyEmail')
+    (href: { value: string; url: string; uri: string }) => href.url.includes('verifyEmail')
   )
 
   // verify email
