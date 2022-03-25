@@ -4,7 +4,6 @@ table:
 configuration:
   custom_column_names:
     id: id
-    redirect_url: redirectUrl
   custom_name: authProviderRequests
   custom_root_fields:
     delete: deleteAuthProviderRequests
