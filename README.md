@@ -99,8 +99,8 @@ Nhost libraries and tools
 - [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/sdk)
 - [Dart and Flutter SDK](https://github.com/nhost/nhost-dart)
 - [Nhost CLI](https://docs.nhost.io/reference/cli)
-- [Nhost React Auth](https://docs.nhost.io/reference/supporting-libraries/react-auth)
-- [Nhost React Apollo](https://docs.nhost.io/reference/supporting-libraries/react-apollo)
+- [Nhost React](https://docs.nhost.io/reference/react)
+- [Nhost Next.js](https://docs.nhost.io/reference/nextjs)
 
 ## Community ❤️
 
