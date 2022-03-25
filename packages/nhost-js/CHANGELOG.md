@@ -1,5 +1,29 @@
 # @nhost/nhost-js
 
+## 1.0.0
+
+### Major Changes
+
+- 744fd69: Use `@nhost/core` and its state machine
+
+  `@nhost/nhost-js` and `@nhost/hasura-auth-js` now use the xstate-based state management system from `@nhost/core`.
+
+  The client initiation remains the same, although the `clientStorage` and `clientStorageType` are deprecated in favor of `clientStorageGetter (key:string) => string | null | Promise<string | null>` and `clientStorageSetter: (key: string, value: string | null) => void | Promise<void>`.
+
+### Minor Changes
+
+- 744fd69: Unify vanilla, react and next APIs so they can work together
+  React and NextJS libraries now works together with `@nhost/nhost-js`. It also means the Nhost client needs to be initiated before passing it to the React provider.
+  See the [React](https://docs.nhost.io/reference/react#configuration) and [NextJS](https://docs.nhost.io/reference/nextjs/configuration) configuration documentation for additional information.
+
+### Patch Changes
+
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+  - @nhost/hasura-auth-js@1.0.0
+  - @nhost/hasura-storage-js@0.2.0
+
 ## 0.3.13
 
 ### Patch Changes
