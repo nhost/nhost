@@ -6,6 +6,7 @@
     "@apollo/client": "^3.4.16",
     "@headlessui/react": "^1.4.2",
     "@heroicons/react": "^1.0.5",
+    "@nhost/nhost-js": "^1.0.0",
     "@nhost/react": "^0.3.0",
     "@nhost/react-apollo": "^4.0.0",
     "@tailwindcss/forms": "^0.3.4",
