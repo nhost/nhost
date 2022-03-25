@@ -1,5 +1,20 @@
 # @nhost/core
 
+## 0.3.0
+
+### Minor Changes
+
+- 744fd69: Unify vanilla, react and next APIs so they can work together
+  React and NextJS libraries now works together with `@nhost/nhost-js`. It also means the Nhost client needs to be initiated before passing it to the React provider.
+  See the [React](https://docs.nhost.io/reference/react#configuration) and [NextJS](https://docs.nhost.io/reference/nextjs/configuration) configuration documentation for additional information.
+
+### Patch Changes
+
+- 744fd69: Rename `@nhost/client` to `@nhost/core`
+  The `@nhost/client` name was somehow misleading, as it was implying it could somehow work as a vanilla client, whereas it only contained the state machine that could be used for vanilla or framework specific libraries e.g. `@nhost/react`.
+
+  It is therefore renamed to `@nhost/core`, and keeps the same versionning and changelog.
+
 ## 0.2.1
 
 ### Patch Changes
