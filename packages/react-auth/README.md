@@ -1,11 +1,10 @@
+# ⚠️ This package is depricated
+
+Use the new [`@nhost/react`](https://github.com/nhost/nhost/tree/main/packages/react) package instead.
+
 # Nhost React Auth
 
 For easy usage of Auth with [Nhost](https://nhost.io).
-
-## Deprecation notice
-
-This package is deprecated. It is recommended to use `@nhost/react` instead.
-If you want to continue to use it, don't forget to add `@nhost/react` to your packages as it is now a peer dependency.
 
 ## Install
 
