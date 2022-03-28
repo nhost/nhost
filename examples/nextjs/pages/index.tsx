@@ -6,11 +6,11 @@ import {
   useAuthenticated,
   useChangeEmail,
   useChangePassword,
-  useSignInEmailPasswordless,
   useSignInEmailPassword,
-  useSignUpEmailPassword,
-  useSignOut
-} from '@nhost/react'
+  useSignInEmailPasswordless,
+  useSignOut,
+  useSignUpEmailPassword
+} from '@nhost/nextjs'
 import { useAuthQuery } from '@nhost/react-apollo'
 
 import { BOOKS_QUERY } from '../helpers'

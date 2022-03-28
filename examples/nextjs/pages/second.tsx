@@ -1,8 +1,8 @@
 import { NextPageContext } from 'next'
 import React from 'react'
 
-import { getNhostSession, NhostSession } from '@nhost/nextjs'
-import { useAccessToken, useAuthenticated, useUserData } from '@nhost/react'
+import { NhostSession } from '@nhost/core'
+import { getNhostSession, useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
 
 import { BACKEND_URL } from '../helpers'
 
