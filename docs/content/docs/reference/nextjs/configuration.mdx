@@ -58,7 +58,7 @@ The logic is the same as in a classic React application:
 import { NextPageContext } from 'next'
 import React from 'react'
 
-import { useAccessToken, useAuthenticated, useUserData } from '@nhost/react'
+import { useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
 
 const ClientSidePage: React.FC = () => {
   const isAuthenticated = useAuthenticated()
@@ -93,7 +93,7 @@ import {
   useAccessToken,
   useAuthenticated,
   useUserData
-} from '@nhost/react'
+} from '@nhost/nextjs'
 
 export async function getServerSideProps(context: NextPageContext) {
   const nhostSession = await getNhostSession('my-app.nhost.run', context)
