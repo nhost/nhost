@@ -1,4 +1,4 @@
-# ⚠️ This package is depricated
+# ⚠️ This package is deprecated
 
 Use the new [`@nhost/react`](https://github.com/nhost/nhost/tree/main/packages/react) package instead.
 
