@@ -13,7 +13,7 @@ It is possible to enable the following features in configuring an external SMTP 
 
 ### SMTP settings
 
-```
+```bash
 AUTH_SMTP_HOST=smtp.example.com
 AUTH_SMTP_PORT=1025
 AUTH_SMTP_USER=user
@@ -21,7 +21,7 @@ AUTH_SMTP_PASS=password
 AUTH_SMTP_SENDER=hasura-auth@example.com
 ```
 
-See the [environment variables](/reference/hasura-auth/environment-variables) for additional information about how to connnec to an SMTP server.
+See the [environment variables](/reference/hasura-auth/environment-variables) for additional information about how to connnect to an SMTP server.
 
 ### Email templates
 
@@ -58,7 +58,7 @@ Some authentication operations redirects the users to the frontend application:
 
 In order to achieve that, you need to set the `AUTH_CLIENT_URL` environment variable, for instance:
 
-```
+```bash
 AUTH_CLIENT_URL=https://my-app.vercel.com
 ```
 
@@ -72,7 +72,7 @@ You can specify a list of allowed emails or domains with `AUTH_ACCESS_CONTROL_AL
 
 As an example, the following environment variables will only allow `@nhost.io`, `@example.com` and `bob@smith.com` to register to the application:
 
-```
+```bash
 AUTH_ACCESS_CONTROL_ALLOWED_EMAILS=bob@smith.com
 AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS=nhost.io,example.com
 ```
