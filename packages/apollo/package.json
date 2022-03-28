@@ -53,13 +53,13 @@
     "@apollo/client": "^3.5.8"
   },
   "dependencies": {
-    "@nhost/core": "workspace:*",
+    "@nhost/core": "workspace:^",
     "graphql": "16",
     "subscriptions-transport-ws": "^0.11.0"
   },
   "devDependencies": {
     "@apollo/client": "^3.5.8",
     "xstate": "^4.30.5",
-    "@nhost/nhost-js": "workspace:*"
+    "@nhost/nhost-js": "workspace:^"
   }
 }

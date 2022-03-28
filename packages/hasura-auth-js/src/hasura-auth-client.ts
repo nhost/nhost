@@ -598,7 +598,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   getSession() {
-    return getSession(this.#client.interpreter?.state.context)
+    return getSession(this.#client.interpreter?.state?.context)
   }
 
   /**
@@ -612,11 +612,11 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-getuser
    */
   getUser() {
-    return this.#client.interpreter?.state.context?.user || null
+    return this.#client.interpreter?.state?.context?.user || null
   }
 
   private isReady() {
-    return !!this.#client.interpreter?.state.hasTag('ready')
+    return !!this.#client.interpreter?.state?.hasTag('ready')
   }
 
   get client() {

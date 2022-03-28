@@ -145,8 +145,8 @@ importers:
   packages/apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/core': workspace:*
-      '@nhost/nhost-js': workspace:*
+      '@nhost/core': workspace:^
+      '@nhost/nhost-js': workspace:^
       graphql: 15.7.2
       subscriptions-transport-ws: ^0.11.0
       xstate: ^4.30.5
@@ -173,7 +173,7 @@ importers:
 
   packages/hasura-auth-js:
     specifiers:
-      '@nhost/core': workspace:*
+      '@nhost/core': workspace:^
       '@types/faker': '5'
       axios: ^0.26.0
       faker: '5'
@@ -198,9 +198,9 @@ importers:
 
   packages/nextjs:
     specifiers:
-      '@nhost/core': workspace:*
-      '@nhost/nhost-js': workspace:*
-      '@nhost/react': workspace:*
+      '@nhost/core': workspace:^
+      '@nhost/nhost-js': workspace:^
+      '@nhost/react': workspace:^
       cookies: ^0.8.0
       next: 12.0.10
       react: ^17.0.2
@@ -219,9 +219,9 @@ importers:
 
   packages/nhost-js:
     specifiers:
-      '@nhost/core': workspace:*
-      '@nhost/hasura-auth-js': workspace:*
-      '@nhost/hasura-storage-js': workspace:*
+      '@nhost/core': workspace:^
+      '@nhost/hasura-auth-js': workspace:^
+      '@nhost/hasura-storage-js': workspace:^
       axios: ^0.23.0
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
@@ -236,9 +236,9 @@ importers:
 
   packages/react:
     specifiers:
-      '@nhost/core': workspace:*
-      '@nhost/hasura-auth-js': workspace:*
-      '@nhost/nhost-js': workspace:*
+      '@nhost/core': workspace:^
+      '@nhost/hasura-auth-js': workspace:^
+      '@nhost/nhost-js': workspace:^
       '@xstate/inspect': ^0.6.2
       '@xstate/react': ^2.0.1
       immer: ^9.0.12
@@ -260,9 +260,9 @@ importers:
   packages/react-apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/apollo': workspace:*
-      '@nhost/core': workspace:*
-      '@nhost/react': workspace:*
+      '@nhost/apollo': workspace:^
+      '@nhost/core': workspace:^
+      '@nhost/react': workspace:^
       '@types/react': ^17.0.39
       '@types/ws': ^8.2.2
       graphql: 15.7.2
@@ -282,8 +282,8 @@ importers:
 
   packages/react-auth:
     specifiers:
-      '@nhost/nhost-js': workspace:*
-      '@nhost/react': workspace:*
+      '@nhost/nhost-js': workspace:^
+      '@nhost/react': workspace:^
       '@types/react': ^17.0.38
       react: ^17.0.2
       react-dom: ^17.0.2

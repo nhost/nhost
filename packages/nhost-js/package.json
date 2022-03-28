@@ -52,13 +52,13 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@nhost/hasura-auth-js": "workspace:*",
-    "@nhost/hasura-storage-js": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:^",
+    "@nhost/hasura-storage-js": "workspace:^",
     "axios": "^0.23.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:*"
+    "@nhost/core": "workspace:^"
   }
 }
