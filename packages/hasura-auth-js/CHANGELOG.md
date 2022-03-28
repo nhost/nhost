@@ -1,5 +1,12 @@
 # @nhost/hasura-auth-js
 
+## 1.0.1
+
+### Patch Changes
+
+- ab36f90: Correct access to user/session information through getUser/getSession/isReady function when authentication state is not ready yet
+  In some cases e.g. NextJS build, `auth.getUser()`, `auth.getSession()` or `auth.isReady()` should be accessible without raising an error.
+
 ## 1.0.0
 
 ### Major Changes
