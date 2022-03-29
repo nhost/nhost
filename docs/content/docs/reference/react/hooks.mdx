@@ -218,20 +218,19 @@ const Component = () => {
 
 ## Authentication status
 
-### `useAuthLoading`
+### `useAuthenticationStatus`
 
 The Nhost client may need some initial steps to determine the authentication status during startup, like fetching a new JWT from an existing refresh token.
 
-`useAuthLoading` will return `true` until the authentication status is known.
+`isLoading` will return `true` until the authentication status is known.
 
 #### Usage
 
 ```jsx
-import { useAuthLoading, useAuthenticated } from '@nhost/react'
+import { useAuthenticationStatus } from '@nhost/react'
 
 const Component = () => {
-  const isLoading = useAuthLoading()
-  const isAuthenticated = useAuthenticated()
+  const { isLoading, isAuthenticated } = useAuthenticationStatus()
   if (isLoading) return <div>Loading Nhost authentication status...</div>
   else if (isAuthenticated) return <div>User is authenticated</div>
   else return <div>Public section</div>

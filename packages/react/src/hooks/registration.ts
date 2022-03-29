@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { SignUpOptions } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { useAuthenticated, useAuthInterpreter, useAuthLoading } from './common'
+import { useAuthenticationStatus, useAuthInterpreter } from './common'
 
 export const useSignUpEmailPassword = (
   stateEmail?: string,
@@ -18,8 +18,7 @@ export const useSignUpEmailPassword = (
     (state) => state.context.errors.registration,
     (a, b) => a?.error === b?.error
   )
-  const loading = useAuthLoading()
-  const isSuccess = useAuthenticated()
+  const { isLoading: loading, isAuthenticated: isSuccess } = useAuthenticationStatus()
   const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
   const needsEmailVerification =
     !!service.status &&
