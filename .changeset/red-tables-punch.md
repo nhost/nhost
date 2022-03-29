@@ -12,7 +12,7 @@ As a result, when a user loads the page while he previously authenticated, the h
 | `false`   | `false`         |
 | `false`   | `true`          |
 
-The interpediate (`false`, `false`) is incorrect and is causing issues when using an authentication gate.
+The intermediate (`false`, `false`) is incorrect and is causing issues when using an authentication gate.
 
 It is therefore recommended to stop using `useAuthLoading`, and to use `useAuthenticationStatus` instead, in order to keep the loading state and the authentication in sync within the same hook.
 
