@@ -20,7 +20,7 @@ router.use(nocache());
  * @return 200 - success response - text/plain
  * @tags General
  */
-router.get('/healthz', (_req, res) => res.send('OK'));
+router.get('/healthz', (_req, res) => res.send('ok'));
 
 /**
  * GET /version

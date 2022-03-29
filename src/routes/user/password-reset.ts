@@ -70,5 +70,5 @@ export const userPasswordResetHandler: RequestHandler<
     },
   });
 
-  return res.send('OK');
+  return res.send('ok');
 };

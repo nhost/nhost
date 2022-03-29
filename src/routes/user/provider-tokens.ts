@@ -66,5 +66,5 @@ export const userProviderTokensHandler: RequestHandler<
 
   await rotate({ providerId, userId });
 
-  return res.send('OK');
+  return res.send('ok');
 };

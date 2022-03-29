@@ -2,6 +2,7 @@ import { RequestHandler } from 'express';
 
 import { hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
+import { sendError } from '@/errors';
 
 export const userPasswordHandler: RequestHandler<
   {},
@@ -10,7 +11,7 @@ export const userPasswordHandler: RequestHandler<
 > = async (req, res) => {
   // check if user is logged in
   if (!req.auth?.userId) {
-    return res.status(401).send('Incorrect access token');
+    return sendError(res, 'unauthenticated-user');
   }
 
   const { newPassword } = req.body;
@@ -35,5 +36,5 @@ export const userPasswordHandler: RequestHandler<
     },
   });
 
-  return res.send('OK');
+  return res.send('ok');
 };

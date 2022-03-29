@@ -35,5 +35,5 @@ export const signOutHandler: RequestHandler<
     });
   }
 
-  return res.send('OK');
+  return res.send('ok');
 };
