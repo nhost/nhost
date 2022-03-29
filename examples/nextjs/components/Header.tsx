@@ -7,7 +7,8 @@ export default function Header() {
       <nav>
         <Link href="/">Index</Link> <br />
         <Link href="/second">Second</Link> <br />
-        <Link href="/third">Third</Link> <br />
+        <Link href="/third">SSR auth-guarded page</Link> <br />
+        <Link href="/client-side-auth-guard">CSR auth-guarded page</Link> <br />
       </nav>
     </header>
   )

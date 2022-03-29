@@ -24,18 +24,24 @@ export const useNhostBackendUrl = () => {
   return nhost.auth.client.backendUrl.replace('/v1/auth', '')
 }
 
+/**
+ * @deprecated When using both useAuthLoading and useAuthenticated together, their initial state will change three times: (true,false) -> (false,false) -> (false,true). Use useAuthenticationStatus instead.
+ */
 export const useAuthLoading = () => {
   const service = useAuthInterpreter()
-  const [isLoading, setIsLoading] = useState(!service.status || !service?.state?.hasTag('ready'))
-  useEffect(() => {
-    const subscription = service.subscribe((state) => {
-      const newValue = !state.hasTag('ready')
-      setIsLoading(newValue)
-    })
-    return subscription.unsubscribe
-  }, [service])
+  return useSelector(service, (state) => !state.hasTag('ready'))
+}
 
-  return isLoading
+export const useAuthenticationStatus = () => {
+  const service = useAuthInterpreter()
+  return useSelector(
+    service,
+    (state) => ({
+      isAuthenticated: state.matches({ authentication: 'signedIn' }),
+      isLoading: !state.hasTag('ready')
+    }),
+    (a, b) => a.isAuthenticated === b.isAuthenticated && a.isLoading === b.isLoading
+  )
 }
 
 export const useAuthenticated = () => {
