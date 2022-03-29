@@ -69,7 +69,6 @@ specifiers:
   eslint-plugin-prettier: 3.1.3
   express: 4.17.1
   express-boom: ^3.0.0
-  express-joi-validation: ^5.0.0
   express-jsdoc-swagger: ^1.6.7
   express-pino-logger: ^6.0.0
   faker: ^5.5.3
@@ -143,7 +142,6 @@ dependencies:
   email-validator: 2.0.4
   express: 4.17.1
   express-boom: 3.0.0
-  express-joi-validation: 5.0.1_joi@17.6.0
   express-jsdoc-swagger: 1.6.7
   express-pino-logger: 6.0.0
   graphql: 16.2.0
@@ -5232,15 +5230,6 @@ packages:
     resolution: {integrity: sha512-/esN6Am8YE1rzRsi+vBpJkdr8O+GX+oBjRE/hEuBu6Y3uyS9y026XptRZduAMYS8KxyLzXM5Qh+RlnqLOR1pVQ==}
     dependencies:
       boom: 7.3.0
-    dev: false
-
-  /express-joi-validation/5.0.1_joi@17.6.0:
-    resolution: {integrity: sha512-BztcU64addcAdxys2j42pZVSnJjEyFaLxNko7YSYDUuEBtKq2XnhzYZuy9ex9Q+Fdhef+NwLXhX1djwZmShCLg==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      joi: '17'
-    dependencies:
-      joi: 17.6.0
     dev: false
 
   /express-jsdoc-swagger/1.6.7:

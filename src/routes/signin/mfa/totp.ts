@@ -1,27 +1,17 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 
 import { getSignInResponse } from '@/utils/tokens';
 import { getUserByTicket } from '@/helpers';
 import { authenticator } from 'otplib';
 
-type BodyType = {
-  ticket: string;
-  otp: string;
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInMfaTotpHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInMfaTotpHandler: RequestHandler<
+  {},
+  {},
+  {
+    ticket: string;
+    otp: string;
+  }
+> = async (req, res) => {
   const { ticket, otp } = req.body;
 
   const user = await getUserByTicket(ticket);

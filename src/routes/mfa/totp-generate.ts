@@ -1,34 +1,19 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 
 import { createQR } from '@/helpers';
 import { authenticator } from 'otplib';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 
-type BodyType = {};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const mfatotpGenerateHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const mfatotpGenerateHandler: RequestHandler<
+  {},
+  { imageUrl: string; totpSecret: string },
+  {}
+> = async (req, res) => {
   if (!ENV.AUTH_MFA_ENABLED) {
     return res.boom.notFound();
   }
-
-  if (!req.auth) {
-    return res.boom.unauthorized('User is not logged in');
-  }
-
-  const { userId } = req.auth;
+  const { userId } = req.auth as RequestAuth;
 
   const totpSecret = authenticator.generateSecret();
   const otpAuth = authenticator.keyuri(

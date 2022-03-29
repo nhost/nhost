@@ -114,7 +114,7 @@ describe('mfa totp', () => {
       })
       .expect(200);
 
-    // TODO: validat tokens
+    // TODO: validate tokens
 
     const { body: signInBodyThird }: { body: SignInResponse } = await request
       .post('/signin/email-password')

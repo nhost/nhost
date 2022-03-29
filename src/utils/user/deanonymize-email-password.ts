@@ -2,10 +2,7 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
 import { gqlSdk } from '../gqlSDK';
-import { isValidEmail } from '../email';
-import { getUserByEmail, hashPassword, isValidRedirectTo } from '@/helpers';
-import { isPasswordValid } from '../password';
-import { isRolesValid } from '../roles';
+import { getUserByEmail, hashPassword } from '@/helpers';
 import { ENV } from '../env';
 import { emailClient } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';
@@ -15,10 +12,10 @@ export type BodyTypeEmailPassword = {
   email: string;
   password: string;
   options: {
-    locale?: string;
-    allowedRoles?: string[];
-    defaultRole?: string;
-    redirectTo?: string;
+    locale: string;
+    allowedRoles: string[];
+    defaultRole: string;
+    redirectTo: string;
   };
 };
 
@@ -30,47 +27,22 @@ export const handleDeanonymizeUserEmailPassword = async (
   const { user } = await gqlSdk.user({
     id: userId,
   });
-
   if (user?.isAnonymous !== true) {
     return res.boom.badRequest('Logged in user is not anonymous');
   }
 
-  const { email, password, options } = body;
-
-  // check if redirectTo is valid
-  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
-  if (!isValidRedirectTo(redirectTo)) {
-    return res.boom.badRequest(`'redirectTo' is not valid`);
-  }
-
-  // check email
-  if (!(await isValidEmail({ email, res }))) {
-    // function send potential error via `res`
-    return;
-  }
+  const {
+    email,
+    password,
+    options: { redirectTo, defaultRole, allowedRoles },
+  } = body;
 
   // check if email already in use by some other user
   if (await getUserByEmail(email)) {
     return res.boom.conflict('Email already in use');
   }
 
-  // check password
-  if (!(await isPasswordValid({ password, res }))) {
-    // function send potential error via `res`
-    return;
-  }
-
   const passwordHash = await hashPassword(password);
-
-  // check roles
-  const defaultRole = options?.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
-  const allowedRoles =
-    options?.allowedRoles ?? ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
-  if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
-    return;
-  }
-
-  const userRoles = allowedRoles.map((role: string) => ({ role, userId }));
 
   // delete existing (anonymous) user roles
   await gqlSdk.deleteUserRolesByUserId({
@@ -79,7 +51,7 @@ export const handleDeanonymizeUserEmailPassword = async (
 
   // insert new user roles (userRoles)
   await gqlSdk.insertUserRoles({
-    userRoles,
+    userRoles: allowedRoles.map((role: string) => ({ role, userId })),
   });
 
   const ticket = `verifyEmail:${uuidv4()}`;

@@ -1,4 +1,5 @@
 import { UserRegistrationOptions } from '@/types';
+import { ENV } from '@/utils/env';
 import Joi from 'joi';
 import {
   locale,
@@ -13,6 +14,7 @@ import {
   userId,
   uuidRegex,
   uuid,
+  passwordInsert,
 } from './fields';
 
 const registrationOptions = Joi.object({
@@ -21,11 +23,28 @@ const registrationOptions = Joi.object({
   allowedRoles,
   displayName,
   metadata,
-});
+})
+  .default()
+  // TODO use for OAuth options as well
+  .custom((value, helper) => {
+    const { allowedRoles, defaultRole } = value;
+    if (!allowedRoles.includes(defaultRole)) {
+      return helper.error('Default role must be part of allowed roles');
+    }
+    // check if allowedRoles is a subset of allowed user roles
+    if (
+      !allowedRoles.every((role: string) =>
+        ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.includes(role)
+      )
+    ) {
+      return helper.error('Allowed roles must be a subset of allowedRoles');
+    }
+    return value;
+  });
 
 export const signUpEmailPasswordSchema = Joi.object({
   email: email.required(),
-  password: password.required(),
+  password: passwordInsert.required(),
   options: registrationOptions.keys({
     redirectTo,
   }),
@@ -88,7 +107,7 @@ export const userPasswordResetSchema = Joi.object({
   email: email.required(),
   options: Joi.object({
     redirectTo,
-  }),
+  }).default(),
 }).meta({ className: 'UserPasswordResetSchema' });
 
 export const userPasswordSchema = Joi.object({
@@ -99,14 +118,14 @@ export const userEmailChangeSchema = Joi.object({
   newEmail: email,
   options: Joi.object({
     redirectTo,
-  }),
+  }).default(),
 }).meta({ className: 'UserEmailChangeSchema' });
 
 export const userEmailSendVerificationEmailSchema = Joi.object({
   email: email.required(),
   options: Joi.object({
     redirectTo,
-  }),
+  }).default(),
 }).meta({ className: 'UserEmailSendVerificationEmailSchema' });
 
 // MFA
@@ -131,9 +150,13 @@ export const userDeanonymizeSchema = Joi.object({
   email: email.required(),
   password,
   connection: Joi.string().allow('email', 'sms').example('email'),
-  defaultRole,
-  allowedRoles,
-}).meta({ className: 'UserDeanonymizeSchema' });
+  // TODO options were not nested
+  options: registrationOptions.keys({
+    redirectTo,
+  }),
+})
+  .meta({ className: 'UserDeanonymizeSchema' })
+  .default();
 
 // user provider tokens
 export const userProviderTokensSchema = Joi.object({
@@ -153,18 +176,15 @@ export const providerQuery = Joi.object({
   redirectTo: Joi.string(),
   locale,
   defaultRole,
+  // TODO convert from string to array
   allowedRoles: Joi.string(), // this must be a string because it is a comma separated list in the query (URL)
   displayName,
+  // TODO convert from string to object - it seems to work out of the box with Joi
   metadata: Joi.string(),
-});
+}).default();
 
 export type ProviderQuery = UserRegistrationOptions & {
-  redirectTo?: string;
-  locale?: string;
-  allowedRoles?: string;
-  defaultRole?: string;
-  displayName?: string;
-  metadata?: string;
+  redirectTo: string;
 };
 
 export const providerCallbackQuery = Joi.object({

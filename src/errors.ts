@@ -22,3 +22,16 @@ export async function errors(
     });
   }
 }
+
+// TODO shared with the SDK
+export type ErrorPayload = {
+  error: string;
+  status: number;
+  message: string;
+};
+
+export const REQUEST_VALIDATION_ERROR: ErrorPayload = {
+  status: 400,
+  error: 'request-validation-error',
+  message: 'The request payload is incorrect',
+};

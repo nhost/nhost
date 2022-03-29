@@ -1,81 +1,52 @@
-import { Response } from 'express';
+import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
 
-import { getGravatarUrl, getUserByEmail, isValidRedirectTo } from '@/helpers';
+import { getGravatarUrl, getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { emailClient } from '@/email';
 import { ENV } from '@/utils/env';
-import { isValidEmail } from '@/utils/email';
-import { isRolesValid } from '@/utils/roles';
 import { PasswordLessEmailBody } from '@/types';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { insertUser } from '@/utils/user';
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: PasswordLessEmailBody;
-}
-
-export const signInPasswordlessEmailHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInPasswordlessEmailHandler: RequestHandler<
+  {},
+  {},
+  PasswordLessEmailBody
+> = async (req, res) => {
   if (!ENV.AUTH_EMAIL_PASSWORDLESS_ENABLED) {
     return res.boom.notFound('Passwordless sign in with email is not enabled');
   }
 
-  const { email, options } = req.body;
-
-  // check if redirectTo is valid
-  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
-  if (!isValidRedirectTo(redirectTo)) {
-    return res.boom.badRequest(`'redirectTo' is not valid.`);
-  }
+  const {
+    email,
+    options: {
+      redirectTo,
+      defaultRole,
+      allowedRoles,
+      displayName,
+      locale,
+      metadata,
+    },
+  } = req.body;
 
   // check if email already exist
   let user = await getUserByEmail(email);
 
   // if no user exists, create the user
   if (!user) {
-    // check email
-    if (!(await isValidEmail({ email, res }))) {
-      // function send potential error via `res`
-      return;
-    }
-
-    // check roles
-    const defaultRole = options?.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
-    const allowedRoles =
-      options?.allowedRoles ?? ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
-    if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
-      return;
-    }
-
-    // set default role
-
-    // restructure user roles to be inserted in GraphQL mutation
-    const userRoles = allowedRoles.map((role: string) => ({ role }));
-
-    const displayName = options?.displayName ?? email;
-    const locale = options?.locale ?? ENV.AUTH_LOCALE_DEFAULT;
-    const avatarUrl = getGravatarUrl(email);
-
-    // create new user
     user = await insertUser({
-      displayName,
+      displayName: displayName ?? email,
       locale,
       roles: {
-        data: userRoles,
+        // restructure user roles to be inserted in GraphQL mutation
+        data: allowedRoles.map((role: string) => ({ role })),
       },
       disabled: ENV.AUTH_DISABLE_NEW_USERS,
-      avatarUrl,
+      avatarUrl: getGravatarUrl(email),
       email,
       defaultRole,
-      metadata: options?.metadata || {},
+      metadata,
     });
   }
 

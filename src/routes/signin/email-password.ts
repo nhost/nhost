@@ -1,38 +1,21 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
 import { getSignInResponse } from '@/utils/tokens';
 import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
 import { logger } from '@/logger';
-import { isValidEmail } from '@/utils/email';
 
-type BodyType = {
-  email: string;
-  password: string;
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInEmailPasswordHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInEmailPasswordHandler: RequestHandler<
+  {},
+  {},
+  {
+    email: string;
+    password: string;
+  }
+> = async (req, res) => {
   const { email, password } = req.body;
   logger.debug(`Sign in with email: ${email}`);
-
-  // check email
-  if (!(await isValidEmail({ email, res }))) {
-    // function send potential error via `res`
-    return;
-  }
 
   const user = await getUserByEmail(email);
 

@@ -1,13 +1,14 @@
 import expressJSDocSwagger from 'express-jsdoc-swagger';
 import j2s, { SwaggerSchema } from 'joi-to-swagger';
-import * as validators from './validation';
+import * as requests from './validation/requests';
+import * as responses from './validation/openapi-responses';
 import { Application } from 'express';
 
 const schema: Record<string, unknown> & { components: SwaggerSchema } = {
   tags: [],
   components: { schemas: {} },
 };
-Object.values(validators).forEach((validator) => {
+Object.values({ ...requests, ...responses }).forEach((validator) => {
   const { components } = j2s(validator, {});
   schema.components.schemas = {
     ...schema.components.schemas,

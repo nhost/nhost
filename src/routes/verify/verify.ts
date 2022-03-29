@@ -1,16 +1,16 @@
 import { generateRedirectUrl } from '@/utils';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { getNewRefreshToken } from '@/utils/tokens';
-import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
 
-export const verifyHandler = async (
-  req: Request,
-  res: Response
-): Promise<unknown> => {
-  // const { ticket, type } = req.query;
-  const ticket = req.query.ticket as string;
-  const type = req.query.type as string;
-  const redirectTo = req.query.redirectTo as string;
+export const verifyHandler: RequestHandler<
+  {},
+  {},
+  {},
+  { ticket?: string; type?: string; redirectTo?: string }
+> = async (req, res) => {
+  // TODO use Joi validation - but use res.redirect
+  const { ticket, type, redirectTo } = req.query;
 
   if (!redirectTo) {
     return res.boom.badRequest('Missing redirectTo');

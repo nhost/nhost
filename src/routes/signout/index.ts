@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { asyncWrapper as aw } from '@/helpers';
-import { createValidator } from 'express-joi-validation';
-import { signOutSchema } from '@/validation';
+import { signOutSchema, bodyValidator } from '@/validation';
 import { signOutHandler } from './signout';
 
 const router = Router();
@@ -16,11 +15,7 @@ const router = Router();
  * @security BearerAuth
  * @tags Sign out
  */
-router.post(
-  '/signout',
-  createValidator().body(signOutSchema),
-  aw(signOutHandler)
-);
+router.post('/signout', bodyValidator(signOutSchema), aw(signOutHandler));
 
 const signOutRouter = router;
 export { signOutRouter };

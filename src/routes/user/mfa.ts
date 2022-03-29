@@ -1,25 +1,15 @@
 import { gqlSdk } from '@/utils/gqlSDK';
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import { authenticator } from 'otplib';
 
-type BodyType = {
-  code: string;
-  activeMfaType: null | 'totp'; // | 'sms';
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userMFAHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const userMFAHandler: RequestHandler<
+  {},
+  {},
+  {
+    code: string;
+    activeMfaType: null | 'totp'; // | 'sms';
+  }
+> = async (req, res) => {
   // check if user is logged in
   if (!req.auth?.userId) {
     return res.status(401).send('Incorrect access token');
@@ -27,6 +17,7 @@ export const userMFAHandler = async (
 
   const { code, activeMfaType } = req.body;
 
+  // TODO joi validation
   if (activeMfaType && !['totp'].includes(activeMfaType)) {
     return res.boom.badRequest(
       'Incorrect activeMfaType. Must be emtpy string or one of: [totp]'

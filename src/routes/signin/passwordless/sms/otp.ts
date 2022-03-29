@@ -1,25 +1,14 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
 import { getSignInResponse } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { OtpSmsBody } from '@/types';
 
-type BodyType = OtpSmsBody;
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInOtpHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
+  req,
+  res
+) => {
   const { body } = req;
 
   const { phoneNumber, otp } = body;

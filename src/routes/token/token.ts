@@ -1,25 +1,12 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
-
+import { RequestHandler } from 'express';
 import { getNewSession } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 
-type BodyType = {
-  refreshToken: string;
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const tokenHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const tokenHandler: RequestHandler<
+  {},
+  {},
+  { refreshToken: string }
+> = async (req, res) => {
   const { refreshToken } = req.body;
 
   // set expiresAt to now + 10 seconds.

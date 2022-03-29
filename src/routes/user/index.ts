@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { createValidator } from 'express-joi-validation';
 
 import { asyncWrapper as aw } from '@/helpers';
 import {
@@ -9,6 +8,7 @@ import {
   userPasswordResetSchema,
   userPasswordSchema,
   userProviderTokensSchema,
+  bodyValidator,
 } from '@/validation';
 import { userMFAHandler } from './mfa';
 import { userHandler } from './user';
@@ -18,6 +18,7 @@ import { userDeanonymizeHandler } from './deanonymize';
 import { userProviderTokensHandler } from './provider-tokens';
 import { userEmailSendVerificationEmailHandler } from './email';
 import { userEmailChange } from './email';
+import { authenticationGate } from '@/middleware/auth';
 
 const router = Router();
 
@@ -29,7 +30,7 @@ const router = Router();
  * @security BearerAuth
  * @tags User management
  */
-router.get('/user', aw(userHandler));
+router.get('/user', authenticationGate, aw(userHandler));
 
 /**
  * POST /user/password/reset
@@ -41,7 +42,7 @@ router.get('/user', aw(userHandler));
  */
 router.post(
   '/user/password/reset',
-  createValidator().body(userPasswordResetSchema),
+  bodyValidator(userPasswordResetSchema),
   aw(userPasswordResetHandler)
 );
 
@@ -57,7 +58,7 @@ router.post(
  */
 router.post(
   '/user/password',
-  createValidator().body(userPasswordSchema),
+  bodyValidator(userPasswordSchema),
   aw(userPasswordHandler)
 );
 
@@ -71,7 +72,7 @@ router.post(
  */
 router.post(
   '/user/email/send-verification-email',
-  createValidator().body(userEmailSendVerificationEmailSchema),
+  bodyValidator(userEmailSendVerificationEmailSchema),
   aw(userEmailSendVerificationEmailHandler)
 );
 
@@ -87,7 +88,8 @@ router.post(
  */
 router.post(
   '/user/email/change',
-  createValidator().body(userEmailChangeSchema),
+  bodyValidator(userEmailChangeSchema),
+  authenticationGate,
   aw(userEmailChange)
 );
 
@@ -104,7 +106,7 @@ router.post(
 router.post(
   '/user/mfa',
   // ? why is validation deactivated?
-  // createValidator().body(userMfaSchema),
+  // bodyValidator(userMfaSchema),
   aw(userMFAHandler)
 );
 
@@ -120,7 +122,8 @@ router.post(
  */
 router.post(
   '/user/deanonymize',
-  createValidator().body(userDeanonymizeSchema),
+  bodyValidator(userDeanonymizeSchema),
+  authenticationGate,
   aw(userDeanonymizeHandler)
 );
 
@@ -136,7 +139,7 @@ router.post(
  */
 router.post(
   '/user/provider/tokens',
-  createValidator().body(userProviderTokensSchema),
+  bodyValidator(userProviderTokensSchema),
   aw(userProviderTokensHandler)
 );
 

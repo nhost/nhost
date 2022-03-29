@@ -1,52 +1,29 @@
-import { Response } from 'express';
-import * as EmailValidator from 'email-validator';
+import { ENV } from '@/utils/env';
 
-import { ENV } from './env';
+import Joi from 'joi';
 
-type IsValidEmailParams = {
-  email: string;
-  res?: Response;
-};
-
-// ok
-export const isValidEmail = async ({
-  email,
-  res,
-}: IsValidEmailParams): Promise<boolean> => {
-  // TODO move to Joi
-  // check if email is valid
-  if (!EmailValidator.validate(email)) {
-    if (res) {
-      res.boom.badRequest('The email is not a valid email address');
-    }
-    return false;
-  }
-
-  // of no access control is set, allow all emails
+export const EmailValidator: Joi.CustomValidator = (email, helper) => {
   if (
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAILS.length === 0 &&
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS.length === 0 &&
     ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAILS.length === 0 &&
     ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS.length === 0
   ) {
-    return true;
+    return email;
   }
 
   const emailDomain = email.split('@')[1];
 
   // check if email is blocked
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS.includes(emailDomain)) {
-    if (res) {
-      res.boom.forbidden('Email domain is not valid');
-    }
+    // if (res) {
+    //   res.boom.forbidden('Email domain is not valid');
+    // }
     return false;
   }
 
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAILS.includes(email)) {
-    if (res) {
-      res.boom.forbidden('Email is not valid');
-    }
-    return false;
+    return helper.error('Email is not valid');
   }
 
   // We've now checked the block list.
@@ -55,7 +32,7 @@ export const isValidEmail = async ({
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAILS.length === 0 &&
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS.length === 0
   ) {
-    return true;
+    return email;
   }
 
   // One of the allow lists are not empty.
@@ -64,15 +41,12 @@ export const isValidEmail = async ({
   // because the email is not valid.
 
   if (ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS.includes(emailDomain)) {
-    return true;
+    return email;
   }
 
   if (ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAILS.includes(email)) {
-    return true;
+    return email;
   }
 
-  if (res) {
-    res.boom.forbidden('Email is not valid');
-  }
-  return false;
+  return helper.error('Email is not valid');
 };

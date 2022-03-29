@@ -49,11 +49,11 @@ export type Token = {
 type Metadata = Record<string, unknown>;
 
 export type UserRegistrationOptions = {
-  locale?: string;
-  allowedRoles?: string[];
-  defaultRole?: string;
+  locale: string;
+  allowedRoles: string[];
+  defaultRole: string;
   displayName?: string;
-  metadata?: Metadata;
+  metadata: Metadata;
 };
 
 export type User = Pick<
@@ -87,14 +87,14 @@ export type SignInResponse = {
 
 export type PasswordLessEmailBody = {
   email: string;
-  options?: UserRegistrationOptions & {
-    redirectTo?: string;
+  options: UserRegistrationOptions & {
+    redirectTo: string;
   };
 };
 
 export type PasswordLessSmsBody = {
   phoneNumber: string;
-  options?: UserRegistrationOptions;
+  options: UserRegistrationOptions;
 };
 
 export type OtpSmsBody = {

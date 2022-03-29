@@ -1,75 +1,38 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import {
-  getGravatarUrl,
-  getUserByEmail,
-  hashPassword,
-  isValidRedirectTo,
-} from '@/helpers';
+import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { emailClient } from '@/email';
-import { isValidEmail } from '@/utils/email';
-import { isPasswordValid } from '@/utils/password';
-import { isRolesValid } from '@/utils/roles';
 import { ENV } from '@/utils/env';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { getSignInResponse } from '@/utils/tokens';
 import { insertUser } from '@/utils/user';
 import { UserRegistrationOptions } from '@/types';
 
-type BodyType = {
-  email: string;
-  password: string;
-  options?: UserRegistrationOptions & {
-    redirectTo?: string;
-  };
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signUpEmailPasswordHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signUpEmailPasswordHandler: RequestHandler<
+  {},
+  {},
+  {
+    email: string;
+    password: string;
+    options: UserRegistrationOptions & {
+      redirectTo: string;
+    };
+  }
+> = async (req, res) => {
   const { body } = req;
-  const { email, password, options } = body;
-
-  // check if redirectTo is valid
-  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
-  if (!isValidRedirectTo(redirectTo)) {
-    return res.boom.badRequest(`'redirectTo' is not valid`);
-  }
-
-  const locale = options?.locale ?? ENV.AUTH_LOCALE_DEFAULT;
-  // check email
-  if (!(await isValidEmail({ email, res }))) {
-    // function send potential error via `res`
-    return;
-  }
-
-  // check password
-  if (!(await isPasswordValid({ password, res }))) {
-    // function send potential error via `res`
-    return;
-  }
-
-  // check roles
-  const defaultRole = options?.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
-  const allowedRoles =
-    options?.allowedRoles ?? ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
-  if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
-    return;
-  }
-
-  req.log.debug({ defaultRole });
-  req.log.debug({ allowedRoles });
+  const {
+    email,
+    password,
+    options: {
+      redirectTo,
+      locale,
+      defaultRole,
+      allowedRoles,
+      metadata,
+      displayName = email,
+    },
+  } = body;
 
   // check if email already in use by some other user
   if (await getUserByEmail(email)) {
@@ -83,19 +46,11 @@ export const signUpEmailPasswordHandler = async (
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
 
-  // restructure user roles to be inserted in GraphQL mutation
-  const userRoles = allowedRoles.map((role: string) => ({ role }));
-
-  const displayName = options?.displayName ?? email;
-  const avatarUrl = getGravatarUrl(email);
-
-  req.log.debug({ displayName, avatarUrl });
-
   // insert user
   const user = await insertUser({
     disabled: ENV.AUTH_DISABLE_NEW_USERS,
     displayName,
-    avatarUrl,
+    avatarUrl: getGravatarUrl(email),
     email,
     passwordHash,
     ticket,
@@ -104,9 +59,10 @@ export const signUpEmailPasswordHandler = async (
     locale,
     defaultRole,
     roles: {
-      data: userRoles,
+      // restructure user roles to be inserted in GraphQL mutation
+      data: allowedRoles.map((role: string) => ({ role })),
     },
-    metadata: options?.metadata || {},
+    metadata,
   });
 
   // user is now inserted. Continue sending out activation email

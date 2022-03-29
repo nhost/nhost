@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import { createValidator } from 'express-joi-validation';
 
 import { asyncWrapper as aw } from '@/helpers';
 import {
@@ -9,6 +8,7 @@ import {
   signInOtpSchema,
   signInPasswordlessEmailSchema,
   signInPasswordlessSmsSchema,
+  bodyValidator,
 } from '@/validation';
 import { signInEmailPasswordHandler } from './email-password';
 import { signInAnonymousHandler } from './anonymous';
@@ -34,7 +34,7 @@ const router = Router();
  */
 router.post(
   '/signin/email-password',
-  createValidator().body(signInEmailPasswordSchema),
+  bodyValidator(signInEmailPasswordSchema),
   aw(signInEmailPasswordHandler)
 );
 
@@ -50,7 +50,7 @@ router.post(
  */
 router.post(
   '/signin/passwordless/email',
-  createValidator().body(signInPasswordlessEmailSchema),
+  bodyValidator(signInPasswordlessEmailSchema),
   aw(signInPasswordlessEmailHandler)
 );
 
@@ -65,7 +65,7 @@ router.post(
  */
 router.post(
   '/signin/passwordless/sms',
-  createValidator().body(signInPasswordlessSmsSchema),
+  bodyValidator(signInPasswordlessSmsSchema),
   aw(signInPasswordlessSmsHandler)
 );
 
@@ -81,7 +81,7 @@ router.post(
  */
 router.post(
   '/signin/passwordless/sms/otp',
-  createValidator().body(signInOtpSchema),
+  bodyValidator(signInOtpSchema),
   aw(signInOtpHandler)
 );
 
@@ -96,7 +96,7 @@ router.post(
  */
 router.post(
   '/signin/anonymous',
-  createValidator().body(signInAnonymousSchema),
+  bodyValidator(signInAnonymousSchema),
   aw(signInAnonymousHandler)
 );
 
@@ -114,14 +114,14 @@ providers(router);
  */
 router.post(
   '/signin/mfa/totp',
-  createValidator().body(signInMfaTotpSchema),
+  bodyValidator(signInMfaTotpSchema),
   aw(signInMfaTotpHandler)
 );
 
 // TODO: Implement:
 // router.post(
 //   '/signin/mfa/sms',
-//   createValidator().body(signInMfaSmsSchema),
+//   bodyValidator(signInMfaSmsSchema),
 //   aw(signInMfaSmsHandler)
 // );
 

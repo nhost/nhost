@@ -1,27 +1,17 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
 import { getSignInResponse } from '@/utils/tokens';
 import { getUserByTicket } from '@/helpers';
 
-type BodyType = {
-  ticket: string;
-  otp: string;
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInMfaSmspHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInMfaSmspHandler: RequestHandler<
+  {},
+  {},
+  {
+    ticket: string;
+    otp: string;
+  }
+> = async (req, res) => {
   const { ticket, otp } = req.body;
 
   const user = await getUserByTicket(ticket);

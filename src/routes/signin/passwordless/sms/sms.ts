@@ -1,66 +1,43 @@
-import { Response } from 'express';
+import { RequestHandler } from 'express';
 import twilio from 'twilio';
 
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
-import { isRolesValid } from '@/utils/roles';
 import { getNewOneTimePasswordData } from '@/utils/otp';
 import { PasswordLessSmsBody } from '@/types';
 import { getUserByPhoneNumber, insertUser } from '@/utils/user';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: PasswordLessSmsBody;
-}
-
-export const signInPasswordlessSmsHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInPasswordlessSmsHandler: RequestHandler<
+  {},
+  {},
+  PasswordLessSmsBody
+> = async (req, res) => {
   if (!ENV.AUTH_SMS_PASSWORDLESS_ENABLED) {
     return res.boom.notFound('Passwordless sign in with sms is not enabled');
   }
 
-  const { phoneNumber, options } = req.body;
+  const {
+    phoneNumber,
+    options: { defaultRole, allowedRoles, displayName, locale, metadata },
+  } = req.body;
 
   // check if email already exist
   let user = await getUserByPhoneNumber({ phoneNumber });
 
   // if no user exists, create the user
   if (!user) {
-    // check roles
-    const defaultRole = options?.defaultRole ?? ENV.AUTH_USER_DEFAULT_ROLE;
-    const allowedRoles =
-      options?.allowedRoles ?? ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES;
-    if (!(await isRolesValid({ defaultRole, allowedRoles, res }))) {
-      return;
-    }
-
-    // set default role
-
-    // restructure user roles to be inserted in GraphQL mutation
-    const userRoles = allowedRoles.map((role: string) => ({ role }));
-
-    const displayName = options?.displayName ?? '';
-    const locale = options?.locale ?? ENV.AUTH_LOCALE_DEFAULT;
-    const avatarUrl = '';
-
-    // create new user
     user = await insertUser({
       disabled: ENV.AUTH_DISABLE_NEW_USERS,
       displayName,
-      avatarUrl,
+      avatarUrl: '',
       phoneNumber,
       locale,
       defaultRole,
       roles: {
-        data: userRoles,
+        // restructure user roles to be inserted in GraphQL mutation
+        data: allowedRoles.map((role: string) => ({ role })),
       },
-      metadata: options?.metadata || {},
+      metadata,
     });
   }
 

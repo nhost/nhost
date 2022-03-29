@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import { createValidator } from 'express-joi-validation';
 
 import { asyncWrapper as aw } from '@/helpers';
-import { tokenSchema } from '@/validation';
+import { tokenSchema, bodyValidator } from '@/validation';
 import { tokenHandler } from './token';
 
 const router = Router();
@@ -16,7 +15,7 @@ const router = Router();
  * @return {object} 401 - User is not authorized to refresh the token - application/json
  * @tags General
  */
-router.post('/token', createValidator().body(tokenSchema), aw(tokenHandler));
+router.post('/token', bodyValidator(tokenSchema), aw(tokenHandler));
 
 const tokenRouter = router;
 export { tokenRouter };

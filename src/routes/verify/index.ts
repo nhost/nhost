@@ -1,5 +1,4 @@
 import { Router } from 'express';
-// import { createValidator } from 'express-joi-validation';
 
 import { asyncWrapper as aw } from '@/helpers';
 // import { tokenSchema } from '@/validation';

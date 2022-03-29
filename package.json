@@ -18,6 +18,7 @@
     "codegen:watch": "dotenv graphql-codegen --config codegen.yaml --watch",
     "dev:start": "ts-node-dev -r tsconfig-paths/register --respawn --clear  --unhandled-rejections=strict src/start.ts",
     "test": "AUTH_LOG_LEVEL=error jest --runInBand",
+    "test:watch": "AUTH_LOG_LEVEL=error jest --runInBand --watch",
     "release": "release-it",
     "release:preview": "release-it --release-version",
     "postinstall": "patch-package"
@@ -40,7 +41,6 @@
     "email-validator": "^2.0.4",
     "express": "4.17.1",
     "express-boom": "^3.0.0",
-    "express-joi-validation": "^5.0.0",
     "express-jsdoc-swagger": "^1.6.7",
     "express-pino-logger": "^6.0.0",
     "graphql": "16.2.0",

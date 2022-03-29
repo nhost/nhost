@@ -1,9 +1,4 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 
 import {
   BodyTypeEmailPassword,
@@ -14,34 +9,13 @@ import {
   handleDeanonymizeUserPasswordlessEmail,
 } from '@/utils/user/deanonymize-passwordless-email';
 
-// export type BodyTypePasswordlessSms = {
-//   signInMethod: 'passwordless';
-//   connection: 'sms';
-//   mode: PasswordlessMode;
-//   phoneNumber: string;
-//   password: string;
-//   allowedRoles: string[];
-//   defaultRole: string;
-// };
-
-type BodyType = BodyTypeEmailPassword | BodyTypePasswordlessEmail;
-// | BodyTypePasswordlessSms;
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userDeanonymizeHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
-  // check if user is logged in
-  if (!req.auth?.userId) {
-    return res.boom.unauthorized('User not logged in');
-  }
-
+export const userDeanonymizeHandler: RequestHandler<
+  {},
+  {},
+  BodyTypeEmailPassword | BodyTypePasswordlessEmail
+> = async (req, res) => {
   const { body } = req;
-  const { userId } = req.auth;
+  const { userId } = req.auth as RequestAuth;
 
   if (body.signInMethod === 'email-password') {
     await handleDeanonymizeUserEmailPassword(body, userId, res);
@@ -56,6 +30,5 @@ export const userDeanonymizeHandler = async (
   // if (body.signInMethod === 'passwordless' && body.connection === 'sms') {
   //   handleDeanonymizeUserPasswordlessSms(body, res);
   // }
-
   return res.boom.badRequest('incorrect sign in method');
 };

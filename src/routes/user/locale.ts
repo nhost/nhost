@@ -1,24 +1,12 @@
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 
-type BodyType = {
-  locale: string;
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userMFAHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const userMFAHandler: RequestHandler<
+  {},
+  {},
+  { locale: string }
+> = async (req, res) => {
   // check if user is logged in
   if (!req.auth?.userId) {
     return res.status(401).send('Incorrect access token');
@@ -26,6 +14,7 @@ export const userMFAHandler = async (
 
   const { locale } = req.body;
 
+  // TODO check Joi validation
   // make sure locale is allowed
   if (!ENV.AUTH_LOCALE_ALLOWED_LOCALES.includes(locale)) {
     return res.boom.badRequest(

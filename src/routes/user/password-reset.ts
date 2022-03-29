@@ -1,40 +1,26 @@
-import { Response } from 'express';
+import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
 
 import { emailClient } from '@/email';
-import { getUserByEmail, isValidRedirectTo } from '@/helpers';
+import { getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { ENV } from '@/utils/env';
 
-type BodyType = {
-  email: string;
-  options?: {
-    redirectTo?: string;
-  };
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userPasswordResetHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
-  const { email, options } = req.body;
-
-  // check if redirectTo is valid
-  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
-  if (!isValidRedirectTo(redirectTo)) {
-    return res.boom.badRequest(`'redirectTo' is not valid`);
+export const userPasswordResetHandler: RequestHandler<
+  {},
+  {},
+  {
+    email: string;
+    options: {
+      redirectTo: string;
+    };
   }
-
+> = async (req, res) => {
+  const {
+    email,
+    options: { redirectTo },
+  } = req.body;
   const user = await getUserByEmail(email);
 
   if (!user || user.disabled) {

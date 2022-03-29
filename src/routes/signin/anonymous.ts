@@ -1,38 +1,26 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 
 import { ENV } from '@/utils/env';
 import { getSignInResponse } from '@/utils/tokens';
 import { insertUser } from '@/utils/user';
 
 type BodyType = {
-  locale?: string;
+  locale: string;
   displayName?: string;
-  metadata?: Record<string, unknown>;
+  metadata: Record<string, unknown>;
 };
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInAnonymousHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInAnonymousHandler: RequestHandler<{}, {}, BodyType> = async (
+  req,
+  res
+) => {
   if (!ENV.AUTH_ANONYMOUS_USERS_ENABLED) {
     return res.boom.notFound('Anonymous users are not enabled');
   }
-
-  const { locale = ENV.AUTH_LOCALE_DEFAULT } = req.body;
+  const { locale, displayName = 'Anonymous User' } = req.body;
 
   // restructure user roles to be inserted in GraphQL mutation
   const userRoles = [{ role: 'anonymous' }];
-
-  const displayName = req.body.displayName ?? 'Anonymous User';
 
   // insert user
   const user = await insertUser({
