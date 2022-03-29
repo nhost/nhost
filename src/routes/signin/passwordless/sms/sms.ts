@@ -6,6 +6,7 @@ import { ENV } from '@/utils/env';
 import { getNewOneTimePasswordData } from '@/utils/otp';
 import { PasswordLessSmsBody } from '@/types';
 import { getUserByPhoneNumber, insertUser } from '@/utils/user';
+import { sendError } from '@/errors';
 
 export const signInPasswordlessSmsHandler: RequestHandler<
   {},
@@ -13,7 +14,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
   PasswordLessSmsBody
 > = async (req, res) => {
   if (!ENV.AUTH_SMS_PASSWORDLESS_ENABLED) {
-    return res.boom.notFound('Passwordless sign in with sms is not enabled');
+    return sendError(res, 'disabled-endpoint');
   }
 
   const {
@@ -71,10 +72,10 @@ export const signInPasswordlessSmsHandler: RequestHandler<
         userId: user.id,
       });
 
-      return res.boom.internal('Error sending SMS');
+      throw Error('Error sending SMS');
     }
   } else {
-    return res.boom.internal('no sms provider set');
+    throw Error('No sms provider set');
   }
 
   return res.send('ok');

@@ -1,4 +1,4 @@
-import Joi from 'joi';
+import { Joi } from './joi';
 import { Session, User } from '../types';
 import {
   defaultRole,

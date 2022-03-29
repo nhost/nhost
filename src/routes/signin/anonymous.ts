@@ -3,6 +3,7 @@ import { RequestHandler } from 'express';
 import { ENV } from '@/utils/env';
 import { getSignInResponse } from '@/utils/tokens';
 import { insertUser } from '@/utils/user';
+import { sendError } from '@/errors';
 
 type BodyType = {
   locale: string;
@@ -15,7 +16,7 @@ export const signInAnonymousHandler: RequestHandler<{}, {}, BodyType> = async (
   res
 ) => {
   if (!ENV.AUTH_ANONYMOUS_USERS_ENABLED) {
-    return res.boom.notFound('Anonymous users are not enabled');
+    return sendError(res, 'disabled-endpoint');
   }
   const { locale, displayName = 'Anonymous User' } = req.body;
 

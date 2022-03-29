@@ -8,6 +8,7 @@ import {
   BodyTypePasswordlessEmail,
   handleDeanonymizeUserPasswordlessEmail,
 } from '@/utils/user/deanonymize-passwordless-email';
+import { sendError } from '@/errors';
 
 export const userDeanonymizeHandler: RequestHandler<
   {},
@@ -30,5 +31,5 @@ export const userDeanonymizeHandler: RequestHandler<
   // if (body.signInMethod === 'passwordless' && body.connection === 'sms') {
   //   handleDeanonymizeUserPasswordlessSms(body, res);
   // }
-  return res.boom.badRequest('incorrect sign in method');
+  return sendError(res, 'invalid-sign-in-method');
 };

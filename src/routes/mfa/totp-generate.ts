@@ -4,6 +4,7 @@ import { createQR } from '@/helpers';
 import { authenticator } from 'otplib';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
+import { sendError } from '@/errors';
 
 export const mfatotpGenerateHandler: RequestHandler<
   {},
@@ -11,7 +12,7 @@ export const mfatotpGenerateHandler: RequestHandler<
   {}
 > = async (req, res) => {
   if (!ENV.AUTH_MFA_ENABLED) {
-    return res.boom.notFound();
+    return sendError(res, 'disabled-endpoint');
   }
   const { userId } = req.auth as RequestAuth;
 

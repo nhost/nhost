@@ -3,6 +3,7 @@ import { RequestHandler } from 'express';
 import { getSignInResponse } from '@/utils/tokens';
 import { getUserByTicket } from '@/helpers';
 import { authenticator } from 'otplib';
+import { sendError } from '@/errors';
 
 export const signInMfaTotpHandler: RequestHandler<
   {},
@@ -17,19 +18,19 @@ export const signInMfaTotpHandler: RequestHandler<
   const user = await getUserByTicket(ticket);
 
   if (!user) {
-    return res.boom.unauthorized('Invalid code');
+    return sendError(res, 'invalid-otp');
   }
 
   if (user.disabled) {
-    return res.boom.badRequest('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   if (user.activeMfaType !== 'totp') {
-    return res.boom.badRequest('MFA TOTP is not enabled for this user');
+    return sendError(res, 'disabled-mfa-totp');
   }
 
   if (!user.totpSecret) {
-    return res.boom.badRequest('OTP secret is not set for user');
+    return sendError(res, 'no-totp-secret');
   }
 
   authenticator.options = {
@@ -37,7 +38,7 @@ export const signInMfaTotpHandler: RequestHandler<
   };
 
   if (!authenticator.check(otp, user.totpSecret)) {
-    return res.boom.unauthorized('Invalid code');
+    return sendError(res, 'invalid-otp');
   }
 
   const signInResponse = await getSignInResponse({

@@ -1,7 +1,7 @@
 import * as express from 'express';
-import boom = require('express-boom');
 import nocache from 'nocache';
 
+import { sendError } from '@/errors';
 import { signUpRouter } from './signup';
 import { signInRouter } from './signin';
 import { userRouter } from './user';
@@ -12,7 +12,6 @@ import env from './env';
 import { verifyRouter } from './verify';
 
 const router = express.Router();
-router.use(boom());
 router.use(nocache());
 
 /**
@@ -47,7 +46,7 @@ env(router);
 
 // all other routes should throw 404 not found
 router.use('*', (rwq, res) => {
-  return res.boom.notFound('Route not found');
+  return sendError(res, 'route-not-found');
 });
 
 export default router;

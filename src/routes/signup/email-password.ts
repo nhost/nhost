@@ -8,6 +8,7 @@ import { generateTicketExpiresAt } from '@/utils/ticket';
 import { getSignInResponse } from '@/utils/tokens';
 import { insertUser } from '@/utils/user';
 import { UserRegistrationOptions } from '@/types';
+import { sendError } from '@/errors';
 
 export const signUpEmailPasswordHandler: RequestHandler<
   {},
@@ -36,7 +37,7 @@ export const signUpEmailPasswordHandler: RequestHandler<
 
   // check if email already in use by some other user
   if (await getUserByEmail(email)) {
-    return res.boom.conflict('Email already in use');
+    return sendError(res, 'email-already-in-use');
   }
 
   // hash password

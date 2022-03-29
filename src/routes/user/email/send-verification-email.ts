@@ -6,6 +6,7 @@ import { generateTicketExpiresAt } from '@/utils/ticket';
 import { emailClient } from '@/email';
 import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
+import { sendError } from '@/errors';
 
 export const userEmailSendVerificationEmailHandler: RequestHandler<
   {},
@@ -25,11 +26,11 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
   const user = await getUserByEmail(email);
 
   if (!user) {
-    return res.boom.badRequest('No user with such email');
+    return sendError(res, 'user-not-found');
   }
 
   if (user.emailVerified) {
-    return res.boom.badRequest("User's email is already verified");
+    return sendError(res, 'email-already-verified');
   }
 
   // TODO: possibly check when last email was sent to minimize abuse

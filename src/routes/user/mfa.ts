@@ -1,3 +1,4 @@
+import { sendError } from '@/errors';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { RequestHandler } from 'express';
 import { authenticator } from 'otplib';
@@ -12,16 +13,14 @@ export const userMFAHandler: RequestHandler<
 > = async (req, res) => {
   // check if user is logged in
   if (!req.auth?.userId) {
-    return res.status(401).send('Incorrect access token');
+    return sendError(res, 'unauthenticated-user');
   }
 
   const { code, activeMfaType } = req.body;
 
   // TODO joi validation
   if (activeMfaType && !['totp'].includes(activeMfaType)) {
-    return res.boom.badRequest(
-      'Incorrect activeMfaType. Must be emtpy string or one of: [totp]'
-    );
+    return sendError(res, 'invalid-mfa-type');
   }
 
   const { userId } = req.auth;
@@ -37,16 +36,16 @@ export const userMFAHandler: RequestHandler<
   if (!activeMfaType) {
     // user wants to deactivate any active MFA type
     if (!user.activeMfaType) {
-      return res.boom.badRequest('There is no active MFA set for the user');
+      return sendError(res, 'mfa-type-not-found');
     }
 
     if (user.activeMfaType === 'totp') {
       if (!user.totpSecret) {
-        return res.boom.internal('totp secret is not set for user');
+        return sendError(res, 'no-totp-secret');
       }
 
       if (!authenticator.check(code, user.totpSecret)) {
-        return res.boom.unauthorized('Invalid code');
+        return sendError(res, 'invalid-otp');
       }
     }
 
@@ -66,15 +65,15 @@ export const userMFAHandler: RequestHandler<
   // activate MFA
   if (activeMfaType === 'totp') {
     if (user.activeMfaType === 'totp') {
-      return res.boom.badRequest('TOTP MFA already active');
+      return sendError(res, 'totp-already-active');
     }
 
     if (!user.totpSecret) {
-      return res.boom.internal('otp secret is not set for user');
+      return sendError(res, 'no-totp-secret');
     }
 
     if (!authenticator.check(code, user.totpSecret)) {
-      return res.boom.unauthorized('Invalid code');
+      return sendError(res, 'invalid-otp');
     }
   }
   // else if (activeMfaType === 'sms') {

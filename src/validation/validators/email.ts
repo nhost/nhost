@@ -1,8 +1,8 @@
+import { CustomValidator } from 'joi';
+
 import { ENV } from '@/utils/env';
 
-import Joi from 'joi';
-
-export const EmailValidator: Joi.CustomValidator = (email, helper) => {
+export const EmailValidator: CustomValidator = (email, helper) => {
   if (
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAILS.length === 0 &&
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS.length === 0 &&
@@ -16,10 +16,7 @@ export const EmailValidator: Joi.CustomValidator = (email, helper) => {
 
   // check if email is blocked
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS.includes(emailDomain)) {
-    // if (res) {
-    //   res.boom.forbidden('Email domain is not valid');
-    // }
-    return false;
+    return helper.error('Email is not valid');
   }
 
   if (ENV.AUTH_ACCESS_CONTROL_BLOCKED_EMAILS.includes(email)) {

@@ -8,6 +8,7 @@ import { ENV } from '@/utils/env';
 import { PasswordLessEmailBody } from '@/types';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { insertUser } from '@/utils/user';
+import { sendError } from '@/errors';
 
 export const signInPasswordlessEmailHandler: RequestHandler<
   {},
@@ -15,7 +16,7 @@ export const signInPasswordlessEmailHandler: RequestHandler<
   PasswordLessEmailBody
 > = async (req, res) => {
   if (!ENV.AUTH_EMAIL_PASSWORDLESS_ENABLED) {
-    return res.boom.notFound('Passwordless sign in with email is not enabled');
+    return sendError(res, 'disabled-endpoint');
   }
 
   const {
@@ -51,7 +52,7 @@ export const signInPasswordlessEmailHandler: RequestHandler<
   }
 
   if (user?.disabled) {
-    return res.boom.unauthorized('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   // create ticket

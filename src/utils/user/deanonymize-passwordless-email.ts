@@ -6,6 +6,7 @@ import { getUserByEmail } from '@/helpers';
 import { ENV } from '../env';
 import { emailClient } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';
+import { sendError } from '@/errors';
 
 export type BodyTypePasswordlessEmail = {
   signInMethod: 'passwordless';
@@ -28,7 +29,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
   });
 
   if (user?.isAnonymous !== true) {
-    return res.boom.badRequest('Logged in user is not anonymous');
+    return sendError(res, 'user-not-anonymous');
   }
 
   const {
@@ -38,7 +39,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
 
   // check if email already in use by some other user
   if (await getUserByEmail(email)) {
-    return res.boom.conflict('Email already in use');
+    return sendError(res, 'email-already-in-use');
   }
 
   // delete existing (anonymous) user roles

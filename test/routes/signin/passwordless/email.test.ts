@@ -151,7 +151,6 @@ describe('passwordless email (magic link)', () => {
       .send({
         email: faker.internet.email(),
       })
-      // TODO correct this - or keep 400, but change in swagger
       .expect(400);
   });
 

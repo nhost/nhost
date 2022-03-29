@@ -1,6 +1,8 @@
 import { pwnedPassword } from 'hibp';
-import Joi from 'joi';
+
 import { ENV } from '../utils/env';
+
+import { Joi } from './joi';
 import { EmailValidator } from './validators';
 
 export const uuidRegex =
@@ -41,7 +43,7 @@ export const defaultRole = Joi.string()
   .example('user')
   .valid(...ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES);
 
-export const allowedRoles = Joi.array()
+export const allowedRoles = Joi.stringArray()
   .items(Joi.string())
   .default(ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES)
   .example(['user', 'me'])
@@ -66,6 +68,7 @@ export const uuid = Joi.string()
   .description('A valid UUID');
 
 export const userId = uuid.description('Id of the user');
+
 export const refreshToken = uuid
   .required()
   .description(

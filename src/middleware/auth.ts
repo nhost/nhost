@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
 import { getClaims, getPermissionVariablesFromClaims } from '@/utils/jwt';
+import { sendError } from '@/errors';
 
 export const authMiddleware = async (
   req: Request,
@@ -30,7 +31,7 @@ export const authMiddleware = async (
 
 export const authenticationGate: RequestHandler = (req, res, next) => {
   if (!req.auth) {
-    return res.boom.unauthorized('User is not logged in');
+    return sendError(res, 'unauthenticated-user');
   } else {
     next();
   }

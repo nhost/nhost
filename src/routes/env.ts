@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import { sendError } from '@/errors';
 
 export default (router: Router) => {
   // THESE ENDPOINTS ARE ONLY TO BE USED FOR TESTS!!
@@ -9,9 +10,7 @@ export default (router: Router) => {
 
   router.post('/change-env', (req, res) => {
     if (process.env.NODE_ENV === 'production') {
-      return res.boom.badRequest(
-        'This endpoint is only available on test environments'
-      );
+      return sendError(res, 'forbidden-endpoint-in-production');
     }
 
     envStack.push(Object.assign({}, process.env));
@@ -21,26 +20,9 @@ export default (router: Router) => {
     res.json(process.env);
   });
 
-  router.post('/reset-env', (req, res) => {
-    if (process.env.NODE_ENV === 'production') {
-      return res.boom.badRequest(
-        'This endpoint is only available on test environments'
-      );
-    }
-
-    if (!envStack.length) {
-      return res.boom.badRequest('No stored env');
-    }
-
-    Object.assign(process.env, envStack.pop());
-    res.json(process.env);
-  });
-
   router.get('/env/:id', (req, res) => {
     if (process.env.NODE_ENV === 'production') {
-      return res.boom.badRequest(
-        'This endpoint is only available on test environments'
-      );
+      return sendError(res, 'forbidden-endpoint-in-production');
     }
 
     res.send(process.env[req.params.id]);

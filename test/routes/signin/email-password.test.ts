@@ -107,7 +107,6 @@ describe('email-password', () => {
     });
 
     await request.post('/signin/email-password').send(a).expect(200);
-    // TODO correct this - or keep 400, but change in swagger
     await request.post('/signin/email-password').send(b).expect(400);
   });
 });

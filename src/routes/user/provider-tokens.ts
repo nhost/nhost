@@ -4,6 +4,7 @@ import refresh from 'passport-oauth2-refresh';
 
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
+import { sendError } from '@/errors';
 
 type BodyType = {
   providerId: string;
@@ -58,14 +59,10 @@ export const userProviderTokensHandler: RequestHandler<
   const adminSecret = req.headers['x-hasura-admin-secret'];
 
   if (adminSecret !== ENV.HASURA_GRAPHQL_ADMIN_SECRET) {
-    return res.boom.unauthorized('incorrect admin secret header');
+    return sendError(res, 'invalid-admin-secret');
   }
 
   const { providerId, userId } = req.body;
-
-  if (!userId) {
-    return res.boom.badRequest('missing userId');
-  }
 
   await rotate({ providerId, userId });
 

@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { Strategy } from 'passport-windowslive';
 import { initProvider } from './utils';
 import { PROVIDERS } from '@config/index';
+import { sendError } from '@/errors';
 
 export default (router: Router): void => {
   const options = PROVIDERS.windowslive;
@@ -15,7 +16,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.windowslive) {
-        return res.boom.notImplemented(`WindowsLive sign-in is not enabled`);
+        return sendError(res, 'disabled-endpoint');
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Windows Live OAuth`);
       } else {

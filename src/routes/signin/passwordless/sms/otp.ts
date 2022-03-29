@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { getSignInResponse } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { OtpSmsBody } from '@/types';
+import { sendError } from '@/errors';
 
 export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
   req,
@@ -38,20 +39,20 @@ export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
     .then((gqlres) => gqlres.users[0]);
 
   if (!user) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   // continue checking the user
   if (user.disabled) {
-    return res.boom.badRequest('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   if (!user || !user.otpHash) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   if (!(await bcrypt.compare(otp, user.otpHash))) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   // verify phone number

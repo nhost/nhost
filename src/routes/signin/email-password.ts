@@ -5,6 +5,7 @@ import { getSignInResponse } from '@/utils/tokens';
 import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
 import { logger } from '@/logger';
+import { sendError } from '@/errors';
 
 export const signInEmailPasswordHandler: RequestHandler<
   {},
@@ -20,31 +21,25 @@ export const signInEmailPasswordHandler: RequestHandler<
   const user = await getUserByEmail(email);
 
   if (!user) {
-    logger.debug('No user with that email exist');
-    return res.boom.unauthorized('Incorrect email or password');
+    return sendError(res, 'invalid-email-password');
   }
 
   if (user.disabled) {
-    logger.debug('User is disabled');
-    return res.boom.unauthorized('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
-    logger.debug('Email is not verified');
-    return res.boom.unauthorized('Email is not verified');
+    return sendError(res, 'unverified-user');
   }
 
   if (!user.passwordHash) {
-    logger.debug('User has no password set');
-    // TODO correct error message
-    return res.boom.unauthorized('Incorrect email or password');
+    return sendError(res, 'invalid-email-password');
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordCorrect) {
-    logger.debug('Incorrect password');
-    return res.boom.unauthorized('Incorrect email or password');
+    return sendError(res, 'invalid-email-password');
   }
 
   const signInTokens = await getSignInResponse({

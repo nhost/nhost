@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 
 import { gqlSdk } from '@/utils/gqlSDK';
+import { sendError } from '@/errors';
 
 export const signOutHandler: RequestHandler<
   {},
@@ -14,7 +15,9 @@ export const signOutHandler: RequestHandler<
 
   if (all) {
     if (!req.auth?.userId) {
-      return res.boom.unauthorized(
+      return sendError(
+        res,
+        'unauthenticated-user',
         'User must be signed in to sign out from all sessions'
       );
     }

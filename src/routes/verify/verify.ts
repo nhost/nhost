@@ -1,3 +1,4 @@
+import { sendError } from '@/errors';
 import { generateRedirectUrl } from '@/utils';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { getNewRefreshToken } from '@/utils/tokens';
@@ -13,10 +14,11 @@ export const verifyHandler: RequestHandler<
   const { ticket, type, redirectTo } = req.query;
 
   if (!redirectTo) {
-    return res.boom.badRequest('Missing redirectTo');
+    return sendError(res, 'missing-redirection');
   }
 
   if (!ticket) {
+    // TODO add a sendError redirection option
     const redirectUrl = generateRedirectUrl(redirectTo, {
       error: 'MissingVerificationTicket',
       errorDescription: 'Missing verification ticket',

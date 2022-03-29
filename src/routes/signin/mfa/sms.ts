@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 
 import { getSignInResponse } from '@/utils/tokens';
 import { getUserByTicket } from '@/helpers';
+import { sendError } from '@/errors';
 
 export const signInMfaSmspHandler: RequestHandler<
   {},
@@ -17,11 +18,11 @@ export const signInMfaSmspHandler: RequestHandler<
   const user = await getUserByTicket(ticket);
 
   if (!user || !user.otpHash) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   if (!(await bcrypt.compare(otp, user.otpHash))) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   const signInResponse = await getSignInResponse({

@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import { getNewSession } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
+import { sendError } from '@/errors';
 
 export const tokenHandler: RequestHandler<
   {},
@@ -26,21 +27,21 @@ export const tokenHandler: RequestHandler<
     });
 
   if (!refreshTokens) {
-    return res.boom.unauthorized('Invalid or expired refresh token');
+    return sendError(res, 'invalid-refresh-token');
   }
 
   if (refreshTokens.length === 0) {
-    return res.boom.unauthorized('Invalid or expired refresh token');
+    return sendError(res, 'invalid-refresh-token');
   }
 
   const user = refreshTokens[0].user;
 
   if (!user) {
-    return res.boom.unauthorized('Invalid or expired refresh token');
+    return sendError(res, 'invalid-refresh-token');
   }
 
   if (user.disabled) {
-    return res.boom.unauthorized('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   // // delete current refresh token

@@ -6,6 +6,7 @@ import { getUserByEmail } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { ENV } from '@/utils/env';
+import { sendError } from '@/errors';
 
 export const userPasswordResetHandler: RequestHandler<
   {},
@@ -24,7 +25,7 @@ export const userPasswordResetHandler: RequestHandler<
   const user = await getUserByEmail(email);
 
   if (!user || user.disabled) {
-    return res.boom.badRequest('No user with such email exists');
+    return sendError(res, 'user-not-found');
   }
 
   const ticket = `passwordReset:${uuidv4()}`;

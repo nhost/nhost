@@ -1,6 +1,6 @@
 import { UserRegistrationOptions } from '@/types';
 import { ENV } from '@/utils/env';
-import Joi from 'joi';
+import { Joi } from './joi';
 import {
   locale,
   defaultRole,
@@ -150,7 +150,6 @@ export const userDeanonymizeSchema = Joi.object({
   email: email.required(),
   password,
   connection: Joi.string().allow('email', 'sms').example('email'),
-  // TODO options were not nested
   options: registrationOptions.keys({
     redirectTo,
   }),
@@ -161,7 +160,7 @@ export const userDeanonymizeSchema = Joi.object({
 // user provider tokens
 export const userProviderTokensSchema = Joi.object({
   providerId: Joi.string().required(),
-  userId,
+  userId: userId.required(),
 }).meta({ className: 'UserProviderTokensSchema' });
 
 // -- TOKEN --
@@ -170,18 +169,7 @@ export const tokenSchema = Joi.object({
   refreshToken,
 }).meta({ className: 'TokenSchema' });
 
-// -----------
-
-export const providerQuery = Joi.object({
-  redirectTo: Joi.string(),
-  locale,
-  defaultRole,
-  // TODO convert from string to array
-  allowedRoles: Joi.string(), // this must be a string because it is a comma separated list in the query (URL)
-  displayName,
-  // TODO convert from string to object - it seems to work out of the box with Joi
-  metadata: Joi.string(),
-}).default();
+export const providerQuery = registrationOptions.default();
 
 export type ProviderQuery = UserRegistrationOptions & {
   redirectTo: string;

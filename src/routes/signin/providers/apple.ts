@@ -3,6 +3,7 @@ import { Strategy, Profile } from '@nicokaiser/passport-apple';
 import { PROVIDERS } from '@config/index';
 import { initProvider } from './utils';
 import { getGravatarUrl } from '@/helpers';
+import { sendError } from '@/errors';
 
 const transformProfile = ({
   id,
@@ -35,7 +36,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.apple) {
-        return res.boom.notImplemented(`Apple sign-in is not enabled`);
+        return sendError(res, 'disabled-endpoint');
       } else if (
         !options?.clientID ||
         !options?.teamID ||
