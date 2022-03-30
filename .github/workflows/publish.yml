@@ -62,7 +62,7 @@ jobs:
         uses: docker/build-push-action@v2
         timeout-minutes: 60
         with:
-          # TODO use cache https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md
+          # TODO: use cache https://github.com/docker/build-push-action/blob/master/docs/advanced/cache.md
           context: .
           platforms: linux/amd64,linux/arm64
           push: ${{ github.event_name != 'pull_request' }}

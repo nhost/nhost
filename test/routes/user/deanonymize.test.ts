@@ -5,7 +5,7 @@ import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
 
-// TODO test options
+// TODO: test options
 describe('email-password', () => {
   let client: Client;
 
