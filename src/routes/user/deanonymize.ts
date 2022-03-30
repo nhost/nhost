@@ -13,8 +13,7 @@ import { Joi, email, password, registrationOptions } from '@/validation';
 // TODO should work with any other authentication methods e.g. Oauth
 export const userDeanonymizeSchema = Joi.object({
   signInMethod: Joi.string()
-    .allow('email-password')
-    .allow('passwordless')
+    .valid('email-password', 'passwordless')
     .required()
     .example('email-password'),
   email: email.required(),

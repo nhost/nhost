@@ -82,7 +82,6 @@ export const registrationOptions = Joi.object({
   redirectTo,
 })
   .default()
-  // TODO use for OAuth options as well
   .custom((value, helper) => {
     const { allowedRoles, defaultRole } = value;
     if (!allowedRoles.includes(defaultRole)) {
