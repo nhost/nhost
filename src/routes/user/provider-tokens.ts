@@ -1,6 +1,7 @@
 // rotate provider tokens
 import { RequestHandler } from 'express';
 import refresh from 'passport-oauth2-refresh';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { gqlSdk, ENV } from '@/utils';
 import { sendError } from '@/errors';
@@ -71,5 +72,5 @@ export const userProviderTokensHandler: RequestHandler<
 
   await rotate({ providerId, userId });
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };

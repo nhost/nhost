@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import twilio from 'twilio';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { PasswordLessSmsBody } from '@/types';
 import {
@@ -87,5 +88,5 @@ export const signInPasswordlessSmsHandler: RequestHandler<
     throw Error('No sms provider set');
   }
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };

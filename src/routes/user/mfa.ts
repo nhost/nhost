@@ -1,5 +1,7 @@
 import { RequestHandler } from 'express';
 import { authenticator } from 'otplib';
+import { ReasonPhrases } from 'http-status-codes';
+
 import { sendError } from '@/errors';
 import { gqlSdk } from '@/utils';
 import { Joi } from '@/validation';
@@ -68,7 +70,7 @@ export const userMFAHandler: RequestHandler<
       },
     });
 
-    return res.send('ok');
+    return res.send(ReasonPhrases.OK);
   }
 
   // activate MFA
@@ -95,5 +97,5 @@ export const userMFAHandler: RequestHandler<
     },
   });
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };

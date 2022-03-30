@@ -2,6 +2,8 @@ import { Router } from 'express';
 
 import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
+import { authenticationGate } from '@/middleware/auth';
+
 import { userMFAHandler, userMfaSchema } from './mfa';
 import { userHandler } from './user';
 import { userPasswordHandler, userPasswordSchema } from './password';
@@ -20,7 +22,6 @@ import {
   userEmailSendVerificationEmailSchema,
 } from './email';
 import { userEmailChange } from './email';
-import { authenticationGate } from '@/middleware/auth';
 
 const router = Router();
 

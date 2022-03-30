@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { emailClient } from '@/email';
 import { gqlSdk, getUserByEmail, generateTicketExpiresAt, ENV } from '@/utils';
@@ -75,5 +76,5 @@ export const userPasswordResetHandler: RequestHandler<
     },
   });
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };

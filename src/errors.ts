@@ -1,4 +1,6 @@
 import { NextFunction, Response, Request } from 'express';
+import { StatusCodes } from 'http-status-codes';
+
 import { logger } from './logger';
 import { generateRedirectUrl } from './utils';
 
@@ -16,23 +18,23 @@ export async function serverErrors(
   logger.error(error.message);
 
   if (process.env.NODE_ENV === 'production') {
-    return res.status(500).send();
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send();
   } else {
-    return res.status(500).send({
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).send({
       message: error.message,
     });
   }
 }
 
-// TODO shared with the SDK
+// TODO Errors must be put in a shared package that the SDK also uses
 export type ErrorPayload = {
   error: string;
-  status: number;
+  status: StatusCodes;
   message: string;
 };
 
 export const REQUEST_VALIDATION_ERROR: ErrorPayload = {
-  status: 400,
+  status: StatusCodes.BAD_REQUEST,
   error: 'request-validation-error',
   message: 'The request payload is incorrect',
 };
@@ -43,92 +45,91 @@ const asErrors = <T>(et: {
 
 const ERRORS = asErrors({
   'route-not-found': {
-    status: 404,
+    status: StatusCodes.NOT_FOUND,
     message: 'Route not found',
   },
   'disabled-endpoint': {
-    status: 404,
+    status: StatusCodes.NOT_FOUND,
     message: 'This endpoint is disabled',
   },
   'request-validation-error': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'The request payload is incorrect',
   },
   'disabled-mfa-totp': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'MFA TOTP is not enabled for this user',
   },
   'no-totp-secret': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'OTP secret is not set for user',
   },
   'disabled-user': {
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'User is disabled',
   },
   'invalid-email-password': {
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'Incorrect email or password',
   },
   'invalid-otp': {
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'Invalid or expired OTP',
   },
   'invalid-ticket': {
-    // TODO renamed from InvalidOrExpiredVerificationTicket
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'Invalid or expired verification ticket',
   },
   'unverified-user': {
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'Email is not verified',
   },
   'email-already-in-use': {
-    status: 409,
+    status: StatusCodes.CONFLICT,
     message: 'Email already in use',
   },
   'mfa-type-not-found': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'There is no active MFA set for the user',
   },
   'email-already-verified': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: "User's email is already verified",
   },
   'totp-already-active': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'TOTP MFA already active',
   },
   'user-not-found': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'No user found',
   },
   'user-not-anonymous': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'Logged in user is not anonymous',
   },
   'invalid-refresh-token': {
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'Invalid or expired refresh token',
   },
   'invalid-redirection': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'Invalid or missing redirectTo',
   },
   'invalid-admin-secret': {
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'Invalid admin secret',
   },
   'unauthenticated-user': {
-    status: 401,
+    status: StatusCodes.UNAUTHORIZED,
     message: 'User is not logged in',
   },
   'forbidden-endpoint-in-production': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'This endpoint is only available on test environments',
   },
   'invalid-sign-in-method': {
-    status: 400,
+    status: StatusCodes.BAD_REQUEST,
     message: 'Incorrect sign in method',
   },
 });

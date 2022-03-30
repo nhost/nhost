@@ -1,5 +1,6 @@
 import * as express from 'express';
 import nocache from 'nocache';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { sendError } from '@/errors';
 import { signUpRouter } from './signup';
@@ -20,7 +21,7 @@ router.use(nocache());
  * @return 200 - success response - text/plain
  * @tags General
  */
-router.get('/healthz', (_req, res) => res.send('ok'));
+router.get('/healthz', (_req, res) => res.send(ReasonPhrases.OK));
 
 /**
  * GET /version

@@ -1,10 +1,9 @@
 import { RequestHandler } from 'express';
+import { ReasonPhrases } from 'http-status-codes';
 
 import {
   BodyTypeEmailPassword,
   handleDeanonymizeUserEmailPassword,
-} from '@/utils';
-import {
   BodyTypePasswordlessEmail,
   handleDeanonymizeUserPasswordlessEmail,
 } from '@/utils';
@@ -41,7 +40,7 @@ export const userDeanonymizeHandler: RequestHandler<
 
   if (body.signInMethod === 'passwordless' && body.connection === 'email') {
     await handleDeanonymizeUserPasswordlessEmail(body, userId, res);
-    return res.send('ok');
+    return res.send(ReasonPhrases.OK);
   }
 
   // if (body.signInMethod === 'passwordless' && body.connection === 'sms') {

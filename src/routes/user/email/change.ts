@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { gqlSdk, generateTicketExpiresAt, ENV } from '@/utils';
 import { emailClient } from '@/email';
@@ -79,5 +80,5 @@ export const userEmailChange: RequestHandler<
     },
   });
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };

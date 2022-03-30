@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { gqlSdk } from '@/utils';
 import { sendError } from '@/errors';
@@ -41,5 +42,5 @@ export const signOutHandler: RequestHandler<
     });
   }
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };

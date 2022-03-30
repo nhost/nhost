@@ -1,4 +1,5 @@
 import { RequestHandler } from 'express';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { gqlSdk, hashPassword } from '@/utils';
 import { sendError } from '@/errors';
@@ -40,5 +41,5 @@ export const userPasswordHandler: RequestHandler<
     },
   });
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };
