@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { asyncWrapper as aw } from '@/helpers';
-import { signOutSchema, bodyValidator } from '@/validation';
-import { signOutHandler } from './signout';
+import { bodyValidator } from '@/validation';
+import { signOutHandler, signOutSchema } from './signout';
 
 const router = Router();
 

@@ -2,6 +2,11 @@ import { RequestHandler } from 'express';
 import { getNewSession } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { sendError } from '@/errors';
+import { Joi, refreshToken } from '@/validation';
+
+export const tokenSchema = Joi.object({
+  refreshToken,
+}).meta({ className: 'TokenSchema' });
 
 export const tokenHandler: RequestHandler<
   {},

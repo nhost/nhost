@@ -9,6 +9,14 @@ import { PasswordLessEmailBody } from '@/types';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { insertUser } from '@/utils/user';
 import { sendError } from '@/errors';
+import { Joi, registrationOptions, email, redirectTo } from '@/validation';
+
+export const signInPasswordlessEmailSchema = Joi.object({
+  email: email.required(),
+  options: registrationOptions.keys({
+    redirectTo,
+  }),
+}).meta({ className: 'SignInPasswordlessEmailSchema' });
 
 export const signInPasswordlessEmailHandler: RequestHandler<
   {},

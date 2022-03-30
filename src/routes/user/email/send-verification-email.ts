@@ -7,6 +7,14 @@ import { emailClient } from '@/email';
 import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
 import { sendError } from '@/errors';
+import { Joi, email, redirectTo } from '@/validation';
+
+export const userEmailSendVerificationEmailSchema = Joi.object({
+  email: email.required(),
+  options: Joi.object({
+    redirectTo,
+  }).default(),
+}).meta({ className: 'UserEmailSendVerificationEmailSchema' });
 
 export const userEmailSendVerificationEmailHandler: RequestHandler<
   {},

@@ -3,6 +3,11 @@ import { RequestHandler } from 'express';
 import { hashPassword } from '@/helpers';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { sendError } from '@/errors';
+import { Joi, password } from '@/validation';
+
+export const userPasswordSchema = Joi.object({
+  newPassword: password.required(),
+}).meta({ className: 'UserPasswordSchema' });
 
 export const userPasswordHandler: RequestHandler<
   {},

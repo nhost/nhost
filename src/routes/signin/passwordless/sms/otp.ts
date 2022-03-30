@@ -5,6 +5,12 @@ import { getSignInResponse } from '@/utils/tokens';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { OtpSmsBody } from '@/types';
 import { sendError } from '@/errors';
+import { Joi } from '@/validation';
+
+export const signInOtpSchema = Joi.object({
+  phoneNumber: Joi.string().required(),
+  otp: Joi.string().required(),
+}).meta({ className: 'SignInOtpSchema' });
 
 export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
   req,

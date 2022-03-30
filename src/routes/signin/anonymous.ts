@@ -4,6 +4,13 @@ import { ENV } from '@/utils/env';
 import { getSignInResponse } from '@/utils/tokens';
 import { insertUser } from '@/utils/user';
 import { sendError } from '@/errors';
+import { Joi, displayName, locale, metadata } from '@/validation';
+
+export const signInAnonymousSchema = Joi.object({
+  locale,
+  displayName,
+  metadata,
+}).meta({ className: 'SignInMfaPhoneNumberSchema' });
 
 type BodyType = {
   locale: string;

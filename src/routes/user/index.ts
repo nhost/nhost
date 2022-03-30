@@ -1,22 +1,24 @@
 import { Router } from 'express';
 
 import { asyncWrapper as aw } from '@/helpers';
-import {
-  userDeanonymizeSchema,
-  userEmailChangeSchema,
-  userEmailSendVerificationEmailSchema,
-  userPasswordResetSchema,
-  userPasswordSchema,
-  userProviderTokensSchema,
-  bodyValidator,
-} from '@/validation';
+import { bodyValidator } from '@/validation';
 import { userMFAHandler } from './mfa';
 import { userHandler } from './user';
-import { userPasswordHandler } from './password';
-import { userPasswordResetHandler } from './password-reset';
-import { userDeanonymizeHandler } from './deanonymize';
-import { userProviderTokensHandler } from './provider-tokens';
-import { userEmailSendVerificationEmailHandler } from './email';
+import { userPasswordHandler, userPasswordSchema } from './password';
+import {
+  userPasswordResetHandler,
+  userPasswordResetSchema,
+} from './password-reset';
+import { userDeanonymizeHandler, userDeanonymizeSchema } from './deanonymize';
+import {
+  userProviderTokensHandler,
+  userProviderTokensSchema,
+} from './provider-tokens';
+import {
+  userEmailChangeSchema,
+  userEmailSendVerificationEmailHandler,
+  userEmailSendVerificationEmailSchema,
+} from './email';
 import { userEmailChange } from './email';
 import { authenticationGate } from '@/middleware/auth';
 

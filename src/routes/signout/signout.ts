@@ -2,6 +2,14 @@ import { RequestHandler } from 'express';
 
 import { gqlSdk } from '@/utils/gqlSDK';
 import { sendError } from '@/errors';
+import { Joi, refreshToken } from '@/validation';
+
+export const signOutSchema = Joi.object({
+  refreshToken,
+  all: Joi.boolean()
+    .default(false)
+    .description('Sign out from all connected devices'),
+}).meta({ className: 'SignOutSchema' });
 
 export const signOutHandler: RequestHandler<
   {},

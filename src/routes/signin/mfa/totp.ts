@@ -4,6 +4,15 @@ import { getSignInResponse } from '@/utils/tokens';
 import { getUserByTicket } from '@/helpers';
 import { authenticator } from 'otplib';
 import { sendError } from '@/errors';
+import { Joi, mfaTotpTicketPattern } from '@/validation';
+
+export const signInMfaTotpSchema = Joi.object({
+  ticket: Joi.string()
+    .regex(mfaTotpTicketPattern)
+    .required()
+    .example('mfaTotp:e08204c7-40af-4434-a7ed-31c6aa37a390'),
+  otp: Joi.string().required(),
+}).meta({ className: 'SignInMfaTotpSchema' });
 
 export const signInMfaTotpHandler: RequestHandler<
   {},

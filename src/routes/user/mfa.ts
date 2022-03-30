@@ -1,7 +1,18 @@
-import { sendError } from '@/errors';
-import { gqlSdk } from '@/utils/gqlSDK';
 import { RequestHandler } from 'express';
 import { authenticator } from 'otplib';
+import { sendError } from '@/errors';
+import { gqlSdk } from '@/utils/gqlSDK';
+import { Joi } from '@/validation';
+
+export const userMfaSchema = Joi.object({
+  code: Joi.string().required().description('MFA activation code'),
+  activeMfaType: Joi.string()
+    .allow('totp')
+    .example('totp')
+    .description(
+      'Multi-factor authentication type. A null value deactivates MFA'
+    ),
+}).meta({ className: 'UserMfaSchema' });
 
 export const userMFAHandler: RequestHandler<
   {},

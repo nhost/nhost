@@ -1,24 +1,21 @@
 import { Router } from 'express';
 
 import { asyncWrapper as aw } from '@/helpers';
+import { bodyValidator } from '@/validation';
 import {
+  signInEmailPasswordHandler,
   signInEmailPasswordSchema,
-  signInAnonymousSchema,
-  signInMfaTotpSchema,
-  signInOtpSchema,
-  signInPasswordlessEmailSchema,
-  signInPasswordlessSmsSchema,
-  bodyValidator,
-} from '@/validation';
-import { signInEmailPasswordHandler } from './email-password';
-import { signInAnonymousHandler } from './anonymous';
+} from './email-password';
+import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
 import providers from './providers';
-import { signInOtpHandler } from './passwordless/sms/otp';
+import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
 import {
   signInPasswordlessEmailHandler,
+  signInPasswordlessEmailSchema,
   signInPasswordlessSmsHandler,
+  signInPasswordlessSmsSchema,
 } from './passwordless';
-import { signInMfaTotpHandler } from './mfa';
+import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
 
 const router = Router();
 

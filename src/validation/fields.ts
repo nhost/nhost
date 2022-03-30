@@ -74,3 +74,30 @@ export const refreshToken = uuid
   .description(
     'Refresh token during authentication or when refreshing the JWT'
   );
+
+export const registrationOptions = Joi.object({
+  locale,
+  defaultRole,
+  allowedRoles,
+  displayName,
+  metadata,
+})
+  .default()
+  // TODO use for OAuth options as well
+  .custom((value, helper) => {
+    const { allowedRoles, defaultRole } = value;
+    if (!allowedRoles.includes(defaultRole)) {
+      return helper.error('Default role must be part of allowed roles');
+    }
+    // check if allowedRoles is a subset of allowed user roles
+    if (
+      !allowedRoles.every((role: string) =>
+        ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.includes(role)
+      )
+    ) {
+      return helper.error('Allowed roles must be a subset of allowedRoles');
+    }
+    return value;
+  });
+
+export const mfaTotpTicketPattern = new RegExp(`mfaTotp:${uuidRegex.source}`);

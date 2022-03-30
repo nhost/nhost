@@ -1,8 +1,11 @@
 import { Router } from 'express';
 
 import { asyncWrapper as aw } from '@/helpers';
-import { signUpEmailPasswordHandler } from './email-password';
-import { signUpEmailPasswordSchema, bodyValidator } from '@/validation';
+import {
+  signUpEmailPasswordHandler,
+  signUpEmailPasswordSchema,
+} from './email-password';
+import { bodyValidator } from '@/validation';
 
 const router = Router();
 

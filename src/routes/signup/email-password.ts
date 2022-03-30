@@ -9,6 +9,21 @@ import { getSignInResponse } from '@/utils/tokens';
 import { insertUser } from '@/utils/user';
 import { UserRegistrationOptions } from '@/types';
 import { sendError } from '@/errors';
+import {
+  Joi,
+  registrationOptions,
+  email,
+  passwordInsert,
+  redirectTo,
+} from '@/validation';
+
+export const signUpEmailPasswordSchema = Joi.object({
+  email: email.required(),
+  password: passwordInsert.required(),
+  options: registrationOptions.keys({
+    redirectTo,
+  }),
+}).meta({ className: 'SignUpEmailPasswordSchema' });
 
 export const signUpEmailPasswordHandler: RequestHandler<
   {},

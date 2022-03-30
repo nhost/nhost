@@ -10,21 +10,35 @@ import { VerifyCallback } from 'passport-oauth2';
 import refresh from 'passport-oauth2-refresh';
 import { Strategy } from 'passport';
 import { v4 as uuidv4 } from 'uuid';
-import { email as emailValidator } from '@/validation/fields';
 import { PROVIDERS } from '@config/index';
 import { asyncWrapper, getGravatarUrl, getUserByEmail } from '@/helpers';
 import {
-  ProviderCallbackQuery,
-  providerCallbackQuery,
-  ProviderQuery,
-  providerQuery,
+  Joi,
+  email as emailValidator,
+  uuid,
   queryValidator,
+  registrationOptions,
 } from '@/validation';
 import { getNewRefreshToken } from '@/utils/tokens';
 import { UserFieldsFragment } from '@/utils/__generated__/graphql-request';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 import { insertUser } from '@/utils/user';
+import { UserRegistrationOptions } from '@/types';
+
+export const providerQuerySchema = registrationOptions.default();
+
+export const providerCallbackQuerySchema = Joi.object({
+  state: uuid.required(),
+}).unknown(true);
+
+type ProviderQuery = UserRegistrationOptions & {
+  redirectTo: string;
+};
+
+type ProviderCallbackQuery = Record<string, unknown> & {
+  state: string;
+};
 
 type RequestWithState<Q = {}> = Request<{}, {}, {}, Q & { state: string }> & {
   state: string;
@@ -238,7 +252,7 @@ export const initProvider = <T extends Strategy>(
   }
 
   subRouter.get('/', [
-    queryValidator(providerQuery),
+    queryValidator(providerQuerySchema),
     asyncWrapper(
       async (
         req: RequestWithState<ProviderQuery>,
@@ -271,7 +285,7 @@ export const initProvider = <T extends Strategy>(
     passport.authenticate(strategyName, {
       session: false,
     }),
-    queryValidator(providerCallbackQuery),
+    queryValidator(providerCallbackQuerySchema),
     providerCallback,
   ];
 

@@ -7,6 +7,12 @@ import { getNewOneTimePasswordData } from '@/utils/otp';
 import { PasswordLessSmsBody } from '@/types';
 import { getUserByPhoneNumber, insertUser } from '@/utils/user';
 import { sendError } from '@/errors';
+import { Joi, registrationOptions } from '@/validation';
+
+export const signInPasswordlessSmsSchema = Joi.object({
+  phoneNumber: Joi.string().required(),
+  options: registrationOptions,
+}).meta({ className: 'SignInPasswordlessSmsSchema' });
 
 export const signInPasswordlessSmsHandler: RequestHandler<
   {},

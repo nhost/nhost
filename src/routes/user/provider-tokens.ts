@@ -5,6 +5,7 @@ import refresh from 'passport-oauth2-refresh';
 import { gqlSdk } from '@/utils/gqlSDK';
 import { ENV } from '@/utils/env';
 import { sendError } from '@/errors';
+import { Joi, userId } from '@/validation';
 
 type BodyType = {
   providerId: string;
@@ -50,6 +51,11 @@ const rotate = async ({ providerId, userId }: BodyType) => {
     }
   );
 };
+
+export const userProviderTokensSchema = Joi.object({
+  providerId: Joi.string().required(),
+  userId: userId.required(),
+}).meta({ className: 'UserProviderTokensSchema' });
 
 export const userProviderTokensHandler: RequestHandler<
   {},

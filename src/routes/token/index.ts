@@ -1,8 +1,8 @@
 import { Router } from 'express';
 
 import { asyncWrapper as aw } from '@/helpers';
-import { tokenSchema, bodyValidator } from '@/validation';
-import { tokenHandler } from './token';
+import { bodyValidator } from '@/validation';
+import { tokenHandler, tokenSchema } from './token';
 
 const router = Router();
 

@@ -7,6 +7,14 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { ENV } from '@/utils/env';
 import { sendError } from '@/errors';
+import { Joi, email, redirectTo } from '@/validation';
+
+export const userPasswordResetSchema = Joi.object({
+  email: email.required(),
+  options: Joi.object({
+    redirectTo,
+  }).default(),
+}).meta({ className: 'UserPasswordResetSchema' });
 
 export const userPasswordResetHandler: RequestHandler<
   {},

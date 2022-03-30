@@ -6,6 +6,12 @@ import { getUserByEmail } from '@/helpers';
 import { ENV } from '@/utils/env';
 import { logger } from '@/logger';
 import { sendError } from '@/errors';
+import { Joi, email, password } from '@/validation';
+
+export const signInEmailPasswordSchema = Joi.object({
+  email: email.required(),
+  password: password.required(),
+}).meta({ className: 'SignInEmailPasswordSchema' });
 
 export const signInEmailPasswordHandler: RequestHandler<
   {},

@@ -5,6 +5,14 @@ import { gqlSdk } from '@/utils/gqlSDK';
 import { generateTicketExpiresAt } from '@/utils/ticket';
 import { emailClient } from '@/email';
 import { ENV } from '@/utils/env';
+import { Joi, email, redirectTo } from '@/validation';
+
+export const userEmailChangeSchema = Joi.object({
+  newEmail: email,
+  options: Joi.object({
+    redirectTo,
+  }).default(),
+}).meta({ className: 'UserEmailChangeSchema' });
 
 export const userEmailChange: RequestHandler<
   {},
