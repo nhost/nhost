@@ -6,8 +6,11 @@ import { Joi } from '@/validation';
 
 export const userMfaSchema = Joi.object({
   code: Joi.string().required().description('MFA activation code'),
-  activeMfaType: Joi.string()
-    .allow('totp')
+  activeMfaType: Joi.alternatives()
+    .try(
+      Joi.string().valid('').empty('').default(null), // accept only empty strings and convert those to null
+      Joi.string().valid('totp')
+    )
     .example('totp')
     .description(
       'Multi-factor authentication type. A null value deactivates MFA'

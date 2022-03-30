@@ -24,27 +24,6 @@ export const verifyHandler: RequestHandler<
 > = async (req, res) => {
   const { ticket, type, redirectTo } = req.query;
 
-  // TODO review error names with Johan
-  /*
-  if (!ticket) {
-    // TODO add a sendError redirection option
-    const redirectUrl = generateRedirectUrl(redirectTo, {
-      error: 'MissingVerificationTicket',
-      errorDescription: 'Missing verification ticket',
-    });
-
-    return res.redirect(redirectUrl);
-  }
-
-  if (!type) {
-    const redirectUrl = generateRedirectUrl(redirectTo, {
-      error: 'MissingVerificationType',
-      errorDescription: 'Missing verification type',
-    });
-
-    return res.redirect(redirectUrl);
-  }
-*/
   // get the user from the ticket
   const user = await gqlSdk
     .users({

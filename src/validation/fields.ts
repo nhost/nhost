@@ -31,9 +31,8 @@ export const email = Joi.string()
   .example('john.smith@nhost.io')
   .description('A valid email');
 
-export const locale = Joi.string()
-  .length(2)
-  .valid(...ENV.AUTH_LOCALE_ALLOWED_LOCALES)
+export const locale = Joi.valid(...ENV.AUTH_LOCALE_ALLOWED_LOCALES)
+  .failover(ENV.AUTH_LOCALE_DEFAULT)
   .default(ENV.AUTH_LOCALE_DEFAULT)
   .example(ENV.AUTH_LOCALE_DEFAULT)
   .description(`A two-characters locale`);

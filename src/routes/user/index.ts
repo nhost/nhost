@@ -2,7 +2,7 @@ import { Router } from 'express';
 
 import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
-import { userMFAHandler } from './mfa';
+import { userMFAHandler, userMfaSchema } from './mfa';
 import { userHandler } from './user';
 import { userPasswordHandler, userPasswordSchema } from './password';
 import {
@@ -105,12 +105,7 @@ router.post(
  * @security BearerAuth
  * @tags Authentication
  */
-router.post(
-  '/user/mfa',
-  // ? why is validation deactivated?
-  // bodyValidator(userMfaSchema),
-  aw(userMFAHandler)
-);
+router.post('/user/mfa', bodyValidator(userMfaSchema), aw(userMFAHandler));
 
 /**
  * POST /user/deanonymize

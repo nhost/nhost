@@ -261,7 +261,6 @@ export const initProvider = <T extends Strategy>(
         res: Response,
         next: NextFunction
       ) => {
-        console.log(req.query);
         req.state = uuidv4();
         // insert request metadata object with the request state as id
         await gqlSdk.insertProviderRequest({
