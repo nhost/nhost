@@ -13,20 +13,12 @@ import {
 } from '@/utils';
 import { UserRegistrationOptions } from '@/types';
 import { sendError } from '@/errors';
-import {
-  Joi,
-  registrationOptions,
-  email,
-  passwordInsert,
-  redirectTo,
-} from '@/validation';
+import { Joi, email, passwordInsert, registrationOptions } from '@/validation';
 
 export const signUpEmailPasswordSchema = Joi.object({
   email: email.required(),
   password: passwordInsert.required(),
-  options: registrationOptions.keys({
-    redirectTo,
-  }),
+  options: registrationOptions,
 }).meta({ className: 'SignUpEmailPasswordSchema' });
 
 export const signUpEmailPasswordHandler: RequestHandler<

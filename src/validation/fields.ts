@@ -33,21 +33,20 @@ export const email = Joi.string()
 
 export const locale = Joi.string()
   .length(2)
-  .example(ENV.AUTH_LOCALE_DEFAULT)
+  .valid(...ENV.AUTH_LOCALE_ALLOWED_LOCALES)
   .default(ENV.AUTH_LOCALE_DEFAULT)
-  .description(`A two-characters locale`)
-  .valid(...ENV.AUTH_LOCALE_ALLOWED_LOCALES);
+  .example(ENV.AUTH_LOCALE_DEFAULT)
+  .description(`A two-characters locale`);
 
 export const defaultRole = Joi.string()
   .default(ENV.AUTH_USER_DEFAULT_ROLE)
-  .example('user')
+  .example(ENV.AUTH_USER_DEFAULT_ROLE)
   .valid(...ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES);
 
-export const allowedRoles = Joi.stringArray()
-  .items(Joi.string())
+export const allowedRoles = Joi.array()
+  .items(...ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES)
   .default(ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES)
-  .example(['user', 'me'])
-  .valid(...ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES);
+  .example(ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES);
 
 export const displayName = Joi.string().example('John Smith');
 
@@ -81,6 +80,7 @@ export const registrationOptions = Joi.object({
   allowedRoles,
   displayName,
   metadata,
+  redirectTo,
 })
   .default()
   // TODO use for OAuth options as well

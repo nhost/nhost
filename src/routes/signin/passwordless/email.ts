@@ -12,13 +12,11 @@ import {
 import { emailClient } from '@/email';
 import { PasswordLessEmailBody } from '@/types';
 import { sendError } from '@/errors';
-import { Joi, registrationOptions, email, redirectTo } from '@/validation';
+import { Joi, email, registrationOptions } from '@/validation';
 
 export const signInPasswordlessEmailSchema = Joi.object({
   email: email.required(),
-  options: registrationOptions.keys({
-    redirectTo,
-  }),
+  options: registrationOptions,
 }).meta({ className: 'SignInPasswordlessEmailSchema' });
 
 export const signInPasswordlessEmailHandler: RequestHandler<

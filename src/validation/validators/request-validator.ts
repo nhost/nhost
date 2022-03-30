@@ -25,10 +25,7 @@ export const bodyValidator: (schema: Schema) => RequestHandler =
 export const queryValidator: (schema: Schema) => RequestHandler =
   (schema) => async (req, res, next) => {
     try {
-      console.log('QUERY', req.query);
-      const result = await schema.validateAsync(req.query);
-      console.log('VALIDATED QUERY', result);
-      req.query = result;
+      req.query = await schema.validateAsync(req.query, { convert: true });
       next();
     } catch (err: any) {
       const error = buildError(err);

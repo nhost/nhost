@@ -1586,10 +1586,10 @@ export type Query_Root = {
   authUserRolesAggregate: AuthUserRoles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
-  /** fetch aggregated fields from the table: "auth.users" */
-  userAggregate: Users_Aggregate;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
+  /** fetch aggregated fields from the table: "auth.users" */
+  usersAggregate: Users_Aggregate;
 };
 
 
@@ -1736,7 +1736,7 @@ export type Query_RootUserArgs = {
 };
 
 
-export type Query_RootUserAggregateArgs = {
+export type Query_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -1745,7 +1745,7 @@ export type Query_RootUserAggregateArgs = {
 };
 
 
-export type Query_RootUsersArgs = {
+export type Query_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -1793,10 +1793,10 @@ export type Subscription_Root = {
   authUserRolesAggregate: AuthUserRoles_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
-  /** fetch aggregated fields from the table: "auth.users" */
-  userAggregate: Users_Aggregate;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
+  /** fetch aggregated fields from the table: "auth.users" */
+  usersAggregate: Users_Aggregate;
 };
 
 
@@ -1943,7 +1943,7 @@ export type Subscription_RootUserArgs = {
 };
 
 
-export type Subscription_RootUserAggregateArgs = {
+export type Subscription_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -1952,7 +1952,7 @@ export type Subscription_RootUserAggregateArgs = {
 };
 
 
-export type Subscription_RootUsersArgs = {
+export type Subscription_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;

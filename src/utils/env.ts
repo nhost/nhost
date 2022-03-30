@@ -134,7 +134,10 @@ export const ENV = {
     return castStringEnv('AUTH_LOCALE_DEFAULT', 'en');
   },
   get AUTH_LOCALE_ALLOWED_LOCALES() {
-    return castStringArrayEnv('AUTH_LOCALE_ALLOWED_LOCALES') || ['en'];
+    const locales = castStringArrayEnv('AUTH_LOCALE_ALLOWED_LOCALES');
+    if (!locales.includes(ENV.AUTH_LOCALE_DEFAULT))
+      locales.push(ENV.AUTH_LOCALE_DEFAULT);
+    return locales;
   },
 
   // SIGN IN

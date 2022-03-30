@@ -31,8 +31,6 @@ import {
 } from '@/utils';
 import { UserRegistrationOptions } from '@/types';
 
-export const providerQuerySchema = registrationOptions.default();
-
 export const providerCallbackQuerySchema = Joi.object({
   state: uuid.required(),
 }).unknown(true);
@@ -257,13 +255,14 @@ export const initProvider = <T extends Strategy>(
   }
 
   subRouter.get('/', [
-    queryValidator(providerQuerySchema),
+    queryValidator(registrationOptions),
     asyncWrapper(
       async (
         req: RequestWithState<ProviderQuery>,
         res: Response,
         next: NextFunction
       ) => {
+        console.log(req.query);
         req.state = uuidv4();
         // insert request metadata object with the request state as id
         await gqlSdk.insertProviderRequest({

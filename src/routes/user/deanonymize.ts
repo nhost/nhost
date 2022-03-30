@@ -9,13 +9,7 @@ import {
   handleDeanonymizeUserPasswordlessEmail,
 } from '@/utils';
 import { sendError } from '@/errors';
-import {
-  Joi,
-  email,
-  password,
-  redirectTo,
-  registrationOptions,
-} from '@/validation';
+import { Joi, email, password, registrationOptions } from '@/validation';
 
 // TODO should work with any other authentication methods e.g. Oauth
 export const userDeanonymizeSchema = Joi.object({
@@ -27,9 +21,7 @@ export const userDeanonymizeSchema = Joi.object({
   email: email.required(),
   password,
   connection: Joi.string().allow('email', 'sms').example('email'),
-  options: registrationOptions.keys({
-    redirectTo,
-  }),
+  options: registrationOptions,
 })
   .meta({ className: 'UserDeanonymizeSchema' })
   .default();
