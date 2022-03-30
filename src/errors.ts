@@ -1,5 +1,6 @@
 import { NextFunction, Response, Request } from 'express';
 import { logger } from './logger';
+import { generateRedirectUrl } from './utils';
 
 /**
  * This is a custom error middleware for Express.
@@ -73,6 +74,11 @@ const ERRORS = asErrors({
     status: 401,
     message: 'Invalid or expired OTP',
   },
+  'invalid-ticket': {
+    // TODO renamed from InvalidOrExpiredVerificationTicket
+    status: 401,
+    message: 'Invalid or expired verification ticket',
+  },
   'unverified-user': {
     status: 401,
     message: 'Email is not verified',
@@ -105,10 +111,9 @@ const ERRORS = asErrors({
     status: 401,
     message: 'Invalid or expired refresh token',
   },
-  // TODO must be eventually part of joi request validation
-  'missing-redirection': {
+  'invalid-redirection': {
     status: 400,
-    message: 'Missing redirectTo',
+    message: 'Invalid or missing redirectTo',
   },
   'invalid-admin-secret': {
     status: 401,
@@ -131,10 +136,22 @@ const ERRORS = asErrors({
 export const sendError = (
   res: Response,
   code: keyof typeof ERRORS,
-  customMessage?: string
+  {
+    customMessage,
+    redirectTo,
+  }: { customMessage?: string; redirectTo?: string } = {}
 ) => {
   const error = ERRORS[code];
   const message = customMessage ?? error.message;
   const status = error.status;
+
+  if (redirectTo) {
+    const redirectUrl = generateRedirectUrl(redirectTo, {
+      error: code,
+      errorDescription: message,
+    });
+    return res.redirect(redirectUrl);
+  }
+
   return res.status(status).send({ status, message, error: code });
 };

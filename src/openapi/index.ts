@@ -25,6 +25,7 @@ import { tokenSchema } from '@/routes/token/token';
 import { providerCallbackQuerySchema } from '@/routes/signin/providers/utils';
 
 import * as responses from './responses';
+import { verifySchema } from '@/routes/verify/verify';
 
 const schema: Record<string, unknown> & { components: SwaggerSchema } = {
   tags: [],
@@ -49,6 +50,7 @@ const requestSchemas = [
   userProviderTokensSchema,
   tokenSchema,
   providerCallbackQuerySchema,
+  verifySchema,
 ];
 
 [...requestSchemas, ...Object.values(responses)].forEach((validator) => {

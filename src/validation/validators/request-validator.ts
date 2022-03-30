@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { ValidationError, Schema } from 'joi';
 
-import { REQUEST_VALIDATION_ERROR } from '@/errors';
+import { REQUEST_VALIDATION_ERROR, sendError } from '@/errors';
 
 const buildError = (error: ValidationError) => {
   const errorPayload = REQUEST_VALIDATION_ERROR;
@@ -18,7 +18,10 @@ export const bodyValidator: (schema: Schema) => RequestHandler =
       next();
     } catch (err: any) {
       const error = buildError(err);
-      return res.status(error.status).send(error);
+      return sendError(res, 'request-validation-error', {
+        customMessage: error.message,
+        redirectTo: err._original.redirectTo,
+      });
     }
   };
 
@@ -29,6 +32,9 @@ export const queryValidator: (schema: Schema) => RequestHandler =
       next();
     } catch (err: any) {
       const error = buildError(err);
-      return res.status(error.status).send(error);
+      return sendError(res, 'request-validation-error', {
+        customMessage: error.message,
+        redirectTo: err._original.redirectTo,
+      });
     }
   };

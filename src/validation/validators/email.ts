@@ -3,6 +3,7 @@ import { CustomValidator } from 'joi';
 import { ENV } from '@/utils';
 
 export const EmailValidator: CustomValidator = (email, helper) => {
+  // TODO simplify the following in using Joi
   if (
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAILS.length === 0 &&
     ENV.AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS.length === 0 &&

@@ -23,11 +23,9 @@ export const signOutHandler: RequestHandler<
 
   if (all) {
     if (!req.auth?.userId) {
-      return sendError(
-        res,
-        'unauthenticated-user',
-        'User must be signed in to sign out from all sessions'
-      );
+      return sendError(res, 'unauthenticated-user', {
+        customMessage: 'User must be signed in to sign out from all sessions',
+      });
     }
 
     const { userId } = req.auth;

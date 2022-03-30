@@ -71,7 +71,7 @@ const manageProviderStrategy =
     profile: Profile,
     done: VerifyCallback
   ): Promise<void> => {
-    const state = req.query.state as string;
+    const state = req.query.state;
 
     const requestOptions = await gqlSdk
       .providerRequest({
@@ -107,7 +107,6 @@ const manageProviderStrategy =
     }
 
     if (email) {
-      // TODO validate the entire query
       try {
         await emailValidator.validateAsync(email);
       } catch {

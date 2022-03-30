@@ -1,20 +1,31 @@
 import { RequestHandler } from 'express';
-import { sendError } from '@/errors';
 import { getNewRefreshToken, gqlSdk, generateRedirectUrl } from '@/utils';
+import { Joi, redirectTo } from '@/validation';
+import { sendError } from '@/errors';
+
+export const verifySchema = Joi.object({
+  redirectTo: redirectTo.required(),
+  ticket: Joi.string().required(),
+  type: Joi.string()
+    .allow(
+      'emailVerify',
+      'emailConfirmChange',
+      'signinPasswordless',
+      'passwordReset'
+    )
+    .required(),
+}).meta({ className: 'VerifySchema' });
 
 export const verifyHandler: RequestHandler<
   {},
   {},
   {},
-  { ticket?: string; type?: string; redirectTo?: string }
+  { ticket: string; type: string; redirectTo: string }
 > = async (req, res) => {
-  // TODO use Joi validation - but use res.redirect
   const { ticket, type, redirectTo } = req.query;
 
-  if (!redirectTo) {
-    return sendError(res, 'missing-redirection');
-  }
-
+  // TODO review error names with Johan
+  /*
   if (!ticket) {
     // TODO add a sendError redirection option
     const redirectUrl = generateRedirectUrl(redirectTo, {
@@ -33,7 +44,7 @@ export const verifyHandler: RequestHandler<
 
     return res.redirect(redirectUrl);
   }
-
+*/
   // get the user from the ticket
   const user = await gqlSdk
     .users({
@@ -55,12 +66,7 @@ export const verifyHandler: RequestHandler<
     .then((gqlRes) => gqlRes.users[0]);
 
   if (!user) {
-    const redirectUrl = generateRedirectUrl(redirectTo, {
-      error: 'InvalidOrExpiredVerificationTicket',
-      errorDescription: 'Invalid or expired verification ticket',
-    });
-
-    return res.redirect(redirectUrl);
+    return sendError(res, 'invalid-ticket', { redirectTo });
   }
 
   // user found, delete current ticket
