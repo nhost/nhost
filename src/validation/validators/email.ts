@@ -1,6 +1,6 @@
 import { CustomValidator } from 'joi';
 
-import { ENV } from '@/utils/env';
+import { ENV } from '@/utils';
 
 export const EmailValidator: CustomValidator = (email, helper) => {
   if (

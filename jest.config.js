@@ -6,7 +6,7 @@ module.exports = {
   globalSetup: '<rootDir>/test/global-setup.ts',
   verbose: false,
   moduleNameMapper: {
-    '^@config/(.*)$': '<rootDir>/src/config/$1',
+    '^@config$': '<rootDir>/src/config',
     '^@/(.*)$': '<rootDir>/src/$1',
   },
   testPathIgnorePatterns: [
@@ -17,4 +17,4 @@ module.exports = {
   setupFilesAfterEnv: ['jest-extended'],
   preset: 'ts-jest',
   testEnvironment: 'node',
-};
+}

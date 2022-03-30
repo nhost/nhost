@@ -7,7 +7,7 @@
   "compilerOptions": {
     "lib": ["dom", "es2020"],
     "paths": {
-      "@config/*": ["config/*"],
+      "@config": ["config"],
       "@/*": ["./*"]
     },
     "outDir": "dist",

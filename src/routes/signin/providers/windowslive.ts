@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { Strategy } from 'passport-windowslive';
-import { initProvider } from './utils';
-import { PROVIDERS } from '@config/index';
+
+import { PROVIDERS } from '@config';
 import { sendError } from '@/errors';
+import { initProvider } from './utils';
 
 export default (router: Router): void => {
   const options = PROVIDERS.windowslive;

@@ -1,11 +1,14 @@
 import { RequestHandler } from 'express';
 import twilio from 'twilio';
 
-import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@/utils/env';
-import { getNewOneTimePasswordData } from '@/utils/otp';
 import { PasswordLessSmsBody } from '@/types';
-import { getUserByPhoneNumber, insertUser } from '@/utils/user';
+import {
+  gqlSdk,
+  getNewOneTimePasswordData,
+  getUserByPhoneNumber,
+  insertUser,
+  ENV,
+} from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, registrationOptions } from '@/validation';
 

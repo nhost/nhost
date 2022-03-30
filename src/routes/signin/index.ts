@@ -1,7 +1,8 @@
 import { Router } from 'express';
 
-import { asyncWrapper as aw } from '@/helpers';
+import { asyncWrapper as aw } from '@/utils';
 import { bodyValidator } from '@/validation';
+
 import {
   signInEmailPasswordHandler,
   signInEmailPasswordSchema,

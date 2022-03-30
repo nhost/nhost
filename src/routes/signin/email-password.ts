@@ -1,9 +1,7 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { getSignInResponse } from '@/utils/tokens';
-import { getUserByEmail } from '@/helpers';
-import { ENV } from '@/utils/env';
+import { getSignInResponse, getUserByEmail, ENV } from '@/utils';
 import { logger } from '@/logger';
 import { sendError } from '@/errors';
 import { Joi, email, password } from '@/validation';

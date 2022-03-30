@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { asyncWrapper as aw } from '@/helpers';
-import { mfatotpGenerateHandler } from './totp-generate';
+import { asyncWrapper as aw } from '@/utils';
 import { authenticationGate } from '@/middleware/auth';
+
+import { mfatotpGenerateHandler } from './totp-generate';
 
 const router = Router();
 

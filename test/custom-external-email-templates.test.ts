@@ -1,8 +1,10 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
+
+import { ENV } from '@/utils';
+
 import { request } from './server';
 import { mailHogSearch } from './utils';
-import { ENV } from '@/utils/env';
 
 describe('custom external email templates', () => {
   let client: Client;

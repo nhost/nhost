@@ -1,9 +1,9 @@
 import { Router } from 'express';
 import { Strategy, Profile } from '@nicokaiser/passport-apple';
-import { PROVIDERS } from '@config/index';
-import { initProvider } from './utils';
-import { getGravatarUrl } from '@/helpers';
+import { PROVIDERS } from '@config';
 import { sendError } from '@/errors';
+import { getGravatarUrl } from '@/utils';
+import { initProvider } from './utils';
 
 const transformProfile = ({
   id,

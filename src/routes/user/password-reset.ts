@@ -2,10 +2,7 @@ import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
 import { emailClient } from '@/email';
-import { getUserByEmail } from '@/helpers';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { generateTicketExpiresAt } from '@/utils/ticket';
-import { ENV } from '@/utils/env';
+import { gqlSdk, getUserByEmail, generateTicketExpiresAt, ENV } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, email, redirectTo } from '@/validation';
 

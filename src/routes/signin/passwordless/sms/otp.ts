@@ -1,8 +1,7 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { getSignInResponse } from '@/utils/tokens';
-import { gqlSdk } from '@/utils/gqlSDK';
+import { getSignInResponse, gqlSdk } from '@/utils';
 import { OtpSmsBody } from '@/types';
 import { sendError } from '@/errors';
 import { Joi } from '@/validation';

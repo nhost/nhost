@@ -1,13 +1,16 @@
 import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getGravatarUrl, getUserByEmail } from '@/helpers';
-import { gqlSdk } from '@/utils/gqlSDK';
+import {
+  gqlSdk,
+  getUserByEmail,
+  insertUser,
+  getGravatarUrl,
+  generateTicketExpiresAt,
+  ENV,
+} from '@/utils';
 import { emailClient } from '@/email';
-import { ENV } from '@/utils/env';
 import { PasswordLessEmailBody } from '@/types';
-import { generateTicketExpiresAt } from '@/utils/ticket';
-import { insertUser } from '@/utils/user';
 import { sendError } from '@/errors';
 import { Joi, registrationOptions, email, redirectTo } from '@/validation';
 

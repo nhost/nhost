@@ -1,10 +1,8 @@
 import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { gqlSdk } from '@/utils/gqlSDK';
-import { generateTicketExpiresAt } from '@/utils/ticket';
+import { gqlSdk, generateTicketExpiresAt, ENV } from '@/utils';
 import { emailClient } from '@/email';
-import { ENV } from '@/utils/env';
 import { Joi, email, redirectTo } from '@/validation';
 
 export const userEmailChangeSchema = Joi.object({

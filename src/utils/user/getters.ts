@@ -1,9 +1,5 @@
 import { User } from '@/types';
-import { gqlSdk } from './gqlSDK';
-import {
-  InsertUserMutation,
-  InsertUserMutationVariables,
-} from './__generated__/graphql-request';
+import { gqlSdk } from '../gql-sdk';
 
 export const getUserByPhoneNumber = async ({
   phoneNumber,
@@ -61,15 +57,41 @@ export const getUser = async ({
   };
 };
 
-type UserInput = InsertUserMutationVariables['user'];
-type UserOutput = NonNullable<InsertUserMutation['insertUser']>;
-
-export const insertUser = async (user: UserInput): Promise<UserOutput> => {
-  const { insertUser } = await gqlSdk.insertUser({
-    user,
+export const getUserByEmail = async (email: string) => {
+  const { users } = await gqlSdk.users({
+    where: {
+      email: {
+        _eq: email,
+      },
+    },
   });
-  if (!insertUser) {
-    throw new Error('Could not insert user');
+
+  return users[0];
+};
+
+export const getUserByTicket = async (ticket: string) => {
+  const now = new Date();
+
+  const { users } = await gqlSdk.users({
+    where: {
+      _and: [
+        {
+          ticket: {
+            _eq: ticket,
+          },
+        },
+        {
+          ticketExpiresAt: {
+            _gt: now,
+          },
+        },
+      ],
+    },
+  });
+
+  if (users.length !== 1) {
+    return null;
   }
-  return insertUser;
+
+  return users[0];
 };

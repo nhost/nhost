@@ -2,8 +2,7 @@
 import { RequestHandler } from 'express';
 import refresh from 'passport-oauth2-refresh';
 
-import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@/utils/env';
+import { gqlSdk, ENV } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, userId } from '@/validation';
 

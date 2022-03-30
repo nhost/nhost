@@ -1,6 +1,6 @@
 import { RequestHandler } from 'express';
 
-import { gqlSdk } from '@/utils/gqlSDK';
+import { gqlSdk } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
 

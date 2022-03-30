@@ -1,12 +1,14 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { gqlSdk } from '../gqlSDK';
-import { getUserByEmail, hashPassword } from '@/helpers';
-import { ENV } from '../env';
+import { getUserByEmail } from '@/utils';
 import { emailClient } from '@/email';
-import { generateTicketExpiresAt } from '../ticket';
 import { sendError } from '@/errors';
+
+import { gqlSdk } from '../gql-sdk';
+import { ENV } from '../env';
+import { generateTicketExpiresAt } from '../ticket';
+import { hashPassword } from '../password';
 
 export type BodyTypeEmailPassword = {
   signInMethod: 'email-password';

@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { authenticator } from 'otplib';
 import { sendError } from '@/errors';
-import { gqlSdk } from '@/utils/gqlSDK';
+import { gqlSdk } from '@/utils';
 import { Joi } from '@/validation';
 
 export const userMfaSchema = Joi.object({

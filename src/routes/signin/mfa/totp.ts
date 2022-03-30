@@ -1,7 +1,6 @@
 import { RequestHandler } from 'express';
 
-import { getSignInResponse } from '@/utils/tokens';
-import { getUserByTicket } from '@/helpers';
+import { getSignInResponse, getUserByTicket } from '@/utils';
 import { authenticator } from 'otplib';
 import { sendError } from '@/errors';
 import { Joi, mfaTotpTicketPattern } from '@/validation';

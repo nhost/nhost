@@ -1,8 +1,8 @@
 import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { gqlSdk } from '../gqlSDK';
-import { getUserByEmail } from '@/helpers';
+import { gqlSdk } from '../gql-sdk';
+import { getUserByEmail } from '@/utils';
 import { ENV } from '../env';
 import { emailClient } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';

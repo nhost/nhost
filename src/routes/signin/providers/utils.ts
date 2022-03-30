@@ -10,8 +10,8 @@ import { VerifyCallback } from 'passport-oauth2';
 import refresh from 'passport-oauth2-refresh';
 import { Strategy } from 'passport';
 import { v4 as uuidv4 } from 'uuid';
-import { PROVIDERS } from '@config/index';
-import { asyncWrapper, getGravatarUrl, getUserByEmail } from '@/helpers';
+
+import { PROVIDERS } from '@config';
 import {
   Joi,
   email as emailValidator,
@@ -19,11 +19,16 @@ import {
   queryValidator,
   registrationOptions,
 } from '@/validation';
-import { getNewRefreshToken } from '@/utils/tokens';
 import { UserFieldsFragment } from '@/utils/__generated__/graphql-request';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@/utils/env';
-import { insertUser } from '@/utils/user';
+import {
+  asyncWrapper,
+  getNewRefreshToken,
+  gqlSdk,
+  getUserByEmail,
+  insertUser,
+  getGravatarUrl,
+  ENV,
+} from '@/utils';
 import { UserRegistrationOptions } from '@/types';
 
 export const providerQuerySchema = registrationOptions.default();

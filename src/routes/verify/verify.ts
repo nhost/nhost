@@ -1,8 +1,6 @@
-import { sendError } from '@/errors';
-import { generateRedirectUrl } from '@/utils';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { getNewRefreshToken } from '@/utils/tokens';
 import { RequestHandler } from 'express';
+import { sendError } from '@/errors';
+import { getNewRefreshToken, gqlSdk, generateRedirectUrl } from '@/utils';
 
 export const verifyHandler: RequestHandler<
   {},

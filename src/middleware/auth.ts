@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import { getClaims, getPermissionVariablesFromClaims } from '@/utils/jwt';
+import { getClaims, getPermissionVariablesFromClaims } from '@/utils';
 import { sendError } from '@/errors';
 
 export const authMiddleware = async (

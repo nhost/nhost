@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { gqlSdk } from '@/utils/gqlSDK';
+import { gqlSdk } from '@/utils';
 import { SignInResponse, Session } from '../types';
 import { UserFieldsFragment } from './__generated__/graphql-request';
 import { generateTicketExpiresAt } from './ticket';
@@ -7,7 +7,7 @@ import { ENV } from './env';
 import { getUser } from './user';
 import { createHasuraAccessToken } from './jwt';
 
-export function newRefreshExpiry() {
+function newRefreshExpiry() {
   const date = new Date();
 
   // cant return this becuase this will return a unix timestamp directly

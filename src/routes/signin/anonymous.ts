@@ -1,8 +1,6 @@
 import { RequestHandler } from 'express';
 
-import { ENV } from '@/utils/env';
-import { getSignInResponse } from '@/utils/tokens';
-import { insertUser } from '@/utils/user';
+import { getSignInResponse, insertUser, ENV } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, displayName, locale, metadata } from '@/validation';
 

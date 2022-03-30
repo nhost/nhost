@@ -3,11 +3,11 @@ import { RequestHandler } from 'express';
 import {
   BodyTypeEmailPassword,
   handleDeanonymizeUserEmailPassword,
-} from '@/utils/user/deanonymize-email-password';
+} from '@/utils';
 import {
   BodyTypePasswordlessEmail,
   handleDeanonymizeUserPasswordlessEmail,
-} from '@/utils/user/deanonymize-passwordless-email';
+} from '@/utils';
 import { sendError } from '@/errors';
 import {
   Joi,

@@ -1,8 +1,7 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { getSignInResponse } from '@/utils/tokens';
-import { getUserByTicket } from '@/helpers';
+import { getSignInResponse, getUserByTicket } from '@/utils';
 import { sendError } from '@/errors';
 
 export const signInMfaSmspHandler: RequestHandler<

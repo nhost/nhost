@@ -1,5 +1,4 @@
-import { PROVIDERS } from '@config/index';
-import { castObjectEnv } from '@config/utils';
+import { PROVIDERS, castObjectEnv } from '@config';
 import { logger } from './logger';
 
 function isUnset(val?: string) {

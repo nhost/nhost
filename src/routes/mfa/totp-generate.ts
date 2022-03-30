@@ -1,9 +1,7 @@
 import { RequestHandler } from 'express';
-
-import { createQR } from '@/helpers';
 import { authenticator } from 'otplib';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@/utils/env';
+
+import { createQR, gqlSdk, ENV } from '@/utils';
 import { sendError } from '@/errors';
 
 export const mfatotpGenerateHandler: RequestHandler<

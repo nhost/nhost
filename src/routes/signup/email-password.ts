@@ -1,12 +1,16 @@
 import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 
-import { getGravatarUrl, getUserByEmail, hashPassword } from '@/helpers';
 import { emailClient } from '@/email';
-import { ENV } from '@/utils/env';
-import { generateTicketExpiresAt } from '@/utils/ticket';
-import { getSignInResponse } from '@/utils/tokens';
-import { insertUser } from '@/utils/user';
+import {
+  getGravatarUrl,
+  hashPassword,
+  generateTicketExpiresAt,
+  getSignInResponse,
+  getUserByEmail,
+  insertUser,
+  ENV,
+} from '@/utils';
 import { UserRegistrationOptions } from '@/types';
 import { sendError } from '@/errors';
 import {

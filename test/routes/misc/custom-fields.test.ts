@@ -1,7 +1,7 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
 import { reloadMetadata } from '@/metadata';
-import { ENV } from '@/utils/env';
+import { ENV } from '@/utils';
 import { request } from '../../server';
 
 describe('metadata fields', () => {
