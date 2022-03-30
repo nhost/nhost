@@ -36,6 +36,8 @@ Nhost consists of open source software:
 - Serverless Functions: Node.js (JavaScript and TypeScript)
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
+## Architecture of Nhost
+
 <div align="center">
   <br />
   <img src="assets/nhost-diagram.png"/>
