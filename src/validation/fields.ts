@@ -31,8 +31,14 @@ export const email = Joi.string()
   .example('john.smith@nhost.io')
   .description('A valid email');
 
-export const locale = Joi.valid(...ENV.AUTH_LOCALE_ALLOWED_LOCALES)
-  .failover(ENV.AUTH_LOCALE_DEFAULT)
+export const locale = Joi.string()
+  // TODO reactivate ENV.AUTH_LOCALE_ALLOWED_LOCALES check
+  // * For the moment, the Nhost console does not allow selecting activated locales.
+  // * Once it will be possible, we will need to reactivate this check to make sure an undeclared locale falls back to the default one, but tries it all the way
+  // * As an example: if 'fr' is not in the allowed locales, it is currently passed on all the way.
+  // * In reactivating the following code, it will then fall back to the default locale (en) and for instance use the english email templates
+  // .valid(...ENV.AUTH_LOCALE_ALLOWED_LOCALES)
+  // .failover(ENV.AUTH_LOCALE_DEFAULT)
   .default(ENV.AUTH_LOCALE_DEFAULT)
   .example(ENV.AUTH_LOCALE_DEFAULT)
   .description(`A two-characters locale`);
