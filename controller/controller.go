@@ -104,6 +104,7 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerF
 		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
 		AllowHeaders: []string{
 			"Authorization", "Origin", "if-match", "if-none-match", "if-modified-since", "if-unmodified-since",
+			"x-hasura-admin-secret", "x-nhost-bucket-id", "x-nhost-file-name", "x-nhost-file-id",
 		},
 		// AllowWildcard: true,
 		ExposeHeaders: []string{
