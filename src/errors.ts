@@ -106,11 +106,6 @@ const ERRORS = asErrors({
     message: 'Invalid or expired refresh token',
   },
   // TODO must be eventually part of joi request validation
-  'invalid-mfa-type': {
-    status: 400,
-    message: 'Incorrect activeMfaType. Must be emtpy string or one of: [totp]',
-  },
-  // TODO must be eventually part of joi request validation
   'missing-redirection': {
     status: 400,
     message: 'Missing redirectTo',

@@ -29,11 +29,6 @@ export const userMFAHandler: RequestHandler<
 
   const { code, activeMfaType } = req.body;
 
-  // TODO joi validation
-  if (activeMfaType && !['totp'].includes(activeMfaType)) {
-    return sendError(res, 'invalid-mfa-type');
-  }
-
   const { userId } = req.auth;
 
   const { user } = await gqlSdk.user({
