@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
+import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
@@ -24,7 +25,7 @@ describe('user password', () => {
   });
 
   it('should not get user data if not signed in', async () => {
-    await request.get('/user').expect(401);
+    await request.get('/user').expect(StatusCodes.UNAUTHORIZED);
   });
 
   it('should get user data if signed in', async () => {
@@ -46,7 +47,7 @@ describe('user password', () => {
           displayName,
         },
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const {
       body: { session },
@@ -56,12 +57,12 @@ describe('user password', () => {
         email,
         password,
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const { body } = await request
       .get('/user')
       .set('Authorization', `Bearer ${session?.accessToken}`)
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     expect(typeof body.id).toBe('string');
     expect(body.email).toBe(email);

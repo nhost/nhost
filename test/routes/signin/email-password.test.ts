@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
+import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
@@ -36,12 +37,12 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const { body } = await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const { accessToken, accessTokenExpiresIn, refreshToken } = body.session;
     const { mfa } = body;
@@ -60,12 +61,12 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password, options: { metadata: metadataInput } })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const { body } = await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const {
       accessToken,
@@ -98,15 +99,18 @@ describe('email-password', () => {
       AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS: '',
     });
 
-    await request.post('/signup/email-password').send(a).expect(200);
-    await request.post('/signup/email-password').send(b).expect(200);
+    await request.post('/signup/email-password').send(a).expect(StatusCodes.OK);
+    await request.post('/signup/email-password').send(b).expect(StatusCodes.OK);
 
     // sign in
     await request.post('/change-env').send({
       AUTH_ACCESS_CONTROL_ALLOWED_EMAILS: a.email,
     });
 
-    await request.post('/signin/email-password').send(a).expect(200);
-    await request.post('/signin/email-password').send(b).expect(400);
+    await request.post('/signin/email-password').send(a).expect(StatusCodes.OK);
+    await request
+      .post('/signin/email-password')
+      .send(b)
+      .expect(StatusCodes.BAD_REQUEST);
   });
 });

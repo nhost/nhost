@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
+import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
@@ -34,12 +35,12 @@ describe('user email', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const response = await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
     body = response.body;
 
     if (!body?.session) {
@@ -60,13 +61,13 @@ describe('user email', () => {
       .post('/user/email/change')
       // .set('Authorization', `Bearer ${accessToken}`)
       .send({ newEmail })
-      .expect(401);
+      .expect(StatusCodes.UNAUTHORIZED);
 
     await request
       .post('/user/email/change')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ newEmail })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // get ticket on new email
     const [message] = await mailHogSearch(newEmail);
@@ -84,26 +85,26 @@ describe('user email', () => {
       .get(
         `/verify?ticket=${uuidv4()}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
 
     // confirm change email
     await request
       .get(
         `/verify?ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
 
     // fail to signin with old email
     await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(401);
+      .expect(StatusCodes.UNAUTHORIZED);
 
     // sign in with new email
     await request
       .post('/signin/email-password')
       .send({ email: newEmail, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
   });
 
   it('change email with redirect', async () => {
@@ -119,7 +120,7 @@ describe('user email', () => {
       .post('/user/email/change')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ newEmail, options })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // get ticket on new email
     const [message] = await mailHogSearch(newEmail);
@@ -135,7 +136,7 @@ describe('user email', () => {
       .get(
         `/verify?ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
     expect(redirectTo).toStrictEqual(options.redirectTo);
   });
 
@@ -144,7 +145,7 @@ describe('user email', () => {
       .post('/user/email/send-verification-email')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ email })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // get ticket on new email
     const [message] = await mailHogSearch(email);
@@ -159,12 +160,12 @@ describe('user email', () => {
       .get(
         `/verify?ticket=${uuidv4()}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
 
     // confirm change email
     await request
       .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
   });
 
   it('send email verification with redirect', async () => {
@@ -176,7 +177,7 @@ describe('user email', () => {
       .post('/user/email/send-verification-email')
       .set('Authorization', `Bearer ${accessToken}`)
       .send({ email, options })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // get ticket on new email
     const [message] = await mailHogSearch(email);
@@ -188,7 +189,7 @@ describe('user email', () => {
     // confirm change email
     await request
       .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
     expect(redirectTo).toStrictEqual(options.redirectTo);
   });
 });

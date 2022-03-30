@@ -1,9 +1,11 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
+import rfc2047 from 'rfc2047';
+import { StatusCodes } from 'http-status-codes';
+
 import { ENV } from '../../../../src/utils/env';
 import { request } from '../../../server';
 import { mailHogSearch, deleteAllMailHogEmails } from '../../../utils';
-import rfc2047 from 'rfc2047';
 
 describe('passwordless email (magic link)', () => {
   let client: Client;
@@ -41,7 +43,7 @@ describe('passwordless email (magic link)', () => {
       .send({
         email,
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // get magic link email
     const [message] = await mailHogSearch(email);
@@ -58,7 +60,7 @@ describe('passwordless email (magic link)', () => {
       .get(
         `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
       )
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
   });
 
   it('should signin in using a different locale', async () => {
@@ -69,7 +71,7 @@ describe('passwordless email (magic link)', () => {
         email,
         options: { locale: 'fr' },
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
     expect(rfc2047.decode(message.Content.Headers.Subject[0])).toBe(
@@ -86,7 +88,7 @@ describe('passwordless email (magic link)', () => {
       .send({
         email: faker.internet.email(),
       })
-      .expect(401);
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 
   it('should fallback to the default locale when giving a wrong locale', async () => {
@@ -97,7 +99,7 @@ describe('passwordless email (magic link)', () => {
         email,
         options: { locale: 'XZ' },
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
     expect(rfc2047.decode(message.Content.Headers.Subject[0])).toBe(
@@ -113,13 +115,13 @@ describe('passwordless email (magic link)', () => {
         email,
         options: { locale: 'fr' },
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
     await request
       .post('/signin/passwordless/email')
       .send({
         email,
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
     const messages = await mailHogSearch(email);
     for (const message of messages) {
       expect(message).toBeTruthy();
@@ -138,7 +140,7 @@ describe('passwordless email (magic link)', () => {
       .send({
         email: faker.internet.email(),
       })
-      .expect(404);
+      .expect(StatusCodes.NOT_FOUND);
   });
 
   it('should fail to sign if email is not valid', async () => {
@@ -151,7 +153,7 @@ describe('passwordless email (magic link)', () => {
       .send({
         email: faker.internet.email(),
       })
-      .expect(400);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   it('should be able to sign in twice. First request will create the user', async () => {
@@ -161,14 +163,14 @@ describe('passwordless email (magic link)', () => {
       .send({
         email,
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     await request
       .post('/signin/passwordless/email')
       .send({
         email,
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
   });
 
   it('should succeed sign in with correct default role', async () => {
@@ -180,7 +182,7 @@ describe('passwordless email (magic link)', () => {
           defaultRole: 'user',
         },
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
   });
 
   it('should fail to sign in with incorrect allowed roles', async () => {
@@ -198,6 +200,6 @@ describe('passwordless email (magic link)', () => {
           allowedRoles: ['incorrect'],
         },
       })
-      .expect(400);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 });

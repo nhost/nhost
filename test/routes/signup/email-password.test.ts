@@ -1,5 +1,6 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
+import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
@@ -36,7 +37,7 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
   });
 
   it('should fail to sign up with same email', async () => {
@@ -51,12 +52,12 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(409);
+      .expect(StatusCodes.CONFLICT);
   });
 
   it('should fail with weak password', async () => {
@@ -71,7 +72,7 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(400);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   it('should succeed to sign up with different emails', async () => {
@@ -88,12 +89,12 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email: emailA, password: passwordA })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     await request
       .post('/signup/email-password')
       .send({ email: emailB, password: passwordB })
-      .expect(200);
+      .expect(StatusCodes.OK);
   });
 
   it('should success with SMTP settings', async () => {
@@ -110,7 +111,7 @@ describe('email-password', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // fetch email from mailhog and check ticket
     const [message] = await mailHogSearch(email);
@@ -131,7 +132,7 @@ describe('email-password', () => {
         defaultRole: 'user',
         allowedRoles: ['editor'],
       })
-      .expect(400);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   it('allowed roles must be subset of env var AUTH_USER_DEFAULT_ALLOWED_ROLES', async () => {
@@ -151,7 +152,7 @@ describe('email-password', () => {
         defaultRole: 'user',
         allowedRoles: ['user', 'some-other-role'],
       })
-      .expect(400);
+      .expect(StatusCodes.BAD_REQUEST);
   });
 
   it('user must verify email before being able to sign in', async () => {
@@ -173,7 +174,7 @@ describe('email-password', () => {
     await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(401);
+      .expect(StatusCodes.UNAUTHORIZED);
 
     // get ticket from email
     const [message] = await mailHogSearch(email);
@@ -186,12 +187,12 @@ describe('email-password', () => {
       .get(
         `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
       )
-      .expect(302);
+      .expect(StatusCodes.MOVED_TEMPORARILY);
 
     // sign in should now work
     await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
   });
 });

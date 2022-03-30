@@ -1,4 +1,5 @@
 import { Client } from 'pg';
+import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
@@ -38,12 +39,12 @@ describe('mfa totp', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const { body }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     expect(body.session).toBeTruthy();
 
@@ -59,7 +60,7 @@ describe('mfa totp', () => {
     } = await request
       .get('/mfa/totp/generate')
       .set('Authorization', `Bearer ${accessToken}`)
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // enable totp mfa
     await request
@@ -69,14 +70,14 @@ describe('mfa totp', () => {
         code: authenticator.generate(totpSecret),
         activeMfaType: 'totp',
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // TODO: log out
 
     const { body: signInBody }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     const { body: mfaTotpBody }: { body: SignInResponse } = await request
       .post('/signin/mfa/totp')
@@ -84,7 +85,7 @@ describe('mfa totp', () => {
         ticket: signInBody.mfa?.ticket,
         otp: authenticator.generate(totpSecret),
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     expect(mfaTotpBody.session).toBeTruthy();
 
@@ -102,7 +103,7 @@ describe('mfa totp', () => {
         code: authenticator.generate(totpSecret),
         activeMfaType: 'incorrect',
       })
-      .expect(400);
+      .expect(StatusCodes.BAD_REQUEST);
 
     // Disable MFA for user
     await request
@@ -112,14 +113,14 @@ describe('mfa totp', () => {
         code: authenticator.generate(totpSecret),
         activeMfaType: '',
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // TODO: validate tokens
 
     const { body: signInBodyThird }: { body: SignInResponse } = await request
       .post('/signin/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     expect(signInBodyThird.mfa).toBe(null);
   });
