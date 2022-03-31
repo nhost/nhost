@@ -2,15 +2,15 @@ import { lightNhostTheme } from '@/data/lightTheme'
 import { useState } from 'react'
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter'
 import js from 'react-syntax-highlighter/dist/cjs/languages/hljs/javascript'
+import ts from 'react-syntax-highlighter/dist/cjs/languages/hljs/typescript'
 
 import Check from '../icons/Check'
 import Copy from '../icons/Copy'
 
-// @ts-ignore -> add to types
-// @ts-ignore -> add to types
-SyntaxHighlighter.registerLanguage('js', js)
+SyntaxHighlighter.registerLanguage('language-js', js)
+SyntaxHighlighter.registerLanguage('language-ts', ts)
 // TODO highlight JSX
-SyntaxHighlighter.registerLanguage('jsx', js)
+SyntaxHighlighter.registerLanguage('language-jsx', js)
 
 export interface CodeEditorProps {
   code: string
@@ -24,7 +24,7 @@ export interface CodeEditorProps {
 }
 
 const CodeEditor = (props: CodeEditorProps) => {
-  const { children, url } = props
+  const { children, className } = props
   const [copied, setCopied] = useState(false)
 
   return (
@@ -53,6 +53,7 @@ const CodeEditor = (props: CodeEditorProps) => {
         </button>
       </div>
       <SyntaxHighlighter
+        language={className}
         style={lightNhostTheme}
         wrapLongLines={true}
         wrapLines={true}
