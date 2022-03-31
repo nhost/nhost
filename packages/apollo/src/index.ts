@@ -131,26 +131,22 @@ export const createApolloClient = ({
 
     if (token !== newToken) {
       token = newToken
-      client.reFetchObservableQueries()
+
       if (isBrowser && webSocketClient) {
-        if (newToken) {
-          if (webSocketClient.status === 1) {
-            // @ts-expect-error
-            webSocketClient.tryReconnect()
-          }
-        } else {
-          if (webSocketClient.status === 1) {
-            // must close first to avoid race conditions
-            webSocketClient.close()
-            // reconnect
-            // @ts-expect-error
-            webSocketClient.tryReconnect()
-          }
-          if (event.type === 'SIGNOUT') {
-            await client.resetStore().catch((error) => {
-              console.error('Error resetting Apollo client cache')
-              console.error(error)
-            })
+        if (webSocketClient.status === 1) {
+          // must close first to avoid race conditions
+          webSocketClient.close()
+
+          // @ts-expect-error
+          webSocketClient.tryReconnect()
+        }
+
+        if (!newToken && event.type === 'SIGNOUT') {
+          try {
+            await client.resetStore()
+          } catch (error) {
+            console.error('Error resetting Apollo client cache')
+            console.error(error)
           }
         }
       }
