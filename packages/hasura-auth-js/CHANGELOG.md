@@ -1,5 +1,15 @@
 # @nhost/hasura-auth-js
 
+## 1.0.2
+
+### Patch Changes
+
+- 6eeb9d2: Wait for the authentication status to be known before executing auth actions
+  The auth client was able to start actions such as signUp or signIn before the authentication state was ready (e.g. before initial refresh token could be processed).
+  This patch solves the problem in waiting for the authentication status to be known before running these actions.
+- Updated dependencies [4420c0e]
+  - @nhost/core@0.3.1
+
 ## 1.0.1
 
 ### Patch Changes
