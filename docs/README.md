@@ -33,8 +33,10 @@ export const orderTwo = {
   },
   reference: {
     sdk: ['index', 'graphql', 'authentication', 'storage', 'functions'],
+    react: ['index', 'hooks', 'protecting-routes', 'apollo'],
+    nextjs: ['index', 'configuration', 'protecting-routes', ],
     cli: ['index'],
-    'supporting-libraries': ['react-apollo', 'react-auth']
+    'hasura-auth': ['index', 'installation', 'configuration', 'environment-variables', 'schema', 'api-reference']
   }
 };
 ```
