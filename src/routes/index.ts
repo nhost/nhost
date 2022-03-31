@@ -26,7 +26,7 @@ router.get('/healthz', (_req, res) => res.send(ReasonPhrases.OK));
 /**
  * GET /version
  * @summary Get the current Hasura-auth version
- * @return {string} 200 - Hasura auth version - text/plain
+ * @return {Version} 200 - Hasura auth version - text/plain
  * @tags General
  */
 router.get('/version', (_req, res) =>

@@ -52,3 +52,7 @@ export const UnauthorizedErrorModel = Joi.object<ErrorPayload>({
   status: Joi.valid(StatusCodes.UNAUTHORIZED).required(),
   message: Joi.string(),
 }).meta({ className: 'UnauthorizedError' });
+
+export const VersionModel = Joi.string()
+  .example(process.env.npm_package_version)
+  .meta({ className: 'Version' });
