@@ -7,38 +7,37 @@ title: 'Apollo GraphQL'
 With Yarn:
 
 ```sh
-yarn add @nhost/react @nhost/react-apollo
+yarn add @nhost/react @nhost/react-apollo @apollo/client
 ```
 
 With Npm:
 
 ```sh
-npm install @nhost/react @nhost/react-apollo
+npm install @nhost/react @nhost/react-apollo @apollo/client
 ```
 
 ## Configuration
 
-Let's add a `NhostApolloProvider`. Make sure the Apollo Provider is nested into `NhostProvider`, as it will need the Nhost context to determine the authentication headers to be sent to the GraphQL endpoint.
+Let's add a `NhostApolloProvider`. Make sure the Apollo Provider is nested into `NhostReactProvider`, as it will need the Nhost context to determine the authentication headers to be sent to the GraphQL endpoint.
 
 ```jsx
 import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 import { NhostApolloProvider } from '@nhost/react-apollo'
-import { NhostProvider } from '@nhost/react'
-import { Nhost } from '@nhost/client'
+import { NhostClient, NhostReactProvider } from '@nhost/react'
 
-const nhost = new Nhost({
+const nhost = new NhostClient({
   backendUrl: 'http://localhost:1337'
 })
 
 ReactDOM.render(
   <React.StrictMode>
-    <NhostProvider nhost={nhost}>
-      <NhostApolloProvider>
+    <NhostReactProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost}>
         <App />
       </NhostApolloProvider>
-    </NhostProvider>
+    </NhostReactProvider>
   </React.StrictMode>,
   document.getElementById('root')
 )

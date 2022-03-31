@@ -1,5 +1,34 @@
 # @nhost/react-auth
 
+## 3.0.0
+
+### Major Changes
+
+- 744fd69: Use `@nhost/react` instead of `@nhost/react-auth`
+  This major release allows to use the latest Nhost authentication state mechanism. It wraps and exports `NhostReactProvider` as `NhostAuthProvider` and `useNhostAuth` from `@nhost/react`.
+
+  In order to use it, you need to install `@nhost/react` as it is now a peer dependency:
+
+  ```
+  npm install @nhost/react
+  # or
+  yarn add @nhost/react
+  ```
+
+  It is however recommended to switch to `@nhost/react` and to remove this package from your dependencies.
+
+### Minor Changes
+
+- 744fd69: Unify vanilla, react and next APIs so they can work together
+  React and NextJS libraries now works together with `@nhost/nhost-js`. It also means the Nhost client needs to be initiated before passing it to the React provider.
+  See the [React](https://docs.nhost.io/reference/react#configuration) and [NextJS](https://docs.nhost.io/reference/nextjs/configuration) configuration documentation for additional information.
+
+## 2.0.11
+
+### Patch Changes
+
+- @nhost/nhost-js@0.3.13
+
 ## 2.0.10
 
 ### Patch Changes

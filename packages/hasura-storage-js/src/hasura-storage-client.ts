@@ -113,7 +113,27 @@ export class HasuraStorageClient {
     return { error: null }
   }
 
-  setAccessToken(accessToken: string | undefined): void {
+  /**
+   * Set the access token to use for authentication.
+   *
+   * @param accessToken Access token
+   * @returns Hasura Storage Client instance
+   */
+  setAccessToken(accessToken?: string): HasuraStorageClient {
     this.api.setAccessToken(accessToken)
+
+    return this
+  }
+
+  /**
+   * Set the admin secret to use for authentication.
+   *
+   * @param adminSecret Hasura admin secret
+   * @returns Hasura Storage Client instance
+   */
+  setAdminSecret(adminSecret?: string): HasuraStorageClient {
+    this.api.setAdminSecret(adminSecret)
+
+    return this
   }
 }

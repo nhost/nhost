@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-auth",
-  "version": "2.0.10",
+  "version": "3.0.0",
   "description": "Nhost React client",
   "license": "MIT",
   "keywords": [
@@ -47,15 +47,14 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "@nhost/nhost-js": "workspace:*"
-  },
+  "dependencies": {},
   "peerDependencies": {
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0",
     "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@nhost/hasura-auth-js": "workspace:*",
+    "@nhost/react": "workspace:^",
+    "@nhost/nhost-js": "workspace:^",
     "@types/react": "^17.0.38",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"

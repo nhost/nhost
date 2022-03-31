@@ -1,4 +1,4 @@
-import { NhostSession } from '@nhost/client'
+import { NhostSession } from '@nhost/core'
 
 export const refresh = async (
   nhostUrl: string,

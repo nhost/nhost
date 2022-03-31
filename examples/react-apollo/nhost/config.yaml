@@ -7,7 +7,7 @@ services:
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    version: 0.2.1
+    version: 0.4.2
 auth:
   access_control:
     email:
@@ -124,10 +124,10 @@ auth:
     allowed_roles: user,me
     default_allowed_roles: user,me
     default_role: user
-    mfa:
-      enabled: false
-      issuer: nhost
     signin_email_verified_required: true
+  mfa:
+    enabled: true
+    issuer: nhost
 storage:
   force_download_for_content_types: text/html,application/javascript
 version: 3

@@ -1,9 +1,8 @@
 import { Navigate, useLocation } from 'react-router-dom'
-import { useAuthenticated, useAuthLoading } from '@nhost/react'
+import { useAuthenticationStatus } from '@nhost/react'
 
 export const AuthGate: React.FC = ({ children }) => {
-  const isAuthenticated = useAuthenticated()
-  const isLoading = useAuthLoading()
+  const { isLoading, isAuthenticated } = useAuthenticationStatus()
   const location = useLocation()
   if (isLoading) {
     return <div>Loading...</div>
@@ -17,16 +16,14 @@ export const AuthGate: React.FC = ({ children }) => {
 }
 
 export const PublicGate: React.FC = ({ children }) => {
-  const isAuthenticated = useAuthenticated()
-  const isLoading = useAuthLoading()
+  const { isLoading, isAuthenticated } = useAuthenticationStatus()
   const location = useLocation()
   if (isLoading) {
     return <div>Loading...</div>
   }
 
   if (isAuthenticated) {
-    // ? stay on the same route - is it the best way to do so?
-    return <Navigate to={location} state={{ from: location }} replace />
+    return <Navigate to={'/'} state={{ from: location }} replace />
   }
 
   return <div>{children}</div>

@@ -39,7 +39,6 @@ describe('sign-in', () => {
         roles: expect.any(Array)
       }
     })
-    expect(true).toBe(true)
   })
 
   it('sign in user with passwordless email (magic link)', async () => {
@@ -62,8 +61,7 @@ describe('sign-in', () => {
 
     // get passwordless email ink
     const emailLink = htmlUrls({ html: message.html }).find(
-      (href: { value: string; url: string; uri: string }) =>
-        href.url.includes('signinPasswordless')
+      (href: { value: string; url: string; uri: string }) => href.url.includes('signinPasswordless')
     )
 
     // verify email

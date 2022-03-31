@@ -1,5 +1,38 @@
 # @nhost/react-apollo
 
+## 4.0.2
+
+### Patch Changes
+
+- Updated dependencies [39df4d5]
+  - @nhost/react@0.4.0
+
+## 4.0.1
+
+### Patch Changes
+
+- @nhost/react@0.3.1
+- @nhost/apollo@0.3.0
+
+## 4.0.0
+
+### Minor Changes
+
+- 744fd69: Unify vanilla, react and next APIs so they can work together
+  React and NextJS libraries now works together with `@nhost/nhost-js`. It also means the Nhost client needs to be initiated before passing it to the React provider.
+  See the [React](https://docs.nhost.io/reference/react#configuration) and [NextJS](https://docs.nhost.io/reference/nextjs/configuration) configuration documentation for additional information.
+
+### Patch Changes
+
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+  - @nhost/react@0.3.0
+  - @nhost/apollo@0.3.0
+
 ## 3.1.0
 
 ### Minor Changes
@@ -21,7 +54,7 @@
 
   - Introducing a new `@nhost/apollo` that will be reusable by other frameworks than React e.g. Vue
   - The new package works together with the `@nhost/client` and its new state management system
-  - **BREACKING CHANGE** The react client `@nhost/react-apollo` is set to use the new `@nhost/client` package and won't work anymore with `@nhost/nhost-js`. See the [documentation](https://docs.nhost.io/reference/react/apollo) for further information.
+  - **BREAKING CHANGE** The react client `@nhost/react-apollo` is set to use the new `@nhost/client` package and won't work anymore with `@nhost/nhost-js`. See the [documentation](https://docs.nhost.io/reference/react/apollo) for further information.
 
   Closes [#8](https://github.com/nhost/nhost/issues/8)
 
@@ -30,6 +63,13 @@
 - Updated dependencies [207ae38]
   - @nhost/apollo@0.2.0
   - @nhost/react@0.2.0
+
+## 2.1.6
+
+### Patch Changes
+
+- Updated dependencies [721e138c]
+  - @nhost/nhost-js@0.3.13
 
 ## 2.1.4
 

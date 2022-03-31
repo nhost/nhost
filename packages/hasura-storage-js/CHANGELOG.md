@@ -1,5 +1,19 @@
 # @nhost/hasura-storage-js
 
+## 0.2.0
+
+### Minor Changes
+
+- 744fd69: Unify vanilla, react and next APIs so they can work together
+  React and NextJS libraries now works together with `@nhost/nhost-js`. It also means the Nhost client needs to be initiated before passing it to the React provider.
+  See the [React](https://docs.nhost.io/reference/react#configuration) and [NextJS](https://docs.nhost.io/reference/nextjs/configuration) configuration documentation for additional information.
+
+## 0.1.0
+
+### Minor Changes
+
+- ff7ae21: Introducing `setAdminSecret` to allow users of the SDK to use `x-hasura-admin-secret` request header in storage related functions
+
 ## 0.0.12
 
 ### Patch Changes

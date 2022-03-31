@@ -1,5 +1,5 @@
 import { Button, Input, Message } from 'rsuite'
-import { useEmailPasswordSignUp } from '@nhost/react'
+import { useSignUpEmailPassword } from '@nhost/react'
 import { useEffect, useMemo, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 
@@ -14,18 +14,18 @@ export const EmailPassword: React.FC = () => {
   )
   const navigate = useNavigate()
   const [confirmPassword, setConfirmPassword] = useState('')
-  const { signUp, error, needsVerification, isSuccess } = useEmailPasswordSignUp(
+  const { signUpEmailPassword, error, needsEmailVerification, isSuccess } = useSignUpEmailPassword(
     email,
     password,
     options
   )
   const [errorMessage, setErrorMessage] = useState('')
   useEffect(() => {
-    if (needsVerification) navigate('/sign-up/verification-email-sent')
+    if (needsEmailVerification) navigate('/sign-up/verification-email-sent')
     else if (isSuccess) navigate('/')
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsVerification, isSuccess])
+  }, [needsEmailVerification, isSuccess])
 
   // * Set error message from the registration hook errors
   useEffect(() => {
@@ -37,7 +37,7 @@ export const EmailPassword: React.FC = () => {
   }, [email, password])
   // * Show an error message when passwords are different
   useEffect(() => {
-    if (password !== confirmPassword) setErrorMessage('Provided passwords must be the same')
+    if (password !== confirmPassword) setErrorMessage('Both passwords must be the same')
     else setErrorMessage('')
   }, [password, confirmPassword])
   return (
@@ -91,7 +91,7 @@ export const EmailPassword: React.FC = () => {
         appearance="primary"
         onClick={() => {
           setErrorMessage('')
-          signUp()
+          signUpEmailPassword()
         }}
         block
       >

@@ -1,6 +1,6 @@
 {
   "name": "@nhost-examples/nextjs",
-  "version": "0.0.2",
+  "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,17 +9,18 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@nhost/nextjs": "^0.2.0",
-    "@nhost/react": "^0.2.0",
-    "@nhost/react-apollo": "^3.0.0",
+    "@apollo/client": "^3.5.10",
+    "@nhost/nextjs": "^1.0.0",
+    "@nhost/react": "^0.3.0",
+    "@nhost/react-apollo": "^4.0.0",
     "graphql": "^16.3.0",
     "next": "12.1.0",
     "react": "17.0.2",
     "react-dom": "17.0.2"
   },
   "devDependencies": {
-    "@types/node": "17.0.17",
-    "@types/react": "17.0.39",
+    "@types/node": "17.0.23",
+    "@types/react": "17.0.43",
     "@xstate/inspect": "^0.6.2",
     "eslint": "8.8.0",
     "eslint-config-next": "12.0.10",

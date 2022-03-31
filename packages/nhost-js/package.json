@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "0.3.12",
+  "version": "1.0.1",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -52,11 +52,13 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@nhost/hasura-auth-js": "workspace:*",
-    "@nhost/hasura-storage-js": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:^",
+    "@nhost/hasura-storage-js": "workspace:^",
     "axios": "^0.23.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@nhost/core": "workspace:^"
+  }
 }

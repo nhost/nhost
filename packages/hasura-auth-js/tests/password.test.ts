@@ -5,19 +5,15 @@ import htmlUrls from 'html-urls'
 import { auth, mailhog, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 
 describe('passwords', () => {
+  afterEach(async () => {
+    await auth.signOut()
+  })
+
   it('should change existing password', async () => {
     const email = faker.internet.email().toLocaleLowerCase()
     const password = faker.internet.password(8)
 
     await signUpAndInUser({ email, password })
-
-    const signInA = await auth.signIn({
-      email,
-      password
-    })
-
-    expect(signInA.error).toBeNull()
-    expect(signInA.session).toBeTruthy()
 
     const newPassword = `${password}-new`
     const changePasswordResponse = await auth.changePassword({
@@ -67,6 +63,5 @@ describe('passwords', () => {
       maxRedirects: 0,
       validateStatus: (status) => status === 302
     })
-    await auth.signOut()
   })
 })

@@ -5,5 +5,5 @@
     "composite": true
   },
   "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"],
-  "references": [{ "path": "../nhost-js" }]
+  "references": [{ "path": "../nhost-js" }, { "path": "../react" }]
 }

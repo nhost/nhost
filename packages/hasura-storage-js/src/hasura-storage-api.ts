@@ -10,10 +10,12 @@ import {
   ApiUploadResponse,
   UploadHeaders
 } from './utils/types'
+
 export class HasuraStorageApi {
   private url: string
   private httpClient: AxiosInstance
-  private accessToken: string | undefined
+  private accessToken?: string
+  private adminSecret?: string
 
   constructor({ url }: { url: string }) {
     this.url = url
@@ -66,8 +68,28 @@ export class HasuraStorageApi {
     }
   }
 
-  setAccessToken(accessToken: string | undefined) {
+  /**
+   * Set the access token to use for authentication.
+   *
+   * @param accessToken Access token
+   * @returns Hasura Storage API instance
+   */
+  setAccessToken(accessToken?: string): HasuraStorageApi {
     this.accessToken = accessToken
+
+    return this
+  }
+
+  /**
+   * Set the admin secret to use for authentication.
+   *
+   * @param adminSecret Hasura admin secret
+   * @returns Hasura Storage API instance
+   */
+  setAdminSecret(adminSecret?: string): HasuraStorageApi {
+    this.adminSecret = adminSecret
+
+    return this
   }
 
   private generateUploadHeaders(params: ApiUploadParams): UploadHeaders {
@@ -83,12 +105,19 @@ export class HasuraStorageApi {
     if (name) {
       uploadheaders['x-nhost-file-name'] = name
     }
+
     return uploadheaders
   }
 
   private generateAuthHeaders() {
-    if (!this.accessToken) {
+    if (!this.adminSecret && !this.accessToken) {
       return null
+    }
+
+    if (this.adminSecret) {
+      return {
+        'x-hasura-admin-secret': this.adminSecret
+      }
     }
 
     return {

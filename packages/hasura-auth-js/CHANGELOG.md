@@ -1,5 +1,40 @@
 # @nhost/hasura-auth-js
 
+## 1.0.1
+
+### Patch Changes
+
+- ab36f90: Correct access to user/session information through getUser/getSession/isReady function when authentication state is not ready yet
+  In some cases e.g. NextJS build, `auth.getUser()`, `auth.getSession()` or `auth.isReady()` should be accessible without raising an error.
+
+## 1.0.0
+
+### Major Changes
+
+- 744fd69: Use `@nhost/core` and its state machine
+
+  `@nhost/nhost-js` and `@nhost/hasura-auth-js` now use the xstate-based state management system from `@nhost/core`.
+
+  The client initiation remains the same, although the `clientStorage` and `clientStorageType` are deprecated in favor of `clientStorageGetter (key:string) => string | null | Promise<string | null>` and `clientStorageSetter: (key: string, value: string | null) => void | Promise<void>`.
+
+### Minor Changes
+
+- 744fd69: Unify vanilla, react and next APIs so they can work together
+  React and NextJS libraries now works together with `@nhost/nhost-js`. It also means the Nhost client needs to be initiated before passing it to the React provider.
+  See the [React](https://docs.nhost.io/reference/react#configuration) and [NextJS](https://docs.nhost.io/reference/nextjs/configuration) configuration documentation for additional information.
+
+### Patch Changes
+
+- 744fd69: remove `nhost.auth.verifyEmail`
+  Theres's a /verify endpoint in hasura-auth, but the sdk is not even using it as
+  1. the user follows the /verify link in the email
+  2. hasura-auth validates the link, attaches the token and redirects to the frontend
+  3. the sdk gets the refresh token from the url
+  4. the sdk consumes the refresh token
+- Updated dependencies [744fd69]
+- Updated dependencies [744fd69]
+  - @nhost/core@0.3.0
+
 ## 0.1.15
 
 ### Patch Changes

@@ -1,13 +1,18 @@
-export interface User {
-  id: string
-  createdAt: string
-  displayName: string
-  avatarUrl: string
-  locale: string
-  email?: string
-  isAnonymous: boolean
-  defaultRole: string
-  roles: string[]
+import { AuthClient, StorageGetter, StorageSetter, User } from '@nhost/core'
+
+export interface NhostAuthConstructorParams {
+  url: string
+  refreshIntervalTime?: number
+  /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
+  clientStorage?: ClientStorage
+  /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
+  clientStorageType?: ClientStorageType
+  clientStorageGetter?: StorageGetter
+  clientStorageSetter?: StorageSetter
+  autoRefreshToken?: boolean
+  autoLogin?: boolean
+  start?: boolean
+  Client?: typeof AuthClient
 }
 
 export interface Session {
@@ -16,7 +21,6 @@ export interface Session {
   refreshToken: string
   user: User | null
 }
-
 export interface ApiError {
   message: string
   status: number

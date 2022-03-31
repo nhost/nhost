@@ -7,36 +7,36 @@ title: 'Hooks'
 ### Email and Password Sign-Un
 
 ```js
-const { signUp, isLoading, isSuccess, needsVerification, isError, error } =
-  useEmailPasswordSignUp(email?: string, password?: string, options?: Options )
+const { signUpEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
+  useSignUpEmailPassword(email?: string, password?: string, options?: Options )
 ```
 
-| Name                   | Type                                                          | Notes                                                                                                                                                                                                             |
-| ---------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signUp`               | (email?: string, password?: string) => void                   | Used for a new user to sign up. The email/password arguments will take precedence over the possible state values used when creating the hook.                                                                     |
-| `isLoading`            | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
-| `needsVerification`    | boolean                                                       | Returns `true` if the sign-up has been accepted, but a verificaiton email has been sent and is awaiting.                                                                                                          |
-| `isSuccess`            | boolean                                                       | Returns `true` if the sign-up suceeded. Returns `false` if the new email needs to be verified first, or if an error occurred.                                                                                     |
-| `isError`              | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
-| `error`                | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
-| `options.locale`       | string \| undefined                                           | Locale of the user, in two digits, for instance `en`.                                                                                                                                                             |
-| `options.allowedRoles` | string[] \| undefined                                         | Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.                                                                                                                  |
-| `options.defaultRole`  | string \| undefined                                           | Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.                                                                                                                       |
-| `options.displayName`  | string \| undefined                                           |                                                                                                                                                                                                                   |
-| `options.metadata`     | Record<string, unknown> \| undefined                          | Custom additional user information stored in the `metadata` column. Can be any JSON object.                                                                                                                       |
-| `options.redirectTo`   | string \| undefined                                           | redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+| Name                     | Type                                                          | Notes                                                                                                                                                                                                             |
+| ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signUpEmailPassword`    | (email?: string, password?: string) => void                   | Used for a new user to sign up. The email/password arguments will take precedence over the possible state values used when creating the hook.                                                                     |
+| `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `needsEmailVerification` | boolean                                                       | Returns `true` if the sign-up has been accepted, but a verificaiton email has been sent and is awaiting.                                                                                                          |
+| `isSuccess`              | boolean                                                       | Returns `true` if the sign-up suceeded. Returns `false` if the new email needs to be verified first, or if an error occurred.                                                                                     |
+| `isError`                | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`                  | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
+| `options.locale`         | string \| undefined                                           | Locale of the user, in two digits, for instance `en`.                                                                                                                                                             |
+| `options.allowedRoles`   | string[] \| undefined                                         | Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.                                                                                                                  |
+| `options.defaultRole`    | string \| undefined                                           | Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.                                                                                                                       |
+| `options.displayName`    | string \| undefined                                           |                                                                                                                                                                                                                   |
+| `options.metadata`       | Record<string, unknown> \| undefined                          | Custom additional user information stored in the `metadata` column. Can be any JSON object.                                                                                                                       |
+| `options.redirectTo`     | string \| undefined                                           | redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
 
 #### Usage
 
 ```jsx
 import { useState } from 'react'
-import { useEmailPasswordSignUp } from '@nhost/react'
+import { useSignUpEmailPassword } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { signUp, isLoading, isSuccess, needsVerification, isError, error } =
-    useEmailPasswordSignUp(email, password)
+  const { signUpEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
+    useSignUpEmailPassword(email, password)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" />
@@ -45,9 +45,9 @@ const Component = () => {
         onChange={(event) => setPassword(event.target.value)}
         placeholder="Password"
       />
-      <button onClick={signUp}>Register</button>
+      <button onClick={signUpEmailPassword}>Register</button>
       {isSuccess && <div>Your account have beed created! You are now authenticated</div>}
-      {needsVerification && (
+      {needsEmailVerification && (
         <div>Please check your mailbox and follow the verification link to verify your email</div>
       )}
     </div>
@@ -58,30 +58,32 @@ const Component = () => {
 ### Email and Password Sign-In
 
 ```js
-const { signIn, isLoading, needsVerification, isSuccess, isError, error } =
-  useEmailPasswordSignIn(email?: string, password?: string)
+const { signInEmailPassword, isLoading, needsEmailVerification, needsMfaOtp, sendMfaOtp, isSuccess, isError, error } =
+  useSignInEmailPassword(email?: string, password?: string)
 ```
 
-| Name                | Type                                                          | Notes                                                                                                                                       |
-| ------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signIn`            | (email?: string, password?: string) => void                   | Will try to authenticate. The email/password arguments will take precedence over the possible state values used when creating the hook.     |
-| `isLoading`         | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                        |
-| `needsVerification` | boolean                                                       | Returns `true` if the user email is still pending verification.                                                                             |
-| `isSuccess`         | boolean                                                       | Returns `true` if the user has successfully authenticated. Returns `false` in case or error or if the new email needs to be verified first. |
-| `isError`           | boolean                                                       | Returns `true` if an error occurred.                                                                                                        |
-| `error`             | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                           |
+| Name                     | Type                                                          | Notes                                                                                                                                       |
+| ------------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signInEmailPassword`    | (email?: string, password?: string) => void                   | Will try to authenticate. The email/password arguments will take precedence over the possible state values used when creating the hook.     |
+| `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                        |
+| `needsEmailVerification` | boolean                                                       | Returns `true` if the user email is still pending email verification.                                                                       |
+| `needsMfaOtp`            | boolean                                                       | Returns `true` if the server is awaiting an MFA one-time password to complete the authentication.                                           |
+| `sendMfaOtp`             | (otp: string) => void                                         | Sends MFA One-time password. Will turn either `isSuccess` or `isError` to true, and store potential error in `error`.                       |
+| `isSuccess`              | boolean                                                       | Returns `true` if the user has successfully authenticated. Returns `false` in case or error or if the new email needs to be verified first. |
+| `isError`                | boolean                                                       | Returns `true` if an error occurred.                                                                                                        |
+| `error`                  | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                           |
 
 #### Usage
 
 ```jsx
 import { useState } from 'react'
-import { useEmailPasswordSignIn } from '@nhost/react'
+import { useSignInEmailPassword } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { signIn, isLoading, isSuccess, needsVerification, isError, error } =
-    useEmailPasswordSignIn(email, password)
+  const { signInEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
+    useSignInEmailPassword(email, password)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" />
@@ -90,9 +92,9 @@ const Component = () => {
         onChange={(event) => setPassword(event.target.value)}
         placeholder="Password"
       />
-      <button onClick={signUp}>Register</button>
+      <button onClick={signInEmailPassword}>Register</button>
       {isSuccess && <div>Authentication suceeded</div>}
-      {needsVerification && (
+      {needsEmailVerification && (
         <div>
           You must verify your email to sign in. Check your mailbox and follow the instructions to
           verify your email.
@@ -106,48 +108,68 @@ const Component = () => {
 ### Oauth Providers
 
 ```js
+const providerLink = useProviderLink(options?: Options)
+```
+
+| Name                   | Type                                 | Notes                                                                                                                                                                                                             |
+| ---------------------- | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `options.locale`       | string \| undefined                  | Locale of the user, in two digits, for instance `en`.                                                                                                                                                             |
+| `options.allowedRoles` | string[] \| undefined                | Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasua Auth.                                                                                                                   |
+| `options.defaultRole`  | string \| undefined                  | Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.                                                                                                                       |
+| `options.displayName`  | string \| undefined                  |
+| `options.metadata`     | Record<string, unknown> \| undefined | Custom additional user information stored in the `metadata` column. Can be any JSON object.                                                                                                                       |
+| `options.redirectTo`   | string \| undefined                  | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+
+#### Usage
+
+```js
 import { useProviderLink } from '@nhost/react'
 
 const Component = () => {
-  const { github } = useProviderLink()
-  return <a href={github}>Authenticate with GitHub</a>
+  const { facebook, github } = useProviderLink()
+  return
+  ;<div>
+    <a href={facebook}>Authenticate with Facebook</a>
+    <a href={github}>Authenticate with GitHub</a>
+  </div>
 }
 ```
 
 ### Passwordless email authentication
 
 ```js
-const { signIn, isLoading, isSuccess, isError, error } =
-  useEmailPasswordlessSignIn(email?: string, options?: Options)
+const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
+  useSignInEmailPasswordless(email?: string, options?: Options)
 ```
 
-| Name                   | Type                                             | Notes                                                                                                                                                                                                             |
-| ---------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signIn`               | (email?: string) => void                         | Sends a magic link to the given email The email argument will take precedence over the the possible state value used when creating the hook.                                                                      |
-| `isLoading`            | boolean                                          | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
-| `isSuccess`            | boolean                                          | Returns `true` if the magic link email user has successfully send.                                                                                                                                                |
-| `isError`              | boolean                                          | Returns `true` if an error occurred.                                                                                                                                                                              |
-| `error`                | {status: number, error: string, message: string} | Provides details about the error.                                                                                                                                                                                 |
-| `options.locale`       | string \| undefined                              | Locale of the user, in two digits, for instance `en`.                                                                                                                                                             |
-| `options.allowedRoles` | string[] \| undefined                            | Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasua Auth.                                                                                                                   |
-| `options.defaultRole`  | string \| undefined                              | Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.                                                                                                                       |
-| `options.displayName`  | string \| undefined                              |
-| `options.metadata`     | Record<string, unknown> \| undefined             | Custom additional user information stored in the `metadata` column. Can be any JSON object.                                                                                                                       |
-| `options.redirectTo`   | string \| undefined                              | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+| Name                      | Type                                             | Notes                                                                                                                                                                                                             |
+| ------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signInEmailPasswordless` | (email?: string) => void                         | Sends a magic link to the given email The email argument will take precedence over the the possible state value used when creating the hook.                                                                      |
+| `isLoading`               | boolean                                          | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `isSuccess`               | boolean                                          | Returns `true` if the magic link email user has successfully send.                                                                                                                                                |
+| `isError`                 | boolean                                          | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`                   | {status: number, error: string, message: string} | Provides details about the error.                                                                                                                                                                                 |
+| `options.locale`          | string \| undefined                              | Locale of the user, in two digits, for instance `en`.                                                                                                                                                             |
+| `options.allowedRoles`    | string[] \| undefined                            | Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasua Auth.                                                                                                                   |
+| `options.defaultRole`     | string \| undefined                              | Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.                                                                                                                       |
+| `options.displayName`     | string \| undefined                              |
+| `options.metadata`        | Record<string, unknown> \| undefined             | Custom additional user information stored in the `metadata` column. Can be any JSON object.                                                                                                                       |
+| `options.redirectTo`      | string \| undefined                              | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
 
 #### Usage
 
 ```jsx
 import { useState } from 'react'
-import { useEmailPasswordlessSignIn } from '@nhost/react'
+import { useSignInEmailPasswordless } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { signIn, isLoading, isSuccess, isError, error } = useEmailPasswordlessSignIn(email)
+  const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
+    useSignInEmailPasswordless(email)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" />
-      <button onClick={signUp}>Register</button>
+      <button onClick={signInEmailPasswordless}>Authenticate</button>
       {isSuccess && (
         <div>
           An email has been sent to {email}. Please check your mailbox and click on the
@@ -192,22 +214,23 @@ const Component = () => {
 }
 ```
 
+---
+
 ## Authentication status
 
-### `useAuthLoading`
+### `useAuthenticationStatus`
 
 The Nhost client may need some initial steps to determine the authentication status during startup, like fetching a new JWT from an existing refresh token.
 
-`useAuthLoading` will return `true` until the authentication status is known.
+`isLoading` will return `true` until the authentication status is known.
 
 #### Usage
 
 ```jsx
-import { useAuthLoading, useAuthenticated } from '@nhost/react'
+import { useAuthenticationStatus } from '@nhost/react'
 
 const Component = () => {
-  const isLoading = useAuthLoading()
-  const isAuthenticated = useAuthenticated()
+  const { isLoading, isAuthenticated } = useAuthenticationStatus()
   if (isLoading) return <div>Loading Nhost authentication status...</div>
   else if (isAuthenticated) return <div>User is authenticated</div>
   else return <div>Public section</div>
@@ -216,29 +239,31 @@ const Component = () => {
 
 ### Get the JWT access token
 
-<!-- TODO better documentation -->
+<!-- TODO ellaborate -->
 
 ```js
 const accessToken = useAccessToken()
 ```
+
+---
 
 ## User management
 
 ### Change email
 
 ```js
-const { changeEmail, isLoading, isSuccess, needsVerification, isError, error } =
+const { changeEmail, isLoading, isSuccess, needsEmailVerification, isError, error } =
   useChangeEmail(email?: string, options?: { redirectTo?: string })
 ```
 
-| Name                | Type                                                          | Notes                                                                                                                                                                                                             |
-| ------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `changeEmail`       | (email?: string) => void                                      | Rrequests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.                                                                            |
-| `isLoading`         | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
-| `needsVerification` | boolean                                                       | Returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.                                                                                        |
-| `isError`           | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
-| `error`             | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
-| `redirectTo`        | string \| undefined                                           | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+| Name                     | Type                                                          | Notes                                                                                                                                                                                                             |
+| ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `changeEmail`            | (email?: string) => void                                      | Requests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.                                                                             |
+| `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `needsEmailVerification` | boolean                                                       | Returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.                                                                                        |
+| `isError`                | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`                  | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
+| `redirectTo`             | string \| undefined                                           | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
 
 #### Usage
 
@@ -248,12 +273,13 @@ import { useChangeEmail } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { changeEmail, isLoading, needsVerification, isError, error } = useChangeEmail(password)
+  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+    useChangeEmail(password)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
       <button onClick={changeEmail}>Change password</button>
-      {needsVerification && (
+      {needsEmailVerification && (
         <div>
           Please check your mailbox and follow the verification link to confirm your new email
         </div>
@@ -330,9 +356,48 @@ const Component = () => {
 }
 ```
 
+### Send email verification
+
+```js
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail(email?: string, options?: { redirectTo?: string })
+```
+
+| Name         | Type                                                          | Notes                                                                                                                                                                                                             |
+| ------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sendEmail`  | (email?: string) => void                                      | Requests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.                                                                             |
+| `isLoading`  | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `isSent`     | boolean                                                       | Returns `true` if the verification email has been sent                                                                                                                                                            |
+| `isError`    | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`      | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
+| `redirectTo` | string \| undefined                                           | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+
+#### Usage
+
+```jsx
+import { useState } from 'react'
+import { useChangeEmail } from '@nhost/react'
+
+const Component = () => {
+  const [email, setEmail] = useState('')
+  const { sendEmail, isLoading, isSent, isError, error } = useChangeEmail(password)
+  return (
+    <div>
+      <input value={email} onChange={(event) => setEmail(event.target.value)} />
+      <button onClick={sendEmail}>Send email verification</button>
+      {isSent && (
+        <div>Please check your mailbox and follow the verification link to confirm your email</div>
+      )}
+    </div>
+  )
+}
+```
+
+---
+
 ## User data
 
-<!-- TODO document -->
+<!-- TODO ellaborate -->
 
 ```js
 const userData = useUserData()

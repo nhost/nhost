@@ -6,13 +6,12 @@ Create a `auth-protected.js` file:
 
 ```jsx
 import { useRouter } from 'next/router'
-import { useAuthLoading, useAuthenticated } from '@nhost/react'
+import { useAuthenticationStatus } from '@nhost/nextjs'
 
 export function authProtected(Comp) {
   return function AuthProtected(props) {
     const router = useRouter()
-    const isLoading = useAuthLoading()
-    const isAuthenticated = useAuthenticated()
+    const { isLoading, isAuthenticated } = useAuthenticationStatus()
 
     if (isLoading) {
       return <div>Loading...</div>
