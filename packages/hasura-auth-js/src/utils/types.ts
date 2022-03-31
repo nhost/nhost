@@ -2,14 +2,19 @@ import { AuthClient, StorageGetter, StorageSetter, User } from '@nhost/core'
 
 export interface NhostAuthConstructorParams {
   url: string
+  /** When autoLogin is enabled, minimum interval between now and the token expiration limit, in seconds */
   refreshIntervalTime?: number
   /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
   clientStorage?: ClientStorage
   /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
   clientStorageType?: ClientStorageType
+  /** Custom function to get a refresh token and expiration date stored in the client */
   clientStorageGetter?: StorageGetter
+  /** Custom function to set a refresh token and expiration date stored in the client */
   clientStorageSetter?: StorageSetter
+  /** When set to `true`, will set a timer to refresh the access token before it expires */
   autoRefreshToken?: boolean
+  /** When autoLogin is enabled, minimum interval between now and the token expiration limit, in seconds */
   autoLogin?: boolean
   start?: boolean
   Client?: typeof AuthClient
