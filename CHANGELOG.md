@@ -1,6 +1,11 @@
 
 
-## [0.4.3](https://github.com/nhost/hasura-auth/compare/v0.4.2...v0.4.3) (2022-03-18)
+# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
+
+
+### Features
+
+* redirect errors to any payload with a `redirectTo` property ([a14d7a9](https://github.com/nhost/hasura-auth/commit/a14d7a9389316078958b3ea8a9f2b0ea35bf9caa))## [0.4.3](https://github.com/nhost/hasura-auth/compare/v0.4.2...v0.4.3) (2022-03-18)
 
 
 ### Bug Fixes
