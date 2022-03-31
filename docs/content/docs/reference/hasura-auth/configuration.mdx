@@ -101,7 +101,7 @@ TODO ## Anonymous users -->
 
 Hasura Auth supports different types of Multi-Factor Authentication (MFA): passwordless with emails (magic links), passwordless with SMS, and Time-based one-time passwords.
 
-### Passwordless with emails
+### Passwordless with emails (magic links)
 
 Hasura Auth supports email [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). It requires [SMTP](#email-configuration) to be configured properly.
 
@@ -127,7 +127,7 @@ TODO ## OAuth authentication -->
 
 ## Gravatar
 
-Hasura Auth stores the avatar URL of users in a specific field. By default, it will look for the Gravatar linked to the email, and store it into this field.
+Hasura Auth stores the avatar URL of users in `auth.users.avatar_url`. By default, it will look for the Gravatar linked to the email, and store it into this field.
 It is possible to deactivate the use of Gravatar in setting the `AUTH_GRAVATAR_ENABLED` environment variable to `false`.
 
 ---
@@ -136,14 +136,14 @@ It is possible to deactivate the use of Gravatar in setting the `AUTH_GRAVATAR_E
 
 Adding columns to the user tables may be tempting. However, all the tables and columns have a specific purpose, and changing the structure of the `auth` schema will very likely end in breaking the functionning of Hasura Auth.
 
-There are two recommended ways of extending user information:
+Instead, we recommend adding extra user information in the following ways:
 
 - to store information in the `auth.users.metadata` column
 - to store information in a separate table located in the `public` PostgreSQL schema, and to point to `auth.users.id` through a foreign key.
 
 ### `metadata` user field
 
-The `auth.users.metadata` field is a basic JSON column, that can be used as an option on registration:
+The `auth.users.metadata` field is a JSON column, that can be used as an option on registration:
 
 ```json
 {
@@ -171,7 +171,7 @@ In that case, it is possible to create a dedicated table in the `public` schema,
 
 Hasura comes with a [powerful authorisation system](https://hasura.io/docs/latest/graphql/core/auth/authorization/index.html). Hasura Auth is already configured to add `x-hasura-user-id`, `x-hasura-allowed-roles`, and `x-hasura-user-isAnonymous` to the JSON Web Tokens it generates.
 
-This release introduces the ability to define custom claims to add to the JWT, so they can be used by Hasura to determine the permissions of the received GraphQL operation.
+In Hasura Auth, it is possible to define custom claims to add to the JWT, so they can be used by Hasura to determine the permissions of the received GraphQL operation.
 
 Each custom claim is defined by a pair of a key and a value:
 
