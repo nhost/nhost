@@ -1,46 +1,74 @@
-import { useMemo } from 'react'
+import { useState } from 'react'
 
 import { SignUpOptions } from '@nhost/core'
-import { useSelector } from '@xstate/react'
+import { ErrorPayload } from '@nhost/core/src/errors'
 
-import { useAuthenticationStatus, useAuthInterpreter } from './common'
+import { useAuthInterpreter } from './common'
+
+type UseSignUpEmailPasswordState = {
+  isLoading: boolean
+  isSuccess: boolean
+  isError: boolean
+  error: ErrorPayload | null
+  needsEmailVerification: boolean
+}
 
 export const useSignUpEmailPassword = (
-  stateEmail?: string,
-  statePassword?: string,
-  stateOptions?: SignUpOptions
-) => {
+  options?: SignUpOptions
+): [
+  (email: string, password: string) => Promise<Omit<UseSignUpEmailPasswordState, 'isLoading'>>,
+  UseSignUpEmailPasswordState
+] => {
   const service = useAuthInterpreter()
-  const isError =
-    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
-  const error = useSelector(
-    service,
-    (state) => state.context.errors.registration,
-    (a, b) => a?.error === b?.error
-  )
-  const { isLoading: loading, isAuthenticated: isSuccess } = useAuthenticationStatus()
-  const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
-  const needsEmailVerification =
-    !!service.status &&
-    service.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+  const [state, setState] = useState<UseSignUpEmailPasswordState>({
+    isLoading: false,
+    isSuccess: false,
+    isError: false,
+    error: null,
+    needsEmailVerification: false
+  })
 
-  const signUpEmailPassword = (
-    valueEmail?: string | unknown,
-    valuePassword = statePassword,
-    valueOptions = stateOptions
-  ) =>
+  const handler: ReturnType<typeof useSignUpEmailPassword>[0] = (
+    email: string,
+    password: string
+  ) => {
     service.send({
       type: 'SIGNUP_EMAIL_PASSWORD',
-      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-      password: valuePassword,
-      options: valueOptions
+      email,
+      password,
+      options
     })
-  return {
-    signUpEmailPassword,
-    isLoading,
-    isSuccess,
-    isError,
-    error,
-    needsEmailVerification
+    setState({
+      isLoading: true,
+      isSuccess: false,
+      isError: false,
+      error: null,
+      needsEmailVerification: false
+    })
+    return new Promise((resolve) => {
+      service.onTransition((s) => {
+        if (s.matches({ authentication: { signedOut: 'failed' } })) {
+          const result = {
+            isSuccess: false,
+            isError: true,
+            error: s.context.errors.registration as ErrorPayload,
+            needsEmailVerification: false
+          }
+          setState({ ...result, isLoading: false })
+          resolve(result)
+        } else if (s.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+          const result = {
+            isSuccess: false,
+            isError: false,
+            error: null,
+            needsEmailVerification: true
+          }
+          setState({ ...result, isLoading: false })
+          return resolve(result)
+        }
+      })
+    })
   }
+
+  return [handler, state]
 }
