@@ -4,7 +4,7 @@ title: Configuration
 
 ## Email configuration
 
-It is possible to enable the following features in configuring an external SMTP email service:
+Hasura Auth automatically sends transactional emails to manage the following operations:
 
 - Sign up
 - Password reset
@@ -53,8 +53,8 @@ The context variables in email templates have been simplified: the `${link}` var
 
 Some authentication operations redirects the users to the frontend application:
 
-- After Oauth providers complete or fail authentication, they redirect to the Hasura Auth callback. Hasura auth then redirects to the frontend
-- Every email sent to the user (passwordless with email, password/email change, password reset) contains a link, that will eventually redirect to the frontend
+- After an OAuth provider completes or fails authentication, the user is redirected to the frontend
+- Every email sent to the user (passwordless with email, password/email change, password reset) contains a link, that redirects the user to the frontend
 
 In order to achieve that, you need to set the `AUTH_CLIENT_URL` environment variable, for instance:
 
@@ -105,7 +105,7 @@ Hasura Auth supports different types of Multi-Factor Authentication (MFA): passw
 
 Hasura Auth supports email [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). It requires [SMTP](#email-configuration) to be configured properly.
 
-To enable it, you also need to set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true`.
+Set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true` to enable passwordless authentication.
 
 <!-- TODO ### Passwordless with SMS -->
 
@@ -175,7 +175,7 @@ This release introduces the ability to define custom claims to add to the JWT, s
 
 Each custom claim is defined by a pair of a key and a value:
 
-- The key determines the name of the claim, prefixed by `x-hasura`. For instance, `organisation-id`will become `x-hasura-organisation-id`.
+- The key determines the name of the claim, prefixed by `x-hasura`. For instance, `organisation-id` will become `x-hasura-organisation-id`.
 - The value is a representation of the path to look at to determine the value of the claim. For instance `profile.organisation.id` will look for the `user.profile` Hasura relationship, and the `profile.organisation` Hasura relationship. Array values are transformed into Postgres syntax so Hasura can interpret them. See the official Hasura documentation to understand the [session variables format](https://hasura.io/docs/latest/graphql/core/auth/authorization/roles-variables.html#format-of-session-variables).
 
 ```bash
