@@ -365,7 +365,7 @@ const { sendEmail, isLoading, isSent, isError, error } =
 
 | Name         | Type                                                          | Notes                                                                                                                                                                                                             |
 | ------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sendEmail`  | (email?: string) => void                                      | Requests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.                                                                             |
+| `sendEmail`  | (email?: string) => void                                      | Resend the verification Mail.                                                                             |
 | `isLoading`  | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
 | `isSent`     | boolean                                                       | Returns `true` if the verification email has been sent                                                                                                                                                            |
 | `isError`    | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
@@ -376,11 +376,11 @@ const { sendEmail, isLoading, isSent, isError, error } =
 
 ```jsx
 import { useState } from 'react'
-import { useChangeEmail } from '@nhost/react'
+import { useSendVerificationEmail } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { sendEmail, isLoading, isSent, isError, error } = useChangeEmail(password)
+  const { sendEmail, isLoading, isSent, isError, error } = useSendVerificationEmail(password)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
