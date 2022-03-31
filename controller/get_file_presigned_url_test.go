@@ -78,7 +78,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 				}, nil)
 
 				contentStorage.EXPECT().CreatePresignedURL(
-					"default/55af1e60-0f28-454e-885e-ea6aab2bb288", 30*time.Minute,
+					"55af1e60-0f28-454e-885e-ea6aab2bb288", 30*time.Minute,
 				).Return(
 					"https://some-url", nil,
 				)

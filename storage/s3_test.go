@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package storage_test
@@ -65,12 +66,12 @@ func TestDeleteFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, apiErr := s3.PutFile(f, "default/s3_test.go", "text")
+	_, apiErr := s3.PutFile(f, "s3_test.go", "text")
 	if apiErr != nil {
 		t.Fatal(apiErr)
 	}
 
-	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf/default", "s3_test.go") {
+	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", "s3_test.go") {
 		t.Fatal("couldn't find test file")
 	}
 
@@ -80,11 +81,11 @@ func TestDeleteFile(t *testing.T) {
 	}{
 		{
 			name:     "success",
-			filepath: "default/s3_test.go",
+			filepath: "s3_test.go",
 		},
 		{
 			name:     "file not found",
-			filepath: "/default/qwenmzxcxzcsadsad",
+			filepath: "qwenmzxcxzcsadsad",
 		},
 	}
 
@@ -98,7 +99,7 @@ func TestDeleteFile(t *testing.T) {
 				t.Error(err)
 			}
 
-			if findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf/default", tc.filepath) {
+			if findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", tc.filepath) {
 				t.Error("file wasn't deleted")
 			}
 		})
@@ -129,7 +130,7 @@ func TestListFiles(t *testing.T) {
 
 			for _, f := range got {
 				fmt.Println(f)
-				if !strings.HasPrefix(f, "f215cf48-7458-4596-9aa5-2159fc6a3caf/default/") {
+				if !strings.HasPrefix(f, "f215cf48-7458-4596-9aa5-2159fc6a3caf/") {
 					t.Errorf("found extraneous file: %s", f)
 				}
 			}
@@ -147,12 +148,12 @@ func TestGetFilePresignedURL(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, apiErr := s3.PutFile(f, "default/s3_test.go", "text")
+	_, apiErr := s3.PutFile(f, "s3_test.go", "text")
 	if apiErr != nil {
 		t.Fatal(apiErr)
 	}
 
-	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf/default", "s3_test.go") {
+	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", "s3_test.go") {
 		t.Fatal("couldn't find test file")
 	}
 
@@ -166,7 +167,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 		},
 		{
 			name:     "file not found",
-			filepath: "/default/qwenmzxcxzcsadsad",
+			filepath: "qwenmzxcxzcsadsad",
 		},
 	}
 

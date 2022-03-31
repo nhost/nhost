@@ -87,8 +87,7 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		)
 	}
 
-	filepath := originalMetadata.BucketID + "/" + file.ID
-	etag, contentType, apiErr := ctrl.uploadSingleFile(file, filepath)
+	etag, contentType, apiErr := ctrl.uploadSingleFile(file, file.ID)
 	if apiErr != nil {
 		// let's revert the change to isUploaded
 		_ = ctrl.metadataStorage.SetIsUploaded(ctx, file.ID, true, ctx.Request.Header)

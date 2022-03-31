@@ -62,7 +62,7 @@ func TestGetFile(t *testing.T) {
 			}, nil)
 
 			contentStorage.EXPECT().GetFile(
-				"default/55af1e60-0f28-454e-885e-ea6aab2bb288",
+				"55af1e60-0f28-454e-885e-ea6aab2bb288",
 			).Return(
 				io.NopCloser(strings.NewReader("Hello, world!")),
 				nil,

@@ -125,10 +125,9 @@ func (ctrl *Controller) modifyImage(
 func (ctrl *Controller) getFileImage(
 	ctx context.Context, fileMetadata *FileMetadataWithBucket, opts ...image.Options,
 ) (io.ReadCloser, *APIError) {
-	filepath := fmt.Sprintf("%s/%s", fileMetadata.BucketID, fileMetadata.ID)
 	var src io.ReadCloser
 	if len(opts) > 0 {
-		buf, etag, n, apiErr := ctrl.modifyImage(ctx, filepath, opts...)
+		buf, etag, n, apiErr := ctrl.modifyImage(ctx, fileMetadata.ID, opts...)
 		if apiErr != nil {
 			return nil, apiErr
 		}
@@ -137,7 +136,7 @@ func (ctrl *Controller) getFileImage(
 
 		src = buf
 	} else {
-		object, apiErr := ctrl.contentStorage.GetFile(filepath)
+		object, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID)
 		if apiErr != nil {
 			return nil, apiErr
 		}

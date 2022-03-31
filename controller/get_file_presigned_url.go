@@ -38,9 +38,8 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 		return GetFilePresignedURLResponse{}, ForbiddenError(err, err.Error())
 	}
 
-	filepath := fileMetadata.Bucket.ID + "/" + fileMetadata.ID
 	url, apiErr := ctrl.contentStorage.CreatePresignedURL(
-		filepath,
+		fileMetadata.ID,
 		time.Duration(fileMetadata.Bucket.DownloadExpiration)*time.Minute,
 	)
 	if apiErr != nil {

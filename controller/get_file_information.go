@@ -144,8 +144,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (int, *APIEr
 		return 0, apiErr
 	}
 	if len(opts) > 0 {
-		filepath := fmt.Sprintf("%s/%s", fileMetadata.BucketID, fileMetadata.ID)
-		_, etag, n, apiErr := ctrl.modifyImage(ctx, filepath, opts...)
+		_, etag, n, apiErr := ctrl.modifyImage(ctx, fileMetadata.ID, opts...)
 		if apiErr != nil {
 			return 0, apiErr
 		}

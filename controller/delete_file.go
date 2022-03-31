@@ -20,8 +20,7 @@ func (ctrl *Controller) deleteFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		return FileMetadata{}, apiErr
 	}
 
-	filepath := fileMetadata.BucketID + "/" + fileMetadata.ID
-	if apiErr := ctrl.contentStorage.DeleteFile(filepath); apiErr != nil {
+	if apiErr := ctrl.contentStorage.DeleteFile(fileMetadata.ID); apiErr != nil {
 		return FileMetadata{}, apiErr
 	}
 

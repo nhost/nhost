@@ -139,7 +139,7 @@ func TestUploadFile(t *testing.T) {
 					ReaderMatcher(
 						file.contents,
 					),
-					"blah/"+file.md.ID,
+					file.md.ID,
 					"text/plain; charset=utf-8",
 				).Return("some-etag", nil)
 
