@@ -64,6 +64,7 @@ func ginLogger(logger *logrus.Logger) gin.HandlerFunc {
 }
 
 func getGin(
+	hasuraAdminSecret string,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
 	trustedProxies []string,
@@ -74,7 +75,7 @@ func getGin(
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	ctrl := controller.New(metadataStorage, contentStorage, logger)
+	ctrl := controller.New(hasuraAdminSecret, metadataStorage, contentStorage, logger)
 
 	return ctrl.SetupRouter(trustedProxies, ginLogger(logger)) // nolint: wrapcheck
 }
@@ -232,6 +233,7 @@ var serveCmd = &cobra.Command{
 			viper.GetString(hasuraEndpointFlag) + "/graphql",
 		)
 		router, err := getGin(
+			viper.GetString(hasuraAdminSecretFlag),
 			metadataStorage,
 			contentStorage,
 			viper.GetStringSlice(trustedProxiesFlag),

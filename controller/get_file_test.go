@@ -68,7 +68,7 @@ func TestGetFile(t *testing.T) {
 				nil,
 			)
 
-			ctrl := controller.New(metadataStorage, contentStorage, logger)
+			ctrl := controller.New("asdasd", metadataStorage, contentStorage, logger)
 
 			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
 

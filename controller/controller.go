@@ -73,17 +73,20 @@ type ContentStorage interface {
 }
 
 type Controller struct {
-	metadataStorage MetadataStorage
-	contentStorage  ContentStorage
-	logger          *logrus.Logger
+	hasuraAdminSecret string
+	metadataStorage   MetadataStorage
+	contentStorage    ContentStorage
+	logger            *logrus.Logger
 }
 
 func New(
+	hasuraAdminSecret string,
 	metadataStorage MetadataStorage,
 	contentStorage ContentStorage,
 	logger *logrus.Logger,
 ) *Controller {
 	return &Controller{
+		hasuraAdminSecret,
 		metadataStorage,
 		contentStorage,
 		logger,

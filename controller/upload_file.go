@@ -69,7 +69,11 @@ func (ctrl *Controller) upload(
 	ctx context.Context,
 	request uploadFileRequest,
 ) ([]FileMetadata, *APIError) {
-	bucket, err := ctrl.metadataStorage.GetBucketByID(ctx, request.bucketID, request.headers)
+	bucket, err := ctrl.metadataStorage.GetBucketByID(
+		ctx,
+		request.bucketID,
+		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+	)
 	if err != nil {
 		return nil, err
 	}
