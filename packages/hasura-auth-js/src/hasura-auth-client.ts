@@ -33,6 +33,7 @@ import {
   SignUpParams,
   SignUpResponse
 } from './utils/types'
+
 const USER_ALREADY_SIGNED_IN: ApiError = {
   message: 'User is already signed in',
   status: 100
@@ -93,10 +94,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signup
    */
   async signUp(params: SignUpParams): Promise<SignUpResponse> {
-    const interpreter = this.#client.interpreter
-    if (!interpreter) {
-      throw Error('Auth interpreter not set')
-    }
+    const interpreter = await this.waitUntilReady()
 
     const { email, password, options } = params
 
@@ -145,8 +143,7 @@ export class HasuraAuthClient {
     providerUrl?: string
     provider?: string
   }> {
-    const interpreter = this.#client.interpreter
-    if (!interpreter) throw Error('Auth interpreter not set')
+    const interpreter = await this.waitUntilReady()
 
     // * Raise an error if the user is already authenticated
     if (this.isAuthenticated()) {
@@ -282,8 +279,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signout
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
-    const interpreter = this.#client.interpreter
-    if (!interpreter) throw Error('Auth interpreter not set')
+    const interpreter = await this.waitUntilReady()
     if (!this.isAuthenticated()) return { error: USER_UNAUTHENTICATED }
     return new Promise((resolve) => {
       interpreter.send({ type: 'SIGNOUT', all: params?.all })
@@ -387,9 +383,8 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
+    const interpreter = await this.waitUntilReady()
     return new Promise((resolve) => {
-      const interpreter = this.#client.interpreter
-      if (!interpreter) throw Error('Auth interpreter not set')
       if (!this.isAuthenticated() || !interpreter.state.context.user?.isAnonymous)
         return { error: USER_NOT_ANONYMOUS }
       interpreter.onTransition((state) => {
@@ -496,15 +491,8 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async isAuthenticatedAsync(): Promise<boolean> {
-    return new Promise((resolve) => {
-      // if init auth loading is already completed, we can return the value of `isAuthenticated`.
-      if (this.isReady()) resolve(this.isAuthenticated())
-      const interpreter = this.#client.interpreter
-      if (!interpreter) resolve(false)
-      interpreter?.onTransition((state) => {
-        if (state.hasTag('ready')) resolve(state.matches({ authentication: 'signedIn' }))
-      })
-    })
+    const interpreter = await this.waitUntilReady()
+    return interpreter.state.matches({ authentication: 'signedIn' })
   }
 
   /**
@@ -571,20 +559,24 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   async refreshSession(refreshToken?: string): Promise<void> {
-    return new Promise((resolve) => {
-      const interpreter = this.#client.interpreter
-      if (!interpreter || !interpreter.state.matches({ token: 'idle' })) return resolve()
-      const token = refreshToken || interpreter.state.context.refreshToken.value
-      if (!token) return resolve()
-      interpreter?.onTransition((state) => {
-        if (state.matches({ token: { idle: 'error' } })) resolve()
-        else if (state.event.type === 'TOKEN_CHANGED') resolve()
+    try {
+      const interpreter = await this.waitUntilReady()
+      if (interpreter.state.matches({ token: 'idle' })) return
+      return new Promise((resolve) => {
+        const token = refreshToken || interpreter.state.context.refreshToken.value
+        if (!token) return resolve()
+        interpreter?.onTransition((state) => {
+          if (state.matches({ token: { idle: 'error' } })) resolve()
+          else if (state.event.type === 'TOKEN_CHANGED') resolve()
+        })
+        interpreter.send({
+          type: 'TRY_TOKEN',
+          token
+        })
       })
-      interpreter.send({
-        type: 'TRY_TOKEN',
-        token
-      })
-    })
+    } catch {
+      return
+    }
   }
 
   /**
@@ -613,6 +605,31 @@ export class HasuraAuthClient {
    */
   getUser() {
     return this.#client.interpreter?.state?.context?.user || null
+  }
+
+  /**
+   * Make sure the state machine is set, and wait for it to be ready
+   * @returns
+   */
+  private waitUntilReady(): Promise<AuthInterpreter> {
+    const TIMEOUT_IN_SECONS = 15
+    const interpreter = this.#client.interpreter
+    if (!interpreter) {
+      throw Error('Auth interpreter not set')
+    }
+    if (interpreter.state.hasTag('ready')) return Promise.resolve(interpreter)
+    return new Promise((resolve, reject) => {
+      let timer: ReturnType<typeof setTimeout> = setTimeout(
+        () => reject(`The state machine is not yet ready after ${TIMEOUT_IN_SECONS} seconds.`),
+        TIMEOUT_IN_SECONS * 1_000
+      )
+      interpreter.onTransition((state) => {
+        if (state.hasTag('ready')) {
+          clearTimeout(timer)
+          return resolve(interpreter)
+        }
+      })
+    })
   }
 
   private isReady() {
