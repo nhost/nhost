@@ -635,10 +635,10 @@ export const createAuthMachine = ({
           }),
 
         autoSignIn: async () => {
-          if (typeof window !== 'undefined') {
-            const location = window.location
-            if (location.hash) {
-              const params = new URLSearchParams(location.hash.slice(1))
+          if (typeof window !== 'undefined' && window.location) {
+            const hash = window.location.hash
+            if (hash) {
+              const params = new URLSearchParams(hash.slice(1))
               const refreshToken = params.get('refreshToken')
               if (refreshToken) {
                 const session = await postRequest('/token', {

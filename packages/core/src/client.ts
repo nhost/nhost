@@ -18,7 +18,7 @@ export class AuthClient {
 
   constructor({
     backendUrl,
-    clientUrl = typeof window !== 'undefined' ? window.location.origin : '',
+    clientUrl = window?.location?.origin || '',
     clientStorageGetter = defaultClientStorageGetter,
     clientStorageSetter = defaultClientStorageSetter,
     refreshIntervalTime = MIN_TOKEN_REFRESH_INTERVAL,
