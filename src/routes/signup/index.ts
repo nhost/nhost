@@ -14,8 +14,8 @@ const router = Router();
  * @summary Signup with email and password
  * @param {SignUpEmailPasswordSchema} request.body.required
  * @return {SessionPayload} 200 - Successfully registered. Null session means email verification is pending - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {EmailAlreadyInUseError} 409 - Email is already present in the database
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {EmailAlreadyInUseError} 409 - Email is already present in the database - application/json
  * @tags Registration
  */
 router.post(

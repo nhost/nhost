@@ -2,6 +2,7 @@ import expressJSDocSwagger from 'express-jsdoc-swagger';
 import j2s, { SwaggerSchema } from 'joi-to-swagger';
 import { Application } from 'express';
 
+import { ErrorPayload, ERRORS } from '@/errors';
 import {
   signInOtpSchema,
   signInPasswordlessEmailSchema,
@@ -23,9 +24,11 @@ import { userDeanonymizeSchema } from '@/routes/user/deanonymize';
 import { userProviderTokensSchema } from '@/routes/user/provider-tokens';
 import { tokenSchema } from '@/routes/token/token';
 import { providerCallbackQuerySchema } from '@/routes/signin/providers/utils';
+import { verifySchema } from '@/routes/verify/verify';
 
 import * as responses from './responses';
-import { verifySchema } from '@/routes/verify/verify';
+import { Joi } from '@/validation';
+import { pascalCase } from 'pascal-case';
 
 const schema: Record<string, unknown> & { components: SwaggerSchema } = {
   tags: [],
@@ -53,13 +56,24 @@ const requestSchemas = [
   verifySchema,
 ];
 
-[...requestSchemas, ...Object.values(responses)].forEach((validator) => {
-  const { components } = j2s(validator, {});
-  schema.components.schemas = {
-    ...schema.components.schemas,
-    ...components?.schemas,
-  };
-});
+const errorsSchemas = Object.entries(ERRORS).map(
+  ([error, { message, status }]) =>
+    Joi.object<ErrorPayload>({
+      error: Joi.valid(error),
+      message: Joi.valid(message),
+      status: Joi.valid(status),
+    }).meta({ className: pascalCase(error) + 'Error' })
+);
+
+[...requestSchemas, ...errorsSchemas, ...Object.values(responses)].forEach(
+  (validator) => {
+    const { components } = j2s(validator, {});
+    schema.components.schemas = {
+      ...schema.components.schemas,
+      ...components?.schemas,
+    };
+  }
+);
 
 export const addOpenApiRoute = (app: Application) =>
   expressJSDocSwagger(app)(
@@ -79,7 +93,7 @@ export const addOpenApiRoute = (app: Application) =>
         },
       },
       baseDir: __dirname,
-      filesPattern: '@/routes/**/*.{js,ts}',
+      filesPattern: '../routes/**/*.{js,ts}',
       swaggerUIPath: '/api-docs',
       exposeSwaggerUI: true,
       exposeApiDocs: true,

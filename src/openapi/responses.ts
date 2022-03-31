@@ -1,3 +1,4 @@
+import { ErrorPayload } from '@/errors';
 import {
   defaultRole,
   displayName,
@@ -8,6 +9,7 @@ import {
   refreshToken,
   userId,
 } from '@/validation';
+import { StatusCodes } from 'http-status-codes';
 import { Session, User } from '../types';
 
 // ******** THE FOLLOWING MODELS ARE USED FOR GENERATING OPENAPI SCHEMAS ******** //
@@ -44,45 +46,9 @@ export const TotpPayload = Joi.object({
   totpSecret: Joi.string().required().description('TOTP secret'),
 }).meta({ className: 'TotpPayload' });
 
-export const EmailAlreadyInUseError = Joi.object({
-  statusCode: Joi.number().valid(409),
-  error: Joi.string().valid('Conflict'),
-  message: Joi.string().valid('Email already in use'),
-}).meta({ className: 'EmailAlreadyInUseError' });
-
-export const UnauthenticatedError = Joi.object({
-  statusCode: Joi.number().valid(401),
-  error: Joi.string().valid('Unauthorized'),
+// TODO non-specific 401 error: merge models instead
+export const UnauthorizedErrorModel = Joi.object<ErrorPayload>({
+  error: Joi.string().required(),
+  status: Joi.valid(StatusCodes.UNAUTHORIZED).required(),
   message: Joi.string(),
-}).meta({ className: 'UnauthenticatedError' });
-
-export const DisabledUserError = Joi.object({
-  statusCode: Joi.number().valid(401),
-  error: Joi.string().valid('Unauthorized'),
-  message: Joi.string().valid('User is disabled'),
-}).meta({ className: 'DisabledUserError' });
-
-export const UserNotFoundError = Joi.object({
-  statusCode: Joi.number().valid(401),
-  error: Joi.string().valid('Unauthorized'),
-  message: Joi.string().valid('Incorrect email or password'),
-}).meta({ className: 'UserNotFoundError' });
-
-export const UserNotVerifiedError = Joi.object({
-  statusCode: Joi.number().valid(401),
-  error: Joi.string().valid('Unauthorized'),
-  message: Joi.string().valid('Email is not verified'),
-}).meta({ className: 'UserNotVerifiedError' });
-
-export const UserHasNoPasswordError = Joi.object({
-  statusCode: Joi.number().valid(401),
-  error: Joi.string().valid('Unauthorized'),
-  message: Joi.string().valid('Incorrect email or password'),
-}).meta({ className: 'UserHasNoPasswordError' });
-
-export const PasswordEmailSigninError = DisabledUserError.concat(
-  UserNotFoundError
-)
-  .concat(UserNotVerifiedError)
-  .concat(UserHasNoPasswordError)
-  .meta({ className: 'PasswordEmailSigninError' });
+}).meta({ className: 'UnauthorizedError' });

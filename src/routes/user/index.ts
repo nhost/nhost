@@ -29,7 +29,7 @@ const router = Router();
  * GET /user
  * @summary Get user information
  * @return {User} 200 - User information - application/json
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags User management
  */
@@ -40,7 +40,7 @@ router.get('/user', authenticationGate, aw(userHandler));
  * @summary Send an email asking the user to reset their password
  * @param {UserPasswordResetSchema} request.body.required
  * @return {string} 200 - The email to reset the password has been sent - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @tags User management
  */
 router.post(
@@ -54,8 +54,8 @@ router.post(
  * @summary Set a new password
  * @param {UserPasswordSchema} request.body.required
  * @return {string} 200 - The password has been successfully changed - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags User management
  */
@@ -69,8 +69,8 @@ router.post(
  * POST /user/email/send-verification-email
  * @summary Send an email to verify the account
  * @param {UserEmailSendVerificationEmailSchema} request.body.required
- * @return {string} 200 - OK - text/plain
- * @return {string} 400 - The payload format is invalid - text/plain
+ * @return {string} 200 - Success - text/plain
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
  * @tags User management
  */
 router.post(
@@ -84,8 +84,8 @@ router.post(
  * @summary Change the current user's email
  * @param {UserEmailChangeSchema} request.body.required
  * @return {string} 200 - A verification email has been sent to the new email - text/plain
- * @return {string} 400 - The payload format is invalid - text/plain
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags User management
  */
@@ -101,8 +101,8 @@ router.post(
  * @summary Activate/deactivate Multi-factor authentication
  * @param {UserMfaSchema} request.body.required
  * @return {string} 200 - Success - text/plain
- * @return {string} 400 - The payload format is invalid - application/json
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags Authentication
  */
@@ -113,8 +113,8 @@ router.post('/user/mfa', bodyValidator(userMfaSchema), aw(userMFAHandler));
  * @summary 'Deanonymize' an anonymous user in adding missing email or email+password, depending on the chosen authentication method. Will send a confirmation email if the server is configured to do so.
  * @param {UserDeanonymizeSchema} request.body.required
  * @return {string} 200 - Success - text/plain
- * @return {string} 400 - The payload format is invalid - application/json
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags Authentication
  */
@@ -131,8 +131,8 @@ router.post(
  * @param {UserProviderTokensSchema} request.body.required
  * @param {string} x-hasura-admin-secret.header.required - Hasura admin secret
  * @return {string} 200 - Success - text/plain
- * @return {string} 400 - The payload format is invalid - application/json
- * @return {UnauthenticatedError} 401 - Incorrect admin secret header
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {InvalidAdminSecretError} 401 - Incorrect admin secret header - application/json
  * @tags User management
  */
 router.post(

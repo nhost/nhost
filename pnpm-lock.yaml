@@ -94,6 +94,7 @@ specifiers:
   nodemailer: 6.4.16
   npm-run-all: ^4.1.5
   otplib: 12.0.1
+  pascal-case: ^3.1.2
   passport: 0.4.1
   passport-bitbucket-oauth2: ^0.1.2
   passport-facebook: ^3.0.0
@@ -159,6 +160,7 @@ dependencies:
   node-fetch: 2.6.7
   nodemailer: 6.4.16
   otplib: 12.0.1
+  pascal-case: 3.1.2
   passport: 0.4.1
   passport-bitbucket-oauth2: 0.1.2
   passport-facebook: 3.0.0
@@ -8296,7 +8298,6 @@ packages:
     resolution: {integrity: sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==}
     dependencies:
       tslib: 2.3.1
-    dev: true
 
   /lowercase-keys/1.0.1:
     resolution: {integrity: sha512-G2Lj61tXDnVFFOi8VZds+SoQjtQC3dgokKdDG2mTm1tx4m50NUHBOZSBwQQHyy0V12A0JTG4icfZQH+xPyh8VA==}
@@ -8703,7 +8704,6 @@ packages:
     dependencies:
       lower-case: 2.0.2
       tslib: 2.3.1
-    dev: true
 
   /nocache/2.1.0:
     resolution: {integrity: sha512-0L9FvHG3nfnnmaEQPjT9xhfN4ISk0A8/2j4M37Np4mcDesJjHgEUfgPhdCyZuFI954tjokaIj/A3NdpFNdEh4Q==}
@@ -9143,7 +9143,6 @@ packages:
     dependencies:
       no-case: 3.0.4
       tslib: 2.3.1
-    dev: true
 
   /pascalcase/0.1.1:
     resolution: {integrity: sha1-s2PlXoAGym/iF4TS2yK9FdeRfxQ=}

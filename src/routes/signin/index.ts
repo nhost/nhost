@@ -25,9 +25,9 @@ const router = Router();
  * @summary Authenticate with email + password
  * @param {SignInEmailPasswordSchema} request.body.required
  * @return {SessionPayload} 200 - Signed in successfully - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {PasswordEmailSigninError} 401 - Error - application/json
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
@@ -41,9 +41,9 @@ router.post(
  * @summary Email passwordless authentication
  * @param {SignInPasswordlessEmailSchema} request.body.required
  * @return {string} 200 - Email sent successfully - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {DisabledUserError} 401 - User is disabled - application/json
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
@@ -57,8 +57,8 @@ router.post(
  * @summary Send a one-time password by SMS
  * @param {SignInPasswordlessSmsSchema} request.body.required
  * @return {string} 200 - SMS sent successfully - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
@@ -72,9 +72,9 @@ router.post(
  * @summary Passwordless authentication from a one-time password code received by SMS
  * @param {SignInOtpSchema} request.body.required
  * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {object} 401 - Error processing the request - application/json
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthorizedError} 401 - Error processing the request - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
@@ -88,8 +88,8 @@ router.post(
  * @summary Anonymous authentication
  * @param {SignInAnonymousSchema} request.body.required
  * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
@@ -106,8 +106,8 @@ providers(router);
  * @summary Sign in with a Time-base One-Time Password (TOTP) ticket
  * @param {SignInMfaTotpSchema} request.body.required
  * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(

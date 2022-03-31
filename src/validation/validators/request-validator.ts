@@ -18,7 +18,7 @@ export const bodyValidator: (schema: Schema) => RequestHandler =
       next();
     } catch (err: any) {
       const error = buildError(err);
-      return sendError(res, 'request-validation-error', {
+      return sendError(res, 'invalid-request', {
         customMessage: error.message,
         redirectTo: err._original.redirectTo,
       });
@@ -32,7 +32,7 @@ export const queryValidator: (schema: Schema) => RequestHandler =
       next();
     } catch (err: any) {
       const error = buildError(err);
-      return sendError(res, 'request-validation-error', {
+      return sendError(res, 'invalid-request', {
         customMessage: error.message,
         redirectTo: err._original.redirectTo,
       });

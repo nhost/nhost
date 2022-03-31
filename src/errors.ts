@@ -35,7 +35,7 @@ export type ErrorPayload = {
 
 export const REQUEST_VALIDATION_ERROR: ErrorPayload = {
   status: StatusCodes.BAD_REQUEST,
-  error: 'request-validation-error',
+  error: 'invalid-request',
   message: 'The request payload is incorrect',
 };
 
@@ -43,7 +43,7 @@ const asErrors = <T>(et: {
   [K in keyof T]: Pick<ErrorPayload, 'status' | 'message'>;
 }) => et;
 
-const ERRORS = asErrors({
+export const ERRORS = asErrors({
   'route-not-found': {
     status: StatusCodes.NOT_FOUND,
     message: 'Route not found',
@@ -52,7 +52,7 @@ const ERRORS = asErrors({
     status: StatusCodes.NOT_FOUND,
     message: 'This endpoint is disabled',
   },
-  'request-validation-error': {
+  'invalid-request': {
     status: StatusCodes.BAD_REQUEST,
     message: 'The request payload is incorrect',
   },

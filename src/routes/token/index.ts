@@ -11,8 +11,8 @@ const router = Router();
  * @summary Refresh the access token (JWT) and the refresh token
  * @param {TokenSchema} request.body.required
  * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {object} 401 - User is not authorized to refresh the token - application/json
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthorizedError} 401 - Unauthenticated user or invalid token - application/json
  * @tags General
  */
 router.post('/token', bodyValidator(tokenSchema), aw(tokenHandler));

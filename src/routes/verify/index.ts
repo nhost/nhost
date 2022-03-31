@@ -14,7 +14,7 @@ const router = Router();
  * @param {string} type.query.required - name param description - enum:emailVerify,emailConfirmChange,signinPasswordless,passwordReset
  * @param {string} redirectTo.query.required - Redirection link
  * @return {string} 302 - {redirectTo}#refreshToken=${refreshToken}&type=${type}
- * @return {string} 400 - The payload format is invalid - application/json
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
  * @tags General
  */
 router.get('/verify', queryValidator(verifySchema), aw(verifyHandler));

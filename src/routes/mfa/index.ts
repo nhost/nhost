@@ -10,8 +10,8 @@ const router = Router();
  * GET /mfa/totp/generate
  * @summary Generate a secret to request the activation of Time-based One-Time Password (TOTP) multi-factor authentication
  * @return {TotpPayload} 200 - Success - application/json
- * @return {UnauthenticatedError} 401 - User is not authenticated
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @security BearerAuth
  * @tags User management
  */
