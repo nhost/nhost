@@ -8,6 +8,7 @@ import React, { DetailedHTMLProps, HTMLProps, PropsWithChildren } from 'react'
 
 import Command from '../Command'
 import Divider from '../Divider'
+import { Swagger } from '../Swagger'
 
 function Note({ children }: PropsWithChildren<unknown>) {
   return (
@@ -135,6 +136,7 @@ const components = {
   }: DetailedHTMLProps<HTMLProps<HTMLTableCellElement>, HTMLTableCellElement>) => {
     return <td className={clsx('font-display', className)} {...props} />
   },
+  Swagger,
   Mermaid: ({ chart }) => {
     const [html, setHtml] = React.useState('')
     React.useEffect(() => {

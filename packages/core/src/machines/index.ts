@@ -635,27 +635,25 @@ export const createAuthMachine = ({
           }),
 
         autoSignIn: async () => {
-          if (typeof window !== 'undefined') {
-            const location = window.location
-            if (location.hash) {
-              const params = new URLSearchParams(location.hash.slice(1))
-              const refreshToken = params.get('refreshToken')
-              if (refreshToken) {
-                const session = await postRequest('/token', {
-                  refreshToken
-                })
-                // * remove hash from the current url after consumming the token
-                // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
-                // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
-                // window.history.pushState({}, '', location.pathname)
-                const channel = new BroadcastChannel('nhost')
-                // TODO broadcat session instead of token
-                channel.postMessage(refreshToken)
-                return { session }
-              }
-            }
+          if (typeof window === 'undefined' || !window.location)
+            throw Error('window is undefined or location does not exist')
+          const { hash } = window.location
+          if (!hash) return
+          const params = new URLSearchParams(hash.slice(1))
+          const refreshToken = params.get('refreshToken')
+          if (refreshToken) {
+            const session = await postRequest('/token', {
+              refreshToken
+            })
+            // * remove hash from the current url after consumming the token
+            // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
+            // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
+            // window.history.pushState({}, '', location.pathname)
+            const channel = new BroadcastChannel('nhost')
+            // TODO broadcat session instead of token
+            channel.postMessage(refreshToken)
+            return { session }
           }
-          throw Error()
         },
         importRefreshToken: async () => {
           const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)
