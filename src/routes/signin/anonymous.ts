@@ -8,7 +8,7 @@ export const signInAnonymousSchema = Joi.object({
   locale,
   displayName,
   metadata,
-}).meta({ className: 'SignInMfaPhoneNumberSchema' });
+}).meta({ className: 'SignInAnonymousSchema' });
 
 type BodyType = {
   locale: string;
