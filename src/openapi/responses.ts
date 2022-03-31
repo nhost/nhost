@@ -1,5 +1,7 @@
 import { ErrorPayload } from '@/errors';
 import {
+  activeMfaType,
+  allowedRoles,
   defaultRole,
   displayName,
   email,
@@ -23,6 +25,11 @@ export const UserModel = Joi.object<User>({
   isAnonymous: Joi.boolean().required().default(false),
   defaultRole: defaultRole.required(),
   metadata: metadata.required(),
+  activeMfaType: activeMfaType.required(),
+  emailVerified: Joi.boolean().required().default(false),
+  phoneNumber: Joi.string().required(),
+  phoneNumberVerified: Joi.boolean().required().default(false),
+  roles: allowedRoles.required(),
 }).meta({ className: 'User' });
 
 export const SessionModel = Joi.object<Session>({

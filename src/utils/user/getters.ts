@@ -30,31 +30,7 @@ export const getUser = async ({
     throw new Error('Unable to get user');
   }
 
-  const {
-    id,
-    createdAt,
-    displayName,
-    email,
-    avatarUrl,
-    locale,
-    isAnonymous,
-    defaultRole,
-    roles,
-    metadata,
-  } = user;
-
-  return {
-    id,
-    createdAt,
-    displayName,
-    avatarUrl,
-    locale,
-    email,
-    isAnonymous,
-    defaultRole,
-    roles: roles.map((role) => role.role),
-    metadata,
-  };
+  return { ...user, roles: user.roles.map((role) => role.role) };
 };
 
 export const getUserByEmail = async (email: string) => {

@@ -67,6 +67,10 @@ export type User = Pick<
   | 'isAnonymous'
   | 'defaultRole'
   | 'metadata'
+  | 'emailVerified'
+  | 'phoneNumber'
+  | 'phoneNumberVerified'
+  | 'activeMfaType'
 > & { roles: string[] };
 
 export type Session = {
