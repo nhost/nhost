@@ -134,7 +134,7 @@ It is possible to deactivate the use of Gravatar in setting the `AUTH_GRAVATAR_E
 
 ## Extending user schema
 
-Adding columns to the user tables may be tempting. However, all the tables and columns have a specific purpose, and changing the structure of the `auth` schema will very likely end in breaking the functionning of Hasura Auth.
+Adding columns to the user tables may be tempting. However, all the tables and columns have a specific purpose, and changing the structure of the `auth` schema will very likely end in breaking the functionning of Hasura Auth. It's, therefore, **highly recommended** not to modify the database schema for any tables in the `auth` schema.
 
 Instead, we recommend adding extra user information in the following ways:
 
