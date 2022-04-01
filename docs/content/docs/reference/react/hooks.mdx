@@ -365,7 +365,7 @@ const { sendEmail, isLoading, isSent, isError, error } =
 
 | Name         | Type                                                          | Notes                                                                                                                                                                                                             |
 | ------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sendEmail`  | (email?: string) => void                                      | Resend the verification Mail.                                                                             |
+| `sendEmail`  | (email?: string) => void                                      | Resend the verification email.                                                                                                                                                                                    |
 | `isLoading`  | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
 | `isSent`     | boolean                                                       | Returns `true` if the verification email has been sent                                                                                                                                                            |
 | `isError`    | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
@@ -380,7 +380,7 @@ import { useSendVerificationEmail } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { sendEmail, isLoading, isSent, isError, error } = useSendVerificationEmail(password)
+  const { sendEmail, isLoading, isSent, isError, error } = useSendVerificationEmail(email)
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
