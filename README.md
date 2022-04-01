@@ -21,6 +21,10 @@
   </a>
 </p>
 
+## Documentation:
+
+Find more information about Hasura Auth in [our documentation](https://docs.nhost.io/reference/hasura-auth).
+
 ## Core Features:
 
 - 🧑‍🤝‍🧑 Users are stored in Postgres and accessed via GraphQL
