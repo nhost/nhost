@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 0.3.1
+
+### Patch Changes
+
+- 113beed: fix: Refetched queries and leaking subscriptions [#301](https://github.com/nhost/nhost/issues/301)
+- Updated dependencies [4420c0e]
+  - @nhost/core@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes
