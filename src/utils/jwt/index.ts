@@ -1,3 +1,3 @@
-export { createHasuraAccessToken } from './generate';
-export { getClaims, getPermissionVariablesFromClaims } from './get-claims';
-export { escapeValueToPg } from './custom-claims';
+export * from './generate';
+export * from './get-claims';
+export * from './custom-claims';

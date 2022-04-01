@@ -10,7 +10,7 @@ export const getClaims = (authorization: string | undefined): Claims => {
   if (!authorization) throw new Error('Missing Authorization header');
   const token = authorization.replace('Bearer ', '');
   try {
-    const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+    const jwt: JwtSecret = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET);
 
     const decodedToken = JWT.verify(token, jwt.key) as Token;
 
@@ -18,22 +18,23 @@ export const getClaims = (authorization: string | undefined): Claims => {
       ? jwt.claims_namespace
       : 'https://hasura.io/jwt/claims';
 
-    if (!decodedToken[jwtNameSpace])
+    if (!decodedToken[jwtNameSpace]) {
       throw new Error('Claims namespace not found');
+    }
     return decodedToken[jwtNameSpace];
   } catch (err) {
     throw new Error('Invalid or expired JWT token');
   }
 };
 
-export const getPermissionVariablesFromClaims = (
-  claims: Claims
+export const getPermissionVariables = (
+  authorization: string | undefined
 ): PermissionVariables => {
-  // remove `x-hasura-` from claim props
-  const claimsSanitized: Record<string, unknown> = {};
+  const claims = getClaims(authorization);
+  // * remove `x-hasura-` from claim props
+  const claimsSanitized: Partial<PermissionVariables> = {};
   for (const claimKey in claims) {
-    claimsSanitized[claimKey.replace('x-hasura-', '') as string] =
-      claims[claimKey];
+    claimsSanitized[claimKey.replace('x-hasura-', '')] = claims[claimKey];
   }
 
   return claimsSanitized as PermissionVariables;

@@ -61,7 +61,7 @@ const generateHasuraClaims = async (
     [`x-hasura-allowed-roles`]: allowedRoles,
     [`x-hasura-default-role`]: user.defaultRole,
     [`x-hasura-user-id`]: user.id,
-    [`x-hasura-user-isAnonymous`]: user.isAnonymous.toString(),
+    [`x-hasura-user-is-anonymous`]: user.isAnonymous.toString(),
   };
 };
 /**
