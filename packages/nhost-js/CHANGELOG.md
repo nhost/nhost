@@ -1,5 +1,19 @@
 # @nhost/nhost-js
 
+## 1.0.3
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+- Updated dependencies
+  - @nhost/hasura-auth-js@1.0.3
+
 ## 1.0.2
 
 ### Patch Changes

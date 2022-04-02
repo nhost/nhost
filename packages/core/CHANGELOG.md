@@ -1,5 +1,16 @@
 # @nhost/core
 
+## 0.3.2
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
 ## 0.3.1
 
 ### Patch Changes
