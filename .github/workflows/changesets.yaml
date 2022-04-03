@@ -30,6 +30,9 @@ jobs:
         with:
           node-version: '17.8.0'
           cache: 'pnpm'
+      - name: Pick the right npm version
+        # * See: https://github.com/pnpm/pnpm/issues/4348
+        run: npm install --global npm@8.4
       - name: Install dependencies
         run: pnpm install
       - name: Create PR or Publish release
@@ -39,7 +42,7 @@ jobs:
           version: pnpm run ci:version
           commit: 'chore: update versions'
           title: 'chore: update versions'
-          publish: pnpm run ci:publish
+          publish: pnpm run release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

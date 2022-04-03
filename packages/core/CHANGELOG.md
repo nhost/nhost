@@ -1,6 +1,6 @@
 # @nhost/core
 
-## 0.3.4
+## 0.3.7
 
 ### Patch Changes
 

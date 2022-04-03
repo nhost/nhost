@@ -1,6 +1,6 @@
 # @nhost/nextjs
 
-## 1.0.6
+## 1.0.8
 
 ### Patch Changes
 

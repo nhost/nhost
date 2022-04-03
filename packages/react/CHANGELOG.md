@@ -1,6 +1,6 @@
 # @nhost/react
 
-## 0.4.4
+## 0.4.6
 
 ### Patch Changes
 
