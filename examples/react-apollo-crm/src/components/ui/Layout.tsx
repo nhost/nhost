@@ -112,7 +112,7 @@ export function Layout() {
         {/* Sidebar component, swap this element with another sidebar if you like */}
         <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-blue-700">
           <div className="flex items-center flex-shrink-0 px-4">
-            <span className="text-lg font-semibold text-white">AquaSystem</span>
+            <span className="text-lg font-semibold text-white">Nhost CRM</span>
           </div>
           <div className="flex flex-col flex-1 mt-5">
             <nav className="flex-1 px-2 pb-4 space-y-1">

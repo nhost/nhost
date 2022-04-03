@@ -13,6 +13,7 @@ import { SignUp } from './components/SignUp'
 import { SignIn } from './components/SignIn'
 import { ResetPassword } from './components/ResetPassword'
 import { Settings } from './components/settings/Settings'
+import { About } from './components/About'
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function AppRouter() {
       <Route path="/sign-up" element={<SignUp />} />
       <Route path="/sign-in" element={<SignIn />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/about" element={<About />} />
       {/* Routes that are protected. I.e user must be signed in. */}
       <Route
         path="/"

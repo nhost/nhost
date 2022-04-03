@@ -33,10 +33,10 @@ export function SignIn() {
       <div className="flex flex-col justify-center min-h-full py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <div className="flex justify-center">
-            <div className="text-2xl font-bold text-blue-700">AquaSystem</div>
+            <div className="text-2xl font-bold text-blue-700">Nhost CRM</div>
           </div>
           <h2 className="mt-6 text-3xl font-extrabold text-center text-gray-900">
-            Sign In to AquaSystem
+            Sign In to Nhost CRM
           </h2>
         </div>
 
