@@ -74,26 +74,26 @@ This example app has some work in progress:
 
 1. Install dependencies
 
-```
-npm install
+```bash
+yarn install
 ```
 
 2. Terminal 1: Start Nhost
 
-```
+```bash
 nhost dev
 ```
 
 2. Terminal 2: Start React App
 
-```
-npm run start
+```bash
+yarn start
 ```
 
 3. Terminal 3: Start GraphQL Codegens
 
 > Make sure that the Nhost backend in step 2 has started and is available before you run this command
 
-```
-npm run codegen -- -w
+```bash
+yarn codegen:watch
 ```
