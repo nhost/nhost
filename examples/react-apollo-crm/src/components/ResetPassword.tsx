@@ -1,7 +1,6 @@
 import { useNhostAuth, useResetPassword } from '@nhost/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
-import { nhost } from '../utils/nhost'
 
 export function ResetPassword() {
   const [email, setEmail] = useState('')
