@@ -1,4 +1,4 @@
-import { useNhostAuth } from '@nhost/react'
+import { useNhostAuth, useResetPassword } from '@nhost/react'
 import { useState } from 'react'
 import { useNavigate } from 'react-router'
 import { nhost } from '../utils/nhost'
@@ -8,16 +8,16 @@ export function ResetPassword() {
 
   const { isAuthenticated } = useNhostAuth()
 
+  const { resetPassword, isLoading } = useResetPassword()
+
   let navigate = useNavigate()
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const { error } = await nhost.auth.resetPassword({ email })
-
-    if (error) {
-      return alert(error.message)
-    }
+    resetPassword(email, {
+      redirectTo: 'http://localhost:3000/settings'
+    })
 
     alert('Check out email inbox')
   }
@@ -63,6 +63,7 @@ export function ResetPassword() {
                   type="submit"
                   className="flex justify-center w-full px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                   tabIndex={3}
+                  disabled={isLoading}
                 >
                   Reset Password
                 </button>
