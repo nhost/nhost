@@ -1,8 +1,13 @@
 import { useAuthenticationStatus } from '@nhost/react'
 import { Navigate, useLocation } from 'react-router'
+import { nhost } from '../utils/nhost'
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
   const { isAuthenticated, isLoading } = useAuthenticationStatus()
+
+  console.log({ isAuthenticated, isLoading })
+
+  console.log(nhost.auth.getUser())
 
   const location = useLocation()
 
