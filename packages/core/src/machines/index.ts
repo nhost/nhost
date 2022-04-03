@@ -537,9 +537,7 @@ export const createAuthMachine = ({
           refreshToken: (ctx, e: any) => ({ ...ctx.refreshToken, value: e.data.refreshToken })
         }),
         // * Persist the refresh token and the jwt expiration outside of the machine
-        persist: (_, event: any) => {
-          const { data } = event
-          console.log('PERSIST???', _, event)
+        persist: (_, { data }: any) => {
           clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
           if (data.session.accessTokenExpiresIn) {
             const nextRefresh = new Date(
