@@ -1,8 +1,7 @@
 import { useChangeEmail } from '@nhost/react'
 import { useState } from 'react'
-import { Main } from './ui/Main'
 
-function ChangeEmail() {
+export function ChangeEmail() {
   const [newEmail, setNewEmail] = useState('')
 
   const { changeEmail, isLoading } = useChangeEmail()
@@ -25,7 +24,7 @@ function ChangeEmail() {
   return (
     <div>
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 mt-6 gap-y-6 gap-x-4 sm:grid-cols-6">
+        <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-6">
           <div className="sm:col-span-3">
             <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
               New Email
@@ -42,7 +41,7 @@ function ChangeEmail() {
               />
             </div>
           </div>
-          <div className="pt-5">
+          <div className="pt-6">
             <div className="flex justify-end">
               <button
                 type="submit"
@@ -56,15 +55,5 @@ function ChangeEmail() {
         </div>
       </form>
     </div>
-  )
-}
-
-export function UserSettings() {
-  return (
-    <Main>
-      <div>
-        <ChangeEmail />
-      </div>
-    </Main>
   )
 }

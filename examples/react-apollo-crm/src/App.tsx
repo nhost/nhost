@@ -12,7 +12,7 @@ import { Customer } from './components/Customer'
 import { SignUp } from './components/SignUp'
 import { SignIn } from './components/SignIn'
 import { ResetPassword } from './components/ResetPassword'
-import { UserSettings } from './components/UserSettings'
+import { Settings } from './components/settings/Settings'
 
 function App() {
   return (
@@ -54,7 +54,7 @@ function AppRouter() {
           <Route path="new" element={<NewCustomer />} />
         </Route>
         <Route path="/settings">
-          <Route path="" element={<UserSettings />} />
+          <Route path="" element={<Settings />} />
         </Route>
       </Route>
     </Routes>

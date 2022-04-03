@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from 'react'
+import React, { Fragment, useState } from 'react'
 import { Dialog, Menu, Transition } from '@headlessui/react'
 import {
   FolderIcon,
@@ -11,7 +11,6 @@ import {
 import { SearchIcon } from '@heroicons/react/solid'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { nhost } from '../../utils/nhost'
-import { ChangePasswordModal } from '../ChangePasswordModal'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },

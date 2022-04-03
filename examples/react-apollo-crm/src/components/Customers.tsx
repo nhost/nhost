@@ -1,18 +1,15 @@
-import { Main } from "./ui/Main";
-import { Breadcrumbs } from "./ui/Breadcrumbs";
-import { HeaderSection } from "./ui/HeaderSection";
-import { PageHeader } from "./ui/PageHeader";
-import { Link } from "react-router-dom";
-import { useGetCustomersSubscription } from "../utils/__generated__/graphql";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import { Main } from './ui/Main'
+import { Breadcrumbs } from './ui/Breadcrumbs'
+import { HeaderSection } from './ui/HeaderSection'
+import { PageHeader } from './ui/PageHeader'
+import { Link } from 'react-router-dom'
+import { useGetCustomersSubscription } from '../utils/__generated__/graphql'
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid'
 
 export function Customers() {
   return (
     <Main>
-      <Breadcrumbs
-        backLink={""}
-        breadcrumbs={[{ link: "/customers", text: "Customers" }]}
-      />
+      <Breadcrumbs backLink={''} breadcrumbs={[{ link: '/customers', text: 'Customers' }]} />
       <HeaderSection>
         <PageHeader>Customers</PageHeader>
         <div className="flex flex-shrink-0 mt-4 md:mt-0 md:ml-4">
@@ -31,11 +28,11 @@ export function Customers() {
         <CustomersList />
       </div>
     </Main>
-  );
+  )
 }
 
 function CustomersList() {
-  const { data } = useGetCustomersSubscription();
+  const { data } = useGetCustomersSubscription()
 
   return (
     <div>
@@ -57,17 +54,14 @@ function CustomersList() {
                 <tbody>
                   {data?.customers.map((customer, i) => {
                     return (
-                      <tr
-                        key={customer.id}
-                        className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}
-                      >
+                      <tr key={customer.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                         <td className="text-sm font-medium text-gray-900 whitespace-nowrap">
                           <Link to={customer.id} className="block px-6 py-4">
                             {customer.name}
                           </Link>
                         </td>
                       </tr>
-                    );
+                    )
                   })}
                 </tbody>
               </table>
@@ -88,9 +82,9 @@ function CustomersList() {
         <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
           <div>
             <p className="text-sm text-gray-700">
-              Showing <span className="font-medium">1</span> to{" "}
-              <span className="font-medium">10</span> of{" "}
-              <span className="font-medium">97</span> results
+              Showing <span className="font-medium">1</span> to{' '}
+              <span className="font-medium">10</span> of <span className="font-medium">xxkj</span>{' '}
+              results
             </p>
           </div>
           <div>
@@ -136,5 +130,5 @@ function CustomersList() {
         </div>
       </div>
     </div>
-  );
+  )
 }
