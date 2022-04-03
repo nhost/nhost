@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "@apollo/client": "^3.5.10",
-    "@nhost/nextjs": "^1.0.0",
-    "@nhost/react": "^0.3.0",
-    "@nhost/react-apollo": "^4.0.0",
+    "@nhost/nextjs": "^1.0.8",
+    "@nhost/react": "^0.4.6",
+    "@nhost/react-apollo": "^4.0.8",
     "graphql": "^16.3.0",
     "next": "12.1.0",
     "react": "17.0.2",
