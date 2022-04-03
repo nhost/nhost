@@ -634,26 +634,31 @@ export const createAuthMachine = ({
             options: rewriteRedirectTo(clientUrl, options)
           }),
 
+        /**
+         * If autoSignIn is enabled, attempts to get the refreshToken from the current location's hash
+         * @returns
+         */
         autoSignIn: async () => {
+          // TODO throwing errors is not really important as they are captured by the xstate invoker
+          // * Still, keep them for the moment as it needs to be tested in every environemnt e.g. nodejs, expo, react-native...
           if (typeof window === 'undefined' || !window.location)
             throw Error('window is undefined or location does not exist')
           const { hash } = window.location
-          if (!hash) return
+          if (!hash) throw Error('No hash in window.location')
           const params = new URLSearchParams(hash.slice(1))
           const refreshToken = params.get('refreshToken')
-          if (refreshToken) {
-            const session = await postRequest('/token', {
-              refreshToken
-            })
-            // * remove hash from the current url after consumming the token
-            // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
-            // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
-            // window.history.pushState({}, '', location.pathname)
-            const channel = new BroadcastChannel('nhost')
-            // TODO broadcat session instead of token
-            channel.postMessage(refreshToken)
-            return { session }
-          }
+          if (!refreshToken) throw Error('No refresh token in the location hash')
+          const session = await postRequest('/token', {
+            refreshToken
+          })
+          // * remove hash from the current url after consumming the token
+          // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
+          // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
+          // window.history.pushState({}, '', location.pathname)
+          const channel = new BroadcastChannel('nhost')
+          // ? broadcat session instead of token ?
+          channel.postMessage(refreshToken)
+          return { session }
         },
         importRefreshToken: async () => {
           const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)
