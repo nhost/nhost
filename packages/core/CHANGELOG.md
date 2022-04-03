@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.3.4
+
+### Patch Changes
+
+- 16a6c50: Correct autoSignIn
+
 ## 0.3.3
 
 ### Patch Changes
