@@ -7,14 +7,10 @@ configuration:
     avatar_url: avatarUrl
     created_at: createdAt
     default_role: defaultRole
-    disabled: disabled
     display_name: displayName
-    email: email
     email_verified: emailVerified
-    id: id
     is_anonymous: isAnonymous
     last_seen: lastSeen
-    locale: locale
     new_email: newEmail
     otp_hash: otpHash
     otp_hash_expires_at: otpHashExpiresAt
@@ -22,7 +18,6 @@ configuration:
     password_hash: passwordHash
     phone_number: phoneNumber
     phone_number_verified: phoneNumberVerified
-    ticket: ticket
     ticket_expires_at: ticketExpiresAt
     totp_secret: totpSecret
     updated_at: updatedAt
@@ -33,7 +28,7 @@ configuration:
     insert: insertUsers
     insert_one: insertUser
     select: users
-    select_aggregate: userAggregate
+    select_aggregate: usersAggregate
     select_by_pk: user
     update: updateUsers
     update_by_pk: updateUser

@@ -10,12 +10,15 @@ export function SignUp() {
 
   const { isAuthenticated } = useNhostAuth()
 
-  let navigate = useNavigate()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
 
-    const { error } = await nhost.auth.signUp({ email, password })
+    const { session, error } = await nhost.auth.signUp({ email, password })
+
+    console.log({ session })
+    console.log({ error })
 
     if (error) {
       return alert(error.message)

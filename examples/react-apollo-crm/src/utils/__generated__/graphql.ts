@@ -5,7 +5,7 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
-const defaultOptions =  {}
+const defaultOptions = {} as const;
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
   ID: string;
@@ -14,6 +14,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   citext: any;
+  jsonb: any;
   timestamptz: any;
   uuid: any;
 };
@@ -91,7 +92,13 @@ export type String_Comparison_Exp = {
 export type AuthProviderRequests = {
   __typename?: 'authProviderRequests';
   id: Scalars['uuid'];
-  redirectUrl: Scalars['String'];
+  options?: Maybe<Scalars['jsonb']>;
+};
+
+
+/** columns and relationships of "auth.provider_requests" */
+export type AuthProviderRequestsOptionsArgs = {
+  path?: InputMaybe<Scalars['String']>;
 };
 
 /** aggregated selection of "auth.provider_requests" */
@@ -116,13 +123,18 @@ export type AuthProviderRequests_Aggregate_FieldsCountArgs = {
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type AuthProviderRequests_Append_Input = {
+  options?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** Boolean expression to filter rows from the table "auth.provider_requests". All fields are combined with a logical 'AND'. */
 export type AuthProviderRequests_Bool_Exp = {
   _and?: InputMaybe<Array<AuthProviderRequests_Bool_Exp>>;
   _not?: InputMaybe<AuthProviderRequests_Bool_Exp>;
   _or?: InputMaybe<Array<AuthProviderRequests_Bool_Exp>>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
-  redirectUrl?: InputMaybe<String_Comparison_Exp>;
+  options?: InputMaybe<Jsonb_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "auth.provider_requests" */
@@ -131,24 +143,37 @@ export enum AuthProviderRequests_Constraint {
   ProviderRequestsPkey = 'provider_requests_pkey'
 }
 
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type AuthProviderRequests_Delete_At_Path_Input = {
+  options?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type AuthProviderRequests_Delete_Elem_Input = {
+  options?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type AuthProviderRequests_Delete_Key_Input = {
+  options?: InputMaybe<Scalars['String']>;
+};
+
 /** input type for inserting data into table "auth.provider_requests" */
 export type AuthProviderRequests_Insert_Input = {
   id?: InputMaybe<Scalars['uuid']>;
-  redirectUrl?: InputMaybe<Scalars['String']>;
+  options?: InputMaybe<Scalars['jsonb']>;
 };
 
 /** aggregate max on columns */
 export type AuthProviderRequests_Max_Fields = {
   __typename?: 'authProviderRequests_max_fields';
   id?: Maybe<Scalars['uuid']>;
-  redirectUrl?: Maybe<Scalars['String']>;
 };
 
 /** aggregate min on columns */
 export type AuthProviderRequests_Min_Fields = {
   __typename?: 'authProviderRequests_min_fields';
   id?: Maybe<Scalars['uuid']>;
-  redirectUrl?: Maybe<Scalars['String']>;
 };
 
 /** response of any mutation on the table "auth.provider_requests" */
@@ -160,7 +185,7 @@ export type AuthProviderRequests_Mutation_Response = {
   returning: Array<AuthProviderRequests>;
 };
 
-/** on conflict condition type for table "auth.provider_requests" */
+/** on_conflict condition type for table "auth.provider_requests" */
 export type AuthProviderRequests_On_Conflict = {
   constraint: AuthProviderRequests_Constraint;
   update_columns?: Array<AuthProviderRequests_Update_Column>;
@@ -170,7 +195,7 @@ export type AuthProviderRequests_On_Conflict = {
 /** Ordering options when selecting data from "auth.provider_requests". */
 export type AuthProviderRequests_Order_By = {
   id?: InputMaybe<Order_By>;
-  redirectUrl?: InputMaybe<Order_By>;
+  options?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: authProviderRequests */
@@ -178,18 +203,23 @@ export type AuthProviderRequests_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type AuthProviderRequests_Prepend_Input = {
+  options?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** select columns of table "auth.provider_requests" */
 export enum AuthProviderRequests_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  RedirectUrl = 'redirectUrl'
+  Options = 'options'
 }
 
 /** input type for updating data in table "auth.provider_requests" */
 export type AuthProviderRequests_Set_Input = {
   id?: InputMaybe<Scalars['uuid']>;
-  redirectUrl?: InputMaybe<Scalars['String']>;
+  options?: InputMaybe<Scalars['jsonb']>;
 };
 
 /** update columns of table "auth.provider_requests" */
@@ -197,7 +227,7 @@ export enum AuthProviderRequests_Update_Column {
   /** column name */
   Id = 'id',
   /** column name */
-  RedirectUrl = 'redirectUrl'
+  Options = 'options'
 }
 
 /** columns and relationships of "auth.providers" */
@@ -297,11 +327,11 @@ export type AuthProviders_Mutation_Response = {
 /** input type for inserting object relation for remote table "auth.providers" */
 export type AuthProviders_Obj_Rel_Insert_Input = {
   data: AuthProviders_Insert_Input;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<AuthProviders_On_Conflict>;
 };
 
-/** on conflict condition type for table "auth.providers" */
+/** on_conflict condition type for table "auth.providers" */
 export type AuthProviders_On_Conflict = {
   constraint: AuthProviders_Constraint;
   update_columns?: Array<AuthProviders_Update_Column>;
@@ -379,7 +409,7 @@ export type AuthRefreshTokens_Aggregate_Order_By = {
 /** input type for inserting array relation for remote table "auth.refresh_tokens" */
 export type AuthRefreshTokens_Arr_Rel_Insert_Input = {
   data: Array<AuthRefreshTokens_Insert_Input>;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<AuthRefreshTokens_On_Conflict>;
 };
 
@@ -453,7 +483,7 @@ export type AuthRefreshTokens_Mutation_Response = {
   returning: Array<AuthRefreshTokens>;
 };
 
-/** on conflict condition type for table "auth.refresh_tokens" */
+/** on_conflict condition type for table "auth.refresh_tokens" */
 export type AuthRefreshTokens_On_Conflict = {
   constraint: AuthRefreshTokens_Constraint;
   update_columns?: Array<AuthRefreshTokens_Update_Column>;
@@ -629,11 +659,11 @@ export type AuthRoles_Mutation_Response = {
 /** input type for inserting object relation for remote table "auth.roles" */
 export type AuthRoles_Obj_Rel_Insert_Input = {
   data: AuthRoles_Insert_Input;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<AuthRoles_On_Conflict>;
 };
 
-/** on conflict condition type for table "auth.roles" */
+/** on_conflict condition type for table "auth.roles" */
 export type AuthRoles_On_Conflict = {
   constraint: AuthRoles_Constraint;
   update_columns?: Array<AuthRoles_Update_Column>;
@@ -718,7 +748,7 @@ export type AuthUserProviders_Aggregate_Order_By = {
 /** input type for inserting array relation for remote table "auth.user_providers" */
 export type AuthUserProviders_Arr_Rel_Insert_Input = {
   data: Array<AuthUserProviders_Insert_Input>;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<AuthUserProviders_On_Conflict>;
 };
 
@@ -822,7 +852,7 @@ export type AuthUserProviders_Mutation_Response = {
   returning: Array<AuthUserProviders>;
 };
 
-/** on conflict condition type for table "auth.user_providers" */
+/** on_conflict condition type for table "auth.user_providers" */
 export type AuthUserProviders_On_Conflict = {
   constraint: AuthUserProviders_Constraint;
   update_columns?: Array<AuthUserProviders_Update_Column>;
@@ -945,7 +975,7 @@ export type AuthUserRoles_Aggregate_Order_By = {
 /** input type for inserting array relation for remote table "auth.user_roles" */
 export type AuthUserRoles_Arr_Rel_Insert_Input = {
   data: Array<AuthUserRoles_Insert_Input>;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<AuthUserRoles_On_Conflict>;
 };
 
@@ -1023,7 +1053,7 @@ export type AuthUserRoles_Mutation_Response = {
   returning: Array<AuthUserRoles>;
 };
 
-/** on conflict condition type for table "auth.user_roles" */
+/** on_conflict condition type for table "auth.user_roles" */
 export type AuthUserRoles_On_Conflict = {
   constraint: AuthUserRoles_Constraint;
   update_columns?: Array<AuthUserRoles_Update_Column>;
@@ -1230,11 +1260,11 @@ export type Buckets_Mutation_Response = {
 /** input type for inserting object relation for remote table "storage.buckets" */
 export type Buckets_Obj_Rel_Insert_Input = {
   data: Buckets_Insert_Input;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Buckets_On_Conflict>;
 };
 
-/** on conflict condition type for table "storage.buckets" */
+/** on_conflict condition type for table "storage.buckets" */
 export type Buckets_On_Conflict = {
   constraint: Buckets_Constraint;
   update_columns?: Array<Buckets_Update_Column>;
@@ -1404,37 +1434,38 @@ export type Citext_Comparison_Exp = {
 export type Companies = {
   __typename?: 'companies';
   /** An array relationship */
-  companyUsers: Array<Company_Users>;
+  companyUsers: Array<CompanyUsers>;
   /** An aggregate relationship */
-  companyUsers_aggregate: Company_Users_Aggregate;
-  created_at: Scalars['timestamptz'];
+  companyUsers_aggregate: CompanyUsers_Aggregate;
+  createdAt: Scalars['timestamptz'];
   /** An array relationship */
   customers: Array<Customers>;
   /** An aggregate relationship */
   customers_aggregate: Customers_Aggregate;
+  emailDomain: Scalars['String'];
   id: Scalars['uuid'];
   name: Scalars['String'];
-  updated_at: Scalars['timestamptz'];
+  updatedAt: Scalars['timestamptz'];
 };
 
 
 /** columns and relationships of "companies" */
 export type CompaniesCompanyUsersArgs = {
-  distinct_on?: InputMaybe<Array<Company_Users_Select_Column>>;
+  distinct_on?: InputMaybe<Array<CompanyUsers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Company_Users_Order_By>>;
-  where?: InputMaybe<Company_Users_Bool_Exp>;
+  order_by?: InputMaybe<Array<CompanyUsers_Order_By>>;
+  where?: InputMaybe<CompanyUsers_Bool_Exp>;
 };
 
 
 /** columns and relationships of "companies" */
 export type CompaniesCompanyUsers_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Company_Users_Select_Column>>;
+  distinct_on?: InputMaybe<Array<CompanyUsers_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Company_Users_Order_By>>;
-  where?: InputMaybe<Company_Users_Bool_Exp>;
+  order_by?: InputMaybe<Array<CompanyUsers_Order_By>>;
+  where?: InputMaybe<CompanyUsers_Bool_Exp>;
 };
 
 
@@ -1484,46 +1515,52 @@ export type Companies_Bool_Exp = {
   _and?: InputMaybe<Array<Companies_Bool_Exp>>;
   _not?: InputMaybe<Companies_Bool_Exp>;
   _or?: InputMaybe<Array<Companies_Bool_Exp>>;
-  companyUsers?: InputMaybe<Company_Users_Bool_Exp>;
-  created_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  companyUsers?: InputMaybe<CompanyUsers_Bool_Exp>;
+  createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   customers?: InputMaybe<Customers_Bool_Exp>;
+  emailDomain?: InputMaybe<String_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
   name?: InputMaybe<String_Comparison_Exp>;
-  updated_at?: InputMaybe<Timestamptz_Comparison_Exp>;
+  updatedAt?: InputMaybe<Timestamptz_Comparison_Exp>;
 };
 
 /** unique or primary key constraints on table "companies" */
 export enum Companies_Constraint {
+  /** unique or primary key constraint */
+  CompaniesEmailDomainKey = 'companies_email_domain_key',
   /** unique or primary key constraint */
   CompaniesPkey = 'companies_pkey'
 }
 
 /** input type for inserting data into table "companies" */
 export type Companies_Insert_Input = {
-  companyUsers?: InputMaybe<Company_Users_Arr_Rel_Insert_Input>;
-  created_at?: InputMaybe<Scalars['timestamptz']>;
+  companyUsers?: InputMaybe<CompanyUsers_Arr_Rel_Insert_Input>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
   customers?: InputMaybe<Customers_Arr_Rel_Insert_Input>;
+  emailDomain?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** aggregate max on columns */
 export type Companies_Max_Fields = {
   __typename?: 'companies_max_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  emailDomain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** aggregate min on columns */
 export type Companies_Min_Fields = {
   __typename?: 'companies_min_fields';
-  created_at?: Maybe<Scalars['timestamptz']>;
+  createdAt?: Maybe<Scalars['timestamptz']>;
+  emailDomain?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
   name?: Maybe<Scalars['String']>;
-  updated_at?: Maybe<Scalars['timestamptz']>;
+  updatedAt?: Maybe<Scalars['timestamptz']>;
 };
 
 /** response of any mutation on the table "companies" */
@@ -1538,11 +1575,11 @@ export type Companies_Mutation_Response = {
 /** input type for inserting object relation for remote table "companies" */
 export type Companies_Obj_Rel_Insert_Input = {
   data: Companies_Insert_Input;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Companies_On_Conflict>;
 };
 
-/** on conflict condition type for table "companies" */
+/** on_conflict condition type for table "companies" */
 export type Companies_On_Conflict = {
   constraint: Companies_Constraint;
   update_columns?: Array<Companies_Update_Column>;
@@ -1551,12 +1588,13 @@ export type Companies_On_Conflict = {
 
 /** Ordering options when selecting data from "companies". */
 export type Companies_Order_By = {
-  companyUsers_aggregate?: InputMaybe<Company_Users_Aggregate_Order_By>;
-  created_at?: InputMaybe<Order_By>;
+  companyUsers_aggregate?: InputMaybe<CompanyUsers_Aggregate_Order_By>;
+  createdAt?: InputMaybe<Order_By>;
   customers_aggregate?: InputMaybe<Customers_Aggregate_Order_By>;
+  emailDomain?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
   name?: InputMaybe<Order_By>;
-  updated_at?: InputMaybe<Order_By>;
+  updatedAt?: InputMaybe<Order_By>;
 };
 
 /** primary key columns input for table: companies */
@@ -1567,38 +1605,43 @@ export type Companies_Pk_Columns_Input = {
 /** select columns of table "companies" */
 export enum Companies_Select_Column {
   /** column name */
-  CreatedAt = 'created_at',
+  CreatedAt = 'createdAt',
+  /** column name */
+  EmailDomain = 'emailDomain',
   /** column name */
   Id = 'id',
   /** column name */
   Name = 'name',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updatedAt'
 }
 
 /** input type for updating data in table "companies" */
 export type Companies_Set_Input = {
-  created_at?: InputMaybe<Scalars['timestamptz']>;
+  createdAt?: InputMaybe<Scalars['timestamptz']>;
+  emailDomain?: InputMaybe<Scalars['String']>;
   id?: InputMaybe<Scalars['uuid']>;
   name?: InputMaybe<Scalars['String']>;
-  updated_at?: InputMaybe<Scalars['timestamptz']>;
+  updatedAt?: InputMaybe<Scalars['timestamptz']>;
 };
 
 /** update columns of table "companies" */
 export enum Companies_Update_Column {
   /** column name */
-  CreatedAt = 'created_at',
+  CreatedAt = 'createdAt',
+  /** column name */
+  EmailDomain = 'emailDomain',
   /** column name */
   Id = 'id',
   /** column name */
   Name = 'name',
   /** column name */
-  UpdatedAt = 'updated_at'
+  UpdatedAt = 'updatedAt'
 }
 
 /** columns and relationships of "company_users" */
-export type Company_Users = {
-  __typename?: 'company_users';
+export type CompanyUsers = {
+  __typename?: 'companyUsers';
   /** An object relationship */
   company: Companies;
   companyId: Scalars['uuid'];
@@ -1611,46 +1654,46 @@ export type Company_Users = {
 };
 
 /** aggregated selection of "company_users" */
-export type Company_Users_Aggregate = {
-  __typename?: 'company_users_aggregate';
-  aggregate?: Maybe<Company_Users_Aggregate_Fields>;
-  nodes: Array<Company_Users>;
+export type CompanyUsers_Aggregate = {
+  __typename?: 'companyUsers_aggregate';
+  aggregate?: Maybe<CompanyUsers_Aggregate_Fields>;
+  nodes: Array<CompanyUsers>;
 };
 
 /** aggregate fields of "company_users" */
-export type Company_Users_Aggregate_Fields = {
-  __typename?: 'company_users_aggregate_fields';
+export type CompanyUsers_Aggregate_Fields = {
+  __typename?: 'companyUsers_aggregate_fields';
   count: Scalars['Int'];
-  max?: Maybe<Company_Users_Max_Fields>;
-  min?: Maybe<Company_Users_Min_Fields>;
+  max?: Maybe<CompanyUsers_Max_Fields>;
+  min?: Maybe<CompanyUsers_Min_Fields>;
 };
 
 
 /** aggregate fields of "company_users" */
-export type Company_Users_Aggregate_FieldsCountArgs = {
-  columns?: InputMaybe<Array<Company_Users_Select_Column>>;
+export type CompanyUsers_Aggregate_FieldsCountArgs = {
+  columns?: InputMaybe<Array<CompanyUsers_Select_Column>>;
   distinct?: InputMaybe<Scalars['Boolean']>;
 };
 
 /** order by aggregate values of table "company_users" */
-export type Company_Users_Aggregate_Order_By = {
+export type CompanyUsers_Aggregate_Order_By = {
   count?: InputMaybe<Order_By>;
-  max?: InputMaybe<Company_Users_Max_Order_By>;
-  min?: InputMaybe<Company_Users_Min_Order_By>;
+  max?: InputMaybe<CompanyUsers_Max_Order_By>;
+  min?: InputMaybe<CompanyUsers_Min_Order_By>;
 };
 
 /** input type for inserting array relation for remote table "company_users" */
-export type Company_Users_Arr_Rel_Insert_Input = {
-  data: Array<Company_Users_Insert_Input>;
-  /** on conflict condition */
-  on_conflict?: InputMaybe<Company_Users_On_Conflict>;
+export type CompanyUsers_Arr_Rel_Insert_Input = {
+  data: Array<CompanyUsers_Insert_Input>;
+  /** upsert condition */
+  on_conflict?: InputMaybe<CompanyUsers_On_Conflict>;
 };
 
 /** Boolean expression to filter rows from the table "company_users". All fields are combined with a logical 'AND'. */
-export type Company_Users_Bool_Exp = {
-  _and?: InputMaybe<Array<Company_Users_Bool_Exp>>;
-  _not?: InputMaybe<Company_Users_Bool_Exp>;
-  _or?: InputMaybe<Array<Company_Users_Bool_Exp>>;
+export type CompanyUsers_Bool_Exp = {
+  _and?: InputMaybe<Array<CompanyUsers_Bool_Exp>>;
+  _not?: InputMaybe<CompanyUsers_Bool_Exp>;
+  _or?: InputMaybe<Array<CompanyUsers_Bool_Exp>>;
   company?: InputMaybe<Companies_Bool_Exp>;
   companyId?: InputMaybe<Uuid_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -1661,7 +1704,7 @@ export type Company_Users_Bool_Exp = {
 };
 
 /** unique or primary key constraints on table "company_users" */
-export enum Company_Users_Constraint {
+export enum CompanyUsers_Constraint {
   /** unique or primary key constraint */
   CompanyUsersPkey = 'company_users_pkey',
   /** unique or primary key constraint */
@@ -1669,7 +1712,7 @@ export enum Company_Users_Constraint {
 }
 
 /** input type for inserting data into table "company_users" */
-export type Company_Users_Insert_Input = {
+export type CompanyUsers_Insert_Input = {
   company?: InputMaybe<Companies_Obj_Rel_Insert_Input>;
   companyId?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
@@ -1680,8 +1723,8 @@ export type Company_Users_Insert_Input = {
 };
 
 /** aggregate max on columns */
-export type Company_Users_Max_Fields = {
-  __typename?: 'company_users_max_fields';
+export type CompanyUsers_Max_Fields = {
+  __typename?: 'companyUsers_max_fields';
   companyId?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
@@ -1690,7 +1733,7 @@ export type Company_Users_Max_Fields = {
 };
 
 /** order by max() on columns of table "company_users" */
-export type Company_Users_Max_Order_By = {
+export type CompanyUsers_Max_Order_By = {
   companyId?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -1699,8 +1742,8 @@ export type Company_Users_Max_Order_By = {
 };
 
 /** aggregate min on columns */
-export type Company_Users_Min_Fields = {
-  __typename?: 'company_users_min_fields';
+export type CompanyUsers_Min_Fields = {
+  __typename?: 'companyUsers_min_fields';
   companyId?: Maybe<Scalars['uuid']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
   id?: Maybe<Scalars['uuid']>;
@@ -1709,7 +1752,7 @@ export type Company_Users_Min_Fields = {
 };
 
 /** order by min() on columns of table "company_users" */
-export type Company_Users_Min_Order_By = {
+export type CompanyUsers_Min_Order_By = {
   companyId?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
@@ -1718,30 +1761,30 @@ export type Company_Users_Min_Order_By = {
 };
 
 /** response of any mutation on the table "company_users" */
-export type Company_Users_Mutation_Response = {
-  __typename?: 'company_users_mutation_response';
+export type CompanyUsers_Mutation_Response = {
+  __typename?: 'companyUsers_mutation_response';
   /** number of rows affected by the mutation */
   affected_rows: Scalars['Int'];
   /** data from the rows affected by the mutation */
-  returning: Array<Company_Users>;
+  returning: Array<CompanyUsers>;
 };
 
 /** input type for inserting object relation for remote table "company_users" */
-export type Company_Users_Obj_Rel_Insert_Input = {
-  data: Company_Users_Insert_Input;
-  /** on conflict condition */
-  on_conflict?: InputMaybe<Company_Users_On_Conflict>;
+export type CompanyUsers_Obj_Rel_Insert_Input = {
+  data: CompanyUsers_Insert_Input;
+  /** upsert condition */
+  on_conflict?: InputMaybe<CompanyUsers_On_Conflict>;
 };
 
-/** on conflict condition type for table "company_users" */
-export type Company_Users_On_Conflict = {
-  constraint: Company_Users_Constraint;
-  update_columns?: Array<Company_Users_Update_Column>;
-  where?: InputMaybe<Company_Users_Bool_Exp>;
+/** on_conflict condition type for table "company_users" */
+export type CompanyUsers_On_Conflict = {
+  constraint: CompanyUsers_Constraint;
+  update_columns?: Array<CompanyUsers_Update_Column>;
+  where?: InputMaybe<CompanyUsers_Bool_Exp>;
 };
 
 /** Ordering options when selecting data from "company_users". */
-export type Company_Users_Order_By = {
+export type CompanyUsers_Order_By = {
   company?: InputMaybe<Companies_Order_By>;
   companyId?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
@@ -1751,13 +1794,13 @@ export type Company_Users_Order_By = {
   userId?: InputMaybe<Order_By>;
 };
 
-/** primary key columns input for table: company_users */
-export type Company_Users_Pk_Columns_Input = {
+/** primary key columns input for table: companyUsers */
+export type CompanyUsers_Pk_Columns_Input = {
   id: Scalars['uuid'];
 };
 
 /** select columns of table "company_users" */
-export enum Company_Users_Select_Column {
+export enum CompanyUsers_Select_Column {
   /** column name */
   CompanyId = 'companyId',
   /** column name */
@@ -1771,7 +1814,7 @@ export enum Company_Users_Select_Column {
 }
 
 /** input type for updating data in table "company_users" */
-export type Company_Users_Set_Input = {
+export type CompanyUsers_Set_Input = {
   companyId?: InputMaybe<Scalars['uuid']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   id?: InputMaybe<Scalars['uuid']>;
@@ -1780,7 +1823,7 @@ export type Company_Users_Set_Input = {
 };
 
 /** update columns of table "company_users" */
-export enum Company_Users_Update_Column {
+export enum CompanyUsers_Update_Column {
   /** column name */
   CompanyId = 'companyId',
   /** column name */
@@ -1843,7 +1886,7 @@ export type CustomerComments_Aggregate_Order_By = {
 /** input type for inserting array relation for remote table "customer_comments" */
 export type CustomerComments_Arr_Rel_Insert_Input = {
   data: Array<CustomerComments_Insert_Input>;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<CustomerComments_On_Conflict>;
 };
 
@@ -1939,7 +1982,7 @@ export type CustomerComments_Mutation_Response = {
   returning: Array<CustomerComments>;
 };
 
-/** on conflict condition type for table "customer_comments" */
+/** on_conflict condition type for table "customer_comments" */
 export type CustomerComments_On_Conflict = {
   constraint: CustomerComments_Constraint;
   update_columns?: Array<CustomerComments_Update_Column>;
@@ -2084,7 +2127,7 @@ export type Customers_Aggregate_Order_By = {
 /** input type for inserting array relation for remote table "customers" */
 export type Customers_Arr_Rel_Insert_Input = {
   data: Array<Customers_Insert_Input>;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Customers_On_Conflict>;
 };
 
@@ -2183,11 +2226,11 @@ export type Customers_Mutation_Response = {
 /** input type for inserting object relation for remote table "customers" */
 export type Customers_Obj_Rel_Insert_Input = {
   data: Customers_Insert_Input;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Customers_On_Conflict>;
 };
 
-/** on conflict condition type for table "customers" */
+/** on_conflict condition type for table "customers" */
 export type Customers_On_Conflict = {
   constraint: Customers_Constraint;
   update_columns?: Array<Customers_Update_Column>;
@@ -2349,7 +2392,7 @@ export type Files_Aggregate_Order_By = {
 /** input type for inserting array relation for remote table "storage.files" */
 export type Files_Arr_Rel_Insert_Input = {
   data: Array<Files_Insert_Input>;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
 
@@ -2476,11 +2519,11 @@ export type Files_Mutation_Response = {
 /** input type for inserting object relation for remote table "storage.files" */
 export type Files_Obj_Rel_Insert_Input = {
   data: Files_Insert_Input;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Files_On_Conflict>;
 };
 
-/** on conflict condition type for table "storage.files" */
+/** on_conflict condition type for table "storage.files" */
 export type Files_On_Conflict = {
   constraint: Files_Constraint;
   update_columns?: Array<Files_Update_Column>;
@@ -2647,6 +2690,29 @@ export type Files_Variance_Order_By = {
   size?: InputMaybe<Order_By>;
 };
 
+/** Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'. */
+export type Jsonb_Comparison_Exp = {
+  /** is the column contained in the given json value */
+  _contained_in?: InputMaybe<Scalars['jsonb']>;
+  /** does the column contain the given json value at the top level */
+  _contains?: InputMaybe<Scalars['jsonb']>;
+  _eq?: InputMaybe<Scalars['jsonb']>;
+  _gt?: InputMaybe<Scalars['jsonb']>;
+  _gte?: InputMaybe<Scalars['jsonb']>;
+  /** does the string exist as a top-level key in the column */
+  _has_key?: InputMaybe<Scalars['String']>;
+  /** do all of these strings exist as top-level keys in the column */
+  _has_keys_all?: InputMaybe<Array<Scalars['String']>>;
+  /** do any of these strings exist as top-level keys in the column */
+  _has_keys_any?: InputMaybe<Array<Scalars['String']>>;
+  _in?: InputMaybe<Array<Scalars['jsonb']>>;
+  _is_null?: InputMaybe<Scalars['Boolean']>;
+  _lt?: InputMaybe<Scalars['jsonb']>;
+  _lte?: InputMaybe<Scalars['jsonb']>;
+  _neq?: InputMaybe<Scalars['jsonb']>;
+  _nin?: InputMaybe<Array<Scalars['jsonb']>>;
+};
+
 /** mutation root */
 export type Mutation_Root = {
   __typename?: 'mutation_root';
@@ -2679,6 +2745,14 @@ export type Mutation_Root = {
   deleteBucket?: Maybe<Buckets>;
   /** delete data from the table: "storage.buckets" */
   deleteBuckets?: Maybe<Buckets_Mutation_Response>;
+  /** delete data from the table: "companies" */
+  deleteCompanies?: Maybe<Companies_Mutation_Response>;
+  /** delete single row from the table: "companies" */
+  deleteCompany?: Maybe<Companies>;
+  /** delete single row from the table: "company_users" */
+  deleteCompanyUser?: Maybe<CompanyUsers>;
+  /** delete data from the table: "company_users" */
+  deleteCompanyUsers?: Maybe<CompanyUsers_Mutation_Response>;
   /** delete single row from the table: "customers" */
   deleteCustomer?: Maybe<Customers>;
   /** delete single row from the table: "customer_comments" */
@@ -2695,14 +2769,6 @@ export type Mutation_Root = {
   deleteUser?: Maybe<Users>;
   /** delete data from the table: "auth.users" */
   deleteUsers?: Maybe<Users_Mutation_Response>;
-  /** delete data from the table: "companies" */
-  delete_companies?: Maybe<Companies_Mutation_Response>;
-  /** delete single row from the table: "companies" */
-  delete_companies_by_pk?: Maybe<Companies>;
-  /** delete data from the table: "company_users" */
-  delete_company_users?: Maybe<Company_Users_Mutation_Response>;
-  /** delete single row from the table: "company_users" */
-  delete_company_users_by_pk?: Maybe<Company_Users>;
   /** insert a single row into the table: "auth.providers" */
   insertAuthProvider?: Maybe<AuthProviders>;
   /** insert a single row into the table: "auth.provider_requests" */
@@ -2731,6 +2797,14 @@ export type Mutation_Root = {
   insertBucket?: Maybe<Buckets>;
   /** insert data into the table: "storage.buckets" */
   insertBuckets?: Maybe<Buckets_Mutation_Response>;
+  /** insert data into the table: "companies" */
+  insertCompanies?: Maybe<Companies_Mutation_Response>;
+  /** insert a single row into the table: "companies" */
+  insertCompany?: Maybe<Companies>;
+  /** insert a single row into the table: "company_users" */
+  insertCompanyUser?: Maybe<CompanyUsers>;
+  /** insert data into the table: "company_users" */
+  insertCompanyUsers?: Maybe<CompanyUsers_Mutation_Response>;
   /** insert a single row into the table: "customers" */
   insertCustomer?: Maybe<Customers>;
   /** insert a single row into the table: "customer_comments" */
@@ -2747,14 +2821,6 @@ export type Mutation_Root = {
   insertUser?: Maybe<Users>;
   /** insert data into the table: "auth.users" */
   insertUsers?: Maybe<Users_Mutation_Response>;
-  /** insert data into the table: "companies" */
-  insert_companies?: Maybe<Companies_Mutation_Response>;
-  /** insert a single row into the table: "companies" */
-  insert_companies_one?: Maybe<Companies>;
-  /** insert data into the table: "company_users" */
-  insert_company_users?: Maybe<Company_Users_Mutation_Response>;
-  /** insert a single row into the table: "company_users" */
-  insert_company_users_one?: Maybe<Company_Users>;
   /** update single row of the table: "auth.providers" */
   updateAuthProvider?: Maybe<AuthProviders>;
   /** update single row of the table: "auth.provider_requests" */
@@ -2783,6 +2849,14 @@ export type Mutation_Root = {
   updateBucket?: Maybe<Buckets>;
   /** update data of the table: "storage.buckets" */
   updateBuckets?: Maybe<Buckets_Mutation_Response>;
+  /** update data of the table: "companies" */
+  updateCompanies?: Maybe<Companies_Mutation_Response>;
+  /** update single row of the table: "companies" */
+  updateCompany?: Maybe<Companies>;
+  /** update single row of the table: "company_users" */
+  updateCompanyUser?: Maybe<CompanyUsers>;
+  /** update data of the table: "company_users" */
+  updateCompanyUsers?: Maybe<CompanyUsers_Mutation_Response>;
   /** update single row of the table: "customers" */
   updateCustomer?: Maybe<Customers>;
   /** update single row of the table: "customer_comments" */
@@ -2799,14 +2873,6 @@ export type Mutation_Root = {
   updateUser?: Maybe<Users>;
   /** update data of the table: "auth.users" */
   updateUsers?: Maybe<Users_Mutation_Response>;
-  /** update data of the table: "companies" */
-  update_companies?: Maybe<Companies_Mutation_Response>;
-  /** update single row of the table: "companies" */
-  update_companies_by_pk?: Maybe<Companies>;
-  /** update data of the table: "company_users" */
-  update_company_users?: Maybe<Company_Users_Mutation_Response>;
-  /** update single row of the table: "company_users" */
-  update_company_users_by_pk?: Maybe<Company_Users>;
 };
 
 
@@ -2901,6 +2967,30 @@ export type Mutation_RootDeleteBucketsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootDeleteCompaniesArgs = {
+  where: Companies_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteCompanyArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteCompanyUserArgs = {
+  id: Scalars['uuid'];
+};
+
+
+/** mutation root */
+export type Mutation_RootDeleteCompanyUsersArgs = {
+  where: CompanyUsers_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootDeleteCustomerArgs = {
   id: Scalars['uuid'];
 };
@@ -2945,30 +3035,6 @@ export type Mutation_RootDeleteUserArgs = {
 /** mutation root */
 export type Mutation_RootDeleteUsersArgs = {
   where: Users_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDelete_CompaniesArgs = {
-  where: Companies_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDelete_Companies_By_PkArgs = {
-  id: Scalars['uuid'];
-};
-
-
-/** mutation root */
-export type Mutation_RootDelete_Company_UsersArgs = {
-  where: Company_Users_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootDelete_Company_Users_By_PkArgs = {
-  id: Scalars['uuid'];
 };
 
 
@@ -3071,6 +3137,34 @@ export type Mutation_RootInsertBucketsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootInsertCompaniesArgs = {
+  objects: Array<Companies_Insert_Input>;
+  on_conflict?: InputMaybe<Companies_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertCompanyArgs = {
+  object: Companies_Insert_Input;
+  on_conflict?: InputMaybe<Companies_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertCompanyUserArgs = {
+  object: CompanyUsers_Insert_Input;
+  on_conflict?: InputMaybe<CompanyUsers_On_Conflict>;
+};
+
+
+/** mutation root */
+export type Mutation_RootInsertCompanyUsersArgs = {
+  objects: Array<CompanyUsers_Insert_Input>;
+  on_conflict?: InputMaybe<CompanyUsers_On_Conflict>;
+};
+
+
+/** mutation root */
 export type Mutation_RootInsertCustomerArgs = {
   object: Customers_Insert_Input;
   on_conflict?: InputMaybe<Customers_On_Conflict>;
@@ -3127,34 +3221,6 @@ export type Mutation_RootInsertUsersArgs = {
 
 
 /** mutation root */
-export type Mutation_RootInsert_CompaniesArgs = {
-  objects: Array<Companies_Insert_Input>;
-  on_conflict?: InputMaybe<Companies_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_Companies_OneArgs = {
-  object: Companies_Insert_Input;
-  on_conflict?: InputMaybe<Companies_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_Company_UsersArgs = {
-  objects: Array<Company_Users_Insert_Input>;
-  on_conflict?: InputMaybe<Company_Users_On_Conflict>;
-};
-
-
-/** mutation root */
-export type Mutation_RootInsert_Company_Users_OneArgs = {
-  object: Company_Users_Insert_Input;
-  on_conflict?: InputMaybe<Company_Users_On_Conflict>;
-};
-
-
-/** mutation root */
 export type Mutation_RootUpdateAuthProviderArgs = {
   _set?: InputMaybe<AuthProviders_Set_Input>;
   pk_columns: AuthProviders_Pk_Columns_Input;
@@ -3163,6 +3229,11 @@ export type Mutation_RootUpdateAuthProviderArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestArgs = {
+  _append?: InputMaybe<AuthProviderRequests_Append_Input>;
+  _delete_at_path?: InputMaybe<AuthProviderRequests_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<AuthProviderRequests_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<AuthProviderRequests_Delete_Key_Input>;
+  _prepend?: InputMaybe<AuthProviderRequests_Prepend_Input>;
   _set?: InputMaybe<AuthProviderRequests_Set_Input>;
   pk_columns: AuthProviderRequests_Pk_Columns_Input;
 };
@@ -3170,6 +3241,11 @@ export type Mutation_RootUpdateAuthProviderRequestArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateAuthProviderRequestsArgs = {
+  _append?: InputMaybe<AuthProviderRequests_Append_Input>;
+  _delete_at_path?: InputMaybe<AuthProviderRequests_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<AuthProviderRequests_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<AuthProviderRequests_Delete_Key_Input>;
+  _prepend?: InputMaybe<AuthProviderRequests_Prepend_Input>;
   _set?: InputMaybe<AuthProviderRequests_Set_Input>;
   where: AuthProviderRequests_Bool_Exp;
 };
@@ -3255,6 +3331,34 @@ export type Mutation_RootUpdateBucketsArgs = {
 
 
 /** mutation root */
+export type Mutation_RootUpdateCompaniesArgs = {
+  _set?: InputMaybe<Companies_Set_Input>;
+  where: Companies_Bool_Exp;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateCompanyArgs = {
+  _set?: InputMaybe<Companies_Set_Input>;
+  pk_columns: Companies_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateCompanyUserArgs = {
+  _set?: InputMaybe<CompanyUsers_Set_Input>;
+  pk_columns: CompanyUsers_Pk_Columns_Input;
+};
+
+
+/** mutation root */
+export type Mutation_RootUpdateCompanyUsersArgs = {
+  _set?: InputMaybe<CompanyUsers_Set_Input>;
+  where: CompanyUsers_Bool_Exp;
+};
+
+
+/** mutation root */
 export type Mutation_RootUpdateCustomerArgs = {
   _set?: InputMaybe<Customers_Set_Input>;
   pk_columns: Customers_Pk_Columns_Input;
@@ -3300,6 +3404,11 @@ export type Mutation_RootUpdateFilesArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateUserArgs = {
+  _append?: InputMaybe<Users_Append_Input>;
+  _delete_at_path?: InputMaybe<Users_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Users_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
+  _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   pk_columns: Users_Pk_Columns_Input;
 };
@@ -3307,36 +3416,13 @@ export type Mutation_RootUpdateUserArgs = {
 
 /** mutation root */
 export type Mutation_RootUpdateUsersArgs = {
+  _append?: InputMaybe<Users_Append_Input>;
+  _delete_at_path?: InputMaybe<Users_Delete_At_Path_Input>;
+  _delete_elem?: InputMaybe<Users_Delete_Elem_Input>;
+  _delete_key?: InputMaybe<Users_Delete_Key_Input>;
+  _prepend?: InputMaybe<Users_Prepend_Input>;
   _set?: InputMaybe<Users_Set_Input>;
   where: Users_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_CompaniesArgs = {
-  _set?: InputMaybe<Companies_Set_Input>;
-  where: Companies_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Companies_By_PkArgs = {
-  _set?: InputMaybe<Companies_Set_Input>;
-  pk_columns: Companies_Pk_Columns_Input;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Company_UsersArgs = {
-  _set?: InputMaybe<Company_Users_Set_Input>;
-  where: Company_Users_Bool_Exp;
-};
-
-
-/** mutation root */
-export type Mutation_RootUpdate_Company_Users_By_PkArgs = {
-  _set?: InputMaybe<Company_Users_Set_Input>;
-  pk_columns: Company_Users_Pk_Columns_Input;
 };
 
 /** column ordering options */
@@ -3402,15 +3488,15 @@ export type Query_Root = {
   /** fetch data from the table: "companies" */
   companies: Array<Companies>;
   /** fetch aggregated fields from the table: "companies" */
-  companies_aggregate: Companies_Aggregate;
+  companiesAggregate: Companies_Aggregate;
   /** fetch data from the table: "companies" using primary key columns */
-  companies_by_pk?: Maybe<Companies>;
-  /** fetch data from the table: "company_users" */
-  company_users: Array<Company_Users>;
-  /** fetch aggregated fields from the table: "company_users" */
-  company_users_aggregate: Company_Users_Aggregate;
+  company?: Maybe<Companies>;
   /** fetch data from the table: "company_users" using primary key columns */
-  company_users_by_pk?: Maybe<Company_Users>;
+  companyUser?: Maybe<CompanyUsers>;
+  /** fetch aggregated fields from the table: "company_users" */
+  companyUserAggregate: CompanyUsers_Aggregate;
+  /** An array relationship */
+  companyUsers: Array<CompanyUsers>;
   /** fetch data from the table: "customers" using primary key columns */
   customer?: Maybe<Customers>;
   /** fetch data from the table: "customer_comments" using primary key columns */
@@ -3431,10 +3517,10 @@ export type Query_Root = {
   filesAggregate: Files_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
-  /** fetch aggregated fields from the table: "auth.users" */
-  userAggregate: Users_Aggregate;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
+  /** fetch aggregated fields from the table: "auth.users" */
+  usersAggregate: Users_Aggregate;
 };
 
 
@@ -3608,7 +3694,7 @@ export type Query_RootCompaniesArgs = {
 };
 
 
-export type Query_RootCompanies_AggregateArgs = {
+export type Query_RootCompaniesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Companies_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -3617,31 +3703,31 @@ export type Query_RootCompanies_AggregateArgs = {
 };
 
 
-export type Query_RootCompanies_By_PkArgs = {
+export type Query_RootCompanyArgs = {
   id: Scalars['uuid'];
 };
 
 
-export type Query_RootCompany_UsersArgs = {
-  distinct_on?: InputMaybe<Array<Company_Users_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Company_Users_Order_By>>;
-  where?: InputMaybe<Company_Users_Bool_Exp>;
-};
-
-
-export type Query_RootCompany_Users_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Company_Users_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Company_Users_Order_By>>;
-  where?: InputMaybe<Company_Users_Bool_Exp>;
-};
-
-
-export type Query_RootCompany_Users_By_PkArgs = {
+export type Query_RootCompanyUserArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Query_RootCompanyUserAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CompanyUsers_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<CompanyUsers_Order_By>>;
+  where?: InputMaybe<CompanyUsers_Bool_Exp>;
+};
+
+
+export type Query_RootCompanyUsersArgs = {
+  distinct_on?: InputMaybe<Array<CompanyUsers_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<CompanyUsers_Order_By>>;
+  where?: InputMaybe<CompanyUsers_Bool_Exp>;
 };
 
 
@@ -3719,7 +3805,7 @@ export type Query_RootUserArgs = {
 };
 
 
-export type Query_RootUserAggregateArgs = {
+export type Query_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -3728,7 +3814,7 @@ export type Query_RootUserAggregateArgs = {
 };
 
 
-export type Query_RootUsersArgs = {
+export type Query_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -3783,15 +3869,15 @@ export type Subscription_Root = {
   /** fetch data from the table: "companies" */
   companies: Array<Companies>;
   /** fetch aggregated fields from the table: "companies" */
-  companies_aggregate: Companies_Aggregate;
+  companiesAggregate: Companies_Aggregate;
   /** fetch data from the table: "companies" using primary key columns */
-  companies_by_pk?: Maybe<Companies>;
-  /** fetch data from the table: "company_users" */
-  company_users: Array<Company_Users>;
-  /** fetch aggregated fields from the table: "company_users" */
-  company_users_aggregate: Company_Users_Aggregate;
+  company?: Maybe<Companies>;
   /** fetch data from the table: "company_users" using primary key columns */
-  company_users_by_pk?: Maybe<Company_Users>;
+  companyUser?: Maybe<CompanyUsers>;
+  /** fetch aggregated fields from the table: "company_users" */
+  companyUserAggregate: CompanyUsers_Aggregate;
+  /** An array relationship */
+  companyUsers: Array<CompanyUsers>;
   /** fetch data from the table: "customers" using primary key columns */
   customer?: Maybe<Customers>;
   /** fetch data from the table: "customer_comments" using primary key columns */
@@ -3812,10 +3898,10 @@ export type Subscription_Root = {
   filesAggregate: Files_Aggregate;
   /** fetch data from the table: "auth.users" using primary key columns */
   user?: Maybe<Users>;
-  /** fetch aggregated fields from the table: "auth.users" */
-  userAggregate: Users_Aggregate;
   /** fetch data from the table: "auth.users" */
   users: Array<Users>;
+  /** fetch aggregated fields from the table: "auth.users" */
+  usersAggregate: Users_Aggregate;
 };
 
 
@@ -3989,7 +4075,7 @@ export type Subscription_RootCompaniesArgs = {
 };
 
 
-export type Subscription_RootCompanies_AggregateArgs = {
+export type Subscription_RootCompaniesAggregateArgs = {
   distinct_on?: InputMaybe<Array<Companies_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -3998,31 +4084,31 @@ export type Subscription_RootCompanies_AggregateArgs = {
 };
 
 
-export type Subscription_RootCompanies_By_PkArgs = {
+export type Subscription_RootCompanyArgs = {
   id: Scalars['uuid'];
 };
 
 
-export type Subscription_RootCompany_UsersArgs = {
-  distinct_on?: InputMaybe<Array<Company_Users_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Company_Users_Order_By>>;
-  where?: InputMaybe<Company_Users_Bool_Exp>;
-};
-
-
-export type Subscription_RootCompany_Users_AggregateArgs = {
-  distinct_on?: InputMaybe<Array<Company_Users_Select_Column>>;
-  limit?: InputMaybe<Scalars['Int']>;
-  offset?: InputMaybe<Scalars['Int']>;
-  order_by?: InputMaybe<Array<Company_Users_Order_By>>;
-  where?: InputMaybe<Company_Users_Bool_Exp>;
-};
-
-
-export type Subscription_RootCompany_Users_By_PkArgs = {
+export type Subscription_RootCompanyUserArgs = {
   id: Scalars['uuid'];
+};
+
+
+export type Subscription_RootCompanyUserAggregateArgs = {
+  distinct_on?: InputMaybe<Array<CompanyUsers_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<CompanyUsers_Order_By>>;
+  where?: InputMaybe<CompanyUsers_Bool_Exp>;
+};
+
+
+export type Subscription_RootCompanyUsersArgs = {
+  distinct_on?: InputMaybe<Array<CompanyUsers_Select_Column>>;
+  limit?: InputMaybe<Scalars['Int']>;
+  offset?: InputMaybe<Scalars['Int']>;
+  order_by?: InputMaybe<Array<CompanyUsers_Order_By>>;
+  where?: InputMaybe<CompanyUsers_Bool_Exp>;
 };
 
 
@@ -4100,7 +4186,7 @@ export type Subscription_RootUserArgs = {
 };
 
 
-export type Subscription_RootUserAggregateArgs = {
+export type Subscription_RootUsersArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -4109,7 +4195,7 @@ export type Subscription_RootUserAggregateArgs = {
 };
 
 
-export type Subscription_RootUsersArgs = {
+export type Subscription_RootUsersAggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
   offset?: InputMaybe<Scalars['Int']>;
@@ -4136,7 +4222,7 @@ export type Users = {
   activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl: Scalars['String'];
   /** An object relationship */
-  companyUser?: Maybe<Company_Users>;
+  companyUser?: Maybe<CompanyUsers>;
   createdAt: Scalars['timestamptz'];
   /** An array relationship */
   customer_comments: Array<CustomerComments>;
@@ -4157,6 +4243,7 @@ export type Users = {
   isAnonymous: Scalars['Boolean'];
   lastSeen?: Maybe<Scalars['timestamptz']>;
   locale: Scalars['String'];
+  metadata?: Maybe<Scalars['jsonb']>;
   newEmail?: Maybe<Scalars['citext']>;
   otpHash?: Maybe<Scalars['String']>;
   otpHashExpiresAt: Scalars['timestamptz'];
@@ -4220,6 +4307,12 @@ export type UsersCustomers_AggregateArgs = {
   offset?: InputMaybe<Scalars['Int']>;
   order_by?: InputMaybe<Array<Customers_Order_By>>;
   where?: InputMaybe<Customers_Bool_Exp>;
+};
+
+
+/** columns and relationships of "auth.users" */
+export type UsersMetadataArgs = {
+  path?: InputMaybe<Scalars['String']>;
 };
 
 
@@ -4311,10 +4404,15 @@ export type Users_Aggregate_Order_By = {
   min?: InputMaybe<Users_Min_Order_By>;
 };
 
+/** append existing jsonb value of filtered columns with new jsonb value */
+export type Users_Append_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
+};
+
 /** input type for inserting array relation for remote table "auth.users" */
 export type Users_Arr_Rel_Insert_Input = {
   data: Array<Users_Insert_Input>;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
 
@@ -4325,7 +4423,7 @@ export type Users_Bool_Exp = {
   _or?: InputMaybe<Array<Users_Bool_Exp>>;
   activeMfaType?: InputMaybe<String_Comparison_Exp>;
   avatarUrl?: InputMaybe<String_Comparison_Exp>;
-  companyUser?: InputMaybe<Company_Users_Bool_Exp>;
+  companyUser?: InputMaybe<CompanyUsers_Bool_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
   customer_comments?: InputMaybe<CustomerComments_Bool_Exp>;
   customers?: InputMaybe<Customers_Bool_Exp>;
@@ -4339,6 +4437,7 @@ export type Users_Bool_Exp = {
   isAnonymous?: InputMaybe<Boolean_Comparison_Exp>;
   lastSeen?: InputMaybe<Timestamptz_Comparison_Exp>;
   locale?: InputMaybe<String_Comparison_Exp>;
+  metadata?: InputMaybe<Jsonb_Comparison_Exp>;
   newEmail?: InputMaybe<Citext_Comparison_Exp>;
   otpHash?: InputMaybe<String_Comparison_Exp>;
   otpHashExpiresAt?: InputMaybe<Timestamptz_Comparison_Exp>;
@@ -4365,11 +4464,26 @@ export enum Users_Constraint {
   UsersPkey = 'users_pkey'
 }
 
+/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+export type Users_Delete_At_Path_Input = {
+  metadata?: InputMaybe<Array<Scalars['String']>>;
+};
+
+/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+export type Users_Delete_Elem_Input = {
+  metadata?: InputMaybe<Scalars['Int']>;
+};
+
+/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+export type Users_Delete_Key_Input = {
+  metadata?: InputMaybe<Scalars['String']>;
+};
+
 /** input type for inserting data into table "auth.users" */
 export type Users_Insert_Input = {
   activeMfaType?: InputMaybe<Scalars['String']>;
   avatarUrl?: InputMaybe<Scalars['String']>;
-  companyUser?: InputMaybe<Company_Users_Obj_Rel_Insert_Input>;
+  companyUser?: InputMaybe<CompanyUsers_Obj_Rel_Insert_Input>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
   customer_comments?: InputMaybe<CustomerComments_Arr_Rel_Insert_Input>;
   customers?: InputMaybe<Customers_Arr_Rel_Insert_Input>;
@@ -4383,6 +4497,7 @@ export type Users_Insert_Input = {
   isAnonymous?: InputMaybe<Scalars['Boolean']>;
   lastSeen?: InputMaybe<Scalars['timestamptz']>;
   locale?: InputMaybe<Scalars['String']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   newEmail?: InputMaybe<Scalars['citext']>;
   otpHash?: InputMaybe<Scalars['String']>;
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
@@ -4505,11 +4620,11 @@ export type Users_Mutation_Response = {
 /** input type for inserting object relation for remote table "auth.users" */
 export type Users_Obj_Rel_Insert_Input = {
   data: Users_Insert_Input;
-  /** on conflict condition */
+  /** upsert condition */
   on_conflict?: InputMaybe<Users_On_Conflict>;
 };
 
-/** on conflict condition type for table "auth.users" */
+/** on_conflict condition type for table "auth.users" */
 export type Users_On_Conflict = {
   constraint: Users_Constraint;
   update_columns?: Array<Users_Update_Column>;
@@ -4520,7 +4635,7 @@ export type Users_On_Conflict = {
 export type Users_Order_By = {
   activeMfaType?: InputMaybe<Order_By>;
   avatarUrl?: InputMaybe<Order_By>;
-  companyUser?: InputMaybe<Company_Users_Order_By>;
+  companyUser?: InputMaybe<CompanyUsers_Order_By>;
   createdAt?: InputMaybe<Order_By>;
   customer_comments_aggregate?: InputMaybe<CustomerComments_Aggregate_Order_By>;
   customers_aggregate?: InputMaybe<Customers_Aggregate_Order_By>;
@@ -4534,6 +4649,7 @@ export type Users_Order_By = {
   isAnonymous?: InputMaybe<Order_By>;
   lastSeen?: InputMaybe<Order_By>;
   locale?: InputMaybe<Order_By>;
+  metadata?: InputMaybe<Order_By>;
   newEmail?: InputMaybe<Order_By>;
   otpHash?: InputMaybe<Order_By>;
   otpHashExpiresAt?: InputMaybe<Order_By>;
@@ -4553,6 +4669,11 @@ export type Users_Order_By = {
 /** primary key columns input for table: users */
 export type Users_Pk_Columns_Input = {
   id: Scalars['uuid'];
+};
+
+/** prepend existing jsonb value of filtered columns with new jsonb value */
+export type Users_Prepend_Input = {
+  metadata?: InputMaybe<Scalars['jsonb']>;
 };
 
 /** select columns of table "auth.users" */
@@ -4581,6 +4702,8 @@ export enum Users_Select_Column {
   LastSeen = 'lastSeen',
   /** column name */
   Locale = 'locale',
+  /** column name */
+  Metadata = 'metadata',
   /** column name */
   NewEmail = 'newEmail',
   /** column name */
@@ -4619,6 +4742,7 @@ export type Users_Set_Input = {
   isAnonymous?: InputMaybe<Scalars['Boolean']>;
   lastSeen?: InputMaybe<Scalars['timestamptz']>;
   locale?: InputMaybe<Scalars['String']>;
+  metadata?: InputMaybe<Scalars['jsonb']>;
   newEmail?: InputMaybe<Scalars['citext']>;
   otpHash?: InputMaybe<Scalars['String']>;
   otpHashExpiresAt?: InputMaybe<Scalars['timestamptz']>;
@@ -4658,6 +4782,8 @@ export enum Users_Update_Column {
   LastSeen = 'lastSeen',
   /** column name */
   Locale = 'locale',
+  /** column name */
+  Metadata = 'metadata',
   /** column name */
   NewEmail = 'newEmail',
   /** column name */
@@ -4707,7 +4833,7 @@ export type InsertCustomerCommentMutationVariables = Exact<{
 }>;
 
 
-export type InsertCustomerCommentMutation = { __typename?: 'mutation_root', insertCustomerComment?: { __typename?: 'customerComments', id: any } | null | undefined };
+export type InsertCustomerCommentMutation = { __typename?: 'mutation_root', insertCustomerComment?: { __typename?: 'customerComments', id: any } | null };
 
 export type GetCustomersSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
@@ -4719,21 +4845,21 @@ export type GetCustomerCommentsSubscriptionVariables = Exact<{
 }>;
 
 
-export type GetCustomerCommentsSubscription = { __typename?: 'subscription_root', customerComments: Array<{ __typename?: 'customerComments', id: any, createdAt: any, text: string, file?: { __typename?: 'files', id: any, name?: string | null | undefined, mimeType?: string | null | undefined, size?: number | null | undefined } | null | undefined, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string } }> };
+export type GetCustomerCommentsSubscription = { __typename?: 'subscription_root', customerComments: Array<{ __typename?: 'customerComments', id: any, createdAt: any, text: string, file?: { __typename?: 'files', id: any, name?: string | null, mimeType?: string | null, size?: number | null } | null, user: { __typename?: 'users', id: any, displayName: string, avatarUrl: string } }> };
 
 export type InsertCustomerMutationVariables = Exact<{
   customer: Customers_Insert_Input;
 }>;
 
 
-export type InsertCustomerMutation = { __typename?: 'mutation_root', insertCustomer?: { __typename?: 'customers', id: any } | null | undefined };
+export type InsertCustomerMutation = { __typename?: 'mutation_root', insertCustomer?: { __typename?: 'customers', id: any } | null };
 
 export type CustomerQueryVariables = Exact<{
   customerId: Scalars['uuid'];
 }>;
 
 
-export type CustomerQuery = { __typename?: 'query_root', customer?: { __typename?: 'customers', id: any, name: string, addressLine1: string } | null | undefined };
+export type CustomerQuery = { __typename?: 'query_root', customer?: { __typename?: 'customers', id: any, name: string, addressLine1: string } | null };
 
 
 export const GetCompanyWhereDocument = gql`
