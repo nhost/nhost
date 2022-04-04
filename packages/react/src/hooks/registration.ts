@@ -1,22 +1,33 @@
 import { useMemo } from 'react'
 
-import { SignUpOptions } from '@nhost/core'
+import { SignUpOptions, User } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { ActionHookState, useAuthenticationStatus, useAuthInterpreter } from './common'
 
 type SignUpEmailPasswordHookState = ActionHookState & {
   needsEmailVerification: boolean
+  user: User | null
+  accessToken: string | null
 }
+type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordHookState, 'isLoading'>
 
-type SignUpEmailPasswordHookHandler = {
-  (email: string, password: string, options?: SignUpOptions): void
+type SignUpEmailPasswordHandler = {
+  (
+    email: string,
+    password: string,
+    options?: SignUpOptions
+  ): Promise<SignUpEmailPasswordHandlerResult>
   /** @deprecated */
-  (email?: unknown, password?: string, options?: SignUpOptions): void
+  (
+    email?: unknown,
+    password?: string,
+    options?: SignUpOptions
+  ): Promise<SignUpEmailPasswordHandlerResult>
 }
 
 type SignUpEmailPasswordHookResult = {
-  signUpEmailPassword: SignUpEmailPasswordHookHandler
+  signUpEmailPassword: SignUpEmailPasswordHandler
 } & SignUpEmailPasswordHookState
 
 type SignUpEmailPasswordHook = {
@@ -47,25 +58,65 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
     !!service.status &&
     service.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
 
-  const signUpEmailPassword: SignUpEmailPasswordHookHandler = (
-    valueEmail,
+  const signUpEmailPassword: SignUpEmailPasswordHandler = (
+    valueEmail?: string | unknown,
     valuePassword = statePassword,
     valueOptions = stateOptions
-  ) => {
-    service.send({
-      type: 'SIGNUP_EMAIL_PASSWORD',
-      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-      password: valuePassword,
-      options: valueOptions
+  ) =>
+    new Promise<SignUpEmailPasswordHandlerResult>((resolve) => {
+      service.send({
+        type: 'SIGNUP_EMAIL_PASSWORD',
+        email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
+        password: valuePassword,
+        options: valueOptions
+      })
+      service.onTransition((state) => {
+        if (state.matches({ authentication: { signedOut: 'failed' } })) {
+          resolve({
+            accessToken: null,
+            error: state.context.errors.registration || null,
+            isError: true,
+            isSuccess: false,
+            needsEmailVerification: false,
+            user: null
+          })
+        } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+          resolve({
+            accessToken: null,
+            error: null,
+            isError: false,
+            isSuccess: false,
+            needsEmailVerification: true,
+            user: null
+          })
+        } else if (state.matches({ authentication: 'signedIn' })) {
+          resolve({
+            accessToken: state.context.accessToken.value,
+            error: null,
+            isError: false,
+            isSuccess: true,
+            needsEmailVerification: false,
+            user: state.context.user
+          })
+        }
+      })
     })
-  }
+
+  const user = useSelector(
+    service,
+    (state) => state.context.user,
+    (a, b) => a?.id === b?.id
+  )
+  const accessToken = useSelector(service, (state) => state.context.accessToken.value)
 
   return {
-    signUpEmailPassword,
+    accessToken,
+    error,
+    isError,
     isLoading,
     isSuccess,
-    isError,
-    error,
-    needsEmailVerification
+    needsEmailVerification,
+    signUpEmailPassword,
+    user
   }
 }

@@ -11,20 +11,22 @@ const { signUpEmailPassword, isLoading, isSuccess, needsEmailVerification, isErr
   useSignUpEmailPassword(options?: Options)
 ```
 
-| Name                     | Type                                                          | Notes                                                                                                                                                                                                             |
-| ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signUpEmailPassword`    | (email?: string, password?: string) => void                   | Used for a new user to sign up.                                                                                                                                                                                   |
-| `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
-| `needsEmailVerification` | boolean                                                       | Returns `true` if the sign-up has been accepted, but a verificaiton email has been sent and is awaiting.                                                                                                          |
-| `isSuccess`              | boolean                                                       | Returns `true` if the sign-up suceeded. Returns `false` if the new email needs to be verified first, or if an error occurred.                                                                                     |
-| `isError`                | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
-| `error`                  | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
-| `options.locale`         | string \| undefined                                           | Locale of the user, in two digits, for instance `en`.                                                                                                                                                             |
-| `options.allowedRoles`   | string[] \| undefined                                         | Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.                                                                                                                  |
-| `options.defaultRole`    | string \| undefined                                           | Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.                                                                                                                       |
-| `options.displayName`    | string \| undefined                                           |                                                                                                                                                                                                                   |
-| `options.metadata`       | Record<string, unknown> \| undefined                          | Custom additional user information stored in the `metadata` column. Can be any JSON object.                                                                                                                       |
-| `options.redirectTo`     | string \| undefined                                           | redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+| Name                     | Type                                                     | Notes                                                                                                                                                                                                             |
+| ------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signUpEmailPassword`    | (email?: string, password?: string) => void              | Used for a new user to sign up. Returns a promise with the current context                                                                                                                                        |
+| `isLoading`              | boolean                                                  | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `needsEmailVerification` | boolean                                                  | Returns `true` if the sign-up has been accepted, but a verificaiton email has been sent and is awaiting.                                                                                                          |
+| `isSuccess`              | boolean                                                  | Returns `true` if the sign-up suceeded. Returns `false` if the new email needs to be verified first, or if an error occurred.                                                                                     |
+| `isError`                | boolean                                                  | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`                  | {status: number, error: string, message: string} \| null | Provides details about the error.                                                                                                                                                                                 |
+| `user`                   | User \| null                                             | User information                                                                                                                                                                                                  |
+| `accessToken`            | string \| null                                           | Access token (JWT)                                                                                                                                                                                                |
+| `options.locale`         | string \| undefined                                      | Locale of the user, in two digits, for instance `en`.                                                                                                                                                             |
+| `options.allowedRoles`   | string[] \| undefined                                    | Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.                                                                                                                  |
+| `options.defaultRole`    | string \| undefined                                      | Default role of the user. Must be part of the default allowed roles defined in Hasura Auth.                                                                                                                       |
+| `options.displayName`    | string \| undefined                                      |                                                                                                                                                                                                                   |
+| `options.metadata`       | Record<string, unknown> \| undefined                     | Custom additional user information stored in the `metadata` column. Can be any JSON object.                                                                                                                       |
+| `options.redirectTo`     | string \| undefined                                      | redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
 
 #### Usage
 
@@ -66,20 +68,23 @@ const {
   sendMfaOtp,
   isSuccess,
   isError,
-  error
+  error,
+  user
 } = useSignInEmailPassword()
 ```
 
-| Name                     | Type                                                          | Notes                                                                                                                                       |
-| ------------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signInEmailPassword`    | (email?: string, password?: string) => void                   | Will try to authenticate.                                                                                                                   |
-| `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                        |
-| `needsEmailVerification` | boolean                                                       | Returns `true` if the user email is still pending email verification.                                                                       |
-| `needsMfaOtp`            | boolean                                                       | Returns `true` if the server is awaiting an MFA one-time password to complete the authentication.                                           |
-| `sendMfaOtp`             | (otp: string) => void                                         | Sends MFA One-time password. Will turn either `isSuccess` or `isError` to true, and store potential error in `error`.                       |
-| `isSuccess`              | boolean                                                       | Returns `true` if the user has successfully authenticated. Returns `false` in case or error or if the new email needs to be verified first. |
-| `isError`                | boolean                                                       | Returns `true` if an error occurred.                                                                                                        |
-| `error`                  | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                           |
+| Name                     | Type                                                     | Notes                                                                                                                                       |
+| ------------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signInEmailPassword`    | (email?: string, password?: string)                      | Will try to authenticate. Returns a promise with the current context                                                                        |
+| `isLoading`              | boolean                                                  | Returns `true` when the action is executing, `false` when it finished its execution.                                                        |
+| `needsEmailVerification` | boolean                                                  | Returns `true` if the user email is still pending email verification.                                                                       |
+| `needsMfaOtp`            | boolean                                                  | Returns `true` if the server is awaiting an MFA one-time password to complete the authentication.                                           |
+| `sendMfaOtp`             | (otp: string) => void                                    | Sends MFA One-time password. Will turn either `isSuccess` or `isError` to true, and store potential error in `error`.                       |
+| `isSuccess`              | boolean                                                  | Returns `true` if the user has successfully authenticated. Returns `false` in case or error or if the new email needs to be verified first. |
+| `isError`                | boolean                                                  | Returns `true` if an error occurred.                                                                                                        |
+| `error`                  | {status: number, error: string, message: string} \| null | Provides details about the error.                                                                                                           |
+| `user`                   | User \| null                                             | User information                                                                                                                            |
+| `accessToken`            | string \| null                                           | Access token (JWT)                                                                                                                          |
 
 #### Usage
 
@@ -264,14 +269,14 @@ const { changeEmail, isLoading, isSuccess, needsEmailVerification, isError, erro
   useChangeEmail(options?: { redirectTo?: string })
 ```
 
-| Name                     | Type                                                          | Notes                                                                                                                                                                                                             |
-| ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `changeEmail`            | (email?: string) => void                                      | Requests the email change.                                                                                                                                                                                        |
-| `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
-| `needsEmailVerification` | boolean                                                       | Returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.                                                                                        |
-| `isError`                | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
-| `error`                  | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
-| `redirectTo`             | string \| undefined                                           | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+| Name                     | Type                                                     | Notes                                                                                                                                                                                                             |
+| ------------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `changeEmail`            | (email?: string) => void                                 | Requests the email change. Returns a promise with the current context                                                                                                                                             |
+| `isLoading`              | boolean                                                  | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `needsEmailVerification` | boolean                                                  | Returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.                                                                                        |
+| `isError`                | boolean                                                  | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`                  | {status: number, error: string, message: string} \| null | Provides details about the error.                                                                                                                                                                                 |
+| `redirectTo`             | string \| undefined                                      | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
 
 #### Usage
 
@@ -302,13 +307,13 @@ const Component = () => {
 const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword()
 ```
 
-| Name             | Type                                                          | Notes                                                                                |
-| ---------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `changePassword` | (password?: string) => void                                   | Requests the password change.                                                        |
-| `isLoading`      | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution. |
-| `isSuccess`      | boolean                                                       | Returns `true` if the password has beed successfully changed.                        |
-| `isError`        | boolean                                                       | Returns `true` if an error occurred.                                                 |
-| `error`          | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                    |
+| Name             | Type                                                     | Notes                                                                                |
+| ---------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `changePassword` | (password?: string)                                      | Requests the password change. Returns a promise with the current context             |
+| `isLoading`      | boolean                                                  | Returns `true` when the action is executing, `false` when it finished its execution. |
+| `isSuccess`      | boolean                                                  | Returns `true` if the password has beed successfully changed.                        |
+| `isError`        | boolean                                                  | Returns `true` if an error occurred.                                                 |
+| `error`          | {status: number, error: string, message: string} \| null | Provides details about the error.                                                    |
 
 #### Usage
 
@@ -336,14 +341,14 @@ If a user loses their password, we can resend them an email to authenticate so t
 const { resetPassword, isLoading, isSent, isError, error } = useResetPassword(options?: { redirectTo?: string })
 ```
 
-| Name            | Type                                                          | Notes                                                                                                                                                                                                             |
-| --------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resetPassword` | (email?: string) => void                                      | Sends an email with a temporary connection link.                                                                                                                                                                  |
-| `isLoading`     | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
-| `isSent`        | boolean                                                       | Returns `true` when the email has been successfully sent.                                                                                                                                                         |
-| `isError`       | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
-| `error`         | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
-| `redirectTo`    | string \| undefined                                           | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+| Name            | Type                                                     | Notes                                                                                                                                                                                                             |
+| --------------- | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `resetPassword` | (email?: string)                                         | Sends an email with a temporary connection link. Returns a promise with the current context                                                                                                                       |
+| `isLoading`     | boolean                                                  | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `isSent`        | boolean                                                  | Returns `true` when the email has been successfully sent.                                                                                                                                                         |
+| `isError`       | boolean                                                  | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`         | {status: number, error: string, message: string} \| null | Provides details about the error.                                                                                                                                                                                 |
+| `redirectTo`    | string \| undefined                                      | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
 
 #### Usage
 
@@ -370,14 +375,14 @@ const { sendEmail, isLoading, isSent, isError, error } =
   useSendVerificationEmail(options?: { redirectTo?: string })
 ```
 
-| Name         | Type                                                          | Notes                                                                                                                                                                                                             |
-| ------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `sendEmail`  | (email?: string) => void                                      | Resend the verification email.                                                                                                                                                                                    |
-| `isLoading`  | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
-| `isSent`     | boolean                                                       | Returns `true` if the verification email has been sent                                                                                                                                                            |
-| `isError`    | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
-| `error`      | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                                                                                                 |
-| `redirectTo` | string \| undefined                                           | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
+| Name         | Type                                                     | Notes                                                                                                                                                                                                             |
+| ------------ | -------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `sendEmail`  | (email?: string)                                         | Resend the verification email. Returns a promise with the current context                                                                                                                                         |
+| `isLoading`  | boolean                                                  | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
+| `isSent`     | boolean                                                  | Returns `true` if the verification email has been sent                                                                                                                                                            |
+| `isError`    | boolean                                                  | Returns `true` if an error occurred.                                                                                                                                                                              |
+| `error`      | {status: number, error: string, message: string} \| null | Provides details about the error.                                                                                                                                                                                 |
+| `redirectTo` | string \| undefined                                      | Redirection path in the client application that will be used in the link in the verification email. For instance, if you want to redirect to `https://myapp.com/success`, the `redirectTo` value is `'/success'`. |
 
 #### Usage
 
