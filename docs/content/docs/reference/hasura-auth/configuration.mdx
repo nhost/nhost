@@ -1,0 +1,221 @@
+---
+title: Configuration
+---
+
+## Email configuration
+
+Hasura Auth automatically sends transactional emails to manage the following operations:
+
+- Sign up
+- Password reset
+- Email change
+- Passwordless with emails
+
+### SMTP settings
+
+```bash
+AUTH_SMTP_HOST=smtp.example.com
+AUTH_SMTP_PORT=1025
+AUTH_SMTP_USER=user
+AUTH_SMTP_PASS=password
+AUTH_SMTP_SENDER=hasura-auth@example.com
+```
+
+See the [environment variables](/reference/hasura-auth/environment-variables) for additional information about how to connnect to an SMTP server.
+
+### Email templates
+
+You can create your own templates to customize the emails that will be sent to the users. You can have a look at the [official email templates](https://github.com/nhost/hasura-auth/tree/main/email-templates) to understand how they are structured.
+
+#### With Docker
+
+When using Docker, you can mount your own email templates from the local file system. You can have a look at this [docker-compose example](https://github.com/nhost/hasura-auth/blob/16df3e84b6c9a4f888b2ff07bd85afc34f8ed051/docker-compose-example.yaml#L41) to see how to set it up.
+
+#### Remote email templates
+
+When running Hasura Auth in its own infrastructure, it is possible to mount a volume with custom `email-templates` directory. However, in some cases, we may want to fetch templates from an external HTTP endpoint. Hence the introduction of a new `AUTH_EMAIL_TEMPLATE_FETCH_URL` environment variable:
+
+```bash
+AUTH_EMAIL_TEMPLATE_FETCH_URL=https://github.com/nhost/nhost/tree/custom-email-templates-example/examples/custom-email-templates
+```
+
+In the above example, on every email creation, the server will use this URL to fetch its templates, depending on the locale, email type and field.
+
+For instance, the template for english verification email body will the fetched in [https://raw.githubusercontent.com/nhost/nhost/main/examples/custom-email-templates/en/email-verify/body.html](https://raw.githubusercontent.com/nhost/nhost/main/examples/custom-email-templates/en/email-verify/body.html).
+
+See the [example in the main nhost/nhost repository](https://github.com/nhost/nhost/tree/main/examples/custom-email-templates).
+
+The context variables in email templates have been simplified: the `${link}` variable contains the entire redirection url the recipient needs to follow.
+
+---
+
+## Redirections
+
+Some authentication operations redirects the users to the frontend application:
+
+- After an OAuth provider completes or fails authentication, the user is redirected to the frontend
+- Every email sent to the user (passwordless with email, password/email change, password reset) contains a link, that redirects the user to the frontend
+
+In order to achieve that, you need to set the `AUTH_CLIENT_URL` environment variable, for instance:
+
+```bash
+AUTH_CLIENT_URL=https://my-app.vercel.com
+```
+
+---
+
+## Email + password authentication
+
+### Email checks
+
+You can specify a list of allowed emails or domains with `AUTH_ACCESS_CONTROL_ALLOWED_EMAILS` and `AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS`.
+
+As an example, the following environment variables will only allow `@nhost.io`, `@example.com` and `bob@smith.com` to register to the application:
+
+```bash
+AUTH_ACCESS_CONTROL_ALLOWED_EMAILS=bob@smith.com
+AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS=nhost.io,example.com
+```
+
+In the above example, users with the following emails would be able to register `bob@smith.com`, `emma@example.com`, `john@nhost.io`, whereas `mary@firebase.com` won't.
+
+Similarly, it is possible to provide a list of forbidden emails or domains with `AUTH_ACCESS_CONTROL_BLOCKED_EMAILS` and `AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS`.
+
+### Password checks
+
+Hasura auth does not accepts passwords with less than three characters. This limit can be changed in changing the `AUTH_PASSWORD_MIN_LENGTH` environment variable.
+
+It is also possible to only allow [passwords that have not been pwned](https://haveibeenpwned.com/) in setting `AUTH_PASSWORD_HIBP_ENABLED` to `true`.
+
+<!-- TODO ### Change -->
+<!-- TODO ### Reset email -->
+
+<!-- TODO ### Reset password -->
+
+<!-- ---
+TODO ## Anonymous users -->
+
+---
+
+## Multi-factor authentication
+
+Hasura Auth supports different types of Multi-Factor Authentication (MFA): passwordless with emails (magic links), passwordless with SMS, and Time-based one-time passwords.
+
+### Passwordless with emails (magic links)
+
+Hasura Auth supports email [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). It requires [SMTP](#email-configuration) to be configured properly.
+
+Set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true` to enable passwordless authentication.
+
+<!-- TODO ### Passwordless with SMS -->
+
+### Time-based one-time password (TOTP)
+
+It is possible to add a step to authentication with email and password authentication. Once users registered, they can activate MFA TOTP:
+
+1. Users generate a QR Code, that is then scanned in an authentication app such as [Authy](https://authy.com/) or [Google Authenticator](https://en.wikipedia.org/wiki/Google_Authenticator).
+2. They then send the TOTP code to Hasura Auth. MFA is now activated
+3. Next time they authenticate, Hasura Auth will first expect their email and password, but then, instead of completing authentication, Hasura Auth will expect the TOTP in order to return the refresh and the access tokens.
+
+In order for users to be able to activate MFA TOTP, `AUTH_MFA_ENABLED` must be set to `true`.
+
+<!-- ---
+
+TODO ## OAuth authentication -->
+
+---
+
+## Gravatar
+
+Hasura Auth stores the avatar URL of users in `auth.users.avatar_url`. By default, it will look for the Gravatar linked to the email, and store it into this field.
+It is possible to deactivate the use of Gravatar in setting the `AUTH_GRAVATAR_ENABLED` environment variable to `false`.
+
+---
+
+## Extending user schema
+
+Adding columns to the user tables may be tempting. However, all the tables and columns have a specific purpose, and changing the structure of the `auth` schema will very likely end in breaking the functionning of Hasura Auth. It's, therefore, **highly recommended** not to modify the database schema for any tables in the `auth` schema.
+
+Instead, we recommend adding extra user information in the following ways:
+
+- to store information in the `auth.users.metadata` column
+- to store information in a separate table located in the `public` PostgreSQL schema, and to point to `auth.users.id` through a foreign key.
+
+### `metadata` user field
+
+The `auth.users.metadata` field is a JSON column, that can be used as an option on registration:
+
+```json
+{
+  "email": "bob@bob.com",
+  "passord": "12345678",
+  "options": {
+    "metadata": {
+      "first_name": "Bob"
+    }
+  }
+}
+```
+
+### Additional user information in the `public` schema
+
+As previously explained, the alteration of the `auth` schema may seriously hamper the functionning of Hasura Auth. The `metadata` field in the `auth.users` table may tackle some use cases, but in some other cases, we want to keep a certain level of structure in the way data is structured.
+
+In that case, it is possible to create a dedicated table in the `public` schema, with a `user_id` foreign key column that would point to the `auth.users.id` column. It is then possible to add an Hasura object relationship that would join the two tables together.
+
+<!-- TODO hooks on the metadata field -->
+
+---
+
+## Custom Hasura JWT claims
+
+Hasura comes with a [powerful authorisation system](https://hasura.io/docs/latest/graphql/core/auth/authorization/index.html). Hasura Auth is already configured to add `x-hasura-user-id`, `x-hasura-allowed-roles`, and `x-hasura-user-isAnonymous` to the JSON Web Tokens it generates.
+
+In Hasura Auth, it is possible to define custom claims to add to the JWT, so they can be used by Hasura to determine the permissions of the received GraphQL operation.
+
+Each custom claim is defined by a pair of a key and a value:
+
+- The key determines the name of the claim, prefixed by `x-hasura`. For instance, `organisation-id` will become `x-hasura-organisation-id`.
+- The value is a representation of the path to look at to determine the value of the claim. For instance `profile.organisation.id` will look for the `user.profile` Hasura relationship, and the `profile.organisation` Hasura relationship. Array values are transformed into Postgres syntax so Hasura can interpret them. See the official Hasura documentation to understand the [session variables format](https://hasura.io/docs/latest/graphql/core/auth/authorization/roles-variables.html#format-of-session-variables).
+
+```bash
+AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"profile.organisation.id", "project-ids":"profile.contributesTo.project.id"}
+```
+
+Will automatically generate and fetch the following GraphQL query:
+
+```graphql
+{
+  user(id: "<user-id>") {
+    profile {
+      organisation {
+        id
+      }
+      contributesTo {
+        project {
+          id
+        }
+      }
+    }
+  }
+}
+```
+
+It will then use the same expressions e.g. `profile.contributesTo.project.id` to evaluate the result with [JSONata](https://jsonata.org/), and possibly transform arrays into Hasura-readable, PostgreSQL arrays.Finally, it adds the custom claims to the JWT in the `https://hasura.io/jwt/claims` namespace:
+
+```json
+{
+  "https://hasura.io/jwt/claims": {
+    "x-hasura-organisation-id": "8bdc4f57-7d64-4146-a663-6bcb05ea2ac1",
+    "x-hasura-project-ids": "{\"3af1b33f-fd0f-425e-92e2-0db09c8b2e29\",\"979cb94c-d873-4d5b-8ee0-74527428f58f\"}",
+    "x-hasura-allowed-roles": [ "me", "user" ],
+    "x-hasura-default-role": "user",
+    "x-hasura-user-id": "121bbea4-908e-4540-ac5d-52c7f6f93bec",
+    "x-hasura-user-isAnonymous": "false"
+  }
+  "sub": "f8776768-4bbd-46f8-bae1-3c40da4a89ff",
+  "iss": "hasura-auth",
+  "iat": 1643040189,
+  "exp": 1643041089
+}
+```

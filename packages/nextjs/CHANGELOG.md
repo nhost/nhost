@@ -1,5 +1,34 @@
 # @nhost/nextjs
 
+## 1.0.8
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.5
+- @nhost/react@0.4.4
+
+## 1.0.5
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+- Updated dependencies
+  - @nhost/nhost-js@1.0.3
+  - @nhost/react@0.4.2
+
+## 1.0.3
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.2
+- @nhost/react@0.4.1
+
 ## 1.0.2
 
 ### Patch Changes

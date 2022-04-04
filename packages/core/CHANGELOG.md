@@ -1,5 +1,30 @@
 # @nhost/core
 
+## 0.3.7
+
+### Patch Changes
+
+- 16a6c50: Correct autoSignIn
+
+## 0.3.3
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+## 0.3.1
+
+### Patch Changes
+
+- 4420c0e: Check if `window.location` exists
+
+  When using [Expo](https://expo.dev/), `window` can be an object while `window.location` is `undefined`. It lead to [this issue](https://github.com/nhost/nhost/issues/309).
+
 ## 0.3.0
 
 ### Minor Changes
