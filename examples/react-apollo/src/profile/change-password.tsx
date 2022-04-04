@@ -4,7 +4,7 @@ import { Button, FlexboxGrid, Input, Message, Panel, toaster, Notification } fro
 
 export const ChangePassword: React.FC = () => {
   const [password, setPassword] = useState('')
-  const { changePassword, isSuccess, error } = useChangePassword(password)
+  const { changePassword, isSuccess, error } = useChangePassword()
   const [errorMessage, setErrorMessage] = useState('')
 
   // * See https://github.com/rsuite/rsuite/issues/2336
@@ -44,7 +44,7 @@ export const ChangePassword: React.FC = () => {
           />
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={12}>
-          <Button onClick={changePassword} block appearance="primary">
+          <Button onClick={() => changePassword(password)} block appearance="primary">
             Change
           </Button>
         </FlexboxGrid.Item>

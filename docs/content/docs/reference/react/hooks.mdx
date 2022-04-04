@@ -8,12 +8,12 @@ title: 'Hooks'
 
 ```js
 const { signUpEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
-  useSignUpEmailPassword(email?: string, password?: string, options?: Options )
+  useSignUpEmailPassword(options?: Options)
 ```
 
 | Name                     | Type                                                          | Notes                                                                                                                                                                                                             |
 | ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signUpEmailPassword`    | (email?: string, password?: string) => void                   | Used for a new user to sign up. The email/password arguments will take precedence over the possible state values used when creating the hook.                                                                     |
+| `signUpEmailPassword`    | (email?: string, password?: string) => void                   | Used for a new user to sign up.                                                                                                                                                                                   |
 | `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
 | `needsEmailVerification` | boolean                                                       | Returns `true` if the sign-up has been accepted, but a verificaiton email has been sent and is awaiting.                                                                                                          |
 | `isSuccess`              | boolean                                                       | Returns `true` if the sign-up suceeded. Returns `false` if the new email needs to be verified first, or if an error occurred.                                                                                     |
@@ -36,7 +36,7 @@ const Component = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const { signUpEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
-    useSignUpEmailPassword(email, password)
+    useSignUpEmailPassword()
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" />
@@ -45,7 +45,7 @@ const Component = () => {
         onChange={(event) => setPassword(event.target.value)}
         placeholder="Password"
       />
-      <button onClick={signUpEmailPassword}>Register</button>
+      <button onClick={() => signUpEmailPassword(email, password)}>Register</button>
       {isSuccess && <div>Your account have beed created! You are now authenticated</div>}
       {needsEmailVerification && (
         <div>Please check your mailbox and follow the verification link to verify your email</div>
@@ -58,13 +58,21 @@ const Component = () => {
 ### Email and Password Sign-In
 
 ```js
-const { signInEmailPassword, isLoading, needsEmailVerification, needsMfaOtp, sendMfaOtp, isSuccess, isError, error } =
-  useSignInEmailPassword(email?: string, password?: string)
+const {
+  signInEmailPassword,
+  isLoading,
+  needsEmailVerification,
+  needsMfaOtp,
+  sendMfaOtp,
+  isSuccess,
+  isError,
+  error
+} = useSignInEmailPassword()
 ```
 
 | Name                     | Type                                                          | Notes                                                                                                                                       |
 | ------------------------ | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signInEmailPassword`    | (email?: string, password?: string) => void                   | Will try to authenticate. The email/password arguments will take precedence over the possible state values used when creating the hook.     |
+| `signInEmailPassword`    | (email?: string, password?: string) => void                   | Will try to authenticate.                                                                                                                   |
 | `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                        |
 | `needsEmailVerification` | boolean                                                       | Returns `true` if the user email is still pending email verification.                                                                       |
 | `needsMfaOtp`            | boolean                                                       | Returns `true` if the server is awaiting an MFA one-time password to complete the authentication.                                           |
@@ -83,7 +91,7 @@ const Component = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const { signInEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
-    useSignInEmailPassword(email, password)
+    useSignInEmailPassword()
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" />
@@ -92,7 +100,7 @@ const Component = () => {
         onChange={(event) => setPassword(event.target.value)}
         placeholder="Password"
       />
-      <button onClick={signInEmailPassword}>Register</button>
+      <button onClick={() => signInEmailPassword(email, password)}>Register</button>
       {isSuccess && <div>Authentication suceeded</div>}
       {needsEmailVerification && (
         <div>
@@ -139,12 +147,12 @@ const Component = () => {
 
 ```js
 const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
-  useSignInEmailPasswordless(email?: string, options?: Options)
+  useSignInEmailPasswordless(options?: Options)
 ```
 
 | Name                      | Type                                             | Notes                                                                                                                                                                                                             |
 | ------------------------- | ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signInEmailPasswordless` | (email?: string) => void                         | Sends a magic link to the given email The email argument will take precedence over the the possible state value used when creating the hook.                                                                      |
+| `signInEmailPasswordless` | (email?: string) => void                         | Sends a magic link to the given email.                                                                                                                                                                            |
 | `isLoading`               | boolean                                          | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
 | `isSuccess`               | boolean                                          | Returns `true` if the magic link email user has successfully send.                                                                                                                                                |
 | `isError`                 | boolean                                          | Returns `true` if an error occurred.                                                                                                                                                                              |
@@ -165,11 +173,11 @@ import { useSignInEmailPasswordless } from '@nhost/react'
 const Component = () => {
   const [email, setEmail] = useState('')
   const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
-    useSignInEmailPasswordless(email)
+    useSignInEmailPasswordless()
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} placeholder="Email" />
-      <button onClick={signInEmailPasswordless}>Authenticate</button>
+      <button onClick={() => signInEmailPasswordless(email)}>Authenticate</button>
       {isSuccess && (
         <div>
           An email has been sent to {email}. Please check your mailbox and click on the
@@ -253,12 +261,12 @@ const accessToken = useAccessToken()
 
 ```js
 const { changeEmail, isLoading, isSuccess, needsEmailVerification, isError, error } =
-  useChangeEmail(email?: string, options?: { redirectTo?: string })
+  useChangeEmail(options?: { redirectTo?: string })
 ```
 
 | Name                     | Type                                                          | Notes                                                                                                                                                                                                             |
 | ------------------------ | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `changeEmail`            | (email?: string) => void                                      | Requests the email change. The arguement password will take precedence over the the possible state value used when creating the hook.                                                                             |
+| `changeEmail`            | (email?: string) => void                                      | Requests the email change.                                                                                                                                                                                        |
 | `isLoading`              | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
 | `needsEmailVerification` | boolean                                                       | Returns `true` if the email change has been requested, but that a email has been sent to the user to verify the new email.                                                                                        |
 | `isError`                | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
@@ -273,12 +281,11 @@ import { useChangeEmail } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-    useChangeEmail(password)
+  const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail()
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={changeEmail}>Change password</button>
+      <button onClick={() => changeEmail(email)}>Change email</button>
       {needsEmailVerification && (
         <div>
           Please check your mailbox and follow the verification link to confirm your new email
@@ -292,16 +299,16 @@ const Component = () => {
 ### Change password
 
 ```js
-const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword(password?: string)
+const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword()
 ```
 
-| Name             | Type                                                          | Notes                                                                                                                                    |
-| ---------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| `changePassword` | (password?: string) => void                                   | Requests the password change. The arguement password will take precedence over the the possible state value used when creating the hook. |
-| `isLoading`      | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                     |
-| `isSuccess`      | boolean                                                       | Returns `true` if the password has beed successfully changed.                                                                            |
-| `isError`        | boolean                                                       | Returns `true` if an error occurred.                                                                                                     |
-| `error`          | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                                                                        |
+| Name             | Type                                                          | Notes                                                                                |
+| ---------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `changePassword` | (password?: string) => void                                   | Requests the password change.                                                        |
+| `isLoading`      | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution. |
+| `isSuccess`      | boolean                                                       | Returns `true` if the password has beed successfully changed.                        |
+| `isError`        | boolean                                                       | Returns `true` if an error occurred.                                                 |
+| `error`          | {status: number, error: string, message: string} \| undefined | Provides details about the error.                                                    |
 
 #### Usage
 
@@ -311,11 +318,11 @@ import { useChangePassword } from '@nhost/react'
 
 const Component = () => {
   const [password, setPassword] = useState('')
-  const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword(password)
+  const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword()
   return (
     <div>
       <input value={password} onChange={(event) => setPassword(event.target.value)} />
-      <button onClick={changePassword}>Change password</button>
+      <button onClick={() => changePassword(password)}>Change password</button>
     </div>
   )
 }
@@ -326,12 +333,12 @@ const Component = () => {
 If a user loses their password, we can resend them an email to authenticate so that they can change it to a new one:
 
 ```js
-const { resetPassword, isLoading, isSent, isError, error } = useResetPassword(email?: string, options?: { redirectTo?: string })
+const { resetPassword, isLoading, isSent, isError, error } = useResetPassword(options?: { redirectTo?: string })
 ```
 
 | Name            | Type                                                          | Notes                                                                                                                                                                                                             |
 | --------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `resetPassword` | (email?: string) => void                                      | Sends an email with a temporary connection link. The arguement email will take precedence over the the possible state value used when creating the hook.                                                          |
+| `resetPassword` | (email?: string) => void                                      | Sends an email with a temporary connection link.                                                                                                                                                                  |
 | `isLoading`     | boolean                                                       | Returns `true` when the action is executing, `false` when it finished its execution.                                                                                                                              |
 | `isSent`        | boolean                                                       | Returns `true` when the email has been successfully sent.                                                                                                                                                         |
 | `isError`       | boolean                                                       | Returns `true` if an error occurred.                                                                                                                                                                              |
@@ -345,12 +352,12 @@ import { useState } from 'react'
 import { useResetPassword } from '@nhost/react'
 
 const Component = () => {
-  const [email, setEamil] = useState('')
-  const { resetPassword, isLoading, isSent, isError, error } = useResetPassword(email?: string)
+  const [email, setEmail] = useState('')
+  const { resetPassword, isLoading, isSent, isError, error } = useResetPassword()
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={resetPassword}>Send reset link</button>
+      <button onClick={() => resetPassword(email)}>Send reset link</button>
     </div>
   )
 }
@@ -360,7 +367,7 @@ const Component = () => {
 
 ```js
 const { sendEmail, isLoading, isSent, isError, error } =
-  useSendVerificationEmail(email?: string, options?: { redirectTo?: string })
+  useSendVerificationEmail(options?: { redirectTo?: string })
 ```
 
 | Name         | Type                                                          | Notes                                                                                                                                                                                                             |
@@ -380,11 +387,11 @@ import { useSendVerificationEmail } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { sendEmail, isLoading, isSent, isError, error } = useSendVerificationEmail(email)
+  const { sendEmail, isLoading, isSent, isError, error } = useSendVerificationEmail()
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={sendEmail}>Send email verification</button>
+      <button onClick={() => sendEmail(email)}>Send email verification</button>
       {isSent && (
         <div>Please check your mailbox and follow the verification link to confirm your email</div>
       )}

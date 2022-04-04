@@ -15,8 +15,9 @@ export const EmailPassword: React.FC = () => {
   const navigate = useNavigate()
   const [confirmPassword, setConfirmPassword] = useState('')
   const { signUpEmailPassword, error, needsEmailVerification, isSuccess } = useSignUpEmailPassword(
-    email,
-    password,
+    // TODO change once the new packages have been release
+    undefined,
+    undefined,
     options
   )
   const [errorMessage, setErrorMessage] = useState('')
@@ -91,7 +92,7 @@ export const EmailPassword: React.FC = () => {
         appearance="primary"
         onClick={() => {
           setErrorMessage('')
-          signUpEmailPassword()
+          signUpEmailPassword(email, password)
         }}
         block
       >

@@ -11,21 +11,51 @@ import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-import { useAuthenticated, useAuthInterpreter } from './common'
+import { ActionHookState, useAuthenticated, useAuthInterpreter } from './common'
 
-export const useSignInEmailPassword = (
+type SignInEmailPasswordHookState = ActionHookState & {
+  needsMfaOtp: boolean
+  needsEmailVerification: boolean
+}
+
+type SignInEmailPasswordHookHandler = {
+  (email: string, password: string, otp?: string): void
+  /** @deprecated */
+  (email?: unknown, password?: string, otp?: string): void
+}
+
+type SendMfaOtpHander = {
+  (otp: string): void
+  /** @deprecated */
+  (otp?: unknown): void
+}
+
+type SignInEmailPasswordHookResult = {
+  signInEmailPassword: SignInEmailPasswordHookHandler
+  sendMfaOtp: SendMfaOtpHander
+} & SignInEmailPasswordHookState
+
+type SignInEmailPasswordHook = {
+  (): SignInEmailPasswordHookResult
+  /** @deprecated */
+  (email?: string, password?: string, otp?: string): SignInEmailPasswordHookResult
+}
+
+export const useSignInEmailPassword: SignInEmailPasswordHook = (
   stateEmail?: string,
   statePassword?: string,
   stateOtp?: string
 ) => {
   const service = useAuthInterpreter()
-  const signInEmailPassword = (valueEmail?: string | unknown, valuePassword?: string | unknown) =>
+  const signInEmailPassword: SignInEmailPasswordHookHandler = (valueEmail, valuePassword) => {
     service.send({
       type: 'SIGNIN_PASSWORD',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
-  const sendMfaOtp = (valueOtp?: string | unknown) => {
+  }
+
+  const sendMfaOtp: SendMfaOtpHander = (valueOtp) => {
     service.send({
       type: 'SIGNIN_MFA_TOTP',
       otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
@@ -33,7 +63,7 @@ export const useSignInEmailPassword = (
   }
   const error = useSelector(
     service,
-    (state) => state.context.errors.authentication,
+    (state) => state.context.errors.authentication || null,
     (a, b) => a?.error === b?.error
   )
   const isSuccess = useAuthenticated()
@@ -70,21 +100,43 @@ export const useSignInEmailPassword = (
   }
 }
 
-export const useSignInEmailPasswordless = (
-  stateEmail?: string,
-  stateOptions?: PasswordlessOptions
+type SignInEmailPasswordlessHookHandler = {
+  (email: string, options?: PasswordlessOptions): void
+  /** @deprecated */
+  (email?: unknown, options?: PasswordlessOptions): void
+}
+
+type SignInEmailPasswordlessHookResult = {
+  signInEmailPasswordless: SignInEmailPasswordlessHookHandler
+} & ActionHookState
+
+type SignInEmailPasswordlessdHook = {
+  (options?: PasswordlessOptions): SignInEmailPasswordlessHookResult
+  /** @deprecated */
+  (email?: string, options?: PasswordlessOptions): SignInEmailPasswordlessHookResult
+}
+
+export const useSignInEmailPasswordless: SignInEmailPasswordlessdHook = (
+  a?: string | PasswordlessOptions,
+  b?: PasswordlessOptions
 ) => {
+  const stateEmail = typeof a === 'string' ? a : undefined
+  const stateOptions = typeof a === 'string' ? b : a
   const service = useAuthInterpreter()
-  const signInEmailPasswordless = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+  const signInEmailPasswordless: SignInEmailPasswordlessHookHandler = (
+    valueEmail,
+    valueOptions = stateOptions
+  ) => {
     service.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       options: valueOptions
     })
+  }
 
   const error = useSelector(
     service,
-    (state) => state.context.errors.authentication,
+    (state) => state.context.errors.authentication || null,
     (a, b) => a?.error === b?.error
   )
   const isLoading =

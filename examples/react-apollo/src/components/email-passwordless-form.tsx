@@ -6,9 +6,13 @@ import React, { useState, useEffect } from 'react'
 export const EmailPasswordlessForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
-  const { signInEmailPasswordless, isError, isSuccess, error } = useSignInEmailPasswordless(email, {
-    redirectTo: '/profile'
-  })
+  const { signInEmailPasswordless, isError, isSuccess, error } = useSignInEmailPasswordless(
+    // TODO correct this once the new packages are released
+    undefined,
+    {
+      redirectTo: '/profile'
+    }
+  )
   const [showError, setShowError] = useState(true)
   useEffect(() => {
     setShowError(false)
@@ -42,7 +46,7 @@ export const EmailPasswordlessForm: React.FC = () => {
         style={{ marginTop: '0.5em' }}
         onClick={() => {
           setShowError(true)
-          signInEmailPasswordless()
+          signInEmailPasswordless(email)
         }}
       >
         Continue with email

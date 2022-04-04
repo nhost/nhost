@@ -5,7 +5,11 @@ import { NavLink } from 'react-router-dom'
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const { resetPassword, isSent, error } = useResetPassword(email, { redirectTo: '/profile' })
+  const { resetPassword, isSent, error } = useResetPassword(
+    // TODO correct this once the new packages are released
+    undefined,
+    { redirectTo: '/profile' }
+  )
 
   const [errorMessage, setErrorMessage] = useState('')
   // * Set error message from the authentication hook errors
@@ -48,7 +52,7 @@ export const ForgotPassword: React.FC = () => {
         </Message>
       )}
 
-      <Button appearance="primary" onClick={resetPassword} block>
+      <Button appearance="primary" onClick={() => resetPassword(email)} block>
         Reset your password
       </Button>
       <Divider />

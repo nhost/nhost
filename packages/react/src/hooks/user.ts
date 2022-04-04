@@ -12,9 +12,32 @@ import {
 } from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/react'
 
-import { useAuthInterpreter, useNhostClient } from './common'
+import { ActionHookState, useAuthInterpreter, useNhostClient } from './common'
 
-export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOptions) => {
+type ChangeEmailHookHandler = {
+  (email: string, options?: ChangeEmailOptions): void
+  /** @deprecated */
+  (email?: unknown, options?: ChangeEmailOptions): void
+}
+
+type ChangeEmailHookState = ActionHookState<'needsEmailVerification'>
+
+type ChangeEmailHookResult = {
+  changeEmail: ChangeEmailHookHandler
+} & ChangeEmailHookState
+
+type ChangeEmailHook = {
+  (options?: ChangeEmailOptions): ChangeEmailHookResult
+  /** @deprecated */
+  (email?: string, options?: ChangeEmailOptions): ChangeEmailHookResult
+}
+
+export const useChangeEmail: ChangeEmailHook = (
+  a?: string | ChangeEmailOptions,
+  b?: ChangeEmailOptions
+) => {
+  const stateEmail = typeof a === 'string' ? a : undefined
+  const stateOptions = typeof a !== 'string' ? a : b
   const nhost = useNhostClient()
   const machine = useMemo(() => createChangeEmailMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
@@ -24,16 +47,37 @@ export const useChangeEmail = (stateEmail?: string, stateOptions?: ChangeEmailOp
   const error = current.context.error
   const isLoading = current.matches('requesting')
 
-  const changeEmail = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+  const changeEmail: ChangeEmailHookHandler = (
+    valueEmail?: string | unknown,
+    valueOptions = stateOptions
+  ) => {
     send({
       type: 'REQUEST',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       options: valueOptions
     })
+  }
+
   return { changeEmail, isLoading, needsEmailVerification, isError, error }
 }
 
-export const useChangePassword = (statePassword?: string) => {
+type ChangePasswordHookHandler = {
+  (password: string): void
+  /** @deprecated */
+  (password?: unknown): void
+}
+
+type ChangePasswordHookResult = {
+  changePassword: ChangePasswordHookHandler
+} & ActionHookState
+
+type ChangePasswordHook = {
+  (): ChangePasswordHookResult
+  /** @deprecated */
+  (email?: string): ChangePasswordHookResult
+}
+
+export const useChangePassword: ChangePasswordHook = (statePassword?: string) => {
   const nhost = useNhostClient()
   const machine = useMemo(() => createChangePasswordMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
@@ -42,16 +86,40 @@ export const useChangePassword = (statePassword?: string) => {
   const error = current.context.error
   const isLoading = current.matches('requesting')
 
-  const changePassword = (valuePassword?: string | unknown) =>
+  const changePassword: ChangePasswordHookHandler = (valuePassword?: string | unknown) => {
     send({
       type: 'REQUEST',
       password: typeof valuePassword === 'string' ? valuePassword : statePassword
     })
+  }
 
   return { changePassword, isLoading, isSuccess, isError, error }
 }
 
-export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswordOptions) => {
+type ResetPasswordHookHandler = {
+  (email: string, options?: ResetPasswordOptions): void
+  /** @deprecated */
+  (email?: unknown, options?: ResetPasswordOptions): void
+}
+
+type ResetPasswordHookState = ActionHookState<'isSent'>
+
+type ResetPasswordHookResult = {
+  resetPassword: ResetPasswordHookHandler
+} & ResetPasswordHookState
+
+type ResetPasswordHook = {
+  (options?: ResetPasswordOptions): ResetPasswordHookResult
+  /** @deprecated */
+  (email?: string, options?: ResetPasswordOptions): ResetPasswordHookResult
+}
+
+export const useResetPassword: ResetPasswordHook = (
+  a?: string | ResetPasswordOptions,
+  b?: ResetPasswordOptions
+) => {
+  const stateEmail = typeof a === 'string' ? a : undefined
+  const stateOptions = typeof a !== 'string' ? a : b
   const nhost = useNhostClient()
   const machine = useMemo(() => createResetPasswordMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
@@ -60,12 +128,16 @@ export const useResetPassword = (stateEmail?: string, stateOptions?: ResetPasswo
   const error = current.context.error
   const isLoading = current.matches('requesting')
 
-  const resetPassword = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+  const resetPassword: ResetPasswordHookHandler = (
+    valueEmail?: string | unknown,
+    valueOptions = stateOptions
+  ) => {
     send({
       type: 'REQUEST',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       options: valueOptions
     })
+  }
   return { resetPassword, isLoading, isSent, isError, error }
 }
 
@@ -150,10 +222,29 @@ export const useUserRoles = () => {
   )
 }
 
-export const useSendVerificationEmail = (
-  stateEmail?: string,
-  stateOptions?: SendVerificationEmailOptions
+type SendVerificationEmailHookHandler = {
+  (email: string, options?: SendVerificationEmailOptions): void
+  /** @deprecated */
+  (email?: unknown, options?: SendVerificationEmailOptions): void
+}
+
+type SendVerificationEmailHookState = ActionHookState<'isSent'>
+
+type SendVerificationEmailHookResult = {
+  sendEmail: SendVerificationEmailHookHandler
+} & SendVerificationEmailHookState
+
+type SendVerificationEmailHook = {
+  (options?: SendVerificationEmailOptions): SendVerificationEmailHookResult
+  /** @deprecated */
+  (email?: string, options?: SendVerificationEmailOptions): SendVerificationEmailHookResult
+}
+export const useSendVerificationEmail: SendVerificationEmailHook = (
+  a?: string | SendVerificationEmailOptions,
+  b?: SendVerificationEmailOptions
 ) => {
+  const stateEmail = typeof a === 'string' ? a : undefined
+  const stateOptions = typeof a !== 'string' ? a : b
   const nhost = useNhostClient()
   const machine = useMemo(() => createSendVerificationEmailMachine(nhost.auth.client), [nhost])
   const [current, send] = useMachine(machine)
@@ -162,17 +253,21 @@ export const useSendVerificationEmail = (
   const error = current.context.error
   const isLoading = current.matches('requesting')
 
-  const sendEmail = (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+  const sendEmail: SendVerificationEmailHookHandler = (
+    valueEmail?: string | unknown,
+    valueOptions = stateOptions
+  ) => {
     send({
       type: 'REQUEST',
       email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
       options: valueOptions
     })
+  }
   return { sendEmail, isLoading, isSent, isError, error }
 }
 
 // TODO documentation when available in Nhost Cloud - see changelog
-export const useConfigMfa = (stateCode?: string) => {
+export const useConfigMfa = () => {
   const nhost = useNhostClient()
 
   const machine = useMemo(() => createEnableMfaMachine(nhost.auth.client), [nhost])
@@ -189,11 +284,11 @@ export const useConfigMfa = (stateCode?: string) => {
   const qrCodeDataUrl = current.context.imageUrl || ''
 
   const generateQrCode = () => send('GENERATE')
-  const activateMfa = (valueCode?: string | unknown) =>
+  const activateMfa = (code: string) =>
     send({
       type: 'ACTIVATE',
       activeMfaType: 'totp',
-      code: typeof valueCode === 'string' ? valueCode : stateCode
+      code
     })
   return {
     generateQrCode,
