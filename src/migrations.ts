@@ -26,7 +26,7 @@ export async function applyMigrations(): Promise<void> {
      * As a result, it makes the migration fail when upgrading from previous versions v0.2.0 and lower to later versions
      * See [this issue](https://github.com/nhost/hasura-auth/issues/129) and the related [pull request](https://github.com/nhost/hasura-auth/pull/134)
      */
-    const userFieldsMigration = path.join(
+    const correctName = path.join(
       process.cwd(),
       'migrations',
       '00002_custom-user-fields.sql'
@@ -35,17 +35,15 @@ export async function applyMigrations(): Promise<void> {
       logger.info(
         'Correcting legacy 00002 migration name introduced in v0.2.1'
       );
+      const legacyName = correctName.replace(
+        '00002_custom-user-fields',
+        '00002_custom_user_fields'
+      );
       /**
        * Rename `00002_custom-user-fields.sql` to `00002_custom_user_fields.sql`
        * so the hashes present in the `auth.migrations` table matches with the migration files
        */
-      await fs.rename(
-        userFieldsMigration,
-        userFieldsMigration.replace(
-          '00002_custom-user-fields',
-          '00002_custom_user_fields'
-        )
-      );
+      await fs.rename(correctName, legacyName);
       try {
         // Retry running migrations with the corrected file name
         await migrate({ client }, './migrations', {
@@ -60,13 +58,7 @@ export async function applyMigrations(): Promise<void> {
          * we change the file back to its original name to avoid confusion on the user standpoint
          * (it happens when using the Nhost CLI or a custom docker-compose config)
          * */
-        await fs.rename(
-          userFieldsMigration,
-          userFieldsMigration.replace(
-            '00002_custom_user_fields',
-            '00002_custom-user-fields'
-          )
-        );
+        await fs.rename(legacyName, correctName);
       }
     } else {
       throw new Error(error.message);
