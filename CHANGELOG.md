@@ -138,7 +138,7 @@ It will then use the same expressions e.g. `profile.contributesTo.project.id` 
     "x-hasura-allowed-roles": [ "me", "user" ],
     "x-hasura-default-role": "user",
     "x-hasura-user-id": "121bbea4-908e-4540-ac5d-52c7f6f93bec",
-    "x-hasura-user-isAnonymous": "false"
+    "x-hasura-user-is-anonymous": "false"
   }
   "sub": "f8776768-4bbd-46f8-bae1-3c40da4a89ff",
   "iss": "hasura-auth",

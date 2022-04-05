@@ -168,7 +168,7 @@ export const ENV = {
     return castIntEnv('AUTH_ACCESS_TOKEN_EXPIRES_IN', 900);
   },
   get AUTH_REFRESH_TOKEN_EXPIRES_IN() {
-    return castIntEnv('AUTH_REFRESH_TOKEN_EXPIRES_IN', 43200);
+    return castIntEnv('AUTH_REFRESH_TOKEN_EXPIRES_IN', 2_592_000);
   },
 
   // EMAIL TEMPLATES
