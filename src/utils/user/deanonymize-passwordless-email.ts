@@ -7,6 +7,7 @@ import { ENV } from '../env';
 import { emailClient } from '@/email';
 import { generateTicketExpiresAt } from '../ticket';
 import { sendError } from '@/errors';
+import { EMAIL_TYPES } from '@/types';
 
 export type BodyTypePasswordlessEmail = {
   signInMethod: 'passwordless';
@@ -106,7 +107,7 @@ export const handleDeanonymizeUserPasswordlessEmail = async (
         },
       },
       locals: {
-        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`,
+        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.SIGNIN_PASSWORDLESS}&redirectTo=${redirectTo}`,
         displayName: user.displayName,
         email,
         ticket,

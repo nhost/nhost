@@ -6,6 +6,7 @@ import { gqlSdk, generateTicketExpiresAt, getUserByEmail, ENV } from '@/utils';
 import { emailClient } from '@/email';
 import { sendError } from '@/errors';
 import { Joi, email, redirectTo } from '@/validation';
+import { EMAIL_TYPES } from '@/types';
 
 export const userEmailSendVerificationEmailSchema = Joi.object({
   email: email.required(),
@@ -74,7 +75,7 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
       },
     },
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailVerify&redirectTo=${redirectTo}`,
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.VERIFY}&redirectTo=${redirectTo}`,
       displayName: user.displayName,
       ticket,
       redirectTo,

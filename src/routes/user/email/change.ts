@@ -5,6 +5,7 @@ import { ReasonPhrases } from 'http-status-codes';
 import { gqlSdk, generateTicketExpiresAt, ENV } from '@/utils';
 import { emailClient } from '@/email';
 import { Joi, email, redirectTo } from '@/validation';
+import { EMAIL_TYPES } from '@/types';
 
 export const userEmailChangeSchema = Joi.object({
   newEmail: email,
@@ -30,7 +31,7 @@ export const userEmailChange: RequestHandler<
 
   const { userId } = req.auth as RequestAuth;
 
-  const ticket = `emailConfirmChange:${uuidv4()}`;
+  const ticket = `${EMAIL_TYPES.CONFIRM_CHANGE}:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60); // 1 hour
 
   // set newEmail for user
@@ -53,7 +54,7 @@ export const userEmailChange: RequestHandler<
   await emailClient.send({
     template,
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`,
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.CONFIRM_CHANGE}&redirectTo=${redirectTo}`,
       displayName: user.displayName,
       ticket,
       redirectTo,

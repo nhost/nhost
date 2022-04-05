@@ -10,6 +10,7 @@ import { gqlSdk } from '../gql-sdk';
 import { ENV } from '../env';
 import { generateTicketExpiresAt } from '../ticket';
 import { hashPassword } from '../password';
+import { EMAIL_TYPES } from '@/types';
 
 export type BodyTypeEmailPassword = {
   signInMethod: 'email-password';
@@ -102,7 +103,7 @@ export const handleDeanonymizeUserEmailPassword = async (
         },
       },
       locals: {
-        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailVerify&redirectTo=${redirectTo}`,
+        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.VERIFY}&redirectTo=${redirectTo}`,
         displayName: user.displayName,
         email,
         ticket,

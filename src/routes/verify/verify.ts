@@ -2,17 +2,13 @@ import { RequestHandler } from 'express';
 import { getNewRefreshToken, gqlSdk, generateRedirectUrl } from '@/utils';
 import { Joi, redirectTo } from '@/validation';
 import { sendError } from '@/errors';
+import { EmailType, EMAIL_TYPES } from '@/types';
 
 export const verifySchema = Joi.object({
   redirectTo: redirectTo.required(),
   ticket: Joi.string().required(),
   type: Joi.string()
-    .allow(
-      'emailVerify',
-      'emailConfirmChange',
-      'signinPasswordless',
-      'passwordReset'
-    )
+    .allow(...Object.values(EMAIL_TYPES))
     .required(),
 }).meta({ className: 'VerifySchema' });
 
@@ -20,7 +16,11 @@ export const verifyHandler: RequestHandler<
   {},
   {},
   {},
-  { ticket: string; type: string; redirectTo: string }
+  {
+    ticket: string;
+    type: EmailType;
+    redirectTo: string;
+  }
 > = async (req, res) => {
   const { ticket, type, redirectTo } = req.query;
 
@@ -57,14 +57,14 @@ export const verifyHandler: RequestHandler<
   });
 
   // different types
-  if (type === 'emailVerify') {
+  if (type === EMAIL_TYPES.VERIFY) {
     await gqlSdk.updateUser({
       id: user.id,
       user: {
         emailVerified: true,
       },
     });
-  } else if (type === 'emailConfirmChange') {
+  } else if (type === EMAIL_TYPES.CONFIRM_CHANGE) {
     // set new email for user
     await gqlSdk.updateUser({
       id: user.id,
@@ -73,14 +73,14 @@ export const verifyHandler: RequestHandler<
         newEmail: null,
       },
     });
-  } else if (type === 'signinPasswordless') {
+  } else if (type === EMAIL_TYPES.SIGNIN_PASSWORDLESS) {
     await gqlSdk.updateUser({
       id: user.id,
       user: {
         emailVerified: true,
       },
     });
-  } else if (type === 'passwordReset') {
+  } else if (type === EMAIL_TYPES.PASSWORD_RESET) {
     // noop
     // just redirecting the user to the client (as signed-in).
   }

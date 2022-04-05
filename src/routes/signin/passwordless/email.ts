@@ -11,7 +11,7 @@ import {
   ENV,
 } from '@/utils';
 import { emailClient } from '@/email';
-import { PasswordLessEmailBody } from '@/types';
+import { EMAIL_TYPES, PasswordLessEmailBody } from '@/types';
 import { sendError } from '@/errors';
 import { Joi, email, registrationOptions } from '@/validation';
 
@@ -98,7 +98,7 @@ export const signInPasswordlessEmailHandler: RequestHandler<
       },
     },
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`,
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.SIGNIN_PASSWORDLESS}&redirectTo=${redirectTo}`,
       displayName: user.displayName,
       email,
       ticket,

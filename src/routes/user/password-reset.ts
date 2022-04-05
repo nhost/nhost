@@ -6,6 +6,7 @@ import { emailClient } from '@/email';
 import { gqlSdk, getUserByEmail, generateTicketExpiresAt, ENV } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, email, redirectTo } from '@/validation';
+import { EMAIL_TYPES } from '@/types';
 
 export const userPasswordResetSchema = Joi.object({
   email: email.required(),
@@ -34,7 +35,7 @@ export const userPasswordResetHandler: RequestHandler<
     return sendError(res, 'user-not-found');
   }
 
-  const ticket = `passwordReset:${uuidv4()}`;
+  const ticket = `${EMAIL_TYPES.PASSWORD_RESET}:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60); // 1 hour
 
   await gqlSdk.updateUser({
@@ -49,7 +50,7 @@ export const userPasswordResetHandler: RequestHandler<
   await emailClient.send({
     template,
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=passwordReset&redirectTo=${redirectTo}`,
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.PASSWORD_RESET}&redirectTo=${redirectTo}`,
       ticket,
       redirectTo,
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
