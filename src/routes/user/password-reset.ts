@@ -5,7 +5,8 @@ import { ReasonPhrases } from 'http-status-codes';
 import { emailClient } from '@/email';
 import { gqlSdk, getUserByEmail, generateTicketExpiresAt, ENV } from '@/utils';
 import { sendError } from '@/errors';
-import { Joi, email, redirectTo, EMAIL_TYPES } from '@/validation';
+import { Joi, email, redirectTo } from '@/validation';
+import { EMAIL_TYPES } from '@/types';
 
 export const userPasswordResetSchema = Joi.object({
   email: email.required(),

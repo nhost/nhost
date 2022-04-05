@@ -105,10 +105,3 @@ export const registrationOptions = Joi.object({
   });
 
 export const mfaTotpTicketPattern = new RegExp(`mfaTotp:${uuidRegex.source}`);
-
-export const EMAIL_TYPES = {
-  VERIFY: 'emailVerify',
-  CONFIRM_CHANGE: 'emailConfirmChange',
-  SIGNIN_PASSWORDLESS: 'signinPasswordless',
-  PASSWORD_RESET: 'passwordReset',
-} as const;
