@@ -157,7 +157,7 @@ export class HasuraAuthClient {
     if ('provider' in params) {
       const { provider, options } = params
       const providerUrl = encodeQueryParameters(
-        `${this.#client.backendUrl}/v1/auth/signin/provider/${provider}`,
+        `${this.#client.backendUrl}/signin/provider/${provider}`,
         rewriteRedirectTo(this.#client.clientUrl, options)
       )
       if (isBrowser()) {
