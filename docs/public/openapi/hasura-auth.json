@@ -668,6 +668,23 @@
             "additionalProperties": false,
             "example": { "firstName": "John", "lastName": "Smith" },
             "default": {}
+          },
+          "activeMfaType": {
+            "anyOf": [
+              { "type": "string", "enum": [""] },
+              { "type": "string", "enum": ["totp"] }
+            ],
+            "description": "Multi-factor authentication type. A null value deactivates MFA",
+            "example": "totp"
+          },
+          "emailVerified": { "type": "boolean", "default": false },
+          "phoneNumber": { "type": "string" },
+          "phoneNumberVerified": { "type": "boolean", "default": false },
+          "roles": {
+            "type": "array",
+            "items": { "oneOf": [{ "enum": ["me"] }, { "enum": ["user"] }] },
+            "example": ["me", "user"],
+            "default": ["me", "user"]
           }
         },
         "required": [
@@ -678,7 +695,12 @@
           "email",
           "isAnonymous",
           "defaultRole",
-          "metadata"
+          "metadata",
+          "activeMfaType",
+          "emailVerified",
+          "phoneNumber",
+          "phoneNumberVerified",
+          "roles"
         ],
         "additionalProperties": false
       },
