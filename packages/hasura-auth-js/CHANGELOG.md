@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 1.0.8
+
+### Patch Changes
+
+- 6be3758: bug: Correct OAuth provider link.
+
 ## 1.0.7
 
 ### Patch Changes
