@@ -125,3 +125,5 @@ Here are some ways of contributing to making Nhost better:
 ## Security
 
 If you discover a security vulnerability within Nhost, please e-mail [security@nhost.io](mailto:security@nhost.io). All security vulnerabilities will be promptly addressed.
+
+123
