@@ -1,6 +1,8 @@
-import { useChangePassword } from '@nhost/react'
+import React from 'react'
 import { useEffect, useState } from 'react'
-import { Button, FlexboxGrid, Input, Message, Panel, toaster, Notification } from 'rsuite'
+import { Button, FlexboxGrid, Input, Message, Notification, Panel, toaster } from 'rsuite'
+
+import { useChangePassword } from '@nhost/react'
 
 export const ChangePassword: React.FC = () => {
   const [password, setPassword] = useState('')
