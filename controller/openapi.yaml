@@ -79,11 +79,22 @@ components:
       properties:
         name:
           type: string
+    PresignedURLResponse:
+      type: object
+      properties:
+        url:
+          type: string
+        expiration:
+          type: number
     Error:
       type: object
       properties:
-        message:
-          type: string
+        error:
+          type: object
+          properties:
+            message:
+              type: string
+
 paths:
   /openapi.yaml:
     get:
@@ -499,6 +510,250 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /files/{id}/presigned:
+    get:
+      summary: Retrieve presigned URL to retrieve the file
+      description: |
+        Retrieve presigned URL to retrieve the file. Expiration of the URL is
+        determined by bucket configuration
+      tags:
+        - storage
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: File gathered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PresignedURLResponse'
+
+        default:
+          description: Some error occurred
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /files/{id}/presigned/contents:
+    get:
+      summary: Retrieve contents of file
+      description: Retrieve contents of file
+      tags:
+        - storage
+      security:
+        - Authorization: []
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: X-Amz-Algorithm
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Amz-Credential
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Amz-Date
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Amz-Expires
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Amz-Signature
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: X-Amz-SignedHeaders
+          description: Use presignedurl endpoint to generate this automatically
+          required: true
+          in: query
+          schema:
+            type: string
+        - name: if-match
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Match
+          in: header
+          schema:
+            type: string
+        - name: if-none-match
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match
+          in: header
+          schema:
+            type: string
+        - name: if-modified-since
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since
+          in: header
+          schema:
+            type: string
+        - name: if-unmodified-since
+          description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Unmodified-Since
+          in: header
+          schema:
+            type: string
+        - name: q
+          description: Quality of the image. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: h
+          description: Resize image up to h maintaining aspect ratio. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: w
+          description: Resize image up to w maintaining aspect ratio. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+        - name: b
+          description: Blur the image according to this sigma value. Only applies to jpeg, webp and png files
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: File gathered successfully
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+            Accept-Ranges:
+              description: Always set to bytes. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
+              schema:
+                type: string
+          content:
+            application/octet-stream: {}
+        '206':
+          description: File partially gathered successfully
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+            Accept-Ranges:
+              description: Always set to bytes. https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Ranges
+              schema:
+                type: string
+            Content-Range:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Range
+              schema:
+                type: string
+          content:
+            application/octet-stream: {}
+        '304':
+          description: |
+            File hasn't been modified based on:
+            - file modification time is older than If-Modified-Since
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+        '412':
+          description: |
+            Some of the conditions specified in the headers failed to match. For instance:
+              - etag doesn't match one of If-Match
+              - etag matches one of If-None-Match
+              - if-unmodified-since is false
+          headers:
+            Cache-Control:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
+              schema:
+                type: string
+            Content-Length:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Length
+              schema:
+                type: number
+            Content-Type:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type
+              schema:
+                type: string
+            Etag:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Etag
+              schema:
+                type: string
+            Last-Modified:
+              description: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified
+              schema:
+                type: string
+        default:
+          description: Some error occurred
+          headers:
+            X-Error:
+              description: An error message
+              schema:
+                type: string
 
   /ops/list-orphans:
     post:

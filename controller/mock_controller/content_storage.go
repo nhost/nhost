@@ -5,7 +5,9 @@
 package mock_controller
 
 import (
+	context "context"
 	io "io"
+	http "net/http"
 	reflect "reflect"
 	time "time"
 
@@ -78,6 +80,21 @@ func (m *MockContentStorage) GetFile(arg0 string) (io.ReadCloser, *controller.AP
 func (mr *MockContentStorageMockRecorder) GetFile(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFile", reflect.TypeOf((*MockContentStorage)(nil).GetFile), arg0)
+}
+
+// GetFileWithPresignedURL mocks base method.
+func (m *MockContentStorage) GetFileWithPresignedURL(arg0 context.Context, arg1, arg2 string, arg3 http.Header) (*controller.FileWithPresignedURL, *controller.APIError) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFileWithPresignedURL", arg0, arg1, arg2, arg3)
+	ret0, _ := ret[0].(*controller.FileWithPresignedURL)
+	ret1, _ := ret[1].(*controller.APIError)
+	return ret0, ret1
+}
+
+// GetFileWithPresignedURL indicates an expected call of GetFileWithPresignedURL.
+func (mr *MockContentStorageMockRecorder) GetFileWithPresignedURL(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileWithPresignedURL", reflect.TypeOf((*MockContentStorage)(nil).GetFileWithPresignedURL), arg0, arg1, arg2, arg3)
 }
 
 // ListFiles mocks base method.

@@ -17,6 +17,7 @@ import (
 )
 
 const (
+	publicURLFlag                = "public-url"
 	bindFlag                     = "bind"
 	trustedProxiesFlag           = "trusted-proxies"
 	hasuraEndpointFlag           = "hasura_endpoint"
@@ -64,6 +65,7 @@ func ginLogger(logger *logrus.Logger) gin.HandlerFunc {
 }
 
 func getGin(
+	publicURL string,
 	hasuraAdminSecret string,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
@@ -75,7 +77,7 @@ func getGin(
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	ctrl := controller.New(hasuraAdminSecret, metadataStorage, contentStorage, logger)
+	ctrl := controller.New(publicURL, hasuraAdminSecret, metadataStorage, contentStorage, logger)
 
 	return ctrl.SetupRouter(trustedProxies, ginLogger(logger)) // nolint: wrapcheck
 }
@@ -95,7 +97,7 @@ func getContentStorage(
 		S3ForcePathStyle: aws.Bool(true),
 	}
 
-	st, err := storage.NewS3(config, bucket, rootFolder, logger)
+	st, err := storage.NewS3(config, bucket, rootFolder, s3Endpoint, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -136,6 +138,7 @@ func init() {
 	rootCmd.AddCommand(serveCmd)
 
 	{
+		addStringFlag(serveCmd.Flags(), publicURLFlag, "http://localhost:8000", "public URL of the service")
 		addStringFlag(serveCmd.Flags(), bindFlag, ":8000", "bind the service to this address")
 		addStringArrayFlag(
 			serveCmd.Flags(),
@@ -233,6 +236,7 @@ var serveCmd = &cobra.Command{
 			viper.GetString(hasuraEndpointFlag) + "/graphql",
 		)
 		router, err := getGin(
+			viper.GetString(publicURLFlag),
 			viper.GetString(hasuraAdminSecretFlag),
 			metadataStorage,
 			contentStorage,

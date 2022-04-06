@@ -80,7 +80,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 				contentStorage.EXPECT().CreatePresignedURL(
 					"55af1e60-0f28-454e-885e-ea6aab2bb288", 30*time.Minute,
 				).Return(
-					"https://some-url", nil,
+					"this-is-the-signature", nil,
 				)
 			} else {
 				metadataStorage.EXPECT().GetFileByID(
@@ -89,7 +89,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 					controller.ErrFileNotFound)
 			}
 
-			ctrl := controller.New("asdasd", metadataStorage, contentStorage, logger)
+			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, logger)
 
 			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
 
@@ -120,7 +120,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 
 			if tc.fileFound {
 				assert(t, resp, &controller.GetFilePresignedURLResponse{
-					URL:        "https://some-url",
+					URL:        "http://asd/v1/storage/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl/content?this-is-the-signature", // nolint: lll
 					Expiration: 30,
 				})
 			} else {

@@ -1,8 +1,14 @@
 package storage
 
 import (
+	"context"
+	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
+	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,27 +18,48 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func parseS3Error(err error) *controller.APIError {
-	return controller.InternalServerError(err)
+type S3Error struct {
+	Code    string
+	Message string
+}
+
+func parseS3Error(resp *http.Response) *controller.APIError {
+	var s3Error S3Error
+	if err := xml.NewDecoder(resp.Body).Decode(&s3Error); err != nil {
+		b, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return controller.InternalServerError(
+				fmt.Errorf("problem reading S3 error, status code %d: %w", resp.StatusCode, err),
+			)
+		}
+		return controller.InternalServerError(
+			fmt.Errorf("problem parsing S3 error, status code %d: %s", resp.StatusCode, b), // nolint: goerr113
+		)
+	}
+	return controller.NewAPIError(resp.StatusCode, s3Error.Message, errors.New(s3Error.Message), nil) // nolint: goerr113
 }
 
 type S3 struct {
 	session    *s3.S3
 	bucket     *string
 	rootFolder string
+	url        string
 	logger     *logrus.Logger
 }
 
-func NewS3(config *aws.Config, bucket string, rootFolder string, logger *logrus.Logger) (*S3, *controller.APIError) {
+func NewS3(
+	config *aws.Config, bucket string, rootFolder string, url string, logger *logrus.Logger,
+) (*S3, *controller.APIError) {
 	session, err := session.NewSession(config)
 	if err != nil {
-		return nil, parseS3Error(fmt.Errorf("problem creating S3 session: %w", err))
+		return nil, controller.InternalServerError(fmt.Errorf("problem creating S3 session: %w", err))
 	}
 
 	return &S3{
 		session:    s3.New(session),
 		bucket:     aws.String(bucket),
 		rootFolder: rootFolder,
+		url:        url,
 		logger:     logger,
 	}, nil
 }
@@ -40,7 +67,7 @@ func NewS3(config *aws.Config, bucket string, rootFolder string, logger *logrus.
 func (s *S3) PutFile(content io.ReadSeeker, filepath string, contentType string) (string, *controller.APIError) {
 	// let's make sure we are in the beginning of the content
 	if _, err := content.Seek(0, 0); err != nil {
-		return "", parseS3Error(fmt.Errorf("problem going to the beginning of the content: %w", err))
+		return "", controller.InternalServerError(fmt.Errorf("problem going to the beginning of the content: %w", err))
 	}
 
 	object, err := s.session.PutObject(
@@ -52,7 +79,7 @@ func (s *S3) PutFile(content io.ReadSeeker, filepath string, contentType string)
 		},
 	)
 	if err != nil {
-		return "", parseS3Error(fmt.Errorf("problem putting object: %w", err))
+		return "", controller.InternalServerError(fmt.Errorf("problem putting object: %w", err))
 	}
 
 	return *object.ETag, nil
@@ -71,7 +98,7 @@ func (s *S3) GetFile(filepath string) (io.ReadCloser, *controller.APIError) {
 		},
 	)
 	if err != nil {
-		return nil, parseS3Error(fmt.Errorf("problem getting object: %w", err))
+		return nil, controller.InternalServerError(fmt.Errorf("problem getting object: %w", err))
 	}
 	return object.Body, nil
 }
@@ -85,10 +112,64 @@ func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, 
 	)
 	url, err := request.Presign(expire)
 	if err != nil {
-		return "", parseS3Error(fmt.Errorf("problem generating pre-signed URL: %w", err))
+		return "", controller.InternalServerError(fmt.Errorf("problem generating pre-signed URL: %w", err))
 	}
 
-	return url, nil
+	parts := strings.Split(url, "?")
+	if len(parts) != 2 { // nolint: gomnd
+		return "", controller.InternalServerError(fmt.Errorf("problem generating pre-signed URL: %w", err))
+	}
+
+	return parts[1], nil
+}
+
+func (s *S3) GetFileWithPresignedURL(
+	ctx context.Context, filepath, signature string, headers http.Header,
+) (*controller.FileWithPresignedURL, *controller.APIError) {
+	if s.rootFolder != "" {
+		filepath = s.rootFolder + "/" + filepath
+	}
+	url := fmt.Sprintf("%s/%s/%s?%s", s.url, *s.bucket, filepath, signature)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, controller.InternalServerError(fmt.Errorf("problem creating request: %w", err))
+	}
+	req.Header = headers
+
+	client := http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, controller.InternalServerError(fmt.Errorf("problem getting file: %w", err))
+	}
+
+	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusPartialContent) {
+		return nil, parseS3Error(resp)
+	}
+
+	respHeaders := make(http.Header)
+	switch resp.StatusCode {
+	case http.StatusOK, http.StatusPartialContent, http.StatusNotModified:
+		respHeaders = http.Header{
+			"Accept-Ranges": []string{"bytes"},
+		}
+		if resp.StatusCode == http.StatusPartialContent {
+			respHeaders["Content-Range"] = []string{resp.Header.Get("Content-Range")}
+		}
+	}
+
+	length, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64) // nolint: gomnd
+	if err != nil {
+		return nil, controller.InternalServerError(fmt.Errorf("problem parsing Content-Length: %w", err))
+	}
+
+	return &controller.FileWithPresignedURL{
+		ContentType:   resp.Header.Get("Content-Type"),
+		ContentLength: length,
+		Etag:          resp.Header.Get("Etag"),
+		StatusCode:    resp.StatusCode,
+		Body:          resp.Body,
+		ExtraHeaders:  respHeaders,
+	}, nil
 }
 
 func (s *S3) DeleteFile(filepath string) *controller.APIError {
@@ -98,7 +179,7 @@ func (s *S3) DeleteFile(filepath string) *controller.APIError {
 			Key:    aws.String(s.rootFolder + "/" + filepath),
 		})
 	if err != nil {
-		return parseS3Error(fmt.Errorf("problem deleting file in s3: %w", err))
+		return controller.InternalServerError(fmt.Errorf("problem deleting file in s3: %w", err))
 	}
 
 	return nil
@@ -109,7 +190,7 @@ func (s *S3) ListFiles() ([]string, *controller.APIError) {
 		Bucket: s.bucket,
 	})
 	if err != nil {
-		return nil, parseS3Error(fmt.Errorf("problem listing objects in s3: %w", err))
+		return nil, controller.InternalServerError(fmt.Errorf("problem listing objects in s3: %w", err))
 	}
 
 	res := make([]string, len(objects.Contents))

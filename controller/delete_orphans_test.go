@@ -75,7 +75,7 @@ func TestDeleteOrphans(t *testing.T) {
 			contentStorage.EXPECT().DeleteFile("default/garbage").Return(nil)
 			contentStorage.EXPECT().DeleteFile("bucket2/7dc0b0d0-b100-4667-89f1-0434942d9c15").Return(nil)
 
-			ctrl := controller.New("asdasd", metadataStorage, contentStorage, logger)
+			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, logger)
 
 			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
 

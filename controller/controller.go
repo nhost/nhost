@@ -66,13 +66,17 @@ type MetadataStorage interface {
 //go:generate mockgen --build_flags=--mod=mod -destination mock_controller/content_storage.go -package mock_controller . ContentStorage
 type ContentStorage interface {
 	PutFile(content io.ReadSeeker, filepath, contentType string) (string, *APIError)
-	GetFile(id string) (io.ReadCloser, *APIError)
+	GetFile(filepath string) (io.ReadCloser, *APIError)
 	CreatePresignedURL(filepath string, expire time.Duration) (string, *APIError)
+	GetFileWithPresignedURL(
+		ctx context.Context, filepath, signature string, headers http.Header,
+	) (*FileWithPresignedURL, *APIError)
 	DeleteFile(filepath string) *APIError
 	ListFiles() ([]string, *APIError)
 }
 
 type Controller struct {
+	publicURL         string
 	hasuraAdminSecret string
 	metadataStorage   MetadataStorage
 	contentStorage    ContentStorage
@@ -80,12 +84,14 @@ type Controller struct {
 }
 
 func New(
+	publicURL string,
 	hasuraAdminSecret string,
 	metadataStorage MetadataStorage,
 	contentStorage ContentStorage,
 	logger *logrus.Logger,
 ) *Controller {
 	return &Controller{
+		publicURL,
 		hasuraAdminSecret,
 		metadataStorage,
 		contentStorage,
@@ -99,7 +105,7 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerF
 		return nil, fmt.Errorf("problem setting trusted proxies: %w", err)
 	}
 
-	router.MaxMultipartMemory = 8 << 20 // nolint:gomnd  // 8MB
+	router.MaxMultipartMemory = 1000 << 20 // nolint:gomnd  // 1GB
 	router.Use(gin.Recovery())
 	router.Use(logger)
 	router.Use(cors.New(cors.Config{
@@ -132,6 +138,7 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerF
 		files.PUT("/:id", ctrl.UpdateFile)
 		files.DELETE("/:id", ctrl.DeleteFile)
 		files.GET("/:id/presignedurl", ctrl.GetFilePresignedURL)
+		files.GET("/:id/presignedurl/content", ctrl.GetFileWithPresignedURL)
 	}
 
 	ops := apiRoot.Group("/ops")

@@ -107,60 +107,64 @@ func checkConditionals( // nolint: cyclop
 	return http.StatusOK, nil
 }
 
-func writeCachingHeaders(ctx *gin.Context, fileMetadata FileMetadataWithBucket) *APIError {
-	lastModified, err := time.Parse(time.RFC3339, fileMetadata.UpdatedAt)
-	if err != nil {
-		return InternalServerError(err)
-	}
-
-	ctx.Header("Cache-Control", fileMetadata.Bucket.CacheControl)
-	ctx.Header("Content-Length", fmt.Sprintf("%d", fileMetadata.Size))
-	ctx.Header("Content-Type", fileMetadata.MimeType)
-	ctx.Header("ETag", fileMetadata.ETag)
-	ctx.Header("Last-modified", lastModified.Format(time.RFC1123))
-
-	return nil
-}
-
-func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (int, *APIError) {
+func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileResponse, *APIError) {
 	req, apiErr := ctrl.getFileParse(ctx)
 	if apiErr != nil {
-		return 0, apiErr
+		return nil, apiErr
 	}
 
 	id := ctx.Param("id")
 	fileMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, ctx.Request.Header)
 	if apiErr != nil {
-		return 0, apiErr
+		return nil, apiErr
 	}
 
 	statusCode, apiErr := checkConditionals(fileMetadata, req.headers)
 	if apiErr != nil {
-		return 0, apiErr
+		return nil, apiErr
 	}
 
 	opts, apiErr := getImageManipulationOptions(ctx, fileMetadata.MimeType)
 	if apiErr != nil {
-		return 0, apiErr
+		return nil, apiErr
 	}
+
+	updateAt, apiErr := timeInRFC3339(fileMetadata.UpdatedAt)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
 	if len(opts) > 0 {
-		_, etag, n, apiErr := ctrl.modifyImage(ctx, fileMetadata.ID, opts...)
+		object, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID)
 		if apiErr != nil {
-			return 0, apiErr
+			return nil, apiErr
 		}
-		fileMetadata.Size = int64(n)
-		fileMetadata.ETag = etag
+		defer object.Close()
+
+		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(ctx.Request.Context(), object, opts...)
+		if apiErr != nil {
+			return nil, apiErr
+		}
+		defer object.Close()
+
+		updateAt = time.Now().Format(time.RFC3339)
 	}
 
-	if apiErr := writeCachingHeaders(ctx, fileMetadata); apiErr != nil {
-		return 0, apiErr
-	}
-
-	return statusCode, nil
+	return NewFileResponse(
+		fileMetadata.MimeType,
+		fileMetadata.Size,
+		fileMetadata.ETag,
+		fileMetadata.Bucket.CacheControl,
+		updateAt,
+		statusCode,
+		nil,
+		fileMetadata.Name,
+		make(http.Header),
+	), nil
 }
 
 func (ctrl *Controller) GetFileInformation(ctx *gin.Context) {
-	statusCode, apiErr := ctrl.getFileInformationProcess(ctx)
+	response, apiErr := ctrl.getFileInformationProcess(ctx)
 	if apiErr != nil {
 		_ = ctx.Error(fmt.Errorf("problem parsing request: %w", apiErr))
 
@@ -170,5 +174,5 @@ func (ctrl *Controller) GetFileInformation(ctx *gin.Context) {
 		return
 	}
 
-	ctx.AbortWithStatus(statusCode)
+	response.Write(ctx)
 }

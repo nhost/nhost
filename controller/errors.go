@@ -133,6 +133,15 @@ func BadDataError(err error, publicMessage string) *APIError {
 	}
 }
 
+func NewAPIError(statusCode int, publicMessage string, err error, data map[string]interface{}) *APIError {
+	return &APIError{
+		statusCode:    statusCode,
+		publicMessage: publicMessage,
+		err:           err,
+		data:          data,
+	}
+}
+
 func (a *APIError) StatusCode() int {
 	if a == nil {
 		return 0

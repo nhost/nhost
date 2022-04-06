@@ -31,6 +31,9 @@ issues:
     - text: "variable name 'b' is too short for the scope of its usage"
       linters:
         - varnamelen
+    - text: "parameter name 'wr' is too short for the scope of its usage"
+      linters:
+        - varnamelen
     - linters:
         - lll
       source: "^//go:generate "

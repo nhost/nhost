@@ -4,7 +4,10 @@
 package storage_test
 
 import (
+	"context"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -12,6 +15,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/storage"
 	"github.com/sirupsen/logrus"
 )
@@ -31,7 +37,8 @@ func getS3() *storage.S3 {
 
 	logger := logrus.New()
 
-	st, err := storage.NewS3(config, "default", "f215cf48-7458-4596-9aa5-2159fc6a3caf", logger)
+	url := "http://localhost:9000"
+	st, err := storage.NewS3(config, "default", "f215cf48-7458-4596-9aa5-2159fc6a3caf", url, logger)
 	if err != nil {
 		panic(err)
 	}
@@ -143,31 +150,61 @@ func TestGetFilePresignedURL(t *testing.T) {
 
 	s3 := getS3()
 
-	f, err := os.Open("s3_test.go")
+	f, err := os.Open("testdata/sample.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	_, apiErr := s3.PutFile(f, "s3_test.go", "text")
+	_, apiErr := s3.PutFile(f, "sample.txt", "text")
 	if apiErr != nil {
 		t.Fatal(apiErr)
 	}
 
-	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", "s3_test.go") {
+	if !findFile(t, s3, "f215cf48-7458-4596-9aa5-2159fc6a3caf", "sample.txt") {
 		t.Fatal("couldn't find test file")
 	}
 
 	cases := []struct {
-		name     string
-		filepath string
+		name               string
+		filepath           string
+		sleep              time.Duration
+		expected           *controller.FileWithPresignedURL
+		expectedContent    string
+		expectedErr        *controller.ErrorResponse
+		expectedStatusCode int
 	}{
 		{
 			name:     "success",
-			filepath: "s3_test.go",
+			filepath: "sample.txt",
+			expected: &controller.FileWithPresignedURL{
+				ContentType:   "text",
+				ContentLength: 17,
+				Etag:          `"8ba761284b556cd234f73ec0b75fa054"`,
+				StatusCode:    200,
+				Body:          nil,
+				ExtraHeaders: map[string][]string{
+					"Accept-Ranges": {"bytes"},
+				},
+			},
+			expectedContent:    "this is a sample\n",
+			expectedStatusCode: http.StatusOK,
 		},
 		{
 			name:     "file not found",
 			filepath: "qwenmzxcxzcsadsad",
+			expectedErr: &controller.ErrorResponse{
+				Message: "The specified key does not exist.",
+			},
+			expectedStatusCode: http.StatusNotFound,
+		},
+		{
+			name:     "expired",
+			filepath: "sample.txt",
+			sleep:    time.Second * 1,
+			expectedErr: &controller.ErrorResponse{
+				Message: "Request has expired",
+			},
+			expectedStatusCode: http.StatusForbidden,
 		},
 	}
 
@@ -176,13 +213,52 @@ func TestGetFilePresignedURL(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			tc := tc
-			url, err := s3.CreatePresignedURL(tc.filepath, time.Minute)
-			if err != nil {
-				t.Error(err)
+			signature, apiErr := s3.CreatePresignedURL(tc.filepath, time.Second)
+			if apiErr != nil {
+				t.Error(apiErr)
 			}
 
-			if url == "" {
-				t.Error("expected a url back but got nothing")
+			if signature == "" {
+				t.Error("expected a signature back but got nothing")
+			}
+
+			time.Sleep(tc.sleep)
+
+			got, apiErr := s3.GetFileWithPresignedURL(context.Background(), tc.filepath, signature, http.Header{})
+			opts := cmp.Options{
+				cmpopts.IgnoreFields(controller.FileWithPresignedURL{}, "Body"),
+			}
+			if !cmp.Equal(got, tc.expected, opts) {
+				t.Error(cmp.Diff(got, tc.expected, opts))
+			}
+
+			statusCode := 0
+			if got != nil {
+				statusCode = got.StatusCode
+			}
+
+			var publicResponse *controller.ErrorResponse
+			if apiErr != nil {
+				statusCode = apiErr.StatusCode()
+				publicResponse = apiErr.PublicResponse()
+			}
+
+			if statusCode != tc.expectedStatusCode {
+				t.Errorf("expected status code %d but got %d", tc.expectedStatusCode, statusCode)
+			}
+
+			if !cmp.Equal(publicResponse, tc.expectedErr) {
+				t.Errorf(cmp.Diff(publicResponse, tc.expectedErr))
+			}
+
+			if tc.expectedContent != "" {
+				b, err := ioutil.ReadAll(got.Body)
+				if err != nil {
+					t.Error(err)
+				}
+				if !cmp.Equal(string(b), tc.expectedContent) {
+					t.Errorf(cmp.Diff(string(b), tc.expectedContent))
+				}
 			}
 		})
 	}

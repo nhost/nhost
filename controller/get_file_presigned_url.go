@@ -10,9 +10,9 @@ import (
 )
 
 type GetFilePresignedURLResponse struct {
-	Error      *ErrorResponse `json:"error"`
-	URL        string         `json:"url"`
-	Expiration int            `json:"expiration"`
+	Error      *ErrorResponse `json:"error,omitempty"`
+	URL        string         `json:"url,omitempty"`
+	Expiration int            `json:"expiration,omitempty"`
 }
 
 type GetFilePresignedURLRequest struct {
@@ -38,7 +38,7 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 		return GetFilePresignedURLResponse{}, ForbiddenError(err, err.Error())
 	}
 
-	url, apiErr := ctrl.contentStorage.CreatePresignedURL(
+	signature, apiErr := ctrl.contentStorage.CreatePresignedURL(
 		fileMetadata.ID,
 		time.Duration(fileMetadata.Bucket.DownloadExpiration)*time.Minute,
 	)
@@ -47,6 +47,7 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 			apiErr.ExtendError(fmt.Sprintf("problem creating presigned URL for file %s", fileMetadata.Name))
 	}
 
+	url := fmt.Sprintf("%s/v1/storage/files/%s/presignedurl/content?%s", ctrl.publicURL, fileMetadata.ID, signature)
 	return GetFilePresignedURLResponse{nil, url, fileMetadata.Bucket.DownloadExpiration}, nil
 }
 
