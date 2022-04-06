@@ -5,7 +5,6 @@
 ### Patch Changes
 
 - Updated dependencies [058956b]
-- Updated dependencies [058956b]
 - Updated dependencies [7cf875f]
   - @nhost/core@0.3.8
 
@@ -48,7 +47,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [744fd69]
 - Updated dependencies [744fd69]
   - @nhost/core@0.3.0
 
