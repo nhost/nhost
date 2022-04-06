@@ -1,4 +1,17 @@
-# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
+
+
+# [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
+
+
+### Bug Fixes
+
+* change default refresh token expiration to 30 days ([a2e0d2a](https://github.com/nhost/hasura-auth/commit/a2e0d2a677d0810534a2e2004b104e4e42cb4872)), closes [#48](https://github.com/nhost/hasura-auth/issues/48)
+* rename JWT claim `x-hasura-isAnonymous` to `x-hasura-is-anonymous` ([a4ca42e](https://github.com/nhost/hasura-auth/commit/a4ca42e780a7b39464000e21b48df503fc3d50d9)), closes [#126](https://github.com/nhost/hasura-auth/issues/126)
+
+
+### Features
+
+* add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User ([4d452d7](https://github.com/nhost/hasura-auth/commit/4d452d7d0b374cad7deb3d59422ad973fb4d801e))# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
 
 ## What's new
 
