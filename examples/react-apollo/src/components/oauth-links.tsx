@@ -1,7 +1,9 @@
+/* eslint-disable react/react-in-jsx-scope */
+import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
 import { IconButton } from 'rsuite'
-import { FaGithub, FaGoogle, FaFacebook } from 'react-icons/fa'
-import { Icon } from '@rsuite/icons'
+
 import { useProviderLink } from '@nhost/react'
+import { Icon } from '@rsuite/icons'
 
 export const OAuthLinks: React.FC = () => {
   // TODO show how to use options

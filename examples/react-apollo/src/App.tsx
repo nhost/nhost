@@ -1,17 +1,20 @@
-import './App.css'
+/* eslint-disable react/react-in-jsx-scope */
+import { useEffect } from 'react'
+import { Link, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Container, Content, Header, Nav, Navbar } from 'rsuite'
 
 import { useAuthenticated, useSignOut } from '@nhost/react'
 import ExitIcon from '@rsuite/icons/Exit'
-import { Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom'
-import { Container, Header, Navbar, Content, Nav } from 'rsuite'
-import { useEffect } from 'react'
-import { SignInPage } from './sign-in'
+
 import { AuthGate, PublicGate } from './components/auth-gates'
+import { AboutPage } from './About'
+import { ApolloPage } from './apollo'
 import Home from './Home'
 import { ProfilePage } from './profile'
-import { ApolloPage } from './apollo'
+import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
-import { AboutPage } from './About'
+
+import './App.css'
 
 function App() {
   const isAuthenticated = useAuthenticated()
