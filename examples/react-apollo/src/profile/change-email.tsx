@@ -5,9 +5,13 @@ import { Button, FlexboxGrid, Input, Message, Panel, toaster, Notification } fro
 export const ChangeEmail: React.FC = () => {
   const [newEmail, setNewEmail] = useState('')
   const email = useEmail()
-  const { changeEmail, error, needsEmailVerification } = useChangeEmail(newEmail, {
-    redirectTo: '/profile'
-  })
+  const { changeEmail, error, needsEmailVerification } = useChangeEmail(
+    // TODO correct this once the new packages are released
+    undefined,
+    {
+      redirectTo: '/profile'
+    }
+  )
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export const ChangeEmail: React.FC = () => {
           <Input value={newEmail} onChange={setNewEmail} placeholder="New email" />
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={12}>
-          <Button onClick={changeEmail} block appearance="primary">
+          <Button onClick={() => changeEmail(email)} block appearance="primary">
             Change
           </Button>
         </FlexboxGrid.Item>

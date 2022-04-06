@@ -1,11 +1,18 @@
 import { useContext, useEffect, useState } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { AuthMachine } from '@nhost/core'
+import { AuthMachine, ErrorPayload } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
+
+export type ActionHookState<T extends string = 'isSuccess'> = {
+  isLoading: boolean
+
+  isError: boolean
+  error: ErrorPayload | null
+} & Record<T, boolean>
 
 export const useNhostClient = (): NhostClient => {
   const nhost = useContext(NhostReactContext)

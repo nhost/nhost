@@ -80,7 +80,7 @@ export const EmailPassword: React.FC = () => {
           </Message>
         )}
 
-        <Button appearance="primary" onClick={signInEmailPassword} block>
+        <Button appearance="primary" onClick={() => signInEmailPassword(email, password)} block>
           Sign in
         </Button>
         <Button as={NavLink} block to="/sign-in/forgot-password">
