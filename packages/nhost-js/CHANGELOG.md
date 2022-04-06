@@ -5,7 +5,6 @@
 ### Patch Changes
 
 - Updated dependencies [058956b]
-- Updated dependencies [058956b]
   - @nhost/hasura-auth-js@1.0.9
 
 ## 1.0.8
@@ -68,8 +67,6 @@
 ### Patch Changes
 
 - Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
   - @nhost/hasura-auth-js@1.0.0
   - @nhost/hasura-storage-js@0.2.0
 
@@ -88,7 +85,6 @@
   Some systems based on older versions of Webpack or Babel don't support the current esbuild configuration e.g, [this issue](https://github.com/nhost/nhost/issues/275).
 - Updated dependencies [e688600]
 - Updated dependencies [8f7643a]
-- Updated dependencies [e688600]
 - Updated dependencies [50b9d76]
   - @nhost/hasura-auth-js@0.1.15
   - @nhost/hasura-storage-js@0.0.12
