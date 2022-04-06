@@ -17,10 +17,6 @@ export const ForgotPassword: React.FC = () => {
   useEffect(() => {
     setErrorMessage('')
   }, [email])
-  // * See https://github.com/rsuite/rsuite/issues/2336
-  useEffect(() => {
-    toaster.push(<div />)
-  }, [])
 
   useEffect(() => {
     if (isSent) {
