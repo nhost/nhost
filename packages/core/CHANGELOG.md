@@ -1,5 +1,17 @@
 # @nhost/core
 
+## 0.3.8
+
+### Patch Changes
+
+- 058956b: Add missing provider types
+  `strava`, `gitlab`, and `bitbucket` were missing from the list of providers in Typescript and are now available.
+- 058956b: Add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User type
+
+  Some information is missing in the `User` payload (see [this issue](https://github.com/nhost/nhost/issues/306)). The above properties have been added in the Typescript `User` type and are available when using Hasura Auth versions from [this pull request](https://github.com/nhost/hasura-auth/pull/128) (tentative version number: `0.5.1`)
+
+- 7cf875f: Export error code payloads and type
+
 ## 0.3.7
 
 ### Patch Changes
