@@ -122,6 +122,7 @@ Here are some ways of contributing to making Nhost better:
 - Join our [Discord](https://discord.com/invite/9V7Qb2U) and connect with other members to share and learn from.
 - Send a pull request to any of our [open source repositories](https://github.com/nhost) on Github. Check our [contribution guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) for more details about how to contribute. We're looking forward to your contribution!
 
-## Security
+### Contributors
 
-If you discover a security vulnerability within Nhost, please e-mail [security@nhost.io](mailto:security@nhost.io). All security vulnerabilities will be promptly addressed.
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
