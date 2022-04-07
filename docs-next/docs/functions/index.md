@@ -2,6 +2,6 @@
 sidebar_position: 1
 ---
 
-# functions
+# Functions
 
 123

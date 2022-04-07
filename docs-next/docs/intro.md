@@ -1,47 +1,36 @@
 ---
+title: 'Nhost Overview'
 sidebar_position: 1
 ---
 
-# Nhost Overview
+Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.
 
-Let's discover **Docusaurus in less than 5 minutes**.
+---
 
-## Getting Started
+## Components
 
-Get started by **creating a new site**.
+Nhost uses an opinionated set of open-source components.
 
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
+#### Database
 
-### What you'll need
+Your application gets its own PostgreSQL database, the world's most advanced relational database.
 
-- [Node.js](https://nodejs.org/en/download/) version 14 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
+#### GraphQL API
 
-## Generate a new site
+Highly performant and real-time GraphQL API with Hasura.
 
-Generate a new Docusaurus site using the **classic template**.
+#### Authentication and storage
 
-The classic template will automatically be added to your project after you run the command:
+User management & file storage seamlessly integrated with Hasura permissions.
 
-```bash
-npm init docusaurus@latest my-website classic
-```
+#### Serverless functions
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
+JavaScript and TypeScript functions run your custom code in the backend.
 
-The command also installs all necessary dependencies you need to run Docusaurus.
+---
 
-## Start your site
+## Get started
 
-Run the development server:
+Follow our [Quick start](/get-started/quick-start) guide to build your first app.
 
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+Check out [Nhost on GitHub](https://github.com/nhost/nhost). Give us a star, and feel free to open a discussion for any feature requests as well.

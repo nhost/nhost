@@ -8,11 +8,11 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula')
 const config = {
   title: 'Nhost Docs',
   tagline: 'Nhost Documentation',
-  url: 'https://your-docusaurus-test-site.com',
+  url: 'https://docs.nhost.io',
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
-  favicon: 'img/favicon.ico',
+  favicon: 'img/favicon.png',
   organizationName: 'nhost', // Usually your GitHub org/user name.
   projectName: 'docs', // Usually your repo name.
 
@@ -26,12 +26,6 @@ const config = {
           // Please change this to your repo.
           editUrl:
             'https://github.com/nhost/nhost/tree/main/packages/create-docusaurus/templates/shared/'
-        },
-        blog: {
-          showReadingTime: true,
-          // Please change this to your repo.
-          editUrl:
-            'https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/'
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css')
@@ -54,9 +48,8 @@ const config = {
             type: 'doc',
             docId: 'intro',
             position: 'left',
-            label: 'Tutorial'
+            label: 'Docs'
           },
-          { to: '/blog', label: 'Blog', position: 'left' },
           {
             href: 'https://github.com/nhost/nhost',
             label: 'GitHub',
@@ -71,7 +64,7 @@ const config = {
             title: 'Docs',
             items: [
               {
-                label: 'Tutorial',
+                label: 'Nhost Overview',
                 to: '/docs/intro'
               }
             ]
@@ -98,7 +91,7 @@ const config = {
             items: [
               {
                 label: 'Blog',
-                to: '/blog'
+                href: 'https://nhost.io/blog'
               },
               {
                 label: 'GitHub',
