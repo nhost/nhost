@@ -7,8 +7,10 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula')
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Nhost Docs',
-  tagline: 'Nhost Documentation',
+  tagline:
+    'Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.',
   url: 'https://docs.nhost.io',
+  trailingSlash: false,
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
@@ -24,8 +26,7 @@ const config = {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl:
-            'https://github.com/nhost/nhost/tree/main/packages/create-docusaurus/templates/shared/'
+          editUrl: 'https://github.com/nhost/nhost/blob/main/docs-next/'
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css')
@@ -37,23 +38,32 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      autoCollapseSidebarCategories: false,
+      colorMode: {
+        defaultMode: 'light',
+        disableSwitch: false,
+        respectPrefersColorScheme: true
+      },
       navbar: {
-        title: 'Nhost Docs',
+        hideOnScroll: true,
         logo: {
           alt: 'Nhost',
-          src: 'img/logo.svg'
+          src: 'img/logo.svg',
+          srcDark: 'img/logo-dark.svg',
+          href: 'https://nhost.io'
         },
         items: [
           {
             type: 'doc',
-            docId: 'intro',
+            docId: 'overview',
             position: 'left',
             label: 'Docs'
           },
           {
             href: 'https://github.com/nhost/nhost',
-            label: 'GitHub',
-            position: 'right'
+            className: 'header-github-link',
+            position: 'right',
+            'aria-label': 'Github repository'
           }
         ]
       },
@@ -61,11 +71,28 @@ const config = {
         style: 'dark',
         links: [
           {
+            title: 'Product',
+            items: [
+              {
+                label: 'Product',
+                href: 'https://nhost.io/#product'
+              },
+              {
+                label: 'Features',
+                href: 'https://nhost.io/#features'
+              },
+              {
+                label: 'Pricing',
+                href: 'https://nhost.io/pricing'
+              }
+            ]
+          },
+          {
             title: 'Docs',
             items: [
               {
-                label: 'Nhost Overview',
-                to: '/docs/intro'
+                label: 'Get Started',
+                to: '/docs/overview'
               }
             ]
           },
@@ -73,16 +100,20 @@ const config = {
             title: 'Community',
             items: [
               {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus'
-              },
-              {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus'
+                label: 'GitHub',
+                href: 'https://github.com/nhost/nhost'
               },
               {
                 label: 'Twitter',
-                href: 'https://twitter.com/docusaurus'
+                href: 'https://twitter.com/nhostio'
+              },
+              {
+                label: 'LinkedIn',
+                href: 'https://www.linkedin.com/company/nhost/'
+              },
+              {
+                label: 'Discord',
+                href: 'https://discord.com/invite/9V7Qb2U'
               }
             ]
           },
@@ -94,17 +125,22 @@ const config = {
                 href: 'https://nhost.io/blog'
               },
               {
-                label: 'GitHub',
-                href: 'https://github.com/nhost/nhost'
+                label: 'Privacy Policy',
+                href: 'https://nhost.io/privacy-policy'
+              },
+              {
+                label: 'Terms of Service',
+                href: 'https://nhost.io/terms-of-service'
               }
             ]
           }
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} Nhost. Built with Docusaurus.`
+        copyright: `Copyright © ${new Date().getFullYear()} <a href="https://nhost.io" target="_blank" rel="noopener noreferrer">Nhost</a>. All rights reserved.`
       },
       prism: {
         theme: lightCodeTheme,
-        darkTheme: darkCodeTheme
+        darkTheme: darkCodeTheme,
+        defaultLanguage: 'javascript'
       }
     })
 }

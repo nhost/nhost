@@ -1,5 +1,5 @@
 ---
-title: Sign In with Google
+title: Sign in with Google
 sidebar_position: 1
 ---
 
