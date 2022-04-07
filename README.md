@@ -110,7 +110,7 @@ First and foremost: **Star and watch this repository** to stay up-to-date.
 
 Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discussions), our [Blog](https://nhost.io/blog), and on [Twitter](https://twitter.com/nhostio). You can chat with the team and other members on [Discord](https://discord.com/invite/9V7Qb2U) and follow our tutorials and other video material at [YouTube](https://www.youtube.com/channel/UCJ7irtvV9Y0EQMxpabb6ntg?view_as=subscriber).
 
-## Nhost is Open Source
+### Nhost is Open Source
 
 This repository, and most of our other open source projects, are licensed under the MIT license.
 
