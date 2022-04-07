@@ -24,7 +24,9 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          path: 'docs',
           routeBasePath: '/',
+          breadcrumbs: false,
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl: 'https://github.com/nhost/nhost/blob/main/docs-next/'
@@ -39,7 +41,6 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
-      autoCollapseSidebarCategories: false,
       colorMode: {
         defaultMode: 'light',
         disableSwitch: false,
@@ -59,6 +60,12 @@ const config = {
             docId: 'index',
             position: 'left',
             label: 'Docs'
+          },
+          {
+            type: 'doc',
+            docId: 'reference/sdk/index',
+            position: 'left',
+            label: 'Reference'
           },
           {
             href: 'https://github.com/nhost/nhost',
