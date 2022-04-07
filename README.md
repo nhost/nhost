@@ -17,6 +17,7 @@
 <a href="https://nhost.io/discord">Discord</a>
 <br />
 
+
   <hr />
 </div>
 
