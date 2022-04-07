@@ -35,6 +35,7 @@ Nhost consists of open source software:
 - Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
 - Serverless Functions: Node.js (JavaScript and TypeScript)
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
+- [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
 ## Architecture of Nhost
 
