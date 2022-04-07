@@ -11,6 +11,7 @@
 <a href="https://docs.nhost.io/get-started">Docs</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/blog">Blog</a>
+<a href="https://nhost.io/blog">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://twitter.com/nhostio">Twitter</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
