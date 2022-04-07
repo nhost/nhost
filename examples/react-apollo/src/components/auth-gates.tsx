@@ -1,4 +1,6 @@
+import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
+
 import { useAuthenticationStatus } from '@nhost/react'
 
 export const AuthGate: React.FC = ({ children }) => {

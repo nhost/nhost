@@ -1,7 +1,8 @@
-import { Button, Divider, Input, Message } from 'rsuite'
-import { useSignInEmailPassword } from '@nhost/react'
 import React, { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { Button, Divider, Input, Message } from 'rsuite'
+
+import { useSignInEmailPassword } from '@nhost/react'
 
 const Footer: React.FC = () => (
   <div>
@@ -80,7 +81,14 @@ export const EmailPassword: React.FC = () => {
           </Message>
         )}
 
-        <Button appearance="primary" onClick={() => signInEmailPassword(email, password)} block>
+        <Button
+          appearance="primary"
+          onClick={async () => {
+            const result = await signInEmailPassword(email, password)
+            console.log(result)
+          }}
+          block
+        >
           Sign in
         </Button>
         <Button as={NavLink} block to="/sign-in/forgot-password">

@@ -136,31 +136,31 @@
   resolved "https://registry.yarnpkg.com/@next/swc-win32-x64-msvc/-/swc-win32-x64-msvc-12.1.0.tgz#d27e7e76c87a460a4da99c5bfdb1618dcd6cd064"
   integrity sha512-aBvcbMwuanDH4EMrL2TthNJy+4nP59Bimn8egqv6GHMVj0a44cU6Au4PjOhLNqEh9l+IpRGBqMTzec94UdC5xg==
 
-"@nhost/apollo@^0.3.6":
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/@nhost/apollo/-/apollo-0.3.6.tgz#c3902c8ea9250bbe7428098ddfe145d9a2d82f2f"
-  integrity sha512-+UtPMKPkqQ9MuJ24TQB0p59uytoyBXOBYLJ0SEHvs6cAfhkOkLljk+WhWSBhUdRkD+k4iRmHrVvVCyVzLGFRPg==
+"@nhost/apollo@^0.3.7":
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/@nhost/apollo/-/apollo-0.3.7.tgz#761d3d60519df60caaa7220909ab11bd2c629e3a"
+  integrity sha512-NH1WCC5D6K/Ft8/EXYIgeAhOBq5Gt1OtX9U9RzV2IqmVRGigDw+YlXr8P5GRPAzBeZUVWrM1wvBt+oBk8zw/7g==
   dependencies:
-    "@nhost/core" "^0.3.7"
+    "@nhost/core" "^0.3.8"
     graphql "16"
     subscriptions-transport-ws "^0.11.0"
 
-"@nhost/core@^0.3.7":
-  version "0.3.7"
-  resolved "https://registry.yarnpkg.com/@nhost/core/-/core-0.3.7.tgz#115cd770dc8ea1d277a71802958c89c1aa83578b"
-  integrity sha512-sQZp+aet/gCbu4R7cLgRbOrZarfBc1ZTuUwsfpVChLCYtVlPtY5ZWk4pfvU9tbfGEpmbkC4Bk9KqD9AFOzT27A==
+"@nhost/core@^0.3.8":
+  version "0.3.8"
+  resolved "https://registry.yarnpkg.com/@nhost/core/-/core-0.3.8.tgz#0269ab5daa36b1bdd2b2864c174809a86d4d2a7a"
+  integrity sha512-6mOv23H16n0YN0voXdXSGS18rUELe1YI2+HXMRlaeksCib4BvSf28lsideEOjFnyfHA3Y4wAX1SMxnyaEj1qaQ==
   dependencies:
     axios "^0.25.0"
     broadcast-channel "^4.10.0"
     js-cookie "^3.0.1"
     xstate "^4.30.5"
 
-"@nhost/hasura-auth-js@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@nhost/hasura-auth-js/-/hasura-auth-js-1.0.7.tgz#2c6a81d64155bd8b24bbf314154ed2e40396b151"
-  integrity sha512-fj2aNY3gTt89SLMe3H4MYA50EhZz0OcBUdnES8sv1raOJyxjH94+8TfBVT0xNUqvubOM0J+0ewHAnDCkbodbXA==
+"@nhost/hasura-auth-js@^1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@nhost/hasura-auth-js/-/hasura-auth-js-1.0.9.tgz#7e5cfe7a59b18778352dd6d2bef368c765ce9886"
+  integrity sha512-d0UDfakzUO9N0/4RRy9NptoOLgpcRmr2F5XxVVzqLYX67+XzZoqT+LMhOF8spKP4+JqFlKFgqbNulmuRRc5FfA==
   dependencies:
-    "@nhost/core" "^0.3.7"
+    "@nhost/core" "^0.3.8"
 
 "@nhost/hasura-storage-js@^0.2.0":
   version "0.2.0"
@@ -169,38 +169,38 @@
   dependencies:
     axios "^0.21.1"
 
-"@nhost/nextjs@^1.0.8":
-  version "1.0.8"
-  resolved "https://registry.yarnpkg.com/@nhost/nextjs/-/nextjs-1.0.8.tgz#761a447fd6aaef43625d82c0304b027d62360d76"
-  integrity sha512-lej1ZlSzh7+FNEizZuXrH4De9emRD7wvW8+huwRhTkFTxislsBuZt2tDrzktkRa5sdHSnyYyuVwZY3TEsm3JmA==
+"@nhost/nextjs@^1.0.10":
+  version "1.0.10"
+  resolved "https://registry.yarnpkg.com/@nhost/nextjs/-/nextjs-1.0.10.tgz#ac78e1b32b6a89e6379179108c49d71cf23aeed8"
+  integrity sha512-BTNe4KHhWLbRKd8XfppYncLIohXZ0C+oCTZApVwwgVexqdQ5dxhObw0nQin2K7TlP2Mis+Ldzjjn3SO/hcb3xw==
   dependencies:
-    "@nhost/nhost-js" "^1.0.7"
+    "@nhost/nhost-js" "^1.0.9"
     cookies "^0.8.0"
 
-"@nhost/nhost-js@^1.0.7":
-  version "1.0.7"
-  resolved "https://registry.yarnpkg.com/@nhost/nhost-js/-/nhost-js-1.0.7.tgz#90ccac91f5d61d32caa8544029b71d47aa7c8b2f"
-  integrity sha512-XBy370bVfP2IYAozeSu62/caQ+bvwvFjj+76LjatqYc7PhHwJV/Kd5SIyvWgqLFO1xQ3kAX0if137IGC+dgBOw==
+"@nhost/nhost-js@^1.0.9":
+  version "1.0.9"
+  resolved "https://registry.yarnpkg.com/@nhost/nhost-js/-/nhost-js-1.0.9.tgz#a1b0bc0c35e15ade2867da4d211b1f81f3bc5e28"
+  integrity sha512-/SZLk3Be560scVAbUswcRSE4RMwf6M7xanbNLqGUuI/sr1Ir253WPhaD2YWXZChP1v2LBzONhdJNI2g7u1NzoA==
   dependencies:
-    "@nhost/hasura-auth-js" "^1.0.7"
+    "@nhost/hasura-auth-js" "^1.0.9"
     "@nhost/hasura-storage-js" "^0.2.0"
     axios "^0.23.0"
     jwt-decode "^3.1.2"
     query-string "^7.0.1"
 
-"@nhost/react-apollo@^4.0.8":
-  version "4.0.8"
-  resolved "https://registry.yarnpkg.com/@nhost/react-apollo/-/react-apollo-4.0.8.tgz#69c015086837c1aaa828c566f33e22b6c852529a"
-  integrity sha512-G9F5AFLhXJV67MKvraRwSrJpkebqd/oEGgznK5knGL+B9FYuuXtBVbr5m95ESyYkYL+y3iPU3BY5GufL/9pCGw==
+"@nhost/react-apollo@^4.0.10":
+  version "4.0.10"
+  resolved "https://registry.yarnpkg.com/@nhost/react-apollo/-/react-apollo-4.0.10.tgz#d28819019f35aff7fb69a3b485489ab0492643e1"
+  integrity sha512-MTIBk9aQVCIfVR17eEKM6ssELadpDhIAh2ERjaZY8+i9KMgVyjEt0s4842nl1Bwq7OFIXf5GRykr3RtTjuT/Ug==
   dependencies:
-    "@nhost/apollo" "^0.3.6"
+    "@nhost/apollo" "^0.3.7"
 
-"@nhost/react@^0.4.6":
-  version "0.4.6"
-  resolved "https://registry.yarnpkg.com/@nhost/react/-/react-0.4.6.tgz#e7f01d9cd1d3d24999a3a68a7b9c72cb3ef8fe04"
-  integrity sha512-bqQI2T91tDI0PkVpnfcCDsQUWgXqwcrU6r29S7u4dziEt5RVG0NJjjg2SK35VbqZvJ9vU5z0KHM+4Cd5PKql2g==
+"@nhost/react@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@nhost/react/-/react-0.5.0.tgz#5276ae7e13691f32ceaa0e6ca2460ef2605820f6"
+  integrity sha512-d89I3Q1Y6+9QJ6jP9yU9xrEJv8dCvTwll7tctd7emqZyPWGgInLpmZ9OA+/xrannowck5MsgaBdz0zxQ9bjJBA==
   dependencies:
-    "@nhost/nhost-js" "^1.0.7"
+    "@nhost/nhost-js" "^1.0.9"
     "@xstate/react" "^2.0.1"
     immer "^9.0.12"
 

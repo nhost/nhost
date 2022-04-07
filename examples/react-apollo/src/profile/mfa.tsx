@@ -1,6 +1,8 @@
-import { useConfigMfa } from '@nhost/react'
+import React from 'react'
 import { useState } from 'react'
 import { Button, Input, Panel } from 'rsuite'
+
+import { useConfigMfa } from '@nhost/react'
 
 export const Mfa: React.FC = () => {
   const [code, setCode] = useState('')

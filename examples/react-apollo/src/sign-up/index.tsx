@@ -1,9 +1,13 @@
-import { Icon } from '@rsuite/icons'
+import React from 'react'
 import { FaLock } from 'react-icons/fa'
-import { Button, Divider, FlexboxGrid, IconButton, Panel } from 'rsuite'
 import { Link, NavLink, Route, Routes } from 'react-router-dom'
+import { Button, Divider, FlexboxGrid, IconButton, Panel } from 'rsuite'
+
+import { Icon } from '@rsuite/icons'
+
 import { OAuthLinks } from '../components'
 import { VerificationEmailSent } from '../verification-email-sent'
+
 import { EmailPassword } from './email-password'
 import { EmailPasswordless } from './email-passwordless'
 

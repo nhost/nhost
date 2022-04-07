@@ -1,15 +1,12 @@
-import { Button, Divider, Input, Message, Notification, toaster } from 'rsuite'
-import { useResetPassword } from '@nhost/react'
 import React, { useEffect, useState } from 'react'
 import { NavLink } from 'react-router-dom'
+import { Button, Divider, Input, Message, Notification, toaster } from 'rsuite'
+
+import { useResetPassword } from '@nhost/react'
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const { resetPassword, isSent, error } = useResetPassword(
-    // TODO correct this once the new packages are released
-    undefined,
-    { redirectTo: '/profile' }
-  )
+  const { resetPassword, isSent, error } = useResetPassword({ redirectTo: '/profile' })
 
   const [errorMessage, setErrorMessage] = useState('')
   // * Set error message from the authentication hook errors
@@ -25,7 +22,7 @@ export const ForgotPassword: React.FC = () => {
     if (isSent) {
       toaster.push(
         <Notification type="info" header="Info" closable>
-          An email has been sent with a passwordless authentication link, so you'll be able to
+          An email has been sent with a passwordless authentication link, so you will be able to
           authenticate and change your password.
         </Notification>
       )
