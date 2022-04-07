@@ -88,12 +88,12 @@
   --ifm-color-primary-lighter: #005eec;
   --ifm-color-primary-lightest: #0b6dff;
   --ifm-code-font-size: 95%;
-  --ifm-footer-background-color: #0e1827;
   --max-content-width: 1440px;
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
 [data-theme='dark'] {
+  --ifm-font-color-base: #fff;
   --ifm-color-primary: #3787ff;
   --ifm-color-primary-dark: #1874ff;
   --ifm-color-primary-darker: #096bff;
@@ -101,7 +101,6 @@
   --ifm-color-primary-light: #569aff;
   --ifm-color-primary-lighter: #66a3ff;
   --ifm-color-primary-lightest: #94bfff;
-  --ifm-footer-background-color: #18191a;
 }
 
 .docusaurus-highlight-code-line {
