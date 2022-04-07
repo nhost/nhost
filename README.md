@@ -40,6 +40,7 @@ Nhost consists of open source software:
 
 <div align="center">
   <br />
+  <br />
   <img src="assets/nhost-diagram.png"/>
   <br />
   <br />
