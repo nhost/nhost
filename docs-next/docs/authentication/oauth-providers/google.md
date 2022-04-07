@@ -53,13 +53,13 @@ Follow this guide to sign in users with Google with your Nhost App.
 ## Configure Nhost
 
 - A modal appears with your Google Client ID and Client secret.
-- Copy and paste the **Client ID** and **Client Secret** from Google to your Nhost OAuth settings for Google. Make sure the [OAuth provider is enabled in Nhost](/platform/authentication/social-sign-in#enabling-social-sign-in).
+- Copy and paste the **Client ID** and **Client Secret** from Google to your Nhost OAuth settings for Google. Make sure the OAuth provider is enabled in Nhost.
 - Click the checkbox “**I have pasted the redirect URI into Google”**.
 - Click **Confirm settings**.
 
 ## Sign In users in your app
 
-Use the [Nhost JavaScript client](/reference/sdk) to sign in users in your app:
+Use the Nhost JavaScript client to sign in users in your app:
 
 ```js
 nhost.auth.signIn({
