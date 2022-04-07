@@ -13,6 +13,7 @@
 <a href="https://nhost.io/blog">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://twitter.com/nhostio">Twitter</a>
+<a href="https://twitter.com/nhostio">Twitter</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/discord">Discord</a>
 <br />
