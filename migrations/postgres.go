@@ -11,6 +11,8 @@ import (
 	"github.com/golang-migrate/migrate/v4/source/iofs"
 )
 
+const schemaName = "storage"
+
 //go:embed postgres/*.sql
 var postgresMigrations embed.FS
 
@@ -20,7 +22,7 @@ func ApplyPostgresMigration(postgresURL string) error {
 		return fmt.Errorf("problem connecting to postgres: %w", err)
 	}
 
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
+	driver, err := postgres.WithInstance(db, &postgres.Config{SchemaName: schemaName})
 	if err != nil {
 		return fmt.Errorf("problem creating postgres driver: %w", err)
 	}
