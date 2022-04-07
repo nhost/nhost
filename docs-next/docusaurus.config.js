@@ -24,6 +24,7 @@ const config = {
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
+          routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
           editUrl: 'https://github.com/nhost/nhost/blob/main/docs-next/'
@@ -55,7 +56,7 @@ const config = {
         items: [
           {
             type: 'doc',
-            docId: 'overview',
+            docId: 'index',
             position: 'left',
             label: 'Docs'
           },
@@ -92,7 +93,7 @@ const config = {
             items: [
               {
                 label: 'Get Started',
-                to: '/docs/overview'
+                to: '/'
               }
             ]
           },

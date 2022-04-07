@@ -5,7 +5,12 @@ sidebar_position: 1
 
 Follow this guide to sign in users with Google with your Nhost App.
 
-![Google Sign In Preview](/img/social-providers/google-preview.png)
+<p align="center">
+  <img
+    alt="Google Sign In Preview"
+    src="/img/social-providers/google-preview.svg"
+  />
+</p>
 
 ## Sign up for Google
 
