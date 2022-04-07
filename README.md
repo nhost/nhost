@@ -32,6 +32,7 @@ Nhost consists of open source software:
 - Database: [PostgreSQL](https://www.postgresql.org/)
 - Instant GraphQL API: [Hasura](https://hasura.io/)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
+- Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
 - Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
 - Serverless Functions: Node.js (JavaScript and TypeScript)
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
