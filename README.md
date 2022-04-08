@@ -174,7 +174,7 @@ Here are some ways of contributing to making Nhost better:
         <a href="https://github.com/sebagudelo">
             <img src="https://avatars.githubusercontent.com/u/43288271?v=4" width="100;" alt="sebagudelo"/>
             <br />
-            <sub><b>sebagudelo</b></sub>
+            <sub><b>Sebagudelo</b></sub>
         </a>
     </td>
     <td align="center">
