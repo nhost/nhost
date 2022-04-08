@@ -1,8 +1,8 @@
 // @ts-check
 // Note: type annotations allow type checking and IDEs autocompletion
 
-const lightCodeTheme = require('prism-react-renderer/themes/github')
-const darkCodeTheme = require('prism-react-renderer/themes/dracula')
+const lightCodeTheme = require('prism-react-renderer/themes/github');
+const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
@@ -29,13 +29,13 @@ const config = {
           breadcrumbs: false,
           sidebarPath: require.resolve('./sidebars.js'),
           // Please change this to your repo.
-          editUrl: 'https://github.com/nhost/nhost/blob/main/docs-next/'
+          editUrl: 'https://github.com/nhost/nhost/blob/main/docs-next/',
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css')
-        }
-      })
-    ]
+          customCss: require.resolve('./src/css/custom.css'),
+        },
+      }),
+    ],
   ],
 
   themeConfig:
@@ -44,7 +44,7 @@ const config = {
       colorMode: {
         defaultMode: 'light',
         disableSwitch: false,
-        respectPrefersColorScheme: true
+        respectPrefersColorScheme: true,
       },
       navbar: {
         hideOnScroll: true,
@@ -52,28 +52,28 @@ const config = {
           alt: 'Nhost',
           src: 'img/logo.svg',
           srcDark: 'img/logo-dark.svg',
-          href: 'https://nhost.io'
+          href: 'https://nhost.io',
         },
         items: [
           {
             type: 'doc',
             docId: 'index',
             position: 'left',
-            label: 'Docs'
+            label: 'Docs',
           },
           {
             type: 'doc',
-            docId: 'reference/sdk/index',
+            docId: 'reference/sdk/overview',
             position: 'left',
-            label: 'Reference'
+            label: 'Reference',
           },
           {
             href: 'https://github.com/nhost/nhost',
             className: 'header-github-link',
             position: 'right',
-            'aria-label': 'Github repository'
-          }
-        ]
+            'aria-label': 'Github repository',
+          },
+        ],
       },
       footer: {
         style: 'dark',
@@ -83,74 +83,74 @@ const config = {
             items: [
               {
                 label: 'Product',
-                href: 'https://nhost.io/#product'
+                href: 'https://nhost.io/#product',
               },
               {
                 label: 'Features',
-                href: 'https://nhost.io/#features'
+                href: 'https://nhost.io/#features',
               },
               {
                 label: 'Pricing',
-                href: 'https://nhost.io/pricing'
-              }
-            ]
+                href: 'https://nhost.io/pricing',
+              },
+            ],
           },
           {
             title: 'Docs',
             items: [
               {
                 label: 'Get Started',
-                to: '/'
-              }
-            ]
+                to: '/',
+              },
+            ],
           },
           {
             title: 'Community',
             items: [
               {
                 label: 'GitHub',
-                href: 'https://github.com/nhost/nhost'
+                href: 'https://github.com/nhost/nhost',
               },
               {
                 label: 'Twitter',
-                href: 'https://twitter.com/nhostio'
+                href: 'https://twitter.com/nhostio',
               },
               {
                 label: 'LinkedIn',
-                href: 'https://www.linkedin.com/company/nhost/'
+                href: 'https://www.linkedin.com/company/nhost/',
               },
               {
                 label: 'Discord',
-                href: 'https://discord.com/invite/9V7Qb2U'
-              }
-            ]
+                href: 'https://discord.com/invite/9V7Qb2U',
+              },
+            ],
           },
           {
             title: 'More',
             items: [
               {
                 label: 'Blog',
-                href: 'https://nhost.io/blog'
+                href: 'https://nhost.io/blog',
               },
               {
                 label: 'Privacy Policy',
-                href: 'https://nhost.io/privacy-policy'
+                href: 'https://nhost.io/privacy-policy',
               },
               {
                 label: 'Terms of Service',
-                href: 'https://nhost.io/terms-of-service'
-              }
-            ]
-          }
+                href: 'https://nhost.io/terms-of-service',
+              },
+            ],
+          },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} <a href="https://nhost.io" target="_blank" rel="noopener noreferrer">Nhost</a>. All rights reserved.`
+        copyright: `Copyright © ${new Date().getFullYear()} <a href="https://nhost.io" target="_blank" rel="noopener noreferrer">Nhost</a>. All rights reserved.`,
       },
       prism: {
         theme: lightCodeTheme,
         darkTheme: darkCodeTheme,
-        defaultLanguage: 'javascript'
-      }
-    })
-}
+        defaultLanguage: 'javascript',
+      },
+    }),
+};
 
-module.exports = config
+module.exports = config;

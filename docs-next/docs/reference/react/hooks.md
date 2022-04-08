@@ -262,18 +262,22 @@ const { signOut, isSuccess } = useSignOut(all?: boolean)
 import { useState } from 'react';
 import { useSignOut, useAuthenticated } from '@nhost/react';
 
-const Component = () => {
+function Component() {
   const { signOut, isSuccess } = useSignOut();
   const authenticated = useAuthenticated();
-  if (authenticated)
-    return (
-      <div>
-        <button onClick={signUp}>Sign Out</button>
-        {isSuccess && <div>You have successfully signed out!</div>}
-      </div>
-    );
-  else return <div>Not authenticated</div>;
-};
+
+  if (!authenticated) {
+    return <div>You are not authenticated</div>;
+  }
+
+  return (
+    <div>
+      <button onClick={signUp}>Sign Out</button>
+
+      {isSuccess && <div>You have successfully signed out!</div>}
+    </div>
+  );
+}
 ```
 
 ---
@@ -291,12 +295,19 @@ The Nhost client may need some initial steps to determine the authentication sta
 ```jsx
 import { useAuthenticationStatus } from '@nhost/react';
 
-const Component = () => {
+function Component() {
   const { isLoading, isAuthenticated } = useAuthenticationStatus();
-  if (isLoading) return <div>Loading Nhost authentication status...</div>;
-  else if (isAuthenticated) return <div>User is authenticated</div>;
-  else return <div>Public section</div>;
-};
+
+  if (isLoading) {
+    return <div>Loading Nhost authentication status...</div>;
+  }
+
+  if (isAuthenticated) {
+    return <div>User is authenticated</div>;
+  }
+
+  return <div>Public section</div>;
+}
 ```
 
 ### Get the JWT access token
@@ -481,10 +492,11 @@ const userData = useUserData();
 ```jsx
 import { useAvatarUrl } from '@nhost/react';
 
-const Avatar = () => {
+function Avatar() {
   const avatar = useAvatarUrl();
+
   return <img src={avatar} alt="Avatar" />;
-};
+}
 ```
 
 ### User roles
@@ -492,16 +504,17 @@ const Avatar = () => {
 ```jsx
 import { useUserRoles, useDefaultRole } from '@nhost/react';
 
-const Avatar = () => {
+function Avatar() {
   const roles = useUserRoles();
   const defaultRole = useDefaultRole();
+
   return (
     <div>
       Your default role is {defaultRole}. You have the following roles:{' '}
       {roles.join(', ')}
     </div>
   );
-};
+}
 ```
 
 ### Display name

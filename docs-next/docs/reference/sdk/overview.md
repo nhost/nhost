@@ -1,5 +1,6 @@
 ---
 title: 'Overview'
+sidebar_position: 1
 ---
 
 Nhost SDK is the primary way of interacting with your Nhost app. It exposes a standard interface for each of the following services:
