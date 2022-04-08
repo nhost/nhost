@@ -2,7 +2,6 @@
   "name": "nhost-documentation",
   "private": true,
   "version": "0.0.1",
-
   "scripts": {
     "dev": "next",
     "build:next": "next build",
@@ -38,6 +37,7 @@
     "swagger-ui-react": "^4.5.2"
   },
   "devDependencies": {
+    "@types/node": "^17.0.21",
     "@types/react": "^17.0.37",
     "autoprefixer": "^10.4.0",
     "next-sitemap": "^1.6.203",
