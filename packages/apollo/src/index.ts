@@ -112,6 +112,7 @@ export const createApolloClient = ({
 
   const apolloClientOptions: ApolloClientOptions<any> = {
     cache: cache || new InMemoryCache(),
+    link: authLink.concat(httplink),
     ssrMode: !isBrowser,
     defaultOptions: {
       watchQuery: {
