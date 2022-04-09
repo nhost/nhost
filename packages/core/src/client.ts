@@ -12,9 +12,9 @@ export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string
   readonly machine: AuthMachine
-  #interpreter?: AuthInterpreter
-  #channel?: BroadcastChannel
-  #subscriptions: Set<(client: AuthClient) => void> = new Set()
+  private _interpreter?: AuthInterpreter
+  private _channel?: BroadcastChannel
+  private _subscriptions: Set<(client: AuthClient) => void> = new Set()
 
   constructor({
     backendUrl,
@@ -45,8 +45,8 @@ export class AuthClient {
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
-      this.#channel = new BroadcastChannel<string>('nhost')
-      this.#channel.addEventListener('message', (token) => {
+      this._channel = new BroadcastChannel<string>('nhost')
+      this._channel.addEventListener('message', (token) => {
         const existingToken = this.interpreter?.state.context.refreshToken
         if (this.interpreter && token !== existingToken) {
           this.interpreter.send({ type: 'TRY_TOKEN', token })
@@ -56,16 +56,21 @@ export class AuthClient {
   }
 
   get interpreter(): AuthInterpreter | undefined {
-    return this.#interpreter
+    return this._interpreter
   }
   set interpreter(interpreter: AuthInterpreter | undefined) {
-    this.#interpreter = interpreter
+    this._interpreter = interpreter
     if (interpreter) {
-      this.#subscriptions.forEach((fn) => fn(this))
+      console.log('INTERPRETER!!!!')
+      this._subscriptions.forEach((fn) => fn(this))
     }
   }
 
-  onStart(fn: (interpreter: AuthClient) => void) {
-    this.#subscriptions.add(fn)
+  onStart(fn: (client: AuthClient) => void) {
+    if (this.interpreter) {
+      fn(this)
+    } else {
+      this._subscriptions.add(fn)
+    }
   }
 }
