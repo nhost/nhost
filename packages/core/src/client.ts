@@ -61,15 +61,17 @@ export class AuthClient {
   set interpreter(interpreter: AuthInterpreter | undefined) {
     this._interpreter = interpreter
     if (interpreter) {
-      console.log('INTERPRETER!!!!')
       this._subscriptions.forEach((fn) => fn(this))
     }
   }
 
   onStart(fn: (client: AuthClient) => void) {
     if (this.interpreter) {
+      // * The interpreter is already available: we can add the listener straight ahead
       fn(this)
     } else {
+      // * The interpreter is not yet available: we add the listener to a queue that will be started when setting the interpreter
+      // * Note: in React, the Xstate interpreter does not start from the global state, but from the root component
       this._subscriptions.add(fn)
     }
   }
