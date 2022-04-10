@@ -1,5 +1,16 @@
 # @nhost/nhost-js
 
+## 1.0.10
+
+### Patch Changes
+
+- 2c97db6: Keep authentication status and access token in sync
+  The authentication events where not set correctly, leading the main Nhost client not to update internal states of storage/graphql/functions sub-clients when using non-react clients.
+  The use of private fields (`#`) is also avoided as they conflict with the use of proxies in Vue, leading to errors in the upcoming Vue library.
+  Fixes #373 and #378
+- Updated dependencies [2c97db6]
+  - @nhost/hasura-auth-js@1.0.10
+
 ## 1.0.9
 
 ### Patch Changes
