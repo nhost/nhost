@@ -1,5 +1,12 @@
 # @nhost/react
 
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [2c97db6]
+  - @nhost/nhost-js@1.0.10
+
 ## 0.5.0
 
 ### Minor Changes
