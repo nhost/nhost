@@ -92,14 +92,18 @@ func (ctrl *Controller) upload(
 
 		etag, contentType, err := ctrl.uploadSingleFile(file, file.ID)
 		if err != nil {
-			_, _ = ctrl.metadataStorage.DeleteFileByID(ctx, file.ID, request.headers)
+			_, _ = ctrl.metadataStorage.DeleteFileByID(
+				ctx,
+				file.ID,
+				http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+			)
 			return filesMetadata, InternalServerError(fmt.Errorf("problem processing file %s: %w", file.Name, err))
 		}
 
 		metadata, apiErr := ctrl.metadataStorage.PopulateMetadata(
 			ctx,
 			file.ID, file.Name, file.header.Size, bucket.ID, etag, true, contentType,
-			request.headers,
+			http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
 		)
 		if apiErr != nil {
 			return filesMetadata, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
