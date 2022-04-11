@@ -153,22 +153,30 @@ importers:
       '@docusaurus/preset-classic': 2.0.0-beta.18
       '@mdx-js/react': ^1.6.22
       '@tsconfig/docusaurus': ^1.0.5
+      '@types/swagger-ui-react': ^4.1.1
       clsx: ^1.1.1
+      mdx-mermaid: ^1.2.1
+      mermaid: ^8.14.0
       prism-react-renderer: ^1.3.1
       react: ^17.0.2
       react-dom: ^17.0.2
+      swagger-ui-react: ^4.10.3
       typescript: ^4.6.3
     dependencies:
       '@docusaurus/core': 2.0.0-beta.18_6256d3e9141e918aba8f6a22e11a83de
       '@docusaurus/preset-classic': 2.0.0-beta.18_6256d3e9141e918aba8f6a22e11a83de
       '@mdx-js/react': 1.6.22_react@17.0.2
       clsx: 1.1.1
+      mdx-mermaid: 1.2.2_mermaid@8.14.0+react@17.0.2
+      mermaid: 8.14.0
       prism-react-renderer: 1.3.1_react@17.0.2
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
+      swagger-ui-react: 4.10.3_react-dom@17.0.2+react@17.0.2
     devDependencies:
       '@docusaurus/module-type-aliases': 2.0.0-beta.18_606b31ab2c120162e2a9c50591b5446e
       '@tsconfig/docusaurus': 1.0.5
+      '@types/swagger-ui-react': 4.1.1
       typescript: 4.6.3
 
   packages/apollo:
@@ -5023,6 +5031,12 @@ packages:
 
   /@types/stack-utils/2.0.1:
     resolution: {integrity: sha512-Hl219/BT5fLAaz6NDkSuhzasy49dwQS/DSdu4MdggFB8zcXv7vflBI3xp7FEmkmdDkBUI2bPUNeMttp2knYdxw==}
+    dev: true
+
+  /@types/swagger-ui-react/4.1.1:
+    resolution: {integrity: sha512-tZqX/nShvNqtJ7WAfwOK7mphK1jqmEre4mUJh+R1RyCFVODsMTG4My2nqjXpSm8NfhVGmbFH3giD17AXmgsaJw==}
+    dependencies:
+      '@types/react': 17.0.40
     dev: true
 
   /@types/unist/2.0.6:
@@ -13459,7 +13473,7 @@ packages:
     peerDependencies:
       react: ^16.8.4 || ^17.0.0
     dependencies:
-      '@babel/runtime': 7.17.2
+      '@babel/runtime': 7.17.8
       is-dom: 1.1.0
       prop-types: 15.8.1
       react: 17.0.2
@@ -13520,7 +13534,7 @@ packages:
       react-native:
         optional: true
     dependencies:
-      '@babel/runtime': 7.17.2
+      '@babel/runtime': 7.17.8
       '@types/react-redux': 7.1.23
       hoist-non-react-statics: 3.3.2
       loose-envify: 1.4.0
@@ -13584,7 +13598,7 @@ packages:
     peerDependencies:
       react: '>= 0.14.0'
     dependencies:
-      '@babel/runtime': 7.17.2
+      '@babel/runtime': 7.17.8
       highlight.js: 10.7.3
       lowlight: 1.20.0
       prismjs: 1.27.0
@@ -13741,7 +13755,7 @@ packages:
   /redux/4.1.2:
     resolution: {integrity: sha512-SH8PglcebESbd/shgf6mii6EIoRM0zrQyjcuQ+ojmfxjTtE0z9Y8pa62iA/OJ58qjP6j27uyW4kUF4jl/jd6sw==}
     dependencies:
-      '@babel/runtime': 7.17.2
+      '@babel/runtime': 7.17.8
     dev: false
 
   /refractor/3.6.0:
@@ -13767,7 +13781,7 @@ packages:
   /regenerator-transform/0.14.5:
     resolution: {integrity: sha512-eOf6vka5IO151Jfsw2NO9WpGX58W6wWmefK3I1zEGr0lOD0u8rwPaNqQL1aRxUaxLeKO3ArNh3VYg1KbaD+FFw==}
     dependencies:
-      '@babel/runtime': 7.17.2
+      '@babel/runtime': 7.17.8
 
   /regexp.prototype.flags/1.4.1:
     resolution: {integrity: sha512-pMR7hBVUUGI7PMA37m2ofIdQCsomVnas+Jn5UPGAHQ+/LlwKm/aTLJHdasmHRzlfeZwHiAOaRSo2rbBDm3nNUQ==}
@@ -14794,7 +14808,7 @@ packages:
   /swagger-client/3.18.4:
     resolution: {integrity: sha512-Wj26oEctONq/u0uM+eSj18675YM5e2vFnx7Kr4neLeXEHKUsfceVQ/OdtrBXdrT3VbtdBbZfMTfl1JOBpix2MA==}
     dependencies:
-      '@babel/runtime-corejs3': 7.17.2
+      '@babel/runtime-corejs3': 7.17.8
       btoa: 1.2.1
       cookie: 0.4.2
       cross-fetch: 3.1.5
@@ -14812,13 +14826,59 @@ packages:
       - encoding
     dev: false
 
+  /swagger-ui-react/4.10.3_react-dom@17.0.2+react@17.0.2:
+    resolution: {integrity: sha512-rxLVM8hv6aH+8BEJuyfejt2BweV2TLB8KiifE/8CAk96PoDyQeCTnLgivTdXIuDqdSSSajlzTq0ccw0QMYQbvA==}
+    peerDependencies:
+      react: '>=17.0.0'
+      react-dom: '>=17.0.0'
+    dependencies:
+      '@babel/runtime-corejs3': 7.17.8
+      '@braintree/sanitize-url': 6.0.0
+      base64-js: 1.5.1
+      classnames: 2.3.1
+      css.escape: 1.5.1
+      deep-extend: 0.6.0
+      dompurify: 2.3.3
+      ieee754: 1.2.1
+      immutable: 3.8.2
+      js-file-download: 0.4.12
+      js-yaml: 4.1.0
+      lodash: 4.17.21
+      prop-types: 15.8.1
+      randexp: 0.5.3
+      randombytes: 2.1.0
+      react: 17.0.2
+      react-copy-to-clipboard: 5.0.4_react@17.0.2
+      react-debounce-input: 3.2.4_react@17.0.2
+      react-dom: 17.0.2_react@17.0.2
+      react-immutable-proptypes: 2.2.0_immutable@3.8.2
+      react-immutable-pure-component: 2.2.2_bd1a0e68a5e0e4857c26400f3b5f7e9d
+      react-inspector: 5.1.1_react@17.0.2
+      react-redux: 7.2.6_react-dom@17.0.2+react@17.0.2
+      react-syntax-highlighter: 15.4.5_react@17.0.2
+      redux: 4.1.2
+      redux-immutable: 4.0.0_immutable@3.8.2
+      remarkable: 2.0.1
+      reselect: 4.1.5
+      serialize-error: 8.1.0
+      sha.js: 2.4.11
+      swagger-client: 3.18.4
+      url-parse: 1.5.10
+      xml: 1.0.1
+      xml-but-prettier: 1.0.1
+      zenscroll: 4.0.2
+    transitivePeerDependencies:
+      - encoding
+      - react-native
+    dev: false
+
   /swagger-ui-react/4.8.0_react-dom@17.0.2+react@17.0.2:
     resolution: {integrity: sha512-zumBDcwifJaM4/7DdMh76fHvlzT5t4f8/Fx8hSlZ25VhJycv+F+s23KzfhoXsgAy4qE8TeEDz2fDiODx/1XAWA==}
     peerDependencies:
       react: '>=17.0.0'
       react-dom: '>=17.0.0'
     dependencies:
-      '@babel/runtime-corejs3': 7.17.2
+      '@babel/runtime-corejs3': 7.17.8
       '@braintree/sanitize-url': 6.0.0
       base64-js: 1.5.1
       classnames: 2.3.1

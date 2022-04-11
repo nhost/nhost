@@ -14,7 +14,7 @@ Nhost SDK is the primary way of interacting with your Nhost app. It exposes a st
 
 Install the dependency:
 
-```sh
+```bash
 npm install @nhost/nhost-js
 ```
 

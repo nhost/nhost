@@ -18,7 +18,7 @@ System environment variables are automatically available in production and local
 
 Example values:
 
-```sh
+```bash
 NHOST_ADMIN_SECRET=e7w36ag287qn5qry795f6ymm57qgvqup
 NHOST_WEBHOOK_SECRET=ns3sfjgdw4y6zeqthwnnw347dzh8wyj4
 NHOST_JWT_SECRET={"type": "HS256", "key": "vumpbe2w2mgaqj5yqfp7dvxu6kywtvsgb68ejpdaqxerea8

@@ -5,7 +5,7 @@ sidebar_position: 2
 
 ## Authentication Hooks
 
-### Email and Password Sign-Up
+### Email and Password Sign-Un
 
 ```js
 const {
@@ -14,8 +14,8 @@ const {
   isSuccess,
   needsEmailVerification,
   isError,
-  error
-} = useSignUpEmailPassword(options?: Options)
+  error,
+} = useSignUpEmailPassword(/* options?: Options */);
 ```
 
 | Name                     | Type                                                     | Notes                                                                                                                                                                                                             |
@@ -52,6 +52,7 @@ const Component = () => {
     isError,
     error,
   } = useSignUpEmailPassword();
+
   return (
     <div>
       <input
@@ -127,6 +128,7 @@ const Component = () => {
     isError,
     error,
   } = useSignInEmailPassword();
+
   return (
     <div>
       <input
@@ -157,7 +159,7 @@ const Component = () => {
 ### Oauth Providers
 
 ```js
-const providerLink = useProviderLink(options?: Options)
+const providerLink = useProviderLink(/* options?: Options */);
 ```
 
 | Name                   | Type                                 | Notes                                                                                                                                                                                                             |
@@ -171,11 +173,12 @@ const providerLink = useProviderLink(options?: Options)
 
 #### Usage
 
-```jsx
+```js
 import { useProviderLink } from '@nhost/react';
 
 const Component = () => {
   const { facebook, github } = useProviderLink();
+
   return (
     <div>
       <a href={facebook}>Authenticate with Facebook</a>
@@ -188,13 +191,8 @@ const Component = () => {
 ### Passwordless email authentication
 
 ```js
-const {
-  signInEmailPasswordless,
-  isLoading,
-  isSuccess,
-  isError,
-  error
-} = useSignInEmailPasswordless(options?: Options)
+const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
+  useSignInEmailPasswordless(/* options?: Options */);
 ```
 
 | Name                      | Type                                             | Notes                                                                                                                                                                                                             |
@@ -248,7 +246,7 @@ const Component = () => {
 The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
 
 ```js
-const { signOut, isSuccess } = useSignOut(all?: boolean)
+const { signOut, isSuccess } = useSignOut(/* all: boolean */);
 ```
 
 | Name        | Type                    | Notes                                                                                                                                                                                                                        |
@@ -262,22 +260,21 @@ const { signOut, isSuccess } = useSignOut(all?: boolean)
 import { useState } from 'react';
 import { useSignOut, useAuthenticated } from '@nhost/react';
 
-function Component() {
+const Component = () => {
   const { signOut, isSuccess } = useSignOut();
   const authenticated = useAuthenticated();
 
-  if (!authenticated) {
-    return <div>You are not authenticated</div>;
+  if (authenticated) {
+    return (
+      <div>
+        <button onClick={signUp}>Sign Out</button>
+        {isSuccess && <div>You have successfully signed out!</div>}
+      </div>
+    );
   }
 
-  return (
-    <div>
-      <button onClick={signUp}>Sign Out</button>
-
-      {isSuccess && <div>You have successfully signed out!</div>}
-    </div>
-  );
-}
+  return <div>Not authenticated</div>;
+};
 ```
 
 ---
@@ -295,9 +292,8 @@ The Nhost client may need some initial steps to determine the authentication sta
 ```jsx
 import { useAuthenticationStatus } from '@nhost/react';
 
-function Component() {
+const Component = () => {
   const { isLoading, isAuthenticated } = useAuthenticationStatus();
-
   if (isLoading) {
     return <div>Loading Nhost authentication status...</div>;
   }
@@ -307,7 +303,7 @@ function Component() {
   }
 
   return <div>Public section</div>;
-}
+};
 ```
 
 ### Get the JWT access token
@@ -325,8 +321,14 @@ const accessToken = useAccessToken();
 ### Change email
 
 ```js
-const { changeEmail, isLoading, isSuccess, needsEmailVerification, isError, error } =
-  useChangeEmail(options?: { redirectTo?: string })
+const {
+  changeEmail,
+  isLoading,
+  isSuccess,
+  needsEmailVerification,
+  isError,
+  error,
+} = useChangeEmail(/* options?: { redirectTo?: string } */);
 ```
 
 | Name                     | Type                                                     | Notes                                                                                                                                                                                                             |
@@ -348,6 +350,7 @@ const Component = () => {
   const [email, setEmail] = useState('');
   const { changeEmail, isLoading, needsEmailVerification, isError, error } =
     useChangeEmail();
+
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
@@ -388,6 +391,7 @@ const Component = () => {
   const [password, setPassword] = useState('');
   const { changePassword, isLoading, isSuccess, isError, error } =
     useChangePassword();
+
   return (
     <div>
       <input
@@ -405,7 +409,8 @@ const Component = () => {
 If a user loses their password, we can resend them an email to authenticate so that they can change it to a new one:
 
 ```js
-const { resetPassword, isLoading, isSent, isError, error } = useResetPassword(options?: { redirectTo?: string })
+const { resetPassword, isLoading, isSent, isError, error } =
+  useResetPassword(/* options?: { redirectTo?: string } */);
 ```
 
 | Name            | Type                                                     | Notes                                                                                                                                                                                                             |
@@ -427,6 +432,7 @@ const Component = () => {
   const [email, setEmail] = useState('');
   const { resetPassword, isLoading, isSent, isError, error } =
     useResetPassword();
+
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
@@ -440,7 +446,7 @@ const Component = () => {
 
 ```js
 const { sendEmail, isLoading, isSent, isError, error } =
-  useSendVerificationEmail(options?: { redirectTo?: string })
+  useSendVerificationEmail(/* options?: { redirectTo?: string } */);
 ```
 
 | Name         | Type                                                     | Notes                                                                                                                                                                                                             |
@@ -462,6 +468,7 @@ const Component = () => {
   const [email, setEmail] = useState('');
   const { sendEmail, isLoading, isSent, isError, error } =
     useSendVerificationEmail();
+
   return (
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
@@ -492,11 +499,11 @@ const userData = useUserData();
 ```jsx
 import { useAvatarUrl } from '@nhost/react';
 
-function Avatar() {
+const Avatar = () => {
   const avatar = useAvatarUrl();
 
   return <img src={avatar} alt="Avatar" />;
-}
+};
 ```
 
 ### User roles
@@ -504,7 +511,7 @@ function Avatar() {
 ```jsx
 import { useUserRoles, useDefaultRole } from '@nhost/react';
 
-function Avatar() {
+const Avatar = () => {
   const roles = useUserRoles();
   const defaultRole = useDefaultRole();
 
@@ -514,7 +521,7 @@ function Avatar() {
       {roles.join(', ')}
     </div>
   );
-}
+};
 ```
 
 ### Display name
@@ -524,6 +531,7 @@ import { displayName } from '@nhost/react';
 
 const Avatar = () => {
   const displayName = useDisplayName();
+
   return <div>Hello, {displayName}</div>;
 };
 ```

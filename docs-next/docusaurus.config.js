@@ -28,6 +28,7 @@ const config = {
           routeBasePath: '/',
           breadcrumbs: false,
           sidebarPath: require.resolve('./sidebars.js'),
+          remarkPlugins: [require('mdx-mermaid')],
           // Please change this to your repo.
           editUrl: 'https://github.com/nhost/nhost/blob/main/docs-next/',
         },

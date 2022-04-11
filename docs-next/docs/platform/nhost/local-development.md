@@ -11,7 +11,7 @@ Nhost CLI lets you run Nhost's development environment locally on macOS, Linux a
 
 Download and install Nhost CLI for your platform by running this command in your terminal:
 
-```sh
+```bash
 sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
 ```
 
@@ -28,7 +28,7 @@ To run serverless functions locally, you must have the appropriate runtimes inst
 
 For Node.js, you will also need to have [express](https://www.npmjs.com/package/express) installed in your repository:
 
-```sh
+```bash
 npm install --save-dev express @types/express
 ```
 
@@ -64,7 +64,7 @@ This will run the Hasura GraphQL engine using Rosetta on your machine until an M
 
 If you already Nhost CLI installed, you can upgrade your installation:
 
-```sh
+```bash
 # sudo permissions needed
 sudo nhost upgrade
 ```
