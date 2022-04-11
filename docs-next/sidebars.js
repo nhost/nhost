@@ -34,6 +34,10 @@ const sidebars = {
     {
       label: 'Authentication',
       type: 'category',
+      link: {
+        type: 'doc',
+        id: 'authentication/index',
+      },
       items: [
         {
           label: 'OAuth Providers',
