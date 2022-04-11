@@ -1,0 +1,29 @@
+version: 2
+updates:
+  - package-ecosystem: "gomod"
+    open-pull-requests-limit: 10
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "04:00"
+    commit-message:
+      prefix: "chore"
+    labels:
+      - "dependencies"
+      - "go"
+      - "chore"
+      - "auto-merge"
+
+  - package-ecosystem: "github-actions"
+    open-pull-requests-limit: 10
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "04:00"
+    commit-message:
+      prefix: "chore"
+    labels:
+      - "dependencies"
+      - "github_actions"
+      - "chore"
+      - "auto-merge"

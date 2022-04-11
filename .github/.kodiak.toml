@@ -1,0 +1,8 @@
+version = 1
+merge.automerge_label = "auto-merge"
+merge.method = "squash"
+merge.delete_branch_on_merge = true
+merge.optimistic_updates = false
+update.always = true
+update.ignored_usernames = ["dependabot"]
+merge.notify_on_conflict = false
