@@ -1,5 +1,6 @@
 {
   "label": "Database",
   "position": 2,
-  "collapsed": false
+  "collapsed": false,
+  "link": { "type": "generated-index" }
 }

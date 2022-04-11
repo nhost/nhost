@@ -1,70 +1,91 @@
-# Authentication
+---
+title: 'Authenticate users'
+slug: /authentication
+---
 
-Nhost provides a ready-to-use authentication service, integrated with Nhost JavaScript SDK. This makes it easy to build login flows with multiple sign-in methods.
+You defined `select` permissions for the `public` role in the previous section. You will now add `insert` and `create` permissions for authenticated users to secure your app's GraphQL API with authentication.
 
-## Getting Started
+> Nhost's authentication service lets you deliver frictionless registration and login experiences to your users. We support most social providers and different methods such as email & password and passwordless (magic link).
 
-Sign up a user with the [Nhost JavaScript SDK](/reference/sdk):
+---
+
+## Insert a test user
+
+Manually create a user by going to your app's **Users** tab (top menu) and clicking on **Add User**.
+
+![Add user](/img/quick-start/add-user.gif)
+
+You will now use that newly created user to make authenticated requests to the API.
+
+---
+
+## Authenticate and query data
+
+Add the following code to sign in the new user and request the list of todos again:
 
 ```js
 import { NhostClient } from '@nhost/nhost-js';
 
 const nhost = new NhostClient({
   backendUrl: 'https://[app-subdomain].nhost.run',
-});
+})(async () => {
+  // Sign in user
+  const signInResponse = await nhost.auth.signIn({
+    email: 'joe@example.com',
+    password: 'securepassword',
+  });
 
-await nhost.auth.signUp({
-  email: 'joe@nhost.io',
-  password: 'secret-password',
-});
-```
-
-## How it works
-
-1. A user signs up and the user information is added to the `auth.users` table.
-2. Nhost returns an [access token](#access-tokens) (JWT token) and the user's information.
-3. The user sends a request to the GraphQL API together with the access token.
-4. The GraphQL API reviews the access token to ensure the user is authorized to send the request.
-
-Nhost's authentication service is integrated with your database. All users are stored in the app's [database](/database) under the `auth` schema and can be accessed using GraphQL:
-
-```graphql
-query {
-  users {
-    id
-    displayName
-    avatarUrl
-    email
+  // Handle sign-in error
+  if (signInResponse.error) {
+    throw signInResponse.error;
   }
-}
+
+  // Get todos
+  const todos = await nhost.graphql.request(`
+    query {
+      todos {
+        id
+        created_at
+        name
+        is_completed
+      }
+    }
+  `);
+
+  console.log(JSON.stringify(todos.data, null, 2));
+})();
 ```
 
-## Tokens
+Why is the return value `null`? Because when making GraphQL requests as an authenticated user, the `user` role is assumed.
 
-Nhost authentication uses two tokens: Access tokens and refresh tokens.
+> For authenticated requests, there is always the option to override the default `user` role with any other valid role.
 
-[Nhost JavaScript SDK](/sdk/) automatically handles access and refresh tokens.
+---
 
-### Access tokens
+## Permissions for users
 
-An access token is used to authenticate and authorize a user when doing a GraphQL request.
+### Remove permissions for the public role
 
-Access tokens are cryptographically signed and cannot be revoked. They are only valid for 15 minutes. Users can request a new valid access token with a refresh token.
+We won't use the `public` role anymore, so let's remove all permission for that role.
 
-An access token includes a user's ID and roles. Here's an example:
+![Remove public permissions from Hasura](/img/quick-start/remove-public-permissions.png)
 
-```json
-{
-  "https://hasura.io/jwt/claims": {
-    "x-hasura-user-id": "c8ee8353-b886-4530-9089-631ea7fd4c8a",
-    "x-hasura-default-role": "user",
-    "x-hasura-allowed-roles": ["user", "me"]
-  },
-  "iat": 1595146465,
-  "exp": 1595147365
-}
-```
+Now we'll add permissions for the `user` role.
 
-### Refresh tokens
+> All logged-in users have the `user` role.
 
-A refresh token is used to request a new access token. Refresh tokens are long-lived tokens stored in the database.
+### Insert permission
+
+First, we'll set the **Insert permission**.
+
+A user can only insert `name` because all other columns will be set automatically. More specifically, `user_id` is set to the user's id making the request (`x-hasura-user-id`) and is configured in the `Column presets` section. See the image below.
+
+![User insert permission](/img/quick-start/user-insert-permission.png)
+
+### Select permission
+
+For **Select permission**, set a **custom check** so users can only select todos where `user_id` is the same as their user id. In other words: users are only allowed to select their own todos. See the image below.
+
+![User select permission](/img/quick-start/user-select-permission.png)
+
+Now rerun the app. New todos are inserted, and only todos for the user are fetched and displayed. Your backend is successfully secured!

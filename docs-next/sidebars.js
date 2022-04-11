@@ -13,49 +13,44 @@
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
-  sidebar: [
+  defaultSidebar: [
     'index',
     {
-      label: 'Framework Starters',
+      label: 'Quick Start',
       type: 'category',
-      link: {
-        type: 'doc',
-        id: 'framework-starters/index',
-      },
       collapsed: false,
+      link: { id: 'quick-start/create-your-app', type: 'doc' },
       items: [
-        'framework-starters/quick-start-react',
-        'framework-starters/quick-start-nextjs',
-        'framework-starters/quick-start-react-native',
+        'quick-start/create-your-app',
+        'quick-start/schema',
+        'quick-start/javascript-client',
+        'quick-start/permissions',
       ],
     },
-    'database',
-    'graphql',
     {
       label: 'Authentication',
       type: 'category',
-      link: {
-        type: 'doc',
-        id: 'authentication/index',
-      },
+      link: { id: 'authentication/index', type: 'doc' },
+      items: ['authentication/index'],
+    },
+    {
+      label: 'CLI Workflow',
+      type: 'category',
+      link: { id: 'cli/index', type: 'doc' },
       items: [
-        {
-          label: 'OAuth Providers',
-          type: 'category',
-          items: [
-            'authentication/oauth-providers/google',
-            'authentication/oauth-providers/facebook',
-            'authentication/oauth-providers/github',
-            'authentication/oauth-providers/linkedin',
-            'authentication/oauth-providers/spotify',
-          ],
-        },
-        'authentication/email-templates',
+        'cli/index',
+        'cli/workflow-setup',
+        'cli/install-cli',
+        'cli/local-changes',
+        'cli/metadata-and-serverless-functions',
       ],
     },
-    'storage/index',
-    'functions/index',
-    'cli/index',
+    {
+      label: 'Upgrade',
+      type: 'category',
+      link: { id: 'upgrade/index', type: 'doc' },
+      items: ['upgrade/index'],
+    },
   ],
   platformSidebar: [
     {
