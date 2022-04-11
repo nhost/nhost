@@ -1,0 +1,51 @@
+---
+title: Sign in with GitHub
+sidebar_position: 3
+---
+
+Follow this guide to sign in users with GitHub with your Nhost App.
+
+<p align="center">
+  <img
+    alt="GitHub Sign In Preview"
+    src="/img/social-providers/github-preview.svg"
+    width={480}
+    height={267}
+  />
+</p>
+
+## Create GitHub account
+
+- Create a new [GitHub account](https://github.com/signup) if you don’t have one already.
+
+## Create GitHub OAuth App
+
+- Create a new OAuth application [(direct link)](https://github.com/settings/applications/new) by:
+  - Click on your profile photo in the top right.
+  - Click on Settings
+  - In the left menu, click Developer settings at the bottom.
+  - Click on Oauth Apps in the left menu
+  - Click on New OAuth App button in the top right
+
+## GitHub OAuth App information
+
+- Fill in Application Name
+- Fill in Homepage URL
+- Fill in **Authorization callback URL** with your OAuth Callbacke URL from Nhost
+
+## Configure Nhost
+
+- Click Generate a new client secret to generate a OAuth client secret.
+- Copy and paste the **Client ID** and **Client Secret** from GitHub to your Nhost OAuth settings for GitHub. Make sure the [OAuth provider is enabled in Nhost](/platform/authentication/social-sign-in#enabling-social-sign-in).
+- Click the checkbox “**I have pasted the redirect URI into GitHub”**.
+- Click **Confirm settings**.
+
+## Sign In users in your app
+
+Use the [Nhost JavaScript client](/reference/sdk) to sign in users in your app:
+
+```js
+nhost.auth.signIn({
+  provider: 'github',
+});
+```

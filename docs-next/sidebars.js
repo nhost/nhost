@@ -47,6 +47,7 @@ const sidebars = {
             'authentication/oauth-providers/facebook',
             'authentication/oauth-providers/github',
             'authentication/oauth-providers/linkedin',
+            'authentication/oauth-providers/spotify',
           ],
         },
         'authentication/email-templates',
