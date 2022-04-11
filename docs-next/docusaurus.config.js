@@ -12,7 +12,7 @@ const config = {
   url: 'https://docs.nhost.io',
   trailingSlash: false,
   baseUrl: '/',
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',
   organizationName: 'nhost', // Usually your GitHub org/user name.

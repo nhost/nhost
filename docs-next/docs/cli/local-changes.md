@@ -25,7 +25,9 @@ You use this local environment to do changes and testing before you deploy your 
 
 Running `nhost dev` also starts the Hasura Console.
 
-> 💡 It’s important that you use the Hasura Console that is started automatically when you do changes. This way, changes are automatically tracked for you.
+:::tip
+It's important that you use the Hasura Console that is started automatically when you do changes. This way, changes are automatically tracked for you.
+:::
 
 ![Hasura Console](/img/cli-workflow/hasura-console.png)
 
@@ -69,7 +71,7 @@ Once the deployment finishes the `customers` table is created in production.
 
 ![Customers table in Hasura Console](/img/cli-workflow/hasura-customers-table.png)
 
-We’ve now completed the recommended workflow with Nhost:
+We've now completed the recommended workflow with Nhost:
 
 1. Develop locally using the Nhost CLI.
 2. Push changes to GitHub.

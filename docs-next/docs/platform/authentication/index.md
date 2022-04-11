@@ -31,7 +31,7 @@ await nhost.auth.signUp({
 3. The user sends a request to the GraphQL API together with the access token.
 4. The GraphQL API reviews the access token to ensure the user is authorized to send the request.
 
-Nhost's authentication service is integrated with your database. All users are stored in the app's [database](/database) under the `auth` schema and can be accessed using GraphQL:
+Nhost's authentication service is integrated with your database. All users are stored in the app's database under the `auth` schema and can be accessed using GraphQL:
 
 ```graphql
 query {
@@ -48,7 +48,7 @@ query {
 
 Nhost authentication uses two tokens: Access tokens and refresh tokens.
 
-[Nhost JavaScript SDK](/sdk/) automatically handles access and refresh tokens.
+[Nhost JavaScript SDK](/reference/sdk) automatically handles access and refresh tokens.
 
 ### Access tokens
 

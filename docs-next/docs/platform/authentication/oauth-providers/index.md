@@ -22,7 +22,7 @@ You need to set client ID and client secret for each provider that you want to e
 
 ## Implementing sign-in experience
 
-Use the [Nhost JavaScript SDK](/reference/sdk/overview) and the `signIn()` method to implement social sign-in in your app,
+Use the [Nhost JavaScript SDK](/reference/sdk) and the `signIn()` method to implement social sign-in in your app,
 
 Here's an example of how to implement sign-in with GitHub:
 
