@@ -409,10 +409,41 @@ const Component = () => {
 
 ## User data
 
-<!-- TODO ellaborate -->
-
 ```js
-const userData = useUserData()
+const { id, email, displayName, avatarUrl, isAnonymous, locale, defaultRole, roles, metadata, createdAt }  = useUserData()
+```
+
+| Name          | Type          | Default          | Notes                                                  |
+| ------------- | ------------- | ---------------- | ------------------------------------------------------ |
+| `id`          | string        |                  | User's unique identifier (uuid)                        |
+| `email`       | string        |                  | User's email address                                   |
+| `displayName` | string        | `""`             | User's display name                                    |
+| `avatarUrl`   | string        | `""`             | The URL to the user's profile picture                  |
+| `isAnonymous` | boolean       | `false`          | Whether or not the user is anonymous                   |
+| `locale`      | string        | `"en"`           | A two-characters locale                                |
+| `defaultRole` | string        | `"user"`         | The default role of the user                           |
+| `roles`       | string[]      | `["me", "user"]` | The roles assigned to the user                         |
+| `metadata`    | JSON object   | `null`           | Additional attributes used for user information        |
+| `createdAt`   | string        |                  | The date-time when the user has been created           |
+
+Example of an authenticated user:
+
+```json
+{
+  "avatarUrl": "https://s.gravatar.com/avatar/3020737ed9d932c6665111a5550454d2?r=g&default=blank",
+  "createdAt": "2022-04-11T16:33:14.780439+00:00",
+  "defaultRole": "user",
+  "displayName": "Grégory D'Angelo",
+  "email": "greg@nhost.io",
+  "id": "05e054c7-a722-42e7-90a6-3f77a2f118c8",
+  "isAnonymous": false,
+  "locale": "en",
+  "metadata": {
+    "lastName": "D'Angelo",
+    "firstName": "Grégory"
+  },
+  "roles": ["user", "me"]
+}
 ```
 
 ### Avatar
