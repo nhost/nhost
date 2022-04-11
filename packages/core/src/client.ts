@@ -12,9 +12,9 @@ export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string
   readonly machine: AuthMachine
-  #interpreter?: AuthInterpreter
-  #channel?: BroadcastChannel
-  #subscriptions: Set<(client: AuthClient) => void> = new Set()
+  private _interpreter?: AuthInterpreter
+  private _channel?: BroadcastChannel
+  private _subscriptions: Set<(client: AuthClient) => void> = new Set()
 
   constructor({
     backendUrl,
@@ -45,8 +45,8 @@ export class AuthClient {
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
-      this.#channel = new BroadcastChannel<string>('nhost')
-      this.#channel.addEventListener('message', (token) => {
+      this._channel = new BroadcastChannel<string>('nhost')
+      this._channel.addEventListener('message', (token) => {
         const existingToken = this.interpreter?.state.context.refreshToken
         if (this.interpreter && token !== existingToken) {
           this.interpreter.send({ type: 'TRY_TOKEN', token })
@@ -56,16 +56,23 @@ export class AuthClient {
   }
 
   get interpreter(): AuthInterpreter | undefined {
-    return this.#interpreter
+    return this._interpreter
   }
   set interpreter(interpreter: AuthInterpreter | undefined) {
-    this.#interpreter = interpreter
+    this._interpreter = interpreter
     if (interpreter) {
-      this.#subscriptions.forEach((fn) => fn(this))
+      this._subscriptions.forEach((fn) => fn(this))
     }
   }
 
-  onStart(fn: (interpreter: AuthClient) => void) {
-    this.#subscriptions.add(fn)
+  onStart(fn: (client: AuthClient) => void) {
+    if (this.interpreter) {
+      // * The interpreter is already available: we can add the listener straight ahead
+      fn(this)
+    } else {
+      // * The interpreter is not yet available: we add the listener to a queue that will be started when setting the interpreter
+      // * Note: in React, the Xstate interpreter does not start from the global state, but from the root component
+      this._subscriptions.add(fn)
+    }
   }
 }

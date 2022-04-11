@@ -1,17 +1,15 @@
-import { useChangeEmail, useEmail } from '@nhost/react'
+/* eslint-disable react/react-in-jsx-scope */
 import { useEffect, useState } from 'react'
-import { Button, FlexboxGrid, Input, Message, Panel, toaster, Notification } from 'rsuite'
+import { Button, FlexboxGrid, Input, Message, Notification, Panel, toaster } from 'rsuite'
+
+import { useChangeEmail, useEmail } from '@nhost/react'
 
 export const ChangeEmail: React.FC = () => {
   const [newEmail, setNewEmail] = useState('')
   const email = useEmail()
-  const { changeEmail, error, needsEmailVerification } = useChangeEmail(
-    // TODO correct this once the new packages are released
-    undefined,
-    {
-      redirectTo: '/profile'
-    }
-  )
+  const { changeEmail, error, needsEmailVerification } = useChangeEmail({
+    redirectTo: '/profile'
+  })
   const [errorMessage, setErrorMessage] = useState('')
 
   useEffect(() => {

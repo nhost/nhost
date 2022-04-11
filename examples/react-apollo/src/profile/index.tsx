@@ -1,6 +1,8 @@
 import decode from 'jwt-decode'
+import React from 'react'
 import ReactJson from 'react-json-view'
 import { Button, Col, Panel, Row } from 'rsuite'
+
 import { useAccessToken, useNhostClient, useUserData } from '@nhost/react'
 
 import { ChangeEmail } from './change-email'

@@ -1,18 +1,15 @@
-import { Button, Input, Message } from 'rsuite'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Button, Input, Message } from 'rsuite'
+
 import { useSignInEmailPasswordless } from '@nhost/react'
-import React, { useState, useEffect } from 'react'
 
 export const EmailPasswordlessForm: React.FC = () => {
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
-  const { signInEmailPasswordless, isError, isSuccess, error } = useSignInEmailPasswordless(
-    // TODO correct this once the new packages are released
-    undefined,
-    {
-      redirectTo: '/profile'
-    }
-  )
+  const { signInEmailPasswordless, isError, isSuccess, error } = useSignInEmailPasswordless({
+    redirectTo: '/profile'
+  })
   const [showError, setShowError] = useState(true)
   useEffect(() => {
     setShowError(false)
