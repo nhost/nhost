@@ -14,42 +14,42 @@
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   defaultSidebar: [
-    'index',
+    'get-started/index',
     {
       label: 'Quick Start',
       type: 'category',
       collapsed: false,
-      link: { id: 'quick-start/create-your-app', type: 'doc' },
+      link: { id: 'get-started/quick-start/create-your-app', type: 'doc' },
       items: [
-        'quick-start/create-your-app',
-        'quick-start/schema',
-        'quick-start/javascript-client',
-        'quick-start/permissions',
+        'get-started/quick-start/create-your-app',
+        'get-started/quick-start/schema',
+        'get-started/quick-start/javascript-client',
+        'get-started/quick-start/permissions',
       ],
     },
     {
       label: 'Authentication',
       type: 'category',
-      link: { id: 'authentication/index', type: 'doc' },
-      items: ['authentication/index'],
+      link: { id: 'get-started/authentication/index', type: 'doc' },
+      items: ['get-started/authentication/index'],
     },
     {
       label: 'CLI Workflow',
       type: 'category',
-      link: { id: 'cli/index', type: 'doc' },
+      link: { id: 'get-started/cli/index', type: 'doc' },
       items: [
-        'cli/index',
-        'cli/workflow-setup',
-        'cli/install-cli',
-        'cli/local-changes',
-        'cli/metadata-and-serverless-functions',
+        'get-started/cli/index',
+        'get-started/cli/workflow-setup',
+        'get-started/cli/install-cli',
+        'get-started/cli/local-changes',
+        'get-started/cli/metadata-and-serverless-functions',
       ],
     },
     {
       label: 'Upgrade',
       type: 'category',
-      link: { id: 'upgrade/index', type: 'doc' },
-      items: ['upgrade/index'],
+      link: { id: 'get-started/upgrade/index', type: 'doc' },
+      items: ['get-started/upgrade/index'],
     },
   ],
   platformSidebar: [

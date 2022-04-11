@@ -1,6 +1,6 @@
 ---
 title: 'Authenticate users'
-slug: /authentication
+slug: /get-started/authentication
 ---
 
 You defined `select` permissions for the `public` role in the previous section. You will now add `insert` and `create` permissions for authenticated users to secure your app's GraphQL API with authentication.

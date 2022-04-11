@@ -31,6 +31,6 @@ JavaScript and TypeScript functions run your custom code in the backend.
 
 ## Get started
 
-Follow our [Quick start](/quick-start) guide to build your first app.
+Follow our [Quick start](/get-started/quick-start) guide to build your first app.
 
 Check out [Nhost on GitHub](https://github.com/nhost/nhost). Give us a star, and feel free to open a discussion for any feature requests as well.

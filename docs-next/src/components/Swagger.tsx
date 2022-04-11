@@ -29,7 +29,6 @@ type SwaggerProps = {
 };
 
 export function Swagger({ spec }: SwaggerProps) {
-  console.log('initializing component...');
   return (
     <SwaggerUI
       url={`/openapi/${spec}`}

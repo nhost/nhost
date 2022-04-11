@@ -58,7 +58,7 @@ const config = {
         items: [
           {
             type: 'doc',
-            docId: 'index',
+            docId: 'get-started/index',
             position: 'left',
             label: 'Get Started',
           },
@@ -70,7 +70,7 @@ const config = {
           },
           {
             type: 'doc',
-            docId: 'reference/sdk/index',
+            docId: 'reference/index',
             position: 'left',
             label: 'Reference',
           },
@@ -107,7 +107,15 @@ const config = {
             items: [
               {
                 label: 'Get Started',
-                to: '/',
+                to: '/get-started',
+              },
+              {
+                label: 'Platform',
+                to: '/platform',
+              },
+              {
+                label: 'Reference',
+                to: '/reference',
               },
             ],
           },
