@@ -36,13 +36,13 @@ const sidebars = {
     {
       label: 'CLI Workflow',
       type: 'category',
-      link: { id: 'get-started/cli/index', type: 'doc' },
+      link: { id: 'get-started/cli-workflow/index', type: 'doc' },
       items: [
-        'get-started/cli/index',
-        'get-started/cli/workflow-setup',
-        'get-started/cli/install-cli',
-        'get-started/cli/local-changes',
-        'get-started/cli/metadata-and-serverless-functions',
+        'get-started/cli-workflow/index',
+        'get-started/cli-workflow/workflow-setup',
+        'get-started/cli-workflow/install-cli',
+        'get-started/cli-workflow/local-changes',
+        'get-started/cli-workflow/metadata-and-serverless-functions',
       ],
     },
     {
