@@ -12,14 +12,19 @@ import {
 export type { AuthClient, Provider, StorageGetter, StorageSetter, User }
 export interface NhostAuthConstructorParams {
   url: string
+  /** Time interval until token refreshes, in seconds */
   refreshIntervalTime?: number
   /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
   clientStorage?: ClientStorage
   /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
   clientStorageType?: ClientStorageType
+  /** Define a way to get information about the refresh token and its exipration date */
   clientStorageGetter?: StorageGetter
+  /** Define a way to set information about the refresh token and its exipration date */
   clientStorageSetter?: StorageSetter
+  /** When set to true, will automatically refresh token before it expires */
   autoRefreshToken?: boolean
+  /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */
   autoLogin?: boolean
   start?: boolean
   Client?: typeof AuthClient

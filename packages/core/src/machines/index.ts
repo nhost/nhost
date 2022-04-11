@@ -401,7 +401,12 @@ export const createAuthMachine = ({
                             src: 'refreshToken',
                             id: 'refreshToken',
                             onDone: {
-                              actions: ['saveSession', 'persist', 'resetTimer'],
+                              actions: [
+                                'saveSession',
+                                'persist',
+                                'resetTimer',
+                                'reportTokenChanged'
+                              ],
                               target: 'pending'
                             },
                             onError: [
