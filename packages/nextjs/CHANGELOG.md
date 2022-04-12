@@ -1,5 +1,12 @@
 # @nhost/nextjs
 
+## 1.0.12
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.11
+- @nhost/react@0.5.2
+
 ## 1.0.11
 
 ### Patch Changes
