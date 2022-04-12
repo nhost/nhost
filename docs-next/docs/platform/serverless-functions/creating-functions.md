@@ -1,7 +1,6 @@
 ---
 title: 'Creating functions'
 sidebar_position: 1
-slug: /platform/serverless-functions
 ---
 
 Nhost gives you the option to run serverless functions on the following runtimes:

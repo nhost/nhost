@@ -1,6 +1,5 @@
 ---
 title: 'Getting started'
-slug: '/reference/react'
 sidebar_position: 1
 ---
 

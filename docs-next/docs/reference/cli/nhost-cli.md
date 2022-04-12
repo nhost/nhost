@@ -1,6 +1,5 @@
 ---
 title: 'Nhost CLI'
-slug: /reference/cli
 ---
 
 Run `nhost help` in your terminal to get a detailed listing of all available commands.

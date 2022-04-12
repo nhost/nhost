@@ -1,6 +1,5 @@
 ---
 title: 'Introduction'
-slug: /reference/nextjs
 sidebar_position: 1
 ---
 
