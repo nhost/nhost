@@ -701,23 +701,16 @@ func (config *Configuration) Init(port string) error {
 	dataTarget, _ := filepath.Rel(util.WORKING_DIR, DOT_NHOST)
 	log.WithField("service", "data").Debugln("Mounting data from ", dataTarget)
 
-	//  create mount points if they doesn't exist
-	mountPoints := []mount.Mount{
-		{
-			Type:   mount.TypeBind,
-			Source: filepath.Join(DOT_NHOST, "db_data"),
-			Target: "/var/lib/postgresql/data",
-		},
-	}
+	//  create mount point if it doesn't exist
+	sourceDir := filepath.Join(DOT_NHOST, "db_data")
+	targetDir := "/var/lib/postgresql/data"
 
-	for _, mountPoint := range mountPoints {
-		if err := os.MkdirAll(mountPoint.Source, os.ModePerm); err != nil {
-			return err
-		}
+	if err := os.MkdirAll(sourceDir, os.ModePerm); err != nil {
+		return err
 	}
 
 	postgresConfig.Config.Cmd = []string{"-p", fmt.Sprint(config.Services["postgres"].Port)}
-	postgresConfig.HostConfig.Mounts = mountPoints
+	postgresConfig.HostConfig.Binds = []string{fmt.Sprintf("%s:%s:Z", sourceDir, targetDir)}
 
 	var pgUser, pgPass string
 
@@ -824,7 +817,7 @@ func (config *Configuration) Init(port string) error {
 	hasuraConfig.Config.Env = containerVariables
 
 	//  create mount points if they doesn't exit
-	mountPoints = []mount.Mount{
+	mountPoints := []mount.Mount{
 		{
 			Type:   mount.TypeBind,
 			Source: filepath.Join(DOT_NHOST, "minio", "data"),
