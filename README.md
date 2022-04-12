@@ -1,8 +1,8 @@
-<div align="center">
-  <img width="237" src="https://raw.githubusercontent.com/nhost/nhost/main/assets/logo.png"/>
+![Nhost](https://imgur.com/fGo6E4d.png)
 
-  <br />
-  <br />
+<div align="center">
+
+# Nhost
 
 <a href="https://docs.nhost.io/get-started">Quickstart</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -20,9 +20,9 @@
   <hr />
 </div>
 
-**Nhost is a serverless backend for web and mobile apps** built with the following things in mind:
+**Nhost is a open-source GraphQL backend,** built with the following things in mind:
 
-- Open Source
+- Open-Source
 - Developer Productivity
 - SQL
 - GraphQL
