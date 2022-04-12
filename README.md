@@ -192,6 +192,13 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/gdangelo">
+            <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
+            <br />
+            <sub><b>Grégory D'Angelo</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/subhendukundu">
             <img src="https://avatars.githubusercontent.com/u/20059141?v=4" width="100;" alt="subhendukundu"/>
             <br />
@@ -204,15 +211,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Christopher Möller</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/jerryjappinen">
             <img src="https://avatars.githubusercontent.com/u/1101002?v=4" width="100;" alt="jerryjappinen"/>
             <br />
             <sub><b>Jerry Jäppinen</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/mustafa-hanif">
             <img src="https://avatars.githubusercontent.com/u/30019262?v=4" width="100;" alt="mustafa-hanif"/>
@@ -247,15 +254,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Colin Broderick</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/dohomi">
             <img src="https://avatars.githubusercontent.com/u/489221?v=4" width="100;" alt="dohomi"/>
             <br />
             <sub><b>Dominic Garms</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/alveshelio">
             <img src="https://avatars.githubusercontent.com/u/8176422?v=4" width="100;" alt="alveshelio"/>
@@ -290,7 +297,8 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Quentin Decré</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/komninoschat">
             <img src="https://avatars.githubusercontent.com/u/29049104?v=4" width="100;" alt="komninoschat"/>
