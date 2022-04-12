@@ -10,8 +10,7 @@ require (
 	github.com/evanw/esbuild v0.13.9
 	github.com/fsnotify/fsnotify v1.5.1
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/gosuri/uilive v0.0.4 // indirect
+	github.com/gorilla/websocket v1.4.2
 	github.com/hashicorp/go-getter v1.5.9
 	github.com/koding/websocketproxy v0.0.0-20181220232114-7ed82d81a28c
 	github.com/manifoldco/promptui v0.8.0
