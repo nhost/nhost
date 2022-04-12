@@ -84,6 +84,12 @@ const config = {
             position: 'right',
             'aria-label': 'Github repository',
           },
+          {
+            href: 'https://app.nhost.io',
+            className: 'header-get-started-link',
+            position: 'right',
+            label: 'Create an app',
+          },
         ],
       },
       footer: {

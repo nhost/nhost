@@ -3,7 +3,7 @@ title: 'Authentication'
 sidebar_position: 2
 ---
 
-## nhost.auth.signIn()
+## `nhost.auth.signIn()`
 
 Sign in a user with one of the following methods:
 
