@@ -1,5 +1,6 @@
 ---
 title: 'OAuth Providers'
+slug: /platform/authentication/social-sign-in
 ---
 
 Nhost Auth supports the following social sign-in providers:

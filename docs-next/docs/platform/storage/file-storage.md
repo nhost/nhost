@@ -1,6 +1,7 @@
 ---
 title: 'File storage'
 sidebar_position: 1
+slug: /platform/storage
 ---
 
 Nhost stores and serves files of any type in your backend.

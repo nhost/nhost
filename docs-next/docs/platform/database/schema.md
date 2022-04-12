@@ -1,6 +1,7 @@
 ---
 title: 'Schema'
 sidebar_position: 1
+slug: /platform/database
 ---
 
 Every Nhost app comes with a Postgres database. Postgres is the world's most advanced open-source relational database and the most popular SQL database among developers. The database is hosted with Amazon RDS.

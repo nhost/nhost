@@ -21,7 +21,7 @@ This section:
 
 ### Storage
 
-- [File storage](/platform/storage/file-storage)
+- [File storage](/platform/storage)
 
 ### Serverless functions
 
