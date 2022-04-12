@@ -293,7 +293,7 @@ var devCmd = &cobra.Command{
 			case "auth":
 				routes = []proxy.Route{{Name: "Authentication", Source: "/", Destination: "/v1/auth/", Show: true}}
 			case "storage":
-				routes = []proxy.Route{{Name: "Storage", Source: "/", Destination: "/v1/storage/", Show: true}}
+				routes = []proxy.Route{{Name: "Storage", Source: "/v1/storage/", Destination: "/v1/storage/", Show: true}}
 			case "hasura":
 				routes = []proxy.Route{
 					{Name: "GraphQL", Source: "/v1/graphql", Destination: "/v1/graphql", Show: true},
