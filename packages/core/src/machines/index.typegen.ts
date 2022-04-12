@@ -32,6 +32,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.registerUser'
+      | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
     saveRefreshToken: 'done.invoke.importRefreshToken'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL'
