@@ -150,6 +150,7 @@ importers:
     specifiers:
       '@docusaurus/core': 2.0.0-beta.18
       '@docusaurus/module-type-aliases': 2.0.0-beta.18
+      '@docusaurus/plugin-sitemap': ^2.0.0-beta.18
       '@docusaurus/preset-classic': 2.0.0-beta.18
       '@mdx-js/react': ^1.6.22
       '@tsconfig/docusaurus': ^1.0.5
@@ -164,6 +165,7 @@ importers:
       typescript: ^4.6.3
     dependencies:
       '@docusaurus/core': 2.0.0-beta.18_6256d3e9141e918aba8f6a22e11a83de
+      '@docusaurus/plugin-sitemap': 2.0.0-beta.18_6256d3e9141e918aba8f6a22e11a83de
       '@docusaurus/preset-classic': 2.0.0-beta.18_6256d3e9141e918aba8f6a22e11a83de
       '@mdx-js/react': 1.6.22_react@17.0.2
       clsx: 1.1.1
