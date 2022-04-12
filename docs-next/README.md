@@ -1,41 +1,37 @@
-# Website
+# Nhost Docs
 
-This website is built using [Docusaurus 2](https://docusaurus.io/), a modern static website generator.
+This documentation describes how to build, start and test the documentation locally.
 
 ### Installation
 
-```
-$ yarn
+```bash
+$ pnpm i
 ```
 
 ### Local Development
 
-```
-$ yarn start
+```bash
+$ pnpm start
 ```
 
 This command starts a local development server and opens up a browser window. Most changes are reflected live without having to restart the server.
 
 ### Build
 
-```
-$ yarn build
+```bash
+$ pnpm build
 ```
 
 This command generates static content into the `build` directory and can be served using any static contents hosting service.
 
-### Deployment
+### Serve
 
-Using SSH:
-
-```
-$ USE_SSH=true yarn deploy
+```bash
+$ pnpm serve
 ```
 
-Not using SSH:
+This command serves the static content from the `build` directory.
 
-```
-$ GIT_USER=<Your GitHub username> yarn deploy
-```
+### Contributing
 
-If you are using GitHub pages for hosting, this command is a convenient way to build the website and push to the `gh-pages` branch.
+All pull requests are greatly appreciated! See our [contributing guide](https://github.com/nhost/nhost/blob/main/CONTRIBUTING.md) to get started.
