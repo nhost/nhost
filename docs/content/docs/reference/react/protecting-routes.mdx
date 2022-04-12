@@ -4,35 +4,35 @@ title: 'Protecting routes'
 
 ## React Router
 
-You can protect routes by creating a wrapper component, `ProtectedRoute`, to implement the authentication logic using `@nhost/react`.
-
 > This example uses the latest version of [React Router (v6)](https://reactrouter.com/docs/en/v6).
+
+You can protect routes by creating a wrapper component, `ProtectedRoute`, to implement the authentication logic using `@nhost/react`.
 
 ```jsx
 // src/components/ProtectedRoute.js
 
 import { useAuthenticationStatus } from '@nhost/react';
-import { Navigate, useLocation } from 'react-router';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = () => {
   const { isAuthenticated, isLoading } = useAuthenticationStatus();
   const location = useLocation();
 
   if (isLoading) {
-    return (
-      <div>Loading...</div>
-    );
+    return <div>Loading...</div>;
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  return children;
+  return <Outlet />;
 };
 
 export default ProtectedRoute;
 ```
+
+So, if the user is not authenticated, we redirect him to the `/login` route using the [`Navigate`](https://reactrouter.com/docs/en/v6/api#navigate) component from React Router. Otherwise, we render the [`Outlet`](https://reactrouter.com/docs/en/v6/api#outlet) component, also provided by React Router, to render the `ProtectedRoute` child route elements.
 
 Then, in your `App.js` file, you can use a [layout route](https://reactrouter.com/docs/en/v6/getting-started/concepts#layout-route) to wrap the `ProtectedRoute` component around the routes you want to protect:
 
@@ -58,7 +58,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<ProtectedRoute>}>
+          <Route path="/dashboard" element={<ProtectedRoute />}>
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<Profile />} />
           </Route>
