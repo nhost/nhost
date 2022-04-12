@@ -1,5 +1,14 @@
 # @nhost/core
 
+## 0.3.10
+
+### Patch Changes
+
+- 63d6059: Set onTokenChanged before the state interpreter started
+  Fixes [#384](https://github.com/nhost/nhost/issues/384), thanks [@noverby](https://github.com/noverby)
+- 63d6059: Trigger onTokenChanged when token changes
+  Fixes [#373](https://github.com/nhost/nhost/issues/373), thanks [@yureckey](https://github.com/yureckey)
+
 ## 0.3.9
 
 ### Patch Changes

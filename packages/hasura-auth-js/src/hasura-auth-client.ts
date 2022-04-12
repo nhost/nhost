@@ -54,8 +54,6 @@ const EMAIL_NEEDS_VERIFICATION: ApiError = {
 }
 export class HasuraAuthClient {
   private _client: AuthClient
-  private onTokenChangedSubscriptions: Set<AuthInterpreter> = new Set()
-  private onAuthStateChangedSubscriptions: Set<AuthInterpreter> = new Set()
 
   constructor({
     url,
@@ -414,17 +412,23 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/TODO
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
-    if (this._client.interpreter)
-      this.onTokenChangedSubscriptions.add(
-        this._client.interpreter?.onTransition(({ event, context }) => {
-          if (event.type === 'TOKEN_CHANGED') fn(getSession(context))
-        })
-      )
-    else {
-      console.log('onTokenChanged: no interpreter is set yet', fn)
-    }
-    return () => {
-      this.onTokenChangedSubscriptions.forEach((subscription) => subscription.stop())
+    const listen = (interpreter: AuthInterpreter) =>
+      interpreter.onTransition(({ event, context }) => {
+        if (event.type === 'TOKEN_CHANGED') fn(getSession(context))
+      })
+
+    if (this._client.interpreter) {
+      const subscription = listen(this._client.interpreter)
+      return () => subscription.stop()
+    } else {
+      this._client.onStart((client) => {
+        listen(client.interpreter as AuthInterpreter)
+      })
+      return () => {
+        console.log(
+          'onTokenChanged was added before the interpreter started. Cannot unsubscribe listener.'
+        )
+      }
     }
   }
 
@@ -441,18 +445,23 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-onauthstatechangedevent,-session
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
-    if (this._client.interpreter)
-      this.onAuthStateChangedSubscriptions.add(
-        this._client.interpreter?.onTransition(({ event, context }) => {
-          if (event.type === 'SIGNED_IN') fn('SIGNED_IN', getSession(context))
-          else if (event.type === 'SIGNED_OUT') fn('SIGNED_OUT', getSession(context))
-        })
-      )
-    else {
-      console.log('onAuthStateChanged: no interpreter is set yet', fn)
-    }
-    return () => {
-      this.onAuthStateChangedSubscriptions.forEach((subscription) => subscription.stop())
+    const listen = (interpreter: AuthInterpreter) =>
+      interpreter.onTransition(({ event, context }) => {
+        if (event.type === 'SIGNED_IN' || event.type === 'SIGNED_OUT')
+          fn(event.type, getSession(context))
+      })
+    if (this._client.interpreter) {
+      const subscription = listen(this._client.interpreter)
+      return () => subscription.stop()
+    } else {
+      this._client.onStart((client) => {
+        listen(client.interpreter as AuthInterpreter)
+      })
+      return () => {
+        console.log(
+          'onAuthStateChanged was added before the interpreter started. Cannot unsubscribe listener.'
+        )
+      }
     }
   }
 

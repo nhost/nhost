@@ -1,5 +1,18 @@
 # @nhost/hasura-auth-js
 
+## 1.0.11
+
+### Patch Changes
+
+- 63d6059: Add TSDoc information about Nhost client options
+- 63d6059: Set onTokenChanged before the state interpreter started
+  Fixes [#384](https://github.com/nhost/nhost/issues/384), thanks [@noverby](https://github.com/noverby)
+- 63d6059: Trigger onTokenChanged when token changes
+  Fixes [#373](https://github.com/nhost/nhost/issues/373), thanks [@yureckey](https://github.com/yureckey)
+- Updated dependencies [63d6059]
+- Updated dependencies [63d6059]
+  - @nhost/core@0.3.10
+
 ## 1.0.10
 
 ### Patch Changes
