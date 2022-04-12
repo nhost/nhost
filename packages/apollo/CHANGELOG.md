@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 0.3.9
+
+### Patch Changes
+
+- Updated dependencies [63d6059]
+- Updated dependencies [63d6059]
+  - @nhost/core@0.3.10
+
 ## 0.3.8
 
 ### Patch Changes
