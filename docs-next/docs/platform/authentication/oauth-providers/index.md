@@ -5,11 +5,11 @@ slug: /platform/authentication/social-sign-in
 
 Nhost Auth supports the following social sign-in providers:
 
-- [Google](/platform/authentication/oauth-providers/google)
-- [Facebook](/platform/authentication/oauth-providers/facebook)
-- [GitHub](/platform/authentication/oauth-providers/github)
-- [LinkedIn](/platform/authentication/oauth-providers/linkedin)
-- [Spotify](/platform/authentication/oauth-providers/spotify)
+- [Google](/platform/authentication/sign-in-with-google)
+- [Facebook](/platform/authentication/sign-in-with-facebook)
+- [GitHub](/platform/authentication/sign-in-with-github)
+- [LinkedIn](/platform/authentication/sign-in-with-linkedin)
+- [Spotify](/platform/authentication/sign-in-with-spotify)
 
 ---
 

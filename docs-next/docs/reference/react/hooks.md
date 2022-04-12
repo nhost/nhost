@@ -5,7 +5,7 @@ sidebar_position: 2
 
 ## Authentication Hooks
 
-### Email and Password Sign-Un
+### Email and Password Sign-Up
 
 ```js
 const {

@@ -7,7 +7,7 @@ This section:
 
 ### Database
 
-- [Schema](/platform/database/schema)
+- [Schema](/platform/database)
 - [Permissions](/platform/database/permissions)
 - [GraphQL](/platform/database/graphql)
 
@@ -16,7 +16,7 @@ This section:
 - [Authentication overview](/platform/authentication)
 - [User management](/platform/authentication/user-management)
 - [Sign-in methods](/platform/authentication/sign-in-methods)
-- [OAuth providers](/platform/authentication/oauth-providers)
+- [OAuth providers](/platform/authentication/social-sign-in)
 - [Email templates](/platform/authentication/email-templates)
 
 ### Storage
