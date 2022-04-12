@@ -1,13 +1,50 @@
 import Cookies from 'cookies'
-import { NextPageContext } from 'next'
+import { GetServerSidePropsContext, NextPageContext } from 'next'
 
 import { NHOST_JWT_EXPIRES_AT_KEY, NHOST_REFRESH_TOKEN_KEY, NhostSession } from '@nhost/core'
 
 import { refresh } from './utils'
 
+/**
+ * Refreshes the access token if there is any and returns the Nhost session.
+ *
+ * @example
+ * ### Using an arrow function
+ *
+ * ```js
+ * export const getServerSideProps: GetServerSideProps = async (context) => {
+ *   const nhostSession = await getNhostSession(BACKEND_URL, context)
+ *
+ *   return {
+ *     props: {
+ *       nhostSession
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * @example
+ * ### Using a regular function
+ *
+ * ```js
+ * export async function getServerSideProps(context: GetServerSidePropsContext) { // or NextPageContext
+ *   const nhostSession = await getNhostSession(BACKEND_URL, context)
+ *
+ *   return {
+ *     props: {
+ *       nhostSession
+ *     }
+ *   }
+ * }
+ * ```
+ *
+ * @param backendUrl - URL of your Nhost application
+ * @param context - Next.js context
+ * @returns Nhost session
+ */
 export const getNhostSession = async (
   backendUrl: string,
-  context: NextPageContext
+  context: NextPageContext | GetServerSidePropsContext
 ): Promise<NhostSession | null> => {
   let session: NhostSession | null = null
   if (context.req && context.res) {
