@@ -1,0 +1,1 @@
+INSERT INTO "public"."plans" (id, name, stripe_price_id) VALUES ('cbf36221-3b37-414b-ac37-5e33bed8e8cf', 'Free', 'price_1KnrBACCF9wuB4fXGETY4ywn');

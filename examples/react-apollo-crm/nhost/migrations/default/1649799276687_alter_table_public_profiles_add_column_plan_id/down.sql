@@ -1,4 +1,4 @@
 -- Could not auto-generate a down migration.
 -- Please write an appropriate down migration for the SQL below:
--- alter table "public"."companies" add column "email_domain" text
---  null;
+-- alter table "public"."profiles" add column "plan_id" uuid
+--  not null;

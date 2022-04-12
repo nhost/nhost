@@ -1,0 +1,20 @@
+table:
+  name: profiles
+  schema: public
+configuration:
+  custom_column_names:
+    plan_id: planId
+    stripe_customer_id: stripeCustomerId
+  custom_root_fields:
+    delete: deleteProfiles
+    delete_by_pk: deleteProfile
+    insert: insertProfiles
+    insert_one: insertProfile
+    select_aggregate: profilesAggregate
+    select_by_pk: profile
+    update: updateProfiles
+    update_by_pk: updateProfile
+object_relationships:
+- name: user
+  using:
+    foreign_key_constraint_on: id

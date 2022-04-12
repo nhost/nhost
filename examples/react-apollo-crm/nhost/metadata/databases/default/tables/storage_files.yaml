@@ -68,8 +68,6 @@ select_permissions:
       _or:
       - customerCommentFiles:
           customer:
-            company:
-              companyUsers:
-                user_id:
-                  _eq: X-Hasura-User-Id
+            user_id:
+              _eq: X-Hasura-User-Id
   role: user

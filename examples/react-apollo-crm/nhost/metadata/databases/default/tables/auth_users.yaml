@@ -33,18 +33,16 @@ configuration:
     update: updateUsers
     update_by_pk: updateUser
 object_relationships:
-- name: companyUser
-  using:
-    manual_configuration:
-      column_mapping:
-        id: user_id
-      insertion_order: null
-      remote_table:
-        name: company_users
-        schema: public
 - name: defaultRoleByRole
   using:
     foreign_key_constraint_on: default_role
+- name: profile
+  using:
+    foreign_key_constraint_on:
+      column: id
+      table:
+        name: profiles
+        schema: public
 array_relationships:
 - name: customer_comments
   using:
@@ -81,20 +79,6 @@ array_relationships:
       table:
         name: user_providers
         schema: auth
-select_permissions:
-- permission:
-    columns:
-    - avatar_url
-    - display_name
-    - email
-    - id
-    filter:
-      companyUser:
-        company:
-          companyUsers:
-            user_id:
-              _eq: X-Hasura-User-Id
-  role: user
 event_triggers:
 - definition:
     enable_manual: false
@@ -103,9 +87,9 @@ event_triggers:
   headers:
   - name: nhost-webhook-secret
     value_from_env: NHOST_WEBHOOK_SECRET
-  name: users-insert-create-company-connection
+  name: users-insert--create-stripe-customer
   retry_conf:
     interval_sec: 10
     num_retries: 0
     timeout_sec: 60
-  webhook: "{{NHOST_BACKEND_URL}}/v1/functions/users/insert/create-company-connection"
+  webhook: "{{NHOST_BACKEND_URL}}/v1/functions/users/insert/create-stripe-customer"

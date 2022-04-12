@@ -4,7 +4,6 @@ table:
 configuration:
   custom_column_names:
     address_line_1: addressLine1
-    company_id: companyId
     created_at: createdAt
     updated_at: updatedAt
     user_id: userId
@@ -20,9 +19,6 @@ configuration:
     update: updateCustomers
     update_by_pk: updateCustomer
 object_relationships:
-- name: company
-  using:
-    foreign_key_constraint_on: company_id
 - name: user
   using:
     foreign_key_constraint_on: user_id
@@ -38,13 +34,10 @@ insert_permissions:
 - permission:
     backend_only: false
     check:
-      company:
-        companyUsers:
-          user_id:
-            _eq: X-Hasura-User-Id
+      user_id:
+        _eq: X-Hasura-User-Id
     columns:
     - address_line_1
-    - company_id
     - name
     set:
       user_id: x-hasura-user-id
@@ -52,16 +45,29 @@ insert_permissions:
 select_permissions:
 - permission:
     columns:
-    - id
-    - created_at
-    - updated_at
-    - name
     - address_line_1
-    - company_id
+    - created_at
+    - id
+    - name
+    - updated_at
     - user_id
     filter:
-      company:
-        companyUsers:
-          user_id:
-            _eq: X-Hasura-User-Id
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: user
+update_permissions:
+- permission:
+    check: null
+    columns:
+    - address_line_1
+    - name
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: user
+delete_permissions:
+- permission:
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
   role: user
