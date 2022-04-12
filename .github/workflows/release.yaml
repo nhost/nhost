@@ -27,7 +27,7 @@ jobs:
           - goarch: arm64
             goos: linux
     steps:
-      - uses: actions/checkout@v2.3.4
+      - uses: actions/checkout@v3.0.0
 
       - name: Set VERSION env
         run: |
@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: releases-matrix
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3.0.0
         with:
           ref: gh-pages
       - name: Generate releases.json
