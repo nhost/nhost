@@ -1,5 +1,19 @@
 # @nhost/nextjs
 
+## 1.0.13
+
+### Patch Changes
+
+- 4635a14: - fixed typings of `getNhostSession` function (thanks to [zerosym](https://github.com/zerosym))
+  - added missing TSdoc to `getNhostSession` function
+
+## 1.0.12
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.11
+- @nhost/react@0.5.2
+
 ## 1.0.11
 
 ### Patch Changes
