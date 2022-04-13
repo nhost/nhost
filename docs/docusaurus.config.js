@@ -51,6 +51,12 @@ const config = {
         disableSwitch: false,
         respectPrefersColorScheme: true,
       },
+      metadata: [
+        {
+          name: 'og:image',
+          content: 'https://docs.nhost.io/img/splash.png',
+        },
+      ],
       navbar: {
         hideOnScroll: true,
         logo: {
