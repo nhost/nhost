@@ -1,6 +1,6 @@
 ---
 title: 'GraphQL'
-sidebar_position: 3
+sidebar_position: 1
 ---
 
 GraphQL is a query language for APIs. It provides a complete and understandable description of the data in your API.
