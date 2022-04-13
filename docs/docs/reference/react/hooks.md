@@ -321,14 +321,8 @@ const accessToken = useAccessToken();
 ### Change email
 
 ```js
-const {
-  changeEmail,
-  isLoading,
-  isSuccess,
-  needsEmailVerification,
-  isError,
-  error,
-} = useChangeEmail(/* options?: { redirectTo?: string } */);
+const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+  useChangeEmail(/* options?: { redirectTo?: string } */);
 ```
 
 | Name                     | Type                                                     | Notes                                                                                                                                                                                                             |
