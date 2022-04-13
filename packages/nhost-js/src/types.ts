@@ -3,7 +3,7 @@ import type { AxiosResponse } from 'axios'
 export type GraphqlRequestResponse<T = unknown> =
   | {
       data: null
-      error: Error | object
+      error: Error | object | object[]
     }
   | {
       data: T
