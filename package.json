@@ -37,8 +37,7 @@
   },
   "workspaces": [
     "packages/*",
-    "docs",
-    "docs-next"
+    "docs"
   ],
   "devDependencies": {
     "@babel/core": "^7.17.5",
