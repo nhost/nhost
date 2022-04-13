@@ -54,8 +54,7 @@ const config = {
       metadata: [
         {
           name: 'og:image',
-          content:
-            'https://repository-images.githubusercontent.com/337414495/ac3a7136-b0fa-46d6-b908-d6fd23d9b14c',
+          content: 'https://docs.nhost.io/img/splash.png',
         },
       ],
       navbar: {
