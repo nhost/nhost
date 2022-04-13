@@ -2,8 +2,10 @@ import {
   DocumentNode,
   OperationVariables,
   QueryHookOptions,
+  SubscriptionHookOptions,
   TypedDocumentNode,
-  useQuery
+  useQuery,
+  useSubscription
 } from '@apollo/client'
 import { useAuthenticated } from '@nhost/react'
 
@@ -16,11 +18,22 @@ export function useAuthQuery<TData = any, TVariables = OperationVariables>(
   return useQuery(query, newOptions)
 }
 
+export function useAuthSubscription<TData = any, TVariables = OperationVariables>(
+  subscription: DocumentNode | TypedDocumentNode<TData, TVariables>,
+  options?: SubscriptionHookOptions<TData, TVariables>
+) {
+  const isAuthenticated = useAuthenticated()
+  const newOptions: SubscriptionHookOptions<TData, TVariables> = {
+    ...options,
+    skip: options?.skip || !isAuthenticated
+  }
+  return useSubscription(subscription, newOptions)
+}
+
 // TODO consider other hooks
 /*
 - useAuthLazyQuery
 - useAuthMutation
-- useAuthSubscription
 - useRoleQuery
 - useRoleLazyQuery
 - useRoleMutation
