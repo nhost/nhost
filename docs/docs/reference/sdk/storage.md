@@ -1,0 +1,49 @@
+---
+title: 'Storage'
+sidebar_position: 3
+---
+
+## `nhost.storage.upload()`
+
+Upload a file. Stores a new file or replaces an existing file.
+
+| Parameter         | Type                                                          | Notes                                                                                                        |
+| ----------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `file` (required) | [File](https://developer.mozilla.org/en-US/docs/Web/API/File) | The file to upload.                                                                                          |
+| `bucketId`        | String                                                        | The bucket to be used. If no `bucketId` is specified the default bucket is used.                             |
+| `id`              | String                                                        | Database ID of the file to override. If no `id` is specified, the server generates a unique ID for the file. |
+| `name`            | String                                                        |                                                                                                              |
+
+```js
+const { fileMetadata, error } = await nhost.storage.upload({ file });
+```
+
+---
+
+## `nhost.storage.getPublicUrl()`
+
+Get the public URL of a file. To access the file via public URL, the file must have the `select` permission for the `public` role.
+
+```js
+const url = nhost.storage.getPublicUrl({ fileId });
+```
+
+---
+
+## `nhost.storage.getPresignedUrl()`
+
+Get a presigned URL for a file. To generate a presigned URL for the file, a user has to be logged in and have `select` permission to the file.
+
+```js
+const { presignedUrl, error } = await nhost.storage.getPresignedUrl({ fileId });
+```
+
+---
+
+## `nhost.storage.delete()`
+
+Delete a file.
+
+```js
+const { error } = await nhost.storage.delete({ fileId });
+```

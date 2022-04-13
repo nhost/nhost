@@ -1,0 +1,34 @@
+---
+title: 'GraphQL'
+sidebar_position: 1
+---
+
+## `nhost.graphql.request()`
+
+Make GraphQL query or mutation request.
+
+| Variable         | Type   | Notes                                         |
+| ---------------- | ------ | --------------------------------------------- |
+| query (required) | String | A valid GraphQL query or mutation.            |
+| variables        | Object | Key-value pairs to use in your GraphQL query. |
+| httpOptions      | Object |                                               |
+
+```js
+const { data, error } = await nhost.graphql.request(`
+  query {
+    customers {
+      id
+      name
+      public
+    }
+  }
+`);
+```
+
+## `nhost.graphql.getUrl()`
+
+Returns the GraphQL API endpoint of the Nhost app.
+
+```js
+const graphqlEndpoint = nhost.graphql.getUrl();
+```
