@@ -21,7 +21,8 @@ export function createRestartableClient(options: ClientOptions): RestartableClie
       connected: () => {
         _started = true
       },
-      opened: (socket: any) => {
+      opened: (originalSocket) => {
+        const socket = originalSocket as WebSocket
         options.on?.opened?.(socket)
 
         restart = () => {
