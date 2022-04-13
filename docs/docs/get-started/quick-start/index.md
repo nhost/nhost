@@ -1,6 +1,5 @@
 ---
 title: 'Create your app'
-slug: /get-started/quick-start
 sidebar_position: 1
 ---
 
