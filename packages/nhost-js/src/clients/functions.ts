@@ -18,7 +18,7 @@ export class NhostFunctionsClient {
     })
   }
 
-  async call(url: string, data: any, config?: AxiosRequestConfig): Promise<FunctionCallResponse> {
+  async call<T = unknown, D = any>(url: string, data: D, config?: AxiosRequestConfig): Promise<FunctionCallResponse<T>> {
     const headers = {
       ...this.generateAccessTokenHeaders(),
       ...config?.headers

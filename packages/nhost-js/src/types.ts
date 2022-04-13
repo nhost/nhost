@@ -1,18 +1,18 @@
 import type { AxiosResponse } from 'axios'
 
-export type GraphqlRequestResponse =
+export type GraphqlRequestResponse<T = unknown> =
   | {
       data: null
       error: Error | object
     }
   | {
-      data: unknown
+      data: T
       error: null
     }
 
-export type FunctionCallResponse =
+export type FunctionCallResponse<T = unknown> =
   | {
-      res: AxiosResponse
+      res: AxiosResponse<T>
       error: null
     }
   | {
@@ -20,7 +20,7 @@ export type FunctionCallResponse =
       error: Error
     }
 
-export interface GraphqlResponse {
+export interface GraphqlResponse<T = object> {
   errors?: object[]
-  data?: object
+  data?: T
 }
