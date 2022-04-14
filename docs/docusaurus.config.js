@@ -34,7 +34,7 @@ const config = {
           sidebarPath: require.resolve('./sidebars.js'),
           remarkPlugins: [require('mdx-mermaid')],
           // Please change this to your repo.
-          editUrl: 'https://github.com/nhost/nhost/blob/main/docs/',
+          editUrl: 'https://github.com/nhost/nhost/edit/main/docs/',
         },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
