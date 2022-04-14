@@ -154,7 +154,7 @@ export const createObjectRelationship = async (
 };
 
 export const createArrayRelationship = async (args: CreateRelationshipArgs) => {
-  logger.info(`create array relationship ${args.name} for ${args.table.name}`);
+  logger.info(`Create array relationship ${args.name} for ${args.table.name}`);
   try {
     await runMetadataRequest({
       type: 'pg_create_array_relationship',
@@ -193,7 +193,7 @@ export const dropRelationship = async (args: DropRelationshipArgs) => {
 };
 
 export const applyMetadata = async (): Promise<void> => {
-  logger.info('Applying metadata');
+  logger.info('Applying metadata...');
 
   // track
   await trackTable({
@@ -652,5 +652,5 @@ export const applyMetadata = async (): Promise<void> => {
   });
   logger.debug('Reloading metadata..');
   await reloadMetadata();
-  logger.debug('Done applying metadata');
+  logger.info('Metadata applied');
 };
