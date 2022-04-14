@@ -2,7 +2,7 @@
 '@nhost/nhost-js': minor
 ---
 
-Add `gql` support for GraphQL client
+Add `graphql-tag` support for GraphQL client
 It is now possible to use a `graphql-tag` argument with `nhost.graphql.request`:
 
 ```js
