@@ -96,7 +96,7 @@ hasura metadata export --endpoint=http://localhost:[hasura-port] --admin-secret=
 ```
 
 :::warning
-You can not use port `1337` in the commands above. You have to use the specific port Huasra uses. Go to the Hasura Console under API and look what port Hasura is using under GraphQL Endpoint.
+You cannot use port `1337` in the commands above. You have to use the specific port Hasura uses. Go to the Hasura Console under API and look what port Hasura is using under GraphQL Endpoint.
 :::
 
 ### Done
