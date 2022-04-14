@@ -1,5 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import type { DocumentNode } from 'graphql'
+import { print } from 'graphql/language/printer'
 
 import { GraphqlRequestResponse, GraphqlResponse } from '../types'
 
@@ -41,16 +42,7 @@ export class NhostGraphqlClient {
         '',
         {
           operationName: operationName || undefined,
-          query:
-            typeof document === 'string'
-              ? document
-              : /*
-                 * Dynamic import as graphql is an optional dependency and
-                 * doesn't need to be here if the user is sending a string request
-                 * On the other hand, if they send a graphql-tag request, we then
-                 * know the graphql package is available
-                 */
-                (await import('graphql/language/printer')).print(document),
+          query: typeof document === 'string' ? document : print(document),
           variables
         },
         { ...config, headers }
