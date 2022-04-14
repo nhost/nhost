@@ -40,10 +40,10 @@ HTTP endpoints are automatically generated based on the file structure under `fu
 As such, given this file structure:
 
 ```text
-functions/index.js;
-functions/users/index.ts;
-functions/active.ts;
-functions/my-company.js;
+functions/index.js
+functions/users/index.ts
+functions/active.ts
+functions/my-company.js
 ```
 
 The following endpoints will be available:
