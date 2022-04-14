@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { Strategy } from 'passport-twitter';
+import { PROVIDERS } from '@config';
+import { sendError } from '@/errors';
 import { initProvider } from './utils';
-import { PROVIDERS } from '@config/index';
 
 export default (router: Router): void => {
   const options = PROVIDERS.twitter;
@@ -17,7 +18,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.twitter) {
-        return res.boom.notImplemented(`Twitter sign-in is not enabled`);
+        return sendError(res, 'disabled-endpoint');
       } else if (!options?.consumerKey || !options?.consumerSecret) {
         throw new Error(`Missing environment variables for Twitter OAuth`);
       } else {

@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { Strategy } from 'passport-google-oauth20';
+import { PROVIDERS } from '@config';
+import { sendError } from '@/errors';
 import { initProvider } from './utils';
-import { PROVIDERS } from '@config/index';
 
 export default (router: Router): void => {
   const options = PROVIDERS.google;
@@ -17,7 +18,7 @@ export default (router: Router): void => {
     },
     (req, res, next) => {
       if (!PROVIDERS.google) {
-        return res.boom.notImplemented(`Google sign-in is not enabled`);
+        return sendError(res, 'disabled-endpoint');
       } else if (!options?.clientID || !options?.clientSecret) {
         throw new Error(`Missing environment variables for Google OAuth`);
       } else {

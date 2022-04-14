@@ -1,47 +1,37 @@
-import { Response } from 'express';
+import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk } from '@/utils/gqlSDK';
-import { generateTicketExpiresAt } from '@/utils/ticket';
+import { gqlSdk, generateTicketExpiresAt, ENV } from '@/utils';
 import { emailClient } from '@/email';
-import { ENV } from '@/utils/env';
-import { isValidRedirectTo } from '@/helpers';
+import { Joi, email, redirectTo } from '@/validation';
+import { EMAIL_TYPES } from '@/types';
 
-type BodyType = {
-  newEmail: string;
-  options?: {
-    redirectTo?: string;
-  };
-};
+export const userEmailChangeSchema = Joi.object({
+  newEmail: email,
+  options: Joi.object({
+    redirectTo,
+  }).default(),
+}).meta({ className: 'UserEmailChangeSchema' });
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userEmailChange = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
-  const { newEmail, options } = req.body;
-
-  // check if redirectTo is valid
-  const redirectTo = options?.redirectTo ?? ENV.AUTH_CLIENT_URL;
-  if (!isValidRedirectTo(redirectTo)) {
-    return res.boom.badRequest(`'redirectTo' is not valid`);
+export const userEmailChange: RequestHandler<
+  {},
+  {},
+  {
+    newEmail: string;
+    options: {
+      redirectTo: string;
+    };
   }
+> = async (req, res) => {
+  const {
+    newEmail,
+    options: { redirectTo },
+  } = req.body;
 
-  if (!req.auth?.userId) {
-    return res.boom.unauthorized('User must be signed in');
-  }
+  const { userId } = req.auth as RequestAuth;
 
-  const { userId } = req.auth;
-
-  const ticket = `emailConfirmChange:${uuidv4()}`;
+  const ticket = `${EMAIL_TYPES.CONFIRM_CHANGE}:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60); // 1 hour
 
   // set newEmail for user
@@ -64,7 +54,7 @@ export const userEmailChange = async (
   await emailClient.send({
     template,
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`,
+      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.CONFIRM_CHANGE}&redirectTo=${redirectTo}`,
       displayName: user.displayName,
       ticket,
       redirectTo,
@@ -91,5 +81,5 @@ export const userEmailChange = async (
     },
   });
 
-  return res.send('ok');
+  return res.send(ReasonPhrases.OK);
 };

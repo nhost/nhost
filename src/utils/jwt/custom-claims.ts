@@ -3,7 +3,7 @@ import { set } from 'dot-prop';
 import jsonata from 'jsonata';
 
 import { ENV } from '../env';
-import { client } from '../gqlSDK';
+import { client } from '../gql-sdk';
 import { logger } from '@/logger';
 
 /**

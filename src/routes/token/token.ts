@@ -1,25 +1,17 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
+import { getNewSession, gqlSdk } from '@/utils';
+import { sendError } from '@/errors';
+import { Joi, refreshToken } from '@/validation';
 
-import { getNewSession } from '@/utils/tokens';
-import { gqlSdk } from '@/utils/gqlSDK';
+export const tokenSchema = Joi.object({
+  refreshToken,
+}).meta({ className: 'TokenSchema' });
 
-type BodyType = {
-  refreshToken: string;
-};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const tokenHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const tokenHandler: RequestHandler<
+  {},
+  {},
+  { refreshToken: string }
+> = async (req, res) => {
   const { refreshToken } = req.body;
 
   // set expiresAt to now + 10 seconds.
@@ -39,21 +31,21 @@ export const tokenHandler = async (
     });
 
   if (!refreshTokens) {
-    return res.boom.unauthorized('Invalid or expired refresh token');
+    return sendError(res, 'invalid-refresh-token');
   }
 
   if (refreshTokens.length === 0) {
-    return res.boom.unauthorized('Invalid or expired refresh token');
+    return sendError(res, 'invalid-refresh-token');
   }
 
   const user = refreshTokens[0].user;
 
   if (!user) {
-    return res.boom.unauthorized('Invalid or expired refresh token');
+    return sendError(res, 'invalid-refresh-token');
   }
 
   if (user.disabled) {
-    return res.boom.unauthorized('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   // // delete current refresh token

@@ -1,7 +1,6 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
 
-import { ENV } from '@/utils/env';
 import {
   createArrayRelationship,
   createObjectRelationship,
@@ -10,10 +9,10 @@ import {
   trackTable,
   untrackTable,
 } from '@/metadata';
+import { escapeValueToPg, ENV } from '@/utils';
 
 import { request } from '../../server';
 import { decodeAccessToken } from '../../utils';
-import { escapeValueToPg } from '@/utils/jwt/custom-claims';
 
 describe('custom JWT claims', () => {
   let client: Client;

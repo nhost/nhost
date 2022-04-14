@@ -1,8 +1,10 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
+import { StatusCodes } from 'http-status-codes';
+import { ENV } from '@/utils';
+
 import { request } from './server';
 import { mailHogSearch } from './utils';
-import { ENV } from '@/utils/env';
 
 describe('custom external email templates', () => {
   let client: Client;
@@ -38,7 +40,7 @@ describe('custom external email templates', () => {
     await request
       .post('/signup/email-password')
       .send({ email, password })
-      .expect(200);
+      .expect(StatusCodes.OK);
 
     // fetch email from mailhog and check ticket
     const [message] = await mailHogSearch(email);

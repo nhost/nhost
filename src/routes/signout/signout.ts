@@ -1,32 +1,32 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
+import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk } from '@/utils/gqlSDK';
+import { gqlSdk } from '@/utils';
+import { sendError } from '@/errors';
+import { Joi, refreshToken } from '@/validation';
 
-type BodyType = {
-  refreshToken: string;
-  all: boolean;
-};
+export const signOutSchema = Joi.object({
+  refreshToken,
+  all: Joi.boolean()
+    .default(false)
+    .description('Sign out from all connected devices'),
+}).meta({ className: 'SignOutSchema' });
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signOutHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signOutHandler: RequestHandler<
+  {},
+  {},
+  {
+    refreshToken: string;
+    all: boolean;
+  }
+> = async (req, res) => {
   const { refreshToken, all } = req.body;
 
   if (all) {
     if (!req.auth?.userId) {
-      return res.boom.unauthorized(
-        'User must be signed in to sign out from all sessions'
-      );
+      return sendError(res, 'unauthenticated-user', {
+        customMessage: 'User must be signed in to sign out from all sessions',
+      });
     }
 
     const { userId } = req.auth;
@@ -42,5 +42,5 @@ export const signOutHandler = async (
     });
   }
 
-  return res.send('OK');
+  return res.send(ReasonPhrases.OK);
 };

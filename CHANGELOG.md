@@ -1,41 +1,96 @@
 
 
-## [0.4.2](https://github.com/nhost/hasura-auth/compare/v0.4.1...v0.4.2) (2022-03-15)
+# [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
 
 
 ### Bug Fixes
 
-* check if photo item exists ([#115](https://github.com/nhost/hasura-auth/issues/115)) ([aab9637](https://github.com/nhost/hasura-auth/commit/aab963758652bf7ee045db7bf3691b6bc5766d17))## [0.4.1](https://github.com/nhost/hasura-auth/compare/v0.4.0...v0.4.1) (2022-03-15)
-
-
-### Bug Fixes
-
-* 0.4.0 bugs ([#114](https://github.com/nhost/hasura-auth/issues/114)) ([0024aa1](https://github.com/nhost/hasura-auth/commit/0024aa16f7e3a98bbcb7232512c82080a5f464a9))
-* correct redirect url generation ([02e75cf](https://github.com/nhost/hasura-auth/commit/02e75cfd935926d235291eb7c5b9e82a6d929fe5))# [0.4.0](https://github.com/nhost/hasura-auth/compare/v0.3.2...v0.4.0) (2022-03-14)
-
-
-### Bug Fixes
-
-* provider requests signup data and redirectTo ([#108](https://github.com/nhost/hasura-auth/issues/108)) ([068f9c0](https://github.com/nhost/hasura-auth/commit/068f9c0d650b655656d78af4b719dc2289be0e67))
+* change default refresh token expiration to 30 days ([a2e0d2a](https://github.com/nhost/hasura-auth/commit/a2e0d2a677d0810534a2e2004b104e4e42cb4872)), closes [#48](https://github.com/nhost/hasura-auth/issues/48)
+* rename JWT claim `x-hasura-isAnonymous` to `x-hasura-is-anonymous` ([a4ca42e](https://github.com/nhost/hasura-auth/commit/a4ca42e780a7b39464000e21b48df503fc3d50d9)), closes [#126](https://github.com/nhost/hasura-auth/issues/126)
 
 
 ### Features
 
-* error redirects ([#109](https://github.com/nhost/hasura-auth/issues/109)) ([0dcb370](https://github.com/nhost/hasura-auth/commit/0dcb37028ec19cfd546a5c847a7e13f8ea9a5195))undefined
+* add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User ([4d452d7](https://github.com/nhost/hasura-auth/commit/4d452d7d0b374cad7deb3d59422ad973fb4d801e))# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
+
+## What's new
+
+### Consistent error messages
+
+Error messages were either sent as string or as an object (other errors). Moreover, the request payload validation was performed in two separate places in the code, as and a result, it was not possible to predict if payload validation errors were sent as a string or an object.
+In addition, error codes and messages were inconsistent or missing from one endpoint to another, given the same type of error.
+
+All errors sent back to the client now follow the same format:
+
+```ts
+{
+  error: string; // machine-readable error code
+  status: number; // http status
+  message: string; // human-readable message
+}
+```
+
+The list of errors is comprehensive and available [here](https://github.com/nhost/hasura-auth/blob/dc4a4126cd36d73a67d3e0ead07c061cd3a31f9f/src/errors.ts#L46).
+
+Closes [#98](https://github.com/nhost/hasura-auth/issues/98), [#46](https://github.com/nhost/hasura-auth/issues/46)
+
+### Send errors with the redirection
+
+Until now, endpoints that were redirecting the user to the frontend client were stopping redirection when an error occurred. It lead to bad user experience as users where stopped on a
+
+In all the endpoints that have a `redirectTo` option, errors are now instead passed on to the frontend client as a query parameter, so the frontend can handle these errors and guide the user accordingly.
+
+The two following keys are added to the query string:
+
+- `error`: machine-readable error code
+- `errorDescription`: human-readable message
+
+### Validate email when using Oauth providers
+
+Email were not validated when authenticating with an Oauth provider. When the Oauth provider calls back to Hasura Auth, users with an email that don't follow the rules determined by `AUTH_ACCESS_CONTROL_ALLOWED_EMAILS`, `AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS`, `AUTH_ACCESS_CONTROL_BLOCKED_EMAILS` and `AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS` are now not able to complete authentication.
+
+Closes [#84](https://github.com/nhost/hasura-auth/issues/84)
+
+### Fix allowed roles validation
+
+The validation of `allowedRoles` were failing when passed on as an option.
+Closes [#116](https://github.com/nhost/hasura-auth/issues/116)
+
+### Improve code readability
+
+This release comes with improvements in the code structure and readiblity:
+
+- Request payload validation is consistently done by Joi prior to the handling of the endpoint logic
+- The payload validation rules have been move to each route file, instead of putting them all in the same place
+- Http status codes and messages are not hard coded anymore, but are writtent with `http-status-codes`
+- Helpers and utils files are restructured in a more sensible way, and exported/imported in the ESM way
+- Dead code and uneless/stale comments have been removed
+
+## [0.4.3](https://github.com/nhost/hasura-auth/compare/v0.4.2...v0.4.3) (2022-03-18)
+
+### Features
+
+- error redirects ([#109](https://github.com/nhost/hasura-auth/issues/109)) ([0dcb370](https://github.com/nhost/hasura-auth/commit/0dcb37028ec19cfd546a5c847a7e13f8ea9a5195))
+
+### Bug Fixes
+
+- root field typo ([#117](https://github.com/nhost/hasura-auth/issues/117)) ([ebb19f8](https://github.com/nhost/hasura-auth/commit/ebb19f8cea693f7e26039345a807308d052a532f))## [0.4.2](https://github.com/nhost/hasura-auth/compare/v0.4.1...v0.4.2) (2022-03-15)
+- check if photo item exists ([#115](https://github.com/nhost/hasura-auth/issues/115)) ([aab9637](https://github.com/nhost/hasura-auth/commit/aab963758652bf7ee045db7bf3691b6bc5766d17))## [0.4.1](https://github.com/nhost/hasura-auth/compare/v0.4.0...v0.4.1) (2022-03-15)
+- 0.4.0 bugs ([#114](https://github.com/nhost/hasura-auth/issues/114)) ([0024aa1](https://github.com/nhost/hasura-auth/commit/0024aa16f7e3a98bbcb7232512c82080a5f464a9))
+- correct redirect url generation ([02e75cf](https://github.com/nhost/hasura-auth/commit/02e75cfd935926d235291eb7c5b9e82a6d929fe5))# [0.4.0](https://github.com/nhost/hasura-auth/compare/v0.3.2...v0.4.0) (2022-03-14)
+- provider requests signup data and redirectTo ([#108](https://github.com/nhost/hasura-auth/issues/108)) ([068f9c0](https://github.com/nhost/hasura-auth/commit/068f9c0d650b655656d78af4b719dc2289be0e67))
 
 ## [0.3.2](https://github.com/nhost/hasura-auth/compare/v0.3.1...v0.3.2) (2022-03-09)
 
-
 ### Bug Fixes
 
-* patch twitch Oauth provider ([1cd9926](https://github.com/nhost/hasura-auth/commit/1cd992602b22cbd40cd5dbf44947a67ba303ef5f))undefined
+- patch twitch Oauth provider ([1cd9926](https://github.com/nhost/hasura-auth/commit/1cd992602b22cbd40cd5dbf44947a67ba303ef5f))undefined
 
 ## [0.3.1](https://github.com/nhost/hasura-auth/compare/v0.3.0...v0.3.1) (2022-03-04)
 
-
 ### Bug Fixes
 
-* use process.env.npm_package_version instead of import 'package.json' ([ab23184](https://github.com/nhost/hasura-auth/commit/ab23184e7c9638e6ae15cd0fe14232cf3c77dd67))# [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
+- use process.env.npm_package_version instead of import 'package.json' ([ab23184](https://github.com/nhost/hasura-auth/commit/ab23184e7c9638e6ae15cd0fe14232cf3c77dd67))# [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
 
 ### Features
 
@@ -96,7 +151,7 @@ It will then use the same expressions e.g. `profile.contributesTo.project.id` 
     "x-hasura-allowed-roles": [ "me", "user" ],
     "x-hasura-default-role": "user",
     "x-hasura-user-id": "121bbea4-908e-4540-ac5d-52c7f6f93bec",
-    "x-hasura-user-isAnonymous": "false"
+    "x-hasura-user-is-anonymous": "false"
   }
   "sub": "f8776768-4bbd-46f8-bae1-3c40da4a89ff",
   "iss": "hasura-auth",

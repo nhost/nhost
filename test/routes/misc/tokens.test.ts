@@ -1,3 +1,4 @@
+import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 
 import { ENV } from '../../../src/utils/env';
@@ -29,7 +30,10 @@ describe('token', () => {
       AUTH_ANONYMOUS_USERS_ENABLED: true,
     });
 
-    const { body } = await request.post('/signin/anonymous').send().expect(200);
+    const { body } = await request
+      .post('/signin/anonymous')
+      .send()
+      .expect(StatusCodes.OK);
 
     const { accessToken, accessTokenExpiresIn, refreshToken } = body.session;
     const { mfa } = body;

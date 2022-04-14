@@ -1,14 +1,16 @@
 // rotate provider tokens
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import refresh from 'passport-oauth2-refresh';
+import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk } from '@/utils/gqlSDK';
-import { ENV } from '@/utils/env';
+import { gqlSdk, ENV } from '@/utils';
+import { sendError } from '@/errors';
+import { Joi, userId } from '@/validation';
+
+type BodyType = {
+  providerId: string;
+  userId?: string;
+};
 
 const rotate = async ({ providerId, userId }: BodyType) => {
   const { authUserProviders } = await gqlSdk.userProvider({
@@ -50,32 +52,25 @@ const rotate = async ({ providerId, userId }: BodyType) => {
   );
 };
 
-type BodyType = {
-  providerId: string;
-  userId?: string;
-};
+export const userProviderTokensSchema = Joi.object({
+  providerId: Joi.string().required(),
+  userId: userId.required(),
+}).meta({ className: 'UserProviderTokensSchema' });
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userProviderTokensHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const userProviderTokensHandler: RequestHandler<
+  {},
+  {},
+  BodyType
+> = async (req, res) => {
   const adminSecret = req.headers['x-hasura-admin-secret'];
 
   if (adminSecret !== ENV.HASURA_GRAPHQL_ADMIN_SECRET) {
-    return res.boom.unauthorized('incorrect admin secret header');
+    return sendError(res, 'invalid-admin-secret');
   }
 
   const { providerId, userId } = req.body;
 
-  if (!userId) {
-    return res.boom.badRequest('missing userId');
-  }
-
   await rotate({ providerId, userId });
 
-  return res.send('OK');
+  return res.send(ReasonPhrases.OK);
 };

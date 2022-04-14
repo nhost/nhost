@@ -1,12 +1,12 @@
 import { Router } from 'express';
-// import { createValidator } from 'express-joi-validation';
 
-import { asyncWrapper as aw } from '@/helpers';
-// import { tokenSchema } from '@/validation';
-import { verifyHandler } from './verify';
+import { asyncWrapper as aw } from '@/utils';
+import { verifyHandler, verifySchema } from './verify';
+import { queryValidator } from '@/validation';
 
 const router = Router();
 
+// TODO: use VerifySchema in the jsdoc
 /**
  * GET /verify
  * @summary Verify tickets created by email verification, email passwordless authentication, or password reset
@@ -14,11 +14,10 @@ const router = Router();
  * @param {string} type.query.required - name param description - enum:emailVerify,emailConfirmChange,signinPasswordless,passwordReset
  * @param {string} redirectTo.query.required - Redirection link
  * @return {string} 302 - {redirectTo}#refreshToken=${refreshToken}&type=${type}
- * @return {string} 400 - The payload format is invalid - application/json
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
  * @tags General
  */
-// TODO use Joi
-router.get('/verify', aw(verifyHandler));
+router.get('/verify', queryValidator(verifySchema), aw(verifyHandler));
 
 const verifyRouter = router;
 export { verifyRouter };

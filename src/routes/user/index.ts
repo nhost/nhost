@@ -1,22 +1,26 @@
 import { Router } from 'express';
-import { createValidator } from 'express-joi-validation';
 
-import { asyncWrapper as aw } from '@/helpers';
-import {
-  userDeanonymizeSchema,
-  userEmailChangeSchema,
-  userEmailSendVerificationEmailSchema,
-  userPasswordResetSchema,
-  userPasswordSchema,
-  userProviderTokensSchema,
-} from '@/validation';
-import { userMFAHandler } from './mfa';
+import { asyncWrapper as aw } from '@/utils';
+import { bodyValidator } from '@/validation';
+import { authenticationGate } from '@/middleware/auth';
+
+import { userMFAHandler, userMfaSchema } from './mfa';
 import { userHandler } from './user';
-import { userPasswordHandler } from './password';
-import { userPasswordResetHandler } from './password-reset';
-import { userDeanonymizeHandler } from './deanonymize';
-import { userProviderTokensHandler } from './provider-tokens';
-import { userEmailSendVerificationEmailHandler } from './email';
+import { userPasswordHandler, userPasswordSchema } from './password';
+import {
+  userPasswordResetHandler,
+  userPasswordResetSchema,
+} from './password-reset';
+import { userDeanonymizeHandler, userDeanonymizeSchema } from './deanonymize';
+import {
+  userProviderTokensHandler,
+  userProviderTokensSchema,
+} from './provider-tokens';
+import {
+  userEmailChangeSchema,
+  userEmailSendVerificationEmailHandler,
+  userEmailSendVerificationEmailSchema,
+} from './email';
 import { userEmailChange } from './email';
 
 const router = Router();
@@ -25,23 +29,23 @@ const router = Router();
  * GET /user
  * @summary Get user information
  * @return {User} 200 - User information - application/json
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags User management
  */
-router.get('/user', aw(userHandler));
+router.get('/user', authenticationGate, aw(userHandler));
 
 /**
  * POST /user/password/reset
  * @summary Send an email asking the user to reset their password
  * @param {UserPasswordResetSchema} request.body.required
  * @return {string} 200 - The email to reset the password has been sent - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @tags User management
  */
 router.post(
   '/user/password/reset',
-  createValidator().body(userPasswordResetSchema),
+  bodyValidator(userPasswordResetSchema),
   aw(userPasswordResetHandler)
 );
 
@@ -50,14 +54,14 @@ router.post(
  * @summary Set a new password
  * @param {UserPasswordSchema} request.body.required
  * @return {string} 200 - The password has been successfully changed - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags User management
  */
 router.post(
   '/user/password',
-  createValidator().body(userPasswordSchema),
+  bodyValidator(userPasswordSchema),
   aw(userPasswordHandler)
 );
 
@@ -65,13 +69,13 @@ router.post(
  * POST /user/email/send-verification-email
  * @summary Send an email to verify the account
  * @param {UserEmailSendVerificationEmailSchema} request.body.required
- * @return {string} 200 - OK - text/plain
- * @return {string} 400 - The payload format is invalid - text/plain
+ * @return {string} 200 - Success - text/plain
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
  * @tags User management
  */
 router.post(
   '/user/email/send-verification-email',
-  createValidator().body(userEmailSendVerificationEmailSchema),
+  bodyValidator(userEmailSendVerificationEmailSchema),
   aw(userEmailSendVerificationEmailHandler)
 );
 
@@ -80,14 +84,15 @@ router.post(
  * @summary Change the current user's email
  * @param {UserEmailChangeSchema} request.body.required
  * @return {string} 200 - A verification email has been sent to the new email - text/plain
- * @return {string} 400 - The payload format is invalid - text/plain
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags User management
  */
 router.post(
   '/user/email/change',
-  createValidator().body(userEmailChangeSchema),
+  bodyValidator(userEmailChangeSchema),
+  authenticationGate,
   aw(userEmailChange)
 );
 
@@ -96,31 +101,27 @@ router.post(
  * @summary Activate/deactivate Multi-factor authentication
  * @param {UserMfaSchema} request.body.required
  * @return {string} 200 - Success - text/plain
- * @return {string} 400 - The payload format is invalid - application/json
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags Authentication
  */
-router.post(
-  '/user/mfa',
-  // ? why is validation deactivated?
-  // createValidator().body(userMfaSchema),
-  aw(userMFAHandler)
-);
+router.post('/user/mfa', bodyValidator(userMfaSchema), aw(userMFAHandler));
 
 /**
  * POST /user/deanonymize
  * @summary 'Deanonymize' an anonymous user in adding missing email or email+password, depending on the chosen authentication method. Will send a confirmation email if the server is configured to do so.
  * @param {UserDeanonymizeSchema} request.body.required
  * @return {string} 200 - Success - text/plain
- * @return {string} 400 - The payload format is invalid - application/json
- * @return {UnauthenticatedError} 401 - User is not authenticated
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {UnauthenticatedUserError} 401 - User is not authenticated - application/json
  * @security BearerAuth
  * @tags Authentication
  */
 router.post(
   '/user/deanonymize',
-  createValidator().body(userDeanonymizeSchema),
+  bodyValidator(userDeanonymizeSchema),
+  authenticationGate,
   aw(userDeanonymizeHandler)
 );
 
@@ -130,13 +131,13 @@ router.post(
  * @param {UserProviderTokensSchema} request.body.required
  * @param {string} x-hasura-admin-secret.header.required - Hasura admin secret
  * @return {string} 200 - Success - text/plain
- * @return {string} 400 - The payload format is invalid - application/json
- * @return {UnauthenticatedError} 401 - Incorrect admin secret header
+ * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
+ * @return {InvalidAdminSecretError} 401 - Incorrect admin secret header - application/json
  * @tags User management
  */
 router.post(
   '/user/provider/tokens',
-  createValidator().body(userProviderTokensSchema),
+  bodyValidator(userProviderTokensSchema),
   aw(userProviderTokensHandler)
 );
 

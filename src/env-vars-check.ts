@@ -1,5 +1,4 @@
-import { PROVIDERS } from '@config/index';
-import { castObjectEnv } from '@config/utils';
+import { PROVIDERS, castObjectEnv } from '@config';
 import { logger } from './logger';
 
 function isUnset(val?: string) {
@@ -12,7 +11,7 @@ const errors: string[] = [];
 const warnings: string[] = [];
 
 if (process.env.AUTH_USER_SESSION_VARIABLE_FIELDS) {
-  // TODO check environment variable format on startup
+  // TODO: check environment variable format on startup
   warnings.push(
     `The 'AUTH_USER_SESSION_VARIABLE_FIELDS' environment variable is deprecated. Use 'AUTH_JWT_CUSTOM_CLAIMS' instead`
   );

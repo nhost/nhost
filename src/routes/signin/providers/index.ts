@@ -36,7 +36,6 @@ export default (parentRouter: Router) => {
    * @summary
    * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,windowslive,linkedin,spotify,strava,gitlab,bitbucket
    * @param {string} redirectUrl.query.required -
-   * @return {string} 501 - The provider is not enabled - text/plain
    * @tags Authentication
    */
 

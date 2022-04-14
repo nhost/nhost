@@ -1,25 +1,20 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { getSignInResponse } from '@/utils/tokens';
-import { gqlSdk } from '@/utils/gqlSDK';
+import { getSignInResponse, gqlSdk } from '@/utils';
 import { OtpSmsBody } from '@/types';
+import { sendError } from '@/errors';
+import { Joi } from '@/validation';
 
-type BodyType = OtpSmsBody;
+export const signInOtpSchema = Joi.object({
+  phoneNumber: Joi.string().required(),
+  otp: Joi.string().required(),
+}).meta({ className: 'SignInOtpSchema' });
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInOtpHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
+  req,
+  res
+) => {
   const { body } = req;
 
   const { phoneNumber, otp } = body;
@@ -49,20 +44,20 @@ export const signInOtpHandler = async (
     .then((gqlres) => gqlres.users[0]);
 
   if (!user) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   // continue checking the user
   if (user.disabled) {
-    return res.boom.badRequest('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   if (!user || !user.otpHash) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   if (!(await bcrypt.compare(otp, user.otpHash))) {
-    return res.boom.unauthorized('Invalid or expired OTP');
+    return sendError(res, 'invalid-otp');
   }
 
   // verify phone number

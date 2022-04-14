@@ -5,12 +5,11 @@ import cors from 'cors';
 import passport from 'passport';
 import { Server } from 'http';
 
+import { ENV, waitForHasura } from '@/utils';
 import { applyMigrations } from './migrations';
 import { applyMetadata } from './metadata';
-import { ENV } from './utils/env';
-import { waitForHasura } from './helpers';
 import router from './routes';
-import { errors } from './errors';
+import { serverErrors } from './errors';
 import { authMiddleware } from './middleware/auth';
 import { pino, logger, LOG_LEVEL } from './logger';
 import { addOpenApiRoute } from './openapi';
@@ -33,7 +32,7 @@ app.use(authMiddleware);
 app.use(passport.initialize());
 
 app.use(router);
-app.use(errors);
+app.use(serverErrors);
 
 export { app };
 

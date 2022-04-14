@@ -1,45 +1,44 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 
-import { getSignInResponse } from '@/utils/tokens';
-import { getUserByTicket } from '@/helpers';
+import { getSignInResponse, getUserByTicket } from '@/utils';
 import { authenticator } from 'otplib';
+import { sendError } from '@/errors';
+import { Joi, mfaTotpTicketPattern } from '@/validation';
 
-type BodyType = {
-  ticket: string;
-  otp: string;
-};
+export const signInMfaTotpSchema = Joi.object({
+  ticket: Joi.string()
+    .regex(mfaTotpTicketPattern)
+    .required()
+    .example('mfaTotp:e08204c7-40af-4434-a7ed-31c6aa37a390'),
+  otp: Joi.string().required(),
+}).meta({ className: 'SignInMfaTotpSchema' });
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInMfaTotpHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInMfaTotpHandler: RequestHandler<
+  {},
+  {},
+  {
+    ticket: string;
+    otp: string;
+  }
+> = async (req, res) => {
   const { ticket, otp } = req.body;
 
   const user = await getUserByTicket(ticket);
 
   if (!user) {
-    return res.boom.unauthorized('Invalid code');
+    return sendError(res, 'invalid-otp');
   }
 
   if (user.disabled) {
-    return res.boom.badRequest('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   if (user.activeMfaType !== 'totp') {
-    return res.boom.badRequest('MFA TOTP is not enabled for this user');
+    return sendError(res, 'disabled-mfa-totp');
   }
 
   if (!user.totpSecret) {
-    return res.boom.badRequest('OTP secret is not set for user');
+    return sendError(res, 'no-totp-secret');
   }
 
   authenticator.options = {
@@ -47,7 +46,7 @@ export const signInMfaTotpHandler = async (
   };
 
   if (!authenticator.check(otp, user.totpSecret)) {
-    return res.boom.unauthorized('Invalid code');
+    return sendError(res, 'invalid-otp');
   }
 
   const signInResponse = await getSignInResponse({

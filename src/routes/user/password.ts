@@ -1,38 +1,25 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
+import { ReasonPhrases } from 'http-status-codes';
 
-import { hashPassword } from '@/helpers';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { isPasswordValid } from '@/utils/password';
+import { gqlSdk, hashPassword } from '@/utils';
+import { sendError } from '@/errors';
+import { Joi, password } from '@/validation';
 
-type BodyType = {
-  newPassword: string;
-};
+export const userPasswordSchema = Joi.object({
+  newPassword: password.required(),
+}).meta({ className: 'UserPasswordSchema' });
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userPasswordHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const userPasswordHandler: RequestHandler<
+  {},
+  {},
+  { newPassword: string }
+> = async (req, res) => {
   // check if user is logged in
   if (!req.auth?.userId) {
-    return res.status(401).send('Incorrect access token');
+    return sendError(res, 'unauthenticated-user');
   }
 
   const { newPassword } = req.body;
-
-  // check if password is compromised
-  if (!(await isPasswordValid({ password: newPassword, res }))) {
-    // function send potential error via `res`
-    return;
-  }
 
   const newPasswordHash = await hashPassword(newPassword);
 
@@ -54,5 +41,5 @@ export const userPasswordHandler = async (
     },
   });
 
-  return res.send('OK');
+  return res.send(ReasonPhrases.OK);
 };

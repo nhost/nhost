@@ -1,38 +1,28 @@
-import { generateRedirectUrl } from '@/utils';
-import { gqlSdk } from '@/utils/gqlSDK';
-import { getNewRefreshToken } from '@/utils/tokens';
-import { Request, Response } from 'express';
+import { RequestHandler } from 'express';
+import { getNewRefreshToken, gqlSdk, generateRedirectUrl } from '@/utils';
+import { Joi, redirectTo } from '@/validation';
+import { sendError } from '@/errors';
+import { EmailType, EMAIL_TYPES } from '@/types';
 
-export const verifyHandler = async (
-  req: Request,
-  res: Response
-): Promise<unknown> => {
-  // const { ticket, type } = req.query;
-  const ticket = req.query.ticket as string;
-  const type = req.query.type as string;
-  const redirectTo = req.query.redirectTo as string;
+export const verifySchema = Joi.object({
+  redirectTo: redirectTo.required(),
+  ticket: Joi.string().required(),
+  type: Joi.string()
+    .allow(...Object.values(EMAIL_TYPES))
+    .required(),
+}).meta({ className: 'VerifySchema' });
 
-  if (!redirectTo) {
-    return res.boom.badRequest('Missing redirectTo');
+export const verifyHandler: RequestHandler<
+  {},
+  {},
+  {},
+  {
+    ticket: string;
+    type: EmailType;
+    redirectTo: string;
   }
-
-  if (!ticket) {
-    const redirectUrl = generateRedirectUrl(redirectTo, {
-      error: 'MissingVerificationTicket',
-      errorDescription: 'Missing verification ticket',
-    });
-
-    return res.redirect(redirectUrl);
-  }
-
-  if (!type) {
-    const redirectUrl = generateRedirectUrl(redirectTo, {
-      error: 'MissingVerificationType',
-      errorDescription: 'Missing verification type',
-    });
-
-    return res.redirect(redirectUrl);
-  }
+> = async (req, res) => {
+  const { ticket, type, redirectTo } = req.query;
 
   // get the user from the ticket
   const user = await gqlSdk
@@ -55,12 +45,7 @@ export const verifyHandler = async (
     .then((gqlRes) => gqlRes.users[0]);
 
   if (!user) {
-    const redirectUrl = generateRedirectUrl(redirectTo, {
-      error: 'InvalidOrExpiredVerificationTicket',
-      errorDescription: 'Invalid or expired verification ticket',
-    });
-
-    return res.redirect(redirectUrl);
+    return sendError(res, 'invalid-ticket', { redirectTo });
   }
 
   // user found, delete current ticket
@@ -72,14 +57,14 @@ export const verifyHandler = async (
   });
 
   // different types
-  if (type === 'emailVerify') {
+  if (type === EMAIL_TYPES.VERIFY) {
     await gqlSdk.updateUser({
       id: user.id,
       user: {
         emailVerified: true,
       },
     });
-  } else if (type === 'emailConfirmChange') {
+  } else if (type === EMAIL_TYPES.CONFIRM_CHANGE) {
     // set new email for user
     await gqlSdk.updateUser({
       id: user.id,
@@ -88,14 +73,14 @@ export const verifyHandler = async (
         newEmail: null,
       },
     });
-  } else if (type === 'signinPasswordless') {
+  } else if (type === EMAIL_TYPES.SIGNIN_PASSWORDLESS) {
     await gqlSdk.updateUser({
       id: user.id,
       user: {
         emailVerified: true,
       },
     });
-  } else if (type === 'passwordReset') {
+  } else if (type === EMAIL_TYPES.PASSWORD_RESET) {
     // noop
     // just redirecting the user to the client (as signed-in).
   }

@@ -1,4 +1,4 @@
-import { castBooleanEnv, castStringArrayEnv } from '@config/utils';
+import { castBooleanEnv, castStringArrayEnv } from '@config';
 
 const PROVIDERS = {
   get github() {

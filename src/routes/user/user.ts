@@ -1,27 +1,12 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 
-import { getUser } from '@/utils/user';
+import { getUser } from '@/utils';
 
-type BodyType = {};
-
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const userHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
+export const userHandler: RequestHandler = async (
+  req,
+  res
 ): Promise<unknown> => {
-  if (!req.auth?.userId) {
-    return res.boom.unauthorized('User not signed in');
-  }
-
-  const { userId } = req.auth;
+  const { userId } = req.auth as RequestAuth;
 
   const user = await getUser({ userId });
 

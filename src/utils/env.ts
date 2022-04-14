@@ -134,7 +134,10 @@ export const ENV = {
     return castStringEnv('AUTH_LOCALE_DEFAULT', 'en');
   },
   get AUTH_LOCALE_ALLOWED_LOCALES() {
-    return castStringArrayEnv('AUTH_LOCALE_ALLOWED_LOCALES') || ['en'];
+    const locales = castStringArrayEnv('AUTH_LOCALE_ALLOWED_LOCALES');
+    if (!locales.includes(ENV.AUTH_LOCALE_DEFAULT))
+      locales.push(ENV.AUTH_LOCALE_DEFAULT);
+    return locales;
   },
 
   // SIGN IN
@@ -165,7 +168,7 @@ export const ENV = {
     return castIntEnv('AUTH_ACCESS_TOKEN_EXPIRES_IN', 900);
   },
   get AUTH_REFRESH_TOKEN_EXPIRES_IN() {
-    return castIntEnv('AUTH_REFRESH_TOKEN_EXPIRES_IN', 43200);
+    return castIntEnv('AUTH_REFRESH_TOKEN_EXPIRES_IN', 2_592_000);
   },
 
   // EMAIL TEMPLATES

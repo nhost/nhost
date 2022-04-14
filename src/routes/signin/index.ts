@@ -1,24 +1,22 @@
 import { Router } from 'express';
-import { createValidator } from 'express-joi-validation';
 
-import { asyncWrapper as aw } from '@/helpers';
+import { asyncWrapper as aw } from '@/utils';
+import { bodyValidator } from '@/validation';
+
 import {
+  signInEmailPasswordHandler,
   signInEmailPasswordSchema,
-  signInAnonymousSchema,
-  signInMfaTotpSchema,
-  signInOtpSchema,
-  signInPasswordlessEmailSchema,
-  signInPasswordlessSmsSchema,
-} from '@/validation';
-import { signInEmailPasswordHandler } from './email-password';
-import { signInAnonymousHandler } from './anonymous';
+} from './email-password';
+import { signInAnonymousHandler, signInAnonymousSchema } from './anonymous';
 import providers from './providers';
-import { signInOtpHandler } from './passwordless/sms/otp';
+import { signInOtpHandler, signInOtpSchema } from './passwordless/sms/otp';
 import {
   signInPasswordlessEmailHandler,
+  signInPasswordlessEmailSchema,
   signInPasswordlessSmsHandler,
+  signInPasswordlessSmsSchema,
 } from './passwordless';
-import { signInMfaTotpHandler } from './mfa';
+import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
 
 const router = Router();
 
@@ -27,14 +25,14 @@ const router = Router();
  * @summary Authenticate with email + password
  * @param {SignInEmailPasswordSchema} request.body.required
  * @return {SessionPayload} 200 - Signed in successfully - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {PasswordEmailSigninError} 401 - Error - application/json
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
   '/signin/email-password',
-  createValidator().body(signInEmailPasswordSchema),
+  bodyValidator(signInEmailPasswordSchema),
   aw(signInEmailPasswordHandler)
 );
 
@@ -43,14 +41,14 @@ router.post(
  * @summary Email passwordless authentication
  * @param {SignInPasswordlessEmailSchema} request.body.required
  * @return {string} 200 - Email sent successfully - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {DisabledUserError} 401 - User is disabled - application/json
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
   '/signin/passwordless/email',
-  createValidator().body(signInPasswordlessEmailSchema),
+  bodyValidator(signInPasswordlessEmailSchema),
   aw(signInPasswordlessEmailHandler)
 );
 
@@ -59,13 +57,13 @@ router.post(
  * @summary Send a one-time password by SMS
  * @param {SignInPasswordlessSmsSchema} request.body.required
  * @return {string} 200 - SMS sent successfully - text/plain
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
   '/signin/passwordless/sms',
-  createValidator().body(signInPasswordlessSmsSchema),
+  bodyValidator(signInPasswordlessSmsSchema),
   aw(signInPasswordlessSmsHandler)
 );
 
@@ -74,14 +72,14 @@ router.post(
  * @summary Passwordless authentication from a one-time password code received by SMS
  * @param {SignInOtpSchema} request.body.required
  * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {object} 401 - Error processing the request - application/json
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthorizedError} 401 - Error processing the request - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
   '/signin/passwordless/sms/otp',
-  createValidator().body(signInOtpSchema),
+  bodyValidator(signInOtpSchema),
   aw(signInOtpHandler)
 );
 
@@ -90,13 +88,13 @@ router.post(
  * @summary Anonymous authentication
  * @param {SignInAnonymousSchema} request.body.required
  * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
   '/signin/anonymous',
-  createValidator().body(signInAnonymousSchema),
+  bodyValidator(signInAnonymousSchema),
   aw(signInAnonymousHandler)
 );
 
@@ -108,20 +106,20 @@ providers(router);
  * @summary Sign in with a Time-base One-Time Password (TOTP) ticket
  * @param {SignInMfaTotpSchema} request.body.required
  * @return {SessionPayload} 200 - User successfully authenticated - application/json
- * @return {string} 400 - The payload is invalid - text/plain
- * @return {string} 404 - The feature is not activated - text/plain
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post(
   '/signin/mfa/totp',
-  createValidator().body(signInMfaTotpSchema),
+  bodyValidator(signInMfaTotpSchema),
   aw(signInMfaTotpHandler)
 );
 
 // TODO: Implement:
 // router.post(
 //   '/signin/mfa/sms',
-//   createValidator().body(signInMfaSmsSchema),
+//   bodyValidator(signInMfaSmsSchema),
 //   aw(signInMfaSmsHandler)
 // );
 

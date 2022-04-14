@@ -1,67 +1,49 @@
-import { Response } from 'express';
-import {
-  ContainerTypes,
-  ValidatedRequest,
-  ValidatedRequestSchema,
-} from 'express-joi-validation';
+import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { getSignInResponse } from '@/utils/tokens';
-import { getUserByEmail } from '@/helpers';
-import { ENV } from '@/utils/env';
+import { getSignInResponse, getUserByEmail, ENV } from '@/utils';
 import { logger } from '@/logger';
-import { isValidEmail } from '@/utils/email';
+import { sendError } from '@/errors';
+import { Joi, email, password } from '@/validation';
 
-type BodyType = {
-  email: string;
-  password: string;
-};
+export const signInEmailPasswordSchema = Joi.object({
+  email: email.required(),
+  password: password.required(),
+}).meta({ className: 'SignInEmailPasswordSchema' });
 
-interface Schema extends ValidatedRequestSchema {
-  [ContainerTypes.Body]: BodyType;
-}
-
-export const signInEmailPasswordHandler = async (
-  req: ValidatedRequest<Schema>,
-  res: Response
-): Promise<unknown> => {
+export const signInEmailPasswordHandler: RequestHandler<
+  {},
+  {},
+  {
+    email: string;
+    password: string;
+  }
+> = async (req, res) => {
   const { email, password } = req.body;
   logger.debug(`Sign in with email: ${email}`);
-
-  // check email
-  if (!(await isValidEmail({ email, res }))) {
-    // function send potential error via `res`
-    return;
-  }
 
   const user = await getUserByEmail(email);
 
   if (!user) {
-    logger.debug('No user with that email exist');
-    return res.boom.unauthorized('Incorrect email or password');
+    return sendError(res, 'invalid-email-password');
   }
 
   if (user.disabled) {
-    logger.debug('User is disabled');
-    return res.boom.unauthorized('User is disabled');
+    return sendError(res, 'disabled-user');
   }
 
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
-    logger.debug('Email is not verified');
-    return res.boom.unauthorized('Email is not verified');
+    return sendError(res, 'unverified-user');
   }
 
   if (!user.passwordHash) {
-    logger.debug('User has no password set');
-    // TODO correct error message
-    return res.boom.unauthorized('Incorrect email or password');
+    return sendError(res, 'invalid-email-password');
   }
 
   const isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
 
   if (!isPasswordCorrect) {
-    logger.debug('Incorrect password');
-    return res.boom.unauthorized('Incorrect email or password');
+    return sendError(res, 'invalid-email-password');
   }
 
   const signInTokens = await getSignInResponse({

@@ -1,7 +1,9 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
+import { StatusCodes } from 'http-status-codes';
+
 import { reloadMetadata } from '@/metadata';
-import { ENV } from '@/utils/env';
+import { ENV } from '@/utils';
 import { request } from '../../server';
 
 describe('metadata fields', () => {
@@ -46,7 +48,7 @@ describe('metadata fields', () => {
           },
         },
       })
-      .expect(200);
+      .expect(StatusCodes.OK);
     expect(session.user.metadata.first_name).toEqual(firstName);
   });
 });
