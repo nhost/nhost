@@ -59,6 +59,15 @@
     "query-string": "^7.0.1"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:^"
+    "@nhost/core": "workspace:^",
+    "graphql": "16"
+  },
+  "peerDependencies": {
+    "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"
+  },
+  "peerDependenciesMeta": {
+    "graphql": {
+      "optional": true
+    }
   }
 }
