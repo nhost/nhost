@@ -79,7 +79,7 @@ await nhost.auth.signIn({
 
 A user can be created anonymously. This is useful for offering a limited version of your application to your users without having them sign in first.
 
-An anonymous user gets a user ID with the `anonymous` role. This role can be used to [set permissions in Hasura](/platform/database/permissions).
+An anonymous user gets a user ID with the `anonymous` role. This role can be used to [set permissions in Hasura](/platform/graphql/permissions).
 
 ### Deanonymize users
 

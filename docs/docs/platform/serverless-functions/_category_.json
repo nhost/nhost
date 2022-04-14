@@ -1,8 +1,4 @@
 {
   "label": "Serverless Functions",
-  "position": 5,
-  "link": {
-    "type": "generated-index",
-    "slug": "/platform/serverless-functions"
-  }
+  "position": 6
 }

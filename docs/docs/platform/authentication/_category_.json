@@ -1,5 +1,5 @@
 {
   "label": "Authentication",
-  "position": 3,
+  "position": 4,
   "link": { "id": "platform/authentication/index", "type": "doc" }
 }

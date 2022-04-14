@@ -19,9 +19,8 @@ const sidebars = {
       label: 'Quick Start',
       type: 'category',
       collapsed: false,
-      link: { id: 'get-started/quick-start/create-your-app', type: 'doc' },
       items: [
-        'get-started/quick-start/create-your-app',
+        'get-started/quick-start/index',
         'get-started/quick-start/schema',
         'get-started/quick-start/javascript-client',
         'get-started/quick-start/permissions',
@@ -30,13 +29,11 @@ const sidebars = {
     {
       label: 'Authentication',
       type: 'category',
-      link: { id: 'get-started/authentication/index', type: 'doc' },
       items: ['get-started/authentication/index'],
     },
     {
       label: 'CLI Workflow',
       type: 'category',
-      link: { id: 'get-started/cli-workflow/index', type: 'doc' },
       items: [
         'get-started/cli-workflow/index',
         'get-started/cli-workflow/workflow-setup',
@@ -48,7 +45,6 @@ const sidebars = {
     {
       label: 'Upgrade',
       type: 'category',
-      link: { id: 'get-started/upgrade/index', type: 'doc' },
       items: ['get-started/upgrade/index'],
     },
   ],

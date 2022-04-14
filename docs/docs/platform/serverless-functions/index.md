@@ -1,5 +1,5 @@
 ---
-title: 'Creating functions'
+title: 'Serverless Functions'
 sidebar_position: 1
 ---
 
@@ -39,19 +39,19 @@ HTTP endpoints are automatically generated based on the file structure under `fu
 
 As such, given this file structure:
 
-```js
-functions / index.js;
-functions / users / index.ts;
-functions / active.ts;
-functions / my - company.js;
+```text
+functions/index.js
+functions/users/index.ts
+functions/active.ts
+functions/my-company.js
 ```
 
 The following endpoints will be available:
 
-- https://yourappid.nhost.run/v1/functions/ - (functions/index.js)
-- https://yourappid.nhost.run/v1/functions/users - (functions/users/index.ts)
-- https://yourappid.nhost.run/v1/functions/users/active - (functions/users/active.ts)
-- https://yourappid.nhost.run/v1/functions/my-company - (functions/my-company.js)
+- https://yourappid.nhost.run/v1/functions/ from `functions/index.js`.
+- https://yourappid.nhost.run/v1/functions/users from `functions/users/index.ts`.
+- https://yourappid.nhost.run/v1/functions/users/active from `functions/users/active.ts`.
+- https://yourappid.nhost.run/v1/functions/my-company from `functions/my-company.js`.
 
 If you've used Netlify or Vercel, this routing logic will be familiar to you.
 
@@ -59,6 +59,4 @@ If you've used Netlify or Vercel, this routing logic will be familiar to you.
 
 ## Infrastructure
 
-In production, serverless functions are deployed on AWS Lambda.
-
-When developing locally, you must have the correct runtime installed on your machine.
+Serverless Functions are deployed to AWS Lambda in the same region as your app.

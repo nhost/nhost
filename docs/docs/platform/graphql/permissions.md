@@ -1,6 +1,6 @@
 ---
 title: 'Permissions'
-sidebar_position: 2
+sidebar_position: 1
 ---
 
 The GraphQL API is protected by a role-based permission system based on access tokens. Permissions are handled on a per-table basis in Hasura Console.
