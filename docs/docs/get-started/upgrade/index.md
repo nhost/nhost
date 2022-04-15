@@ -88,14 +88,16 @@ Update `config: 2` to `config: 3` in `nhost/config.yaml`.
 
 ### Pull migrations and metadata from our local instance
 
-:::tip
-You can not use port `1337` in these requests. You have to use the specific port Huasra uses. Go to the Hasura Console under API and look what port Hasura is using under GraphQL Endpoint.
-:::
+In the `nhost/` folder, run the following command:
 
 ```bash
 hasura migrate create init --from-server --endpoint=http://localhost:[hasura-port] --admin-secret=nhost-admin-secret
-hasura metadata export --from-server --endpoint=http://localhost:[hasura-port] --admin-secret=nhost-admin-secret
+hasura metadata export --endpoint=http://localhost:[hasura-port] --admin-secret=nhost-admin-secret
 ```
+
+:::warning
+You cannot use port `1337` in the commands above. You have to use the specific port Hasura uses. Go to the Hasura Console under API and look what port Hasura is using under GraphQL Endpoint.
+:::
 
 ### Done
 
