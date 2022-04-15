@@ -1,4 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import type { DocumentNode } from 'graphql'
+import { print } from 'graphql/language/printer'
 
 import { GraphqlRequestResponse, GraphqlResponse } from '../types'
 
@@ -22,7 +24,7 @@ export class NhostGraphqlClient {
   }
 
   async request(
-    document: string,
+    document: string | DocumentNode,
     variables?: any,
     config?: AxiosRequestConfig
   ): Promise<GraphqlRequestResponse> {
@@ -40,8 +42,7 @@ export class NhostGraphqlClient {
         '',
         {
           operationName: operationName || undefined,
-          query: document,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          query: typeof document === 'string' ? document : print(document),
           variables
         },
         { ...config, headers }
