@@ -8,9 +8,8 @@ export const start = async () => {
    * Async imports allow to dynamically import the required modules,
    * and therefore only import modules that are required, when they are required.
    * It decreases the loading time on startup.
-   * If we decide to apply migrations/metadata in a separate moment e.g. k8s initContainer,
-   * it will allow hasura-auth to load modules only required for migrations/metadata,
-   * or not to load these modules when auto migration/metadata is disabled.
+   * This distinction can make a difference if using hasura-auth to only apply migrations/metadata,
+   * or to skip migrations/metadata on startup.
    */
   // if (ENV.AUTH_SKIP_INIT) {
   //   logger.info(`Skipping migrations and metadata`);
