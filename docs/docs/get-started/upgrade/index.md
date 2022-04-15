@@ -21,7 +21,7 @@ cd my-nhost-v2-app
 
 ### Update config
 
-Update `config: 3` to `config: 2` in `nhost/config.yaml`. This will update Hasura's configuration version, and we need to downgrade the version when we export migrations and metadata.
+Update `version: 3` to `version: 2` in `nhost/config.yaml`. This will update Hasura's configuration version, and we need to downgrade the version when we export migrations and metadata.
 
 ### Export current migrations and metadata from Nhost v1
 
@@ -96,7 +96,7 @@ hasura metadata export --endpoint=http://localhost:[hasura-port] --admin-secret=
 ```
 
 :::warning
-You cannot use port `1337` in the commands above. You have to use the specific port Hasura uses. Go to the Hasura Console under API and look what port Hasura is using under GraphQL Endpoint.
+You cannot use port `1337` in the commands above. You have to use the specific port Hasura uses. Go to the Hasura Console under API and look for the port Hasura is using under GraphQL Endpoint.
 :::
 
 ### Done
