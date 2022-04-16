@@ -33,12 +33,8 @@ export const start = async () => {
   await import('./env-vars-check');
   const { app } = await import('./app');
 
-  app.listen(ENV.AUTH_PORT, ENV.AUTH_HOST, () => {
-    if (ENV.AUTH_HOST) {
-      logger.info(`Running on http://${ENV.AUTH_HOST}:${ENV.AUTH_PORT}`);
-    } else {
-      logger.info(`Running on port ${ENV.AUTH_PORT}`);
-    }
+  app.listen(ENV.AUTH_PORT, () => {
+    logger.info(`Running on port ${ENV.AUTH_PORT}`);
   });
   // }
 };
