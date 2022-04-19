@@ -1,4 +1,4 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 
 import { FunctionCallResponse } from '../types'
 export interface NhostFunctionsConstructorParams {
@@ -18,7 +18,11 @@ export class NhostFunctionsClient {
     })
   }
 
-  async call(url: string, data: any, config?: AxiosRequestConfig): Promise<FunctionCallResponse> {
+  async call<T = unknown, D = any>(
+    url: string,
+    data: D,
+    config?: AxiosRequestConfig
+  ): Promise<FunctionCallResponse<T>> {
     const headers = {
       ...this.generateAccessTokenHeaders(),
       ...config?.headers
@@ -26,7 +30,7 @@ export class NhostFunctionsClient {
 
     let res
     try {
-      res = await this.instance.post(url, data, { ...config, headers })
+      res = await this.instance.post<T, AxiosResponse<T>, D>(url, data, { ...config, headers })
     } catch (error) {
       if (error instanceof Error) {
         return { res: null, error }

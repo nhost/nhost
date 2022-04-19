@@ -5,6 +5,9 @@ const BACKEND_URL = 'http://localhost:1337'
 const nhost = new NhostClient({
   backendUrl: BACKEND_URL
 })
+
+type User = { id: string; displayName: string }
+
 describe('main tests', () => {
   it('getUrl()', async () => {
     const graphqlUrl = await nhost.graphql.getUrl()
@@ -21,7 +24,7 @@ describe('main tests', () => {
     }
   }
     `
-    const { data, error } = await nhost.graphql.request(document)
+    const { data, error } = await nhost.graphql.request<{ users: User[] }>(document)
 
     expect(error).toBeTruthy()
     expect(data).toBeNull()
@@ -36,7 +39,7 @@ describe('main tests', () => {
     }
   }
     `
-    const { data, error } = await nhost.graphql.request(
+    const { data, error } = await nhost.graphql.request<{ users: User[] }>(
       document,
       {},
       {
@@ -59,7 +62,7 @@ describe('main tests', () => {
     }
   }
     `
-    const { data, error } = await nhost.graphql.request(
+    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(
       document,
       {
         id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
@@ -84,7 +87,7 @@ describe('main tests', () => {
     }
   }
     `
-    const { data, error } = await nhost.graphql.request(
+    const { data, error } = await nhost.graphql.request<{ user: User }, { id: string }>(
       document,
       {
         id: 'not-a-uuid'
@@ -109,7 +112,7 @@ describe('main tests', () => {
     }
   }
     `
-    const { data, error } = await nhost.graphql.request(
+    const { data, error } = await nhost.graphql.request<{ user: User }>(
       document,
       {},
       {
