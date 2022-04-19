@@ -1725,13 +1725,50 @@ type ObjectRelationship struct {
 	Using   ObjRelUsing `json:"using"`             // Use one of the available ways to define an object relationship
 }
 
+type ForeignKeyConstraintOn struct {
+	Table  string
+	Column string
+	wire   struct {
+		Table  string `json:"table"`
+		Column string `json:"column"`
+	}
+}
+
+func (o *ForeignKeyConstraintOn) UnmarshalJSON(data []byte) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	if data[0] == '"' {
+		// it's a string
+		return json.Unmarshal(data, &o.Column)
+	}
+
+	if err := json.Unmarshal(data, &o.wire); err != nil {
+		return err
+	}
+	o.Table = o.wire.Table
+	o.Column = o.wire.Column
+	return nil
+}
+
+// MarshalJSON implements json.Marshaler interface.
+func (o ForeignKeyConstraintOn) MarshalJSON() ([]byte, error) {
+	if o.Table == "" {
+		return json.Marshal(o.Column)
+	}
+	o.wire.Table = o.Table
+	o.wire.Column = o.Column
+	return json.Marshal(o.wire)
+}
+
 // Use one of the available ways to define an object relationship
 //
 // Use one of the available ways to define an object relationship
 //
 // https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/relationship.html#objrelusing
 type ObjRelUsing struct {
-	ForeignKeyConstraintOn *string                   `json:"foreign_key_constraint_on,omitempty"` // The column with foreign key constraint
+	ForeignKeyConstraintOn *ForeignKeyConstraintOn   `json:"foreign_key_constraint_on,omitempty"` // The column with foreign key constraint
 	ManualConfiguration    *ObjRelUsingManualMapping `json:"manual_configuration,omitempty"`      // Manual mapping of table and columns
 }
 

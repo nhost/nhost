@@ -135,7 +135,12 @@ func pullMigration(client hasura.Client, name string) (hasura.Migration, error) 
 		Name: name,
 	}
 
-	migration = migration.Init(metadata.Sources[0].Name)
+	sourceName := "default"
+	if len(metadata.Sources) > 0 {
+		sourceName = metadata.Sources[0].Name
+	}
+
+	migration = migration.Init(sourceName)
 
 	//  Fetch list of all ALLOWED schemas before applying
 	schemas, err := client.GetSchemas()
