@@ -193,11 +193,11 @@ export const dropRelationship = async (args: DropRelationshipArgs) => {
 };
 
 export const applyMetadata = async (): Promise<void> => {
+  logger.info('Applying metadata...');
+
   logger.debug('Reloading metadata...');
   await reloadMetadata();
   logger.debug('Metadata reloaded');
-
-  logger.info('Applying metadata...');
 
   try {
     // track
