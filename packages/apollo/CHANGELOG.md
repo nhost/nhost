@@ -1,5 +1,11 @@
 # @nhost/apollo
 
+## 0.4.0
+
+### Minor Changes
+
+- f6093a6: Use graphql-ws instead of subscriptions-transport-ws
+
 ## 0.3.9
 
 ### Patch Changes
