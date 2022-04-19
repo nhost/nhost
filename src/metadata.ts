@@ -193,9 +193,9 @@ export const dropRelationship = async (args: DropRelationshipArgs) => {
 };
 
 export const applyMetadata = async (): Promise<void> => {
-  logger.debug('Reloading metadata..');
+  logger.debug('Reloading metadata...');
   await reloadMetadata();
-  logger.info('Metadata applied');
+  logger.debug('Metadata reloaded');
 
   logger.info('Applying metadata...');
 
@@ -656,8 +656,9 @@ export const applyMetadata = async (): Promise<void> => {
       },
     });
   } finally {
-    logger.debug('Reloading metadata..');
+    logger.debug('Reloading metadata...');
     await reloadMetadata();
-    logger.info('Metadata applied');
+    logger.debug('Metadata reloaded');
   }
+  logger.info('Metadata applied');
 };
