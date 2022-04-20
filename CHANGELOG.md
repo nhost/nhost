@@ -1,6 +1,11 @@
 
 
-## [0.6.1](https://github.com/nhost/hasura-auth/compare/v0.6.0...v0.6.1) (2022-04-20)
+## [0.6.2](https://github.com/nhost/hasura-auth/compare/v0.6.1...v0.6.2) (2022-04-20)
+
+
+### Bug Fixes
+
+* revert 00002 migration name to previous name when migration fails because of it ([6a0856a](https://github.com/nhost/hasura-auth/commit/6a0856a9e6a18bf264579a783adae6c55efc4351))## [0.6.1](https://github.com/nhost/hasura-auth/compare/v0.6.0...v0.6.1) (2022-04-20)
 
 
 ### Bug Fixes
