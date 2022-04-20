@@ -1,5 +1,4 @@
 import type { AxiosRequestConfig, AxiosResponse } from 'axios'
-import { BroadcastChannel } from 'broadcast-channel'
 import { assign, createMachine, send } from 'xstate'
 
 import {

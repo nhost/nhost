@@ -50,7 +50,6 @@
   ],
   "dependencies": {
     "axios": "^0.25.0",
-    "broadcast-channel": "^4.10.0",
     "js-cookie": "^3.0.1",
     "xstate": "^4.30.5"
   }
