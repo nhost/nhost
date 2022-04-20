@@ -174,11 +174,9 @@ func (c *Client) GetSchemas() ([]string, error) {
 	return response, nil
 }
 
-func (c *Client) GetMetadata() (HasuraMetadataV3, error) {
+func (c *Client) GetMetadata() (*MetadataV3, error) {
 
 	log.Debug("Fetching metadata")
-
-	var response HasuraMetadataV3
 
 	reqBody := RequestBody{
 		Type:    "export_metadata",
@@ -186,29 +184,28 @@ func (c *Client) GetMetadata() (HasuraMetadataV3, error) {
 	}
 	body, err := reqBody.Marshal()
 	if err != nil {
-		return response, err
+		return nil, err
 	}
 
 	resp, err := c.Request(body, "/v1/metadata")
 	if err != nil {
-		return response, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return response, err
+		return nil, err
 	}
 
-	var responseData map[string]interface{}
-	json.Unmarshal(body, &responseData)
-
-	payload, err := json.Marshal(responseData["metadata"])
-	if err != nil {
-		return response, err
+	var responseData struct {
+		Metadata MetadataV3 `json:"metadata"`
+	}
+	if err = json.Unmarshal(body, &responseData); err != nil {
+		return nil, err
 	}
 
-	return UnmarshalHasuraMetadataV3(payload)
+	return &responseData.Metadata, nil
 }
 
 func (c *Client) GetInconsistentMetadata() (InconsistentMetadataResponse, error) {
