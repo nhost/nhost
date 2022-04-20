@@ -3,6 +3,9 @@ title: 'Nhost CLI'
 sidebar_position: 3
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 Nhost CLI lets you run Nhost's development environment locally on macOS, Linux and Windows.
 
 ---
@@ -28,9 +31,22 @@ To run serverless functions locally, you must have the appropriate runtimes inst
 
 For Node.js, you will also need to have [express](https://www.npmjs.com/package/express) installed in your repository:
 
+<Tabs>
+  <TabItem value="npm" label="npm" default>
+
 ```bash
 npm install --save-dev express @types/express
 ```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add -D express @types/express
+```
+
+  </TabItem>
+</Tabs>
 
 [Read more about runtimes](/platform/serverless-functions)
 

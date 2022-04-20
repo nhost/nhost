@@ -3,19 +3,27 @@ title: 'Apollo GraphQL'
 sidebar_position: 4
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## Installation
 
-With Yarn:
+<Tabs>
+  <TabItem value="npm" label="npm" default>
 
 ```bash
-yarn add @nhost/react @nhost/react-apollo @apollo/client
+npm install @nhost/react @nhost/react-apollo @apollo/client graphql
 ```
 
-With Npm:
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
 
 ```bash
-npm install @nhost/react @nhost/react-apollo @apollo/client
+yarn add @nhost/react @nhost/react-apollo @apollo/client graphql
 ```
+
+  </TabItem>
+</Tabs>
 
 ## Configuration
 

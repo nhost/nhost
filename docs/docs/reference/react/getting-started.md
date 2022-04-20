@@ -3,19 +3,27 @@ title: 'Getting started'
 sidebar_position: 1
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## Installation
 
-With Yarn:
+<Tabs>
+  <TabItem value="npm" label="npm" default>
 
 ```bash
-yarn add @nhost/react
+npm install @nhost/react graphql
 ```
 
-With npm:
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
 
 ```bash
-npm install @nhost/react
+yarn add @nhost/react graphql
 ```
+
+  </TabItem>
+</Tabs>
 
 ---
 
