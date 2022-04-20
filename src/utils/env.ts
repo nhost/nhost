@@ -27,9 +27,6 @@ export const ENV = {
   },
 
   // SERVER
-  get AUTH_HOST() {
-    return castStringEnv('AUTH_HOST', '0.0.0.0');
-  },
   get AUTH_PORT() {
     return castIntEnv('AUTH_PORT', 4000);
   },

@@ -11,7 +11,6 @@ RUN pnpm run build
 FROM node:14-alpine as remover
 ARG NODE_ENV=production
 ENV NODE_ENV $NODE_ENV
-ENV AUTH_HOST localhost
 ENV AUTH_PORT 4000
 WORKDIR /app
 RUN npm i -g pnpm
@@ -22,5 +21,5 @@ RUN pnpm run postinstall
 COPY migrations/ ./migrations/
 COPY email-templates/ ./email-templates
 COPY --from=builder ./app/dist dist/
-HEALTHCHECK --interval=60s --timeout=2s --retries=3 CMD wget ${AUTH_HOST}:${AUTH_PORT}/healthz -q -O - > /dev/null 2>&1
+HEALTHCHECK --interval=60s --timeout=2s --retries=3 CMD wget http://localhost:${AUTH_PORT}/healthz -q -O - > /dev/null 2>&1
 CMD ["pnpm", "run", "start"]
