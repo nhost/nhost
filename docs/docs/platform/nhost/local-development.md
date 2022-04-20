@@ -47,9 +47,6 @@ yarn add -D express @types/express
 
   </TabItem>
 </Tabs>
-```bash
-
-````
 
 [Read more about runtimes](/platform/serverless-functions)
 
@@ -73,7 +70,7 @@ If you have a MacBook with an M1 chip, the CLI will automatically change the ima
 services:
   hasura:
     image: fedormelexin/graphql-engine-arm64
-````
+```
 
 This will run the Hasura GraphQL engine using Rosetta on your machine until an M1 optimized image is launched.
 
