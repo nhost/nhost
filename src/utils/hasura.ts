@@ -20,6 +20,7 @@ const getHasuraReadyState = async () => {
 export const waitForHasura = async () => {
   let hasuraIsReady = false;
 
+  logger.info('Waiting for Hasura to be ready...');
   while (!hasuraIsReady) {
     hasuraIsReady = await getHasuraReadyState();
 

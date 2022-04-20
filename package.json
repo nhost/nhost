@@ -5,7 +5,7 @@
     "url": "git://github.com/nhost/hasura-auth.git",
     "type": "git"
   },
-  "version": "0.5.0",
+  "version": "0.6.1",
   "main": "dist/start.js",
   "scripts": {
     "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",

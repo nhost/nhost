@@ -11,7 +11,7 @@ import {
   insertUser,
   ENV,
 } from '@/utils';
-import { UserRegistrationOptions } from '@/types';
+import { EMAIL_TYPES, UserRegistrationOptions } from '@/types';
 import { sendError } from '@/errors';
 import { Joi, email, passwordInsert, registrationOptions } from '@/validation';
 
@@ -103,7 +103,7 @@ export const signUpEmailPasswordHandler: RequestHandler<
         },
       },
       locals: {
-        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=emailVerify&redirectTo=${redirectTo}`,
+        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.VERIFY}&redirectTo=${redirectTo}`,
         displayName,
         email,
         ticket,

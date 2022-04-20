@@ -67,6 +67,10 @@ export type User = Pick<
   | 'isAnonymous'
   | 'defaultRole'
   | 'metadata'
+  | 'emailVerified'
+  | 'phoneNumber'
+  | 'phoneNumberVerified'
+  | 'activeMfaType'
 > & { roles: string[] };
 
 export type Session = {
@@ -115,3 +119,11 @@ export type JwtSecret = {
   allowed_skew?: string;
   header?: string;
 };
+
+export const EMAIL_TYPES = {
+  VERIFY: 'emailVerify',
+  CONFIRM_CHANGE: 'emailConfirmChange',
+  SIGNIN_PASSWORDLESS: 'signinPasswordless',
+  PASSWORD_RESET: 'passwordReset',
+} as const;
+export type EmailType = typeof EMAIL_TYPES[keyof typeof EMAIL_TYPES];

@@ -121,7 +121,7 @@ export const decodeAccessToken = (accessToken: string | null) => {
     return null;
   }
   try {
-    const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
+    const jwt: JwtSecret = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET);
     return JWT.verify(accessToken, jwt.key) as Token;
   } catch (err) {
     return null;

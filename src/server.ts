@@ -1,58 +1,40 @@
-import express from 'express';
-import helmet from 'helmet';
-import { json } from 'body-parser';
-import cors from 'cors';
-import passport from 'passport';
-import { Server } from 'http';
+import { ENV } from '@/utils/env';
+import { logger, LOG_LEVEL } from './logger';
 
-import { ENV, waitForHasura } from '@/utils';
-import { applyMigrations } from './migrations';
-import { applyMetadata } from './metadata';
-import router from './routes';
-import { serverErrors } from './errors';
-import { authMiddleware } from './middleware/auth';
-import { pino, logger, LOG_LEVEL } from './logger';
-import { addOpenApiRoute } from './openapi';
+export const start = async () => {
+  logger.info(`Log level: ${LOG_LEVEL}`);
 
-const app = express();
+  /**
+   * Async imports allow to dynamically import the required modules,
+   * and therefore only import modules that are required, when they are required.
+   * It decreases the loading time on startup.
+   * This distinction can make a difference if using hasura-auth to only apply migrations/metadata,
+   * or to skip migrations/metadata on startup.
+   */
+  // if (ENV.AUTH_SKIP_INIT) {
+  //   logger.info(`Skipping migrations and metadata`);
+  // } else {
+  const { waitForHasura } = await import('@/utils');
+  const { applyMigrations } = await import('./migrations');
+  const { applyMetadata } = await import('./metadata');
 
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
-}
-
-addOpenApiRoute(app);
-
-app.use(pino);
-app.use(helmet());
-app.use(json());
-app.use(cors());
-
-app.use(authMiddleware);
-
-app.use(passport.initialize());
-
-app.use(router);
-app.use(serverErrors);
-
-export { app };
-
-export const start = async (): Promise<Server> => {
   // wait for hasura to be ready
   await waitForHasura();
   // apply migrations and metadata
   await applyMigrations();
   await applyMetadata();
+  // }
 
-  return new Promise((resolve) => {
-    const server = app.listen(ENV.AUTH_PORT, ENV.AUTH_HOST, () => {
-      logger.info('Log level');
-      logger.info(LOG_LEVEL);
-      if (ENV.AUTH_HOST) {
-        logger.info(`Running on http://${ENV.AUTH_HOST}:${ENV.AUTH_PORT}`);
-      } else {
-        logger.info(`Running on port ${ENV.AUTH_PORT}`);
-      }
-      return resolve(server);
-    });
+  // if (ENV.AUTH_SKIP_SERVE) {
+  //   logger.info(
+  //     `AUTH_SKIP_SERVE has been set to true, therefore Hasura-Auth won't start`
+  //   );
+  // } else {
+  await import('./env-vars-check');
+  const { app } = await import('./app');
+
+  app.listen(ENV.AUTH_PORT, () => {
+    logger.info(`Running on port ${ENV.AUTH_PORT}`);
   });
+  // }
 };

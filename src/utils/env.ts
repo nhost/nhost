@@ -27,9 +27,6 @@ export const ENV = {
   },
 
   // SERVER
-  get AUTH_HOST() {
-    return castStringEnv('AUTH_HOST', '0.0.0.0');
-  },
   get AUTH_PORT() {
     return castIntEnv('AUTH_PORT', 4000);
   },
@@ -93,7 +90,7 @@ export const ENV = {
 
   // CLIENT
   get AUTH_CLIENT_URL() {
-    return castStringEnv('AUTH_CLIENT_URL', '');
+    return castStringEnv('AUTH_CLIENT_URL', '').toLocaleLowerCase();
   },
 
   // SIGN UP
@@ -154,7 +151,9 @@ export const ENV = {
   //   return castBooleanEnv('AUTH_SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
   // },
   get AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS() {
-    return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS');
+    return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS').map(
+      (v) => v.toLowerCase()
+    );
   },
   get AUTH_MFA_ENABLED() {
     return castBooleanEnv('AUTH_MFA_ENABLED', false);
@@ -190,4 +189,11 @@ export const ENV = {
   get AUTH_USER_SESSION_VARIABLE_FIELDS(): Record<string, string> {
     return this.AUTH_USER_SESSION_VARIABLE_FIELDS;
   },
+  // * See ../server.ts
+  // get AUTH_SKIP_INIT() {
+  //   return castBooleanEnv('AUTH_SKIP_INIT', false);
+  // },
+  // get AUTH_SKIP_SERVE() {
+  //   return castBooleanEnv('AUTH_SKIP_SERVE', false);
+  // },
 };

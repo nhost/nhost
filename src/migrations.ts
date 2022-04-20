@@ -2,11 +2,12 @@ import { migrate } from '@djgrant/postgres-migrations';
 import { Client } from 'pg';
 import fs from 'fs/promises';
 import path from 'path';
+import { logger } from './logger';
 import { ENV } from './utils/env';
 import { logger } from './logger';
 
 export async function applyMigrations(): Promise<void> {
-  logger.debug('Applying migrations');
+  logger.info('Applying migrations...');
 
   const dbConfig = {
     connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
@@ -66,5 +67,5 @@ export async function applyMigrations(): Promise<void> {
   } finally {
     await client.end();
   }
-  logger.debug('Finished applying migrations');
+  logger.info('Migrations applied');
 }
