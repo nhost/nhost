@@ -12,7 +12,7 @@ import TabItem from '@theme/TabItem';
   <TabItem value="npm" label="npm" default>
 
 ```bash
-npm install @nhost/react @nhost/nextjs graphqlnpm install @nhost/react @nhost/react-apollo @apollo/client graphql
+npm install @nhost/react @nhost/react-apollo @apollo/client graphql
 ```
 
   </TabItem>
