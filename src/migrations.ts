@@ -4,7 +4,6 @@ import fs from 'fs/promises';
 import path from 'path';
 import { logger } from './logger';
 import { ENV } from './utils/env';
-import { logger } from './logger';
 
 export async function applyMigrations(): Promise<void> {
   logger.info('Applying migrations...');
