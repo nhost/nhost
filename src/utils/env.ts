@@ -90,7 +90,7 @@ export const ENV = {
 
   // CLIENT
   get AUTH_CLIENT_URL() {
-    return castStringEnv('AUTH_CLIENT_URL', '');
+    return castStringEnv('AUTH_CLIENT_URL', '').toLocaleLowerCase();
   },
 
   // SIGN UP
@@ -151,7 +151,9 @@ export const ENV = {
   //   return castBooleanEnv('AUTH_SIGNIN_PHONE_NUMBER_VERIFIED_REQUIRED', true);
   // },
   get AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS() {
-    return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS');
+    return castStringArrayEnv('AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS').map(
+      (v) => v.toLowerCase()
+    );
   },
   get AUTH_MFA_ENABLED() {
     return castBooleanEnv('AUTH_MFA_ENABLED', false);

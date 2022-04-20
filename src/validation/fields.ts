@@ -60,10 +60,18 @@ export const metadata = Joi.object().default({}).example({
   lastName: 'Smith',
 });
 
-export const redirectTo = Joi.string()
+export const redirectTo = Joi.alternatives()
   .default(ENV.AUTH_CLIENT_URL)
-  .regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
-  .valid(...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS)
+  .try(
+    ...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map((value) =>
+      Joi.string()
+        .lowercase()
+        .regex(new RegExp('^' + value))
+    ),
+    Joi.string()
+      .lowercase()
+      .regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
+  )
   .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`);
 
 export const uuid = Joi.string()
