@@ -63,8 +63,16 @@ export const metadata = Joi.object().default({}).example({
 export const redirectTo = Joi.alternatives()
   .default(ENV.AUTH_CLIENT_URL)
   .try(
-    Joi.valid(...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS),
-    Joi.string().regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
+    Joi.alternatives().try(
+      ...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map((value) =>
+        Joi.string()
+          .lowercase()
+          .regex(new RegExp('^' + value))
+      )
+    ),
+    Joi.string()
+      .lowercase()
+      .regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
   )
   .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`);
 
