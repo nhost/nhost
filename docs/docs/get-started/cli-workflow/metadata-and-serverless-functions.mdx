@@ -2,6 +2,9 @@
 title: 'Metadata and Serverless Functions'
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 In the previous section, we only created a new table; `customers`. Using the CLI you can also do changes to other parts of your backend.
 
 There are three things the CLI and the GitHub integration track and applies to production:
@@ -73,19 +76,24 @@ Serverless functions are placed in the `functions/` folder of your repository. E
 
 Before we create our serverless function we'll install `express`, which is a requirement for serverless functions to work.
 
+<Tabs>
+  <TabItem value="npm" label="npm" default>
+
 ```bash
 npm install express
-# or with yarn
-yarn add express
+npm install -d @types/node @types/express
 ```
 
-We'll use TypeScript so we'll install two type definitions too:
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
 
 ```bash
-npm install -d @types/node @types/express
-# or with yarn
+yarn add express
 yarn add -D @types/node @types/express
 ```
+
+  </TabItem>
+</Tabs>
 
 Then we'll create a file `functions/time.ts`
 

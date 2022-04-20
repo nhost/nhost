@@ -3,6 +3,9 @@ title: 'Overview'
 sidebar_position: 1
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 Nhost SDK is the primary way of interacting with your Nhost app. It exposes a standard interface for each of the following services:
 
 - GraphQL
@@ -14,9 +17,22 @@ Nhost SDK is the primary way of interacting with your Nhost app. It exposes a st
 
 Install the dependency:
 
+<Tabs>
+  <TabItem value="npm" label="npm" default>
+
 ```bash
-npm install @nhost/nhost-js
+npm install @nhost/nhost-js graphql
 ```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add @nhost/nhost-js graphql
+```
+
+  </TabItem>
+</Tabs>
 
 Then import and initialize a single `nhost` instance in your code:
 

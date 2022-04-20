@@ -2,6 +2,9 @@
 title: 'JavaScript client'
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 In the previous section, you used the Hasura Console to fetch a list of todos. Now, you will write a small JavaScript client to interact and retrieve todos from your Nhost app.
 
 ### Frontend frameworks
@@ -14,40 +17,47 @@ In this guide, we'll keep the example simple. We're not using a frontend framewo
 
 ## Setup
 
-> Make sure you have [Node.js](https://nodejs.org) and [npm](https://docs.npmjs.com/getting-started) installed.
+> Make sure you have [Node.js](https://nodejs.org) and [npm](https://docs.npmjs.com/getting-started) or [Yarn](https://classic.yarnpkg.com/lang/en/docs/install) installed.
 
 Create a new folder called `nhost-todos`, and initialize a new JavaScript app there:
 
-Using npm package manager
+<Tabs>
+  <TabItem value="npm" label="npm" default>
 
 ```bash
 npm init -y
 ```
 
-or
-
-Using Yarn package manager
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
 
 ```bash
 yarn init -y
 ```
 
+  </TabItem>
+</Tabs>
+
 > You might have to edit the `package.json` file and add/change the `type` object to `module` (`"type": "module"`).
 
 Install Nhost JavaScript SDK:
 
-Using npm package manager
+<Tabs>
+<TabItem value="npm" label="npm" default>
 
 ```bash
-npm install @nhost/nhost-js
+npm install @nhost/nhost-js graphql
 ```
 
-or
-Using Yarn package manager
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
 
 ```bash
-yarn add @nhost/nhost-js
+yarn add @nhost/nhost-js graphql
 ```
+
+  </TabItem>
+</Tabs>
 
 ---
 
