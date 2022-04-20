@@ -17,15 +17,20 @@ In this guide, we'll keep the example simple. We're not using a frontend framewo
 
 ## Setup
 
-> Make sure you have [Node.js](https://nodejs.org) and [npm](https://docs.npmjs.com/getting-started) or [Yarn](https://classic.yarnpkg.com/lang/en/docs/install) installed.
+:::info
 
-Create a new folder called `nhost-todos`, and initialize a new JavaScript app there:
+Make sure you have [Node.js](https://nodejs.org) and [npm](https://docs.npmjs.com/getting-started) or [Yarn](https://classic.yarnpkg.com/lang/en/docs/install) installed.
+
+:::
+
+Create a new folder called `nhost-todos`, initialize a new JavaScript app there, and install the Nhost JavaScript SDK:
 
 <Tabs>
   <TabItem value="npm" label="npm" default>
 
 ```bash
 npm init -y
+yarn add @nhost/nhost-js graphql
 ```
 
   </TabItem>
@@ -33,31 +38,15 @@ npm init -y
 
 ```bash
 yarn init -y
-```
-
-  </TabItem>
-</Tabs>
-
-> You might have to edit the `package.json` file and add/change the `type` object to `module` (`"type": "module"`).
-
-Install Nhost JavaScript SDK:
-
-<Tabs>
-<TabItem value="npm" label="npm" default>
-
-```bash
 npm install @nhost/nhost-js graphql
 ```
 
   </TabItem>
-  <TabItem value="yarn" label="Yarn">
-
-```bash
-yarn add @nhost/nhost-js graphql
-```
-
-  </TabItem>
 </Tabs>
+
+:::caution attention
+You might have to edit the `package.json` file and add/change the `type` object to `module` (`"type": "module"`).
+:::
 
 ---
 
