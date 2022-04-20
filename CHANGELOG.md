@@ -6,20 +6,18 @@
 ### Bug Fixes
 
 * allow `redirectTo` option to start with any `AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS` value ([dac0332](https://github.com/nhost/hasura-auth/commit/dac0332a04f84c057f7013c65aac6223de8ab165))
-* correct redirectTo ([99fd760](https://github.com/nhost/hasura-auth/commit/99fd7603c5d5fd0af8325c50c9bfb72ba033ce93)), closes [#137](https://github.com/nhost/hasura-auth/issues/137)
-* fall back to AUTH_CLIENT_URL if the `redirectTo` option is invalid ([2e1819d](https://github.com/nhost/hasura-auth/commit/2e1819d65a90c288b68c9e47a5dc131a7ab3355d))
-* remove the AUTH_HOST environment variable ([cacce97](https://github.com/nhost/hasura-auth/commit/cacce9757374af9bbf55b0360ad8c6b304004cd7))
+* correct redirectTo and fall back to AUTH_CLIENT_URL if the `redirectTo` option is invalid ([2e1819d](https://github.com/nhost/hasura-auth/commit/2e1819d65a90c288b68c9e47a5dc131a7ab3355d)), closes [#137](https://github.com/nhost/hasura-auth/issues/137)
+* remove the AUTH_HOST environment variable ([cacce97](https://github.com/nhost/hasura-auth/commit/cacce9757374af9bbf55b0360ad8c6b304004cd7)), closes [#139](https://github.com/nhost/hasura-auth/issues/139)
 * run a metadata reload before and after applying hasura-auth metadata ([bd9b361](https://github.com/nhost/hasura-auth/commit/bd9b3618e916e97cea3d3fc8f013223cc0188b94))
 
 
 ### Performance Improvements
 
-* improve logginh on startup ([c172c8a](https://github.com/nhost/hasura-auth/commit/c172c8a55b527a99678c7826104cd0b57ae79f24))
-* improve logginh on startup ([1c7c18f](https://github.com/nhost/hasura-auth/commit/1c7c18fac8ebef74dcf0f0c7f5cf6851852fd0a7))
+* improve logging on startup ([c172c8a](https://github.com/nhost/hasura-auth/commit/c172c8a55b527a99678c7826104cd0b57ae79f24))
 * improve startup with async imports ([e00c073](https://github.com/nhost/hasura-auth/commit/e00c073d55c3d85fbd698e1e10c489b30d98949c))
-* improve startup with async imports ([97b2caa](https://github.com/nhost/hasura-auth/commit/97b2caa4a105858e3779f653a5989f36667ff88f))
-* set AUTH_CLIENT_URL and AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS to lower case ([8bb351d](https://github.com/nhost/hasura-auth/commit/8bb351d55f0ebb15ac31d0c38265ddb8c2a22432))# [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
+* set AUTH_CLIENT_URL and AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS to lower case ([8bb351d](https://github.com/nhost/hasura-auth/commit/8bb351d55f0ebb15ac31d0c38265ddb8c2a22432))
 
+# [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
 
 ### Bug Fixes
 
@@ -30,6 +28,8 @@
 ### Features
 
 * add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User ([4d452d7](https://github.com/nhost/hasura-auth/commit/4d452d7d0b374cad7deb3d59422ad973fb4d801e))# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
+
+# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
 
 ## What's new
 
