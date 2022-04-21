@@ -1,11 +1,29 @@
 # React-Apollo example
 
-Once in the example's directory, run the two following commands in parallel:
+## Get started
+
+1. Clone the repository
 
 ```sh
-# Start the Nhost CLI in the background
-nhost -d
+git clone https://github.com/nhost/nhost
+cd nhost
+```
 
-# Start this project
-yarn run dev
+2. Install dependencies
+
+```sh
+cd examples/react-apollo
+pnpm install
+```
+
+3. Terminal 1: Start Nhost
+
+```sh
+nhost dev
+```
+
+4. Terminal 2: Start React App
+
+```sh
+pnpm run dev
 ```
