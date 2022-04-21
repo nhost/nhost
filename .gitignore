@@ -51,3 +51,7 @@ todo.md
 .monorepo-example
 
 .next
+
+# TypeDoc output
+
+typedoc/output/*

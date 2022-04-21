@@ -27,6 +27,12 @@ $ pnpm install
 $ pnpm dev -- --path <path/to/typedoc/output> --output <path/to/docusaurus/docs>
 ```
 
+## Lint
+
+```bash
+$ pnpm lint
+```
+
 ## Run tests
 
 ```bash

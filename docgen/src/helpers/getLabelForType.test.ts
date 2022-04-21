@@ -26,7 +26,7 @@ test('should generate label for reference types', () => {
         { type: 'intrinsic', name: 'number' }
       ]
     })
-  ).toBe('Test<string, number>')
+  ).toBe('`Test<string, number>`')
 })
 
 test('should generate label for reflection types', () => {

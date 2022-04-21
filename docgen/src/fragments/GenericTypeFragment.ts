@@ -21,44 +21,12 @@ import { ReferenceType } from '../types'
  * @returns Generic type documentation fragment
  */
 export const GenericTypeFragment = ({ name, qualifiedName, typeArguments }: ReferenceType) =>
-  `${qualifiedName || name}${
+  `\`${qualifiedName || name}${
     typeArguments && typeArguments.length > 0
-      ? `\<${typeArguments
-          .map((argument) => {
-            if (argument.type === 'reference' || argument.type === 'intrinsic') {
-              return argument.name
-            }
-
-            if (argument.type === 'query') {
-              return argument.queryType.name
-            }
-
-            if (argument.type === 'array') {
-              return `Array<${getLabelForType(argument.elementType, {
-                reference: false
-              })}>`
-            }
-
-            if (argument.type === 'reflection') {
-              return argument.declaration.name
-            }
-
-            if (typeof argument.value === 'number') {
-              return argument.value
-            }
-
-            if (argument.value === null) {
-              return `null`
-            }
-
-            if (argument.value === undefined) {
-              return `undefined`
-            }
-
-            return `\"${argument.value}\"`
-          })
-          .join(', ')}\>`
+      ? `<${typeArguments
+          .map((argument) => getLabelForType(argument, { reference: false }).replace(/`/gi, ''))
+          .join(', ')}>`
       : ``
-  }`
+  }\``
 
 export default GenericTypeFragment

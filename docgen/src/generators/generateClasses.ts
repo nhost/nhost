@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import fs from 'fs/promises'
 import kebabCase from 'just-kebab-case'
 
-import { appState } from '..'
+import { appState } from '../state'
 import { ClassTemplate } from '../templates'
 import { ClassSignature, Signature } from '../types'
 import generateFunctions from './generateFunctions'
@@ -60,7 +60,10 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
 
   results.forEach((result) => {
     if (result.status === 'rejected') {
-      return console.error(chalk.red`🔴 ${result.reason.message}`)
+      return console.error(
+        chalk.red`🔴 ${result.reason.message}`,
+        chalk.gray`\n${result.reason.stack}`
+      )
     }
 
     if (appState.verbose) {

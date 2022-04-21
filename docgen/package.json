@@ -17,7 +17,8 @@
     "build": "pnpm clean && tsup",
     "test": "jest",
     "clean": "rimraf dist",
-    "format": "prettier --write 'src/**/*.ts'"
+    "format": "prettier --write 'src/**/*.ts'",
+    "lint": "eslint 'src/**/*.ts'"
   },
   "author": "Nhost",
   "homepage": "https://nhost.io",

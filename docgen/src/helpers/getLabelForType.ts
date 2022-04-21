@@ -60,14 +60,14 @@ export function getLabelForType(
     return `\`${type.name}\``
   }
 
-  if (type.type === 'reflection' && type.declaration.children.length > 0) {
+  if (type.type === 'reflection' && type.declaration.children?.length > 0) {
     return `\`{ ${type.declaration.children
       .map(
         (value) =>
           `${value.name}: ${getLabelForType(value.type, {
             reference,
             typeReferencePath
-          }).replace(/\`/gi, '')}`
+          }).replace(/`/gi, '')}`
       )
       .join(', ')} }\``
   }
@@ -85,7 +85,7 @@ export function getLabelForType(
   }
 
   if (type.type === 'literal') {
-    return `\`${typeof type.value === 'number' ? type.value : `\"${type.value}\"`}\``
+    return `\`${typeof type.value === 'number' ? type.value : `"${type.value}"`}\``
   }
 
   if (type.type === 'query' && type.queryType.id) {
@@ -100,7 +100,7 @@ export function getLabelForType(
     return `\`Array<${getLabelForType(type.elementType, {
       reference,
       typeReferencePath
-    }).replace(/\`/gi, '')}>\``
+    }).replace(/`/gi, '')}>\``
   }
 
   return UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, typeReferencePath })

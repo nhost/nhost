@@ -1,4 +1,4 @@
-import { getLabelForType, GetLabelForTypeOptions } from '../helpers'
+import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
 import { UnionOrIntersectionType } from '../types'
 
 export type UnionOrIntersectionTypeFragmentOptions = {
@@ -42,11 +42,11 @@ export const UnionOrIntersectionTypeFragment = (
     .join(unionOrIntersection.type === 'union' ? ` | ` : ' & ')
 
   if (wrap) {
-    return `\<!-- prettier-ignore-start --\>
+    return `<!-- prettier-ignore-start -->
 \`\`\`ts
-${originalName ? `type ${originalName} = ` : ``}${content.replace(/\`/gi, '')}
+${originalName ? `type ${originalName} = ` : ``}${content.replace(/`/gi, '')}
 \`\`\`
-\<!-- prettier-ignore-end --\>
+<!-- prettier-ignore-end -->
 `.trim()
   }
 

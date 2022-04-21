@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import fs from 'fs/promises'
 import kebabCase from 'just-kebab-case'
 
-import { appState } from '..'
+import { appState } from '../state'
 import { TypeTemplate } from '../templates/TypeTemplate'
 import { GeneratorOptions, Parameter, Signature } from '../types'
 
@@ -86,7 +86,10 @@ export async function generateTypes(
 
   results.forEach((result) => {
     if (result.status === 'rejected') {
-      return console.error(chalk.red`🔴 ${result.reason.message}`)
+      return console.error(
+        chalk.red`🔴 ${result.reason.message}`,
+        chalk.gray`\n${result.reason.stack}`
+      )
     }
 
     if (appState.verbose) {

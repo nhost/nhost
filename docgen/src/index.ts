@@ -1,11 +1,7 @@
-import { proxy } from 'valtio'
+import { snapshot } from 'valtio/vanilla'
 
+import { appState } from './state'
 import { Signature } from './types'
-
-/**
- * General app state such as whether the app is in verbose mode or not.
- */
-export const appState = proxy({ verbose: false })
 
 /**
  * Generates the class, function and type documentation for a module.
@@ -19,7 +15,7 @@ async function generateModuleDocumentation(
   output: string,
   name?: string
 ) {
-  const { verbose } = appState
+  const { verbose } = snapshot(appState)
   const { default: chalk } = await import('chalk')
   const { generateClasses, generateFunctions, generateTypes } = await import('./generators')
 
@@ -126,7 +122,6 @@ async function parser() {
     }
 
     console.info()
-
     console.info(chalk.bgBlueBright.black`🎉 Successfully generated docs! 🎉`)
   } catch (error) {
     const { default: chalk } = await import('chalk')
