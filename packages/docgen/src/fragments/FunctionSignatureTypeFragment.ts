@@ -27,9 +27,9 @@ export const FunctionSignatureTypeFragment = (
     parameters
       ?.map(
         (parameter) =>
-          `${parameter.name}: ${getLabelForType(parameter.type, labelOptions).replace(/`/gi, '')}`
+          `${parameter.name}: ${getLabelForType(parameter.type, { ...labelOptions, wrap: false })}`
       )
       .join(', ') || ''
-  }) => ${getLabelForType(type).replace(/`/gi, '')}`
+  }) => ${getLabelForType(type, { wrap: false })}`
 
 export default FunctionSignatureTypeFragment

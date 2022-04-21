@@ -19,8 +19,14 @@ export function getParametersFromSignature(
         // note: we are also returning the parameters of a complex type here
         // (e.g: a custom interface or type alias)
         if (parameter.type.type === 'reference' && originalDocument) {
+          if (!parameter.type.id) {
+            return {
+              parameter
+            }
+          }
+
           const nestedParameters = findNestedParametersByReferenceId(
-            parameter.type.id || null,
+            parameter.type.id,
             originalDocument
           )
 

@@ -21,12 +21,12 @@ import { ReferenceType } from '../types'
  * @returns Generic type documentation fragment
  */
 export const GenericTypeFragment = ({ name, qualifiedName, typeArguments }: ReferenceType) =>
-  `\`${qualifiedName || name}${
+  `${qualifiedName || name}${
     typeArguments && typeArguments.length > 0
       ? `<${typeArguments
-          .map((argument) => getLabelForType(argument, { reference: false }).replace(/`/gi, ''))
+          .map((argument) => getLabelForType(argument, { reference: false, wrap: false }))
           .join(', ')}>`
       : ``
-  }\``
+  }`
 
 export default GenericTypeFragment

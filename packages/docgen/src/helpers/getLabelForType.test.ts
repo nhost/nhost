@@ -13,7 +13,7 @@ test('should generate label for intrinsic types', () => {
 test('should generate label for reference types', () => {
   expect(getLabelForType({ type: 'reference', name: 'Test' })).toBe('`Test`')
 
-  expect(getLabelForType({ id: 1, type: 'reference', name: 'Test' })).toBe(
+  expect(getLabelForType({ id: 1, type: 'reference', name: 'Test' }, { wrap: false })).toBe(
     '[`Test`](../types/test)'
   )
 
@@ -59,10 +59,13 @@ test('should generate label for query types', () => {
   ).toBe('`Test`')
 
   expect(
-    getLabelForType({
-      type: 'query',
-      queryType: { name: 'Test', type: 'reference', id: 1 }
-    })
+    getLabelForType(
+      {
+        type: 'query',
+        queryType: { name: 'Test', type: 'reference', id: 1 }
+      },
+      { wrap: false }
+    )
   ).toBe('[`Test`](../types/test)')
 })
 
@@ -80,7 +83,10 @@ test('should generate label for union or intersection types', () => {
 
 test('should change type reference path if "typeReferencePath" option is provided', () => {
   expect(
-    getLabelForType({ type: 'reference', name: 'Test', id: 1 }, { typeReferencePath: './types' })
+    getLabelForType(
+      { type: 'reference', name: 'Test', id: 1 },
+      { typeReferencePath: './types', wrap: false }
+    )
   ).toBe(`[\`Test\`](./types/test)`)
 })
 
@@ -206,4 +212,9 @@ test('should generate label for function signatures', () => {
       }
     })
   ).toBe(`\`(_key: string, _value: string) => void\``)
+})
+
+test('should not wrap return value in backticks if wrap option is false', () => {
+  expect(getLabelForType({ type: 'intrinsic', name: 'string' }, { wrap: false })).toBe('string')
+  expect(getLabelForType({ type: 'literal', value: 'Test' }, { wrap: false })).toBe('"Test"')
 })

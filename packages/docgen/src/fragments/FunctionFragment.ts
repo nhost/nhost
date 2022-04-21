@@ -91,17 +91,18 @@ ${
   parameters.length > 0
     ? `${numberOfTotalFunctions > 1 ? `### Parameters` : `## Parameters`}\n${parameters
         .map(({ parameter, referencedParameter }) => {
-          if (parameter.type.type === 'reference' && parameter.type.name === 'NhostClientOptions') {
-            console.log(JSON.stringify(parameter))
+          if (parameter && referencedParameter) {
+            return `${ParameterFragment(
+              parameter,
+              parameterLabelOptions
+            )}\n${ParameterTableFragment(
+              referencedParameter.parameters,
+              parameter,
+              parameterLabelOptions
+            )}`
           }
 
-          return parameter && referencedParameter
-            ? `${ParameterFragment(parameter, parameterLabelOptions)}\n${ParameterTableFragment(
-                referencedParameter.parameters,
-                parameter,
-                parameterLabelOptions
-              )}`
-            : ParameterFragment(parameter, parameterLabelOptions)
+          return ParameterFragment(parameter, parameterLabelOptions)
         })
         .concat('---')
         .join('\n\n')}`

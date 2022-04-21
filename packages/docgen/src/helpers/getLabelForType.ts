@@ -28,7 +28,24 @@ export type GetLabelForTypeOptions = {
    * @default '../types'
    */
   typeReferencePath?: string
+  /**
+   * Whether or not to wrap the fragment in an inline code block.
+   *
+   * @default true
+   */
+  wrap?: boolean
 }
+
+/**
+ * Returns the wrapped version for a given `value` if `wrap` is `true`.
+ *
+ * @param value - Value to wrap
+ * @param wrap - Whether or not to wrap the fragment in an inline code block
+ * @param wrapper - Wrapper character
+ * @returns Wrapped value
+ */
+const wrappedText = (value: any, wrap?: boolean, wrapper: string = '`') =>
+  wrap ? `${wrapper}${value}${wrapper}` : value
 
 /**
  * Returns the label for a given type.
@@ -46,22 +63,22 @@ export function getLabelForType(
     | LiteralType
     | QueryType
     | ArrayType,
-  { reference = true, typeReferencePath = '../types' }: GetLabelForTypeOptions = {}
+  { reference = true, typeReferencePath = '../types', wrap = true }: GetLabelForTypeOptions = {}
 ): string {
   if (!type) {
     return ''
   }
 
-  if (type.type === 'reference' && type.id && reference) {
+  if (type.type === 'reference' && type.id && reference && !wrap) {
     return `[\`${type.name}\`](${typeReferencePath}/${kebabCase(type.name)})`
   }
 
   if (type.type === 'reference' && type.typeArguments) {
-    return GenericTypeFragment(type)
+    return wrappedText(GenericTypeFragment(type), wrap)
   }
 
   if (type.type === 'reference' || type.type === 'intrinsic') {
-    return `\`${type.name}\``
+    return wrappedText(type.name, wrap)
   }
 
   if (
@@ -69,15 +86,19 @@ export function getLabelForType(
     type.declaration.children &&
     type.declaration.children.length > 0
   ) {
-    return `\`{ ${type.declaration.children
-      .map(
-        (value) =>
-          `${value.name}: ${getLabelForType(value.type, {
-            reference,
-            typeReferencePath
-          }).replace(/`/gi, '')}`
-      )
-      .join(', ')} }\``
+    return wrappedText(
+      `{ ${type.declaration.children
+        .map(
+          (value) =>
+            `${value.name}: ${getLabelForType(value.type, {
+              reference,
+              typeReferencePath,
+              wrap: false
+            })}`
+        )
+        .join(', ')} }`,
+      wrap
+    )
   }
 
   if (
@@ -86,43 +107,52 @@ export function getLabelForType(
     type.declaration.signatures.length > 0 &&
     type.declaration.signatures[0].kindString === 'Call signature'
   ) {
-    return `\`${FunctionSignatureTypeFragment(type.declaration.signatures[0], {
-      reference: false
-    })}\``
+    return wrappedText(
+      FunctionSignatureTypeFragment(type.declaration.signatures[0], {
+        reference: false
+      }),
+      wrap
+    )
   }
 
   if (type.type === 'reflection') {
-    return `\`${type.declaration.name}\``
+    return wrappedText(type.declaration.name, wrap)
   }
 
   if (type.type === 'literal' && type.value === null) {
-    return `\`null\``
+    return wrappedText('null', wrap)
   }
 
   if (type.type === 'literal' && type.value === undefined) {
-    return `\`undefined\``
+    return wrappedText('undefined', wrap)
   }
 
   if (type.type === 'literal') {
-    return `\`${typeof type.value === 'number' ? type.value : `"${type.value}"`}\``
+    return wrappedText(typeof type.value === 'number' ? type.value : `"${type.value}"`, wrap)
   }
 
-  if (type.type === 'query' && type.queryType.id) {
+  if (type.type === 'query' && type.queryType.id && reference && !wrap) {
     return `[\`${type.queryType.name}\`](${typeReferencePath}/${kebabCase(type.queryType.name)})`
   }
 
   if (type.type === 'query') {
-    return `\`${type.queryType.name}\``
+    return wrappedText(type.queryType.name, wrap)
   }
 
   if (type.type === 'array') {
-    return `\`Array<${getLabelForType(type.elementType, {
-      reference,
-      typeReferencePath
-    }).replace(/`/gi, '')}>\``
+    return wrappedText(
+      `Array<${getLabelForType(type.elementType, {
+        reference,
+        typeReferencePath,
+        wrap: false
+      })}>`,
+      wrap
+    )
   }
 
-  return UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, typeReferencePath })
+  return wrappedText(
+    UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, typeReferencePath })
+  )
 }
 
 export default getLabelForType
