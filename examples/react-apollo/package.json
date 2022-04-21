@@ -4,9 +4,11 @@
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.5.10",
-    "@nhost/react": "^0.5.0",
-    "@nhost/react-apollo": "^4.0.10",
+    "@nhost/core": "workspace:*",
+    "@nhost/react": "workspace:*",
+    "@nhost/react-apollo": "workspace:*",
     "@rsuite/icons": "^1.0.2",
+    "graphql": "15.7.2",
     "jwt-decode": "^3.1.2",
     "less": "^4.1.2",
     "react": "^17.0.2",
@@ -17,6 +19,7 @@
     "react-router-dom": "^6.3.0",
     "rsuite": "^5.7.1"
   },
+  "lib": "workspace:*",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
