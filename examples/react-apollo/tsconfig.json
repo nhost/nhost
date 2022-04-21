@@ -5,10 +5,5 @@
     "composite": true,
     "module": "esnext"
   },
-  "include": [
-    "src/**/*",
-    "types/**/*",
-    "../../types/**/*",
-    "tests/**/*"
-  ]
+  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"]
 }
