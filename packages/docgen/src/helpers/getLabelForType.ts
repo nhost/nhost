@@ -69,7 +69,7 @@ export function getLabelForType(
     return ''
   }
 
-  if (type.type === 'reference' && type.id && reference && !wrap) {
+  if (type.type === 'reference' && type.id && reference) {
     return `[\`${type.name}\`](${typeReferencePath}/${kebabCase(type.name)})`
   }
 
@@ -131,7 +131,7 @@ export function getLabelForType(
     return wrappedText(typeof type.value === 'number' ? type.value : `"${type.value}"`, wrap)
   }
 
-  if (type.type === 'query' && type.queryType.id && reference && !wrap) {
+  if (type.type === 'query' && type.queryType.id && reference) {
     return `[\`${type.queryType.name}\`](${typeReferencePath}/${kebabCase(type.queryType.name)})`
   }
 
@@ -151,7 +151,7 @@ export function getLabelForType(
   }
 
   return wrappedText(
-    UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, typeReferencePath })
+    UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, typeReferencePath, wrap })
   )
 }
 

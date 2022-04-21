@@ -4,7 +4,6 @@ import kebabCase from 'just-kebab-case'
 
 import { FunctionFragmentOptions } from '../fragments'
 import { appState } from '../state'
-import { FunctionTemplate } from '../templates/FunctionTemplate'
 import { GeneratorOptions, Signature } from '../types'
 
 export type GenerateFunctionsOptions = GeneratorOptions & {}
@@ -25,6 +24,7 @@ export async function generateFunctions(
     isClassMember = false
   }: GeneratorOptions & FunctionFragmentOptions = {}
 ) {
+  const { FunctionTemplate } = await import('../templates')
   const functions: Array<{ name: string; content: string }> = parsedContent
     .filter((document) => ['Function', 'Method'].includes(document.kindString))
     .map((props: Signature) => ({
@@ -33,8 +33,6 @@ export async function generateFunctions(
         isClassMember
       })
     }))
-
-  const { format } = await import('prettier')
 
   const results = await Promise.allSettled(
     functions.map(async ({ name, content }) => {
@@ -56,7 +54,7 @@ export async function generateFunctions(
       }
 
       // we are writing the documentation file
-      await fs.writeFile(fileOutput, format(content, { parser: 'markdown' }), 'utf-8')
+      await fs.writeFile(fileOutput, content, 'utf-8')
 
       return { fileName, fileOutput }
     })

@@ -8,6 +8,18 @@ import {
   UnionOrIntersectionType
 } from './content'
 
+/**
+ * Available types for a property.
+ */
+type AvailableTypes =
+  | UnionOrIntersectionType
+  | ReferenceType
+  | ReflectionType
+  | IntrinsicType
+  | LiteralType
+  | QueryType
+  | ArrayType
+
 export type CommentTag = {
   tag: string
   text: string
@@ -25,26 +37,8 @@ export type Source = {
   character: number
 }
 
-export type Declaration = {
-  id: number
-  name: string
-  kind: number
-  kindString: string
-  flags: Record<string, any>
-  children?: Array<Parameter>
-  groups?: Array<Group>
-  sources?: Array<Source>
-  signatures?: Array<Signature>
-}
-
-export type GeneralType = {
-  id?: number
-  type: string
-  name: string
-}
-
 export type Comment = {
-  shortText: string
+  shortText?: string
   returns?: string
   tags?: Array<CommentTag>
 }
@@ -52,17 +46,11 @@ export type Comment = {
 export type Parameter = {
   id: number
   name: string
+  originalName?: string
   kind: number
   kindString: string
   flags: Record<string, any>
-  type:
-    | UnionOrIntersectionType
-    | ReferenceType
-    | ReflectionType
-    | IntrinsicType
-    | LiteralType
-    | QueryType
-    | ArrayType
+  type: AvailableTypes
   sources?: Array<Source>
   comment?: Comment
   children?: Array<Parameter>
@@ -76,8 +64,10 @@ export type Signature<TChildren = Parameter> = {
   kind: number
   kindString: string
   flags: Record<string, any>
-  signatures: Array<Signature<TChildren>>
-  sources: Array<Source>
+  sources?: Array<Source>
+  signatures?: Array<Signature<TChildren>>
+  getSignature?: Array<Signature<TChildren>>
+  setSignature?: Array<Signature<TChildren>>
   parameters?: Array<Parameter>
   comment?: Comment
   type?:
@@ -89,6 +79,8 @@ export type Signature<TChildren = Parameter> = {
     | QueryType
     | ArrayType
   children?: Array<TChildren>
+  groups?: Array<Group>
+  extendedBy?: Array<AvailableTypes>
 }
 
 export type ClassSignature = Signature<Signature>

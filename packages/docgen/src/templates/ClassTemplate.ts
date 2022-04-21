@@ -1,3 +1,5 @@
+import { format } from 'prettier'
+
 import { CommentFragment, DeprecationNoteFragment, FunctionFragment } from '../fragments'
 import { ClassSignature, Signature } from '../types'
 
@@ -6,15 +8,16 @@ import { ClassSignature, Signature } from '../types'
  *
  * @param signature - Class signature
  * @param originalDocument - Auto-generated JSON file
- * @returns Class page template
+ * @returns Prettified class page template
  */
 export const ClassTemplate = (
-  { name, comment, children, ...rest }: ClassSignature,
+  { name, comment, children }: ClassSignature,
   originalDocument?: Array<Signature>
 ) => {
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
-  return `
+  return format(
+    `
 ---
 title: ${name}
 description: ${comment?.shortText?.replace(/\n/gi, ' ') || 'No description provided.'}
@@ -32,18 +35,22 @@ ${
         .filter((child) => child.kindString === 'Constructor')
         .map((signature) =>
           signature.signatures
-            .map((constructorSignature) =>
-              FunctionFragment(constructorSignature, originalDocument, {
-                numberOfTotalFunctions: signature.signatures.length,
-                isConstructor: true,
-                isClassMember: false
-              })
-            )
-            .join('\n\n')
+            ? signature.signatures
+                .map((constructorSignature) =>
+                  FunctionFragment(constructorSignature, originalDocument, {
+                    numberOfTotalFunctions: signature.signatures!.length,
+                    isConstructor: true,
+                    isClassMember: false
+                  })
+                )
+                .join('\n\n')
+            : ''
         )
         .join(`\n\n`)
     : ''
-}`
+}`,
+    { parser: 'markdown' }
+  )
 }
 
 export default ClassTemplate

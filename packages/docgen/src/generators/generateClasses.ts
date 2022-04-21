@@ -3,7 +3,6 @@ import fs from 'fs/promises'
 import kebabCase from 'just-kebab-case'
 
 import { appState } from '../state'
-import { ClassTemplate } from '../templates'
 import { ClassSignature, Signature } from '../types'
 import generateFunctions from './generateFunctions'
 
@@ -15,6 +14,8 @@ import generateFunctions from './generateFunctions'
  * @returns Results of the generation.
  */
 export async function generateClasses(parsedContent: Array<ClassSignature>, outputPath: string) {
+  const { ClassTemplate } = await import('../templates')
+
   const classesAndSubpages: Array<{
     name: string
     index: string
@@ -29,8 +30,6 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       }
     })
 
-  const { format } = await import('prettier')
-
   const results = await Promise.allSettled(
     classesAndSubpages.map(async ({ name, index, subPages }) => {
       const outputDirectory = `${outputPath}/${kebabCase(name)}`
@@ -43,11 +42,7 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       }
 
       // create index.mdx for the class
-      await fs.writeFile(
-        `${outputDirectory}/index.mdx`,
-        format(index, { parser: 'markdown' }),
-        'utf-8'
-      )
+      await fs.writeFile(`${outputDirectory}/index.mdx`, index, 'utf-8')
 
       await generateFunctions(subPages, outputDirectory, {
         originalDocument: parsedContent,

@@ -1,4 +1,16 @@
-import { Declaration } from './common'
+import { Group, Parameter, Signature, Source } from './common'
+
+export type Declaration = {
+  id: number
+  name: string
+  kind: number
+  kindString: string
+  flags: Record<string, any>
+  children?: Array<Parameter>
+  groups?: Array<Group>
+  sources?: Array<Source>
+  signatures?: Array<Signature>
+}
 
 export type ReferenceType = {
   id?: number
@@ -18,7 +30,13 @@ export type ReferenceType = {
    * This is populated only if a type accepts generic parameters.
    */
   typeArguments?: Array<
-    LiteralType | ReferenceType | IntrinsicType | QueryType | ArrayType | ReflectionType
+    | LiteralType
+    | ReferenceType
+    | IntrinsicType
+    | QueryType
+    | ArrayType
+    | ReflectionType
+    | UnionOrIntersectionType
   >
 }
 

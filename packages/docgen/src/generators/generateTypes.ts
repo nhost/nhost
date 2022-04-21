@@ -3,7 +3,6 @@ import fs from 'fs/promises'
 import kebabCase from 'just-kebab-case'
 
 import { appState } from '../state'
-import { TypeTemplate } from '../templates/TypeTemplate'
 import { GeneratorOptions, Parameter, Signature } from '../types'
 
 /**
@@ -23,6 +22,7 @@ export async function generateTypes(
     originalDocument = null
   }: GeneratorOptions = {}
 ) {
+  const { TypeTemplate } = await import('../templates')
   const finalOutputPath = sameLevel ? outputPath : `${outputPath}/types`
 
   const types: Array<{ name: string; content: string }> = parsedContent
@@ -31,8 +31,6 @@ export async function generateTypes(
       name: props.name,
       content: TypeTemplate(props as Parameter, originalDocument || parsedContent)
     }))
-
-  const { format } = await import('prettier')
 
   const results = await Promise.allSettled(
     types.map(async ({ name, content }) => {
@@ -78,7 +76,7 @@ export async function generateTypes(
       }
 
       // we are writing the documentation file
-      await fs.writeFile(fileOutput, format(content, { parser: 'markdown' }), 'utf-8')
+      await fs.writeFile(fileOutput, content, 'utf-8')
 
       return { fileName, fileOutput }
     })

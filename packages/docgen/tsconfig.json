@@ -22,6 +22,6 @@
     "outDir": "dist/lib",
     "typeRoots": ["node_modules/@types"]
   },
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "__mocks__"],
   "include": ["src"]
 }

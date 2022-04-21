@@ -1,3 +1,5 @@
+import { format } from 'prettier'
+
 import {
   CommentFragment,
   DeprecationNoteFragment,
@@ -13,7 +15,7 @@ import { Parameter, Signature } from '../types'
  *
  * @param parameter - Type or interface signature
  * @param originalDocument - Auto-generated JSON file
- * @returns Type alias or interface page template
+ * @returns Prettified type alias or interface page template
  */
 export const TypeTemplate = (parameter: Parameter, originalDocument?: Array<Signature>) => {
   const { name, comment } = parameter
@@ -28,7 +30,8 @@ export const TypeTemplate = (parameter: Parameter, originalDocument?: Array<Sign
     parameters = parameter.type.declaration.children
   }
 
-  return `
+  return format(
+    `
 ---
 title: ${name}
 ${
@@ -67,7 +70,9 @@ ${
         .concat('---')
         .join('\n\n')}`
     : ``
-}`
+}`,
+    { parser: 'markdown' }
+  )
 }
 
 export default TypeTemplate

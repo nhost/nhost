@@ -1,3 +1,5 @@
+import { format } from 'prettier'
+
 import { FunctionFragment, FunctionFragmentOptions } from '../fragments'
 import { Signature } from '../types'
 
@@ -7,14 +9,15 @@ import { Signature } from '../types'
  * @param signature - Function signature
  * @param originalDocument - Auto-generated JSON file
  * @param functionFragmentOptions - Options for the function fragment
- * @returns Function page template
+ * @returns Prettified function page template
  */
 export const FunctionTemplate = (
   { name, signatures }: Signature,
   originalDocument?: Array<Signature>,
   functionFragmentOptions?: FunctionFragmentOptions
 ) =>
-  `
+  format(
+    `
 ---
 title: ${name}()
 ${
@@ -26,16 +29,22 @@ ${
 }
 ---
 
-${signatures.length > 1 ? `# \`${name}()\`` : ``}
+${signatures && signatures.length > 1 ? `# \`${name}()\`` : ``}
 
-${signatures
-  .map((signature) =>
-    FunctionFragment(signature, originalDocument, {
-      numberOfTotalFunctions: signatures.length,
-      ...functionFragmentOptions
-    })
+${
+  signatures
+    ? signatures
+        .map((signature) =>
+          FunctionFragment(signature, originalDocument, {
+            numberOfTotalFunctions: signatures.length,
+            ...functionFragmentOptions
+          })
+        )
+        .join('\n\n')
+    : ''
+}
+`,
+    { parser: 'markdown' }
   )
-  .join('\n\n')}
-`
 
 export default FunctionTemplate
