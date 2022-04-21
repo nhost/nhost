@@ -20,7 +20,7 @@
   <hr />
 </div>
 
-**Nhost is a open-source GraphQL backend,** built with the following things in mind:
+**Nhost is an open-source GraphQL backend,** built with the following things in mind:
 
 - Open-Source
 - Developer Productivity
