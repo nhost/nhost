@@ -7,7 +7,7 @@ services:
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    version: 0.4.2
+    version: 0.6.3
 auth:
   access_control:
     email:
@@ -15,8 +15,7 @@ auth:
       allowed_emails: ''
       blocked_email_domains: ''
       blocked_emails: ''
-    url:
-      allowed_redirect_urls: ''
+    allowed_redirect_urls: ''
   anonymous_users_enabled: false
   client_url: http://localhost:3000
   disable_new_users: false
