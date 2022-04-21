@@ -15,10 +15,6 @@ export class AuthClient {
   private _channel?: BroadcastChannel
   private _subscriptions: Set<(client: AuthClient) => void> = new Set()
 
-  /**
-   *
-   * @param options - Lorem ipsum
-   */
   constructor({
     backendUrl,
     clientUrl = (typeof window !== 'undefined' && window.location?.origin) || '',

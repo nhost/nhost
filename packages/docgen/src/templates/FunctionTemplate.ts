@@ -44,7 +44,7 @@ ${
     : ''
 }
 `,
-    { parser: 'markdown' }
+    { parser: 'markdown', semi: false }
   )
 
 export default FunctionTemplate

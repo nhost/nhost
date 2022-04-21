@@ -1101,7 +1101,7 @@ const mockClass: ClassSignature = {
               kindString: 'Parameter',
               flags: {},
               comment: {
-                shortText: 'Lorem ipsum\n'
+                shortText: 'Sample Description\n'
               },
               originalName: '__namedParameters',
               type: {

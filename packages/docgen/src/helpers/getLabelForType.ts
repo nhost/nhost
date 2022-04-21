@@ -50,9 +50,9 @@ const wrappedText = (value: any, wrap?: boolean, wrapper: string = '`') =>
 /**
  * Returns the label for a given type.
  *
- * @param type - The type to get the label for.
- * @param options - Options for the label.
- * @returns The label for the type.
+ * @param type - Type for which to return the label
+ * @param options - Options for the label
+ * @returns The label for the type
  */
 export function getLabelForType(
   type?:

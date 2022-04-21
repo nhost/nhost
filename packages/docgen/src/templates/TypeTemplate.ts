@@ -74,7 +74,7 @@ ${
         .join('\n\n')}`
     : ``
 }`,
-    { parser: 'markdown' }
+    { parser: 'markdown', semi: false }
   )
 }
 
