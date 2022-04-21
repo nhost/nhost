@@ -37,7 +37,8 @@
   },
   "workspaces": [
     "packages/*",
-    "docs"
+    "docs",
+    "docgen"
   ],
   "devDependencies": {
     "@babel/core": "^7.17.5",
@@ -46,6 +47,7 @@
     "@babel/plugin-transform-react-jsx": "^7.17.3",
     "@changesets/cli": "^2.21.1",
     "@faker-js/faker": "^6.0.0-beta.0",
+    "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/jest": "^27.4.1",
     "@types/node": "^17.0.21",
     "@typescript-eslint/eslint-plugin": "^5.14.0",

@@ -18,5 +18,7 @@ module.exports = {
         useTabs: false
       }
     }
-  ]
+  ],
+  importOrder: ['^[./]'],
+  importOrderSeparation: true
 }
