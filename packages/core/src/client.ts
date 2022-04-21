@@ -44,13 +44,17 @@ export class AuthClient {
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
-      this._channel = new BroadcastChannel('nhost')
-      this._channel.addEventListener('message', (token) => {
-        const existingToken = this.interpreter?.state.context.refreshToken
-        if (this.interpreter && token.data !== existingToken) {
-          this.interpreter.send({ type: 'TRY_TOKEN', token: token.data })
-        }
-      })
+      try {
+        this._channel = new BroadcastChannel('nhost')
+        this._channel.addEventListener('message', (token) => {
+          const existingToken = this.interpreter?.state.context.refreshToken
+          if (this.interpreter && token.data !== existingToken) {
+            this.interpreter.send({ type: 'TRY_TOKEN', token: token.data })
+          }
+        })
+      } catch (error) {
+        // * BroadcastChannel is not available e.g. react-native
+      }
     }
   }
 
