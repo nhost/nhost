@@ -528,10 +528,10 @@ export const createAuthMachine = ({
           errors: ({ errors: { registration, ...errors } }) => errors
         }),
         saveInvalidSignUpPassword: assign({
-          errors: ({ errors }) => ({ ...errors, registration: INVALID_EMAIL_ERROR })
+          errors: ({ errors }) => ({ ...errors, registration: INVALID_PASSWORD_ERROR })
         }),
         saveInvalidSignUpEmail: assign({
-          errors: ({ errors }) => ({ ...errors, registration: INVALID_PASSWORD_ERROR })
+          errors: ({ errors }) => ({ ...errors, registration: INVALID_EMAIL_ERROR })
         }),
         saveNoMfaTicketError: assign({
           errors: ({ errors }) => ({ ...errors, registration: NO_MFA_TICKET_ERROR })
