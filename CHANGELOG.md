@@ -1,6 +1,11 @@
 
 
-## [0.6.2](https://github.com/nhost/hasura-auth/compare/v0.6.1...v0.6.2) (2022-04-20)
+## [0.6.3](https://github.com/nhost/hasura-auth/compare/v0.6.2...v0.6.3) (2022-04-21)
+
+
+### Bug Fixes
+
+* filter internal user fields in session ([d1c4c9b](https://github.com/nhost/hasura-auth/commit/d1c4c9bcb1b7901d989c6c0e194ebab617d5f579))## [0.6.2](https://github.com/nhost/hasura-auth/compare/v0.6.1...v0.6.2) (2022-04-20)
 
 
 ### Bug Fixes
