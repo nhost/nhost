@@ -1,4 +1,3 @@
-import { BroadcastChannel } from 'broadcast-channel'
 import { interpret } from 'xstate'
 
 import { MIN_TOKEN_REFRESH_INTERVAL } from './constants'
@@ -45,11 +44,11 @@ export class AuthClient {
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
-      this._channel = new BroadcastChannel<string>('nhost')
+      this._channel = new BroadcastChannel('nhost')
       this._channel.addEventListener('message', (token) => {
         const existingToken = this.interpreter?.state.context.refreshToken
-        if (this.interpreter && token !== existingToken) {
-          this.interpreter.send({ type: 'TRY_TOKEN', token })
+        if (this.interpreter && token.data !== existingToken) {
+          this.interpreter.send({ type: 'TRY_TOKEN', token: token.data })
         }
       })
     }
