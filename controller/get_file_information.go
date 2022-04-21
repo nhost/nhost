@@ -13,17 +13,24 @@ func (ctrl *Controller) getFileMetadata(
 	ctx context.Context,
 	fileID string,
 	headers http.Header,
-) (FileMetadataWithBucket, *APIError) {
-	fileMetadata, err := ctrl.metadataStorage.GetFileByID(ctx, fileID, headers)
-	if err != nil {
-		return FileMetadataWithBucket{}, err
+) (FileMetadata, BucketMetadata, *APIError) {
+	fileMetadata, apiErr := ctrl.metadataStorage.GetFileByID(ctx, fileID, headers)
+	if apiErr != nil {
+		return FileMetadata{}, BucketMetadata{}, apiErr
 	}
 
 	if !fileMetadata.IsUploaded {
-		return FileMetadataWithBucket{}, ForbiddenError(nil, "you are not auhtorized")
+		return FileMetadata{}, BucketMetadata{}, ForbiddenError(nil, "you are not auhtorized")
 	}
 
-	return fileMetadata, nil
+	bucketMetadata, apiErr := ctrl.metadataStorage.GetBucketByID(
+		ctx, fileMetadata.BucketID, http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
+	)
+	if apiErr != nil {
+		return FileMetadata{}, BucketMetadata{}, apiErr
+	}
+
+	return fileMetadata, bucketMetadata, nil
 }
 
 type getFileInformationHeaders struct {
@@ -73,7 +80,7 @@ func modifiedSince(updatedAt string, modifiedSince string) (bool, *APIError) {
 }
 
 func checkConditionals( // nolint: cyclop
-	fileMetadata FileMetadataWithBucket,
+	fileMetadata FileMetadata,
 	headers getFileInformationHeaders,
 ) (int, *APIError) {
 	if len(headers.IfMatch) > 0 && !etagFound(fileMetadata.ETag, headers.IfMatch) {
@@ -114,7 +121,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 	}
 
 	id := ctx.Param("id")
-	fileMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, ctx.Request.Header)
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), id, ctx.Request.Header)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -154,7 +161,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 		fileMetadata.MimeType,
 		fileMetadata.Size,
 		fileMetadata.ETag,
-		fileMetadata.Bucket.CacheControl,
+		bucketMetadata.CacheControl,
 		updateAt,
 		statusCode,
 		nil,

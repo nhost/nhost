@@ -51,7 +51,7 @@ type FileMetadataWithBucket struct {
 //go:generate mockgen --build_flags=--mod=mod -destination mock_controller/metadata_storage.go -package mock_controller . MetadataStorage
 type MetadataStorage interface {
 	GetBucketByID(ctx context.Context, id string, headers http.Header) (BucketMetadata, *APIError)
-	GetFileByID(ctx context.Context, id string, headers http.Header) (FileMetadataWithBucket, *APIError)
+	GetFileByID(ctx context.Context, id string, headers http.Header) (FileMetadata, *APIError)
 	InitializeFile(ctx context.Context, uuid string, headers http.Header) *APIError
 	PopulateMetadata(
 		ctx context.Context,

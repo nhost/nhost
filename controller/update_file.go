@@ -68,15 +68,15 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		return FileMetadata{}, apiErr
 	}
 
-	originalMetadata, apiErr := ctrl.metadataStorage.GetFileByID(ctx.Request.Context(), file.ID, ctx.Request.Header)
+	originalMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), file.ID, ctx.Request.Header)
 	if apiErr != nil {
 		return FileMetadata{}, apiErr
 	}
 
 	if apiErr = checkFileSize(
 		file.header,
-		originalMetadata.Bucket.MinUploadFile,
-		originalMetadata.Bucket.MaxUploadFile,
+		bucketMetadata.MinUploadFile,
+		bucketMetadata.MaxUploadFile,
 	); apiErr != nil {
 		return FileMetadata{}, InternalServerError(fmt.Errorf("problem checking file size %s: %w", file.Name, apiErr))
 	}

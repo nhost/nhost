@@ -80,28 +80,31 @@ func TestUpdateFile(t *testing.T) {
 			metadataStorage.EXPECT().GetFileByID(
 				gomock.Any(), file.md.ID, gomock.Any(),
 			).Return(
-				controller.FileMetadataWithBucket{
-					FileMetadata: controller.FileMetadata{
-						ID:               file.md.ID,
-						Name:             file.md.Name,
-						Size:             int64(len(file.contents)),
-						BucketID:         "blah",
-						ETag:             "some-etag",
-						CreatedAt:        "", // ignored
-						UpdatedAt:        "", // ignored
-						IsUploaded:       true,
-						MimeType:         "text/plain; charset=utf-8",
-						UploadedByUserID: "some-valid-uuid",
-					},
-					Bucket: controller.BucketMetadata{
-						ID:                   "blah",
-						MinUploadFile:        0,
-						MaxUploadFile:        100,
-						PresignedURLsEnabled: true,
-						DownloadExpiration:   30,
-						CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
-						UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
-					},
+				controller.FileMetadata{
+					ID:               file.md.ID,
+					Name:             file.md.Name,
+					Size:             int64(len(file.contents)),
+					BucketID:         "blah",
+					ETag:             "some-etag",
+					CreatedAt:        "", // ignored
+					UpdatedAt:        "", // ignored
+					IsUploaded:       true,
+					MimeType:         "text/plain; charset=utf-8",
+					UploadedByUserID: "some-valid-uuid",
+				},
+				nil,
+			)
+			metadataStorage.EXPECT().GetBucketByID(
+				gomock.Any(), "blah", gomock.Any(),
+			).Return(
+				controller.BucketMetadata{
+					ID:                   "blah",
+					MinUploadFile:        0,
+					MaxUploadFile:        100,
+					PresignedURLsEnabled: true,
+					DownloadExpiration:   30,
+					CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+					UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
 				},
 				nil,
 			)

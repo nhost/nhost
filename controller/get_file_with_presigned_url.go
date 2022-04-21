@@ -43,7 +43,7 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		return nil, apiErr
 	}
 
-	fileMetadata, apiErr := ctrl.getFileMetadata(
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
 		ctx.Request.Context(),
 		req.fileID,
 		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
@@ -88,7 +88,7 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		download.ContentType,
 		download.ContentLength,
 		download.Etag,
-		fileMetadata.Bucket.CacheControl,
+		bucketMetadata.CacheControl,
 		updateAt,
 		download.StatusCode,
 		download.Body,

@@ -67,10 +67,10 @@ func (mr *MockMetadataStorageMockRecorder) GetBucketByID(arg0, arg1, arg2 interf
 }
 
 // GetFileByID mocks base method.
-func (m *MockMetadataStorage) GetFileByID(arg0 context.Context, arg1 string, arg2 http.Header) (controller.FileMetadataWithBucket, *controller.APIError) {
+func (m *MockMetadataStorage) GetFileByID(arg0 context.Context, arg1 string, arg2 http.Header) (controller.FileMetadata, *controller.APIError) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetFileByID", arg0, arg1, arg2)
-	ret0, _ := ret[0].(controller.FileMetadataWithBucket)
+	ret0, _ := ret[0].(controller.FileMetadata)
 	ret1, _ := ret[1].(*controller.APIError)
 	return ret0, ret1
 }

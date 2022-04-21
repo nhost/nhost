@@ -36,29 +36,30 @@ func TestGetFile(t *testing.T) {
 
 			metadataStorage.EXPECT().GetFileByID(
 				gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),
-			).Return(controller.FileMetadataWithBucket{
-				FileMetadata: controller.FileMetadata{
-					ID:               "55af1e60-0f28-454e-885e-ea6aab2bb288",
-					Name:             "my-file.txt",
-					Size:             64,
-					BucketID:         "default",
-					ETag:             "\"55af1e60-0f28-454e-885e-ea6aab2bb288\"",
-					CreatedAt:        "2021-12-27T09:58:11Z",
-					UpdatedAt:        "2021-12-27T09:58:11Z",
-					IsUploaded:       true,
-					MimeType:         "text/plain; charset=utf-8",
-					UploadedByUserID: "0f7f0ff0-f945-4597-89e1-3636b16775cd",
-				},
-				Bucket: controller.BucketMetadata{
-					ID:                   "default",
-					MinUploadFile:        0,
-					MaxUploadFile:        100,
-					PresignedURLsEnabled: true,
-					DownloadExpiration:   30,
-					CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
-					UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
-					CacheControl:         "max-age=3600",
-				},
+			).Return(controller.FileMetadata{
+				ID:               "55af1e60-0f28-454e-885e-ea6aab2bb288",
+				Name:             "my-file.txt",
+				Size:             64,
+				BucketID:         "default",
+				ETag:             "\"55af1e60-0f28-454e-885e-ea6aab2bb288\"",
+				CreatedAt:        "2021-12-27T09:58:11Z",
+				UpdatedAt:        "2021-12-27T09:58:11Z",
+				IsUploaded:       true,
+				MimeType:         "text/plain; charset=utf-8",
+				UploadedByUserID: "0f7f0ff0-f945-4597-89e1-3636b16775cd",
+			}, nil)
+
+			metadataStorage.EXPECT().GetBucketByID(
+				gomock.Any(), "default", gomock.Any(),
+			).Return(controller.BucketMetadata{
+				ID:                   "default",
+				MinUploadFile:        0,
+				MaxUploadFile:        100,
+				PresignedURLsEnabled: true,
+				DownloadExpiration:   30,
+				CreatedAt:            "2021-12-15T13:26:52.082485+00:00",
+				UpdatedAt:            "2021-12-15T13:26:52.082485+00:00",
+				CacheControl:         "max-age=3600",
 			}, nil)
 
 			contentStorage.EXPECT().GetFile(

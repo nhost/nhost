@@ -233,9 +233,9 @@ func (h *Hasura) GetFileByID(
 	ctx context.Context,
 	fileID string,
 	headers http.Header,
-) (controller.FileMetadataWithBucket, *controller.APIError) {
+) (controller.FileMetadata, *controller.APIError) {
 	var query struct {
-		StorageFilesByPK FileMetadataWithBucket `graphql:"file(id: $id)"`
+		StorageFilesByPK FileMetadata `graphql:"file(id: $id)"`
 	}
 
 	variables := map[string]interface{}{
@@ -246,11 +246,11 @@ func (h *Hasura) GetFileByID(
 	err := client.Query(ctx, &query, variables)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return controller.FileMetadataWithBucket{}, aerr.ExtendError("problem executing query")
+		return controller.FileMetadata{}, aerr.ExtendError("problem executing query")
 	}
 
 	if query.StorageFilesByPK.ID == graphql.String("") {
-		return controller.FileMetadataWithBucket{}, controller.ErrFileNotFound
+		return controller.FileMetadata{}, controller.ErrFileNotFound
 	}
 
 	return query.StorageFilesByPK.ToControllerType(), nil

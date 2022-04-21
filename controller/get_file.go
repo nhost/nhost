@@ -122,7 +122,8 @@ func (ctrl *Controller) manipulateImage(
 func (ctrl *Controller) processFileToDownload(
 	ctx *gin.Context,
 	object io.ReadCloser,
-	fileMetadata FileMetadataWithBucket,
+	fileMetadata FileMetadata,
+	bucketMetadata BucketMetadata,
 	infoHeaders getFileInformationHeaders,
 ) (*FileResponse, *APIError) {
 	opts, apiErr := getImageManipulationOptions(ctx, fileMetadata.MimeType)
@@ -153,7 +154,7 @@ func (ctrl *Controller) processFileToDownload(
 		fileMetadata.MimeType,
 		fileMetadata.Size,
 		fileMetadata.ETag,
-		fileMetadata.Bucket.CacheControl,
+		bucketMetadata.CacheControl,
 		updateAt,
 		statusCode,
 		object,
@@ -168,7 +169,7 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIErr
 		return nil, apiErr
 	}
 
-	fileMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), req.fileID, ctx.Request.Header)
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), req.fileID, ctx.Request.Header)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -178,7 +179,7 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIErr
 		return nil, apiErr
 	}
 
-	response, apiErr := ctrl.processFileToDownload(ctx, object, fileMetadata, req.headers)
+	response, apiErr := ctrl.processFileToDownload(ctx, object, fileMetadata, bucketMetadata, req.headers)
 	if apiErr != nil {
 		return nil, apiErr
 	}

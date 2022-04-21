@@ -28,19 +28,19 @@ func (ctrl *Controller) getFilePresignedURLParse(ctx *gin.Context) GetFilePresig
 func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedURLResponse, *APIError) {
 	req := ctrl.getFilePresignedURLParse(ctx)
 
-	fileMetadata, apiErr := ctrl.metadataStorage.GetFileByID(ctx.Request.Context(), req.FileID, ctx.Request.Header)
+	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(ctx.Request.Context(), req.FileID, ctx.Request.Header)
 	if apiErr != nil {
 		return GetFilePresignedURLResponse{}, apiErr
 	}
 
-	if !fileMetadata.Bucket.PresignedURLsEnabled {
+	if !bucketMetadata.PresignedURLsEnabled {
 		err := errors.New("presigned URLs are not enabled on the bucket where this file is located in") // nolint: goerr113
 		return GetFilePresignedURLResponse{}, ForbiddenError(err, err.Error())
 	}
 
 	signature, apiErr := ctrl.contentStorage.CreatePresignedURL(
 		fileMetadata.ID,
-		time.Duration(fileMetadata.Bucket.DownloadExpiration)*time.Minute,
+		time.Duration(bucketMetadata.DownloadExpiration)*time.Minute,
 	)
 	if apiErr != nil {
 		return GetFilePresignedURLResponse{},
@@ -48,7 +48,7 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 	}
 
 	url := fmt.Sprintf("%s/v1/storage/files/%s/presignedurl/content?%s", ctrl.publicURL, fileMetadata.ID, signature)
-	return GetFilePresignedURLResponse{nil, url, fileMetadata.Bucket.DownloadExpiration}, nil
+	return GetFilePresignedURLResponse{nil, url, bucketMetadata.DownloadExpiration}, nil
 }
 
 func (ctrl *Controller) GetFilePresignedURL(ctx *gin.Context) {

@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package metadata_test
@@ -278,7 +279,7 @@ func TestGetFileByID(t *testing.T) {
 		headers                http.Header
 		expectedStatusCode     int
 		expectedPublicResponse *controller.ErrorResponse
-		expected               controller.FileMetadataWithBucket
+		expected               controller.FileMetadata
 	}{
 		{
 			name:                   "success",
@@ -286,29 +287,17 @@ func TestGetFileByID(t *testing.T) {
 			headers:                getAuthHeader(),
 			expectedStatusCode:     0,
 			expectedPublicResponse: &controller.ErrorResponse{},
-			expected: controller.FileMetadataWithBucket{
-				FileMetadata: controller.FileMetadata{
-					ID:               fileID,
-					Name:             "name",
-					Size:             123,
-					BucketID:         "default",
-					ETag:             "asdasd",
-					CreatedAt:        "",
-					UpdatedAt:        "",
-					IsUploaded:       true,
-					MimeType:         "text",
-					UploadedByUserID: "",
-				},
-				Bucket: controller.BucketMetadata{
-					ID:                   "default",
-					MinUploadFile:        1,
-					MaxUploadFile:        50000000,
-					PresignedURLsEnabled: true,
-					DownloadExpiration:   30,
-					CreatedAt:            "",
-					UpdatedAt:            "",
-					CacheControl:         "max-age=3600",
-				},
+			expected: controller.FileMetadata{
+				ID:               fileID,
+				Name:             "name",
+				Size:             123,
+				BucketID:         "default",
+				ETag:             "asdasd",
+				CreatedAt:        "",
+				UpdatedAt:        "",
+				IsUploaded:       true,
+				MimeType:         "text",
+				UploadedByUserID: "",
 			},
 		},
 		{
@@ -319,7 +308,7 @@ func TestGetFileByID(t *testing.T) {
 			expectedPublicResponse: &controller.ErrorResponse{
 				Message: `Message: invalid input syntax for type uuid: "asdasdasd", Locations: []`,
 			},
-			expected: controller.FileMetadataWithBucket{},
+			expected: controller.FileMetadata{},
 		},
 		{
 			name:               "not found",
@@ -329,7 +318,7 @@ func TestGetFileByID(t *testing.T) {
 			expectedPublicResponse: &controller.ErrorResponse{
 				Message: "file not found",
 			},
-			expected: controller.FileMetadataWithBucket{},
+			expected: controller.FileMetadata{},
 		},
 		{
 			name:               "not authorized",
@@ -337,7 +326,7 @@ func TestGetFileByID(t *testing.T) {
 			expectedPublicResponse: &controller.ErrorResponse{
 				Message: "you are not authorized",
 			},
-			expected: controller.FileMetadataWithBucket{},
+			expected: controller.FileMetadata{},
 		},
 	}
 
