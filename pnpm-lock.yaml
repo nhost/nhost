@@ -183,7 +183,7 @@ importers:
       '@rsuite/icons': ^1.0.2
       '@types/react': ^17.0.43
       '@types/react-dom': ^17.0.14
-      '@vitejs/plugin-react': ^1.3.0
+      '@vitejs/plugin-react': ^1.3.1
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       less: ^4.1.2
@@ -193,9 +193,9 @@ importers:
       react-json-view: ^1.21.3
       react-router: ^6.3.0
       react-router-dom: ^6.3.0
-      rsuite: ^5.7.1
+      rsuite: ^5.8.1
       typescript: ^4.6.3
-      vite: ^2.9.1
+      vite: ^2.9.5
     dependencies:
       '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
       '@nhost/core': link:../../packages/core
