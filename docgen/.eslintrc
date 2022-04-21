@@ -1,7 +1,11 @@
 {
-  "extends": "../.config/.eslintrc",
+  "extends": "../.eslintrc",
   "parserOptions": {
     "project": ["./tsconfig.json"]
   },
-  "rules": {}
+  "rules": {
+    // we are already using a Prettier formatter and this rule is conflicting
+    // with it
+    "simple-import-sort/imports": "off"
+  }
 }

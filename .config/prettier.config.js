@@ -19,6 +19,6 @@ module.exports = {
       }
     }
   ],
-  importOrder: ['^[./]'],
-  importOrderSeparation: true
+  importOrderSeparation: true,
+  importOrderSortSpecifiers: true
 }

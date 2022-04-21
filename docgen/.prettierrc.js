@@ -1,4 +1,5 @@
 module.exports = {
   ...require('../prettier.config'),
-  plugins: [require('@trivago/prettier-plugin-sort-imports')]
+  importOrder: ['^[./]'],
+  plugins: ['./node_modules/@trivago/prettier-plugin-sort-imports']
 }
