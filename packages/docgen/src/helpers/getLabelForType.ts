@@ -108,9 +108,13 @@ export function getLabelForType(
     type.declaration.signatures[0].kindString === 'Call signature'
   ) {
     return wrappedText(
-      FunctionSignatureTypeFragment(type.declaration.signatures[0], {
-        reference: false
-      }),
+      FunctionSignatureTypeFragment(
+        type.declaration.signatures[0],
+        { wrap: false },
+        {
+          reference: false
+        }
+      ),
       wrap
     )
   }

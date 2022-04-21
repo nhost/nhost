@@ -19,7 +19,7 @@ export const ParameterFragment = (
 **${name || ``}** _${flags.isOptional ? 'optional' : 'required'}_ ${
   // function signatures behave slightly differently than other types
   kindString === 'Method' && signatures && signatures.length > 0
-    ? `\`${FunctionSignatureTypeFragment(signatures[0])}\``
+    ? `\`${FunctionSignatureTypeFragment(signatures[0], { wrap: false })}\``
     : getLabelForType(type, labelOptions)
 }
 

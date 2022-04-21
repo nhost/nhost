@@ -1,15 +1,11 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPointStrategy": "Packages",
-  "entryPoints": [
-    "../packages/nhost-js",
-    "../packages/hasura-auth-js",
-    "../packages/hasura-storage-js"
-  ],
+  "entryPoints": ["../packages/hasura-auth-js"],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./output/nhost-js.json",
-  "name": "Nhost JS",
+  "json": "./output/auth.json",
+  "name": "Auth",
   "readme": "none",
   "githubPages": false,
   "cleanOutputDir": false,

@@ -3,6 +3,7 @@ import { format } from 'prettier'
 import {
   CommentFragment,
   DeprecationNoteFragment,
+  FunctionSignatureTypeFragment,
   ParameterFragment,
   ParameterTableFragment,
   UnionOrIntersectionTypeFragment
@@ -50,6 +51,8 @@ ${deprecationTag ? DeprecationNoteFragment(deprecationTag, 'This type is depreca
 ${
   parameter.type?.type === 'union' || parameter.type?.type === 'intersection'
     ? UnionOrIntersectionTypeFragment(parameter.type, { originalName: name })
+    : parameter.type?.type === 'reflection'
+    ? FunctionSignatureTypeFragment(parameter, { originalName: name })
     : parameters?.length > 0
     ? `## Parameters\n${parameters
         .map((parameter) => {

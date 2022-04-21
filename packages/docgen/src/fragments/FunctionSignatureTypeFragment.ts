@@ -1,6 +1,22 @@
 import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
 import { Signature } from '../types'
 
+export type FunctionSignatureTypeFragmentOptions = {
+  /**
+   * Determines whether or not to wrap the fragment in a markdown code block.
+   *
+   * @default true
+   */
+  wrap?: boolean
+  /**
+   * Original name of the type. This is going to be prepended to the code block
+   * if wrap is `true`.
+   *
+   * @default undefined
+   */
+  originalName?: string
+}
+
 /**
  * Creates a function signature documentation fragment.
  *
@@ -21,15 +37,32 @@ import { Signature } from '../types'
  */
 export const FunctionSignatureTypeFragment = (
   { parameters, type }: Signature,
+  { wrap = true, originalName }: FunctionSignatureTypeFragmentOptions = {},
   labelOptions?: GetLabelForTypeOptions
-) =>
-  `(${
+) => {
+  const content = `(${
     parameters
-      ?.map(
-        (parameter) =>
-          `${parameter.name}: ${getLabelForType(parameter.type, { ...labelOptions, wrap: false })}`
-      )
-      .join(', ') || ''
+      ? parameters
+          .map(
+            (parameter) =>
+              `${parameter.name}: ${getLabelForType(parameter.type, {
+                ...labelOptions,
+                wrap: false
+              })}`
+          )
+          .join(', ')
+      : ''
   }) => ${getLabelForType(type, { wrap: false })}`
+
+  if (wrap) {
+    return `
+\`\`\`ts
+${originalName ? `type ${originalName} = ` : ``}${content.replace(/`/gi, '')}
+\`\`\`
+`.trim()
+  }
+
+  return content
+}
 
 export default FunctionSignatureTypeFragment

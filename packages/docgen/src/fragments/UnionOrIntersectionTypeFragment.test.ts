@@ -15,11 +15,9 @@ test('should return a documentation fragment for a union type', () => {
       ]
     })
   ).toBe(
-    `<!-- prettier-ignore-start -->
-\`\`\`ts
+    `\`\`\`ts
 string | SampleType
-\`\`\`
-<!-- prettier-ignore-end -->`
+\`\`\``
   )
 
   expect(
@@ -33,7 +31,7 @@ string | SampleType
       },
       { wrap: false }
     )
-  ).toBe(`\`string\` \\| \`SampleType\``)
+  ).toBe(`\`string\` | \`SampleType\``)
 })
 
 test('should return a documentation fragment for an intersection type', () => {
@@ -46,11 +44,9 @@ test('should return a documentation fragment for an intersection type', () => {
       ]
     })
   ).toBe(
-    `<!-- prettier-ignore-start -->
-\`\`\`ts
+    `\`\`\`ts
 string & SampleType
-\`\`\`
-<!-- prettier-ignore-end -->`
+\`\`\``
   )
 
   expect(
@@ -77,11 +73,9 @@ test('should not have references to types when the content is wrapped in a code 
       ]
     })
   ).toBe(
-    `<!-- prettier-ignore-start -->
-\`\`\`ts
+    `\`\`\`ts
 string | SampleType
-\`\`\`
-<!-- prettier-ignore-end -->`
+\`\`\``
   )
 
   expect(
@@ -93,11 +87,9 @@ string | SampleType
       ]
     })
   ).toBe(
-    `<!-- prettier-ignore-start -->
-\`\`\`ts
+    `\`\`\`ts
 string & SampleType
-\`\`\`
-<!-- prettier-ignore-end -->`
+\`\`\``
   )
 })
 
@@ -114,10 +106,8 @@ test('wrapped code block should have the original name of the type if it is prov
       { originalName: 'OriginalType' }
     )
   ).toBe(
-    `<!-- prettier-ignore-start -->
-\`\`\`ts
+    `\`\`\`ts
 type OriginalType = string | SampleType
-\`\`\`
-<!-- prettier-ignore-end -->`
+\`\`\``
   )
 })

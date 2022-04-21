@@ -42,7 +42,9 @@ test('should generate function signature with a list of arguments', () => {
       signatures: [],
       sources: []
     })
-  ).toBe('(_key: string, _value: string) => void')
+  ).toBe(`\`\`\`ts
+(_key: string, _value: string) => void
+\`\`\``)
 })
 
 test('should generate function signature without a list of arguments', () => {
@@ -63,5 +65,7 @@ test('should generate function signature without a list of arguments', () => {
       signatures: [],
       sources: []
     })
-  ).toBe('() => void')
+  ).toBe(`\`\`\`ts
+() => void
+\`\`\``)
 })

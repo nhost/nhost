@@ -1,4 +1,4 @@
-import { getLabelForType, GetLabelForTypeOptions } from '../helpers'
+import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
 import { Parameter } from '../types'
 import FunctionSignatureTypeFragment from './FunctionSignatureTypeFragment'
 
@@ -31,7 +31,9 @@ ${parameters
       } | ${
         // function signatures behave slightly differently than other types
         parameter.kindString === 'Method' && parameter.signatures && parameter.signatures.length > 0
-          ? `\`${FunctionSignatureTypeFragment(parameter.signatures[0])}\``
+          ? `\`${FunctionSignatureTypeFragment(parameter.signatures[0], { wrap: false })}\``
+          : parameter.type.type === 'union' || parameter.type.type === 'intersection'
+          ? getLabelForType(parameter.type, labelOptions).replace(/\|/gi, '\\|')
           : getLabelForType(parameter.type, labelOptions)
       } | ${parameter.flags.isOptional ? `` : '✔️'} | ${parameter.comment?.shortText || ''}|`
   )

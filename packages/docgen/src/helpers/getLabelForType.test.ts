@@ -78,7 +78,7 @@ test('should generate label for union or intersection types', () => {
         { type: 'reference', name: 'Test' }
       ]
     })
-  ).toBe('`string` \\| `Test`')
+  ).toBe('`string` | `Test`')
 })
 
 test('should change type reference path if "typeReferencePath" option is provided', () => {

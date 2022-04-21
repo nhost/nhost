@@ -36,7 +36,9 @@
     "wait": "wait-on http://localhost:1337/v1/auth/healthz -i 500 -t 120000",
     "docgen:build": "turbo run build --scope='@nhost/docgen'",
     "typedoc:nhost-js": "typedoc --options \"./typedoc/nhost-js.typedoc.json\"",
-    "docgen:nhost-js": "pnpm typedoc:nhost-js && pnpm docgen:build && turbo run start --scope='@nhost/docgen' -- -- --path ../../typedoc/output/nhost-js.json --output ../../docs/docs/reference/javascript --cleanup --title \"Nhost JS\""
+    "typedoc:auth": "typedoc --options \"./typedoc/auth.typedoc.json\"",
+    "docgen:nhost-js": "pnpm typedoc:nhost-js && pnpm docgen:build && turbo run start --scope='@nhost/docgen' -- -- --path ../../typedoc/output/nhost-js.json --output ../../docs/docs/reference/javascript --cleanup --title \"Nhost JS\"",
+    "docgen:auth": "pnpm typedoc:auth && pnpm docgen:build && turbo run start --scope='@nhost/docgen' -- -- --path ../../typedoc/output/auth.json --output ../../docs/docs/reference/javascript/auth --cleanup --title \"Auth\""
   },
   "workspaces": [
     "packages/*",

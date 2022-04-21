@@ -38,19 +38,16 @@ export const UnionOrIntersectionTypeFragment = (
   const content = unionOrIntersection.types
     // note: we would not able to provide references for types that are wrapped
     // in a code block because of markdown limitations
-    .map((type) => getLabelForType(type, { reference: !wrap, ...labelOptions }))
+    .map((type) => getLabelForType(type, { reference: false, ...labelOptions }))
     .join(unionOrIntersection.type === 'union' ? ` | ` : ' & ')
 
   if (wrap) {
-    return `<!-- prettier-ignore-start -->
-\`\`\`ts
+    return `\`\`\`ts
 ${originalName ? `type ${originalName} = ` : ``}${content.replace(/`/gi, '')}
-\`\`\`
-<!-- prettier-ignore-end -->
-`.trim()
+\`\`\``.trim()
   }
 
-  return content.replace(/\|/gi, '\\|')
+  return `${content.replace(/\|/gi, '|')}`
 }
 
 export default UnionOrIntersectionTypeFragment
