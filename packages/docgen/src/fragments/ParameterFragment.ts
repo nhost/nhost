@@ -1,4 +1,4 @@
-import { getLabelForType, GetLabelForTypeOptions } from '../helpers'
+import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
 import { Parameter } from '../types'
 import { CommentFragment } from './CommentFragment'
 import FunctionSignatureTypeFragment from './FunctionSignatureTypeFragment'

@@ -150,3 +150,60 @@ test('should return "null" or "undefined" for falsy literal values', () => {
   expect(getLabelForType({ type: 'literal', value: null })).toBe('`null`')
   expect(getLabelForType({ type: 'literal', value: undefined })).toBe('`undefined`')
 })
+
+test('should generate label for function signatures', () => {
+  expect(
+    getLabelForType({
+      type: 'reflection',
+      declaration: {
+        kind: 0,
+        id: 0,
+        name: '__type',
+        kindString: 'Call signature',
+        flags: {},
+        signatures: [
+          {
+            id: 713,
+            name: 'setItem',
+            kind: 4096,
+            kindString: 'Call signature',
+            flags: {},
+            comment: {
+              shortText: 'Set item.'
+            },
+            parameters: [
+              {
+                id: 714,
+                name: '_key',
+                kind: 32768,
+                kindString: 'Parameter',
+                flags: {},
+                type: {
+                  type: 'intrinsic',
+                  name: 'string'
+                }
+              },
+              {
+                id: 715,
+                name: '_value',
+                kind: 32768,
+                kindString: 'Parameter',
+                flags: {},
+                type: {
+                  type: 'intrinsic',
+                  name: 'string'
+                }
+              }
+            ],
+            type: {
+              type: 'intrinsic',
+              name: 'void'
+            },
+            signatures: [],
+            sources: []
+          }
+        ]
+      }
+    })
+  ).toBe(`\`(_key: string, _value: string) => void\``)
+})

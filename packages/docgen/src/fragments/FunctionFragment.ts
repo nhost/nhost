@@ -1,6 +1,6 @@
 import {
-  getExamplesFromSignature,
   GetLabelForTypeOptions,
+  getExamplesFromSignature,
   getParametersFromSignature
 } from '../helpers'
 import { Signature } from '../types'
@@ -91,6 +91,10 @@ ${
   parameters.length > 0
     ? `${numberOfTotalFunctions > 1 ? `### Parameters` : `## Parameters`}\n${parameters
         .map(({ parameter, referencedParameter }) => {
+          if (parameter.type.type === 'reference' && parameter.type.name === 'NhostClientOptions') {
+            console.log(JSON.stringify(parameter))
+          }
+
           return parameter && referencedParameter
             ? `${ParameterFragment(parameter, parameterLabelOptions)}\n${ParameterTableFragment(
                 referencedParameter.parameters,

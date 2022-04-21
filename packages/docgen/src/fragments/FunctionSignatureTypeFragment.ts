@@ -1,4 +1,4 @@
-import { getLabelForType } from '../helpers'
+import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
 import { Signature } from '../types'
 
 /**
@@ -16,13 +16,18 @@ import { Signature } from '../types'
  * ```
  *
  * @param functionType - Function type for which to create the documentation
+ * @param labelOptions - Options to customize the label
  * @returns Function signature documentation fragment
  */
-export const FunctionSignatureTypeFragment = ({ parameters, type }: Signature) =>
+export const FunctionSignatureTypeFragment = (
+  { parameters, type }: Signature,
+  labelOptions?: GetLabelForTypeOptions
+) =>
   `(${
     parameters
       ?.map(
-        (parameter) => `${parameter.name}: ${getLabelForType(parameter.type).replace(/`/gi, '')}`
+        (parameter) =>
+          `${parameter.name}: ${getLabelForType(parameter.type, labelOptions).replace(/`/gi, '')}`
       )
       .join(', ') || ''
   }) => ${getLabelForType(type).replace(/`/gi, '')}`

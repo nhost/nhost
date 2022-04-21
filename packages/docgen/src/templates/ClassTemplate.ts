@@ -9,7 +9,7 @@ import { ClassSignature, Signature } from '../types'
  * @returns Class page template
  */
 export const ClassTemplate = (
-  { name, comment, children }: ClassSignature,
+  { name, comment, children, ...rest }: ClassSignature,
   originalDocument?: Array<Signature>
 ) => {
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
@@ -26,20 +26,24 @@ ${comment ? CommentFragment(comment) : ''}
 
 ${deprecationTag ? DeprecationNoteFragment(deprecationTag, 'This class is deprecated.') : ``}
 
-${children
-  ?.filter((child) => child.kindString === 'Constructor')
-  .map((signature) =>
-    signature.signatures
-      .map((constructorSignature) =>
-        FunctionFragment(constructorSignature, originalDocument, {
-          numberOfTotalFunctions: signature.signatures.length,
-          isConstructor: true,
-          isClassMember: true
-        })
-      )
-      .join('\n\n')
-  )
-  .join(`\n\n`)}`
+${
+  children
+    ? children
+        .filter((child) => child.kindString === 'Constructor')
+        .map((signature) =>
+          signature.signatures
+            .map((constructorSignature) =>
+              FunctionFragment(constructorSignature, originalDocument, {
+                numberOfTotalFunctions: signature.signatures.length,
+                isConstructor: true,
+                isClassMember: false
+              })
+            )
+            .join('\n\n')
+        )
+        .join(`\n\n`)
+    : ''
+}`
 }
 
 export default ClassTemplate

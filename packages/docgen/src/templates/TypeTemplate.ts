@@ -24,7 +24,7 @@ export const TypeTemplate = (parameter: Parameter, originalDocument?: Array<Sign
 
   if (parameter.kindString === 'Interface') {
     parameters = parameter.children || []
-  } else if (parameter.type?.type === 'reflection') {
+  } else if (parameter.type?.type === 'reflection' && parameter.type.declaration.children) {
     parameters = parameter.type.declaration.children
   }
 

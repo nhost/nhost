@@ -1,5 +1,5 @@
 {
-  "name": "docgen",
+  "name": "@nhost/docgen",
   "description": "Documentation generator for classes and functions",
   "private": true,
   "version": "0.1.0",

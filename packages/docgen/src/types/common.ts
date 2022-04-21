@@ -31,9 +31,10 @@ export type Declaration = {
   kind: number
   kindString: string
   flags: Record<string, any>
-  children: Array<Parameter>
+  children?: Array<Parameter>
   groups?: Array<Group>
   sources?: Array<Source>
+  signatures?: Array<Signature>
 }
 
 export type GeneralType = {

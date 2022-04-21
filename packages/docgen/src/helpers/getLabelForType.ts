@@ -1,6 +1,10 @@
 import kebabCase from 'just-kebab-case'
 
-import { GenericTypeFragment, UnionOrIntersectionTypeFragment } from '../fragments'
+import {
+  FunctionSignatureTypeFragment,
+  GenericTypeFragment,
+  UnionOrIntersectionTypeFragment
+} from '../fragments'
 import {
   ArrayType,
   IntrinsicType,
@@ -60,7 +64,11 @@ export function getLabelForType(
     return `\`${type.name}\``
   }
 
-  if (type.type === 'reflection' && type.declaration.children?.length > 0) {
+  if (
+    type.type === 'reflection' &&
+    type.declaration.children &&
+    type.declaration.children.length > 0
+  ) {
     return `\`{ ${type.declaration.children
       .map(
         (value) =>
@@ -70,6 +78,17 @@ export function getLabelForType(
           }).replace(/`/gi, '')}`
       )
       .join(', ')} }\``
+  }
+
+  if (
+    type.type === 'reflection' &&
+    type.declaration.signatures &&
+    type.declaration.signatures.length > 0 &&
+    type.declaration.signatures[0].kindString === 'Call signature'
+  ) {
+    return `\`${FunctionSignatureTypeFragment(type.declaration.signatures[0], {
+      reference: false
+    })}\``
   }
 
   if (type.type === 'reflection') {

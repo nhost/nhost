@@ -14,7 +14,6 @@
   "readme": "none",
   "githubPages": false,
   "cleanOutputDir": false,
-  "includeVersion": true,
   "excludeInternal": true,
   "excludePrivate": true,
   "excludeExternals": true
