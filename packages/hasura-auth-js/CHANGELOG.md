@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 1.0.15
+
+### Patch Changes
+
+- aa1fdf6: Fix `refreshSession`
+
 ## 1.0.14
 
 ### Patch Changes
