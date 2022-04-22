@@ -109,12 +109,13 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       interpreter.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
       interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
+        if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
           return resolve({ session: null, error: null })
-        else if (state.matches({ authentication: { signedOut: 'failed' } })) {
+        } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
           return resolve({ session: null, error: state.context.errors.registration || null })
-        } else if (state.matches({ authentication: 'signedIn' }))
+        } else if (state.matches({ authentication: 'signedIn' })) {
           return resolve({ session: getSession(state.context), error: null })
+        }
       })
     })
   }
@@ -171,30 +172,31 @@ export class HasuraAuthClient {
       return new Promise((resolve) => {
         interpreter.send({ type: 'SIGNIN_PASSWORD', ...params })
         interpreter.onTransition((state) => {
-          if (state.matches({ authentication: 'signedIn' }))
+          if (state.matches({ authentication: 'signedIn' })) {
             resolve({
               session: getSession(state.context),
               mfa: null,
               error: null
             })
-          else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
+          } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
             resolve({
               session: null,
               mfa: null,
               error: EMAIL_NEEDS_VERIFICATION
             })
-          else if (state.matches({ authentication: { signedOut: 'needsMfa' } }))
+          } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
             resolve({
               session: null,
               mfa: state.context.mfa,
               error: null
             })
-          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
             resolve({
               session: null,
               mfa: null,
               error: state.context.errors.authentication || null
             })
+          }
         })
       })
     }
@@ -203,18 +205,19 @@ export class HasuraAuthClient {
     if ('email' in params && !('otp' in params)) {
       return new Promise((resolve) => {
         interpreter.onTransition((state) => {
-          if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } }))
+          if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
             resolve({
               session: null,
               mfa: null,
               error: null
             })
-          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
             resolve({
               session: null,
               mfa: null,
               error: state.context.errors.authentication || null
             })
+          }
         })
 
         interpreter.send({ type: 'SIGNIN_PASSWORDLESS_EMAIL', ...params })
@@ -225,18 +228,19 @@ export class HasuraAuthClient {
     if ('phoneNumber' in params && !('otp' in params)) {
       return new Promise((resolve) => {
         interpreter.onTransition((state) => {
-          if (state.matches({ authentication: { signedOut: 'needsSmsOtp' } }))
+          if (state.matches({ authentication: { signedOut: 'needsSmsOtp' } })) {
             resolve({
               session: null,
               mfa: null,
               error: null
             })
-          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
             resolve({
               session: null,
               mfa: null,
               error: state.context.errors.authentication || null
             })
+          }
         })
         interpreter.send({ type: 'SIGNIN_PASSWORDLESS_SMS', ...params })
       })
@@ -246,18 +250,19 @@ export class HasuraAuthClient {
     if ('otp' in params) {
       return new Promise((resolve) => {
         interpreter.onTransition((state) => {
-          if (state.matches({ authentication: 'signedIn' }))
+          if (state.matches({ authentication: 'signedIn' })) {
             resolve({
               session: getSession(state.context),
               mfa: null,
               error: null
             })
-          else if (state.matches({ authentication: { signedOut: 'failed' } }))
+          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
             resolve({
               session: null,
               mfa: null,
               error: state.context.errors.authentication || null
             })
+          }
         })
         interpreter.send({ type: 'SIGNIN_PASSWORDLESS_SMS_OTP', ...params })
       })
@@ -280,13 +285,17 @@ export class HasuraAuthClient {
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const interpreter = await this.waitUntilReady()
-    if (!this.isAuthenticated()) return { error: USER_UNAUTHENTICATED }
+    if (!this.isAuthenticated()) {
+      return { error: USER_UNAUTHENTICATED }
+    }
     return new Promise((resolve) => {
       interpreter.send({ type: 'SIGNOUT', all: params?.all })
       interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'success' } })) resolve({ error: null })
-        else if (state.matches({ authentication: { signedOut: 'failed' } }))
+        if (state.matches({ authentication: { signedOut: 'success' } })) {
+          resolve({ error: null })
+        } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } })) {
           resolve({ error: state.context.errors.signout || null })
+        }
       })
     })
   }
@@ -303,8 +312,11 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       const service = interpret(createResetPasswordMachine(this._client))
       service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') return resolve({ error: event.error })
-        else if (event.type === 'SUCCESS') return resolve({ error: null })
+        if (event.type === 'ERROR') {
+          return resolve({ error: event.error })
+        } else if (event.type === 'SUCCESS') {
+          return resolve({ error: null })
+        }
       })
       service.start()
       service.send({ type: 'REQUEST', email, options })
@@ -323,8 +335,11 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       const service = interpret(createChangePasswordMachine(this._client))
       service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') return resolve({ error: event.error })
-        else if (event.type === 'SUCCESS') return resolve({ error: null })
+        if (event.type === 'ERROR') {
+          return resolve({ error: event.error })
+        } else if (event.type === 'SUCCESS') {
+          return resolve({ error: null })
+        }
       })
       service.start()
       service.send({ type: 'REQUEST', password: params.newPassword })
@@ -346,8 +361,11 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       const service = interpret(createSendVerificationEmailMachine(this._client))
       service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') return resolve({ error: event.error })
-        else if (event.type === 'SUCCESS') return resolve({ error: null })
+        if (event.type === 'ERROR') {
+          return resolve({ error: event.error })
+        } else if (event.type === 'SUCCESS') {
+          return resolve({ error: null })
+        }
       })
       service.start()
       service.send({ type: 'REQUEST', email: params.email, options: params.options })
@@ -366,8 +384,11 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       const service = interpret(createChangeEmailMachine(this._client))
       service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') return resolve({ error: event.error })
-        else if (event.type === 'SUCCESS') return resolve({ error: null })
+        if (event.type === 'ERROR') {
+          return resolve({ error: event.error })
+        } else if (event.type === 'SUCCESS') {
+          return resolve({ error: null })
+        }
       })
       service.start()
       service.send({ type: 'REQUEST', email: newEmail, options })
@@ -385,13 +406,15 @@ export class HasuraAuthClient {
   async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
     const interpreter = await this.waitUntilReady()
     return new Promise((resolve) => {
-      if (!this.isAuthenticated() || !interpreter.state.context.user?.isAnonymous)
+      if (!this.isAuthenticated() || !interpreter.state.context.user?.isAnonymous) {
         return { error: USER_NOT_ANONYMOUS }
+      }
       interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedIn: { deanonymizing: 'success' } } }))
+        if (state.matches({ authentication: { signedIn: { deanonymizing: 'success' } } })) {
           resolve({ error: null })
-        else if (state.matches({ authentication: { signedIn: { deanonymizing: 'error' } } }))
+        } else if (state.matches({ authentication: { signedIn: { deanonymizing: 'error' } } })) {
           resolve({ error: state.context.errors.authentication || null })
+        }
       })
       interpreter.start()
       const { signInMethod, connection, ...options } = params
@@ -416,7 +439,9 @@ export class HasuraAuthClient {
   onTokenChanged(fn: OnTokenChangedFunction): Function {
     const listen = (interpreter: AuthInterpreter) =>
       interpreter.onTransition(({ event, context }) => {
-        if (event.type === 'TOKEN_CHANGED') fn(getSession(context))
+        if (event.type === 'TOKEN_CHANGED') {
+          fn(getSession(context))
+        }
       })
 
     if (this._client.interpreter) {
@@ -449,8 +474,9 @@ export class HasuraAuthClient {
   onAuthStateChanged(fn: AuthChangedFunction): Function {
     const listen = (interpreter: AuthInterpreter) =>
       interpreter.onTransition(({ event, context }) => {
-        if (event.type === 'SIGNED_IN' || event.type === 'SIGNED_OUT')
+        if (event.type === 'SIGNED_IN' || event.type === 'SIGNED_OUT') {
           fn(event.type, getSession(context))
+        }
       })
     if (this._client.interpreter) {
       const subscription = listen(this._client.interpreter)
@@ -531,7 +557,9 @@ export class HasuraAuthClient {
     isAuthenticated: boolean
     isLoading: boolean
   } {
-    if (!this.isReady()) return { isAuthenticated: false, isLoading: true }
+    if (!this.isReady()) {
+      return { isAuthenticated: false, isLoading: true }
+    }
     return { isAuthenticated: this.isAuthenticated(), isLoading: false }
   }
 
@@ -638,7 +666,9 @@ export class HasuraAuthClient {
     if (!interpreter) {
       throw Error('Auth interpreter not set')
     }
-    if (interpreter.state.hasTag('ready')) return Promise.resolve(interpreter)
+    if (interpreter.state.hasTag('ready')) {
+      return Promise.resolve(interpreter)
+    }
     return new Promise((resolve, reject) => {
       let timer: ReturnType<typeof setTimeout> = setTimeout(
         () => reject(`The state machine is not yet ready after ${TIMEOUT_IN_SECONS} seconds.`),
