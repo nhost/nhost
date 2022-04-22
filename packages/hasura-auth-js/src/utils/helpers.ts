@@ -11,7 +11,13 @@ import { ClientStorage, ClientStorageType, Session } from './types'
 export const isBrowser = () => typeof window !== 'undefined'
 
 export const getSession = (context?: AuthContext): Session | null => {
-  if (!context || !context.accessToken.value || !context.refreshToken.value) return null
+  if (
+    !context ||
+    !context.accessToken.value ||
+    !context.refreshToken.value ||
+    !context.accessToken.expiresAt
+  )
+    return null
   return {
     accessToken: context.accessToken.value,
     accessTokenExpiresIn: (context.accessToken.expiresAt.getTime() - Date.now()) / 1000,
