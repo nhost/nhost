@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
-import react from '@vitejs/plugin-react'
+import vue from '@vitejs/plugin-vue'
 
 import { lib, plugins } from './vite.lib'
 
@@ -9,18 +9,18 @@ import { lib, plugins } from './vite.lib'
  */
 export default defineConfig({
   plugins: [
-    react(),
+    vue(),
     ...plugins
 
   ],
   build: {
     lib,
     rollupOptions: {
-      external: ['react', '@nhost/react'],
+      external: ['vue', '@nhost/vue'],
       output: {
         globals: {
-          react: 'react',
-          '@nhost/react': '@nhost/react'
+          vue: 'Vue',
+          '@nhost/vue': '@nhost/vue'
         }
       }
     }

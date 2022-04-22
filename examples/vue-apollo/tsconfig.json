@@ -1,0 +1,27 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "composite": true,
+    "module": "esnext"
+    // "target": "esnext",
+    // "useDefineForClassFields": true,
+    // "module": "esnext",
+    // "moduleResolution": "node",
+    // "strict": true,
+    // "jsx": "preserve",
+    // "sourceMap": true,
+    // "resolveJsonModule": true,
+    // "isolatedModules": true,
+    // "esModuleInterop": true,
+    // "lib": ["esnext", "dom"]
+  },
+  "include": [
+    "src/**/*",
+    "types/**/*",
+    "../../types/**/*",
+    "tests/**/*"
+  ],
+
+  // "references": [{ "path": "./tsconfig.node.json" }]
+}

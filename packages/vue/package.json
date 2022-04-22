@@ -1,0 +1,67 @@
+{
+  "name": "@nhost/vue",
+  "version": "0.0.1",
+  "description": "Nhost Vue library",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "storage",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime",
+    "vue"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "scripts": {
+    "build": "vite build --config ../../vite.lib.vue.js",
+    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
+  },
+  "main": "src/index.ts",
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.umd.js",
+    "module": "dist/index.es.js",
+    "typings": "./dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": "./dist/index.es.js",
+        "require": "./dist/index.umd.js"
+      }
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "peerDependencies": {
+    "vue": "^3.2.31"
+  },
+  "dependencies": {
+    "@nhost/nhost-js": "workspace:^",
+    "@xstate/vue": "^1.0.0",
+    "immer": "^9.0.12"
+  },
+  "devDependencies": {
+    "@nhost/core": "workspace:^",
+    "@nhost/hasura-auth-js": "workspace:^",
+    "@vitejs/plugin-vue": "^2.3.1",
+    "@xstate/inspect": "^0.6.2",
+    "vue": "^3.2.31",
+    "ws": "^8.4.2",
+    "xstate": "^4.30.5"
+  }
+}
