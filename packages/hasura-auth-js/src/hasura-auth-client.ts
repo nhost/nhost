@@ -52,6 +52,7 @@ const EMAIL_NEEDS_VERIFICATION: ApiError = {
   message: 'Email needs verification',
   status: 102
 }
+
 export class HasuraAuthClient {
   private _client: AuthClient
 

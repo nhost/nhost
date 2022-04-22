@@ -21,6 +21,7 @@ import { Parameter, Signature } from '../types'
 export const TypeTemplate = (parameter: Parameter, originalDocument?: Array<Signature>) => {
   const { name, comment } = parameter
 
+  const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
   let parameters: Parameter[] = []
@@ -35,6 +36,7 @@ export const TypeTemplate = (parameter: Parameter, originalDocument?: Array<Sign
     `
 ---
 title: ${name}
+sidebar_label: ${alias || name}
 ${
   comment && comment.shortText
     ? `description: ${comment.shortText.replace(/\n/gi, ' ') || 'No description provided.'}`

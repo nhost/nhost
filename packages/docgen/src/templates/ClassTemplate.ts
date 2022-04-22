@@ -14,12 +14,14 @@ export const ClassTemplate = (
   { name, comment, children }: ClassSignature,
   originalDocument?: Array<Signature>
 ) => {
+  const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
   return format(
     `
 ---
 title: ${name}
+sidebar_label: ${alias || name}
 description: ${comment?.shortText?.replace(/\n/gi, ' ') || 'No description provided.'}
 ---
 

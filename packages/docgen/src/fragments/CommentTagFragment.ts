@@ -7,15 +7,14 @@ import { CommentTag } from '../types'
  * @returns Comment tag documentation fragment
  */
 export const CommentTagFragment = ({ tag, text }: CommentTag) =>
-  ` 
-${tag ? `**\`@${tag.replace(/(^\n|\n$)/gi, ``)}\`**\n` : ``}
+  `${tag ? `**\`@${tag.replace(/(^\n|\n$)/gi, ``)}\`**` : ``}
+
 ${
   text
     ? tag && tag === 'default'
-      ? `\`${text.replace(/(^\n|\n$)/gi, ``).replace(/'/gi, '"')}\`\n`
-      : `${text.replace(/(^\n|\n$)/gi, ``)}\n`
+      ? `\`${text.replace(/(^\n|\n$)/gi, ``).replace(/'/gi, '"')}\``
+      : `${text.replace(/(^\n|\n$)/gi, ``)}`
     : ``
-}
-`
+}`
 
 export default CommentTagFragment

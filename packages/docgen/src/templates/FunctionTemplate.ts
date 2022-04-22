@@ -12,14 +12,17 @@ import { Signature } from '../types'
  * @returns Prettified function page template
  */
 export const FunctionTemplate = (
-  { name, signatures }: Signature,
+  { name, comment, signatures }: Signature,
   originalDocument?: Array<Signature>,
   functionFragmentOptions?: FunctionFragmentOptions
-) =>
-  format(
+) => {
+  const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
+
+  return format(
     `
 ---
 title: ${name}()
+sidebar_label: ${alias || name}()
 ${
   signatures && signatures.length > 0
     ? `description: ${
@@ -46,5 +49,6 @@ ${
 `,
     { parser: 'markdown', semi: false, singleQuote: true }
   )
+}
 
 export default FunctionTemplate

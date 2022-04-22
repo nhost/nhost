@@ -8,6 +8,10 @@ export type CommentFragmentOptions = {
   highlightTitle?: boolean
 }
 
+// note: we are displaying remarks and examples in a separate section and we are not
+// displaying @docs tags because they usually refer to the same documentation
+const excludedTags = ['remarks', 'alias', 'example', 'deprecated', 'docs']
+
 /**
  * Creates a comment documentation fragment.
  *
@@ -24,13 +28,8 @@ export const CommentFragment = (
 ${
   tags
     ? tags
-        // note: we are displaying remarks and examples in a separate section and we are not
-        // displaying @docs tags because they usually refer to the same documentation
-        .filter(
-          ({ tag }) =>
-            tag !== 'remarks' && tag !== 'example' && tag !== 'deprecated' && tag !== 'docs'
-        )
-        .concat(Boolean(returns) ? { tag: 'returns', text: returns } : { tag: ``, text: `` })
+        .filter(({ tag }) => !excludedTags.includes(tag))
+        .concat(returns ? { tag: 'returns', text: returns } : { tag: ``, text: `` })
         .map(CommentTagFragment)
         .join('\n\n')
     : returns

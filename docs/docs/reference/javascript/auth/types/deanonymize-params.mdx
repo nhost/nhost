@@ -1,5 +1,6 @@
 ---
 title: DeanonymizeParams
+sidebar_label: DeanonymizeParams
 description: No description provided.
 ---
 
@@ -9,19 +10,15 @@ description: No description provided.
 
 ---
 
-**signInMethod** <span className="optional-status">required</span> `"email-password"` | `"passwordless"`
-
----
-
 **email** <span className="optional-status">required</span> `string`
 
 ---
 
-**password** <span className="optional-status">optional</span> `string`
+**signInMethod** <span className="optional-status">required</span> `"email-password"` | `"passwordless"`
 
 ---
 
-**connection** <span className="optional-status">optional</span> `"email"` | `"sms"`
+**allowedRoles** <span className="optional-status">optional</span> `Array<string>`
 
 ---
 
@@ -29,6 +26,10 @@ description: No description provided.
 
 ---
 
-**allowedRoles** <span className="optional-status">optional</span> `Array<string>`
+**connection** <span className="optional-status">optional</span> `"email"` | `"sms"`
+
+---
+
+**password** <span className="optional-status">optional</span> `string`
 
 ---

@@ -9,11 +9,9 @@ import { CommentTag } from '../types'
  */
 export const DeprecationNoteFragment = (
   tag: CommentTag,
-  defaultMessage: string = '_No description provided._'
-) => `
-:::caution Deprecated
-${tag.text.replace(/\n/gi, ``) || defaultMessage}
-:::
-`
+  defaultMessage: string = 'No description provided.'
+) => `:::caution Deprecated
+${tag.text.replace(/(^\n|\n$)/gi, ``) || defaultMessage}
+:::`
 
 export default DeprecationNoteFragment

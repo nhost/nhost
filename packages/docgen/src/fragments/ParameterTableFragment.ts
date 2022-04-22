@@ -22,6 +22,7 @@ export const ParameterTableFragment = (
 | Property | Type | Required | Notes |
 | :--- | :--- | :---: | :--- |
 ${parameters
+  .sort((a, b) => (a.flags.isOptional && !b.flags.isOptional ? 1 : -1))
   .map(
     (parameter) =>
       `| ${
