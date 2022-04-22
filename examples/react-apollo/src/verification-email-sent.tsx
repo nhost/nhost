@@ -1,6 +1,7 @@
-import { useAuthenticated } from '@nhost/react'
 import React, { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+
+import { useAuthenticated } from '@nhost/react'
 
 export const VerificationEmailSent: React.FC = () => {
   const isAuthenticated = useAuthenticated()

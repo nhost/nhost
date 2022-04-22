@@ -1,32 +1,31 @@
-import { useState } from "react";
-import { useParams } from "react-router";
-import { nhost } from "../utils/nhost";
-import { useInsertCustomerCommentMutation } from "../utils/__generated__/graphql";
+import { useState } from 'react'
+import { useParams } from 'react-router-dom'
+import { nhost } from '../utils/nhost'
+import { useInsertCustomerCommentMutation } from '../utils/__generated__/graphql'
 
 export function CustomerAddComment() {
-  const [text, setText] = useState("");
-  const [file, setFile] = useState<null | File>(null);
+  const [text, setText] = useState('')
+  const [file, setFile] = useState<null | File>(null)
 
-  const { customerId } = useParams();
-  const [insertCustomerComment, { loading }] =
-    useInsertCustomerCommentMutation();
+  const { customerId } = useParams<{ customerId: string }>()
+  const [insertCustomerComment, { loading }] = useInsertCustomerCommentMutation()
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    let fileMetadata;
+    let fileMetadata
     if (file) {
       const fileUploadRes = await nhost.storage.upload({
         file,
-        bucketId: "customerComments",
-      });
+        bucketId: 'customerComments'
+      })
 
       if (fileUploadRes.error) {
-        alert(`error: ${fileUploadRes.error}`);
-        return;
+        alert(`error: ${fileUploadRes.error}`)
+        return
       }
 
-      fileMetadata = fileUploadRes.fileMetadata;
+      fileMetadata = fileUploadRes.fileMetadata
     }
 
     await insertCustomerComment({
@@ -34,21 +33,18 @@ export function CustomerAddComment() {
         customerComment: {
           text,
           customerId,
-          fileId: fileMetadata ? fileMetadata.id : null,
-        },
-      },
-    });
+          fileId: fileMetadata ? fileMetadata.id : null
+        }
+      }
+    })
 
-    setText("");
-  };
+    setText('')
+  }
 
   return (
     <div className="max-w-lg mx-auto">
       <form onSubmit={handleSubmit}>
-        <label
-          htmlFor="email"
-          className="block text-sm font-medium text-gray-700"
-        >
+        <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Comment
         </label>
         <div className="mt-1">
@@ -57,7 +53,7 @@ export function CustomerAddComment() {
             name="about"
             rows={3}
             className="block w-full max-w-lg border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            defaultValue={""}
+            defaultValue={''}
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
@@ -94,7 +90,7 @@ export function CustomerAddComment() {
                     className="sr-only"
                     onChange={(e) => {
                       if (e.target.files && e.target.files.length > 0) {
-                        setFile(e.target.files[0]);
+                        setFile(e.target.files[0])
                       }
                     }}
                   />
@@ -104,9 +100,7 @@ export function CustomerAddComment() {
               {file ? (
                 <div>{file.name}</div>
               ) : (
-                <p className="text-xs text-gray-500">
-                  PNG, JPG, GIF up to 10MB
-                </p>
+                <p className="text-xs text-gray-500">PNG, JPG, GIF up to 10MB</p>
               )}
             </div>
           </div>
@@ -124,5 +118,5 @@ export function CustomerAddComment() {
         </div>
       </form>
     </div>
-  );
+  )
 }

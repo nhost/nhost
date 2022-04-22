@@ -95,20 +95,22 @@ export class NhostClient {
       url: graphqlUrl || `${backendUrl}/v1/graphql`
     })
 
-    // set current token if token is already accessable
+    // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())
     this.functions.setAccessToken(this.auth.getAccessToken())
     this.graphql.setAccessToken(this.auth.getAccessToken())
 
     this.auth.client.onStart(() => {
-      // update access token for clients
+      // * Set access token when signing out
       this.auth.onAuthStateChanged((_event, session) => {
-        this.storage.setAccessToken(session?.accessToken)
-        this.functions.setAccessToken(session?.accessToken)
-        this.graphql.setAccessToken(session?.accessToken)
+        if (_event === 'SIGNED_OUT') {
+          this.storage.setAccessToken(undefined)
+          this.functions.setAccessToken(undefined)
+          this.graphql.setAccessToken(undefined)
+        }
       })
 
-      // update access token for clients
+      // * Update access token for clients, including when signin in
       this.auth.onTokenChanged((session) => {
         this.storage.setAccessToken(session?.accessToken)
         this.functions.setAccessToken(session?.accessToken)

@@ -6,12 +6,11 @@ services:
 auth:
   access_control:
     email:
-      allowed_email_domains: ""
-      allowed_emails: ""
-      blocked_email_domains: ""
-      blocked_emails: ""
-    url:
-      allowed_redirect_urls: ""
+      allowed_email_domains: ''
+      allowed_emails: ''
+      blocked_email_domains: ''
+      blocked_emails: ''
+    allowed_redirect_urls: ''
   anonymous_users_enabled: false
   client_url: http://localhost:3000
   disable_new_users: false
@@ -19,12 +18,12 @@ auth:
     enabled: false
     passwordless:
       enabled: false
-    template_fetch_url: ""
+    template_fetch_url: ''
     signin_email_verified_required: false
   gravatar:
-    default: ""
+    default: ''
     enabled: true
-    rating: ""
+    rating: ''
   locale:
     allowed: en
     default: en
@@ -33,65 +32,65 @@ auth:
     min_length: 3
   provider:
     apple:
-      client_id: ""
+      client_id: ''
       enabled: false
-      key_id: ""
-      private_key: ""
+      key_id: ''
+      private_key: ''
       scope: name,email
-      team_id: ""
+      team_id: ''
     bitbucket:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
     facebook:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
       scope: email,photos,displayName
     github:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
       scope: user:email
-      token_url: ""
-      user_profile_url: ""
+      token_url: ''
+      user_profile_url: ''
     gitlab:
-      base_url: ""
-      client_id: ""
-      client_secret: ""
+      base_url: ''
+      client_id: ''
+      client_secret: ''
       enabled: false
       scope: read_user
     google:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
       scope: email,profile
     linkedin:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
       scope: r_emailaddress,r_liteprofile
     spotify:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
       scope: user-read-email,user-read-private
     strava:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
     twilio:
-      account_sid: ""
-      auth_token: ""
+      account_sid: ''
+      auth_token: ''
       enabled: false
-      messaging_service_id: ""
+      messaging_service_id: ''
     twitter:
-      consumer_key: ""
-      consumer_secret: ""
+      consumer_key: ''
+      consumer_secret: ''
       enabled: false
     windows_live:
-      client_id: ""
-      client_secret: ""
+      client_id: ''
+      client_secret: ''
       enabled: false
       scope: wl.basic,wl.emails,wl.contacts_emails
   sms:
@@ -100,13 +99,13 @@ auth:
       enabled: false
     provider:
       twilio:
-        account_sid: ""
-        auth_token: ""
-        from: ""
-        messaging_service_id: ""
+        account_sid: ''
+        auth_token: ''
+        from: ''
+        messaging_service_id: ''
   smtp:
     host: nhost_mailhog
-    method: ""
+    method: ''
     pass: password
     port: 1586
     secure: false

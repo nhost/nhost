@@ -25,11 +25,11 @@ const Home: NextPage = () => {
   const [newPassword, setNewPassword] = useState('')
   const accessToken = useAccessToken()
   const { signOut } = useSignOut()
-  const { signUpEmailPassword, ...signUpResult } = useSignUpEmailPassword(email, password)
-  const { signInEmailPassword } = useSignInEmailPassword(email, password)
-  const { signInEmailPasswordless } = useSignInEmailPasswordless(email)
-  const { changeEmail, ...changeEmailResult } = useChangeEmail(newEmail)
-  const { changePassword, ...changePasswordResult } = useChangePassword(newPassword)
+  const { signUpEmailPassword, ...signUpResult } = useSignUpEmailPassword()
+  const { signInEmailPassword } = useSignInEmailPassword()
+  const { signInEmailPasswordless } = useSignInEmailPasswordless()
+  const { changeEmail, ...changeEmailResult } = useChangeEmail()
+  const { changePassword, ...changePasswordResult } = useChangePassword()
   const { loading, data, error } = useAuthQuery(BOOKS_QUERY)
   return (
     <div>
@@ -37,20 +37,24 @@ const Home: NextPage = () => {
         <>
           <button onClick={signOut}>Logout</button>
           <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
-          <button onClick={changeEmail}>Change email</button>
+          <button onClick={() => changeEmail(email)}>Change email</button>
           <div>{JSON.stringify(changeEmailResult)}</div>
-          <button onClick={changePassword}>Change password</button>
+          <button onClick={() => changePassword(password)}>Change password</button>
           <input value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
           <div>{JSON.stringify(changePasswordResult)}</div>
         </>
       ) : (
         <>
           <input value={email} onChange={(e) => setEmail(e.target.value)} />
-          <button onClick={signInEmailPasswordless}>Passwordless signin</button>
+          <button onClick={() => signInEmailPasswordless(email)}>Passwordless signin</button>
           <div>{JSON.stringify(signUpResult)}</div>
           <input value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
-          <button onClick={signUpEmailPassword}>Email + password sign-up</button>
-          <button onClick={signInEmailPassword}>Email + password sign-in</button>
+          <button onClick={() => signUpEmailPassword(email, password)}>
+            Email + password sign-up
+          </button>
+          <button onClick={() => signInEmailPassword(email, password)}>
+            Email + password sign-in
+          </button>
         </>
       )}
 

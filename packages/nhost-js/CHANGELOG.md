@@ -1,5 +1,112 @@
 # @nhost/nhost-js
 
+## 1.1.3
+
+### Patch Changes
+
+- Updated dependencies [5ee395e]
+- Updated dependencies [e0cfcaf]
+  - @nhost/hasura-auth-js@1.0.14
+
+## 1.1.2
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.0.13
+
+## 1.1.1
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.0.12
+
+## 1.1.0
+
+### Minor Changes
+
+- ccba0b5: Add `graphql-tag` support for GraphQL client
+  It is now possible to use a `graphql-tag` argument with `nhost.graphql.request`:
+
+  ```js
+  import gql from 'graphql-tag'
+
+  const QUERY = gql`
+    query {
+      books {
+        id
+        title
+      }
+    }
+  `
+
+  const { data, error } = await nhost.graphql.request(QUERY)
+  ```
+
+### Patch Changes
+
+- ab06e96: Add generic types for NhostFunctionsClient and NhostGraphqlClient request method return type and variables.
+
+## 1.0.11
+
+### Patch Changes
+
+- Updated dependencies [63d6059]
+- Updated dependencies [63d6059]
+- Updated dependencies [63d6059]
+  - @nhost/hasura-auth-js@1.0.11
+
+## 1.0.10
+
+### Patch Changes
+
+- 2c97db6: Keep authentication status and access token in sync
+  The authentication events where not set correctly, leading the main Nhost client not to update internal states of storage/graphql/functions sub-clients when using non-react clients.
+  The use of private fields (`#`) is also avoided as they conflict with the use of proxies in Vue, leading to errors in the upcoming Vue library.
+  Fixes #373 and #378
+- Updated dependencies [2c97db6]
+  - @nhost/hasura-auth-js@1.0.10
+
+## 1.0.9
+
+### Patch Changes
+
+- Updated dependencies [058956b]
+  - @nhost/hasura-auth-js@1.0.9
+
+## 1.0.8
+
+### Patch Changes
+
+- Updated dependencies [6be3758]
+  - @nhost/hasura-auth-js@1.0.8
+
+## 1.0.7
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.0.5
+
+## 1.0.4
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+- Updated dependencies
+  - @nhost/hasura-auth-js@1.0.3
+
+## 1.0.2
+
+### Patch Changes
+
+- Updated dependencies [6eeb9d2]
+  - @nhost/hasura-auth-js@1.0.2
+
 ## 1.0.1
 
 ### Patch Changes
@@ -26,8 +133,6 @@
 ### Patch Changes
 
 - Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
   - @nhost/hasura-auth-js@1.0.0
   - @nhost/hasura-storage-js@0.2.0
 
@@ -46,7 +151,6 @@
   Some systems based on older versions of Webpack or Babel don't support the current esbuild configuration e.g, [this issue](https://github.com/nhost/nhost/issues/275).
 - Updated dependencies [e688600]
 - Updated dependencies [8f7643a]
-- Updated dependencies [e688600]
 - Updated dependencies [50b9d76]
   - @nhost/hasura-auth-js@0.1.15
   - @nhost/hasura-storage-js@0.0.12

@@ -1,5 +1,98 @@
 # @nhost/react-apollo
 
+## 4.0.16
+
+### Patch Changes
+
+- Updated dependencies [5ee395e]
+  - @nhost/react@0.5.6
+  - @nhost/apollo@0.4.3
+
+## 4.0.15
+
+### Patch Changes
+
+- @nhost/apollo@0.4.2
+- @nhost/react@0.5.5
+
+## 4.0.14
+
+### Patch Changes
+
+- @nhost/apollo@0.4.1
+- @nhost/react@0.5.4
+
+## 4.0.13
+
+### Patch Changes
+
+- f6093a6: Introduce useAuthSubscription
+- Updated dependencies [f6093a6]
+  - @nhost/apollo@0.4.0
+  - @nhost/react@0.5.3
+
+## 4.0.12
+
+### Patch Changes
+
+- @nhost/react@0.5.2
+- @nhost/apollo@0.3.9
+
+## 4.0.11
+
+### Patch Changes
+
+- 8583af8: correct documentation link in readme
+  - @nhost/apollo@0.3.8
+  - @nhost/react@0.5.1
+
+## 4.0.10
+
+### Patch Changes
+
+- Updated dependencies [7cf875f]
+- Updated dependencies [7135aee]
+- Updated dependencies [587eaff]
+  - @nhost/react@0.5.0
+  - @nhost/apollo@0.3.7
+
+## 4.0.9
+
+### Patch Changes
+
+- @nhost/react@0.4.7
+- @nhost/apollo@0.3.6
+
+## 4.0.8
+
+### Patch Changes
+
+- @nhost/apollo@0.3.4
+- @nhost/react@0.4.4
+
+## 4.0.5
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+- Updated dependencies
+  - @nhost/apollo@0.3.2
+  - @nhost/react@0.4.2
+
+## 4.0.3
+
+### Patch Changes
+
+- Updated dependencies [113beed]
+  - @nhost/apollo@0.3.1
+  - @nhost/react@0.4.1
+
 ## 4.0.2
 
 ### Patch Changes

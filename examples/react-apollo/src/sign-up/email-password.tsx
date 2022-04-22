@@ -1,7 +1,9 @@
-import { Button, Input, Message } from 'rsuite'
-import { useSignUpEmailPassword } from '@nhost/react'
+/* eslint-disable react/react-in-jsx-scope */
 import { useEffect, useMemo, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { Button, Input, Message } from 'rsuite'
+
+import { useSignUpEmailPassword } from '@nhost/react'
 
 export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -14,11 +16,8 @@ export const EmailPassword: React.FC = () => {
   )
   const navigate = useNavigate()
   const [confirmPassword, setConfirmPassword] = useState('')
-  const { signUpEmailPassword, error, needsEmailVerification, isSuccess } = useSignUpEmailPassword(
-    email,
-    password,
-    options
-  )
+  const { signUpEmailPassword, error, needsEmailVerification, isSuccess } =
+    useSignUpEmailPassword(options)
   const [errorMessage, setErrorMessage] = useState('')
   useEffect(() => {
     if (needsEmailVerification) navigate('/sign-up/verification-email-sent')
@@ -89,9 +88,10 @@ export const EmailPassword: React.FC = () => {
 
       <Button
         appearance="primary"
-        onClick={() => {
+        onClick={async () => {
           setErrorMessage('')
-          signUpEmailPassword()
+          const result = await signUpEmailPassword(email, password)
+          console.log(result)
         }}
         block
       >

@@ -1,11 +1,18 @@
 import { useContext, useEffect, useState } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { AuthMachine } from '@nhost/core'
+import { AuthMachine, ErrorPayload } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
+
+export type ActionHookState<T extends string = 'isSuccess'> = {
+  isLoading: boolean
+
+  isError: boolean
+  error: ErrorPayload | null
+} & Record<T, boolean>
 
 export const useNhostClient = (): NhostClient => {
   const nhost = useContext(NhostReactContext)
@@ -67,8 +74,21 @@ export const useAccessToken = () => {
 export const useSignOut = (stateAll: boolean = false) => {
   const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>
-    service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
-  const isSuccess =
-    !!service.status && service.state.matches({ authentication: { signedOut: 'success' } })
+    new Promise<{ isSuccess: boolean }>((resolve) => {
+      service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
+      service.onTransition((state) => {
+        if (state.matches({ authentication: { signedOut: 'success' } })) {
+          resolve({ isSuccess: true })
+        } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } }))
+          resolve({ isSuccess: false })
+      })
+    })
+
+  const isSuccess = useSelector(
+    service,
+    (state) => state.matches({ authentication: { signedOut: 'success' } }),
+    (a, b) => a === b
+  )
+
   return { signOut, isSuccess }
 }

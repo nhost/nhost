@@ -1,3 +1,4 @@
+import React from 'react'
 import { Link } from 'react-router-dom'
 import { Panel } from 'rsuite'
 
@@ -19,11 +20,11 @@ export const AboutPage: React.FC = () => (
         <li>React</li>
         <li>React-router</li>
         <li>RSuite</li>
-        <li>...and of course, the Nhost React client</li>
+        <li>and of course, the Nhost React client</li>
       </ul>
     </div>
     <div>
-      Noew let's go to the <Link to="/">index page</Link>
+      Noew let&apos;s go to the <Link to="/">index page</Link>
     </div>
   </Panel>
 )

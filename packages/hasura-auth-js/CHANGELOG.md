@@ -1,5 +1,110 @@
 # @nhost/hasura-auth-js
 
+## 1.0.14
+
+### Patch Changes
+
+- 5ee395e: Ensure the session is destroyed when signout is done
+  The user session, in particular the access token (JWT), was still available after sign out.
+  Any information about user session is now removed from the auth state as soon as the sign out action is called.
+- e0cfcaf: fix and improve `nhost.auth.refreshSession`
+  `nhost.auth.refreshSession` is now functional and returns possible errors, or the user session if the token has been sucessfully refreshed.
+  If the user was previously not authenticated, it will sign them in. See [#286](https://github.com/nhost/nhost/issues/286)
+- Updated dependencies [5ee395e]
+- Updated dependencies [e0cfcaf]
+- Updated dependencies [7b7527a]
+  - @nhost/core@0.3.13
+
+## 1.0.13
+
+### Patch Changes
+
+- Updated dependencies [7b5f00d]
+- Updated dependencies [58e1485]
+  - @nhost/core@0.3.12
+
+## 1.0.12
+
+### Patch Changes
+
+- Updated dependencies [0b1cb62]
+  - @nhost/core@0.3.11
+
+## 1.0.11
+
+### Patch Changes
+
+- 63d6059: Add TSDoc information about Nhost client options
+- 63d6059: Set onTokenChanged before the state interpreter started
+  Fixes [#384](https://github.com/nhost/nhost/issues/384), thanks [@noverby](https://github.com/noverby)
+- 63d6059: Trigger onTokenChanged when token changes
+  Fixes [#373](https://github.com/nhost/nhost/issues/373), thanks [@yureckey](https://github.com/yureckey)
+- Updated dependencies [63d6059]
+- Updated dependencies [63d6059]
+  - @nhost/core@0.3.10
+
+## 1.0.10
+
+### Patch Changes
+
+- 2c97db6: Keep authentication status and access token in sync
+  The authentication events where not set correctly, leading the main Nhost client not to update internal states of storage/graphql/functions sub-clients when using non-react clients.
+  The use of private fields (`#`) is also avoided as they conflict with the use of proxies in Vue, leading to errors in the upcoming Vue library.
+  Fixes #373 and #378
+- Updated dependencies [2c97db6]
+  - @nhost/core@0.3.9
+
+## 1.0.9
+
+### Patch Changes
+
+- 058956b: Add missing provider types
+  `strava`, `gitlab`, and `bitbucket` were missing from the list of providers in Typescript and are now available.
+- 058956b: Add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User type
+
+  Some information is missing in the `User` payload (see [this issue](https://github.com/nhost/nhost/issues/306)). The above properties have been added in the Typescript `User` type and are available when using Hasura Auth versions from [this pull request](https://github.com/nhost/hasura-auth/pull/128) (tentative version number: `0.5.1`)
+
+- Updated dependencies [058956b]
+- Updated dependencies [7cf875f]
+  - @nhost/core@0.3.8
+
+## 1.0.8
+
+### Patch Changes
+
+- 6be3758: bug: Correct OAuth provider link.
+
+## 1.0.7
+
+### Patch Changes
+
+- Updated dependencies [16a6c50]
+  - @nhost/core@0.3.4
+
+## 1.0.4
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+- Updated dependencies
+  - @nhost/core@0.3.2
+
+## 1.0.2
+
+### Patch Changes
+
+- 6eeb9d2: Wait for the authentication status to be known before executing auth actions
+  The auth client was able to start actions such as signUp or signIn before the authentication state was ready (e.g. before initial refresh token could be processed).
+  This patch solves the problem in waiting for the authentication status to be known before running these actions.
+- Updated dependencies [4420c0e]
+  - @nhost/core@0.3.1
+
 ## 1.0.1
 
 ### Patch Changes
@@ -31,7 +136,6 @@
   2. hasura-auth validates the link, attaches the token and redirects to the frontend
   3. the sdk gets the refresh token from the url
   4. the sdk consumes the refresh token
-- Updated dependencies [744fd69]
 - Updated dependencies [744fd69]
   - @nhost/core@0.3.0
 

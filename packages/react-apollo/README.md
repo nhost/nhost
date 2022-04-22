@@ -38,4 +38,4 @@ ReactDOM.render(
 
 ## Documentation
 
-[https://docs.nhost.io/reference/supporting-libraries/react-apollo](https://docs.nhost.io/reference/supporting-libraries/react-apollo)
+[https://docs.nhost.io/reference/react/apollo](https://docs.nhost.io/reference/react/apollo)

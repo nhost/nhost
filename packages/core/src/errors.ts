@@ -1,5 +1,6 @@
 export const NETWORK_ERROR_CODE = 0
 export const VALIDATION_ERROR_CODE = 10
+export const STATE_ERROR_CODE = 20
 
 export type ErrorPayload = {
   error: string
@@ -37,4 +38,17 @@ export const NO_MFA_TICKET_ERROR: ValidationErrorPayload = {
   status: VALIDATION_ERROR_CODE,
   error: 'no-mfa-ticket',
   message: 'No MFA ticket has been provided'
+}
+
+export const NO_REFRESH_TOKEN: ValidationErrorPayload = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'no-refresh-token',
+  message: 'No refresh token has been provided'
+}
+
+export const TOKEN_REFRESHER_RUNNING_ERROR: ErrorPayload = {
+  status: STATE_ERROR_CODE,
+  error: 'refresher-already-running',
+  message:
+    'The token refresher is already running. You must wait until is has finished before submitting a new token.'
 }

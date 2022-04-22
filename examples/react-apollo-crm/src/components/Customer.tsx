@@ -1,47 +1,47 @@
-import { Main } from "./ui/Main";
-import { Breadcrumbs } from "./ui/Breadcrumbs";
-import { HeaderSection } from "./ui/HeaderSection";
-import { PageHeader } from "./ui/PageHeader";
+import { Main } from './ui/Main'
+import { Breadcrumbs } from './ui/Breadcrumbs'
+import { HeaderSection } from './ui/HeaderSection'
+import { PageHeader } from './ui/PageHeader'
 
-import { useParams } from "react-router";
-import { useCustomerQuery } from "../utils/__generated__/graphql";
-import { NavLink, Outlet } from "react-router-dom";
-import classNames from "classnames";
-import { CustomerActivities } from "./CustomerActivities";
-import { CustomerAddComment } from "./CustomerAddComment";
+import { useParams } from 'react-router-dom'
+import { useCustomerQuery } from '../utils/__generated__/graphql'
+import { NavLink, Outlet } from 'react-router-dom'
+import classNames from 'classnames'
+import { CustomerActivities } from './CustomerActivities'
+import { CustomerAddComment } from './CustomerAddComment'
 
 const tabs = [
-  { name: "Overview", href: "" },
-  { name: "Orders", href: "orders" },
-  { name: "Files", href: "files" },
-];
+  { name: 'Overview', href: '' },
+  { name: 'Orders', href: 'orders' },
+  { name: 'Files', href: 'files' }
+]
 
 export function Customer() {
-  const { customerId } = useParams();
+  const { customerId } = useParams()
 
   const { data, loading } = useCustomerQuery({
     variables: {
-      customerId,
-    },
-  });
+      customerId
+    }
+  })
 
   if (loading) {
-    return <div>Loading..</div>;
+    return <div>Loading..</div>
   }
 
   if (!data || !data.customer) {
-    return <div>No customer..</div>;
+    return <div>No customer..</div>
   }
 
-  const { customer } = data;
+  const { customer } = data
 
   return (
     <Main>
       <Breadcrumbs
-        backLink={""}
+        backLink={''}
         breadcrumbs={[
-          { link: "/customers", text: "Customers" },
-          { link: `customers/${customerId}`, text: customer.name },
+          { link: '/customers', text: 'Customers' },
+          { link: `customers/${customerId}`, text: customer.name }
         ]}
       />
       <HeaderSection>
@@ -57,7 +57,7 @@ export function Customer() {
             id="current-tab"
             name="current-tab"
             className="block w-full py-2 pl-3 pr-10 text-base border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            defaultValue={"ok"}
+            defaultValue={'ok'}
           >
             <option>1</option>
             <option>2</option>
@@ -71,10 +71,10 @@ export function Customer() {
                 className={({ isActive }) => {
                   return classNames(
                     isActive
-                      ? "border-blue-500 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
-                    "whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm"
-                  );
+                      ? 'border-blue-500 text-blue-600'
+                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+                    'whitespace-nowrap pb-4 px-1 border-b-2 font-medium text-sm'
+                  )
                 }}
               >
                 {tab.name}
@@ -95,5 +95,5 @@ export function Customer() {
         <CustomerAddComment />
       </div>
     </Main>
-  );
+  )
 }
