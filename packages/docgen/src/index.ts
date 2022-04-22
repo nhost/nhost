@@ -1,7 +1,8 @@
 import { snapshot } from 'valtio/vanilla'
 
+import { getModuleContentMap } from './helpers'
 import { appState } from './state'
-import { Signature } from './types'
+import { Parameter, Signature } from './types'
 
 /**
  * Generates the class, function and type documentation for a module.
@@ -11,7 +12,7 @@ import { Signature } from './types'
  * @param name - Name of the module
  */
 async function generateModuleDocumentation(
-  parsedContent: Array<any>,
+  parsedContent: Array<Parameter>,
   output: string,
   name?: string
 ) {
@@ -74,7 +75,7 @@ async function parser() {
     console.info(chalk.blue`📁 Parsing file: ${path}`)
 
     const file = await fs.readFile(path, 'utf8')
-    const { name, children: parsedContent } = JSON.parse(file)
+    const { name, children: parsedContent, groups } = JSON.parse(file)
 
     if (cleanup) {
       try {
@@ -113,11 +114,17 @@ async function parser() {
 
     if (parsedContent?.every(({ kindString }: Signature) => kindString === 'Module')) {
       await Promise.all(
-        parsedContent.map(({ name, children }: Signature) =>
-          generateModuleDocumentation(children || [], output, name)
-        )
+        parsedContent.map(({ name, children, groups }: Signature) => {
+          if (groups) {
+            appState.contentReferences = getModuleContentMap(groups, appState.contentReferences)
+          }
+
+          return generateModuleDocumentation(children || [], output, name)
+        })
       )
     } else {
+      appState.contentReferences = getModuleContentMap(groups)
+
       await generateModuleDocumentation(parsedContent, output)
     }
 

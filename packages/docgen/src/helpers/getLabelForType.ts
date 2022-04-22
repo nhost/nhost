@@ -1,10 +1,12 @@
 import kebabCase from 'just-kebab-case'
+import { snapshot } from 'valtio'
 
 import {
   FunctionSignatureTypeFragment,
   GenericTypeFragment,
   UnionOrIntersectionTypeFragment
 } from '../fragments'
+import { appState } from '../state'
 import {
   ArrayType,
   IntrinsicType,
@@ -65,12 +67,22 @@ export function getLabelForType(
     | ArrayType,
   { reference = true, typeReferencePath = '../types', wrap = true }: GetLabelForTypeOptions = {}
 ): string {
+  const { contentReferences } = snapshot(appState)
+
   if (!type) {
     return ''
   }
 
   if (type.type === 'reference' && type.id && reference) {
-    return `[\`${type.name}\`](${typeReferencePath}/${kebabCase(type.name)})`
+    const originalType = contentReferences.get(type.id)
+
+    let referencePath = typeReferencePath
+
+    if (originalType === 'Class') {
+      referencePath = referencePath.replace(/\/types/gi, '')
+    }
+
+    return `[\`${type.name}\`](${referencePath}/${kebabCase(type.name)})`
   }
 
   if (type.type === 'reference' && type.typeArguments) {
@@ -136,7 +148,15 @@ export function getLabelForType(
   }
 
   if (type.type === 'query' && type.queryType.id && reference) {
-    return `[\`${type.queryType.name}\`](${typeReferencePath}/${kebabCase(type.queryType.name)})`
+    const originalType = contentReferences.get(type.queryType.id)
+
+    let referencePath = typeReferencePath
+
+    if (originalType === 'Class') {
+      referencePath = referencePath.replace(/\/types/gi, '')
+    }
+
+    return `[\`${type.queryType.name}\`](${referencePath}/${kebabCase(type.queryType.name)})`
   }
 
   if (type.type === 'query') {

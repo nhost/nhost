@@ -1,5 +1,10 @@
 import { proxy } from 'valtio/vanilla'
 
-export const appState = proxy({ verbose: false })
+export type AppState = {
+  verbose: boolean
+  contentReferences: Map<number, string>
+}
+
+export const appState = proxy<AppState>({ verbose: false, contentReferences: new Map() })
 
 export default appState
