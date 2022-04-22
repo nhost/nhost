@@ -1,0 +1,25 @@
+{
+  "unversionedId": "reference/cli/nhost-cli",
+  "id": "reference/cli/nhost-cli",
+  "title": "Nhost CLI",
+  "description": "Run nhost help in your terminal to get a detailed listing of all available commands.",
+  "source": "@site/docs/reference/cli/nhost-cli.md",
+  "sourceDirName": "reference/cli",
+  "slug": "/reference/cli/nhost-cli",
+  "permalink": "/reference/cli/nhost-cli",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/cli/nhost-cli.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Nhost CLI"
+  },
+  "sidebar": "referenceSidebar",
+  "previous": {
+    "title": "CLI",
+    "permalink": "/reference/cli"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/reference/hasura-auth/"
+  }
+}

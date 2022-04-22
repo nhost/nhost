@@ -1,0 +1,27 @@
+{
+  "unversionedId": "platform/serverless-functions/event-triggers",
+  "id": "platform/serverless-functions/event-triggers",
+  "title": "Event triggers",
+  "description": "Event triggers are HTTP webhooks that fire on a database event, such as insert, update, or delete. These events are usually a result of GraphQL mutations, but any other database operation will also fire events.",
+  "source": "@site/docs/platform/serverless-functions/event-triggers.md",
+  "sourceDirName": "platform/serverless-functions",
+  "slug": "/platform/serverless-functions/event-triggers",
+  "permalink": "/platform/serverless-functions/event-triggers",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/serverless-functions/event-triggers.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Event triggers",
+    "sidebar_position": 2
+  },
+  "sidebar": "platformSidebar",
+  "previous": {
+    "title": "Serverless Functions",
+    "permalink": "/platform/serverless-functions/"
+  },
+  "next": {
+    "title": "Overview",
+    "permalink": "/platform/nhost/"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "unversionedId": "get-started/cli-workflow/metadata-and-serverless-functions",
+  "id": "get-started/cli-workflow/metadata-and-serverless-functions",
+  "title": "Metadata and Serverless Functions",
+  "description": "In the previous section, we only created a new table; customers. Using the CLI you can also do changes to other parts of your backend.",
+  "source": "@site/docs/get-started/cli-workflow/metadata-and-serverless-functions.mdx",
+  "sourceDirName": "get-started/cli-workflow",
+  "slug": "/get-started/cli-workflow/metadata-and-serverless-functions",
+  "permalink": "/get-started/cli-workflow/metadata-and-serverless-functions",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/cli-workflow/metadata-and-serverless-functions.mdx",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Metadata and Serverless Functions"
+  },
+  "sidebar": "defaultSidebar",
+  "previous": {
+    "title": "Local changes",
+    "permalink": "/get-started/cli-workflow/local-changes"
+  },
+  "next": {
+    "title": "Upgrade from v1 to v2",
+    "permalink": "/get-started/upgrade/"
+  }
+}

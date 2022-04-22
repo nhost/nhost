@@ -1,0 +1,740 @@
+{
+  "pluginId": "default",
+  "version": "current",
+  "label": "Next",
+  "banner": null,
+  "badge": false,
+  "className": "docs-version-current",
+  "isLast": true,
+  "docsSidebars": {
+    "defaultSidebar": [
+      {
+        "type": "link",
+        "label": "Welcome to Nhost",
+        "href": "/get-started/",
+        "docId": "get-started/index"
+      },
+      {
+        "label": "Quick Start",
+        "type": "category",
+        "collapsed": false,
+        "items": [
+          {
+            "type": "link",
+            "label": "Create your app",
+            "href": "/get-started/quick-start/",
+            "docId": "get-started/quick-start/index"
+          },
+          {
+            "type": "link",
+            "label": "Define schema",
+            "href": "/get-started/quick-start/schema",
+            "docId": "get-started/quick-start/schema"
+          },
+          {
+            "type": "link",
+            "label": "JavaScript client",
+            "href": "/get-started/quick-start/javascript-client",
+            "docId": "get-started/quick-start/javascript-client"
+          },
+          {
+            "type": "link",
+            "label": "Set permissions",
+            "href": "/get-started/quick-start/permissions",
+            "docId": "get-started/quick-start/permissions"
+          }
+        ],
+        "collapsible": true
+      },
+      {
+        "label": "Authentication",
+        "type": "category",
+        "items": [
+          {
+            "type": "link",
+            "label": "Authenticate users",
+            "href": "/get-started/authentication",
+            "docId": "get-started/authentication/index"
+          }
+        ],
+        "collapsed": true,
+        "collapsible": true
+      },
+      {
+        "label": "CLI Workflow",
+        "type": "category",
+        "items": [
+          {
+            "type": "link",
+            "label": "CLI from Zero to Production",
+            "href": "/get-started/cli-workflow/",
+            "docId": "get-started/cli-workflow/index"
+          },
+          {
+            "type": "link",
+            "label": "Workflow setup",
+            "href": "/get-started/cli-workflow/workflow-setup",
+            "docId": "get-started/cli-workflow/workflow-setup"
+          },
+          {
+            "type": "link",
+            "label": "Install the CLI",
+            "href": "/get-started/cli-workflow/install-cli",
+            "docId": "get-started/cli-workflow/install-cli"
+          },
+          {
+            "type": "link",
+            "label": "Local changes",
+            "href": "/get-started/cli-workflow/local-changes",
+            "docId": "get-started/cli-workflow/local-changes"
+          },
+          {
+            "type": "link",
+            "label": "Metadata and Serverless Functions",
+            "href": "/get-started/cli-workflow/metadata-and-serverless-functions",
+            "docId": "get-started/cli-workflow/metadata-and-serverless-functions"
+          }
+        ],
+        "collapsed": true,
+        "collapsible": true
+      },
+      {
+        "label": "Upgrade",
+        "type": "category",
+        "items": [
+          {
+            "type": "link",
+            "label": "Upgrade from v1 to v2",
+            "href": "/get-started/upgrade/",
+            "docId": "get-started/upgrade/index"
+          }
+        ],
+        "collapsed": true,
+        "collapsible": true
+      }
+    ],
+    "platformSidebar": [
+      {
+        "type": "link",
+        "label": "The Nhost Platform",
+        "href": "/platform/",
+        "docId": "platform/index"
+      },
+      {
+        "type": "link",
+        "label": "Database",
+        "href": "/platform/database/",
+        "docId": "platform/database/index"
+      },
+      {
+        "type": "category",
+        "label": "GraphQL",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "Permissions",
+            "href": "/platform/graphql/permissions",
+            "docId": "platform/graphql/permissions"
+          }
+        ],
+        "href": "/platform/graphql/"
+      },
+      {
+        "type": "category",
+        "label": "Authentication",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "User management",
+            "href": "/platform/authentication/user-management",
+            "docId": "platform/authentication/user-management"
+          },
+          {
+            "type": "link",
+            "label": "Sign-in methods",
+            "href": "/platform/authentication/sign-in-methods",
+            "docId": "platform/authentication/sign-in-methods"
+          },
+          {
+            "type": "category",
+            "label": "OAuth providers",
+            "collapsible": true,
+            "collapsed": true,
+            "items": [
+              {
+                "type": "link",
+                "label": "Sign in with Google",
+                "href": "/platform/authentication/sign-in-with-google",
+                "docId": "platform/authentication/oauth-providers/google"
+              },
+              {
+                "type": "link",
+                "label": "Sign in with Facebook",
+                "href": "/platform/authentication/sign-in-with-facebook",
+                "docId": "platform/authentication/oauth-providers/facebook"
+              },
+              {
+                "type": "link",
+                "label": "Sign in with GitHub",
+                "href": "/platform/authentication/sign-in-with-github",
+                "docId": "platform/authentication/oauth-providers/github"
+              },
+              {
+                "type": "link",
+                "label": "Sign in with LinkedIn",
+                "href": "/platform/authentication/sign-in-with-linkedin",
+                "docId": "platform/authentication/oauth-providers/linkedin"
+              },
+              {
+                "type": "link",
+                "label": "Sign in with Spotify",
+                "href": "/platform/authentication/sign-in-with-spotify",
+                "docId": "platform/authentication/oauth-providers/spotify"
+              }
+            ],
+            "href": "/platform/authentication/social-sign-in"
+          },
+          {
+            "type": "link",
+            "label": "Email templates",
+            "href": "/platform/authentication/email-templates",
+            "docId": "platform/authentication/email-templates"
+          }
+        ],
+        "href": "/platform/authentication/"
+      },
+      {
+        "type": "link",
+        "label": "Storage",
+        "href": "/platform/storage/",
+        "docId": "platform/storage/index"
+      },
+      {
+        "type": "category",
+        "label": "Serverless Functions",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "Event triggers",
+            "href": "/platform/serverless-functions/event-triggers",
+            "docId": "platform/serverless-functions/event-triggers"
+          }
+        ],
+        "href": "/platform/serverless-functions/"
+      },
+      {
+        "type": "category",
+        "label": "Nhost",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "Environment variables",
+            "href": "/platform/nhost/environment-variables",
+            "docId": "platform/nhost/environment-variables"
+          },
+          {
+            "type": "link",
+            "label": "GitHub integration",
+            "href": "/platform/nhost/github-integration",
+            "docId": "platform/nhost/github-integration"
+          },
+          {
+            "type": "link",
+            "label": "Nhost CLI",
+            "href": "/platform/nhost/local-development",
+            "docId": "platform/nhost/local-development"
+          }
+        ],
+        "href": "/platform/nhost/"
+      }
+    ],
+    "referenceSidebar": [
+      {
+        "type": "link",
+        "label": "Reference",
+        "href": "/reference/",
+        "docId": "reference/index"
+      },
+      {
+        "type": "category",
+        "label": "SDK",
+        "collapsible": true,
+        "collapsed": false,
+        "items": [
+          {
+            "type": "link",
+            "label": "GraphQL",
+            "href": "/reference/sdk/graphql",
+            "docId": "reference/sdk/graphql"
+          },
+          {
+            "type": "link",
+            "label": "Authentication",
+            "href": "/reference/sdk/authentication",
+            "docId": "reference/sdk/authentication"
+          },
+          {
+            "type": "link",
+            "label": "Storage",
+            "href": "/reference/sdk/storage",
+            "docId": "reference/sdk/storage"
+          },
+          {
+            "type": "link",
+            "label": "Functions",
+            "href": "/reference/sdk/functions",
+            "docId": "reference/sdk/functions"
+          }
+        ],
+        "href": "/reference/sdk/"
+      },
+      {
+        "type": "category",
+        "label": "React",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "Getting started",
+            "href": "/reference/react/getting-started",
+            "docId": "reference/react/getting-started"
+          },
+          {
+            "type": "link",
+            "label": "Hooks",
+            "href": "/reference/react/hooks",
+            "docId": "reference/react/hooks"
+          },
+          {
+            "type": "link",
+            "label": "Protecting routes",
+            "href": "/reference/react/protecting-routes",
+            "docId": "reference/react/protecting-routes"
+          },
+          {
+            "type": "link",
+            "label": "Apollo GraphQL",
+            "href": "/reference/react/apollo",
+            "docId": "reference/react/apollo"
+          }
+        ],
+        "href": "/reference/react"
+      },
+      {
+        "type": "category",
+        "label": "Next.js",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "Introduction",
+            "href": "/reference/nextjs/introduction",
+            "docId": "reference/nextjs/introduction"
+          },
+          {
+            "type": "link",
+            "label": "Configuration",
+            "href": "/reference/nextjs/configuration",
+            "docId": "reference/nextjs/configuration"
+          },
+          {
+            "type": "link",
+            "label": "Protecting routes",
+            "href": "/reference/nextjs/protecting-routes",
+            "docId": "reference/nextjs/protecting-routes"
+          }
+        ],
+        "href": "/reference/nextjs"
+      },
+      {
+        "type": "category",
+        "label": "CLI",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "Nhost CLI",
+            "href": "/reference/cli/nhost-cli",
+            "docId": "reference/cli/nhost-cli"
+          }
+        ],
+        "href": "/reference/cli"
+      },
+      {
+        "type": "category",
+        "label": "Hasura Auth",
+        "collapsible": true,
+        "collapsed": true,
+        "items": [
+          {
+            "type": "link",
+            "label": "Installation",
+            "href": "/reference/hasura-auth/installation",
+            "docId": "reference/hasura-auth/installation"
+          },
+          {
+            "type": "link",
+            "label": "Configuration",
+            "href": "/reference/hasura-auth/configuration",
+            "docId": "reference/hasura-auth/configuration"
+          },
+          {
+            "type": "link",
+            "label": "Environment variables",
+            "href": "/reference/hasura-auth/environment-variables",
+            "docId": "reference/hasura-auth/environment-variables"
+          },
+          {
+            "type": "link",
+            "label": "Schema",
+            "href": "/reference/hasura-auth/schema",
+            "docId": "reference/hasura-auth/schema"
+          },
+          {
+            "type": "link",
+            "label": "API Reference",
+            "href": "/reference/hasura-auth/api-reference",
+            "docId": "reference/hasura-auth/api-reference"
+          }
+        ],
+        "href": "/reference/hasura-auth/"
+      }
+    ]
+  },
+  "docs": {
+    "get-started/authentication/index": {
+      "id": "get-started/authentication/index",
+      "title": "Authenticate users",
+      "description": "You defined select permissions for the public role in the previous section. You will now add insert and create permissions for authenticated users to secure your app's GraphQL API with authentication.",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/cli-workflow/index": {
+      "id": "get-started/cli-workflow/index",
+      "title": "CLI from Zero to Production",
+      "description": "In the previous tutorials, we tested various parts of Nhost, such as:",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/cli-workflow/install-cli": {
+      "id": "get-started/cli-workflow/install-cli",
+      "title": "Install the CLI",
+      "description": "Install the Nhost CLI using the following command:",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/cli-workflow/local-changes": {
+      "id": "get-started/cli-workflow/local-changes",
+      "title": "Local changes",
+      "description": "Start Nhost locally:",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/cli-workflow/metadata-and-serverless-functions": {
+      "id": "get-started/cli-workflow/metadata-and-serverless-functions",
+      "title": "Metadata and Serverless Functions",
+      "description": "In the previous section, we only created a new table; customers. Using the CLI you can also do changes to other parts of your backend.",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/cli-workflow/workflow-setup": {
+      "id": "get-started/cli-workflow/workflow-setup",
+      "title": "Workflow setup",
+      "description": "What follows is a detailed tutorial on how you setup Nhost for this workflow",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/index": {
+      "id": "get-started/index",
+      "title": "Welcome to Nhost",
+      "description": "Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/quick-start/index": {
+      "id": "get-started/quick-start/index",
+      "title": "Create your app",
+      "description": "Let's create a simple todo-app using Nhost. In a todo-app, a user should be able to create list items for their account (CRUD) and not have anyone else see them (permissions).",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/quick-start/javascript-client": {
+      "id": "get-started/quick-start/javascript-client",
+      "title": "JavaScript client",
+      "description": "In the previous section, you used the Hasura Console to fetch a list of todos. Now, you will write a small JavaScript client to interact and retrieve todos from your Nhost app.",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/quick-start/permissions": {
+      "id": "get-started/quick-start/permissions",
+      "title": "Set permissions",
+      "description": "In the previous section, you could fetch the todos because the admin role is enabled by default when using Hasura Console. When building your applications, you want to define permissions using roles that your users can assume when making requests.",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/quick-start/schema": {
+      "id": "get-started/quick-start/schema",
+      "title": "Define schema",
+      "description": "To implement an app for managing a todo list, let's ensure we have database tables for storing todos and users.",
+      "sidebar": "defaultSidebar"
+    },
+    "get-started/upgrade/index": {
+      "id": "get-started/upgrade/index",
+      "title": "Upgrade from v1 to v2",
+      "description": "Upgrading from Nhost v1 to v2 requires database schema and Hasura metadata changes.",
+      "sidebar": "defaultSidebar"
+    },
+    "index": {
+      "id": "index",
+      "title": "Welcome to Nhost",
+      "description": "Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business."
+    },
+    "platform/authentication/email-templates": {
+      "id": "platform/authentication/email-templates",
+      "title": "Email templates",
+      "description": "The following emails can be sent as part of the authentication flow:",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/index": {
+      "id": "platform/authentication/index",
+      "title": "Authentication",
+      "description": "Nhost provides a ready-to-use authentication service, integrated with Nhost JavaScript SDK. This makes it easy to build login flows with multiple sign-in methods.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/oauth-providers/facebook": {
+      "id": "platform/authentication/oauth-providers/facebook",
+      "title": "Sign in with Facebook",
+      "description": "Follow this guide to sign in users with Facebook with your Nhost App.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/oauth-providers/github": {
+      "id": "platform/authentication/oauth-providers/github",
+      "title": "Sign in with GitHub",
+      "description": "Follow this guide to sign in users with GitHub with your Nhost App.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/oauth-providers/google": {
+      "id": "platform/authentication/oauth-providers/google",
+      "title": "Sign in with Google",
+      "description": "Follow this guide to sign in users with Google with your Nhost App.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/oauth-providers/index": {
+      "id": "platform/authentication/oauth-providers/index",
+      "title": "OAuth Providers",
+      "description": "Nhost Auth supports the following social sign-in providers:",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/oauth-providers/linkedin": {
+      "id": "platform/authentication/oauth-providers/linkedin",
+      "title": "Sign in with LinkedIn",
+      "description": "Follow this guide to sign in users with LinkedIn with your Nhost App.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/oauth-providers/spotify": {
+      "id": "platform/authentication/oauth-providers/spotify",
+      "title": "Sign in with Spotify",
+      "description": "Follow this guide to sign in users with Spotify with your Nhost App.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/sign-in-methods": {
+      "id": "platform/authentication/sign-in-methods",
+      "title": "Sign-in methods",
+      "description": "Nhost supports a variety of sign-in methods:",
+      "sidebar": "platformSidebar"
+    },
+    "platform/authentication/user-management": {
+      "id": "platform/authentication/user-management",
+      "title": "User management",
+      "description": "Users are saved in the database in the auth.users table and are accessible via the GraphQL API.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/database/index": {
+      "id": "platform/database/index",
+      "title": "Database",
+      "description": "Every Nhost app comes with a Postgres database. Postgres is the world's most advanced open-source relational database and the most popular SQL database among developers. The database is hosted with Amazon RDS.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/graphql/index": {
+      "id": "platform/graphql/index",
+      "title": "GraphQL",
+      "description": "Every Nhost app has its own autogenerated GraphQL API. The GraphQL API is based on the tables and columns in the Postgres database and is instantly available. It's Hasura GraphQL engine that powers the GraphQL API.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/graphql/permissions": {
+      "id": "platform/graphql/permissions",
+      "title": "Permissions",
+      "description": "The GraphQL API is protected by a role-based permission system based on access tokens. Permissions are handled on a per-table basis in Hasura Console.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/index": {
+      "id": "platform/index",
+      "title": "The Nhost Platform",
+      "description": "- Database",
+      "sidebar": "platformSidebar"
+    },
+    "platform/nhost/environment-variables": {
+      "id": "platform/nhost/environment-variables",
+      "title": "Environment variables",
+      "description": "Environment variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/nhost/github-integration": {
+      "id": "platform/nhost/github-integration",
+      "title": "GitHub integration",
+      "description": "You can connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/nhost/index": {
+      "id": "platform/nhost/index",
+      "title": "Overview",
+      "description": "Documentation for other platform features:",
+      "sidebar": "platformSidebar"
+    },
+    "platform/nhost/local-development": {
+      "id": "platform/nhost/local-development",
+      "title": "Nhost CLI",
+      "description": "Nhost CLI lets you run Nhost's development environment locally on macOS, Linux and Windows.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/serverless-functions/event-triggers": {
+      "id": "platform/serverless-functions/event-triggers",
+      "title": "Event triggers",
+      "description": "Event triggers are HTTP webhooks that fire on a database event, such as insert, update, or delete. These events are usually a result of GraphQL mutations, but any other database operation will also fire events.",
+      "sidebar": "platformSidebar"
+    },
+    "platform/serverless-functions/index": {
+      "id": "platform/serverless-functions/index",
+      "title": "Serverless Functions",
+      "description": "Nhost gives you the option to run serverless functions on the following runtimes:",
+      "sidebar": "platformSidebar"
+    },
+    "platform/storage/index": {
+      "id": "platform/storage/index",
+      "title": "Storage",
+      "description": "Nhost stores and serves files of any type in your backend.",
+      "sidebar": "platformSidebar"
+    },
+    "reference/cli/nhost-cli": {
+      "id": "reference/cli/nhost-cli",
+      "title": "Nhost CLI",
+      "description": "Run nhost help in your terminal to get a detailed listing of all available commands.",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/hasura-auth/api-reference": {
+      "id": "reference/hasura-auth/api-reference",
+      "title": "API Reference",
+      "description": "",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/hasura-auth/configuration": {
+      "id": "reference/hasura-auth/configuration",
+      "title": "Configuration",
+      "description": "Email configuration",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/hasura-auth/environment-variables": {
+      "id": "reference/hasura-auth/environment-variables",
+      "title": "Environment variables",
+      "description": "General environment variables",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/hasura-auth/index": {
+      "id": "reference/hasura-auth/index",
+      "title": "Overview",
+      "description": "Hasura Auth handles authentication for Hasura.",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/hasura-auth/installation": {
+      "id": "reference/hasura-auth/installation",
+      "title": "Installation",
+      "description": "Hasura Auth runs in a container alongside Postgres and Hasura.",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/hasura-auth/schema": {
+      "id": "reference/hasura-auth/schema",
+      "title": "Schema",
+      "description": "Hasura Auth stores all its data in a dedicated auth PostgreSQL schema. When Hasura Auth starts, it checks if the auth schema exists, then automatically syncs the following tables and their corresponding Hasura metadata:",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/index": {
+      "id": "reference/index",
+      "title": "Reference",
+      "description": "In this section:",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/nextjs/configuration": {
+      "id": "reference/nextjs/configuration",
+      "title": "Configuration",
+      "description": "Installation",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/nextjs/introduction": {
+      "id": "reference/nextjs/introduction",
+      "title": "Introduction",
+      "description": "All the React hooks and helpers from @nhost/react are available in Next.js and are exported in the @nhost/nextjs package.",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/nextjs/protecting-routes": {
+      "id": "reference/nextjs/protecting-routes",
+      "title": "Protecting routes",
+      "description": "Create an auth-protected.js file:",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/react/apollo": {
+      "id": "reference/react/apollo",
+      "title": "Apollo GraphQL",
+      "description": "Installation",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/react/getting-started": {
+      "id": "reference/react/getting-started",
+      "title": "Getting started",
+      "description": "Installation",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/react/hooks": {
+      "id": "reference/react/hooks",
+      "title": "Hooks",
+      "description": "Authentication Hooks",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/react/protecting-routes": {
+      "id": "reference/react/protecting-routes",
+      "title": "Protecting routes",
+      "description": "React Router",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/sdk/authentication": {
+      "id": "reference/sdk/authentication",
+      "title": "Authentication",
+      "description": "nhost.auth.signIn()",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/sdk/functions": {
+      "id": "reference/sdk/functions",
+      "title": "Functions",
+      "description": "nhost.functions.call()",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/sdk/graphql": {
+      "id": "reference/sdk/graphql",
+      "title": "GraphQL",
+      "description": "nhost.graphql.request()",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/sdk/index": {
+      "id": "reference/sdk/index",
+      "title": "Overview",
+      "description": "Nhost SDK is the primary way of interacting with your Nhost app. It exposes a standard interface for each of the following services:",
+      "sidebar": "referenceSidebar"
+    },
+    "reference/sdk/storage": {
+      "id": "reference/sdk/storage",
+      "title": "Storage",
+      "description": "nhost.storage.upload()",
+      "sidebar": "referenceSidebar"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "unversionedId": "platform/graphql/permissions",
+  "id": "platform/graphql/permissions",
+  "title": "Permissions",
+  "description": "The GraphQL API is protected by a role-based permission system based on access tokens. Permissions are handled on a per-table basis in Hasura Console.",
+  "source": "@site/docs/platform/graphql/permissions.md",
+  "sourceDirName": "platform/graphql",
+  "slug": "/platform/graphql/permissions",
+  "permalink": "/platform/graphql/permissions",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/graphql/permissions.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Permissions",
+    "sidebar_position": 1
+  },
+  "sidebar": "platformSidebar",
+  "previous": {
+    "title": "GraphQL",
+    "permalink": "/platform/graphql/"
+  },
+  "next": {
+    "title": "Authentication",
+    "permalink": "/platform/authentication/"
+  }
+}

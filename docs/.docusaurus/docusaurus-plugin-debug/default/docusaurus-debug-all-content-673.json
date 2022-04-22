@@ -1,0 +1,1835 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "loadedVersions": [
+        {
+          "versionName": "current",
+          "versionLabel": "Next",
+          "versionPath": "/",
+          "tagsPath": "/tags",
+          "versionEditUrl": "https://github.com/nhost/nhost/edit/main/docs/docs",
+          "versionEditUrlLocalized": "https://github.com/nhost/nhost/edit/main/docs/i18n/en/docusaurus-plugin-content-docs/current",
+          "versionBanner": null,
+          "versionBadge": false,
+          "versionClassName": "docs-version-current",
+          "isLast": true,
+          "routePriority": -1,
+          "sidebarFilePath": "/Users/pilou/dev/nhost/nhost/docs/sidebars.js",
+          "contentPath": "/Users/pilou/dev/nhost/nhost/docs/docs",
+          "contentPathLocalized": "/Users/pilou/dev/nhost/nhost/docs/i18n/en/docusaurus-plugin-content-docs/current",
+          "docs": [
+            {
+              "unversionedId": "get-started/authentication/index",
+              "id": "get-started/authentication/index",
+              "title": "Authenticate users",
+              "description": "You defined select permissions for the public role in the previous section. You will now add insert and create permissions for authenticated users to secure your app's GraphQL API with authentication.",
+              "source": "@site/docs/get-started/authentication/index.md",
+              "sourceDirName": "get-started/authentication",
+              "slug": "/get-started/authentication",
+              "permalink": "/get-started/authentication",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/authentication/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Authenticate users",
+                "slug": "/get-started/authentication"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Set permissions",
+                "permalink": "/get-started/quick-start/permissions"
+              },
+              "next": {
+                "title": "CLI from Zero to Production",
+                "permalink": "/get-started/cli-workflow/"
+              }
+            },
+            {
+              "unversionedId": "get-started/cli-workflow/index",
+              "id": "get-started/cli-workflow/index",
+              "title": "CLI from Zero to Production",
+              "description": "In the previous tutorials, we tested various parts of Nhost, such as:",
+              "source": "@site/docs/get-started/cli-workflow/index.md",
+              "sourceDirName": "get-started/cli-workflow",
+              "slug": "/get-started/cli-workflow/",
+              "permalink": "/get-started/cli-workflow/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/cli-workflow/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "CLI from Zero to Production"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Authenticate users",
+                "permalink": "/get-started/authentication"
+              },
+              "next": {
+                "title": "Workflow setup",
+                "permalink": "/get-started/cli-workflow/workflow-setup"
+              }
+            },
+            {
+              "unversionedId": "get-started/cli-workflow/install-cli",
+              "id": "get-started/cli-workflow/install-cli",
+              "title": "Install the CLI",
+              "description": "Install the Nhost CLI using the following command:",
+              "source": "@site/docs/get-started/cli-workflow/install-cli.md",
+              "sourceDirName": "get-started/cli-workflow",
+              "slug": "/get-started/cli-workflow/install-cli",
+              "permalink": "/get-started/cli-workflow/install-cli",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/cli-workflow/install-cli.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Install the CLI"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Workflow setup",
+                "permalink": "/get-started/cli-workflow/workflow-setup"
+              },
+              "next": {
+                "title": "Local changes",
+                "permalink": "/get-started/cli-workflow/local-changes"
+              }
+            },
+            {
+              "unversionedId": "get-started/cli-workflow/local-changes",
+              "id": "get-started/cli-workflow/local-changes",
+              "title": "Local changes",
+              "description": "Start Nhost locally:",
+              "source": "@site/docs/get-started/cli-workflow/local-changes.mdx",
+              "sourceDirName": "get-started/cli-workflow",
+              "slug": "/get-started/cli-workflow/local-changes",
+              "permalink": "/get-started/cli-workflow/local-changes",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/cli-workflow/local-changes.mdx",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Local changes"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Install the CLI",
+                "permalink": "/get-started/cli-workflow/install-cli"
+              },
+              "next": {
+                "title": "Metadata and Serverless Functions",
+                "permalink": "/get-started/cli-workflow/metadata-and-serverless-functions"
+              }
+            },
+            {
+              "unversionedId": "get-started/cli-workflow/metadata-and-serverless-functions",
+              "id": "get-started/cli-workflow/metadata-and-serverless-functions",
+              "title": "Metadata and Serverless Functions",
+              "description": "In the previous section, we only created a new table; customers. Using the CLI you can also do changes to other parts of your backend.",
+              "source": "@site/docs/get-started/cli-workflow/metadata-and-serverless-functions.mdx",
+              "sourceDirName": "get-started/cli-workflow",
+              "slug": "/get-started/cli-workflow/metadata-and-serverless-functions",
+              "permalink": "/get-started/cli-workflow/metadata-and-serverless-functions",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/cli-workflow/metadata-and-serverless-functions.mdx",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Metadata and Serverless Functions"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Local changes",
+                "permalink": "/get-started/cli-workflow/local-changes"
+              },
+              "next": {
+                "title": "Upgrade from v1 to v2",
+                "permalink": "/get-started/upgrade/"
+              }
+            },
+            {
+              "unversionedId": "get-started/cli-workflow/workflow-setup",
+              "id": "get-started/cli-workflow/workflow-setup",
+              "title": "Workflow setup",
+              "description": "What follows is a detailed tutorial on how you setup Nhost for this workflow",
+              "source": "@site/docs/get-started/cli-workflow/workflow-setup.mdx",
+              "sourceDirName": "get-started/cli-workflow",
+              "slug": "/get-started/cli-workflow/workflow-setup",
+              "permalink": "/get-started/cli-workflow/workflow-setup",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/cli-workflow/workflow-setup.mdx",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Workflow setup"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "CLI from Zero to Production",
+                "permalink": "/get-started/cli-workflow/"
+              },
+              "next": {
+                "title": "Install the CLI",
+                "permalink": "/get-started/cli-workflow/install-cli"
+              }
+            },
+            {
+              "unversionedId": "get-started/index",
+              "id": "get-started/index",
+              "title": "Welcome to Nhost",
+              "description": "Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.",
+              "source": "@site/docs/get-started/index.md",
+              "sourceDirName": "get-started",
+              "slug": "/get-started/",
+              "permalink": "/get-started/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Welcome to Nhost",
+                "sidebar_position": 1
+              },
+              "sidebar": "defaultSidebar",
+              "next": {
+                "title": "Create your app",
+                "permalink": "/get-started/quick-start/"
+              }
+            },
+            {
+              "unversionedId": "get-started/quick-start/index",
+              "id": "get-started/quick-start/index",
+              "title": "Create your app",
+              "description": "Let's create a simple todo-app using Nhost. In a todo-app, a user should be able to create list items for their account (CRUD) and not have anyone else see them (permissions).",
+              "source": "@site/docs/get-started/quick-start/index.md",
+              "sourceDirName": "get-started/quick-start",
+              "slug": "/get-started/quick-start/",
+              "permalink": "/get-started/quick-start/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/quick-start/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Create your app",
+                "sidebar_position": 1
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Welcome to Nhost",
+                "permalink": "/get-started/"
+              },
+              "next": {
+                "title": "Define schema",
+                "permalink": "/get-started/quick-start/schema"
+              }
+            },
+            {
+              "unversionedId": "get-started/quick-start/javascript-client",
+              "id": "get-started/quick-start/javascript-client",
+              "title": "JavaScript client",
+              "description": "In the previous section, you used the Hasura Console to fetch a list of todos. Now, you will write a small JavaScript client to interact and retrieve todos from your Nhost app.",
+              "source": "@site/docs/get-started/quick-start/javascript-client.md",
+              "sourceDirName": "get-started/quick-start",
+              "slug": "/get-started/quick-start/javascript-client",
+              "permalink": "/get-started/quick-start/javascript-client",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/quick-start/javascript-client.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "JavaScript client"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Define schema",
+                "permalink": "/get-started/quick-start/schema"
+              },
+              "next": {
+                "title": "Set permissions",
+                "permalink": "/get-started/quick-start/permissions"
+              }
+            },
+            {
+              "unversionedId": "get-started/quick-start/permissions",
+              "id": "get-started/quick-start/permissions",
+              "title": "Set permissions",
+              "description": "In the previous section, you could fetch the todos because the admin role is enabled by default when using Hasura Console. When building your applications, you want to define permissions using roles that your users can assume when making requests.",
+              "source": "@site/docs/get-started/quick-start/permissions.md",
+              "sourceDirName": "get-started/quick-start",
+              "slug": "/get-started/quick-start/permissions",
+              "permalink": "/get-started/quick-start/permissions",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/quick-start/permissions.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Set permissions"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "JavaScript client",
+                "permalink": "/get-started/quick-start/javascript-client"
+              },
+              "next": {
+                "title": "Authenticate users",
+                "permalink": "/get-started/authentication"
+              }
+            },
+            {
+              "unversionedId": "get-started/quick-start/schema",
+              "id": "get-started/quick-start/schema",
+              "title": "Define schema",
+              "description": "To implement an app for managing a todo list, let's ensure we have database tables for storing todos and users.",
+              "source": "@site/docs/get-started/quick-start/schema.md",
+              "sourceDirName": "get-started/quick-start",
+              "slug": "/get-started/quick-start/schema",
+              "permalink": "/get-started/quick-start/schema",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/quick-start/schema.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Define schema"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Create your app",
+                "permalink": "/get-started/quick-start/"
+              },
+              "next": {
+                "title": "JavaScript client",
+                "permalink": "/get-started/quick-start/javascript-client"
+              }
+            },
+            {
+              "unversionedId": "get-started/upgrade/index",
+              "id": "get-started/upgrade/index",
+              "title": "Upgrade from v1 to v2",
+              "description": "Upgrading from Nhost v1 to v2 requires database schema and Hasura metadata changes.",
+              "source": "@site/docs/get-started/upgrade/index.md",
+              "sourceDirName": "get-started/upgrade",
+              "slug": "/get-started/upgrade/",
+              "permalink": "/get-started/upgrade/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/upgrade/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Upgrade from v1 to v2"
+              },
+              "sidebar": "defaultSidebar",
+              "previous": {
+                "title": "Metadata and Serverless Functions",
+                "permalink": "/get-started/cli-workflow/metadata-and-serverless-functions"
+              }
+            },
+            {
+              "unversionedId": "index",
+              "id": "index",
+              "title": "Welcome to Nhost",
+              "description": "Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.",
+              "source": "@site/docs/index.md",
+              "sourceDirName": ".",
+              "slug": "/",
+              "permalink": "/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Welcome to Nhost"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/email-templates",
+              "id": "platform/authentication/email-templates",
+              "title": "Email templates",
+              "description": "The following emails can be sent as part of the authentication flow:",
+              "source": "@site/docs/platform/authentication/email-templates.md",
+              "sourceDirName": "platform/authentication",
+              "slug": "/platform/authentication/email-templates",
+              "permalink": "/platform/authentication/email-templates",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/email-templates.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "title": "Email templates",
+                "sidebar_position": 4
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Sign in with Spotify",
+                "permalink": "/platform/authentication/sign-in-with-spotify"
+              },
+              "next": {
+                "title": "Storage",
+                "permalink": "/platform/storage/"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/index",
+              "id": "platform/authentication/index",
+              "title": "Authentication",
+              "description": "Nhost provides a ready-to-use authentication service, integrated with Nhost JavaScript SDK. This makes it easy to build login flows with multiple sign-in methods.",
+              "source": "@site/docs/platform/authentication/index.md",
+              "sourceDirName": "platform/authentication",
+              "slug": "/platform/authentication/",
+              "permalink": "/platform/authentication/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Authentication",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Permissions",
+                "permalink": "/platform/graphql/permissions"
+              },
+              "next": {
+                "title": "User management",
+                "permalink": "/platform/authentication/user-management"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/oauth-providers/facebook",
+              "id": "platform/authentication/oauth-providers/facebook",
+              "title": "Sign in with Facebook",
+              "description": "Follow this guide to sign in users with Facebook with your Nhost App.",
+              "source": "@site/docs/platform/authentication/oauth-providers/facebook.mdx",
+              "sourceDirName": "platform/authentication/oauth-providers",
+              "slug": "/platform/authentication/sign-in-with-facebook",
+              "permalink": "/platform/authentication/sign-in-with-facebook",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/oauth-providers/facebook.mdx",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "Sign in with Facebook",
+                "sidebar_position": 2,
+                "slug": "/platform/authentication/sign-in-with-facebook"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Sign in with Google",
+                "permalink": "/platform/authentication/sign-in-with-google"
+              },
+              "next": {
+                "title": "Sign in with GitHub",
+                "permalink": "/platform/authentication/sign-in-with-github"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/oauth-providers/github",
+              "id": "platform/authentication/oauth-providers/github",
+              "title": "Sign in with GitHub",
+              "description": "Follow this guide to sign in users with GitHub with your Nhost App.",
+              "source": "@site/docs/platform/authentication/oauth-providers/github.mdx",
+              "sourceDirName": "platform/authentication/oauth-providers",
+              "slug": "/platform/authentication/sign-in-with-github",
+              "permalink": "/platform/authentication/sign-in-with-github",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/oauth-providers/github.mdx",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Sign in with GitHub",
+                "sidebar_position": 3,
+                "slug": "/platform/authentication/sign-in-with-github"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Sign in with Facebook",
+                "permalink": "/platform/authentication/sign-in-with-facebook"
+              },
+              "next": {
+                "title": "Sign in with LinkedIn",
+                "permalink": "/platform/authentication/sign-in-with-linkedin"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/oauth-providers/google",
+              "id": "platform/authentication/oauth-providers/google",
+              "title": "Sign in with Google",
+              "description": "Follow this guide to sign in users with Google with your Nhost App.",
+              "source": "@site/docs/platform/authentication/oauth-providers/google.mdx",
+              "sourceDirName": "platform/authentication/oauth-providers",
+              "slug": "/platform/authentication/sign-in-with-google",
+              "permalink": "/platform/authentication/sign-in-with-google",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/oauth-providers/google.mdx",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Sign in with Google",
+                "sidebar_position": 1,
+                "slug": "/platform/authentication/sign-in-with-google"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "OAuth Providers",
+                "permalink": "/platform/authentication/social-sign-in"
+              },
+              "next": {
+                "title": "Sign in with Facebook",
+                "permalink": "/platform/authentication/sign-in-with-facebook"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/oauth-providers/index",
+              "id": "platform/authentication/oauth-providers/index",
+              "title": "OAuth Providers",
+              "description": "Nhost Auth supports the following social sign-in providers:",
+              "source": "@site/docs/platform/authentication/oauth-providers/index.md",
+              "sourceDirName": "platform/authentication/oauth-providers",
+              "slug": "/platform/authentication/social-sign-in",
+              "permalink": "/platform/authentication/social-sign-in",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/oauth-providers/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "OAuth Providers",
+                "slug": "/platform/authentication/social-sign-in"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Sign-in methods",
+                "permalink": "/platform/authentication/sign-in-methods"
+              },
+              "next": {
+                "title": "Sign in with Google",
+                "permalink": "/platform/authentication/sign-in-with-google"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/oauth-providers/linkedin",
+              "id": "platform/authentication/oauth-providers/linkedin",
+              "title": "Sign in with LinkedIn",
+              "description": "Follow this guide to sign in users with LinkedIn with your Nhost App.",
+              "source": "@site/docs/platform/authentication/oauth-providers/linkedin.mdx",
+              "sourceDirName": "platform/authentication/oauth-providers",
+              "slug": "/platform/authentication/sign-in-with-linkedin",
+              "permalink": "/platform/authentication/sign-in-with-linkedin",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/oauth-providers/linkedin.mdx",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "title": "Sign in with LinkedIn",
+                "sidebar_position": 4,
+                "slug": "/platform/authentication/sign-in-with-linkedin"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Sign in with GitHub",
+                "permalink": "/platform/authentication/sign-in-with-github"
+              },
+              "next": {
+                "title": "Sign in with Spotify",
+                "permalink": "/platform/authentication/sign-in-with-spotify"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/oauth-providers/spotify",
+              "id": "platform/authentication/oauth-providers/spotify",
+              "title": "Sign in with Spotify",
+              "description": "Follow this guide to sign in users with Spotify with your Nhost App.",
+              "source": "@site/docs/platform/authentication/oauth-providers/spotify.mdx",
+              "sourceDirName": "platform/authentication/oauth-providers",
+              "slug": "/platform/authentication/sign-in-with-spotify",
+              "permalink": "/platform/authentication/sign-in-with-spotify",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/oauth-providers/spotify.mdx",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 5,
+              "frontMatter": {
+                "title": "Sign in with Spotify",
+                "sidebar_position": 5,
+                "slug": "/platform/authentication/sign-in-with-spotify"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Sign in with LinkedIn",
+                "permalink": "/platform/authentication/sign-in-with-linkedin"
+              },
+              "next": {
+                "title": "Email templates",
+                "permalink": "/platform/authentication/email-templates"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/sign-in-methods",
+              "id": "platform/authentication/sign-in-methods",
+              "title": "Sign-in methods",
+              "description": "Nhost supports a variety of sign-in methods:",
+              "source": "@site/docs/platform/authentication/sign-in-methods.md",
+              "sourceDirName": "platform/authentication",
+              "slug": "/platform/authentication/sign-in-methods",
+              "permalink": "/platform/authentication/sign-in-methods",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/sign-in-methods.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "Sign-in methods",
+                "sidebar_position": 2
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "User management",
+                "permalink": "/platform/authentication/user-management"
+              },
+              "next": {
+                "title": "OAuth Providers",
+                "permalink": "/platform/authentication/social-sign-in"
+              }
+            },
+            {
+              "unversionedId": "platform/authentication/user-management",
+              "id": "platform/authentication/user-management",
+              "title": "User management",
+              "description": "Users are saved in the database in the auth.users table and are accessible via the GraphQL API.",
+              "source": "@site/docs/platform/authentication/user-management.md",
+              "sourceDirName": "platform/authentication",
+              "slug": "/platform/authentication/user-management",
+              "permalink": "/platform/authentication/user-management",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/user-management.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "User management",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Authentication",
+                "permalink": "/platform/authentication/"
+              },
+              "next": {
+                "title": "Sign-in methods",
+                "permalink": "/platform/authentication/sign-in-methods"
+              }
+            },
+            {
+              "unversionedId": "platform/database/index",
+              "id": "platform/database/index",
+              "title": "Database",
+              "description": "Every Nhost app comes with a Postgres database. Postgres is the world's most advanced open-source relational database and the most popular SQL database among developers. The database is hosted with Amazon RDS.",
+              "source": "@site/docs/platform/database/index.md",
+              "sourceDirName": "platform/database",
+              "slug": "/platform/database/",
+              "permalink": "/platform/database/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/database/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Database",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "The Nhost Platform",
+                "permalink": "/platform/"
+              },
+              "next": {
+                "title": "GraphQL",
+                "permalink": "/platform/graphql/"
+              }
+            },
+            {
+              "unversionedId": "platform/graphql/index",
+              "id": "platform/graphql/index",
+              "title": "GraphQL",
+              "description": "Every Nhost app has its own autogenerated GraphQL API. The GraphQL API is based on the tables and columns in the Postgres database and is instantly available. It's Hasura GraphQL engine that powers the GraphQL API.",
+              "source": "@site/docs/platform/graphql/index.md",
+              "sourceDirName": "platform/graphql",
+              "slug": "/platform/graphql/",
+              "permalink": "/platform/graphql/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/graphql/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "GraphQL",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Database",
+                "permalink": "/platform/database/"
+              },
+              "next": {
+                "title": "Permissions",
+                "permalink": "/platform/graphql/permissions"
+              }
+            },
+            {
+              "unversionedId": "platform/graphql/permissions",
+              "id": "platform/graphql/permissions",
+              "title": "Permissions",
+              "description": "The GraphQL API is protected by a role-based permission system based on access tokens. Permissions are handled on a per-table basis in Hasura Console.",
+              "source": "@site/docs/platform/graphql/permissions.md",
+              "sourceDirName": "platform/graphql",
+              "slug": "/platform/graphql/permissions",
+              "permalink": "/platform/graphql/permissions",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/graphql/permissions.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Permissions",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "GraphQL",
+                "permalink": "/platform/graphql/"
+              },
+              "next": {
+                "title": "Authentication",
+                "permalink": "/platform/authentication/"
+              }
+            },
+            {
+              "unversionedId": "platform/index",
+              "id": "platform/index",
+              "title": "The Nhost Platform",
+              "description": "- Database",
+              "source": "@site/docs/platform/index.md",
+              "sourceDirName": "platform",
+              "slug": "/platform/",
+              "permalink": "/platform/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "The Nhost Platform",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "next": {
+                "title": "Database",
+                "permalink": "/platform/database/"
+              }
+            },
+            {
+              "unversionedId": "platform/nhost/environment-variables",
+              "id": "platform/nhost/environment-variables",
+              "title": "Environment variables",
+              "description": "Environment variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys.",
+              "source": "@site/docs/platform/nhost/environment-variables.md",
+              "sourceDirName": "platform/nhost",
+              "slug": "/platform/nhost/environment-variables",
+              "permalink": "/platform/nhost/environment-variables",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/nhost/environment-variables.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Environment variables",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Overview",
+                "permalink": "/platform/nhost/"
+              },
+              "next": {
+                "title": "GitHub integration",
+                "permalink": "/platform/nhost/github-integration"
+              }
+            },
+            {
+              "unversionedId": "platform/nhost/github-integration",
+              "id": "platform/nhost/github-integration",
+              "title": "GitHub integration",
+              "description": "You can connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed.",
+              "source": "@site/docs/platform/nhost/github-integration.md",
+              "sourceDirName": "platform/nhost",
+              "slug": "/platform/nhost/github-integration",
+              "permalink": "/platform/nhost/github-integration",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/nhost/github-integration.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "GitHub integration",
+                "sidebar_position": 2
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Environment variables",
+                "permalink": "/platform/nhost/environment-variables"
+              },
+              "next": {
+                "title": "Nhost CLI",
+                "permalink": "/platform/nhost/local-development"
+              }
+            },
+            {
+              "unversionedId": "platform/nhost/index",
+              "id": "platform/nhost/index",
+              "title": "Overview",
+              "description": "Documentation for other platform features:",
+              "source": "@site/docs/platform/nhost/index.md",
+              "sourceDirName": "platform/nhost",
+              "slug": "/platform/nhost/",
+              "permalink": "/platform/nhost/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/nhost/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Overview"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Event triggers",
+                "permalink": "/platform/serverless-functions/event-triggers"
+              },
+              "next": {
+                "title": "Environment variables",
+                "permalink": "/platform/nhost/environment-variables"
+              }
+            },
+            {
+              "unversionedId": "platform/nhost/local-development",
+              "id": "platform/nhost/local-development",
+              "title": "Nhost CLI",
+              "description": "Nhost CLI lets you run Nhost's development environment locally on macOS, Linux and Windows.",
+              "source": "@site/docs/platform/nhost/local-development.md",
+              "sourceDirName": "platform/nhost",
+              "slug": "/platform/nhost/local-development",
+              "permalink": "/platform/nhost/local-development",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/nhost/local-development.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Nhost CLI",
+                "sidebar_position": 3
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "GitHub integration",
+                "permalink": "/platform/nhost/github-integration"
+              }
+            },
+            {
+              "unversionedId": "platform/serverless-functions/event-triggers",
+              "id": "platform/serverless-functions/event-triggers",
+              "title": "Event triggers",
+              "description": "Event triggers are HTTP webhooks that fire on a database event, such as insert, update, or delete. These events are usually a result of GraphQL mutations, but any other database operation will also fire events.",
+              "source": "@site/docs/platform/serverless-functions/event-triggers.md",
+              "sourceDirName": "platform/serverless-functions",
+              "slug": "/platform/serverless-functions/event-triggers",
+              "permalink": "/platform/serverless-functions/event-triggers",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/serverless-functions/event-triggers.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "Event triggers",
+                "sidebar_position": 2
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Serverless Functions",
+                "permalink": "/platform/serverless-functions/"
+              },
+              "next": {
+                "title": "Overview",
+                "permalink": "/platform/nhost/"
+              }
+            },
+            {
+              "unversionedId": "platform/serverless-functions/index",
+              "id": "platform/serverless-functions/index",
+              "title": "Serverless Functions",
+              "description": "Nhost gives you the option to run serverless functions on the following runtimes:",
+              "source": "@site/docs/platform/serverless-functions/index.md",
+              "sourceDirName": "platform/serverless-functions",
+              "slug": "/platform/serverless-functions/",
+              "permalink": "/platform/serverless-functions/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/serverless-functions/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Serverless Functions",
+                "sidebar_position": 1
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Storage",
+                "permalink": "/platform/storage/"
+              },
+              "next": {
+                "title": "Event triggers",
+                "permalink": "/platform/serverless-functions/event-triggers"
+              }
+            },
+            {
+              "unversionedId": "platform/storage/index",
+              "id": "platform/storage/index",
+              "title": "Storage",
+              "description": "Nhost stores and serves files of any type in your backend.",
+              "source": "@site/docs/platform/storage/index.md",
+              "sourceDirName": "platform/storage",
+              "slug": "/platform/storage/",
+              "permalink": "/platform/storage/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/storage/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Storage"
+              },
+              "sidebar": "platformSidebar",
+              "previous": {
+                "title": "Email templates",
+                "permalink": "/platform/authentication/email-templates"
+              },
+              "next": {
+                "title": "Serverless Functions",
+                "permalink": "/platform/serverless-functions/"
+              }
+            },
+            {
+              "unversionedId": "reference/cli/nhost-cli",
+              "id": "reference/cli/nhost-cli",
+              "title": "Nhost CLI",
+              "description": "Run nhost help in your terminal to get a detailed listing of all available commands.",
+              "source": "@site/docs/reference/cli/nhost-cli.md",
+              "sourceDirName": "reference/cli",
+              "slug": "/reference/cli/nhost-cli",
+              "permalink": "/reference/cli/nhost-cli",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/cli/nhost-cli.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Nhost CLI"
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "CLI",
+                "permalink": "/reference/cli"
+              },
+              "next": {
+                "title": "Overview",
+                "permalink": "/reference/hasura-auth/"
+              }
+            },
+            {
+              "unversionedId": "reference/hasura-auth/api-reference",
+              "id": "reference/hasura-auth/api-reference",
+              "title": "API Reference",
+              "description": "",
+              "source": "@site/docs/reference/hasura-auth/api-reference.mdx",
+              "sourceDirName": "reference/hasura-auth",
+              "slug": "/reference/hasura-auth/api-reference",
+              "permalink": "/reference/hasura-auth/api-reference",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/hasura-auth/api-reference.mdx",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 5,
+              "frontMatter": {
+                "title": "API Reference",
+                "sidebar_position": 5
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Schema",
+                "permalink": "/reference/hasura-auth/schema"
+              }
+            },
+            {
+              "unversionedId": "reference/hasura-auth/configuration",
+              "id": "reference/hasura-auth/configuration",
+              "title": "Configuration",
+              "description": "Email configuration",
+              "source": "@site/docs/reference/hasura-auth/configuration.md",
+              "sourceDirName": "reference/hasura-auth",
+              "slug": "/reference/hasura-auth/configuration",
+              "permalink": "/reference/hasura-auth/configuration",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/hasura-auth/configuration.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "Configuration",
+                "sidebar_position": 2
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Installation",
+                "permalink": "/reference/hasura-auth/installation"
+              },
+              "next": {
+                "title": "Environment variables",
+                "permalink": "/reference/hasura-auth/environment-variables"
+              }
+            },
+            {
+              "unversionedId": "reference/hasura-auth/environment-variables",
+              "id": "reference/hasura-auth/environment-variables",
+              "title": "Environment variables",
+              "description": "General environment variables",
+              "source": "@site/docs/reference/hasura-auth/environment-variables.md",
+              "sourceDirName": "reference/hasura-auth",
+              "slug": "/reference/hasura-auth/environment-variables",
+              "permalink": "/reference/hasura-auth/environment-variables",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/hasura-auth/environment-variables.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Environment variables",
+                "sidebar_position": 3
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Configuration",
+                "permalink": "/reference/hasura-auth/configuration"
+              },
+              "next": {
+                "title": "Schema",
+                "permalink": "/reference/hasura-auth/schema"
+              }
+            },
+            {
+              "unversionedId": "reference/hasura-auth/index",
+              "id": "reference/hasura-auth/index",
+              "title": "Overview",
+              "description": "Hasura Auth handles authentication for Hasura.",
+              "source": "@site/docs/reference/hasura-auth/index.md",
+              "sourceDirName": "reference/hasura-auth",
+              "slug": "/reference/hasura-auth/",
+              "permalink": "/reference/hasura-auth/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/hasura-auth/index.md",
+              "tags": [],
+              "version": "current",
+              "frontMatter": {
+                "title": "Overview"
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Nhost CLI",
+                "permalink": "/reference/cli/nhost-cli"
+              },
+              "next": {
+                "title": "Installation",
+                "permalink": "/reference/hasura-auth/installation"
+              }
+            },
+            {
+              "unversionedId": "reference/hasura-auth/installation",
+              "id": "reference/hasura-auth/installation",
+              "title": "Installation",
+              "description": "Hasura Auth runs in a container alongside Postgres and Hasura.",
+              "source": "@site/docs/reference/hasura-auth/installation.md",
+              "sourceDirName": "reference/hasura-auth",
+              "slug": "/reference/hasura-auth/installation",
+              "permalink": "/reference/hasura-auth/installation",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/hasura-auth/installation.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Installation",
+                "sidebar_position": 1
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Overview",
+                "permalink": "/reference/hasura-auth/"
+              },
+              "next": {
+                "title": "Configuration",
+                "permalink": "/reference/hasura-auth/configuration"
+              }
+            },
+            {
+              "unversionedId": "reference/hasura-auth/schema",
+              "id": "reference/hasura-auth/schema",
+              "title": "Schema",
+              "description": "Hasura Auth stores all its data in a dedicated auth PostgreSQL schema. When Hasura Auth starts, it checks if the auth schema exists, then automatically syncs the following tables and their corresponding Hasura metadata:",
+              "source": "@site/docs/reference/hasura-auth/schema.md",
+              "sourceDirName": "reference/hasura-auth",
+              "slug": "/reference/hasura-auth/schema",
+              "permalink": "/reference/hasura-auth/schema",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/hasura-auth/schema.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "title": "Schema",
+                "sidebar_position": 4
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Environment variables",
+                "permalink": "/reference/hasura-auth/environment-variables"
+              },
+              "next": {
+                "title": "API Reference",
+                "permalink": "/reference/hasura-auth/api-reference"
+              }
+            },
+            {
+              "unversionedId": "reference/index",
+              "id": "reference/index",
+              "title": "Reference",
+              "description": "In this section:",
+              "source": "@site/docs/reference/index.md",
+              "sourceDirName": "reference",
+              "slug": "/reference/",
+              "permalink": "/reference/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 0,
+              "frontMatter": {
+                "title": "Reference",
+                "sidebar_position": 0
+              },
+              "sidebar": "referenceSidebar",
+              "next": {
+                "title": "Overview",
+                "permalink": "/reference/sdk/"
+              }
+            },
+            {
+              "unversionedId": "reference/nextjs/configuration",
+              "id": "reference/nextjs/configuration",
+              "title": "Configuration",
+              "description": "Installation",
+              "source": "@site/docs/reference/nextjs/configuration.md",
+              "sourceDirName": "reference/nextjs",
+              "slug": "/reference/nextjs/configuration",
+              "permalink": "/reference/nextjs/configuration",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/nextjs/configuration.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "Configuration",
+                "sidebar_position": 2
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Introduction",
+                "permalink": "/reference/nextjs/introduction"
+              },
+              "next": {
+                "title": "Protecting routes",
+                "permalink": "/reference/nextjs/protecting-routes"
+              }
+            },
+            {
+              "unversionedId": "reference/nextjs/introduction",
+              "id": "reference/nextjs/introduction",
+              "title": "Introduction",
+              "description": "All the React hooks and helpers from @nhost/react are available in Next.js and are exported in the @nhost/nextjs package.",
+              "source": "@site/docs/reference/nextjs/introduction.md",
+              "sourceDirName": "reference/nextjs",
+              "slug": "/reference/nextjs/introduction",
+              "permalink": "/reference/nextjs/introduction",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/nextjs/introduction.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Introduction",
+                "sidebar_position": 1
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Next.js",
+                "permalink": "/reference/nextjs"
+              },
+              "next": {
+                "title": "Configuration",
+                "permalink": "/reference/nextjs/configuration"
+              }
+            },
+            {
+              "unversionedId": "reference/nextjs/protecting-routes",
+              "id": "reference/nextjs/protecting-routes",
+              "title": "Protecting routes",
+              "description": "Create an auth-protected.js file:",
+              "source": "@site/docs/reference/nextjs/protecting-routes.md",
+              "sourceDirName": "reference/nextjs",
+              "slug": "/reference/nextjs/protecting-routes",
+              "permalink": "/reference/nextjs/protecting-routes",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/nextjs/protecting-routes.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Protecting routes",
+                "sidebar_position": 3
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Configuration",
+                "permalink": "/reference/nextjs/configuration"
+              },
+              "next": {
+                "title": "CLI",
+                "permalink": "/reference/cli"
+              }
+            },
+            {
+              "unversionedId": "reference/react/apollo",
+              "id": "reference/react/apollo",
+              "title": "Apollo GraphQL",
+              "description": "Installation",
+              "source": "@site/docs/reference/react/apollo.md",
+              "sourceDirName": "reference/react",
+              "slug": "/reference/react/apollo",
+              "permalink": "/reference/react/apollo",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/react/apollo.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "title": "Apollo GraphQL",
+                "sidebar_position": 4
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Protecting routes",
+                "permalink": "/reference/react/protecting-routes"
+              },
+              "next": {
+                "title": "Next.js",
+                "permalink": "/reference/nextjs"
+              }
+            },
+            {
+              "unversionedId": "reference/react/getting-started",
+              "id": "reference/react/getting-started",
+              "title": "Getting started",
+              "description": "Installation",
+              "source": "@site/docs/reference/react/getting-started.md",
+              "sourceDirName": "reference/react",
+              "slug": "/reference/react/getting-started",
+              "permalink": "/reference/react/getting-started",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/react/getting-started.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Getting started",
+                "sidebar_position": 1
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "React",
+                "permalink": "/reference/react"
+              },
+              "next": {
+                "title": "Hooks",
+                "permalink": "/reference/react/hooks"
+              }
+            },
+            {
+              "unversionedId": "reference/react/hooks",
+              "id": "reference/react/hooks",
+              "title": "Hooks",
+              "description": "Authentication Hooks",
+              "source": "@site/docs/reference/react/hooks.md",
+              "sourceDirName": "reference/react",
+              "slug": "/reference/react/hooks",
+              "permalink": "/reference/react/hooks",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/react/hooks.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "Hooks",
+                "sidebar_position": 2
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Getting started",
+                "permalink": "/reference/react/getting-started"
+              },
+              "next": {
+                "title": "Protecting routes",
+                "permalink": "/reference/react/protecting-routes"
+              }
+            },
+            {
+              "unversionedId": "reference/react/protecting-routes",
+              "id": "reference/react/protecting-routes",
+              "title": "Protecting routes",
+              "description": "React Router",
+              "source": "@site/docs/reference/react/protecting-routes.md",
+              "sourceDirName": "reference/react",
+              "slug": "/reference/react/protecting-routes",
+              "permalink": "/reference/react/protecting-routes",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/react/protecting-routes.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Protecting routes",
+                "sidebar_position": 3
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Hooks",
+                "permalink": "/reference/react/hooks"
+              },
+              "next": {
+                "title": "Apollo GraphQL",
+                "permalink": "/reference/react/apollo"
+              }
+            },
+            {
+              "unversionedId": "reference/sdk/authentication",
+              "id": "reference/sdk/authentication",
+              "title": "Authentication",
+              "description": "nhost.auth.signIn()",
+              "source": "@site/docs/reference/sdk/authentication.md",
+              "sourceDirName": "reference/sdk",
+              "slug": "/reference/sdk/authentication",
+              "permalink": "/reference/sdk/authentication",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/sdk/authentication.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 2,
+              "frontMatter": {
+                "title": "Authentication",
+                "sidebar_position": 2
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "GraphQL",
+                "permalink": "/reference/sdk/graphql"
+              },
+              "next": {
+                "title": "Storage",
+                "permalink": "/reference/sdk/storage"
+              }
+            },
+            {
+              "unversionedId": "reference/sdk/functions",
+              "id": "reference/sdk/functions",
+              "title": "Functions",
+              "description": "nhost.functions.call()",
+              "source": "@site/docs/reference/sdk/functions.md",
+              "sourceDirName": "reference/sdk",
+              "slug": "/reference/sdk/functions",
+              "permalink": "/reference/sdk/functions",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/sdk/functions.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 4,
+              "frontMatter": {
+                "title": "Functions",
+                "sidebar_position": 4
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Storage",
+                "permalink": "/reference/sdk/storage"
+              },
+              "next": {
+                "title": "React",
+                "permalink": "/reference/react"
+              }
+            },
+            {
+              "unversionedId": "reference/sdk/graphql",
+              "id": "reference/sdk/graphql",
+              "title": "GraphQL",
+              "description": "nhost.graphql.request()",
+              "source": "@site/docs/reference/sdk/graphql.md",
+              "sourceDirName": "reference/sdk",
+              "slug": "/reference/sdk/graphql",
+              "permalink": "/reference/sdk/graphql",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/sdk/graphql.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "GraphQL",
+                "sidebar_position": 1
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Overview",
+                "permalink": "/reference/sdk/"
+              },
+              "next": {
+                "title": "Authentication",
+                "permalink": "/reference/sdk/authentication"
+              }
+            },
+            {
+              "unversionedId": "reference/sdk/index",
+              "id": "reference/sdk/index",
+              "title": "Overview",
+              "description": "Nhost SDK is the primary way of interacting with your Nhost app. It exposes a standard interface for each of the following services:",
+              "source": "@site/docs/reference/sdk/index.md",
+              "sourceDirName": "reference/sdk",
+              "slug": "/reference/sdk/",
+              "permalink": "/reference/sdk/",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/sdk/index.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 1,
+              "frontMatter": {
+                "title": "Overview",
+                "sidebar_position": 1
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Reference",
+                "permalink": "/reference/"
+              },
+              "next": {
+                "title": "GraphQL",
+                "permalink": "/reference/sdk/graphql"
+              }
+            },
+            {
+              "unversionedId": "reference/sdk/storage",
+              "id": "reference/sdk/storage",
+              "title": "Storage",
+              "description": "nhost.storage.upload()",
+              "source": "@site/docs/reference/sdk/storage.md",
+              "sourceDirName": "reference/sdk",
+              "slug": "/reference/sdk/storage",
+              "permalink": "/reference/sdk/storage",
+              "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/sdk/storage.md",
+              "tags": [],
+              "version": "current",
+              "sidebarPosition": 3,
+              "frontMatter": {
+                "title": "Storage",
+                "sidebar_position": 3
+              },
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Authentication",
+                "permalink": "/reference/sdk/authentication"
+              },
+              "next": {
+                "title": "Functions",
+                "permalink": "/reference/sdk/functions"
+              }
+            }
+          ],
+          "sidebars": {
+            "defaultSidebar": [
+              {
+                "type": "doc",
+                "id": "get-started/index"
+              },
+              {
+                "label": "Quick Start",
+                "type": "category",
+                "collapsed": false,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "get-started/quick-start/index"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "get-started/quick-start/schema"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "get-started/quick-start/javascript-client"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "get-started/quick-start/permissions"
+                  }
+                ],
+                "collapsible": true
+              },
+              {
+                "label": "Authentication",
+                "type": "category",
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "get-started/authentication/index"
+                  }
+                ],
+                "collapsed": true,
+                "collapsible": true
+              },
+              {
+                "label": "CLI Workflow",
+                "type": "category",
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "get-started/cli-workflow/index"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "get-started/cli-workflow/workflow-setup"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "get-started/cli-workflow/install-cli"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "get-started/cli-workflow/local-changes"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "get-started/cli-workflow/metadata-and-serverless-functions"
+                  }
+                ],
+                "collapsed": true,
+                "collapsible": true
+              },
+              {
+                "label": "Upgrade",
+                "type": "category",
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "get-started/upgrade/index"
+                  }
+                ],
+                "collapsed": true,
+                "collapsible": true
+              }
+            ],
+            "platformSidebar": [
+              {
+                "type": "doc",
+                "id": "platform/index"
+              },
+              {
+                "type": "doc",
+                "label": "Database",
+                "id": "platform/database/index"
+              },
+              {
+                "type": "category",
+                "label": "GraphQL",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "platform/graphql/permissions"
+                  }
+                ],
+                "link": {
+                  "type": "doc",
+                  "id": "platform/graphql/index"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Authentication",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "platform/authentication/user-management"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "platform/authentication/sign-in-methods"
+                  },
+                  {
+                    "type": "category",
+                    "label": "OAuth providers",
+                    "collapsible": true,
+                    "collapsed": true,
+                    "items": [
+                      {
+                        "type": "doc",
+                        "id": "platform/authentication/oauth-providers/google"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "platform/authentication/oauth-providers/facebook"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "platform/authentication/oauth-providers/github"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "platform/authentication/oauth-providers/linkedin"
+                      },
+                      {
+                        "type": "doc",
+                        "id": "platform/authentication/oauth-providers/spotify"
+                      }
+                    ],
+                    "link": {
+                      "type": "doc",
+                      "id": "platform/authentication/oauth-providers/index"
+                    }
+                  },
+                  {
+                    "type": "doc",
+                    "id": "platform/authentication/email-templates"
+                  }
+                ],
+                "link": {
+                  "type": "doc",
+                  "id": "platform/authentication/index"
+                }
+              },
+              {
+                "type": "doc",
+                "label": "Storage",
+                "id": "platform/storage/index"
+              },
+              {
+                "type": "category",
+                "label": "Serverless Functions",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "platform/serverless-functions/event-triggers"
+                  }
+                ],
+                "link": {
+                  "type": "doc",
+                  "id": "platform/serverless-functions/index"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Nhost",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "platform/nhost/environment-variables"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "platform/nhost/github-integration"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "platform/nhost/local-development"
+                  }
+                ],
+                "link": {
+                  "type": "doc",
+                  "id": "platform/nhost/index"
+                }
+              }
+            ],
+            "referenceSidebar": [
+              {
+                "type": "doc",
+                "id": "reference/index"
+              },
+              {
+                "type": "category",
+                "label": "SDK",
+                "collapsible": true,
+                "collapsed": false,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "reference/sdk/graphql"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/sdk/authentication"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/sdk/storage"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/sdk/functions"
+                  }
+                ],
+                "link": {
+                  "type": "doc",
+                  "id": "reference/sdk/index"
+                }
+              },
+              {
+                "type": "category",
+                "label": "React",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "reference/react/getting-started"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/react/hooks"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/react/protecting-routes"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/react/apollo"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "slug": "/reference/react",
+                  "permalink": "/reference/react"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Next.js",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "reference/nextjs/introduction"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/nextjs/configuration"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/nextjs/protecting-routes"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "slug": "/reference/nextjs",
+                  "permalink": "/reference/nextjs"
+                }
+              },
+              {
+                "type": "category",
+                "label": "CLI",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "reference/cli/nhost-cli"
+                  }
+                ],
+                "link": {
+                  "type": "generated-index",
+                  "slug": "/reference/cli",
+                  "permalink": "/reference/cli"
+                }
+              },
+              {
+                "type": "category",
+                "label": "Hasura Auth",
+                "collapsible": true,
+                "collapsed": true,
+                "items": [
+                  {
+                    "type": "doc",
+                    "id": "reference/hasura-auth/installation"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/hasura-auth/configuration"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/hasura-auth/environment-variables"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/hasura-auth/schema"
+                  },
+                  {
+                    "type": "doc",
+                    "id": "reference/hasura-auth/api-reference"
+                  }
+                ],
+                "link": {
+                  "type": "doc",
+                  "id": "reference/hasura-auth/index"
+                }
+              }
+            ]
+          },
+          "mainDocId": "index",
+          "categoryGeneratedIndices": [
+            {
+              "title": "React",
+              "slug": "/reference/react",
+              "permalink": "/reference/react",
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Functions",
+                "permalink": "/reference/sdk/functions"
+              },
+              "next": {
+                "title": "Getting started",
+                "permalink": "/reference/react/getting-started"
+              }
+            },
+            {
+              "title": "Next.js",
+              "slug": "/reference/nextjs",
+              "permalink": "/reference/nextjs",
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Apollo GraphQL",
+                "permalink": "/reference/react/apollo"
+              },
+              "next": {
+                "title": "Introduction",
+                "permalink": "/reference/nextjs/introduction"
+              }
+            },
+            {
+              "title": "CLI",
+              "slug": "/reference/cli",
+              "permalink": "/reference/cli",
+              "sidebar": "referenceSidebar",
+              "previous": {
+                "title": "Protecting routes",
+                "permalink": "/reference/nextjs/protecting-routes"
+              },
+              "next": {
+                "title": "Nhost CLI",
+                "permalink": "/reference/cli/nhost-cli"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "docusaurus-plugin-content-blog": {
+    "default": {
+      "blogSidebarTitle": "Recent posts",
+      "blogPosts": [],
+      "blogListPaginated": [],
+      "blogTags": {},
+      "blogTagsListPath": null,
+      "blogTagsPaginated": []
+    }
+  },
+  "docusaurus-plugin-content-pages": {
+    "default": null
+  },
+  "docusaurus-plugin-debug": {},
+  "docusaurus-theme-classic": {}
+}

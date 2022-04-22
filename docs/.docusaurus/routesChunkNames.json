@@ -1,0 +1,264 @@
+{
+  "/__docusaurus/debug-0d9": {
+    "component": "component---theme-debug-config-23-a-2ff",
+    "__routeContextModule": "__routeContextModule---docusaurus-debug-9-d-6-423"
+  },
+  "/__docusaurus/debug/config-ea1": {
+    "component": "component---theme-debug-config-23-a-2ff",
+    "__routeContextModule": "__routeContextModule---docusaurus-debug-9-d-6-423"
+  },
+  "/__docusaurus/debug/content-078": {
+    "component": "component---theme-debug-contentba-8-ce7",
+    "allContent": "allContent---docusaurus-debug-content-246-9aa",
+    "__routeContextModule": "__routeContextModule---docusaurus-debug-9-d-6-423"
+  },
+  "/__docusaurus/debug/globalData-ec8": {
+    "component": "component---theme-debug-global-dataede-0fa",
+    "__routeContextModule": "__routeContextModule---docusaurus-debug-9-d-6-423"
+  },
+  "/__docusaurus/debug/metadata-baa": {
+    "component": "component---theme-debug-site-metadata-68-e-3d4",
+    "__routeContextModule": "__routeContextModule---docusaurus-debug-9-d-6-423"
+  },
+  "/__docusaurus/debug/registry-f79": {
+    "component": "component---theme-debug-registry-679-501",
+    "__routeContextModule": "__routeContextModule---docusaurus-debug-9-d-6-423"
+  },
+  "/__docusaurus/debug/routes-ed8": {
+    "component": "component---theme-debug-routes-946-699",
+    "__routeContextModule": "__routeContextModule---docusaurus-debug-9-d-6-423"
+  },
+  "/-9c6": {
+    "component": "component---theme-doc-page-1-be-9be",
+    "versionMetadata": "versionMetadata---935-fcf",
+    "__routeContextModule": "__routeContextModule---aab-554"
+  },
+  "/-134": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---c-37-d02"
+  },
+  "/get-started-ad2": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-2-b-4-c6f"
+  },
+  "/get-started/authentication-87c": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-authentication-72-f-4de"
+  },
+  "/get-started/cli-workflow-d12": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-cli-workflow-75-d-c6a"
+  },
+  "/get-started/cli-workflow/install-cli-9d2": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-cli-workflow-install-cli-9-cd-7bf"
+  },
+  "/get-started/cli-workflow/local-changes-177": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-cli-workflow-local-changes-9-f-3-9a5"
+  },
+  "/get-started/cli-workflow/metadata-and-serverless-functions-93b": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-cli-workflow-metadata-and-serverless-functions-2-dc-061"
+  },
+  "/get-started/cli-workflow/workflow-setup-017": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-cli-workflow-workflow-setup-3-fc-b87"
+  },
+  "/get-started/quick-start-846": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-quick-startc-8-e-9df"
+  },
+  "/get-started/quick-start/javascript-client-d6c": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-quick-start-javascript-clientc-52-5c0"
+  },
+  "/get-started/quick-start/permissions-326": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-quick-start-permissions-364-816"
+  },
+  "/get-started/quick-start/schema-8f4": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-quick-start-schema-9-a-9-d82"
+  },
+  "/get-started/upgrade-6d7": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---get-started-upgrade-1-ab-003"
+  },
+  "/platform-0ac": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platformbb-4-7fe"
+  },
+  "/platform/authentication-0b7": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-474-cd8"
+  },
+  "/platform/authentication/email-templates-ad3": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-email-templatesf-4-c-5c6"
+  },
+  "/platform/authentication/sign-in-methods-6af": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-sign-in-methodsac-8-b63"
+  },
+  "/platform/authentication/sign-in-with-facebook-a73": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-sign-in-with-facebookab-4-535"
+  },
+  "/platform/authentication/sign-in-with-github-f37": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-sign-in-with-githubf-79-563"
+  },
+  "/platform/authentication/sign-in-with-google-771": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-sign-in-with-google-267-017"
+  },
+  "/platform/authentication/sign-in-with-linkedin-095": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-sign-in-with-linkedin-0-a-5-5e8"
+  },
+  "/platform/authentication/sign-in-with-spotify-de5": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-sign-in-with-spotifyeba-3a3"
+  },
+  "/platform/authentication/social-sign-in-fb3": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-social-sign-in-519-c36"
+  },
+  "/platform/authentication/user-management-0fc": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-authentication-user-managementaf-8-b17"
+  },
+  "/platform/database-c1d": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-database-040-67b"
+  },
+  "/platform/graphql-3c5": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-graphql-9-aa-ad9"
+  },
+  "/platform/graphql/permissions-176": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-graphql-permissions-646-d8a"
+  },
+  "/platform/nhost-6fc": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-nhost-146-362"
+  },
+  "/platform/nhost/environment-variables-64d": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-nhost-environment-variables-48-e-2e6"
+  },
+  "/platform/nhost/github-integration-c09": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-nhost-github-integrationbdc-b55"
+  },
+  "/platform/nhost/local-development-8e9": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-nhost-local-development-4-ce-919"
+  },
+  "/platform/serverless-functions-70d": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-serverless-functions-0-d-1-2c9"
+  },
+  "/platform/serverless-functions/event-triggers-11c": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-serverless-functions-event-triggersa-27-de4"
+  },
+  "/platform/storage-9c4": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---platform-storagee-0-c-4ef"
+  },
+  "/reference-4a8": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-1-a-3-640"
+  },
+  "/reference/cli-a42": {
+    "component": "component---theme-doc-category-generated-index-page-14-e-640",
+    "categoryGeneratedIndex": "categoryGeneratedIndex---reference-cli-344-478"
+  },
+  "/reference/cli/nhost-cli-0ee": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-cli-nhost-cli-18-f-aed"
+  },
+  "/reference/hasura-auth-0d1": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-hasura-authc-15-3ad"
+  },
+  "/reference/hasura-auth/api-reference-f9c": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-hasura-auth-api-referencea-3-f-705"
+  },
+  "/reference/hasura-auth/configuration-c74": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-hasura-auth-configuration-3-bc-b35"
+  },
+  "/reference/hasura-auth/environment-variables-c05": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-hasura-auth-environment-variablesc-0-e-fb5"
+  },
+  "/reference/hasura-auth/installation-b8c": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-hasura-auth-installation-5-dd-106"
+  },
+  "/reference/hasura-auth/schema-573": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-hasura-auth-schemaaef-9b5"
+  },
+  "/reference/nextjs-f05": {
+    "component": "component---theme-doc-category-generated-index-page-14-e-640",
+    "categoryGeneratedIndex": "categoryGeneratedIndex---reference-nextjs-463-127"
+  },
+  "/reference/nextjs/configuration-528": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-nextjs-configuration-63-a-953"
+  },
+  "/reference/nextjs/introduction-65f": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-nextjs-introduction-303-c7f"
+  },
+  "/reference/nextjs/protecting-routes-bb6": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-nextjs-protecting-routese-90-088"
+  },
+  "/reference/react-cf3": {
+    "component": "component---theme-doc-category-generated-index-page-14-e-640",
+    "categoryGeneratedIndex": "categoryGeneratedIndex---reference-react-5-f-8-466"
+  },
+  "/reference/react/apollo-ea7": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-react-apollo-4-cc-a7c"
+  },
+  "/reference/react/getting-started-886": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-react-getting-started-4-e-4-b52"
+  },
+  "/reference/react/hooks-6b1": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-react-hooks-482-bfa"
+  },
+  "/reference/react/protecting-routes-544": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-react-protecting-routesda-6-ef7"
+  },
+  "/reference/sdk-231": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-sdk-53-f-fa9"
+  },
+  "/reference/sdk/authentication-db5": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-sdk-authenticationdfa-596"
+  },
+  "/reference/sdk/functions-8ec": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-sdk-functionsed-4-c8d"
+  },
+  "/reference/sdk/graphql-077": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-sdk-graphqlb-12-cb6"
+  },
+  "/reference/sdk/storage-7a2": {
+    "component": "component---theme-doc-item-178-a40",
+    "content": "content---reference-sdk-storage-09-a-b08"
+  }
+}

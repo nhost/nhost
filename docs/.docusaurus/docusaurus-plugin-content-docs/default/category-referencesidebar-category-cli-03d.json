@@ -1,0 +1,15 @@
+{
+  "title": "CLI",
+  "slug": "/reference/cli",
+  "permalink": "/reference/cli",
+  "navigation": {
+    "previous": {
+      "title": "Protecting routes",
+      "permalink": "/reference/nextjs/protecting-routes"
+    },
+    "next": {
+      "title": "Nhost CLI",
+      "permalink": "/reference/cli/nhost-cli"
+    }
+  }
+}

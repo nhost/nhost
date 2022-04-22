@@ -1,0 +1,15 @@
+{
+  "title": "React",
+  "slug": "/reference/react",
+  "permalink": "/reference/react",
+  "navigation": {
+    "previous": {
+      "title": "Functions",
+      "permalink": "/reference/sdk/functions"
+    },
+    "next": {
+      "title": "Getting started",
+      "permalink": "/reference/react/getting-started"
+    }
+  }
+}

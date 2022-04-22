@@ -1,0 +1,25 @@
+{
+  "unversionedId": "get-started/quick-start/permissions",
+  "id": "get-started/quick-start/permissions",
+  "title": "Set permissions",
+  "description": "In the previous section, you could fetch the todos because the admin role is enabled by default when using Hasura Console. When building your applications, you want to define permissions using roles that your users can assume when making requests.",
+  "source": "@site/docs/get-started/quick-start/permissions.md",
+  "sourceDirName": "get-started/quick-start",
+  "slug": "/get-started/quick-start/permissions",
+  "permalink": "/get-started/quick-start/permissions",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/quick-start/permissions.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Set permissions"
+  },
+  "sidebar": "defaultSidebar",
+  "previous": {
+    "title": "JavaScript client",
+    "permalink": "/get-started/quick-start/javascript-client"
+  },
+  "next": {
+    "title": "Authenticate users",
+    "permalink": "/get-started/authentication"
+  }
+}

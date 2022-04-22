@@ -1,0 +1,26 @@
+{
+  "unversionedId": "platform/authentication/oauth-providers/index",
+  "id": "platform/authentication/oauth-providers/index",
+  "title": "OAuth Providers",
+  "description": "Nhost Auth supports the following social sign-in providers:",
+  "source": "@site/docs/platform/authentication/oauth-providers/index.md",
+  "sourceDirName": "platform/authentication/oauth-providers",
+  "slug": "/platform/authentication/social-sign-in",
+  "permalink": "/platform/authentication/social-sign-in",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/oauth-providers/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "OAuth Providers",
+    "slug": "/platform/authentication/social-sign-in"
+  },
+  "sidebar": "platformSidebar",
+  "previous": {
+    "title": "Sign-in methods",
+    "permalink": "/platform/authentication/sign-in-methods"
+  },
+  "next": {
+    "title": "Sign in with Google",
+    "permalink": "/platform/authentication/sign-in-with-google"
+  }
+}

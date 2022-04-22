@@ -1,0 +1,25 @@
+{
+  "unversionedId": "reference/hasura-auth/index",
+  "id": "reference/hasura-auth/index",
+  "title": "Overview",
+  "description": "Hasura Auth handles authentication for Hasura.",
+  "source": "@site/docs/reference/hasura-auth/index.md",
+  "sourceDirName": "reference/hasura-auth",
+  "slug": "/reference/hasura-auth/",
+  "permalink": "/reference/hasura-auth/",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/hasura-auth/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Overview"
+  },
+  "sidebar": "referenceSidebar",
+  "previous": {
+    "title": "Nhost CLI",
+    "permalink": "/reference/cli/nhost-cli"
+  },
+  "next": {
+    "title": "Installation",
+    "permalink": "/reference/hasura-auth/installation"
+  }
+}

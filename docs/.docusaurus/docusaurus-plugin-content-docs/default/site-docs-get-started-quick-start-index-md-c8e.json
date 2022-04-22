@@ -1,0 +1,27 @@
+{
+  "unversionedId": "get-started/quick-start/index",
+  "id": "get-started/quick-start/index",
+  "title": "Create your app",
+  "description": "Let's create a simple todo-app using Nhost. In a todo-app, a user should be able to create list items for their account (CRUD) and not have anyone else see them (permissions).",
+  "source": "@site/docs/get-started/quick-start/index.md",
+  "sourceDirName": "get-started/quick-start",
+  "slug": "/get-started/quick-start/",
+  "permalink": "/get-started/quick-start/",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/quick-start/index.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Create your app",
+    "sidebar_position": 1
+  },
+  "sidebar": "defaultSidebar",
+  "previous": {
+    "title": "Welcome to Nhost",
+    "permalink": "/get-started/"
+  },
+  "next": {
+    "title": "Define schema",
+    "permalink": "/get-started/quick-start/schema"
+  }
+}

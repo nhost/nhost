@@ -1,0 +1,25 @@
+{
+  "unversionedId": "platform/storage/index",
+  "id": "platform/storage/index",
+  "title": "Storage",
+  "description": "Nhost stores and serves files of any type in your backend.",
+  "source": "@site/docs/platform/storage/index.md",
+  "sourceDirName": "platform/storage",
+  "slug": "/platform/storage/",
+  "permalink": "/platform/storage/",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/storage/index.md",
+  "tags": [],
+  "version": "current",
+  "frontMatter": {
+    "title": "Storage"
+  },
+  "sidebar": "platformSidebar",
+  "previous": {
+    "title": "Email templates",
+    "permalink": "/platform/authentication/email-templates"
+  },
+  "next": {
+    "title": "Serverless Functions",
+    "permalink": "/platform/serverless-functions/"
+  }
+}

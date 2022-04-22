@@ -1,0 +1,27 @@
+{
+  "unversionedId": "reference/sdk/index",
+  "id": "reference/sdk/index",
+  "title": "Overview",
+  "description": "Nhost SDK is the primary way of interacting with your Nhost app. It exposes a standard interface for each of the following services:",
+  "source": "@site/docs/reference/sdk/index.md",
+  "sourceDirName": "reference/sdk",
+  "slug": "/reference/sdk/",
+  "permalink": "/reference/sdk/",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/reference/sdk/index.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Overview",
+    "sidebar_position": 1
+  },
+  "sidebar": "referenceSidebar",
+  "previous": {
+    "title": "Reference",
+    "permalink": "/reference/"
+  },
+  "next": {
+    "title": "GraphQL",
+    "permalink": "/reference/sdk/graphql"
+  }
+}

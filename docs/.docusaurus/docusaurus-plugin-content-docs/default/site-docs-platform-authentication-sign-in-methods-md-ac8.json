@@ -1,0 +1,27 @@
+{
+  "unversionedId": "platform/authentication/sign-in-methods",
+  "id": "platform/authentication/sign-in-methods",
+  "title": "Sign-in methods",
+  "description": "Nhost supports a variety of sign-in methods:",
+  "source": "@site/docs/platform/authentication/sign-in-methods.md",
+  "sourceDirName": "platform/authentication",
+  "slug": "/platform/authentication/sign-in-methods",
+  "permalink": "/platform/authentication/sign-in-methods",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/platform/authentication/sign-in-methods.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 2,
+  "frontMatter": {
+    "title": "Sign-in methods",
+    "sidebar_position": 2
+  },
+  "sidebar": "platformSidebar",
+  "previous": {
+    "title": "User management",
+    "permalink": "/platform/authentication/user-management"
+  },
+  "next": {
+    "title": "OAuth Providers",
+    "permalink": "/platform/authentication/social-sign-in"
+  }
+}

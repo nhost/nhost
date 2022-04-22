@@ -1,0 +1,23 @@
+{
+  "unversionedId": "get-started/index",
+  "id": "get-started/index",
+  "title": "Welcome to Nhost",
+  "description": "Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.",
+  "source": "@site/docs/get-started/index.md",
+  "sourceDirName": "get-started",
+  "slug": "/get-started/",
+  "permalink": "/get-started/",
+  "editUrl": "https://github.com/nhost/nhost/edit/main/docs/docs/get-started/index.md",
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "title": "Welcome to Nhost",
+    "sidebar_position": 1
+  },
+  "sidebar": "defaultSidebar",
+  "next": {
+    "title": "Create your app",
+    "permalink": "/get-started/quick-start/"
+  }
+}
