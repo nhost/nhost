@@ -12,6 +12,18 @@ type NhostNextClientConstructorParams = Omit<
 
 export class NhostClient extends VanillaNhostClient {
   constructor(params: NhostNextClientConstructorParams) {
-    super({ ...params, start: false, Client: AuthClientSSR })
+    super({ ...params, start: false, Client: AuthClientSSR } as NhostClientConstructorParams)
   }
 }
+
+new NhostClient({
+  backendUrl: 'dew',
+  graphqlUrl: 'dew',
+  authUrl: 'dew',
+  storageUrl: 'dew',
+  functionsUrl: 'dew'
+})
+
+new NhostClient({ graphqlUrl: 'dew', authUrl: 'dew', storageUrl: 'dew', functionsUrl: 'dew' })
+
+new NhostClient({ authUrl: 'dew', storageUrl: 'dew', functionsUrl: 'dew' })

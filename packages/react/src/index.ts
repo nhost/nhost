@@ -14,6 +14,6 @@ type NhostReactClientConstructorParams = Omit<NhostClientConstructorParams, 'sta
 
 export class NhostClient extends VanillaClient {
   constructor(params: NhostReactClientConstructorParams) {
-    super({ ...params, start: false })
+    super({ ...params, start: false } as NhostClientConstructorParams)
   }
 }
