@@ -25,49 +25,49 @@ configuration:
     update: updateFiles
     update_by_pk: updateFile
 object_relationships:
-- name: bucket
-  using:
-    foreign_key_constraint_on: bucket_id
+  - name: bucket
+    using:
+      foreign_key_constraint_on: bucket_id
 array_relationships:
-- name: customerCommentFiles
-  using:
-    manual_configuration:
-      column_mapping:
-        id: file_id
-      insertion_order: null
-      remote_table:
-        name: customer_comments
-        schema: public
+  - name: customerCommentFiles
+    using:
+      manual_configuration:
+        column_mapping:
+          id: file_id
+        insertion_order: null
+        remote_table:
+          name: customer_comments
+          schema: public
 insert_permissions:
-- permission:
-    backend_only: false
-    check:
-      _or:
-      - bucket_id:
-          _eq: customerComments
-    columns:
-    - bucket_id
-    - id
-    - mime_type
-    - name
-  role: user
+  - permission:
+      backend_only: false
+      check:
+        _or:
+          - bucket_id:
+              _eq: customerComments
+      columns:
+        - bucket_id
+        - id
+        - mime_type
+        - name
+    role: user
 select_permissions:
-- permission:
-    columns:
-    - id
-    - created_at
-    - updated_at
-    - bucket_id
-    - name
-    - size
-    - mime_type
-    - etag
-    - is_uploaded
-    - uploaded_by_user_id
-    filter:
-      _or:
-      - customerCommentFiles:
-          customer:
-            user_id:
-              _eq: X-Hasura-User-Id
-  role: user
+  - permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - bucket_id
+        - name
+        - size
+        - mime_type
+        - etag
+        - is_uploaded
+        - uploaded_by_user_id
+      filter:
+        _or:
+          - customerCommentFiles:
+              customer:
+                user_id:
+                  _eq: X-Hasura-User-Id
+    role: user

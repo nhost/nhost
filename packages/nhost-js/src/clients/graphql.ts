@@ -1,4 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import type { DocumentNode } from 'graphql'
+import { print } from 'graphql/language/printer'
 
 import { GraphqlRequestResponse, GraphqlResponse } from '../types'
 
@@ -21,33 +23,47 @@ export class NhostGraphqlClient {
     })
   }
 
-  async request(
-    document: string,
-    variables?: any,
+  async request<T = any, V = any>(
+    document: string | DocumentNode,
+    variables?: V,
     config?: AxiosRequestConfig
-  ): Promise<GraphqlRequestResponse> {
+  ): Promise<GraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {
       ...config?.headers,
       ...this.generateAccessTokenHeaders()
     }
 
-    const operationName = ''
-
-    let responseData
     try {
-      const res = await this.instance.post(
+      const operationName = ''
+      const res = await this.instance.post<GraphqlResponse<T>>(
         '',
         {
           operationName: operationName || undefined,
-          query: document,
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+          query: typeof document === 'string' ? document : print(document),
           variables
         },
         { ...config, headers }
       )
 
-      responseData = res.data
+      const responseData = res.data
+      const { data } = responseData
+
+      if (responseData.errors) {
+        return {
+          data: null,
+          error: responseData.errors
+        }
+      }
+
+      if (typeof data !== 'object' || Array.isArray(data) || data === null) {
+        return {
+          data: null,
+          error: new Error('incorrect response data from GraphQL server')
+        }
+      }
+
+      return { data, error: null }
     } catch (error) {
       if (error instanceof Error) {
         return { data: null, error }
@@ -58,24 +74,6 @@ export class NhostGraphqlClient {
         error: new Error('Unable to get do GraphQL request')
       }
     }
-
-    if (typeof responseData !== 'object' || Array.isArray(responseData) || responseData === null) {
-      return {
-        data: null,
-        error: new Error('incorrect response data from GraphQL server')
-      }
-    }
-
-    responseData = responseData as GraphqlResponse
-
-    if (responseData.errors) {
-      return {
-        data: null,
-        error: responseData.errors
-      }
-    }
-
-    return { data: responseData.data, error: null }
   }
 
   getUrl(): string {

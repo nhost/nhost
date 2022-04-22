@@ -71,6 +71,7 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
           error: (_, { data: { error } }: any) => error
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
+        // TODO change email in the main machine (context.user.email)
         reportSuccess: send('SUCCESS')
       },
       guards: {

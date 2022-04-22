@@ -63,7 +63,7 @@ const handler = async (req: Request, res: Response) => {
       customer: stripeCustomerId,
       items: [
         {
-          price: process.env.STRIPE_FREE_PLAN_PRICE_ID
+          price: import.meta.env.VITE_STRIPE_FREE_PLAN_PRICE_ID
         }
       ]
     })

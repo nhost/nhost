@@ -1,5 +1,3 @@
-import { SubscriptionClient } from 'subscriptions-transport-ws'
-
 import {
   ApolloClient,
   ApolloClientOptions,
@@ -11,9 +9,11 @@ import {
   WatchQueryFetchPolicy
 } from '@apollo/client'
 import { setContext } from '@apollo/client/link/context'
-import { WebSocketLink } from '@apollo/client/link/ws'
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'
 import { NhostClient } from '@nhost/nhost-js'
+
+import { createRestartableClient } from './ws'
 const isBrowser = typeof window !== 'undefined'
 
 export type NhostApolloClientOptions = {
@@ -66,33 +66,31 @@ export const createApolloClient = ({
   }
 
   const uri = backendUrl
-  const wsUri = uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws')
 
-  let webSocketClient: SubscriptionClient | null = null
-  if (isBrowser) {
-    webSocketClient = new SubscriptionClient(wsUri, {
-      lazy: true,
-      reconnect: true,
+  const wsClient =
+    isBrowser &&
+    createRestartableClient({
+      url: uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws'),
       connectionParams: () => ({
         headers: getAuthHeaders()
       })
     })
-  }
+  const wsLink = wsClient && new GraphQLWsLink(wsClient)
 
-  const httplink = createHttpLink({
-    uri
-  })
-
-  const authLink = setContext((_, { headers }) => {
+  const httpLink = setContext((_, { headers }) => {
     return {
       headers: {
         ...headers,
         ...getAuthHeaders()
       }
     }
-  })
+  }).concat(
+    createHttpLink({
+      uri
+    })
+  )
 
-  const link = webSocketClient
+  const link = wsLink
     ? split(
         ({ query }) => {
           const mainDefinition = getMainDefinition(query)
@@ -105,10 +103,10 @@ export const createApolloClient = ({
 
           return kind === 'OperationDefinition' && operation === 'subscription'
         },
-        new WebSocketLink(webSocketClient),
-        authLink.concat(httplink)
+        wsLink,
+        httpLink
       )
-    : authLink.concat(httplink)
+    : httpLink
 
   const apolloClientOptions: ApolloClientOptions<any> = {
     cache: cache || new InMemoryCache(),
@@ -128,30 +126,18 @@ export const createApolloClient = ({
 
   interpreter?.onTransition(async (state, event) => {
     const newToken = state.context.accessToken.value
-
-    if (token !== newToken) {
+    if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
       token = newToken
-      client.reFetchObservableQueries()
-      if (isBrowser && webSocketClient) {
-        if (newToken) {
-          if (webSocketClient.status === 1) {
-            // @ts-expect-error
-            webSocketClient.tryReconnect()
-          }
-        } else {
-          if (webSocketClient.status === 1) {
-            // must close first to avoid race conditions
-            webSocketClient.close()
-            // reconnect
-            // @ts-expect-error
-            webSocketClient.tryReconnect()
-          }
-          if (event.type === 'SIGNOUT') {
-            await client.resetStore().catch((error) => {
-              console.error('Error resetting Apollo client cache')
-              console.error(error)
-            })
-          }
+      if (event.type === 'SIGNOUT') {
+        try {
+          await client.resetStore()
+        } catch (error) {
+          console.error('Error resetting Apollo client cache')
+          console.error(error)
+        }
+      } else {
+        if (isBrowser && wsClient && wsClient.started()) {
+          wsClient.restart()
         }
       }
     }

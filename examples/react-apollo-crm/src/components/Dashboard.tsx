@@ -1,5 +1,5 @@
-import { Main } from "./ui/Main";
+import { Main } from './ui/Main'
 
 export function Dashboard() {
-  return <Main>Dashboard</Main>;
+  return <Main>Dashboard</Main>
 }

@@ -42,25 +42,33 @@
 
 ## Get started
 
-1. Install dependencies
+1. Clone the repository
 
 ```bash
-yarn install
+git clone https://github.com/nhost/nhost
+cd nhost
 ```
 
-2. Terminal 1: Start Nhost
+2. Install dependencies
+
+```bash
+cd examples/react-apollo-crm
+pnpm install
+```
+
+3. Terminal 1: Start Nhost
 
 ```bash
 nhost dev
 ```
 
-2. Terminal 2: Start React App
+4. Terminal 2: Start React App
 
 ```bash
-yarn start
+pnpm run dev
 ```
 
-3. Terminal 3: Start GraphQL Codegens
+5. Terminal 3: Start GraphQL Codegens
 
 > Make sure that the Nhost backend in step 2 has started and is available before you run this command
 

@@ -19,12 +19,14 @@ if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_DEBUG) {
 const nhost = new NhostClient({ backendUrl: BACKEND_URL })
 
 function MyApp({ Component, pageProps }: AppProps) {
+  // * Monorepo-related. See: https://stackoverflow.com/questions/71843247/react-nextjs-type-error-component-cannot-be-used-as-a-jsx-component
+  const AnyComponent = Component as any
   return (
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
       <NhostApolloProvider nhost={nhost}>
         <div className="App">
           <Header />
-          <Component {...pageProps} />
+          <AnyComponent {...pageProps} />
         </div>
       </NhostApolloProvider>
     </NhostNextProvider>

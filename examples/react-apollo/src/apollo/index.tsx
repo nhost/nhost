@@ -1,5 +1,7 @@
-import { gql } from '@apollo/client'
+import React from 'react'
 import { Panel, Table } from 'rsuite'
+
+import { gql } from '@apollo/client'
 import { useAuthQuery } from '@nhost/react-apollo'
 
 const GET_BOOKS = gql`

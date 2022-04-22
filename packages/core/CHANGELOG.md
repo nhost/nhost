@@ -1,5 +1,98 @@
 # @nhost/core
 
+## 0.3.13
+
+### Patch Changes
+
+- 5ee395e: Ensure the session is destroyed when signout is done
+  The user session, in particular the access token (JWT), was still available after sign out.
+  Any information about user session is now removed from the auth state as soon as the sign out action is called.
+- e0cfcaf: fix and improve `nhost.auth.refreshSession`
+  `nhost.auth.refreshSession` is now functional and returns possible errors, or the user session if the token has been sucessfully refreshed.
+  If the user was previously not authenticated, it will sign them in. See [#286](https://github.com/nhost/nhost/issues/286)
+- 7b7527a: Improve reliability of the token refresher
+  The token refresher had an unreliable behaviour, leading to too many refreshes, or refreshes that are missed, leading to an expired access token (JWT).
+
+  The internal refresher rules have been made more explicit in the code. Every second, this runs:
+
+  - If the client defined a `refreshIntervalTime` and the interval between when the last access token has been created and now is more than this value, then it triggers a refresh
+  - If the access token expires in less than five minutes, then it triggers a refresh
+
+  If a refresh fails, then it switches to a specific rule: it will make an attempt to refresh the token every five seconds
+
+## 0.3.12
+
+### Patch Changes
+
+- 7b5f00d: Avoid error when BroadcastChannell is not available
+- 58e1485: Fix invalid password and email errors on sign up
+  When signin up, an invalid password was returning the `invalid-email` error, and an invalid email was returning `invalid-password`.
+  This is now in order.
+
+## 0.3.11
+
+### Patch Changes
+
+- 0b1cb62: Use native `BroadcastChannel` instead of the `broadcast-channel` package
+  The `broadcast-channel` depends on `node-gyp-build`, which can cause issues when deploying on Vercel as it is a native dependency.
+  The added value of `broadcast-channel` is to be able to communicate the change of authentication state accross processes in a NodeJs / Electron environment, but this is considered an edge case for now.
+  See [Vercel official documentation](https://vercel.com/support/articles/why-does-my-serverless-function-work-locally-but-not-when-deployed#native-dependencies).
+
+## 0.3.10
+
+### Patch Changes
+
+- 63d6059: Set onTokenChanged before the state interpreter started
+  Fixes [#384](https://github.com/nhost/nhost/issues/384), thanks [@noverby](https://github.com/noverby)
+- 63d6059: Trigger onTokenChanged when token changes
+  Fixes [#373](https://github.com/nhost/nhost/issues/373), thanks [@yureckey](https://github.com/yureckey)
+
+## 0.3.9
+
+### Patch Changes
+
+- 2c97db6: Keep authentication status and access token in sync
+  The authentication events where not set correctly, leading the main Nhost client not to update internal states of storage/graphql/functions sub-clients when using non-react clients.
+  The use of private fields (`#`) is also avoided as they conflict with the use of proxies in Vue, leading to errors in the upcoming Vue library.
+  Fixes #373 and #378
+
+## 0.3.8
+
+### Patch Changes
+
+- 058956b: Add missing provider types
+  `strava`, `gitlab`, and `bitbucket` were missing from the list of providers in Typescript and are now available.
+- 058956b: Add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User type
+
+  Some information is missing in the `User` payload (see [this issue](https://github.com/nhost/nhost/issues/306)). The above properties have been added in the Typescript `User` type and are available when using Hasura Auth versions from [this pull request](https://github.com/nhost/hasura-auth/pull/128) (tentative version number: `0.5.1`)
+
+- 7cf875f: Export error code payloads and type
+
+## 0.3.7
+
+### Patch Changes
+
+- 16a6c50: Correct autoSignIn
+
+## 0.3.3
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+## 0.3.1
+
+### Patch Changes
+
+- 4420c0e: Check if `window.location` exists
+
+  When using [Expo](https://expo.dev/), `window` can be an object while `window.location` is `undefined`. It lead to [this issue](https://github.com/nhost/nhost/issues/309).
+
 ## 0.3.0
 
 ### Minor Changes

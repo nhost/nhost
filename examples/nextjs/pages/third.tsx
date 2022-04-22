@@ -1,9 +1,10 @@
 import { NextPageContext } from 'next'
 import React from 'react'
 
-import { getNhostSession, NhostSession } from '@nhost/nextjs'
-import { useAccessToken, useAuthenticated } from '@nhost/react'
+import { NhostSession } from '@nhost/core'
+import { getNhostSession, useAccessToken } from '@nhost/nextjs'
 
+import { authProtected } from '../components/protected-route'
 import { BACKEND_URL } from '../helpers'
 
 export async function getServerSideProps(context: NextPageContext) {
@@ -17,15 +18,12 @@ export async function getServerSideProps(context: NextPageContext) {
 
 const RefetchPage: React.FC<{ initial: NhostSession }> = () => {
   const accessToken = useAccessToken()
-  const isAuthenticated = useAuthenticated()
-  if (!isAuthenticated) return <div>User it not authenticated </div>
   return (
     <div>
-      <h1>Third page</h1>
-      User is authenticated: {isAuthenticated ? 'yes' : 'no'}
+      <h1>SSR page only accessible to authenticated users</h1>
       <div>Access token: {accessToken}</div>
     </div>
   )
 }
 
-export default RefetchPage
+export default authProtected(RefetchPage)

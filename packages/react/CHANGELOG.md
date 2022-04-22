@@ -1,5 +1,162 @@
 # @nhost/react
 
+## 0.5.6
+
+### Patch Changes
+
+- 5ee395e: Ensure the session is destroyed when signout is done
+  In the `useSignOut` hook, `signOut` now returns a promise. We are now sure the user session is empty once the promise is resolved.
+  - @nhost/nhost-js@1.1.3
+
+## 0.5.5
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.2
+
+## 0.5.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.1
+
+## 0.5.3
+
+### Patch Changes
+
+- Updated dependencies [ab06e96]
+- Updated dependencies [ccba0b5]
+  - @nhost/nhost-js@1.1.0
+
+## 0.5.2
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.11
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [2c97db6]
+  - @nhost/nhost-js@1.0.10
+
+## 0.5.0
+
+### Minor Changes
+
+- 7135aee: Add user and accessToken to authentication hooks
+
+  Hooks that can complete a successful authentication now have two additional `user` and `accessToken` exported states:
+
+  - `useSignInEmailPassword`
+  - `useSignInAnonymous`
+  - `useSignUpEmailPassword`
+
+- 587eaff: Return a promise with the current context to hooks actions
+  It is now possible to get the result of an action. Hook handlers return the action context in a promise.
+
+  ```jsx
+  const { signInEmailPasswordless, isError } = useSignInEmailPasswordless()
+  const MyComponent = () => {
+      return <div>
+                  <button onClick={async () => {
+                      const { isSuccess, isError, error } = await signInEmailPasswordless('johan@ikea.se')
+                      if (isError) {
+                          console.log(error)
+                      }}}/>
+                  {isError && <div>an error occurred</div>}
+              <div>
+  }
+
+  ```
+
+### Patch Changes
+
+- 7cf875f: Deprecate the use of values sent as hook parameters
+
+  Although handlers parameters of authentication hooks can be given when creating the hook, it is recommended to use them when executing the handler. For instance, instead of:
+
+  ```js
+  const { signInEmailPasswordless } = useSignInEmailPasswordless('nuno@fcporto.pt')
+  signInEmailPasswordless()
+  ```
+
+  It is recommended to use the following syntax:
+
+  ```js
+  const { signInEmailPasswordless } = useSignInEmailPasswordless()
+  signInEmailPasswordless('nuno@fcporto.pt')
+  ```
+
+  No breaking change has been introduced. For instance, `useSignUpEmailPassword('szilard@brussels.be','1234', options)` will appear as deprecated but will work, while `useSignUpEmailPassword(options)` will work too.
+
+  - @nhost/nhost-js@1.0.9
+
+## 0.4.7
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.8
+
+## 0.4.6
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.5
+
+## 0.4.3
+
+### Patch Changes
+
+- correct dependencies
+
+  See this related issues:
+
+  - [nhost](https://github.com/nhost/nhost/issues/326)
+  - [pnpm](https://github.com/pnpm/pnpm/issues/4348)
+
+- Updated dependencies
+  - @nhost/nhost-js@1.0.3
+
+## 0.4.1
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.2
+
+## 0.4.0
+
+### Minor Changes
+
+- 39df4d5: Deprecate `useAuthLoading` and introduce `useAuthenticationStatus`
+  When using both `useAuthLoading` and `useAuthenticated` together, the hooks rerender independently from each other.
+  As a result, when a user loads the page while he previously authenticated, the hooks values were chronologically:
+
+  | isLoading | isAuthenticated |
+  | --------- | --------------- |
+  | `true`    | `false`         |
+  | `false`   | `false`         |
+  | `false`   | `true`          |
+
+  The intermediate (`false`, `false`) is incorrect and is causing issues when using an authentication gate.
+
+  It is therefore recommended to stop using `useAuthLoading`, and to use `useAuthenticationStatus` instead, in order to keep the loading state and the authentication in sync within the same hook.
+
+  Usage:
+
+  ```js
+  const { isLoading, isAuthenticated } = useAuthenticationStatus()
+  ```
+
+  Fixes [this issue](https://github.com/nhost/nhost/issues/302)
+
+## 0.3.1
+
+### Patch Changes
+
+- @nhost/nhost-js@1.0.1
+
 ## 0.3.0
 
 ### Minor Changes

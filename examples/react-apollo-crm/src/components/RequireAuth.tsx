@@ -1,5 +1,6 @@
 import { useAuthenticationStatus } from '@nhost/react'
-import { Navigate, useLocation } from 'react-router'
+import React from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
 
 export function RequireAuth({ children }: { children: JSX.Element }) {
   const { isAuthenticated, isLoading } = useAuthenticationStatus()

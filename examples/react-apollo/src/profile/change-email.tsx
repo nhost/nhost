@@ -1,11 +1,13 @@
-import { useChangeEmail, useEmail } from '@nhost/react'
+/* eslint-disable react/react-in-jsx-scope */
 import { useEffect, useState } from 'react'
-import { Button, FlexboxGrid, Input, Message, Panel, toaster, Notification } from 'rsuite'
+import { Button, FlexboxGrid, Input, Message, Notification, Panel, toaster } from 'rsuite'
+
+import { useChangeEmail, useEmail } from '@nhost/react'
 
 export const ChangeEmail: React.FC = () => {
   const [newEmail, setNewEmail] = useState('')
   const email = useEmail()
-  const { changeEmail, error, needsEmailVerification } = useChangeEmail(newEmail, {
+  const { changeEmail, error, needsEmailVerification } = useChangeEmail({
     redirectTo: '/profile'
   })
   const [errorMessage, setErrorMessage] = useState('')
@@ -45,7 +47,7 @@ export const ChangeEmail: React.FC = () => {
           <Input value={newEmail} onChange={setNewEmail} placeholder="New email" />
         </FlexboxGrid.Item>
         <FlexboxGrid.Item colspan={12}>
-          <Button onClick={changeEmail} block appearance="primary">
+          <Button onClick={() => changeEmail(email)} block appearance="primary">
             Change
           </Button>
         </FlexboxGrid.Item>

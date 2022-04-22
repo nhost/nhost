@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react",
-  "version": "0.3.0",
+  "version": "0.5.6",
   "description": "Nhost React library",
   "license": "MIT",
   "keywords": [
@@ -48,13 +48,13 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/nhost-js": "workspace:*",
+    "@nhost/nhost-js": "workspace:^",
     "@xstate/react": "^2.0.1",
     "immer": "^9.0.12"
   },
   "devDependencies": {
-    "@nhost/hasura-auth-js": "workspace:*",
-    "@nhost/core": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:^",
+    "@nhost/core": "workspace:^",
     "@xstate/inspect": "^0.6.2",
     "react": "^17.0.2",
     "ws": "^8.4.2",

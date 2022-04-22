@@ -14,7 +14,7 @@ type RegistrationOptions = {
   metadata?: Record<string, unknown>
 }
 
-type RedirectOption = {
+export type RedirectOption = {
   redirectTo?: string
 }
 
@@ -26,6 +26,7 @@ export type SendVerificationEmailOptions = RedirectOption
 export type DeanonymizeOptions = { email?: string; password?: string } & RegistrationOptions
 export type ProviderOptions = RegistrationOptions & RedirectOption
 
+// TODO share with hasura-auth
 export type User = {
   id: string
   createdAt: string
@@ -37,9 +38,13 @@ export type User = {
   defaultRole: string
   roles: string[]
   metadata: Record<string, unknown>
+  emailVerified: boolean
+  phoneNumber: string | null
+  phoneNumberVerified: boolean
+  activeMfaType: 'totp' | null
 }
 
-// ! copy-paste from hasura-auth
+// TODO share with hasura-auth
 export type NhostSession = {
   accessToken: string
   accessTokenExpiresIn: number
@@ -51,6 +56,7 @@ export type Mfa = {
   ticket: string
 }
 
+// TODO share with hasura-auth
 export type Provider =
   | 'apple'
   | 'facebook'
@@ -60,3 +66,6 @@ export type Provider =
   | 'spotify'
   | 'twitter'
   | 'windowslive'
+  | 'strava'
+  | 'gitlab'
+  | 'bitbucket'

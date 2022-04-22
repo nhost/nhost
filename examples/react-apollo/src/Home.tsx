@@ -1,3 +1,4 @@
+import React from 'react'
 import { Panel } from 'rsuite'
 
 const HomePage: React.FC = () => {
