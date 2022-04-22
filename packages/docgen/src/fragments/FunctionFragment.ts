@@ -1,4 +1,4 @@
-import { getExamplesFromSignature, getParametersFromSignature } from '../helpers'
+import { getExamplesFromSignature, getNestedParametersFromParameter } from '../helpers'
 import { Signature } from '../types'
 import CommentFragment from './CommentFragment'
 import CommentTagFragment from './CommentTagFragment'
@@ -36,7 +36,11 @@ export const FunctionFragment = (
   { numberOfTotalFunctions = 1, isConstructor = false }: FunctionFragmentOptions = {}
 ) => {
   const examples = getExamplesFromSignature(signature)
-  const parameters = getParametersFromSignature(signature, originalDocument)
+  const parameters = signature.parameters
+    ? signature.parameters.map((parameter) =>
+        getNestedParametersFromParameter(parameter, originalDocument)
+      )
+    : []
   const deprecationTag = signature.comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
   const firstExample = examples.length

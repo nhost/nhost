@@ -1,24 +1,16 @@
-import { Signature } from '../types'
+import { mockSignature } from '../__mocks__/mockSignature'
 import getExamplesFromSignature from './getExamplesFromSignature'
 
-const signatureBase: Signature = {
-  id: 1,
-  name: 'Test Signature',
-  kind: 0,
-  kindString: '',
-  flags: {}
-}
-
 test(`should return an empty array if signature doesn't have comments or tags`, () => {
-  expect(getExamplesFromSignature(signatureBase)).toEqual([])
-  expect(getExamplesFromSignature({ ...signatureBase, comment: {} })).toEqual([])
-  expect(getExamplesFromSignature({ ...signatureBase, comment: { tags: [] } })).toEqual([])
+  expect(getExamplesFromSignature(mockSignature)).toEqual([])
+  expect(getExamplesFromSignature({ ...mockSignature, comment: {} })).toEqual([])
+  expect(getExamplesFromSignature({ ...mockSignature, comment: { tags: [] } })).toEqual([])
 })
 
 test(`should contain only the examples from the comment`, () => {
   expect(
     getExamplesFromSignature({
-      ...signatureBase,
+      ...mockSignature,
       comment: {
         tags: [
           { tag: 'example', text: 'test-example-1' },
