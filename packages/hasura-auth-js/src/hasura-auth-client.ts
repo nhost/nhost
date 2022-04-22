@@ -8,7 +8,9 @@ import {
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
   encodeQueryParameters,
-  rewriteRedirectTo
+  NO_REFRESH_TOKEN,
+  rewriteRedirectTo,
+  TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
 import { getSession, isBrowser, localStorageGetter, localStorageSetter } from './utils/helpers'
@@ -595,31 +597,34 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/TODO
    */
-  async refreshSession(refreshToken?: string): Promise<void> {
+  async refreshSession(refreshToken?: string): Promise<{
+    session: Session | null
+    error: ApiError | null
+  }> {
     try {
       const interpreter = await this.waitUntilReady()
-      if (interpreter.state.matches({ token: 'idle' })) {
-        return
-      }
+      if (interpreter.state.matches({ token: 'idle' }))
+        return { session: null, error: TOKEN_REFRESHER_RUNNING_ERROR }
       return new Promise((resolve) => {
         const token = refreshToken || interpreter.state.context.refreshToken.value
-        if (!token) {
-          return resolve()
-        }
+        if (!token) return resolve({ session: null, error: NO_REFRESH_TOKEN })
         interpreter?.onTransition((state) => {
-          if (state.matches({ token: { idle: 'error' } })) {
-            resolve()
-          } else if (state.event.type === 'TOKEN_CHANGED') {
-            resolve()
-          }
+          if (state.matches({ token: { idle: 'error' } }))
+            resolve({
+              session: null,
+              // * TODO get the error from xstate once it is implemented
+              error: { status: 400, message: 'Invalid refresh token' }
+            })
+          else if (state.event.type === 'TOKEN_CHANGED')
+            resolve({ session: getSession(state.context), error: null })
         })
         interpreter.send({
           type: 'TRY_TOKEN',
           token
         })
       })
-    } catch {
-      return
+    } catch (error: any) {
+      return { session: null, error: error.message }
     }
   }
 
