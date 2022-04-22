@@ -4,6 +4,7 @@ import { assign, createMachine, send } from 'xstate'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
+  REFRESH_TOKEN_RETRY_INTERVAL,
   TOKEN_REFRESH_MARGIN
 } from '../constants'
 import {
@@ -31,6 +32,10 @@ export * from './send-verification-email'
 export type AuthMachineOptions = {
   backendUrl: string
   clientUrl?: string
+  /**
+   * Interval in seconds before refreshing the JWT regardless of its expiration.
+   * When undefined, the option is ignored and the refresh will start 3 minutes before the access token (JWT) expiration
+   */
   refreshIntervalTime?: number
   clientStorageGetter?: StorageGetter
   clientStorageSetter?: StorageSetter
@@ -50,7 +55,8 @@ export const createAuthMachine = ({
   refreshIntervalTime,
   autoRefreshToken = true,
   autoSignIn = true
-}: Required<AuthMachineOptions>) => {
+}: Required<Omit<AuthMachineOptions, 'refreshIntervalTime'>> &
+  Pick<AuthMachineOptions, 'refreshIntervalTime'>) => {
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
@@ -385,7 +391,6 @@ export const createAuthMachine = ({
                         pending: {
                           after: {
                             '1000': {
-                              actions: 'tickRefreshTimer',
                               internal: false,
                               target: 'pending'
                             }
@@ -409,7 +414,8 @@ export const createAuthMachine = ({
                               target: 'pending'
                             },
                             onError: [
-                              // TODO handle error
+                              { actions: 'saveRefreshAttempt', target: 'pending' }
+                              // ? stop trying after x attempts?
                               // {
                               //   actions: 'retry',
                               //   cond: 'canRetry',
@@ -490,17 +496,19 @@ export const createAuthMachine = ({
         resetTimer: assign({
           refreshTimer: (ctx, e) => {
             return {
-              elapsed: 0,
-              attempts: 0
+              startedAt: new Date(),
+              attempts: 0,
+              lastAttempt: null
             }
           }
         }),
 
-        tickRefreshTimer: assign({
+        saveRefreshAttempt: assign({
           refreshTimer: (ctx, e) => {
             return {
-              elapsed: ctx.refreshTimer.elapsed + 1,
-              attempts: ctx.refreshTimer.attempts
+              startedAt: ctx.refreshTimer.startedAt,
+              attempts: ctx.refreshTimer.attempts + 1,
+              lastAttempt: new Date()
             }
           }
         }),
@@ -567,13 +575,24 @@ export const createAuthMachine = ({
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         isAutoSignInDisabled: () => !autoSignIn,
-        refreshTimerShouldRefresh: (ctx) =>
-          ctx.refreshTimer.elapsed >
-          Math.max(
-            (Date.now() - ctx.accessToken.expiresAt.getTime()) / 1_000 - TOKEN_REFRESH_MARGIN,
-            refreshIntervalTime
-          ),
-
+        refreshTimerShouldRefresh: (ctx) => {
+          if (ctx.refreshTimer.lastAttempt) {
+            // * If a refesh previously failed, only try to refresh every `REFRESH_TOKEN_RETRY_INTERVAL` seconds
+            const elapsed = Date.now() - ctx.refreshTimer.lastAttempt.getTime()
+            return elapsed > REFRESH_TOKEN_RETRY_INTERVAL * 1_000
+          }
+          if (refreshIntervalTime) {
+            // * If a refreshIntervalTime has been passed on as an option, it will notify
+            // * the token should be refershed when this interval is overdue
+            const elapsed = Date.now() - (ctx.refreshTimer.startedAt?.getTime() || 0)
+            if (elapsed > refreshIntervalTime * 1_000) return true
+          }
+          // * In any case, it's time to refresh when there's less than
+          // * TOKEN_REFRESH_MARGIN seconds before the JWT exprires
+          const expiresIn = ctx.accessToken.expiresAt.getTime() - Date.now()
+          const remaining = expiresIn - 1_000 * TOKEN_REFRESH_MARGIN
+          return remaining <= 0
+        },
         // * Authentication errors
         unverified: (_, { data: { error } }: any) =>
           error.status === 401 && error.message === 'Email is not verified',

@@ -11,8 +11,9 @@ export type AuthContext = {
     expiresAt: Date
   }
   refreshTimer: {
-    elapsed: number
+    startedAt: Date | null
     attempts: number
+    lastAttempt: Date | null
   }
   refreshToken: {
     value: string | null
@@ -28,8 +29,9 @@ export const INITIAL_MACHINE_CONTEXT: AuthContext = {
     expiresAt: new Date()
   },
   refreshTimer: {
-    elapsed: 0,
-    attempts: 0
+    startedAt: null,
+    attempts: 0,
+    lastAttempt: null
   },
   refreshToken: {
     value: null
