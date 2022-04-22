@@ -4,9 +4,11 @@
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.5.10",
-    "@nhost/react": "^0.5.3",
-    "@nhost/react-apollo": "^4.0.13",
+    "@nhost/core": "workspace:*",
+    "@nhost/react": "workspace:*",
+    "@nhost/react-apollo": "workspace:*",
     "@rsuite/icons": "^1.0.2",
+    "graphql": "15.7.2",
     "jwt-decode": "^3.1.2",
     "less": "^4.1.2",
     "react": "^17.0.2",
@@ -17,10 +19,17 @@
     "react-router-dom": "^6.3.0",
     "rsuite": "^5.8.1"
   },
+  "lib": "workspace:*",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "prettier": "prettier --check .",
+    "prettier:fix": "prettier --write .",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
   },
   "eslintConfig": {
     "extends": [

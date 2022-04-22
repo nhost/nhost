@@ -1,6 +1,6 @@
 import { useNhostAuth } from '@nhost/react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate } from 'react-router-dom'
 import { Link } from 'react-router-dom'
 import { nhost } from '../utils/nhost'
 
@@ -93,7 +93,7 @@ export function SignUp() {
             </form>
           </div>
 
-          <div className="text-center py-4">
+          <div className="py-4 text-center">
             Already have an account?{' '}
             <Link to="/sign-in" className="text-blue-600 hover:text-blue-500">
               Sign In
