@@ -584,8 +584,10 @@ export const createAuthMachine = ({
         isAutoRefreshDisabled: () => !autoRefreshToken,
         isAutoSignInDisabled: () => !autoSignIn,
         refreshTimerShouldRefresh: (ctx) => {
-          const expirestAt = ctx.accessToken.expiresAt
-          if (!expirestAt) return false
+          const { expiresAt } = ctx.accessToken
+          if (!expiresAt) {
+            return false
+          }
           if (ctx.refreshTimer.lastAttempt) {
             // * If a refesh previously failed, only try to refresh every `REFRESH_TOKEN_RETRY_INTERVAL` seconds
             const elapsed = Date.now() - ctx.refreshTimer.lastAttempt.getTime()
@@ -595,11 +597,13 @@ export const createAuthMachine = ({
             // * If a refreshIntervalTime has been passed on as an option, it will notify
             // * the token should be refershed when this interval is overdue
             const elapsed = Date.now() - (ctx.refreshTimer.startedAt?.getTime() || 0)
-            if (elapsed > refreshIntervalTime * 1_000) return true
+            if (elapsed > refreshIntervalTime * 1_000) {
+              return true
+            }
           }
           // * In any case, it's time to refresh when there's less than
           // * TOKEN_REFRESH_MARGIN seconds before the JWT exprires
-          const expiresIn = expirestAt.getTime() - Date.now()
+          const expiresIn = expiresAt.getTime() - Date.now()
           const remaining = expiresIn - 1_000 * TOKEN_REFRESH_MARGIN
           return remaining <= 0
         },
@@ -674,13 +678,18 @@ export const createAuthMachine = ({
         autoSignIn: async () => {
           // TODO throwing errors is not really important as they are captured by the xstate invoker
           // * Still, keep them for the moment as it needs to be tested in every environemnt e.g. nodejs, expo, react-native...
-          if (typeof window === 'undefined' || !window.location)
+          if (typeof window === 'undefined' || !window.location) {
             throw Error('window is undefined or location does not exist')
+          }
           const { hash } = window.location
-          if (!hash) throw Error('No hash in window.location')
+          if (!hash) {
+            throw Error('No hash in window.location')
+          }
           const params = new URLSearchParams(hash.slice(1))
           const refreshToken = params.get('refreshToken')
-          if (!refreshToken) throw Error('No refresh token in the location hash')
+          if (!refreshToken) {
+            throw Error('No refresh token in the location hash')
+          }
           const session = await postRequest('/token', {
             refreshToken
           })
