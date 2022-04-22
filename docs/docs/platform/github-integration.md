@@ -1,6 +1,6 @@
 ---
 title: 'GitHub integration'
-sidebar_position: 2
+sidebar_position: 10
 ---
 
 You can connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed.

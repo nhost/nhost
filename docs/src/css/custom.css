@@ -154,6 +154,10 @@
   color: var(--ifm-footer-link-hover-color);
 }
 
+article {
+  padding: 0 20px;
+}
+
 .header-github-link:hover {
   opacity: 0.6;
 }

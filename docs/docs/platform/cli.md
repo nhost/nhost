@@ -1,6 +1,6 @@
 ---
-title: 'Nhost CLI'
-sidebar_position: 3
+title: 'CLI'
+sidebar_position: 11
 ---
 
 Nhost CLI lets you run Nhost's development environment locally on macOS, Linux and Windows.
