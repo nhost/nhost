@@ -21,7 +21,7 @@ Specifically, the following will be deployed:
 
 ## Workflow
 
-Create a new Nhost app. Then use [Nhost CLI](/platform/nhost/local-development) to initialize your Nhost app locally.
+Create a new Nhost app. Then use [Nhost CLI](/platform/cli) to initialize your Nhost app locally.
 
 The workflow is as follows:
 
