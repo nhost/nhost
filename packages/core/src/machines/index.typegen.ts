@@ -53,8 +53,8 @@ export interface Typegen0 {
     saveRefreshAttempt: 'error.platform.refreshToken'
     reportSignedOut: '' | 'error.platform.authenticateWithToken'
     resetAuthenticationError: 'xstate.init'
-    clearContext: 'xstate.init'
-    destroyToken: 'SIGNOUT'
+    destroyRefreshToken: 'xstate.init'
+    clearContextExceptRefreshToken: 'SIGNOUT'
     resetSignUpError: 'SIGNUP_EMAIL_PASSWORD'
     reportSignedIn:
       | 'SESSION_UPDATE'

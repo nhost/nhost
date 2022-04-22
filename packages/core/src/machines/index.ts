@@ -147,8 +147,8 @@ export const createAuthMachine = ({
                   }
                 },
                 signingOut: {
-                  entry: 'destroyToken',
-                  exit: 'clearContext',
+                  entry: ['clearContextExceptRefreshToken'],
+                  exit: ['destroyRefreshToken', 'reportTokenChanged'],
                   invoke: {
                     src: 'signout',
                     id: 'signingOut',
@@ -479,7 +479,13 @@ export const createAuthMachine = ({
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
         reportTokenChanged: send('TOKEN_CHANGED'),
-        clearContext: assign(() => INITIAL_MACHINE_CONTEXT),
+        clearContextExceptRefreshToken: assign(({ refreshToken: { value } }) => {
+          clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+          return {
+            ...INITIAL_MACHINE_CONTEXT,
+            refreshToken: { value }
+          }
+        }),
 
         saveSession: assign({
           user: (_, e: any) => e.data?.session?.user,
@@ -560,10 +566,12 @@ export const createAuthMachine = ({
             clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           }
         },
-        destroyToken: () => {
-          clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, null)
-          clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
-        }
+        destroyRefreshToken: assign({
+          refreshToken: (_) => {
+            clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+            return { value: null }
+          }
+        })
       },
 
       guards: {
@@ -576,6 +584,8 @@ export const createAuthMachine = ({
         isAutoRefreshDisabled: () => !autoRefreshToken,
         isAutoSignInDisabled: () => !autoSignIn,
         refreshTimerShouldRefresh: (ctx) => {
+          const expirestAt = ctx.accessToken.expiresAt
+          if (!expirestAt) return false
           if (ctx.refreshTimer.lastAttempt) {
             // * If a refesh previously failed, only try to refresh every `REFRESH_TOKEN_RETRY_INTERVAL` seconds
             const elapsed = Date.now() - ctx.refreshTimer.lastAttempt.getTime()
@@ -589,7 +599,7 @@ export const createAuthMachine = ({
           }
           // * In any case, it's time to refresh when there's less than
           // * TOKEN_REFRESH_MARGIN seconds before the JWT exprires
-          const expiresIn = ctx.accessToken.expiresAt.getTime() - Date.now()
+          const expiresIn = expirestAt.getTime() - Date.now()
           const remaining = expiresIn - 1_000 * TOKEN_REFRESH_MARGIN
           return remaining <= 0
         },

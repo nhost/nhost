@@ -8,7 +8,7 @@ export type AuthContext = {
   } | null
   accessToken: {
     value: string | null
-    expiresAt: Date
+    expiresAt: Date | null
   }
   refreshTimer: {
     startedAt: Date | null
@@ -26,7 +26,7 @@ export const INITIAL_MACHINE_CONTEXT: AuthContext = {
   mfa: null,
   accessToken: {
     value: null,
-    expiresAt: new Date()
+    expiresAt: null
   },
   refreshTimer: {
     startedAt: null,

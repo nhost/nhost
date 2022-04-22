@@ -283,7 +283,7 @@ export class HasuraAuthClient {
       interpreter.send({ type: 'SIGNOUT', all: params?.all })
       interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) resolve({ error: null })
-        else if (state.matches({ authentication: { signedOut: 'failed' } }))
+        else if (state.matches({ authentication: { signedOut: { failed: 'server' } } }))
           resolve({ error: state.context.errors.signout || null })
       })
     })
