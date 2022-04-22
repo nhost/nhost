@@ -5,7 +5,9 @@ import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 
 type Params = Omit<NhostAuthConstructorParams, 'url'> & {
-  /** Nhost backend url */
+  /** Nhost backend url
+   * @example https://my-app.nhost.run
+   */
   backendUrl: string
   /** GraphQL endpoint. If given, it will take precedence over `backendUrl` */
   graphqlUrl?: string
@@ -59,16 +61,25 @@ export class NhostClient {
   }: NhostClientConstructorParams) {
     if (!backendUrl) {
       const missingUrls: string[] = []
-      if (!graphqlUrl) missingUrls.push('graphqlUrl')
-      if (!authUrl) missingUrls.push('authUrl')
-      if (!storageUrl) missingUrls.push('storageUrl')
-      if (!functionsUrl) missingUrls.push('functionsUrl')
-      if (missingUrls.length)
+      if (!graphqlUrl) {
+        missingUrls.push('graphqlUrl')
+      }
+      if (!authUrl) {
+        missingUrls.push('authUrl')
+      }
+      if (!storageUrl) {
+        missingUrls.push('storageUrl')
+      }
+      if (!functionsUrl) {
+        missingUrls.push('functionsUrl')
+      }
+      if (missingUrls.length) {
         throw new Error(
           `Cannot initialize client: \`backendUrl\` is not set, and the following options are not set either: ${missingUrls
             .map((url) => '`' + url + '`')
             .join(', ')}`
         )
+      }
     }
     this.auth = new HasuraAuthClient({
       url: authUrl || `${backendUrl}/v1/auth`,
