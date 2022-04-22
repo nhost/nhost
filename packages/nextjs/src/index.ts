@@ -15,15 +15,3 @@ export class NhostClient extends VanillaNhostClient {
     super({ ...params, start: false, Client: AuthClientSSR } as NhostClientConstructorParams)
   }
 }
-
-new NhostClient({
-  backendUrl: 'dew',
-  graphqlUrl: 'dew',
-  authUrl: 'dew',
-  storageUrl: 'dew',
-  functionsUrl: 'dew'
-})
-
-new NhostClient({ graphqlUrl: 'dew', authUrl: 'dew', storageUrl: 'dew', functionsUrl: 'dew' })
-
-new NhostClient({ authUrl: 'dew', storageUrl: 'dew', functionsUrl: 'dew' })
