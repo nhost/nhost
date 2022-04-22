@@ -603,7 +603,7 @@ export class HasuraAuthClient {
   }> {
     try {
       const interpreter = await this.waitUntilReady()
-      if (interpreter.state.matches({ token: 'idle' }))
+      if (!interpreter.state.matches({ token: 'idle' }))
         return { session: null, error: TOKEN_REFRESHER_RUNNING_ERROR }
       return new Promise((resolve) => {
         const token = refreshToken || interpreter.state.context.refreshToken.value
