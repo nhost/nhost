@@ -92,7 +92,9 @@ async function parser() {
 
         console.info(chalk.blue`\n🗑  Output directory cleaned up.`)
       } catch {
-        // TODO: verbose logging
+        if (verbose) {
+          console.info(chalk.blue`⏭️ Output directory doesn't exist yet. Nothing to clean up.\n`)
+        }
       }
     }
 

@@ -44,7 +44,7 @@ export async function generateTypes(
         await fs.mkdir(finalOutputPath)
       } catch {
         if (verbose) {
-          console.info(chalk.blue`⏭️ Types folder already exists. Nothing to create.\n`)
+          console.info(chalk.blue`⏭️  Skipping: Types folder already exists.\n`)
         }
       }
 
@@ -54,9 +54,7 @@ export async function generateTypes(
           await fs.rm(`${finalOutputPath}/_category_.json`)
         } catch {
           if (verbose) {
-            console.info(
-              chalk.blue`⏭️ Sidebar configuration doesn't exist yet. Nothing to remove.\n`
-            )
+            console.info(chalk.blue`⏭️  Skipping: Sidebar configuration doesn't exist yet.\n`)
           }
         }
 
@@ -81,7 +79,7 @@ export async function generateTypes(
         await fs.rm(fileOutput)
       } catch {
         if (verbose) {
-          console.info(chalk.blue`⏭️ Type doesn't exist yet. Nothing to remove.\n`)
+          console.info(chalk.blue`⏭️  Skipping: Type doesn't exist yet.\n`)
         }
       }
 

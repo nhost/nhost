@@ -39,14 +39,18 @@ export async function generateFunctions(
       try {
         await fs.mkdir(outputPath)
       } catch {
-        // TODO: verbose support
+        if (verbose) {
+          console.info(chalk.blue`⏭️  Skipping: Functions folder already exists.\n`)
+        }
       }
 
       // we are removing the file if it already exists
       try {
         await fs.rm(fileOutput)
       } catch {
-        // TODO: verbose support
+        if (verbose) {
+          console.info(chalk.blue`⏭️  Skipping: Function doesn't exist yet.\n`)
+        }
       }
 
       // we are writing the documentation file

@@ -3,7 +3,7 @@ import { snapshot } from 'valtio/vanilla'
 import { appState } from '../state'
 import getLabelForType from './getLabelForType'
 
-// todo: this is an implementation detail, dependency should be handled in some other way
+// TODO: this is an implementation detail, dependency should be handled in some other way
 const initialState = snapshot(appState)
 
 afterEach(() => {

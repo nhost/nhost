@@ -40,7 +40,9 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       try {
         await fs.mkdir(outputDirectory, { recursive: true })
       } catch {
-        // TODO: verbose support
+        if (verbose) {
+          console.info(chalk.blue`⏭️  Skipping: Class folder already exists.\n`)
+        }
       }
 
       // create index.mdx for the class

@@ -60,10 +60,11 @@ ${
         .map((parameter) => {
           // we are also rendering table of contents for referred parameter
           if (parameter.type?.type === 'reference' && originalDocument) {
-            const nested = findNestedParametersByReferenceId(
-              parameter.type.id || null,
-              originalDocument
-            )
+            if (!parameter.type.id) {
+              return ParameterFragment(parameter)
+            }
+
+            const nested = findNestedParametersByReferenceId(parameter.type.id, originalDocument)
 
             return nested
               ? `${ParameterFragment(parameter)}\n${ParameterTableFragment(nested, parameter)}`

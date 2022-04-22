@@ -1,5 +1,29 @@
 import { Signature } from '../types'
-import { getParametersFromParameterSignature } from './getParametersFromParameterSignature'
+
+/**
+ * Returns the parameters from a parameter signature. Usually you want to use
+ * this function if you want to get the parameters of a complex type (e.g: an
+ * interface or a type alias).
+ *
+ * @param parameterSignature - Parameter signature
+ * @returns Parameters of the parameter signature
+ */
+function getParametersFromParameterSignature(parameterSignature: Signature) {
+  if (
+    parameterSignature.kindString === 'Type alias' &&
+    parameterSignature.type?.type === 'reflection'
+  ) {
+    const { declaration } = parameterSignature.type
+
+    return declaration.children
+  }
+
+  if (parameterSignature.kindString === 'Interface' && parameterSignature.children) {
+    return parameterSignature.children
+  }
+
+  return null
+}
 
 /**
  * Finds a parameter by identifier in original auto-generated JSON file and
@@ -10,7 +34,7 @@ import { getParametersFromParameterSignature } from './getParametersFromParamete
  * @returns Nested parameters of a referenced parameter
  */
 export function findNestedParametersByReferenceId(
-  referenceId: number | null,
+  referenceId: number,
   originalDocument: Array<Signature>
 ) {
   const originalParameter = originalDocument.find((originalSignature) => {
