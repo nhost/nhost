@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import fs from 'fs/promises'
 import kebabCase from 'just-kebab-case'
+import { snapshot } from 'valtio'
 
 import { appState } from '../state'
 import { GeneratorOptions, Parameter, Signature } from '../types'
@@ -22,6 +23,7 @@ export async function generateTypes(
     originalDocument = null
   }: GeneratorOptions = {}
 ) {
+  const { verbose, docsRoot } = snapshot(appState)
   const { TypeTemplate } = await import('../templates')
   const finalOutputPath = sameLevel ? outputPath : `${outputPath}/types`
 
@@ -41,7 +43,9 @@ export async function generateTypes(
       try {
         await fs.mkdir(finalOutputPath)
       } catch {
-        // TODO: verbose support
+        if (verbose) {
+          console.info(chalk.blue`⏭️ Types folder already exists. Nothing to create.\n`)
+        }
       }
 
       if (!skipSidebarConfiguration) {
@@ -49,7 +53,11 @@ export async function generateTypes(
         try {
           await fs.rm(`${finalOutputPath}/_category_.json`)
         } catch {
-          // TODO: verbose support
+          if (verbose) {
+            console.info(
+              chalk.blue`⏭️ Sidebar configuration doesn't exist yet. Nothing to remove.\n`
+            )
+          }
         }
 
         // we are preparing the sidebar configuration
@@ -60,7 +68,7 @@ export async function generateTypes(
               label: 'Types',
               position: 1,
               className: 'hidden',
-              link: { type: 'generated-index' }
+              link: { type: 'generated-index', slug: `${docsRoot}/types` }
             },
             null,
             2
@@ -72,7 +80,9 @@ export async function generateTypes(
       try {
         await fs.rm(fileOutput)
       } catch {
-        // TODO: verbose support
+        if (verbose) {
+          console.info(chalk.blue`⏭️ Type doesn't exist yet. Nothing to remove.\n`)
+        }
       }
 
       // we are writing the documentation file
@@ -90,7 +100,7 @@ export async function generateTypes(
       )
     }
 
-    if (appState.verbose) {
+    if (verbose) {
       console.info(
         chalk.green`✅ Generated ${chalk.bold(result.value.fileName)}\n    ${chalk.italic.gray(
           `(Output: ${result.value.fileOutput})`

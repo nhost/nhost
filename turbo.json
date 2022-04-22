@@ -7,6 +7,7 @@
       "outputs": ["dist/**", "build/**", ".next"]
     },
     "start": {
+      "outputs": [],
       "dependsOn": ["^build"]
     },
     "test": {

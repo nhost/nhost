@@ -1,0 +1,25 @@
+---
+title: User
+description: No description provided.
+---
+
+# `User`
+
+```ts
+type User = () => {
+  id: string
+  createdAt: string
+  displayName: string
+  avatarUrl: string
+  locale: string
+  email: string
+  isAnonymous: boolean
+  defaultRole: string
+  roles: Array<string>
+  metadata: Record<string, unknown>
+  emailVerified: boolean
+  phoneNumber: string | null
+  phoneNumberVerified: boolean
+  activeMfaType: "totp" | null
+}
+```

@@ -51,14 +51,16 @@ async function parser() {
   const command = program
     .option('-p, --path <path>', 'Path to the auto-generated JSON file')
     .option('-o, --output <output>', 'Path to the output directory')
+    .option('-r, --root <root>', 'Path to root folder relative to Docusaurus root')
     .option('-t, --title <title>', 'Title of the root sidebar menu')
     .option('-v, --verbose', 'Verbose mode')
     .option('-c, --cleanup', 'Cleanup the output directory before generating docs')
     .parse()
 
-  const { path, output, title, cleanup, verbose } = command.opts()
+  const { path, output, root, title, cleanup, verbose } = command.opts()
 
   appState.verbose = verbose
+  appState.docsRoot = root
 
   try {
     if (!path) {

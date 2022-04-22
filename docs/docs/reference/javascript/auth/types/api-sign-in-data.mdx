@@ -1,0 +1,25 @@
+---
+title: ApiSignInData
+description: No description provided.
+---
+
+# `ApiSignInData`
+
+## Parameters
+
+---
+
+**session** <span className="optional-status">required</span> [`Session`](../types/session)
+
+| Property                                                         | Type                              | Required | Notes |
+| :--------------------------------------------------------------- | :-------------------------------- | :------: | :---- |
+| <span className="light-grey">session.</span>accessToken          | `string`                          |    ✔️    |       |
+| <span className="light-grey">session.</span>accessTokenExpiresIn | `number`                          |    ✔️    |       |
+| <span className="light-grey">session.</span>refreshToken         | `string`                          |    ✔️    |       |
+| <span className="light-grey">session.</span>user                 | `null` \| [`User`](../types/user) |    ✔️    |       |
+
+---
+
+**mfa** <span className="optional-status">required</span> `null` | [`Mfa`](../types/mfa)
+
+---

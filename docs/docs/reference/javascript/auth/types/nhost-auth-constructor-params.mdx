@@ -1,0 +1,72 @@
+---
+title: NhostAuthConstructorParams
+description: No description provided.
+---
+
+# `NhostAuthConstructorParams`
+
+## Parameters
+
+---
+
+**url** <span className="optional-status">required</span> `string`
+
+---
+
+**refreshIntervalTime** <span className="optional-status">optional</span> `number`
+
+Time interval until token refreshes, in seconds
+
+---
+
+**clientStorage** <span className="optional-status">optional</span> [`ClientStorage`](../types/client-storage)
+
+| Property                                                          | Type                                                | Required | Notes |
+| :---------------------------------------------------------------- | :-------------------------------------------------- | :------: | :---- |
+| <span className="light-grey">clientStorage.</span>setItem         | `(_key: string, _value: string) => void`            |          |       |
+| <span className="light-grey">clientStorage.</span>getItem         | `(key: string) => any`                              |          |       |
+| <span className="light-grey">clientStorage.</span>removeItem      | `(key: string) => void`                             |          |       |
+| <span className="light-grey">clientStorage.</span>set             | `(options: { key: string, value: string }) => void` |          |       |
+| <span className="light-grey">clientStorage.</span>get             | `(options: { key: string }) => any`                 |          |       |
+| <span className="light-grey">clientStorage.</span>remove          | `(options: { key: string }) => void`                |          |       |
+| <span className="light-grey">clientStorage.</span>setItemAsync    | `(key: string, value: string) => void`              |          |       |
+| <span className="light-grey">clientStorage.</span>getItemAsync    | `(key: string) => any`                              |          |       |
+| <span className="light-grey">clientStorage.</span>deleteItemAsync | `(key: string) => void`                             |          |       |
+
+---
+
+**clientStorageType** <span className="optional-status">optional</span> [`ClientStorageType`](../types/client-storage-type)
+
+---
+
+**clientStorageGetter** <span className="optional-status">optional</span> [`StorageGetter`](../types/storage-getter)
+
+Define a way to get information about the refresh token and its exipration date
+
+---
+
+**clientStorageSetter** <span className="optional-status">optional</span> [`StorageSetter`](../types/storage-setter)
+
+Define a way to set information about the refresh token and its exipration date
+
+---
+
+**autoRefreshToken** <span className="optional-status">optional</span> `boolean`
+
+When set to true, will automatically refresh token before it expires
+
+---
+
+**autoLogin** <span className="optional-status">optional</span> `boolean`
+
+When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
+
+---
+
+**start** <span className="optional-status">optional</span> `boolean`
+
+---
+
+**Client** <span className="optional-status">optional</span> [`AuthClient`](../auth-client)
+
+---
