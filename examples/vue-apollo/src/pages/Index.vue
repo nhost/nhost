@@ -4,7 +4,7 @@
     <q-input v-model="email" label="Email" />
     <q-input v-model="password" label="Password" type="password" />
     <q-btn @click="signIn" label="Sign in" />
-    <q-btn @click="() =>test()">TEST</q-btn>
+    <q-btn @click="() => test()">TEST</q-btn>
   </div>
 </template>
 

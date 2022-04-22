@@ -10,7 +10,7 @@
           </q-avatar>
           Nhost Vue/Quasar demo
         </q-toolbar-title>
-      <q-btn v-if="isAuthenticated" flat round dense icon="logout" @click="() => signOut()" />
+        <q-btn v-if="isAuthenticated" flat round dense icon="logout" @click="() => signOut()" />
       </q-toolbar>
     </q-header>
 
