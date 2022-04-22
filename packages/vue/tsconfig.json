@@ -2,7 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "composite": true
+    "composite": true,
+    "isolatedModules": false
   },
   "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"]
 }
