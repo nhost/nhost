@@ -45,10 +45,6 @@ export class NhostClient {
    */
   constructor({
     backendUrl,
-    graphqlUrl,
-    authUrl,
-    storageUrl,
-    functionsUrl,
     refreshIntervalTime,
     clientStorageGetter,
     clientStorageSetter,
@@ -57,22 +53,13 @@ export class NhostClient {
     autoRefreshToken,
     autoLogin,
     start = true,
-    Client
+    Client,
+    ...customEndpoints
   }: NhostClientConstructorParams) {
     if (!backendUrl) {
-      const missingUrls: string[] = []
-      if (!graphqlUrl) {
-        missingUrls.push('graphqlUrl')
-      }
-      if (!authUrl) {
-        missingUrls.push('authUrl')
-      }
-      if (!storageUrl) {
-        missingUrls.push('storageUrl')
-      }
-      if (!functionsUrl) {
-        missingUrls.push('functionsUrl')
-      }
+      const missingUrls: string[] = ['graphqlUrl', 'authUrl', 'storageUrl', 'functionsUrl'].filter(
+        (endpoint) => !customEndpoints[endpoint]
+      )
       if (missingUrls.length) {
         throw new Error(
           `Cannot initialize client: \`backendUrl\` is not set, and the following options are not set either: ${missingUrls
@@ -81,6 +68,7 @@ export class NhostClient {
         )
       }
     }
+    const { graphqlUrl, authUrl, storageUrl, functionsUrl } = customEndpoints
     this.auth = new HasuraAuthClient({
       url: authUrl || `${backendUrl}/v1/auth`,
       refreshIntervalTime,
