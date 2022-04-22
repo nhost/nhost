@@ -25,12 +25,6 @@ export type GetLabelForTypeOptions = {
    */
   reference?: boolean
   /**
-   * Path to the folder where types are stored.
-   *
-   * @default '../types'
-   */
-  typeReferencePath?: string
-  /**
    * Whether or not to wrap the fragment in an inline code block.
    *
    * @default true
@@ -65,9 +59,10 @@ export function getLabelForType(
     | LiteralType
     | QueryType
     | ArrayType,
-  { reference = true, typeReferencePath = '../types', wrap = true }: GetLabelForTypeOptions = {}
+  { reference = true, wrap = true }: GetLabelForTypeOptions = {}
 ): string {
-  const { contentReferences } = snapshot(appState)
+  // TODO: Dependency on the appState should be revised
+  const { contentReferences, formattedDocsRoot } = snapshot(appState)
 
   if (!type) {
     return ''
@@ -76,13 +71,9 @@ export function getLabelForType(
   if (type.type === 'reference' && type.id && reference) {
     const originalType = contentReferences.get(type.id)
 
-    let referencePath = typeReferencePath
-
-    if (originalType === 'Class') {
-      referencePath = referencePath.replace(/\/types/gi, '')
-    }
-
-    return `[\`${type.name}\`](${referencePath}/${kebabCase(type.name)})`
+    return `[\`${type.name}\`](/${formattedDocsRoot ? `${formattedDocsRoot}/` : ''}${
+      originalType !== 'Class' ? 'types/' : ''
+    }${kebabCase(type.name)})`
   }
 
   if (type.type === 'reference' && type.typeArguments) {
@@ -104,7 +95,6 @@ export function getLabelForType(
           (value) =>
             `${value.name}: ${getLabelForType(value.type, {
               reference,
-              typeReferencePath,
               wrap: false
             })}`
         )
@@ -148,15 +138,7 @@ export function getLabelForType(
   }
 
   if (type.type === 'query' && type.queryType.id && reference) {
-    const originalType = contentReferences.get(type.queryType.id)
-
-    let referencePath = typeReferencePath
-
-    if (originalType === 'Class') {
-      referencePath = referencePath.replace(/\/types/gi, '')
-    }
-
-    return `[\`${type.queryType.name}\`](${referencePath}/${kebabCase(type.queryType.name)})`
+    return getLabelForType(type.queryType, { reference, wrap })
   }
 
   if (type.type === 'query') {
@@ -167,16 +149,13 @@ export function getLabelForType(
     return wrappedText(
       `Array<${getLabelForType(type.elementType, {
         reference,
-        typeReferencePath,
         wrap: false
       })}>`,
       wrap
     )
   }
 
-  return wrappedText(
-    UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, typeReferencePath, wrap })
-  )
+  return wrappedText(UnionOrIntersectionTypeFragment(type, { wrap: false }, { reference, wrap }))
 }
 
 export default getLabelForType

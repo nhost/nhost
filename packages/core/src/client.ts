@@ -7,6 +7,10 @@ import type { AuthInterpreter } from './types'
 
 export type NhostClientOptions = AuthMachineOptions & { start?: boolean }
 
+/**
+ * @internal
+ * This is a private API.
+ */
 export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string

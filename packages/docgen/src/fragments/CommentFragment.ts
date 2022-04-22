@@ -24,8 +24,12 @@ export const CommentFragment = (
 ${
   tags
     ? tags
-        // note: we are displaying remarks and examples in a separate section
-        .filter(({ tag }) => tag !== 'remarks' && tag !== 'example' && tag !== 'deprecated')
+        // note: we are displaying remarks and examples in a separate section and we are not
+        // displaying @docs tags because they usually refer to the same documentation
+        .filter(
+          ({ tag }) =>
+            tag !== 'remarks' && tag !== 'example' && tag !== 'deprecated' && tag !== 'docs'
+        )
         .concat(Boolean(returns) ? { tag: 'returns', text: returns } : { tag: ``, text: `` })
         .map(CommentTagFragment)
         .join('\n\n')

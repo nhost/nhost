@@ -39,8 +39,7 @@ ${
                 .map((constructorSignature) =>
                   FunctionFragment(constructorSignature, originalDocument, {
                     numberOfTotalFunctions: signature.signatures!.length,
-                    isConstructor: true,
-                    isClassMember: false
+                    isConstructor: true
                   })
                 )
                 .join('\n\n')
@@ -49,7 +48,7 @@ ${
         .join(`\n\n`)
     : ''
 }`,
-    { parser: 'markdown', semi: false }
+    { parser: 'markdown', semi: false, singleQuote: true }
   )
 }
 

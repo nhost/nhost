@@ -87,7 +87,9 @@ export class HasuraAuthClient {
    * the `signIn` function instead.
    *
    * @example
+   * ```ts
    * auth.signIn({email, password}); // email password
+   * ```
    *
    * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signup
    */
@@ -123,12 +125,30 @@ export class HasuraAuthClient {
    * `signIn` can be used in various ways depending on the parameters.
    *
    * @example
-   * signIn({ email, password }); // Sign in with email and password
-   * signIn({ provider }); // Sign in with an external provider (ex Google or Facebook)
+   * ### Sign in with email and password
+   * ```ts
+   * signIn({ email, password });
+   * ```
+   *
+   * @example
+   * ### Sign in with an external provider (e.g: Google or Facebook)
+   * ```ts
+   * signIn({ provider });
+   * ```
+   *
+   * @example
+   * ### Passwordless sign in with email (magic link)
+   * ```ts
    * signIn({ email }); // [step 1/2] Passwordless sign in with Email (Magic Link)
    * signIn({ email, otp }); // [step 2/2] Finish passwordless sign in with email (OTP)
+   * ```
+   *
+   * @example
+   * ### Passwordless sign in with SMS
+   * ```ts
    * signIn({ phoneNumber }); // [step 1/2] Passwordless sign in with SMS
    * signIn({ phoneNumber, otp }); // [step 2/2] Finish passwordless sign in with SMS (OTP)
+   * ```
    *
    * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signin
    */
@@ -407,7 +427,9 @@ export class HasuraAuthClient {
    * the access and refresh token is changed.
    *
    * @example
-   * auth.onTokenChanged(() => console.log('access token changed'););
+   * ```ts
+   * auth.onTokenChanged(() => console.log('access token changed'));
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */

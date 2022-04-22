@@ -37,8 +37,8 @@
     "docgen:build": "turbo run build --scope='@nhost/docgen'",
     "typedoc:auth": "typedoc --options \"./typedoc/auth.typedoc.json\"",
     "typedoc:storage": "typedoc --options \"./typedoc/storage.typedoc.json\"",
-    "docgen:auth": "pnpm typedoc:auth && pnpm docgen:build && turbo run start --scope='@nhost/docgen' -- -- --path ../../typedoc/output/auth.json --output ../../docs/docs/reference/javascript/auth --root reference/javascript/auth --cleanup --title \"Auth\"",
-    "docgen:storage": "pnpm typedoc:storage && pnpm docgen:build && turbo run start --scope='@nhost/docgen' -- -- --path ../../typedoc/output/storage.json --output ../../docs/docs/reference/javascript/storage --root reference/javascript/storage --cleanup --title \"Storage\""
+    "docgen:auth": "pnpm typedoc:auth && pnpm docgen:build && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/auth.json --output ../../docs/docs/reference/javascript/auth --root reference/javascript/auth --cleanup --title \"Auth\"",
+    "docgen:storage": "pnpm typedoc:storage && pnpm docgen:build && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/storage.json --output ../../docs/docs/reference/javascript/storage --root reference/javascript/storage --cleanup --title \"Storage\""
   },
   "workspaces": [
     "packages/*",

@@ -1,4 +1,4 @@
-import { proxy } from 'valtio/vanilla'
+import { proxyWithComputed } from 'valtio/utils'
 
 export type AppState = {
   /**
@@ -14,11 +14,28 @@ export type AppState = {
    */
   contentReferences: Map<number, string>
   /**
-   * Root path relative to Docusaurus root.
+   * Generated documentation path relative to Docusaurus root.
    */
-  docsRoot?: string
+  docsRoot: string
 }
 
-export const appState = proxy<AppState>({ verbose: false, contentReferences: new Map() })
+export type ComputedAppState = {
+  /**
+   * Generated documentation path relative to Docusaurus root. Leading and trailing slashes are
+   * removed.
+   */
+  formattedDocsRoot: string
+}
+
+export const appState = proxyWithComputed<AppState, ComputedAppState>(
+  {
+    verbose: false,
+    contentReferences: new Map(),
+    docsRoot: ''
+  },
+  {
+    formattedDocsRoot: (snap) => snap.docsRoot.replace(/(^\/|\/$)/gi, '')
+  }
+)
 
 export default appState

@@ -8,14 +8,14 @@ description: Use `onTokenChanged` to add a custom function that will trigger whe
 Use `onTokenChanged` to add a custom function that will trigger whenever
 the access and refresh token is changed.
 
-**`@docs`**
-
-https://docs.nhost.io/TODO
+```ts
+auth.onTokenChanged(() => console.log('access token changed'))
+```
 
 ## Parameters
 
 ---
 
-**fn** <span className="optional-status">required</span> [`OnTokenChangedFunction`](../types/on-token-changed-function)
+**fn** <span className="optional-status">required</span> [`OnTokenChangedFunction`](/reference/javascript/auth/types/on-token-changed-function)
 
 ---

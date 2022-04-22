@@ -1,8 +1,4 @@
-import {
-  GetLabelForTypeOptions,
-  getExamplesFromSignature,
-  getParametersFromSignature
-} from '../helpers'
+import { getExamplesFromSignature, getParametersFromSignature } from '../helpers'
 import { Signature } from '../types'
 import CommentFragment from './CommentFragment'
 import CommentTagFragment from './CommentTagFragment'
@@ -24,12 +20,6 @@ export type FunctionFragmentOptions = {
    * @default false
    */
   isConstructor?: boolean
-  /**
-   * Determines if the function is a class member.
-   *
-   * @default false
-   */
-  isClassMember?: boolean
 }
 
 /**
@@ -43,18 +33,11 @@ export type FunctionFragmentOptions = {
 export const FunctionFragment = (
   signature: Signature,
   originalDocument?: Array<Signature>,
-  {
-    numberOfTotalFunctions = 1,
-    isConstructor = false,
-    isClassMember = false
-  }: FunctionFragmentOptions = {}
+  { numberOfTotalFunctions = 1, isConstructor = false }: FunctionFragmentOptions = {}
 ) => {
   const examples = getExamplesFromSignature(signature)
   const parameters = getParametersFromSignature(signature, originalDocument)
   const deprecationTag = signature.comment?.tags?.find(({ tag }) => tag === 'deprecated')
-  const parameterLabelOptions: GetLabelForTypeOptions = {
-    typeReferencePath: isClassMember ? '../types' : './types'
-  }
 
   const firstExample = examples.length
     ? {
@@ -92,17 +75,13 @@ ${
     ? `${numberOfTotalFunctions > 1 ? `### Parameters` : `## Parameters`}\n${parameters
         .map(({ parameter, referencedParameter }) => {
           if (parameter && referencedParameter) {
-            return `${ParameterFragment(
-              parameter,
-              parameterLabelOptions
-            )}\n${ParameterTableFragment(
+            return `${ParameterFragment(parameter)}\n${ParameterTableFragment(
               referencedParameter.parameters,
-              parameter,
-              parameterLabelOptions
+              parameter
             )}`
           }
 
-          return ParameterFragment(parameter, parameterLabelOptions)
+          return ParameterFragment(parameter)
         })
         .concat('---')
         .join('\n\n')}`
@@ -118,7 +97,7 @@ ${
 }
 
 ${
-  examples.length > 1
+  examples.length > 1 || (!firstExample && examples.length > 0)
     ? `${isConstructor ? '### Examples' : '## Examples'}\n\n${examples
         .map(CommentTagFragment)
         .join('\n\n')}`

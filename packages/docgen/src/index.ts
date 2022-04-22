@@ -60,7 +60,6 @@ async function parser() {
   const { path, output, root, title, cleanup, verbose } = command.opts()
 
   appState.verbose = verbose
-  appState.docsRoot = root
 
   try {
     if (!path) {
@@ -70,6 +69,14 @@ async function parser() {
     if (!output) {
       throw new Error(`Please specify path to the output directory. (See -o or --output)`)
     }
+
+    if (!root) {
+      throw new Error(
+        `Please specify path to the output folder root relative to Docusaurus root. (See -r or --root)`
+      )
+    }
+
+    appState.docsRoot = root
 
     const { default: chalk } = await import('chalk')
     const fs = await import('fs/promises')

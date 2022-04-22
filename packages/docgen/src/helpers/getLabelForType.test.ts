@@ -1,4 +1,16 @@
+import { snapshot } from 'valtio/vanilla'
+
+import { appState } from '../state'
 import getLabelForType from './getLabelForType'
+
+// todo: this is an implementation detail, dependency should be handled in some other way
+const initialState = snapshot(appState)
+
+afterEach(() => {
+  appState.verbose = initialState.verbose
+  appState.docsRoot = initialState.docsRoot
+  appState.contentReferences = initialState.contentReferences
+})
 
 test(`should render an empty string if type is undefined or its underlying type is`, () => {
   expect(getLabelForType()).toBe('')
@@ -14,7 +26,7 @@ test('should generate label for reference types', () => {
   expect(getLabelForType({ type: 'reference', name: 'Test' })).toBe('`Test`')
 
   expect(getLabelForType({ id: 1, type: 'reference', name: 'Test' }, { wrap: false })).toBe(
-    '[`Test`](../types/test)'
+    '[`Test`](/types/test)'
   )
 
   expect(
@@ -66,7 +78,7 @@ test('should generate label for query types', () => {
       },
       { wrap: false }
     )
-  ).toBe('[`Test`](../types/test)')
+  ).toBe('[`Test`](/types/test)')
 })
 
 test('should generate label for union or intersection types', () => {
@@ -79,15 +91,6 @@ test('should generate label for union or intersection types', () => {
       ]
     })
   ).toBe('`string` | `Test`')
-})
-
-test('should change type reference path if "typeReferencePath" option is provided', () => {
-  expect(
-    getLabelForType(
-      { type: 'reference', name: 'Test', id: 1 },
-      { typeReferencePath: './types', wrap: false }
-    )
-  ).toBe(`[\`Test\`](./types/test)`)
 })
 
 test('should generate label for array types', () => {
@@ -217,4 +220,19 @@ test('should generate label for function signatures', () => {
 test('should not wrap return value in backticks if wrap option is false', () => {
   expect(getLabelForType({ type: 'intrinsic', name: 'string' }, { wrap: false })).toBe('string')
   expect(getLabelForType({ type: 'literal', value: 'Test' }, { wrap: false })).toBe('"Test"')
+})
+
+test('should return references to the root folder when type is a class', () => {
+  appState.contentReferences = new Map([[1, 'Class']])
+
+  expect(getLabelForType({ type: 'reference', name: 'Test', id: 1 })).toBe('[`Test`](/test)')
+  expect(
+    getLabelForType({ type: 'query', queryType: { type: 'reference', name: 'Test', id: 1 } })
+  ).toBe('[`Test`](/test)')
+
+  appState.docsRoot = 'some/test/root/folder'
+
+  expect(getLabelForType({ type: 'reference', name: 'Test', id: 1 })).toBe(
+    '[`Test`](/some/test/root/folder/test)'
+  )
 })

@@ -1,8 +1,8 @@
 import chalk from 'chalk'
 import fs from 'fs/promises'
 import kebabCase from 'just-kebab-case'
+import { snapshot } from 'valtio'
 
-import { FunctionFragmentOptions } from '../fragments'
 import { appState } from '../state'
 import { GeneratorOptions, Signature } from '../types'
 
@@ -19,19 +19,15 @@ export type GenerateFunctionsOptions = GeneratorOptions & {}
 export async function generateFunctions(
   parsedContent: Array<Signature>,
   outputPath: string,
-  {
-    originalDocument = null,
-    isClassMember = false
-  }: GeneratorOptions & FunctionFragmentOptions = {}
+  { originalDocument = null }: GeneratorOptions = {}
 ) {
+  const { verbose } = snapshot(appState)
   const { FunctionTemplate } = await import('../templates')
   const functions: Array<{ name: string; content: string }> = parsedContent
     .filter((document) => ['Function', 'Method'].includes(document.kindString))
     .map((props: Signature) => ({
       name: props.name,
-      content: FunctionTemplate(props, originalDocument || parsedContent, {
-        isClassMember
-      })
+      content: FunctionTemplate(props, originalDocument || parsedContent)
     }))
 
   const results = await Promise.allSettled(
@@ -68,7 +64,7 @@ export async function generateFunctions(
       )
     }
 
-    if (appState.verbose) {
+    if (verbose) {
       console.info(
         chalk.green`✅ Generated ${chalk.bold(result.value.fileName)}\n    ${chalk.italic.gray(
           `(Output: ${result.value.fileOutput})`

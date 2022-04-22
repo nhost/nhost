@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import fs from 'fs/promises'
 import kebabCase from 'just-kebab-case'
+import { snapshot } from 'valtio'
 
 import { appState } from '../state'
 import { ClassSignature, Signature } from '../types'
@@ -15,6 +16,7 @@ import generateFunctions from './generateFunctions'
  */
 export async function generateClasses(parsedContent: Array<ClassSignature>, outputPath: string) {
   const { ClassTemplate } = await import('../templates')
+  const { verbose } = snapshot(appState)
 
   const classesAndSubpages: Array<{
     name: string
@@ -45,8 +47,7 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       await fs.writeFile(`${outputDirectory}/index.mdx`, index, 'utf-8')
 
       await generateFunctions(subPages, outputDirectory, {
-        originalDocument: parsedContent,
-        isClassMember: true
+        originalDocument: parsedContent
       })
 
       return { name, fileOutput: outputDirectory }
@@ -61,7 +62,7 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       )
     }
 
-    if (appState.verbose) {
+    if (verbose) {
       console.info(
         chalk.green`✅ Generated ${chalk.bold(result.value.name)}\n    ${chalk.italic.gray(
           `(Output: ${result.value.fileOutput})`

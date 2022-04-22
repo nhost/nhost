@@ -87,7 +87,7 @@ test('should contain parameters', () => {
 
 ---
 
-**options** <span className="optional-status">required</span> [\`NhostClientOptions\`](./types/nhost-client-options)
+**options** <span className="optional-status">required</span> [\`NhostClientOptions\`](/types/nhost-client-options)
 
 Sample Description
 

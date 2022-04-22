@@ -168,7 +168,7 @@ importers:
       commander: 9.2.0
       just-kebab-case: 4.0.1
       prettier: 2.5.1
-      valtio: 1.5.2_vite@2.8.6
+      valtio: 1.5.2
     devDependencies:
       '@swc/core': 1.2.170
       '@trivago/prettier-plugin-sort-imports': 3.2.0_prettier@2.5.1
@@ -177,7 +177,7 @@ importers:
       '@types/prettier': 2.6.0
       jest: 27.5.1_ts-node@10.7.0
       rimraf: 3.0.2
-      ts-jest: 27.1.4_7381ef98fed40a0d7d08399d3eb9e201
+      ts-jest: 27.1.4_9985e1834e803358b7be1e6ce5ca0eea
       ts-node: 10.7.0_c2e35b75556b4ed8ac58c6bde9239352
       tsup: 5.12.6_ts-node@10.7.0+typescript@4.6.3
       typescript: 4.6.3
@@ -13970,7 +13970,7 @@ packages:
       yargs-parser: 20.2.9
     dev: true
 
-  /ts-jest/27.1.4_7381ef98fed40a0d7d08399d3eb9e201:
+  /ts-jest/27.1.4_9985e1834e803358b7be1e6ce5ca0eea:
     resolution: {integrity: sha512-qjkZlVPWVctAezwsOD1OPzbZ+k7zA5z3oxII4dGdZo5ggX/PL7kvwTM0pXTr10fAtbiVpJaL3bWd502zAhpgSQ==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     hasBin: true
@@ -13991,10 +13991,8 @@ packages:
       esbuild:
         optional: true
     dependencies:
-      '@babel/core': 7.17.5
       '@types/jest': 27.4.1
       bs-logger: 0.2.6
-      esbuild: 0.14.26
       fast-json-stable-stringify: 2.1.0
       jest: 27.5.1_ts-node@10.7.0
       jest-util: 27.5.1
@@ -14637,7 +14635,7 @@ packages:
       spdx-expression-parse: 3.0.1
     dev: true
 
-  /valtio/1.5.2_vite@2.8.6:
+  /valtio/1.5.2:
     resolution: {integrity: sha512-4oqGO+7xSKZJJgLsfwRdzQxxy4hiOjiE0IZv0xoNNLtJQ+Y6mtWoEl0Y0JyUCrU/HBmY+0W/yL3lwjrpTBCJ/w==}
     engines: {node: '>=12.7.0'}
     peerDependencies:
@@ -14663,7 +14661,6 @@ packages:
     dependencies:
       proxy-compare: 2.1.0
       use-sync-external-store: 1.0.0
-      vite: 2.8.6
     dev: false
 
   /value-equal/1.0.1:
