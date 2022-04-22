@@ -127,7 +127,7 @@ func applymigrations(
 
 	if hasuraMetadata {
 		logger.Info("applying hasura metadata")
-		if err := migrations.ApplyHasuraMetadata(hasuraEndpoint, hasuraSecret, logger); err != nil {
+		if err := migrations.ApplyHasuraMetadata(hasuraEndpoint, hasuraSecret); err != nil {
 			logger.Errorf("problem applying hasura metadata: %s", err.Error())
 			os.Exit(1)
 		}

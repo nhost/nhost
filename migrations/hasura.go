@@ -8,8 +8,6 @@ import (
 	"io"
 	"net/http"
 	"time"
-
-	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -136,8 +134,20 @@ type CreateArrayRelationshipArgs struct {
 	Using  CreateArrayRelationshipUsing `json:"using"`
 }
 
+type DropRelationship struct {
+	Type string               `json:"type"`
+	Args DropRelationshipArgs `json:"args"`
+}
+
+type DropRelationshipArgs struct {
+	Table        string `json:"table"`
+	Source       string `json:"source"`
+	Cascade      bool   `json:"cascade"`
+	Relationship string `json:"relationship"`
+}
+
 // nolint: funlen
-func ApplyHasuraMetadata(url, hasuraSecret string, logger *logrus.Logger) error {
+func ApplyHasuraMetadata(url, hasuraSecret string) error {
 	bucketsTable := TrackTable{
 		Type: "pg_track_table",
 		Args: PgTrackTableArgs{
@@ -260,26 +270,6 @@ func ApplyHasuraMetadata(url, hasuraSecret string, logger *logrus.Logger) error 
 
 	if err := postMetadata(url, hasuraSecret, arrRelationship); err != nil {
 		return fmt.Errorf("problem creating array relationships: %w", err)
-	}
-
-	objRelationshipUser := CreateObjectRelationship{
-		Type: "pg_create_object_relationship",
-		Args: CreateObjectRelationshipArgs{
-			Table: Table{
-				Schema: "storage",
-				Name:   "files",
-			},
-			Name:   "uploadedByUser",
-			Source: "default",
-			Using: CreateObjectRelationshipUsing{
-				ForeignKeyConstraintOn: []string{"uploaded_by_user_id"},
-			},
-		},
-	}
-
-	if err := postMetadata(url, hasuraSecret, objRelationshipUser); err != nil {
-		// we warn and ignore this error as this can be an issue if storage is running standalone without auth
-		logger.Warnf("problem creating object relationship for users: %s", err)
 	}
 
 	return nil
