@@ -15,6 +15,6 @@ configuration:
     update: updateProfiles
     update_by_pk: updateProfile
 object_relationships:
-- name: user
-  using:
-    foreign_key_constraint_on: id
+  - name: user
+    using:
+      foreign_key_constraint_on: id
