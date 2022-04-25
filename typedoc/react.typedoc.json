@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "Packages",
+  "entryPoints": ["../packages/react"],
+  "exclude": "*.(spec|test).tsx?",
+  "sort": ["source-order"],
+  "json": "./output/react.json",
+  "name": "React",
+  "readme": "none",
+  "githubPages": false,
+  "cleanOutputDir": false,
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "excludeExternals": true
+}

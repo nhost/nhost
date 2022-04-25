@@ -1,0 +1,27 @@
+---
+title: NhostClient
+sidebar_label: NhostClient
+description: No description provided.
+---
+
+# `NhostClient`
+
+## Parameters
+
+---
+
+**params** <span className="optional-status">required</span> [`NhostReactClientConstructorParams`](/reference/javascript/react/types/nhost-react-client-constructor-params)
+
+| Property                                                       | Type                | Required | Notes                                                                                                             |
+| :------------------------------------------------------------- | :------------------ | :------: | :---------------------------------------------------------------------------------------------------------------- |
+| <span className="light-grey">params.</span>backendUrl          | `string`            |    ✔️    |                                                                                                                   |
+| <span className="light-grey">params.</span>Client              | `AuthClient`        |          |                                                                                                                   |
+| <span className="light-grey">params.</span>autoLogin           | `boolean`           |          | When set to true, will parse the url on startup to check if it contains a refresh token to start the session with |
+| <span className="light-grey">params.</span>autoRefreshToken    | `boolean`           |          | When set to true, will automatically refresh token before it expires                                              |
+| <span className="light-grey">params.</span>clientStorageSetter | `StorageSetter`     |          | Define a way to set information about the refresh token and its exipration date                                   |
+| <span className="light-grey">params.</span>clientStorageGetter | `StorageGetter`     |          | Define a way to get information about the refresh token and its exipration date                                   |
+| <span className="light-grey">params.</span>clientStorageType   | `ClientStorageType` |          |                                                                                                                   |
+| <span className="light-grey">params.</span>clientStorage       | `ClientStorage`     |          |                                                                                                                   |
+| <span className="light-grey">params.</span>refreshIntervalTime | `number`            |          | Time interval until token refreshes, in seconds                                                                   |
+
+---

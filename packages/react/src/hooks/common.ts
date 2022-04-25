@@ -32,7 +32,13 @@ export const useNhostBackendUrl = () => {
 }
 
 /**
- * @deprecated When using both useAuthLoading and useAuthenticated together, their initial state will change three times: (true,false) -> (false,false) -> (false,true). Use useAuthenticationStatus instead.
+ * @deprecated
+ * When using both `useAuthLoading` and `useAuthenticated` together, their initial state will change
+ * three times:
+ *
+ * `(true, false)` -> `(false, false)` -> `(false, true)`
+ *
+ * Use `useAuthenticationStatus` instead.
  */
 export const useAuthLoading = () => {
   const service = useAuthInterpreter()

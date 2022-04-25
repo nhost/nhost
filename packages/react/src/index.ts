@@ -10,7 +10,8 @@ suppressConsoleMessage('useLayoutEffect does nothing on the server', 'error')
 export * from './hooks'
 export * from './provider'
 
-type NhostReactClientConstructorParams = Omit<NhostClientConstructorParams, 'start' | 'client'>
+export interface NhostReactClientConstructorParams
+  extends Omit<NhostClientConstructorParams, 'start' | 'client'> {}
 
 export class NhostClient extends VanillaClient {
   constructor(params: NhostReactClientConstructorParams) {

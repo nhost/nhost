@@ -25,7 +25,7 @@ $ pnpm install
 ## Run locally
 
 ```bash
-$ pnpm dev -- --path <path/to/typedoc/output> --output <path/to/docusaurus/docs>
+$ pnpm dev -- --path <path/to/typedoc/output> --output <path/to/docusaurus/docs> --root <path/to/generated/docs/relative/to/docusaurus/root>
 ```
 
 ## Lint
@@ -55,5 +55,5 @@ $ pnpm build
 ## Run the built version
 
 ```bash
-$ pnpm start -- --path <path/to/typedoc/output> --output <path/to/docusaurus/docs>
+$ pnpm start -- --path <path/to/typedoc/output> --output <path/to/docusaurus/docs> --root <path/to/generated/docs/relative/to/docusaurus/root>
 ```

@@ -248,6 +248,16 @@ export const useUserLocale = () => {
   )
 }
 
+/**
+ * Hook to get the current user's roles.
+ *
+ * @example
+ * ```ts
+ * const roles = useUserRoles()
+ * ```
+ *
+ * @returns Roles of the current user
+ */
 export const useUserRoles = () => {
   const service = useAuthInterpreter()
   return useSelector(
