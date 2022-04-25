@@ -34,6 +34,14 @@ export interface Typegen0 {
       | 'done.invoke.registerUser'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
+    saveAuthenticationError:
+      | 'error.platform.autoSignIn'
+      | 'error.platform.authenticatePasswordlessEmail'
+      | 'error.platform.authenticatePasswordlessSms'
+      | 'error.platform.authenticatePasswordlessSmsOtp'
+      | 'error.platform.authenticateUserWithPassword'
+      | 'error.platform.authenticateAnonymously'
+      | 'error.platform.signInMfaTotp'
     saveRefreshToken: 'done.invoke.importRefreshToken'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL'
     saveInvalidPassword: 'SIGNIN_PASSWORD'
@@ -41,13 +49,6 @@ export interface Typegen0 {
     saveInvalidSignUpEmail: 'SIGNUP_EMAIL_PASSWORD'
     saveInvalidSignUpPassword: 'SIGNUP_EMAIL_PASSWORD'
     saveNoMfaTicketError: 'SIGNIN_MFA_TOTP'
-    saveAuthenticationError:
-      | 'error.platform.authenticatePasswordlessEmail'
-      | 'error.platform.authenticatePasswordlessSms'
-      | 'error.platform.authenticatePasswordlessSmsOtp'
-      | 'error.platform.authenticateUserWithPassword'
-      | 'error.platform.authenticateAnonymously'
-      | 'error.platform.signInMfaTotp'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     saveRegisrationError: 'error.platform.registerUser'
     saveRefreshAttempt: 'error.platform.refreshToken'
@@ -109,11 +110,7 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     '': { type: '' }
-    'done.invoke.importRefreshToken': {
-      type: 'done.invoke.importRefreshToken'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
+    'error.platform.autoSignIn': { type: 'error.platform.autoSignIn'; data: unknown }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
       data: unknown
@@ -135,6 +132,11 @@ export interface Typegen0 {
       data: unknown
     }
     'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
+    'done.invoke.importRefreshToken': {
+      type: 'done.invoke.importRefreshToken'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'error.platform.authenticateWithToken': {
@@ -144,7 +146,6 @@ export interface Typegen0 {
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
-    'error.platform.autoSignIn': { type: 'error.platform.autoSignIn'; data: unknown }
     'xstate.init': { type: 'xstate.init' }
     'error.platform.importRefreshToken': {
       type: 'error.platform.importRefreshToken'
@@ -204,6 +205,7 @@ export interface Typegen0 {
     isAutoSignInDisabled: ''
     isSignedIn: '' | 'error.platform.authenticateWithToken'
     hasRefreshTokenWithoutSession: ''
+    hasAuthenticationError: ''
     invalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL' | 'SIGNUP_EMAIL_PASSWORD'
     invalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
     invalidPhoneNumber: 'SIGNIN_PASSWORDLESS_SMS' | 'SIGNIN_PASSWORDLESS_SMS_OTP'

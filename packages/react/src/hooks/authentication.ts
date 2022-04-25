@@ -266,3 +266,15 @@ export const useProviderLink = (options?: ProviderOptions) => {
     [nhost, options]
   )
 }
+
+export const useAuthenticationError = () => {
+  const service = useAuthInterpreter()
+  const isError =
+    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
+  const error = useSelector(
+    service,
+    (state) => state.context.errors.authentication || null,
+    (a, b) => a?.error === b?.error
+  )
+  return { isError, error }
+}
