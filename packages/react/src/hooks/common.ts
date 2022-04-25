@@ -74,8 +74,21 @@ export const useAccessToken = () => {
 export const useSignOut = (stateAll: boolean = false) => {
   const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>
-    service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
-  const isSuccess =
-    !!service.status && service.state.matches({ authentication: { signedOut: 'success' } })
+    new Promise<{ isSuccess: boolean }>((resolve) => {
+      service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
+      service.onTransition((state) => {
+        if (state.matches({ authentication: { signedOut: 'success' } })) {
+          resolve({ isSuccess: true })
+        } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } }))
+          resolve({ isSuccess: false })
+      })
+    })
+
+  const isSuccess = useSelector(
+    service,
+    (state) => state.matches({ authentication: { signedOut: 'success' } }),
+    (a, b) => a === b
+  )
+
   return { signOut, isSuccess }
 }

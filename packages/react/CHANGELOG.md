@@ -1,5 +1,25 @@
 # @nhost/react
 
+## 0.5.7
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.4
+
+## 0.5.6
+
+### Patch Changes
+
+- 5ee395e: Ensure the session is destroyed when signout is done
+  In the `useSignOut` hook, `signOut` now returns a promise. We are now sure the user session is empty once the promise is resolved.
+  - @nhost/nhost-js@1.1.3
+
+## 0.5.5
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.2
+
 ## 0.5.4
 
 ### Patch Changes

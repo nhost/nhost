@@ -20,7 +20,7 @@
   <hr />
 </div>
 
-**Nhost is a open-source GraphQL backend,** built with the following things in mind:
+**Nhost is an open-source GraphQL backend,** built with the following things in mind:
 
 - Open-Source
 - Developer Productivity
@@ -235,6 +235,13 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/timpratim">
+            <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
+            <br />
+            <sub><b>Pratim</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/Savinvadim1312">
             <img src="https://avatars.githubusercontent.com/u/16936043?v=4" width="100;" alt="Savinvadim1312"/>
             <br />
@@ -247,15 +254,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Amir Ahmic</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/akd-io">
             <img src="https://avatars.githubusercontent.com/u/30059155?v=4" width="100;" alt="akd-io"/>
             <br />
             <sub><b>Anders Kjær Damgaard</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/rustyb">
             <img src="https://avatars.githubusercontent.com/u/53086?v=4" width="100;" alt="rustyb"/>
@@ -290,20 +297,13 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Hoang Do</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/ghoshnirmalya">
             <img src="https://avatars.githubusercontent.com/u/6391763?v=4" width="100;" alt="ghoshnirmalya"/>
             <br />
             <sub><b>Nirmalya Ghosh</b></sub>
-        </a>
-    </td></tr>
-<tr>
-    <td align="center">
-        <a href="https://github.com/timpratim">
-            <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
-            <br />
-            <sub><b>Pratim</b></sub>
         </a>
     </td>
     <td align="center">

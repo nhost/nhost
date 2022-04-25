@@ -18,29 +18,29 @@ configuration:
     update: updateCompanies
     update_by_pk: updateCompany
 array_relationships:
-- name: companyUsers
-  using:
-    foreign_key_constraint_on:
-      column: company_id
-      table:
-        name: company_users
-        schema: public
-- name: customers
-  using:
-    foreign_key_constraint_on:
-      column: company_id
-      table:
-        name: customers
-        schema: public
+  - name: companyUsers
+    using:
+      foreign_key_constraint_on:
+        column: company_id
+        table:
+          name: company_users
+          schema: public
+  - name: customers
+    using:
+      foreign_key_constraint_on:
+        column: company_id
+        table:
+          name: customers
+          schema: public
 select_permissions:
-- permission:
-    columns:
-    - id
-    - created_at
-    - updated_at
-    - name
-    filter:
-      companyUsers:
-        user_id:
-          _eq: X-Hasura-User-Id
-  role: user
+  - permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - name
+      filter:
+        companyUsers:
+          user_id:
+            _eq: X-Hasura-User-Id
+    role: user

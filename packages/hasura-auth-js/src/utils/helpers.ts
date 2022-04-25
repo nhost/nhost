@@ -11,7 +11,14 @@ import { ClientStorage, ClientStorageType, Session } from './types'
 export const isBrowser = () => typeof window !== 'undefined'
 
 export const getSession = (context?: AuthContext): Session | null => {
-  if (!context || !context.accessToken.value || !context.refreshToken.value) return null
+  if (
+    !context ||
+    !context.accessToken.value ||
+    !context.refreshToken.value ||
+    !context.accessToken.expiresAt
+  ) {
+    return null
+  }
   return {
     accessToken: context.accessToken.value,
     accessTokenExpiresIn: (context.accessToken.expiresAt.getTime() - Date.now()) / 1000,
@@ -59,20 +66,29 @@ export const localStorageSetter = (
       checkStorageAccessors(clientStorage, ['setItem', 'removeItem'])
 
       return (key, value) => {
-        if (value) clientStorage.setItem?.(key, value)
-        else clientStorage.removeItem?.(key)
+        if (value) {
+          clientStorage.setItem?.(key, value)
+        } else {
+          clientStorage.removeItem?.(key)
+        }
       }
     } else if (clientStorageType === 'capacitor') {
       checkStorageAccessors(clientStorage, ['set', 'remove'])
       return (key, value) => {
-        if (value) clientStorage.set?.({ key, value })
-        else clientStorage.remove?.({ key })
+        if (value) {
+          clientStorage.set?.({ key, value })
+        } else {
+          clientStorage.remove?.({ key })
+        }
       }
     } else if (clientStorageType === 'expo-secure-storage') {
       checkStorageAccessors(clientStorage, ['setItemAsync', 'deleteItemAsync'])
       return async (key, value) => {
-        if (value) await clientStorage.setItemAsync?.(key, value)
-        else clientStorage.deleteItemAsync?.(key)
+        if (value) {
+          await clientStorage.setItemAsync?.(key, value)
+        } else {
+          clientStorage.deleteItemAsync?.(key)
+        }
       }
     }
   }

@@ -1,5 +1,34 @@
 # @nhost/hasura-auth-js
 
+## 1.0.15
+
+### Patch Changes
+
+- aa1fdf6: Fix `refreshSession`
+
+## 1.0.14
+
+### Patch Changes
+
+- 5ee395e: Ensure the session is destroyed when signout is done
+  The user session, in particular the access token (JWT), was still available after sign out.
+  Any information about user session is now removed from the auth state as soon as the sign out action is called.
+- e0cfcaf: fix and improve `nhost.auth.refreshSession`
+  `nhost.auth.refreshSession` is now functional and returns possible errors, or the user session if the token has been sucessfully refreshed.
+  If the user was previously not authenticated, it will sign them in. See [#286](https://github.com/nhost/nhost/issues/286)
+- Updated dependencies [5ee395e]
+- Updated dependencies [e0cfcaf]
+- Updated dependencies [7b7527a]
+  - @nhost/core@0.3.13
+
+## 1.0.13
+
+### Patch Changes
+
+- Updated dependencies [7b5f00d]
+- Updated dependencies [58e1485]
+  - @nhost/core@0.3.12
+
 ## 1.0.12
 
 ### Patch Changes
