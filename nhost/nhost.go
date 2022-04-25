@@ -401,7 +401,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "0.1.4"
+				parsed.Services[name].Version = "0.1.5"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -935,23 +935,19 @@ func (config *Configuration) Init(port string) error {
 
 	//  prepare env variables for following container
 	containerVariables = []string{
-		fmt.Sprintf("STORAGE_PORT=%v", config.Services["storage"].Port),
-		fmt.Sprintf("STORAGE_PUBLIC_URL=%v", config.Services["storage"].Address),
-		fmt.Sprintf(`HASURA_GRAPHQL_GRAPHQL_URL=http://%s:%v/v1/graphql`, config.Services["hasura"].Name, config.Services["hasura"].Port),
-		fmt.Sprintf("HASURA_GRAPHQL_DATABASE_URL=%v", config.Services["postgres"].Address),
+        fmt.Sprintf("BIND=:%d", config.Services["storage"].Port),
+		fmt.Sprintf("PUBLIC_URL=http://localhost:%d", config.Services["storage"].Port),
 
-		//  additional default
-		fmt.Sprintf("S3_ACCESS_KEY=%v", minioConfig.Environment["minio_root_user"]),
-		fmt.Sprintf("S3_SECRET_KEY=%v", minioConfig.Environment["minio_root_password"]),
-		"STORAGE_HOST=0.0.0.0",
-		"STORAGE_STANDALONE_MODE=false",
-		"STORAGE_LOG_LEVEL=info",
-		"STORAGE_SWAGGER_ENABLED=false",
-		"S3_SSL_ENABLED=false",
+		"HASURA_METADATA=1",
+		fmt.Sprintf(`HASURA_ENDPOINT=http://%s:%d/v1`, config.Services["hasura"].Name, config.Services["hasura"].Port),
+		"HASURA_GRAPHQL_ADMIN_SECRET=%s"+ util.ADMIN_SECRET,
+
+		fmt.Sprintf("S3_ACCESS_KEY=%s", minioConfig.Environment["minio_root_user"]),
+		fmt.Sprintf("S3_SECRET_KEY=%s", minioConfig.Environment["minio_root_password"]),
 		"S3_BUCKET=nhost",
-		fmt.Sprintf("S3_ENDPOINT=%s", GetAddress(config.Services["minio"])),
-		"S3_REGION=fake-region",
-		"S3_ROOT_FOLDER=nhost",
+
+		"POSTGRES_MIGRATIONS=1",
+        "POSTGRES_MIGRATIONS_SOURCE="+ GetAddress(config.Services["postgres"]),
 	}
 
 	//	Add S3 endpoint
@@ -983,18 +979,6 @@ func (config *Configuration) Init(port string) error {
 	storageConfig.Config.Env = containerVariables
 	storageConfig.Config.Cmd = []string{
 		"serve",
-		"--postgres-migrations",
-		"--postgres-migrations-source",
-		GetAddress(config.Services["postgres"]),
-		"--hasura-metadata",
-		"--hasura-admin-secret",
-		util.ADMIN_SECRET,
-		"--hasura_endpoint",
-		fmt.Sprintf(`http://%s:%v/v1`, config.Services["hasura"].Name, config.Services["hasura"].Port),
-		"--bind",
-		fmt.Sprintf(":%d", config.Services["storage"].Port),
-		"--public-url",
-		fmt.Sprintf("http://localhost:%d", config.Services["storage"].Port),
 	}
 
 	//  prepare env variables for following container
