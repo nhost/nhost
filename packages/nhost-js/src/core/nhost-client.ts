@@ -39,7 +39,9 @@ export class NhostClient {
    * Nhost Client
    *
    * @example
+   * ```ts
    * const nhost = new NhostClient({ backendUrl: 'https://my-app.nhost.run' });
+   * ```
    *
    * @docs https://docs.nhost.io/reference/sdk#installation
    */
