@@ -3,7 +3,7 @@ title: 'Authenticate users'
 slug: /get-started/authentication
 ---
 
-You defined `select` permissions for the `public` role in the previous section. You will now add `insert` and `select` permissions for authenticated users to secure your app's GraphQL API with authentication.
+In the previous section, you defined `select` permissions for the `public` role. You will now add `insert` and `select` permissions for authenticated users to secure your app's GraphQL API with authentication.
 
 > Nhost's authentication service lets you deliver frictionless registration and login experiences to your users. We support most social providers and different methods such as email & password and passwordless (magic link).
 
@@ -62,14 +62,14 @@ Why is the return value `null`? Because when making GraphQL requests as an authe
 
 > For authenticated requests, there is always the option to override the default `user` role with any other valid role.
 
-To prepare our database and GraphQL API to work for signed in users we need to do two things:
+To prepare our database and GraphQL API to work for signed-in users we need to do two things:
 
-1. Add a `user_id` column to the `todos` table so we know what todo belongs to which user.
+1. Add a `user_id` column to the `todos` table, so we know what todo belongs to which user.
 2. Use the `user` role instead of the `public` role for permissions.
 
 ## Add `user_id` column
 
-Before we add the `user_id` column, let's delete all existing todos.
+Before adding the `user_id` column, let's delete all existing todos.
 
 Then add the `user_id` column as a `UUID` type. Make sure that `nullable` is **not** checked. This will ensure that all todos must have a `user_id` value.
 
@@ -88,9 +88,9 @@ Create the FK between the `auth.users.id` to `public.todos.user_id`.
 
 ### Track relationship
 
-Click on the `public` schema and track the untracked foreign key relationsip. Then click on the `auth` schema and track the relationship again.
+Click on the `public` schema and track the untracked foreign key relationship. Then click on the `auth` schema and track the relationship again.
 
-We track these relationships to create the GrpahQL relationships both between the `todos` table to the `users` table, and from the `users` table to the `todos` table.
+We track these relationships to create the GrpahQL relationships between the `todos` table to the `users` table and the `users` table to the `todos` table.
 
 Ok, our `user_id` column is added and connected correctly. Let's continue with setting permissions for signed-in users.
 
