@@ -50,11 +50,11 @@ export interface Typegen0 {
       | 'error.platform.signInMfaTotp'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     saveRegisrationError: 'error.platform.registerUser'
-    tickRefreshTimer: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
+    saveRefreshAttempt: 'error.platform.refreshToken'
     reportSignedOut: '' | 'error.platform.authenticateWithToken'
     resetAuthenticationError: 'xstate.init'
-    clearContext: 'xstate.init'
-    destroyToken: 'SIGNOUT'
+    destroyRefreshToken: 'xstate.init'
+    clearContextExceptRefreshToken: 'SIGNOUT'
     resetSignUpError: 'SIGNUP_EMAIL_PASSWORD'
     reportSignedIn:
       | 'SESSION_UPDATE'
@@ -136,12 +136,13 @@ export interface Typegen0 {
     }
     'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
     'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
-    'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
-      type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
-    }
+    'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'error.platform.authenticateWithToken': {
       type: 'error.platform.authenticateWithToken'
       data: unknown
+    }
+    'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
+      type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
     'error.platform.autoSignIn': { type: 'error.platform.autoSignIn'; data: unknown }
     'xstate.init': { type: 'xstate.init' }
@@ -165,7 +166,6 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
   }
   invokeSrcNameMap: {
     autoSignIn: 'done.invoke.autoSignIn'

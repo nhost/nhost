@@ -1,6 +1,5 @@
 import { interpret } from 'xstate'
 
-import { MIN_TOKEN_REFRESH_INTERVAL } from './constants'
 import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import { defaultClientStorageGetter, defaultClientStorageSetter } from './storage'
 import type { AuthInterpreter } from './types'
@@ -20,7 +19,7 @@ export class AuthClient {
     clientUrl = (typeof window !== 'undefined' && window.location?.origin) || '',
     clientStorageGetter = defaultClientStorageGetter,
     clientStorageSetter = defaultClientStorageSetter,
-    refreshIntervalTime = MIN_TOKEN_REFRESH_INTERVAL,
+    refreshIntervalTime,
     autoSignIn = true,
     autoRefreshToken = true,
     start = true
