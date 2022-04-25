@@ -1,15 +1,13 @@
-import { computed } from 'vue'
+import { computed, unref } from 'vue'
 
 import { SignUpOptions } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
-import { useAuthenticationStatus, useAuthInterpreter } from './common'
+import { RefOrValue } from './helpers'
+import { useAuthenticationStatus } from './useAuthenticationStatus'
+import { useAuthInterpreter } from './useAuthInterpreter'
 
-export const useSignUpEmailPassword = (
-  stateEmail?: string,
-  statePassword?: string,
-  stateOptions?: SignUpOptions
-) => {
+export const useSignUpEmailPassword = (options?: RefOrValue<SignUpOptions>) => {
   const service = useAuthInterpreter()
   const isError =
     !!service.value.status &&
@@ -27,16 +25,12 @@ export const useSignUpEmailPassword = (
     !!service.value.status &&
     service.value.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
 
-  const signUpEmailPassword = (
-    valueEmail?: string | unknown,
-    valuePassword = statePassword,
-    valueOptions = stateOptions
-  ) =>
+  const signUpEmailPassword = (email: RefOrValue<string>, password: RefOrValue<string>) =>
     service.value.send({
       type: 'SIGNUP_EMAIL_PASSWORD',
-      email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-      password: valuePassword,
-      options: valueOptions
+      email: unref(email),
+      password: unref(password),
+      options: unref(options)
     })
   return {
     signUpEmailPassword,
