@@ -178,7 +178,6 @@ func (e *Environment) Prepare() error {
 			status.Errorln("Failed to apply migrations")
 			return err
 		}
-
 	}
 
 	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
@@ -188,7 +187,7 @@ func (e *Environment) Prepare() error {
 
 	if len(metaFiles) == 0 {
 
-		//  Export metadata
+		// Export metadata
 		log.Debug("Exporting metadata")
 
 		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
@@ -204,14 +203,9 @@ func (e *Environment) Prepare() error {
 			status.Errorln("Failed to export metadata")
 			return err
 		}
-
 	}
 
-	//  If metadata directory is already mounted to nhost_hasura container,
-	//  then Hasura must be auto-applying metadata
-	//  hence, manually applying metadata doesn't make sense
-
-	//  apply metadata
+	// apply metadata
 	log.Debug("Applying metadata")
 
 	execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
@@ -228,56 +222,33 @@ func (e *Environment) Prepare() error {
 		return err
 	}
 
-	//	Detect inconsistent metadata,
-	//	and restart equivalent containers to fix breaking metadata changes.
-	inconsistentMetadata, err := e.Hasura.GetInconsistentMetadata()
-	if err != nil {
+	// Reload Hasura Auth and Hasura Storage to re-apply their metadata (and migrations)
+	for _, x := range []string{"auth", "storage"} {
+		log.Debugf("Restarting %s container", x)
+		//	Restart the container
+		if err := e.Docker.ContainerRestart(e.Context, e.Config.Services[x].ID, nil); err != nil {
+			return err
+		}
+	}
+
+	//	Run helath-check again to wait for restarted containers to become active
+	if err := e.HealthCheck(e.ExecutionContext); err != nil {
 		return err
 	}
 
-	if !inconsistentMetadata.IsConsistent {
+	// Exporting metadata to keep local metadata in sync.
+	log.Debug("Exporting metadata")
+	execute = exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
+	execute.Dir = nhost.NHOST_DIR
+	cmdArgs = []string{e.Hasura.CLI, "metadata", "export"}
+	cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
+	execute.Args = cmdArgs
 
-		status.Set("Fixing metadata inconsistency due to Auth/Storage updates")
-
-		for _, object := range inconsistentMetadata.InconsistentObjects {
-			log.Debug(object.Reason)
-
-			//	Fetch the equivalent container
-			for x := range e.Config.Services {
-				if x == object.Definition.Schema {
-
-					//	Restart the container
-					log.Debugf("Restarting %s container", x)
-					if err := e.Docker.ContainerRestart(e.Context, e.Config.Services[x].ID, nil); err != nil {
-						return err
-					}
-				}
-			}
-		}
-
-		//	Restart the health-checks to wait for containers to become active
-		if err := e.HealthCheck(e.ExecutionContext); err != nil {
-			return err
-		}
-
-		//  Export metadata
-		log.Debug("Exporting metadata")
-
-		//	Re-export the new metadata to make sure changes are saved locally
-		execute := exec.CommandContext(e.ExecutionContext, e.Hasura.CLI)
-		execute.Dir = nhost.NHOST_DIR
-
-		cmdArgs := []string{e.Hasura.CLI, "metadata", "export"}
-		cmdArgs = append(cmdArgs, e.Hasura.CommonOptionsWithoutDB...)
-		execute.Args = cmdArgs
-
-		output, err := execute.CombinedOutput()
-		if err != nil {
-			log.Debug(string(output))
-			status.Errorln("Failed to export metadata")
-			return err
-		}
-
+	output, err = execute.CombinedOutput()
+	if err != nil {
+		log.Debug(string(output))
+		status.Errorln("Failed to export metadata")
+		return err
 	}
 
 	return nil
@@ -392,84 +363,6 @@ func (e *Environment) Seed(path string) error {
 		*/
 	}
 	return nil
-
-	/*
-		//  fetch metadata
-		metadata, err := client.GetMetadata()
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to get metadata")
-		}
-
-		//  if there are enum tables, add seeds for them
-		enumTables := filterEnumTables(metadata.Tables)
-
-		//  read the migrations directory
-		migrations, err := ioutil.ReadDir(nhost.MIGRATIONS_DIR)
-		if err != nil {
-			log.Debug(err)
-			log.Fatal("Failed to traverse migrations directory")
-		}
-
-		for _, file := range migrations {
-
-			for _, item := range enumTables {
-
-				migrationName := strings.Join(strings.Split(file.Name(), "_")[1:], "_")
-				expectedName := strings.Join([]string{"create", "table", item.Table.Schema, item.Table.Name}, "_")
-				if migrationName == expectedName {
-
-					//  get the seed data for this table
-					seedData, err := client.ApplySeeds([]hasura.TableEntry{item})
-					if err != nil {
-						log.Debug(err)
-						log.WithField("component", item.Table.Name).Error("Failed to get seeds for enum table")
-					}
-
-					//  first check whether the migration already contains the seed data or not
-					//  if yes, then skip writing to file
-
-					SQLPath := filepath.Join(nhost.MIGRATIONS_DIR, file.Name(), "up.sql")
-					migrationData, err := os.ReadFile(SQLPath)
-					if err != nil {
-						log.Debug(err)
-						log.WithField("component", item.Table.Name).Error("Failed to read migration file")
-					}
-
-					if !strings.Contains(string(migrationData), string(seedData)) {
-
-						//  append the seeds to migration
-						if err = writeToFile(SQLPath, string(seedData), "end"); err != nil {
-							log.Debug(err)
-							log.WithField("component", item.Table.Name).Error("Failed to append seed data for enum table")
-						}
-
-						log.WithField("component", item.Table.Name).Info("Migration appended with seeds for this enum table")
-					} else {
-						log.WithField("component", item.Table.Name).Debug("Migration already contains seeds for this enum table")
-					}
-
-				}
-			}
-		}
-	*/
-}
-
-//  Ranges through all registered services of the environment,
-//  and ONLY if all are designated active, it returns true. Otherwise false.
-func (e *Environment) isActive() bool {
-
-	if len(e.Config.Services) == 0 {
-		return false
-	}
-
-	for _, item := range e.Config.Services {
-		if !item.Active {
-			return false
-		}
-	}
-
-	return true
 }
 
 func (e *Environment) Cleanup() {
