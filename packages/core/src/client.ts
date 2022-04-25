@@ -4,7 +4,7 @@ import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import { defaultClientStorageGetter, defaultClientStorageSetter } from './storage'
 import type { AuthInterpreter } from './types'
 
-export type NhostClientOptions = AuthMachineOptions & { start?: boolean }
+export type NhostClientOptions = AuthMachineOptions & { devTools?: boolean; start?: boolean }
 
 export class AuthClient {
   readonly backendUrl: string
@@ -22,7 +22,8 @@ export class AuthClient {
     refreshIntervalTime,
     autoSignIn = true,
     autoRefreshToken = true,
-    start = true
+    start = true,
+    devTools
   }: NhostClientOptions) {
     this.backendUrl = backendUrl
     this.clientUrl = clientUrl
@@ -38,7 +39,7 @@ export class AuthClient {
     })
 
     if (start) {
-      this.interpreter = interpret(this.machine)
+      this.interpreter = interpret(this.machine, { devTools })
       this.interpreter.start()
     }
 

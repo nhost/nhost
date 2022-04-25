@@ -299,6 +299,7 @@ importers:
       '@quasar/extras': ^1.13.5
       '@quasar/vite-plugin': ^1.0.9
       '@vitejs/plugin-vue': ^2.3.1
+      '@xstate/inspect': ^0.6.2
       quasar: ^2.6.5
       sass: 1.32.0
       typescript: ^4.5.4
@@ -315,6 +316,7 @@ importers:
     devDependencies:
       '@quasar/vite-plugin': 1.0.9_3b6db529e7116f6a5752ef639af5eecf
       '@vitejs/plugin-vue': 2.3.1_vite@2.9.5+vue@3.2.33
+      '@xstate/inspect': 0.6.5
       sass: 1.32.0
       typescript: 4.6.3
       vite: 2.9.5_sass@1.32.0
@@ -4981,7 +4983,7 @@ packages:
       vite: ^2.5.10
       vue: ^3.2.25
     dependencies:
-      vite: 2.9.5
+      vite: 2.9.5_sass@1.32.0
       vue: 3.2.33
     dev: true
 

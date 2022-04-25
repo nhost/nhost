@@ -10,16 +10,18 @@ import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
 
 import App from './App'
 
-const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337'
-})
-
+const devTools = !!import.meta.env.VITE_DEBUG
 if (import.meta.env.VITE_DEBUG) {
   inspect({
     url: 'https://stately.ai/viz?inspect',
     iframe: false
   })
 }
+
+const nhost = new NhostClient({
+  backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337',
+  devTools
+})
 
 ReactDOM.render(
   <React.StrictMode>

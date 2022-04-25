@@ -67,6 +67,7 @@ export class HasuraAuthClient {
     clientStorageGetter,
     clientStorageSetter,
     refreshIntervalTime,
+    devTools,
     start = true,
     Client = AuthClient
   }: NhostAuthConstructorParams) {
@@ -79,7 +80,8 @@ export class HasuraAuthClient {
         clientStorageGetter || localStorageGetter(clientStorageType, clientStorage),
       clientStorageSetter:
         clientStorageSetter || localStorageSetter(clientStorageType, clientStorage),
-      refreshIntervalTime
+      refreshIntervalTime,
+      devTools
     })
   }
 

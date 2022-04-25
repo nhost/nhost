@@ -13,6 +13,7 @@ export class NhostClient {
   storage: HasuraStorageClient
   functions: NhostFunctionsClient
   graphql: NhostGraphqlClient
+  readonly devTools?: boolean
 
   /**
    * Nhost Client
@@ -31,6 +32,7 @@ export class NhostClient {
     clientStorageType,
     autoRefreshToken,
     autoSignIn,
+    devTools,
     start = true,
     Client
   }: NhostClientConstructorParams) {
@@ -45,6 +47,7 @@ export class NhostClient {
       autoRefreshToken,
       autoSignIn,
       start,
+      devTools,
       Client
     })
 
@@ -82,5 +85,7 @@ export class NhostClient {
         this.graphql.setAccessToken(session?.accessToken)
       })
     })
+
+    this.devTools = devTools
   }
 }

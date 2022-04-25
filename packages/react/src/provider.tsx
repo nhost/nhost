@@ -13,7 +13,7 @@ export const NhostReactProvider: React.FC<{
 }> = ({ nhost, initial, ...props }) => {
   const machine = nhost.auth.client.machine
   const interpreter = useInterpret(machine, {
-    devTools: typeof window !== 'undefined' && process.env.NODE_ENV === 'development',
+    devTools: nhost.devTools,
     context: produce<AuthContext>(machine.context, (ctx: AuthContext) => {
       if (initial) {
         ctx.user = initial.user

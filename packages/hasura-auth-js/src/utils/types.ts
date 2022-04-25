@@ -30,6 +30,7 @@ export interface NhostAuthConstructorParams {
   autoSignIn?: boolean
   start?: boolean
   Client?: typeof AuthClient
+  devTools?: boolean
 }
 
 export interface Session {
