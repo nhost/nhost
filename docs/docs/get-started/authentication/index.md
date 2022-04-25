@@ -84,11 +84,11 @@ At last, we'll create a connection between the `todos` table and the `users` tab
 
 ### Create FK
 
-Create the FK between the `auth.users.id` to `public.todos.user_id`.
+Create a FK between the `auth.users.id` column and the `public.todos.user_id` column. See video above.
 
 ### Track relationship
 
-Click on the `public` schema and track the untracked foreign key relationship. Then click on the `auth` schema and track the relationship again.
+Click on the `public` schema and track the untracked foreign key relationship. Then click on the `auth` schema and track the relationship again. See video above.
 
 We track these relationships to create the GrpahQL relationships between the `todos` table to the `users` table and the `users` table to the `todos` table.
 
