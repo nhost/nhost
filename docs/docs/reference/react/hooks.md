@@ -563,7 +563,7 @@ const Avatar = () => {
 ### Display name
 
 ```jsx
-import { displayName } from '@nhost/react';
+import { useDisplayName } from '@nhost/react';
 
 const Avatar = () => {
   const displayName = useDisplayName();
