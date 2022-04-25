@@ -1,3 +1,4 @@
+import jwt_decode from 'jwt-decode'
 import { useMemo, useState } from 'react'
 
 import {
@@ -8,12 +9,14 @@ import {
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
   ErrorPayload,
+  JWTClaims,
   ResetPasswordOptions,
-  SendVerificationEmailOptions
+  SendVerificationEmailOptions,
+  User
 } from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/react'
 
-import { ActionHookState, useAuthInterpreter, useNhostClient } from './common'
+import { ActionHookState, useAccessToken, useAuthInterpreter, useNhostClient } from './common'
 
 type ChangeEmailHookState = ActionHookState<'needsEmailVerification'>
 type ChangeEmailHandlerResult = Omit<ChangeEmailHookState, 'isLoading'>
@@ -176,16 +179,16 @@ export const useResetPassword: ResetPasswordHook = (
   return { resetPassword, isLoading, isSent, isError, error }
 }
 
-export const useUserData = () => {
+export const useUserData = (): User | null => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
     (state) => state.context.user,
-    (a, b) => JSON.stringify(a) === JSON.stringify(b)
+    (a, b) => (a && JSON.stringify(a)) === (b && JSON.stringify(b))
   )
 }
 
-export const useAvatarUrl = () => {
+export const useAvatarUrl = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -194,7 +197,7 @@ export const useAvatarUrl = () => {
   )
 }
 
-export const useDefaultRole = () => {
+export const useDefaultRole = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -203,7 +206,7 @@ export const useDefaultRole = () => {
   )
 }
 
-export const useDisplayName = () => {
+export const useDisplayName = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -212,7 +215,7 @@ export const useDisplayName = () => {
   )
 }
 
-export const useEmail = () => {
+export const useEmail = (): string | undefined => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -408,4 +411,60 @@ export const useConfigMfa: ConfigMfaHook = () => {
     isError,
     error
   }
+}
+
+/**
+ * Decode the current decoded access token (JWT), or return `null` if the user is not authenticated (no token)
+ * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+ * @example
+ * ```ts
+ * import { useDecodedAccessToken } from '@nhost/react'
+ * const Component = () => {
+ *    const decodedToken = useDecodedAccessToken()
+ *    return <div>Decoded access token: {JSON.stringify(decodedToken)}</div>
+ * }
+ * ```
+ */
+export const useDecodedAccessToken = () => {
+  const jwt = useAccessToken()
+  return useMemo(() => (jwt ? jwt_decode<JWTClaims>(jwt) : null), [jwt])
+}
+
+/**
+ * Decode the Hasura claims from the current access token (JWT) located in the `https://hasura.io/jwt/claims` namespace, or return `null` if the user is not authenticated (no token)
+ * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+ * @example
+ * ```ts
+ * import { useHasuraClaims } from '@nhost/react'
+ * const Component = () => {
+ *    const hasuraClaims = useHasuraClaims()
+ *    return <div>JWT claims in the `https://hasura.io/jwt/claims` namespace: {JSON.stringify(hasuraClaims)}</div>
+ * }
+ * ```
+ */
+export const useHasuraClaims = () => {
+  const claims = useDecodedAccessToken()
+  return useMemo(() => claims?.['https://hasura.io/jwt/claims'] || null, [claims])
+}
+
+/**
+ * Get the value of a given Hasura claim in the current access token (JWT). Returns null if the user is not authenticated, or if the claim is not in the token.
+ * Return `null` if the user is not authenticated (no token)
+ * @param name name of the variable. Automatically adds the `x-hasura-` prefix if it is missing
+ * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+ * @example
+ * ```ts
+ * import { useHasuraClaim } from '@nhost/react'
+ * const Component = () => {
+ *    const claim = useHasuraClaim('user-id')
+ *    return <div>User id extracted from the JWT access token: {claim}</div>
+ * }
+ * ```
+ */
+export const useHasuraClaim = (name: string) => {
+  const hasuraClaims = useHasuraClaims()
+  return useMemo(
+    () => hasuraClaims?.[name.startsWith('x-hasura-') ? name : `x-hasura-${name}`] || null,
+    [hasuraClaims, name]
+  )
 }

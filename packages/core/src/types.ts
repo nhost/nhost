@@ -69,3 +69,21 @@ export type Provider =
   | 'strava'
   | 'gitlab'
   | 'bitbucket'
+
+// TODO share with hasura-auth
+export interface JWTHasuraClaims {
+  // ? does not work as expected: if the key does not start with `x-hasura-`, then it is typed as `any`
+  // [claim: `x-hasura-${string}`]: string | string[]
+  [claim: string]: string | string[] | null
+  'x-hasura-allowed-roles': string[]
+  'x-hasura-default-role': string
+  'x-hasura-user-id': string
+  'x-hasura-user-is-anonymous': string
+}
+
+// https://hasura.io/docs/1.0/graphql/core/auth/authentication/jwt.html#the-spec
+export interface JWTClaims {
+  sub?: string
+  iat?: number
+  'https://hasura.io/jwt/claims': JWTHasuraClaims
+}

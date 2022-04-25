@@ -176,25 +176,6 @@ export interface LoginData {
 export interface Headers {
   Authorization?: string
 }
-
-export interface JWTHasuraClaims {
-  [claim: string]: string[] | string
-  'x-hasura-allowed-roles': string[]
-  'x-hasura-default-role': string
-  'x-hasura-user-id': string
-}
-
-// https://hasura.io/docs/1.0/graphql/core/auth/authentication/jwt.html#the-spec
-export interface JWTClaims {
-  sub?: string
-  iat?: number
-  'https://hasura.io/jwt/claims': JWTHasuraClaims
-}
-
-/// //////////////////
-/// // API
-/// //////////////////
-
 export interface Mfa {
   ticket: string
 }
