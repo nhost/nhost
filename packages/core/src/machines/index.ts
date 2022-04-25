@@ -8,6 +8,7 @@ import {
   TOKEN_REFRESH_MARGIN
 } from '../constants'
 import {
+  ErrorPayload,
   INVALID_EMAIL_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
@@ -99,7 +100,7 @@ export const createAuthMachine = ({
                   target: 'signedIn',
                   actions: ['saveSession', 'persist', 'reportTokenChanged']
                 },
-                onError: 'importingRefreshToken'
+                onError: { actions: ['saveAuthenticationError'], target: 'importingRefreshToken' }
               }
             },
             importingRefreshToken: {
@@ -677,19 +678,35 @@ export const createAuthMachine = ({
          * @returns
          */
         autoSignIn: async () => {
+          // TODO load errors from the url
           // TODO throwing errors is not really important as they are captured by the xstate invoker
           // * Still, keep them for the moment as it needs to be tested in every environemnt e.g. nodejs, expo, react-native...
           if (typeof window === 'undefined' || !window.location) {
-            throw Error('window is undefined or location does not exist')
+            const error: ErrorPayload = {
+              error: '',
+              status: 2,
+              message: 'window is undefined or location does not exist'
+            }
+            return Promise.reject({ error })
           }
           const { hash } = window.location
           if (!hash) {
-            throw Error('No hash in window.location')
+            const error: ErrorPayload = {
+              error: '',
+              status: 2,
+              message: 'No hash in window.location'
+            }
+            return Promise.reject({ error })
           }
           const params = new URLSearchParams(hash.slice(1))
           const refreshToken = params.get('refreshToken')
           if (!refreshToken) {
-            throw Error('No refresh token in the location hash')
+            const error: ErrorPayload = {
+              error: '',
+              status: 2,
+              message: 'No refresh token in the location hash'
+            }
+            return Promise.reject({ error })
           }
           const session = await postRequest('/token', {
             refreshToken
