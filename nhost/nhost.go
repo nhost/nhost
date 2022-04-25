@@ -383,7 +383,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "0.3.2"
+				parsed.Services[name].Version = "0.6.3"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -401,7 +401,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "0.1.3"
+				parsed.Services[name].Version = "0.1.4"
 			}
 
 			if parsed.Services[name].Image == "" {
