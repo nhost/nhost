@@ -4983,7 +4983,7 @@ packages:
       vite: ^2.5.10
       vue: ^3.2.25
     dependencies:
-      vite: 2.9.5_sass@1.32.0
+      vite: 2.9.5
       vue: 3.2.33
     dev: true
 
