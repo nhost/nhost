@@ -19,10 +19,25 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.es.js",
+    "types": "dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": "dist/index.es.js",
+        "require": "dist/index.cjs.js"
+      }
+    }
+  },
   "scripts": {
-    "build": "run-s build:esbuild build:types",
-    "build:esbuild": "node ../../esbuild.lib.js",
-    "build:types": "tsc --build tsconfig.types.json",
+    "build": "vite build --config ../../vite.config.base.js",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -31,29 +46,11 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "main": "src/index.ts",
-  "publishConfig": {
-    "exports": {
-      ".": {
-        "import": {
-          "node": "./dist/index.cjs.js",
-          "default": "./dist/index.es.js"
-        },
-        "require": "./dist/index.cjs.js"
-      }
-    },
-    "access": "public",
-    "main": "dist/index.cjs.js",
-    "module": "dist/index.es.js",
-    "typings": "./dist/index.d.ts"
-  },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
-    "@nhost/core": "workspace:^"
+    "@nhost/core": "*"
   },
   "devDependencies": {
+    "@nhost/config": "*",
     "@types/faker": "5",
     "axios": "^0.26.0",
     "faker": "5",

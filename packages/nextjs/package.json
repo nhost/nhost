@@ -24,7 +24,7 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.react.js",
+    "build": "vite build --config ../../vite.react.config.js",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -50,18 +50,19 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/nhost-js": "workspace:^",
+    "@nhost/nhost-js": "*",
     "cookies": "^0.8.0"
   },
   "peerDependencies": {
-    "@nhost/react": "workspace:^",
+    "@nhost/react": "*",
     "next": "^12.0.10",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:^",
-    "@nhost/react": "workspace:^",
+    "@nhost/config": "*",
+    "@nhost/core": "*",
+    "@nhost/react": "*",
     "@types/cookies": "^0.7.7",
     "next": "12.0.10",
     "react": "^17.0.2",

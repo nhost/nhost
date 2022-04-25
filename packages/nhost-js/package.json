@@ -21,28 +21,24 @@
     "url": "git+https://github.com/nhost/nhost.git"
   },
   "main": "src/index.ts",
+  "types": "src/index.ts",
   "publishConfig": {
-    "exports": {
-      ".": {
-        "import": {
-          "node": "./dist/index.cjs.js",
-          "default": "./dist/index.es.js"
-        },
-        "require": "./dist/index.cjs.js"
-      }
-    },
     "access": "public",
     "main": "dist/index.cjs.js",
     "module": "dist/index.es.js",
-    "typings": "./dist/index.d.ts"
+    "typings": "dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": "dist/index.es.js",
+        "require": "dist/index.cjs.js"
+      }
+    }
   },
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "run-s build:esbuild build:types",
-    "build:esbuild": "node ../../esbuild.lib.js",
-    "build:types": "tsc --build tsconfig.types.json",
+    "build": "vite build --config ../../vite.config.base.js",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -52,14 +48,15 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@nhost/hasura-auth-js": "workspace:^",
-    "@nhost/hasura-storage-js": "workspace:^",
+    "@nhost/hasura-auth-js": "*",
+    "@nhost/hasura-storage-js": "*",
     "axios": "^0.23.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:^",
+    "@nhost/config": "*",
+    "@nhost/core": "*",
     "graphql": "16"
   },
   "peerDependencies": {

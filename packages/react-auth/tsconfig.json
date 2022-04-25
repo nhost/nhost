@@ -1,9 +1,12 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "@nhost/config/react-library.tsconfig.json",
   "compilerOptions": {
-    "outDir": "lib",
-    "composite": true
+    "lib": ["ES2015"],
+    "target": "ES6",
+    "module": "CommonJS",
+    "outDir": "./dist",
+    "rootDir": "./src"
   },
-  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"],
-  "references": [{ "path": "../nhost-js" }, { "path": "../react" }]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

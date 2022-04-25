@@ -1,8 +1,11 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
   "compilerOptions": {
+    "composite": false,
     "declaration": true,
+    "declarationMap": true,
     "noImplicitAny": false,
-    "removeComments": false,
     "noLib": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
@@ -18,19 +21,7 @@
     "lib": ["dom", "dom.iterable", "esnext", "webworker"],
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "isolatedModules": true,
-    "composite": true
+    "isolatedModules": true
   },
-  "exclude": ["node_modules", "**/*/dist", "**/*/build", "**/*/.next"],
-  "references": [
-    { "path": "./packages/apollo/" },
-    { "path": "./packages/core/" },
-    { "path": "./packages/hasura-auth-js/" },
-    { "path": "./packages/hasura-storage-js/" },
-    { "path": "./packages/nextjs/" },
-    { "path": "./packages/nhost-js/" },
-    { "path": "./packages/react/" },
-    { "path": "./packages/react-apollo/" },
-    { "path": "./packages/react-auth/" }
-  ]
+  "exclude": ["node_modules", "**/*/dist", "**/*/build", "**/*/.next"]
 }

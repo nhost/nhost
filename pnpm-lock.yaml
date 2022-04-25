@@ -130,14 +130,14 @@ importers:
   examples/nextjs:
     specifiers:
       '@apollo/client': ^3.5.10
-      '@nhost/apollo': workspace:*
-      '@nhost/core': workspace:*
-      '@nhost/hasura-auth-js': workspace:*
-      '@nhost/hasura-storage-js': workspace:*
-      '@nhost/nextjs': workspace:*
-      '@nhost/nhost-js': workspace:*
-      '@nhost/react': workspace:*
-      '@nhost/react-apollo': workspace:*
+      '@nhost/apollo': '*'
+      '@nhost/core': '*'
+      '@nhost/hasura-auth-js': '*'
+      '@nhost/hasura-storage-js': '*'
+      '@nhost/nextjs': '*'
+      '@nhost/nhost-js': '*'
+      '@nhost/react': '*'
+      '@nhost/react-apollo': '*'
       '@types/node': 17.0.23
       '@types/react': 17.0.43
       '@xstate/inspect': ^0.6.2
@@ -177,9 +177,9 @@ importers:
   examples/react-apollo:
     specifiers:
       '@apollo/client': ^3.5.10
-      '@nhost/core': workspace:*
-      '@nhost/react': workspace:*
-      '@nhost/react-apollo': workspace:*
+      '@nhost/core': '*'
+      '@nhost/react': '*'
+      '@nhost/react-apollo': '*'
       '@rsuite/icons': ^1.0.2
       '@types/react': ^17.0.43
       '@types/react-dom': ^17.0.14
@@ -229,9 +229,9 @@ importers:
       '@graphql-codegen/typescript-react-apollo': ^3.2.11
       '@headlessui/react': ^1.5.0
       '@heroicons/react': ^1.0.6
-      '@nhost/nhost-js': workspace:*
-      '@nhost/react': workspace:*
-      '@nhost/react-apollo': workspace:*
+      '@nhost/nhost-js': '*'
+      '@nhost/react': '*'
+      '@nhost/react-apollo': '*'
       '@tailwindcss/forms': ^0.5.0
       '@types/express': ^4.17.13
       '@types/jest': ^26.0.24
@@ -294,33 +294,39 @@ importers:
   packages/apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/core': workspace:^
-      '@nhost/nhost-js': workspace:^
+      '@nhost/config': '*'
+      '@nhost/nhost-js': '*'
       graphql: 15.7.2
       graphql-ws: ^5.7.0
       xstate: ^4.30.5
     dependencies:
-      '@nhost/core': link:../core
       graphql: 15.7.2
       graphql-ws: 5.7.0_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.5.10_graphql-ws@5.7.0+graphql@15.7.2
+      '@nhost/config': link:../config
       '@nhost/nhost-js': link:../nhost-js
       xstate: 4.31.0
 
+  packages/config:
+    specifiers: {}
+
   packages/core:
     specifiers:
+      '@nhost/config': '*'
       axios: ^0.25.0
       js-cookie: ^3.0.1
       xstate: ^4.30.5
     dependencies:
+      '@nhost/config': link:../config
       axios: 0.25.0
       js-cookie: 3.0.1
       xstate: 4.31.0
 
   packages/hasura-auth-js:
     specifiers:
-      '@nhost/core': workspace:^
+      '@nhost/config': '*'
+      '@nhost/core': '*'
       '@types/faker': '5'
       axios: ^0.26.0
       faker: '5'
@@ -330,6 +336,7 @@ importers:
     dependencies:
       '@nhost/core': link:../core
     devDependencies:
+      '@nhost/config': link:../config
       '@types/faker': 5.5.9
       axios: 0.26.1
       faker: 5.5.3
@@ -339,15 +346,19 @@ importers:
 
   packages/hasura-storage-js:
     specifiers:
+      '@nhost/config': '*'
       axios: ^0.21.1
     dependencies:
       axios: 0.21.4
+    devDependencies:
+      '@nhost/config': link:../config
 
   packages/nextjs:
     specifiers:
-      '@nhost/core': workspace:^
-      '@nhost/nhost-js': workspace:^
-      '@nhost/react': workspace:^
+      '@nhost/config': '*'
+      '@nhost/core': '*'
+      '@nhost/nhost-js': '*'
+      '@nhost/react': '*'
       '@types/cookies': ^0.7.7
       cookies: ^0.8.0
       next: 12.0.10
@@ -358,6 +369,7 @@ importers:
       '@nhost/nhost-js': link:../nhost-js
       cookies: 0.8.0
     devDependencies:
+      '@nhost/config': link:../config
       '@nhost/core': link:../core
       '@nhost/react': link:../react
       '@types/cookies': 0.7.7
@@ -368,9 +380,10 @@ importers:
 
   packages/nhost-js:
     specifiers:
-      '@nhost/core': workspace:^
-      '@nhost/hasura-auth-js': workspace:^
-      '@nhost/hasura-storage-js': workspace:^
+      '@nhost/config': '*'
+      '@nhost/core': '*'
+      '@nhost/hasura-auth-js': '*'
+      '@nhost/hasura-storage-js': '*'
       axios: ^0.23.0
       graphql: 15.7.2
       jwt-decode: ^3.1.2
@@ -382,14 +395,16 @@ importers:
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
+      '@nhost/config': link:../config
       '@nhost/core': link:../core
       graphql: 15.7.2
 
   packages/react:
     specifiers:
-      '@nhost/core': workspace:^
-      '@nhost/hasura-auth-js': workspace:^
-      '@nhost/nhost-js': workspace:^
+      '@nhost/config': '*'
+      '@nhost/core': '*'
+      '@nhost/hasura-auth-js': '*'
+      '@nhost/nhost-js': '*'
       '@xstate/inspect': ^0.6.2
       '@xstate/react': ^2.0.1
       immer: ^9.0.12
@@ -401,6 +416,7 @@ importers:
       '@xstate/react': 2.0.1_react@17.0.2+xstate@4.31.0
       immer: 9.0.12
     devDependencies:
+      '@nhost/config': link:../config
       '@nhost/core': link:../core
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@xstate/inspect': 0.6.5_ws@8.5.0+xstate@4.31.0
@@ -411,9 +427,10 @@ importers:
   packages/react-apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/apollo': workspace:^
-      '@nhost/core': workspace:^
-      '@nhost/react': workspace:^
+      '@nhost/apollo': '*'
+      '@nhost/config': '*'
+      '@nhost/core': '*'
+      '@nhost/react': '*'
       '@types/react': ^17.0.39
       '@types/ws': ^8.2.2
       graphql: 15.7.2
@@ -423,6 +440,7 @@ importers:
       '@nhost/apollo': link:../apollo
     devDependencies:
       '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
+      '@nhost/config': link:../config
       '@nhost/core': link:../core
       '@nhost/react': link:../react
       '@types/react': 17.0.44
@@ -433,12 +451,14 @@ importers:
 
   packages/react-auth:
     specifiers:
-      '@nhost/nhost-js': workspace:^
-      '@nhost/react': workspace:^
+      '@nhost/config': '*'
+      '@nhost/nhost-js': '*'
+      '@nhost/react': '*'
       '@types/react': ^17.0.38
       react: ^17.0.2
       react-dom: ^17.0.2
     devDependencies:
+      '@nhost/config': link:../config
       '@nhost/nhost-js': link:../nhost-js
       '@nhost/react': link:../react
       '@types/react': 17.0.44

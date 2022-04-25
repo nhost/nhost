@@ -22,8 +22,25 @@
     "type": "git",
     "url": "git+https://github.com/nhost/nhost.git"
   },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "main": "dist/index.cjs.js",
+    "module": "dist/index.es.js",
+    "typings": "dist/index.d.ts",
+    "exports": {
+      ".": {
+        "import": "./dist/index.es.js",
+        "require": "./dist/index.cjs.js"
+      }
+    }
+  },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.react.js",
+    "build": "vite build --config ../../vite.react.config.js",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -32,36 +49,21 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "main": "src/index.ts",
-  "publishConfig": {
-    "access": "public",
-    "main": "dist/index.umd.js",
-    "module": "dist/index.es.js",
-    "typings": "dist/index.d.ts",
-    "exports": {
-      ".": {
-        "import": "./dist/index.es.js",
-        "require": "./dist/index.umd.js"
-      }
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
-    "@nhost/apollo": "workspace:^"
+    "@nhost/apollo": "*"
   },
   "peerDependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/react": "workspace:^",
+    "@nhost/react": "*",
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/core": "workspace:^",
-    "@nhost/react": "workspace:^",
+    "@nhost/config": "*",
+    "@nhost/core": "*",
+    "@nhost/react": "*",
     "@types/react": "^17.0.39",
     "@types/ws": "^8.2.2",
     "graphql": "16",
