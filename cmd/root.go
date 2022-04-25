@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/spf13/cobra"
@@ -40,6 +41,7 @@ func init() {
 
 func initConfig() {
 	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
 	if cfgFile != "" {
 		// Use config file from the flag.

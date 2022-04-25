@@ -50,12 +50,14 @@ services:
       - '8000:8000'
     environment:
       DEBUG: "true"
+      HASURA_METADATA: 1
       HASURA_ENDPOINT: http://graphql-engine:8080/v1
-      HASURA_ADMIN_SECRET: ${HASURA_ADMIN_SECRET:-hello123}
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:-hello123}
       S3_ENDPOINT: http://minio:9000
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-5a7bdb5f42c41e0622bf61d6e08d5537}
       S3_SECRET_KEY: ${S3_SECRET_KEY:-9e1c40c65a615a5b52f52aeeaf549944ec53acb1dff4a0bf01fb58e969f915c8}
-      S3_REGION: "us-east-1"
       S3_BUCKET: "default"
       S3_ROOT_FOLDER: "f215cf48-7458-4596-9aa5-2159fc6a3caf"
-    command: serve --postgres-migrations --postgres-migrations-source ${HASURA_GRAPHQL_DATABASE_URL:-postgres://postgres:hejsan@postgres:5432/postgres?sslmode=disable} --hasura-metadata --hasura-admin-secret ${HASURA_ADMIN_SECRET:-hello123} 
+      POSTGRES_MIGRATIONS: 1
+      POSTGRES_MIGRATIONS_SOURCE: ${HASURA_GRAPHQL_DATABASE_URL:-postgres://postgres:hejsan@postgres:5432/postgres?sslmode=disable}
+    command: serve

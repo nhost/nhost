@@ -21,15 +21,15 @@ const (
 	publicURLFlag                = "public-url"
 	bindFlag                     = "bind"
 	trustedProxiesFlag           = "trusted-proxies"
-	hasuraEndpointFlag           = "hasura_endpoint"
+	hasuraEndpointFlag           = "hasura-endpoint"
 	hasuraMetadataFlag           = "hasura-metadata"
-	hasuraAdminSecretFlag        = "hasura-admin-secret" // nolint: gosec
-	s3EndpointFlag               = "s3_endpoint"
-	s3AccessKeyFlag              = "s3_access_key"
-	s3SecretKeyFlag              = "s3_secret_key" // nolint: gosec
-	s3RegionFlag                 = "s3_region"
-	s3BucketFlag                 = "s3_bucket"
-	s3RootFolderFlag             = "s3_root_folder"
+	hasuraAdminSecretFlag        = "hasura-graphql-admin-secret" // nolint: gosec
+	s3EndpointFlag               = "s3-endpoint"
+	s3AccessKeyFlag              = "s3-access-key"
+	s3SecretKeyFlag              = "s3-secret-key" // nolint: gosec
+	s3RegionFlag                 = "s3-region"
+	s3BucketFlag                 = "s3-bucket"
+	s3RootFolderFlag             = "s3-root-folder"
 	postgresMigrationsFlag       = "postgres-migrations"
 	postgresMigrationsSourceFlag = "postgres-migrations-source"
 )
@@ -117,7 +117,7 @@ func applymigrations(
 ) {
 	if postgresMigrations {
 		if postgresSource == "" {
-			logger.Error("you need to specify --postgres-migrations-source")
+			logger.Error("you need to specify " + postgresMigrationsSourceFlag)
 			os.Exit(1)
 		}
 		logger.Info("applying postgres migrations")
@@ -163,7 +163,7 @@ func init() {
 		addStringFlag(serveCmd.Flags(), s3EndpointFlag, "", "S3 Endpoint")
 		addStringFlag(serveCmd.Flags(), s3AccessKeyFlag, "", "S3 Access key")
 		addStringFlag(serveCmd.Flags(), s3SecretKeyFlag, "", "S3 Secret key")
-		addStringFlag(serveCmd.Flags(), s3RegionFlag, "", "S3 region")
+		addStringFlag(serveCmd.Flags(), s3RegionFlag, "no-region", "S3 region")
 		addStringFlag(serveCmd.Flags(), s3BucketFlag, "", "S3 bucket")
 		addStringFlag(serveCmd.Flags(), s3RootFolderFlag, "", "All buckets will be created inside this root")
 	}
@@ -205,16 +205,16 @@ var serveCmd = &cobra.Command{
 
 		logger.WithFields(
 			logrus.Fields{
-				"debug":               viper.GetBool(debugFlag),
-				"bind":                viper.GetString(bindFlag),
-				"trusted-proxies":     viper.GetStringSlice(trustedProxiesFlag),
-				"hasura_endpoint":     viper.GetString(hasuraEndpointFlag),
-				"postgres-migrations": viper.GetBool(postgresMigrationsFlag),
-				"hasura-metadata":     viper.GetBool(hasuraMetadataFlag),
-				"s3_endpoint":         viper.GetString(s3EndpointFlag),
-				"s3_region":           viper.GetString(s3RegionFlag),
-				"s3_bucket":           viper.GetString(s3BucketFlag),
-				"s3_root_folder":      viper.GetString(s3RootFolderFlag),
+				debugFlag:              viper.GetBool(debugFlag),
+				bindFlag:               viper.GetString(bindFlag),
+				trustedProxiesFlag:     viper.GetStringSlice(trustedProxiesFlag),
+				hasuraEndpointFlag:     viper.GetString(hasuraEndpointFlag),
+				postgresMigrationsFlag: viper.GetBool(postgresMigrationsFlag),
+				hasuraMetadataFlag:     viper.GetBool(hasuraMetadataFlag),
+				s3EndpointFlag:         viper.GetString(s3EndpointFlag),
+				s3RegionFlag:           viper.GetString(s3RegionFlag),
+				s3BucketFlag:           viper.GetString(s3BucketFlag),
+				s3RootFolderFlag:       viper.GetString(s3RootFolderFlag),
 			},
 		).Debug("parameters")
 
