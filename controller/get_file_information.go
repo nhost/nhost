@@ -141,14 +141,14 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 		return nil, apiErr
 	}
 
-	if len(opts) > 0 {
+	if !opts.IsEmpty() {
 		object, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID)
 		if apiErr != nil {
 			return nil, apiErr
 		}
 		defer object.Close()
 
-		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(ctx.Request.Context(), object, opts...)
+		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(object, opts)
 		if apiErr != nil {
 			return nil, apiErr
 		}

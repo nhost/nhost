@@ -8,6 +8,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/gin-gonic/gin"
 	"github.com/nhost/hasura-storage/controller"
+	"github.com/nhost/hasura-storage/image"
 	"github.com/nhost/hasura-storage/metadata"
 	"github.com/nhost/hasura-storage/migrations"
 	"github.com/nhost/hasura-storage/storage"
@@ -69,6 +70,7 @@ func getGin(
 	hasuraAdminSecret string,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
+	imageTransformer *image.Transformer,
 	trustedProxies []string,
 	logger *logrus.Logger,
 	debug bool,
@@ -77,7 +79,7 @@ func getGin(
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	ctrl := controller.New(publicURL, hasuraAdminSecret, metadataStorage, contentStorage, logger)
+	ctrl := controller.New(publicURL, hasuraAdminSecret, metadataStorage, contentStorage, imageTransformer, logger)
 
 	return ctrl.SetupRouter(trustedProxies, ginLogger(logger)) // nolint: wrapcheck
 }
@@ -198,6 +200,9 @@ var serveCmd = &cobra.Command{
 			gin.SetMode(gin.ReleaseMode)
 		}
 
+		imageTransformer := image.NewTransformer()
+		defer imageTransformer.Shutdown()
+
 		logger.WithFields(
 			logrus.Fields{
 				"debug":               viper.GetBool(debugFlag),
@@ -240,6 +245,7 @@ var serveCmd = &cobra.Command{
 			viper.GetString(hasuraAdminSecretFlag),
 			metadataStorage,
 			contentStorage,
+			imageTransformer,
 			viper.GetStringSlice(trustedProxiesFlag),
 			logger,
 			viper.GetBool(debugFlag),

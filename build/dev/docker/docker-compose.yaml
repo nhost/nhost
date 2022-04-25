@@ -59,4 +59,3 @@ services:
       S3_BUCKET: "default"
       S3_ROOT_FOLDER: "f215cf48-7458-4596-9aa5-2159fc6a3caf"
     command: serve --postgres-migrations --postgres-migrations-source ${HASURA_GRAPHQL_DATABASE_URL:-postgres://postgres:hejsan@postgres:5432/postgres?sslmode=disable} --hasura-metadata --hasura-admin-secret ${HASURA_ADMIN_SECRET:-hello123} 
-

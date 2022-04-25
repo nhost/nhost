@@ -69,7 +69,7 @@ func TestGetFile(t *testing.T) {
 				nil,
 			)
 
-			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, logger)
+			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, nil, logger)
 
 			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
 

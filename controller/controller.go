@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/nhost/hasura-storage/image"
 	"github.com/sirupsen/logrus"
 )
 
@@ -80,6 +81,7 @@ type Controller struct {
 	hasuraAdminSecret string
 	metadataStorage   MetadataStorage
 	contentStorage    ContentStorage
+	imageTransformer  *image.Transformer
 	logger            *logrus.Logger
 }
 
@@ -88,6 +90,7 @@ func New(
 	hasuraAdminSecret string,
 	metadataStorage MetadataStorage,
 	contentStorage ContentStorage,
+	imageTransformer *image.Transformer,
 	logger *logrus.Logger,
 ) *Controller {
 	return &Controller{
@@ -95,6 +98,7 @@ func New(
 		hasuraAdminSecret,
 		metadataStorage,
 		contentStorage,
+		imageTransformer,
 		logger,
 	}
 }

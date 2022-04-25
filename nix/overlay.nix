@@ -21,28 +21,16 @@ final: prev: rec {
     });
   };
 
-  imagemagick = prev.imagemagick.override {
-    bzip2 = null;
-    zlib = null;
-    libX11 = null;
-    libXext = null;
-    libXt = null;
-    fontconfig = null;
-    freetype = null;
-    ghostscript = null;
-    # libjpeg = null;
-    djvulibre = null;
-    lcms2 = null;
-    openexr = null;
-    libjxl = null;
-    # libpng = null;
-    liblqr1 = null;
-    librsvg = null;
-    # libtiff = null;
-    # libxml2 = null;
-    # openjpeg = null;
-    # libwebp = null;
-    libheif = null;
-  };
+  vips = prev.vips.overrideAttrs (oldAttrs: rec {
+    buildInputs = [
+      final.glib
+      final.libxml2
+      final.expat
+      final.libjpeg
+      final.libpng
+      final.libwebp
+      final.openjpeg
+    ];
+  });
 
 }

@@ -9,6 +9,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/controller/mock_controller"
+	"github.com/nhost/hasura-storage/image"
 	"github.com/sirupsen/logrus"
 )
 
@@ -135,7 +136,7 @@ func TestGetFileInfo(t *testing.T) {
 				CacheControl:         "max-age=3600",
 			}, nil)
 
-			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, logger)
+			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, image.NewTransformer(), logger)
 
 			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
 

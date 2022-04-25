@@ -1,78 +1,105 @@
 package image
 
 import (
-	"context"
+	"bytes"
 	"fmt"
 	"io"
-	"os"
-	"os/exec"
+
+	"github.com/davidbyttow/govips/v2/vips"
 )
 
 const (
-	radiusMultiplier = 2
+	maxWorkers = 3
+	buffSize   = 5 << 20
 )
 
-type Options func(args []string) []string
-
-func WithBlur(sigma int) Options {
-	return func(args []string) []string {
-		return append(args, "-blur", fmt.Sprintf("%dx%d", sigma*radiusMultiplier, sigma))
-	}
+type Options struct {
+	Height  int
+	Width   int
+	Blur    float64
+	Quality int
 }
 
-func WithNewSize(x, y int) Options { // nolint: varnamelen
-	return func(args []string) []string {
-		return append(
-			args,
-			"-gravity", "Center",
-			"-resize", fmt.Sprintf("%dx%d^", x, y),
-			"-extent", fmt.Sprintf("%dx%d", x, y),
+func (o Options) IsEmpty() bool {
+	return o.Height == 0 && o.Width == 0 && o.Blur == 0 && o.Quality == 0
+}
+
+type Transformer struct {
+	workers chan struct{}
+}
+
+func NewTransformer() *Transformer {
+	vips.Startup(&vips.Config{
+		ConcurrencyLevel: 1,
+		MaxCacheFiles:    0,
+		MaxCacheMem:      0,
+		MaxCacheSize:     0,
+	})
+	vips.LoggingSettings(nil, vips.LogLevelWarning)
+
+	workers := make(chan struct{}, maxWorkers)
+	for i := 0; i < maxWorkers; i++ {
+		workers <- struct{}{}
+	}
+	return &Transformer{workers: workers}
+}
+
+func (t *Transformer) Shutdown() {
+	vips.Shutdown()
+}
+
+func (t *Transformer) loadImage(b []byte, opts Options) (*vips.ImageRef, error) {
+	var image1 *vips.ImageRef
+	var err error
+	if opts.Width != 0 || opts.Height != 0 {
+		image1, err = vips.LoadThumbnailFromBuffer(
+			b, opts.Width, opts.Height, vips.InterestingCentre, vips.SizeBoth, nil,
 		)
+	} else {
+		image1, err = vips.NewImageFromBuffer(b)
 	}
+	if err != nil {
+		return nil, fmt.Errorf("problem loading image: %w", err)
+	}
+	return image1, nil
 }
 
-func WithQuality(q int) Options {
-	return func(args []string) []string {
-		return append(args, "-quality", fmt.Sprintf("%d", q))
+func (t *Transformer) Run(orig io.Reader, modified io.Writer, opts Options) error {
+	<-t.workers
+	defer func() { t.workers <- struct{}{} }()
+
+	buf := bytes.NewBuffer(make([]byte, 0, buffSize))
+
+	_, err := io.Copy(buf, orig)
+	if err != nil {
+		panic(err)
 	}
-}
 
-/*
-Why shell out to imagemagick you may wonder. We evaluated following options:
-1. Pure go (using the std lib)
-2. govips (which leverages the C library vips)
-3. shelling out to imagemagick
-
-We noticed the following:
-
-1. govips was faster but memory management wasn't ideal. It consumed 2x the amount of RAM than the
-   pure go implementation and memory took forever to be freed
-2. pure go was slower than govips but memory consumption was ok. Not great but not terrible. In
-   addition, standard library support only a few formats and supporting extra formats would
-   require a lot of effort
-4. magicwand gave similar issues as govips
-5. shelling out to imamagic gave similar results in terms of speed as pure go, however, as we
-   are shellig out memory was consumed and immediately freed. In addition, imagemagick has ample
-   support to many many formats and functionality so in the end this is a very quick and big gain.
-
-In short, imagemagick was ok in terms of latency, great in terms of memory (as memory is freed
-when the process dies) and you get a lot of functionality for free.
-*/
-func Manipulate(ctx context.Context, orig io.Reader, modified io.Writer, opts ...Options) error {
-	args := make([]string, 0, len(opts)*2+1)
-	args = append(args, "-")
-	for _, o := range opts {
-		args = o(args)
+	image1, err := t.loadImage(buf.Bytes(), opts)
+	if err != nil {
+		return err
 	}
-	args = append(args, "-")
+	defer image1.Close()
 
-	cmd := exec.CommandContext(ctx, "magick", args...)
-	cmd.Stdin = orig
-	cmd.Stdout = modified
-	cmd.Stderr = os.Stderr
+	params := &vips.ExportParams{}
 
-	if err := cmd.Run(); err != nil {
-		return fmt.Errorf("problem running imagemagick: %w", err)
+	if opts.Quality != 0 {
+		params.Quality = opts.Quality
+	}
+
+	if opts.Blur != 0 {
+		if err := image1.GaussianBlur(opts.Blur); err != nil {
+			return fmt.Errorf("problem blurring image: %w", err)
+		}
+	}
+
+	b, _, err := image1.Export(params)
+	if err != nil {
+		return fmt.Errorf("problem exporting image: %w", err)
+	}
+
+	if _, err := modified.Write(b); err != nil {
+		return fmt.Errorf("problem writing image: %w", err)
 	}
 
 	return nil

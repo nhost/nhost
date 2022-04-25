@@ -101,7 +101,7 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 				gomock.Any(), "e6aad336-ad79-4df7-a09b-5782f71948f4", gomock.Any(),
 			).Return(controller.FileMetadataWithBucket{}, nil)
 
-			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, logger)
+			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, nil, logger)
 
 			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
 

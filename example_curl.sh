@@ -30,5 +30,5 @@ echo $output | jq
 time curl -v -o nhost.jpg $URL/${FILE_ID} \
       -H "$AUTH"
 
-time curl -v -o nhost.jpg $URL/${FILE_ID}?x=600\&y\=200\&q=50\&b=5 \
+time curl -v -o nhost.jpg $URL/${FILE_ID}?w=600\&h\=200\&q=50\&b=5 \
       -H "$AUTH"

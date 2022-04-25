@@ -2,7 +2,6 @@ package controller
 
 import (
 	"bytes"
-	"context"
 	"crypto/sha256"
 	"fmt"
 	"io"
@@ -19,17 +18,30 @@ type GetFileResponse struct {
 	Error *ErrorResponse `json:"error"`
 }
 
-func getQueryInt(ctx *gin.Context, param string) (int, bool, *APIError) {
+func getQueryInt(ctx *gin.Context, param string) (int, *APIError) {
 	s, ok := ctx.GetQuery(param)
 	if !ok {
-		return 0, false, nil
+		return 0, nil
 	}
 	x, err := strconv.Atoi(s)
 	if err != nil {
-		return 0, false, BadDataError(err, fmt.Sprintf("query parameter %s must be an int", param))
+		return 0, BadDataError(err, fmt.Sprintf("query parameter %s must be an int", param))
 	}
 
-	return x, true, nil
+	return x, nil
+}
+
+func getQueryFloat(ctx *gin.Context, param string) (float64, *APIError) {
+	s, ok := ctx.GetQuery(param)
+	if !ok {
+		return 0, nil
+	}
+	x, err := strconv.ParseFloat(s, 32) // nolint: gomnd
+	if err != nil {
+		return 0, BadDataError(err, fmt.Sprintf("query parameter %s must be an int", param))
+	}
+
+	return x, nil
 }
 
 func isImage(mimeType string) bool {
@@ -41,40 +53,34 @@ func isImage(mimeType string) bool {
 	return false
 }
 
-func getImageManipulationOptions(ctx *gin.Context, mimeType string) ([]image.Options, *APIError) { // nolint: cyclop
-	opts := make([]image.Options, 0, 3) // nolint: gomnd
-	// newSizeX, y, q, b
-	newSizeX, okX, err := getQueryInt(ctx, "w")
+func getImageManipulationOptions(ctx *gin.Context, mimeType string) (image.Options, *APIError) {
+	w, err := getQueryInt(ctx, "w")
 	if err != nil {
-		return nil, err
+		return image.Options{}, err
 	}
-	newSizeY, okY, err := getQueryInt(ctx, "h")
+	h, err := getQueryInt(ctx, "h")
 	if err != nil {
-		return nil, err
+		return image.Options{}, err
 	}
 
-	if okX || okY {
-		opts = append(opts, image.WithNewSize(newSizeX, newSizeY))
-	}
-
-	q, ok, err := getQueryInt(ctx, "q")
+	q, err := getQueryInt(ctx, "q")
 	if err != nil {
-		return nil, err
-	}
-	if ok {
-		opts = append(opts, image.WithQuality(q))
+		return image.Options{}, err
 	}
 
-	b, ok, err := getQueryInt(ctx, "b")
+	b, err := getQueryFloat(ctx, "b")
 	if err != nil {
-		return nil, err
-	}
-	if ok {
-		opts = append(opts, image.WithBlur(b))
+		return image.Options{}, err
 	}
 
-	if len(opts) > 0 && !isImage(mimeType) {
-		return nil, BadDataError(
+	opts := image.Options{
+		Height:  h,
+		Width:   w,
+		Blur:    b,
+		Quality: q,
+	}
+	if !opts.IsEmpty() && !isImage(mimeType) {
+		return image.Options{}, BadDataError(
 			fmt.Errorf("image manipulation features are not supported for '%s'", mimeType), // nolint: goerr113
 			fmt.Sprintf("image manipulation features are not supported for '%s'", mimeType),
 		)
@@ -96,12 +102,12 @@ func (p *FakeReadCloserWrapper) Close() error {
 }
 
 func (ctrl *Controller) manipulateImage(
-	ctx context.Context, object io.ReadCloser, opts ...image.Options,
+	object io.ReadCloser, opts image.Options,
 ) (io.ReadCloser, int64, string, *APIError) {
 	defer object.Close()
 
 	buf := &bytes.Buffer{}
-	if err := image.Manipulate(ctx, object, buf, opts...); err != nil {
+	if err := ctrl.imageTransformer.Run(object, buf, opts); err != nil {
 		return nil, 0, "", InternalServerError(err)
 	}
 
@@ -136,8 +142,8 @@ func (ctrl *Controller) processFileToDownload(
 		return nil, apiErr
 	}
 
-	if len(opts) > 0 {
-		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(ctx.Request.Context(), object, opts...)
+	if !opts.IsEmpty() {
+		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(object, opts)
 		if apiErr != nil {
 			return nil, apiErr
 		}

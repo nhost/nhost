@@ -71,12 +71,10 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 	if apiErr != nil {
 		return nil, apiErr
 	}
-	if len(opts) > 0 {
+	if !opts.IsEmpty() {
 		defer download.Body.Close()
 
-		download.Body, download.ContentLength, download.Etag, apiErr = ctrl.manipulateImage(
-			ctx.Request.Context(), download.Body, opts...,
-		)
+		download.Body, download.ContentLength, download.Etag, apiErr = ctrl.manipulateImage(download.Body, opts)
 		if apiErr != nil {
 			return nil, apiErr
 		}

@@ -10,6 +10,7 @@ linters:
       # - paralleltest
       # - testpackage
       # - forbidigo
+      - varnamelen
       - gomoddirectives
       - nlreturn
       - wsl
@@ -25,15 +26,6 @@ issues:
       linters:
         - gochecknoinits
         - gochecknoglobals
-    - text: "variable name 'ok' is too short for the scope of its usage"
-      linters:
-        - varnamelen
-    - text: "variable name 'b' is too short for the scope of its usage"
-      linters:
-        - varnamelen
-    - text: "parameter name 'wr' is too short for the scope of its usage"
-      linters:
-        - varnamelen
     - linters:
         - lll
       source: "^//go:generate "
@@ -44,4 +36,3 @@ issues:
       linters:
         - funlen
         - ireturn
-        - varnamelen
