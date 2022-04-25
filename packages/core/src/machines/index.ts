@@ -699,6 +699,8 @@ export const createAuthMachine = ({
             }
             return { session }
           } else {
+            // * Look for `error` in the url parameters.
+            // * If it is present, returns it in the rejected promise so it is loaded into the machine
             const params = new URLSearchParams(window.location.search)
             const error = params.get('error')
             if (error) {
@@ -706,7 +708,7 @@ export const createAuthMachine = ({
                 error: {
                   status: VALIDATION_ERROR_CODE,
                   error,
-                  message: params.get('errorDescription') || undefined
+                  message: params.get('errorDescription') || error
                 }
               })
             } else {
