@@ -51,9 +51,9 @@ auth:
       enabled: false
       scope: email,photos,displayName
     github:
-      enabled: true
-      client_id: '35369d946cfcb0896c1f'
-      client_secret: '9ac4df0ec93e0ed3e725cb79e08712bb74e704a6'
+      enabled: false
+      client_id: ''
+      client_secret: ''
       scope: user:email
       token_url: ''
       user_profile_url: ''
