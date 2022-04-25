@@ -26,6 +26,7 @@ export default defineConfig({
     })
   ],
   build: {
+    sourcemap: true,
     lib: {
       entry,
       name: pkg.name,

@@ -318,10 +318,11 @@ importers:
       js-cookie: ^3.0.1
       xstate: ^4.30.5
     dependencies:
-      '@nhost/config': link:../config
       axios: 0.25.0
       js-cookie: 3.0.1
       xstate: 4.31.0
+    devDependencies:
+      '@nhost/config': link:../config
 
   packages/hasura-auth-js:
     specifiers:

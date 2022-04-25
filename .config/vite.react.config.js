@@ -9,10 +9,11 @@ export default defineConfig({
     ...baseConfig.build,
     rollupOptions: {
       ...baseConfig.rollupOptions,
-      external: ['react', '@nhost/react'],
+      external: ['react', 'react-dom', '@nhost/react'],
       output: {
         globals: {
           react: 'react',
+          'react-dom': 'react-dom',
           '@nhost/react': '@nhost/react'
         }
       }
