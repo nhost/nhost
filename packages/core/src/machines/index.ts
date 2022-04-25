@@ -11,7 +11,9 @@ import {
   INVALID_EMAIL_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
-  NO_MFA_TICKET_ERROR
+  NO_MFA_TICKET_ERROR,
+  VALIDATION_ERROR_CODE,
+  ValidationErrorPayload
 } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
@@ -32,10 +34,6 @@ export * from './send-verification-email'
 export type AuthMachineOptions = {
   backendUrl: string
   clientUrl?: string
-  /**
-   * Interval in seconds before refreshing the JWT regardless of its expiration.
-   * When undefined, the option is ignored and the refresh will start 3 minutes before the access token (JWT) expiration
-   */
   refreshIntervalTime?: number
   clientStorageGetter?: StorageGetter
   clientStorageSetter?: StorageSetter
@@ -99,7 +97,7 @@ export const createAuthMachine = ({
                   target: 'signedIn',
                   actions: ['saveSession', 'persist', 'reportTokenChanged']
                 },
-                onError: 'importingRefreshToken'
+                onError: { actions: ['saveAuthenticationError'], target: 'importingRefreshToken' }
               }
             },
             importingRefreshToken: {
@@ -119,6 +117,7 @@ export const createAuthMachine = ({
                   cond: 'hasRefreshTokenWithoutSession',
                   target: ['authenticating.token', '#nhost.token.running']
                 },
+                { cond: 'hasAuthenticationError', target: 'signedOut.failed' },
                 'signedOut'
               ]
             },
@@ -501,23 +500,19 @@ export const createAuthMachine = ({
         }),
 
         resetTimer: assign({
-          refreshTimer: (ctx, e) => {
-            return {
-              startedAt: new Date(),
-              attempts: 0,
-              lastAttempt: null
-            }
-          }
+          refreshTimer: (ctx, e) => ({
+            startedAt: new Date(),
+            attempts: 0,
+            lastAttempt: null
+          })
         }),
 
         saveRefreshAttempt: assign({
-          refreshTimer: (ctx, e) => {
-            return {
-              startedAt: ctx.refreshTimer.startedAt,
-              attempts: ctx.refreshTimer.attempts + 1,
-              lastAttempt: new Date()
-            }
-          }
+          refreshTimer: (ctx, e) => ({
+            startedAt: ctx.refreshTimer.startedAt,
+            attempts: ctx.refreshTimer.attempts + 1,
+            lastAttempt: new Date()
+          })
         }),
 
         // * Authenticaiton errors
@@ -582,6 +577,7 @@ export const createAuthMachine = ({
         noToken: (ctx) => !ctx.refreshToken.value,
         noMfaTicket: (ctx, { ticket }) => !ticket && !ctx.mfa?.ticket,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
+        hasAuthenticationError: (ctx) => !!ctx.errors.authentication,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         isAutoSignInDisabled: () => !autoSignIn,
         refreshTimerShouldRefresh: (ctx) => {
@@ -680,32 +676,43 @@ export const createAuthMachine = ({
           // TODO throwing errors is not really important as they are captured by the xstate invoker
           // * Still, keep them for the moment as it needs to be tested in every environemnt e.g. nodejs, expo, react-native...
           if (typeof window === 'undefined' || !window.location) {
-            throw Error('window is undefined or location does not exist')
+            return Promise.reject({ error: null })
           }
           const { hash } = window.location
-          if (!hash) {
-            throw Error('No hash in window.location')
+          if (hash) {
+            const params = new URLSearchParams(hash.slice(1))
+            const refreshToken = params.get('refreshToken')
+            if (!refreshToken) {
+              return Promise.reject({ error: null })
+            }
+            const session = await postRequest('/token', { refreshToken })
+            // * remove hash from the current url after consumming the token
+            // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
+            // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
+            // window.history.pushState({}, '', location.pathname)
+            try {
+              const channel = new BroadcastChannel('nhost')
+              // ? broadcat session instead of token ?
+              channel.postMessage(refreshToken)
+            } catch (error) {
+              // * BroadcastChannel is not available e.g. react-native
+            }
+            return { session }
+          } else {
+            const params = new URLSearchParams(window.location.search)
+            const error = params.get('error')
+            if (error) {
+              return Promise.reject<{ error: ValidationErrorPayload }>({
+                error: {
+                  status: VALIDATION_ERROR_CODE,
+                  error,
+                  message: params.get('errorDescription') || undefined
+                }
+              })
+            } else {
+              return Promise.reject({ error: null })
+            }
           }
-          const params = new URLSearchParams(hash.slice(1))
-          const refreshToken = params.get('refreshToken')
-          if (!refreshToken) {
-            throw Error('No refresh token in the location hash')
-          }
-          const session = await postRequest('/token', {
-            refreshToken
-          })
-          // * remove hash from the current url after consumming the token
-          // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
-          // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
-          // window.history.pushState({}, '', location.pathname)
-          try {
-            const channel = new BroadcastChannel('nhost')
-            // ? broadcat session instead of token ?
-            channel.postMessage(refreshToken)
-          } catch (error) {
-            // * BroadcastChannel is not available e.g. react-native
-          }
-          return { session }
         },
         importRefreshToken: async () => {
           const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)
