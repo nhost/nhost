@@ -1,10 +1,13 @@
 ---
 title: useSignOut()
 sidebar_label: useSignOut()
-description: No description provided.
+description: Sign out The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
 ---
 
 # `useSignOut()`
+
+Sign out
+The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
 
 ## Parameters
 
@@ -13,3 +16,30 @@ description: No description provided.
 **<span className="parameter-name">stateAll</span>** <span className="optional-status">required</span> `boolean`
 
 ---
+
+## Examples
+
+```js
+const { signOut, isSuccess } = useSignOut()
+```
+
+```jsx
+import { useState } from 'react'
+import { useSignOut, useAuthenticated } from '@nhost/react'
+
+const Component = () => {
+  const { signOut, isSuccess } = useSignOut()
+  const authenticated = useAuthenticated()
+
+  if (authenticated) {
+    return (
+      <div>
+        <button onClick={signUp}>Sign Out</button>
+        {isSuccess && <div>You have successfully signed out!</div>}
+      </div>
+    )
+  }
+
+  return <div>Not authenticated</div>
+}
+```
