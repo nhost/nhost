@@ -48,6 +48,7 @@ const sidebars = {
     {
       type: 'category',
       label: 'JavaScript',
+      collapsed: false,
       link: {
         type: 'generated-index',
         slug: '/reference/javascript',
