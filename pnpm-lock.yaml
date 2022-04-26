@@ -362,6 +362,7 @@ importers:
   packages/hasura-auth-js:
     specifiers:
       '@nhost/core': workspace:^
+      '@nhost/docgen': '*'
       '@types/faker': '5'
       axios: ^0.26.0
       faker: '5'
@@ -371,6 +372,7 @@ importers:
     dependencies:
       '@nhost/core': link:../core
     devDependencies:
+      '@nhost/docgen': link:../docgen
       '@types/faker': 5.5.9
       axios: 0.26.1
       faker: 5.5.3
@@ -380,13 +382,17 @@ importers:
 
   packages/hasura-storage-js:
     specifiers:
+      '@nhost/docgen': '*'
       axios: ^0.21.1
     dependencies:
       axios: 0.21.4
+    devDependencies:
+      '@nhost/docgen': link:../docgen
 
   packages/nextjs:
     specifiers:
       '@nhost/core': workspace:^
+      '@nhost/docgen': '*'
       '@nhost/nhost-js': workspace:^
       '@nhost/react': workspace:^
       '@types/cookies': ^0.7.7
@@ -400,6 +406,7 @@ importers:
       cookies: 0.8.0
     devDependencies:
       '@nhost/core': link:../core
+      '@nhost/docgen': link:../docgen
       '@nhost/react': link:../react
       '@types/cookies': 0.7.7
       next: 12.0.10_f370f735164a03a12cea0cc89593cbee
@@ -410,6 +417,7 @@ importers:
   packages/nhost-js:
     specifiers:
       '@nhost/core': workspace:^
+      '@nhost/docgen': '*'
       '@nhost/hasura-auth-js': workspace:^
       '@nhost/hasura-storage-js': workspace:^
       axios: ^0.23.0
@@ -424,11 +432,13 @@ importers:
       query-string: 7.1.1
     devDependencies:
       '@nhost/core': link:../core
+      '@nhost/docgen': link:../docgen
       graphql: 15.7.2
 
   packages/react:
     specifiers:
       '@nhost/core': workspace:^
+      '@nhost/docgen': '*'
       '@nhost/hasura-auth-js': workspace:^
       '@nhost/nhost-js': workspace:^
       '@xstate/inspect': ^0.6.2
@@ -443,6 +453,7 @@ importers:
       immer: 9.0.12
     devDependencies:
       '@nhost/core': link:../core
+      '@nhost/docgen': link:../docgen
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@xstate/inspect': 0.6.5_ws@8.5.0+xstate@4.31.0
       react: 17.0.2

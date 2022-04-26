@@ -66,7 +66,12 @@ export async function generateTypes(
               label: 'Types',
               position: 1,
               className: 'hidden',
-              link: { type: 'generated-index', slug: `${docsRoot}/types` }
+              link: {
+                type: 'generated-index',
+                slug: `${
+                  docsRoot ? (docsRoot.startsWith('/') ? docsRoot : `/${docsRoot}`) : ''
+                }/types`
+              }
             },
             null,
             2

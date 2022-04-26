@@ -4,12 +4,12 @@
   "private": true,
   "version": "0.1.0",
   "license": "MIT",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "main": "dist/index.cjs.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "dev": "ts-node ./src/index.ts",
@@ -27,6 +27,7 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
+  "bin": "dist/index.js",
   "devDependencies": {
     "@swc/core": "^1.2.163",
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",

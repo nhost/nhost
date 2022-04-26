@@ -1,8 +1,21 @@
+#!/usr/bin/env node
 import { snapshot } from 'valtio/vanilla'
 
 import { getModuleContentMap } from './helpers'
 import { appState } from './state'
 import { Parameter, Signature } from './types'
+
+interface AppConfig {
+  path: string
+  output: string
+  root: string
+  slug?: string
+  sidebarConfig?: string
+  title?: string
+  cleanup?: boolean
+  verbose?: boolean
+  config?: string
+}
 
 /**
  * Generates the class, function and type documentation for a module.
@@ -43,6 +56,13 @@ async function generateModuleDocumentation(
   await generateTypes(parsedContent, output)
 }
 
+function shallowMergeConfigs(a: AppConfig, b: AppConfig) {
+  return {
+    ...a,
+    ...b
+  }
+}
+
 /**
  * Generates the documentation from the auto-generated JSON file.
  */
@@ -57,15 +77,28 @@ async function parser() {
     .option('--sidebarConfig <name>', 'Docusaurus sidebar configuration to display')
     .option('-v, --verbose', 'Verbose mode')
     .option('-c, --cleanup', 'Cleanup the output directory before generating docs')
+    .option('--config <name>', 'DocGen configuration file to use instead of options')
     .parse()
 
-  const { path, output, root, title, slug, sidebarConfig, cleanup, verbose } = command.opts()
-
-  appState.verbose = verbose
-  appState.sidebarConfig = sidebarConfig
-  appState.baseSlug = slug
+  const { config, ...args } = command.opts<AppConfig>()
 
   try {
+    // note: we are merging it with config file if specified
+    let finalConfig = args
+
+    if (config) {
+      const { default: fs } = await import('fs/promises')
+      const configFile = await fs.readFile(config, 'utf8')
+
+      if (configFile) {
+        const config = JSON.parse(configFile) as Omit<AppConfig, 'config'>
+
+        finalConfig = shallowMergeConfigs(args, config)
+      }
+    }
+
+    const { path, output, root, verbose, slug, sidebarConfig, cleanup, title } = finalConfig
+
     if (!path) {
       throw new Error(`Please specify path to the auto-generated JSON file. (See -p or --path)`)
     }
@@ -80,6 +113,9 @@ async function parser() {
       )
     }
 
+    appState.verbose = verbose
+    appState.sidebarConfig = sidebarConfig
+    appState.baseSlug = slug
     appState.docsRoot = root
 
     const { default: chalk } = await import('chalk')

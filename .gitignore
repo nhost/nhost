@@ -54,4 +54,5 @@ todo.md
 
 # TypeDoc output
 
-typedoc/output/*
+**/__tsdoc__
+**/__tsdoc__/*

@@ -1,17 +1,20 @@
 {
+  "$schema": "https://turborepo.org/schema.json",
   "baseBranch": "origin/main",
-  "npmClient": "pnpm",
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "build/**", ".next"]
     },
     "start": {
-      "outputs": [],
+      "cache": false,
       "dependsOn": ["^build"]
     },
     "test": {
       "outputs": []
+    },
+    "docgen": {
+      "outputs": ["docs/docs/**"]
     },
     "lint": { "outputs": [] },
     "lint:fix": { "outputs": [] }

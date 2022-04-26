@@ -1,10 +1,10 @@
 {
   "$schema": "https://typedoc.org/schema.json",
   "entryPointStrategy": "Packages",
-  "entryPoints": ["../packages/nhost-js"],
+  "entryPoints": ["."],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./output/nhost-js.json",
+  "json": "./__tsdoc__/nhost-js.json",
   "name": "Nhost JS",
   "readme": "none",
   "githubPages": false,
