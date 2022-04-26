@@ -1,11 +1,18 @@
 ---
 title: useSignOut()
 sidebar_label: useSignOut()
+<<<<<<< HEAD:docs/docs/reference/docgen/nextjs/content/use-sign-out.mdx
 slug: reference/nextjs/use-sign-out
 description: No description provided.
+=======
+description: Sign out The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
+>>>>>>> 707877477f51d0c4852f28fba819f164f09fc20b:docs/docs/reference/docgen/nextjs/use-sign-out.mdx
 ---
 
 # `useSignOut()`
+
+Sign out
+The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
 
 ## Parameters
 
@@ -14,3 +21,30 @@ description: No description provided.
 **<span className="parameter-name">stateAll</span>** <span className="optional-status">required</span> `boolean`
 
 ---
+
+## Examples
+
+```js
+const { signOut, isSuccess } = useSignOut()
+```
+
+```jsx
+import { useState } from 'react'
+import { useSignOut, useAuthenticated } from '@nhost/react'
+
+const Component = () => {
+  const { signOut, isSuccess } = useSignOut()
+  const authenticated = useAuthenticated()
+
+  if (authenticated) {
+    return (
+      <div>
+        <button onClick={signUp}>Sign Out</button>
+        {isSuccess && <div>You have successfully signed out!</div>}
+      </div>
+    )
+  }
+
+  return <div>Not authenticated</div>
+}
+```

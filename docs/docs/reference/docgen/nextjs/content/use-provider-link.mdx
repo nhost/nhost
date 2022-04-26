@@ -1,11 +1,17 @@
 ---
 title: useProviderLink()
 sidebar_label: useProviderLink()
+<<<<<<< HEAD:docs/docs/reference/docgen/nextjs/content/use-provider-link.mdx
 slug: reference/nextjs/use-provider-link
 description: No description provided.
+=======
+description: Oauth Providers
+>>>>>>> 707877477f51d0c4852f28fba819f164f09fc20b:docs/docs/reference/docgen/nextjs/use-provider-link.mdx
 ---
 
 # `useProviderLink()`
+
+Oauth Providers
 
 ## Parameters
 
@@ -14,3 +20,24 @@ description: No description provided.
 **<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `ProviderOptions`
 
 ---
+
+## Examples
+
+```js
+const providerLink = useProviderLink()
+```
+
+```js
+import { useProviderLink } from '@nhost/react'
+
+const Component = () => {
+  const { facebook, github } = useProviderLink()
+
+  return (
+    <div>
+      <a href={facebook}>Authenticate with Facebook</a>
+      <a href={github}>Authenticate with GitHub</a>
+    </div>
+  )
+}
+```
