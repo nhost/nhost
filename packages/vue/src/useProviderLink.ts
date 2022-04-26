@@ -3,6 +3,13 @@ import { ProviderOptions } from '@nhost/core'
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
+/**
+ * Oauth Providers
+ * @example
+```js
+const providerLink = useProviderLink();
+```
+*/
 export const useProviderLink = (options?: RefOrValue<ProviderOptions>) => {
   const { client } = useNhostClient()
   // TODO

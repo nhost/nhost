@@ -19,10 +19,10 @@ import { Mfa, NhostSession } from '../types'
 import { rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
 
-import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
+import { AuthContext, INITIAL_MACHINE_CONTEXT, StateErrorTypes } from './context'
 import { AuthEvents } from './events'
 
-export type { AuthContext, AuthEvents }
+export type { AuthContext, AuthEvents, StateErrorTypes }
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'

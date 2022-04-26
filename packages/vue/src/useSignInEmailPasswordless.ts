@@ -1,34 +1,66 @@
-import { unref } from 'vue'
+import { ToRefs, unref } from 'vue'
 
 import { PasswordlessOptions } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
+import {
+  ActionComposableErrorState,
+  ActionComposableSuccessState,
+  DefaultActionComposableState
+} from './types'
 import { useAuthInterpreter } from './useAuthInterpreter'
+import { useError } from './useError'
 
-export const useSignInEmailPasswordless = (options?: RefOrValue<PasswordlessOptions>) => {
+interface SignInEmailPasswordlessHandlerResult
+  extends ActionComposableErrorState,
+    ActionComposableSuccessState {}
+
+interface SignInEmailPasswordlessComposableResult extends ToRefs<DefaultActionComposableState> {
+  /** Sends a magic link to the given email */
+  signInEmailPasswordless(email: string): Promise<SignInEmailPasswordlessHandlerResult>
+}
+
+/**
+ * Passwordless email authentication
+ */
+export const useSignInEmailPasswordless = (
+  options?: RefOrValue<PasswordlessOptions>
+): SignInEmailPasswordlessComposableResult => {
   const service = useAuthInterpreter()
   const signInEmailPasswordless = (email: RefOrValue<string>) =>
-    service.value.send({
-      type: 'SIGNIN_PASSWORDLESS_EMAIL',
-      email: unref(email),
-      options: unref(options)
+    new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
+      service.value.send({
+        type: 'SIGNIN_PASSWORDLESS_EMAIL',
+        email: unref(email),
+        options: unref(options)
+      })
+      service.value.onTransition((state) => {
+        if (state.matches({ authentication: { signedOut: 'failed' } })) {
+          resolve({
+            error: state.context.errors.authentication || null,
+            isError: true,
+            isSuccess: false
+          })
+        } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+          resolve({ error: null, isError: false, isSuccess: true })
+        }
+      })
     })
 
-  const error = useSelector(
-    service.value,
-    (state) => state.context.errors.authentication,
-    (a, b) => a?.error === b?.error
-  )
-  const isLoading =
-    !!service.value.status &&
-    service.value.state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
-  const isSuccess =
-    !!service.value.status &&
-    service.value.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+  const error = useError('authentication')
 
-  const isError =
-    !!service.value.status &&
-    service.value.state.matches({ authentication: { signedOut: 'failed' } })
+  const isLoading = useSelector(service.value, (state) =>
+    state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
+  )
+
+  const isSuccess = useSelector(service.value, (state) =>
+    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+  )
+
+  const isError = useSelector(service.value, (state) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
+
   return { signInEmailPasswordless, isLoading, isSuccess, isError, error }
 }

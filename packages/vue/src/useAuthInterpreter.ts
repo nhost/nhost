@@ -5,6 +5,7 @@ import { AuthMachine } from '@nhost/core'
 
 import { useNhostClient } from './useNhostClient'
 
+/** @internal */
 export const useAuthInterpreter = (): Ref<InterpreterFrom<AuthMachine>> => {
   const { client } = useNhostClient()
 
@@ -13,9 +14,4 @@ export const useAuthInterpreter = (): Ref<InterpreterFrom<AuthMachine>> => {
     if (!interpreter) throw Error('No interpreter')
     return interpreter
   })
-}
-
-export const useNhostBackendUrl = () => {
-  const { client } = useNhostClient()
-  return computed(() => client.auth.client.backendUrl.replace('/v1/auth', ''))
 }
