@@ -1,0 +1,72 @@
+---
+title: getNhostSession()
+sidebar_label: getNhostSession()
+description: Refreshes the access token if there is any and returns the Nhost session.
+---
+
+# `getNhostSession()`
+
+Refreshes the access token if there is any and returns the Nhost session.
+
+**`@returns`**
+
+Nhost session
+
+```js
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const nhostSession = await getNhostSession(BACKEND_URL, context)
+
+  return {
+    props: {
+      nhostSession
+    }
+  }
+}
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">backendUrl</span>** <span className="optional-status">required</span> `string`
+
+URL of your Nhost application
+
+---
+
+**<span className="parameter-name">context</span>** <span className="optional-status">required</span> `NextPageContext` | `GetServerSidePropsContext<ParsedUrlQuery, PreviewData>`
+
+Next.js context
+
+---
+
+## Examples
+
+### Using an arrow function
+
+```js
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const nhostSession = await getNhostSession(BACKEND_URL, context)
+
+  return {
+    props: {
+      nhostSession
+    }
+  }
+}
+```
+
+### Using a regular function
+
+```js
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  // or NextPageContext
+  const nhostSession = await getNhostSession(BACKEND_URL, context)
+
+  return {
+    props: {
+      nhostSession
+    }
+  }
+}
+```

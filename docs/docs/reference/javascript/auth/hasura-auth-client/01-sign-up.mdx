@@ -1,0 +1,27 @@
+---
+title: signUp()
+sidebar_label: signUp()
+description: Use `signUp` to sign up users using email an password.
+---
+
+# `signUp()`
+
+Use `signUp` to sign up users using email an password.
+
+```ts
+auth.signIn({ email, password }) // email password
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`SignUpEmailPasswordParams`](/reference/javascript/auth/types/sign-up-email-password-params)
+
+| Property                                                                                    | Type            | Required | Notes |
+| :------------------------------------------------------------------------------------------ | :-------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">params.</span>password</span> | `string`        |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>email</span>    | `string`        |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>options</span>  | `SignUpOptions` |          |       |
+
+---

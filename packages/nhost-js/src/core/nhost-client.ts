@@ -4,7 +4,10 @@ import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 
-export type NhostClientConstructorParams = Omit<NhostAuthConstructorParams, 'url'> & {
+export interface NhostClientConstructorParams extends Omit<NhostAuthConstructorParams, 'url'> {
+  /**
+   * Nhost backend URL.
+   */
   backendUrl: string
 }
 

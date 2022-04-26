@@ -37,11 +37,16 @@
     "docgen:build": "turbo run build --scope='@nhost/docgen'",
     "typedoc:auth": "typedoc --options \"./typedoc/auth.typedoc.json\"",
     "typedoc:react": "typedoc --options \"./typedoc/react.typedoc.json\"",
+    "typedoc:nextjs": "typedoc --options \"./typedoc/nextjs.typedoc.json\"",
+    "typedoc:nhost-js": "typedoc --options \"./typedoc/nhost-js.typedoc.json\"",
     "typedoc:storage": "typedoc --options \"./typedoc/storage.typedoc.json\"",
-    "docgen:auth": "pnpm typedoc:auth && pnpm docgen:build && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/auth.json --output ../../docs/docs/reference/javascript/auth --root reference/javascript/auth --cleanup --title \"Auth\"",
-    "docgen:storage": "pnpm typedoc:storage && pnpm docgen:build && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/storage.json --output ../../docs/docs/reference/javascript/storage --root reference/javascript/storage --cleanup --title \"Storage\"",
-    "docgen:react": "pnpm typedoc:react && pnpm docgen:build && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/react.json --output ../../docs/docs/reference/javascript/react --root reference/javascript/react --cleanup --title \"React\"",
-    "docgen:combined": "pnpm docgen:auth && pnpm docgen:storage && pnpm docgen:react"
+    "pre-docgen": "pnpm docgen:build",
+    "docgen:auth": "pnpm typedoc:auth && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/auth.json --output ../../docs/docs/reference/javascript/auth --root reference/javascript/auth --cleanup --title \"Auth\"",
+    "docgen:storage": "pnpm typedoc:storage && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/storage.json --output ../../docs/docs/reference/javascript/storage --root reference/javascript/storage --cleanup --title \"Storage\"",
+    "docgen:nhost-js": "pnpm typedoc:nhost-js && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/nhost-js.json --output ../../docs/docs/reference/javascript/nhost-js --root reference/javascript/nhost-js --cleanup --title \"Nhost JS\"",
+    "docgen:react": "pnpm typedoc:react && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/react.json --output ../../docs/docs/reference/react --root reference/react --cleanup --title \"React\"",
+    "docgen:nextjs": "pnpm typedoc:nextjs && turbo run start --scope='@nhost/docgen' --no-cache -- -- --path ../../typedoc/output/nextjs.json --output ../../docs/docs/reference/nextjs --root reference/nextjs --cleanup --title \"Next.js\"",
+    "docgen:combined": "pnpm pre-docgen && pnpm docgen:auth && pnpm docgen:storage && pnpm docgen:nhost-js && pnpm docgen:react && pnpm docgen:nextjs"
   },
   "workspaces": [
     "packages/*",

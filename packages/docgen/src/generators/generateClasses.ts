@@ -49,7 +49,8 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       await fs.writeFile(`${outputDirectory}/index.mdx`, index, 'utf-8')
 
       await generateFunctions(subPages, outputDirectory, {
-        originalDocument: parsedContent
+        originalDocument: parsedContent,
+        keepOriginalOrder: true
       })
 
       return { name, fileOutput: outputDirectory }
