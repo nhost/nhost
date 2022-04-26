@@ -22,6 +22,7 @@ export const ClassTemplate = (
 ---
 title: ${name}
 sidebar_label: ${alias || name}
+sidebar_class_name: hidden
 description: ${comment?.shortText?.replace(/\n/gi, ' ') || 'No description provided.'}
 ---
 

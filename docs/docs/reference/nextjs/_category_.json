@@ -1,3 +1,4 @@
 {
-  "label": "Next.js"
+  "label": "Next.js",
+  "link": { "type": "generated-index", "slug": "/reference/nextjs" }
 }
