@@ -14,7 +14,7 @@ interface RegistrationOptions {
   locale?: string
   /**
    * Allowed roles of the user. Must be a subset of the default allowed roles defined in Hasura Auth.
-   * @example `['user','me']
+   * @example `['user','me']`
    */
   allowedRoles?: string[]
   /**

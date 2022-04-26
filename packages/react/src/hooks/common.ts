@@ -8,7 +8,7 @@ import { useSelector } from '@xstate/react'
 import { NhostReactContext } from '../provider'
 
 export interface ActionHookErrorState {
-  /** @return true` if an error occurred */
+  /** @return `true` if an error occurred */
   isError: boolean
   /** Provides details about the error */
   error: ErrorPayload | null
