@@ -1,18 +1,53 @@
 ---
 title: useChangeEmail()
 sidebar_label: useChangeEmail()
-description: No description provided.
+description: Change email
 ---
 
 # `useChangeEmail()`
+
+## Change email
 
 ### Parameters
 
 ---
 
-**options** <span className="optional-status">optional</span> `RedirectOption`
+**options** <span className="optional-status">optional</span> `ChangeEmailOptions`
 
 ---
+
+## Examples
+
+```js
+const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+  useChangeEmail()
+```
+
+```jsx
+import { useState } from 'react'
+import { useChangeEmail } from '@nhost/react'
+
+const Component = () => {
+  const [email, setEmail] = useState('')
+  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+    useChangeEmail()
+
+  return (
+    <div>
+      <input value={email} onChange={(event) => setEmail(event.target.value)} />
+      <button onClick={() => changeEmail(email)}>Change email</button>
+      {needsEmailVerification && (
+        <div>
+          Please check your mailbox and follow the verification link to confirm
+          your new email
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Change email
 
 ### Parameters
 
@@ -22,6 +57,37 @@ description: No description provided.
 
 ---
 
-**options** <span className="optional-status">optional</span> `RedirectOption`
+**options** <span className="optional-status">optional</span> `ChangeEmailOptions`
 
 ---
+
+## Examples
+
+```js
+const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+  useChangeEmail()
+```
+
+```jsx
+import { useState } from 'react'
+import { useChangeEmail } from '@nhost/react'
+
+const Component = () => {
+  const [email, setEmail] = useState('')
+  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+    useChangeEmail()
+
+  return (
+    <div>
+      <input value={email} onChange={(event) => setEmail(event.target.value)} />
+      <button onClick={() => changeEmail(email)}>Change email</button>
+      {needsEmailVerification && (
+        <div>
+          Please check your mailbox and follow the verification link to confirm
+          your new email
+        </div>
+      )}
+    </div>
+  )
+}
+```

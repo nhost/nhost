@@ -1,0 +1,39 @@
+---
+title: DefaultActionHookState
+sidebar_label: DefaultActionHookState
+description: No description provided.
+---
+
+# `DefaultActionHookState`
+
+## Parameters
+
+---
+
+**isError** <span className="optional-status">required</span> `boolean`
+
+**`@returns`**
+
+true` if an error occurred
+
+---
+
+**error** <span className="optional-status">required</span> `null` | `ErrorPayload`
+
+Provides details about the error
+
+---
+
+**isLoading** <span className="optional-status">required</span> `boolean`
+
+**`@returns`**
+
+`true` when the action is executing, `false` when it finished its execution.
+
+---
+
+**isSuccess** <span className="optional-status">required</span> `boolean`
+
+Returns `true` if the action is successful.
+
+---
