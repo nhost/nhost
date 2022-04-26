@@ -1,5 +1,17 @@
+import { snapshot } from 'valtio/vanilla'
+
 import mockClass from '../__mocks__/mockClass'
+import { appState } from '../state'
 import ClassTemplate from './ClassTemplate'
+
+// TODO: this is an implementation detail, dependency should be handled in some other way
+const initialState = snapshot(appState)
+
+afterEach(() => {
+  appState.verbose = initialState.verbose
+  appState.docsRoot = initialState.docsRoot
+  appState.contentReferences = initialState.contentReferences
+})
 
 const classSignatureBase = {
   ...mockClass,
@@ -99,12 +111,14 @@ This is a sample deprecation note.
 })
 
 test('should contain parameters', () => {
+  appState.contentReferences = new Map([[698, 'Class']])
+
   expect(ClassTemplate(classSignatureBase)).toContain(`
 ## Parameters
 
 ---
 
-**options** <span className="optional-status">required</span> [\`NhostClientOptions\`](/types/nhost-client-options)
+**<span className="parameter-name">options</span>** <span className="optional-status">required</span> [\`NhostClientOptions\`](/nhost-client-options)
 
 Sample Description
 

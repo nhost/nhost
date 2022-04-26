@@ -77,7 +77,7 @@ ${
         .join('\n\n')}`
     : ``
 }`,
-    { parser: 'markdown', semi: false, singleQuote: true }
+    { parser: 'markdown', semi: false, singleQuote: true, trailingComma: 'none' }
   )
 }
 

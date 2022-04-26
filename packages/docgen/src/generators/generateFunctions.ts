@@ -6,7 +6,14 @@ import { snapshot } from 'valtio'
 import { appState } from '../state'
 import { GeneratorOptions, Signature } from '../types'
 
-export type GenerateFunctionsOptions = GeneratorOptions & {}
+export type GenerateFunctionsOptions = GeneratorOptions & {
+  /**
+   * Whether or not to keep the original order of the functions.
+   *
+   * @default false
+   */
+  keepOriginalOrder?: boolean
+}
 
 /**
  * Generates the documentation for functions from the auto-generated JSON file.
@@ -19,7 +26,7 @@ export type GenerateFunctionsOptions = GeneratorOptions & {}
 export async function generateFunctions(
   parsedContent: Array<Signature>,
   outputPath: string,
-  { originalDocument = null }: GeneratorOptions = {}
+  { originalDocument = null, keepOriginalOrder = false }: GenerateFunctionsOptions = {}
 ) {
   const { verbose } = snapshot(appState)
   const { FunctionTemplate } = await import('../templates')
@@ -31,8 +38,10 @@ export async function generateFunctions(
     }))
 
   const results = await Promise.allSettled(
-    functions.map(async ({ name, content }) => {
-      const fileName = `${kebabCase(name)}.mdx`
+    functions.map(async ({ name, content }, index) => {
+      const fileName = keepOriginalOrder
+        ? `${(index + 1).toString().padStart(2, '0')}-${kebabCase(name)}.mdx`
+        : `${kebabCase(name)}.mdx`
       const fileOutput = `${outputPath}/${fileName}`
 
       // we are creating the folder for functions

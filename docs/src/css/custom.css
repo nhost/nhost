@@ -223,6 +223,11 @@ h1 > code {
   font-size: 90%;
 }
 
+.parameter-name {
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 90%;
+}
+
 .optional-status {
   font-family: var(--ifm-font-family-monospace);
   color: var(--ifm-font-color-base-opaque);

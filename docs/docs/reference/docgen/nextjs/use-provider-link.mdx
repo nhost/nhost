@@ -1,0 +1,38 @@
+---
+title: useProviderLink()
+sidebar_label: useProviderLink()
+description: Oauth Providers
+---
+
+# `useProviderLink()`
+
+Oauth Providers
+
+## Parameters
+
+---
+
+**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `ProviderOptions`
+
+---
+
+## Examples
+
+```js
+const providerLink = useProviderLink()
+```
+
+```js
+import { useProviderLink } from '@nhost/react'
+
+const Component = () => {
+  const { facebook, github } = useProviderLink()
+
+  return (
+    <div>
+      <a href={facebook}>Authenticate with Facebook</a>
+      <a href={github}>Authenticate with GitHub</a>
+    </div>
+  )
+}
+```

@@ -1,0 +1,25 @@
+---
+title: NhostClient
+sidebar_label: NhostClient
+sidebar_class_name: hidden
+description: No description provided.
+---
+
+# `NhostClient`
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`NhostNextClientConstructorParams`](/reference/docgen/nextjs/types/nhost-next-client-constructor-params)
+
+| Property                                                                                               | Type            | Required | Notes                                                                                                             |
+| :----------------------------------------------------------------------------------------------------- | :-------------- | :------: | :---------------------------------------------------------------------------------------------------------------- |
+| <span className="parameter-name"><span className="light-grey">params.</span>backendUrl</span>          | `string`        |    ✔️    | Nhost backend URL.                                                                                                |
+| <span className="parameter-name"><span className="light-grey">params.</span>autoLogin</span>           | `boolean`       |          | When set to true, will parse the url on startup to check if it contains a refresh token to start the session with |
+| <span className="parameter-name"><span className="light-grey">params.</span>autoRefreshToken</span>    | `boolean`       |          | When set to true, will automatically refresh token before it expires                                              |
+| <span className="parameter-name"><span className="light-grey">params.</span>clientStorageSetter</span> | `StorageSetter` |          | Define a way to set information about the refresh token and its exipration date                                   |
+| <span className="parameter-name"><span className="light-grey">params.</span>clientStorageGetter</span> | `StorageGetter` |          | Define a way to get information about the refresh token and its exipration date                                   |
+| <span className="parameter-name"><span className="light-grey">params.</span>refreshIntervalTime</span> | `number`        |          | Time interval until token refreshes, in seconds                                                                   |
+
+---

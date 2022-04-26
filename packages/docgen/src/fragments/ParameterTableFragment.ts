@@ -25,11 +25,11 @@ ${parameters
   .sort((a, b) => (a.flags.isOptional && !b.flags.isOptional ? 1 : -1))
   .map(
     (parameter) =>
-      `| ${
+      `| <span className="parameter-name">${
         referrerParameter
           ? `<span className="light-grey">${referrerParameter.name}.</span>${parameter.name}`
           : parameter.name
-      } | ${
+      }</span> | ${
         // function signatures behave slightly differently than other types
         parameter.kindString === 'Method' && parameter.signatures && parameter.signatures.length > 0
           ? `\`${FunctionSignatureTypeFragment(parameter.signatures[0], { wrap: false })}\``

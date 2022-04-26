@@ -1,0 +1,22 @@
+---
+title: onTokenChanged()
+sidebar_label: onTokenChanged()
+description: Use `onTokenChanged` to add a custom function that will trigger whenever the access and refresh token is changed.
+---
+
+# `onTokenChanged()`
+
+Use `onTokenChanged` to add a custom function that will trigger whenever
+the access and refresh token is changed.
+
+```ts
+auth.onTokenChanged(() => console.log('access token changed'))
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">fn</span>** <span className="optional-status">required</span> [`OnTokenChangedFunction`](/reference/docgen/javascript/auth/types/on-token-changed-function)
+
+---

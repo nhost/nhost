@@ -23,6 +23,8 @@ test('should generate label for intrinsic types', () => {
 })
 
 test('should generate label for reference types', () => {
+  appState.contentReferences = new Map([[1, 'Interface']])
+
   expect(getLabelForType({ type: 'reference', name: 'Test' })).toBe('`Test`')
 
   expect(getLabelForType({ id: 1, type: 'reference', name: 'Test' }, { wrap: false })).toBe(
@@ -63,6 +65,8 @@ test('should generate label for literal types', () => {
 })
 
 test('should generate label for query types', () => {
+  appState.contentReferences = new Map([[1, 'Interface']])
+
   expect(
     getLabelForType({
       type: 'query',
@@ -235,4 +239,27 @@ test('should return references to the root folder when type is a class', () => {
   expect(getLabelForType({ type: 'reference', name: 'Test', id: 1 })).toBe(
     '[`Test`](/some/test/root/folder/test)'
   )
+  expect(
+    getLabelForType({ type: 'query', queryType: { type: 'reference', name: 'Test', id: 1 } })
+  ).toBe('[`Test`](/some/test/root/folder/test)')
+})
+
+test(`should return only the name of the type if type has an identifier but can't be found in the context`, () => {
+  appState.contentReferences = new Map([
+    [1, 'Class'],
+    [2, 'Interface']
+  ])
+
+  expect(getLabelForType({ type: 'reference', name: 'Test', id: 3 })).toBe('`Test`')
+  expect(getLabelForType({ type: 'reference', name: 'Test', id: 3 }, { wrap: false })).toBe('Test')
+
+  expect(
+    getLabelForType({ type: 'query', queryType: { type: 'reference', name: 'Test', id: 3 } })
+  ).toBe('`Test`')
+  expect(
+    getLabelForType(
+      { type: 'query', queryType: { type: 'reference', name: 'Test', id: 3 } },
+      { wrap: false }
+    )
+  ).toBe('Test')
 })

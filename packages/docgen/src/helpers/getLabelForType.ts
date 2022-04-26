@@ -71,6 +71,10 @@ export function getLabelForType(
   if (type.type === 'reference' && type.id && reference) {
     const originalType = contentReferences.get(type.id)
 
+    if (!originalType) {
+      return wrappedText(type.name, wrap)
+    }
+
     return `[\`${type.name}\`](/${formattedDocsRoot ? `${formattedDocsRoot}/` : ''}${
       originalType !== 'Class' ? 'types/' : ''
     }${kebabCase(type.name)})`
