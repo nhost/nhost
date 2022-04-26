@@ -8,12 +8,14 @@ import { Signature } from '../types'
  *
  * @param signature - Function signature
  * @param originalDocument - Auto-generated JSON file
+ * @param slug - Slug to use for generating documentation links
  * @param functionFragmentOptions - Options for the function fragment
  * @returns Prettified function page template
  */
 export const FunctionTemplate = (
   { name, comment, signatures }: Signature,
   originalDocument?: Array<Signature>,
+  slug?: string,
   functionFragmentOptions?: FunctionFragmentOptions
 ) => {
   const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
@@ -23,6 +25,7 @@ export const FunctionTemplate = (
 ---
 title: ${name}()
 sidebar_label: ${alias || name}()
+${slug ? `slug: ${slug}` : ``}
 ${
   signatures && signatures.length > 0
     ? `description: ${

@@ -52,16 +52,18 @@ async function parser() {
     .option('-p, --path <path>', 'Path to the auto-generated JSON file')
     .option('-o, --output <output>', 'Path to the output directory')
     .option('-r, --root <root>', 'Path to root folder relative to Docusaurus root')
+    .option('-s, --slug <slug>', 'Base slug to use for generating documentation links')
     .option('-t, --title <title>', 'Title of the root sidebar menu')
-    .option('-s, --sidebarConfig <name>', 'Docusaurus sidebar configuration to display')
+    .option('--sidebarConfig <name>', 'Docusaurus sidebar configuration to display')
     .option('-v, --verbose', 'Verbose mode')
     .option('-c, --cleanup', 'Cleanup the output directory before generating docs')
     .parse()
 
-  const { path, output, root, title, sidebarConfig, cleanup, verbose } = command.opts()
+  const { path, output, root, title, slug, sidebarConfig, cleanup, verbose } = command.opts()
 
   appState.verbose = verbose
   appState.sidebarConfig = sidebarConfig
+  appState.baseSlug = slug
 
   try {
     if (!path) {

@@ -97,7 +97,7 @@ export class HasuraAuthClient {
    * auth.signIn({email, password}); // email password
    * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signup
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signup
    */
   async signUp(params: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
@@ -157,7 +157,7 @@ export class HasuraAuthClient {
    * signIn({ phoneNumber, otp }); // [step 2/2] Finish passwordless sign in with SMS (OTP)
    * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signin
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signin
    */
   async signIn(params: SignInParams): Promise<{
     session: Session | null
@@ -305,7 +305,7 @@ export class HasuraAuthClient {
    * @example
    * signOut();
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signout
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signout
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const interpreter = await this.waitUntilReady()
@@ -330,7 +330,7 @@ export class HasuraAuthClient {
    * @example
    * auth.resetPassword({email})
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-resetpassword
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-resetpassword
    */
   async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
     return new Promise((resolve) => {
@@ -353,7 +353,7 @@ export class HasuraAuthClient {
    * @example
    * auth.changePassword({ newPassword })
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-changepassword
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changepassword
    */
   async changePassword(params: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
     return new Promise((resolve) => {
@@ -402,7 +402,7 @@ export class HasuraAuthClient {
    * @example
    * auth.changeEmail({newEmail})
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-changeemail
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changeemail
    */
   async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
     return new Promise((resolve) => {
@@ -495,7 +495,7 @@ export class HasuraAuthClient {
    *   console.log(`auth state changed. State is not ${event} with session: ${session}`)
    * });
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-onauthstatechangedevent,-session
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-onauthstatechangedevent,-session
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
     const listen = (interpreter: AuthInterpreter) =>
@@ -676,7 +676,7 @@ export class HasuraAuthClient {
    *
    * const user = getUser();
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-getuser
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-getuser
    */
   getUser() {
     return this._client.interpreter?.state?.context?.user || null

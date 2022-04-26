@@ -23,7 +23,7 @@ export class NhostClient {
    * @example
    * const nhost = new NhostClient({ url });
    *
-   * @docs https://docs.nhost.io/reference/sdk#installation
+   * @docs https://docs.nhost.io/reference/javascript
    */
   constructor({
     backendUrl,

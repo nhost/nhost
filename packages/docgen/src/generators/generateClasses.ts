@@ -17,24 +17,32 @@ import generateFunctions from './generateFunctions'
 export async function generateClasses(parsedContent: Array<ClassSignature>, outputPath: string) {
   const finalOutputPath = `${outputPath}/content`
   const { ClassTemplate } = await import('../templates')
-  const { verbose } = snapshot(appState)
+  const { baseSlug, verbose } = snapshot(appState)
 
   const classesAndSubpages: Array<{
     name: string
     index: string
     subPages: Array<Signature>
+    slug: string
   }> = parsedContent
     .filter((document) => document.kindString === 'Class')
     .map((props: ClassSignature) => {
+      const alias = props.comment?.tags?.find(({ tag }) => tag === 'alias')?.text?.toLowerCase()
+
       return {
         name: props.name,
-        index: ClassTemplate(props, parsedContent as Array<Signature>),
+        slug: `${baseSlug}/${kebabCase(alias || props.name)}`,
+        index: ClassTemplate(
+          props,
+          parsedContent as Array<Signature>,
+          `${baseSlug}/${kebabCase(alias || props.name)}`
+        ),
         subPages: props.children || []
       }
     })
 
   const results = await Promise.allSettled(
-    classesAndSubpages.map(async ({ name, index, subPages }) => {
+    classesAndSubpages.map(async ({ name, index, subPages, slug }) => {
       const outputDirectory = `${finalOutputPath}/${kebabCase(name)}`
 
       // we are creating the folder for the class
@@ -51,7 +59,8 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
 
       await generateFunctions(subPages, outputDirectory, {
         originalDocument: parsedContent,
-        keepOriginalOrder: true
+        keepOriginalOrder: true,
+        classSlug: slug
       })
 
       return { name, fileOutput: outputDirectory }

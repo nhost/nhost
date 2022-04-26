@@ -49,8 +49,8 @@ const sidebars = {
       type: 'category',
       label: 'JavaScript',
       link: {
-        type: 'doc',
-        id: 'reference/docgen/javascript/nhost-js/content/nhost-client/index',
+        type: 'generated-index',
+        slug: '/reference/javascript',
       },
       items: [
         {

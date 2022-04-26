@@ -8,11 +8,13 @@ import { ClassSignature, Signature } from '../types'
  *
  * @param signature - Class signature
  * @param originalDocument - Auto-generated JSON file
+ * @param slug - Slug to use for generating documentation links
  * @returns Prettified class page template
  */
 export const ClassTemplate = (
   { name, comment, children }: ClassSignature,
-  originalDocument?: Array<Signature>
+  originalDocument?: Array<Signature>,
+  slug?: string
 ) => {
   const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
@@ -22,8 +24,8 @@ export const ClassTemplate = (
 ---
 title: ${name}
 sidebar_label: ${alias || name}
-sidebar_class_name: hidden
 description: ${comment?.shortText?.replace(/\n/gi, ' ') || 'No description provided.'}
+${slug ? `slug: ${slug}` : ``}
 ---
 
 # \`${name}\`

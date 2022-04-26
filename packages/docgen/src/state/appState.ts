@@ -21,6 +21,10 @@ export type AppState = {
    * Name of Docusaurus sidebar configuration.
    */
   sidebarConfig?: string
+  /**
+   * Base slug to use for generating documentation links.
+   */
+  baseSlug?: string
 }
 
 export type ComputedAppState = {

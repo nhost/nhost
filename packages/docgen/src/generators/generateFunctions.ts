@@ -13,6 +13,10 @@ export type GenerateFunctionsOptions = GeneratorOptions & {
    * @default false
    */
   keepOriginalOrder?: boolean
+  /**
+   * Slug of the class if it is a subpage.
+   */
+  classSlug?: string
 }
 
 /**
@@ -26,16 +30,20 @@ export type GenerateFunctionsOptions = GeneratorOptions & {
 export async function generateFunctions(
   parsedContent: Array<Signature>,
   outputPath: string,
-  { originalDocument = null, keepOriginalOrder = false }: GenerateFunctionsOptions = {}
+  { originalDocument = null, keepOriginalOrder = false, classSlug }: GenerateFunctionsOptions = {}
 ) {
   const finalOutputPath = `${outputPath}/content`
-  const { verbose } = snapshot(appState)
+  const { baseSlug, verbose } = snapshot(appState)
   const { FunctionTemplate } = await import('../templates')
   const functions: Array<{ name: string; content: string }> = parsedContent
     .filter((document) => ['Function', 'Method'].includes(document.kindString))
     .map((props: Signature) => ({
       name: props.name,
-      content: FunctionTemplate(props, originalDocument || parsedContent)
+      content: FunctionTemplate(
+        props,
+        originalDocument || parsedContent,
+        `${classSlug || baseSlug}/${kebabCase(props.name)}`
+      )
     }))
 
   const results = await Promise.allSettled(
