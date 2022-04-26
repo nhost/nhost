@@ -28,6 +28,7 @@ export async function generateFunctions(
   outputPath: string,
   { originalDocument = null, keepOriginalOrder = false }: GenerateFunctionsOptions = {}
 ) {
+  const finalOutputPath = `${outputPath}/content`
   const { verbose } = snapshot(appState)
   const { FunctionTemplate } = await import('../templates')
   const functions: Array<{ name: string; content: string }> = parsedContent
@@ -42,11 +43,11 @@ export async function generateFunctions(
       const fileName = keepOriginalOrder
         ? `${(index + 1).toString().padStart(2, '0')}-${kebabCase(name)}.mdx`
         : `${kebabCase(name)}.mdx`
-      const fileOutput = `${outputPath}/${fileName}`
+      const fileOutput = `${finalOutputPath}/${fileName}`
 
       // we are creating the folder for functions
       try {
-        await fs.mkdir(outputPath)
+        await fs.mkdir(finalOutputPath)
       } catch {
         if (verbose) {
           console.info(chalk.blue`⏭️  Skipping: Functions folder already exists.\n`)

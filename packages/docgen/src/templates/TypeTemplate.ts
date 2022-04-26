@@ -1,4 +1,5 @@
 import { format } from 'prettier'
+import { snapshot } from 'valtio/vanilla'
 
 import {
   CommentFragment,
@@ -9,6 +10,7 @@ import {
   UnionOrIntersectionTypeFragment
 } from '../fragments'
 import { findNestedParametersByReferenceId } from '../helpers'
+import { appState } from '../state'
 import { Parameter, Signature } from '../types'
 
 /**
@@ -19,6 +21,7 @@ import { Parameter, Signature } from '../types'
  * @returns Prettified type alias or interface page template
  */
 export const TypeTemplate = (parameter: Parameter, originalDocument?: Array<Signature>) => {
+  const { sidebarConfig } = snapshot(appState)
   const { name, comment } = parameter
 
   const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
@@ -42,6 +45,7 @@ ${
     ? `description: ${comment.shortText.replace(/\n/gi, ' ') || 'No description provided.'}`
     : 'description: No description provided.'
 }
+${sidebarConfig ? `displayed_sidebar: ${sidebarConfig}` : ''}
 ---
 
 # \`${name}\`

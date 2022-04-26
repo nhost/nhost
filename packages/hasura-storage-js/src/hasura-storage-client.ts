@@ -9,6 +9,9 @@ import {
 } from './utils/types'
 import { HasuraStorageApi } from './hasura-storage-api'
 
+/**
+ * @alias Storage
+ */
 export class HasuraStorageClient {
   private url: string
   private api: HasuraStorageApi

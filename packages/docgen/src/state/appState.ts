@@ -17,6 +17,10 @@ export type AppState = {
    * Generated documentation path relative to Docusaurus root.
    */
   docsRoot: string
+  /**
+   * Name of Docusaurus sidebar configuration.
+   */
+  sidebarConfig?: string
 }
 
 export type ComputedAppState = {

@@ -15,6 +15,7 @@ import generateFunctions from './generateFunctions'
  * @returns Results of the generation.
  */
 export async function generateClasses(parsedContent: Array<ClassSignature>, outputPath: string) {
+  const finalOutputPath = `${outputPath}/content`
   const { ClassTemplate } = await import('../templates')
   const { verbose } = snapshot(appState)
 
@@ -34,7 +35,7 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
 
   const results = await Promise.allSettled(
     classesAndSubpages.map(async ({ name, index, subPages }) => {
-      const outputDirectory = `${outputPath}/${kebabCase(name)}`
+      const outputDirectory = `${finalOutputPath}/${kebabCase(name)}`
 
       // we are creating the folder for the class
       try {
