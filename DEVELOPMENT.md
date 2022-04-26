@@ -1,27 +1,18 @@
 # Development
 
-We use nix to ensure a common and consistent development environment. You are also free to manage the environment on your own but that may mean your environment isn't exactly the same as the one used in the CI.
+We use [nix](https://nixos.org) to ensure a common and consistent development environment. You are also free to manage the environment on your own but that may mean your environment isn't exactly the same as the one used in the CI. If you have nix installed everyting you need to do to set the environment is run `nix develop`
 
-## nix
+## C Dependencies
 
-Useful commands:
+For performance reasons hasura-storage relies on a C library called [libvips](https://www.libvips.org). This means that if you are developing locally you will need `libvips-dev` and the needed tooling to compile it (i.e. `gcc`, `pkg-config`). If you are a [nix](https://nixos.org) user you can use the provided nix flake to set the development environment for you. If you aren't a nix user, you can rely on the `Makefile` to build and run hasura-storage in a docker container with the proper environment set up.
 
-1. `nix develop` - Starts a shell with all of the requirements and tools installed
-2. `make help` - Shows everything you can and may need to do:
-```
-❯ make help
-help:                                  Show this help.
-tests: dev-env-up check                Spin environment and run nix flake check
-check:                                 Run nix flake check
-build:                                 Build application and places the binary under ./result/bin
-build-docker-image:                    Build docker container
-dev-env-up: dev-env-down dev-env-build Starts development environment
-dev-env-down:                          Stops development environment
-dev-env-build: build-docker-image      Builds development environment
-dev-jwt:                               return a jwt valid for development environment
-dev-s3-access-key:                     return s3 access key for development environment
-dev-s3-secret-key:                     restun s3 secret key for development environment
-migrations-add:                        add a migration with NAME in the migrations folder
-```
+## Testing your changes
 
-Most of the time you will simply care about `make tests` as that does everything for you.
+To test your changes locally you can do the following:
+
+1. Start the pre-requisite containers with `make dev-env-up-short`
+2. Make your changes to the code
+3. Build and deploy your container with `make dev-env-up-hasura`. Alternatively, if you have the development environment properly set up you can run `go run main.go serve` or `nix run . -- serve`
+4. Run the tests with `make integration-tests`
+
+When you are done you can stop your environment with `make dev-env-down`
