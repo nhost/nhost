@@ -23,21 +23,20 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
     name: string
     index: string
     subPages: Array<Signature>
-    slug: string
+    slug?: string
   }> = parsedContent
     .filter((document) => document.kindString === 'Class')
     .map((props: ClassSignature) => {
       const alias = props.comment?.tags?.find(({ tag }) => tag === 'alias')?.text?.toLowerCase()
+      const slugEnding = kebabCase(alias || props.name).replace(/\n/gi, '')
+      const slugRegExp = new RegExp(`/${slugEnding}$`, 'gi')
+      const slug = slugRegExp.test(baseSlug || '') ? baseSlug : `${baseSlug}/${slugEnding}`
 
       return {
         name: props.name,
-        slug: `${baseSlug}/${kebabCase(alias || props.name)}`,
-        index: ClassTemplate(
-          props,
-          parsedContent as Array<Signature>,
-          `${baseSlug}/${kebabCase(alias || props.name)}`
-        ),
-        subPages: props.children || []
+        index: ClassTemplate(props, parsedContent as Array<Signature>, slug),
+        subPages: props.children || [],
+        slug
       }
     })
 

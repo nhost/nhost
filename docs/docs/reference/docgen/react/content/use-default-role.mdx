@@ -1,7 +1,7 @@
 ---
 title: useDefaultRole()
 sidebar_label: useDefaultRole()
-slug: reference/react/use-default-role
+slug: /reference/react/use-default-role
 description: Gets the user's default role
 ---
 
@@ -10,17 +10,17 @@ description: Gets the user's default role
 Gets the user's default role
 
 ```jsx
-import { useUserRoles, useDefaultRole } from '@nhost/react';
+import { useUserRoles, useDefaultRole } from '@nhost/react'
 
 const Avatar = () => {
-  const roles = useUserRoles();
-  const defaultRole = useDefaultRole();
+  const roles = useUserRoles()
+  const defaultRole = useDefaultRole()
 
   return (
     <div>
       Your default role is {defaultRole}. You have the following roles:{' '}
       {roles.join(', ')}
     </div>
-  );
-};
+  )
+}
 ```

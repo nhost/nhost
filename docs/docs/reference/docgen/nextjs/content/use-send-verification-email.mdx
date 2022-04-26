@@ -1,19 +1,64 @@
 ---
 title: useSendVerificationEmail()
 sidebar_label: useSendVerificationEmail()
-slug: reference/nextjs/use-send-verification-email
-description: No description provided.
+slug: /reference/nextjs/use-send-verification-email
+description: Send email verification
 ---
 
 # `useSendVerificationEmail()`
+
+## Send email verification
+
+```js
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail()
+```
 
 ### Parameters
 
 ---
 
-**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `RedirectOption`
+**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `SendVerificationEmailOptions`
 
 ---
+
+## Examples
+
+```js
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail()
+```
+
+```jsx
+import { useState } from 'react'
+import { useSendVerificationEmail } from '@nhost/react'
+
+const Component = () => {
+  const [email, setEmail] = useState('')
+  const { sendEmail, isLoading, isSent, isError, error } =
+    useSendVerificationEmail()
+
+  return (
+    <div>
+      <input value={email} onChange={(event) => setEmail(event.target.value)} />
+      <button onClick={() => sendEmail(email)}>Send email verification</button>
+      {isSent && (
+        <div>
+          Please check your mailbox and follow the verification link to confirm
+          your email
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+## Send email verification
+
+```js
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail()
+```
 
 ### Parameters
 
@@ -23,6 +68,37 @@ description: No description provided.
 
 ---
 
-**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `RedirectOption`
+**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `SendVerificationEmailOptions`
 
 ---
+
+## Examples
+
+```js
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail()
+```
+
+```jsx
+import { useState } from 'react'
+import { useSendVerificationEmail } from '@nhost/react'
+
+const Component = () => {
+  const [email, setEmail] = useState('')
+  const { sendEmail, isLoading, isSent, isError, error } =
+    useSendVerificationEmail()
+
+  return (
+    <div>
+      <input value={email} onChange={(event) => setEmail(event.target.value)} />
+      <button onClick={() => sendEmail(email)}>Send email verification</button>
+      {isSent && (
+        <div>
+          Please check your mailbox and follow the verification link to confirm
+          your email
+        </div>
+      )}
+    </div>
+  )
+}
+```
