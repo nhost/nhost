@@ -20,7 +20,7 @@ To interact with the GraphQL API it's recommended to use a GraphQL client:
 - [React Query](https://react-query.tanstack.com/graphql)
 - [SWR](https://swr.vercel.app/docs/data-fetching#graphql)
 
-It's also possible to use the built-in [GraphQL client](/reference/sdk/graphql) in the Nhost JavaScript client.
+It's also possible to use the built-in [GraphQL client](/reference/javascript/nhost-js/graphql) in the Nhost JavaScript client.
 
 ---
 

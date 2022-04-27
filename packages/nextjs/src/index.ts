@@ -5,10 +5,11 @@ export * from './get-session'
 export * from '@nhost/react'
 export { NhostReactProvider as NhostNextProvider } from '@nhost/react'
 
-type NhostNextClientConstructorParams = Omit<
-  NhostClientConstructorParams,
-  'start' | 'clientStorage' | 'clientStorageType' | 'Client'
->
+export interface NhostNextClientConstructorParams
+  extends Omit<
+    NhostClientConstructorParams,
+    'start' | 'clientStorage' | 'clientStorageType' | 'Client'
+  > {}
 
 export class NhostClient extends VanillaNhostClient {
   constructor(params: NhostNextClientConstructorParams) {

@@ -11,6 +11,10 @@ import {
   UploadHeaders
 } from './utils/types'
 
+/**
+ * @internal
+ * This is an internal class.
+ */
 export class HasuraStorageApi {
   private url: string
   private httpClient: AxiosInstance
