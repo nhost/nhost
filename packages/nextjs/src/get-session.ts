@@ -1,9 +1,8 @@
-import Cookies from 'cookies'
-import { GetServerSidePropsContext, NextPageContext } from 'next'
+import { GetServerSidePropsContext } from 'next'
 
-import { NHOST_JWT_EXPIRES_AT_KEY, NHOST_REFRESH_TOKEN_KEY, NhostSession } from '@nhost/core'
+import { NhostSession } from '@nhost/core'
 
-import { refresh } from './utils'
+import { createServerSideClient } from './create-server-side-client'
 
 /**
  * Refreshes the access token if there is any and returns the Nhost session.
@@ -44,34 +43,17 @@ import { refresh } from './utils'
  */
 export const getNhostSession = async (
   backendUrl: string,
-  context: NextPageContext | GetServerSidePropsContext
+  context: GetServerSidePropsContext
 ): Promise<NhostSession | null> => {
-  if (context.req && context.res) {
-    const cookies = Cookies(context.req, context.res)
-    const refreshToken =
-      typeof context.query.refreshToken === 'string'
-        ? context.query.refreshToken
-        : cookies.get(NHOST_REFRESH_TOKEN_KEY) ?? null
-    if (refreshToken) {
-      try {
-        const session = await refresh(backendUrl, refreshToken)
-        cookies.set(NHOST_REFRESH_TOKEN_KEY, session.refreshToken, {
-          httpOnly: false,
-          sameSite: true
-        })
-        cookies.set(
-          NHOST_JWT_EXPIRES_AT_KEY,
-          new Date(Date.now() + (session.accessTokenExpiresIn || 0) * 1_000).toISOString(),
-          {
-            httpOnly: false,
-            sameSite: true
-          }
-        )
-        return session
-      } catch {
-        return null
+  const nhost = await createServerSideClient(backendUrl, context as any)
+  const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.state.context
+  // console.log(nhost.auth.getAuthenticationStatus())
+  return nhost.auth.isAuthenticated()
+    ? {
+        accessToken: accessToken.value!,
+        accessTokenExpiresIn: (accessToken.expiresAt!.getTime() - Date.now()) / 1_000,
+        refreshToken: refreshToken.value!,
+        user: user!
       }
-    }
-  }
-  return null
+    : null
 }

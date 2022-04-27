@@ -55,13 +55,13 @@
     "immer": "^9.0.12"
   },
   "devDependencies": {
+    "@nhost/core": "workspace:^",
     "@nhost/docgen": "*",
     "@nhost/hasura-auth-js": "workspace:^",
-    "@nhost/core": "workspace:^",
     "@xstate/inspect": "^0.6.2",
     "react": "^17.0.2",
     "ws": "^8.4.2",
-    "xstate": "^4.30.5"
+    "xstate": "^4.31.0"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",
