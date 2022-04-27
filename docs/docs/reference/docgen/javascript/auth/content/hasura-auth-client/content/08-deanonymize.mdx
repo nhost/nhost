@@ -1,0 +1,31 @@
+---
+title: deanonymize()
+sidebar_label: deanonymize()
+slug: /reference/javascript/auth/deanonymize
+description: Use `deanonymize` to deanonymize a user
+---
+
+# `deanonymize()`
+
+Use `deanonymize` to deanonymize a user
+
+```ts
+auth.deanonymize({ signInMethod: 'email-password', email })
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`DeanonymizeParams`](/reference/docgen/javascript/auth/types/deanonymize-params)
+
+| Property                                                                                        | Type                                   | Required | Notes |
+| :---------------------------------------------------------------------------------------------- | :------------------------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">params.</span>email</span>        | `string`                               |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>signInMethod</span> | `"email-password"` \| `"passwordless"` |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>allowedRoles</span> | `Array<string>`                        |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>defaultRole</span>  | `string`                               |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>connection</span>   | `"email"` \| `"sms"`                   |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>password</span>     | `string`                               |          |       |
+
+---

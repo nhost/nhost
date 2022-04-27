@@ -98,7 +98,7 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 Nhost libraries and tools
 
-- [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/sdk)
+- [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/javascript)
 - [Dart and Flutter SDK](https://github.com/nhost/nhost-dart)
 - [Nhost CLI](https://docs.nhost.io/reference/cli)
 - [Nhost React](https://docs.nhost.io/reference/react)
@@ -214,6 +214,13 @@ Here are some ways of contributing to making Nhost better:
     </td></tr>
 <tr>
     <td align="center">
+        <a href="https://github.com/dbarrosop">
+            <img src="https://avatars.githubusercontent.com/u/6246622?v=4" width="100;" alt="dbarrosop"/>
+            <br />
+            <sub><b>David Barroso</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/hajek-raven">
             <img src="https://avatars.githubusercontent.com/u/7288737?v=4" width="100;" alt="hajek-raven"/>
             <br />
@@ -247,15 +254,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Savin Vadim</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/ahmic">
             <img src="https://avatars.githubusercontent.com/u/13452362?v=4" width="100;" alt="ahmic"/>
             <br />
             <sub><b>Amir Ahmic</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/akd-io">
             <img src="https://avatars.githubusercontent.com/u/30059155?v=4" width="100;" alt="akd-io"/>
@@ -290,15 +297,22 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Helio Alves</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/nkhdo">
             <img src="https://avatars.githubusercontent.com/u/26102306?v=4" width="100;" alt="nkhdo"/>
             <br />
             <sub><b>Hoang Do</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
+    <td align="center">
+        <a href="https://github.com/jladuval">
+            <img src="https://avatars.githubusercontent.com/u/1935359?v=4" width="100;" alt="jladuval"/>
+            <br />
+            <sub><b>Jacob Duval</b></sub>
+        </a>
+    </td>
     <td align="center">
         <a href="https://github.com/ghoshnirmalya">
             <img src="https://avatars.githubusercontent.com/u/6391763?v=4" width="100;" alt="ghoshnirmalya"/>

@@ -54,6 +54,10 @@ const EMAIL_NEEDS_VERIFICATION: ApiError = {
   message: 'Email needs verification',
   status: 102
 }
+
+/**
+ * @alias Auth
+ */
 export class HasuraAuthClient {
   private _client: AuthClient
 
@@ -90,9 +94,11 @@ export class HasuraAuthClient {
    * the `signIn` function instead.
    *
    * @example
+   * ```ts
    * auth.signIn({email, password}); // email password
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signup
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signup
    */
   async signUp(params: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
@@ -127,14 +133,32 @@ export class HasuraAuthClient {
    * `signIn` can be used in various ways depending on the parameters.
    *
    * @example
-   * signIn({ email, password }); // Sign in with email and password
-   * signIn({ provider }); // Sign in with an external provider (ex Google or Facebook)
+   * ### Sign in with email and password
+   * ```ts
+   * signIn({ email, password });
+   * ```
+   *
+   * @example
+   * ### Sign in with an external provider (e.g: Google or Facebook)
+   * ```ts
+   * signIn({ provider });
+   * ```
+   *
+   * @example
+   * ### Passwordless sign in with email (magic link)
+   * ```ts
    * signIn({ email }); // [step 1/2] Passwordless sign in with Email (Magic Link)
    * signIn({ email, otp }); // [step 2/2] Finish passwordless sign in with email (OTP)
+   * ```
+   *
+   * @example
+   * ### Passwordless sign in with SMS
+   * ```ts
    * signIn({ phoneNumber }); // [step 1/2] Passwordless sign in with SMS
    * signIn({ phoneNumber, otp }); // [step 2/2] Finish passwordless sign in with SMS (OTP)
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signin
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signin
    */
   async signIn(params: SignInParams): Promise<{
     session: Session | null
@@ -160,7 +184,7 @@ export class HasuraAuthClient {
       const { provider, options } = params
       const providerUrl = encodeQueryParameters(
         `${this._client.backendUrl}/signin/provider/${provider}`,
-        rewriteRedirectTo(this._client.clientUrl, options)
+        rewriteRedirectTo(this._client.clientUrl, options as any)
       )
       if (isBrowser()) {
         window.location.href = providerUrl
@@ -280,9 +304,11 @@ export class HasuraAuthClient {
    * Use `signOut` to sign out a user
    *
    * @example
+   * ```ts
    * signOut();
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-signout
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signout
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const interpreter = await this.waitUntilReady()
@@ -305,9 +331,11 @@ export class HasuraAuthClient {
    * Use `resetPassword` to reset a user's password.
    *
    * @example
+   * ```ts
    * auth.resetPassword({email})
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-resetpassword
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-resetpassword
    */
   async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
     return new Promise((resolve) => {
@@ -328,9 +356,11 @@ export class HasuraAuthClient {
    * Use `changePassword` to change a user's password.
    *
    * @example
+   * ```ts
    * auth.changePassword({ newPassword })
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-changepassword
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changepassword
    */
   async changePassword(params: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
     return new Promise((resolve) => {
@@ -352,7 +382,9 @@ export class HasuraAuthClient {
    * to the specified email.
    *
    * @example
+   * ```ts
    * auth.sendVerificationEmail({email})
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -377,9 +409,11 @@ export class HasuraAuthClient {
    * Use `changeEmail` to change a user's email
    *
    * @example
+   * ```ts
    * auth.changeEmail({newEmail})
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-changeemail
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changeemail
    */
   async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
     return new Promise((resolve) => {
@@ -400,7 +434,9 @@ export class HasuraAuthClient {
    * Use `deanonymize` to deanonymize a user
    *
    * @example
+   * ```ts
    * auth.deanonymize({signInMethod: 'email-password', email})
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -433,7 +469,9 @@ export class HasuraAuthClient {
    * the access and refresh token is changed.
    *
    * @example
-   * auth.onTokenChanged(() => console.log('access token changed'););
+   * ```ts
+   * auth.onTokenChanged(() => console.log('access token changed'));
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -466,11 +504,13 @@ export class HasuraAuthClient {
    * vice versa.
    *
    * @example
+   * ```ts
    * auth.onAuthStateChanged((event, session) => {
-   *   console.log(`auth state changed. State is not ${event} with session: ${session}`)
+   *   console.log(`Auth state changed. State is now ${event} with session: ${session}`)
    * });
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-onauthstatechangedevent,-session
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-onauthstatechangedevent,-session
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
     const listen = (interpreter: AuthInterpreter) =>
@@ -502,12 +542,13 @@ export class HasuraAuthClient {
    *
    *
    * @example
-   *
+   * ```ts
    * const  = auth.isAuthenticated();
    *
    * if (authenticated) {
    *   console.log('User is authenticated');
    * }
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -519,12 +560,13 @@ export class HasuraAuthClient {
    * Use `isAuthenticatedAsync` to wait and check if the user is authenticated or not.
    *
    * @example
-   *
+   * ```ts
    * const isAuthenticated  = awiat auth.isAuthenticatedAsync();
    *
    * if (isAuthenticated) {
    *   console.log('User is authenticated');
    * }
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -541,7 +583,7 @@ export class HasuraAuthClient {
    *
    *
    * @example
-   *
+   * ```ts
    * const { isAuthenticated, isLoading } = auth.getAuthenticationStatus();
    *
    * if (isLoading) {
@@ -551,6 +593,7 @@ export class HasuraAuthClient {
    * if (isAuthenticated) {
    *   console.log('User is authenticated');
    * }
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -573,12 +616,12 @@ export class HasuraAuthClient {
   }
 
   /**
-   *
    * Use `getAccessToken` to get the logged in user's access token.
    *
    * @example
-   *
+   * ```ts
    * const accessToken = auth.getAccessToken();
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -592,9 +635,10 @@ export class HasuraAuthClient {
    * session with an provided `refreshToken`.
    *
    * @example
-   *
+   * ```ts
    * refreshToken();
    * refreshToken(refreshToken);
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -634,8 +678,9 @@ export class HasuraAuthClient {
    * Use `getSession()` to get the current session.
    *
    * @example
-   *
+   * ```ts
    * const session = getSession();
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -648,10 +693,11 @@ export class HasuraAuthClient {
    * Use `getUser()` to get the current user.
    *
    * @example
-   *
+   * ```ts
    * const user = getUser();
+   * ```
    *
-   * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-getuser
+   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-getuser
    */
   getUser() {
     return this._client.interpreter?.state?.context?.user || null

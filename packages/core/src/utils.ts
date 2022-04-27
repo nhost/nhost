@@ -1,3 +1,5 @@
+import { RedirectOption } from './types'
+
 export const encodeQueryParameters = (baseUrl: string, parameters?: Record<string, unknown>) => {
   const encodedParameters =
     parameters &&
@@ -15,10 +17,7 @@ export const encodeQueryParameters = (baseUrl: string, parameters?: Record<strin
   else return baseUrl
 }
 
-export const rewriteRedirectTo = (
-  clientUrl: string,
-  options?: Record<string, unknown> & { redirectTo?: string }
-) =>
+export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl: string, options?: T) =>
   options?.redirectTo
     ? {
         ...options,

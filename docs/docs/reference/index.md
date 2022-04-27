@@ -5,24 +5,23 @@ sidebar_position: 0
 
 In this section:
 
-### Nhost SDK
+### Nhost JavaScript SDK
 
-- [Overview](/reference/sdk)
-- [GraphQL](/reference/sdk/graphql)
-- [Authentication](/reference/sdk/authentication)
-- [Storage](/reference/sdk/storage)
-- [Functions](/reference/sdk/functions)
+- [Overview](/reference/javascript)
+- [Authentication](/reference/javascript/auth)
+- [Storage](/reference/javascript/storage)
+- [Functions](/reference/javascript/nhost-js/functions)
+- [GraphQL](/reference/javascript/nhost-js/graphql)
 
 ### React
 
-- [Getting started](/reference/react)
-- [Hooks](/reference/react/hooks)
+- [Getting started](/reference/react/getting-started)
 - [Protecting routes](/reference/react/protecting-routes)
 - [Apollo GraphQL](/reference/react/apollo)
 
 ### Next.js
 
-- [Introduction](/reference/nextjs)
+- [Introduction](/reference/nextjs/introduction)
 - [Configuration](/reference/nextjs/configuration)
 - [Protecting routes](/reference/nextjs/protecting-routes)
 

@@ -1,0 +1,28 @@
+---
+title: sendVerificationEmail()
+sidebar_label: sendVerificationEmail()
+slug: /reference/javascript/auth/send-verification-email
+description: Use `sendVerificationEmail` to send a verification email to the specified email.
+---
+
+# `sendVerificationEmail()`
+
+Use `sendVerificationEmail` to send a verification email
+to the specified email.
+
+```ts
+auth.sendVerificationEmail({ email })
+```
+
+## Parameters
+
+---
+
+**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`SendVerificationEmailParams`](/reference/docgen/javascript/auth/types/send-verification-email-params)
+
+| Property                                                                                   | Type             | Required | Notes |
+| :----------------------------------------------------------------------------------------- | :--------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">params.</span>email</span>   | `string`         |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>options</span> | `RedirectOption` |          |       |
+
+---

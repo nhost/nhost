@@ -18,5 +18,7 @@ module.exports = {
         useTabs: false
       }
     }
-  ]
+  ],
+  importOrderSeparation: true,
+  importOrderSortSpecifiers: true
 }
