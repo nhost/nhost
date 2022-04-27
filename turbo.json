@@ -6,15 +6,11 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "build/**", ".next"]
     },
-    "start": {
-      "cache": false,
-      "dependsOn": ["^build"]
-    },
     "test": {
       "outputs": []
     },
     "docgen": {
-      "outputs": ["docs/docs/**"]
+      "cache": false
     },
     "lint": { "outputs": [] },
     "lint:fix": { "outputs": [] }

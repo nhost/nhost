@@ -351,7 +351,9 @@ export class HasuraAuthClient {
    * Use `changePassword` to change a user's password.
    *
    * @example
+   * ```ts
    * auth.changePassword({ newPassword })
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changepassword
    */
@@ -375,7 +377,9 @@ export class HasuraAuthClient {
    * to the specified email.
    *
    * @example
+   * ```ts
    * auth.sendVerificationEmail({email})
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */

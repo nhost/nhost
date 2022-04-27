@@ -1,5 +1,5 @@
 {
-  "packages/(hasura-auth-js|hasura-storage-js|nextjs|nhost-js|react)/**/*.(js|ts)x?": [
+  "packages/(hasura-auth-js|hasura-storage-js|nextjs|nhost-js|react)/**/*.(js|ts)?(x)": [
     "pnpm docgen"
   ]
 }
