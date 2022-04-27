@@ -30,7 +30,11 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
       const alias = props.comment?.tags?.find(({ tag }) => tag === 'alias')?.text?.toLowerCase()
       const slugEnding = kebabCase(alias || props.name).replace(/\n/gi, '')
       const slugRegExp = new RegExp(`/${slugEnding}$`, 'gi')
-      const slug = slugRegExp.test(baseSlug || '') ? baseSlug : `${baseSlug}/${slugEnding}`
+      const slug = baseSlug
+        ? slugRegExp.test(baseSlug)
+          ? baseSlug
+          : `${baseSlug}/${slugEnding}`
+        : undefined
 
       return {
         name: props.name,

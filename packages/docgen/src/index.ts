@@ -179,8 +179,7 @@ async function parser() {
       await generateModuleDocumentation(parsedContent, output)
     }
 
-    console.info()
-    console.info(chalk.bgBlueBright.black`🎉 Successfully generated docs! 🎉`)
+    console.info(chalk.bgBlueBright.black`\n🎉 Successfully generated docs! 🎉`)
   } catch (error) {
     const { default: chalk } = await import('chalk')
 

@@ -31,6 +31,10 @@ When set to true, will parse the url on startup to check if it contains a refres
 
 **<span className="parameter-name">autoLogin</span>** <span className="optional-status">optional</span> `boolean`
 
+:::caution Deprecated
+use autoSignIn instead
+:::
+
 ---
 
 **<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
@@ -53,9 +57,17 @@ Define a way to get information about the refresh token and its exipration date
 
 **<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> [`ClientStorageType`](/reference/docgen/javascript/auth/types/client-storage-type)
 
+:::caution Deprecated
+Use clientStorageGetter and clientStorageSetter options instead
+:::
+
 ---
 
 **<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> [`ClientStorage`](/reference/docgen/javascript/auth/types/client-storage)
+
+:::caution Deprecated
+Use clientStorageGetter and clientStorageSetter options instead
+:::
 
 | Property                                                                                                  | Type                                                | Required | Notes |
 | :-------------------------------------------------------------------------------------------------------- | :-------------------------------------------------- | :------: | :---- |

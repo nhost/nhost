@@ -23,21 +23,26 @@ export const ParameterTableFragment = (
 | :--- | :--- | :---: | :--- |
 ${parameters
   .sort((a, b) => (a.flags.isOptional && !b.flags.isOptional ? 1 : -1))
-  .map(
-    (parameter) =>
-      `| <span className="parameter-name">${
-        referrerParameter
-          ? `<span className="light-grey">${referrerParameter.name}.</span>${parameter.name}`
-          : parameter.name
-      }</span> | ${
-        // function signatures behave slightly differently than other types
-        parameter.kindString === 'Method' && parameter.signatures && parameter.signatures.length > 0
-          ? `\`${FunctionSignatureTypeFragment(parameter.signatures[0], { wrap: false })}\``
-          : parameter.type.type === 'union' || parameter.type.type === 'intersection'
-          ? getLabelForType(parameter.type, labelOptions).replace(/\|/gi, '\\|')
-          : getLabelForType(parameter.type, labelOptions)
-      } | ${parameter.flags.isOptional ? `` : '✔️'} | ${parameter.comment?.shortText || ''}|`
-  )
+  .map((parameter) => {
+    const deprecationNote = parameter.comment?.tags?.find(({ tag }) => tag === 'deprecated')
+
+    return `| <span className="parameter-name${deprecationNote ? ' deprecated' : ''}">${
+      referrerParameter
+        ? `<span className="light-grey">${referrerParameter.name}.</span>${parameter.name}`
+        : parameter.name
+    }</span> ${
+      deprecationNote
+        ? `<span className="deprecation-sign" title="${deprecationNote.text}">⚠️</span>`
+        : ''
+    } | ${
+      // function signatures behave slightly differently than other types
+      parameter.kindString === 'Method' && parameter.signatures && parameter.signatures.length > 0
+        ? `\`${FunctionSignatureTypeFragment(parameter.signatures[0], { wrap: false })}\``
+        : parameter.type.type === 'union' || parameter.type.type === 'intersection'
+        ? getLabelForType(parameter.type, labelOptions).replace(/\|/gi, '\\|')
+        : getLabelForType(parameter.type, labelOptions)
+    } | ${parameter.flags.isOptional ? `` : '✔️'} | ${parameter.comment?.shortText || ''}|`
+  })
   .join('\n')}
 `
 

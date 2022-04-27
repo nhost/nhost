@@ -42,7 +42,7 @@ export async function generateFunctions(
       content: FunctionTemplate(
         props,
         originalDocument || parsedContent,
-        `${classSlug || baseSlug}/${kebabCase(props.name)}`
+        classSlug || baseSlug ? `${classSlug || baseSlug}/${kebabCase(props.name)}` : undefined
       )
     }))
 
