@@ -24,8 +24,10 @@ export interface NhostAuthConstructorParams {
   clientStorageSetter?: StorageSetter
   /** When set to true, will automatically refresh token before it expires */
   autoRefreshToken?: boolean
-  /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */
+  /** @deprecated use autoSignIn instead */
   autoLogin?: boolean
+  /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */
+  autoSignIn?: boolean
   start?: boolean
   Client?: typeof AuthClient
 }

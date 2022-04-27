@@ -33,7 +33,7 @@ export class NhostClient {
     clientStorage,
     clientStorageType,
     autoRefreshToken,
-    autoLogin,
+    autoSignIn,
     start = true,
     Client
   }: NhostClientConstructorParams) {
@@ -46,7 +46,7 @@ export class NhostClient {
       clientStorage,
       clientStorageType,
       autoRefreshToken,
-      autoLogin,
+      autoSignIn,
       start,
       Client
     })

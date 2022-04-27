@@ -64,7 +64,8 @@ export class HasuraAuthClient {
   constructor({
     url,
     autoRefreshToken = true,
-    autoLogin = true,
+    autoSignIn = true,
+    autoLogin,
     clientStorage,
     clientStorageType = 'web',
     clientStorageGetter,
@@ -76,7 +77,7 @@ export class HasuraAuthClient {
     this._client = new Client({
       backendUrl: url,
       autoRefreshToken,
-      autoSignIn: autoLogin,
+      autoSignIn: typeof autoLogin === 'boolean' ? autoLogin : autoSignIn,
       start,
       clientStorageGetter:
         clientStorageGetter || localStorageGetter(clientStorageType, clientStorage),
