@@ -2,7 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "dist",
-    "composite": true,
+    "composite": false,
     "module": "esnext"
     // "target": "esnext",
     // "useDefineForClassFields": true,
