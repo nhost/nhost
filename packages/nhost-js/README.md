@@ -52,4 +52,4 @@ Access Nhost Functions methods via `nhost.functions`.
 
 ## Documentation
 
-[https://docs.nhost.io/reference/sdk](https://docs.nhost.io/reference/sdk)
+[https://docs.nhost.io/reference/javascript](https://docs.nhost.io/reference/javascript)

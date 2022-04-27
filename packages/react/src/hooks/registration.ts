@@ -3,16 +3,20 @@ import { useMemo } from 'react'
 import { SignUpOptions, User } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { ActionHookState, useAuthenticationStatus, useAuthInterpreter } from './common'
+import { DefaultActionHookState, useAuthenticationStatus, useAuthInterpreter } from './common'
 
-type SignUpEmailPasswordHookState = ActionHookState & {
+interface SignUpEmailPasswordHookState extends DefaultActionHookState {
+  /** @return `true` if an email is required to complete the action, and that a verificaiton email has been sent to complete the action. */
   needsEmailVerification: boolean
+  /** User information */
   user: User | null
+  /** Access token (JWT) */
   accessToken: string | null
 }
+
 type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordHookState, 'isLoading'>
 
-type SignUpEmailPasswordHandler = {
+interface SignUpEmailPasswordHandler {
   (
     email: string,
     password: string,
@@ -26,15 +30,77 @@ type SignUpEmailPasswordHandler = {
   ): Promise<SignUpEmailPasswordHandlerResult>
 }
 
-type SignUpEmailPasswordHookResult = {
+interface SignUpEmailPasswordHookResult extends SignUpEmailPasswordHookState {
+  /** Used for a new user to sign up. Returns a promise with the current context */
   signUpEmailPassword: SignUpEmailPasswordHandler
-} & SignUpEmailPasswordHookState
+}
 
-type SignUpEmailPasswordHook = {
+interface SignUpEmailPasswordHook {
   (options?: SignUpOptions): SignUpEmailPasswordHookResult
   /** @deprecated */
   (email?: string, password?: string, options?: SignUpOptions): SignUpEmailPasswordHookResult
 }
+
+/**
+ * Email and Password Sign-Up
+ * @example
+
+```js
+const {
+  signUpEmailPassword,
+  isLoading,
+  isSuccess,
+  needsEmailVerification,
+  isError,
+  error,
+} = useSignUpEmailPassword();
+```
+ * @example
+```jsx
+import { useState } from 'react';
+import { useSignUpEmailPassword } from '@nhost/react';
+
+const Component = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const {
+    signUpEmailPassword,
+    isLoading,
+    isSuccess,
+    needsEmailVerification,
+    isError,
+    error,
+  } = useSignUpEmailPassword();
+
+  return (
+    <div>
+      <input
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="Email"
+      />
+      <input
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        placeholder="Password"
+      />
+      <button onClick={() => signUpEmailPassword(email, password)}>
+        Register
+      </button>
+      {isSuccess && (
+        <div>Your account have beed created! You are now authenticated</div>
+      )}
+      {needsEmailVerification && (
+        <div>
+          Please check your mailbox and follow the verification link to verify
+          your email
+        </div>
+      )}
+    </div>
+  );
+};
+```
+ */
 export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   a?: string | SignUpOptions,
   b?: string,

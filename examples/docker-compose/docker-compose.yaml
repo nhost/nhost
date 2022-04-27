@@ -66,34 +66,32 @@ services:
       - "traefik.http.routers.auth.middlewares=strip-auth@docker"
       - "traefik.http.routers.auth.entrypoints=web"
   storage:
-    image: nhost/hasura-storage:latest
+    image: nhost/hasura-storage:0.1.5
     depends_on:
       - postgres
       - graphql-engine
       - minio
     restart: always
     expose:
-      - 4000
+      - 8000
     healthcheck:
       disable: true
     environment:
-      STORAGE_HOST: '0.0.0.0'
-      STORAGE_PUBLIC_URL: http://localhost:${PROXY_PORT:-1337}/v1/storage
-      HASURA_GRAPHQL_GRAPHQL_URL: http://graphql-engine:8080/v1/graphql
-      HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres
+      PUBLIC_URL: http://localhost:${PROXY_PORT:-1337}
+      HASURA_METADATA: 1
+      HASURA_ENDPOINT: http://graphql-engine:8080/v1
       HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET}
-      HASURA_GRAPHQL_JWT_SECRET: ${HASURA_GRAPHQL_JWT_SECRET}
       S3_ACCESS_KEY: ${STORAGE_ACCESS_KEY}
       S3_SECRET_KEY: ${STORAGE_SECRET_KEY}
       S3_ENDPOINT: http://minio:8484
       S3_BUCKET: nhost
-      STORAGE_FORCE_DOWNLOAD_FOR_CONTENT_TYPES: text/html,application/javascript
+      POSTGRES_MIGRATIONS: 1
+      POSTGRES_MIGRATIONS_SOURCE: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres?sslmode=disable
     labels:
       - "traefik.enable=true"
-      - "traefik.http.middlewares.strip-storage.stripprefix.prefixes=/v1/storage"
       - "traefik.http.routers.storage.rule=Host(`localhost`) && PathPrefix(`/v1/storage`)"
-      - "traefik.http.routers.storage.middlewares=strip-storage@docker"
       - "traefik.http.routers.storage.entrypoints=web"
+    command: serve
   minio:
     image: minio/minio:RELEASE.2021-09-24T00-24-24Z
     entrypoint: sh

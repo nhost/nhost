@@ -3,7 +3,8 @@ import { NhostClient as VanillaClient, NhostClientConstructorParams } from '@nho
 export * from './hooks'
 export * from './provider'
 
-type NhostReactClientConstructorParams = Omit<NhostClientConstructorParams, 'start' | 'client'>
+export interface NhostReactClientConstructorParams
+  extends Omit<NhostClientConstructorParams, 'start' | 'client'> {}
 
 export class NhostClient extends VanillaClient {
   constructor(params: NhostReactClientConstructorParams) {

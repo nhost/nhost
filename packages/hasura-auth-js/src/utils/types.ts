@@ -90,9 +90,7 @@ export type SignInParams =
 
 export interface ResetPasswordParams {
   email: string
-  options?: {
-    redirectTo?: string
-  }
+  options?: RedirectOption
 }
 
 export interface ChangePasswordParams {

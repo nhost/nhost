@@ -3,3 +3,5 @@ describe('main', () => {
     expect(true).toBeTruthy()
   })
 })
+
+export {}

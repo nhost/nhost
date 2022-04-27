@@ -1,0 +1,9 @@
+{
+  "title": "Storage",
+  "path": "./__tsdoc__/storage.json",
+  "output": "../../docs/docs/reference/docgen/javascript/storage",
+  "root": "reference/docgen/javascript/storage",
+  "slug": "/reference/javascript/storage",
+  "sidebarConfig": "referenceSidebar",
+  "cleanup": true
+}

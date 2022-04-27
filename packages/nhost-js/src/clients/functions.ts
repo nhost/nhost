@@ -5,6 +5,9 @@ export interface NhostFunctionsConstructorParams {
   url: string
 }
 
+/**
+ * @alias Functions
+ */
 export class NhostFunctionsClient {
   private instance: AxiosInstance
   private accessToken: string | null

@@ -15,7 +15,6 @@ logs/
 /.vscode/
 .eslintcache
 .yarnclean
-.husky
 
 # Directories
 coverage/
@@ -51,3 +50,8 @@ todo.md
 .monorepo-example
 
 .next
+
+# TypeDoc output
+
+**/__tsdoc__
+**/__tsdoc__/*
