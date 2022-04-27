@@ -22,13 +22,12 @@ export class HasuraStorageClient {
   }
 
   /**
-   *
    * Use `.upload` to upload a file.
    *
    * @example
-   *
+   * ```ts
    * storage.upload({ file })
-   *
+   * ```
    */
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
     const file = new FormData()
@@ -50,22 +49,19 @@ export class HasuraStorageClient {
   }
 
   /**
-   *
    * @deprecated use `.getPublicUrl` instead
-   *
    */
   getUrl(params: StorageGetUrlParams): string {
     return this.getPublicUrl(params)
   }
 
   /**
-   *
    * Use `.getPublicUrl` to direct file URL to a file.
    *
    * @example
-   *
+   * ```ts
    * storage.getPublicUrl({ fileId: 'uuid' })
-   *
+   * ```
    */
   getPublicUrl(params: StorageGetUrlParams): string {
     const { fileId } = params
@@ -73,14 +69,12 @@ export class HasuraStorageClient {
   }
 
   /**
-   *
    * Use `.getPresignedUrl` to get a presigned URL to a file.
    *
    * @example
-   *
+   * ```ts
    * storage.getPresignedUrl({ fileId: 'uuid' })
-   *
-   *
+   * ```
    */
   async getPresignedUrl(
     params: StorageGetPresignedUrlParams
@@ -98,14 +92,12 @@ export class HasuraStorageClient {
   }
 
   /**
-   *
    * Use `.delete` to delete a file.
    *
    * @example
-   *
+   * ```ts
    * storage.delete({ fileId: 'uuid' })
-   *
-   *
+   * ```
    */
   async delete(params: StorageDeleteParams): Promise<StorageDeleteResponse> {
     const { error } = await this.api.delete(params)
