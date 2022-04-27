@@ -10,6 +10,14 @@ import {
   urlParameters,
 } from '../../utils';
 
+const params = {
+  a: 'valuea',
+  b: 'valueb',
+};
+const strParams = Object.entries(params)
+  .map(([key, value]) => `${key}=${value}`)
+  .join('&');
+
 describe('Redirections', () => {
   let client: Client;
 
@@ -38,13 +46,16 @@ describe('Redirections', () => {
     });
   });
 
-  it('should ignore additional query parameters', async () => {
+  it('should ignore external query parameters', async () => {
     const email = faker.internet.email();
 
     await request
       .post('/signin/passwordless/email')
       .send({
         email,
+        options: {
+          redirectTo: `http://localhost:3000?${strParams}`,
+        },
       })
       .expect(StatusCodes.OK);
 
@@ -69,13 +80,7 @@ describe('Redirections', () => {
   it('should include query parameters in optional redirectTo', async () => {
     const email = faker.internet.email();
     // ! Urls are case insensitive
-    const params = {
-      a: 'valuea',
-      b: 'valueb',
-    };
-    const strParams = Object.entries(params)
-      .map(([key, value]) => `${key}=${value}`)
-      .join('&');
+
     await request
       .post('/signin/passwordless/email')
       .send({
