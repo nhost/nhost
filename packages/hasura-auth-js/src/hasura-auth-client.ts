@@ -304,7 +304,9 @@ export class HasuraAuthClient {
    * Use `signOut` to sign out a user
    *
    * @example
+   * ```ts
    * signOut();
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signout
    */
@@ -329,7 +331,9 @@ export class HasuraAuthClient {
    * Use `resetPassword` to reset a user's password.
    *
    * @example
+   * ```ts
    * auth.resetPassword({email})
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-resetpassword
    */
@@ -405,7 +409,9 @@ export class HasuraAuthClient {
    * Use `changeEmail` to change a user's email
    *
    * @example
+   * ```ts
    * auth.changeEmail({newEmail})
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changeemail
    */
@@ -428,7 +434,9 @@ export class HasuraAuthClient {
    * Use `deanonymize` to deanonymize a user
    *
    * @example
+   * ```ts
    * auth.deanonymize({signInMethod: 'email-password', email})
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -496,9 +504,11 @@ export class HasuraAuthClient {
    * vice versa.
    *
    * @example
+   * ```ts
    * auth.onAuthStateChanged((event, session) => {
    *   console.log(`auth state changed. State is not ${event} with session: ${session}`)
    * });
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-onauthstatechangedevent,-session
    */
@@ -532,12 +542,13 @@ export class HasuraAuthClient {
    *
    *
    * @example
-   *
+   * ```ts
    * const  = auth.isAuthenticated();
    *
    * if (authenticated) {
    *   console.log('User is authenticated');
    * }
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -549,12 +560,13 @@ export class HasuraAuthClient {
    * Use `isAuthenticatedAsync` to wait and check if the user is authenticated or not.
    *
    * @example
-   *
+   * ```ts
    * const isAuthenticated  = awiat auth.isAuthenticatedAsync();
    *
    * if (isAuthenticated) {
    *   console.log('User is authenticated');
    * }
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -571,7 +583,7 @@ export class HasuraAuthClient {
    *
    *
    * @example
-   *
+   * ```ts
    * const { isAuthenticated, isLoading } = auth.getAuthenticationStatus();
    *
    * if (isLoading) {
@@ -581,6 +593,7 @@ export class HasuraAuthClient {
    * if (isAuthenticated) {
    *   console.log('User is authenticated');
    * }
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -603,12 +616,12 @@ export class HasuraAuthClient {
   }
 
   /**
-   *
    * Use `getAccessToken` to get the logged in user's access token.
    *
    * @example
-   *
+   * ```ts
    * const accessToken = auth.getAccessToken();
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -622,9 +635,10 @@ export class HasuraAuthClient {
    * session with an provided `refreshToken`.
    *
    * @example
-   *
+   * ```ts
    * refreshToken();
    * refreshToken(refreshToken);
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -664,8 +678,9 @@ export class HasuraAuthClient {
    * Use `getSession()` to get the current session.
    *
    * @example
-   *
+   * ```ts
    * const session = getSession();
+   * ```
    *
    * @docs https://docs.nhost.io/TODO
    */
@@ -678,8 +693,9 @@ export class HasuraAuthClient {
    * Use `getUser()` to get the current user.
    *
    * @example
-   *
+   * ```ts
    * const user = getUser();
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-getuser
    */
