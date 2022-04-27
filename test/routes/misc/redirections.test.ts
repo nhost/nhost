@@ -7,6 +7,7 @@ import {
   mailHogSearch,
   deleteAllMailHogEmails,
   expectUrlParameters,
+  urlParameters,
 } from '../../utils';
 
 describe('Redirections', () => {
@@ -51,15 +52,57 @@ describe('Redirections', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
-    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
+    const link = message.Content.Headers['X-Link'][0];
     const req = await request
       .get(
-        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}&utm_source=Email&another_unrelated_param=here-anyway`
+        link.replace('http://localhost:4000', '') +
+          '&another_unrelated_param=here-anyway'
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(req).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
+  });
+
+  it('should include query parameters in optional redirectTo', async () => {
+    const email = faker.internet.email();
+    // ! Urls are case insensitive
+    const params = {
+      a: 'valuea',
+      b: 'valueb',
+    };
+    const strParams = Object.entries(params)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('&');
+    await request
+      .post('/signin/passwordless/email')
+      .send({
+        email,
+        options: {
+          redirectTo: `http://localhost:3000?${strParams}`,
+        },
+      })
+      .expect(StatusCodes.OK);
+
+    // get magic link email
+    const [message] = await mailHogSearch(email);
+    expect(message).toBeTruthy();
+
+    const link = message.Content.Headers['X-Link'][0];
+    const res = await request
+      .get(link.replace('http://localhost:4000', ''))
+      .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    const resParams = urlParameters(res);
+    expect(Array.from(resParams.keys())).toIncludeAllMembers(
+      Object.keys(params)
+    );
+    expect(Array.from(resParams.values())).toIncludeAllMembers(
+      Object.values(params)
+    );
+    expectUrlParameters(res).not.toIncludeAnyMembers([
       'error',
       'errorDescription',
     ]);

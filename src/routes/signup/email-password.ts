@@ -10,6 +10,7 @@ import {
   getUserByEmail,
   insertUser,
   ENV,
+  createEmailRedirectionLink,
 } from '@/utils';
 import { EMAIL_TYPES, UserRegistrationOptions } from '@/types';
 import { sendError } from '@/errors';
@@ -83,15 +84,22 @@ export const signUpEmailPasswordHandler: RequestHandler<
     ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED
   ) {
     const template = 'email-verify';
+    const link = createEmailRedirectionLink(
+      EMAIL_TYPES.VERIFY,
+      ticket,
+      redirectTo
+    );
     await emailClient.send({
       template,
       message: {
         to: email,
         headers: {
+          /** @deprecated */
           'x-ticket': {
             prepared: true,
             value: ticket,
           },
+          /** @deprecated */
           'x-redirect-to': {
             prepared: true,
             value: redirectTo,
@@ -100,14 +108,18 @@ export const signUpEmailPasswordHandler: RequestHandler<
             prepared: true,
             value: template,
           },
+          'x-link': {
+            prepared: true,
+            value: link,
+          },
         },
       },
       locals: {
-        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.VERIFY}&redirectTo=${redirectTo}`,
+        link,
         displayName,
         email,
         ticket,
-        redirectTo,
+        redirectTo: encodeURIComponent(redirectTo),
         locale: user.locale,
         serverUrl: ENV.AUTH_SERVER_URL,
         clientUrl: ENV.AUTH_CLIENT_URL,

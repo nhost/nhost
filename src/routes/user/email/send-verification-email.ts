@@ -2,7 +2,13 @@ import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk, generateTicketExpiresAt, getUserByEmail, ENV } from '@/utils';
+import {
+  gqlSdk,
+  generateTicketExpiresAt,
+  getUserByEmail,
+  ENV,
+  createEmailRedirectionLink,
+} from '@/utils';
 import { emailClient } from '@/email';
 import { sendError } from '@/errors';
 import { Joi, email, redirectTo } from '@/validation';
@@ -55,6 +61,11 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
   });
 
   const template = 'email-verify';
+  const link = createEmailRedirectionLink(
+    EMAIL_TYPES.VERIFY,
+    ticket,
+    redirectTo
+  );
   await emailClient.send({
     template,
     message: {
@@ -72,13 +83,17 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
           prepared: true,
           value: template,
         },
+        'x-link': {
+          prepared: true,
+          value: link,
+        },
       },
     },
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.VERIFY}&redirectTo=${redirectTo}`,
+      link,
       displayName: user.displayName,
       ticket,
-      redirectTo,
+      redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
       serverUrl: ENV.AUTH_SERVER_URL,
       clientUrl: ENV.AUTH_CLIENT_URL,

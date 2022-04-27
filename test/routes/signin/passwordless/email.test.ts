@@ -57,13 +57,9 @@ describe('passwordless email (magic link)', () => {
 
     expect(emailTemplate).toBe('signin-passwordless');
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
-    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
-
+    const link = message.Content.Headers['X-Link'][0];
     const res = await request
-      .get(
-        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
-      )
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res).not.toIncludeAnyMembers([

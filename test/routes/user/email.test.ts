@@ -73,9 +73,8 @@ describe('user email', () => {
     const [message] = await mailHogSearch(newEmail);
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
     const redirectTo = message.Content.Headers['X-Redirect-To'][0];
-    // expect(ticket.startsWith('emailReset:')).toBeTruthy();
+    const link = message.Content.Headers['X-Link'][0];
 
     const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('email-confirm-change');
@@ -91,9 +90,7 @@ describe('user email', () => {
 
     // confirm change email
     const res2 = await request
-      .get(
-        `/verify?ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`
-      )
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res2).not.toIncludeAnyMembers([
@@ -133,16 +130,14 @@ describe('user email', () => {
     const [message] = await mailHogSearch(newEmail);
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
+    const link = message.Content.Headers['X-Link'][0];
     const redirectTo = message.Content.Headers['X-Redirect-To'][0];
     const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('email-confirm-change');
 
     // confirm change email
     const res = await request
-      .get(
-        `/verify?ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`
-      )
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expectUrlParameters(res).not.toIncludeAnyMembers([
@@ -164,9 +159,9 @@ describe('user email', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
     const redirectTo = message.Content.Headers['X-Redirect-To'][0];
     const emailType = message.Content.Headers['X-Email-Template'][0];
+    const link = message.Content.Headers['X-Link'][0];
     expect(emailType).toBe('email-verify');
 
     const res = await request
@@ -178,7 +173,7 @@ describe('user email', () => {
 
     // confirm change email
     const res2 = await request
-      .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
     expectUrlParameters(res2).not.toIncludeAnyMembers([
       'error',
@@ -201,12 +196,12 @@ describe('user email', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
     const redirectTo = message.Content.Headers['X-Redirect-To'][0];
+    const link = message.Content.Headers['X-Link'][0];
     expect(redirectTo).toStrictEqual(options.redirectTo);
     // confirm change email
     const res = await request
-      .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
     expectUrlParameters(res).not.toIncludeAnyMembers([
       'error',

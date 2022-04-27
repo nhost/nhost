@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { getUserByEmail } from '@/utils';
+import { createEmailRedirectionLink, getUserByEmail } from '@/utils';
 import { emailClient } from '@/email';
 import { sendError } from '@/errors';
 
@@ -83,6 +83,11 @@ export const handleDeanonymizeUserEmailPassword = async (
     });
 
     const template = 'email-verify';
+    const link = createEmailRedirectionLink(
+      EMAIL_TYPES.VERIFY,
+      ticket,
+      redirectTo
+    );
     await emailClient.send({
       template,
       message: {
@@ -100,14 +105,18 @@ export const handleDeanonymizeUserEmailPassword = async (
             prepared: true,
             value: template,
           },
+          'x-link': {
+            prepared: true,
+            value: link,
+          },
         },
       },
       locals: {
-        link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.VERIFY}&redirectTo=${redirectTo}`,
+        link,
         displayName: user.displayName,
         email,
         ticket,
-        redirectTo,
+        redirectTo: encodeURIComponent(redirectTo),
         locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
         serverUrl: ENV.AUTH_SERVER_URL,
         clientUrl: ENV.AUTH_CLIENT_URL,

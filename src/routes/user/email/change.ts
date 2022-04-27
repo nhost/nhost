@@ -2,7 +2,12 @@ import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk, generateTicketExpiresAt, ENV } from '@/utils';
+import {
+  gqlSdk,
+  generateTicketExpiresAt,
+  ENV,
+  createEmailRedirectionLink,
+} from '@/utils';
 import { emailClient } from '@/email';
 import { Joi, email, redirectTo } from '@/validation';
 import { EMAIL_TYPES } from '@/types';
@@ -51,13 +56,18 @@ export const userEmailChange: RequestHandler<
   }
 
   const template = 'email-confirm-change';
+  const link = createEmailRedirectionLink(
+    EMAIL_TYPES.CONFIRM_CHANGE,
+    ticket,
+    redirectTo
+  );
   await emailClient.send({
     template,
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.CONFIRM_CHANGE}&redirectTo=${redirectTo}`,
+      link,
       displayName: user.displayName,
       ticket,
-      redirectTo,
+      redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
       serverUrl: ENV.AUTH_SERVER_URL,
       clientUrl: ENV.AUTH_CLIENT_URL,
@@ -76,6 +86,10 @@ export const userEmailChange: RequestHandler<
         'x-email-template': {
           prepared: true,
           value: template,
+        },
+        'x-link': {
+          prepared: true,
+          value: link,
         },
       },
     },
