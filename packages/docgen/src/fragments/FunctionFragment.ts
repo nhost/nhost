@@ -59,8 +59,8 @@ ${numberOfOverloads === 1 && !isConstructor ? `# \`${signature.name}()\`` : ``}
 ${
   numberOfOverloads > 1 && index !== undefined
     ? isConstructor
-      ? `## Constructor ${index + 1}`
-      : `## Overload ${index + 1}`
+      ? `## Constructor ${index + 1} of ${numberOfOverloads}`
+      : `## Overload ${index + 1} of ${numberOfOverloads}`
     : ``
 }
 
@@ -70,7 +70,11 @@ ${
   deprecationTag
     ? DeprecationNoteFragment(
         deprecationTag,
-        isConstructor ? 'This constructor is deprecated.' : 'This function is deprecated.'
+        isConstructor
+          ? 'This constructor is deprecated.'
+          : numberOfOverloads > 1
+          ? 'This overload is deprecated.'
+          : 'This function is deprecated.'
       )
     : ``
 }

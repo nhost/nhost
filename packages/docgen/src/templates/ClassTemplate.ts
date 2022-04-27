@@ -44,10 +44,11 @@ ${
         .map((signature) =>
           signature.signatures
             ? signature.signatures
-                .map((constructorSignature) =>
+                .map((constructorSignature, index) =>
                   FunctionFragment(constructorSignature, originalDocument, {
                     numberOfOverloads: signature.signatures!.length,
-                    isConstructor: true
+                    isConstructor: true,
+                    index
                   })
                 )
                 .join('\n\n')
