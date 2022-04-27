@@ -506,7 +506,7 @@ export class HasuraAuthClient {
    * @example
    * ```ts
    * auth.onAuthStateChanged((event, session) => {
-   *   console.log(`auth state changed. State is not ${event} with session: ${session}`)
+   *   console.log(`Auth state changed. State is now ${event} with session: ${session}`)
    * });
    * ```
    *
