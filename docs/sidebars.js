@@ -50,8 +50,8 @@ const sidebars = {
       label: 'JavaScript',
       collapsed: false,
       link: {
-        type: 'generated-index',
-        slug: '/reference/javascript',
+        type: 'doc',
+        id: 'reference/javascript/index',
       },
       items: [
         {
