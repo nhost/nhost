@@ -18,7 +18,7 @@
     },
     {
       "source": "/reference/react/hooks",
-      "destination": "/reference/react/getting-started",
+      "destination": "/reference/react",
       "permanent": true
     }
   ]
