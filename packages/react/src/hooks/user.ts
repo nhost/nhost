@@ -36,49 +36,52 @@ interface ChangeEmailHookResult extends ChangeEmailHookState {
   changeEmail: ChangeEmailHandler
 }
 
-interface ChangeEmailHook {
-  (options?: ChangeEmailOptions): ChangeEmailHookResult
-  /** @deprecated */
-  (email?: string, options?: ChangeEmailOptions): ChangeEmailHookResult
-}
+/**
+ * Change email
+ *
+ * @remarks
+ * Lorem ipsum dolor sit amet.
+ *
+ * @example
+ * ```js
+ * const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail();
+ * ```
+ *
+ * @example
+ * ```jsx
+ * import { useState } from 'react';
+ * import { useChangeEmail } from '@nhost/react';
+ *
+ * const Component = () => {
+ *   const [email, setEmail] = useState('');
+ *   const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail();
+ *
+ *   return (
+ *     <div>
+ *       <input value={email} onChange={(event) => setEmail(event.target.value)} />
+ *       <button onClick={() => changeEmail(email)}>Change email</button>
+ *
+ *       {needsEmailVerification && (
+ *         <div>
+ *           Please check your mailbox and follow the verification link to confirm your new email
+ *         </div>
+ *       )}
+ *     </div>
+ *   );
+ * };
+ * ```
+ */
+export function useChangeEmail(options?: ChangeEmailOptions): ChangeEmailHookResult
 
 /**
  * Change email
- * 
- * @example
-```js
-const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-  useChangeEmail();
-  ```
- * @example
-```jsx
-import { useState } from 'react';
-import { useChangeEmail } from '@nhost/react';
+ *
+ * @deprecated
+ * Please use `useChangeEmail(options?: ChangeEmailOptions)` instead.
+ */
+export function useChangeEmail(email?: string, options?: ChangeEmailOptions): ChangeEmailHookResult
 
-const Component = () => {
-  const [email, setEmail] = useState('');
-  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-    useChangeEmail();
-
-  return (
-    <div>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={() => changeEmail(email)}>Change email</button>
-      {needsEmailVerification && (
-        <div>
-          Please check your mailbox and follow the verification link to confirm
-          your new email
-        </div>
-      )}
-    </div>
-  );
-};
-```
-*/
-export const useChangeEmail: ChangeEmailHook = (
-  a?: string | ChangeEmailOptions,
-  b?: ChangeEmailOptions
-) => {
+export function useChangeEmail(a?: string | ChangeEmailOptions, b?: ChangeEmailOptions) {
   const stateEmail = typeof a === 'string' ? a : undefined
   const stateOptions = typeof a !== 'string' ? a : b
   const nhost = useNhostClient()

@@ -96,13 +96,15 @@ ${
   signature.comment &&
   signature.comment.tags &&
   signature.comment.tags.some(({ tag }) => tag === 'remarks')
-    ? `## Notes\n${signature.comment.tags.find(({ tag }) => tag === 'remarks')?.text}`
+    ? `${isConstructor || numberOfTotalFunctions > 1 ? '### Notes' : '## Notes'}\n${
+        signature.comment.tags.find(({ tag }) => tag === 'remarks')?.text
+      }`
     : ``
 }
 
 ${
   examples.length > 1 || (!firstExample && examples.length > 0)
-    ? `${isConstructor ? '### Examples' : '## Examples'}\n\n${examples
+    ? `${isConstructor || numberOfTotalFunctions > 1 ? '### Examples' : '## Examples'}\n\n${examples
         .map(CommentTagFragment)
         .join('\n\n')}`
     : ``

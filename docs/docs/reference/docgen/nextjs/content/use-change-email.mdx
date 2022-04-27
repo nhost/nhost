@@ -10,6 +10,11 @@ description: Change email
 
 ## Change email
 
+```js
+const { changeEmail, isLoading, needsEmailVerification, isError, error } =
+  useChangeEmail()
+```
+
 ### Parameters
 
 ---
@@ -18,7 +23,11 @@ description: Change email
 
 ---
 
-## Examples
+### Notes
+
+Lorem ipsum dolor sit amet.
+
+### Examples
 
 ```js
 const { changeEmail, isLoading, needsEmailVerification, isError, error } =
@@ -38,6 +47,7 @@ const Component = () => {
     <div>
       <input value={email} onChange={(event) => setEmail(event.target.value)} />
       <button onClick={() => changeEmail(email)}>Change email</button>
+
       {needsEmailVerification && (
         <div>
           Please check your mailbox and follow the verification link to confirm
@@ -51,6 +61,10 @@ const Component = () => {
 
 ## Change email
 
+:::caution Deprecated
+Please use `useChangeEmail(options?: ChangeEmailOptions)` instead.
+:::
+
 ### Parameters
 
 ---
@@ -62,34 +76,3 @@ const Component = () => {
 **<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `ChangeEmailOptions`
 
 ---
-
-## Examples
-
-```js
-const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-  useChangeEmail()
-```
-
-```jsx
-import { useState } from 'react'
-import { useChangeEmail } from '@nhost/react'
-
-const Component = () => {
-  const [email, setEmail] = useState('')
-  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-    useChangeEmail()
-
-  return (
-    <div>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={() => changeEmail(email)}>Change email</button>
-      {needsEmailVerification && (
-        <div>
-          Please check your mailbox and follow the verification link to confirm
-          your new email
-        </div>
-      )}
-    </div>
-  )
-}
-```
