@@ -29,7 +29,12 @@ export const rewriteRedirectTo = (
     : options
 
 export function getParameterByName(name: string, url?: string) {
-  if (!url) url = window?.location?.href || ''
+  if (!url) {
+    if (typeof window === 'undefined') {
+      return
+    }
+    url = window.location?.href || ''
+  }
   // eslint-disable-next-line no-useless-escape
   name = name.replace(/[\[\]]/g, '\\$&')
   const regex = new RegExp('[?&#]' + name + '(=([^&#]*)|&|#|$)'),
@@ -40,7 +45,13 @@ export function getParameterByName(name: string, url?: string) {
 }
 
 export function removeParameterFromWindow(name: string) {
+  if (typeof window === 'undefined') {
+    return
+  }
   const location = window?.location
+  if (!location) {
+    return
+  }
   if (location) {
     const search = new URLSearchParams(location.search)
     const hash = new URLSearchParams(location.hash?.slice(1))
