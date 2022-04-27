@@ -3,8 +3,7 @@ import { ENV } from './env';
 
 export const generateRedirectUrl = (
   redirectTo: string,
-  queryParameters: { [key: string]: string },
-  hashTag?: string
+  queryParameters: { [key: string]: string }
 ): string => {
   let finalRedirectTo = redirectTo;
 
@@ -30,11 +29,6 @@ export const generateRedirectUrl = (
     } else {
       finalRedirectTo += key + '=' + queryParameters[key];
     }
-  }
-
-  // add hash tag
-  if (hashTag) {
-    finalRedirectTo += '#' + hashTag;
   }
 
   return finalRedirectTo;

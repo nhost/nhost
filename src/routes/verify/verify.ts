@@ -87,11 +87,7 @@ export const verifyHandler: RequestHandler<
 
   const refreshToken = await getNewRefreshToken(user.id);
 
-  const redirectUrl = generateRedirectUrl(
-    redirectTo,
-    {},
-    `refreshToken=${refreshToken}&type=${type}`
-  );
+  const redirectUrl = generateRedirectUrl(redirectTo, { refreshToken, type });
 
   return res.redirect(redirectUrl);
 };

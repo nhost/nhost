@@ -186,7 +186,7 @@ const providerCallback = asyncWrapper(
     const refreshToken = await getNewRefreshToken(user.id);
 
     // redirect back user to app url
-    res.redirect(`${requestOptions.redirectTo}#refreshToken=${refreshToken}`);
+    res.redirect(`${requestOptions.redirectTo}?refreshToken=${refreshToken}`);
   }
 );
 
