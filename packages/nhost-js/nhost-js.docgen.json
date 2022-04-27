@@ -1,0 +1,9 @@
+{
+  "title": "Nhost JS",
+  "path": "./__tsdoc__/nhost-js.json",
+  "output": "../../docs/docs/reference/docgen/javascript/nhost-js",
+  "root": "reference/docgen/javascript/nhost-js",
+  "slug": "/reference/javascript/nhost-js",
+  "sidebarConfig": "referenceSidebar",
+  "cleanup": true
+}

@@ -9,7 +9,7 @@ Nhost provides a ready-to-use authentication service, integrated with Nhost Java
 
 ## Getting Started
 
-Sign up a user with the [Nhost JavaScript SDK](/reference/sdk):
+Sign up a user with the [Nhost JavaScript SDK](/reference/javascript):
 
 ```js
 import { NhostClient } from '@nhost/nhost-js';
@@ -48,7 +48,7 @@ query {
 
 Nhost authentication uses two tokens: Access tokens and refresh tokens.
 
-[Nhost JavaScript SDK](/reference/sdk) automatically handles access and refresh tokens.
+[Nhost JavaScript SDK](/reference/javascript) automatically handles access and refresh tokens.
 
 ### Access tokens
 

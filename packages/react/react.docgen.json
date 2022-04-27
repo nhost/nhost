@@ -1,0 +1,9 @@
+{
+  "title": "React",
+  "path": "./__tsdoc__/react.json",
+  "output": "../../docs/docs/reference/docgen/react",
+  "root": "reference/docgen/react",
+  "slug": "/reference/react",
+  "sidebarConfig": "referenceSidebar",
+  "cleanup": true
+}

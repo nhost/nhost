@@ -1,0 +1,20 @@
+---
+title: useDisplayName()
+sidebar_label: useDisplayName()
+slug: /reference/nextjs/use-display-name
+description: Gets the user's display name
+---
+
+# `useDisplayName()`
+
+Gets the user's display name
+
+```jsx
+import { useDisplayName } from '@nhost/react'
+
+const Avatar = () => {
+  const displayName = useDisplayName()
+
+  return <div>Hello, {displayName}</div>
+}
+```

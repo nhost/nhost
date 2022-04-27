@@ -31,7 +31,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix"
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./nextjs.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./nextjs.docgen.json"
   },
   "main": "src/index.ts",
   "publishConfig": {
@@ -61,6 +63,7 @@
   },
   "devDependencies": {
     "@nhost/core": "workspace:^",
+    "@nhost/docgen": "*",
     "@nhost/react": "workspace:^",
     "@types/cookies": "^0.7.7",
     "next": "12.0.10",

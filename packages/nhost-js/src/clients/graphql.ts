@@ -8,6 +8,9 @@ export interface NhostGraphqlConstructorParams {
   url: string
 }
 
+/**
+ * @alias GraphQL
+ */
 export class NhostGraphqlClient {
   private url: string
   private instance: AxiosInstance

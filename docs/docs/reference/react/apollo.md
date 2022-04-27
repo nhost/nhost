@@ -1,6 +1,6 @@
 ---
-title: 'Apollo GraphQL'
-sidebar_position: 4
+title: Apollo GraphQL
+sidebar_position: 3
 ---
 
 import Tabs from '@theme/Tabs';

@@ -1,6 +1,6 @@
 ---
-title: 'Protecting routes'
-sidebar_position: 3
+title: Protecting routes
+sidebar_position: 2
 ---
 
 ## React Router

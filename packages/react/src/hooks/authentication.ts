@@ -12,9 +12,15 @@ import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-import { ActionHookState, useAuthenticated, useAuthInterpreter } from './common'
+import {
+  ActionHookErrorState,
+  ActionHookSuccessState,
+  DefaultActionHookState,
+  useAuthenticated,
+  useAuthInterpreter
+} from './common'
 
-type SignInEmailPasswordHookState = ActionHookState & {
+interface SignInEmailPasswordHookState extends DefaultActionHookState {
   needsMfaOtp: boolean
   needsEmailVerification: boolean
   user: User | null
@@ -23,29 +29,88 @@ type SignInEmailPasswordHookState = ActionHookState & {
 
 type SignInEmailPasswordHandlerResult = Omit<SignInEmailPasswordHookState, 'isLoading'>
 
-type SignInEmailPasswordHandler = {
+interface SignInEmailPasswordHandler {
   (email: string, password: string): Promise<SignInEmailPasswordHandlerResult>
   /** @deprecated */
   (email?: unknown, password?: string): Promise<SignInEmailPasswordHandlerResult>
 }
 
-type SendMfaOtpHander = {
+interface SendMfaOtpHander {
   (otp: string): void
   /** @deprecated */
   (otp?: unknown): void
 }
 
-type SignInEmailPasswordHookResult = {
+interface SignInEmailPasswordHookResult extends SignInEmailPasswordHookState {
   signInEmailPassword: SignInEmailPasswordHandler
   sendMfaOtp: SendMfaOtpHander
-} & SignInEmailPasswordHookState
+}
 
-type SignInEmailPasswordHook = {
+interface SignInEmailPasswordHook {
   (): SignInEmailPasswordHookResult
   /** @deprecated */
   (email?: string, password?: string, otp?: string): SignInEmailPasswordHookResult
 }
+/**
+ * Email and Password Sign-In
+ * @example
+```js
+const {
+  signInEmailPassword,
+  isLoading,
+  needsEmailVerification,
+  needsMfaOtp,
+  sendMfaOtp,
+  isSuccess,
+  isError,
+  error,
+  user,
+} = useSignInEmailPassword();
+```
+  * @example
+```jsx
+import { useState } from 'react';
+import { useSignInEmailPassword } from '@nhost/react';
 
+const Component = () => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const {
+    signInEmailPassword,
+    isLoading,
+    isSuccess,
+    needsEmailVerification,
+    isError,
+    error,
+  } = useSignInEmailPassword();
+
+  return (
+    <div>
+      <input
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="Email"
+      />
+      <input
+        value={password}
+        onChange={(event) => setPassword(event.target.value)}
+        placeholder="Password"
+      />
+      <button onClick={() => signInEmailPassword(email, password)}>
+        Register
+      </button>
+      {isSuccess && <div>Authentication suceeded</div>}
+      {needsEmailVerification && (
+        <div>
+          You must verify your email to sign in. Check your mailbox and follow
+          the instructions to verify your email.
+        </div>
+      )}
+    </div>
+  );
+};
+```
+ */
 export const useSignInEmailPassword: SignInEmailPasswordHook = (
   stateEmail?: string,
   statePassword?: string,
@@ -160,23 +225,64 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   }
 }
 
-type SignInEmailPasswordlessHandlerResult = Omit<ActionHookState, 'isLoading'>
-type SignInEmailPasswordlessHandler = {
+interface SignInEmailPasswordlessHandlerResult
+  extends ActionHookErrorState,
+    ActionHookSuccessState {}
+interface SignInEmailPasswordlessHandler {
   (email: string, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
   /** @deprecated */
   (email?: unknown, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
 }
 
-type SignInEmailPasswordlessHookResult = {
+interface SignInEmailPasswordlessHookResult extends DefaultActionHookState {
+  /** Sends a magic link to the given email */
   signInEmailPasswordless: SignInEmailPasswordlessHandler
-} & ActionHookState
+}
 
-type SignInEmailPasswordlessdHook = {
+interface SignInEmailPasswordlessdHook {
   (options?: PasswordlessOptions): SignInEmailPasswordlessHookResult
   /** @deprecated */
   (email?: string, options?: PasswordlessOptions): SignInEmailPasswordlessHookResult
 }
 
+/**
+ * Passwordless email authentication
+ * @example
+```js
+const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
+  useSignInEmailPasswordless);
+  ```
+ * @example
+```jsx
+import { useState } from 'react';
+import { useSignInEmailPasswordless } from '@nhost/react';
+
+const Component = () => {
+  const [email, setEmail] = useState('');
+  const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
+    useSignInEmailPasswordless();
+
+  return (
+    <div>
+      <input
+        value={email}
+        onChange={(event) => setEmail(event.target.value)}
+        placeholder="Email"
+      />
+      <button onClick={() => signInEmailPasswordless(email)}>
+        Authenticate
+      </button>
+      {isSuccess && (
+        <div>
+          An email has been sent to {email}. Please check your mailbox and click
+          on the authentication link.
+        </div>
+      )}
+    </div>
+  );
+};
+```
+ */
 export const useSignInEmailPasswordless: SignInEmailPasswordlessdHook = (
   a?: string | PasswordlessOptions,
   b?: PasswordlessOptions
@@ -250,6 +356,28 @@ export const useSignInAnonymous = () => {
   return { accessToken, error, isError, isLoading, isSuccess, signInAnonymous, user }
 }
 
+/**
+ * Oauth Providers
+ * @example
+```js
+const providerLink = useProviderLink();
+```
+ * @example
+```js
+import { useProviderLink } from '@nhost/react';
+
+const Component = () => {
+  const { facebook, github } = useProviderLink();
+
+  return (
+    <div>
+      <a href={facebook}>Authenticate with Facebook</a>
+      <a href={github}>Authenticate with GitHub</a>
+    </div>
+  );
+};
+```
+*/
 export const useProviderLink = (options?: ProviderOptions) => {
   const nhost = useContext(NhostReactContext)
 
@@ -259,7 +387,7 @@ export const useProviderLink = (options?: ProviderOptions) => {
         get(_, provider: string) {
           return encodeQueryParameters(
             `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
-            rewriteRedirectTo(nhost.auth.client.clientUrl, options)
+            rewriteRedirectTo(nhost.auth.client.clientUrl, options as any)
           )
         }
       }),

@@ -98,7 +98,7 @@ Nhost is frontend agnostic, which means Nhost works with all frontend frameworks
 
 Nhost libraries and tools
 
-- [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/sdk)
+- [JavaScript/TypeScript SDK](https://docs.nhost.io/reference/javascript)
 - [Dart and Flutter SDK](https://github.com/nhost/nhost-dart)
 - [Nhost CLI](https://docs.nhost.io/reference/cli)
 - [Nhost React](https://docs.nhost.io/reference/react)
