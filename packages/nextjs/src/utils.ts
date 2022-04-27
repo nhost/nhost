@@ -8,5 +8,6 @@ export const refresh = async (nhostUrl: string, refreshToken: string): Promise<N
     },
     body: JSON.stringify({ refreshToken })
   })
-  return result.ok ? result.json() : Promise.reject(result.statusText)
+  if (result.ok) return result.json()
+  else return Promise.reject(result.statusText)
 }
