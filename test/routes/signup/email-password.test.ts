@@ -4,7 +4,11 @@ import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
-import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
+import {
+  mailHogSearch,
+  deleteAllMailHogEmails,
+  expectUrlParameters,
+} from '../../utils';
 
 describe('email-password', () => {
   let client: Client;
@@ -183,11 +187,16 @@ describe('email-password', () => {
     const redirectTo = message.Content.Headers['X-Redirect-To'][0];
 
     // use ticket to verify email
-    await request
+    const res = await request
       .get(
         `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
 
     // sign in should now work
     await request

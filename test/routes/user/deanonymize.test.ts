@@ -4,7 +4,11 @@ import { StatusCodes } from 'http-status-codes';
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
-import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
+import {
+  mailHogSearch,
+  deleteAllMailHogEmails,
+  expectUrlParameters,
+} from '../../utils';
 
 // TODO: test options
 describe('email-password', () => {
@@ -80,12 +84,16 @@ describe('email-password', () => {
       .expect(StatusCodes.UNAUTHORIZED);
 
     // should verify email using ticket from email
-    await request
+    const res = await request
       .get(
         `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
     // should be able to sign in after activated account
     await request
       .post('/signin/email-password')
@@ -140,11 +148,16 @@ describe('email-password', () => {
       .expect(StatusCodes.UNAUTHORIZED);
 
     // verify
-    await request
+    const res = await request
       .get(
         `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
 
     // should be able to sign in using passwordless email
     await request

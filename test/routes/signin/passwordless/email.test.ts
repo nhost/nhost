@@ -5,7 +5,11 @@ import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../../src/utils/env';
 import { request } from '../../../server';
-import { mailHogSearch, deleteAllMailHogEmails } from '../../../utils';
+import {
+  mailHogSearch,
+  deleteAllMailHogEmails,
+  expectUrlParameters,
+} from '../../../utils';
 
 describe('passwordless email (magic link)', () => {
   let client: Client;
@@ -56,11 +60,16 @@ describe('passwordless email (magic link)', () => {
     const ticket = message.Content.Headers['X-Ticket'][0];
     const redirectTo = message.Content.Headers['X-Redirect-To'][0];
 
-    await request
+    const res = await request
       .get(
         `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
   });
 
   it('should signin in using a different locale', async () => {

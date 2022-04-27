@@ -5,7 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
-import { mailHogSearch } from '../../utils';
+import { expectUrlParameters, mailHogSearch } from '../../utils';
 
 describe('user email', () => {
   let client: Client;
@@ -81,18 +81,25 @@ describe('user email', () => {
     expect(emailType).toBe('email-confirm-change');
 
     // wrong ticket should fail
-    await request
+    const res = await request
       .get(
         `/verify?ticket=${uuidv4()}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
+    expectUrlParameters(res).toIncludeAllMembers(['error', 'errorDescription']);
+
     // confirm change email
-    await request
+    const res2 = await request
       .get(
         `/verify?ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    expectUrlParameters(res2).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
 
     // fail to signin with old email
     await request
@@ -132,11 +139,17 @@ describe('user email', () => {
     expect(emailType).toBe('email-confirm-change');
 
     // confirm change email
-    await request
+    const res = await request
       .get(
         `/verify?ticket=${ticket}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
+
     expect(redirectTo).toStrictEqual(options.redirectTo);
   });
 
@@ -156,16 +169,21 @@ describe('user email', () => {
     const emailType = message.Content.Headers['X-Email-Template'][0];
     expect(emailType).toBe('email-verify');
 
-    await request
+    const res = await request
       .get(
         `/verify?ticket=${uuidv4()}&type=emailConfirmChange&redirectTo=${redirectTo}`
       )
       .expect(StatusCodes.MOVED_TEMPORARILY);
+    expectUrlParameters(res).toIncludeAllMembers(['error', 'errorDescription']);
 
     // confirm change email
-    await request
+    const res2 = await request
       .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
       .expect(StatusCodes.MOVED_TEMPORARILY);
+    expectUrlParameters(res2).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
   });
 
   it('send email verification with redirect', async () => {
@@ -185,11 +203,14 @@ describe('user email', () => {
 
     const ticket = message.Content.Headers['X-Ticket'][0];
     const redirectTo = message.Content.Headers['X-Redirect-To'][0];
-
+    expect(redirectTo).toStrictEqual(options.redirectTo);
     // confirm change email
-    await request
+    const res = await request
       .get(`/verify?ticket=${ticket}&type=verifyEmail&redirectTo=${redirectTo}`)
       .expect(StatusCodes.MOVED_TEMPORARILY);
-    expect(redirectTo).toStrictEqual(options.redirectTo);
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
   });
 });
