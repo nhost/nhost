@@ -77,7 +77,7 @@ export const createAuthMachine = ({
       type: 'parallel',
       states: {
         authentication: {
-          initial: 'checkAutoSignIn',
+          initial: 'importingRefreshToken',
           on: {
             SESSION_UPDATE: [
               {
@@ -88,34 +88,20 @@ export const createAuthMachine = ({
             ]
           },
           states: {
-            checkAutoSignIn: {
-              always: [{ cond: 'isAutoSignInDisabled', target: 'importingRefreshToken' }],
-              invoke: {
-                id: 'autoSignIn',
-                src: 'autoSignIn',
-                onDone: {
-                  target: 'signedIn',
-                  actions: ['saveSession', 'persist', 'reportTokenChanged']
-                },
-                onError: { actions: ['saveAuthenticationError'], target: 'importingRefreshToken' }
-              }
-            },
             importingRefreshToken: {
+              always: { cond: 'isSignedIn', target: 'signedIn' },
               invoke: {
                 id: 'importRefreshToken',
                 src: 'importRefreshToken',
-                onDone: { actions: 'saveRefreshToken', target: 'starting' }
+                onDone: { actions: 'saveRefreshToken', target: 'starting' },
+                onError: { actions: ['saveAuthenticationError'], target: 'signedOut' }
               }
             },
             starting: {
               always: [
                 {
-                  cond: 'isSignedIn',
-                  target: 'signedIn'
-                },
-                {
                   cond: 'hasRefreshTokenWithoutSession',
-                  target: ['authenticating.token', '#nhost.token.running']
+                  target: 'authenticating.token'
                 },
                 { cond: 'hasAuthenticationError', target: 'signedOut.failed' },
                 'signedOut'
@@ -288,7 +274,20 @@ export const createAuthMachine = ({
                     ]
                   }
                 },
-                token: {},
+                token: {
+                  invoke: {
+                    src: 'refreshToken',
+                    id: 'signInToken',
+                    onDone: {
+                      actions: ['saveSession', 'persist', 'reportTokenChanged', 'broadcastToken'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: {
+                      actions: 'saveAuthenticationError',
+                      target: '#nhost.authentication.signedOut.failed.server'
+                    }
+                  }
+                },
                 anonymous: {
                   invoke: {
                     src: 'signInAnonymous',
@@ -567,7 +566,18 @@ export const createAuthMachine = ({
             clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, null)
             return { value: null }
           }
-        })
+        }),
+        broadcastToken: (context) => {
+          if (autoSignIn) {
+            try {
+              const channel = new BroadcastChannel('nhost')
+              // ? broadcat session instead of token ?
+              channel.postMessage(context.refreshToken.value)
+            } catch (error) {
+              // * BroadcastChannel is not available e.g. react-native
+            }
+          }
+        }
       },
 
       guards: {
@@ -579,7 +589,6 @@ export const createAuthMachine = ({
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         hasAuthenticationError: (ctx) => !!ctx.errors.authentication,
         isAutoRefreshDisabled: () => !autoRefreshToken,
-        isAutoSignInDisabled: () => !autoSignIn,
         refreshTimerShouldRefresh: (ctx) => {
           const { expiresAt } = ctx.accessToken
           if (!expiresAt) {
@@ -647,7 +656,6 @@ export const createAuthMachine = ({
             ticket: ticket || context.mfa?.ticket,
             otp
           }),
-
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest('/token', {
@@ -668,50 +676,40 @@ export const createAuthMachine = ({
             options: rewriteRedirectTo(clientUrl, options)
           }),
 
-        /**
-         * If autoSignIn is enabled, attempts to get the refreshToken from the current location's hash
-         * @returns
-         */
-        autoSignIn: async (ctx) => {
-          if (!!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value) {
-            // * User is already authenticated, skip autoSignIn
-            // TODO uncomment and test
-            // removeParameterFromWindow('refreshToken')
-            return Promise.reject({ error: null })
-          }
-          const refreshToken = getParameterByName('refreshToken')
-          if (refreshToken) {
-            // * delete refreshToken from the hash
-            removeParameterFromWindow('refreshToken')
-            const session = await postRequest('/token', { refreshToken })
-            try {
-              const channel = new BroadcastChannel('nhost')
-              // ? broadcat session instead of token ?
-              channel.postMessage(refreshToken)
-            } catch (error) {
-              // * BroadcastChannel is not available e.g. react-native
-            }
-            return { session }
-          } else {
-            const error = getParameterByName('error')
-            if (error) {
-              return Promise.reject<{ error: ValidationErrorPayload }>({
-                error: {
-                  status: VALIDATION_ERROR_CODE,
-                  error,
-                  message: getParameterByName('errorDescription') || error
-                }
-              })
-            } else {
-              return Promise.reject({ error: null })
-            }
-          }
-        },
         importRefreshToken: async () => {
           const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)
           const expiresAt = stringExpiresAt ? new Date(stringExpiresAt) : null
-          const refreshToken = await clientStorageGetter(NHOST_REFRESH_TOKEN_KEY)
-          return { refreshToken, expiresAt }
+          let refreshToken = await clientStorageGetter(NHOST_REFRESH_TOKEN_KEY)
+          if (autoSignIn) {
+            const urlToken = getParameterByName('refreshToken') || null
+            if (urlToken) {
+              if (!refreshToken) {
+                // ? Which takes precedence? localStorage or the url?
+                refreshToken = urlToken
+              }
+              // * Remove the refresh token from the URL
+              removeParameterFromWindow('refreshToken')
+            } else {
+              const error = getParameterByName('error')
+              if (error) {
+                return Promise.reject<{ error: ValidationErrorPayload }>({
+                  error: {
+                    status: VALIDATION_ERROR_CODE,
+                    error,
+                    message: getParameterByName('errorDescription') || error
+                  }
+                })
+              }
+            }
+          }
+          return refreshToken
+            ? {
+                refreshToken,
+                expiresAt
+              }
+            : Promise.reject<{ error: ValidationErrorPayload }>({
+                error: null
+              })
         }
       }
     }
