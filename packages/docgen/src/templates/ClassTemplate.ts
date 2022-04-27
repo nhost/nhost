@@ -46,7 +46,7 @@ ${
             ? signature.signatures
                 .map((constructorSignature) =>
                   FunctionFragment(constructorSignature, originalDocument, {
-                    numberOfTotalFunctions: signature.signatures!.length,
+                    numberOfOverloads: signature.signatures!.length,
                     isConstructor: true
                   })
                 )

@@ -37,14 +37,17 @@ interface ChangeEmailHookResult extends ChangeEmailHookState {
 }
 
 /**
- * Change email
- *
- * @remarks
- * Lorem ipsum dolor sit amet.
+ * Change email hook
  *
  * @example
  * ```js
- * const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail();
+ * const {
+ *   changeEmail,
+ *   isLoading,
+ *   needsEmailVerification,
+ *   isError,
+ *   error
+ * } = useChangeEmail();
  * ```
  *
  * @example
@@ -74,10 +77,7 @@ interface ChangeEmailHookResult extends ChangeEmailHookState {
 export function useChangeEmail(options?: ChangeEmailOptions): ChangeEmailHookResult
 
 /**
- * Change email
- *
  * @deprecated
- * Please use `useChangeEmail(options?: ChangeEmailOptions)` instead.
  */
 export function useChangeEmail(email?: string, options?: ChangeEmailOptions): ChangeEmailHookResult
 

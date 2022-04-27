@@ -46,9 +46,10 @@ ${signatures && signatures.length > 1 ? `# \`${name}()\`` : ``}
 ${
   signatures
     ? signatures
-        .map((signature) =>
+        .map((signature, index) =>
           FunctionFragment(signature, originalDocument, {
-            numberOfTotalFunctions: signatures.length,
+            numberOfOverloads: signatures.length,
+            index,
             ...functionFragmentOptions
           })
         )

@@ -20,7 +20,9 @@ export const ParameterFragment = (
   return `
 ---
 
-**<span className="parameter-name">${name || ``}</span>** <span className="optional-status">${
+**<span className="parameter-name${deprecationTag ? ' deprecated' : ''}">${
+    name || ``
+  }</span>** <span className="optional-status">${
     flags.isOptional ? 'optional' : 'required'
   }</span> ${
     // function signatures behave slightly differently than other types
