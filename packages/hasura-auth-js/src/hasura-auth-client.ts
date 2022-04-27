@@ -467,7 +467,7 @@ export class HasuraAuthClient {
    *
    * @example
    * auth.onAuthStateChanged((event, session) => {
-   *   console.log(`auth state changed. State is not ${event} with session: ${session}`)
+   *   console.log(`Auth state changed. State is now ${event} with session: ${session}`)
    * });
    *
    * @docs https://docs.nhost.io/reference/sdk/authentication#nhost-auth-onauthstatechangedevent,-session
