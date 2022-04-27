@@ -25,6 +25,12 @@ In this section:
 - [Configuration](/reference/nextjs/configuration)
 - [Protecting routes](/reference/nextjs/protecting-routes)
 
+### Vue
+
+- [Getting started](/reference/vue/getting-started)
+- [Protecting routes](/reference/vue/protecting-routes)
+- [Apollo GraphQL](/reference/vue/apollo)
+
 ### Nhost CLI
 
 - [CLI overview](/reference/cli)

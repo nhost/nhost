@@ -531,6 +531,7 @@ importers:
   packages/vue:
     specifiers:
       '@nhost/core': workspace:^
+      '@nhost/docgen': '*'
       '@nhost/hasura-auth-js': workspace:^
       '@nhost/nhost-js': workspace:^
       '@vitejs/plugin-vue': ^2.3.1
@@ -546,6 +547,7 @@ importers:
       immer: 9.0.12
     devDependencies:
       '@nhost/core': link:../core
+      '@nhost/docgen': link:../docgen
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@vitejs/plugin-vue': 2.3.1_vite@2.9.5+vue@3.2.33
       '@xstate/inspect': 0.6.5_ws@8.5.0+xstate@4.31.0

@@ -29,7 +29,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix"
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./vue.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./vue.docgen.json"
   },
   "main": "src/index.ts",
   "publishConfig": {
@@ -56,6 +58,7 @@
     "immer": "^9.0.12"
   },
   "devDependencies": {
+    "@nhost/docgen": "*",
     "@nhost/core": "workspace:^",
     "@nhost/hasura-auth-js": "workspace:^",
     "@vitejs/plugin-vue": "^2.3.1",

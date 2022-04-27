@@ -1,0 +1,9 @@
+{
+  "title": "React",
+  "path": "./__tsdoc__/vue.json",
+  "output": "../../docs/docs/reference/docgen/vue",
+  "root": "reference/docgen/vue",
+  "slug": "/reference/vue",
+  "sidebarConfig": "referenceSidebar",
+  "cleanup": true
+}
