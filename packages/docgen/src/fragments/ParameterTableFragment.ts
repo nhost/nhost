@@ -41,7 +41,9 @@ ${parameters
         : parameter.type.type === 'union' || parameter.type.type === 'intersection'
         ? getLabelForType(parameter.type, labelOptions).replace(/\|/gi, '\\|')
         : getLabelForType(parameter.type, labelOptions)
-    } | ${parameter.flags.isOptional ? `` : '✔️'} | ${parameter.comment?.shortText || ''}|`
+    } | ${parameter.flags.isOptional ? `` : '✔️'} | ${
+      parameter.comment?.shortText?.replace(/\n/gi, ' ') || ''
+    }|`
   })
   .join('\n')}
 `

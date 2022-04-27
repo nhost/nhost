@@ -26,11 +26,9 @@ test('should contain title and a placeholder description in front matter', () =>
         shortText: ''
       }
     })
-  ).toContain(`---
-title: TestClass
+  ).toContain(`title: TestClass
 sidebar_label: TestClass
-description: No description provided.
----`)
+description: No description provided.`)
 })
 
 test('should contain alias as a sidebar label in front matter if available', () => {
@@ -41,11 +39,9 @@ test('should contain alias as a sidebar label in front matter if available', () 
         tags: [{ tag: 'alias', text: 'TestClassAlias' }]
       }
     })
-  ).toContain(`---
-title: TestClass
+  ).toContain(`title: TestClass
 sidebar_label: TestClassAlias
-description: No description provided.
----`)
+description: No description provided.`)
 })
 
 test('should contain description in front matter if available', () => {
@@ -56,11 +52,9 @@ test('should contain description in front matter if available', () => {
         shortText: 'Test Description'
       }
     })
-  ).toContain(`---
-title: TestClass
+  ).toContain(`title: TestClass
 sidebar_label: TestClass
-description: Test Description
----`)
+description: Test Description`)
 })
 
 test('should contain name of the class as heading wrapped in backticks', () => {

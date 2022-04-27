@@ -8,18 +8,21 @@ import ParameterTableFragment from './ParameterTableFragment'
 
 export type FunctionFragmentOptions = {
   /**
-   * Number of total functions in the same context. e.g: Number of functions in
-   * the same file.
+   * Number of function overloads in the same context.
    *
    * @default 1
    */
-  numberOfTotalFunctions?: number
+  numberOfOverloads?: number
   /**
    * Determines if the function fragment should be made for a constructor.
    *
    * @default false
    */
   isConstructor?: boolean
+  /**
+   * Index of signature in signature list.
+   */
+  index?: number
 }
 
 /**
@@ -33,7 +36,7 @@ export type FunctionFragmentOptions = {
 export const FunctionFragment = (
   signature: Signature,
   originalDocument?: Array<Signature>,
-  { numberOfTotalFunctions = 1, isConstructor = false }: FunctionFragmentOptions = {}
+  { numberOfOverloads = 1, isConstructor = false, index }: FunctionFragmentOptions = {}
 ) => {
   const examples = getExamplesFromSignature(signature)
   const parameters = signature.parameters
@@ -51,23 +54,27 @@ export const FunctionFragment = (
     : undefined
 
   return `
-${numberOfTotalFunctions === 1 && !isConstructor ? `# \`${signature.name}()\`` : ``}
-
-${numberOfTotalFunctions > 1 && isConstructor && !signature.comment ? `## Constructor` : ``}
+${numberOfOverloads === 1 && !isConstructor ? `# \`${signature.name}()\`` : ``}
 
 ${
-  signature.comment
-    ? CommentFragment(signature.comment, {
-        highlightTitle: numberOfTotalFunctions > 1
-      })
-    : ''
+  numberOfOverloads > 1 && index !== undefined
+    ? isConstructor
+      ? `## Constructor ${index + 1} of ${numberOfOverloads}`
+      : `## Overload ${index + 1} of ${numberOfOverloads}`
+    : ``
 }
+
+${signature.comment ? CommentFragment(signature.comment) : ''}
 
 ${
   deprecationTag
     ? DeprecationNoteFragment(
         deprecationTag,
-        isConstructor ? 'This constructor is deprecated.' : 'This function is deprecated.'
+        isConstructor
+          ? 'This constructor is deprecated.'
+          : numberOfOverloads > 1
+          ? 'This overload is deprecated.'
+          : 'This function is deprecated.'
       )
     : ``
 }
@@ -76,7 +83,7 @@ ${firstExample ? CommentTagFragment(firstExample) : ``}
 
 ${
   parameters.length > 0
-    ? `${numberOfTotalFunctions > 1 ? `### Parameters` : `## Parameters`}\n${parameters
+    ? `${numberOfOverloads > 1 ? `### Parameters` : `## Parameters`}\n${parameters
         .map(({ parameter, referencedParameter }) => {
           if (parameter && referencedParameter) {
             return `${ParameterFragment(parameter)}\n${ParameterTableFragment(
@@ -89,6 +96,13 @@ ${
         })
         .concat('---')
         .join('\n\n')}`
+    : numberOfOverloads > 1
+    ? `### Parameters
+---
+
+<span className="light-grey">This overload doesn't accept any arguments.</span>
+
+---`
     : ``
 }
 
@@ -96,13 +110,15 @@ ${
   signature.comment &&
   signature.comment.tags &&
   signature.comment.tags.some(({ tag }) => tag === 'remarks')
-    ? `## Notes\n${signature.comment.tags.find(({ tag }) => tag === 'remarks')?.text}`
+    ? `${isConstructor || numberOfOverloads > 1 ? '### Notes' : '## Notes'}\n${
+        signature.comment.tags.find(({ tag }) => tag === 'remarks')?.text
+      }`
     : ``
 }
 
 ${
   examples.length > 1 || (!firstExample && examples.length > 0)
-    ? `${isConstructor ? '### Examples' : '## Examples'}\n\n${examples
+    ? `${isConstructor || numberOfOverloads > 1 ? '### Examples' : '## Examples'}\n\n${examples
         .map(CommentTagFragment)
         .join('\n\n')}`
     : ``

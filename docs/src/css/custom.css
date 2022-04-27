@@ -228,7 +228,7 @@ h1 > code {
   font-size: 90%;
 }
 
-.parameter-name.deprecated {
+.deprecated {
   text-decoration: line-through;
 }
 
