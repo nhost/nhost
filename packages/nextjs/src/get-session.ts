@@ -46,14 +46,15 @@ export const getNhostSession = async (
   backendUrl: string,
   context: NextPageContext | GetServerSidePropsContext
 ): Promise<NhostSession | null> => {
-  let session: NhostSession | null = null
   if (context.req && context.res) {
     const cookies = Cookies(context.req, context.res)
-
-    const refreshToken = cookies.get(NHOST_REFRESH_TOKEN_KEY) ?? null
+    const refreshToken =
+      typeof context.query.refreshToken === 'string'
+        ? context.query.refreshToken
+        : cookies.get(NHOST_REFRESH_TOKEN_KEY) ?? null
     if (refreshToken) {
-      session = await refresh(backendUrl, refreshToken)
-      if (session) {
+      try {
+        const session = await refresh(backendUrl, refreshToken)
         cookies.set(NHOST_REFRESH_TOKEN_KEY, session.refreshToken, {
           httpOnly: false,
           sameSite: true
@@ -66,8 +67,11 @@ export const getNhostSession = async (
             sameSite: true
           }
         )
+        return session
+      } catch {
+        return null
       }
     }
   }
-  return session
+  return null
 }

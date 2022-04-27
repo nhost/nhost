@@ -18,7 +18,7 @@ import {
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
 import { Mfa, NhostSession } from '../types'
-import { rewriteRedirectTo } from '../utils'
+import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
 
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
@@ -672,24 +672,18 @@ export const createAuthMachine = ({
          * If autoSignIn is enabled, attempts to get the refreshToken from the current location's hash
          * @returns
          */
-        autoSignIn: async () => {
-          // TODO throwing errors is not really important as they are captured by the xstate invoker
-          // * Still, keep them for the moment as it needs to be tested in every environemnt e.g. nodejs, expo, react-native...
-          if (typeof window === 'undefined' || !window.location) {
+        autoSignIn: async (ctx) => {
+          if (!!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value) {
+            // * User is already authenticated, skip autoSignIn
+            // TODO uncomment and test
+            // removeParameterFromWindow('refreshToken')
             return Promise.reject({ error: null })
           }
-          const { hash } = window.location
-          if (hash) {
-            const params = new URLSearchParams(hash.slice(1))
-            const refreshToken = params.get('refreshToken')
-            if (!refreshToken) {
-              return Promise.reject({ error: null })
-            }
+          const refreshToken = getParameterByName('refreshToken')
+          if (refreshToken) {
+            // * delete refreshToken from the hash
+            removeParameterFromWindow('refreshToken')
             const session = await postRequest('/token', { refreshToken })
-            // * remove hash from the current url after consumming the token
-            // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
-            // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
-            // window.history.pushState({}, '', location.pathname)
             try {
               const channel = new BroadcastChannel('nhost')
               // ? broadcat session instead of token ?
@@ -699,16 +693,13 @@ export const createAuthMachine = ({
             }
             return { session }
           } else {
-            // * Look for `error` in the url parameters.
-            // * If it is present, returns it in the rejected promise so it is loaded into the machine
-            const params = new URLSearchParams(window.location.search)
-            const error = params.get('error')
+            const error = getParameterByName('error')
             if (error) {
               return Promise.reject<{ error: ValidationErrorPayload }>({
                 error: {
                   status: VALIDATION_ERROR_CODE,
                   error,
-                  message: params.get('errorDescription') || error
+                  message: getParameterByName('errorDescription') || error
                 }
               })
             } else {
