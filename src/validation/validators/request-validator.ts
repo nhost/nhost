@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { ValidationError, Schema } from 'joi';
+import { ValidationError, Schema, AsyncValidationOptions } from 'joi';
 
 import { sendError } from '@/errors';
 import { ENV } from '@/utils';
@@ -9,7 +9,8 @@ const requestValidator: (
 ) => (schema: Schema) => RequestHandler =
   (payload) => (schema) => async (req, res, next) => {
     try {
-      const options = payload === 'query' ? { convert: true } : undefined;
+      const options: AsyncValidationOptions =
+        payload === 'query' ? { convert: true, allowUnknown: true } : {};
       req[payload] = await schema.validateAsync(req[payload], options);
       next();
     } catch (err: any) {
