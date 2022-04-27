@@ -1,6 +1,16 @@
 
 
-## [0.6.3](https://github.com/nhost/hasura-auth/compare/v0.6.2...v0.6.3) (2022-04-21)
+# [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
+
+
+### Bug Fixes
+
+* don't fail when unknown options are present in the query parameters ([3bf88d8](https://github.com/nhost/hasura-auth/commit/3bf88d8a44a72700d033211a09996fd76b10c948))
+
+
+### Features
+
+* use encoded `redirectTo` url value in email templates ([9b88a91](https://github.com/nhost/hasura-auth/commit/9b88a91274aeb9eeeb3824eea79f444bcca47401))## [0.6.3](https://github.com/nhost/hasura-auth/compare/v0.6.2...v0.6.3) (2022-04-21)
 
 
 ### Bug Fixes
