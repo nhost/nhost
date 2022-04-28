@@ -4,8 +4,6 @@ table:
 configuration:
   custom_column_names:
     created_at: createdAt
-    id: id
-    role: role
     user_id: userId
   custom_name: authUserRoles
   custom_root_fields:
