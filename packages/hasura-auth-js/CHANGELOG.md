@@ -1,5 +1,19 @@
 # @nhost/hasura-auth-js
 
+## 1.1.0
+
+### Minor Changes
+
+- 1ce55c5: Add `auth.getDecodedAccessToken()`, `auth.getHasuraClaims()`, and `auth.getHasuraClaim(name: string)`
+
+### Patch Changes
+
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+- d49b837: Rename `autoLogin` to `autoSignIn`, and deprecate `autoLogin`
+  Thourought Nhost, we use the term `sign in` rather than `login`. This version reflect this terminology in the `NhostClient` options
+- Updated dependencies [b52b4fc]
+  - @nhost/core@0.4.0
+
 ## 1.0.15
 
 ### Patch Changes
@@ -16,8 +30,6 @@
 - e0cfcaf: fix and improve `nhost.auth.refreshSession`
   `nhost.auth.refreshSession` is now functional and returns possible errors, or the user session if the token has been sucessfully refreshed.
   If the user was previously not authenticated, it will sign them in. See [#286](https://github.com/nhost/nhost/issues/286)
-- Updated dependencies [5ee395e]
-- Updated dependencies [e0cfcaf]
 - Updated dependencies [7b7527a]
   - @nhost/core@0.3.13
 
@@ -25,7 +37,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [7b5f00d]
 - Updated dependencies [58e1485]
   - @nhost/core@0.3.12
 
@@ -45,7 +56,6 @@
   Fixes [#384](https://github.com/nhost/nhost/issues/384), thanks [@noverby](https://github.com/noverby)
 - 63d6059: Trigger onTokenChanged when token changes
   Fixes [#373](https://github.com/nhost/nhost/issues/373), thanks [@yureckey](https://github.com/yureckey)
-- Updated dependencies [63d6059]
 - Updated dependencies [63d6059]
   - @nhost/core@0.3.10
 
@@ -70,7 +80,6 @@
 
   Some information is missing in the `User` payload (see [this issue](https://github.com/nhost/nhost/issues/306)). The above properties have been added in the Typescript `User` type and are available when using Hasura Auth versions from [this pull request](https://github.com/nhost/hasura-auth/pull/128) (tentative version number: `0.5.1`)
 
-- Updated dependencies [058956b]
 - Updated dependencies [7cf875f]
   - @nhost/core@0.3.8
 

@@ -1,5 +1,26 @@
 # @nhost/core
 
+## 0.4.0
+
+### Minor Changes
+
+- 616e320: Remove `refreshToken` from the url when `autoSignIn` is set
+  On startup, when the `autoSignIn` option is set to `true`, the client now removes it from the URL when the page loads.
+- 53f5226: Capture hasura-auth errors from the url
+  When using social providers (Oauth) or email links, Hasura-Auth adds potential error codes and messages to the url.
+  When the Nhost client loads, it now reads these errors and stores them in the authentication state.
+- 616e320: Look for the refresh token both in the query parameters and in the hash
+  Until now, after redirecting from an email, Hasura-auth puts refresh tokens in the hash part of the url. It is a problem when using SSR as the hash is not accessible to the server. This behaviour is likely to change. As a result, the client now parses both the hash and the query parameters of the url.
+  See [this issue](https://github.com/nhost/hasura-auth/issues/148) to keep track of the progress on Hasura-auth.
+
+### Patch Changes
+
+- 616e320: Improve startup
+  When `autoSignin` was active, the client was fetching the refresh token twice on startup. This behaviour has been corrected.
+- b52b4fc: Rename `AuthClientSSR` to `AuthCookieClient`
+  `AuthClientSSR` has been renamed to `AuthCookieClient` and is now deprecated
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+
 ## 0.3.13
 
 ### Patch Changes
