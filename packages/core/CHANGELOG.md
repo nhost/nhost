@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.4.1
+
+### Patch Changes
+
+- 7b23d33: Clean `refreshToken` and `type` from the url when the user is already signed in
+
 ## 0.4.0
 
 ### Minor Changes
