@@ -53,7 +53,8 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/core": "workspace:^"
+    "@nhost/core": "workspace:^",
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
     "@nhost/docgen": "*",
