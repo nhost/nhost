@@ -1,4 +1,8 @@
-import { getExamplesFromSignature, getNestedParametersFromParameter } from '../helpers'
+import {
+  getExamplesFromSignature,
+  getNestedParametersFromParameter,
+  removeLinksFromText
+} from '../helpers'
 import { Signature } from '../types'
 import CommentFragment from './CommentFragment'
 import CommentTagFragment from './CommentTagFragment'
@@ -110,9 +114,9 @@ ${
   signature.comment &&
   signature.comment.tags &&
   signature.comment.tags.some(({ tag }) => tag === 'remarks')
-    ? `${isConstructor || numberOfOverloads > 1 ? '### Notes' : '## Notes'}\n${
+    ? `${isConstructor || numberOfOverloads > 1 ? '### Notes' : '## Notes'}\n${removeLinksFromText(
         signature.comment.tags.find(({ tag }) => tag === 'remarks')?.text
-      }`
+      )}`
     : ``
 }
 
