@@ -1,5 +1,37 @@
 # @nhost/nextjs
 
+## 2.0.0
+
+### Minor Changes
+
+- b52b4fc: Introduce `createServerSideNhostClient`
+  Until now, the Nhost client was not functionning correctly on the server side.
+  The `createServerSideNhostClient` can be called inside the `getServerSideProps` function of a page.
+  When called, it will try to get the refesh token in cookies, or from the request URL.
+  If a refresh token is found, it uses it to get an up to date access token (JWT) and a user session
+  This method returns a promise of an `NhostClient` and resolves only when the authentication status is known eventually.
+
+  `getNhostSession` now uses the above method under the hood to extract the user session and hydrate the NhostClient context on the client side.
+
+- 616e320: Look for the refresh token both in the query parameters and in the hash
+  Until now, after redirecting from an email, Hasura-auth puts refresh tokens in the hash part of the url. It is a problem when using SSR as the hash is not accessible to the server. This behaviour is likely to change. As a result, the client now parses both the hash and the query parameters of the url.
+  See [this issue](https://github.com/nhost/hasura-auth/issues/148) to keep track of the progress on Hasura-auth.
+
+### Patch Changes
+
+- 49545c0: Remove filtering of `useLayoutEffect` from logs
+  The `suppressConsoleMessage` method was meant to suppress incorrect `useLayoutEffect` messages raised on Nextjs server-side renderings. Its implementation had an impact on the normal functionning of logging (see [#447](https://github.com/nhost/nhost/issues/447)).
+  This filtering was necessary when using former versions of xstate and can now be removed.
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+- Updated dependencies [49545c0]
+- Updated dependencies [616e320]
+- Updated dependencies [1ce55c5]
+- Updated dependencies [616e320]
+- Updated dependencies [b52b4fc]
+- Updated dependencies [d49b837]
+  - @nhost/react@0.6.0
+  - @nhost/nhost-js@1.1.5
+
 ## 1.0.18
 
 ### Patch Changes

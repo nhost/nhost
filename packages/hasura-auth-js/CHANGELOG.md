@@ -1,5 +1,24 @@
 # @nhost/hasura-auth-js
 
+## 1.1.0
+
+### Minor Changes
+
+- 1ce55c5: Add `auth.getDecodedAccessToken()`, `auth.getHasuraClaims()`, and `auth.getHasuraClaim(name: string)`
+
+### Patch Changes
+
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+- d49b837: Rename `autoLogin` to `autoSignIn`, and deprecate `autoLogin`
+  Thourought Nhost, we use the term `sign in` rather than `login`. This version reflect this terminology in the `NhostClient` options
+- Updated dependencies [616e320]
+- Updated dependencies [616e320]
+- Updated dependencies [b52b4fc]
+- Updated dependencies [53f5226]
+- Updated dependencies [616e320]
+- Updated dependencies [b52b4fc]
+  - @nhost/core@0.4.0
+
 ## 1.0.15
 
 ### Patch Changes

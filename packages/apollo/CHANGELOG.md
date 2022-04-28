@@ -1,5 +1,18 @@
 # @nhost/apollo
 
+## 0.4.4
+
+### Patch Changes
+
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+- Updated dependencies [616e320]
+- Updated dependencies [616e320]
+- Updated dependencies [b52b4fc]
+- Updated dependencies [53f5226]
+- Updated dependencies [616e320]
+- Updated dependencies [b52b4fc]
+  - @nhost/core@0.4.0
+
 ## 0.4.3
 
 ### Patch Changes
