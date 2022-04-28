@@ -1,6 +1,11 @@
 
 
-# [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
+## [0.7.1](https://github.com/nhost/hasura-auth/compare/v0.7.0...v0.7.1) (2022-04-28)
+
+
+### Features
+
+* use query parameter instead of hash when adding the refresh token to an url ([af8ea50](https://github.com/nhost/hasura-auth/commit/af8ea5097cf04d9991977c72bed0797218f5e997))# [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
 
 
 ### Bug Fixes
