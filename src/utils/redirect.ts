@@ -36,6 +36,7 @@ export const generateRedirectUrl = (
   if (hashTag) {
     finalRedirectTo += '#' + hashTag;
   }
+
   return finalRedirectTo;
 };
 
