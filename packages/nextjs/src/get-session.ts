@@ -47,7 +47,6 @@ export const getNhostSession = async (
 ): Promise<NhostSession | null> => {
   const nhost = await createServerSideClient(backendUrl, context as any)
   const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.state.context
-  // console.log(nhost.auth.getAuthenticationStatus())
   return nhost.auth.isAuthenticated()
     ? {
         accessToken: accessToken.value!,

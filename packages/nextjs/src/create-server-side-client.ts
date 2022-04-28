@@ -13,7 +13,7 @@ import { NhostClient } from '@nhost/nhost-js'
  * This method resolves when the authentication status is known eventually
  * @param backendUrl
  * @param context
- * @returns
+ * @returns instance of `NhostClient` that is ready to use on the server side (signed in or signed out)
  */
 export const createServerSideClient = async (
   backendUrl: string,
@@ -23,7 +23,6 @@ export const createServerSideClient = async (
   const nhost = new NhostClient({
     backendUrl,
     clientStorageGetter: (key) => {
-      console.log(context.resolvedUrl, context.query, context.req.url)
       // TODO does not perfectly work in the same way as the 'regular' client:
       // * in the authentication machine, if the refresh token is null but an error is found in the url, then the authentication stops and fails
       const urlValue = context.query[key]
