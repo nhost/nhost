@@ -23,11 +23,6 @@
   The `suppressConsoleMessage` method was meant to suppress incorrect `useLayoutEffect` messages raised on Nextjs server-side renderings. Its implementation had an impact on the normal functionning of logging (see [#447](https://github.com/nhost/nhost/issues/447)).
   This filtering was necessary when using former versions of xstate and can now be removed.
 - b52b4fc: Bump xstate to latest version (`4.31.0`)
-- Updated dependencies [49545c0]
-- Updated dependencies [616e320]
-- Updated dependencies [1ce55c5]
-- Updated dependencies [616e320]
-- Updated dependencies [b52b4fc]
 - Updated dependencies [d49b837]
   - @nhost/react@0.6.0
   - @nhost/nhost-js@1.1.5
@@ -65,7 +60,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [ab06e96]
 - Updated dependencies [ccba0b5]
   - @nhost/nhost-js@1.1.0
   - @nhost/react@0.5.3
@@ -96,8 +90,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [7cf875f]
-- Updated dependencies [7135aee]
 - Updated dependencies [587eaff]
   - @nhost/react@0.5.0
   - @nhost/nhost-js@1.0.9
@@ -297,12 +289,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
 - Updated dependencies [744fd69]
   - @nhost/react@0.3.0
   - @nhost/nhost-js@1.0.0

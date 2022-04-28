@@ -50,7 +50,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [ab06e96]
 - Updated dependencies [ccba0b5]
   - @nhost/nhost-js@1.1.0
 
@@ -328,7 +327,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [744fd69]
 - Updated dependencies [744fd69]
   - @nhost/nhost-js@1.0.0
 

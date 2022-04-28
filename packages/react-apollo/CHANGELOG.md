@@ -4,10 +4,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [49545c0]
-- Updated dependencies [616e320]
-- Updated dependencies [1ce55c5]
-- Updated dependencies [616e320]
 - Updated dependencies [b52b4fc]
   - @nhost/react@0.6.0
   - @nhost/apollo@0.4.4
@@ -69,8 +65,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [7cf875f]
-- Updated dependencies [7135aee]
 - Updated dependencies [587eaff]
   - @nhost/react@0.5.0
   - @nhost/apollo@0.3.7
@@ -136,11 +130,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
 - Updated dependencies [744fd69]
   - @nhost/react@0.3.0
   - @nhost/apollo@0.3.0
