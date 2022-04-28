@@ -174,7 +174,9 @@ async function parser() {
         })
       )
     } else {
-      appState.contentReferences = getModuleContentMap(groups)
+      if (groups) {
+        appState.contentReferences = getModuleContentMap(groups)
+      }
 
       await generateModuleDocumentation(parsedContent, output)
     }
