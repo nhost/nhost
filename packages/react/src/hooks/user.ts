@@ -698,7 +698,7 @@ export const useConfigMfa: ConfigMfaHook = () => {
  */
 export const useDecodedAccessToken = () => {
   const jwt = useAccessToken()
-  return useMemo(() => (jwt ? jwt_decode<JWTClaims>(jwt) : null), [jwt])
+  return jwt ? jwt_decode<JWTClaims>(jwt) : null
 }
 
 /**
@@ -715,7 +715,7 @@ export const useDecodedAccessToken = () => {
  */
 export const useHasuraClaims = () => {
   const claims = useDecodedAccessToken()
-  return useMemo(() => claims?.['https://hasura.io/jwt/claims'] || null, [claims])
+  return claims?.['https://hasura.io/jwt/claims'] || null
 }
 
 /**
@@ -734,8 +734,5 @@ export const useHasuraClaims = () => {
  */
 export const useHasuraClaim = (name: string) => {
   const hasuraClaims = useHasuraClaims()
-  return useMemo(
-    () => hasuraClaims?.[name.startsWith('x-hasura-') ? name : `x-hasura-${name}`] || null,
-    [hasuraClaims, name]
-  )
+  return hasuraClaims?.[name.startsWith('x-hasura-') ? name : `x-hasura-${name}`] || null
 }

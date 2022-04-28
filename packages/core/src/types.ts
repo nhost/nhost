@@ -125,7 +125,10 @@ export interface JWTHasuraClaims {
   'x-hasura-user-is-anonymous': string
 }
 
-// https://hasura.io/docs/1.0/graphql/core/auth/authentication/jwt.html#the-spec
+/**
+ * Basic structure of a JWT that contains the default Hasura namespace.
+ * @see {@link https://hasura.io/docs/1.0/graphql/core/auth/authentication/jwt.html#the-spec}
+ */
 export interface JWTClaims {
   sub?: string
   iat?: number
