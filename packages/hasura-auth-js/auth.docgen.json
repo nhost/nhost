@@ -1,6 +1,6 @@
 {
   "title": "Auth",
-  "path": "./__tsdoc__/auth.json",
+  "path": "./.docgen/auth.json",
   "output": "../../docs/docs/reference/docgen/javascript/auth",
   "root": "reference/docgen/javascript/auth",
   "slug": "/reference/javascript/auth",

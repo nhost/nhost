@@ -4,7 +4,7 @@
   "entryPoints": ["."],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./__tsdoc__/nextjs.json",
+  "json": "./.docgen/nextjs.json",
   "name": "Next.js",
   "readme": "none",
   "githubPages": false,

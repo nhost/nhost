@@ -4,7 +4,7 @@
   "entryPoints": ["."],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./__tsdoc__/auth.json",
+  "json": "./.docgen/auth.json",
   "name": "Auth",
   "readme": "none",
   "githubPages": false,

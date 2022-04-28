@@ -35,7 +35,7 @@ export async function generateFunctions(
   const finalOutputPath = `${outputPath}/content`
   const { baseSlug, verbose } = snapshot(appState)
   const { FunctionTemplate } = await import('../templates')
-  const functions: Array<{ name: string; content: string }> = parsedContent
+  const functions: Array<{ name: string; content: string }> = (parsedContent || [])
     .filter((document) => ['Function', 'Method'].includes(document.kindString))
     .map((props: Signature) => ({
       name: props.name,

@@ -1,3 +1,4 @@
+import { removeLinksFromText } from '../helpers'
 import { CommentTag } from '../types'
 
 /**
@@ -12,8 +13,8 @@ export const CommentTagFragment = ({ tag, text }: CommentTag) =>
 ${
   text
     ? tag && tag === 'default'
-      ? `\`${text.replace(/(^\n|\n$)/gi, ``).replace(/'/gi, '"')}\``
-      : `${text.replace(/(^\n|\n$)/gi, ``)}`
+      ? `\`${removeLinksFromText(text.replace(/(^\n|\n$)/gi, ``).replace(/'/gi, '"'))}\``
+      : `${removeLinksFromText(text.replace(/(^\n|\n$)/gi, ``))}`
     : ``
 }`
 
