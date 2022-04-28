@@ -1,3 +1,4 @@
+import { removeLinksFromText } from '../helpers'
 import { Comment } from '../types'
 import { CommentTagFragment } from './CommentTagFragment'
 
@@ -29,11 +30,13 @@ ${
   tags
     ? tags
         .filter(({ tag }) => !excludedTags.includes(tag))
-        .concat(returns ? { tag: 'returns', text: returns } : { tag: ``, text: `` })
+        .concat(
+          returns ? { tag: 'returns', text: removeLinksFromText(returns) } : { tag: ``, text: `` }
+        )
         .map(CommentTagFragment)
         .join('\n\n')
     : returns
-    ? CommentTagFragment({ tag: 'returns', text: returns })
+    ? CommentTagFragment({ tag: 'returns', text: removeLinksFromText(returns) })
     : ``
 }`
 

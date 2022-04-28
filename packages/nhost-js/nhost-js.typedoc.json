@@ -4,7 +4,7 @@
   "entryPoints": ["."],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./__tsdoc__/nhost-js.json",
+  "json": "./.docgen/nhost-js.json",
   "name": "Nhost JS",
   "readme": "none",
   "githubPages": false,
