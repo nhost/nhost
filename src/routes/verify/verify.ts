@@ -87,7 +87,13 @@ export const verifyHandler: RequestHandler<
 
   const refreshToken = await getNewRefreshToken(user.id);
 
-  const redirectUrl = generateRedirectUrl(redirectTo, { refreshToken, type });
+  // ! temparily send the refresh token in both hash and query parameter
+  // TODO at a later stage, only send as a query parameter
+  const redirectUrl = generateRedirectUrl(
+    redirectTo,
+    { refreshToken, type },
+    `refreshToken=${refreshToken}&type=${type}`
+  );
 
   return res.redirect(redirectUrl);
 };

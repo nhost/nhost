@@ -186,7 +186,11 @@ const providerCallback = asyncWrapper(
     const refreshToken = await getNewRefreshToken(user.id);
 
     // redirect back user to app url
-    res.redirect(`${requestOptions.redirectTo}?refreshToken=${refreshToken}`);
+    // ! temparily send the refresh token in both hash and query parameter
+    // TODO at a later stage, only send as a query parameter
+    res.redirect(
+      `${requestOptions.redirectTo}?refreshToken=${refreshToken}#refreshToken=${refreshToken}`
+    );
   }
 );
 
