@@ -353,7 +353,7 @@ export const createAuthMachine = ({
             signedIn: {
               tags: ['ready'],
               type: 'parallel',
-              entry: 'reportSignedIn',
+              entry: ['reportSignedIn', 'cleanUrl'],
               on: {
                 SIGNOUT: '#nhost.authentication.signedOut.signingOut',
                 DEANONYMIZE: {
@@ -567,6 +567,17 @@ export const createAuthMachine = ({
             return { value: null }
           }
         }),
+
+        // * Clean the browser url when `autoSignIn` is activated
+        cleanUrl: () => {
+          if (autoSignIn && getParameterByName('refreshToken')) {
+            // * Remove the refresh token from the URL
+            removeParameterFromWindow('refreshToken')
+            removeParameterFromWindow('type')
+          }
+        },
+
+        // * Broadcast the token to other tabs when `autoSignIn` is activated
         broadcastToken: (context) => {
           if (autoSignIn) {
             try {
@@ -687,8 +698,6 @@ export const createAuthMachine = ({
                 // ? Which takes precedence? localStorage or the url?
                 refreshToken = urlToken
               }
-              // * Remove the refresh token from the URL
-              removeParameterFromWindow('refreshToken')
             } else {
               const error = getParameterByName('error')
               if (error) {
