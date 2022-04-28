@@ -3,13 +3,13 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * @return `Ref` to the user's default role
+ * @returns `Ref` to the avatar url
  */
-export const useDefaultRole = () => {
+export const useUserAvatarUrl = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service.value,
-    (state) => state.context.user?.defaultRole,
+    (state) => state.context.user?.avatarUrl,
     (a, b) => a === b
   )
 }

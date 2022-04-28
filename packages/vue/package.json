@@ -54,12 +54,13 @@
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
+    "@vueuse/core": "^8.3.1",
     "@xstate/vue": "^1.0.0",
     "immer": "^9.0.12"
   },
   "devDependencies": {
-    "@nhost/docgen": "*",
     "@nhost/core": "workspace:^",
+    "@nhost/docgen": "*",
     "@nhost/hasura-auth-js": "workspace:^",
     "@vitejs/plugin-vue": "^2.3.1",
     "@xstate/inspect": "^0.6.2",

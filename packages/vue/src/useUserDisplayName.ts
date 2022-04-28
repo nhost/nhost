@@ -3,13 +3,13 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * @returns `Ref` to the avatar url
+ * @returns Ref to the user's display name
  */
-export const useAvatarUrl = () => {
+export const useUserDisplayName = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service.value,
-    (state) => state.context.user?.avatarUrl,
+    (state) => state.context.user?.displayName,
     (a, b) => a === b
   )
 }

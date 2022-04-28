@@ -5,7 +5,7 @@ import { useAuthInterpreter } from './useAuthInterpreter'
 /**
  * @returns `Ref` to the user's email
  */
-export const useEmail = () => {
+export const useUserEmail = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service.value,
