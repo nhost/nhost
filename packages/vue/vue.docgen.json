@@ -1,6 +1,6 @@
 {
   "title": "React",
-  "path": "./__tsdoc__/vue.json",
+  "path": "./.docgen/vue.json",
   "output": "../../docs/docs/reference/docgen/vue",
   "root": "reference/docgen/vue",
   "slug": "/reference/vue",

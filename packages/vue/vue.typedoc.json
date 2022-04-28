@@ -4,7 +4,7 @@
   "entryPoints": ["."],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./__tsdoc__/vue.json",
+  "json": "./.docgen/vue.json",
   "name": "Vue",
   "readme": "none",
   "githubPages": false,
