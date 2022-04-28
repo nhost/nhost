@@ -3,7 +3,7 @@ import { GetServerSidePropsContext } from 'next'
 import { StateFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 
-import { AuthMachine } from '@nhost/core'
+import { AuthMachine, NHOST_REFRESH_TOKEN_KEY } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
 
 /**
@@ -24,9 +24,13 @@ export const createServerSideClient = async (
     backendUrl,
     clientStorageGetter: (key) => {
       // TODO does not perfectly work in the same way as the 'regular' client:
-      // * in the authentication machine, if the refresh token is null but an error is found in the url, then the authentication stops and fails
-      const urlValue = context.query[key]
-      return typeof urlValue === 'string' ? urlValue : cookies.get(key) ?? null
+      // in the authentication machine, if the refresh token is null but an error is found in the url, then the authentication stops and fails.
+      // * When the requested key is `NHOST_REFRESH_TOKEN_KEY`, we have to look for the given 'refreshToken' value
+      // * in the url as this is the key sent by hasura-auth
+      const urlKey = key === NHOST_REFRESH_TOKEN_KEY ? 'refreshToken' : key
+      const urlValue = context.query[urlKey]
+      const cookieValue = cookies.get(key) ?? null
+      return typeof urlValue === 'string' ? urlValue : cookieValue
     },
     clientStorageSetter: (key, value) => {
       cookies.set(key, value, { httpOnly: false, sameSite: true })

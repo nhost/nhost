@@ -72,6 +72,16 @@ export interface Typegen0 {
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.registerUser'
       | 'done.invoke.authenticateWithToken'
+    cleanUrl:
+      | 'SESSION_UPDATE'
+      | ''
+      | 'done.invoke.authenticatePasswordlessSmsOtp'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.signInToken'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.registerUser'
+      | 'done.invoke.authenticateWithToken'
   }
   internalEvents: {
     'done.invoke.authenticatePasswordlessSmsOtp': {
