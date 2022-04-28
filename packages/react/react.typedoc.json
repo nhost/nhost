@@ -4,7 +4,7 @@
   "entryPoints": ["."],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./__tsdoc__/react.json",
+  "json": "./.docgen/react.json",
   "name": "React",
   "readme": "none",
   "githubPages": false,

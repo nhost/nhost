@@ -25,7 +25,7 @@ DocGen is an opinionated tool that works the best with Nhost's own codebase.
 
 ```json
 {
-  "path": "./__tsdoc__/auth.json",
+  "path": "./.docgen/auth.json",
   "output": "../../docs/docs/reference/docgen/javascript/auth",
   "root": "reference/docgen/javascript/auth",
   "title": "Auth",

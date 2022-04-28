@@ -26,3 +26,39 @@ export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl: string, o
           : options?.redirectTo
       }
     : options
+
+export function getParameterByName(name: string, url?: string) {
+  if (!url) {
+    if (typeof window === 'undefined') {
+      return
+    }
+    url = window.location?.href || ''
+  }
+  // eslint-disable-next-line no-useless-escape
+  name = name.replace(/[\[\]]/g, '\\$&')
+  const regex = new RegExp('[?&#]' + name + '(=([^&#]*)|&|#|$)'),
+    results = regex.exec(url)
+  if (!results) return null
+  if (!results[2]) return ''
+  return decodeURIComponent(results[2].replace(/\+/g, ' '))
+}
+
+export function removeParameterFromWindow(name: string) {
+  if (typeof window === 'undefined') {
+    return
+  }
+  const location = window?.location
+  if (!location) {
+    return
+  }
+  if (location) {
+    const search = new URLSearchParams(location.search)
+    const hash = new URLSearchParams(location.hash?.slice(1))
+    search.delete(name)
+    hash.delete(name)
+    let url = window.location.pathname
+    if (Array.from(search).length) url += `?${search.toString()}`
+    if (Array.from(hash).length) url += `#${hash.toString()}`
+    window.history.pushState({}, '', url)
+  }
+}

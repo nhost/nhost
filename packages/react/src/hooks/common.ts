@@ -49,8 +49,8 @@ export const useNhostBackendUrl = () => {
 
 /**
  * @deprecated
- * When using both `useAuthLoading` and `useAuthenticated` together, their initial state will change
- * three times:
+ * When using both `useAuthLoading` and `useAuthenticated` together, their initial state
+ * will change three times:
  *
  * `(true, false)` -> `(false, false)` -> `(false, true)`
  *
@@ -90,7 +90,9 @@ export const useAuthenticationStatus = () => {
     service,
     (state) => ({
       isAuthenticated: state.matches({ authentication: 'signedIn' }),
-      isLoading: !state.hasTag('ready')
+      isLoading: !state.hasTag('ready'),
+      error: state.context.errors.authentication || null,
+      isError: state.matches({ authentication: { signedOut: 'failed' } })
     }),
     (a, b) => a.isAuthenticated === b.isAuthenticated && a.isLoading === b.isLoading
   )

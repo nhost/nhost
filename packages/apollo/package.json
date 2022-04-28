@@ -60,6 +60,6 @@
   "devDependencies": {
     "@apollo/client": "^3.5.8",
     "@nhost/nhost-js": "workspace:^",
-    "xstate": "^4.30.5"
+    "xstate": "^4.31.0"
   }
 }

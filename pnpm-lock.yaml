@@ -153,7 +153,7 @@ importers:
       react-dom: 17.0.2
       typescript: 4.5.5
       ws: ^8.5.0
-      xstate: ^4.30.5
+      xstate: ^4.31.0
     dependencies:
       '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
       '@nhost/apollo': link:../../packages/apollo
@@ -302,7 +302,7 @@ importers:
       '@nhost/nhost-js': workspace:^
       graphql: 15.7.2
       graphql-ws: ^5.7.0
-      xstate: ^4.30.5
+      xstate: ^4.31.0
     dependencies:
       '@nhost/core': link:../core
       graphql: 15.7.2
@@ -316,7 +316,7 @@ importers:
     specifiers:
       axios: ^0.25.0
       js-cookie: ^3.0.1
-      xstate: ^4.30.5
+      xstate: ^4.31.0
     dependencies:
       axios: 0.25.0
       js-cookie: 3.0.1
@@ -369,7 +369,7 @@ importers:
       html-urls: ^2.4.27
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
-      xstate: ^4.30.5
+      xstate: ^4.31.0
     dependencies:
       '@nhost/core': link:../core
       jwt-decode: 3.1.2
@@ -402,7 +402,7 @@ importers:
       next: 12.0.10
       react: ^17.0.2
       react-dom: ^17.0.2
-      xstate: ^4.30.5
+      xstate: ^4.31.0
     dependencies:
       '@nhost/nhost-js': link:../nhost-js
       cookies: 0.8.0
@@ -449,7 +449,7 @@ importers:
       jwt-decode: ^3.1.2
       react: ^17.0.2
       ws: ^8.4.2
-      xstate: ^4.30.5
+      xstate: ^4.31.0
     dependencies:
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 2.0.1_react@17.0.2+xstate@4.31.0
@@ -2758,7 +2758,7 @@ packages:
     peerDependencies:
       react: '*'
     dependencies:
-      '@types/react': 18.0.5
+      '@types/react': 18.0.8
       prop-types: 15.8.1
       react: 17.0.2
     dev: false
@@ -4829,7 +4829,7 @@ packages:
   /@types/hoist-non-react-statics/3.3.1:
     resolution: {integrity: sha512-iMIqiko6ooLrTh1joXodJK5X9xeEALT1kM5G3ZLhD3hszxBdIEd5C75U834D9mLcINgD4OyZf5uQXjkuYydWvA==}
     dependencies:
-      '@types/react': 18.0.5
+      '@types/react': 18.0.8
       hoist-non-react-statics: 3.3.2
     dev: false
 
@@ -4966,7 +4966,7 @@ packages:
     resolution: {integrity: sha512-7FkurKcS1k0FHZEtdbbgN8Oc6b+stGSfZYjQGicofJ0j4U0qIn/jaSvnP2pLwZKiai3/17xqqxkkrxTgN8UNbQ==}
     dependencies:
       '@types/hoist-non-react-statics': 3.3.1
-      '@types/react': 18.0.5
+      '@types/react': 18.0.8
       hoist-non-react-statics: 3.3.2
       redux: 4.2.0
     dev: false
@@ -4989,7 +4989,7 @@ packages:
     resolution: {integrity: sha512-YYknwy0D0iOwKQgz9v8nOzt2J6l4gouBmDnWqUUznltOTaon+r8US8ky8HvN0tXvc38U9m6z/t2RsVsnd1zM0g==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.0.5
+      '@types/react': 18.0.8
 
   /@types/react-virtualized/9.21.21:
     resolution: {integrity: sha512-Exx6I7p4Qn+BBA1SRyj/UwQlZ0I0Pq7g7uhAp0QQ4JWzZunqEqNBGTmCmMmS/3N9wFgAGWuBD16ap7k8Y14VPA==}
@@ -5015,6 +5015,13 @@ packages:
 
   /@types/react/18.0.5:
     resolution: {integrity: sha512-UPxNGInDCIKlfqBrm8LDXYWNfLHwIdisWcsH5GpMyGjhEDLFgTtlRBaoWuCua9HcyuE0rMkmAeZ3FXV1pYLIYQ==}
+    dependencies:
+      '@types/prop-types': 15.7.5
+      '@types/scheduler': 0.16.2
+      csstype: 3.0.11
+
+  /@types/react/18.0.8:
+    resolution: {integrity: sha512-+j2hk9BzCOrrOSJASi5XiOyBbERk9jG5O73Ya4M0env5Ixi6vUNli4qy994AINcEF+1IEHISYFfIT4zwr++LKw==}
     dependencies:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.2
