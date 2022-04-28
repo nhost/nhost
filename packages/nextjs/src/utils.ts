@@ -1,3 +1,5 @@
+import fetch from 'cross-fetch'
+
 import { NhostSession } from '@nhost/core'
 
 export const refresh = async (

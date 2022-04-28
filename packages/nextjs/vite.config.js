@@ -12,7 +12,8 @@ export default defineConfig({
         ...reactConfig.build?.rollupOptions?.external,
         '@nhost/nhost-js',
         'cookies',
-        'next'
+        'next',
+        'cross-fetch'
       ]
     }
   }

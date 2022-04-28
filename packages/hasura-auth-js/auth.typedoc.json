@@ -1,7 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPointStrategy": "Packages",
-  "entryPoints": ["."],
+  "entryPoints": ["src/index.ts"],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
   "json": "./.docgen/auth.json",

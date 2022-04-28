@@ -3,7 +3,7 @@
   "display": "React Library",
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2015"],
+    "lib": ["DOM", "DOM.Iterable", "ESNext", "WebWorker"],
     "module": "ESNext",
     "target": "ES6",
     "jsx": "preserve"
