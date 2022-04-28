@@ -27,7 +27,7 @@ const Home: NextPage = () => {
   const { signOut } = useSignOut()
   const { signUpEmailPassword, ...signUpResult } = useSignUpEmailPassword()
   const { signInEmailPassword } = useSignInEmailPassword()
-  const { signInEmailPasswordless } = useSignInEmailPasswordless()
+  const { signInEmailPasswordless } = useSignInEmailPasswordless({ redirectTo: '/third' })
   const { changeEmail, ...changeEmailResult } = useChangeEmail()
   const { changePassword, ...changePasswordResult } = useChangePassword()
   const { loading, data, error } = useAuthQuery(BOOKS_QUERY)
