@@ -399,3 +399,27 @@ To check out your deployment, head over to the **Deployments** tab in your
 [Nhost dashboard](https://app.nhost.io).
 
 ![nhost-deployments](https://user-images.githubusercontent.com/4352286/165720825-9ff2f704-befd-4ebe-9fd7-80c46082f147.png)
+
+## Get help
+
+To get usage tips and learn more about available commands from within Nhost CLI,
+run the following:
+
+```shell
+nhost help
+```
+
+For more information about a specific command, run the command with the `--help`
+flag:
+
+```
+nhost init --help
+```
+
+If you have additional questions or ideas for new features, you can
+[start an issue](https://github.com/nhost/cli/issues) or
+[a new discussion](https://github.com/nhost/cli/discussions/new) on Nhost CLI’s
+open-source repository. You can also
+[chat with our team](https://discord.com/invite/9V7Qb2U) on Discord.
+
+We’d love to hear from you!
