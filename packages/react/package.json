@@ -52,19 +52,16 @@
     "docgen": "pnpm typedoc && docgen --config ./react.docgen.json"
   },
   "dependencies": {
+    "@nhost/core": "*",
     "@nhost/nhost-js": "*",
     "@xstate/react": "^2.0.1",
-    "immer": "^9.0.12"
+    "immer": "^9.0.12",
+    "xstate": "^4.30.5"
   },
   "devDependencies": {
     "@nhost/config": "*",
-    "@nhost/core": "*",
     "@nhost/docgen": "*",
-    "@nhost/hasura-auth-js": "*",
-    "@xstate/inspect": "^0.6.2",
-    "react": "^17.0.2",
-    "ws": "^8.4.2",
-    "xstate": "^4.30.5"
+    "react": "^17.0.2"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",

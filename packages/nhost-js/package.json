@@ -59,7 +59,6 @@
   },
   "devDependencies": {
     "@nhost/config": "*",
-    "@nhost/core": "*",
     "@nhost/docgen": "*",
     "graphql": "16"
   },

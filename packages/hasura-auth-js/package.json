@@ -50,7 +50,8 @@
     "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "dependencies": {
-    "@nhost/core": "*"
+    "@nhost/core": "*",
+    "xstate": "^4.30.5"
   },
   "devDependencies": {
     "@nhost/config": "*",
@@ -59,7 +60,6 @@
     "axios": "^0.26.0",
     "faker": "5",
     "html-urls": "^2.4.27",
-    "mailhog": "^4.16.0",
-    "xstate": "^4.30.5"
+    "mailhog": "^4.16.0"
   }
 }

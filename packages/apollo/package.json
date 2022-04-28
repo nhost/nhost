@@ -53,13 +53,12 @@
     "@apollo/client": "^3.5.8"
   },
   "dependencies": {
+    "@nhost/nhost-js": "*",
     "graphql": "16",
     "graphql-ws": "^5.7.0"
   },
   "devDependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/config": "*",
-    "@nhost/nhost-js": "*",
-    "xstate": "^4.30.5"
+    "@nhost/config": "*"
   }
 }

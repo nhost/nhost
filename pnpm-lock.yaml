@@ -304,15 +304,13 @@ importers:
       '@nhost/nhost-js': '*'
       graphql: 15.7.2
       graphql-ws: ^5.7.0
-      xstate: ^4.30.5
     dependencies:
+      '@nhost/nhost-js': link:../nhost-js
       graphql: 15.7.2
       graphql-ws: 5.7.0_graphql@15.7.2
     devDependencies:
       '@apollo/client': 3.5.10_graphql-ws@5.7.0+graphql@15.7.2
       '@nhost/config': link:../config
-      '@nhost/nhost-js': link:../nhost-js
-      xstate: 4.31.0
 
   packages/config:
     specifiers: {}
@@ -380,6 +378,7 @@ importers:
       xstate: ^4.30.5
     dependencies:
       '@nhost/core': link:../core
+      xstate: 4.31.0
     devDependencies:
       '@nhost/config': link:../config
       '@nhost/docgen': link:../docgen
@@ -388,7 +387,6 @@ importers:
       faker: 5.5.3
       html-urls: 2.4.34
       mailhog: 4.16.0
-      xstate: 4.31.0
 
   packages/hasura-storage-js:
     specifiers:
@@ -416,12 +414,12 @@ importers:
       react-dom: ^17.0.2
       xstate: ^4.30.5
     dependencies:
+      '@nhost/core': link:../core
       '@nhost/nhost-js': link:../nhost-js
       cookies: 0.8.0
       cross-fetch: 3.1.5
     devDependencies:
       '@nhost/config': link:../config
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
       '@nhost/react': link:../react
       '@types/cookies': 0.7.7
@@ -433,7 +431,6 @@ importers:
   packages/nhost-js:
     specifiers:
       '@nhost/config': '*'
-      '@nhost/core': '*'
       '@nhost/docgen': '*'
       '@nhost/hasura-auth-js': '*'
       '@nhost/hasura-storage-js': '*'
@@ -449,7 +446,6 @@ importers:
       query-string: 7.1.1
     devDependencies:
       '@nhost/config': link:../config
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
       graphql: 15.7.2
 
@@ -458,27 +454,21 @@ importers:
       '@nhost/config': '*'
       '@nhost/core': '*'
       '@nhost/docgen': '*'
-      '@nhost/hasura-auth-js': '*'
       '@nhost/nhost-js': '*'
-      '@xstate/inspect': ^0.6.2
       '@xstate/react': ^2.0.1
       immer: ^9.0.12
       react: ^17.0.2
-      ws: ^8.4.2
       xstate: ^4.30.5
     dependencies:
+      '@nhost/core': link:../core
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 2.0.1_react@17.0.2+xstate@4.31.0
       immer: 9.0.12
+      xstate: 4.31.0
     devDependencies:
       '@nhost/config': link:../config
-      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
-      '@xstate/inspect': 0.6.5_ws@8.5.0+xstate@4.31.0
       react: 17.0.2
-      ws: 8.5.0
-      xstate: 4.31.0
 
   packages/react-apollo:
     specifiers:
@@ -508,14 +498,15 @@ importers:
   packages/react-auth:
     specifiers:
       '@nhost/config': '*'
-      '@nhost/nhost-js': '*'
+      '@nhost/hasura-auth-js': '*'
       '@nhost/react': '*'
       '@types/react': ^17.0.38
       react: ^17.0.2
       react-dom: ^17.0.2
+    dependencies:
+      '@nhost/hasura-auth-js': link:../hasura-auth-js
     devDependencies:
       '@nhost/config': link:../config
-      '@nhost/nhost-js': link:../nhost-js
       '@nhost/react': link:../react
       '@types/react': 17.0.44
       react: 17.0.2
@@ -5416,7 +5407,7 @@ packages:
     dependencies:
       react: 17.0.2
       use-isomorphic-layout-effect: 1.1.2_react@17.0.2
-      use-subscription: 1.6.0_react@17.0.2
+      use-subscription: 1.5.1_react@17.0.2
       xstate: 4.31.0
     transitivePeerDependencies:
       - '@types/react'
@@ -16773,14 +16764,6 @@ packages:
     dependencies:
       object-assign: 4.1.1
       react: 17.0.2
-
-  /use-subscription/1.6.0_react@17.0.2:
-    resolution: {integrity: sha512-0Y/cTLlZfw547tJhJMoRA16OUbVqRm6DmvGpiGbmLST6BIA5KU5cKlvlz8DVMrACnWpyEjCkgmhLatthP4jUbA==}
-    peerDependencies:
-      react: ^18.0.0
-    dependencies:
-      react: 17.0.2
-    dev: false
 
   /use-sync-external-store/1.0.0:
     resolution: {integrity: sha512-AFVsxg5GkFg8GDcxnl+Z0lMAz9rE8DGJCc28qnBuQF7lac57B5smLcT37aXpXIIPz75rW4g3eXHPjhHwdGskOw==}
