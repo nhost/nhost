@@ -4,7 +4,7 @@
   "entryPoints": ["."],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
-  "json": "./__tsdoc__/storage.json",
+  "json": "./.docgen/storage.json",
   "name": "Storage",
   "readme": "none",
   "githubPages": false,

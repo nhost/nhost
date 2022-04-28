@@ -1,4 +1,4 @@
-import { GetLabelForTypeOptions, getLabelForType } from '../helpers'
+import { GetLabelForTypeOptions, getLabelForType, removeLinksFromText } from '../helpers'
 import { Parameter } from '../types'
 import FunctionSignatureTypeFragment from './FunctionSignatureTypeFragment'
 
@@ -32,7 +32,9 @@ ${parameters
         : parameter.name
     }</span> ${
       deprecationNote
-        ? `<span className="deprecation-sign" title="${deprecationNote.text}">⚠️</span>`
+        ? `<span className="deprecation-sign" title="${removeLinksFromText(
+            deprecationNote.text
+          )}">⚠️</span>`
         : ''
     } | ${
       // function signatures behave slightly differently than other types
@@ -41,7 +43,9 @@ ${parameters
         : parameter.type.type === 'union' || parameter.type.type === 'intersection'
         ? getLabelForType(parameter.type, labelOptions).replace(/\|/gi, '\\|')
         : getLabelForType(parameter.type, labelOptions)
-    } | ${parameter.flags.isOptional ? `` : '✔️'} | ${parameter.comment?.shortText || ''}|`
+    } | ${parameter.flags.isOptional ? `` : '✔️'} | ${
+      removeLinksFromText(parameter.comment?.shortText?.replace(/\n/gi, ' ')) || ''
+    }|`
   })
   .join('\n')}
 `

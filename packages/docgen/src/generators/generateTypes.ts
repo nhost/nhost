@@ -27,7 +27,7 @@ export async function generateTypes(
   const { TypeTemplate } = await import('../templates')
   const finalOutputPath = sameLevel ? outputPath : `${outputPath}/types`
 
-  const types: Array<{ name: string; content: string }> = parsedContent
+  const types: Array<{ name: string; content: string }> = (parsedContent || [])
     .filter((document) => ['Type alias', 'Interface'].includes(document.kindString))
     .map((props) => ({
       name: props.name,

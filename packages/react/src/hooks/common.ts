@@ -49,8 +49,8 @@ export const useNhostBackendUrl = () => {
 
 /**
  * @deprecated
- * When using both `useAuthLoading` and `useAuthenticated` together, their initial state will change
- * three times:
+ * When using both `useAuthLoading` and `useAuthenticated` together, their initial state
+ * will change three times:
  *
  * `(true, false)` -> `(false, false)` -> `(false, true)`
  *

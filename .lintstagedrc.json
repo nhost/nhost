@@ -1,6 +1,6 @@
 {
-  "packages/(docgen|hasura-auth-js|hasura-storage-js|nextjs|nhost-js|react)/src/*.{js,ts,jsx,tsx}": [
+  "packages/(docgen|hasura-auth-js|hasura-storage-js|nextjs|nhost-js|react)/src/**/*.{js,ts,jsx,tsx}": [
     "pnpm docgen",
-    "git add docs/docs/*"
+    "git add docs"
   ]
 }
