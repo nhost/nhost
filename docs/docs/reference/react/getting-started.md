@@ -1,5 +1,5 @@
 ---
-title: 'Getting started'
+title: Getting started
 sidebar_position: 1
 ---
 

@@ -1,0 +1,9 @@
+{
+  "title": "Next.js",
+  "path": "./__tsdoc__/nextjs.json",
+  "output": "../../docs/docs/reference/docgen/nextjs",
+  "root": "reference/docgen/nextjs",
+  "slug": "/reference/nextjs",
+  "sidebarConfig": "referenceSidebar",
+  "cleanup": true
+}

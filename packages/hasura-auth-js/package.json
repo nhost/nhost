@@ -45,13 +45,16 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix"
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./auth.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "dependencies": {
     "@nhost/core": "*"
   },
   "devDependencies": {
     "@nhost/config": "*",
+    "@nhost/docgen": "*",
     "@types/faker": "5",
     "axios": "^0.26.0",
     "faker": "5",

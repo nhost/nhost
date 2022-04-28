@@ -2,6 +2,7 @@
 # https://help.github.com/en/articles/about-code-owners
 
 /packages                                @plmercereau
+/packages/docgen                         @szilarddoro
 /.github/workflows                       @plmercereau
 /docs/                                   @guicurcio
 /examples/                               @plmercereau @guicurcio @FuzzyReason
