@@ -1,7 +1,7 @@
 export type { NhostClientOptions } from './client'
 export { AuthClient } from './client'
 export * from './constants'
-export { AuthClientSSR } from './coookie-client'
+export { AuthClientSSR, AuthCookieClient } from './coookie-client'
 export * from './errors'
 export * from './machines'
 export * from './storage'

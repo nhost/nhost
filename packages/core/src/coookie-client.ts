@@ -2,7 +2,7 @@ import { AuthClient, NhostClientOptions } from './client'
 import { cookieStorageGetter, cookieStorageSetter } from './storage'
 const isBrowser = typeof window !== 'undefined'
 
-export class AuthClientSSR extends AuthClient {
+export class AuthCookieClient extends AuthClient {
   constructor({
     ...options
   }: Omit<NhostClientOptions, 'clientStorageGetter' | 'clientStorageSetter'>) {
@@ -15,3 +15,6 @@ export class AuthClientSSR extends AuthClient {
     })
   }
 }
+
+/** @deprecated Alias for {@link AuthCookieClient} */
+export const AuthClientSSR = AuthCookieClient

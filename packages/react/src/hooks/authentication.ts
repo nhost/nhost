@@ -368,7 +368,7 @@ export const useSignInAnonymous = () => {
 
 /**
  * Hook that returns OAuth provider URLs
- * 
+ *
  * @example
  * ```js
  * const providerLink = useProviderLink();
@@ -388,8 +388,8 @@ export const useSignInAnonymous = () => {
  *     </div>
  *   );
  * };
-```
-*/
+ * ```
+ */
 export const useProviderLink = (options?: ProviderOptions) => {
   const nhost = useContext(NhostReactContext)
 

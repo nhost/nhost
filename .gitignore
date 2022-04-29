@@ -53,5 +53,4 @@ todo.md
 
 # TypeDoc output
 
-**/__tsdoc__
-**/__tsdoc__/*
+.docgen

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "1.0.15",
+  "version": "1.1.1",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -53,7 +53,8 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/core": "workspace:^"
+    "@nhost/core": "workspace:^",
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
     "@nhost/docgen": "*",
@@ -62,6 +63,6 @@
     "faker": "5",
     "html-urls": "^2.4.27",
     "mailhog": "^4.16.0",
-    "xstate": "^4.30.5"
+    "xstate": "^4.31.0"
   }
 }

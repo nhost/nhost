@@ -1,4 +1,4 @@
-import { NextPageContext } from 'next'
+import { GetServerSideProps } from 'next'
 import React from 'react'
 
 import { NhostSession } from '@nhost/core'
@@ -7,7 +7,7 @@ import { getNhostSession, useAccessToken } from '@nhost/nextjs'
 import { authProtected } from '../components/protected-route'
 import { BACKEND_URL } from '../helpers'
 
-export async function getServerSideProps(context: NextPageContext) {
+export const getServerSideProps: GetServerSideProps = async (context) => {
   const nhostSession = await getNhostSession(BACKEND_URL, context)
   return {
     props: {

@@ -9,9 +9,3 @@ description: The Nhost client may need some initial steps to determine the authe
 # `useAuthenticationStatus()`
 
 The Nhost client may need some initial steps to determine the authentication status during startup, like fetching a new JWT from an existing refresh token.
-
-**`@returns`**
-
-`isLoading` will return `true` until the authentication status is known.
-
-` isAuthenticated` returns `true` if the user is authenticated, `false` if not or if the client is still determining the status.

@@ -24,7 +24,7 @@ export async function generateClasses(parsedContent: Array<ClassSignature>, outp
     index: string
     subPages: Array<Signature>
     slug?: string
-  }> = parsedContent
+  }> = (parsedContent || [])
     .filter((document) => document.kindString === 'Class')
     .map((props: ClassSignature) => {
       const alias = props.comment?.tags?.find(({ tag }) => tag === 'alias')?.text?.toLowerCase()

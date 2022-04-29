@@ -3299,7 +3299,7 @@ const mockClass: ClassSignature = {
     {
       type: 'reference',
       id: 928,
-      name: 'AuthClientSSR'
+      name: 'AuthCookieClient'
     }
   ]
 }

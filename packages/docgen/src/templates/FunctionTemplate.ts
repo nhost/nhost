@@ -1,6 +1,7 @@
 import { format } from 'prettier'
 
 import { FunctionFragment, FunctionFragmentOptions } from '../fragments'
+import { removeLinksFromText } from '../helpers'
 import { Signature } from '../types'
 
 /**
@@ -32,7 +33,8 @@ ${allChildrenDeprecated ? 'sidebar_class_name: deprecated' : ''}
 ${
   signatures && signatures.length > 0
     ? `description: ${
-        signatures[0].comment?.shortText?.replace(/\n/gi, ' ') || 'No description provided.'
+        removeLinksFromText(signatures[0].comment?.shortText?.replace(/\n/gi, ' ')) ||
+        'No description provided.'
       }`
     : 'description: No description provided.'
 }
