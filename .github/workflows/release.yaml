@@ -4,14 +4,9 @@ name: Release
 
 on:
   release:
-    types: # This configuration does not affect the page_build event above
-      - published
-  #push:
-    #tags:
-      #- '**'           # Push events to every tag including hierarchical tags like v1.0/beta
-
+    types: [published]
+name: release
 jobs:
-
   release:
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +32,7 @@ jobs:
   update-releases-file:
     name: Update Releases File
     runs-on: ubuntu-latest
-    needs: releases-matrix
+    needs: release
     steps:
       - uses: actions/checkout@v3.0.1
         with:
