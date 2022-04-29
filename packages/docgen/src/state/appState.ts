@@ -25,6 +25,13 @@ export type AppState = {
    * Base slug to use for generating documentation links.
    */
   baseSlug?: string
+  /**
+   * Base edit url that will be used to render the `custom_edit_url` front matter property
+   * It will be appended with `/<file name of the first source>#L<line number of the first source>
+   * @example https://github.com/nhost/nhost/edit/main/packages
+   * @see {@link https://docusaurus.io/fr/docs/api/plugins/@docusaurus/plugin-content-docs#custom_edit_url}
+   */
+  baseEditUrl?: string
 }
 
 export type ComputedAppState = {
