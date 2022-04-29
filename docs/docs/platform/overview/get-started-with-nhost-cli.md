@@ -1,3 +1,8 @@
+---
+title: 'Get Started with Nhost CLI'
+sidebar_position: 2
+---
+
 # Get started with Nhost CLI
 
 Nhost's command-line interface (CLI) lets you run a complete Nhost development
@@ -10,7 +15,7 @@ Authentication, Storage (MinIO), Serverless Functions, and Emails (Mailhog).
 
 To install **Nhost CLI**, run this command from any directory in your terminal:
 
-```shell
+```bash
 sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
 ```
 
@@ -19,7 +24,7 @@ On **MacOS and Linux**, this will install the **Nhost CLI** in `/usr/local/bin`.
 If you'd prefer to install to a different location other than `/usr/local/bin`,
 set the `INSTALL_PATH` variable accordingly:
 
-```shell
+```bash
 sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | INSTALL_PATH=$HOME/bin bash
 ```
 
@@ -33,17 +38,17 @@ environment variable `PATH` to make `nhost` accessible globally.
 Finally, you can check that everything has been successfully installed by
 typing:
 
-```shell
+```bash
 nhost version
 ```
 
-<img width="577" alt="nhost-cli-version" src="https://user-images.githubusercontent.com/4352286/165720580-1747cbed-a5d9-4cd4-8a18-3b82d0d1fadf.png"/>
+<img width="577" alt="nhost-cli-version" src="https://user-images.githubusercontent.com/4352286/165720580-1747cbed-a5d9-4cd4-8a18-3b82d0d1fadf.png" />
 
 ### (Optional) Add shell completion
 
 To add command auto completion in the shell, you can run the following command:
 
-```shell
+```bash
 nhost completion [shell]
 ```
 
@@ -67,7 +72,7 @@ installed on your local machine:
 After installing **Nhost CLI**, you can log in to your Nhost account by running
 the following command:
 
-```shell
+```bash
 nhost login
 ```
 
@@ -77,14 +82,14 @@ This will display a prompt for you to enter your Nhost account credentials
 > You can create a Nhost account here:
 > [https://app.nhost.io](https://app.nhost.io/).
 
-<img width="577" alt="nhost-login" src="https://user-images.githubusercontent.com/4352286/165720791-facdf9a4-96e8-4b0d-a767-6e7688d28b7e.png"/>
+<img width="577" alt="nhost-login" src="https://user-images.githubusercontent.com/4352286/165720791-facdf9a4-96e8-4b0d-a767-6e7688d28b7e.png" />
 
 After successfully logging in, you are authorized to manage your Nhost projects
 using the Nhost CLI.
 
 You can also log out at any time by running:
 
-```shell
+```bash
 nhost logout
 ```
 
@@ -117,7 +122,7 @@ So, go to your Github account and
 [create a new repository](https://github.com/new). You can make your repository
 either public or private.
 
-<img width="905" alt="create-github-repo" src="https://user-images.githubusercontent.com/4352286/165720792-1518eeb9-edf1-431e-bd48-4c6565d14166.png"/>
+<img width="905" alt="create-github-repo" src="https://user-images.githubusercontent.com/4352286/165720792-1518eeb9-edf1-431e-bd48-4c6565d14166.png" />
 
 ### 3. Connect Nhost project to Github
 
@@ -151,28 +156,28 @@ and test your code locally before deploying those changes to production.
 You can either initialize a blank Nhost app locally to start from scratch by
 running the following command:
 
-```shell
+```bash
 nhost init -n my-nhost-app
 ```
 
 And then link it to a remote app from your Nhost workspace in `app.nhost.io` by
 running the `link` command and selecting the corresponding app from the prompt:
 
-```shell
+```bash
 nhost link
 ```
 
 Or you can directly initialize a local Nhost app from one of your existing
 production apps by specifying the `--remote` flag:
 
-```shell
+```bash
 nhost init --remote -n my-nhost-app
 ```
 
 It will also prompt you to choose the remote app you'd like to use to initialize
 your local Nhost development environment.
 
-<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165720808-e6ed06a5-e2c4-4ae6-9e36-41e7c6fff07a.png"/>
+<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165720808-e6ed06a5-e2c4-4ae6-9e36-41e7c6fff07a.png" />
 
 The `init` command creates the Nhost app inside your current working directory
 within a `nhost/` folder.
@@ -190,7 +195,7 @@ my-nhost-app/
 Finally, make sure to link your current working directory to your GitHub
 repository:
 
-```shell
+```bash
 echo "# my-nhost-app" >> README.md
 git init
 git add README.md
@@ -205,7 +210,7 @@ git push -u origin main
 To start a local development environment for your Nhost app, run the following
 command:
 
-```shell
+```bash
 nhost dev
 ```
 
@@ -269,7 +274,7 @@ and track the new table creation.
 
 The migration was created under `nhost/migrations/default`:
 
-```shell
+```bash
 $ ls -la nhost/migrations/default
 total 0
 drwxr-xr-x  3 gdangelo  staff   96 Apr 27 17:06 .
@@ -304,13 +309,13 @@ To restrict the users to create new messages only for themselves, specify an
 `_eq` condition between the `authorId` and the `X-Hasura-User-ID` session
 variable, which is passed with each request.
 
-<img width="1110" alt="hasura-insert-condition" src="https://user-images.githubusercontent.com/4352286/165720775-e2b570c8-590d-48f6-a6cc-77c1989abf98.png"/>
+<img width="1110" alt="hasura-insert-condition" src="https://user-images.githubusercontent.com/4352286/165720775-e2b570c8-590d-48f6-a6cc-77c1989abf98.png" />
 
 Then, select the columns the users can define through the GraphQL API, set the
 value for the `authorId` column to be equal to the `X-Hasura-User-ID` session
 variable, and click **Save Permissions**.
 
-<img width="919" alt="hasura-insert-columns" src="https://user-images.githubusercontent.com/4352286/165720779-d55d8c7e-6a88-46f2-9c52-5811a965cf5a.png"/>
+<img width="919" alt="hasura-insert-columns" src="https://user-images.githubusercontent.com/4352286/165720779-d55d8c7e-6a88-46f2-9c52-5811a965cf5a.png" />
 
 Finally, check out the `metadata/` folder in your project directory to confirm
 that the permission changes we did were tracked locally in your git repository.
@@ -318,7 +323,7 @@ that the permission changes we did were tracked locally in your git repository.
 In our case, those changes should be tracked in
 `nhost/metadata/databases/default/tables/public_messages.yaml`:
 
-```yaml
+```yaml title="nhost/metadata/databases/default/tables/public_messages.yaml"
 table:
   name: messages
   schema: public
@@ -346,7 +351,7 @@ current date-time when called.
 First, make sure to install `express`, which is required for serverless
 functions to work.
 
-```shell
+```bash
 npm install express
 npm install -d @types/node @types/express
 ```
@@ -354,7 +359,7 @@ npm install -d @types/node @types/express
 Then, create a new file named `time.ts` inside the `functions/` folder of your
 working directory, and paste the following code:
 
-```ts
+```ts title="functions/time.ts"
 import { Request, Response } from 'express';
 
 export default (req: Request, res: Response) => {
@@ -374,7 +379,7 @@ determined by its filename or the name of its dedicated parent directory.
 For example, the endpoint for our function is
 `http://localhost:1337/v1/functions/time`.
 
-```shell
+```bash
 curl http://localhost:1337/v1/functions/time\?name\=Greg
 Hello Greg! It's now: Wed, 27 Apr 2022 18:52:12 GMT
 ```
@@ -389,7 +394,7 @@ repository and apply them to your associated remote Nhost project.
 > [connect your Github repository](#3-connect-nhost-project-to-Github) to your
 > Nhost project first.
 
-```shell
+```bash
 git add -A
 git commit -m "commit message"
 git push
