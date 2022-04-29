@@ -20,7 +20,7 @@ export const ClassTemplate = (
   slug?: string
 ) => {
   const { baseEditUrl } = snapshot(appState)
-  const source = sources && sources.length > 0 ? sources[0] : null
+  const source = sources?.[0]
   const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
