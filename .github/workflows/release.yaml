@@ -11,38 +11,28 @@ on:
       #- '**'           # Push events to every tag including hierarchical tags like v1.0/beta
 
 jobs:
-  releases-matrix:
-    name: Release Binary
+
+  release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        # build and publish in parallel: linux/386, linux/amd64, windows/386, windows/amd64, darwin/amd64, darwin/arm64
-        goos: [linux, windows, darwin]
-        goarch: ["386", amd64, arm64]
-        exclude:
-          - goarch: "386"
-            goos: darwin
-          - goarch: arm64
-            goos: windows
-          - goarch: arm64
-            goos: linux
     steps:
-      - uses: actions/checkout@v3.0.1
-
-      - name: Set VERSION env
-        run: |
-          echo VERSION=$(basename ${GITHUB_REF}) >> ${GITHUB_ENV}
-          echo $(basename ${GITHUB_REF})
-
-      - name: Generate Binary
-        uses: wangyoucao577/go-release-action@v1.22
+      -
+        name: Get go.mod details
+        uses: Eun/go-mod-details@v1.0.4
+        id: go-mod-details
+      -
+        name: Install Go
+        uses: actions/setup-go@v3
         with:
-          overwrite: true
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          goos: ${{ matrix.goos }}
-          goarch: ${{ matrix.goarch }}
-          # binary_name: cli
-          ldflags: -X "github.com/${{ github.repository }}/cmd.Version=${{ env.VERSION }}" -X "github.com/${{ github.repository }}/nhost.REPOSITORY=${{ github.repository }}"
+          go-version: ${{ steps.go-mod-details.outputs.go_version }}
+      -
+        name: GoReleaser
+        uses: goreleaser/goreleaser-action@v2.9.1
+        with:
+          version: latest
+          args: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
 
   update-releases-file:
     name: Update Releases File

@@ -101,6 +101,7 @@ func MapToStringArray(payload map[string]interface{}) []string {
 	return response
 }
 
+//
 //	Augments default runtime variables, with dynamically generated ones,
 //	specific to the environment. For example: Backend URL with environment port.
 //
@@ -110,8 +111,9 @@ func MapToStringArray(payload map[string]interface{}) []string {
 //
 //	This is because docker requires different local addresses,
 //	depending on the host operating system.
+//
 func RuntimeVars(port string, networkBased bool) map[string]interface{} {
-    payload := map[string]interface{}{
+	payload := map[string]interface{}{
 		"HASURA_GRAPHQL_JWT_SECRET":   fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY),
 		"NHOST_JWT_SECRET":            fmt.Sprintf(`{"type":"HS256", "key": "%v"}`, JWT_KEY),
 		"HASURA_GRAPHQL_ADMIN_SECRET": ADMIN_SECRET,
@@ -126,7 +128,6 @@ func RuntimeVars(port string, networkBased bool) map[string]interface{} {
 	payload["NHOST_BACKEND_URL"] = fmt.Sprintf("http://%s:%v", localhost, port)
 	//	payload["NHOST_FUNCTIONS"] = fmt.Sprintf("http://%s:%v/v1/functions", localhost, port)
 	payload["LOCALHOST"] = fmt.Sprintf("http://%s", localhost)
-
 	return payload
 }
 

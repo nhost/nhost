@@ -1,0 +1,34 @@
+project_name: cli
+builds:
+  -
+    env:
+      - "CGO_ENABLED=0"
+    goos:
+      - "darwin"
+      - "linux"
+      - "windows"
+    goarch:
+      - "386"
+      - "arm"
+      - "arm64"
+      - "amd64"
+    ldflags:
+      - -s -w -X "github.com/nhost/cmd.Version={{.Version}}" -X "github.com/nhost/nhost.REPOSITORY={{.Env.GITHUB_REPOSITORY}}"
+archives:
+  - name_template: '{{ .ProjectName }}-{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+    format: zip
+    replacements:
+      darwin: "darwin"
+      linux: "linux"
+      windows: "windows"
+      386: "i386"
+      amd64: "x86_64"
+    format_overrides:
+      - goos: "windows"
+        format: "zip"
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ .Tag }}-next"
+changelog:
+  skip: true

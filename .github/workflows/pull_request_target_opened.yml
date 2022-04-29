@@ -1,0 +1,17 @@
+# this workflow will run on all pull requests opened but in the context of the base of the pull request.
+on:
+  pull_request_target:
+    types: [opened]
+
+name: "pull_request_target_opened"
+jobs:
+  # labeler will label pull requests based on their title.
+  # the configuration is at .github/labeler.yml.
+  label_pull_request:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Label Pull Request
+        uses: jimschubert/labeler-action@v2
+        with:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

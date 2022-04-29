@@ -1,0 +1,194 @@
+run:
+  timeout: 5m
+linters-settings:
+  dogsled:
+    # checks assignments with too many blank identifiers; default is 2
+    max-blank-identifiers: 2
+  dupl:
+    # tokens count to trigger issue, 150 by default
+    threshold: 100
+  errcheck:
+    # report about not checking of errors in type assertions: `a := b.(MyStruct)`;
+    # default is false: such cases aren't reported by default.
+    check-type-assertions: false
+
+    # report about assignment of errors to blank identifier: `num, _ := strconv.Atoi(numStr)`;
+    # default is false: such cases aren't reported by default.
+    check-blank: false
+
+    # [deprecated] comma-separated list of pairs of the form pkg:regex
+    # the regex is used to ignore names within pkg. (default "fmt:.*").
+    # see https://github.com/kisielk/errcheck#the-deprecated-method for details
+    ignore: fmt:.*
+
+  exhaustive:
+    # indicates that switch statements are to be considered exhaustive if a
+    # 'default' case is present, even if all enum members aren't listed in the
+    # switch
+    default-signifies-exhaustive: false
+  funlen:
+    lines: 140
+    statements: 70
+  gci:
+    # put imports beginning with prefix after 3rd-party packages;
+    # only support one prefix
+    # if not set, use goimports.local-prefixes
+    local-prefixes: github.com/nhost/cli
+  gocognit:
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 40
+  nestif:
+    # minimal complexity of if statements to report, 5 by default
+    min-complexity: 5
+  goconst:
+    # minimal length of string constant, 3 by default
+    min-len: 3
+    # minimal occurrences count to trigger, 3 by default
+    min-occurrences: 3
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport # https://github.com/go-critic/go-critic/issues/845
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+      - wrapperFunc
+  gocyclo:
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 30
+  godot:
+    # check all top-level comments, not only declarations
+    check-all: false
+  gofmt:
+    # simplify code: gofmt with `-s` option, true by default
+    simplify: true
+  goimports:
+    # put imports beginning with prefix after 3rd-party packages;
+    # it's a comma-separated list of prefixes
+    local-prefixes: github.com/nhost/cli
+  govet:
+    # report about shadowed variables
+    check-shadowing: true
+
+    # settings per analyzer
+    settings:
+      printf: # analyzer name, run `go tool vet help` to see all analyzers
+        funcs: # run `go tool vet help printf` to see available settings for `printf` analyzer
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Infof
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Warnf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Errorf
+          - (github.com/golangci/golangci-lint/pkg/logutils.Log).Fatalf
+  misspell:
+    # Correct spellings using locale preferences for US or UK.
+    # Default is to use a neutral variety of English.
+    # Setting locale to US will correct the British spelling of 'colour' to 'color'.
+    locale: US
+  nakedret:
+    # make an issue if func has more lines of code than this setting and it has naked returns; default is 30
+    max-func-lines: 30
+  prealloc:
+    simple: true
+    range-loops: true # Report preallocation suggestions on range loops, true by default
+    for-loops: false # Report preallocation suggestions on for loops, false by default
+  nolintlint:
+    # Enable to ensure that nolint directives are all used. Default is true.
+    allow-unused: false
+    # Disable to ensure that nolint directives don't have a leading space. Default is true.
+    allow-leading-space: true
+    # Exclude following linters from requiring an explanation.  Default is [].
+    allow-no-explanation: []
+    # Enable to require an explanation of nonzero length after each nolint directive. Default is false.
+    require-explanation: true
+    # Enable to require nolint directives to mention the specific linter being suppressed. Default is false.
+    require-specific: true
+  unparam:
+    # Inspect exported functions, default is false. Set to true if no external program/library imports your code.
+    # XXX: if you enable this setting, unparam will report a lot of false-positives in text editors:
+    # if it's called for subdir of a project it can't find external interfaces. All text editor integrations
+    # with golangci-lint call it on a directory with the changed file.
+    check-exported: false
+  unused:
+    # treat code as a program (not a library) and report unused exported identifiers; default is false.
+    # XXX: if you enable this setting, unused will report a lot of false-positives in text editors:
+    # if it's called for subdir of a project it can't find funcs usages. All text editor integrations
+    # with golangci-lint call it on a directory with the changed file.
+    check-exported: false
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - deadcode
+    - depguard
+    - dogsled
+    - dupl
+    - errcheck
+    - exhaustive
+    - exportloopref
+    - funlen
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - godot
+    - gofmt
+    - goimports
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - misspell
+    - nestif
+    - nakedret
+    - noctx
+    - nolintlint
+    - prealloc
+    - revive
+    - rowserrcheck
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - whitespace
+
+
+issues:
+  # Maximum issues count per one linter. Set to 0 to disable. Default is 50.
+  max-issues-per-linter: 0
+  # Maximum count of issues with the same text. Set to 0 to disable. Default is 3.
+  max-same-issues: 0
+
+  exclude-rules:
+    # Exclude some linters from running on tests files.
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen
+        - goconst
+        - scopelint
+    # allow shadowing of err
+    - text: 'shadow: declaration of "err" shadows declaration at line \d+'
+      linters:
+        - govet
+
+
+# golangci.com configuration
+# https://github.com/golangci/golangci/wiki/Configuration
+service:
+  golangci-lint-version: 1.23.x # use the fixed version to not introduce new linters unexpectedly
+  prepare:
+    - echo "here I can run custom commands, but no preparation needed for this repo"
