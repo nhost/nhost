@@ -53,7 +53,7 @@
   "dependencies": {
     "@nhost/hasura-auth-js": "*",
     "@nhost/hasura-storage-js": "*",
-    "axios": "^0.23.0",
+    "axios": "^0.26.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"
   },

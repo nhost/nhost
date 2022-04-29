@@ -158,10 +158,10 @@ importers:
       '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
       '@nhost/apollo': 0.4.5_@apollo+client@3.5.10
       '@nhost/core': 0.4.1
-      '@nhost/hasura-auth-js': link:../../packages/hasura-auth-js
+      '@nhost/hasura-auth-js': 1.1.1
       '@nhost/hasura-storage-js': link:../../packages/hasura-storage-js
       '@nhost/nextjs': 1.1.1_2213fcb04d38767f4bf5afdc30e20f4a
-      '@nhost/nhost-js': link:../../packages/nhost-js
+      '@nhost/nhost-js': 1.1.6_graphql@15.7.2
       '@nhost/react': 0.6.1_a3c66c7167980e9d47dcce90ef9920eb
       '@nhost/react-apollo': 4.1.1_fcece379e571cdf84f2bde0a05f72c3c
       graphql: 15.7.2
@@ -263,7 +263,7 @@ importers:
       '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
       '@headlessui/react': 1.5.0_react-dom@17.0.2+react@17.0.2
       '@heroicons/react': 1.0.6_react@17.0.2
-      '@nhost/nhost-js': link:../../packages/nhost-js
+      '@nhost/nhost-js': 1.1.6_graphql@15.7.2
       '@nhost/react': 0.6.1_6ea7c25a144b55d25bc249a47e9ff7fc
       '@nhost/react-apollo': 4.1.1_fcece379e571cdf84f2bde0a05f72c3c
       '@tailwindcss/forms': 0.5.0_tailwindcss@3.0.24
@@ -304,7 +304,7 @@ importers:
       graphql: 15.7.2
       graphql-ws: ^5.7.0
     dependencies:
-      '@nhost/nhost-js': link:../nhost-js
+      '@nhost/nhost-js': 1.1.6_graphql@15.7.2
       graphql: 15.7.2
       graphql-ws: 5.7.0_graphql@15.7.2
     devDependencies:
@@ -312,11 +312,11 @@ importers:
 
   packages/core:
     specifiers:
-      axios: ^0.25.0
+      axios: ^0.26.0
       js-cookie: ^3.0.1
       xstate: ^4.30.5
     dependencies:
-      axios: 0.25.0
+      axios: 0.26.1
       js-cookie: 3.0.1
       xstate: 4.31.0
 
@@ -381,9 +381,9 @@ importers:
   packages/hasura-storage-js:
     specifiers:
       '@nhost/docgen': '*'
-      axios: ^0.21.1
+      axios: ^0.26.0
     dependencies:
-      axios: 0.21.4
+      axios: 0.26.1
     devDependencies:
       '@nhost/docgen': link:../docgen
 
@@ -402,7 +402,7 @@ importers:
       xstate: ^4.30.5
     dependencies:
       '@nhost/core': 0.4.1
-      '@nhost/nhost-js': link:../nhost-js
+      '@nhost/nhost-js': 1.1.6
       cookies: 0.8.0
       cross-fetch: 3.1.5
     devDependencies:
@@ -419,14 +419,14 @@ importers:
       '@nhost/docgen': '*'
       '@nhost/hasura-auth-js': '*'
       '@nhost/hasura-storage-js': '*'
-      axios: ^0.23.0
+      axios: ^0.26.0
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
     dependencies:
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
+      '@nhost/hasura-auth-js': 1.1.1
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      axios: 0.23.0
+      axios: 0.26.1
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
@@ -444,7 +444,7 @@ importers:
       xstate: ^4.30.5
     dependencies:
       '@nhost/core': 0.4.1
-      '@nhost/nhost-js': link:../nhost-js
+      '@nhost/nhost-js': 1.1.6
       '@xstate/react': 2.0.1_react@17.0.2+xstate@4.31.0
       immer: 9.0.12
       xstate: 4.31.0
@@ -483,7 +483,7 @@ importers:
       react: ^17.0.2
       react-dom: ^17.0.2
     dependencies:
-      '@nhost/hasura-auth-js': link:../hasura-auth-js
+      '@nhost/hasura-auth-js': 1.1.1
     devDependencies:
       '@nhost/react': 0.6.1_b49bddbe4b905ced4713cb857cca91fa
       '@types/react': 17.0.44
@@ -4281,7 +4281,6 @@ packages:
       query-string: 7.1.1
     transitivePeerDependencies:
       - debug
-    dev: true
 
   /@nhost/nhost-js/1.1.6_graphql@15.7.2:
     resolution: {integrity: sha512-9gMZXtQ/r2FK/xsqBlI8YhhxmDonPFTAnosXlqCJpFAnp8YghYfwkyCW+A+AHwLEtrBFdf4MH5oOnrlY845rzQ==}
@@ -4308,7 +4307,7 @@ packages:
     dependencies:
       '@apollo/client': 3.5.10_graphql@15.7.2+react@17.0.2
       '@nhost/apollo': 0.4.5_@apollo+client@3.5.10
-      '@nhost/react': 0.6.1_6ea7c25a144b55d25bc249a47e9ff7fc
+      '@nhost/react': 0.6.1_a3c66c7167980e9d47dcce90ef9920eb
       graphql: 15.7.2
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
@@ -6052,7 +6051,6 @@ packages:
       follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
-    dev: true
 
   /axobject-query/2.2.0:
     resolution: {integrity: sha512-Td525n+iPOOyUQIeBfcASuG6uJsDOITl7Mds5gFyerkWiX7qhUTdYUBlSgNMyVqtSJqwpt1kXGLdUt6SykLMRA==}
