@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       -
+        uses: actions/checkout@v3.0.1
+      -
         name: Get go.mod details
         uses: Eun/go-mod-details@v1.0.4
         id: go-mod-details
