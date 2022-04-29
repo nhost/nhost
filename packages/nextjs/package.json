@@ -66,7 +66,6 @@
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@nhost/config": "*",
     "@nhost/docgen": "*",
     "@nhost/react": "*",
     "@types/cookies": "^0.7.7",

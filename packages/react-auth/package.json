@@ -58,7 +58,6 @@
     "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@nhost/config": "*",
     "@nhost/react": "*",
     "@types/react": "^17.0.38",
     "react": "^17.0.2",

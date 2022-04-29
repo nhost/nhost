@@ -58,7 +58,6 @@
     "query-string": "^7.0.1"
   },
   "devDependencies": {
-    "@nhost/config": "*",
     "@nhost/docgen": "*",
     "graphql": "16"
   },

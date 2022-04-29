@@ -62,7 +62,6 @@
   },
   "devDependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/config": "*",
     "@nhost/core": "*",
     "@nhost/react": "*",
     "@types/react": "^17.0.39",

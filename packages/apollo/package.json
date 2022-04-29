@@ -58,7 +58,6 @@
     "graphql-ws": "^5.7.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.5.8",
-    "@nhost/config": "*"
+    "@apollo/client": "^3.5.8"
   }
 }

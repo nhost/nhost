@@ -54,7 +54,6 @@
     "xstate": "^4.30.5"
   },
   "devDependencies": {
-    "@nhost/config": "*",
     "@nhost/docgen": "*",
     "@types/faker": "5",
     "axios": "^0.26.0",

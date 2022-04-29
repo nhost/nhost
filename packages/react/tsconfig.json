@@ -1,5 +1,5 @@
 {
-  "extends": "@nhost/config/react-library.tsconfig.json",
+  "extends": "../../react-library.tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src"

@@ -51,7 +51,6 @@
     "axios": "^0.21.1"
   },
   "devDependencies": {
-    "@nhost/config": "*",
     "@nhost/docgen": "*"
   }
 }

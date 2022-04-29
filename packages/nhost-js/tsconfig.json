@@ -1,5 +1,5 @@
 {
-  "extends": "@nhost/config/tsconfig.base.json",
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "lib": ["ES2015"],
     "target": "ES6",

@@ -59,7 +59,6 @@
     "xstate": "^4.30.5"
   },
   "devDependencies": {
-    "@nhost/config": "*",
     "@nhost/docgen": "*",
     "react": "^17.0.2"
   },
