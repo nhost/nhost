@@ -42,14 +42,14 @@ pnpm start
 
 ## Testing
 
-In order to run tests, the Nhost testing backend should run locally. You can start in from a separate terminal:
+In order to run tests, the Nhost testing backend should run locally. You can start it in from a separate terminal:
 
 ```sh
 cd examples/testing-project
 nhost -d
 ```
 
-Once Nhost runs locally, you can run the tests with the following command run from the root folder of the repository:
+Once Nhost started locally, you can run the tests from the root folder of the repository with the following command:
 
 ```sh
 pnpm test
