@@ -24,6 +24,8 @@ If you find an Issue that addresses the problem you're having, please add your r
 
 ### Pull Requests
 
+Please have a look at our [developers guide](https://github.com/nhost/nhost/blob/main/DEVELOPERS.md) to start coding!
+
 PRs to our libraries are always welcome and can be a quick way to get your fix or improvement slated for the next release. In general, PRs should:
 
 - Only fix/add the functionality in question **OR** address wide-spread whitespace/style issues, not both.
