@@ -28,6 +28,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+      -
+        name: Upload assets
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload --clobber "${{ github.ref_name }}" ./dist/*.zip ./dist/*.tar.gz ./dist/checksums.txt
 
   update-releases-file:
     name: Update Releases File

@@ -16,7 +16,6 @@ builds:
       - -s -w -X "github.com/nhost/cmd.Version={{.Version}}" -X "github.com/nhost/nhost.REPOSITORY={{.Env.GITHUB_REPOSITORY}}"
 archives:
   - name_template: '{{ .ProjectName }}-v{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
-    format: zip
     replacements:
       darwin: "darwin"
       linux: "linux"
@@ -32,3 +31,5 @@ snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
   skip: true
+release:
+  disable: true
