@@ -2,12 +2,13 @@
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
 import { IconButton } from 'rsuite'
 
-import { useProviderLink } from '@nhost/react'
+import { useAuthenticationStatus, useProviderLink } from '@nhost/react'
 import { Icon } from '@rsuite/icons'
 
 export const OAuthLinks: React.FC = () => {
   // TODO show how to use options
   const { github, google, facebook } = useProviderLink()
+  const { error } = useAuthenticationStatus()
   return (
     <div>
       <IconButton
@@ -40,6 +41,7 @@ export const OAuthLinks: React.FC = () => {
       >
         Continue with Facebook
       </IconButton>
+      {error && <div>{error?.message}</div>}
     </div>
   )
 }

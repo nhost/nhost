@@ -65,7 +65,9 @@ This is all we need! A new table will be created when you click **Add Table**.
 
 Go to the **Insert Row** tab to add some data to your database.
 
-![Inserting todos](/img/quick-start/insert-todos.gif)
+<video width="99%" loop="" muted="" playsInline="" controls="true">
+  <source src="/videos/insert-todos.mp4" type="video/mp4" />
+</video>
 
 ---
 

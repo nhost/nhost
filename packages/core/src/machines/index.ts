@@ -11,12 +11,14 @@ import {
   INVALID_EMAIL_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
-  NO_MFA_TICKET_ERROR
+  NO_MFA_TICKET_ERROR,
+  VALIDATION_ERROR_CODE,
+  ValidationErrorPayload
 } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { StorageGetter, StorageSetter } from '../storage'
 import { Mfa, NhostSession } from '../types'
-import { rewriteRedirectTo } from '../utils'
+import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
 
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
@@ -32,10 +34,6 @@ export * from './send-verification-email'
 export type AuthMachineOptions = {
   backendUrl: string
   clientUrl?: string
-  /**
-   * Interval in seconds before refreshing the JWT regardless of its expiration.
-   * When undefined, the option is ignored and the refresh will start 3 minutes before the access token (JWT) expiration
-   */
   refreshIntervalTime?: number
   clientStorageGetter?: StorageGetter
   clientStorageSetter?: StorageSetter
@@ -79,7 +77,7 @@ export const createAuthMachine = ({
       type: 'parallel',
       states: {
         authentication: {
-          initial: 'checkAutoSignIn',
+          initial: 'importingRefreshToken',
           on: {
             SESSION_UPDATE: [
               {
@@ -90,35 +88,22 @@ export const createAuthMachine = ({
             ]
           },
           states: {
-            checkAutoSignIn: {
-              always: [{ cond: 'isAutoSignInDisabled', target: 'importingRefreshToken' }],
-              invoke: {
-                id: 'autoSignIn',
-                src: 'autoSignIn',
-                onDone: {
-                  target: 'signedIn',
-                  actions: ['saveSession', 'persist', 'reportTokenChanged']
-                },
-                onError: 'importingRefreshToken'
-              }
-            },
             importingRefreshToken: {
+              always: { cond: 'isSignedIn', target: 'signedIn' },
               invoke: {
                 id: 'importRefreshToken',
                 src: 'importRefreshToken',
-                onDone: { actions: 'saveRefreshToken', target: 'starting' }
+                onDone: { actions: 'saveRefreshToken', target: 'starting' },
+                onError: { actions: ['saveAuthenticationError'], target: 'signedOut' }
               }
             },
             starting: {
               always: [
                 {
-                  cond: 'isSignedIn',
-                  target: 'signedIn'
-                },
-                {
                   cond: 'hasRefreshTokenWithoutSession',
-                  target: ['authenticating.token', '#nhost.token.running']
+                  target: 'authenticating.token'
                 },
+                { cond: 'hasAuthenticationError', target: 'signedOut.failed' },
                 'signedOut'
               ]
             },
@@ -289,7 +274,20 @@ export const createAuthMachine = ({
                     ]
                   }
                 },
-                token: {},
+                token: {
+                  invoke: {
+                    src: 'refreshToken',
+                    id: 'signInToken',
+                    onDone: {
+                      actions: ['saveSession', 'persist', 'reportTokenChanged', 'broadcastToken'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: {
+                      actions: 'saveAuthenticationError',
+                      target: '#nhost.authentication.signedOut.failed.server'
+                    }
+                  }
+                },
                 anonymous: {
                   invoke: {
                     src: 'signInAnonymous',
@@ -355,7 +353,7 @@ export const createAuthMachine = ({
             signedIn: {
               tags: ['ready'],
               type: 'parallel',
-              entry: 'reportSignedIn',
+              entry: ['reportSignedIn', 'cleanUrl'],
               on: {
                 SIGNOUT: '#nhost.authentication.signedOut.signingOut',
                 DEANONYMIZE: {
@@ -501,23 +499,19 @@ export const createAuthMachine = ({
         }),
 
         resetTimer: assign({
-          refreshTimer: (ctx, e) => {
-            return {
-              startedAt: new Date(),
-              attempts: 0,
-              lastAttempt: null
-            }
-          }
+          refreshTimer: (ctx, e) => ({
+            startedAt: new Date(),
+            attempts: 0,
+            lastAttempt: null
+          })
         }),
 
         saveRefreshAttempt: assign({
-          refreshTimer: (ctx, e) => {
-            return {
-              startedAt: ctx.refreshTimer.startedAt,
-              attempts: ctx.refreshTimer.attempts + 1,
-              lastAttempt: new Date()
-            }
-          }
+          refreshTimer: (ctx, e) => ({
+            startedAt: ctx.refreshTimer.startedAt,
+            attempts: ctx.refreshTimer.attempts + 1,
+            lastAttempt: new Date()
+          })
         }),
 
         // * Authenticaiton errors
@@ -572,7 +566,29 @@ export const createAuthMachine = ({
             clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, null)
             return { value: null }
           }
-        })
+        }),
+
+        // * Clean the browser url when `autoSignIn` is activated
+        cleanUrl: () => {
+          if (autoSignIn && getParameterByName('refreshToken')) {
+            // * Remove the refresh token from the URL
+            removeParameterFromWindow('refreshToken')
+            removeParameterFromWindow('type')
+          }
+        },
+
+        // * Broadcast the token to other tabs when `autoSignIn` is activated
+        broadcastToken: (context) => {
+          if (autoSignIn) {
+            try {
+              const channel = new BroadcastChannel('nhost')
+              // ? broadcat session instead of token ?
+              channel.postMessage(context.refreshToken.value)
+            } catch (error) {
+              // * BroadcastChannel is not available e.g. react-native
+            }
+          }
+        }
       },
 
       guards: {
@@ -582,8 +598,8 @@ export const createAuthMachine = ({
         noToken: (ctx) => !ctx.refreshToken.value,
         noMfaTicket: (ctx, { ticket }) => !ticket && !ctx.mfa?.ticket,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
+        hasAuthenticationError: (ctx) => !!ctx.errors.authentication,
         isAutoRefreshDisabled: () => !autoRefreshToken,
-        isAutoSignInDisabled: () => !autoSignIn,
         refreshTimerShouldRefresh: (ctx) => {
           const { expiresAt } = ctx.accessToken
           if (!expiresAt) {
@@ -651,7 +667,6 @@ export const createAuthMachine = ({
             ticket: ticket || context.mfa?.ticket,
             otp
           }),
-
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest('/token', {
@@ -672,46 +687,38 @@ export const createAuthMachine = ({
             options: rewriteRedirectTo(clientUrl, options)
           }),
 
-        /**
-         * If autoSignIn is enabled, attempts to get the refreshToken from the current location's hash
-         * @returns
-         */
-        autoSignIn: async () => {
-          // TODO throwing errors is not really important as they are captured by the xstate invoker
-          // * Still, keep them for the moment as it needs to be tested in every environemnt e.g. nodejs, expo, react-native...
-          if (typeof window === 'undefined' || !window.location) {
-            throw Error('window is undefined or location does not exist')
-          }
-          const { hash } = window.location
-          if (!hash) {
-            throw Error('No hash in window.location')
-          }
-          const params = new URLSearchParams(hash.slice(1))
-          const refreshToken = params.get('refreshToken')
-          if (!refreshToken) {
-            throw Error('No refresh token in the location hash')
-          }
-          const session = await postRequest('/token', {
-            refreshToken
-          })
-          // * remove hash from the current url after consumming the token
-          // TODO remove the hash. For the moment, it is kept to avoid regression from the current SDK.
-          // * Then, only `refreshToken` will be in the hash, while `type` will be sent by hasura-auth as a query parameter
-          // window.history.pushState({}, '', location.pathname)
-          try {
-            const channel = new BroadcastChannel('nhost')
-            // ? broadcat session instead of token ?
-            channel.postMessage(refreshToken)
-          } catch (error) {
-            // * BroadcastChannel is not available e.g. react-native
-          }
-          return { session }
-        },
         importRefreshToken: async () => {
           const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)
           const expiresAt = stringExpiresAt ? new Date(stringExpiresAt) : null
-          const refreshToken = await clientStorageGetter(NHOST_REFRESH_TOKEN_KEY)
-          return { refreshToken, expiresAt }
+          let refreshToken = await clientStorageGetter(NHOST_REFRESH_TOKEN_KEY)
+          if (autoSignIn) {
+            const urlToken = getParameterByName('refreshToken') || null
+            if (urlToken) {
+              if (!refreshToken) {
+                // ? Which takes precedence? localStorage or the url?
+                refreshToken = urlToken
+              }
+            } else {
+              const error = getParameterByName('error')
+              if (error) {
+                return Promise.reject<{ error: ValidationErrorPayload }>({
+                  error: {
+                    status: VALIDATION_ERROR_CODE,
+                    error,
+                    message: getParameterByName('errorDescription') || error
+                  }
+                })
+              }
+            }
+          }
+          return refreshToken
+            ? {
+                refreshToken,
+                expiresAt
+              }
+            : Promise.reject<{ error: ValidationErrorPayload }>({
+                error: null
+              })
         }
       }
     }

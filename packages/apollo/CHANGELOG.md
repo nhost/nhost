@@ -1,11 +1,24 @@
 # @nhost/apollo
 
+## 0.4.5
+
+### Patch Changes
+
+- Updated dependencies [7b23d33]
+  - @nhost/core@0.4.1
+
+## 0.4.4
+
+### Patch Changes
+
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+- Updated dependencies [b52b4fc]
+  - @nhost/core@0.4.0
+
 ## 0.4.3
 
 ### Patch Changes
 
-- Updated dependencies [5ee395e]
-- Updated dependencies [e0cfcaf]
 - Updated dependencies [7b7527a]
   - @nhost/core@0.3.13
 
@@ -13,7 +26,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [7b5f00d]
 - Updated dependencies [58e1485]
   - @nhost/core@0.3.12
 
@@ -35,7 +47,6 @@
 ### Patch Changes
 
 - Updated dependencies [63d6059]
-- Updated dependencies [63d6059]
   - @nhost/core@0.3.10
 
 ## 0.3.8
@@ -49,7 +60,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [058956b]
 - Updated dependencies [7cf875f]
   - @nhost/core@0.3.8
 

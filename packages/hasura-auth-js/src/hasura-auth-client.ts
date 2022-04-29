@@ -1,3 +1,4 @@
+import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
 import {
@@ -8,6 +9,8 @@ import {
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
   encodeQueryParameters,
+  JWTClaims,
+  JWTHasuraClaims,
   NO_REFRESH_TOKEN,
   rewriteRedirectTo,
   TOKEN_REFRESHER_RUNNING_ERROR
@@ -630,6 +633,36 @@ export class HasuraAuthClient {
   }
 
   /**
+   * Decode the current decoded access token (JWT), or return `null` if the user is not authenticated (no token)
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+   */
+  public getDecodedAccessToken(): JWTClaims | null {
+    const jwt = this.getAccessToken()
+    if (!jwt) return null
+    return jwt_decode<JWTClaims>(jwt)
+  }
+
+  /**
+   * Decode the Hasura claims from the current access token (JWT) located in the `https://hasura.io/jwt/claims` namespace, or return `null` if the user is not authenticated (no token)
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+   */
+  public getHasuraClaims(): JWTHasuraClaims | null {
+    return this.getDecodedAccessToken()?.['https://hasura.io/jwt/claims'] || null
+  }
+
+  /**
+   * Get the value of a given Hasura claim in the current access token (JWT). Returns null if the user is not authenticated, or if the claim is not in the token.
+   * Return `null` if the user is not authenticated (no token)
+   * @param name name of the variable. Automatically adds the `x-hasura-` prefix if it is missing
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+   */
+  public getHasuraClaim(name: string): string | string[] | null {
+    return (
+      this.getHasuraClaims()?.[name.startsWith('x-hasura-') ? name : `x-hasura-${name}`] || null
+    )
+  }
+
+  /**
    *
    * Use `refreshSession()` to refresh the current session or refresh the
    * session with an provided `refreshToken`.
@@ -648,20 +681,24 @@ export class HasuraAuthClient {
   }> {
     try {
       const interpreter = await this.waitUntilReady()
-      if (!interpreter.state.matches({ token: 'idle' }))
+      if (!interpreter.state.matches({ token: 'idle' })) {
         return { session: null, error: TOKEN_REFRESHER_RUNNING_ERROR }
+      }
       return new Promise((resolve) => {
         const token = refreshToken || interpreter.state.context.refreshToken.value
-        if (!token) return resolve({ session: null, error: NO_REFRESH_TOKEN })
+        if (!token) {
+          return resolve({ session: null, error: NO_REFRESH_TOKEN })
+        }
         interpreter?.onTransition((state) => {
-          if (state.matches({ token: { idle: 'error' } }))
+          if (state.matches({ token: { idle: 'error' } })) {
             resolve({
               session: null,
               // * TODO get the error from xstate once it is implemented
               error: { status: 400, message: 'Invalid refresh token' }
             })
-          else if (state.event.type === 'TOKEN_CHANGED')
+          } else if (state.event.type === 'TOKEN_CHANGED') {
             resolve({ session: getSession(state.context), error: null })
+          }
         })
         interpreter.send({
           type: 'TRY_TOKEN',
