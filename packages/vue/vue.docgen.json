@@ -5,5 +5,6 @@
   "root": "reference/docgen/vue",
   "slug": "/reference/vue",
   "sidebarConfig": "referenceSidebar",
+  "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages",
   "cleanup": true
 }
