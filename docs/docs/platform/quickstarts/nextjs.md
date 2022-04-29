@@ -3,6 +3,9 @@ title: 'Quickstart: Next.js'
 sidebar_position: 2
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 # Quickstart: Next.js
 
 ## Introduction
@@ -78,24 +81,23 @@ configuring everything yourself.
 
 So, open your terminal, and run the following command:
 
-```shell
+```bash
 npx create-next-app my-nhost-app --use-npm --example "https://github.com/gdangelo/nhost-quickstart-nextjs"
 ```
 
-> This command uses an
-> [existing template](https://github.com/gdangelo/nhost-quickstart-nextjs),
-> through the `--example` flag, which already contains the React components and
-> pages we'll use for this guide.
+:::info
+This command uses an [existing template](https://github.com/gdangelo/nhost-quickstart-nextjs), through the `--example` flag, which already contains the React components and pages we'll use for this guide.
+:::
 
 You can now `cd` into your project directory:
 
-```shell
+```bash
 cd my-nhost-app
 ```
 
 And run the development server with the following command:
 
-```shell
+```bash
 npm run dev
 ```
 
@@ -113,14 +115,18 @@ test our code locally before deploying those changes to production.
 
 So, open your terminal, and run the following command:
 
-```shell
+```bash
 nhost init --remote
 ```
 
 It will prompt you to choose the remote app you'd like to use to initialize your
 local Nhost development environment.
 
-<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165812979-3f55bde9-8771-4c06-bc4a-23e7ae8f67b9.png"/>
+<img
+  width="613"
+  alt="nhost-init-remote"
+  src="https://user-images.githubusercontent.com/4352286/165812979-3f55bde9-8771-4c06-bc4a-23e7ae8f67b9.png"
+/>
 
 The `init` command creates the Nhost app inside your current working directory
 within a `nhost/` folder.
@@ -140,12 +146,13 @@ my-nhost-app/
 To start a local development environment for your Nhost app, run the following
 command:
 
-```shell
+```bash
 nhost dev
 ```
 
-> Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s
-> required for Nhost to work.
+:::caution
+Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s required for Nhost to work.
+:::
 
 Running this command will start up all the backend services provided by Nhost
 locally.
@@ -160,7 +167,7 @@ gives us a way to interact with our Nhost backend using React hooks.
 
 You can install the Nhost Next.js SDK with:
 
-```shell
+```bash
 npm i @nhost/react @nhost/nextjs
 ```
 
@@ -173,7 +180,7 @@ application.
 Use the following code to instantiate a new Nhost client and link it to your
 Nhost backend:
 
-```jsx:pages/_app.js
+```jsx title="pages/_app.js"
 import { NhostNextProvider } from '@nhost/nextjs';
 import { NhostClient } from '@nhost/nextjs';
 
@@ -186,14 +193,14 @@ function MyApp({ Component, pageProps }) {
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
       {/* ... */}
     </NhostNextProvider>
-  )
+  );
 }
 ```
 
 Finally, make sure to create an environment variable named
 `NEXT_PUBLIC_NHOST_BACKEND_URL` to store your Nhost backend URL:
 
-```shell:.env.development
+```yaml title=".env.development"
 NEXT_PUBLIC_NHOST_BACKEND_URL=YOUR_NHOST_URL
 ```
 
@@ -213,7 +220,7 @@ Next.js SDK within our `SignUp` component.
 So, open up the corresponding file from your project, and use the following
 code:
 
-```jsx:components/SignUp.js
+```jsx title="components/SignUp.js"
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSignUpEmailPassword } from '@nhost/nextjs';
@@ -245,7 +252,7 @@ const SignUp = () => {
     },
   });
 
-  const handleOnSubmit = e => {
+  const handleOnSubmit = (e) => {
     e.preventDefault();
     signUpEmailPassword(email, password);
   };
@@ -276,14 +283,14 @@ const SignUp = () => {
                 <Input
                   label="First name"
                   value={firstName}
-                  onChange={e => setFirstName(e.target.value)}
+                  onChange={(e) => setFirstName(e.target.value)}
                   disabled={disableForm}
                   required
                 />
                 <Input
                   label="Last name"
                   value={lastName}
-                  onChange={e => setLastName(e.target.value)}
+                  onChange={(e) => setLastName(e.target.value)}
                   disabled={disableForm}
                   required
                 />
@@ -292,7 +299,7 @@ const SignUp = () => {
                 type="email"
                 label="Email address"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 disabled={disableForm}
                 required
               />
@@ -300,7 +307,7 @@ const SignUp = () => {
                 type="password"
                 label="Create password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={disableForm}
                 required
               />
@@ -348,7 +355,7 @@ For that, we will use the Nhost hook named `useSignInEmailPassword` inside our
 what your component should look like after applying the changes for the sign-in
 logic:
 
-```jsx:components/SignIn.js
+```jsx title="components/SignIn.js"
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { useSignInEmailPassword } from '@nhost/nextjs';
@@ -372,7 +379,7 @@ const SignIn = () => {
     error,
   } = useSignInEmailPassword();
 
-  const handleOnSubmit = e => {
+  const handleOnSubmit = (e) => {
     e.preventDefault();
     signInEmailPassword(email, password);
   };
@@ -404,7 +411,7 @@ const SignIn = () => {
                   type="email"
                   label="Email address"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
+                  onChange={(e) => setEmail(e.target.value)}
                   disabled={disableForm}
                   required
                 />
@@ -412,7 +419,7 @@ const SignIn = () => {
                   type="password"
                   label="Password"
                   value={password}
-                  onChange={e => setPassword(e.target.value)}
+                  onChange={(e) => setPassword(e.target.value)}
                   disabled={disableForm}
                   required
                 />
@@ -456,7 +463,7 @@ export default SignIn;
 Finally, to allow the users to sign out from the app, we can use the Nhost
 `useSignOut` hook:
 
-```jsx:components/Layout.js
+```jsx title="components/Layout.js"
 import { useSignOut } from '@nhost/nextjs';
 
 const Layout = ({ children = null }) => {
@@ -472,7 +479,7 @@ const Layout = ({ children = null }) => {
   ];
 
   //...
-}
+};
 ```
 
 ### 6. Protect routes
@@ -488,7 +495,7 @@ To do so, we can check the authentication status of the current user using the
 Nhost SDK by creating a
 [high-order component](https://reactjs.org/docs/higher-order-components.html):
 
-```jsx:withAuth.js
+```jsx title="withAuth.js"
 import { useRouter } from 'next/router';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import Spinner from './components/Spinner';
@@ -514,19 +521,43 @@ export default function withAuth(Component) {
     return <Component {...props} />;
   };
 }
-
 ```
 
 Then, wrap our Next.js pages, `index.js` and `profile.js`, with it:
 
+<Tabs
+defaultValue="index"
+values={[
+  {label: 'index.js', value: 'index'},
+  {label: 'profile.js', value: 'profile'},
+]}>
+<TabItem value="index">
+
 ```js
 import withAuth from '../withAuth';
 
-// pages/index.js
+const Home = () => {
+  //...
+};
+
 export default withAuth(Home);
-// pages/profile.js
+```
+
+</TabItem>
+<TabItem value="profile">
+
+```js
+import withAuth from '../withAuth';
+
+const Profile = () => {
+  //...
+};
+
 export default withAuth(Profile);
 ```
+
+</TabItem>
+</Tabs>
 
 ### 7. Retrieve user data
 
@@ -563,22 +594,20 @@ this GraphQL API.
 
 So, start by installing the following dependencies:
 
-```shell
+```bash
 npm install @nhost/react-apollo @apollo/client
 ```
 
 Then, add the `NhostApolloProvider` from `@nhost/react-apollo` into your
 `_app_.js` file.
 
-```jsx:pages/_app.js
+```jsx title="pages/_app.js"
 import { NhostApolloProvider } from '@nhost/react-apollo';
 
 function MyApp({ Component, pageProps }) {
   return (
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
-      <NhostApolloProvider>
-        {/* ... */}
-      </NhostApolloProvider>
+      <NhostApolloProvider>{/* ... */}</NhostApolloProvider>
     </NhostNextProvider>
   );
 }
@@ -587,7 +616,7 @@ function MyApp({ Component, pageProps }) {
 From there, we can construct our GraphQL query and use the Apollo `useMutation`
 hook to execute that query when the user submits the form from the profile page:
 
-```js:pages/profile.js
+```js title="pages/profile.js"
 import { gql, useMutation } from '@apollo/client';
 import { toast } from 'react-hot-toast';
 
@@ -606,7 +635,7 @@ const Profile = () => {
   const [mutateUser, { loading: updatingProfile }] =
     useMutation(UPDATE_USER_MUTATION);
 
-  const updateUserProfile = async e => {
+  const updateUserProfile = async (e) => {
     e.preventDefault();
 
     try {
@@ -643,12 +672,20 @@ To restrict the user to read his own data only, specify a condition with the
 user's ID and the `X-Hasura-User-ID` session variable, which is passed with each
 requests.
 
-<img width="1142" alt="hasura-custom-check" src="https://user-images.githubusercontent.com/4352286/165812960-4498ced4-d494-41f7-aa8b-60e6c0a2a939.png"/>
+<img
+  width="1142"
+  alt="hasura-custom-check"
+  src="https://user-images.githubusercontent.com/4352286/165812960-4498ced4-d494-41f7-aa8b-60e6c0a2a939.png"
+/>
 
 Finally, select the columns you'd like the users to have access to, and click
 **Save Permissions**.
 
-<img width="1134" alt="hasura-column-permissions" src="https://user-images.githubusercontent.com/4352286/165812956-6795254e-4341-4254-b1e7-880c83fb527a.png"/>
+<img
+  width="1134"
+  alt="hasura-column-permissions"
+  src="https://user-images.githubusercontent.com/4352286/165812956-6795254e-4341-4254-b1e7-880c83fb527a.png"
+/>
 
 Repeat the same steps on the `update` operation for the `user` role to allow
 users to update their `displayName` and `metadata` only.
@@ -661,10 +698,11 @@ To deploy your Nhost app to production, you only need to commit and push your
 changes to Github. As a result, Nhost will automatically pick up the changes in
 your repository and apply them to your associated remote Nhost project.
 
-> Make sure to [connect your Github repository](#2-connect-github-repository) to
-> your Nhost project first.
+:::caution
+Make sure to [connect your Github repository](#2-connect-github-repository) to your Nhost project first.
+:::
 
-```shell
+```bash
 git add -A
 git commit -m "commit message"
 git push
