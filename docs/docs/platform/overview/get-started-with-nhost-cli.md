@@ -37,7 +37,7 @@ typing:
 nhost version
 ```
 
-<img width="577" alt="nhost-cli-version" src="https://user-images.githubusercontent.com/4352286/165720580-1747cbed-a5d9-4cd4-8a18-3b82d0d1fadf.png">
+<img width="577" alt="nhost-cli-version" src="https://user-images.githubusercontent.com/4352286/165720580-1747cbed-a5d9-4cd4-8a18-3b82d0d1fadf.png"/>
 
 ### (Optional) Add shell completion
 
@@ -77,7 +77,7 @@ This will display a prompt for you to enter your Nhost account credentials
 > You can create a Nhost account here:
 > [https://app.nhost.io](https://app.nhost.io/).
 
-<img width="577" alt="nhost-login" src="https://user-images.githubusercontent.com/4352286/165720791-facdf9a4-96e8-4b0d-a767-6e7688d28b7e.png">
+<img width="577" alt="nhost-login" src="https://user-images.githubusercontent.com/4352286/165720791-facdf9a4-96e8-4b0d-a767-6e7688d28b7e.png"/>
 
 After successfully logging in, you are authorized to manage your Nhost projects
 using the Nhost CLI.
@@ -117,7 +117,7 @@ So, go to your Github account and
 [create a new repository](https://github.com/new). You can make your repository
 either public or private.
 
-<img width="905" alt="create-github-repo" src="https://user-images.githubusercontent.com/4352286/165720792-1518eeb9-edf1-431e-bd48-4c6565d14166.png">
+<img width="905" alt="create-github-repo" src="https://user-images.githubusercontent.com/4352286/165720792-1518eeb9-edf1-431e-bd48-4c6565d14166.png"/>
 
 ### 3. Connect Nhost project to Github
 
@@ -172,7 +172,7 @@ nhost init --remote -n my-nhost-app
 It will also prompt you to choose the remote app you'd like to use to initialize
 your local Nhost development environment.
 
-<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165720808-e6ed06a5-e2c4-4ae6-9e36-41e7c6fff07a.png">
+<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165720808-e6ed06a5-e2c4-4ae6-9e36-41e7c6fff07a.png"/>
 
 The `init` command creates the Nhost app inside your current working directory
 within a `nhost/` folder.
@@ -304,13 +304,13 @@ To restrict the users to create new messages only for themselves, specify an
 `_eq` condition between the `authorId` and the `X-Hasura-User-ID` session
 variable, which is passed with each request.
 
-<img width="1110" alt="hasura-insert-condition" src="https://user-images.githubusercontent.com/4352286/165720775-e2b570c8-590d-48f6-a6cc-77c1989abf98.png">
+<img width="1110" alt="hasura-insert-condition" src="https://user-images.githubusercontent.com/4352286/165720775-e2b570c8-590d-48f6-a6cc-77c1989abf98.png"/>
 
 Then, select the columns the users can define through the GraphQL API, set the
 value for the `authorId` column to be equal to the `X-Hasura-User-ID` session
 variable, and click **Save Permissions**.
 
-<img width="919" alt="hasura-insert-columns" src="https://user-images.githubusercontent.com/4352286/165720779-d55d8c7e-6a88-46f2-9c52-5811a965cf5a.png">
+<img width="919" alt="hasura-insert-columns" src="https://user-images.githubusercontent.com/4352286/165720779-d55d8c7e-6a88-46f2-9c52-5811a965cf5a.png"/>
 
 Finally, check out the `metadata/` folder in your project directory to confirm
 that the permission changes we did were tracked locally in your git repository.
