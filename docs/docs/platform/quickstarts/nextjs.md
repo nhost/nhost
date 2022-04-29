@@ -609,7 +609,7 @@ import { NhostApolloProvider } from '@nhost/react-apollo';
 function MyApp({ Component, pageProps }) {
   return (
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
-      <NhostApolloProvider>{/* ... */}</NhostApolloProvider>
+      <NhostApolloProvider nhost={nhost}>{/* ... */}</NhostApolloProvider>
     </NhostNextProvider>
   );
 }
