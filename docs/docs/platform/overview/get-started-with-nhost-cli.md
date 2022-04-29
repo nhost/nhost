@@ -65,7 +65,9 @@ installed on your local machine:
 - [Git](https://git-scm.com/downloads)
 - [Docker](https://www.docker.com/get-started)
 
-> Docker must be running while using Nhost CLI.
+:::caution
+Docker must be running while using Nhost CLI.
+:::
 
 ### Nhost CLI login
 
@@ -79,8 +81,9 @@ nhost login
 This will display a prompt for you to enter your Nhost account credentials
 (email/password).
 
-> You can create a Nhost account here:
-> [https://app.nhost.io](https://app.nhost.io/).
+:::info
+You can create a Nhost account here: [https://app.nhost.io](https://app.nhost.io/).
+:::
 
 <img width="577" alt="nhost-login" src="https://user-images.githubusercontent.com/4352286/165720791-facdf9a4-96e8-4b0d-a767-6e7688d28b7e.png" />
 
@@ -214,8 +217,9 @@ command:
 nhost dev
 ```
 
-> Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s
-> required for Nhost to work.
+:::caution
+Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s required for Nhost to work.
+:::
 
 Running this command will start up all the backend services provided by Nhost.
 
@@ -240,9 +244,9 @@ to production:
 
 Database changes are tracked and managed through migrations.
 
-> It's important that you use the Hasura console to make database changes.
-> Indeed, with the Hasura console, DB migration files are generated
-> incrementally to track changes automatically for you.
+:::tip
+It's important that you use the Hasura console to make database changes. Indeed, with the Hasura console, DB migration files are generated incrementally to track changes automatically for you.
+:::
 
 To demonstrate how to make database changes, let's create a new table called
 `messages`, with the following columns:
@@ -390,9 +394,9 @@ To deploy your local changes to production, you can commit and push them to
 GitHub. As a result, Nhost will automatically pick up the changes in your
 repository and apply them to your associated remote Nhost project.
 
-> Make sure to
-> [connect your Github repository](#3-connect-nhost-project-to-Github) to your
-> Nhost project first.
+:::caution
+Make sure to [connect your Github repository](#3-connect-nhost-project-to-Github) to your Nhost project first.
+:::
 
 ```bash
 git add -A
