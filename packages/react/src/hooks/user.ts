@@ -349,7 +349,7 @@ const Avatar = () => {
 };
 ```
  */
-export const useAvatarUrl = () => {
+export const useUserAvatarUrl = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -357,6 +357,11 @@ export const useAvatarUrl = () => {
     (a, b) => a === b
   )
 }
+
+/**
+ * @internal
+ * @deprecated use {@link useUserAvatarUrl} instead */
+export const useAvatarUrl = useUserAvatarUrl
 
 /**
  * Gets the user's default role
@@ -377,7 +382,7 @@ const Avatar = () => {
 };
 ```
  */
-export const useDefaultRole = () => {
+export const useUserDefaultRole = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -385,6 +390,11 @@ export const useDefaultRole = () => {
     (a, b) => a === b
   )
 }
+
+/**
+ * @internal
+ * @deprecated use {@link useUserDefaultRole} instead */
+export const useDefaultRole = useUserDefaultRole
 
 /**
  * Gets the user's display name
@@ -399,7 +409,7 @@ const Avatar = () => {
 };
 ```
  */
-export const useDisplayName = () => {
+export const useUserDisplayName = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -409,6 +419,11 @@ export const useDisplayName = () => {
 }
 
 /**
+ * @internal
+ * @deprecated use {@link useUserDisplayName} instead */
+export const useDisplayName = useUserDisplayName
+
+/**
  * Gets the user's email
  * @example
 ```js
@@ -416,7 +431,7 @@ import { useEmail } from '@nhost/react';
 const email = useEmail();
 ```
  */
-export const useEmail = () => {
+export const useUserEmail = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -424,6 +439,11 @@ export const useEmail = () => {
     (a, b) => a === b
   )
 }
+
+/**
+ * @internal
+ * @deprecated use {@link useUserEmail} instead */
+export const useEmail = useUserEmail
 
 /**
  * Gets the user id
@@ -450,7 +470,7 @@ import { useIsAnonymous } from '@nhost/react';
 const isAnonymous = useIsAnonymous();
 ```
  */
-export const useIsAnonymous = () => {
+export const useUserIsAnonymous = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service,
@@ -458,6 +478,11 @@ export const useIsAnonymous = () => {
     (a, b) => a === b
   )
 }
+
+/**
+ * @internal
+ * @deprecated use {@link useUserIsAnonymous} instead */
+export const useIsAnonymous = useUserIsAnonymous
 
 /**
  * Gets the user locale
