@@ -1,21 +1,30 @@
 {
   "$schema": "https://json.schemastore.org/tsconfig",
-  "display": "Default",
+  "compileOnSave": false,
   "compilerOptions": {
-    "composite": false,
     "declaration": true,
-    "declarationMap": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "inlineSources": false,
-    "isolatedModules": true,
-    "moduleResolution": "node",
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "preserveWatchOutput": true,
-    "skipLibCheck": true,
+    "importHelpers": true,
     "strict": true,
-    "noImplicitAny": false
-  },
-  "exclude": ["node_modules"]
+    "lib": [
+      "es5",
+      "dom",
+      "es2015.promise",
+      "es2015.symbol",
+      "es2015.iterable",
+      "es2015.collection",
+      "es2015.symbol.wellknown",
+      "es2015.core",
+      "es2017.object",
+      "es2017.string"
+    ],
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "target": "ES6",
+    "typeRoots": [
+      "./node_modules/@types"
+    ]
+  }
 }

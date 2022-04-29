@@ -57,7 +57,8 @@
     "@nhost/core": "*",
     "@nhost/nhost-js": "*",
     "cookies": "^0.8.0",
-    "cross-fetch": "^3.1.5"
+    "cross-fetch": "^3.1.5",
+    "xstate": "^4.31.0"
   },
   "peerDependencies": {
     "@nhost/react": "*",
@@ -71,7 +72,6 @@
     "@types/cookies": "^0.7.7",
     "next": "12.0.10",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2",
-    "xstate": "^4.31.0"
+    "react-dom": "^17.0.2"
   }
 }

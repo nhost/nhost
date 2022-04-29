@@ -9,6 +9,9 @@
     "test": {
       "outputs": []
     },
+    "dev": {
+      "cache": false
+    },
     "docgen": {
       "cache": false
     },

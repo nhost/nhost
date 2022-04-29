@@ -1,16 +1,18 @@
 import { defineConfig } from 'vite'
 
-import reactConfig from '../../vite.react.config'
+import baseConfig from '../../vite.config.base'
 
 import pkg from './package.json'
 
+const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))]
+
 export default defineConfig({
-  ...reactConfig,
+  ...baseConfig,
   build: {
-    ...reactConfig.build,
+    ...baseConfig.build,
     rollupOptions: {
-      ...reactConfig.build?.rollupOptions,
-      external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})]
+      ...baseConfig.build?.rollupOptions,
+      external: (id) => deps.some((dep) => id.startsWith(dep))
     }
   }
 })

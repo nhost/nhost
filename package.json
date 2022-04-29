@@ -19,6 +19,7 @@
     "prepare": "pnpm create-config && husky install",
     "build": "turbo run build --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
     "build:docs": "pnpm run build --filter=@nhost/docs",
+    "dev": "turbo run dev --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples}/*,docs}/{dist,.next,.turbo,coverage}",
     "ci": "turbo run build test --concurrency=4 --filter=!@nhost/docs --filter=!@nhost-examples/* && pnpm run lint",
