@@ -15,7 +15,7 @@ builds:
     ldflags:
       - -s -w -X "github.com/nhost/cmd.Version={{.Version}}" -X "github.com/nhost/nhost.REPOSITORY={{.Env.GITHUB_REPOSITORY}}"
 archives:
-  - name_template: '{{ .ProjectName }}-{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+  - name_template: '{{ .ProjectName }}-v{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     format: zip
     replacements:
       darwin: "darwin"
