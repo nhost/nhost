@@ -71,9 +71,9 @@ you push automatically commits to your connected Git repository.
 
 ![connect-github-repository](https://user-images.githubusercontent.com/4352286/165812931-567546b1-20ca-4810-bd73-181a84d8f8fe.png)
 
-## Building the app
+## Initialize the app
 
-### 1. Initialize a Next.js app
+### 1. Create a Next.js app
 
 The simplest way to create a new Next.js application is by using the tool called
 `create-next-app`, which bootstraps a Next.js app for you without the hassle of
@@ -207,7 +207,9 @@ NEXT_PUBLIC_NHOST_BACKEND_URL=YOUR_NHOST_URL
 Don't forget to restart your Next.js server after saving your `.env.development`
 file to load your new environment variable.
 
-### 5. Add authentication
+## Build the app
+
+### 1. Add authentication
 
 **Sign-up**
 
@@ -482,7 +484,7 @@ const Layout = ({ children = null }) => {
 };
 ```
 
-### 6. Protect routes
+### 2. Protect routes
 
 Now that we have implemented authentication, we can easily decide who can access
 certain parts of our application.
@@ -559,7 +561,7 @@ export default withAuth(Profile);
 </TabItem>
 </Tabs>
 
-### 7. Retrieve user data
+### 3. Retrieve user data
 
 Finally, let's display the information of the authenticated user throughout his
 dashboard to make the app more personalized.
@@ -583,7 +585,7 @@ That's it! The JSX code for rendering the user data (email, display name, etc.)
 is already included in your components as part of the example repository you've
 bootstraped at the beginning of this guide.
 
-### 8. Update user data
+### 4. Update user data
 
 Nhost provides a GraphQL API through Hasura so that we can query and mutate our
 data instantly.
