@@ -1,7 +1,9 @@
 import { format } from 'prettier'
+import { snapshot } from 'valtio'
 
 import { CommentFragment, DeprecationNoteFragment, FunctionFragment } from '../fragments'
 import { removeLinksFromText } from '../helpers'
+import { appState } from '../state'
 import { ClassSignature, Signature } from '../types'
 
 /**
@@ -13,10 +15,12 @@ import { ClassSignature, Signature } from '../types'
  * @returns Prettified class page template
  */
 export const ClassTemplate = (
-  { name, comment, children }: ClassSignature,
+  { name, comment, children, sources }: ClassSignature,
   originalDocument?: Array<Signature>,
   slug?: string
 ) => {
+  const { baseEditUrl } = snapshot(appState)
+  const source = baseEditUrl && sources && sources.length > 0 ? sources[0] : null
   const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
 
@@ -29,6 +33,7 @@ description: ${
   }
 ${deprecationTag ? 'sidebar_class_name: deprecated' : ``}
 ${slug ? `slug: ${slug}` : ``}
+${baseEditUrl && source ? `custom_edit_url: ${baseEditUrl}/${source.fileName}#L${source.line}` : ``}
 ---`.replace(/\n\n/gi, '\n')
 
   return format(
