@@ -120,7 +120,7 @@ nhost init --remote
 It will prompt you to choose the remote app you'd like to use to initialize your
 local Nhost development environment.
 
-<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165812979-3f55bde9-8771-4c06-bc4a-23e7ae8f67b9.png">
+<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165812979-3f55bde9-8771-4c06-bc4a-23e7ae8f67b9.png"/>
 
 The `init` command creates the Nhost app inside your current working directory
 within a `nhost/` folder.
@@ -643,12 +643,12 @@ To restrict the user to read his own data only, specify a condition with the
 user's ID and the `X-Hasura-User-ID` session variable, which is passed with each
 requests.
 
-<img width="1142" alt="hasura-custom-check" src="https://user-images.githubusercontent.com/4352286/165812960-4498ced4-d494-41f7-aa8b-60e6c0a2a939.png">
+<img width="1142" alt="hasura-custom-check" src="https://user-images.githubusercontent.com/4352286/165812960-4498ced4-d494-41f7-aa8b-60e6c0a2a939.png"/>
 
 Finally, select the columns you'd like the users to have access to, and click
 **Save Permissions**.
 
-<img width="1134" alt="hasura-column-permissions" src="https://user-images.githubusercontent.com/4352286/165812956-6795254e-4341-4254-b1e7-880c83fb527a.png">
+<img width="1134" alt="hasura-column-permissions" src="https://user-images.githubusercontent.com/4352286/165812956-6795254e-4341-4254-b1e7-880c83fb527a.png"/>
 
 Repeat the same steps on the `update` operation for the `user` role to allow
 users to update their `displayName` and `metadata` only.
