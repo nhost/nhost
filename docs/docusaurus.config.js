@@ -185,7 +185,7 @@ const config = {
         appId: '3A3MJQTKHU',
         apiKey: 'a76361eaed8ebcd4cf5d9ae2f0c9e746',
         indexName: 'nhost',
-        contextualSearch: true,
+        contextualSearch: false,
       },
     }),
 };
