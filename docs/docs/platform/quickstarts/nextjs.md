@@ -36,7 +36,7 @@ ready.
 
 ## Project setup
 
-### 1. Create a new Nhost app
+### Create a new Nhost app
 
 First things first, we need to create a new Nhost project.
 
@@ -53,7 +53,7 @@ services and click **Create App**.
 After a few seconds, you should get a PostgreSQL database, a GraphQL API with
 Hasura, file storage, and authentication already set up.
 
-### 2. Connect Github repository
+### Connect Github repository
 
 The next step consists of connecting your Github repository to your Nhost
 project. Doing so will enable Nhost to deploy new versions of your project when
@@ -73,7 +73,7 @@ you push automatically commits to your connected Git repository.
 
 ## Initialize the app
 
-### 1. Create a Next.js app
+### Create a Next.js app
 
 The simplest way to create a new Next.js application is by using the tool called
 `create-next-app`, which bootstraps a Next.js app for you without the hassle of
@@ -105,7 +105,7 @@ If everything is working fine, your Next.js development server should be running
 on port 3000. Open [http://localhost:3000](http://localhost:3000) from your
 browser to check this out.
 
-### 2. Initialize a local Nhost app
+### Initialize a local Nhost app
 
 Now we are going to initialize our Nhost app locally using **Nhost CLI**.
 
@@ -141,7 +141,7 @@ my-nhost-app/
       └─ seeds/
 ```
 
-### 3. Start a local development environment
+### Start a local development environment
 
 To start a local development environment for your Nhost app, run the following
 command:
@@ -157,7 +157,7 @@ Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s
 Running this command will start up all the backend services provided by Nhost
 locally.
 
-### 4. Configure Nhost with Next.js
+### Configure Nhost with Next.js
 
 To work with Nhost from within our Next.js app, we'll use the
 [Next.js SDK](https://github.com/nhost/nhost/tree/main/packages/nextjs) provided
@@ -209,9 +209,9 @@ file to load your new environment variable.
 
 ## Build the app
 
-### 1. Add authentication
+### Add authentication
 
-**Sign-up**
+#### 1. Sign-up
 
 The next step is to allow our users to authentication into our application.
 Let's start with implementing the sign-up process.
@@ -347,7 +347,7 @@ export default SignUp;
 
 By default, the user must verify his email address before fully signing up. You can change this setting from your Nhost config file, `nhost/config.yaml`.
 
-**Sign-in**
+#### 2. Sign-in
 
 Now that new users can sign up for our application, let's see how to allow
 existing users to sign in with email and password.
@@ -460,7 +460,7 @@ const SignIn = () => {
 export default SignIn;
 ```
 
-**Sign-out**
+#### 3. Sign-out
 
 Finally, to allow the users to sign out from the app, we can use the Nhost
 `useSignOut` hook:
@@ -484,7 +484,7 @@ const Layout = ({ children = null }) => {
 };
 ```
 
-### 2. Protect routes
+### Protect routes
 
 Now that we have implemented authentication, we can easily decide who can access
 certain parts of our application.
@@ -561,7 +561,7 @@ export default withAuth(Profile);
 </TabItem>
 </Tabs>
 
-### 3. Retrieve user data
+### Retrieve user data
 
 Finally, let's display the information of the authenticated user throughout his
 dashboard to make the app more personalized.
@@ -585,7 +585,7 @@ That's it! The JSX code for rendering the user data (email, display name, etc.)
 is already included in your components as part of the example repository you've
 bootstraped at the beginning of this guide.
 
-### 4. Update user data
+### Update user data
 
 Nhost provides a GraphQL API through Hasura so that we can query and mutate our
 data instantly.
