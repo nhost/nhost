@@ -21,8 +21,8 @@ archives:
       darwin: "darwin"
       linux: "linux"
       windows: "windows"
-      386: "i386"
-      amd64: "x86_64"
+      386: "386"
+      amd64: "amd64"
     format_overrides:
       - goos: "windows"
         format: "zip"
