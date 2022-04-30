@@ -12,6 +12,7 @@ import {
 } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, registrationOptions } from '@/validation';
+import { isVerifySid } from '@/utils/twilio';
 
 export const signInPasswordlessSmsSchema = Joi.object({
   phoneNumber: Joi.string().required(),
@@ -71,11 +72,22 @@ export const signInPasswordlessSmsHandler: RequestHandler<
     );
 
     try {
-      await twilioClient.messages.create({
-        body: `Your code is ${otp}`,
-        messagingServiceSid: ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID,
-        to: phoneNumber,
-      });
+      const messagingServiceSid = ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID;
+
+      if (isVerifySid(messagingServiceSid)) {
+        await twilioClient.verify
+          .services(messagingServiceSid)
+          .verifications.create({
+            channel: 'sms',
+            to: phoneNumber,
+          });
+      } else {
+        await twilioClient.messages.create({
+          body: `Your code is ${otp}`,
+          messagingServiceSid: ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID,
+          to: phoneNumber,
+        });
+      }
     } catch (error) {
       // delete user that was inserted because we were not able to send the SMS
       await gqlSdk.deleteUser({

@@ -1,10 +1,12 @@
 import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
-import { getSignInResponse, gqlSdk } from '@/utils';
+import { ENV, getSignInResponse, gqlSdk } from '@/utils';
 import { OtpSmsBody } from '@/types';
 import { sendError } from '@/errors';
 import { Joi } from '@/validation';
+import { isVerifySid } from '@/utils/twilio';
+import twilio from 'twilio';
 
 export const signInOtpSchema = Joi.object({
   phoneNumber: Joi.string().required(),
@@ -15,6 +17,10 @@ export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
   req,
   res
 ) => {
+  if (!ENV.AUTH_SMS_PASSWORDLESS_ENABLED) {
+    return sendError(res, 'disabled-endpoint');
+  }
+
   const { body } = req;
 
   const { phoneNumber, otp } = body;
@@ -56,7 +62,33 @@ export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
     return sendError(res, 'invalid-otp');
   }
 
-  if (!(await bcrypt.compare(otp, user.otpHash))) {
+  const messagingServiceSid = ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID;
+
+  if (ENV.AUTH_SMS_PROVIDER !== 'twilio') {
+    throw Error('No sms provider set');
+  }
+
+  if (isVerifySid(messagingServiceSid)) {
+    const twilioClient = twilio(
+      ENV.AUTH_SMS_TWILIO_ACCOUNT_SID,
+      ENV.AUTH_SMS_TWILIO_AUTH_TOKEN
+    );
+
+    try {
+      const verificationCheck = await twilioClient.verify
+        .services(messagingServiceSid)
+        .verificationChecks.create({
+          code: otp,
+          to: user.phoneNumber ?? '',
+        });
+
+      if (!verificationCheck.valid || verificationCheck.status !== 'approved') {
+        return sendError(res, 'invalid-otp');
+      }
+    } catch (error) {
+      throw Error('Cannot veirfy otp');
+    }
+  } else if (!(await bcrypt.compare(otp, user.otpHash))) {
     return sendError(res, 'invalid-otp');
   }
 
