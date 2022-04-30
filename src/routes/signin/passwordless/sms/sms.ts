@@ -53,6 +53,10 @@ export const signInPasswordlessSmsHandler: RequestHandler<
     });
   }
 
+  if (user.disabled) {
+    return sendError(res, 'disabled-user');
+  }
+
   // set otp for user that will be sent in the email
   const { otp, otpHash, otpHashExpiresAt } = await getNewOneTimePasswordData();
 

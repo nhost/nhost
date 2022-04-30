@@ -53,7 +53,6 @@ export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
     return sendError(res, 'invalid-otp');
   }
 
-  // continue checking the user
   if (user.disabled) {
     return sendError(res, 'disabled-user');
   }
