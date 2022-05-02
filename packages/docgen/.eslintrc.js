@@ -4,9 +4,6 @@ module.exports = {
     '**/node_modules/**',
     '**/dist/**',
     '**/build/**',
-    '**/test/**',
-    '**/__tests__/**',
-    '**/__mocks__/**',
     'tsup.config.ts',
     'jest.config.ts'
   ],

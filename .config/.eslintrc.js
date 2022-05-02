@@ -4,7 +4,21 @@ module.exports = {
     es6: true,
     node: true
   },
-  ignorePatterns: ['**/dist', '**/build', '**/.next'],
+  ignorePatterns: [
+    'dist',
+    'umd',
+    'build',
+    '.next',
+    'node_modules',
+    'tsup.config.ts',
+    'jest.config.ts',
+    '__tests__',
+    '__mocks__',
+    '*.test.ts',
+    '*.test.tsx',
+    '*.spec.ts',
+    '*.spec.tsx'
+  ],
   extends: ['react-app', 'plugin:react/recommended', 'plugin:react-hooks/recommended'],
   parserOptions: {
     ecmaVersion: 2020,
