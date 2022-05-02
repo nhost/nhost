@@ -27,6 +27,7 @@
   "source": "src/index.tsx",
   "files": [
     "dist",
+    "umd",
     "README.md"
   ],
   "exports": {
@@ -40,7 +41,9 @@
   },
   "scripts": {
     "dev": "vite build --config ./vite.config.dev.js",
-    "build": "vite build",
+    "build": "run-p build:esm-cjs build:umd",
+    "build:esm-cjs": "vite build",
+    "build:umd": "vite build --config ../../vite.umd.config.js",
     "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",

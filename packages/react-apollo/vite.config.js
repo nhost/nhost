@@ -11,8 +11,12 @@ export default defineConfig({
   build: {
     ...baseConfig.build,
     rollupOptions: {
-      ...baseConfig.build?.rollupOptions,
-      external: (id) => deps.some((dep) => id.startsWith(dep))
+      external: (id) => deps.some((dep) => id.startsWith(dep)),
+      output: {
+        globals: {
+          react: 'React'
+        }
+      }
     }
   }
 })

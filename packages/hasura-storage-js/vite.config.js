@@ -9,9 +9,8 @@ const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.depende
 export default defineConfig({
   ...baseConfig,
   build: {
-    ...baseConfig.build,
+    ...(baseConfig.build || {}),
     rollupOptions: {
-      ...baseConfig.build?.rollupOptions,
       external: (id) => deps.some((dep) => id.startsWith(dep))
     }
   }

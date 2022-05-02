@@ -19,6 +19,7 @@ logs/
 # Directories
 coverage/
 dist/
+umd/
 lib/
 node_modules/
 tmp/

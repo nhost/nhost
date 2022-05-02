@@ -23,25 +23,13 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
-  "scripts": {
-    "dev": "vite build --config ./vite.config.dev.js",
-    "build": "vite build",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
-    "prettier": "prettier --check src/",
-    "prettier:fix": "prettier --write src/",
-    "lint": "eslint . --ext .ts,.tsx",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
-    "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./nextjs.typedoc.json",
-    "docgen": "pnpm typedoc && docgen --config ./nextjs.docgen.json"
-  },
   "main": "dist/index.cjs.js",
   "module": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
     "dist",
+    "umd",
     "README.md"
   ],
   "exports": {
@@ -52,6 +40,21 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build --config ./vite.config.dev.js",
+    "build": "run-p build:esm-cjs build:umd",
+    "build:esm-cjs": "vite build",
+    "build:umd": "vite build --config ../../vite.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./nextjs.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./nextjs.docgen.json"
   },
   "dependencies": {
     "@nhost/core": "*",
