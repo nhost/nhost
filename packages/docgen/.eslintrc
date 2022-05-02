@@ -1,7 +1,7 @@
 {
   "extends": "../../.eslintrc",
   "parserOptions": {
-    "project": ["./tsconfig.json"]
+    "project": ["./tsconfig.base.json"]
   },
   "plugins": ["@typescript-eslint", "simple-import-sort"],
   "rules": {
