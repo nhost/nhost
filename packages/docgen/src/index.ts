@@ -11,6 +11,7 @@ interface AppConfig {
   root: string
   slug?: string
   sidebarConfig?: string
+  baseEditUrl?: string
   title?: string
   cleanup?: boolean
   verbose?: boolean
@@ -75,6 +76,7 @@ async function parser() {
     .option('-s, --slug <slug>', 'Base slug to use for generating documentation links')
     .option('-t, --title <title>', 'Title of the root sidebar menu')
     .option('--sidebarConfig <name>', 'Docusaurus sidebar configuration to display')
+    .option('--baseEditUrl <name>', 'Docusaurus base `editUrl`')
     .option('-v, --verbose', 'Verbose mode')
     .option('-c, --cleanup', 'Cleanup the output directory before generating docs')
     .option('--config <name>', 'DocGen configuration file to use instead of options')
@@ -97,7 +99,8 @@ async function parser() {
       }
     }
 
-    const { path, output, root, verbose, slug, sidebarConfig, cleanup, title } = finalConfig
+    const { path, output, root, verbose, slug, sidebarConfig, baseEditUrl, cleanup, title } =
+      finalConfig
 
     if (!path) {
       throw new Error(`Please specify path to the auto-generated JSON file. (See -p or --path)`)
@@ -115,6 +118,7 @@ async function parser() {
 
     appState.verbose = verbose
     appState.sidebarConfig = sidebarConfig
+    appState.baseEditUrl = baseEditUrl
     appState.baseSlug = slug
     appState.docsRoot = root
 

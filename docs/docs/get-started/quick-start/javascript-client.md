@@ -30,7 +30,7 @@ Create a new folder called `nhost-todos`, initialize a new JavaScript app there,
 
 ```bash
 npm init -y
-yarn add @nhost/nhost-js graphql
+npm install @nhost/nhost-js graphql
 ```
 
   </TabItem>
@@ -38,7 +38,7 @@ yarn add @nhost/nhost-js graphql
 
 ```bash
 yarn init -y
-npm install @nhost/nhost-js graphql
+yarn add @nhost/nhost-js graphql
 ```
 
   </TabItem>
