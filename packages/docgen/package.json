@@ -18,7 +18,7 @@
     "test": "jest",
     "clean": "rimraf dist",
     "format": "prettier --write 'src/**/*.ts'",
-    "lint": "eslint 'src/**/*.ts'"
+    "lint": "eslint . --ext .ts,.tsx"
   },
   "author": "Nhost",
   "homepage": "https://nhost.io",
