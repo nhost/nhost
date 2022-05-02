@@ -1,4 +1,6 @@
-import { ProviderOptions } from '@nhost/core'
+import { reactive, unref } from 'vue'
+
+import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
@@ -12,18 +14,15 @@ const providerLink = useProviderLink();
 */
 export const useProviderLink = (options?: RefOrValue<ProviderOptions>) => {
   const { client } = useNhostClient()
-  // TODO
-  return {}
-  // return useMemo(
-  //   () =>
-  //     new Proxy({} as Record<Provider, string>, {
-  //       get(_, provider: string) {
-  //         return encodeQueryParameters(
-  //           `${nhost.value.auth.client.backendUrl}/signin/provider/${provider}`,
-  //           rewriteRedirectTo(nhost.value.auth.client.clientUrl, options)
-  //         )
-  //       }
-  //     }),
-  //   [nhost, options]
-  // )
+  return reactive(
+    new Proxy({} as Record<Provider, string>, {
+      get(_, provider: string) {
+        const optionsValue = unref(options)
+        return encodeQueryParameters(
+          `${client.auth.client.backendUrl}/signin/provider/${provider}`,
+          rewriteRedirectTo(client.auth.client.clientUrl, optionsValue as any)
+        )
+      }
+    })
+  )
 }

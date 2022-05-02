@@ -18,7 +18,7 @@ interface SignInEmailPasswordlessHandlerResult
 
 interface SignInEmailPasswordlessComposableResult extends ToRefs<DefaultActionComposableState> {
   /** Sends a magic link to the given email */
-  signInEmailPasswordless(email: string): Promise<SignInEmailPasswordlessHandlerResult>
+  signInEmailPasswordless(email: RefOrValue<string>): Promise<SignInEmailPasswordlessHandlerResult>
 }
 
 /**

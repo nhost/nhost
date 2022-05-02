@@ -46,7 +46,7 @@ export const SignUpPage: React.FC = () => {
         </FlexboxGrid.Item>
       </FlexboxGrid>
       <Divider />
-      Already have an account? <Link to="/sign-in">Log in</Link>
+      Already have an account? <Link to="/sign-in">Sign in</Link>
     </div>
   )
 }

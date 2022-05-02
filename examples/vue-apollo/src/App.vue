@@ -1,47 +1,38 @@
 <template>
-  <q-layout view="hHh lpr fFf">
-    <q-header elevated class="text-white bg-primary">
-      <q-toolbar>
-        <q-btn dense flat round icon="menu" @click="toggleLeftDrawer" />
-
-        <q-toolbar-title>
-          <q-avatar>
-            <img src="https://cdn.quasar.dev/logo-v2/svg/logo-mono-white.svg" />
-          </q-avatar>
-          Nhost Vue/Quasar demo
-        </q-toolbar-title>
-        <q-btn v-if="isAuthenticated" flat round dense icon="logout" @click="() => signOut()" />
-      </q-toolbar>
-    </q-header>
-
-    <q-drawer show-if-above v-model="leftDrawerOpen" side="left" bordered>
-      <!-- drawer content -->
-    </q-drawer>
-
-    <q-page-container>
+  <v-app>
+    <v-app-bar color="primary">
+      <template v-slot:prepend>
+        <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+      </template>
+      <template v-slot:append>
+        <v-btn v-if="isAuthenticated" icon="mdi-exit-to-app" @click="() => signOut()"></v-btn>
+      </template>
+    </v-app-bar>
+    <v-navigation-drawer v-model="drawer" temporary></v-navigation-drawer>
+    <v-main class="my-4">
       <router-view />
-    </q-page-container>
-  </q-layout>
+    </v-main>
+  </v-app>
 </template>
 
 <script lang="ts">
 import { useAuthenticated, useSignOut } from '@nhost/vue'
 import { defineComponent, ref } from 'vue'
-
+import { useRouter } from 'vue-router'
 export default defineComponent({
   setup() {
-    const leftDrawerOpen = ref(false)
+    const router = useRouter()
     const isAuthenticated = useAuthenticated()
-    const { signOut, isSuccess: signedOut } = useSignOut()
-
+    const { signOut: signOutHandler } = useSignOut()
+    const drawer = ref(false)
+    const signOut = async () => {
+      await signOutHandler()
+      router.replace('/signout')
+    }
     return {
+      drawer,
       isAuthenticated,
-      signedOut,
-      signOut,
-      leftDrawerOpen,
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value
-      }
+      signOut
     }
   }
 })

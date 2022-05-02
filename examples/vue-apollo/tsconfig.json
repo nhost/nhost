@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "composite": false,
-    "module": "esnext"
+    "module": "esnext",
+    "declaration": false
     // "target": "esnext",
     // "useDefineForClassFields": true,
     // "module": "esnext",

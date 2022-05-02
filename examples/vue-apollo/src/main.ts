@@ -1,17 +1,43 @@
-import { Quasar } from 'quasar'
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
+// Vuetify
+import { createVuetify, ThemeDefinition } from 'vuetify'
 
 import { NhostClient } from '@nhost/vue'
 import { inspect } from '@xstate/inspect'
 
-import 'quasar/src/css/index.sass'
+import 'vuetify/styles'
 
-import Index from './pages/Index.vue'
 import App from './App.vue'
+import routes from './routes'
 
-// Import icon libraries
-import '@quasar/extras/material-icons/material-icons.css'
+import '@mdi/font/css/materialdesignicons.css'
+
+const customLightTheme: ThemeDefinition = {
+  dark: false,
+  colors: {
+    background: '#FFFFFF',
+    surface: '#FFFFFF',
+    primary: '#2b82ff',
+    'primary-darken-1': '#3700B3',
+    secondary: '#03DAC6',
+    'secondary-darken-1': '#018786',
+    error: '#B00020',
+    info: '#2196F3',
+    success: '#4CAF50',
+    warning: '#FB8C00'
+  }
+}
+
+const vuetify = createVuetify({
+  theme: {
+    defaultTheme: 'customLightTheme',
+    themes: {
+      customLightTheme
+    }
+  }
+})
+// https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 
 const devTools = !!import.meta.env.VITE_DEBUG
 if (devTools) {
@@ -21,14 +47,23 @@ if (devTools) {
   })
 }
 
-const router = createRouter({
-  history: createWebHashHistory(),
-  routes: [{ path: '/', component: Index }]
-})
-
 export const nhost = new NhostClient({
   backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337',
   devTools
 })
 
-createApp(App).use(router).use(Quasar).mount('#app')
+const router = createRouter({
+  history: createWebHashHistory(),
+  routes
+})
+
+router.beforeEach(async (to, from) => {
+  const authenticated = await nhost.auth.isAuthenticatedAsync()
+  console.log('auth?', authenticated)
+  if (!authenticated && to.meta.auth) {
+    return '/signin'
+  }
+  return true
+})
+
+createApp(App).use(router).use(vuetify).mount('#app')
