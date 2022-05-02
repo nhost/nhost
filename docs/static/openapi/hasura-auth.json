@@ -3,14 +3,26 @@
   "info": {
     "title": "Hasura auth",
     "description": "Authentication for Hasura",
-    "license": { "name": "MIT", "url": "" },
+    "license": {
+      "name": "MIT",
+      "url": ""
+    },
     "termsOfService": "",
-    "version": "0.5.0"
+    "version": "0.7.1"
   },
   "servers": [],
-  "security": [{ "BearerAuth": [] }],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
   "components": {
-    "securitySchemes": { "BearerAuth": { "type": "http", "scheme": "bearer" } },
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
     "schemas": {
       "SignInPasswordlessEmailSchema": {
         "type": "object",
@@ -32,27 +44,59 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": ["me", "user"],
+                "enum": [
+                  "me",
+                  "user"
+                ],
                 "example": "user",
                 "default": "user"
               },
               "allowedRoles": {
                 "type": "array",
-                "items": { "oneOf": [{ "enum": ["me"] }, { "enum": ["user"] }] },
-                "example": ["me", "user"],
-                "default": ["me", "user"]
+                "items": {
+                  "oneOf": [
+                    {
+                      "enum": [
+                        "me"
+                      ]
+                    },
+                    {
+                      "enum": [
+                        "user"
+                      ]
+                    }
+                  ]
+                },
+                "example": [
+                  "me",
+                  "user"
+                ],
+                "default": [
+                  "me",
+                  "user"
+                ]
               },
-              "displayName": { "type": "string", "example": "John Smith" },
+              "displayName": {
+                "type": "string",
+                "example": "John Smith"
+              },
               "metadata": {
                 "type": "object",
                 "properties": {},
                 "additionalProperties": false,
-                "example": { "firstName": "John", "lastName": "Smith" },
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Smith"
+                },
                 "default": {}
               },
               "redirectTo": {
-                "type": "string",
-                "pattern": "^https:\\/\\/my-app.com",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/my-app.com"
+                  }
+                ],
                 "example": "https://my-app.com/catch-redirection",
                 "default": "https://my-app.com"
               }
@@ -60,7 +104,9 @@
             "additionalProperties": false
           }
         },
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "additionalProperties": false
       },
       "SignUpEmailPasswordSchema": {
@@ -89,27 +135,59 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": ["me", "user"],
+                "enum": [
+                  "me",
+                  "user"
+                ],
                 "example": "user",
                 "default": "user"
               },
               "allowedRoles": {
                 "type": "array",
-                "items": { "oneOf": [{ "enum": ["me"] }, { "enum": ["user"] }] },
-                "example": ["me", "user"],
-                "default": ["me", "user"]
+                "items": {
+                  "oneOf": [
+                    {
+                      "enum": [
+                        "me"
+                      ]
+                    },
+                    {
+                      "enum": [
+                        "user"
+                      ]
+                    }
+                  ]
+                },
+                "example": [
+                  "me",
+                  "user"
+                ],
+                "default": [
+                  "me",
+                  "user"
+                ]
               },
-              "displayName": { "type": "string", "example": "John Smith" },
+              "displayName": {
+                "type": "string",
+                "example": "John Smith"
+              },
               "metadata": {
                 "type": "object",
                 "properties": {},
                 "additionalProperties": false,
-                "example": { "firstName": "John", "lastName": "Smith" },
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Smith"
+                },
                 "default": {}
               },
               "redirectTo": {
-                "type": "string",
-                "pattern": "^https:\\/\\/my-app.com",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/my-app.com"
+                  }
+                ],
                 "example": "https://my-app.com/catch-redirection",
                 "default": "https://my-app.com"
               }
@@ -117,7 +195,10 @@
             "additionalProperties": false
           }
         },
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "additionalProperties": false
       },
       "SignInEmailPasswordSchema": {
@@ -129,15 +210,23 @@
             "description": "A valid email",
             "example": "john.smith@nhost.io"
           },
-          "password": { "type": "string", "example": "Str0ngPassw#ord-94|%" }
+          "password": {
+            "type": "string",
+            "example": "Str0ngPassw#ord-94|%"
+          }
         },
-        "required": ["email", "password"],
+        "required": [
+          "email",
+          "password"
+        ],
         "additionalProperties": false
       },
       "SignInPasswordlessSmsSchema": {
         "type": "object",
         "properties": {
-          "phoneNumber": { "type": "string" },
+          "phoneNumber": {
+            "type": "string"
+          },
           "options": {
             "type": "object",
             "properties": {
@@ -149,27 +238,59 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": ["me", "user"],
+                "enum": [
+                  "me",
+                  "user"
+                ],
                 "example": "user",
                 "default": "user"
               },
               "allowedRoles": {
                 "type": "array",
-                "items": { "oneOf": [{ "enum": ["me"] }, { "enum": ["user"] }] },
-                "example": ["me", "user"],
-                "default": ["me", "user"]
+                "items": {
+                  "oneOf": [
+                    {
+                      "enum": [
+                        "me"
+                      ]
+                    },
+                    {
+                      "enum": [
+                        "user"
+                      ]
+                    }
+                  ]
+                },
+                "example": [
+                  "me",
+                  "user"
+                ],
+                "default": [
+                  "me",
+                  "user"
+                ]
               },
-              "displayName": { "type": "string", "example": "John Smith" },
+              "displayName": {
+                "type": "string",
+                "example": "John Smith"
+              },
               "metadata": {
                 "type": "object",
                 "properties": {},
                 "additionalProperties": false,
-                "example": { "firstName": "John", "lastName": "Smith" },
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Smith"
+                },
                 "default": {}
               },
               "redirectTo": {
-                "type": "string",
-                "pattern": "^https:\\/\\/my-app.com",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/my-app.com"
+                  }
+                ],
                 "example": "https://my-app.com/catch-redirection",
                 "default": "https://my-app.com"
               }
@@ -177,13 +298,25 @@
             "additionalProperties": false
           }
         },
-        "required": ["phoneNumber"],
+        "required": [
+          "phoneNumber"
+        ],
         "additionalProperties": false
       },
       "SignInOtpSchema": {
         "type": "object",
-        "properties": { "phoneNumber": { "type": "string" }, "otp": { "type": "string" } },
-        "required": ["phoneNumber", "otp"],
+        "properties": {
+          "phoneNumber": {
+            "type": "string"
+          },
+          "otp": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "phoneNumber",
+          "otp"
+        ],
         "additionalProperties": false
       },
       "SignInMfaTotpSchema": {
@@ -194,9 +327,14 @@
             "pattern": "mfaTotp:\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
             "example": "mfaTotp:e08204c7-40af-4434-a7ed-31c6aa37a390"
           },
-          "otp": { "type": "string" }
+          "otp": {
+            "type": "string"
+          }
         },
-        "required": ["ticket", "otp"],
+        "required": [
+          "ticket",
+          "otp"
+        ],
         "additionalProperties": false
       },
       "SignInAnonymousSchema": {
@@ -208,12 +346,18 @@
             "example": "en",
             "default": "en"
           },
-          "displayName": { "type": "string", "example": "John Smith" },
+          "displayName": {
+            "type": "string",
+            "example": "John Smith"
+          },
           "metadata": {
             "type": "object",
             "properties": {},
             "additionalProperties": false,
-            "example": { "firstName": "John", "lastName": "Smith" },
+            "example": {
+              "firstName": "John",
+              "lastName": "Smith"
+            },
             "default": {}
           }
         },
@@ -234,7 +378,9 @@
             "default": false
           }
         },
-        "required": ["refreshToken"],
+        "required": [
+          "refreshToken"
+        ],
         "additionalProperties": false
       },
       "UserPasswordResetSchema": {
@@ -250,8 +396,12 @@
             "type": "object",
             "properties": {
               "redirectTo": {
-                "type": "string",
-                "pattern": "^https:\\/\\/my-app.com",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/my-app.com"
+                  }
+                ],
                 "example": "https://my-app.com/catch-redirection",
                 "default": "https://my-app.com"
               }
@@ -259,13 +409,22 @@
             "additionalProperties": false
           }
         },
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "additionalProperties": false
       },
       "UserPasswordSchema": {
         "type": "object",
-        "properties": { "newPassword": { "type": "string", "example": "Str0ngPassw#ord-94|%" } },
-        "required": ["newPassword"],
+        "properties": {
+          "newPassword": {
+            "type": "string",
+            "example": "Str0ngPassw#ord-94|%"
+          }
+        },
+        "required": [
+          "newPassword"
+        ],
         "additionalProperties": false
       },
       "UserEmailChangeSchema": {
@@ -281,8 +440,12 @@
             "type": "object",
             "properties": {
               "redirectTo": {
-                "type": "string",
-                "pattern": "^https:\\/\\/my-app.com",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/my-app.com"
+                  }
+                ],
                 "example": "https://my-app.com/catch-redirection",
                 "default": "https://my-app.com"
               }
@@ -305,8 +468,12 @@
             "type": "object",
             "properties": {
               "redirectTo": {
-                "type": "string",
-                "pattern": "^https:\\/\\/my-app.com",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/my-app.com"
+                  }
+                ],
                 "example": "https://my-app.com/catch-redirection",
                 "default": "https://my-app.com"
               }
@@ -314,23 +481,40 @@
             "additionalProperties": false
           }
         },
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "additionalProperties": false
       },
       "UserMfaSchema": {
         "type": "object",
         "properties": {
-          "code": { "type": "string", "description": "MFA activation code" },
+          "code": {
+            "type": "string",
+            "description": "MFA activation code"
+          },
           "activeMfaType": {
             "anyOf": [
-              { "type": "string", "enum": [""] },
-              { "type": "string", "enum": ["totp"] }
+              {
+                "type": "string",
+                "enum": [
+                  ""
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "totp"
+                ]
+              }
             ],
             "description": "Multi-factor authentication type. A null value deactivates MFA",
             "example": "totp"
           }
         },
-        "required": ["code"],
+        "required": [
+          "code"
+        ],
         "additionalProperties": false
       },
       "UserDeanonymizeSchema": {
@@ -338,7 +522,10 @@
         "properties": {
           "signInMethod": {
             "type": "string",
-            "enum": ["email-password", "passwordless"],
+            "enum": [
+              "email-password",
+              "passwordless"
+            ],
             "example": "email-password"
           },
           "email": {
@@ -347,8 +534,14 @@
             "description": "A valid email",
             "example": "john.smith@nhost.io"
           },
-          "password": { "type": "string", "example": "Str0ngPassw#ord-94|%" },
-          "connection": { "type": "string", "example": "email" },
+          "password": {
+            "type": "string",
+            "example": "Str0ngPassw#ord-94|%"
+          },
+          "connection": {
+            "type": "string",
+            "example": "email"
+          },
           "options": {
             "type": "object",
             "properties": {
@@ -360,27 +553,59 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": ["me", "user"],
+                "enum": [
+                  "me",
+                  "user"
+                ],
                 "example": "user",
                 "default": "user"
               },
               "allowedRoles": {
                 "type": "array",
-                "items": { "oneOf": [{ "enum": ["me"] }, { "enum": ["user"] }] },
-                "example": ["me", "user"],
-                "default": ["me", "user"]
+                "items": {
+                  "oneOf": [
+                    {
+                      "enum": [
+                        "me"
+                      ]
+                    },
+                    {
+                      "enum": [
+                        "user"
+                      ]
+                    }
+                  ]
+                },
+                "example": [
+                  "me",
+                  "user"
+                ],
+                "default": [
+                  "me",
+                  "user"
+                ]
               },
-              "displayName": { "type": "string", "example": "John Smith" },
+              "displayName": {
+                "type": "string",
+                "example": "John Smith"
+              },
               "metadata": {
                 "type": "object",
                 "properties": {},
                 "additionalProperties": false,
-                "example": { "firstName": "John", "lastName": "Smith" },
+                "example": {
+                  "firstName": "John",
+                  "lastName": "Smith"
+                },
                 "default": {}
               },
               "redirectTo": {
-                "type": "string",
-                "pattern": "^https:\\/\\/my-app.com",
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^https:\\/\\/my-app.com"
+                  }
+                ],
                 "example": "https://my-app.com/catch-redirection",
                 "default": "https://my-app.com"
               }
@@ -388,13 +613,18 @@
             "additionalProperties": false
           }
         },
-        "required": ["signInMethod", "email"],
+        "required": [
+          "signInMethod",
+          "email"
+        ],
         "additionalProperties": false
       },
       "UserProviderTokensSchema": {
         "type": "object",
         "properties": {
-          "providerId": { "type": "string" },
+          "providerId": {
+            "type": "string"
+          },
           "userId": {
             "type": "string",
             "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
@@ -402,7 +632,10 @@
             "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           }
         },
-        "required": ["providerId", "userId"],
+        "required": [
+          "providerId",
+          "userId"
+        ],
         "additionalProperties": false
       },
       "TokenSchema": {
@@ -415,219 +648,497 @@
             "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           }
         },
-        "required": ["refreshToken"],
+        "required": [
+          "refreshToken"
+        ],
         "additionalProperties": false
       },
       "VerifySchema": {
         "type": "object",
         "properties": {
           "redirectTo": {
-            "type": "string",
-            "pattern": "^https:\\/\\/my-app.com",
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^https:\\/\\/my-app.com"
+              }
+            ],
             "example": "https://my-app.com/catch-redirection",
             "default": "https://my-app.com"
           },
-          "ticket": { "type": "string" },
-          "type": { "type": "string" }
+          "ticket": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
         },
-        "required": ["redirectTo", "ticket", "type"],
+        "required": [
+          "redirectTo",
+          "ticket",
+          "type"
+        ],
         "additionalProperties": false
       },
       "RouteNotFoundError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["route-not-found"] },
-          "message": { "enum": ["Route not found"] },
-          "status": { "enum": [404] }
+          "error": {
+            "enum": [
+              "route-not-found"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Route not found"
+            ]
+          },
+          "status": {
+            "enum": [
+              404
+            ]
+          }
         },
         "additionalProperties": false
       },
       "DisabledEndpointError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["disabled-endpoint"] },
-          "message": { "enum": ["This endpoint is disabled"] },
-          "status": { "enum": [404] }
+          "error": {
+            "enum": [
+              "disabled-endpoint"
+            ]
+          },
+          "message": {
+            "enum": [
+              "This endpoint is disabled"
+            ]
+          },
+          "status": {
+            "enum": [
+              404
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidRequestError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-request"] },
-          "message": { "enum": ["The request payload is incorrect"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "invalid-request"
+            ]
+          },
+          "message": {
+            "enum": [
+              "The request payload is incorrect"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "DisabledMfaTotpError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["disabled-mfa-totp"] },
-          "message": { "enum": ["MFA TOTP is not enabled for this user"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "disabled-mfa-totp"
+            ]
+          },
+          "message": {
+            "enum": [
+              "MFA TOTP is not enabled for this user"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "NoTotpSecretError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["no-totp-secret"] },
-          "message": { "enum": ["OTP secret is not set for user"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "no-totp-secret"
+            ]
+          },
+          "message": {
+            "enum": [
+              "OTP secret is not set for user"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "DisabledUserError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["disabled-user"] },
-          "message": { "enum": ["User is disabled"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "disabled-user"
+            ]
+          },
+          "message": {
+            "enum": [
+              "User is disabled"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidEmailPasswordError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-email-password"] },
-          "message": { "enum": ["Incorrect email or password"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "invalid-email-password"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Incorrect email or password"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidOtpError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-otp"] },
-          "message": { "enum": ["Invalid or expired OTP"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "invalid-otp"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Invalid or expired OTP"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidTicketError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-ticket"] },
-          "message": { "enum": ["Invalid or expired verification ticket"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "invalid-ticket"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Invalid or expired verification ticket"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "UnverifiedUserError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["unverified-user"] },
-          "message": { "enum": ["Email is not verified"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "unverified-user"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Email is not verified"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "EmailAlreadyInUseError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["email-already-in-use"] },
-          "message": { "enum": ["Email already in use"] },
-          "status": { "enum": [409] }
+          "error": {
+            "enum": [
+              "email-already-in-use"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Email already in use"
+            ]
+          },
+          "status": {
+            "enum": [
+              409
+            ]
+          }
         },
         "additionalProperties": false
       },
       "MfaTypeNotFoundError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["mfa-type-not-found"] },
-          "message": { "enum": ["There is no active MFA set for the user"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "mfa-type-not-found"
+            ]
+          },
+          "message": {
+            "enum": [
+              "There is no active MFA set for the user"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "EmailAlreadyVerifiedError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["email-already-verified"] },
-          "message": { "enum": ["User's email is already verified"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "email-already-verified"
+            ]
+          },
+          "message": {
+            "enum": [
+              "User's email is already verified"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "TotpAlreadyActiveError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["totp-already-active"] },
-          "message": { "enum": ["TOTP MFA already active"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "totp-already-active"
+            ]
+          },
+          "message": {
+            "enum": [
+              "TOTP MFA already active"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "UserNotFoundError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["user-not-found"] },
-          "message": { "enum": ["No user found"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "user-not-found"
+            ]
+          },
+          "message": {
+            "enum": [
+              "No user found"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "UserNotAnonymousError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["user-not-anonymous"] },
-          "message": { "enum": ["Logged in user is not anonymous"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "user-not-anonymous"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Logged in user is not anonymous"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidRefreshTokenError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-refresh-token"] },
-          "message": { "enum": ["Invalid or expired refresh token"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "invalid-refresh-token"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Invalid or expired refresh token"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidRedirectionError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-redirection"] },
-          "message": { "enum": ["Invalid or missing redirectTo"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "invalid-redirection"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Invalid or missing redirectTo"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidAdminSecretError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-admin-secret"] },
-          "message": { "enum": ["Invalid admin secret"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "invalid-admin-secret"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Invalid admin secret"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "UnauthenticatedUserError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["unauthenticated-user"] },
-          "message": { "enum": ["User is not logged in"] },
-          "status": { "enum": [401] }
+          "error": {
+            "enum": [
+              "unauthenticated-user"
+            ]
+          },
+          "message": {
+            "enum": [
+              "User is not logged in"
+            ]
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          }
         },
         "additionalProperties": false
       },
       "ForbiddenEndpointInProductionError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["forbidden-endpoint-in-production"] },
-          "message": { "enum": ["This endpoint is only available on test environments"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "forbidden-endpoint-in-production"
+            ]
+          },
+          "message": {
+            "enum": [
+              "This endpoint is only available on test environments"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
       "InvalidSignInMethodError": {
         "type": "object",
         "properties": {
-          "error": { "enum": ["invalid-sign-in-method"] },
-          "message": { "enum": ["Incorrect sign in method"] },
-          "status": { "enum": [400] }
+          "error": {
+            "enum": [
+              "invalid-sign-in-method"
+            ]
+          },
+          "message": {
+            "enum": [
+              "Incorrect sign in method"
+            ]
+          },
+          "status": {
+            "enum": [
+              400
+            ]
+          }
         },
         "additionalProperties": false
       },
@@ -640,9 +1151,17 @@
             "description": "Id of the user",
             "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           },
-          "createdAt": { "type": "string", "format": "date-time" },
-          "displayName": { "type": "string", "example": "John Smith" },
-          "avatarUrl": { "type": "string" },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "John Smith"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
           "locale": {
             "type": "string",
             "description": "A two-characters locale",
@@ -655,10 +1174,16 @@
             "description": "A valid email",
             "example": "john.smith@nhost.io"
           },
-          "isAnonymous": { "type": "boolean", "default": false },
+          "isAnonymous": {
+            "type": "boolean",
+            "default": false
+          },
           "defaultRole": {
             "type": "string",
-            "enum": ["me", "user"],
+            "enum": [
+              "me",
+              "user"
+            ],
             "example": "user",
             "default": "user"
           },
@@ -666,25 +1191,65 @@
             "type": "object",
             "properties": {},
             "additionalProperties": false,
-            "example": { "firstName": "John", "lastName": "Smith" },
+            "example": {
+              "firstName": "John",
+              "lastName": "Smith"
+            },
             "default": {}
           },
           "activeMfaType": {
             "anyOf": [
-              { "type": "string", "enum": [""] },
-              { "type": "string", "enum": ["totp"] }
+              {
+                "type": "string",
+                "enum": [
+                  ""
+                ]
+              },
+              {
+                "type": "string",
+                "enum": [
+                  "totp"
+                ]
+              }
             ],
             "description": "Multi-factor authentication type. A null value deactivates MFA",
             "example": "totp"
           },
-          "emailVerified": { "type": "boolean", "default": false },
-          "phoneNumber": { "type": "string" },
-          "phoneNumberVerified": { "type": "boolean", "default": false },
+          "emailVerified": {
+            "type": "boolean",
+            "default": false
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "phoneNumberVerified": {
+            "type": "boolean",
+            "default": false
+          },
           "roles": {
             "type": "array",
-            "items": { "oneOf": [{ "enum": ["me"] }, { "enum": ["user"] }] },
-            "example": ["me", "user"],
-            "default": ["me", "user"]
+            "items": {
+              "oneOf": [
+                {
+                  "enum": [
+                    "me"
+                  ]
+                },
+                {
+                  "enum": [
+                    "user"
+                  ]
+                }
+              ]
+            },
+            "example": [
+              "me",
+              "user"
+            ],
+            "default": [
+              "me",
+              "user"
+            ]
           }
         },
         "required": [
@@ -707,52 +1272,94 @@
       "Session": {
         "type": "object",
         "properties": {
-          "accessToken": { "type": "string" },
-          "accessTokenExpiresIn": { "type": "number", "format": "float" },
+          "accessToken": {
+            "type": "string"
+          },
+          "accessTokenExpiresIn": {
+            "type": "number",
+            "format": "float"
+          },
           "refreshToken": {
             "type": "string",
             "pattern": "\\b[0-9a-f]{8}\\b-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-\\b[0-9a-f]{12}\\b",
             "description": "Refresh token during authentication or when refreshing the JWT",
             "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           },
-          "user": { "$ref": "#/components/schemas/User" }
+          "user": {
+            "$ref": "#/components/schemas/User"
+          }
         },
-        "required": ["accessToken", "accessTokenExpiresIn", "refreshToken"],
+        "required": [
+          "accessToken",
+          "accessTokenExpiresIn",
+          "refreshToken"
+        ],
         "additionalProperties": false
       },
       "Mfa": {
         "type": "object",
-        "properties": { "ticket": { "type": "string" } },
+        "properties": {
+          "ticket": {
+            "type": "string"
+          }
+        },
         "additionalProperties": false
       },
       "SessionPayload": {
         "type": "object",
         "properties": {
-          "session": { "$ref": "#/components/schemas/Session" },
-          "mfa": { "$ref": "#/components/schemas/Mfa" }
+          "session": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "mfa": {
+            "$ref": "#/components/schemas/Mfa"
+          }
         },
         "additionalProperties": false
       },
       "TotpPayload": {
         "type": "object",
         "properties": {
-          "imageUrl": { "type": "string", "description": "Data URL of the QR code" },
-          "totpSecret": { "type": "string", "description": "TOTP secret" }
+          "imageUrl": {
+            "type": "string",
+            "description": "Data URL of the QR code"
+          },
+          "totpSecret": {
+            "type": "string",
+            "description": "TOTP secret"
+          }
         },
-        "required": ["imageUrl", "totpSecret"],
+        "required": [
+          "imageUrl",
+          "totpSecret"
+        ],
         "additionalProperties": false
       },
       "UnauthorizedError": {
         "type": "object",
         "properties": {
-          "error": { "type": "string" },
-          "status": { "enum": [401] },
-          "message": { "type": "string" }
+          "error": {
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              401
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
         },
-        "required": ["error", "status"],
+        "required": [
+          "error",
+          "status"
+        ],
         "additionalProperties": false
       },
-      "Version": { "type": "string", "example": "0.5.0" }
+      "Version": {
+        "type": "string",
+        "example": "0.7.1"
+      }
     }
   },
   "paths": {
@@ -761,9 +1368,15 @@
         "deprecated": false,
         "summary": "Check if the server is up and running",
         "security": [],
-        "responses": { "200": { "description": "Success" } },
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
         "parameters": [],
-        "tags": ["General"]
+        "tags": [
+          "General"
+        ]
       }
     },
     "/version": {
@@ -774,30 +1387,48 @@
         "responses": {
           "200": {
             "description": "Hasura auth version",
-            "content": { "text/plain": { "schema": { "$ref": "#/components/schemas/Version" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/Version"
+                }
+              }
+            }
           }
         },
         "parameters": [],
-        "tags": ["General"]
+        "tags": [
+          "General"
+        ]
       }
     },
     "/mfa/totp/generate": {
       "get": {
         "deprecated": false,
         "summary": "Generate a secret to request the activation of Time-based One-Time Password (TOTP) multi-factor authentication",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/TotpPayload" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TotpPayload"
+                }
+              }
             }
           },
           "401": {
             "description": "User is not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UnauthenticatedUserError" }
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedUserError"
+                }
               }
             }
           },
@@ -805,13 +1436,17 @@
             "description": "The feature is not activated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DisabledEndpointError" }
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledEndpointError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["User management"]
+        "tags": [
+          "User management"
+        ]
       }
     },
     "/signin/email-password": {
@@ -823,38 +1458,54 @@
           "200": {
             "description": "Signed in successfully",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPayload"
+                }
+              }
             }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
           "401": {
             "description": "Invalid email or password, or user is not verified",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/UnauthorizedError" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
             }
           },
           "404": {
             "description": "The feature is not activated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DisabledEndpointError" }
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledEndpointError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SignInEmailPasswordSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/SignInEmailPasswordSchema"
+              }
             }
           },
           "description": "",
@@ -870,37 +1521,55 @@
         "responses": {
           "200": {
             "description": "Email sent successfully",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
           "401": {
             "description": "User is disabled",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/DisabledUserError" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledUserError"
+                }
+              }
             }
           },
           "404": {
             "description": "The feature is not activated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DisabledEndpointError" }
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledEndpointError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SignInPasswordlessEmailSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/SignInPasswordlessEmailSchema"
+              }
             }
           },
           "description": "",
@@ -916,13 +1585,21 @@
         "responses": {
           "200": {
             "description": "SMS sent successfully",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -930,17 +1607,23 @@
             "description": "The feature is not activated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DisabledEndpointError" }
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledEndpointError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SignInPasswordlessSmsSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/SignInPasswordlessSmsSchema"
+              }
             }
           },
           "description": "",
@@ -957,37 +1640,55 @@
           "200": {
             "description": "User successfully authenticated",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPayload"
+                }
+              }
             }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
           "401": {
             "description": "Error processing the request",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/UnauthorizedError" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
             }
           },
           "404": {
             "description": "The feature is not activated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DisabledEndpointError" }
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledEndpointError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/SignInOtpSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInOtpSchema"
+              }
+            }
           },
           "description": "",
           "required": true
@@ -1003,14 +1704,20 @@
           "200": {
             "description": "User successfully authenticated",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPayload"
+                }
+              }
             }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1018,17 +1725,23 @@
             "description": "The feature is not activated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DisabledEndpointError" }
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledEndpointError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SignInAnonymousSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/SignInAnonymousSchema"
+              }
             }
           },
           "description": "",
@@ -1045,14 +1758,20 @@
           "200": {
             "description": "User successfully authenticated",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPayload"
+                }
+              }
             }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1060,16 +1779,24 @@
             "description": "The feature is not activated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DisabledEndpointError" }
+                "schema": {
+                  "$ref": "#/components/schemas/DisabledEndpointError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/SignInMfaTotpSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignInMfaTotpSchema"
+              }
+            }
           },
           "description": "",
           "required": true
@@ -1112,10 +1839,14 @@
             "description": "-",
             "required": true,
             "deprecated": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "tags": ["Authentication"]
+        "tags": [
+          "Authentication"
+        ]
       }
     },
     "/signin/provider/{provider}/callback": {
@@ -1126,7 +1857,13 @@
         "responses": {
           "302": {
             "description": "Redirect to the initial url given as a query parameter in /signin/provider/{provider}",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           }
         },
         "parameters": [
@@ -1159,27 +1896,43 @@
             "description": "",
             "required": true,
             "deprecated": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "tags": ["Authentication"]
+        "tags": [
+          "Authentication"
+        ]
       }
     },
     "/signout": {
       "post": {
         "deprecated": false,
         "summary": "Sign out",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successfully signed out",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1187,16 +1940,24 @@
             "description": "User must be signed in to sign out from all sessions",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UnauthenticatedUserError" }
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedUserError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Sign out"],
+        "tags": [
+          "Sign out"
+        ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/SignOutSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignOutSchema"
+              }
+            }
           },
           "description": "",
           "required": true
@@ -1212,14 +1973,20 @@
           "200": {
             "description": "Successfully registered. Null session means email verification is pending",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPayload"
+                }
+              }
             }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1227,17 +1994,23 @@
             "description": "Email is already present in the database",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/EmailAlreadyInUseError" }
+                "schema": {
+                  "$ref": "#/components/schemas/EmailAlreadyInUseError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Registration"],
+        "tags": [
+          "Registration"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/SignUpEmailPasswordSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/SignUpEmailPasswordSchema"
+              }
             }
           },
           "description": "",
@@ -1254,29 +2027,45 @@
           "200": {
             "description": "User successfully authenticated",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/SessionPayload" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionPayload"
+                }
+              }
             }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
           "401": {
             "description": "Unauthenticated user or invalid token",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/UnauthorizedError" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthorizedError"
+                }
+              }
             }
           }
         },
         "parameters": [],
-        "tags": ["General"],
+        "tags": [
+          "General"
+        ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/TokenSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenSchema"
+              }
+            }
           },
           "description": "",
           "required": true
@@ -1287,23 +2076,37 @@
       "get": {
         "deprecated": false,
         "summary": "Get user information",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "User information",
-            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/User" } } }
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
           },
           "401": {
             "description": "User is not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UnauthenticatedUserError" }
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedUserError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["User management"]
+        "tags": [
+          "User management"
+        ]
       }
     },
     "/user/password/reset": {
@@ -1314,23 +2117,35 @@
         "responses": {
           "200": {
             "description": "The email to reset the password has been sent",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["User management"],
+        "tags": [
+          "User management"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserPasswordResetSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/UserPasswordResetSchema"
+              }
             }
           },
           "description": "",
@@ -1342,17 +2157,29 @@
       "post": {
         "deprecated": false,
         "summary": "Set a new password",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "The password has been successfully changed",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1360,16 +2187,24 @@
             "description": "User is not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UnauthenticatedUserError" }
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedUserError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["User management"],
+        "tags": [
+          "User management"
+        ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/UserPasswordSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserPasswordSchema"
+              }
+            }
           },
           "description": "",
           "required": true
@@ -1384,23 +2219,35 @@
         "responses": {
           "200": {
             "description": "Success",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload format is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["User management"],
+        "tags": [
+          "User management"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserEmailSendVerificationEmailSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/UserEmailSendVerificationEmailSchema"
+              }
             }
           },
           "description": "",
@@ -1412,17 +2259,29 @@
       "post": {
         "deprecated": false,
         "summary": "Change the current user's email",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "A verification email has been sent to the new email",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload format is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1430,17 +2289,23 @@
             "description": "User is not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UnauthenticatedUserError" }
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedUserError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["User management"],
+        "tags": [
+          "User management"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserEmailChangeSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/UserEmailChangeSchema"
+              }
             }
           },
           "description": "",
@@ -1452,17 +2317,29 @@
       "post": {
         "deprecated": false,
         "summary": "Activate/deactivate Multi-factor authentication",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload format is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1470,16 +2347,24 @@
             "description": "User is not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UnauthenticatedUserError" }
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedUserError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
-            "application/json": { "schema": { "$ref": "#/components/schemas/UserMfaSchema" } }
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserMfaSchema"
+              }
+            }
           },
           "description": "",
           "required": true
@@ -1490,17 +2375,29 @@
       "post": {
         "deprecated": false,
         "summary": "'Deanonymize' an anonymous user in adding missing email or email+password, depending on the chosen authentication method. Will send a confirmation email if the server is configured to do so.",
-        "security": [{ "BearerAuth": [] }],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
         "responses": {
           "200": {
             "description": "Success",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload format is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1508,17 +2405,23 @@
             "description": "User is not authenticated",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/UnauthenticatedUserError" }
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedUserError"
+                }
               }
             }
           }
         },
         "parameters": [],
-        "tags": ["Authentication"],
+        "tags": [
+          "Authentication"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserDeanonymizeSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/UserDeanonymizeSchema"
+              }
             }
           },
           "description": "",
@@ -1534,13 +2437,21 @@
         "responses": {
           "200": {
             "description": "Success",
-            "content": { "text/plain": { "schema": { "type": "string" } } }
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload format is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           },
@@ -1548,7 +2459,9 @@
             "description": "Incorrect admin secret header",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidAdminSecretError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidAdminSecretError"
+                }
               }
             }
           }
@@ -1560,14 +2473,20 @@
             "description": "Hasura admin secret",
             "required": true,
             "deprecated": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "tags": ["User management"],
+        "tags": [
+          "User management"
+        ],
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UserProviderTokensSchema" }
+              "schema": {
+                "$ref": "#/components/schemas/UserProviderTokensSchema"
+              }
             }
           },
           "description": "",
@@ -1582,14 +2501,22 @@
         "security": [],
         "responses": {
           "302": {
-            "description": "{redirectTo}#refreshToken=${refreshToken}&type=${type}",
-            "content": { "application/json": { "schema": { "type": "string" } } }
+            "description": "{redirectTo}?refreshToken=${refreshToken}&type=${type}",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
             "description": "The payload format is invalid",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/InvalidRequestError" }
+                "schema": {
+                  "$ref": "#/components/schemas/InvalidRequestError"
+                }
               }
             }
           }
@@ -1601,7 +2528,9 @@
             "description": "Ticket generated in the previous actions and sent by email",
             "required": true,
             "deprecated": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           },
           {
             "name": "type",
@@ -1611,7 +2540,12 @@
             "deprecated": false,
             "schema": {
               "type": "string",
-              "enum": ["emailVerify", "emailConfirmChange", "signinPasswordless", "passwordReset"]
+              "enum": [
+                "emailVerify",
+                "emailConfirmChange",
+                "signinPasswordless",
+                "passwordReset"
+              ]
             }
           },
           {
@@ -1620,10 +2554,14 @@
             "description": "Redirection link",
             "required": true,
             "deprecated": false,
-            "schema": { "type": "string" }
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "tags": ["General"]
+        "tags": [
+          "General"
+        ]
       }
     }
   },
