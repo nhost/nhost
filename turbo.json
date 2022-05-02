@@ -7,6 +7,7 @@
       "outputs": ["dist/**", "umd/**", "build/**", ".next"]
     },
     "test": {
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "dev": {
