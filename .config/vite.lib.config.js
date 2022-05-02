@@ -11,6 +11,8 @@ const pkg = require(path.join(PWD, 'package.json'))
 const tsEntry = path.resolve(PWD, 'src/index.ts')
 const entry = fs.existsSync(tsEntry) ? tsEntry : tsEntry.replace('.ts', '.tsx')
 
+const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))]
+
 export default defineConfig({
   plugins: [
     tsconfigPaths(),
@@ -32,6 +34,25 @@ export default defineConfig({
       name: pkg.name,
       fileName: 'index',
       formats: ['cjs', 'es']
+    },
+    rollupOptions: {
+      external: (id) => deps.some((dep) => id.startsWith(dep)),
+      output: {
+        globals: {
+          'graphql/language/printer': 'graphql/language/printer',
+          '@apollo/client': '@apollo/client',
+          '@apollo/client/link/context': '@apollo/client/link/context',
+          '@apollo/client/link/subscriptions': '@apollo/client/link/subscriptions',
+          '@apollo/client/utilities': '@apollo/client/utilities',
+          'graphql-ws': 'graphql-ws',
+          xstate: 'xstate',
+          axios: 'axios',
+          'js-cookie': 'Cookies',
+          react: 'React',
+          'react-dom': 'ReactDOM',
+          '@nhost/react': '@nhost/react'
+        }
+      }
     }
   }
 })

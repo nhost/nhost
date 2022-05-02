@@ -1,22 +1,8 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import baseConfig from './vite.config.base'
+import baseLibConfig from './vite.lib.config'
 
 export default defineConfig({
-  ...baseConfig,
-  plugins: [react(), ...baseConfig.plugins],
-  build: {
-    ...baseConfig.build,
-    rollupOptions: {
-      ...baseConfig.rollupOptions,
-      external: ['react', 'react-dom', '@nhost/react'],
-      output: {
-        globals: {
-          react: 'react',
-          'react-dom': 'react-dom',
-          '@nhost/react': '@nhost/react'
-        }
-      }
-    }
-  }
+  ...baseLibConfig,
+  plugins: [react(), ...baseLibConfig.plugins]
 })

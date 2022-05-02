@@ -5,6 +5,8 @@ import { defineConfig } from 'vite'
 import dts from 'vite-plugin-dts'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
+import react from '@vitejs/plugin-react'
+
 import baseLibConfig from './vite.lib.config'
 
 const PWD = process.env.PWD
@@ -14,6 +16,7 @@ const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies))]
 
 export default defineConfig({
   plugins: [
+    react(),
     tsconfigPaths(),
     dts({
       exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],

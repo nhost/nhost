@@ -1,12 +1,10 @@
 import { defineConfig } from 'vite'
-
-import viteConfig from './vite.config'
+import viteReactConfig from './vite.react.config'
 
 export default defineConfig({
-  ...viteConfig,
-  mode: 'development',
+  ...viteReactConfig,
   build: {
-    ...viteConfig.build,
+    ...viteReactConfig.build,
     watch: {
       buildDelay: 500
     }
