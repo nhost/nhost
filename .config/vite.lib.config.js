@@ -50,6 +50,7 @@ export default defineConfig({
           'js-cookie': 'Cookies',
           react: 'React',
           'react-dom': 'ReactDOM',
+          'react/jsx-runtime': '_jsx',
           '@nhost/react': '@nhost/react'
         }
       }
