@@ -14,7 +14,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.5.10",
+    "@apollo/client": "^3.6.2",
     "@nhost/apollo": "workspace:*",
     "@nhost/core": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",
@@ -24,13 +24,13 @@
     "@nhost/react": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
     "graphql": "^16.3.0",
-    "next": "12.1.0",
-    "react": "17.0.2",
-    "react-dom": "17.0.2"
+    "next": "12.1.6",
+    "react": "18.1.0",
+    "react-dom": "18.1.0"
   },
   "devDependencies": {
     "@types/node": "17.0.23",
-    "@types/react": "17.0.43",
+    "@types/react": "18.0.8",
     "@xstate/inspect": "^0.6.2",
     "eslint-config-next": "12.0.10",
     "next-transpile-modules": "^9.0.0",
