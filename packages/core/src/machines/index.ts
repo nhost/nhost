@@ -148,65 +148,14 @@ export const createAuthMachine = ({
                 }
               },
               on: {
-                SIGNIN_PASSWORD: [
-                  {
-                    cond: 'invalidEmail',
-                    actions: ['saveInvalidEmail'],
-                    target: '.failed.validation.email'
-                  },
-                  {
-                    cond: 'invalidPassword',
-                    actions: ['saveInvalidPassword'],
-                    target: '.failed.validation.password'
-                  },
-                  '#nhost.authentication.authenticating.password'
-                ],
-                SIGNIN_PASSWORDLESS_EMAIL: [
-                  {
-                    cond: 'invalidEmail',
-                    actions: 'saveInvalidEmail',
-                    target: '.failed.validation.email'
-                  },
-                  '#nhost.authentication.authenticating.passwordlessEmail'
-                ],
-                SIGNIN_PASSWORDLESS_SMS: [
-                  {
-                    cond: 'invalidPhoneNumber',
-                    actions: 'saveInvalidPhoneNumber',
-                    target: '.failed.validation.phoneNumber'
-                  },
-                  '#nhost.authentication.authenticating.passwordlessSms'
-                ],
-                SIGNIN_PASSWORDLESS_SMS_OTP: [
-                  {
-                    cond: 'invalidPhoneNumber',
-                    actions: 'saveInvalidPhoneNumber',
-                    target: '.failed.validation.phoneNumber'
-                  },
-                  '#nhost.authentication.authenticating.passwordlessSmsOtp'
-                ],
-                SIGNUP_EMAIL_PASSWORD: [
-                  {
-                    cond: 'invalidEmail',
-                    actions: 'saveInvalidSignUpEmail',
-                    target: '.failed.validation.email'
-                  },
-                  {
-                    cond: 'invalidPassword',
-                    actions: 'saveInvalidSignUpPassword',
-                    target: '.failed.validation.password'
-                  },
-                  '#nhost.authentication.registering'
-                ],
+                SIGNIN_PASSWORD: '#nhost.authentication.authenticating.password',
+                SIGNIN_PASSWORDLESS_EMAIL: '#nhost.authentication.authenticating.passwordlessEmail',
+                SIGNIN_PASSWORDLESS_SMS: '#nhost.authentication.authenticating.passwordlessSms',
+                SIGNIN_PASSWORDLESS_SMS_OTP:
+                  '#nhost.authentication.authenticating.passwordlessSmsOtp',
+                SIGNUP_EMAIL_PASSWORD: '#nhost.authentication.registering',
                 SIGNIN_ANONYMOUS: '#nhost.authentication.authenticating.anonymous',
-                SIGNIN_MFA_TOTP: [
-                  {
-                    cond: 'noMfaTicket',
-                    actions: ['saveNoMfaTicketError'],
-                    target: '.failed'
-                  },
-                  '#nhost.authentication.authenticating.mfa.totp'
-                ]
+                SIGNIN_MFA_TOTP: '#nhost.authentication.authenticating.mfa.totp'
               }
             },
             authenticating: {
@@ -325,8 +274,8 @@ export const createAuthMachine = ({
             registering: {
               entry: 'resetSignUpError',
               invoke: {
-                src: 'registerUser',
-                id: 'registerUser',
+                src: 'signUpUser',
+                id: 'signUpUser',
                 onDone: [
                   {
                     cond: 'hasSession',
@@ -521,29 +470,11 @@ export const createAuthMachine = ({
         resetAuthenticationError: assign({
           errors: ({ errors: { authentication, ...errors } }) => errors
         }),
-        saveInvalidEmail: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: INVALID_EMAIL_ERROR })
-        }),
-        saveInvalidPassword: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: INVALID_PASSWORD_ERROR })
-        }),
-        saveInvalidPhoneNumber: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: INVALID_PHONE_NUMBER_ERROR })
-        }),
         saveRegisrationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
         resetSignUpError: assign({
           errors: ({ errors: { registration, ...errors } }) => errors
-        }),
-        saveInvalidSignUpPassword: assign({
-          errors: ({ errors }) => ({ ...errors, registration: INVALID_PASSWORD_ERROR })
-        }),
-        saveInvalidSignUpEmail: assign({
-          errors: ({ errors }) => ({ ...errors, registration: INVALID_EMAIL_ERROR })
-        }),
-        saveNoMfaTicketError: assign({
-          errors: ({ errors }) => ({ ...errors, registration: NO_MFA_TICKET_ERROR })
         }),
         saveRefreshToken: assign({
           accessToken: (ctx, e: any) => ({ ...ctx.accessToken, expiresAt: e.data.expiresAt }),
@@ -596,7 +527,6 @@ export const createAuthMachine = ({
         hasRefreshTokenWithoutSession: (ctx) =>
           !!ctx.refreshToken.value && !ctx.user && !ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
-        noMfaTicket: (ctx, { ticket }) => !ticket && !ctx.mfa?.ticket,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         hasAuthenticationError: (ctx) => !!ctx.errors.authentication,
         isAutoRefreshDisabled: () => !autoRefreshToken,
@@ -626,47 +556,70 @@ export const createAuthMachine = ({
         },
         // * Authentication errors
         unverified: (_, { data: { error } }: any) =>
-          error.status === 401 && error.message === 'Email is not verified',
+          error.status === 401 &&
+          // * legacy: don't use the message contents to determine if the email is unverified, but the error type (error.error)
+          (error.message === 'Email is not verified' || error.error === 'unverified-user'),
 
         // * Event guards
         hasSession: (_, e: any) => !!e.data?.session,
-        hasMfaTicket: (_, e: any) => !!e.data?.mfa,
-        invalidEmail: (_, { email }) => !isValidEmail(email),
-        invalidPassword: (_, { password }) => !isValidPassword(password),
-        invalidPhoneNumber: (_, { phoneNumber }) => !isValidPhoneNumber(phoneNumber)
+        hasMfaTicket: (_, e: any) => !!e.data?.mfa
       },
 
       services: {
-        signInPassword: (_, { email, password }) =>
-          postRequest('/signin/email-password', {
+        signInPassword: (_, { email, password }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+          if (!isValidPassword(password)) {
+            return Promise.reject({ error: INVALID_PASSWORD_ERROR })
+          }
+          return postRequest('/signin/email-password', {
             email,
             password
-          }),
-        signInPasswordlessSms: (_, { phoneNumber, options }) =>
-          postRequest('/signin/passwordless/sms', {
+          })
+        },
+        signInPasswordlessSms: (_, { phoneNumber, options }) => {
+          if (!isValidPhoneNumber(phoneNumber)) {
+            return Promise.reject({ error: INVALID_PHONE_NUMBER_ERROR })
+          }
+
+          return postRequest('/signin/passwordless/sms', {
             phoneNumber,
             options: rewriteRedirectTo(clientUrl, options)
-          }),
-        signInPasswordlessSmsOtp: (_, { phoneNumber, otp }) =>
-          postRequest('/signin/passwordless/sms/otp', {
+          })
+        },
+        signInPasswordlessSmsOtp: (_, { phoneNumber, otp }) => {
+          if (!isValidPhoneNumber(phoneNumber)) {
+            return Promise.reject({ error: INVALID_PHONE_NUMBER_ERROR })
+          }
+          return postRequest('/signin/passwordless/sms/otp', {
             phoneNumber,
             otp
-          }),
-
-        signInPasswordlessEmail: (_, { email, options }) =>
-          postRequest('/signin/passwordless/email', {
+          })
+        },
+        signInPasswordlessEmail: async (_, { email, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+          return postRequest('/signin/passwordless/email', {
             email,
             options: rewriteRedirectTo(clientUrl, options)
-          }),
+          })
+        },
         signInAnonymous: (_) => postRequest('/signin/anonymous'),
-        signInMfaTotp: (context, { ticket, otp }) =>
-          postRequest<
+        signInMfaTotp: (context, { ticket, otp }) => {
+          if (!ticket && !context.mfa?.ticket) {
+            return Promise.reject({ error: NO_MFA_TICKET_ERROR })
+          }
+
+          return postRequest<
             { mfa: Mfa | null; session: NhostSession | null },
             { mfa: Mfa | null; session: NhostSession | null }
           >('/signin/mfa/totp', {
             ticket: ticket || context.mfa?.ticket,
             otp
-          }),
+          })
+        },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest('/token', {
@@ -680,12 +633,19 @@ export const createAuthMachine = ({
             all: !!e.all
           }),
 
-        registerUser: (_, { email, password, options }) =>
-          postRequest('/signup/email-password', {
+        signUpUser: (_, { email, password, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+          if (!isValidPassword(password)) {
+            return Promise.reject({ error: INVALID_PASSWORD_ERROR })
+          }
+          return postRequest('/signup/email-password', {
             email,
             password,
             options: rewriteRedirectTo(clientUrl, options)
-          }),
+          })
+        },
 
         importRefreshToken: async () => {
           const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)

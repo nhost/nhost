@@ -7,20 +7,6 @@
       </v-card-text>
     </v-card>
     <v-divider class="my-4" style="min-width: 90%" />
-    <div>
-      Already have an account? <router-link to="/signin">Sign in</router-link>
-    </div>
+    <div>Already have an account? <router-link to="/signin">Sign in</router-link></div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from 'vue'
-import Links from '../../components/OAuthLinks.vue'
-export default defineComponent({ components: {
-Links
-},
-  setup() {
-    return {}
-  }
-})
-</script>

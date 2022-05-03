@@ -1,8 +1,3 @@
-import { NhostPlugin } from './plugin'
-
-export { NhostPlugin }
-export default NhostPlugin
-
 export { NhostClient } from './client'
 export { useAccessToken } from './useAccessToken'
 export { useAuthenticated } from './useAuthenticated'

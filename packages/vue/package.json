@@ -65,6 +65,7 @@
     "@vitejs/plugin-vue": "^2.3.1",
     "@xstate/inspect": "^0.6.2",
     "vue": "^3.2.31",
+    "vue-router": "^4.0.14",
     "ws": "^8.4.2",
     "xstate": "^4.30.5"
   }

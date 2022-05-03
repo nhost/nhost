@@ -1,6 +1,7 @@
 import { RouteRecordRaw } from 'vue-router'
 
 import Index from './pages/Index.vue'
+import Profile from './pages/Profile.vue'
 import SignInEmailPasword from './pages/sign-in/EmailPassword.vue'
 import SignInEmailPaswordless from './pages/sign-in/EmailPasswordless.vue'
 import SignIn from './pages/sign-in/Index.vue'
@@ -13,6 +14,7 @@ import Signout from './pages/Signout.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: Index, meta: { auth: true } },
+  { path: '/profile', component: Profile, meta: { auth: true } },
   { path: '/signout', component: Signout },
   {
     path: '/signin',

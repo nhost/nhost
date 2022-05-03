@@ -345,7 +345,9 @@ export function useSignInEmailPasswordless(
 // TODO deanonymize
 export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
-  const signInAnonymous = () => service.send('SIGNIN_ANONYMOUS')
+  const signInAnonymous = () => {
+    service.send('SIGNIN_ANONYMOUS')
+  }
 
   const error = useSelector(
     service,

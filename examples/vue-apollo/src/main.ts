@@ -1,6 +1,5 @@
 import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
-// Vuetify
 import { createVuetify, ThemeDefinition } from 'vuetify'
 
 import { NhostClient } from '@nhost/vue'
@@ -8,6 +7,9 @@ import { inspect } from '@xstate/inspect'
 
 import 'vuetify/styles'
 
+import EmailPasswordless from './components/EmailPasswordlessForm.vue'
+import ErrorSnackBar from './components/ErrorSnackBar.vue'
+import OauthLinks from './components/OAuthLinks.vue'
 import App from './App.vue'
 import routes from './routes'
 
@@ -66,4 +68,11 @@ router.beforeEach(async (to, from) => {
   return true
 })
 
-createApp(App).use(router).use(vuetify).mount('#app')
+createApp(App)
+  .use(router)
+  .use(vuetify)
+  .use(nhost)
+  .component('ErrorSnackBar', ErrorSnackBar)
+  .component('EmailPasswordless', EmailPasswordless)
+  .component('OauthLinks', OauthLinks)
+  .mount('#app')

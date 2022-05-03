@@ -10,7 +10,9 @@ import { useError } from './useError'
  * @internal  */
 export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
-  const signInAnonymous = () => service.value.send('SIGNIN_ANONYMOUS')
+  const signInAnonymous = () => {
+    service.value.send('SIGNIN_ANONYMOUS')
+  }
 
   const error = useError('authentication')
 
