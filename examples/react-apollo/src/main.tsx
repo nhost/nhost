@@ -1,5 +1,5 @@
+import { createRoot } from 'react-dom/client'
 import React from 'react'
-import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
 
 import { NhostClient, NhostReactProvider } from '@nhost/react'
@@ -21,7 +21,9 @@ if (import.meta.env.VITE_DEBUG) {
   })
 }
 
-ReactDOM.render(
+const container = document.getElementById('root')
+const root = createRoot(container!)
+root.render(
   <React.StrictMode>
     <BrowserRouter>
       <NhostReactProvider nhost={nhost}>
@@ -30,6 +32,5 @@ ReactDOM.render(
         </NhostApolloProvider>
       </NhostReactProvider>
     </BrowserRouter>
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 )
