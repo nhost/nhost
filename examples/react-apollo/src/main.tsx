@@ -24,13 +24,15 @@ if (import.meta.env.VITE_DEBUG) {
 const container = document.getElementById('root')
 const root = createRoot(container!)
 root.render(
-  <React.StrictMode>
-    <BrowserRouter>
-      <NhostReactProvider nhost={nhost}>
-        <NhostApolloProvider nhost={nhost}>
-          <App />
-        </NhostApolloProvider>
-      </NhostReactProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+  // TODO update @nhost/react / @nhost/react-apollo so it works in strict mode with React 18
+  // * See https://reactjs.org/blog/2022/03/08/react-18-upgrade-guide.html#updates-to-strict-mode
+  // <React.StrictMode>
+  <BrowserRouter>
+    <NhostReactProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost}>
+        <App />
+      </NhostApolloProvider>
+    </NhostReactProvider>
+  </BrowserRouter>
+  // </React.StrictMode>
 )
