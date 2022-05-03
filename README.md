@@ -333,13 +333,6 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Quentin Decré</b></sub>
         </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/komninoschat">
-            <img src="https://avatars.githubusercontent.com/u/29049104?v=4" width="100;" alt="komninoschat"/>
-            <br />
-            <sub><b>Komninos</b></sub>
-        </a>
     </td></tr>
 </table>
 <!-- readme: contributors -end -->
