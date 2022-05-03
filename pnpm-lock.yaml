@@ -131,14 +131,14 @@ importers:
     specifiers:
       '@apollo/client': ^3.5.10
       '@next/bundle-analyzer': ^12.1.5
-      '@nhost/apollo': '*'
-      '@nhost/core': '*'
-      '@nhost/hasura-auth-js': '*'
-      '@nhost/hasura-storage-js': '*'
-      '@nhost/nextjs': '*'
-      '@nhost/nhost-js': '*'
-      '@nhost/react': '*'
-      '@nhost/react-apollo': '*'
+      '@nhost/apollo': workspace:*
+      '@nhost/core': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
+      '@nhost/hasura-storage-js': workspace:*
+      '@nhost/nextjs': workspace:*
+      '@nhost/nhost-js': workspace:*
+      '@nhost/react': workspace:*
+      '@nhost/react-apollo': workspace:*
       '@types/node': 17.0.23
       '@types/react': 17.0.43
       '@xstate/inspect': ^0.6.2
@@ -179,9 +179,9 @@ importers:
   examples/react-apollo:
     specifiers:
       '@apollo/client': ^3.5.10
-      '@nhost/core': '*'
-      '@nhost/react': '*'
-      '@nhost/react-apollo': '*'
+      '@nhost/core': workspace:*
+      '@nhost/react': workspace:*
+      '@nhost/react-apollo': workspace:*
       '@rsuite/icons': ^1.0.2
       '@types/react': ^17.0.43
       '@types/react-dom': ^17.0.14
@@ -233,9 +233,9 @@ importers:
       '@graphql-codegen/typescript-react-apollo': ^3.2.11
       '@headlessui/react': ^1.5.0
       '@heroicons/react': ^1.0.6
-      '@nhost/nhost-js': '*'
-      '@nhost/react': '*'
-      '@nhost/react-apollo': '*'
+      '@nhost/nhost-js': workspace:*
+      '@nhost/react': workspace:*
+      '@nhost/react-apollo': workspace:*
       '@tailwindcss/forms': ^0.5.0
       '@types/express': ^4.17.13
       '@types/jest': ^26.0.24
@@ -298,7 +298,7 @@ importers:
   packages/apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/nhost-js': '*'
+      '@nhost/nhost-js': workspace:*
       graphql: 15.7.2
       graphql-ws: ^5.7.0
     dependencies:
@@ -357,8 +357,8 @@ importers:
 
   packages/hasura-auth-js:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
       '@types/faker': '5'
       axios: ^0.26.0
       faker: '5'
@@ -380,7 +380,7 @@ importers:
 
   packages/hasura-storage-js:
     specifiers:
-      '@nhost/docgen': '*'
+      '@nhost/docgen': workspace:*
       axios: ^0.26.0
     dependencies:
       axios: 0.26.1
@@ -389,10 +389,10 @@ importers:
 
   packages/nextjs:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
-      '@nhost/nhost-js': '*'
-      '@nhost/react': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
+      '@nhost/nhost-js': workspace:*
+      '@nhost/react': workspace:*
       '@types/cookies': ^0.7.7
       cookies: ^0.8.0
       cross-fetch: ^3.1.5
@@ -416,9 +416,9 @@ importers:
 
   packages/nhost-js:
     specifiers:
-      '@nhost/docgen': '*'
-      '@nhost/hasura-auth-js': '*'
-      '@nhost/hasura-storage-js': '*'
+      '@nhost/docgen': workspace:*
+      '@nhost/hasura-auth-js': workspace:*
+      '@nhost/hasura-storage-js': workspace:*
       axios: ^0.26.0
       graphql: 15.7.2
       jwt-decode: ^3.1.2
@@ -435,9 +435,9 @@ importers:
 
   packages/react:
     specifiers:
-      '@nhost/core': '*'
-      '@nhost/docgen': '*'
-      '@nhost/nhost-js': '*'
+      '@nhost/core': workspace:*
+      '@nhost/docgen': workspace:*
+      '@nhost/nhost-js': workspace:*
       '@xstate/react': ^2.0.1
       immer: ^9.0.12
       jwt-decode: ^3.1.2
@@ -457,9 +457,9 @@ importers:
   packages/react-apollo:
     specifiers:
       '@apollo/client': ^3.5.8
-      '@nhost/apollo': '*'
-      '@nhost/core': '*'
-      '@nhost/react': '*'
+      '@nhost/apollo': workspace:*
+      '@nhost/core': workspace:*
+      '@nhost/react': workspace:*
       '@types/react': ^17.0.39
       '@types/ws': ^8.2.2
       graphql: 15.7.2
@@ -479,8 +479,8 @@ importers:
 
   packages/react-auth:
     specifiers:
-      '@nhost/hasura-auth-js': '*'
-      '@nhost/react': '*'
+      '@nhost/hasura-auth-js': workspace:*
+      '@nhost/react': workspace:*
       '@types/react': ^17.0.38
       react: ^17.0.2
       react-dom: ^17.0.2
