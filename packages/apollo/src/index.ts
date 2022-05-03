@@ -46,7 +46,6 @@ export const createApolloClient = ({
   let token: string | null = null
 
   const getAuthHeaders = () => {
-    console.log('getAuthHeaders', token)
     // add headers
     const resHeaders = {
       ...headers,
@@ -127,7 +126,6 @@ export const createApolloClient = ({
   interpreter?.onTransition(async (state, event) => {
     if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
       const newToken = state.context.accessToken.value
-      console.log('new event', event.type, newToken)
       token = newToken
       if (event.type === 'SIGNOUT') {
         try {
