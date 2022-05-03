@@ -57,21 +57,21 @@
     "docgen": "pnpm typedoc && docgen --config ./nextjs.docgen.json"
   },
   "dependencies": {
-    "@nhost/core": "*",
-    "@nhost/nhost-js": "*",
+    "@nhost/core": "workspace:*",
+    "@nhost/nhost-js": "workspace:*",
     "cookies": "^0.8.0",
     "cross-fetch": "^3.1.5",
     "xstate": "^4.31.0"
   },
   "peerDependencies": {
-    "@nhost/react": "*",
+    "@nhost/react": "workspace:*",
     "next": "^12.0.10",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@nhost/docgen": "*",
-    "@nhost/react": "*",
+    "@nhost/docgen": "workspace:*",
+    "@nhost/react": "workspace:*",
     "@types/cookies": "^0.7.7",
     "next": "12.0.10",
     "react": "^17.0.2",

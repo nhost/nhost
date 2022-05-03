@@ -55,15 +55,15 @@
     "docgen": "pnpm typedoc && docgen --config ./react.docgen.json"
   },
   "dependencies": {
-    "@nhost/core": "*",
-    "@nhost/nhost-js": "*",
+    "@nhost/core": "workspace:*",
+    "@nhost/nhost-js": "workspace:*",
     "@xstate/react": "^2.0.1",
     "immer": "^9.0.12",
     "jwt-decode": "^3.1.2",
     "xstate": "^4.31.0"
   },
   "devDependencies": {
-    "@nhost/docgen": "*",
+    "@nhost/docgen": "workspace:*",
     "react": "^17.0.2"
   },
   "peerDependencies": {

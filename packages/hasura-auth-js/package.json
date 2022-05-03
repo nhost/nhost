@@ -53,12 +53,12 @@
     "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "dependencies": {
-    "@nhost/core": "*",
+    "@nhost/core": "workspace:*",
     "jwt-decode": "^3.1.2",
     "xstate": "^4.31.0"
   },
   "devDependencies": {
-    "@nhost/docgen": "*",
+    "@nhost/docgen": "workspace:*",
     "@types/faker": "5",
     "axios": "^0.26.0",
     "faker": "5",

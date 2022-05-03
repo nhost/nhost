@@ -54,14 +54,14 @@
     "docgen": "pnpm typedoc && docgen --config ./nhost-js.docgen.json"
   },
   "dependencies": {
-    "@nhost/hasura-auth-js": "*",
-    "@nhost/hasura-storage-js": "*",
+    "@nhost/hasura-auth-js": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
     "axios": "^0.26.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"
   },
   "devDependencies": {
-    "@nhost/docgen": "*",
+    "@nhost/docgen": "workspace:*",
     "graphql": "16"
   },
   "peerDependencies": {

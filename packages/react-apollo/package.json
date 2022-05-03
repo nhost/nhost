@@ -54,19 +54,19 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@nhost/apollo": "*"
+    "@nhost/apollo": "workspace:*"
   },
   "peerDependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/react": "*",
+    "@nhost/react": "workspace:*",
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
     "@apollo/client": "^3.5.8",
-    "@nhost/core": "*",
-    "@nhost/react": "*",
+    "@nhost/core": "workspace:*",
+    "@nhost/react": "workspace:*",
     "@types/react": "^17.0.39",
     "@types/ws": "^8.2.2",
     "graphql": "16",
