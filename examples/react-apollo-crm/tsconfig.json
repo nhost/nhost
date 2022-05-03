@@ -3,7 +3,8 @@
   "compilerOptions": {
     "outDir": "dist",
     "composite": true,
-    "module": "esnext"
+    "module": "esnext",
+    "jsx": "preserve"
   },
   "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"]
 }

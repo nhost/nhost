@@ -27,6 +27,7 @@ export function useAuthSubscription<TData = any, TVariables = OperationVariables
     ...options,
     skip: options?.skip || !isAuthenticated
   }
+
   return useSubscription(subscription, newOptions)
 }
 

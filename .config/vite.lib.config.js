@@ -14,6 +14,9 @@ const entry = fs.existsSync(tsEntry) ? tsEntry : tsEntry.replace('.ts', '.tsx')
 const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))]
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ['react/jsx-runtime']
+  },
   plugins: [
     tsconfigPaths(),
     dts({
