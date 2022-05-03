@@ -304,15 +304,15 @@ importers:
       '@apollo/client': ^3.6.2
       '@nhost/core': workspace:^
       '@nhost/nhost-js': workspace:^
-      graphql: '16'
+      graphql: 15.7.2
       graphql-ws: ^5.7.0
       xstate: ^4.31.0
     dependencies:
       '@nhost/core': link:../core
-      graphql: 16.4.0
-      graphql-ws: 5.7.0_graphql@16.4.0
+      graphql: 15.7.2
+      graphql-ws: 5.7.0_graphql@15.7.2
     devDependencies:
-      '@apollo/client': 3.6.2_graphql-ws@5.7.0+graphql@16.4.0
+      '@apollo/client': 3.6.2_graphql-ws@5.7.0+graphql@15.7.2
       '@nhost/nhost-js': link:../nhost-js
       xstate: 4.31.0
 
@@ -670,7 +670,7 @@ packages:
       zen-observable-ts: 1.2.3
     dev: false
 
-  /@apollo/client/3.6.2_graphql-ws@5.7.0+graphql@16.4.0:
+  /@apollo/client/3.6.2_graphql-ws@5.7.0+graphql@15.7.2:
     resolution: {integrity: sha512-DNWyl+NNU2VsfHtXwOr4rV9hnQFPkl2/dNXeouhk9q7bXCWdEh3K8YTt/frULGVKbQjtnlPmz8C+LFI/JZ2N3w==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
@@ -685,13 +685,13 @@ packages:
       subscriptions-transport-ws:
         optional: true
     dependencies:
-      '@graphql-typed-document-node/core': 3.1.1_graphql@16.4.0
+      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
       '@wry/context': 0.6.1
       '@wry/equality': 0.5.2
       '@wry/trie': 0.3.1
-      graphql: 16.4.0
-      graphql-tag: 2.12.6_graphql@16.4.0
-      graphql-ws: 5.7.0_graphql@16.4.0
+      graphql: 15.7.2
+      graphql-tag: 2.12.6_graphql@15.7.2
+      graphql-ws: 5.7.0_graphql@15.7.2
       hoist-non-react-statics: 3.3.2
       optimism: 0.16.1
       prop-types: 15.8.1
@@ -918,6 +918,19 @@ packages:
       semver: 6.3.0
     dev: true
 
+  /@babel/helper-compilation-targets/7.17.7_@babel+core@7.17.10:
+    resolution: {integrity: sha512-UFzlz2jjd8kroj0hmCFV5zr+tQPi1dpC2cRsDV/3IEW8bJfCPrPpmcSN6ZS8RqIq4LXcmpipCQFPddyFA5Yc7w==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0
+    dependencies:
+      '@babel/compat-data': 7.17.7
+      '@babel/core': 7.17.10
+      '@babel/helper-validator-option': 7.16.7
+      browserslist: 4.20.2
+      semver: 6.3.0
+    dev: true
+
   /@babel/helper-compilation-targets/7.17.7_@babel+core@7.17.9:
     resolution: {integrity: sha512-UFzlz2jjd8kroj0hmCFV5zr+tQPi1dpC2cRsDV/3IEW8bJfCPrPpmcSN6ZS8RqIq4LXcmpipCQFPddyFA5Yc7w==}
     engines: {node: '>=6.9.0'}
@@ -993,10 +1006,10 @@ packages:
       '@babel/core': ^7.4.0-0
     dependencies:
       '@babel/core': 7.17.10
-      '@babel/helper-compilation-targets': 7.17.10_@babel+core@7.17.10
+      '@babel/helper-compilation-targets': 7.17.7_@babel+core@7.17.10
       '@babel/helper-module-imports': 7.16.7
       '@babel/helper-plugin-utils': 7.16.7
-      '@babel/traverse': 7.17.10
+      '@babel/traverse': 7.17.9
       debug: 4.3.4
       lodash.debounce: 4.0.8
       resolve: 1.22.0
@@ -1473,9 +1486,9 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0
     dependencies:
-      '@babel/compat-data': 7.17.10
+      '@babel/compat-data': 7.17.7
       '@babel/core': 7.17.10
-      '@babel/helper-compilation-targets': 7.17.10_@babel+core@7.17.10
+      '@babel/helper-compilation-targets': 7.17.7_@babel+core@7.17.10
       '@babel/helper-plugin-utils': 7.16.7
       '@babel/plugin-syntax-object-rest-spread': 7.8.3_@babel+core@7.17.10
       '@babel/plugin-transform-parameters': 7.16.7_@babel+core@7.17.10
@@ -1959,6 +1972,16 @@ packages:
       '@babel/helper-plugin-utils': 7.16.7
     dev: false
 
+  /@babel/plugin-syntax-typescript/7.16.7_@babel+core@7.17.10:
+    resolution: {integrity: sha512-YhUIJHHGkqPgEcMYkPCKTyGUdoGKWtopIycQyjJH8OjvRgOYsXsaKehLVPScKJWAULPxMa4N1vCe6szREFlZ7A==}
+    engines: {node: '>=6.9.0'}
+    peerDependencies:
+      '@babel/core': ^7.0.0-0
+    dependencies:
+      '@babel/core': 7.17.10
+      '@babel/helper-plugin-utils': 7.16.7
+    dev: true
+
   /@babel/plugin-syntax-typescript/7.16.7_@babel+core@7.17.9:
     resolution: {integrity: sha512-YhUIJHHGkqPgEcMYkPCKTyGUdoGKWtopIycQyjJH8OjvRgOYsXsaKehLVPScKJWAULPxMa4N1vCe6szREFlZ7A==}
     engines: {node: '>=6.9.0'}
@@ -2251,7 +2274,7 @@ packages:
       '@babel/core': ^7.0.0-0
     dependencies:
       '@babel/core': 7.17.10
-      '@babel/helper-compilation-targets': 7.17.10_@babel+core@7.17.10
+      '@babel/helper-compilation-targets': 7.17.7_@babel+core@7.17.10
       '@babel/helper-function-name': 7.17.9
       '@babel/helper-plugin-utils': 7.16.7
     dev: true
@@ -2852,7 +2875,7 @@ packages:
       '@babel/core': 7.17.10
       '@babel/helper-create-class-features-plugin': 7.17.9_@babel+core@7.17.10
       '@babel/helper-plugin-utils': 7.16.7
-      '@babel/plugin-syntax-typescript': 7.17.10_@babel+core@7.17.10
+      '@babel/plugin-syntax-typescript': 7.16.7_@babel+core@7.17.10
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -3092,7 +3115,7 @@ packages:
       '@babel/helper-plugin-utils': 7.16.7
       '@babel/plugin-proposal-unicode-property-regex': 7.16.7_@babel+core@7.17.10
       '@babel/plugin-transform-dotall-regex': 7.16.7_@babel+core@7.17.10
-      '@babel/types': 7.17.10
+      '@babel/types': 7.17.0
       esutils: 2.0.3
     dev: true
 
@@ -4693,14 +4716,6 @@ packages:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
     dependencies:
       graphql: 15.7.2
-
-  /@graphql-typed-document-node/core/3.1.1_graphql@16.4.0:
-    resolution: {integrity: sha512-NQ17ii0rK1b34VZonlmT2QMJFI70m0TRwbknO/ihlbatXyaktDhN/98vBiUU6kNBPljqGqyIrl2T4nY2RpFANg==}
-    peerDependencies:
-      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      graphql: 16.4.0
-    dev: true
 
   /@graphql-yoga/common/2.3.0_graphql@15.7.2:
     resolution: {integrity: sha512-EPKK97953c8E1FiaLHMMGqLKtoAN5H9qHr0AiAzMlruJHn0JcbMf2qFTUXklCsuk6UEwNtxeHX42zim11O/E1g==}
@@ -7267,7 +7282,7 @@ packages:
     peerDependencies:
       '@babel/core': ^7.0.0-0
     dependencies:
-      '@babel/compat-data': 7.17.10
+      '@babel/compat-data': 7.17.7
       '@babel/core': 7.17.10
       '@babel/helper-define-polyfill-provider': 0.3.1_@babel+core@7.17.10
       semver: 6.3.0
@@ -7295,7 +7310,7 @@ packages:
     dependencies:
       '@babel/core': 7.17.10
       '@babel/helper-define-polyfill-provider': 0.3.1_@babel+core@7.17.10
-      core-js-compat: 3.22.4
+      core-js-compat: 3.22.1
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -8267,7 +8282,6 @@ packages:
     dependencies:
       browserslist: 4.20.2
       semver: 7.0.0
-    dev: false
 
   /core-js-compat/3.22.4:
     resolution: {integrity: sha512-dIWcsszDezkFZrfm1cnB4f/J85gyhiCpxbgBdohWCDtSVuAaChTSpPV7ldOQf/Xds2U5xCIJZOK82G4ZPAIswA==}
@@ -11325,16 +11339,6 @@ packages:
       graphql: 15.7.2
       tslib: 2.4.0
 
-  /graphql-tag/2.12.6_graphql@16.4.0:
-    resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      graphql: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
-    dependencies:
-      graphql: 16.4.0
-      tslib: 2.4.0
-    dev: true
-
   /graphql-ws/5.7.0_graphql@15.7.2:
     resolution: {integrity: sha512-8yYuvnyqIjlJ/WfebOyu2GSOQeFauRxnfuTveY9yvrDGs2g3kR9Nv4gu40AKvRHbXlSJwTbMJ6dVxAtEyKwVRA==}
     engines: {node: '>=10'}
@@ -11342,25 +11346,10 @@ packages:
       graphql: '>=0.11 <=16'
     dependencies:
       graphql: 15.7.2
-    dev: true
-
-  /graphql-ws/5.7.0_graphql@16.4.0:
-    resolution: {integrity: sha512-8yYuvnyqIjlJ/WfebOyu2GSOQeFauRxnfuTveY9yvrDGs2g3kR9Nv4gu40AKvRHbXlSJwTbMJ6dVxAtEyKwVRA==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      graphql: '>=0.11 <=16'
-    dependencies:
-      graphql: 16.4.0
-    dev: false
 
   /graphql/15.7.2:
     resolution: {integrity: sha512-AnnKk7hFQFmU/2I9YSQf3xw44ctnSFCfp3zE0N6W174gqe9fWG/2rKaKxROK7CcI3XtERpjEKFqts8o319Kf7A==}
     engines: {node: '>= 10.x'}
-
-  /graphql/16.4.0:
-    resolution: {integrity: sha512-tYDNcRvKCcfHREZYje3v33NSrSD/ZpbWWdPtBtUUuXx9NCo/2QDxYzNqCnMvfsrnbwRpEHMovVrPu/ERoLrIRg==}
-    engines: {node: ^12.22.0 || ^14.16.0 || ^16.0.0 || >=17.0.0}
-    dev: false
 
   /gray-matter/4.0.3:
     resolution: {integrity: sha512-5v6yZd4JK3eMI3FqqCouswVqwugaA9r4dNZB1wwcmrD02QkV5H0y7XBQW8QwQqEaZY1pM9aqORSORhJRdNK44Q==}
