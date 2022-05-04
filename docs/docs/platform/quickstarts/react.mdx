@@ -53,23 +53,9 @@ services and click **Create App**.
 After a few seconds, you should get a PostgreSQL database, a GraphQL API with
 Hasura, file storage, and authentication already set up.
 
-### Connect Github repository
-
-The next step consists of connecting your Github repository to your Nhost
-project. Doing so will enable Nhost to deploy new versions of your project when
-you push automatically commits to your connected Git repository.
-
-1. From your project workspace, click **Connect to Github**.
-
-![connect-to-github](https://user-images.githubusercontent.com/4352286/165812951-ab7c3276-b4ae-42a7-9359-47c18fcaec8b.png)
-
-2. **Install the Nhost app** on your Github account.
-
-![install-nhost-github-app](https://user-images.githubusercontent.com/4352286/165812967-b5a4054e-c8ea-436e-a2bf-562d962b7c42.png)
-
-3. **Connect** your Github repository.
-
-![connect-github-repository](https://user-images.githubusercontent.com/4352286/165812931-567546b1-20ca-4810-bd73-181a84d8f8fe.png)
+:::info
+You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+:::
 
 ## Initialize the app
 
@@ -104,58 +90,6 @@ npm start
 If everything is working fine, your React development server should be running
 on port 3000. Open [http://localhost:3000](http://localhost:3000) from your
 browser to check this out.
-
-### Initialize a local Nhost app
-
-Now we are going to initialize our Nhost app locally using **Nhost CLI**.
-
-The CLI provides Docker containers to run the backend services that match our
-production application in a local environment. That way, we can make changes and
-test our code locally before deploying those changes to production.
-
-So, open your terminal, and run the following command:
-
-```bash
-nhost init --remote
-```
-
-It will prompt you to choose the remote app you'd like to use to initialize your
-local Nhost development environment.
-
-<img
-  width="613"
-  alt="nhost-init-remote"
-  src="https://user-images.githubusercontent.com/4352286/165812979-3f55bde9-8771-4c06-bc4a-23e7ae8f67b9.png"
-/>
-
-The `init` command creates the Nhost app inside your current working directory
-within a `nhost/` folder.
-
-```
-my-nhost-app/
-  └─ nhost/
-      ├─ config.yaml
-      ├─ emails/
-      ├─ metadata/
-      ├─ migrations/
-      └─ seeds/
-```
-
-### Start a local development environment
-
-To start a local development environment for your Nhost app, run the following
-command:
-
-```bash
-nhost dev
-```
-
-:::caution
-Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s required for Nhost to work.
-:::
-
-Running this command will start up all the backend services provided by Nhost
-locally.
 
 ### Configure Nhost with React
 
@@ -206,8 +140,14 @@ Finally, make sure to create an environment variable named
 REACT_APP_NHOST_BACKEND_URL=YOUR_NHOST_URL
 ```
 
+You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+
+![nhost-backend-url](https://user-images.githubusercontent.com/4352286/163446130-4082f122-00a0-4ab9-bd35-3c52b6892fb1.png)
+
+:::caution
 Don't forget to restart your React server after saving your `.env.local`
 file to load your new environment variable.
+:::
 
 ## Build the app
 
@@ -694,24 +634,3 @@ Repeat the same steps on the `update` operation for the `user` role to allow
 users to update their `displayName` and `metadata` only.
 
 Once done, you are ready to deploy your changes to production!
-
-## Deploy your app
-
-To deploy your Nhost app to production, you only need to commit and push your
-changes to Github. As a result, Nhost will automatically pick up the changes in
-your repository and apply them to your associated remote Nhost project.
-
-:::caution
-Make sure to [connect your Github repository](#2-connect-github-repository) to your Nhost project first.
-:::
-
-```bash
-git add -A
-git commit -m "commit message"
-git push
-```
-
-To check out your deployment, head over to the **Deployments** tab in your
-[Nhost dashboard](https://app.nhost.io).
-
-![nhost-deployments](https://user-images.githubusercontent.com/4352286/165812973-e263c17d-b018-43c2-9fb8-a37e216a4a81.png)
