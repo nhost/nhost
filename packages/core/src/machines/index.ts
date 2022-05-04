@@ -16,8 +16,8 @@ import {
   ValidationErrorPayload
 } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
-import { StorageGetter, StorageSetter } from '../storage'
-import { Mfa, NhostSession } from '../types'
+import { localStorageGetter, localStorageSetter } from '../storage'
+import { AuthOptions, Mfa, NhostSession } from '../types'
 import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
 
@@ -31,14 +31,9 @@ export * from './enable-mfa'
 export * from './reset-password'
 export * from './send-verification-email'
 
-export type AuthMachineOptions = {
+export interface AuthMachineOptions extends AuthOptions {
   backendUrl: string
-  clientUrl?: string
-  refreshIntervalTime?: number
-  clientStorageGetter?: StorageGetter
-  clientStorageSetter?: StorageSetter
-  autoSignIn?: boolean
-  autoRefreshToken?: boolean
+  clientUrl: string
 }
 
 export type AuthMachine = ReturnType<typeof createAuthMachine>
@@ -50,11 +45,14 @@ export const createAuthMachine = ({
   clientUrl,
   clientStorageGetter,
   clientStorageSetter,
+  clientStorageType = 'web',
+  clientStorage,
   refreshIntervalTime,
   autoRefreshToken = true,
   autoSignIn = true
-}: Required<Omit<AuthMachineOptions, 'refreshIntervalTime'>> &
-  Pick<AuthMachineOptions, 'refreshIntervalTime'>) => {
+}: AuthMachineOptions) => {
+  const storageGetter = clientStorageGetter || localStorageGetter(clientStorageType, clientStorage)
+  const storageSetter = clientStorageSetter || localStorageSetter(clientStorageType, clientStorage)
   const api = nhostApiClient(backendUrl)
   const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
     url: string,
@@ -479,7 +477,7 @@ export const createAuthMachine = ({
         reportSignedOut: send('SIGNED_OUT'),
         reportTokenChanged: send('TOKEN_CHANGED'),
         clearContextExceptRefreshToken: assign(({ refreshToken: { value } }) => {
-          clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+          storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           return {
             ...INITIAL_MACHINE_CONTEXT,
             refreshToken: { value }
@@ -551,19 +549,19 @@ export const createAuthMachine = ({
         }),
         // * Persist the refresh token and the jwt expiration outside of the machine
         persist: (_, { data }: any) => {
-          clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
+          storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
           if (data.session.accessTokenExpiresIn) {
             const nextRefresh = new Date(
               Date.now() + data.session.accessTokenExpiresIn * 1_000
             ).toISOString()
-            clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
           } else {
-            clientStorageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           }
         },
         destroyRefreshToken: assign({
           refreshToken: (_) => {
-            clientStorageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+            storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
             return { value: null }
           }
         }),
@@ -688,9 +686,9 @@ export const createAuthMachine = ({
           }),
 
         importRefreshToken: async () => {
-          const stringExpiresAt = await clientStorageGetter(NHOST_JWT_EXPIRES_AT_KEY)
+          const stringExpiresAt = await storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
           const expiresAt = stringExpiresAt ? new Date(stringExpiresAt) : null
-          let refreshToken = await clientStorageGetter(NHOST_REFRESH_TOKEN_KEY)
+          let refreshToken = await storageGetter(NHOST_REFRESH_TOKEN_KEY)
           if (autoSignIn) {
             const urlToken = getParameterByName('refreshToken') || null
             if (urlToken) {

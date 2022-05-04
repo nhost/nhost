@@ -10,6 +10,7 @@ export const NhostReactContext = createContext<NhostClient>({} as NhostClient)
 export const NhostReactProvider: React.FC<{
   nhost: NhostClient
   initial?: NhostSession
+  children?: React.ReactNode
 }> = ({ nhost, initial, ...props }) => {
   const machine = nhost.auth.client.machine
   const interpreter = useInterpret(machine, {
