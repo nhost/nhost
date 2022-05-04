@@ -1,5 +1,4 @@
 import type { AppProps } from 'next/app'
-import React from 'react'
 
 import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 import { NhostApolloProvider } from '@nhost/react-apollo'

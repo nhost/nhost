@@ -16,7 +16,9 @@ module.exports = {
     '*.test.ts',
     '*.test.tsx',
     '*.spec.ts',
-    '*.spec.tsx'
+    '*.spec.tsx',
+    'tests/**/*.ts',
+    'tests/**/*.d.ts'
   ],
   extends: ['react-app', 'plugin:react/recommended', 'plugin:react-hooks/recommended'],
   parserOptions: {
