@@ -27,7 +27,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix"
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./storage.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./storage.docgen.json"
   },
   "main": "src/index.ts",
   "publishConfig": {
@@ -51,5 +53,7 @@
   "dependencies": {
     "axios": "^0.21.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@nhost/docgen": "*"
+  }
 }

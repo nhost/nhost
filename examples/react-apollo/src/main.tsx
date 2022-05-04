@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 
 import { NhostClient, NhostReactProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
+import { inspect } from '@xstate/inspect'
 
 import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
 
@@ -12,6 +13,13 @@ import App from './App'
 const nhost = new NhostClient({
   backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337'
 })
+
+if (import.meta.env.VITE_DEBUG) {
+  inspect({
+    url: 'https://stately.ai/viz?inspect',
+    iframe: false
+  })
+}
 
 ReactDOM.render(
   <React.StrictMode>

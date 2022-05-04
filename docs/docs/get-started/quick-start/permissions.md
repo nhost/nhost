@@ -2,7 +2,7 @@
 title: 'Set permissions'
 ---
 
-In the previous section, you could fetch the todos because the **admin** role is enabled by default when using Hasura Console. When building your applications, you want to define permissions using **roles** that your users can assume when making requests.
+While using the Hasura Console, you could fetch the todos because the **admin** role is enabled by default but when building your applications with a client, you want to define permissions using **roles** that your users can assume when making requests.
 
 Hasura supports role-based access control. You create rules for each role, table, and operation (select, insert, update and delete) that can check dynamic session variables, like user ID.
 

@@ -1,0 +1,10 @@
+{
+  "title": "Storage",
+  "path": "./.docgen/storage.json",
+  "output": "../../docs/docs/reference/docgen/javascript/storage",
+  "root": "reference/docgen/javascript/storage",
+  "slug": "/reference/javascript/storage",
+  "sidebarConfig": "referenceSidebar",
+  "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages",
+  "cleanup": true
+}

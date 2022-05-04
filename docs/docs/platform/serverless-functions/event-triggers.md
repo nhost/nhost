@@ -29,6 +29,10 @@ https://[app-subdomain].nhost.run/v1/functions/my-endpoint
 
 The environment variable `NHOST_BACKEND_URL` will have the correct value.
 
+```bash
+{{NHOST_BACKEND_URL}}/v1/functions/my-endpoint
+```
+
 ---
 
 ## Security

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "1.0.11",
+  "version": "1.1.1",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -29,7 +29,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix"
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./auth.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "main": "src/index.ts",
   "publishConfig": {
@@ -51,14 +53,16 @@
     "dist"
   ],
   "dependencies": {
-    "@nhost/core": "workspace:^"
+    "@nhost/core": "workspace:^",
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
+    "@nhost/docgen": "*",
     "@types/faker": "5",
     "axios": "^0.26.0",
     "faker": "5",
     "html-urls": "^2.4.27",
     "mailhog": "^4.16.0",
-    "xstate": "^4.30.5"
+    "xstate": "^4.31.0"
   }
 }

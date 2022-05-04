@@ -1,13 +1,15 @@
-import { BroadcastChannel } from 'broadcast-channel'
 import { interpret } from 'xstate'
 
-import { MIN_TOKEN_REFRESH_INTERVAL } from './constants'
 import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
 import { defaultClientStorageGetter, defaultClientStorageSetter } from './storage'
 import type { AuthInterpreter } from './types'
 
 export type NhostClientOptions = AuthMachineOptions & { start?: boolean }
 
+/**
+ * @internal
+ * This is a private API.
+ */
 export class AuthClient {
   readonly backendUrl: string
   readonly clientUrl: string
@@ -21,7 +23,7 @@ export class AuthClient {
     clientUrl = (typeof window !== 'undefined' && window.location?.origin) || '',
     clientStorageGetter = defaultClientStorageGetter,
     clientStorageSetter = defaultClientStorageSetter,
-    refreshIntervalTime = MIN_TOKEN_REFRESH_INTERVAL,
+    refreshIntervalTime,
     autoSignIn = true,
     autoRefreshToken = true,
     start = true
@@ -45,13 +47,20 @@ export class AuthClient {
     }
 
     if (typeof window !== 'undefined' && autoSignIn) {
-      this._channel = new BroadcastChannel<string>('nhost')
-      this._channel.addEventListener('message', (token) => {
-        const existingToken = this.interpreter?.state.context.refreshToken
-        if (this.interpreter && token !== existingToken) {
-          this.interpreter.send({ type: 'TRY_TOKEN', token })
-        }
-      })
+      try {
+        // TODO listen to sign out
+        // TODO the same refresh token is used and refreshed by all tabs:
+        // * Ideally, a single tab should autorefresh and share the new jwt
+        this._channel = new BroadcastChannel('nhost')
+        this._channel.addEventListener('message', (token) => {
+          const existingToken = this.interpreter?.state.context.refreshToken.value
+          if (this.interpreter && token.data !== existingToken) {
+            this.interpreter.send({ type: 'TRY_TOKEN', token: token.data })
+          }
+        })
+      } catch (error) {
+        // * BroadcastChannel is not available e.g. react-native
+      }
     }
   }
 

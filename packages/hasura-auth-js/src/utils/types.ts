@@ -24,8 +24,10 @@ export interface NhostAuthConstructorParams {
   clientStorageSetter?: StorageSetter
   /** When set to true, will automatically refresh token before it expires */
   autoRefreshToken?: boolean
-  /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */
+  /** @deprecated use autoSignIn instead */
   autoLogin?: boolean
+  /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */
+  autoSignIn?: boolean
   start?: boolean
   Client?: typeof AuthClient
 }
@@ -88,9 +90,7 @@ export type SignInParams =
 
 export interface ResetPasswordParams {
   email: string
-  options?: {
-    redirectTo?: string
-  }
+  options?: RedirectOption
 }
 
 export interface ChangePasswordParams {
@@ -174,25 +174,6 @@ export interface LoginData {
 export interface Headers {
   Authorization?: string
 }
-
-export interface JWTHasuraClaims {
-  [claim: string]: string[] | string
-  'x-hasura-allowed-roles': string[]
-  'x-hasura-default-role': string
-  'x-hasura-user-id': string
-}
-
-// https://hasura.io/docs/1.0/graphql/core/auth/authentication/jwt.html#the-spec
-export interface JWTClaims {
-  sub?: string
-  iat?: number
-  'https://hasura.io/jwt/claims': JWTHasuraClaims
-}
-
-/// //////////////////
-/// // API
-/// //////////////////
-
 export interface Mfa {
   ticket: string
 }

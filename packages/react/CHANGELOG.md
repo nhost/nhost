@@ -1,10 +1,61 @@
 # @nhost/react
 
+## 0.6.1
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.6
+
+## 0.6.0
+
+### Minor Changes
+
+- 616e320: Remove `refreshToken` from the url when `autoSignIn` is set
+  On startup, when the `autoSignIn` option is set to `true`, the client now removes it from the URL when the page loads.
+- 1ce55c5: Add new hooks: `useDecodedAccessToken()`, `useHasuraClaims()`, and `useHasuraClaim(name: string)`
+- 616e320: Look for the refresh token both in the query parameters and in the hash
+  Until now, after redirecting from an email, Hasura-auth puts refresh tokens in the hash part of the url. It is a problem when using SSR as the hash is not accessible to the server. This behaviour is likely to change. As a result, the client now parses both the hash and the query parameters of the url.
+  See [this issue](https://github.com/nhost/hasura-auth/issues/148) to keep track of the progress on Hasura-auth.
+
+### Patch Changes
+
+- 49545c0: Remove filtering of `useLayoutEffect` from logs
+  The `suppressConsoleMessage` method was meant to suppress incorrect `useLayoutEffect` messages raised on Nextjs server-side renderings. Its implementation had an impact on the normal functionning of logging (see [#447](https://github.com/nhost/nhost/issues/447)).
+  This filtering was necessary when using former versions of xstate and can now be removed.
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+- Updated dependencies [d49b837]
+  - @nhost/nhost-js@1.1.5
+
+## 0.5.7
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.4
+
+## 0.5.6
+
+### Patch Changes
+
+- 5ee395e: Ensure the session is destroyed when signout is done
+  In the `useSignOut` hook, `signOut` now returns a promise. We are now sure the user session is empty once the promise is resolved.
+  - @nhost/nhost-js@1.1.3
+
+## 0.5.5
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.2
+
+## 0.5.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.1
+
 ## 0.5.3
 
 ### Patch Changes
 
-- Updated dependencies [ab06e96]
 - Updated dependencies [ccba0b5]
   - @nhost/nhost-js@1.1.0
 
@@ -282,7 +333,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [744fd69]
 - Updated dependencies [744fd69]
   - @nhost/nhost-js@1.0.0
 

@@ -1,5 +1,70 @@
 # @nhost/core
 
+## 0.4.1
+
+### Patch Changes
+
+- 7b23d33: Clean `refreshToken` and `type` from the url when the user is already signed in
+
+## 0.4.0
+
+### Minor Changes
+
+- 616e320: Remove `refreshToken` from the url when `autoSignIn` is set
+  On startup, when the `autoSignIn` option is set to `true`, the client now removes it from the URL when the page loads.
+- 53f5226: Capture hasura-auth errors from the url
+  When using social providers (Oauth) or email links, Hasura-Auth adds potential error codes and messages to the url.
+  When the Nhost client loads, it now reads these errors and stores them in the authentication state.
+- 616e320: Look for the refresh token both in the query parameters and in the hash
+  Until now, after redirecting from an email, Hasura-auth puts refresh tokens in the hash part of the url. It is a problem when using SSR as the hash is not accessible to the server. This behaviour is likely to change. As a result, the client now parses both the hash and the query parameters of the url.
+  See [this issue](https://github.com/nhost/hasura-auth/issues/148) to keep track of the progress on Hasura-auth.
+
+### Patch Changes
+
+- 616e320: Improve startup
+  When `autoSignin` was active, the client was fetching the refresh token twice on startup. This behaviour has been corrected.
+- b52b4fc: Rename `AuthClientSSR` to `AuthCookieClient`
+  `AuthClientSSR` has been renamed to `AuthCookieClient` and is now deprecated
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+
+## 0.3.13
+
+### Patch Changes
+
+- 5ee395e: Ensure the session is destroyed when signout is done
+  The user session, in particular the access token (JWT), was still available after sign out.
+  Any information about user session is now removed from the auth state as soon as the sign out action is called.
+- e0cfcaf: fix and improve `nhost.auth.refreshSession`
+  `nhost.auth.refreshSession` is now functional and returns possible errors, or the user session if the token has been sucessfully refreshed.
+  If the user was previously not authenticated, it will sign them in. See [#286](https://github.com/nhost/nhost/issues/286)
+- 7b7527a: Improve reliability of the token refresher
+  The token refresher had an unreliable behaviour, leading to too many refreshes, or refreshes that are missed, leading to an expired access token (JWT).
+
+  The internal refresher rules have been made more explicit in the code. Every second, this runs:
+
+  - If the client defined a `refreshIntervalTime` and the interval between when the last access token has been created and now is more than this value, then it triggers a refresh
+  - If the access token expires in less than five minutes, then it triggers a refresh
+
+  If a refresh fails, then it switches to a specific rule: it will make an attempt to refresh the token every five seconds
+
+## 0.3.12
+
+### Patch Changes
+
+- 7b5f00d: Avoid error when BroadcastChannell is not available
+- 58e1485: Fix invalid password and email errors on sign up
+  When signin up, an invalid password was returning the `invalid-email` error, and an invalid email was returning `invalid-password`.
+  This is now in order.
+
+## 0.3.11
+
+### Patch Changes
+
+- 0b1cb62: Use native `BroadcastChannel` instead of the `broadcast-channel` package
+  The `broadcast-channel` depends on `node-gyp-build`, which can cause issues when deploying on Vercel as it is a native dependency.
+  The added value of `broadcast-channel` is to be able to communicate the change of authentication state accross processes in a NodeJs / Electron environment, but this is considered an edge case for now.
+  See [Vercel official documentation](https://vercel.com/support/articles/why-does-my-serverless-function-work-locally-but-not-when-deployed#native-dependencies).
+
 ## 0.3.10
 
 ### Patch Changes

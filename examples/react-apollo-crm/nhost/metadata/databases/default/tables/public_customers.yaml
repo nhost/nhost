@@ -20,48 +20,48 @@ configuration:
     update: updateCustomers
     update_by_pk: updateCustomer
 object_relationships:
-- name: company
-  using:
-    foreign_key_constraint_on: company_id
-- name: user
-  using:
-    foreign_key_constraint_on: user_id
+  - name: company
+    using:
+      foreign_key_constraint_on: company_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
 array_relationships:
-- name: customerComments
-  using:
-    foreign_key_constraint_on:
-      column: customer_id
-      table:
-        name: customer_comments
-        schema: public
+  - name: customerComments
+    using:
+      foreign_key_constraint_on:
+        column: customer_id
+        table:
+          name: customer_comments
+          schema: public
 insert_permissions:
-- permission:
-    backend_only: false
-    check:
-      company:
-        companyUsers:
-          user_id:
-            _eq: X-Hasura-User-Id
-    columns:
-    - address_line_1
-    - company_id
-    - name
-    set:
-      user_id: x-hasura-user-id
-  role: user
+  - permission:
+      backend_only: false
+      check:
+        company:
+          companyUsers:
+            user_id:
+              _eq: X-Hasura-User-Id
+      columns:
+        - address_line_1
+        - company_id
+        - name
+      set:
+        user_id: x-hasura-user-id
+    role: user
 select_permissions:
-- permission:
-    columns:
-    - id
-    - created_at
-    - updated_at
-    - name
-    - address_line_1
-    - company_id
-    - user_id
-    filter:
-      company:
-        companyUsers:
-          user_id:
-            _eq: X-Hasura-User-Id
-  role: user
+  - permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - address_line_1
+        - company_id
+        - user_id
+      filter:
+        company:
+          companyUsers:
+            user_id:
+              _eq: X-Hasura-User-Id
+    role: user

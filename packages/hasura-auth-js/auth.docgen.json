@@ -1,0 +1,10 @@
+{
+  "title": "Auth",
+  "path": "./.docgen/auth.json",
+  "output": "../../docs/docs/reference/docgen/javascript/auth",
+  "root": "reference/docgen/javascript/auth",
+  "slug": "/reference/javascript/auth",
+  "sidebarConfig": "referenceSidebar",
+  "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages",
+  "cleanup": true
+}

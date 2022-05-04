@@ -3,19 +3,27 @@ title: 'Configuration'
 sidebar_position: 2
 ---
 
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
 ## Installation
 
-With yarn:
+<Tabs>
+  <TabItem value="npm" label="npm" default>
 
 ```bash
-yarn add @nhost/react @nhost/nextjs
+npm install @nhost/react @nhost/nextjs graphql
 ```
 
-With Npm:
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
 
 ```bash
-npm install @nhost/react @nhost/nextjs
+yarn add @nhost/react @nhost/nextjs graphql
 ```
+
+  </TabItem>
+</Tabs>
 
 ---
 

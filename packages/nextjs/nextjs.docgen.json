@@ -1,0 +1,10 @@
+{
+  "title": "Next.js",
+  "path": "./.docgen/nextjs.json",
+  "output": "../../docs/docs/reference/docgen/nextjs",
+  "root": "reference/docgen/nextjs",
+  "slug": "/reference/nextjs",
+  "sidebarConfig": "referenceSidebar",
+  "baseEditUrl": "https://github.com/nhost/nhost/edit/main/packages",
+  "cleanup": true
+}

@@ -8,4 +8,4 @@ Hasura Auth JS SDK to handle **Auth** with [Hasura](https://hasura.io/).
 
 ## Documentation
 
-[https://docs.nhost.io/reference/sdk/authentication](https://docs.nhost.io/reference/sdk/storage)
+[https://docs.nhost.io/reference/javascript/storage](https://docs.nhost.io/reference/javascript/storage)

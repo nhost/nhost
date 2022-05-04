@@ -1,0 +1,15 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "Packages",
+  "entryPoints": ["."],
+  "exclude": "*.(spec|test).tsx?",
+  "sort": ["source-order"],
+  "json": "./.docgen/storage.json",
+  "name": "Storage",
+  "readme": "none",
+  "githubPages": false,
+  "cleanOutputDir": false,
+  "excludeInternal": true,
+  "excludePrivate": true,
+  "excludeExternals": true
+}

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react",
-  "version": "0.5.3",
+  "version": "0.6.1",
   "description": "Nhost React library",
   "license": "MIT",
   "keywords": [
@@ -29,7 +29,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix"
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./react.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./react.docgen.json"
   },
   "main": "src/index.ts",
   "publishConfig": {
@@ -50,15 +52,17 @@
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
     "@xstate/react": "^2.0.1",
-    "immer": "^9.0.12"
+    "immer": "^9.0.12",
+    "jwt-decode": "^3.1.2"
   },
   "devDependencies": {
-    "@nhost/hasura-auth-js": "workspace:^",
     "@nhost/core": "workspace:^",
+    "@nhost/docgen": "*",
+    "@nhost/hasura-auth-js": "workspace:^",
     "@xstate/inspect": "^0.6.2",
     "react": "^17.0.2",
     "ws": "^8.4.2",
-    "xstate": "^4.30.5"
+    "xstate": "^4.31.0"
   },
   "peerDependencies": {
     "react": "^17.0.0 || ^18.0.0",

@@ -1,16 +1,15 @@
-import decode from 'jwt-decode'
 import React from 'react'
 import ReactJson from 'react-json-view'
 import { Button, Col, Panel, Row } from 'rsuite'
 
-import { useAccessToken, useNhostClient, useUserData } from '@nhost/react'
+import { useHasuraClaims, useNhostClient, useUserData } from '@nhost/react'
 
 import { ChangeEmail } from './change-email'
 import { ChangePassword } from './change-password'
 import { Mfa } from './mfa'
 
 export const ProfilePage: React.FC = () => {
-  const accessToken = useAccessToken()
+  const claims = useHasuraClaims()
   const userData = useUserData()
   const nhost = useNhostClient()
   return (
@@ -39,13 +38,13 @@ export const ProfilePage: React.FC = () => {
           </Panel>
         </Col>
         <Col md={12} sm={24}>
-          <Panel header="JWT" bordered>
+          <Panel header="Hasura JWT claims" bordered>
             <Button block appearance="primary" onClick={() => nhost.auth.refreshSession()}>
               Refresh session
             </Button>
-            {accessToken && (
+            {claims && (
               <ReactJson
-                src={decode(accessToken)}
+                src={claims}
                 displayDataTypes={false}
                 displayObjectSize={false}
                 enableClipboard={false}

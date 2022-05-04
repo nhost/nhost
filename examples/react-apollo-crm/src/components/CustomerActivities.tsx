@@ -1,35 +1,35 @@
-import { ChatAltIcon } from "@heroicons/react/solid";
-import { useGetCustomerCommentsSubscription } from "../utils/__generated__/graphql";
-import { useParams } from "react-router";
-import { nhost } from "../utils/nhost";
-import { PhotographIcon } from "@heroicons/react/outline";
-import prettyBytes from "pretty-bytes";
-import { formatDistanceToNow, parseISO } from "date-fns";
+import { ChatAltIcon } from '@heroicons/react/solid'
+import { useGetCustomerCommentsSubscription } from '../utils/__generated__/graphql'
+import { useParams } from 'react-router-dom'
+import { nhost } from '../utils/nhost'
+import { PhotographIcon } from '@heroicons/react/outline'
+import prettyBytes from 'pretty-bytes'
+import { formatDistanceToNow, parseISO } from 'date-fns'
 
 export function CustomerActivities() {
-  const { customerId } = useParams();
+  const { customerId } = useParams<{ customerId: string }>()
 
   const { data, loading } = useGetCustomerCommentsSubscription({
     variables: {
       where: {
         customerId: {
-          _eq: customerId,
-        },
-      },
-    },
-  });
+          _eq: customerId
+        }
+      }
+    }
+  })
 
-  console.log({ data });
+  console.log({ data })
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   if (!data || !data.customerComments) {
-    return <div>no comments</div>;
+    return <div>no comments</div>
   }
 
-  const { customerComments } = data;
+  const { customerComments } = data
 
   return (
     <div className="flow-root">
@@ -54,10 +54,7 @@ export function CustomerActivities() {
                       />
 
                       <span className="absolute -bottom-0.5 -right-1 bg-white rounded-tl px-0.5 py-px">
-                        <ChatAltIcon
-                          className="w-5 h-5 text-gray-400"
-                          aria-hidden="true"
-                        />
+                        <ChatAltIcon className="w-5 h-5 text-gray-400" aria-hidden="true" />
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
@@ -69,7 +66,7 @@ export function CustomerActivities() {
                         </div>
                         <p className="mt-0.5 text-sm text-gray-500">
                           {formatDistanceToNow(parseISO(comment.createdAt), {
-                            addSuffix: true,
+                            addSuffix: true
                           })}
                         </p>
                       </div>
@@ -80,24 +77,22 @@ export function CustomerActivities() {
                         <div
                           className="flex items-center mt-3 text-sm text-gray-700 cursor-pointer"
                           onClick={async () => {
-                            const { presignedUrl, error } =
-                              await nhost.storage.getPresignedUrl({
-                                fileId: comment.file!.id,
-                              });
+                            const { presignedUrl, error } = await nhost.storage.getPresignedUrl({
+                              fileId: comment.file!.id
+                            })
 
                             if (error) {
-                              return alert(error.message);
+                              return alert(error.message)
                             }
 
-                            window.open(presignedUrl?.url, "_blank");
+                            window.open(presignedUrl?.url, '_blank')
                           }}
                         >
                           <div>
                             <PhotographIcon className="w-5 mr-1 text-gray-500" />
                           </div>
                           <div>
-                            {comment.file.name},{" "}
-                            {prettyBytes(comment.file.size as number)}
+                            {comment.file.name}, {prettyBytes(comment.file.size as number)}
                           </div>
                         </div>
                       )}
@@ -106,9 +101,9 @@ export function CustomerActivities() {
                 </div>
               </div>
             </li>
-          );
+          )
         })}
       </ul>
     </div>
-  );
+  )
 }

@@ -1,10 +1,74 @@
 # @nhost/nextjs
 
+## 1.1.1
+
+### Patch Changes
+
+- 7b23d33: Get the refresh token in the right place in the url
+  Hasura-auth puts the refresh token in the url as `refreshToken`, but it is not stored using the same key in localStorage / the cookie. This fix makes the right correspondance between the two.
+  - @nhost/nhost-js@1.1.6
+  - @nhost/react@0.6.1
+
+## 1.1.0
+
+### Minor Changes
+
+- b52b4fc: Introduce `createServerSideNhostClient`
+  Until now, the Nhost client was not functionning correctly on the server side.
+  The `createServerSideNhostClient` can be called inside the `getServerSideProps` function of a page.
+  When called, it will try to get the refesh token in cookies, or from the request URL.
+  If a refresh token is found, it uses it to get an up to date access token (JWT) and a user session
+  This method returns a promise of an `NhostClient` and resolves only when the authentication status is known eventually.
+
+  `getNhostSession` now uses the above method under the hood to extract the user session and hydrate the NhostClient context on the client side.
+
+- 616e320: Look for the refresh token both in the query parameters and in the hash
+  Until now, after redirecting from an email, Hasura-auth puts refresh tokens in the hash part of the url. It is a problem when using SSR as the hash is not accessible to the server. This behaviour is likely to change. As a result, the client now parses both the hash and the query parameters of the url.
+  See [this issue](https://github.com/nhost/hasura-auth/issues/148) to keep track of the progress on Hasura-auth.
+
+### Patch Changes
+
+- 49545c0: Remove filtering of `useLayoutEffect` from logs
+  The `suppressConsoleMessage` method was meant to suppress incorrect `useLayoutEffect` messages raised on Nextjs server-side renderings. Its implementation had an impact on the normal functionning of logging (see [#447](https://github.com/nhost/nhost/issues/447)).
+  This filtering was necessary when using former versions of xstate and can now be removed.
+- b52b4fc: Bump xstate to latest version (`4.31.0`)
+- Updated dependencies [d49b837]
+  - @nhost/react@0.6.0
+  - @nhost/nhost-js@1.1.5
+
+## 1.0.18
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.4
+- @nhost/react@0.5.7
+
+## 1.0.17
+
+### Patch Changes
+
+- Updated dependencies [5ee395e]
+  - @nhost/react@0.5.6
+  - @nhost/nhost-js@1.1.3
+
+## 1.0.16
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.2
+- @nhost/react@0.5.5
+
+## 1.0.15
+
+### Patch Changes
+
+- @nhost/nhost-js@1.1.1
+- @nhost/react@0.5.4
+
 ## 1.0.14
 
 ### Patch Changes
 
-- Updated dependencies [ab06e96]
 - Updated dependencies [ccba0b5]
   - @nhost/nhost-js@1.1.0
   - @nhost/react@0.5.3
@@ -35,8 +99,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [7cf875f]
-- Updated dependencies [7135aee]
 - Updated dependencies [587eaff]
   - @nhost/react@0.5.0
   - @nhost/nhost-js@1.0.9
@@ -236,12 +298,6 @@
 
 ### Patch Changes
 
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
-- Updated dependencies [744fd69]
 - Updated dependencies [744fd69]
   - @nhost/react@0.3.0
   - @nhost/nhost-js@1.0.0

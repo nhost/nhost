@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "1.0.14",
+  "version": "1.1.1",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
@@ -31,7 +31,9 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix"
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./nextjs.typedoc.json",
+    "docgen": "pnpm typedoc && docgen --config ./nextjs.docgen.json"
   },
   "main": "src/index.ts",
   "publishConfig": {
@@ -61,11 +63,12 @@
   },
   "devDependencies": {
     "@nhost/core": "workspace:^",
+    "@nhost/docgen": "*",
     "@nhost/react": "workspace:^",
     "@types/cookies": "^0.7.7",
     "next": "12.0.10",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "xstate": "^4.30.5"
+    "xstate": "^4.31.0"
   }
 }
