@@ -15,7 +15,7 @@
     "dev": "ts-node ./src/index.ts",
     "start": "node dist/index.js",
     "build": "pnpm clean && tsup",
-    "test": "jest",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "clean": "rimraf dist",
     "format": "prettier --write 'src/**/*.ts'",
     "lint": "eslint . --ext .ts,.tsx"
@@ -32,7 +32,7 @@
     "@swc/core": "^1.2.163",
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/jest": "^27.4.1",
-    "@types/node": "^17.0.23",
+    "@types/node": "^17.0.31",
     "@types/prettier": "^2.6.0",
     "jest": "^27.5.1",
     "rimraf": "^3.0.2",

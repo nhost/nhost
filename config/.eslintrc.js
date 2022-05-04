@@ -11,7 +11,6 @@ module.exports = {
     '.next',
     'node_modules',
     'tsup.config.ts',
-    'jest.config.ts',
     '__tests__',
     '__mocks__',
     '*.test.ts',

@@ -28,6 +28,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,
+    "types": ["node"],
     "typeRoots": [
       "./node_modules/@types", "**/*/dist", "**/*/build", "**/*/.next", "**/*/umd"
     ]

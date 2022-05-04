@@ -33,20 +33,15 @@ tmp/
 *.map
 todo.md
 
-# Generated configs 
+# Config files that are not part of the repository root anymore. Should be removed in the future.
 /.eslintignore
 /.eslintrc*
-/.prettierignore
-/prettier.config.js
 /vite.*.js
 /jest.*.js
 /*tsconfig*.json
-/.lintstagedrc.json
-
-# Configs not part of the repo anymore, should be removed in the future
 /esbuild.*.js
 
-!.config/**
+!config/**
 
 *.tsbuildinfo
 

@@ -42,11 +42,11 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "vite build --config ../../vite.dev.react.config.js",
+    "dev": "vite build --config ../../config/vite.react.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../vite.react.config.js",
-    "build:umd": "vite build --config ../../vite.react.umd.config.js",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "build:lib": "vite build --config ../../config/vite.react.config.js",
+    "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",

@@ -15,8 +15,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "create-config": "cp -r .config/. ./",
-    "prepare": "pnpm create-config && husky install",
+    "prepare": "husky install",
     "build": "turbo run build --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
     "build:docs": "pnpm run build --filter=@nhost/docs",
     "dev": "turbo run dev --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",

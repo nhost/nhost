@@ -36,11 +36,11 @@
     "access": "public"
   },
   "scripts": {
-    "dev": "vite build --config ../../vite.dev.lib.config.js",
+    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../vite.lib.config.js",
-    "build:umd": "vite build --config ../../vite.umd.config.js",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",

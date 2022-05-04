@@ -1,4 +1,4 @@
 {
-  "extends": "../../react-library.tsconfig.json",
+  "extends": "../../config/react-library.tsconfig.json",
   "include": ["src"]
 }
