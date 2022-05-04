@@ -1,5 +1,6 @@
-import { ClientStorage, ClientStorageType } from './types'
+import Cookies from 'js-cookie'
 
+import { ClientStorage, ClientStorageType } from './types'
 export type StorageGetter = (key: string) => string | null | Promise<string | null>
 export type StorageSetter = (key: string, value: string | null) => void | Promise<void>
 
@@ -54,9 +55,8 @@ export const localStorageGetter = (
       checkStorageAccessors(clientStorage, ['getItemAsync'])
       return (key) => clientStorage.getItemAsync?.(key)
     } else if (clientStorageType === 'cookie') {
-      return async (key) => {
+      return (key) => {
         if (isBrowser) {
-          const { default: Cookies } = await import('js-cookie')
           return Cookies.get(key) ?? null
         } else {
           return null
@@ -95,9 +95,8 @@ export const localStorageSetter = (
       return async (key, value) =>
         value ? clientStorage.setItemAsync?.(key, value) : clientStorage.deleteItemAsync?.(key)
     } else if (clientStorageType === 'cookie') {
-      return async (key, value) => {
+      return (key, value) => {
         if (isBrowser) {
-          const { default: Cookies } = await import('js-cookie')
           if (value) {
             Cookies.set(key, value)
           } else {
