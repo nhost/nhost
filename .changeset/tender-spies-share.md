@@ -1,5 +1,7 @@
 ---
-'@nhost/nextjs': minor
+'@nhost/react': patch
+'@nhost/react-apollo': patch
+'@nhost/nextjs': patch
 ---
 
-Adapt to React 18
+Fix: add authentication headers to GraphQL operations when authenticated

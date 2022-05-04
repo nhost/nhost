@@ -1,9 +1,9 @@
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { FaGlobe, FaHouseUser, FaLock, FaQuestion, FaSignOutAlt } from 'react-icons/fa'
 
 import { Group, MantineColor, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
 import { useAuthenticated, useSignOut } from '@nhost/nextjs'
-import { useRouter } from 'next/router'
 
 interface MenuItemProps {
   icon: React.ReactNode
