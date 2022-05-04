@@ -2,6 +2,7 @@ import { NextPage } from 'next'
 import { useState } from 'react'
 
 import { Button, Divider, PasswordInput, SimpleGrid, TextInput } from '@mantine/core'
+import { showNotification } from '@mantine/notifications'
 import { useSignInEmailPassword } from '@nhost/nextjs'
 
 import AuthLink from '../../components/AuthLink'
@@ -11,6 +12,22 @@ export const SignInPasswordPage: NextPage = () => {
   const { signInEmailPassword } = useSignInEmailPassword()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const signIn = async () => {
+    const result = await signInEmailPassword(email, password)
+    if (result.isError) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error.message
+      })
+    } else {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: 'Email is not verified'
+      })
+    }
+  }
   return (
     <SignInLayout title="Email + password Sign In">
       <SimpleGrid cols={1} spacing={6}>
@@ -25,7 +42,7 @@ export const SignInPasswordPage: NextPage = () => {
           value={password}
           onChange={(e) => setPassword(e.currentTarget.value)}
         />
-        <Button fullWidth onClick={() => signInEmailPassword(email, password)}>
+        <Button fullWidth onClick={signIn}>
           Continue with email + password
         </Button>
       </SimpleGrid>

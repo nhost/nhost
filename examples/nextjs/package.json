@@ -18,6 +18,7 @@
     "@mantine/core": "^4.2.2",
     "@mantine/hooks": "^4.2.2",
     "@mantine/next": "^4.2.2",
+    "@mantine/notifications": "^4.2.2",
     "@nhost/apollo": "workspace:*",
     "@nhost/core": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:*",

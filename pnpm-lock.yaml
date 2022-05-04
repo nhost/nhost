@@ -137,6 +137,7 @@ importers:
       '@mantine/core': ^4.2.2
       '@mantine/hooks': ^4.2.2
       '@mantine/next': ^4.2.2
+      '@mantine/notifications': ^4.2.2
       '@nhost/apollo': workspace:*
       '@nhost/core': workspace:*
       '@nhost/hasura-auth-js': workspace:*
@@ -163,6 +164,7 @@ importers:
       '@mantine/core': 4.2.2_ea9d0c51a4562a6544166c6277bf397c
       '@mantine/hooks': 4.2.2_react@18.1.0
       '@mantine/next': 4.2.2_eb7c2754f59df2f4af52f72354832025
+      '@mantine/notifications': 4.2.2_af46c71ecf518c86fb9b76e8a89b700a
       '@nhost/apollo': link:../../packages/apollo
       '@nhost/core': link:../../packages/core
       '@nhost/hasura-auth-js': link:../../packages/hasura-auth-js
@@ -5235,6 +5237,21 @@ packages:
       - '@babel/core'
       - '@emotion/css'
       - '@types/react'
+    dev: false
+
+  /@mantine/notifications/4.2.2_af46c71ecf518c86fb9b76e8a89b700a:
+    resolution: {integrity: sha512-QC0j74jcQs0zsljgjEb8UicsIFfxKayZRVlEefrBzJUbm89bs+TOzHugL2GL+IMJ1WSQKTI9YWvGXVbf8ZCzww==}
+    peerDependencies:
+      '@mantine/core': 4.2.2
+      '@mantine/hooks': 4.2.2
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+    dependencies:
+      '@mantine/core': 4.2.2_ea9d0c51a4562a6544166c6277bf397c
+      '@mantine/hooks': 4.2.2_react@18.1.0
+      react: 18.1.0
+      react-dom: 18.1.0_react@18.1.0
+      react-transition-group: 4.4.2_react-dom@18.1.0+react@18.1.0
     dev: false
 
   /@mantine/ssr/4.2.2_b49546c5ecaa39f6ec18d9e420cad0ed:
@@ -16364,6 +16381,20 @@ packages:
       use-latest: 1.2.0_react@17.0.2
     transitivePeerDependencies:
       - '@types/react'
+    dev: false
+
+  /react-transition-group/4.4.2_react-dom@18.1.0+react@18.1.0:
+    resolution: {integrity: sha512-/RNYfRAMlZwDSr6z4zNKV6xu53/e2BuaBbGhbyYIXTrmgu/bGHzmqOs7mJSJBHy9Ud+ApHx3QjrkKSp1pxvlFg==}
+    peerDependencies:
+      react: '>=16.6.0'
+      react-dom: '>=16.6.0'
+    dependencies:
+      '@babel/runtime': 7.17.9
+      dom-helpers: 5.2.1
+      loose-envify: 1.4.0
+      prop-types: 15.8.1
+      react: 18.1.0
+      react-dom: 18.1.0_react@18.1.0
     dev: false
 
   /react-virtualized/9.22.3_react-dom@18.1.0+react@18.1.0:

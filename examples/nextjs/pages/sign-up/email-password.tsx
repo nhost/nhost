@@ -1,7 +1,8 @@
 import { NextPage } from 'next'
 import { useMemo, useState } from 'react'
 
-import { Button, Divider, PasswordInput, SimpleGrid, TextInput } from '@mantine/core'
+import { Button, Divider, Modal, PasswordInput, SimpleGrid, TextInput } from '@mantine/core'
+import { showNotification } from '@mantine/notifications'
 import { useSignUpEmailPassword } from '@nhost/nextjs'
 
 import AuthLink from '../../components/AuthLink'
@@ -12,12 +13,40 @@ export const SignUpPasswordPage: NextPage = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
   const differentPassword = useMemo(
     () => password && password !== confirmPassword && 'Should match the given password',
     [password, confirmPassword]
   )
+  const signUp = async () => {
+    const result = await signUpEmailPassword(email, password)
+    if (result.isError) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error.message
+      })
+    }
+    if (result.needsEmailVerification) {
+      setEmailVerificationToggle(true)
+    }
+  }
   return (
     <SignUpLayout title="Email + password Sign Up">
+      <Modal
+        title="Verification email sent"
+        transition="fade"
+        centered
+        transitionDuration={600}
+        transitionTimingFunction="ease"
+        opened={emailVerificationToggle}
+        onClose={() => {
+          setEmailVerificationToggle(false)
+        }}
+      >
+        A email has been sent to {email}. Please follow the link to verify your email address and to
+        complete your registration.
+      </Modal>
       <SimpleGrid cols={1} spacing={6}>
         <TextInput
           type="email"
@@ -36,7 +65,7 @@ export const SignUpPasswordPage: NextPage = () => {
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
         />
-        <Button fullWidth onClick={() => signUpEmailPassword(email, password)}>
+        <Button fullWidth onClick={signUp}>
           Continue with email + password
         </Button>
       </SimpleGrid>

@@ -3,6 +3,7 @@ import Head from 'next/head'
 import React from 'react'
 
 import { AppShell, Header, MantineProvider } from '@mantine/core'
+import { NotificationsProvider } from '@mantine/notifications'
 import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
@@ -39,23 +40,25 @@ function MyApp({ Component, pageProps }: AppProps) {
             colorScheme: 'light'
           }}
         >
-          <AppShell
-            padding="md"
-            navbar={<NavBar />}
-            header={
-              <Header height={60} p="xs">
-                {title}
-              </Header>
-            }
-            styles={(theme) => ({
-              main: {
-                backgroundColor:
-                  theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0]
+          <NotificationsProvider>
+            <AppShell
+              padding="md"
+              navbar={<NavBar />}
+              header={
+                <Header height={60} p="xs">
+                  {title}
+                </Header>
               }
-            })}
-          >
-            <Component {...pageProps} />
-          </AppShell>
+              styles={(theme) => ({
+                main: {
+                  backgroundColor:
+                    theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0]
+                }
+              })}
+            >
+              <Component {...pageProps} />
+            </AppShell>
+          </NotificationsProvider>
         </MantineProvider>
       </NhostApolloProvider>
     </NhostNextProvider>
