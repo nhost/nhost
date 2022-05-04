@@ -9,7 +9,7 @@ import {
   ParameterTableFragment,
   UnionOrIntersectionTypeFragment
 } from '../fragments'
-import { findNestedParametersByReferenceId } from '../helpers'
+import { findNestedParametersByReferenceId, mergeUrls } from '../helpers'
 import { appState } from '../state'
 import { Parameter, Signature } from '../types'
 
@@ -47,7 +47,11 @@ ${
 }
 ${deprecationTag ? 'sidebar_class_name: deprecated' : ''}
 ${sidebarConfig ? `displayed_sidebar: ${sidebarConfig}` : ''}
-${baseEditUrl && source ? `custom_edit_url: ${baseEditUrl}/${source.fileName}#L${source.line}` : ``}
+${
+  baseEditUrl && source
+    ? `custom_edit_url: ${mergeUrls(baseEditUrl, `${source.fileName}#L${source.line}`)}`
+    : ''
+}
 ---`.replace(/\n\n/gi, '\n')
 
   return format(

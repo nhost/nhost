@@ -55,5 +55,8 @@
     "axios": "^0.26.0",
     "js-cookie": "^3.0.1",
     "xstate": "^4.31.0"
+  },
+  "devDependencies": {
+    "@types/js-cookie": "^3.0.2"
   }
 }

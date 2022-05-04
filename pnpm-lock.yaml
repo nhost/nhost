@@ -310,6 +310,7 @@ importers:
 
   packages/core:
     specifiers:
+      '@types/js-cookie': ^3.0.2
       axios: ^0.26.0
       js-cookie: ^3.0.1
       xstate: ^4.31.0
@@ -317,6 +318,8 @@ importers:
       axios: 0.26.1
       js-cookie: 3.0.1
       xstate: 4.31.0
+    devDependencies:
+      '@types/js-cookie': 3.0.2
 
   packages/docgen:
     specifiers:
@@ -438,6 +441,7 @@ importers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@nhost/nhost-js': workspace:*
+      '@types/react': ^17.0.39
       '@xstate/react': ^2.0.1
       immer: ^9.0.12
       jwt-decode: ^3.1.2
@@ -446,12 +450,13 @@ importers:
     dependencies:
       '@nhost/core': link:../core
       '@nhost/nhost-js': link:../nhost-js
-      '@xstate/react': 2.0.1_react@17.0.2+xstate@4.31.0
+      '@xstate/react': 2.0.1_uhghpv3ltv5kyrzibfbgran55q
       immer: 9.0.12
       jwt-decode: 3.1.2
       xstate: 4.31.0
     devDependencies:
       '@nhost/docgen': link:../docgen
+      '@types/react': 17.0.44
       react: 17.0.2
 
   packages/react-apollo:
@@ -5007,6 +5012,10 @@ packages:
       pretty-format: 27.5.1
     dev: true
 
+  /@types/js-cookie/3.0.2:
+    resolution: {integrity: sha512-6+0ekgfusHftJNYpihfkMu8BWdeHs9EOJuGcSofErjstGPfPGEu9yTu4t460lTzzAMl2cM5zngQJqPMHbbnvYA==}
+    dev: true
+
   /@types/js-yaml/4.0.5:
     resolution: {integrity: sha512-FhpRzf927MNQdRZP0J5DLIdTXhjLYzeUTmLAu69mnVksLH9CJY3IuSeEgbKUki7GQZm0WqDkGzyxju2EZGD2wA==}
     dev: true
@@ -5537,7 +5546,7 @@ packages:
       xstate: 4.31.0
     dev: true
 
-  /@xstate/react/2.0.1_react@17.0.2+xstate@4.31.0:
+  /@xstate/react/2.0.1_uhghpv3ltv5kyrzibfbgran55q:
     resolution: {integrity: sha512-sT3hxyzNBw+bm7uT3BP+uXzN0MnRqiaj/U9Yl4OYaMAUJXWsRvSA/ipL7EDf0gVLRGrRhJTCsC0cjWaduAAqnw==}
     peerDependencies:
       '@xstate/fsm': ^1.6.5
@@ -5550,7 +5559,7 @@ packages:
         optional: true
     dependencies:
       react: 17.0.2
-      use-isomorphic-layout-effect: 1.1.2_react@17.0.2
+      use-isomorphic-layout-effect: 1.1.2_zdsfwtvwq54q3oqxwtq4jnbhh4
       use-subscription: 1.5.1_react@17.0.2
       xstate: 4.31.0
     transitivePeerDependencies:

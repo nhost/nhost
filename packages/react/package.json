@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
+    "@types/react": "^17.0.39",
     "react": "^17.0.2"
   },
   "peerDependencies": {
