@@ -31,7 +31,7 @@ export default defineConfig({
     outDir: 'umd',
     lib: {
       ...(baseLibConfig.build?.lib || {}),
-      fileName: pkg.name.replace(/\@nhost\//g, ''),
+      fileName: pkg.name.replace(/@nhost\//g, ''),
       formats: ['umd']
     },
     rollupOptions: {
