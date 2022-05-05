@@ -1,5 +1,18 @@
 # @nhost/apollo
 
+## 0.5.0
+
+### Minor Changes
+
+- 42edb74: Bump to Apollo client 3.6.2
+
+### Patch Changes
+
+- Updated dependencies [b56162a]
+- Updated dependencies [b56162a]
+- Updated dependencies [b56162a]
+  - @nhost/core@0.5.0
+
 ## 0.4.5
 
 ### Patch Changes

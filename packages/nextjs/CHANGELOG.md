@@ -1,5 +1,25 @@
 # @nhost/nextjs
 
+## 2.0.0
+
+### Minor Changes
+
+- 42edb74: Adapt to React 18
+
+### Patch Changes
+
+- b56162a: prefer clientStorage/clientStorageType to clientStorageGetter/clientStorageSetter
+- b56162a: Introduce 'custom' client storage type
+- b56162a: Introduce a new 'cookie' client storage type
+- 54e1873: Fix: add authentication headers to GraphQL operations when authenticated
+- Updated dependencies [b56162a]
+- Updated dependencies [1fb51a7]
+- Updated dependencies [185f39e]
+- Updated dependencies [42edb74]
+- Updated dependencies [54e1873]
+  - @nhost/nhost-js@1.1.7
+  - @nhost/react@0.7.0
+
 ## 1.1.1
 
 ### Patch Changes
