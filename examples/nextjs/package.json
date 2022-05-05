@@ -16,12 +16,8 @@
   },
   "dependencies": {
     "@apollo/client": "^3.5.10",
-    "@nhost/apollo": "workspace:*",
     "@nhost/core": "workspace:*",
-    "@nhost/hasura-auth-js": "workspace:*",
-    "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/nextjs": "workspace:*",
-    "@nhost/nhost-js": "workspace:*",
     "@nhost/react": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
     "graphql": "^16.3.0",

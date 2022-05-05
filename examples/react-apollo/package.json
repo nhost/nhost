@@ -4,7 +4,6 @@
   "private": true,
   "dependencies": {
     "@apollo/client": "^3.5.10",
-    "@nhost/core": "workspace:*",
     "@nhost/react": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
     "@rsuite/icons": "^1.0.2",

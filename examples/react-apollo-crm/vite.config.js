@@ -1,5 +1,4 @@
 import { defineConfig } from 'vite'
-import tsconfigPaths from 'vite-tsconfig-paths'
 
 import react from '@vitejs/plugin-react'
 
@@ -8,5 +7,5 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react/jsx-runtime']
   },
-  plugins: [tsconfigPaths(), react()]
+  plugins: [react()]
 })
