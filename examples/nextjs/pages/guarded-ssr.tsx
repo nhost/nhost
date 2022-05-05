@@ -1,7 +1,9 @@
 import { GetServerSideProps } from 'next'
 import React from 'react'
 
-import { getNhostSession, NhostSession, useAccessToken } from '@nhost/nextjs'
+import { Container, Title } from '@mantine/core'
+import { NhostSession } from '@nhost/core'
+import { getNhostSession, useAccessToken } from '@nhost/nextjs'
 
 import { authProtected } from '../components/protected-route'
 import { BACKEND_URL } from '../helpers'
@@ -18,10 +20,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 const RefetchPage: React.FC<{ initial: NhostSession }> = () => {
   const accessToken = useAccessToken()
   return (
-    <div>
-      <h1>SSR page only accessible to authenticated users</h1>
+    <Container>
+      <Title>Guarded Server-side Page</Title>
       <div>Access token: {accessToken}</div>
-    </div>
+    </Container>
   )
 }
 
