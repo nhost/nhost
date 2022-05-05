@@ -1,4 +1,5 @@
 import { NextPage } from 'next'
+import { useRouter } from 'next/router'
 import { useState } from 'react'
 
 import { Button, Divider, PasswordInput, SimpleGrid, TextInput } from '@mantine/core'
@@ -9,6 +10,7 @@ import AuthLink from '../../components/AuthLink'
 import SignInLayout from '../../layouts/SignInLayout'
 
 export const SignInPasswordPage: NextPage = () => {
+  const router = useRouter()
   const { signInEmailPassword } = useSignInEmailPassword()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -20,12 +22,14 @@ export const SignInPasswordPage: NextPage = () => {
         title: 'Error',
         message: result.error.message
       })
-    } else {
+    } else if (result.needsEmailVerification) {
       showNotification({
         color: 'red',
         title: 'Error',
         message: 'Email is not verified'
       })
+    } else {
+      router.replace('/')
     }
   }
   return (

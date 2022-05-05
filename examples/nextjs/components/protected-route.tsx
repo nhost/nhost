@@ -12,7 +12,7 @@ export function authProtected(Comp) {
     }
 
     if (!isAuthenticated) {
-      router.push('/sign-up')
+      router.push('/sign-in')
       return null
     }
 

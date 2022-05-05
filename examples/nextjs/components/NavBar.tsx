@@ -14,6 +14,8 @@ interface MenuItemProps {
 }
 
 const MenuItem: React.FC<MenuItemProps> = ({ icon, color, label, link, action }) => {
+  const { route } = useRouter()
+  const active = route === link
   const Button = (
     <UnstyledButton
       onClick={action}
@@ -22,7 +24,11 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, color, label, link, action })
         width: '100%',
         padding: theme.spacing.xs,
         borderRadius: theme.radius.sm,
-        color: theme.colorScheme === 'dark' ? theme.colors.dark[0] : theme.black,
+        color: active
+          ? theme.colors[theme.primaryColor][theme.colorScheme === 'dark' ? 4 : 7]
+          : theme.colorScheme === 'dark'
+          ? theme.colors.dark[0]
+          : theme.black,
 
         '&:hover': {
           backgroundColor:

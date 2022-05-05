@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import { useState } from 'react'
 
 import { Button, SimpleGrid, TextInput } from '@mantine/core'
@@ -5,6 +6,7 @@ import { showNotification } from '@mantine/notifications'
 import { useSignInEmailPasswordless } from '@nhost/nextjs'
 
 export const SignUpPasswordlessForm: React.FC = () => {
+  const router = useRouter()
   const { signInEmailPasswordless } = useSignInEmailPasswordless()
   const [email, setEmail] = useState('')
   const signIn = async () => {
@@ -15,6 +17,8 @@ export const SignUpPasswordlessForm: React.FC = () => {
         title: 'Error',
         message: result.error.message
       })
+    } else {
+      router.replace('/')
     }
   }
   return (

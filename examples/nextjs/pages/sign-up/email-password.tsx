@@ -1,4 +1,5 @@
 import { NextPage } from 'next'
+import { useRouter } from 'next/router'
 import { useMemo, useState } from 'react'
 
 import { Button, Divider, Modal, PasswordInput, SimpleGrid, TextInput } from '@mantine/core'
@@ -9,6 +10,7 @@ import AuthLink from '../../components/AuthLink'
 import SignUpLayout from '../../layouts/SignUpLayout'
 
 export const SignUpPasswordPage: NextPage = () => {
+  const router = useRouter()
   const { signUpEmailPassword } = useSignUpEmailPassword()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -26,9 +28,10 @@ export const SignUpPasswordPage: NextPage = () => {
         title: 'Error',
         message: result.error.message
       })
-    }
-    if (result.needsEmailVerification) {
+    } else if (result.needsEmailVerification) {
       setEmailVerificationToggle(true)
+    } else {
+      router.replace('/')
     }
   }
   return (
