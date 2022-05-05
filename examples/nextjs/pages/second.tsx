@@ -1,8 +1,13 @@
 import { GetServerSideProps } from 'next'
 import React from 'react'
 
-import { NhostSession } from '@nhost/core'
-import { getNhostSession, useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
+import {
+  getNhostSession,
+  NhostSession,
+  useAccessToken,
+  useAuthenticated,
+  useUserData
+} from '@nhost/nextjs'
 
 import { BACKEND_URL } from '../helpers'
 

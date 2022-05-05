@@ -131,7 +131,6 @@ importers:
     specifiers:
       '@apollo/client': ^3.5.10
       '@next/bundle-analyzer': ^12.1.5
-      '@nhost/core': workspace:*
       '@nhost/nextjs': workspace:*
       '@nhost/react': workspace:*
       '@nhost/react-apollo': workspace:*
@@ -149,7 +148,6 @@ importers:
       xstate: ^4.31.0
     dependencies:
       '@apollo/client': 3.6.2_graphql@15.7.2+react@17.0.2
-      '@nhost/core': link:../../packages/core
       '@nhost/nextjs': link:../../packages/nextjs
       '@nhost/react': link:../../packages/react
       '@nhost/react-apollo': link:../../packages/react-apollo

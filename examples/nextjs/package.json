@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@apollo/client": "^3.5.10",
-    "@nhost/core": "workspace:*",
     "@nhost/nextjs": "workspace:*",
     "@nhost/react": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
