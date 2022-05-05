@@ -10,7 +10,7 @@ const pkg = require('./package.json')
 const withTM = require('next-transpile-modules')(
   // * All references to workspace packages are transpiled
   Object.entries(pkg.dependencies)
-    .filter(([, version]) => version.startsWith('workspace:*'))
+    .filter(([, version]) => version.startsWith('workspace'))
     .map(([name]) => name)
 )
 
