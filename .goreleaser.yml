@@ -13,7 +13,7 @@ builds:
       - "arm64"
       - "amd64"
     ldflags:
-      - -s -w -X "github.com/nhost/cmd.Version={{.Version}}" -X "github.com/nhost/nhost.REPOSITORY={{.Env.GITHUB_REPOSITORY}}"
+      - -s -w -X "github.com/nhost/cli/cmd.Version={{.Version}}"
 archives:
   - name_template: '{{ .ProjectName }}-v{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
     replacements:
