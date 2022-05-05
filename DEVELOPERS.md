@@ -29,6 +29,10 @@ $ pnpm install
 
 ### Development
 
+Although package references are correctly updated on the fly for TypeScript, example projects won't
+see the changes because they are depending on the build output. To fix this, you can run packages
+in development mode.
+
 Running packages in development mode is as simple as:
 
 ```sh

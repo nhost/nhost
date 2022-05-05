@@ -27,6 +27,7 @@ module.exports = {
   },
   plugins: ['react', '@typescript-eslint', 'react-hooks', 'simple-import-sort'],
   rules: {
+    'react/prop-types': 'off',
     'no-use-before-define': 'off',
     'simple-import-sort/exports': 'error',
     'simple-import-sort/imports': [
