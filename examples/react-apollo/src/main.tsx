@@ -1,5 +1,5 @@
+import { createRoot } from 'react-dom/client'
 import React from 'react'
-import ReactDOM from 'react-dom'
 import { BrowserRouter } from 'react-router-dom'
 
 import { NhostClient, NhostReactProvider } from '@nhost/react'
@@ -11,7 +11,7 @@ import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
 import App from './App'
 
 const devTools = !!import.meta.env.VITE_DEBUG
-if (import.meta.env.VITE_DEBUG) {
+if (devTools) {
   inspect({
     url: 'https://stately.ai/viz?inspect',
     iframe: false
@@ -23,7 +23,10 @@ const nhost = new NhostClient({
   devTools
 })
 
-ReactDOM.render(
+const container = document.getElementById('root')
+const root = createRoot(container!)
+root.render(
+  // * See https://reactjs.org/blog/2022/03/08/react-18-upgrade-guide.html#updates-to-strict-mode
   <React.StrictMode>
     <BrowserRouter>
       <NhostReactProvider nhost={nhost}>
@@ -32,6 +35,5 @@ ReactDOM.render(
         </NhostApolloProvider>
       </NhostReactProvider>
     </BrowserRouter>
-  </React.StrictMode>,
-  document.getElementById('root')
+  </React.StrictMode>
 )

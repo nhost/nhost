@@ -21,8 +21,9 @@ import { Parameter, Signature } from '../types'
  * @returns Prettified type alias or interface page template
  */
 export const TypeTemplate = (parameter: Parameter, originalDocument?: Array<Signature>) => {
-  const { sidebarConfig } = snapshot(appState)
-  const { name, comment } = parameter
+  const { sidebarConfig, baseEditUrl } = snapshot(appState)
+  const { name, comment, sources } = parameter
+  const source = sources?.[0]
 
   const alias = comment?.tags?.find(({ tag }) => tag === 'alias')?.text.replace(/\n/g, '')
   const deprecationTag = comment?.tags?.find(({ tag }) => tag === 'deprecated')
@@ -46,6 +47,7 @@ ${
 }
 ${deprecationTag ? 'sidebar_class_name: deprecated' : ''}
 ${sidebarConfig ? `displayed_sidebar: ${sidebarConfig}` : ''}
+${baseEditUrl && source ? `custom_edit_url: ${baseEditUrl}/${source.fileName}#L${source.line}` : ``}
 ---`.replace(/\n\n/gi, '\n')
 
   return format(

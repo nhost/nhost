@@ -1,5 +1,6 @@
 import React from 'react'
 
+import { Container, Title } from '@mantine/core'
 import { useAccessToken } from '@nhost/nextjs'
 
 import { authProtected } from '../components/protected-route'
@@ -7,10 +8,10 @@ import { authProtected } from '../components/protected-route'
 const ClientSideAuthPage: React.FC = () => {
   const accessToken = useAccessToken()
   return (
-    <div>
-      <h1>Client-side rendered page only accessible to authenticated users</h1>
+    <Container>
+      <Title>Guarded Client-side Page</Title>
       <div>Access token: {accessToken}</div>
-    </div>
+    </Container>
   )
 }
 

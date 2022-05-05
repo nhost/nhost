@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Nhost React library",
   "license": "MIT",
   "keywords": [
@@ -51,7 +51,7 @@
   ],
   "dependencies": {
     "@nhost/nhost-js": "workspace:^",
-    "@xstate/react": "^2.0.1",
+    "@xstate/react": "^3.0.0",
     "immer": "^9.0.12",
     "jwt-decode": "^3.1.2"
   },
@@ -60,12 +60,12 @@
     "@nhost/docgen": "*",
     "@nhost/hasura-auth-js": "workspace:^",
     "@xstate/inspect": "^0.6.2",
-    "react": "^17.0.2",
+    "react": "^18.1.0",
     "ws": "^8.4.2",
     "xstate": "^4.31.0"
   },
   "peerDependencies": {
-    "react": "^17.0.0 || ^18.0.0",
-    "react-dom": "^17.0.0 || ^18.0.0"
+    "react": "^17.0.0 || ^18.1.0",
+    "react-dom": "^17.0.0 || ^18.1.0"
   }
 }

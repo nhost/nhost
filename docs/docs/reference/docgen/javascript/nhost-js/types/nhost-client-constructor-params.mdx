@@ -4,6 +4,7 @@ title: NhostClientConstructorParams
 sidebar_label: NhostClientConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/core/nhost-client.ts#L7
 ---
 
 # `NhostClientConstructorParams`
@@ -24,31 +25,37 @@ Time interval until token refreshes, in seconds
 
 ---
 
-**<span className="parameter-name deprecated">clientStorage</span>** <span className="optional-status">optional</span> `ClientStorage`
+**<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> `ClientStorageType`
+
+Define a way to get information about the refresh token and its exipration date.
+
+**`@default`**
+
+`web`
+
+---
+
+**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> `ClientStorage`
+
+Object where the refresh token will be persisted and read locally.
+
+---
+
+**<span className="parameter-name deprecated">clientStorageGetter</span>** <span className="optional-status">optional</span> `StorageGetter`
 
 :::caution Deprecated
-Use clientStorageGetter and clientStorageSetter options instead
+Use clientStorage / clientStorageType instead
 :::
 
 ---
 
-**<span className="parameter-name deprecated">clientStorageType</span>** <span className="optional-status">optional</span> `ClientStorageType`
+**<span className="parameter-name deprecated">clientStorageSetter</span>** <span className="optional-status">optional</span> `StorageSetter`
+
+Define a way to set information about the refresh token and its exipration date.
 
 :::caution Deprecated
-Use clientStorageGetter and clientStorageSetter options instead
+Use clientStorage / clientStorageType instead
 :::
-
----
-
-**<span className="parameter-name">clientStorageGetter</span>** <span className="optional-status">optional</span> `StorageGetter`
-
-Define a way to get information about the refresh token and its exipration date
-
----
-
-**<span className="parameter-name">clientStorageSetter</span>** <span className="optional-status">optional</span> `StorageSetter`
-
-Define a way to set information about the refresh token and its exipration date
 
 ---
 
@@ -58,17 +65,15 @@ When set to true, will automatically refresh token before it expires
 
 ---
 
-**<span className="parameter-name deprecated">autoLogin</span>** <span className="optional-status">optional</span> `boolean`
-
-:::caution Deprecated
-use autoSignIn instead
-:::
-
----
-
 **<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> `boolean`
 
 When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
+
+---
+
+**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
+
+Activate devTools e.g. the ability to connect to the xstate inspector
 
 ---
 
@@ -76,10 +81,10 @@ When set to true, will parse the url on startup to check if it contains a refres
 
 ---
 
-**<span className="parameter-name">Client</span>** <span className="optional-status">optional</span> `AuthClient`
+**<span className="parameter-name deprecated">autoLogin</span>** <span className="optional-status">optional</span> `boolean`
 
----
-
-**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
+:::caution Deprecated
+@alias autoSignIn - use autoSignIn instead
+:::
 
 ---

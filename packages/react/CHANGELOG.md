@@ -1,5 +1,30 @@
 # @nhost/react
 
+## 0.7.0
+
+### Minor Changes
+
+- 42edb74: Adapt to React 18
+
+### Patch Changes
+
+- b56162a: prefer clientStorage/clientStorageType to clientStorageGetter/clientStorageSetter
+- 1fb51a7: Rename user data hooks to make them all start with `userUser...`
+  The hooks that help to access user data were not consistently named.
+  The following hooks have been therefore renamed:
+
+  - `useAvatarUrl` -> `useUserAvatarUrl`
+  - `useDefaultRole` -> `useUserDefaultRole`
+  - `useDisplayName` -> `useUserDisplayName`
+  - `useEmail` -> `useUserEmail`
+  - `useIsAnonymous` -> `useUserIsAnonymous`
+
+  Their former names are still available for backwards compatibility, but are flagged as deprecated.
+
+- 54e1873: Fix: add authentication headers to GraphQL operations when authenticated
+- Updated dependencies [185f39e]
+  - @nhost/nhost-js@1.1.7
+
 ## 0.6.1
 
 ### Patch Changes

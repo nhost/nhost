@@ -1,5 +1,6 @@
 import {
   AuthClient,
+  AuthOptions,
   PasswordlessOptions,
   Provider,
   ProviderOptions,
@@ -10,27 +11,11 @@ import {
   User
 } from '@nhost/core'
 export type { AuthClient, Provider, StorageGetter, StorageSetter, User }
-export interface NhostAuthConstructorParams {
+export interface NhostAuthConstructorParams extends AuthOptions {
   url: string
-  /** Time interval until token refreshes, in seconds */
-  refreshIntervalTime?: number
-  /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
-  clientStorage?: ClientStorage
-  /** @deprecated Use clientStorageGetter and clientStorageSetter options instead */
-  clientStorageType?: ClientStorageType
-  /** Define a way to get information about the refresh token and its exipration date */
-  clientStorageGetter?: StorageGetter
-  /** Define a way to set information about the refresh token and its exipration date */
-  clientStorageSetter?: StorageSetter
-  /** When set to true, will automatically refresh token before it expires */
-  autoRefreshToken?: boolean
-  /** @deprecated use autoSignIn instead */
-  autoLogin?: boolean
-  /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */
-  autoSignIn?: boolean
   start?: boolean
-  Client?: typeof AuthClient
-  devTools?: boolean
+  /** @deprecated @alias autoSignIn - use autoSignIn instead */
+  autoLogin?: boolean
 }
 
 export interface Session {
@@ -128,38 +113,6 @@ export interface SignInReponse {
   providerUrl?: string
   provider?: string
 }
-
-export interface ClientStorage {
-  // custom
-  // localStorage
-  // AsyncStorage
-  // https://react-native-community.github.io/async-storage/docs/usage
-  setItem?: (_key: string, _value: string) => void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getItem?: (key: string) => any
-  removeItem?: (key: string) => void
-
-  // capacitor
-  set?: (options: { key: string; value: string }) => void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  get?: (options: { key: string }) => any
-  remove?: (options: { key: string }) => void
-
-  // expo-secure-storage
-  setItemAsync?: (key: string, value: string) => void
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  getItemAsync?: (key: string) => any
-  deleteItemAsync?: (key: string) => void
-}
-
-// supported client storage types
-export type ClientStorageType =
-  | 'capacitor'
-  | 'custom'
-  | 'expo-secure-storage'
-  | 'localStorage'
-  | 'react-native'
-  | 'web'
 
 export type AuthChangeEvent = 'SIGNED_IN' | 'SIGNED_OUT'
 

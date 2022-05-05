@@ -28,7 +28,7 @@ configuration:
     insert: insertUsers
     insert_one: insertUser
     select: users
-    select_aggregate: userAggregate
+    select_aggregate: usersAggregate
     select_by_pk: user
     update: updateUsers
     update_by_pk: updateUser

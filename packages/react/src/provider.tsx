@@ -6,13 +6,16 @@ import { NhostClient } from '@nhost/nhost-js'
 import { useInterpret } from '@xstate/react'
 
 export const NhostReactContext = createContext<NhostClient>({} as NhostClient)
+export interface NhostReactProviderProps {
+  nhost: NhostClient
+  initial?: NhostSession
+}
 
-export const NhostReactProvider: React.FC<
-  PropsWithChildren<{
-    nhost: NhostClient
-    initial?: NhostSession
-  }>
-> = ({ nhost, initial, ...props }) => {
+export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderProps>> = ({
+  nhost,
+  initial,
+  ...props
+}) => {
   const machine = nhost.auth.client.machine
   const interpreter = useInterpret(machine, {
     devTools: nhost.devTools,
@@ -24,7 +27,7 @@ export const NhostReactProvider: React.FC<
         ctx.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
       }
     })
-  })
+  }).start()
 
   // * Hook to send session update everytime the 'initial' props changed
   const isInitialMount = useRef(true)

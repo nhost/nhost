@@ -9,6 +9,7 @@ services:
   auth:
     version: 0.7.1
 auth:
+  log_level: debug
   access_control:
     email:
       allowed_email_domains: ''
@@ -97,15 +98,13 @@ auth:
       enabled: false
       scope: wl.basic,wl.emails,wl.contacts_emails
   sms:
-    enabled: false
     passwordless:
-      enabled: false
-    provider:
-      twilio:
-        account_sid: ''
-        auth_token: ''
-        from: ''
-        messaging_service_id: ''
+      enabled: true
+    provider: twilio
+    twilio:
+      account_sid: ''
+      auth_token: ''
+      messaging_service_id: ''
   smtp:
     host: nhost_mailhog
     method: ''

@@ -36,8 +36,7 @@ export class NhostClient {
     autoRefreshToken,
     autoSignIn,
     devTools,
-    start = true,
-    Client
+    start = true
   }: NhostClientConstructorParams) {
     if (!backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
     this.auth = new HasuraAuthClient({
@@ -49,9 +48,7 @@ export class NhostClient {
       clientStorageType,
       autoRefreshToken,
       autoSignIn,
-      start,
-      devTools,
-      Client
+      start
     })
 
     this.storage = new HasuraStorageClient({
@@ -88,7 +85,6 @@ export class NhostClient {
         this.graphql.setAccessToken(session?.accessToken)
       })
     })
-
     this.devTools = devTools
   }
 }
