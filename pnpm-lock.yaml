@@ -328,6 +328,7 @@ importers:
 
   packages/core:
     specifiers:
+      '@types/js-cookie': ^3.0.2
       axios: ^0.25.0
       js-cookie: ^3.0.1
       xstate: ^4.31.0
@@ -335,6 +336,8 @@ importers:
       axios: 0.25.0
       js-cookie: 3.0.1
       xstate: 4.31.0
+    devDependencies:
+      '@types/js-cookie': 3.0.2
 
   packages/docgen:
     specifiers:
@@ -6414,6 +6417,10 @@ packages:
     dependencies:
       jest-matcher-utils: 27.5.1
       pretty-format: 27.5.1
+    dev: true
+
+  /@types/js-cookie/3.0.2:
+    resolution: {integrity: sha512-6+0ekgfusHftJNYpihfkMu8BWdeHs9EOJuGcSofErjstGPfPGEu9yTu4t460lTzzAMl2cM5zngQJqPMHbbnvYA==}
     dev: true
 
   /@types/js-yaml/4.0.5:
