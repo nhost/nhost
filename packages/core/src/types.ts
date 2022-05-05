@@ -8,11 +8,25 @@ import { StorageGetter, StorageSetter } from './storage'
 export interface AuthOptions {
   /** Time interval until token refreshes, in seconds */
   refreshIntervalTime?: number
-  clientStorage?: ClientStorage
-  /** @default web */
-  clientStorageType?: ClientStorageType
   /**
    * Define a way to get information about the refresh token and its exipration date.
+   * @default web */
+  clientStorageType?: ClientStorageType
+  /** Object where the refresh token will be persisted and read locally.
+   *
+   * Recommended values:
+   * - `'web'` and `'cookies'`: no value is required
+   * - `'react-native'`: `import Storage from @react-native-async-storage/async-storage`
+   * - `'cookies'`: `localStorage`
+   * - `'custom'`: an object that defines the following methods:
+   *     - `setItem` or `setItemAsync`
+   *     - `getItem` or `getItemAsync`
+   *     - `removeItem`
+   * - `'capacitor``: `import { Storage } from @capacitor/storage`
+   * - `'expo-secure-store'`: `import * as SecureStore from 'expo-secure-store'`
+   */
+  clientStorage?: ClientStorage
+  /**
    * @deprecated Use clientStorage / clientStorageType instead */
   clientStorageGetter?: StorageGetter
   /**

@@ -29,6 +29,8 @@ const defaultClientStorageSetter: StorageSetter = (key, value) => {
   }
 }
 
+// TODO see https://github.com/nhost/nhost/pull/507#discussion_r865873389
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const checkStorageAccessors = (
   clientStorage: ClientStorage,
   accessors: Array<keyof ClientStorage>
@@ -44,84 +46,96 @@ export const localStorageGetter = (
   clientStorageType: ClientStorageType,
   clientStorage?: ClientStorage
 ): StorageGetter => {
-  if (clientStorage) {
-    if (clientStorageType === 'react-native') {
-      checkStorageAccessors(clientStorage, ['getItem'])
-      return (key) => clientStorage.getItem?.(key)
-    } else if (clientStorageType === 'capacitor') {
-      checkStorageAccessors(clientStorage, ['get'])
-      return (key) => clientStorage.get?.({ key })
-    } else if (clientStorageType === 'expo-secure-storage') {
-      checkStorageAccessors(clientStorage, ['getItemAsync'])
-      return (key) => clientStorage.getItemAsync?.(key)
-    } else if (clientStorageType === 'cookie') {
-      return (key) => {
-        if (isBrowser) {
-          return Cookies.get(key) ?? null
-        } else {
-          return null
-        }
-      }
-    } else if (clientStorageType === 'custom') {
-      if (clientStorage.getItem && clientStorage.removeItem) {
-        return clientStorage.getItem
-      } else if (clientStorage.getItemAsync) {
-        return clientStorage.getItemAsync
+  if (!clientStorage || clientStorageType === 'localStorage' || clientStorageType === 'web') {
+    return defaultClientStorageGetter
+  }
+
+  if (clientStorageType === 'react-native') {
+    // checkStorageAccessors(clientStorage, ['getItem'])
+    return (key) => clientStorage.getItem?.(key)
+  }
+  if (clientStorageType === 'capacitor') {
+    // checkStorageAccessors(clientStorage, ['get'])
+    return (key) => clientStorage.get?.({ key })
+  }
+  if (clientStorageType === 'expo-secure-storage') {
+    // checkStorageAccessors(clientStorage, ['getItemAsync'])
+    return (key) => clientStorage.getItemAsync?.(key)
+  }
+  if (clientStorageType === 'cookie') {
+    return (key) => {
+      if (isBrowser) {
+        return Cookies.get(key) ?? null
       } else {
-        console.warn(
-          `clientStorageType is set to 'custom' but clientStorage is missing getItem or getItemAsync property`
-        )
+        return null
       }
     }
   }
-  return defaultClientStorageGetter
+  if (clientStorageType === 'custom') {
+    if (clientStorage.getItem && clientStorage.removeItem) {
+      return clientStorage.getItem
+    }
+    if (clientStorage.getItemAsync) {
+      return clientStorage.getItemAsync
+    }
+    throw Error(
+      `clientStorageType is set to 'custom' but clientStorage is missing getItem or getItemAsync property`
+    )
+  }
+  throw Error(`Unknown storage type: ${clientStorageType}`)
 }
 
 export const localStorageSetter = (
   clientStorageType: ClientStorageType,
   clientStorage?: ClientStorage
 ): StorageSetter => {
-  if (clientStorage) {
-    if (clientStorageType === 'react-native') {
-      checkStorageAccessors(clientStorage, ['setItem', 'removeItem'])
-      return (key, value) =>
-        value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
-    } else if (clientStorageType === 'capacitor') {
-      checkStorageAccessors(clientStorage, ['set', 'remove'])
-      return (key, value) =>
-        value ? clientStorage.set?.({ key, value }) : clientStorage.remove?.({ key })
-    } else if (clientStorageType === 'expo-secure-storage') {
-      checkStorageAccessors(clientStorage, ['setItemAsync', 'deleteItemAsync'])
-      return async (key, value) =>
-        value ? clientStorage.setItemAsync?.(key, value) : clientStorage.deleteItemAsync?.(key)
-    } else if (clientStorageType === 'cookie') {
-      return (key, value) => {
-        if (isBrowser) {
-          if (value) {
-            Cookies.set(key, value)
-          } else {
-            Cookies.remove(key)
-          }
+  if (!clientStorage || clientStorageType === 'localStorage' || clientStorageType === 'web') {
+    return defaultClientStorageSetter
+  }
+
+  if (clientStorageType === 'react-native') {
+    // checkStorageAccessors(clientStorage, ['setItem', 'removeItem'])
+    return (key, value) =>
+      value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
+  }
+  if (clientStorageType === 'capacitor') {
+    // checkStorageAccessors(clientStorage, ['set', 'remove'])
+    return (key, value) =>
+      value ? clientStorage.set?.({ key, value }) : clientStorage.remove?.({ key })
+  }
+  if (clientStorageType === 'expo-secure-storage') {
+    // checkStorageAccessors(clientStorage, ['setItemAsync', 'deleteItemAsync'])
+    return async (key, value) =>
+      value ? clientStorage.setItemAsync?.(key, value) : clientStorage.deleteItemAsync?.(key)
+  }
+  if (clientStorageType === 'cookie') {
+    return (key, value) => {
+      if (isBrowser) {
+        if (value) {
+          Cookies.set(key, value)
+        } else {
+          Cookies.remove(key)
         }
-      }
-    } else if (clientStorageType === 'custom') {
-      if (!clientStorage.removeItem) {
-        console.warn(
-          `clientStorageType is set to 'custom' but clientStorage is missing a removeItem property`
-        )
-      }
-      if (clientStorage.setItem) {
-        return (key, value) =>
-          value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
-      } else if (clientStorage.setItemAsync) {
-        return async (key, value) =>
-          value ? clientStorage.setItemAsync?.(key, value) : clientStorage.removeItem?.(key)
-      } else {
-        console.warn(
-          `clientStorageType is set to 'custom' but clientStorage is missing setItem or setItemAsync property`
-        )
       }
     }
   }
-  return defaultClientStorageSetter
+  if (clientStorageType === 'custom') {
+    if (!clientStorage.removeItem) {
+      throw Error(
+        `clientStorageType is set to 'custom' but clientStorage is missing a removeItem property`
+      )
+    }
+    if (clientStorage.setItem) {
+      return (key, value) =>
+        value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
+    }
+    if (clientStorage.setItemAsync) {
+      return async (key, value) =>
+        value ? clientStorage.setItemAsync?.(key, value) : clientStorage.removeItem?.(key)
+    }
+    throw Error(
+      `clientStorageType is set to 'custom' but clientStorage is missing setItem or setItemAsync property`
+    )
+  }
+  throw Error(`Unknown storage type: ${clientStorageType}`)
 }

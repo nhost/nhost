@@ -53,23 +53,25 @@ Use clientStorage / clientStorageType instead
 
 **<span className="parameter-name deprecated">clientStorageGetter</span>** <span className="optional-status">optional</span> [`StorageGetter`](/reference/docgen/javascript/auth/types/storage-getter)
 
-Define a way to get information about the refresh token and its exipration date.
-
 :::caution Deprecated
 Use clientStorage / clientStorageType instead
 :::
 
 ---
 
+**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> `ClientStorage`
+
+Object where the refresh token will be persisted and read locally.
+
+---
+
 **<span className="parameter-name">clientStorageType</span>** <span className="optional-status">optional</span> `ClientStorageType`
+
+Define a way to get information about the refresh token and its exipration date.
 
 **`@default`**
 
 `web`
-
----
-
-**<span className="parameter-name">clientStorage</span>** <span className="optional-status">optional</span> `ClientStorage`
 
 ---
 
