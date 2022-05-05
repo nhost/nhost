@@ -324,7 +324,6 @@ importers:
   packages/docgen:
     specifiers:
       '@swc/core': ^1.2.163
-      '@trivago/prettier-plugin-sort-imports': ^3.2.0
       '@types/jest': ^27.4.1
       '@types/node': ^17.0.31
       '@types/prettier': ^2.6.0
@@ -347,7 +346,6 @@ importers:
       valtio: 1.6.0
     devDependencies:
       '@swc/core': 1.2.171
-      '@trivago/prettier-plugin-sort-imports': 3.2.0_prettier@2.6.2
       '@types/jest': 27.4.1
       '@types/node': 17.0.31
       '@types/prettier': 2.6.0

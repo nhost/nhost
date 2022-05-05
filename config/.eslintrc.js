@@ -29,7 +29,6 @@ module.exports = {
   rules: {
     'no-use-before-define': 'off',
     'simple-import-sort/exports': 'error',
-
     'simple-import-sort/imports': [
       'error',
       {
