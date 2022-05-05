@@ -50,7 +50,7 @@
     "dist"
   ],
   "peerDependencies": {
-    "@apollo/client": "^3.5.8"
+    "@apollo/client": "^3.6.2"
   },
   "dependencies": {
     "@nhost/core": "workspace:^",
@@ -58,7 +58,7 @@
     "graphql-ws": "^5.7.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.5.8",
+    "@apollo/client": "^3.6.2",
     "@nhost/nhost-js": "workspace:^",
     "xstate": "^4.31.0"
   }
