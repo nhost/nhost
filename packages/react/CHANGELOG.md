@@ -22,7 +22,6 @@
   Their former names are still available for backwards compatibility, but are flagged as deprecated.
 
 - 54e1873: Fix: add authentication headers to GraphQL operations when authenticated
-- Updated dependencies [b56162a]
 - Updated dependencies [185f39e]
   - @nhost/nhost-js@1.1.7
 

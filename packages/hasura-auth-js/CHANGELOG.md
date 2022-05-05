@@ -8,8 +8,6 @@
 - 185f39e: Don't take previous errors into account when using SMS and deanonymisation
   When using the SMS and anonymous signing methods of the Nhost client, the action failed with the client's previous error.
 - Updated dependencies [b56162a]
-- Updated dependencies [b56162a]
-- Updated dependencies [b56162a]
   - @nhost/core@0.5.0
 
 ## 1.1.1

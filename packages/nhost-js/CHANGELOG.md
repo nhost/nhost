@@ -7,7 +7,6 @@
 - b56162a: prefer clientStorage/clientStorageType to clientStorageGetter/clientStorageSetter
 - 185f39e: Don't take previous errors into account when using SMS and deanonymisation
   When using the SMS and anonymous signing methods of the Nhost client, the action failed with the client's previous error.
-- Updated dependencies [b56162a]
 - Updated dependencies [185f39e]
   - @nhost/hasura-auth-js@1.1.2
 

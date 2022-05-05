@@ -9,8 +9,6 @@
 ### Patch Changes
 
 - Updated dependencies [b56162a]
-- Updated dependencies [b56162a]
-- Updated dependencies [b56162a]
   - @nhost/core@0.5.0
 
 ## 0.4.5

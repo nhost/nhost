@@ -10,10 +10,6 @@
 ### Patch Changes
 
 - 54e1873: Fix: add authentication headers to GraphQL operations when authenticated
-- Updated dependencies [b56162a]
-- Updated dependencies [1fb51a7]
-- Updated dependencies [42edb74]
-- Updated dependencies [54e1873]
 - Updated dependencies [42edb74]
   - @nhost/react@0.7.0
   - @nhost/apollo@0.5.0
