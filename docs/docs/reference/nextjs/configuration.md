@@ -38,17 +38,12 @@ import type { AppProps } from 'next/app';
 
 import { NhostClient, NhostNextProvider } from '@nhost/nextjs';
 
-import Header from '../components/Header';
-
 const nhost = new NhostClient({ backendUrl: 'my-app.nhost.run' });
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
-      <div>
-        <Header />
-        <Component {...pageProps} />
-      </div>
+      <Component {...pageProps} />
     </NhostNextProvider>
   );
 }
