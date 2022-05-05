@@ -99,8 +99,7 @@ export function useChangeEmail(a?: string | ChangeEmailOptions, b?: ChangeEmailO
     valueOptions = stateOptions
   ) =>
     new Promise<ChangeEmailHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         options: valueOptions
       })
@@ -187,8 +186,7 @@ export const useChangePassword: ChangePasswordHook = (statePassword?: string) =>
 
   const changePassword: ChangePasswordHandler = (valuePassword?: string | unknown) =>
     new Promise<ChangePasswordHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         password: typeof valuePassword === 'string' ? valuePassword : statePassword
       })
       service.onTransition((state) => {
@@ -274,8 +272,7 @@ export const useResetPassword: ResetPasswordHook = (
     valueOptions = stateOptions
   ) =>
     new Promise<ResetPasswordHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         options: valueOptions
       })
@@ -600,8 +597,7 @@ export const useSendVerificationEmail: SendVerificationEmailHook = (
     valueOptions = stateOptions
   ) =>
     new Promise<SendVerificationEmailHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         options: valueOptions
       })
@@ -683,8 +679,7 @@ export const useConfigMfa: ConfigMfaHook = () => {
     })
   const activateMfa: ActivateMfaHandler = (code: string) =>
     new Promise<ActivateMfaHandlerResult>((resolve) => {
-      send({
-        type: 'ACTIVATE',
+      send('ACTIVATE', {
         activeMfaType: 'totp',
         code
       })

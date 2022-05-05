@@ -37,8 +37,7 @@ export const useChangePassword = (): ChangePasswordComposableResult => {
 
   const changePassword = (password: RefOrValue<string>) =>
     new Promise<ChangePasswordHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         password: unref(password)
       })
       service.onTransition((state) => {

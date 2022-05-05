@@ -122,8 +122,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     valuePassword?: string
   ) =>
     new Promise<SignInEmailPasswordHandlerResult>((resolve) => {
-      service.send({
-        type: 'SIGNIN_PASSWORD',
+      service.send('SIGNIN_PASSWORD', {
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         password: typeof valuePassword === 'string' ? valuePassword : statePassword
       })
@@ -173,8 +172,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     })
 
   const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) => {
-    service.send({
-      type: 'SIGNIN_MFA_TOTP',
+    service.send('SIGNIN_MFA_TOTP', {
       otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
     })
   }
@@ -306,8 +304,7 @@ export function useSignInEmailPasswordless(
     valueOptions = stateOptions
   ) =>
     new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
-      service.send({
-        type: 'SIGNIN_PASSWORDLESS_EMAIL',
+      service.send('SIGNIN_PASSWORDLESS_EMAIL', {
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         options: valueOptions
       })

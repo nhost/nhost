@@ -42,8 +42,7 @@ export const useSendVerificationEmail = (
 
   const sendEmail = (email: RefOrValue<string>) =>
     new Promise<SendVerificationEmailHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         email: unref(email),
         options: unref(options)
       })

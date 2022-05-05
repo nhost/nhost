@@ -62,8 +62,7 @@ export const useSignUpEmailPassword = (
   const user = useUserData()
   const signUpEmailPassword = (email: RefOrValue<string>, password: RefOrValue<string>) =>
     new Promise<SignUpEmailPasswordHandlerResult>((resolve) => {
-      service.value.send({
-        type: 'SIGNUP_EMAIL_PASSWORD',
+      service.value.send('SIGNUP_EMAIL_PASSWORD', {
         email: unref(email),
         password: unref(password),
         options: unref(options)

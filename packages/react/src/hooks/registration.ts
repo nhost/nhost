@@ -130,8 +130,7 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
     valueOptions = stateOptions
   ) =>
     new Promise<SignUpEmailPasswordHandlerResult>((resolve) => {
-      service.send({
-        type: 'SIGNUP_EMAIL_PASSWORD',
+      service.send('SIGNUP_EMAIL_PASSWORD', {
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         password: valuePassword,
         options: valueOptions

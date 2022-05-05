@@ -31,7 +31,7 @@ export const NhostReactProvider: React.FC<{
       isInitialMount.current = false
     } else {
       if (initial) {
-        interpreter.send({ type: 'SESSION_UPDATE', data: { session: initial } })
+        interpreter.send('SESSION_UPDATE', { data: { session: initial } })
       }
     }
   }, [initial, interpreter])

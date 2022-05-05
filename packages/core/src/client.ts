@@ -56,7 +56,7 @@ export class AuthClient {
         this._channel.addEventListener('message', (token) => {
           const existingToken = this.interpreter?.state.context.refreshToken.value
           if (this.interpreter && token.data !== existingToken) {
-            this.interpreter.send({ type: 'TRY_TOKEN', token: token.data })
+            this.interpreter.send('TRY_TOKEN', { token: token.data })
           }
         })
       } catch (error) {

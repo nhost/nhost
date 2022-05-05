@@ -16,7 +16,7 @@ export const useSignOut = () => {
   ) =>
     new Promise<{ isSuccess: boolean }>((resolve) => {
       const allValue = typeof unref(all) === 'boolean' ? unref(all) : false
-      service.value.send({ type: 'SIGNOUT', all: allValue })
+      service.value.send('SIGNOUT', { all: allValue })
       service.value.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) {
           resolve({ isSuccess: true })

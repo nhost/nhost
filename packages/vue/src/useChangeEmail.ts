@@ -41,8 +41,7 @@ export const useChangeEmail = (
 
   const changeEmail = (email) =>
     new Promise<ChangeEmailHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         email: unref(email),
         options: unref(options)
       })

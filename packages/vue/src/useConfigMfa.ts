@@ -78,8 +78,7 @@ export const useConfigMfa = (): ConfigMfaComposableState => {
     })
   const activateMfa = (code: RefOrValue<string>) =>
     new Promise<ActivateMfaHandlerResult>((resolve) => {
-      send({
-        type: 'ACTIVATE',
+      send('ACTIVATE', {
         activeMfaType: 'totp',
         code: unref(code)
       })

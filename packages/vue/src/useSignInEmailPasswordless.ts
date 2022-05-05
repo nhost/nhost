@@ -30,8 +30,7 @@ export const useSignInEmailPasswordless = (
   const service = useAuthInterpreter()
   const signInEmailPasswordless = (email: RefOrValue<string>) =>
     new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
-      service.value.send({
-        type: 'SIGNIN_PASSWORDLESS_EMAIL',
+      service.value.send('SIGNIN_PASSWORDLESS_EMAIL', {
         email: unref(email),
         options: unref(options)
       })

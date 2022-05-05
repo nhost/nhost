@@ -48,8 +48,7 @@ export const useResetPassword = (
 
   const resetPassword = (email: RefOrValue<string>) =>
     new Promise<ResetPasswordHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
+      send('REQUEST', {
         email: unref(email),
         options: unref(options)
       })

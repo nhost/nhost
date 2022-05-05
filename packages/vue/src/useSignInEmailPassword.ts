@@ -32,8 +32,7 @@ export const useSignInEmailPassword = (): SignInEmailPasswordComposableResult =>
   const service = useAuthInterpreter()
   const signInEmailPassword = (email: RefOrValue<string>, password: RefOrValue<string>) =>
     new Promise<SignInEmailPasswordHandlerResult>((resolve) => {
-      service.value.send({
-        type: 'SIGNIN_PASSWORD',
+      service.value.send('SIGNIN_PASSWORD', {
         email: unref(email),
         password: unref(password)
       })
@@ -82,8 +81,7 @@ export const useSignInEmailPassword = (): SignInEmailPasswordComposableResult =>
       })
     })
   const sendMfaOtp = (otp: RefOrValue<string>) => {
-    service.value.send({
-      type: 'SIGNIN_MFA_TOTP',
+    service.value.send('SIGNIN_MFA_TOTP', {
       otp: unref(otp)
     })
   }

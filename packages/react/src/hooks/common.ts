@@ -155,7 +155,7 @@ export const useSignOut = (stateAll: boolean = false) => {
   const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>
     new Promise<{ isSuccess: boolean }>((resolve) => {
-      service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
+      service.send('SIGNOUT', { all: typeof valueAll === 'boolean' ? valueAll : stateAll })
       service.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) {
           resolve({ isSuccess: true })
