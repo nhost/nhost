@@ -7,8 +7,9 @@ services:
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    version: 0.4.2
+    version: 0.7.1
 auth:
+  log_level: debug
   access_control:
     email:
       allowed_email_domains: ''
@@ -97,15 +98,13 @@ auth:
       enabled: false
       scope: wl.basic,wl.emails,wl.contacts_emails
   sms:
-    enabled: false
     passwordless:
-      enabled: false
-    provider:
-      twilio:
-        account_sid: ''
-        auth_token: ''
-        from: ''
-        messaging_service_id: ''
+      enabled: true
+    provider: twilio
+    twilio:
+      account_sid: 'AC08a866a602f1802b297a0f9a929b62b3'
+      auth_token: '1bcdc7d0e41183432e9514dace31875b'
+      messaging_service_id: 'MG24c8bc78417d558965aa4ffc242f4bfa'
   smtp:
     host: nhost_mailhog
     method: ''
