@@ -102,9 +102,9 @@ auth:
       enabled: true
     provider: twilio
     twilio:
-      account_sid: 'AC08a866a602f1802b297a0f9a929b62b3'
-      auth_token: '1bcdc7d0e41183432e9514dace31875b'
-      messaging_service_id: 'MG24c8bc78417d558965aa4ffc242f4bfa'
+      account_sid: ''
+      auth_token: ''
+      messaging_service_id: ''
   smtp:
     host: nhost_mailhog
     method: ''
