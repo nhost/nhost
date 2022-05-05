@@ -27,7 +27,7 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
         ctx.accessToken.expiresAt = new Date(Date.now() + initial.accessTokenExpiresIn * 1_000)
       }
     })
-  })
+  }).start()
 
   // * Hook to send session update everytime the 'initial' props changed
   const isInitialMount = useRef(true)

@@ -52,20 +52,22 @@
     "@nhost/apollo": "workspace:^"
   },
   "peerDependencies": {
-    "@apollo/client": "^3.5.8",
+    "@apollo/client": "^3.6.2",
     "@nhost/react": "workspace:^",
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.5.8",
+    "@apollo/client": "^3.6.2",
     "@nhost/core": "workspace:^",
     "@nhost/react": "workspace:^",
-    "@types/react": "^17.0.39",
+    "@types/react": "^18.0.8",
     "@types/ws": "^8.2.2",
     "graphql": "16",
-    "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react": "^18.1.0",
+    "react-dom": "^18.1.0",
+    "ws": "^8.6.0",
+    "xstate": "^4.31.0"
   }
 }
