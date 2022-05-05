@@ -1,5 +1,5 @@
 import produce from 'immer'
-import React, { createContext, useEffect, useRef } from 'react'
+import React, { createContext, PropsWithChildren, useEffect, useRef } from 'react'
 
 import { AuthContext, NhostSession } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
@@ -7,10 +7,12 @@ import { useInterpret } from '@xstate/react'
 
 export const NhostReactContext = createContext<NhostClient>({} as NhostClient)
 
-export const NhostReactProvider: React.FC<{
-  nhost: NhostClient
-  initial?: NhostSession
-}> = ({ nhost, initial, ...props }) => {
+export const NhostReactProvider: React.FC<
+  PropsWithChildren<{
+    nhost: NhostClient
+    initial?: NhostSession
+  }>
+> = ({ nhost, initial, ...props }) => {
   const machine = nhost.auth.client.machine
   const interpreter = useInterpret(machine, {
     devTools: nhost.devTools,
