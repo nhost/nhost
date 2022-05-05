@@ -12,16 +12,16 @@ Nhost provides a ready-to-use authentication service, integrated with Nhost Java
 Sign up a user with the [Nhost JavaScript SDK](/reference/javascript):
 
 ```js
-import { NhostClient } from '@nhost/nhost-js';
+import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://[app-subdomain].nhost.run',
-});
+  backendUrl: 'https://[app-subdomain].nhost.run'
+})
 
 await nhost.auth.signUp({
   email: 'joe@nhost.io',
-  password: 'secret-password',
-});
+  password: 'secret-password'
+})
 ```
 
 ## How it works

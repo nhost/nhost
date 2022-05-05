@@ -30,15 +30,15 @@ yarn add @nhost/react @nhost/react-apollo @apollo/client graphql
 Let's add a `NhostApolloProvider`. Make sure the Apollo Provider is nested into `NhostReactProvider`, as it will need the Nhost context to determine the authentication headers to be sent to the GraphQL endpoint.
 
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
-import { NhostApolloProvider } from '@nhost/react-apollo';
-import { NhostClient, NhostReactProvider } from '@nhost/react';
+import React from 'react'
+import ReactDOM from 'react-dom'
+import App from './App'
+import { NhostApolloProvider } from '@nhost/react-apollo'
+import { NhostClient, NhostReactProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
-  backendUrl: 'http://localhost:1337',
-});
+  backendUrl: 'http://localhost:1337'
+})
 
 ReactDOM.render(
   <React.StrictMode>
@@ -48,8 +48,8 @@ ReactDOM.render(
       </NhostApolloProvider>
     </NhostReactProvider>
   </React.StrictMode>,
-  document.getElementById('root'),
-);
+  document.getElementById('root')
+)
 ```
 
 ## Usage
@@ -59,8 +59,8 @@ All the [Apollo hooks](https://www.apollographql.com/docs/react/api/react/hooks/
 As an example:
 
 ```jsx
-import { gql, useQuery } from '@apollo/client';
-import { useAuthenticated } from '@nhost/react';
+import { gql, useQuery } from '@apollo/client'
+import { useAuthenticated } from '@nhost/react'
 
 const GET_BOOKS = gql`
   query Books {
@@ -69,22 +69,22 @@ const GET_BOOKS = gql`
       name
     }
   }
-`;
+`
 
 export const BooksQuery = () => {
-  const isAuthenticated = useAuthenticated();
-  const { loading, data, error } = useQuery(GET_BOOKS);
+  const isAuthenticated = useAuthenticated()
+  const { loading, data, error } = useQuery(GET_BOOKS)
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   if (!isAuthenticated) {
-    return <div>You must be authenticated to see this page</div>;
+    return <div>You must be authenticated to see this page</div>
   }
 
   if (error) {
-    return <div>Error in the query {error.message}</div>;
+    return <div>Error in the query {error.message}</div>
   }
 
   return (
@@ -95,8 +95,8 @@ export const BooksQuery = () => {
         ))}
       </ul>
     </div>
-  );
-};
+  )
+}
 ```
 
 ## Hooks

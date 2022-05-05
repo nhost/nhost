@@ -14,8 +14,7 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hoo
 Change email hook
 
 ```js
-const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-  useChangeEmail()
+const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail()
 ```
 
 ### Parameters
@@ -29,8 +28,7 @@ const { changeEmail, isLoading, needsEmailVerification, isError, error } =
 ### Examples
 
 ```js
-const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-  useChangeEmail()
+const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail()
 ```
 
 ```jsx
@@ -39,8 +37,7 @@ import { useChangeEmail } from '@nhost/react'
 
 const Component = () => {
   const [email, setEmail] = useState('')
-  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-    useChangeEmail()
+  const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail()
 
   return (
     <div>
@@ -49,8 +46,7 @@ const Component = () => {
 
       {needsEmailVerification && (
         <div>
-          Please check your mailbox and follow the verification link to confirm
-          your new email
+          Please check your mailbox and follow the verification link to confirm your new email
         </div>
       )}
     </div>

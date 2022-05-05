@@ -135,13 +135,7 @@ GraphQL mutation to insert data looks like this:
 ```graphql
 mutation InsertTodo {
   insert_todos(
-    objects: [
-      {
-        title: "Delete Firebase account"
-        body: "Migrate to nhost.io"
-        done: false
-      }
-    ]
+    objects: [{ title: "Delete Firebase account", body: "Migrate to nhost.io", done: false }]
   ) {
     returning {
       id
@@ -178,11 +172,7 @@ Multiple rows can be inserted with an array as the objects property. This can be
 mutation InsertMultipleTodos {
   insert_todos(
     objects: [
-      {
-        title: "Build the front end"
-        body: "Mobile app or website first?"
-        done: false
-      }
+      { title: "Build the front end", body: "Mobile app or website first?", done: false }
       { title: "Launch 🚀", body: "That was easy", done: false }
     ]
   ) {

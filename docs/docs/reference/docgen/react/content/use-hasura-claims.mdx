@@ -21,8 +21,7 @@ const Component = () => {
   const hasuraClaims = useHasuraClaims()
   return (
     <div>
-      JWT claims in the `https://hasura.io/jwt/claims` namespace:{' '}
-      {JSON.stringify(hasuraClaims)}
+      JWT claims in the `https://hasura.io/jwt/claims` namespace: {JSON.stringify(hasuraClaims)}
     </div>
   )
 }

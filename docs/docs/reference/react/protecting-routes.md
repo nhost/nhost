@@ -14,25 +14,25 @@ You can protect routes by creating a wrapper component (`ProtectedRoute`) to imp
 ```jsx
 // src/components/ProtectedRoute.js
 
-import { useAuthenticationStatus } from '@nhost/react';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuthenticationStatus } from '@nhost/react'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 function ProtectedRoute() {
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
-  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuthenticationStatus()
+  const location = useLocation()
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" />
   }
 
-  return <Outlet />;
+  return <Outlet />
 }
 
-export default ProtectedRoute;
+export default ProtectedRoute
 ```
 
 So, if the user is not authenticated, we redirect him to the `/login` route using the [`Navigate`](https://reactrouter.com/docs/en/v6/api#navigate) component of React Router. Otherwise, we render the [`Outlet`](https://reactrouter.com/docs/en/v6/api#outlet) component, also provided by React Router, to render the `ProtectedRoute` child route elements.
@@ -42,15 +42,15 @@ Then, you can use a [layout route](https://reactrouter.com/docs/en/v6/getting-st
 ```jsx
 // src/App.js
 
-import { NhostReactProvider } from '@nhost/react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { NhostReactProvider } from '@nhost/react'
+import { BrowserRouter, Route, Routes } from 'react-router-dom'
 
-import ProtectedRoute from './components/ProtectedRoute';
-import { nhost } from './lib/nhost';
-import Dashboard from './pages/Dashboard';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Profile from './pages/Profile';
+import ProtectedRoute from './components/ProtectedRoute'
+import { nhost } from './lib/nhost'
+import Dashboard from './pages/Dashboard'
+import Home from './pages/Home'
+import Login from './pages/Login'
+import Profile from './pages/Profile'
 
 export function App() {
   return (
@@ -66,6 +66,6 @@ export function App() {
         </Routes>
       </BrowserRouter>
     </NhostReactProvider>
-  );
+  )
 }
 ```

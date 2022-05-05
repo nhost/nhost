@@ -10,8 +10,5 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/core/src/stor
 # `StorageSetter`
 
 ```ts
-type StorageSetter = () => (
-  key: string,
-  value: string | null
-) => void | Promise<void>
+type StorageSetter = () => (key: string, value: string | null) => void | Promise<void>
 ```

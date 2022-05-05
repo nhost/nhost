@@ -34,13 +34,13 @@ Under the hood, `NhostClient` uses cookies to store the refresh token, and disab
 
 ```jsx
 // {project-root}/pages/_app.tsx
-import type { AppProps } from 'next/app';
+import type { AppProps } from 'next/app'
 
-import { NhostClient, NhostNextProvider } from '@nhost/nextjs';
+import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 
-import Header from '../components/Header';
+import Header from '../components/Header'
 
-const nhost = new NhostClient({ backendUrl: 'my-app.nhost.run' });
+const nhost = new NhostClient({ backendUrl: 'my-app.nhost.run' })
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -50,10 +50,10 @@ function MyApp({ Component, pageProps }: AppProps) {
         <Component {...pageProps} />
       </div>
     </NhostNextProvider>
-  );
+  )
 }
 
-export default MyApp;
+export default MyApp
 ```
 
 ---
@@ -64,18 +64,18 @@ The logic is the same as in a classic React application:
 
 ```jsx
 // {project-root}/pages/csr-page.tsx
-import { NextPageContext } from 'next';
-import React from 'react';
+import { NextPageContext } from 'next'
+import React from 'react'
 
-import { useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs';
+import { useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
 
 const ClientSidePage: React.FC = () => {
-  const isAuthenticated = useAuthenticated();
-  const user = useUserData();
-  const accessToken = useAccessToken();
+  const isAuthenticated = useAuthenticated()
+  const user = useUserData()
+  const accessToken = useAccessToken()
 
   if (!isAuthenticated) {
-    return <div>User it not authenticated</div>;
+    return <div>User it not authenticated</div>
   }
 
   return (
@@ -83,10 +83,10 @@ const ClientSidePage: React.FC = () => {
       <h1>{user?.displayName} is authenticated</h1>
       <div>Access token: {accessToken}</div>
     </div>
-  );
-};
+  )
+}
 
-export default ClientSidePage;
+export default ClientSidePage
 ```
 
 ---
@@ -97,34 +97,34 @@ You need to load the session from the server first from `getServerSideProps`. On
 
 ```jsx
 // {project-root}/pages/ssr-page.tsx
-import { NextPageContext } from 'next';
-import React from 'react';
+import { NextPageContext } from 'next'
+import React from 'react'
 
 import {
   getNhostSession,
   NhostSession,
   useAccessToken,
   useAuthenticated,
-  useUserData,
-} from '@nhost/nextjs';
+  useUserData
+} from '@nhost/nextjs'
 
 export async function getServerSideProps(context: NextPageContext) {
-  const nhostSession = await getNhostSession('my-app.nhost.run', context);
+  const nhostSession = await getNhostSession('my-app.nhost.run', context)
 
   return {
     props: {
-      nhostSession,
-    },
-  };
+      nhostSession
+    }
+  }
 }
 
 const ServerSidePage: React.FC<{ initial: NhostSession }> = () => {
-  const authenticated = useAuthenticated();
-  const user = useUserData();
-  const accessToken = useAccessToken();
+  const authenticated = useAuthenticated()
+  const user = useUserData()
+  const accessToken = useAccessToken()
 
   if (!authenticated) {
-    return <div>User it not authenticated</div>;
+    return <div>User it not authenticated</div>
   }
 
   return (
@@ -132,8 +132,8 @@ const ServerSidePage: React.FC<{ initial: NhostSession }> = () => {
       <h1>{user?.displayName} is authenticated</h1>
       <div>Access token: {accessToken}</div>
     </div>
-  );
-};
+  )
+}
 
-export default ServerSidePage;
+export default ServerSidePage
 ```

@@ -32,16 +32,16 @@ yarn add @nhost/react graphql
 `@nhost/react` exports a React provider `NhostReactProvider` that makes the authentication state and the several hooks available in your application. Wrap this component around your whole App.
 
 ```jsx
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from 'react'
+import ReactDOM from 'react-dom'
 
-import { NhostClient, NhostReactProvider } from '@nhost/react';
+import { NhostClient, NhostReactProvider } from '@nhost/react'
 
-import App from './App';
+import App from './App'
 
 const nhost = new NhostClient({
-  backendUrl: 'http://localhost:1337',
-});
+  backendUrl: 'http://localhost:1337'
+})
 
 ReactDOM.render(
   <React.StrictMode>
@@ -49,6 +49,6 @@ ReactDOM.render(
       <App />
     </NhostReactProvider>
   </React.StrictMode>,
-  document.getElementById('root'),
-);
+  document.getElementById('root')
+)
 ```

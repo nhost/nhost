@@ -14,8 +14,8 @@ To sign in a user with email and password, the user must first sign up:
 ```js
 await nhost.auth.signUp({
   email: 'joe@nhost.io',
-  password: 'secret-password',
-});
+  password: 'secret-password'
+})
 ```
 
 If you've turned on email verification in your app's **login settings**, a user will be sent a verification email upon signup. The user must click the verification link in the email before they can log in.
@@ -25,8 +25,8 @@ Once a user has been signed up (and optionally verified), you can sign them in:
 ```js
 await nhost.auth.signIn({
   email: 'joe@nhost.io',
-  password: 'secret-password',
-});
+  password: 'secret-password'
+})
 ```
 
 ---
@@ -43,8 +43,8 @@ Example in JavaScript:
 
 ```js
 await nhost.auth.signIn({
-  email: 'joe@nhost.io',
-});
+  email: 'joe@nhost.io'
+})
 ```
 
 ---
@@ -57,8 +57,8 @@ First, "sign in" the user with a phone number.
 
 ```js
 await nnhost.auth.signIn({
-  phoneNumber: '+467610337135',
-});
+  phoneNumber: '+467610337135'
+})
 ```
 
 This will create the user if the user does not already exist, and send a One Time Password (OTP) to the user's
@@ -69,8 +69,8 @@ Use the OTP to finalize the sign-in:
 ```js
 await nhost.auth.signIn({
   phoneNumber: '+467610337135',
-  otp: 'otp-from-sms',
-});
+  otp: 'otp-from-sms'
+})
 ```
 
 ---

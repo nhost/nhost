@@ -29,8 +29,8 @@ Here's an example of how to implement sign-in with GitHub:
 
 ```js
 nhost.auth.signIn({
-  provider: 'github',
-});
+  provider: 'github'
+})
 ```
 
 Users are redirected to your Nhost app's **client URL** by default. By default your Nhost app's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Login settings** → **Client URL**.

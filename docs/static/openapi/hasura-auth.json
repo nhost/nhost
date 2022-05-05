@@ -44,10 +44,7 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": [
-                  "me",
-                  "user"
-                ],
+                "enum": ["me", "user"],
                 "example": "user",
                 "default": "user"
               },
@@ -56,25 +53,15 @@
                 "items": {
                   "oneOf": [
                     {
-                      "enum": [
-                        "me"
-                      ]
+                      "enum": ["me"]
                     },
                     {
-                      "enum": [
-                        "user"
-                      ]
+                      "enum": ["user"]
                     }
                   ]
                 },
-                "example": [
-                  "me",
-                  "user"
-                ],
-                "default": [
-                  "me",
-                  "user"
-                ]
+                "example": ["me", "user"],
+                "default": ["me", "user"]
               },
               "displayName": {
                 "type": "string",
@@ -104,9 +91,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "additionalProperties": false
       },
       "SignUpEmailPasswordSchema": {
@@ -135,10 +120,7 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": [
-                  "me",
-                  "user"
-                ],
+                "enum": ["me", "user"],
                 "example": "user",
                 "default": "user"
               },
@@ -147,25 +129,15 @@
                 "items": {
                   "oneOf": [
                     {
-                      "enum": [
-                        "me"
-                      ]
+                      "enum": ["me"]
                     },
                     {
-                      "enum": [
-                        "user"
-                      ]
+                      "enum": ["user"]
                     }
                   ]
                 },
-                "example": [
-                  "me",
-                  "user"
-                ],
-                "default": [
-                  "me",
-                  "user"
-                ]
+                "example": ["me", "user"],
+                "default": ["me", "user"]
               },
               "displayName": {
                 "type": "string",
@@ -195,10 +167,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "email",
-          "password"
-        ],
+        "required": ["email", "password"],
         "additionalProperties": false
       },
       "SignInEmailPasswordSchema": {
@@ -215,10 +184,7 @@
             "example": "Str0ngPassw#ord-94|%"
           }
         },
-        "required": [
-          "email",
-          "password"
-        ],
+        "required": ["email", "password"],
         "additionalProperties": false
       },
       "SignInPasswordlessSmsSchema": {
@@ -238,10 +204,7 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": [
-                  "me",
-                  "user"
-                ],
+                "enum": ["me", "user"],
                 "example": "user",
                 "default": "user"
               },
@@ -250,25 +213,15 @@
                 "items": {
                   "oneOf": [
                     {
-                      "enum": [
-                        "me"
-                      ]
+                      "enum": ["me"]
                     },
                     {
-                      "enum": [
-                        "user"
-                      ]
+                      "enum": ["user"]
                     }
                   ]
                 },
-                "example": [
-                  "me",
-                  "user"
-                ],
-                "default": [
-                  "me",
-                  "user"
-                ]
+                "example": ["me", "user"],
+                "default": ["me", "user"]
               },
               "displayName": {
                 "type": "string",
@@ -298,9 +251,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "phoneNumber"
-        ],
+        "required": ["phoneNumber"],
         "additionalProperties": false
       },
       "SignInOtpSchema": {
@@ -313,10 +264,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "phoneNumber",
-          "otp"
-        ],
+        "required": ["phoneNumber", "otp"],
         "additionalProperties": false
       },
       "SignInMfaTotpSchema": {
@@ -331,10 +279,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "ticket",
-          "otp"
-        ],
+        "required": ["ticket", "otp"],
         "additionalProperties": false
       },
       "SignInAnonymousSchema": {
@@ -378,9 +323,7 @@
             "default": false
           }
         },
-        "required": [
-          "refreshToken"
-        ],
+        "required": ["refreshToken"],
         "additionalProperties": false
       },
       "UserPasswordResetSchema": {
@@ -409,9 +352,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "additionalProperties": false
       },
       "UserPasswordSchema": {
@@ -422,9 +363,7 @@
             "example": "Str0ngPassw#ord-94|%"
           }
         },
-        "required": [
-          "newPassword"
-        ],
+        "required": ["newPassword"],
         "additionalProperties": false
       },
       "UserEmailChangeSchema": {
@@ -481,9 +420,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "additionalProperties": false
       },
       "UserMfaSchema": {
@@ -497,24 +434,18 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  ""
-                ]
+                "enum": [""]
               },
               {
                 "type": "string",
-                "enum": [
-                  "totp"
-                ]
+                "enum": ["totp"]
               }
             ],
             "description": "Multi-factor authentication type. A null value deactivates MFA",
             "example": "totp"
           }
         },
-        "required": [
-          "code"
-        ],
+        "required": ["code"],
         "additionalProperties": false
       },
       "UserDeanonymizeSchema": {
@@ -522,10 +453,7 @@
         "properties": {
           "signInMethod": {
             "type": "string",
-            "enum": [
-              "email-password",
-              "passwordless"
-            ],
+            "enum": ["email-password", "passwordless"],
             "example": "email-password"
           },
           "email": {
@@ -553,10 +481,7 @@
               },
               "defaultRole": {
                 "type": "string",
-                "enum": [
-                  "me",
-                  "user"
-                ],
+                "enum": ["me", "user"],
                 "example": "user",
                 "default": "user"
               },
@@ -565,25 +490,15 @@
                 "items": {
                   "oneOf": [
                     {
-                      "enum": [
-                        "me"
-                      ]
+                      "enum": ["me"]
                     },
                     {
-                      "enum": [
-                        "user"
-                      ]
+                      "enum": ["user"]
                     }
                   ]
                 },
-                "example": [
-                  "me",
-                  "user"
-                ],
-                "default": [
-                  "me",
-                  "user"
-                ]
+                "example": ["me", "user"],
+                "default": ["me", "user"]
               },
               "displayName": {
                 "type": "string",
@@ -613,10 +528,7 @@
             "additionalProperties": false
           }
         },
-        "required": [
-          "signInMethod",
-          "email"
-        ],
+        "required": ["signInMethod", "email"],
         "additionalProperties": false
       },
       "UserProviderTokensSchema": {
@@ -632,10 +544,7 @@
             "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           }
         },
-        "required": [
-          "providerId",
-          "userId"
-        ],
+        "required": ["providerId", "userId"],
         "additionalProperties": false
       },
       "TokenSchema": {
@@ -648,9 +557,7 @@
             "example": "2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24"
           }
         },
-        "required": [
-          "refreshToken"
-        ],
+        "required": ["refreshToken"],
         "additionalProperties": false
       },
       "VerifySchema": {
@@ -673,30 +580,20 @@
             "type": "string"
           }
         },
-        "required": [
-          "redirectTo",
-          "ticket",
-          "type"
-        ],
+        "required": ["redirectTo", "ticket", "type"],
         "additionalProperties": false
       },
       "RouteNotFoundError": {
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "route-not-found"
-            ]
+            "enum": ["route-not-found"]
           },
           "message": {
-            "enum": [
-              "Route not found"
-            ]
+            "enum": ["Route not found"]
           },
           "status": {
-            "enum": [
-              404
-            ]
+            "enum": [404]
           }
         },
         "additionalProperties": false
@@ -705,19 +602,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "disabled-endpoint"
-            ]
+            "enum": ["disabled-endpoint"]
           },
           "message": {
-            "enum": [
-              "This endpoint is disabled"
-            ]
+            "enum": ["This endpoint is disabled"]
           },
           "status": {
-            "enum": [
-              404
-            ]
+            "enum": [404]
           }
         },
         "additionalProperties": false
@@ -726,19 +617,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-request"
-            ]
+            "enum": ["invalid-request"]
           },
           "message": {
-            "enum": [
-              "The request payload is incorrect"
-            ]
+            "enum": ["The request payload is incorrect"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -747,19 +632,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "disabled-mfa-totp"
-            ]
+            "enum": ["disabled-mfa-totp"]
           },
           "message": {
-            "enum": [
-              "MFA TOTP is not enabled for this user"
-            ]
+            "enum": ["MFA TOTP is not enabled for this user"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -768,19 +647,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "no-totp-secret"
-            ]
+            "enum": ["no-totp-secret"]
           },
           "message": {
-            "enum": [
-              "OTP secret is not set for user"
-            ]
+            "enum": ["OTP secret is not set for user"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -789,19 +662,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "disabled-user"
-            ]
+            "enum": ["disabled-user"]
           },
           "message": {
-            "enum": [
-              "User is disabled"
-            ]
+            "enum": ["User is disabled"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -810,19 +677,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-email-password"
-            ]
+            "enum": ["invalid-email-password"]
           },
           "message": {
-            "enum": [
-              "Incorrect email or password"
-            ]
+            "enum": ["Incorrect email or password"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -831,19 +692,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-otp"
-            ]
+            "enum": ["invalid-otp"]
           },
           "message": {
-            "enum": [
-              "Invalid or expired OTP"
-            ]
+            "enum": ["Invalid or expired OTP"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -852,19 +707,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-ticket"
-            ]
+            "enum": ["invalid-ticket"]
           },
           "message": {
-            "enum": [
-              "Invalid or expired verification ticket"
-            ]
+            "enum": ["Invalid or expired verification ticket"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -873,19 +722,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "unverified-user"
-            ]
+            "enum": ["unverified-user"]
           },
           "message": {
-            "enum": [
-              "Email is not verified"
-            ]
+            "enum": ["Email is not verified"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -894,19 +737,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "email-already-in-use"
-            ]
+            "enum": ["email-already-in-use"]
           },
           "message": {
-            "enum": [
-              "Email already in use"
-            ]
+            "enum": ["Email already in use"]
           },
           "status": {
-            "enum": [
-              409
-            ]
+            "enum": [409]
           }
         },
         "additionalProperties": false
@@ -915,19 +752,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "mfa-type-not-found"
-            ]
+            "enum": ["mfa-type-not-found"]
           },
           "message": {
-            "enum": [
-              "There is no active MFA set for the user"
-            ]
+            "enum": ["There is no active MFA set for the user"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -936,19 +767,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "email-already-verified"
-            ]
+            "enum": ["email-already-verified"]
           },
           "message": {
-            "enum": [
-              "User's email is already verified"
-            ]
+            "enum": ["User's email is already verified"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -957,19 +782,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "totp-already-active"
-            ]
+            "enum": ["totp-already-active"]
           },
           "message": {
-            "enum": [
-              "TOTP MFA already active"
-            ]
+            "enum": ["TOTP MFA already active"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -978,19 +797,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "user-not-found"
-            ]
+            "enum": ["user-not-found"]
           },
           "message": {
-            "enum": [
-              "No user found"
-            ]
+            "enum": ["No user found"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -999,19 +812,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "user-not-anonymous"
-            ]
+            "enum": ["user-not-anonymous"]
           },
           "message": {
-            "enum": [
-              "Logged in user is not anonymous"
-            ]
+            "enum": ["Logged in user is not anonymous"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -1020,19 +827,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-refresh-token"
-            ]
+            "enum": ["invalid-refresh-token"]
           },
           "message": {
-            "enum": [
-              "Invalid or expired refresh token"
-            ]
+            "enum": ["Invalid or expired refresh token"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -1041,19 +842,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-redirection"
-            ]
+            "enum": ["invalid-redirection"]
           },
           "message": {
-            "enum": [
-              "Invalid or missing redirectTo"
-            ]
+            "enum": ["Invalid or missing redirectTo"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -1062,19 +857,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-admin-secret"
-            ]
+            "enum": ["invalid-admin-secret"]
           },
           "message": {
-            "enum": [
-              "Invalid admin secret"
-            ]
+            "enum": ["Invalid admin secret"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -1083,19 +872,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "unauthenticated-user"
-            ]
+            "enum": ["unauthenticated-user"]
           },
           "message": {
-            "enum": [
-              "User is not logged in"
-            ]
+            "enum": ["User is not logged in"]
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           }
         },
         "additionalProperties": false
@@ -1104,19 +887,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "forbidden-endpoint-in-production"
-            ]
+            "enum": ["forbidden-endpoint-in-production"]
           },
           "message": {
-            "enum": [
-              "This endpoint is only available on test environments"
-            ]
+            "enum": ["This endpoint is only available on test environments"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -1125,19 +902,13 @@
         "type": "object",
         "properties": {
           "error": {
-            "enum": [
-              "invalid-sign-in-method"
-            ]
+            "enum": ["invalid-sign-in-method"]
           },
           "message": {
-            "enum": [
-              "Incorrect sign in method"
-            ]
+            "enum": ["Incorrect sign in method"]
           },
           "status": {
-            "enum": [
-              400
-            ]
+            "enum": [400]
           }
         },
         "additionalProperties": false
@@ -1180,10 +951,7 @@
           },
           "defaultRole": {
             "type": "string",
-            "enum": [
-              "me",
-              "user"
-            ],
+            "enum": ["me", "user"],
             "example": "user",
             "default": "user"
           },
@@ -1201,15 +969,11 @@
             "anyOf": [
               {
                 "type": "string",
-                "enum": [
-                  ""
-                ]
+                "enum": [""]
               },
               {
                 "type": "string",
-                "enum": [
-                  "totp"
-                ]
+                "enum": ["totp"]
               }
             ],
             "description": "Multi-factor authentication type. A null value deactivates MFA",
@@ -1231,25 +995,15 @@
             "items": {
               "oneOf": [
                 {
-                  "enum": [
-                    "me"
-                  ]
+                  "enum": ["me"]
                 },
                 {
-                  "enum": [
-                    "user"
-                  ]
+                  "enum": ["user"]
                 }
               ]
             },
-            "example": [
-              "me",
-              "user"
-            ],
-            "default": [
-              "me",
-              "user"
-            ]
+            "example": ["me", "user"],
+            "default": ["me", "user"]
           }
         },
         "required": [
@@ -1289,11 +1043,7 @@
             "$ref": "#/components/schemas/User"
           }
         },
-        "required": [
-          "accessToken",
-          "accessTokenExpiresIn",
-          "refreshToken"
-        ],
+        "required": ["accessToken", "accessTokenExpiresIn", "refreshToken"],
         "additionalProperties": false
       },
       "Mfa": {
@@ -1329,10 +1079,7 @@
             "description": "TOTP secret"
           }
         },
-        "required": [
-          "imageUrl",
-          "totpSecret"
-        ],
+        "required": ["imageUrl", "totpSecret"],
         "additionalProperties": false
       },
       "UnauthorizedError": {
@@ -1342,18 +1089,13 @@
             "type": "string"
           },
           "status": {
-            "enum": [
-              401
-            ]
+            "enum": [401]
           },
           "message": {
             "type": "string"
           }
         },
-        "required": [
-          "error",
-          "status"
-        ],
+        "required": ["error", "status"],
         "additionalProperties": false
       },
       "Version": {
@@ -1374,9 +1116,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "General"
-        ]
+        "tags": ["General"]
       }
     },
     "/version": {
@@ -1397,9 +1137,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "General"
-        ]
+        "tags": ["General"]
       }
     },
     "/mfa/totp/generate": {
@@ -1444,9 +1182,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "User management"
-        ]
+        "tags": ["User management"]
       }
     },
     "/signin/email-password": {
@@ -1497,9 +1233,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1561,9 +1295,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1615,9 +1347,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1679,9 +1409,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1733,9 +1461,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1787,9 +1513,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1844,9 +1568,7 @@
             }
           }
         ],
-        "tags": [
-          "Authentication"
-        ]
+        "tags": ["Authentication"]
       }
     },
     "/signin/provider/{provider}/callback": {
@@ -1901,9 +1623,7 @@
             }
           }
         ],
-        "tags": [
-          "Authentication"
-        ]
+        "tags": ["Authentication"]
       }
     },
     "/signout": {
@@ -1948,9 +1668,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Sign out"
-        ],
+        "tags": ["Sign out"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2002,9 +1720,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Registration"
-        ],
+        "tags": ["Registration"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2056,9 +1772,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "General"
-        ],
+        "tags": ["General"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2104,9 +1818,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "User management"
-        ]
+        "tags": ["User management"]
       }
     },
     "/user/password/reset": {
@@ -2137,9 +1849,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "User management"
-        ],
+        "tags": ["User management"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2195,9 +1905,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "User management"
-        ],
+        "tags": ["User management"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2239,9 +1947,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "User management"
-        ],
+        "tags": ["User management"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2297,9 +2003,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "User management"
-        ],
+        "tags": ["User management"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2355,9 +2059,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2413,9 +2115,7 @@
           }
         },
         "parameters": [],
-        "tags": [
-          "Authentication"
-        ],
+        "tags": ["Authentication"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2478,9 +2178,7 @@
             }
           }
         ],
-        "tags": [
-          "User management"
-        ],
+        "tags": ["User management"],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2540,12 +2238,7 @@
             "deprecated": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "emailVerify",
-                "emailConfirmChange",
-                "signinPasswordless",
-                "passwordReset"
-              ]
+              "enum": ["emailVerify", "emailConfirmChange", "signinPasswordless", "passwordReset"]
             }
           },
           {
@@ -2559,9 +2252,7 @@
             }
           }
         ],
-        "tags": [
-          "General"
-        ]
+        "tags": ["General"]
       }
     }
   },

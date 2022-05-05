@@ -16,19 +16,19 @@ Every `.js` and `.ts` file in the `functions/` folder of your Nhost app will be 
 ```js
 // In functions/hello/[name].js
 export default (req, res) => {
-  res.status(200).send(`Hello ${req.query.name}!`);
-};
+  res.status(200).send(`Hello ${req.query.name}!`)
+}
 ```
 
 Or, if you prefer TypeScript:
 
 ```ts
 // In functions/hello/[name].ts
-import { Request, Response } from 'express';
+import { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {
-  res.status(200).send(`Hello ${req.query.name}!`);
-};
+  res.status(200).send(`Hello ${req.query.name}!`)
+}
 ```
 
 ---

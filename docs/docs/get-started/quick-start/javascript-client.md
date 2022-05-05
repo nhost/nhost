@@ -57,13 +57,13 @@ In the new directory, create a file called `index.js`.
 Enter the following code into this file. It will initialize a new `NhostClient` that will interact with your backend:
 
 ```js
-import { NhostClient } from '@nhost/nhost-js';
+import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://[app-subdomain].nhost.run', // replace this with the backend URL of your app
-});
+  backendUrl: 'https://[app-subdomain].nhost.run' // replace this with the backend URL of your app
+})
 
-console.log(nhost.graphql.getUrl());
+console.log(nhost.graphql.getUrl())
 ```
 
 Run the code in your terminal. You should see your app's GraphQL endpoint URL:
@@ -79,10 +79,10 @@ https://[app-subdomain].nhost.run/v1/graphql
 If you now add the following GraphQL query to the client, let's see what happens when you run the updated version:
 
 ```js
-import { NhostClient } from '@nhost/nhost-js';
+import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://[app-subdomain].nhost.run',
+  backendUrl: 'https://[app-subdomain].nhost.run'
 })(async () => {
   // nhost.graphql.request returns a promise, so we use await here
   const todos = await nhost.graphql.request(`
@@ -94,11 +94,11 @@ const nhost = new NhostClient({
         is_completed
       }
     }
-  `);
+  `)
 
   // Print todos to console
-  console.log(JSON.stringify(todos.data, null, 2));
-})();
+  console.log(JSON.stringify(todos.data, null, 2))
+})()
 ```
 
 ```bash

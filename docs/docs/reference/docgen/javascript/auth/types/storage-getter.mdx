@@ -10,7 +10,5 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/core/src/stor
 # `StorageGetter`
 
 ```ts
-type StorageGetter = () => (
-  key: string
-) => string | null | Promise<string | null>
+type StorageGetter = () => (key: string) => string | null | Promise<string | null>
 ```

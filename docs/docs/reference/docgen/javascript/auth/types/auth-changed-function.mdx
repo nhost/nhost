@@ -10,8 +10,5 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-j
 # `AuthChangedFunction`
 
 ```ts
-type AuthChangedFunction = () => (
-  event: AuthChangeEvent,
-  session: Session | null
-) => void
+type AuthChangedFunction = () => (event: AuthChangeEvent, session: Session | null) => void
 ```

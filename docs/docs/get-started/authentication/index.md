@@ -26,20 +26,20 @@ You will now use that newly created user. We'll use this newly created user to m
 Add the following code to sign in the new user and request the list of todos again:
 
 ```js
-import { NhostClient } from '@nhost/nhost-js';
+import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://[app-subdomain].nhost.run',
+  backendUrl: 'https://[app-subdomain].nhost.run'
 })(async () => {
   // Sign in user
   const signInResponse = await nhost.auth.signIn({
     email: 'joe@example.com',
-    password: 'securepassword',
-  });
+    password: 'securepassword'
+  })
 
   // Handle sign-in error
   if (signInResponse.error) {
-    throw signInResponse.error;
+    throw signInResponse.error
   }
 
   // Get todos
@@ -52,10 +52,10 @@ const nhost = new NhostClient({
         is_completed
       }
     }
-  `);
+  `)
 
-  console.log(JSON.stringify(todos.data, null, 2));
-})();
+  console.log(JSON.stringify(todos.data, null, 2))
+})()
 ```
 
 Why is the return value `null`? Because when making GraphQL requests as an authenticated user, the `user` role is assumed.

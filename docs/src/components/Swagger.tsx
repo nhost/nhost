@@ -1,32 +1,32 @@
-import SwaggerUI from 'swagger-ui-react';
-import React from 'react';
-import 'swagger-ui-react/swagger-ui.css';
+import SwaggerUI from 'swagger-ui-react'
+import React from 'react'
+import 'swagger-ui-react/swagger-ui.css'
 
 const OperationsLayout = (props) => {
-  const { getComponent } = props;
-  const Operations = getComponent('operations', true);
-  let SvgAssets = getComponent('SvgAssets');
+  const { getComponent } = props
+  const Operations = getComponent('operations', true)
+  let SvgAssets = getComponent('SvgAssets')
 
   return (
     <div className="swagger-ui">
       <SvgAssets />
       <Operations />
     </div>
-  );
-};
+  )
+}
 
 const OperationsLayoutPlugin = () => ({
   components: {
-    OperationsLayout,
-  },
-});
+    OperationsLayout
+  }
+})
 
 type SwaggerProps = {
   /**
    * OpenAPI specification.
    */
-  spec: string;
-};
+  spec: string
+}
 
 export function Swagger({ spec }: SwaggerProps) {
   return (
@@ -36,5 +36,5 @@ export function Swagger({ spec }: SwaggerProps) {
       layout="OperationsLayout"
       supportedSubmitMethods={[]}
     />
-  );
+  )
 }

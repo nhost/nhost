@@ -67,7 +67,7 @@ If the user is not signed in, the `public` role will be used.
 When no request role is specified, the user's default role will be used:
 
 ```js
-await nhost.graphql.request(QUERY, {});
+await nhost.graphql.request(QUERY, {})
 ```
 
 Make a GraphQL request with the `me` role:
@@ -78,10 +78,10 @@ await nhost.graphql.request(
   {},
   {
     headers: {
-      'x-hasura-role': 'me',
-    },
-  },
-);
+      'x-hasura-role': 'me'
+    }
+  }
+)
 ```
 
 If the request is not part of the user's roles, the request will fail.

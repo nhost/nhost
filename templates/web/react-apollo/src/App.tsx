@@ -1,9 +1,9 @@
-import React from "react";
-import logo from "./logo.svg";
-import "./App.css";
-import { NhostAuthProvider } from "@nhost/react-auth";
-import { NhostApolloProvider } from "@nhost/react-apollo";
-import { nhost } from "./utils/nhost";
+import React from 'react'
+import logo from './logo.svg'
+import './App.css'
+import { NhostAuthProvider } from '@nhost/react-auth'
+import { NhostApolloProvider } from '@nhost/react-apollo'
+import { nhost } from './utils/nhost'
 
 function App() {
   return (
@@ -27,7 +27,7 @@ function App() {
         </div>
       </NhostApolloProvider>
     </NhostAuthProvider>
-  );
+  )
 }
 
-export default App;
+export default App
