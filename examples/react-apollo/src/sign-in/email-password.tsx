@@ -1,100 +1,95 @@
-import React, { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import { Button, Divider, Input, Message } from 'rsuite'
+/* eslint-disable react/react-in-jsx-scope */
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useSignInEmailPassword } from '@nhost/react'
-
-const Footer: React.FC = () => (
-  <div>
-    <Divider />
-    <Button as={NavLink} to="/sign-in" block appearance="link">
-      &#8592; Other Login Options
-    </Button>
-  </div>
-)
+import { Button, Modal, TextInput } from '@mantine/core'
+import AuthLink from '../components/AuthLink'
+import { showNotification } from '@mantine/notifications'
 
 export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
-  const { signInEmailPassword, error, needsMfaOtp, sendMfaOtp } = useSignInEmailPassword(
-    email,
-    password,
-    otp
-  )
+  const { signInEmailPassword, needsMfaOtp, sendMfaOtp } = useSignInEmailPassword()
+  const navigate = useNavigate()
 
-  const [errorMessage, setErrorMessage] = useState('')
-  // * Set error message from the authentication hook errors
-  useEffect(() => {
-    setErrorMessage(error?.message || '')
-  }, [error])
-  // * Reset error message every time the email or password input changed
-  useEffect(() => {
-    setErrorMessage('')
-  }, [email, password])
+  const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
 
+  const signIn = async () => {
+    const result = await signInEmailPassword(email, password)
+    if (result.isError) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error?.message
+      })
+    } else if (result.needsEmailVerification) {
+      setEmailVerificationToggle(true)
+    } else if (!result.needsEmailVerification) {
+      navigate('/', { replace: true })
+    }
+  }
+
+  const sendOtp = async () => {
+    sendMfaOtp(otp)
+    console.log('TODO')
+  }
   if (needsMfaOtp)
     return (
-      <div>
-        <Input
+      <>
+        <TextInput
           value={otp}
-          onChange={setOtp}
+          onChange={(e) => setOtp(e.target.value)}
           placeholder="One-time password"
           size="lg"
           autoFocus
           style={{ marginBottom: '0.5em' }}
         />
-        {errorMessage && (
-          <Message showIcon type="error">
-            {errorMessage}
-          </Message>
-        )}
-        <Button appearance="primary" onClick={sendMfaOtp} block>
+        <Button fullWidth onClick={sendOtp}>
           Send 2-step verification code
         </Button>
-        <Footer />
-      </div>
+      </>
     )
   else
     return (
-      <div>
-        <Input
+      <>
+        <Modal
+          title="Verification email sent"
+          transition="fade"
+          centered
+          transitionDuration={600}
+          opened={emailVerificationToggle}
+          onClose={() => {
+            setEmailVerificationToggle(false)
+          }}
+        >
+          A email has been sent to {email}. Please follow the link to verify your email address and
+          to complete your registration.
+        </Modal>
+        <TextInput
           value={email}
-          onChange={setEmail}
+          onChange={(e) => setEmail(e.target.value)}
           placeholder="Email Address"
           size="lg"
           autoFocus
           style={{ marginBottom: '0.5em' }}
         />
-        <Input
+        <TextInput
           value={password}
-          onChange={setPassword}
+          onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="password"
           size="lg"
           style={{ marginBottom: '0.5em' }}
         />
 
-        {errorMessage && (
-          <Message showIcon type="error">
-            {errorMessage}
-          </Message>
-        )}
-
-        <Button
-          appearance="primary"
-          onClick={async () => {
-            const result = await signInEmailPassword(email, password)
-            console.log(result)
-          }}
-          block
-        >
+        <Button fullWidth onClick={signIn}>
           Sign in
         </Button>
-        <Button as={NavLink} block to="/sign-in/forgot-password">
+        <AuthLink link="/sign-in/forgot-password" variant="white">
           Forgot password?
-        </Button>
-        <Footer />
-      </div>
+        </AuthLink>
+      </>
     )
 }

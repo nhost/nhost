@@ -1,15 +1,17 @@
+import { Divider } from '@mantine/core'
 import React from 'react'
-import { NavLink } from 'react-router-dom'
-import { Button } from 'rsuite'
+import AuthLink from '../components/AuthLink'
 
-import { EmailPasswordlessForm } from '../components/email-passwordless-form'
+import EmailPasswordlessForm from '../components/SignUpServerlessForm'
+
 export const EmailPasswordless: React.FC = () => {
   return (
-    <div>
+    <>
       <EmailPasswordlessForm />
-      <Button as={NavLink} to="/sign-up" block appearance="link">
+      <Divider />
+      <AuthLink link="/sign-up" variant="white">
         &#8592; Other Registration Options
-      </Button>
-    </div>
+      </AuthLink>
+    </>
   )
 }

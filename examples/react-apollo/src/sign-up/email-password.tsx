@@ -1,105 +1,95 @@
 /* eslint-disable react/react-in-jsx-scope */
-import { useEffect, useMemo, useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { Button, Input, Message } from 'rsuite'
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 import { useSignUpEmailPassword } from '@nhost/react'
+import { Button, Divider, Modal, PasswordInput, SimpleGrid, TextInput } from '@mantine/core'
+import AuthLink from '../components/AuthLink'
+import { showNotification } from '@mantine/notifications'
 
 export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
+  const differentPassword = useMemo(
+    () => password && password !== confirmPassword && 'Should match the given password',
+    [password, confirmPassword]
+  )
   const options = useMemo(
     () => ({ displayName: `${firstName} ${lastName}`, metadata: { firstName, lastName } }),
     [firstName, lastName]
   )
   const navigate = useNavigate()
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const { signUpEmailPassword, error, needsEmailVerification, isSuccess } =
-    useSignUpEmailPassword(options)
-  const [errorMessage, setErrorMessage] = useState('')
-  useEffect(() => {
-    if (needsEmailVerification) navigate('/sign-up/verification-email-sent')
-    else if (isSuccess) navigate('/')
+  const { signUpEmailPassword } = useSignUpEmailPassword(options)
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [needsEmailVerification, isSuccess])
-
-  // * Set error message from the registration hook errors
-  useEffect(() => {
-    setErrorMessage(error?.message || '')
-  }, [error])
-  // * Reset error message every time the email or password input changed
-  useEffect(() => {
-    setErrorMessage('')
-  }, [email, password])
-  // * Show an error message when passwords are different
-  useEffect(() => {
-    if (password !== confirmPassword) setErrorMessage('Both passwords must be the same')
-    else setErrorMessage('')
-  }, [password, confirmPassword])
+  const signUp = async () => {
+    const result = await signUpEmailPassword(email, password, { metadata: { firstName, lastName } })
+    if (result.isError) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error?.message
+      })
+    } else if (result.needsEmailVerification) {
+      setEmailVerificationToggle(true)
+    } else {
+      navigate('/', { replace: true })
+    }
+  }
   return (
-    <div>
-      <Input
-        value={firstName}
-        onChange={setFirstName}
-        placeholder="First name"
-        size="lg"
-        autoFocus
-        style={{ marginBottom: '0.5em' }}
-      />
-      <Input
-        value={lastName}
-        onChange={setLastName}
-        placeholder="Last name"
-        size="lg"
-        style={{ marginBottom: '0.5em' }}
-      />
-      <Input
-        value={email}
-        onChange={setEmail}
-        placeholder="Email Address"
-        size="lg"
-        style={{ marginBottom: '0.5em' }}
-      />
-      <Input
-        value={password}
-        onChange={setPassword}
-        placeholder="Password"
-        type="password"
-        size="lg"
-        style={{ marginBottom: '0.5em' }}
-      />
-      <Input
-        value={confirmPassword}
-        onChange={setConfirmPassword}
-        placeholder="Confirm Password"
-        type="password"
-        size="lg"
-        style={{ marginBottom: '0.5em' }}
-      />
-
-      {errorMessage && (
-        <Message showIcon type="error">
-          {errorMessage}
-        </Message>
-      )}
-
-      <Button
-        appearance="primary"
-        onClick={async () => {
-          setErrorMessage('')
-          const result = await signUpEmailPassword(email, password)
-          console.log(result)
+    <>
+      <Modal
+        title="Verification email sent"
+        transition="fade"
+        centered
+        transitionDuration={600}
+        opened={emailVerificationToggle}
+        onClose={() => {
+          setEmailVerificationToggle(false)
         }}
-        block
       >
-        Sign up
-      </Button>
-      <Button as={NavLink} to="/sign-up" block appearance="link">
+        A email has been sent to {email}. Please follow the link to verify your email address and to
+        complete your registration.
+      </Modal>
+      <SimpleGrid cols={1} spacing={6}>
+        <TextInput
+          placeholder="First name"
+          value={firstName}
+          onChange={(e) => setFirstName(e.target.value)}
+        />
+        <TextInput
+          placeholder="Last name"
+          value={lastName}
+          onChange={(e) => setLastName(e.target.value)}
+        />
+        <TextInput
+          type="email"
+          placeholder="Email Address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <PasswordInput
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+        <PasswordInput
+          placeholder="Confirm Password"
+          error={differentPassword}
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+        <Button fullWidth onClick={signUp}>
+          Continue with email + password
+        </Button>
+      </SimpleGrid>
+      <Divider />
+      <AuthLink link="/sign-up" variant="white">
         &#8592; Other Registration Options
-      </Button>
-    </div>
+      </AuthLink>
+    </>
   )
 }
