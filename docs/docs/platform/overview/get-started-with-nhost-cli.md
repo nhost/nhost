@@ -42,7 +42,7 @@ typing:
 nhost version
 ```
 
-<img width="577" alt="nhost-cli-version" src="https://user-images.githubusercontent.com/4352286/165720580-1747cbed-a5d9-4cd4-8a18-3b82d0d1fadf.png" />
+![Nhost CLI Version](/img/architecture/cli/cli-installed.png)
 
 ### (Optional) Add shell completion
 
@@ -85,7 +85,7 @@ This will display a prompt for you to enter your Nhost account credentials
 You can create a Nhost account here: [https://app.nhost.io](https://app.nhost.io/).
 :::
 
-<img width="577" alt="nhost-login" src="https://user-images.githubusercontent.com/4352286/165720791-facdf9a4-96e8-4b0d-a767-6e7688d28b7e.png" />
+![Nhost CLI Login](/img/architecture/cli/cli-login.png)
 
 After successfully logging in, you are authorized to manage your Nhost projects
 using the Nhost CLI.
@@ -105,12 +105,12 @@ First things first, we need to create a new Nhost project.
 So, log in to your Nhost dashboard and click the **Create your first app**
 button.
 
-![nhost-first-app](https://user-images.githubusercontent.com/4352286/165720772-80e9c9dd-cf13-4d76-aac5-b8557a8b2876.png)
+![Nhost Create App](/img/architecture/cli/create-app-step-1.png)
 
 Next, give your new Nhost app a name, select a geographic region for your Nhost
 services and click **Create App**.
 
-![nhost-new-app](https://user-images.githubusercontent.com/4352286/165720793-db0c25af-37d1-410e-b9df-28f3977ae68a.png)
+![Nhost Create App](/img/architecture/cli/create-app-step-2.png)
 
 After a few seconds, you should get a PostgreSQL database, a GraphQL API with
 Hasura, file storage, and authentication set up.
@@ -125,7 +125,7 @@ So, go to your Github account and
 [create a new repository](https://github.com/new). You can make your repository
 either public or private.
 
-<img width="905" alt="create-github-repo" src="https://user-images.githubusercontent.com/4352286/165720792-1518eeb9-edf1-431e-bd48-4c6565d14166.png" />
+![Create GitHub Repo](/img/architecture/cli/create-github-repo.png)
 
 ### 3. Connect Nhost project to Github
 
@@ -135,15 +135,15 @@ commits to your connected Git repository.
 
 1. From your project workspace, click **Connect to Github**.
 
-![connect-to-github](https://user-images.githubusercontent.com/4352286/165720795-291e2ffa-e1b7-40f2-a1bf-539716f2edce.png)
+![Connect to GitHub](/img/architecture/cli/connect-repo-step-1.png)
 
 2. **Install the Nhost app** on your Github account.
 
-![install-nhost-github-app](https://user-images.githubusercontent.com/4352286/165720798-c0f4c46e-9cc2-43ce-ac93-853abf45df7b.png)
+![Connect to GitHub](/img/architecture/cli/connect-repo-step-2.png)
 
 3. **Connect** your Github repository.
 
-![connect-github-repository](https://user-images.githubusercontent.com/4352286/165720803-81105729-0fb7-4e94-8eeb-464466e8b59f.png)
+![Connect to GitHub](/img/architecture/cli/connect-repo-step-3.png)
 
 ## Develop locally
 
@@ -180,7 +180,7 @@ nhost init --remote -n my-nhost-app
 It will also prompt you to choose the remote app you'd like to use to initialize
 your local Nhost development environment.
 
-<img width="613" alt="nhost-init-remote" src="https://user-images.githubusercontent.com/4352286/165720808-e6ed06a5-e2c4-4ae6-9e36-41e7c6fff07a.png" />
+![Select app](/img/architecture/cli/cli-select-app.png)
 
 The `init` command creates the Nhost app inside your current working directory
 within a `nhost/` folder.
@@ -229,7 +229,7 @@ you can manage the database and try out the API.
 The Hasura console should open automatically at
 [http://localhost:1337](http://localhost:1337/).
 
-![hasura-console](https://user-images.githubusercontent.com/4352286/165720810-adf42058-4d1e-470f-b23f-8bc7acf42c0e.png)
+![Hasura Console](/img/architecture/cli/hasura-console.png)
 
 ## 3. Make changes
 
@@ -261,14 +261,14 @@ PostgreSQL database (from the left side navigation) that Nhost provides us.
 
 Click on the **public** schema and the **Create Table** button.
 
-![create-new-table-1](https://user-images.githubusercontent.com/4352286/165720814-be5b9e3b-2a11-42c0-b5c8-e8f4e0296cb4.png)
+![Create Table](/img/architecture/cli/create-table-step-1.png)
 
 Then, enter the values for creating the `messages` table as mentioned above.
 Also, specify the `id` column as the primary key of the table, and link the
 `authorId` column to the `users.id` column using a foreign key to link the
 `users` and `messages` tables together.
 
-![create-new-table-2](https://user-images.githubusercontent.com/4352286/165720816-1aa9caf2-7d5a-4265-a413-cbdb577639f8.png)
+![Create Table](/img/architecture/cli/create-table-step-2.png)
 
 Next, click on the **Add Table** button to create the table.
 
@@ -307,19 +307,19 @@ create new messages.
 So, open the permissions tab for the `messages` table, type in `user` in the
 role cell, and click the edit icon on the `insert` operation:
 
-![insert-permissions](https://user-images.githubusercontent.com/4352286/165720821-faeb7043-6c6d-4ac7-b481-b305ff95e3c3.png)
+![Create Table](/img/architecture/cli/permissions-1.png)
 
 To restrict the users to create new messages only for themselves, specify an
 `_eq` condition between the `authorId` and the `X-Hasura-User-ID` session
 variable, which is passed with each request.
 
-<img width="1110" alt="hasura-insert-condition" src="https://user-images.githubusercontent.com/4352286/165720775-e2b570c8-590d-48f6-a6cc-77c1989abf98.png" />
+![Create Table](/img/architecture/cli/permissions-2.png)
 
 Then, select the columns the users can define through the GraphQL API, set the
 value for the `authorId` column to be equal to the `X-Hasura-User-ID` session
 variable, and click **Save Permissions**.
 
-<img width="919" alt="hasura-insert-columns" src="https://user-images.githubusercontent.com/4352286/165720779-d55d8c7e-6a88-46f2-9c52-5811a965cf5a.png" />
+![Create Table](/img/architecture/cli/permissions-3.png)
 
 Finally, check out the `metadata/` folder in your project directory to confirm
 that the permission changes we did were tracked locally in your git repository.
@@ -407,7 +407,7 @@ git push
 To check out your deployment, head over to the **Deployments** tab in your
 [Nhost dashboard](https://app.nhost.io).
 
-![nhost-deployments](https://user-images.githubusercontent.com/4352286/165720825-9ff2f704-befd-4ebe-9fd7-80c46082f147.png)
+![Deployments](/img/architecture/cli/deployments.png)
 
 ## Get help
 
