@@ -214,7 +214,7 @@ importers:
       xstate: ^4.31.0
     dependencies:
       '@apollo/client': 3.6.2_graphql@15.7.2+react@18.1.0
-      '@mantine/core': 4.2.2_c9b8fefbe069946ce5669f7591162759
+      '@mantine/core': 4.2.2_ea9d0c51a4562a6544166c6277bf397c
       '@mantine/hooks': 4.2.2_react@18.1.0
       '@mantine/notifications': 4.2.2_af46c71ecf518c86fb9b76e8a89b700a
       '@mantine/prism': 4.2.2_af46c71ecf518c86fb9b76e8a89b700a
@@ -4195,29 +4195,6 @@ packages:
     resolution: {integrity: sha512-igX9a37DR2ZPGYtV6suZ6whr8pTFtyHL3K/oLUotxpSVO2ASaprmAe2Dkq7tBo7CRY7MMDrAa9nuQP9/YG8FxQ==}
     dev: false
 
-  /@emotion/react/11.7.1_@types+react@18.0.8+react@18.1.0:
-    resolution: {integrity: sha512-DV2Xe3yhkF1yT4uAUoJcYL1AmrnO5SVsdfvu+fBuS7IbByDeTVx9+wFmvx9Idzv7/78+9Mgx2Hcmr7Fex3tIyw==}
-    peerDependencies:
-      '@babel/core': ^7.0.0
-      '@types/react': '*'
-      react: '>=16.8.0'
-    peerDependenciesMeta:
-      '@babel/core':
-        optional: true
-      '@types/react':
-        optional: true
-    dependencies:
-      '@babel/runtime': 7.17.9
-      '@emotion/cache': 11.7.1
-      '@emotion/serialize': 1.0.2
-      '@emotion/sheet': 1.1.0
-      '@emotion/utils': 1.0.0
-      '@emotion/weak-memoize': 0.2.5
-      '@types/react': 18.0.8
-      hoist-non-react-statics: 3.3.2
-      react: 18.1.0
-    dev: false
-
   /@emotion/react/11.7.1_e307289084c0d0f4b25b50629c6033a9:
     resolution: {integrity: sha512-DV2Xe3yhkF1yT4uAUoJcYL1AmrnO5SVsdfvu+fBuS7IbByDeTVx9+wFmvx9Idzv7/78+9Mgx2Hcmr7Fex3tIyw==}
     peerDependencies:
@@ -5216,26 +5193,6 @@ packages:
     resolution: {integrity: sha512-nkalE/f1RvRGChwBnEIoBfSEYOXnCRdleKuv6+lePbMDrMZXeDQnqak5XDOeBgrPPyPfAdcCu/B5z+v3VhplGg==}
     dev: false
 
-  /@mantine/core/4.2.2_c9b8fefbe069946ce5669f7591162759:
-    resolution: {integrity: sha512-K8m9oNUs1dqE9qoqXcjrum0rCpG+M9245Q7Qh1FezOPyrdUcfSFVvfrBguuGnWtQXOm0EpWwG7Wqj4uojgjQng==}
-    peerDependencies:
-      '@mantine/hooks': 4.2.2
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-    dependencies:
-      '@mantine/hooks': 4.2.2_react@18.1.0
-      '@mantine/styles': 4.2.2_47ae209ab5c2ea051c9a2540426c6b2f
-      '@popperjs/core': 2.11.5
-      '@radix-ui/react-scroll-area': 0.1.4_react@18.1.0
-      react: 18.1.0
-      react-dom: 18.1.0_react@18.1.0
-      react-popper: 2.3.0_e6b0874f4dd5920661b62e72c1fe6ada
-      react-textarea-autosize: 8.3.3_@types+react@18.0.8+react@18.1.0
-    transitivePeerDependencies:
-      - '@babel/core'
-      - '@types/react'
-    dev: false
-
   /@mantine/core/4.2.2_ea9d0c51a4562a6544166c6277bf397c:
     resolution: {integrity: sha512-K8m9oNUs1dqE9qoqXcjrum0rCpG+M9245Q7Qh1FezOPyrdUcfSFVvfrBguuGnWtQXOm0EpWwG7Wqj4uojgjQng==}
     peerDependencies:
@@ -5289,7 +5246,7 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@mantine/core': 4.2.2_c9b8fefbe069946ce5669f7591162759
+      '@mantine/core': 4.2.2_ea9d0c51a4562a6544166c6277bf397c
       '@mantine/hooks': 4.2.2_react@18.1.0
       react: 18.1.0
       react-dom: 18.1.0_react@18.1.0
@@ -5304,7 +5261,7 @@ packages:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
     dependencies:
-      '@mantine/core': 4.2.2_c9b8fefbe069946ce5669f7591162759
+      '@mantine/core': 4.2.2_ea9d0c51a4562a6544166c6277bf397c
       '@mantine/hooks': 4.2.2_react@18.1.0
       prism-react-renderer: 1.3.1_react@18.1.0
       react: 18.1.0
@@ -5330,25 +5287,6 @@ packages:
     transitivePeerDependencies:
       - '@babel/core'
       - '@emotion/css'
-      - '@types/react'
-    dev: false
-
-  /@mantine/styles/4.2.2_47ae209ab5c2ea051c9a2540426c6b2f:
-    resolution: {integrity: sha512-0aPm0Zc3zFOGOT1ZGAShBg+/rE+hMU81ZJk4guEWv1j8snoqg55y9G9mIpfsgffkQc0NhkGAX++CAA/0BBSxFQ==}
-    peerDependencies:
-      react: '>=16.8.0'
-      react-dom: '>=16.8.0'
-    dependencies:
-      '@emotion/cache': 11.7.1
-      '@emotion/react': 11.7.1_@types+react@18.0.8+react@18.1.0
-      '@emotion/serialize': 1.0.2
-      '@emotion/utils': 1.0.0
-      clsx: 1.1.1
-      csstype: 3.0.9
-      react: 18.1.0
-      react-dom: 18.1.0_react@18.1.0
-    transitivePeerDependencies:
-      - '@babel/core'
       - '@types/react'
     dev: false
 
