@@ -14,20 +14,12 @@ export const tokenHandler: RequestHandler<
 > = async (req, res) => {
   const { refreshToken } = req.body;
 
-  // set expiresAt to now + 10 seconds.
-  // this means the refresh token is available for 10 more seconds to avoid race
-  // conditions with multiple request sent by the same client. Ex multiple tabs.
-  const expiresAt = new Date();
-  expiresAt.setSeconds(expiresAt.getSeconds() + 10);
-
-  // get user and set new expiresAt on the used refreshToken
   const refreshTokens = await gqlSdk
-    .getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
+    .getUsersByRefreshTokenOld({
       refreshToken,
-      expiresAt: expiresAt,
     })
     .then((gqlres) => {
-      return gqlres.updateAuthRefreshTokens?.returning;
+      return gqlres.authRefreshTokens;
     });
 
   if (!refreshTokens) {
@@ -39,6 +31,7 @@ export const tokenHandler: RequestHandler<
   }
 
   const user = refreshTokens[0].user;
+  const currentRefreshToken = refreshTokens[0].refreshToken;
 
   if (!user) {
     return sendError(res, 'invalid-refresh-token');
@@ -47,11 +40,6 @@ export const tokenHandler: RequestHandler<
   if (user.disabled) {
     return sendError(res, 'disabled-user');
   }
-
-  // // delete current refresh token
-  // await gqlSdk.deleteRefreshToken({
-  //   refreshToken,
-  // });
 
   const randomNumber = Math.floor(Math.random() * 10);
 
@@ -65,6 +53,7 @@ export const tokenHandler: RequestHandler<
 
   const session = await getNewSession({
     user,
+    currentRefreshToken,
   });
 
   return res.send(session);

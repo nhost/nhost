@@ -34,8 +34,10 @@ export const getNewRefreshToken = async (
 
 export const getNewSession = async ({
   user,
+  currentRefreshToken,
 }: {
   user: UserFieldsFragment;
+  currentRefreshToken?: string
 }): Promise<Session> => {
   // update user's last seen
   gqlSdk.updateUser({
@@ -48,7 +50,7 @@ export const getNewSession = async ({
   const sessionUser = await getUser({ userId: user.id });
 
   const accessToken = await createHasuraAccessToken(user);
-  const refreshToken = await getNewRefreshToken(user.id);
+  const refreshToken = currentRefreshToken ||  await getNewRefreshToken(user.id);
 
   return {
     accessToken,
