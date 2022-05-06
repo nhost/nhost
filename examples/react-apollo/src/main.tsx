@@ -6,8 +6,6 @@ import { NhostClient, NhostReactProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
 
-import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
-
 import App from './App'
 
 const nhost = new NhostClient({

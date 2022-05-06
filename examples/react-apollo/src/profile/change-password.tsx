@@ -1,59 +1,46 @@
 import React from 'react'
-import { useEffect, useState } from 'react'
-import { Button, FlexboxGrid, Input, Message, Notification, Panel, toaster } from 'rsuite'
+import { useState } from 'react'
 
 import { useChangePassword } from '@nhost/react'
+import { Button, Card, Grid, PasswordInput, Title } from '@mantine/core'
+import { showNotification } from '@mantine/notifications'
 
 export const ChangePassword: React.FC = () => {
   const [password, setPassword] = useState('')
-  const { changePassword, isSuccess, error } = useChangePassword()
-  const [errorMessage, setErrorMessage] = useState('')
+  const { changePassword } = useChangePassword()
 
-  // * See https://github.com/rsuite/rsuite/issues/2336
-  useEffect(() => {
-    if (isSuccess) {
-      setPassword('')
-      toaster.push(
-        <Notification type="info" header="Info" closable>
-          Password changed successfully.
-        </Notification>
-      )
-      setPassword('')
+  const change = async () => {
+    const result = await changePassword(password)
+    if (result.isSuccess) {
+      showNotification({
+        message: `Password changed successfully.`
+      })
     }
-  }, [isSuccess])
-
-  // * Set error message from the registration hook errors
-  useEffect(() => {
-    setErrorMessage(error?.message || '')
-  }, [error])
-  // * Reset error message every time the password input changed
-  useEffect(() => {
-    setErrorMessage('')
-  }, [password])
-
+    if (result.error) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error.message
+      })
+    }
+  }
   return (
-    <Panel header="Change password" bordered>
-      <FlexboxGrid>
-        <FlexboxGrid.Item colspan={12}>
-          <Input
+    <Card shadow="sm" p="lg" m="sm">
+      <Title>Change password</Title>
+      <Grid>
+        <Grid.Col>
+          <PasswordInput
             value={password}
-            onChange={setPassword}
-            type="password"
+            onChange={(e) => setPassword(e.target.value)}
             placeholder="New password"
           />
-        </FlexboxGrid.Item>
-        <FlexboxGrid.Item colspan={12}>
-          <Button onClick={() => changePassword(password)} block appearance="primary">
+        </Grid.Col>
+        <Grid.Col>
+          <Button onClick={change} fullWidth>
             Change
           </Button>
-        </FlexboxGrid.Item>
-      </FlexboxGrid>
-
-      {errorMessage && (
-        <Message showIcon type="error">
-          {errorMessage}
-        </Message>
-      )}
-    </Panel>
+        </Grid.Col>
+      </Grid>
+    </Card>
   )
 }
