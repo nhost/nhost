@@ -16,7 +16,7 @@ import {
   TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
-import { getSession, isBrowser, localStorageGetter, localStorageSetter } from './utils/helpers'
+import { getSession, isBrowser } from './utils/helpers'
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -70,22 +70,22 @@ export class HasuraAuthClient {
     autoSignIn = true,
     autoLogin,
     clientStorage,
-    clientStorageType = 'web',
+    clientStorageType,
     clientStorageGetter,
     clientStorageSetter,
     refreshIntervalTime,
-    start = true,
-    Client = AuthClient
+    start = true
   }: NhostAuthConstructorParams) {
-    this._client = new Client({
+    this._client = new AuthClient({
       backendUrl: url,
+      clientUrl: (typeof window !== 'undefined' && window.location?.origin) || '',
       autoRefreshToken,
       autoSignIn: typeof autoLogin === 'boolean' ? autoLogin : autoSignIn,
       start,
-      clientStorageGetter:
-        clientStorageGetter || localStorageGetter(clientStorageType, clientStorage),
-      clientStorageSetter:
-        clientStorageSetter || localStorageSetter(clientStorageType, clientStorage),
+      clientStorage,
+      clientStorageType,
+      clientStorageGetter,
+      clientStorageSetter,
       refreshIntervalTime
     })
   }

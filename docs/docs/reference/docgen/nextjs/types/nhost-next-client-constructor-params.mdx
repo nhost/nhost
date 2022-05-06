@@ -4,7 +4,7 @@ title: NhostNextClientConstructorParams
 sidebar_label: NhostNextClientConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nextjs/src/index.ts#L9
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nextjs/src/index.ts#L11
 ---
 
 # `NhostNextClientConstructorParams`
@@ -19,35 +19,23 @@ Nhost backend URL.
 
 ---
 
+**<span className="parameter-name deprecated">autoLogin</span>** <span className="optional-status">optional</span> `boolean`
+
+:::caution Deprecated
+@alias autoSignIn - use autoSignIn instead
+:::
+
+---
+
 **<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> `boolean`
 
 When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
 
 ---
 
-**<span className="parameter-name deprecated">autoLogin</span>** <span className="optional-status">optional</span> `boolean`
-
-:::caution Deprecated
-use autoSignIn instead
-:::
-
----
-
 **<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
 
 When set to true, will automatically refresh token before it expires
-
----
-
-**<span className="parameter-name">clientStorageSetter</span>** <span className="optional-status">optional</span> `StorageSetter`
-
-Define a way to set information about the refresh token and its exipration date
-
----
-
-**<span className="parameter-name">clientStorageGetter</span>** <span className="optional-status">optional</span> `StorageGetter`
-
-Define a way to get information about the refresh token and its exipration date
 
 ---
 

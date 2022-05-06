@@ -1,5 +1,19 @@
 # @nhost/react-apollo
 
+## 4.2.0
+
+### Minor Changes
+
+- 42edb74: Adapt to React 18
+- 42edb74: Bump to Apollo client 3.6.2
+
+### Patch Changes
+
+- 54e1873: Fix: add authentication headers to GraphQL operations when authenticated
+- Updated dependencies [42edb74]
+  - @nhost/react@0.7.0
+  - @nhost/apollo@0.5.0
+
 ## 4.1.1
 
 ### Patch Changes
