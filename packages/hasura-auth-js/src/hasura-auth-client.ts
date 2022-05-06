@@ -98,7 +98,7 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * auth.signIn({email, password}); // email password
+   * auth.signUp({email, password}); // email password
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signup
