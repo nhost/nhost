@@ -49,7 +49,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./auth.typedoc.json",
+    "typedoc": "typedoc --options ./auth.typedoc.json --tsconfig ./typedoc.tsconfig.json",
     "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
   "dependencies": {

@@ -1,4 +1,7 @@
 {
   "extends": "../../config/react-library.tsconfig.json",
+  "compilerOptions": {
+    "paths": {}
+  },
   "include": ["src"]
 }

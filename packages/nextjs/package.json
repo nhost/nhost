@@ -53,7 +53,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./nextjs.typedoc.json",
+    "typedoc": "typedoc --options ./nextjs.typedoc.json --tsconfig ./typedoc.tsconfig.json",
     "docgen": "pnpm typedoc && docgen --config ./nextjs.docgen.json"
   },
   "dependencies": {
