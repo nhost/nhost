@@ -43,7 +43,7 @@ In your serverless function, you need to make sure the request actually comes fr
 - Check the header in the serverless function. It should match the environment variable `NHOST_WEBHOOK_SECRET`.
 
 ```js
-export default function async handler(req, res) {
+export default async function handler(req, res) {
 
   // Check webhook secret to make sure the request is valid
   if (
