@@ -36,11 +36,10 @@ export const createApolloClient = ({
   cache = new InMemoryCache(),
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError
-}: NhostApolloClientOptions) => {
+}: NhostApolloClientOptions): ApolloClient<unknown> => {
   let backendUrl = graphqlUrl || nhost?.graphql.getUrl()
   if (!backendUrl) {
-    console.error("Can't initialize the Apollo Client: no backend Url has been provided")
-    return null
+    throw Error("Can't initialize the Apollo Client: no backend Url has been provided")
   }
   const interpreter = nhost?.auth.client.interpreter
 
@@ -125,8 +124,8 @@ export const createApolloClient = ({
   const client = new ApolloClient(apolloClientOptions)
 
   interpreter?.onTransition(async (state, event) => {
-    const newToken = state.context.accessToken.value
     if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
+      const newToken = state.context.accessToken.value
       token = newToken
       if (event.type === 'SIGNOUT') {
         try {

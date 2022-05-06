@@ -1,10 +1,12 @@
 import { interpret } from 'xstate'
 
 import { AuthMachine, AuthMachineOptions, createAuthMachine } from './machines'
-import { defaultClientStorageGetter, defaultClientStorageSetter } from './storage'
 import type { AuthInterpreter } from './types'
 
-export type NhostClientOptions = AuthMachineOptions & { start?: boolean }
+export type NhostClientOptions = AuthMachineOptions & {
+  /** @internal create and start xstate interpreter on creation. With React, it is started inside the Nhost provider */
+  start?: boolean
+}
 
 /**
  * @internal
@@ -19,24 +21,23 @@ export class AuthClient {
   private _subscriptions: Set<(client: AuthClient) => void> = new Set()
 
   constructor({
-    backendUrl,
-    clientUrl = (typeof window !== 'undefined' && window.location?.origin) || '',
-    clientStorageGetter = defaultClientStorageGetter,
-    clientStorageSetter = defaultClientStorageSetter,
-    refreshIntervalTime,
+    clientStorageType = 'web',
     autoSignIn = true,
     autoRefreshToken = true,
-    start = true
+    start = true,
+    backendUrl,
+    clientUrl,
+
+    ...defaultOptions
   }: NhostClientOptions) {
     this.backendUrl = backendUrl
     this.clientUrl = clientUrl
 
     this.machine = createAuthMachine({
+      ...defaultOptions,
       backendUrl,
       clientUrl,
-      refreshIntervalTime,
-      clientStorageGetter,
-      clientStorageSetter,
+      clientStorageType,
       autoSignIn,
       autoRefreshToken
     })

@@ -22,18 +22,24 @@ export const createServerSideClient = async (
   const cookies = Cookies(context.req, context.res)
   const nhost = new NhostClient({
     backendUrl,
-    clientStorageGetter: (key) => {
-      // TODO does not perfectly work in the same way as the 'regular' client:
-      // in the authentication machine, if the refresh token is null but an error is found in the url, then the authentication stops and fails.
-      // * When the requested key is `NHOST_REFRESH_TOKEN_KEY`, we have to look for the given 'refreshToken' value
-      // * in the url as this is the key sent by hasura-auth
-      const urlKey = key === NHOST_REFRESH_TOKEN_KEY ? 'refreshToken' : key
-      const urlValue = context.query[urlKey]
-      const cookieValue = cookies.get(key) ?? null
-      return typeof urlValue === 'string' ? urlValue : cookieValue
-    },
-    clientStorageSetter: (key, value) => {
-      cookies.set(key, value, { httpOnly: false, sameSite: true })
+    clientStorageType: 'custom',
+    clientStorage: {
+      getItem: (key) => {
+        // TODO does not perfectly work in the same way as the 'regular' client:
+        // in the authentication machine, if the refresh token is null but an error is found in the url, then the authentication stops and fails.
+        // * When the requested key is `NHOST_REFRESH_TOKEN_KEY`, we have to look for the given 'refreshToken' value
+        // * in the url as this is the key sent by hasura-auth
+        const urlKey = key === NHOST_REFRESH_TOKEN_KEY ? 'refreshToken' : key
+        const urlValue = context.query[urlKey]
+        const cookieValue = cookies.get(key) ?? null
+        return typeof urlValue === 'string' ? urlValue : cookieValue
+      },
+      setItem: (key, value) => {
+        cookies.set(key, value, { httpOnly: false, sameSite: true })
+      },
+      removeItem: (key) => {
+        cookies.set(key, null)
+      }
     },
     start: true,
     autoRefreshToken: false,

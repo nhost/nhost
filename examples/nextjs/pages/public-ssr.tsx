@@ -1,8 +1,9 @@
 import { GetServerSideProps } from 'next'
 import React from 'react'
 
+import { Container, Title } from '@mantine/core'
 import { NhostSession } from '@nhost/core'
-import { getNhostSession, useAccessToken, useAuthenticated, useUserData } from '@nhost/nextjs'
+import { getNhostSession, useAccessToken, useAuthenticated } from '@nhost/nextjs'
 
 import { BACKEND_URL } from '../helpers'
 
@@ -15,18 +16,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 }
 
-const SecondPage: React.FC<{ initial: NhostSession }> = () => {
+const PublicSSRPage: React.FC<{ initial: NhostSession }> = () => {
   const isAuthenticated = useAuthenticated()
-  const user = useUserData()
   const accessToken = useAccessToken()
-  if (!isAuthenticated) return <div>User it not authenticated</div>
   return (
-    <div>
-      <h1>Second page</h1>
-      User {user?.displayName} is authenticated {isAuthenticated ? 'yes' : 'no'}
+    <Container>
+      <Title>Public Server-side Page</Title>
+      User authenticated: {isAuthenticated ? 'yes' : 'no'}
       <div>Access token: {accessToken}</div>
-    </div>
+    </Container>
   )
 }
 
-export default SecondPage
+export default PublicSSRPage

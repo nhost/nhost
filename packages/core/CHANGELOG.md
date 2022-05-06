@@ -1,5 +1,16 @@
 # @nhost/core
 
+## 0.5.0
+
+### Minor Changes
+
+- b56162a: Introduce 'custom' client storage type
+- b56162a: Introduce a new 'cookie' client storage type
+
+### Patch Changes
+
+- b56162a: prefer clientStorage/clientStorageType to clientStorageGetter/clientStorageSetter
+
 ## 0.4.1
 
 ### Patch Changes
