@@ -24,14 +24,14 @@ in to access a protected dashboard and update their profile information.
 
 ## Prerequisites
 
-Before getting started, let’s make sure that your development environment is
+Before getting started, let's make sure that your development environment is
 ready.
 
-- You’ll need **Node.js** version 10.13 or later.
+- You'll need **Node.js** version 10.13 or later.
   [Install it from here](https://nodejs.org/en/).
-- You’ll need the **Nhost CLI** and **Docker**. View the
+- You'll need the **Nhost CLI** and **Docker**. View the
   [installation instructions](https://docs.nhost.io/platform/overview/get-started-with-nhost-cli).
-- You’ll need a **Github repository**. Create a
+- You'll need a **Github repository**. Create a
   [new repository](https://github.com/new).
 
 ## Project setup
@@ -51,7 +51,7 @@ services and click **Create App**.
 ![nhost-first-app](/img/quickstarts/create-app-step-2.png)
 
 After a few seconds, you should get a PostgreSQL database, a GraphQL API with
-Hasura, file storage, and authentication already set up.
+Hasura, file storage, and authentication set up.
 
 :::info
 You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
@@ -153,7 +153,7 @@ file to load your new environment variable.
 
 #### 1. Sign-up
 
-The next step is to allow our users to authentication into our application.
+The next step is to allow our users to authenticate into our application.
 Let's start with implementing the sign-up process.
 
 For that, we'll use the `useSignUpEmailPassword` hook provided by the Nhost
@@ -498,7 +498,7 @@ export default withAuth(Profile);
 Finally, let's display the information of the authenticated user throughout his
 dashboard to make the app more personalized.
 
-Getting the current authenticated user data is actually quite easy. Indeed, we
+Getting the current authenticated user data is quite easy. We
 can use the `useUserData` hook provided by Nhost to do it.
 
 So, open the `components/Layout.js`, `pages/index.js`, and `pages/profile.js`
@@ -515,7 +515,7 @@ const Layout = () => {
 
 That's it! The JSX code for rendering the user data (email, display name, etc.)
 is already included in your components as part of the example repository you've
-bootstraped at the beginning of this guide.
+bootstrapped at the beginning of this guide.
 
 ### Update user data
 
@@ -594,7 +594,7 @@ const Profile = () => {
 ```
 
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
-set any permissions yet, our mutation queries would failed.
+set any permissions yet, our mutation queries would fail.
 
 So, open the Hasura console from [http://localhost:1337](http://localhost:1337),
 go to the **permissions** tab for the `users` table, type in `user` in the role
@@ -602,7 +602,7 @@ cell, and click the edit icon on the `select` operation:
 
 ![Hasura users permissions](/img/quickstarts/hasura-permissions-1.png)
 
-To restrict the user to read his own data only, specify a condition with the
+To restrict the user to read his data only, specify a condition with the
 user's ID and the `X-Hasura-User-ID` session variable, which is passed with each
 requests.
 

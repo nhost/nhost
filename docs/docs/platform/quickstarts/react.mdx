@@ -51,7 +51,7 @@ services and click **Create App**.
 ![nhost-first-app](/img/quickstarts/create-app-step-2.png)
 
 After a few seconds, you should get a PostgreSQL database, a GraphQL API with
-Hasura, file storage, and authentication already set up.
+Hasura, file storage, and authentication set up.
 
 :::info
 You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
@@ -155,7 +155,7 @@ file to load your new environment variable.
 
 #### 1. Sign-up
 
-The next step is to allow our users to authentication into our application.
+The next step is to allow our users to authenticate into our application.
 Let's start with implementing the sign-up process.
 
 For that, we'll use the `useSignUpEmailPassword` hook provided by the Nhost
@@ -481,7 +481,7 @@ function App() {
 Finally, let's display the information of the authenticated user throughout his
 dashboard to make the app more personalized.
 
-Getting the current authenticated user data is actually quite easy. Indeed, we
+Getting the current authenticated user data is quite easy. Indeed, we
 can use the `useUserData` hook provided by Nhost to do it.
 
 So, open the `components/Layout.js`, `pages/index.js`, and `pages/profile.js`
@@ -577,7 +577,7 @@ const Profile = () => {
 ```
 
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
-set any permissions yet, our mutation queries would failed.
+set any permissions yet, our mutation queries would fail.
 
 So, open the Hasura console from [http://localhost:1337](http://localhost:1337),
 go to the **permissions** tab for the `users` table, type in `user` in the role
