@@ -45,34 +45,32 @@ export const localStorageGetter = (
       }
     }
   }
-
-  if (clientStorage) {
-    if (clientStorageType === 'react-native') {
-      return (key) => clientStorage.getItem?.(key)
-    }
-    if (clientStorageType === 'capacitor') {
-      return (key) => clientStorage.get?.({ key })
-    }
-    if (clientStorageType === 'expo-secure-storage') {
-      return (key) => clientStorage.getItemAsync?.(key)
-    }
-    if (clientStorageType === 'custom') {
-      if (clientStorage.getItem && clientStorage.removeItem) {
-        return clientStorage.getItem
-      }
-      if (clientStorage.getItemAsync) {
-        return clientStorage.getItemAsync
-      }
-      throw Error(
-        `clientStorageType is set to 'custom' but clientStorage is missing getItem or getItemAsync property`
-      )
-    }
-    throw Error(`Unknown storage type: ${clientStorageType}`)
-  } else {
+  if (!clientStorage) {
     throw Error(
       `clientStorageType is set to '${clientStorageType}' but no clienStorage has been given`
     )
   }
+  if (clientStorageType === 'react-native') {
+    return (key) => clientStorage.getItem?.(key)
+  }
+  if (clientStorageType === 'capacitor') {
+    return (key) => clientStorage.get?.({ key })
+  }
+  if (clientStorageType === 'expo-secure-storage') {
+    return (key) => clientStorage.getItemAsync?.(key)
+  }
+  if (clientStorageType === 'custom') {
+    if (clientStorage.getItem && clientStorage.removeItem) {
+      return clientStorage.getItem
+    }
+    if (clientStorage.getItemAsync) {
+      return clientStorage.getItemAsync
+    }
+    throw Error(
+      `clientStorageType is set to 'custom' but clientStorage is missing getItem or getItemAsync property`
+    )
+  }
+  throw Error(`Unknown storage type: ${clientStorageType}`)
 }
 
 export const localStorageSetter = (
@@ -93,41 +91,40 @@ export const localStorageSetter = (
       }
     }
   }
-  if (clientStorage) {
-    if (clientStorageType === 'react-native') {
-      return (key, value) =>
-        value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
-    }
-    if (clientStorageType === 'capacitor') {
-      return (key, value) =>
-        value ? clientStorage.set?.({ key, value }) : clientStorage.remove?.({ key })
-    }
-    if (clientStorageType === 'expo-secure-storage') {
-      return async (key, value) =>
-        value ? clientStorage.setItemAsync?.(key, value) : clientStorage.deleteItemAsync?.(key)
-    }
-    if (clientStorageType === 'custom') {
-      if (!clientStorage.removeItem) {
-        throw Error(
-          `clientStorageType is set to 'custom' but clientStorage is missing a removeItem property`
-        )
-      }
-      if (clientStorage.setItem) {
-        return (key, value) =>
-          value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
-      }
-      if (clientStorage.setItemAsync) {
-        return async (key, value) =>
-          value ? clientStorage.setItemAsync?.(key, value) : clientStorage.removeItem?.(key)
-      }
-      throw Error(
-        `clientStorageType is set to 'custom' but clientStorage is missing setItem or setItemAsync property`
-      )
-    }
-    throw Error(`Unknown storage type: ${clientStorageType}`)
-  } else {
+  if (!clientStorage) {
     throw Error(
       `clientStorageType is set to '${clientStorageType}' but no clienStorage has been given`
     )
   }
+  if (clientStorageType === 'react-native') {
+    return (key, value) =>
+      value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
+  }
+  if (clientStorageType === 'capacitor') {
+    return (key, value) =>
+      value ? clientStorage.set?.({ key, value }) : clientStorage.remove?.({ key })
+  }
+  if (clientStorageType === 'expo-secure-storage') {
+    return async (key, value) =>
+      value ? clientStorage.setItemAsync?.(key, value) : clientStorage.deleteItemAsync?.(key)
+  }
+  if (clientStorageType === 'custom') {
+    if (!clientStorage.removeItem) {
+      throw Error(
+        `clientStorageType is set to 'custom' but clientStorage is missing a removeItem property`
+      )
+    }
+    if (clientStorage.setItem) {
+      return (key, value) =>
+        value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
+    }
+    if (clientStorage.setItemAsync) {
+      return async (key, value) =>
+        value ? clientStorage.setItemAsync?.(key, value) : clientStorage.removeItem?.(key)
+    }
+    throw Error(
+      `clientStorageType is set to 'custom' but clientStorage is missing setItem or setItemAsync property`
+    )
+  }
+  throw Error(`Unknown storage type: ${clientStorageType}`)
 }
