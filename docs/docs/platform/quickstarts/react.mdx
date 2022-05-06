@@ -43,12 +43,12 @@ First things first, we need to create a new Nhost project.
 So, log in to your Nhost dashboard and click the **Create your first app**
 button.
 
-![nhost-first-app](https://user-images.githubusercontent.com/4352286/165812976-4a738a9b-e710-4461-8f39-43e0103c3f38.png)
+![nhost-first-app](/img/quickstarts/create-app-step-1.png)
 
 Next, give your new Nhost app a name, select a geographic region for your Nhost
 services and click **Create App**.
 
-![nhost-new-app](https://user-images.githubusercontent.com/4352286/165812980-a12a9fd1-7fdd-4756-87c8-949b53ff7589.png)
+![nhost-first-app](/img/quickstarts/create-app-step-2.png)
 
 After a few seconds, you should get a PostgreSQL database, a GraphQL API with
 Hasura, file storage, and authentication already set up.
@@ -142,7 +142,7 @@ REACT_APP_NHOST_BACKEND_URL=YOUR_NHOST_URL
 
 You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
 
-![nhost-backend-url](https://user-images.githubusercontent.com/4352286/163446130-4082f122-00a0-4ab9-bd35-3c52b6892fb1.png)
+![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
 
 :::caution
 Don't forget to restart your React server after saving your `.env.local`
@@ -583,26 +583,18 @@ So, open the Hasura console from [http://localhost:1337](http://localhost:1337),
 go to the **permissions** tab for the `users` table, type in `user` in the role
 cell, and click the edit icon on the `select` operation:
 
-![hasura-users-permissions](https://user-images.githubusercontent.com/4352286/165812965-86ed3585-1e32-4ae5-a51b-c19fd3e7a269.png)
+![Hasura users permissions](/img/quickstarts/hasura-permissions-1.png)
 
 To restrict the user to read his own data only, specify a condition with the
 user's ID and the `X-Hasura-User-ID` session variable, which is passed with each
 requests.
 
-<img
-  width="1142"
-  alt="hasura-custom-check"
-  src="https://user-images.githubusercontent.com/4352286/165812960-4498ced4-d494-41f7-aa8b-60e6c0a2a939.png"
-/>
+![Hasura users permissions](/img/quickstarts/hasura-permissions-2.png)
 
 Finally, select the columns you'd like the users to have access to, and click
 **Save Permissions**.
 
-<img
-  width="1134"
-  alt="hasura-column-permissions"
-  src="https://user-images.githubusercontent.com/4352286/165812956-6795254e-4341-4254-b1e7-880c83fb527a.png"
-/>
+![Hasura users permissions](/img/quickstarts/hasura-permissions-3.png)
 
 Repeat the same steps on the `update` operation for the `user` role to allow
 users to update their `displayName` and `metadata` only.
