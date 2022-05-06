@@ -83,9 +83,22 @@ cd my-nhost-app
 
 And run the development server with the following command:
 
+<Tabs>
+  <TabItem value="npm" label="npm" default>
+
 ```bash
 npm run dev
 ```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn dev
+```
+
+  </TabItem>
+</Tabs>
 
 If everything is working fine, your Next.js development server should be running
 on port 3000. Open [http://localhost:3000](http://localhost:3000) from your
@@ -101,9 +114,22 @@ gives us a way to interact with our Nhost backend using React hooks.
 
 You can install the Nhost Next.js SDK with:
 
+<Tabs>
+  <TabItem value="npm" label="npm" default>
+
 ```bash
-npm i @nhost/react @nhost/nextjs
+npm install @nhost/react @nhost/nextjs
 ```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add @nhost/react @nhost/nextjs
+```
+
+  </TabItem>
+</Tabs>
 
 Next, open your `_app.js` file as we'll now configure Nhost inside our app.
 
@@ -528,9 +554,22 @@ this GraphQL API.
 
 So, start by installing the following dependencies:
 
+<Tabs>
+  <TabItem value="npm" label="npm" default>
+
 ```bash
 npm install @nhost/react-apollo @apollo/client
 ```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add @nhost/react-apollo @apollo/client
+```
+
+  </TabItem>
+</Tabs>
 
 Then, add the `NhostApolloProvider` from `@nhost/react-apollo` into your
 `_app_.js` file.
