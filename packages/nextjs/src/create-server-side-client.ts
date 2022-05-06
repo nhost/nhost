@@ -46,8 +46,9 @@ export const createServerSideClient = async (
     autoSignIn: true
   })
 
-  await waitFor(nhost.auth.client.interpreter!, (state: StateFrom<AuthMachine>) =>
-    state.hasTag('ready')
+  await waitFor(
+    nhost.auth.client.interpreter!,
+    (state: StateFrom<AuthMachine>) => !state.hasTag('loading')
   )
   return nhost
 }

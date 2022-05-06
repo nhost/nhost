@@ -1,7 +1,7 @@
+import { Container, Title } from '@mantine/core'
 import { useNhostClient } from '@nhost/react'
 import React from 'react'
 import { Link } from 'react-router-dom'
-import { Panel } from 'rsuite'
 
 export const AboutPage: React.FC = () => {
   const nhost = useNhostClient()
@@ -15,7 +15,8 @@ export const AboutPage: React.FC = () => {
     console.log(req)
   }
   return (
-    <Panel header="About this example" bordered>
+    <Container>
+      <Title>About this example</Title>
       <p>This application demonstrates the available features of the Nhost stack.</p>
       <button onClick={fetch}>Fetch</button>
       <div>
@@ -32,13 +33,13 @@ export const AboutPage: React.FC = () => {
         <ul>
           <li>React</li>
           <li>React-router</li>
-          <li>RSuite</li>
+          <li>Mantine</li>
           <li>and of course, the Nhost React client</li>
         </ul>
       </div>
       <div>
         Noew let&apos;s go to the <Link to="/">index page</Link>
       </div>
-    </Panel>
+    </Container>
   )
 }

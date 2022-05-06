@@ -745,7 +745,7 @@ export class HasuraAuthClient {
     if (!interpreter) {
       throw Error('Auth interpreter not set')
     }
-    if (interpreter.state.hasTag('ready')) {
+    if (!interpreter.state.hasTag('loading')) {
       return Promise.resolve(interpreter)
     }
     return new Promise((resolve, reject) => {
@@ -754,7 +754,7 @@ export class HasuraAuthClient {
         TIMEOUT_IN_SECONS * 1_000
       )
       interpreter.onTransition((state) => {
-        if (state.hasTag('ready')) {
+        if (!state.hasTag('loading')) {
           clearTimeout(timer)
           return resolve(interpreter)
         }
@@ -763,7 +763,7 @@ export class HasuraAuthClient {
   }
 
   private isReady() {
-    return !!this._client.interpreter?.state?.hasTag('ready')
+    return !this._client.interpreter?.state?.hasTag('loading')
   }
 
   get client() {

@@ -1,52 +1,47 @@
 import React from 'react'
 import { FaLock } from 'react-icons/fa'
-import { Link, NavLink, Route, Routes } from 'react-router-dom'
-import { Button, Divider, FlexboxGrid, IconButton, Panel } from 'rsuite'
+import { Link, Route, Routes } from 'react-router-dom'
 
-import { Icon } from '@rsuite/icons'
-
-import { OAuthLinks } from '../components'
-import { VerificationEmailSent } from '../verification-email-sent'
+import OAuthLinks from '../components/OauthLinks'
 
 import { EmailPassword } from './email-password'
 import { EmailPasswordless } from './email-passwordless'
+import AuthLayout from '../components/AuthLayout'
+import { Center, Text, Anchor, Divider } from '@mantine/core'
+import AuthLink from '../components/AuthLink'
 
 const Index: React.FC = () => (
-  <div>
+  <>
     <OAuthLinks />
-    <Divider />
-    <IconButton
-      block
-      icon={<Icon as={FaLock} />}
-      appearance="ghost"
-      as={NavLink}
-      to="/sign-up/email-passwordless"
-    >
+    <Divider my="sm" />
+    <AuthLink icon={<FaLock />} variant="outline" link="/sign-up/email-passwordless">
       Continue with passwordless email
-    </IconButton>
-    <Button as={NavLink} to="/sign-up/email-password" block appearance="link">
+    </AuthLink>
+    <AuthLink variant="subtle" link="/sign-up/email-password">
       Continue with email + password
-    </Button>
-  </div>
+    </AuthLink>
+  </>
 )
-
 export const SignUpPage: React.FC = () => {
   return (
-    <div style={{ textAlign: 'center' }}>
-      <FlexboxGrid justify="center">
-        <FlexboxGrid.Item colspan={12}>
-          <Panel header={<h2>Sign up</h2>} bordered>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/email-password" element={<EmailPassword />} />
-              <Route path="/email-passwordless" element={<EmailPasswordless />} />
-              <Route path="/verification-email-sent" element={<VerificationEmailSent />} />
-            </Routes>
-          </Panel>
-        </FlexboxGrid.Item>
-      </FlexboxGrid>
-      <Divider />
-      Already have an account? <Link to="/sign-in">Log in</Link>
-    </div>
+    <AuthLayout
+      title="Sign up"
+      footer={
+        <Center>
+          <Text>
+            Already have an account?{' '}
+            <Anchor component={Link} to="/sign-in">
+              Log in
+            </Anchor>
+          </Text>
+        </Center>
+      }
+    >
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/email-password" element={<EmailPassword />} />
+        <Route path="/email-passwordless" element={<EmailPasswordless />} />
+      </Routes>
+    </AuthLayout>
   )
 }

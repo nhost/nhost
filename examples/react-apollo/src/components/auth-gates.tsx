@@ -3,7 +3,7 @@ import { Navigate, useLocation } from 'react-router-dom'
 
 import { useAuthenticationStatus } from '@nhost/react'
 
-export const AuthGate: React.FC = ({ children }) => {
+export const AuthGate: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
   const { isLoading, isAuthenticated } = useAuthenticationStatus()
   const location = useLocation()
   if (isLoading) {
@@ -17,7 +17,7 @@ export const AuthGate: React.FC = ({ children }) => {
   return <div>{children}</div>
 }
 
-export const PublicGate: React.FC = ({ children }) => {
+export const PublicGate: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
   const { isLoading, isAuthenticated } = useAuthenticationStatus()
   const location = useLocation()
   if (isLoading) {

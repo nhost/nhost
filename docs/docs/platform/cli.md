@@ -1,6 +1,6 @@
 ---
-title: 'Nhost CLI'
-sidebar_position: 3
+title: 'CLI'
+sidebar_position: 11
 ---
 
 import Tabs from '@theme/Tabs';

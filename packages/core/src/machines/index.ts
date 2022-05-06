@@ -75,38 +75,31 @@ export const createAuthMachine = ({
       type: 'parallel',
       states: {
         authentication: {
-          initial: 'importingRefreshToken',
+          initial: 'starting',
           on: {
             SESSION_UPDATE: [
               {
                 cond: 'hasSession',
-                actions: ['saveSession', 'persist', 'resetTimer', 'reportTokenChanged'],
+                actions: ['saveSession', 'resetTimer', 'reportTokenChanged'],
                 target: '.signedIn'
               }
             ]
           },
           states: {
-            importingRefreshToken: {
+            starting: {
+              tags: ['loading'],
               always: { cond: 'isSignedIn', target: 'signedIn' },
               invoke: {
                 id: 'importRefreshToken',
                 src: 'importRefreshToken',
-                onDone: { actions: 'saveRefreshToken', target: 'starting' },
+                onDone: {
+                  actions: ['saveSession', 'reportTokenChanged'],
+                  target: 'signedIn'
+                },
                 onError: { actions: ['saveAuthenticationError'], target: 'signedOut' }
               }
             },
-            starting: {
-              always: [
-                {
-                  cond: 'hasRefreshTokenWithoutSession',
-                  target: 'authenticating.token'
-                },
-                { cond: 'hasAuthenticationError', target: 'signedOut.failed' },
-                'signedOut'
-              ]
-            },
             signedOut: {
-              tags: ['ready'],
               initial: 'noErrors',
               entry: 'reportSignedOut',
               states: {
@@ -236,7 +229,7 @@ export const createAuthMachine = ({
                     src: 'signInPasswordlessSmsOtp',
                     id: 'authenticatePasswordlessSmsOtp',
                     onDone: {
-                      actions: ['saveSession', 'persist', 'reportTokenChanged'],
+                      actions: ['saveSession', 'reportTokenChanged'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: {
@@ -256,7 +249,7 @@ export const createAuthMachine = ({
                         target: '#nhost.authentication.signedOut.needsMfa'
                       },
                       {
-                        actions: ['saveSession', 'persist', 'reportTokenChanged'],
+                        actions: ['saveSession', 'reportTokenChanged'],
                         target: '#nhost.authentication.signedIn'
                       }
                     ],
@@ -272,26 +265,12 @@ export const createAuthMachine = ({
                     ]
                   }
                 },
-                token: {
-                  invoke: {
-                    src: 'refreshToken',
-                    id: 'signInToken',
-                    onDone: {
-                      actions: ['saveSession', 'persist', 'reportTokenChanged', 'broadcastToken'],
-                      target: '#nhost.authentication.signedIn'
-                    },
-                    onError: {
-                      actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
-                    }
-                  }
-                },
                 anonymous: {
                   invoke: {
                     src: 'signInAnonymous',
                     id: 'authenticateAnonymously',
                     onDone: {
-                      actions: ['saveSession', 'persist', 'reportTokenChanged'],
+                      actions: ['saveSession', 'reportTokenChanged'],
                       target: '#nhost.authentication.signedIn'
                     },
                     onError: {
@@ -307,7 +286,7 @@ export const createAuthMachine = ({
                         src: 'signInMfaTotp',
                         id: 'signInMfaTotp',
                         onDone: {
-                          actions: ['saveSession', 'persist', 'reportTokenChanged'],
+                          actions: ['saveSession', 'reportTokenChanged'],
                           target: '#nhost.authentication.signedIn'
                         },
                         onError: {
@@ -329,7 +308,7 @@ export const createAuthMachine = ({
                   {
                     cond: 'hasSession',
                     target: '#nhost.authentication.signedIn',
-                    actions: ['saveSession', 'persist', 'reportTokenChanged']
+                    actions: ['saveSession', 'reportTokenChanged']
                   },
                   {
                     target: '#nhost.authentication.signedOut.needsEmailVerification'
@@ -347,11 +326,9 @@ export const createAuthMachine = ({
                 ]
               }
             },
-
             signedIn: {
-              tags: ['ready'],
               type: 'parallel',
-              entry: ['reportSignedIn', 'cleanUrl'],
+              entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken'],
               on: {
                 SIGNOUT: '#nhost.authentication.signedOut.signingOut',
                 DEANONYMIZE: {
@@ -401,12 +378,7 @@ export const createAuthMachine = ({
                             src: 'refreshToken',
                             id: 'refreshToken',
                             onDone: {
-                              actions: [
-                                'saveSession',
-                                'persist',
-                                'resetTimer',
-                                'reportTokenChanged'
-                              ],
+                              actions: ['saveSession', 'resetTimer', 'reportTokenChanged'],
                               target: 'pending'
                             },
                             onError: [
@@ -455,7 +427,7 @@ export const createAuthMachine = ({
                 src: 'refreshToken',
                 id: 'authenticateWithToken',
                 onDone: {
-                  actions: ['saveSession', 'persist', 'reportTokenChanged'],
+                  actions: ['saveSession', 'reportTokenChanged'],
                   target: ['#nhost.authentication.signedIn', 'idle.noErrors']
                 },
                 onError: [
@@ -484,13 +456,28 @@ export const createAuthMachine = ({
           }
         }),
 
+        // * Save session in the context, and persist the refresh token and the jwt expiration outside of the machine
         saveSession: assign({
-          user: (_, e: any) => e.data?.session?.user,
-          accessToken: (_, e) => ({
-            value: e.data?.session?.accessToken,
-            expiresAt: new Date(Date.now() + e.data?.session?.accessTokenExpiresIn * 1_000)
-          }),
-          refreshToken: (_, e) => ({ value: e.data?.session?.refreshToken })
+          user: (_, { data }: any) => data?.session?.user,
+          accessToken: (_, { data }: any) => {
+            if (data.session.accessTokenExpiresIn) {
+              const nextRefresh = new Date(
+                Date.now() + data.session.accessTokenExpiresIn * 1_000
+              ).toISOString()
+              storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
+            } else {
+              storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+            }
+            return {
+              value: data?.session?.accessToken,
+              expiresAt: new Date(Date.now() + data?.session?.accessTokenExpiresIn * 1_000)
+            }
+          },
+          refreshToken: (_, { data }: any) => {
+            storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
+
+            return { value: data?.session?.refreshToken }
+          }
         }),
         saveMfaTicket: assign({
           mfa: (_, e: any) => e.data?.mfa ?? null
@@ -543,22 +530,7 @@ export const createAuthMachine = ({
         saveNoMfaTicketError: assign({
           errors: ({ errors }) => ({ ...errors, registration: NO_MFA_TICKET_ERROR })
         }),
-        saveRefreshToken: assign({
-          accessToken: (ctx, e: any) => ({ ...ctx.accessToken, expiresAt: e.data.expiresAt }),
-          refreshToken: (ctx, e: any) => ({ ...ctx.refreshToken, value: e.data.refreshToken })
-        }),
-        // * Persist the refresh token and the jwt expiration outside of the machine
-        persist: (_, { data }: any) => {
-          storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
-          if (data.session.accessTokenExpiresIn) {
-            const nextRefresh = new Date(
-              Date.now() + data.session.accessTokenExpiresIn * 1_000
-            ).toISOString()
-            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
-          } else {
-            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
-          }
-        },
+
         destroyRefreshToken: assign({
           refreshToken: (_) => {
             storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
@@ -591,12 +563,9 @@ export const createAuthMachine = ({
 
       guards: {
         isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
-        hasRefreshTokenWithoutSession: (ctx) =>
-          !!ctx.refreshToken.value && !ctx.user && !ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
         noMfaTicket: (ctx, { ticket }) => !ticket && !ctx.mfa?.ticket,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
-        hasAuthenticationError: (ctx) => !!ctx.errors.authentication,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         refreshTimerShouldRefresh: (ctx) => {
           const { expiresAt } = ctx.accessToken
@@ -686,15 +655,17 @@ export const createAuthMachine = ({
           }),
 
         importRefreshToken: async () => {
-          const stringExpiresAt = await storageGetter(NHOST_JWT_EXPIRES_AT_KEY)
-          const expiresAt = stringExpiresAt ? new Date(stringExpiresAt) : null
-          let refreshToken = await storageGetter(NHOST_REFRESH_TOKEN_KEY)
+          let error: ValidationErrorPayload | null = null
           if (autoSignIn) {
             const urlToken = getParameterByName('refreshToken') || null
             if (urlToken) {
-              if (!refreshToken) {
-                // ? Which takes precedence? localStorage or the url?
-                refreshToken = urlToken
+              try {
+                const session = await postRequest('/token', {
+                  refreshToken: urlToken
+                })
+                return { session }
+              } catch (exception) {
+                error = (exception as { error: ValidationErrorPayload }).error
               }
             } else {
               const error = getParameterByName('error')
@@ -709,14 +680,19 @@ export const createAuthMachine = ({
               }
             }
           }
-          return refreshToken
-            ? {
-                refreshToken,
-                expiresAt
-              }
-            : Promise.reject<{ error: ValidationErrorPayload }>({
-                error: null
+          const storageToken = await storageGetter(NHOST_REFRESH_TOKEN_KEY)
+          if (storageToken) {
+            try {
+              const session = await postRequest('/token', {
+                refreshToken: storageToken
               })
+              return { session }
+            } catch (exception) {
+              error = (exception as { error: ValidationErrorPayload }).error
+            }
+          }
+
+          return Promise.reject<{ error: ValidationErrorPayload }>({ error })
         }
       }
     }
