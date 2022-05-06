@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.5.2
+
+### Patch Changes
+
+- 65a3061: correct cookie storage type
+
 ## 0.5.1
 
 ### Patch Changes
