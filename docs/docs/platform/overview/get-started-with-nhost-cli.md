@@ -46,14 +46,14 @@ nhost version
 
 ### (Optional) Add shell completion
 
-To add command auto completion in the shell, you can run the following command:
+To add command auto-completion in the shell, you can run the following command:
 
 ```bash
 nhost completion [shell]
 ```
 
 This will generate the autocompletion script for `nhost` for the specified shell
-(bash, fish, powershell, or zsh).
+(bash, fish, PowerShell, or zsh).
 
 ## Prerequisites
 
@@ -223,7 +223,7 @@ Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s
 
 Running this command will start up all the backend services provided by Nhost.
 
-It also runs a web server to serve the Hasura console for the GraphQL engine so
+It also runs a webserver to serve the Hasura console for the GraphQL engine so
 you can manage the database and try out the API.
 
 The Hasura console should open automatically at
@@ -373,7 +373,7 @@ export default (req: Request, res: Response) => {
 };
 ```
 
-Every JavaScript and TypeScript file inside the `functions/` folder become an
+Every JavaScript and TypeScript file inside the `functions/` folder becomes an
 API endpoint.
 
 Locally, the base URL for the serverless functions is
