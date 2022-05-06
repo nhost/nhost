@@ -1,6 +1,7 @@
 import {
   AuthClient,
   AuthOptions,
+  ErrorPayload,
   PasswordlessOptions,
   Provider,
   ProviderOptions,
@@ -24,11 +25,6 @@ export interface Session {
   refreshToken: string
   user: User | null
 }
-export interface ApiError {
-  message: string
-  status: number
-}
-
 // Sign Up
 export interface SignUpEmailPasswordParams {
   email: string
@@ -39,7 +35,7 @@ export interface SignUpEmailPasswordParams {
 export type SignUpParams = SignUpEmailPasswordParams
 
 export type SignUpResponse =
-  | { session: null; error: ApiError }
+  | { session: null; error: ErrorPayload }
   | { session: Session | null; error: null }
 
 // Sign In
@@ -105,7 +101,7 @@ export interface DeanonymizeParams {
 
 export interface SignInReponse {
   session: Session | null
-  error: ApiError | null
+  error: ErrorPayload | null
   mfa?: {
     enabled: boolean
     ticket: string
@@ -133,7 +129,7 @@ export interface Mfa {
 }
 
 export type ApiSignUpEmailPasswordResponse =
-  | { session: null; error: ApiError }
+  | { session: null; error: ErrorPayload }
   | { session: Session; error: null }
 
 export interface ApiSignInData {
@@ -145,32 +141,32 @@ export type ApiSignInResponse =
       data: ApiSignInData
       error: null
     }
-  | { data: null; error: ApiError }
+  | { data: null; error: ErrorPayload }
 
 export type ApiRefreshTokenResponse =
-  | { session: null; error: ApiError }
+  | { session: null; error: ErrorPayload }
   | { session: Session; error: null }
 
 export interface ApiSignOutResponse {
-  error: ApiError | null
+  error: ErrorPayload | null
 }
 
 export interface ApiResetPasswordResponse {
-  error: ApiError | null
+  error: ErrorPayload | null
 }
 
 export interface ApiChangePasswordResponse {
-  error: ApiError | null
+  error: ErrorPayload | null
 }
 
 export interface ApiSendVerificationEmailResponse {
-  error: ApiError | null
+  error: ErrorPayload | null
 }
 
 export interface ApiChangeEmailResponse {
-  error: ApiError | null
+  error: ErrorPayload | null
 }
 
 export interface ApiDeanonymizeResponse {
-  error: ApiError | null
+  error: ErrorPayload | null
 }

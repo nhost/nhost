@@ -6,7 +6,8 @@ import {
   Provider,
   ProviderOptions,
   rewriteRedirectTo,
-  User
+  User,
+  USER_ALREADY_SIGNED_IN
 } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
@@ -122,11 +123,22 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     valuePassword?: string
   ) =>
     new Promise<SignInEmailPasswordHandlerResult>((resolve) => {
-      service.send({
+      const { changed, context } = service.send({
         type: 'SIGNIN_PASSWORD',
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         password: typeof valuePassword === 'string' ? valuePassword : statePassword
       })
+      if (!changed) {
+        return resolve({
+          accessToken: context.accessToken.value,
+          error: USER_ALREADY_SIGNED_IN,
+          isError: true,
+          isSuccess: false,
+          needsEmailVerification: false,
+          needsMfaOtp: false,
+          user: context.user
+        })
+      }
       service.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
           resolve({
@@ -173,6 +185,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     })
 
   const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) => {
+    // TODO promisify
     service.send({
       type: 'SIGNIN_MFA_TOTP',
       otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
@@ -306,11 +319,18 @@ export function useSignInEmailPasswordless(
     valueOptions = stateOptions
   ) =>
     new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
-      service.send({
+      const { changed } = service.send({
         type: 'SIGNIN_PASSWORDLESS_EMAIL',
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         options: valueOptions
       })
+      if (!changed) {
+        return resolve({
+          error: USER_ALREADY_SIGNED_IN,
+          isError: true,
+          isSuccess: false
+        })
+      }
       service.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'failed' } })) {
           resolve({
@@ -345,7 +365,9 @@ export function useSignInEmailPasswordless(
 // TODO deanonymize
 export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
-  const signInAnonymous = () => service.send('SIGNIN_ANONYMOUS')
+  const signInAnonymous = () => {
+    service.send('SIGNIN_ANONYMOUS')
+  }
 
   const error = useSelector(
     service,

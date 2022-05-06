@@ -8,12 +8,19 @@ import {
   createChangePasswordMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
+  EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
+  ErrorPayload,
+  INVALID_AUTHENTICATION_METHOD,
+  INVALID_REFRESH_TOKEN,
   JWTClaims,
   JWTHasuraClaims,
   NO_REFRESH_TOKEN,
   rewriteRedirectTo,
-  TOKEN_REFRESHER_RUNNING_ERROR
+  TOKEN_REFRESHER_RUNNING_ERROR,
+  USER_ALREADY_SIGNED_IN,
+  USER_NOT_ANONYMOUS,
+  USER_UNAUTHENTICATED
 } from '@nhost/core'
 
 import { getSession, isBrowser } from './utils/helpers'
@@ -21,7 +28,6 @@ import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
   ApiDeanonymizeResponse,
-  ApiError,
   ApiResetPasswordResponse,
   ApiSendVerificationEmailResponse,
   ApiSignOutResponse,
@@ -38,25 +44,6 @@ import {
   SignUpParams,
   SignUpResponse
 } from './utils/types'
-
-const USER_ALREADY_SIGNED_IN: ApiError = {
-  message: 'User is already signed in',
-  status: 100
-}
-
-const USER_UNAUTHENTICATED: ApiError = {
-  message: 'User is not authenticated',
-  status: 101
-}
-
-const USER_NOT_ANONYMOUS: ApiError = {
-  message: 'User is not anonymous',
-  status: 101
-}
-const EMAIL_NEEDS_VERIFICATION: ApiError = {
-  message: 'Email needs verification',
-  status: 102
-}
 
 /**
  * @alias Auth
@@ -108,16 +95,11 @@ export class HasuraAuthClient {
 
     const { email, password, options } = params
 
-    // * Raise an error if the user is already authenticated
-    if (this.isAuthenticated()) {
-      return {
-        session: null,
-        error: USER_ALREADY_SIGNED_IN
-      }
-    }
-
     return new Promise((resolve) => {
-      interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
+      const { changed } = interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
+      if (!changed) {
+        return resolve({ session: null, error: USER_ALREADY_SIGNED_IN })
+      }
       interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
           return resolve({ session: null, error: null })
@@ -168,20 +150,11 @@ export class HasuraAuthClient {
     mfa: {
       ticket: string
     } | null
-    error: ApiError | null
+    error: ErrorPayload | null
     providerUrl?: string
     provider?: string
   }> {
     const interpreter = await this.waitUntilReady()
-
-    // * Raise an error if the user is already authenticated
-    if (this.isAuthenticated()) {
-      return {
-        session: null,
-        mfa: null,
-        error: USER_ALREADY_SIGNED_IN
-      }
-    }
 
     if ('provider' in params) {
       const { provider, options } = params
@@ -198,7 +171,10 @@ export class HasuraAuthClient {
     // email password
     if ('email' in params && 'password' in params) {
       return new Promise((resolve) => {
-        interpreter.send('SIGNIN_PASSWORD', params)
+        const { changed } = interpreter.send('SIGNIN_PASSWORD', params)
+        if (!changed) {
+          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
+        }
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' })) {
             resolve({
@@ -232,7 +208,10 @@ export class HasuraAuthClient {
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
       return new Promise((resolve) => {
-        interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', params)
+        const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', params)
+        if (!changed) {
+          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
+        }
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
             resolve({
@@ -254,7 +233,10 @@ export class HasuraAuthClient {
     // passwordless SMS
     if ('phoneNumber' in params && !('otp' in params)) {
       return new Promise((resolve) => {
-        interpreter.send('SIGNIN_PASSWORDLESS_SMS', params)
+        const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_SMS', params)
+        if (!changed) {
+          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
+        }
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: { signedOut: 'needsSmsOtp' } })) {
             resolve({
@@ -276,7 +258,10 @@ export class HasuraAuthClient {
     // sign in using SMS OTP
     if ('otp' in params) {
       return new Promise((resolve) => {
-        interpreter.send('SIGNIN_PASSWORDLESS_SMS_OTP', params)
+        const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_SMS_OTP', params)
+        if (!changed) {
+          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
+        }
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' })) {
             resolve({
@@ -298,7 +283,7 @@ export class HasuraAuthClient {
     return {
       session: null,
       mfa: null,
-      error: { message: 'Incorrect parameters', status: 500 }
+      error: INVALID_AUTHENTICATION_METHOD
     }
   }
 
@@ -314,11 +299,11 @@ export class HasuraAuthClient {
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const interpreter = await this.waitUntilReady()
-    if (!this.isAuthenticated()) {
-      return { error: USER_UNAUTHENTICATED }
-    }
     return new Promise((resolve) => {
-      interpreter.send('SIGNOUT', { all: params?.all })
+      const { event } = interpreter.send('SIGNOUT', { all: params?.all })
+      if (event.type !== 'SIGNED_OUT') {
+        return resolve({ error: USER_UNAUTHENTICATED })
+      }
       interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) {
           resolve({ error: null })
@@ -675,25 +660,25 @@ export class HasuraAuthClient {
    */
   async refreshSession(refreshToken?: string): Promise<{
     session: Session | null
-    error: ApiError | null
+    error: ErrorPayload | null
   }> {
     try {
       const interpreter = await this.waitUntilReady()
-      if (!interpreter.state.matches({ token: 'idle' })) {
-        return { session: null, error: TOKEN_REFRESHER_RUNNING_ERROR }
-      }
       return new Promise((resolve) => {
         const token = refreshToken || interpreter.state.context.refreshToken.value
         if (!token) {
           return resolve({ session: null, error: NO_REFRESH_TOKEN })
         }
-        interpreter.send('TRY_TOKEN', { token })
+        const { changed } = interpreter.send('TRY_TOKEN', { token })
+        if (!changed) {
+          return resolve({ session: null, error: TOKEN_REFRESHER_RUNNING_ERROR })
+        }
         interpreter?.onTransition((state) => {
           if (state.matches({ token: { idle: 'error' } })) {
             resolve({
               session: null,
               // * TODO get the error from xstate once it is implemented
-              error: { status: 400, message: 'Invalid refresh token' }
+              error: INVALID_REFRESH_TOKEN
             })
           } else if (state.event.type === 'TOKEN_CHANGED') {
             resolve({ session: getSession(state.context), error: null })
@@ -701,6 +686,7 @@ export class HasuraAuthClient {
         })
       })
     } catch (error: any) {
+      // TODO return error in the correct format
       return { session: null, error: error.message }
     }
   }

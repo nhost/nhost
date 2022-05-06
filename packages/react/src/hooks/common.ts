@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { AuthMachine, ErrorPayload } from '@nhost/core'
+import { AuthMachine, ErrorPayload, USER_UNAUTHENTICATED } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
@@ -154,13 +154,19 @@ const Component = () => {
 export const useSignOut = (stateAll: boolean = false) => {
   const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>
-    new Promise<{ isSuccess: boolean }>((resolve) => {
-      service.send({ type: 'SIGNOUT', all: typeof valueAll === 'boolean' ? valueAll : stateAll })
+    new Promise<{ isSuccess: boolean; error: ErrorPayload | null; isError: boolean }>((resolve) => {
+      const { event } = service.send({
+        type: 'SIGNOUT',
+        all: typeof valueAll === 'boolean' ? valueAll : stateAll
+      })
+      if (event.type !== 'SIGNED_OUT') {
+        return resolve({ isSuccess: false, isError: true, error: USER_UNAUTHENTICATED })
+      }
       service.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) {
-          resolve({ isSuccess: true })
+          resolve({ isSuccess: true, isError: false, error: null })
         } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } }))
-          resolve({ isSuccess: false })
+          resolve({ isSuccess: false, isError: true, error: state.context.errors.signout || null })
       })
     })
 
@@ -170,5 +176,13 @@ export const useSignOut = (stateAll: boolean = false) => {
     (a, b) => a === b
   )
 
-  return { signOut, isSuccess }
+  const isError = !isSuccess
+
+  const error = useSelector(
+    service,
+    (state) => state.context.errors.signout || null,
+    (a, b) => a?.error === b?.error
+  )
+
+  return { signOut, isSuccess, isError, error }
 }
