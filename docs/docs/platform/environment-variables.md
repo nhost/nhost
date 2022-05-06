@@ -1,6 +1,6 @@
 ---
 title: 'Environment variables'
-sidebar_position: 1
+sidebar_position: 9
 ---
 
 Environment variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys.

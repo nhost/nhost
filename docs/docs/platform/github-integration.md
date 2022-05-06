@@ -1,6 +1,6 @@
 ---
 title: 'GitHub integration'
-sidebar_position: 2
+sidebar_position: 10
 ---
 
 You can connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed.
@@ -21,7 +21,7 @@ Specifically, the following will be deployed:
 
 ## Workflow
 
-Create a new Nhost app. Then use [Nhost CLI](/platform/nhost/local-development) to initialize your Nhost app locally.
+Create a new Nhost app. Then use [Nhost CLI](/platform/cli) to initialize your Nhost app locally.
 
 The workflow is as follows:
 
