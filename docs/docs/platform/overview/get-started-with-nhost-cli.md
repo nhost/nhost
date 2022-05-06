@@ -281,9 +281,9 @@ The migration was created under `nhost/migrations/default`:
 ```bash
 $ ls -la nhost/migrations/default
 total 0
-drwxr-xr-x  3 gdangelo  staff   96 Apr 27 17:06 .
-drwxr-xr-x  3 gdangelo  staff   96 Apr 27 17:06 ..
-drwxr-xr-x  4 gdangelo  staff  128 Apr 27 17:06 1651071963431_create_table_public_messages
+drwxr-xr-x  3 user  staff   96 Apr 27 17:06 .
+drwxr-xr-x  3 user  staff   96 Apr 27 17:06 ..
+drwxr-xr-x  4 user  staff  128 Apr 27 17:06 1651071963431_create_table_public_messages
 ```
 
 However, note that this database migration has only been applied locally. In
