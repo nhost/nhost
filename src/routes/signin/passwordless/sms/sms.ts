@@ -35,9 +35,10 @@ export const signInPasswordlessSmsHandler: RequestHandler<
 
   // check if email already exist
   let user = await getUserByPhoneNumber({ phoneNumber });
+  const userExists = !!user;
 
   // if no user exists, create the user
-  if (!user) {
+  if (!userExists) {
     user = await insertUser({
       disabled: ENV.AUTH_DISABLE_NEW_USERS,
       displayName,
@@ -94,9 +95,11 @@ export const signInPasswordlessSmsHandler: RequestHandler<
       }
     } catch (error) {
       // delete user that was inserted because we were not able to send the SMS
-      await gqlSdk.deleteUser({
-        userId: user.id,
-      });
+      if (!userExists) {
+        await gqlSdk.deleteUser({
+          userId: user.id,
+        });
+      }
 
       throw Error('Error sending SMS');
     }
