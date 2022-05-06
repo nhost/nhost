@@ -79,6 +79,13 @@ export const uuid = Joi.string()
   .example('2c35b6f3-c4b9-48e3-978a-d4d0f1d42e24')
   .description('A valid UUID');
 
+export const jwt = Joi.string()
+  .regex(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*$/)
+  .example(
+    'eyJhbGciOiJIUzI1NiJ9.eyJodHRwczovL2hhc3VyYS5pby9qd3QvY2xhaW1zIjp7IngtaGFzdXJhLWFsbG93ZWQtcm9sZXMiOlsibWUiLCJ1c2VyIl0sIngtaGFzdXJhLWRlZmF1bHQtcm9sZSI6InVzZXIiLCJ4LWhhc3VyYS11c2VyLWlkIjoiODAwYjA2ZWYtNGMyYi00NjQwLWIyMjAtNWZlNjk3ZWNjZGM2IiwieC1oYXN1cmEtdXNlci1pcy1hbm9ueW1vdXMiOiJmYWxzZSJ9LCJzdWIiOiI4MDBiMDZlZi00YzJiLTQ2NDAtYjIyMC01ZmU2OTdlY2NkYzYiLCJpc3MiOiJoYXN1cmEtYXV0aCIsImlhdCI6MTY1MTg2NTkwMCwiZXhwIjoxNjUxODY2ODAwfQ.IvFIMXOe6J21fyEfPkP9Caim3C_uAD2qimK4oGpNm44'
+  )
+  .description('A valid JWT token');
+
 export const userId = uuid.description('Id of the user');
 
 export const refreshToken = uuid
@@ -86,6 +93,8 @@ export const refreshToken = uuid
   .description(
     'Refresh token during authentication or when refreshing the JWT'
   );
+
+export const token = jwt.optional().description('Access token');
 
 export const registrationOptions = Joi.object({
   locale,
