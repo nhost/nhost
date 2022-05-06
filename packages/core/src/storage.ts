@@ -29,38 +29,12 @@ const defaultClientStorageSetter: StorageSetter = (key, value) => {
   }
 }
 
-// TODO see https://github.com/nhost/nhost/pull/507#discussion_r865873389
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const checkStorageAccessors = (
-  clientStorage: ClientStorage,
-  accessors: Array<keyof ClientStorage>
-) => {
-  accessors.forEach((key) => {
-    if (typeof clientStorage[key] !== 'function') {
-      console.error(`clientStorage.${key} is not a function`)
-    }
-  })
-}
-
 export const localStorageGetter = (
   clientStorageType: ClientStorageType,
   clientStorage?: ClientStorage
 ): StorageGetter => {
-  if (!clientStorage || clientStorageType === 'localStorage' || clientStorageType === 'web') {
+  if (clientStorageType === 'localStorage' || clientStorageType === 'web') {
     return defaultClientStorageGetter
-  }
-
-  if (clientStorageType === 'react-native') {
-    // checkStorageAccessors(clientStorage, ['getItem'])
-    return (key) => clientStorage.getItem?.(key)
-  }
-  if (clientStorageType === 'capacitor') {
-    // checkStorageAccessors(clientStorage, ['get'])
-    return (key) => clientStorage.get?.({ key })
-  }
-  if (clientStorageType === 'expo-secure-storage') {
-    // checkStorageAccessors(clientStorage, ['getItemAsync'])
-    return (key) => clientStorage.getItemAsync?.(key)
   }
   if (clientStorageType === 'cookie') {
     return (key) => {
@@ -70,6 +44,20 @@ export const localStorageGetter = (
         return null
       }
     }
+  }
+  if (!clientStorage) {
+    throw Error(
+      `clientStorageType is set to '${clientStorageType}' but no clienStorage has been given`
+    )
+  }
+  if (clientStorageType === 'react-native') {
+    return (key) => clientStorage.getItem?.(key)
+  }
+  if (clientStorageType === 'capacitor') {
+    return (key) => clientStorage.get?.({ key })
+  }
+  if (clientStorageType === 'expo-secure-storage') {
+    return (key) => clientStorage.getItemAsync?.(key)
   }
   if (clientStorageType === 'custom') {
     if (clientStorage.getItem && clientStorage.removeItem) {
@@ -89,24 +77,8 @@ export const localStorageSetter = (
   clientStorageType: ClientStorageType,
   clientStorage?: ClientStorage
 ): StorageSetter => {
-  if (!clientStorage || clientStorageType === 'localStorage' || clientStorageType === 'web') {
+  if (clientStorageType === 'localStorage' || clientStorageType === 'web') {
     return defaultClientStorageSetter
-  }
-
-  if (clientStorageType === 'react-native') {
-    // checkStorageAccessors(clientStorage, ['setItem', 'removeItem'])
-    return (key, value) =>
-      value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
-  }
-  if (clientStorageType === 'capacitor') {
-    // checkStorageAccessors(clientStorage, ['set', 'remove'])
-    return (key, value) =>
-      value ? clientStorage.set?.({ key, value }) : clientStorage.remove?.({ key })
-  }
-  if (clientStorageType === 'expo-secure-storage') {
-    // checkStorageAccessors(clientStorage, ['setItemAsync', 'deleteItemAsync'])
-    return async (key, value) =>
-      value ? clientStorage.setItemAsync?.(key, value) : clientStorage.deleteItemAsync?.(key)
   }
   if (clientStorageType === 'cookie') {
     return (key, value) => {
@@ -118,6 +90,23 @@ export const localStorageSetter = (
         }
       }
     }
+  }
+  if (!clientStorage) {
+    throw Error(
+      `clientStorageType is set to '${clientStorageType}' but no clienStorage has been given`
+    )
+  }
+  if (clientStorageType === 'react-native') {
+    return (key, value) =>
+      value ? clientStorage.setItem?.(key, value) : clientStorage.removeItem?.(key)
+  }
+  if (clientStorageType === 'capacitor') {
+    return (key, value) =>
+      value ? clientStorage.set?.({ key, value }) : clientStorage.remove?.({ key })
+  }
+  if (clientStorageType === 'expo-secure-storage') {
+    return async (key, value) =>
+      value ? clientStorage.setItemAsync?.(key, value) : clientStorage.deleteItemAsync?.(key)
   }
   if (clientStorageType === 'custom') {
     if (!clientStorage.removeItem) {
