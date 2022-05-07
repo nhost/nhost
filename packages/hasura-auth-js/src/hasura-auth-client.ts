@@ -119,7 +119,7 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
       interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        if (state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })) {
           return resolve({ session: null, error: null })
         } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
           return resolve({ session: null, error: state.context.errors.registration || null })
@@ -206,7 +206,9 @@ export class HasuraAuthClient {
               mfa: null,
               error: null
             })
-          } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+          } else if (
+            state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })
+          ) {
             resolve({
               session: null,
               mfa: null,
@@ -234,7 +236,7 @@ export class HasuraAuthClient {
       return new Promise((resolve) => {
         interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', params)
         interpreter.onTransition((state) => {
-          if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+          if (state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })) {
             resolve({
               session: null,
               mfa: null,
@@ -294,12 +296,25 @@ export class HasuraAuthClient {
         })
       })
     }
-    // TODO anonymous sign-in
-    return {
-      session: null,
-      mfa: null,
-      error: { message: 'Incorrect parameters', status: 500 }
+    // * Anonymous sign-in
+    const { changed } = interpreter.send('SIGNIN_ANONYMOUS')
+    if (!changed) {
+      return { session: null, mfa: null, error: { message: 'already signed in', status: 1 } }
     }
+    return new Promise((resolve) => {
+      interpreter.onTransition((state) => {
+        if (state.matches({ authentication: 'signedIn' })) {
+          resolve({ session: getSession(state.context), mfa: null, error: null })
+        }
+        if (state.matches({ authentication: { signedOut: 'failed' } })) {
+          resolve({
+            session: null,
+            mfa: null,
+            error: state.context.errors.authentication || null
+          })
+        }
+      })
+    })
   }
 
   /**

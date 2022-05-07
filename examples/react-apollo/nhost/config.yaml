@@ -16,7 +16,7 @@ auth:
       blocked_email_domains: ''
       blocked_emails: ''
     allowed_redirect_urls: ''
-  anonymous_users_enabled: false
+  anonymous_users_enabled: true
   client_url: http://localhost:3000
   disable_new_users: false
   email:

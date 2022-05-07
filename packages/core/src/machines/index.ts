@@ -105,7 +105,6 @@ export const createAuthMachine = ({
               states: {
                 noErrors: {},
                 success: {},
-                needsEmailVerification: {},
                 needsSmsOtp: {},
                 needsMfa: {},
                 failed: {
@@ -206,7 +205,10 @@ export const createAuthMachine = ({
                   invoke: {
                     src: 'signInPasswordlessEmail',
                     id: 'authenticatePasswordlessEmail',
-                    onDone: '#nhost.authentication.signedOut.needsEmailVerification',
+                    onDone: {
+                      target: '#nhost.authentication.signedOut',
+                      actions: 'reportAwaitEmailVerification'
+                    },
                     onError: {
                       actions: 'saveAuthenticationError',
                       target: '#nhost.authentication.signedOut.failed.server'
@@ -256,7 +258,8 @@ export const createAuthMachine = ({
                     onError: [
                       {
                         cond: 'unverified',
-                        target: '#nhost.authentication.signedOut.needsEmailVerification'
+                        actions: 'reportAwaitEmailVerification',
+                        target: '#nhost.authentication.signedOut'
                       },
                       {
                         actions: 'saveAuthenticationError',
@@ -307,21 +310,23 @@ export const createAuthMachine = ({
                 onDone: [
                   {
                     cond: 'hasSession',
-                    target: '#nhost.authentication.signedIn',
+                    target: 'signedIn',
                     actions: ['saveSession', 'reportTokenChanged']
                   },
                   {
-                    target: '#nhost.authentication.signedOut.needsEmailVerification'
+                    actions: 'reportAwaitEmailVerification',
+                    target: 'signedOut'
                   }
                 ],
                 onError: [
                   {
                     cond: 'unverified',
-                    target: '#nhost.authentication.signedOut.needsEmailVerification'
+                    actions: 'reportAwaitEmailVerification',
+                    target: 'signedOut'
                   },
                   {
                     actions: 'saveRegisrationError',
-                    target: '#nhost.authentication.signedOut.failed.server'
+                    target: 'signedOut.failed.server'
                   }
                 ]
               }
@@ -330,7 +335,7 @@ export const createAuthMachine = ({
               type: 'parallel',
               entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken'],
               on: {
-                SIGNOUT: '#nhost.authentication.signedOut.signingOut',
+                SIGNOUT: 'signedOut.signingOut',
                 DEANONYMIZE: {
                   // TODO implement
                   target: '.deanonymizing'
@@ -440,6 +445,24 @@ export const createAuthMachine = ({
               }
             }
           }
+        },
+        email: {
+          initial: 'awaitingVerification',
+          on: {
+            SIGNED_IN: [
+              {
+                cond: 'needsVerification',
+                target: '.awaitingVerification'
+              },
+              '.valid'
+            ],
+            SIGNOUT: '.awaitingVerification',
+            AWAIT_EMAIL_VERIFICATION: '.awaitingVerification'
+          },
+          states: {
+            awaitingVerification: {},
+            valid: {}
+          }
         }
       }
     },
@@ -447,6 +470,7 @@ export const createAuthMachine = ({
       actions: {
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
+        reportAwaitEmailVerification: send('AWAIT_EMAIL_VERIFICATION'),
         reportTokenChanged: send('TOKEN_CHANGED'),
         clearContextExceptRefreshToken: assign(({ refreshToken: { value } }) => {
           storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
@@ -562,6 +586,9 @@ export const createAuthMachine = ({
       },
 
       guards: {
+        needsVerification: (ctx, e) => {
+          return !ctx.user || ctx.user.isAnonymous
+        },
         isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
         noMfaTicket: (ctx, { ticket }) => !ticket && !ctx.mfa?.ticket,
