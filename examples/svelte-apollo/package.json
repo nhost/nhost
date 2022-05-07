@@ -22,10 +22,12 @@
     "start:dev": "sirv public --dev"
   },
   "dependencies": {
+    "@nhost/nhost-js": "^1.1.9",
     "apollo-cache-inmemory": "^1.6.0",
     "apollo-client": "^2.6.0",
     "apollo-link-http": "^1.5.14",
     "apollo-link-ws": "^1.0.17",
+    "dotenv": "^16.0.0",
     "graphql": "^14.3.0",
     "graphql-tag": "^2.10.1",
     "subscriptions-transport-ws": "^0.9.16",
