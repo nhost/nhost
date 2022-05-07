@@ -16,7 +16,7 @@ import {
   TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
-import { getSession, isBrowser, localStorageGetter, localStorageSetter } from './utils/helpers'
+import { getSession, isBrowser } from './utils/helpers'
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -70,22 +70,22 @@ export class HasuraAuthClient {
     autoSignIn = true,
     autoLogin,
     clientStorage,
-    clientStorageType = 'web',
+    clientStorageType,
     clientStorageGetter,
     clientStorageSetter,
     refreshIntervalTime,
-    start = true,
-    Client = AuthClient
+    start = true
   }: NhostAuthConstructorParams) {
-    this._client = new Client({
+    this._client = new AuthClient({
       backendUrl: url,
+      clientUrl: (typeof window !== 'undefined' && window.location?.origin) || '',
       autoRefreshToken,
       autoSignIn: typeof autoLogin === 'boolean' ? autoLogin : autoSignIn,
       start,
-      clientStorageGetter:
-        clientStorageGetter || localStorageGetter(clientStorageType, clientStorage),
-      clientStorageSetter:
-        clientStorageSetter || localStorageSetter(clientStorageType, clientStorage),
+      clientStorage,
+      clientStorageType,
+      clientStorageGetter,
+      clientStorageSetter,
       refreshIntervalTime
     })
   }
@@ -117,7 +117,7 @@ export class HasuraAuthClient {
     }
 
     return new Promise((resolve) => {
-      interpreter.send({ type: 'SIGNUP_EMAIL_PASSWORD', email, password, options })
+      interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
       interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
           return resolve({ session: null, error: null })
@@ -198,7 +198,7 @@ export class HasuraAuthClient {
     // email password
     if ('email' in params && 'password' in params) {
       return new Promise((resolve) => {
-        interpreter.send({ type: 'SIGNIN_PASSWORD', ...params })
+        interpreter.send('SIGNIN_PASSWORD', params)
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' })) {
             resolve({
@@ -232,6 +232,7 @@ export class HasuraAuthClient {
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
       return new Promise((resolve) => {
+        interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', params)
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
             resolve({
@@ -247,14 +248,13 @@ export class HasuraAuthClient {
             })
           }
         })
-
-        interpreter.send({ type: 'SIGNIN_PASSWORDLESS_EMAIL', ...params })
       })
     }
 
     // passwordless SMS
     if ('phoneNumber' in params && !('otp' in params)) {
       return new Promise((resolve) => {
+        interpreter.send('SIGNIN_PASSWORDLESS_SMS', params)
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: { signedOut: 'needsSmsOtp' } })) {
             resolve({
@@ -270,13 +270,13 @@ export class HasuraAuthClient {
             })
           }
         })
-        interpreter.send({ type: 'SIGNIN_PASSWORDLESS_SMS', ...params })
       })
     }
 
     // sign in using SMS OTP
     if ('otp' in params) {
       return new Promise((resolve) => {
+        interpreter.send('SIGNIN_PASSWORDLESS_SMS_OTP', params)
         interpreter.onTransition((state) => {
           if (state.matches({ authentication: 'signedIn' })) {
             resolve({
@@ -292,7 +292,6 @@ export class HasuraAuthClient {
             })
           }
         })
-        interpreter.send({ type: 'SIGNIN_PASSWORDLESS_SMS_OTP', ...params })
       })
     }
     // TODO anonymous sign-in
@@ -319,7 +318,7 @@ export class HasuraAuthClient {
       return { error: USER_UNAUTHENTICATED }
     }
     return new Promise((resolve) => {
-      interpreter.send({ type: 'SIGNOUT', all: params?.all })
+      interpreter.send('SIGNOUT', { all: params?.all })
       interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'success' } })) {
           resolve({ error: null })
@@ -351,7 +350,7 @@ export class HasuraAuthClient {
         }
       })
       service.start()
-      service.send({ type: 'REQUEST', email, options })
+      service.send('REQUEST', { email, options })
     })
   }
 
@@ -376,7 +375,7 @@ export class HasuraAuthClient {
         }
       })
       service.start()
-      service.send({ type: 'REQUEST', password: params.newPassword })
+      service.send('REQUEST', { password: params.newPassword })
     })
   }
 
@@ -404,7 +403,7 @@ export class HasuraAuthClient {
         }
       })
       service.start()
-      service.send({ type: 'REQUEST', email: params.email, options: params.options })
+      service.send('REQUEST', { email: params.email, options: params.options })
     })
   }
 
@@ -429,7 +428,7 @@ export class HasuraAuthClient {
         }
       })
       service.start()
-      service.send({ type: 'REQUEST', email: newEmail, options })
+      service.send('REQUEST', { email: newEmail, options })
     })
   }
 
@@ -449,6 +448,12 @@ export class HasuraAuthClient {
       if (!this.isAuthenticated() || !interpreter.state.context.user?.isAnonymous) {
         return { error: USER_NOT_ANONYMOUS }
       }
+      const { signInMethod, connection, ...options } = params
+      interpreter.send('DEANONYMIZE', {
+        signInMethod,
+        connection,
+        options
+      })
       interpreter.onTransition((state) => {
         if (state.matches({ authentication: { signedIn: { deanonymizing: 'success' } } })) {
           resolve({ error: null })
@@ -457,13 +462,6 @@ export class HasuraAuthClient {
         }
       })
       interpreter.start()
-      const { signInMethod, connection, ...options } = params
-      interpreter.send({
-        type: 'DEANONYMIZE',
-        signInMethod,
-        connection,
-        options
-      })
     })
   }
 
@@ -689,6 +687,7 @@ export class HasuraAuthClient {
         if (!token) {
           return resolve({ session: null, error: NO_REFRESH_TOKEN })
         }
+        interpreter.send('TRY_TOKEN', { token })
         interpreter?.onTransition((state) => {
           if (state.matches({ token: { idle: 'error' } })) {
             resolve({
@@ -699,10 +698,6 @@ export class HasuraAuthClient {
           } else if (state.event.type === 'TOKEN_CHANGED') {
             resolve({ session: getSession(state.context), error: null })
           }
-        })
-        interpreter.send({
-          type: 'TRY_TOKEN',
-          token
         })
       })
     } catch (error: any) {

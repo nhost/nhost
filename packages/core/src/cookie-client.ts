@@ -1,17 +1,19 @@
 import { AuthClient, NhostClientOptions } from './client'
-import { cookieStorageGetter, cookieStorageSetter } from './storage'
 const isBrowser = typeof window !== 'undefined'
 
+/** @deprecated Not in use anymore. Use `clientStorageType: 'cookie'` instead */
 export class AuthCookieClient extends AuthClient {
   constructor({
     ...options
-  }: Omit<NhostClientOptions, 'clientStorageGetter' | 'clientStorageSetter'>) {
+  }: Omit<
+    NhostClientOptions,
+    'clientStorageGetter' | 'clientStorageSetter' | 'clientStorage' | 'clientStorageType'
+  >) {
     super({
       ...options,
       autoSignIn: isBrowser && options.autoSignIn,
       autoRefreshToken: isBrowser && options.autoRefreshToken,
-      clientStorageGetter: cookieStorageGetter,
-      clientStorageSetter: cookieStorageSetter
+      clientStorageType: 'cookie'
     })
   }
 }

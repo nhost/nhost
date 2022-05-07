@@ -11,9 +11,6 @@ export const ChangePassword: React.FC = () => {
 
   // * See https://github.com/rsuite/rsuite/issues/2336
   useEffect(() => {
-    toaster.push(<div />)
-  }, [])
-  useEffect(() => {
     if (isSuccess) {
       setPassword('')
       toaster.push(
