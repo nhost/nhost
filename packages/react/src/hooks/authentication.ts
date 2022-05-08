@@ -130,7 +130,12 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
         password: typeof valuePassword === 'string' ? valuePassword : statePassword
       })
       service.onTransition((state) => {
-        if (state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })) {
+        if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({
             accessToken: null,
             error: null,
@@ -199,7 +204,8 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   )
   const needsEmailVerification = useSelector(
     service,
-    (state) => state.matches({ authentication: 'signedOut', email: 'awaitingVerification' }),
+    (state) =>
+      state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' }),
     (a, b) => a === b
   )
   const needsMfaOtp = useSelector(
@@ -320,7 +326,12 @@ export function useSignInEmailPasswordless(
             isError: true,
             isSuccess: false
           })
-        } else if (state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })) {
+        } else if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({ error: null, isError: false, isSuccess: true })
         }
       })
@@ -336,7 +347,10 @@ export function useSignInEmailPasswordless(
     service.state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
   const isSuccess =
     !!service.status &&
-    service.state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })
+    service.state.matches({
+      authentication: { signedOut: 'noErrors' },
+      email: 'awaitingVerification'
+    })
   const isError =
     !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
 
