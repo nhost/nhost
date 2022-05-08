@@ -1,8 +1,8 @@
 <script context="module">
-  import gql from 'graphql-tag';
-  import { client } from './apollo';
+  import { gql } from '@apollo/client'
+  import { client } from './apollo'
 
-  const ARTICLES = gql`
+  export const ARTICLES = gql`
     {
       article {
         id
@@ -12,28 +12,28 @@
         }
       }
     }
-  `;
+  `
   export async function preload() {
     return {
       articleCache: await client.query({ query: ARTICLES })
-    };
+    }
   }
 </script>
 
 <script>
-  import { restore, query } from 'svelte-apollo';
-  
-  export let articleCache;
-  restore(client, ARTICLES, articleCache.data);
+  import { restore, query } from 'svelte-apollo'
 
-  const articles = query(client, { query: ARTICLES });
+  export let articleCache
+  restore(ARTICLES, articleCache)
+
+  const articles = query(ARTICLES)
 </script>
 
 <ul>
   {#await $articles}
     <li>Loading...</li>
   {:then result}
-    {#each result.data.article as article (article.id)}
+    {#each result.data.article as article}
       <li>{article.title}</li>
     {:else}
       <li>No articles found</li>

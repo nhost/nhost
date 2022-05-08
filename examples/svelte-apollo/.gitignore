@@ -1,4 +1,8 @@
 .DS_Store
 node_modules/
 public/bundle.*
-.env
+.env.nhost
+web/node_modules
+node_modules
+functions/node_modules
+.nhost

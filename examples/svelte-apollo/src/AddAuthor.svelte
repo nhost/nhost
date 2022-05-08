@@ -1,40 +1,33 @@
 <script>
-  import { restore, mutate } from 'svelte-apollo';
-  import { client } from './apollo';
-  import gql from 'graphql-tag';
+  import { mutation } from 'svelte-apollo'
+  import { gql } from '@apollo/client'
+  import { AUTHOR_LIST } from './graphql'
 
-  const AUTHOR_LIST = gql`
-    query {
-      author(order_by: [{name: asc}]) {
-        name
-      }
-    }
-  `;
   const ADD_AUTHOR = gql`
-    mutation($name: String!) {
-      insert_author(objects: [{name: $name}]) {
+    mutation ($name: String!) {
+      insert_author(objects: [{ name: $name }]) {
         affected_rows
       }
     }
-  `;
-  let name = '';
-  export let authorCache;
-  
+  `
+  let name = ''
+
+  const mutate = mutation(ADD_AUTHOR)
   async function addAuthor(e) {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      await mutate(client, {
-        mutation: ADD_AUTHOR,
-        variables: { name }
-      });
-      alert("Added successfully");
-      const finalData = authorCache.data.author;
-      finalData.push({name, '__typename': 'author'});
-      restore(client, AUTHOR_LIST, {author: finalData});
-      // clear input
-      name = '';
-    } catch(error) {
-      console.error(error);
+      await mutate({
+        variables: { name },
+        update: (cache) => {
+          const existingAuthors = cache.readQuery({ query: AUTHOR_LIST })
+          const newAuthors = [...existingAuthors.author, { name, __typename: 'author' }]
+          cache.writeQuery({ query: AUTHOR_LIST, data: { author: newAuthors } })
+        }
+      })
+      alert('Added successfully')
+      name = ''
+    } catch (error) {
+      console.error(error)
     }
   }
 </script>
