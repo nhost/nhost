@@ -119,7 +119,12 @@ export class HasuraAuthClient {
     return new Promise((resolve) => {
       interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
       interpreter.onTransition((state) => {
-        if (state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })) {
+        if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           return resolve({ session: null, error: null })
         } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
           return resolve({ session: null, error: state.context.errors.registration || null })
@@ -207,7 +212,10 @@ export class HasuraAuthClient {
               error: null
             })
           } else if (
-            state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })
+            state.matches({
+              authentication: { signedOut: 'noErrors' },
+              email: 'awaitingVerification'
+            })
           ) {
             resolve({
               session: null,
@@ -236,7 +244,12 @@ export class HasuraAuthClient {
       return new Promise((resolve) => {
         interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', params)
         interpreter.onTransition((state) => {
-          if (state.matches({ authentication: 'signedOut', email: 'awaitingVerification' })) {
+          if (
+            state.matches({
+              authentication: { signedOut: 'noErrors' },
+              email: 'awaitingVerification'
+            })
+          ) {
             resolve({
               session: null,
               mfa: null,
