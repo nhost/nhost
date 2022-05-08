@@ -1,44 +1,47 @@
 <script>
-  import { restore, mutate } from 'svelte-apollo';
-  import { client } from './apollo';
-  import gql from 'graphql-tag';
+  import { mutation } from 'svelte-apollo'
+  import { gql } from '@apollo/client'
 
   const ARTICLE_LIST = gql`
     query {
-      article(order_by: [{title: asc}]) {
+      article(order_by: [{ title: asc }]) {
         title
       }
     }
-  `;
+  `
   const ADD_ARTICLE = gql`
-    mutation ($title: String!,$content: String!,$author_id: Int!) {
-      insert_article(objects: [{title: $title, content: $content, author_id: $author_id}]) {
+    mutation ($title: String!, $content: String!, $author_id: Int!) {
+      insert_article(objects: [{ title: $title, content: $content, author_id: $author_id }]) {
         affected_rows
       }
     }
-  `;
-  let title = '';
-  let content = '';
-  let author_id = '';
-  export let articleCache;
-  
+  `
+  let title = ''
+  let content = ''
+  let author_id = ''
+
+  const mutate = mutation(ADD_ARTICLE)
   async function addArticles(e) {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      await mutate(client, {
-        mutation: ADD_ARTICLE,
-        variables: { title,content,author_id }
-      });
-      alert("Added successfully");
-      const finalData = articleCache.data.article;
-      finalData.push({title,content,author_id, '__typename': 'article'});
-      restore(client, ARTICLE_LIST, {article: finalData});
+      await mutate({
+        variables: { title, content, author_id },
+        update: (cache) => {
+          const existingArticles = cache.readQuery({ query: ARTICLE_LIST })
+          const newArticles = [
+            ...existingArticles.article,
+            { title, content, author_id, __typename: 'article' }
+          ]
+          cache.writeQuery({ query: ARTICLE_LIST, data: { article: newArticles } })
+        }
+      })
+      alert('Added successfully')
       // clear input
-      title = '';
-      content = '';
-      author_id = '';
-    } catch(error) {
-      console.error(error);
+      title = ''
+      content = ''
+      author_id = ''
+    } catch (error) {
+      console.error(error)
     }
   }
 </script>

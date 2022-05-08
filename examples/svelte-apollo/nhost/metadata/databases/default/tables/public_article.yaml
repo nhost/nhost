@@ -1,0 +1,26 @@
+table:
+  name: article
+  schema: public
+object_relationships:
+- name: author
+  using:
+    foreign_key_constraint_on: author_id
+insert_permissions:
+- permission:
+    backend_only: false
+    check: {}
+    columns:
+    - content
+    - title
+    - author_id
+    - id
+  role: public
+select_permissions:
+- permission:
+    columns:
+    - id
+    - title
+    - content
+    - author_id
+    filter: {}
+  role: public
