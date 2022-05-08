@@ -94,7 +94,7 @@ const config = {
             href: 'https://app.nhost.io',
             className: 'header-get-started-link',
             position: 'right',
-            label: 'Create an app',
+            label: 'Get started',
           },
         ],
       },

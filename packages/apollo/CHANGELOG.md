@@ -1,5 +1,20 @@
 # @nhost/apollo
 
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [65a3061]
+  - @nhost/core@0.5.2
+
+## 0.5.1
+
+### Patch Changes
+
+- Updated dependencies [58fa2a2]
+- Updated dependencies [58fa2a2]
+  - @nhost/core@0.5.1
+
 ## 0.5.0
 
 ### Minor Changes
