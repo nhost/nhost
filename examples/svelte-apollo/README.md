@@ -24,7 +24,7 @@ pnpm install
 nhost dev
 ```
 
-4. Terminal 2: Start React App
+4. Terminal 2: Start Svelte App
 
 ```sh
 pnpm run dev
