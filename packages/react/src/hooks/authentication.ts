@@ -21,11 +21,13 @@ import {
   useAuthInterpreter
 } from './common'
 
-interface SignInEmailPasswordHookState extends DefaultActionHookState {
-  needsMfaOtp: boolean
-  needsEmailVerification: boolean
+interface SignInHookState extends DefaultActionHookState {
   user: User | null
   accessToken: string | null
+}
+interface SignInEmailPasswordHookState extends SignInHookState {
+  needsMfaOtp: boolean
+  needsEmailVerification: boolean
 }
 
 type SignInEmailPasswordHandlerResult = Omit<SignInEmailPasswordHookState, 'isLoading'>
@@ -140,7 +142,12 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
         })
       }
       service.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({
             accessToken: null,
             error: null,
@@ -210,7 +217,8 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   )
   const needsEmailVerification = useSelector(
     service,
-    (state) => state.matches({ authentication: { signedOut: 'needsEmailVerification' } }),
+    (state) =>
+      state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' }),
     (a, b) => a === b
   )
   const needsMfaOtp = useSelector(
@@ -338,7 +346,12 @@ export function useSignInEmailPasswordless(
             isError: true,
             isSuccess: false
           })
-        } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        } else if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({ error: null, isError: false, isSuccess: true })
         }
       })
@@ -354,7 +367,10 @@ export function useSignInEmailPasswordless(
     service.state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
   const isSuccess =
     !!service.status &&
-    service.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+    service.state.matches({
+      authentication: { signedOut: 'noErrors' },
+      email: 'awaitingVerification'
+    })
   const isError =
     !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
 
@@ -363,15 +379,54 @@ export function useSignInEmailPasswordless(
 
 // TODO documentation when available in Nhost Cloud - see changelog
 // TODO deanonymize
-export const useSignInAnonymous = () => {
+// TODO review nhost.auth.signIn()
+
+type SignInAnonymousHookState = SignInHookState
+
+type SignInAnonymousHookStateHandlerResult = Omit<SignInAnonymousHookState, 'isLoading'>
+interface SignInAnonymousHookResult extends SignInAnonymousHookState {
+  signInAnonymous(): Promise<SignInAnonymousHookStateHandlerResult>
+}
+export const useSignInAnonymous = (): SignInAnonymousHookResult => {
   const service = useAuthInterpreter()
-  const signInAnonymous = () => {
-    service.send('SIGNIN_ANONYMOUS')
-  }
+  const signInAnonymous = (): Promise<SignInAnonymousHookStateHandlerResult> =>
+    new Promise((resolve) => {
+      const { changed } = service.send('SIGNIN_ANONYMOUS')
+      if (!changed) {
+        resolve({
+          isSuccess: false,
+          isError: true,
+          // TODO error
+          error: null,
+          user: null,
+          accessToken: null
+        })
+      }
+      service.onTransition((state) => {
+        if (state.matches({ authentication: 'signedIn' })) {
+          resolve({
+            isSuccess: true,
+            isError: false,
+            error: null,
+            user: state.context.user,
+            accessToken: state.context.accessToken.value
+          })
+        }
+        if (state.matches({ authentication: { signedOut: 'failed' } })) {
+          resolve({
+            isSuccess: false,
+            isError: true,
+            error: state.context.errors.authentication || null,
+            user: null,
+            accessToken: null
+          })
+        }
+      })
+    })
 
   const error = useSelector(
     service,
-    (state) => state.context.errors.authentication,
+    (state) => state.context.errors.authentication || null,
     (a, b) => a?.error === b?.error
   )
   const isLoading =

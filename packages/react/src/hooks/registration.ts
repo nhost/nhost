@@ -122,7 +122,10 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
   const needsEmailVerification =
     !!service.status &&
-    service.state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+    service.state.matches({
+      authentication: { signedOut: 'noErrors' },
+      email: 'awaitingVerification'
+    })
 
   const signUpEmailPassword: SignUpEmailPasswordHandler = (
     valueEmail?: string | unknown,
@@ -156,7 +159,12 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
             needsEmailVerification: false,
             user: null
           })
-        } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        } else if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({
             accessToken: null,
             error: null,

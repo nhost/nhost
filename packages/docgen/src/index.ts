@@ -57,13 +57,6 @@ async function generateModuleDocumentation(
   await generateTypes(parsedContent, output)
 }
 
-function shallowMergeConfigs(a: AppConfig, b: AppConfig) {
-  return {
-    ...a,
-    ...b
-  }
-}
-
 /**
  * Generates the documentation from the auto-generated JSON file.
  */
@@ -95,7 +88,10 @@ async function parser() {
       if (configFile) {
         const config = JSON.parse(configFile) as Omit<AppConfig, 'config'>
 
-        finalConfig = shallowMergeConfigs(args, config)
+        finalConfig = {
+          ...args,
+          ...config
+        }
       }
     }
 

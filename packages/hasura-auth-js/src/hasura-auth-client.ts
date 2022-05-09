@@ -101,7 +101,12 @@ export class HasuraAuthClient {
         return resolve({ session: null, error: USER_ALREADY_SIGNED_IN })
       }
       interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           return resolve({ session: null, error: null })
         } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
           return resolve({ session: null, error: state.context.errors.registration || null })
@@ -182,7 +187,12 @@ export class HasuraAuthClient {
               mfa: null,
               error: null
             })
-          } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+          } else if (
+            state.matches({
+              authentication: { signedOut: 'noErrors' },
+              email: 'awaitingVerification'
+            })
+          ) {
             resolve({
               session: null,
               mfa: null,
@@ -213,7 +223,12 @@ export class HasuraAuthClient {
           return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
         }
         interpreter.onTransition((state) => {
-          if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+          if (
+            state.matches({
+              authentication: { signedOut: 'noErrors' },
+              email: 'awaitingVerification'
+            })
+          ) {
             resolve({
               session: null,
               mfa: null,
@@ -279,12 +294,25 @@ export class HasuraAuthClient {
         })
       })
     }
-    // TODO anonymous sign-in
-    return {
-      session: null,
-      mfa: null,
-      error: INVALID_AUTHENTICATION_METHOD
+    // * Anonymous sign-in
+    const { changed } = interpreter.send('SIGNIN_ANONYMOUS')
+    if (!changed) {
+      return { session: null, mfa: null, error: INVALID_AUTHENTICATION_METHOD }
     }
+    return new Promise((resolve) => {
+      interpreter.onTransition((state) => {
+        if (state.matches({ authentication: 'signedIn' })) {
+          resolve({ session: getSession(state.context), mfa: null, error: null })
+        }
+        if (state.matches({ authentication: { signedOut: 'failed' } })) {
+          resolve({
+            session: null,
+            mfa: null,
+            error: state.context.errors.authentication || null
+          })
+        }
+      })
+    })
   }
 
   /**
@@ -529,9 +557,9 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * const  = auth.isAuthenticated();
+   * const isAuthenticated = auth.isAuthenticated();
    *
-   * if (authenticated) {
+   * if (isAuthenticated) {
    *   console.log('User is authenticated');
    * }
    * ```
@@ -547,7 +575,7 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * const isAuthenticated  = awiat auth.isAuthenticatedAsync();
+   * const isAuthenticated  = await auth.isAuthenticatedAsync();
    *
    * if (isAuthenticated) {
    *   console.log('User is authenticated');

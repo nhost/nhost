@@ -1,5 +1,24 @@
 # @nhost/core
 
+## 0.5.2
+
+### Patch Changes
+
+- 65a3061: correct cookie storage type
+
+## 0.5.1
+
+### Patch Changes
+
+- 58fa2a2: Improve loading status
+  The `loading` status indicates the authentication is not yet known to the client when it starts. Once the client is ready, the authentication status is either signed in, or signed out.
+  When the user was trying to authenticate, the `loading` status was set to `true` until the result of the authentication was known.
+  The client now only return `loading: true` on startup, and in no other cases.
+- 58fa2a2: Look for a valid refresh token both the URL and local storage
+  When auto-signin was activated, the client was not taking into account the refresh token in the URL if a token was already stored locally.
+  The user was then not able to authenticate from a link when the refresh token stored locally was invalid or expired.
+  When auto-signin is activated, the client now checks and tries tokens from both the URL and the local storage, starting with the URL.
+
 ## 0.5.0
 
 ### Minor Changes
