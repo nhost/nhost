@@ -41,7 +41,6 @@ export const SignUpPasswordPage: NextPage = () => {
         transition="fade"
         centered
         transitionDuration={600}
-        transitionTimingFunction="ease"
         opened={emailVerificationToggle}
         onClose={() => {
           setEmailVerificationToggle(false)
