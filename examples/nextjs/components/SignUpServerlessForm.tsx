@@ -32,9 +32,9 @@ export const SignUpPasswordlessForm: React.FC = () => {
         }}
       >
         A verification email has been sent. Please check your inbox and follow the link to complete
-        authentication. This page with automatically redirect to the authenticated home page once
-        the email has been verified.
-      </Modal>{' '}
+        authentication. This page with automatically redirect you to the authenticated home page
+        once the email has been verified.
+      </Modal>
       <TextInput
         type="email"
         placeholder="Email Address"
