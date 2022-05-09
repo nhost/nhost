@@ -1,6 +1,6 @@
 import { ToRefs, unref } from 'vue'
 
-import { User, signInEmailPasswordPromise, SignInEmailPasswordHandlerResult } from '@nhost/core'
+import { SignInEmailPasswordHandlerResult, signInEmailPasswordPromise, User } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'

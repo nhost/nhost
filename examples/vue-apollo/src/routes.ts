@@ -1,16 +1,16 @@
 import { RouteRecordRaw } from 'vue-router'
 
-import Index from './pages/Index.vue'
-import Profile from './pages/Profile.vue'
+import Index from './pages/IndexPage.vue'
+import Profile from './pages/ProfilePage.vue'
+import SignInMain from './pages/sign-in/CommonActions.vue'
 import SignInEmailPasword from './pages/sign-in/EmailPassword.vue'
 import SignInEmailPaswordless from './pages/sign-in/EmailPasswordless.vue'
-import SignIn from './pages/sign-in/Index.vue'
-import SignInMain from './pages/sign-in/Main.vue'
+import SignIn from './pages/sign-in/IndexPage.vue'
+import SignUpMain from './pages/sign-up/CommonActions.vue'
 import SignUpEmailPasword from './pages/sign-up/EmailPassword.vue'
 import SignUpEmailPaswordless from './pages/sign-up/EmailPasswordless.vue'
-import SignUp from './pages/sign-up/Index.vue'
-import SignUpMain from './pages/sign-up/Main.vue'
-import Signout from './pages/Signout.vue'
+import SignUp from './pages/sign-up/IndexPage.vue'
+import Signout from './pages/SignoutPage.vue'
 
 const routes: RouteRecordRaw[] = [
   { path: '/', component: Index, meta: { auth: true } },

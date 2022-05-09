@@ -6,7 +6,14 @@
         <router-view />
       </v-card-text>
     </v-card>
-    <v-divider class="my-4" style="min-width: 90%" />
-    <div>Already have an account? <router-link to="/signin">Sign in</router-link></div>
+    <v-divider
+      class="my-4"
+      style="min-width: 90%"
+    />
+    <div>
+      Already have an account? <router-link to="/signin">
+        Sign in
+      </router-link>
+    </div>
   </div>
 </template>

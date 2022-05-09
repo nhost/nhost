@@ -7,8 +7,9 @@
     color="white"
     style="background-color: #333"
     :href="github"
-    >Continue with GitHub</v-btn
   >
+    Continue with GitHub
+  </v-btn>
   <v-btn
     class="my-1"
     block
@@ -17,8 +18,9 @@
     color="white"
     style="background-color: #de5246"
     :href="google"
-    >Continue with Google</v-btn
   >
+    Continue with Google
+  </v-btn>
   <v-btn
     class="my-1"
     block
@@ -27,13 +29,15 @@
     color="white"
     style="background-color: #3b5998"
     :href="facebook"
-    >Continue with Facebook</v-btn
   >
+    Continue with Facebook
+  </v-btn>
 </template>
 
 <script lang="ts">
-import { useProviderLink } from '@nhost/vue'
 import { defineComponent } from 'vue'
+
+import { useProviderLink } from '@nhost/vue'
 
 export default defineComponent({
   setup() {

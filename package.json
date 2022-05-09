@@ -63,6 +63,7 @@
     "eslint-plugin-react": "^7.29.4",
     "eslint-plugin-react-hooks": "^4.5.0",
     "eslint-plugin-simple-import-sort": "^7.0.0",
+    "eslint-plugin-vue": "^8.7.1",
     "husky": "^7.0.4",
     "jest": "^27.5.1",
     "npm-run-all": "^4.1.5",

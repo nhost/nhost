@@ -1,14 +1,21 @@
 <template>
   <v-app>
     <v-app-bar color="primary">
-      <template v-slot:prepend>
-        <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+      <template #prepend>
+        <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       </template>
-      <template v-slot:append>
-        <v-btn v-if="isAuthenticated" icon="mdi-exit-to-app" @click="() => signOut()"></v-btn>
+      <template #append>
+        <v-btn
+          v-if="isAuthenticated"
+          icon="mdi-exit-to-app"
+          @click="() => signOut()"
+        />
       </template>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" temporary></v-navigation-drawer>
+    <v-navigation-drawer
+      v-model="drawer"
+      temporary
+    />
     <v-main class="my-4">
       <router-view />
     </v-main>
@@ -16,9 +23,10 @@
 </template>
 
 <script lang="ts">
-import { useAuthenticated, useSignOut } from '@nhost/vue'
 import { defineComponent, ref } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { useAuthenticated, useSignOut } from '@nhost/vue'
 export default defineComponent({
   setup() {
     const router = useRouter()

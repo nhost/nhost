@@ -2,8 +2,8 @@ import { ToRefs, unref } from 'vue'
 
 import {
   PasswordlessOptions,
-  signInEmailPasswordlessPromise,
-  SignInEmailPasswordlessHandlerResult
+  SignInEmailPasswordlessHandlerResult,
+  signInEmailPasswordlessPromise
 } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
