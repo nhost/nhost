@@ -28,3 +28,4 @@ export type AuthEvents =
   | { type: 'SIGNED_IN' }
   | { type: 'SIGNED_OUT' }
   | { type: 'TOKEN_CHANGED' }
+  | { type: 'AWAIT_EMAIL_VERIFICATION' }

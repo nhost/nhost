@@ -15,7 +15,7 @@ Event triggers are managed in Hasura. Go to Hasura, then select **Events** in th
 
 ![Creating event trigger in Hasura](/img/platform/hasura-create-event-trigger.png)
 
-Nhost's [environment variables](/platform/nhost/environment-variables) can be used in event trigger headers. For example, you can attach `NHOST_WEBHOOK_SECRET` to an outgoing webhook here.
+Nhost's [environment variables](/platform/environment-variables) can be used in event trigger headers. For example, you can attach `NHOST_WEBHOOK_SECRET` to an outgoing webhook here.
 
 ---
 
@@ -43,7 +43,7 @@ In your serverless function, you need to make sure the request actually comes fr
 - Check the header in the serverless function. It should match the environment variable `NHOST_WEBHOOK_SECRET`.
 
 ```js
-export default function async handler(req, res) {
+export default async function handler(req, res) {
 
   // Check webhook secret to make sure the request is valid
   if (

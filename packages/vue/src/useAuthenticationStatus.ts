@@ -13,7 +13,7 @@ export const useAuthenticationStatus = () => {
       service.value,
       (state) => ({
         isAuthenticated: state.matches({ authentication: 'signedIn' }),
-        isLoading: !state.hasTag('ready'),
+        isLoading: state.hasTag('loading'),
         error: state.context.errors.authentication || null,
         isError: state.matches({ authentication: { signedOut: 'failed' } })
       }),

@@ -58,7 +58,7 @@ export const useNhostBackendUrl = () => {
  */
 export const useAuthLoading = () => {
   const service = useAuthInterpreter()
-  return useSelector(service, (state) => !state.hasTag('ready'))
+  return useSelector(service, (state) => state.hasTag('loading'))
 }
 
 /**
@@ -90,7 +90,7 @@ export const useAuthenticationStatus = () => {
     service,
     (state) => ({
       isAuthenticated: state.matches({ authentication: 'signedIn' }),
-      isLoading: !state.hasTag('ready'),
+      isLoading: state.hasTag('loading'),
       error: state.context.errors.authentication || null,
       isError: state.matches({ authentication: { signedOut: 'failed' } })
     }),

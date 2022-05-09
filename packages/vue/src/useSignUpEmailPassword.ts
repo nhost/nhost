@@ -56,7 +56,7 @@ export const useSignUpEmailPassword = (
 
   const isLoading = computed(() => loading.value && !isSuccess.value)
   const needsEmailVerification = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+    state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' })
   )
   const accessToken = useAccessToken()
   const user = useUserData()
@@ -77,7 +77,12 @@ export const useSignUpEmailPassword = (
             needsEmailVerification: false,
             user: null
           })
-        } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        } else if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({
             accessToken: null,
             error: null,

@@ -41,7 +41,12 @@ export const useSignInEmailPasswordless = (
             isError: true,
             isSuccess: false
           })
-        } else if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        } else if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({ error: null, isError: false, isSuccess: true })
         }
       })
@@ -54,7 +59,7 @@ export const useSignInEmailPasswordless = (
   )
 
   const isSuccess = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'needsEmailVerification' } })
+    state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' })
   )
 
   const isError = useSelector(service.value, (state) =>

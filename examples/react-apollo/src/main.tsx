@@ -6,8 +6,6 @@ import { NhostClient, NhostReactProvider } from '@nhost/react'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 import { inspect } from '@xstate/inspect'
 
-import 'rsuite/styles/index.less' // or 'rsuite/dist/rsuite.min.css'
-
 import App from './App'
 
 const devTools = !!import.meta.env.VITE_DEBUG
@@ -27,13 +25,14 @@ const container = document.getElementById('root')
 const root = createRoot(container!)
 root.render(
   // * See https://reactjs.org/blog/2022/03/08/react-18-upgrade-guide.html#updates-to-strict-mode
-  <React.StrictMode>
-    <BrowserRouter>
-      <NhostReactProvider nhost={nhost}>
-        <NhostApolloProvider nhost={nhost}>
-          <App />
-        </NhostApolloProvider>
-      </NhostReactProvider>
-    </BrowserRouter>
-  </React.StrictMode>
+  // * The xstate inspector is hard to use with React 18 strict mode
+  // <React.StrictMode>
+  <BrowserRouter>
+    <NhostReactProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost}>
+        <App />
+      </NhostApolloProvider>
+    </NhostReactProvider>
+  </BrowserRouter>
+  // </React.StrictMode>
 )

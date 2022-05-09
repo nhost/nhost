@@ -37,7 +37,12 @@ export const useSignInEmailPassword = (): SignInEmailPasswordComposableResult =>
         password: unref(password)
       })
       service.value.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'needsEmailVerification' } })) {
+        if (
+          state.matches({
+            authentication: { signedOut: 'noErrors' },
+            email: 'awaitingVerification'
+          })
+        ) {
           resolve({
             accessToken: null,
             error: null,
@@ -106,7 +111,8 @@ export const useSignInEmailPassword = (): SignInEmailPasswordComposableResult =>
 
   const needsEmailVerification = useSelector(
     service.value,
-    (state) => state.matches({ authentication: { signedOut: 'needsEmailVerification' } }),
+    (state) =>
+      state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' }),
     (a, b) => a === b
   )
 
