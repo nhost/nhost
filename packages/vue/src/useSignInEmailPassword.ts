@@ -1,6 +1,6 @@
 import { ToRefs, unref } from 'vue'
 
-import { User } from '@nhost/core'
+import { User, signInEmailPasswordPromise, SignInEmailPasswordHandlerResult } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
@@ -15,8 +15,6 @@ interface SignInEmailPasswordComposableState extends DefaultActionComposableStat
   user: User | null
   accessToken: string | null
 }
-
-type SignInEmailPasswordHandlerResult = Omit<SignInEmailPasswordComposableState, 'isLoading'>
 interface SignInEmailPasswordComposableResult extends ToRefs<SignInEmailPasswordComposableState> {
   signInEmailPassword(
     email: RefOrValue<string>,
@@ -31,60 +29,8 @@ interface SignInEmailPasswordComposableResult extends ToRefs<SignInEmailPassword
 export const useSignInEmailPassword = (): SignInEmailPasswordComposableResult => {
   const service = useAuthInterpreter()
   const signInEmailPassword = (email: RefOrValue<string>, password: RefOrValue<string>) =>
-    new Promise<SignInEmailPasswordHandlerResult>((resolve) => {
-      service.value.send('SIGNIN_PASSWORD', {
-        email: unref(email),
-        password: unref(password)
-      })
-      service.value.onTransition((state) => {
-        if (
-          state.matches({
-            authentication: { signedOut: 'noErrors' },
-            email: 'awaitingVerification'
-          })
-        ) {
-          resolve({
-            accessToken: null,
-            error: null,
-            isError: false,
-            isSuccess: false,
-            needsEmailVerification: true,
-            needsMfaOtp: false,
-            user: null
-          })
-        } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
-          resolve({
-            accessToken: null,
-            error: null,
-            isError: false,
-            isSuccess: false,
-            needsEmailVerification: false,
-            needsMfaOtp: true,
-            user: null
-          })
-        } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          resolve({
-            accessToken: null,
-            error: state.context.errors.authentication || null,
-            isError: true,
-            isSuccess: false,
-            needsEmailVerification: false,
-            needsMfaOtp: false,
-            user: null
-          })
-        } else if (state.matches({ authentication: 'signedIn' })) {
-          resolve({
-            accessToken: state.context.accessToken.value,
-            error: null,
-            isError: false,
-            isSuccess: true,
-            needsEmailVerification: false,
-            needsMfaOtp: false,
-            user: state.context.user
-          })
-        }
-      })
-    })
+    signInEmailPasswordPromise(service.value, unref(email), unref(password))
+
   const sendMfaOtp = (otp: RefOrValue<string>) => {
     service.value.send('SIGNIN_MFA_TOTP', {
       otp: unref(otp)

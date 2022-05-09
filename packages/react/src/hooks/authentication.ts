@@ -8,6 +8,11 @@ import {
   rewriteRedirectTo,
   User
 } from '@nhost/core'
+import {
+  signInAnonymousPromise,
+  signInEmailPasswordlessPromise,
+  signInEmailPasswordPromise
+} from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
@@ -19,7 +24,6 @@ import {
   useAuthenticated,
   useAuthInterpreter
 } from './common'
-
 interface SignInHookState extends DefaultActionHookState {
   user: User | null
   accessToken: string | null
@@ -123,60 +127,11 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     valueEmail?: string | unknown,
     valuePassword?: string
   ) =>
-    new Promise<SignInEmailPasswordHandlerResult>((resolve) => {
-      service.send('SIGNIN_PASSWORD', {
-        email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-        password: typeof valuePassword === 'string' ? valuePassword : statePassword
-      })
-      service.onTransition((state) => {
-        if (
-          state.matches({
-            authentication: { signedOut: 'noErrors' },
-            email: 'awaitingVerification'
-          })
-        ) {
-          resolve({
-            accessToken: null,
-            error: null,
-            isError: false,
-            isSuccess: false,
-            needsEmailVerification: true,
-            needsMfaOtp: false,
-            user: null
-          })
-        } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
-          resolve({
-            accessToken: null,
-            error: null,
-            isError: false,
-            isSuccess: false,
-            needsEmailVerification: false,
-            needsMfaOtp: true,
-            user: null
-          })
-        } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          resolve({
-            accessToken: null,
-            error: state.context.errors.authentication || null,
-            isError: true,
-            isSuccess: false,
-            needsEmailVerification: false,
-            needsMfaOtp: false,
-            user: null
-          })
-        } else if (state.matches({ authentication: 'signedIn' })) {
-          resolve({
-            accessToken: state.context.accessToken.value,
-            error: null,
-            isError: false,
-            isSuccess: true,
-            needsEmailVerification: false,
-            needsMfaOtp: false,
-            user: state.context.user
-          })
-        }
-      })
-    })
+    signInEmailPasswordPromise(
+      service,
+      (typeof valueEmail === 'string' ? valueEmail : stateEmail) as string,
+      (typeof valuePassword === 'string' ? valuePassword : statePassword) as string
+    )
 
   const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) => {
     service.send('SIGNIN_MFA_TOTP', {
@@ -311,28 +266,11 @@ export function useSignInEmailPasswordless(
     valueEmail?: string | unknown,
     valueOptions = stateOptions
   ) =>
-    new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
-      service.send('SIGNIN_PASSWORDLESS_EMAIL', {
-        email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-        options: valueOptions
-      })
-      service.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          resolve({
-            error: state.context.errors.authentication || null,
-            isError: true,
-            isSuccess: false
-          })
-        } else if (
-          state.matches({
-            authentication: { signedOut: 'noErrors' },
-            email: 'awaitingVerification'
-          })
-        ) {
-          resolve({ error: null, isError: false, isSuccess: true })
-        }
-      })
-    })
+    signInEmailPasswordlessPromise(
+      service,
+      (typeof valueEmail === 'string' ? valueEmail : stateEmail) as string,
+      valueOptions
+    )
 
   const error = useSelector(
     service,
@@ -357,49 +295,9 @@ export function useSignInEmailPasswordless(
 // TODO documentation when available in Nhost Cloud - see changelog
 // TODO deanonymize
 // TODO review nhost.auth.signIn()
-
-type SignInAnonymousHookState = SignInHookState
-
-type SignInAnonymousHookStateHandlerResult = Omit<SignInAnonymousHookState, 'isLoading'>
-interface SignInAnonymousHookResult extends SignInAnonymousHookState {
-  signInAnonymous(): Promise<SignInAnonymousHookStateHandlerResult>
-}
-export const useSignInAnonymous = (): SignInAnonymousHookResult => {
+export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
-  const signInAnonymous = (): Promise<SignInAnonymousHookStateHandlerResult> =>
-    new Promise((resolve) => {
-      const { changed } = service.send('SIGNIN_ANONYMOUS')
-      if (!changed) {
-        resolve({
-          isSuccess: false,
-          isError: true,
-          // TODO error
-          error: null,
-          user: null,
-          accessToken: null
-        })
-      }
-      service.onTransition((state) => {
-        if (state.matches({ authentication: 'signedIn' })) {
-          resolve({
-            isSuccess: true,
-            isError: false,
-            error: null,
-            user: state.context.user,
-            accessToken: state.context.accessToken.value
-          })
-        }
-        if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          resolve({
-            isSuccess: false,
-            isError: true,
-            error: state.context.errors.authentication || null,
-            user: null,
-            accessToken: null
-          })
-        }
-      })
-    })
+  const signInAnonymous = () => signInAnonymousPromise(service)
 
   const error = useSelector(
     service,
