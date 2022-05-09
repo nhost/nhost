@@ -1,57 +1,43 @@
-import React, { useEffect, useState } from 'react'
-import { NavLink } from 'react-router-dom'
-import { Button, Divider, Input, Message, Notification, toaster } from 'rsuite'
+import React, { useState } from 'react'
 
 import { useResetPassword } from '@nhost/react'
+import { showNotification } from '@mantine/notifications'
+import { Button, Divider, TextInput } from '@mantine/core'
+import AuthLink from '../components/AuthLink'
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const { resetPassword, isSent, error } = useResetPassword({ redirectTo: '/profile' })
+  const { resetPassword } = useResetPassword({ redirectTo: '/profile' })
 
-  const [errorMessage, setErrorMessage] = useState('')
-  // * Set error message from the authentication hook errors
-  useEffect(() => {
-    setErrorMessage(error?.message || '')
-  }, [error])
-  // * Reset error message every time the email or password input changed
-  useEffect(() => {
-    setErrorMessage('')
-  }, [email])
-
-  useEffect(() => {
-    if (isSent) {
-      toaster.push(
-        <Notification type="info" header="Info" closable>
-          An email has been sent with a passwordless authentication link, so you will be able to
-          authenticate and change your password.
-        </Notification>
-      )
+  const reset = async () => {
+    const result = await resetPassword(email)
+    if (result.isError) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error?.message
+      })
     }
-  }, [isSent])
+  }
   return (
-    <div>
-      <Input
+    <>
+      <TextInput
         value={email}
-        onChange={setEmail}
+        onChange={(e) => setEmail(e.target.value)}
         placeholder="Email Address"
         size="lg"
         autoFocus
         style={{ marginBottom: '0.5em' }}
       />
 
-      {errorMessage && (
-        <Message showIcon type="error">
-          {errorMessage}
-        </Message>
-      )}
-
-      <Button appearance="primary" onClick={() => resetPassword(email)} block>
+      <Button onClick={reset} fullWidth>
         Reset your password
       </Button>
       <Divider />
-      <Button as={NavLink} to="/sign-in/email-password" block appearance="link">
+
+      <AuthLink link="/sign-in/email-password" variant="white">
         &#8592; Sign in with email + password
-      </Button>
-    </div>
+      </AuthLink>
+    </>
   )
 }

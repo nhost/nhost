@@ -4,10 +4,14 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": ["dist/**", "build/**", ".next"]
+      "outputs": ["dist/**", "umd/**", "build/**", ".next"]
     },
     "test": {
+      "dependsOn": ["^build"],
       "outputs": []
+    },
+    "dev": {
+      "cache": false
     },
     "docgen": {
       "cache": false

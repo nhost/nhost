@@ -1,30 +1,45 @@
 import React from 'react'
 import { useState } from 'react'
-import { Button, Input, Panel } from 'rsuite'
 
 import { useConfigMfa } from '@nhost/react'
+import { Card, Button, TextInput, Title } from '@mantine/core'
+import { showNotification } from '@mantine/notifications'
 
 export const Mfa: React.FC = () => {
   const [code, setCode] = useState('')
   const { generateQrCode, activateMfa, isActivated, isGenerated, qrCodeDataUrl } = useConfigMfa()
-
+  const generate = async () => {
+    const result = await generateQrCode()
+    if (result.error) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error.message
+      })
+    }
+  }
   return (
-    <Panel header="Activate 2-step verification" bordered>
+    <Card shadow="sm" p="lg" m="sm">
+      <Title>Activate 2-step verification</Title>
       {!isGenerated && (
-        <Button block appearance="primary" onClick={generateQrCode}>
+        <Button fullWidth onClick={generate}>
           Generate
         </Button>
       )}
       {isGenerated && !isActivated && (
         <div>
           <img alt="qrcode" src={qrCodeDataUrl} />
-          <Input value={code} onChange={setCode} placeholder="Enter activation code" />
-          <Button block appearance="primary" onClick={() => activateMfa(code)}>
+          <TextInput
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Enter activation code"
+          />
+          <Button fullWidth onClick={() => activateMfa(code)}>
             Activate
           </Button>
         </div>
       )}
       {isActivated && <div>MFA has been activated!!!</div>}
-    </Panel>
+    </Card>
   )
 }

@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "ANALYZE=false next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
@@ -19,12 +20,7 @@
     "@mantine/hooks": "^4.2.2",
     "@mantine/next": "^4.2.2",
     "@mantine/notifications": "^4.2.2",
-    "@nhost/apollo": "workspace:*",
-    "@nhost/core": "workspace:*",
-    "@nhost/hasura-auth-js": "workspace:*",
-    "@nhost/hasura-storage-js": "workspace:*",
     "@nhost/nextjs": "workspace:*",
-    "@nhost/nhost-js": "workspace:*",
     "@nhost/react": "workspace:*",
     "@nhost/react-apollo": "workspace:*",
     "graphql": "^16.3.0",
@@ -34,11 +30,11 @@
     "react-icons": "^4.3.1"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^12.1.5",
     "@types/node": "17.0.23",
     "@types/react": "18.0.8",
     "@xstate/inspect": "^0.6.2",
     "eslint-config-next": "12.0.10",
-    "next-transpile-modules": "^9.0.0",
     "typescript": "4.5.5",
     "ws": "^8.5.0",
     "xstate": "^4.31.0"

@@ -1,9 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": ["src/**/*", "tests/**/*"],
-  "references": [{ "path": "../hasura-auth-js" }, { "path": "../hasura-storage-js" }]
+  "extends": "../../config/tsconfig.base.json",
+  "include": ["src"]
 }
