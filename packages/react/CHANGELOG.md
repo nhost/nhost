@@ -1,5 +1,11 @@
 # @nhost/react
 
+## 0.7.4
+
+### Patch Changes
+
+- 2887ce0: @xstate/react bump to support React 18
+
 ## 0.7.3
 
 ### Patch Changes
