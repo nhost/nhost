@@ -1,5 +1,3 @@
-import React from 'react'
-
 import { Container, Title } from '@mantine/core'
 import { useAccessToken } from '@nhost/nextjs'
 

@@ -2,15 +2,17 @@
 
 ## Requirements
 
-- We use [pnpm](https://pnpm.io/) as a package manager to fasten development and builds, and as a backbone to our monorepo. You have to make sure it is installed in your machine. There are [multiple ways to install it](https://pnpm.io/installation), but the easiest way is with `npm`:
+- We use [pnpm](https://pnpm.io/) as a package manager to speed up development and builds, and as a basis for our monorepo. You need to make sure it's installed on your machine. There are [several ways to install it](https://pnpm.io/installation), but the easiest way is with `npm`:
 
 ```sh
-npm install -g pnpm
+$ npm install -g pnpm
 ```
 
-- Our tests and examples are using the Nhost CLI to run the backend services locally. You can follow the instructions to install it in [our documentation](https://docs.nhost.io/get-started/cli-workflow/install-cli)
+- Our tests and examples use the Nhost CLI, to run the backend services locally. You can follow the installation instructions in [our documentation](https://docs.nhost.io/get-started/cli-workflow/install-cli).
 
-## Getting things ready
+## Get started
+
+### Installation
 
 First, clone this repository:
 
@@ -21,57 +23,74 @@ git clone https://github.com/nhost/nhost
 Then, install the dependencies with `pnpm`:
 
 ```sh
-cd nhost
-pnpm install
+$ cd nhost
+$ pnpm install
 ```
 
-## Starting development from an example
+### Development
 
-Let's follow the instructions to start [react-apollo example](https://github.com/nhost/nhost/blob/main/examples/react-apollo/README.md).
+Although package references are correctly updated on the fly for TypeScript, example projects won't
+see the changes because they are depending on the build output. To fix this, you can run packages
+in development mode.
 
-## Running the documentation website locally
-
-The easier way to contribute to our documentation is to move to the `docs` folder and follow the [instructions to start local development](https://github.com/nhost/nhost/blob/main/docs/README.md):
+Running packages in development mode is as simple as:
 
 ```sh
-cd docs
-# not necessary step if you've done this step already anywhere in the repository
-pnpm install
-pnpm start
+$ pnpm dev
 ```
 
-## Testing
+Our packages are linked together using [PNPM's workspace](https://pnpm.io/workspaces) feature. Vite automatically detects changes in the dependencies and rebuilds everything, so that the changes are immediately reflected in the other packages.
 
-In order to run tests, the Nhost testing backend should run locally. You can start it in from a separate terminal:
+### Use examples
+
+Examples are a great way to test your changes in practice. Make sure you've `pnpm dev` running in your terminal and then run an example.
+
+Let's follow the instructions to run [react-apollo example](https://github.com/nhost/nhost/blob/main/examples/react-apollo/README.md).
+
+## Run the documentation website locally
+
+The easier way to contribute to our documentation is to go to the `docs` folder and follow the [instructions to start local development](https://github.com/nhost/nhost/blob/main/docs/README.md):
 
 ```sh
-cd examples/testing-project
-nhost -d
+$ cd docs
+# not necessary if you've already done this step somewhere in the repository
+$ pnpm install
+$ pnpm start
 ```
 
-Once Nhost started locally, you can run the tests from the root folder of the repository with the following command:
+## Run test suites
+
+In order to run tests, the Nhost testing backend should be running locally. You can run it from a separate terminal:
 
 ```sh
-pnpm test
+$ cd examples/testing-project
+$ nhost -d
+```
+
+Once Nhost is started locally, you can run the tests with the following command from the repository root:
+
+```sh
+$ pnpm test
 ```
 
 ## Changesets
 
-If you made some changes in the packages, you will have to describe these changes so they will be taken into account in the next release.
-We are using [changesets](https://github.com/changesets/changesets) to support our version/publish workflows. When submitting a pull request, a bot will check if some changesets are present, and if not, will guide you to add them.
+If you've made changes to the packages, you must describe those changes so that they can be reflected in the next release.
+We use [changesets](https://github.com/changesets/changesets) to support our versioning and release workflows. When you submit a pull request, a bot checks if some changesets are present, and if not, it directs you to add them.
 
-The most comprehensive way to add a changeset is to run the following command from the root directory of the repository:
+The most comprehensive way to add a changeset is to run the following command in the repository root:
 
 ```sh
-pnpm changeset
+$ pnpm changeset
 ```
 
-This will generate a file in the `.changeset` directory. You can edit it to give further details about the change you just made.
-You can have a look at the changesets documentation on [how to add a changeset](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md)
+This will create a file in the `.changeset` directory. You can edit it to give more details about the change you just made.
 
-## Commiting changes
+You can take a look at the changeset documentation: [How to add a changeset](https://github.com/changesets/changesets/blob/main/docs/adding-a-changeset.md).
 
-You may notice `git commit` takes a few seconds to run. We set a commit hook that scan the changes in the code, automatically generates the documentation from the inline [TSDoc](https://tsdoc.org/) annotations, and add these generated documentation files to the commit. They will automatically update the [reference documentation](https://docs.nhost.io/reference).
+## Committing changes
+
+You'll notice that `git commit` takes a few seconds to run. We set a commit hook that scans the changes in the code, automatically generates documentation from the inline [TSDoc](https://tsdoc.org/) annotations, and adds these generated documentation files to the commit. They automatically update the [reference documentation](https://docs.nhost.io/reference).
 
 <!-- ## Good practices
 - lint
