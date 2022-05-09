@@ -213,17 +213,18 @@ const SignUp = () => {
     needsEmailVerification,
     isError,
     error,
-  } = useSignUpEmailPassword({
-    displayName: `${firstName} ${lastName}`.trim(),
-    metadata: {
-      firstName,
-      lastName,
-    },
-  });
+  } = useSignUpEmailPassword();
 
   const handleOnSubmit = (e) => {
     e.preventDefault();
-    signUpEmailPassword(email, password);
+
+    signUpEmailPassword(email, password, {
+      displayName: `${firstName} ${lastName}`.trim(),
+      metadata: {
+        firstName,
+        lastName,
+      },
+    });
   };
 
   if (isSuccess) {

@@ -141,8 +141,7 @@ Use the following code to instantiate a new Nhost client and link it to your
 Nhost backend:
 
 ```jsx title="src/App.js"
-import { NhostReactProvider } from '@nhost/react';
-import { NhostClient } from '@nhost/react';
+import { NhostClient, NhostReactProvider } from '@nhost/react';
 
 const nhost = new NhostClient({
   backendUrl: process.env.REACT_APP_NHOST_BACKEND_URL || '',
@@ -163,7 +162,7 @@ Finally, make sure to create an environment variable named
 `REACT_APP_NHOST_BACKEND_URL` to store your Nhost backend URL:
 
 ```yaml title=".env.local"
-REACT_APP_NHOST_BACKEND_URL=YOUR_NHOST_URL
+REACT_APP_NHOST_BACKEND_URL=YOUR_NHOST_BACKEND_URL
 ```
 
 You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
@@ -211,17 +210,18 @@ const SignUp = () => {
     needsEmailVerification,
     isError,
     error,
-  } = useSignUpEmailPassword({
-    displayName: `${firstName} ${lastName}`.trim(),
-    metadata: {
-      firstName,
-      lastName,
-    },
-  });
+  } = useSignUpEmailPassword();
 
   const handleOnSubmit = (e) => {
     e.preventDefault();
-    signUpEmailPassword(email, password);
+
+    signUpEmailPassword(email, password, {
+      displayName: `${firstName} ${lastName}`.trim(),
+      metadata: {
+        firstName,
+        lastName,
+      },
+    });
   };
 
   if (isSuccess) {
@@ -481,16 +481,17 @@ function App() {
     <NhostReactProvider nhost={nhost}>
       <BrowserRouter>
         <Routes>
-          {/* ... */}
+          <Route path="sign-up" element={<SignUp />} />
+          <Route path="sign-in" element={<SignIn />} />
           <Route
             path="/"
-            // highlight-start-here
+            // highlight-start
             element={
               <ProtectedRoute>
                 <Layout />
               </ProtectedRoute>
             }
-            // highlight-end-here
+            // highlight-end
           >
             <Route index element={<Dashboard />} />
             <Route path="profile" element={<Profile />} />
