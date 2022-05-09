@@ -5,6 +5,7 @@ import { createVuetify, ThemeDefinition } from 'vuetify'
 import { NhostClient } from '@nhost/vue'
 import { inspect } from '@xstate/inspect'
 
+// eslint-disable-next-line import/no-unresolved
 import 'vuetify/styles'
 
 import EmailPasswordless from './components/EmailPasswordlessForm.vue'

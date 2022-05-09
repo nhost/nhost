@@ -1,8 +1,8 @@
 /* eslint-disable react/react-in-jsx-scope */
 import { useEffect } from 'react'
-import { Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Route, Routes, useNavigate } from 'react-router-dom'
 
-import { useAuthenticated, useSignOut } from '@nhost/react'
+import { useSignOut } from '@nhost/react'
 
 import { AuthGate, PublicGate } from './components/auth-gates'
 import { AboutPage } from './About'
@@ -19,11 +19,9 @@ import { NotificationsProvider } from '@mantine/notifications'
 const title = 'Nhost with React and Apollo'
 
 function App() {
-  const isAuthenticated = useAuthenticated()
   const { signOut, isSuccess: signedOut } = useSignOut()
 
   const navigate = useNavigate()
-  const location = useLocation()
   useEffect(() => {
     if (signedOut) navigate('/')
     // eslint-disable-next-line react-hooks/exhaustive-deps
