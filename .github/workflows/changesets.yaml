@@ -9,6 +9,7 @@ on:
       - 'examples/**'
       - 'assets/**'
       - '**.md'
+      - '!.changeset/**'
       - 'LICENSE'
 
 jobs:
