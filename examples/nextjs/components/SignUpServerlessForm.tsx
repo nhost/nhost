@@ -1,13 +1,13 @@
-import { useRouter } from 'next/router'
 import { useState } from 'react'
 
-import { Button, SimpleGrid, TextInput } from '@mantine/core'
+import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { useSignInEmailPasswordless } from '@nhost/nextjs'
 
 export const SignUpPasswordlessForm: React.FC = () => {
-  const router = useRouter()
-  const { signInEmailPasswordless } = useSignInEmailPasswordless()
+  const { signInEmailPasswordless } = useSignInEmailPasswordless({ redirectTo: '/guarded-ssr' })
+  const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
+
   const [email, setEmail] = useState('')
   const signIn = async () => {
     const result = await signInEmailPasswordless(email)
@@ -18,11 +18,23 @@ export const SignUpPasswordlessForm: React.FC = () => {
         message: result.error.message
       })
     } else {
-      router.replace('/')
+      setEmailVerificationToggle(true)
     }
   }
   return (
     <SimpleGrid cols={1} spacing={6}>
+      <Modal
+        title="Verification email sent"
+        centered
+        opened={emailVerificationToggle}
+        onClose={() => {
+          setEmailVerificationToggle(false)
+        }}
+      >
+        A verification email has been sent. Please check your inbox and follow the link to complete
+        authentication. This page will automatically redirect you to the authenticated home page
+        once the email has been verified.
+      </Modal>
       <TextInput
         type="email"
         placeholder="Email Address"

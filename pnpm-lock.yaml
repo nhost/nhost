@@ -144,7 +144,6 @@ importers:
       eslint-config-next: 12.0.10
       graphql: 15.7.2
       next: 12.1.6
-      next-transpile-modules: ^9.0.0
       react: 18.1.0
       react-dom: 18.1.0
       react-icons: ^4.3.1
@@ -171,7 +170,6 @@ importers:
       '@types/react': 18.0.8
       '@xstate/inspect': 0.6.5_ws@8.5.0+xstate@4.31.0
       eslint-config-next: 12.0.10_5c3d31b5e5c475e42588834b8846f05e
-      next-transpile-modules: 9.0.0
       typescript: 4.5.5
       ws: 8.5.0
       xstate: 4.31.0
@@ -10460,7 +10458,7 @@ packages:
       eslint-plugin-import: 2.26.0_eslint@8.15.0
       eslint-plugin-jsx-a11y: 6.5.1_eslint@8.15.0
       eslint-plugin-react: 7.29.4_eslint@8.15.0
-      eslint-plugin-react-hooks: 4.4.0_eslint@8.15.0
+      eslint-plugin-react-hooks: 4.5.0_eslint@8.15.0
       next: 12.1.6_9816c66e94abfd2922f3d4095394d5a1
       typescript: 4.5.5
     transitivePeerDependencies:
@@ -10640,15 +10638,6 @@ packages:
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
       eslint: ^7.0.0 || ^8.0.0
-    dependencies:
-      eslint: 8.15.0
-    dev: true
-
-  /eslint-plugin-react-hooks/4.4.0_eslint@8.15.0:
-    resolution: {integrity: sha512-U3RVIfdzJaeKDQKEJbz5p3NW8/L80PCATJAfuojwbaEL+gBjfGdhUcGde+WGUW46Q5sr/NgxevsIiDtNXrvZaQ==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      eslint: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0-0
     dependencies:
       eslint: 8.15.0
     dev: true
@@ -14430,13 +14419,6 @@ packages:
 
   /neo-async/2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
-
-  /next-transpile-modules/9.0.0:
-    resolution: {integrity: sha512-VCNFOazIAnXn1hvgYYSTYMnoWgKgwlYh4lm1pKbSfiB3kj5ZYLcKVhfh3jkPOg1cnd9DP+pte9yCUocdPEUBTQ==}
-    dependencies:
-      enhanced-resolve: 5.9.3
-      escalade: 3.1.1
-    dev: true
 
   /next/12.0.10_9b0027aae606c22bf55a7fd89836f009:
     resolution: {integrity: sha512-1y3PpGzpb/EZzz1jgne+JfZXKAVJUjYXwxzrADf/LWN+8yi9o79vMLXpW3mevvCHkEF2sBnIdjzNn16TJrINUw==}
