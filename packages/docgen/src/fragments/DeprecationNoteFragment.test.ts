@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import DeprecationNoteFragment from './DeprecationNoteFragment'
 
 test('should contain default message in a deprecation note if tag does not have any text', () => {

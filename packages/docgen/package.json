@@ -15,7 +15,7 @@
     "dev": "ts-node ./src/index.ts",
     "start": "node dist/index.js",
     "build": "pnpm clean && tsup",
-    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
+    "test": "vitest --config ../../config/vite.test.config.js",
     "clean": "rimraf dist",
     "format": "prettier --write 'src/**/*.ts'",
     "lint": "eslint . --ext .ts,.tsx"

@@ -31,7 +31,7 @@
     "prerelease": "pnpm clean && pnpm install && pnpm build",
     "release": "pnpm run prerelease && changeset publish",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
-    "test": "turbo run test --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
+    "test": "turbo run test --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies --no-cache",
     "changeset": "changeset",
     "wait": "wait-on http://localhost:1337/v1/auth/healthz -i 500 -t 120000",
     "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :"
@@ -53,6 +53,7 @@
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
     "@vitejs/plugin-react": "^1.3.2",
+    "c8": "^7.11.2",
     "eslint": "^8.14.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^8.0.3",
@@ -75,6 +76,7 @@
     "vite": "^2.9.7",
     "vite-plugin-dts": "^0.9.10",
     "vite-tsconfig-paths": "^3.4.1",
+    "vitest": "^0.12.1",
     "wait-on": "^6.0.1"
   },
   "resolutions": {

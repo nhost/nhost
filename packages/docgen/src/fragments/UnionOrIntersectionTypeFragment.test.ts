@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import UnionOrIntersectionTypeFragment from './UnionOrIntersectionTypeFragment'
 
 test(`should not return anything if list of types in the union is undefined`, () => {
