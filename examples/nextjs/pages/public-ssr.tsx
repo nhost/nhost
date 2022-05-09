@@ -1,9 +1,7 @@
 import { GetServerSideProps } from 'next'
-import React from 'react'
 
 import { Container, Title } from '@mantine/core'
-import { NhostSession } from '@nhost/core'
-import { getNhostSession, useAccessToken, useAuthenticated } from '@nhost/nextjs'
+import { getNhostSession, NhostSession, useAccessToken, useAuthenticated } from '@nhost/nextjs'
 
 import { BACKEND_URL } from '../helpers'
 
@@ -19,6 +17,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 const PublicSSRPage: React.FC<{ initial: NhostSession }> = () => {
   const isAuthenticated = useAuthenticated()
   const accessToken = useAccessToken()
+
   return (
     <Container>
       <Title>Public Server-side Page</Title>

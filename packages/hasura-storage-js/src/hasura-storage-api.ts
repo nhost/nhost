@@ -113,7 +113,10 @@ export class HasuraStorageApi {
     return uploadheaders
   }
 
-  private generateAuthHeaders() {
+  private generateAuthHeaders():
+    | { Authorization: string }
+    | { 'x-hasura-admin-secret': string }
+    | null {
     if (!this.adminSecret && !this.accessToken) {
       return null
     }

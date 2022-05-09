@@ -1,9 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "lib",
-    "composite": true
-  },
-  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"],
-  "references": [{ "path": "../nhost-js" }, { "path": "../react" }]
+  "extends": "../../config/react-library.tsconfig.json",
+  "include": ["src"]
 }

@@ -1,5 +1,4 @@
 import { NextPage } from 'next'
-import React from 'react'
 
 import { Container, Title } from '@mantine/core'
 import { useAccessToken, useAuthenticated } from '@nhost/nextjs'

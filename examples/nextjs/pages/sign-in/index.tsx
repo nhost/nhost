@@ -1,5 +1,4 @@
 import { NextPage } from 'next'
-import React from 'react'
 import { FaLock } from 'react-icons/fa'
 
 import { Divider } from '@mantine/core'
