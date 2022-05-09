@@ -15,7 +15,8 @@
     "dev": "ts-node ./src/index.ts",
     "start": "node dist/index.js",
     "build": "pnpm clean && tsup",
-    "test": "vitest --config ../../config/vite.test.config.js",
+    "test": "vitest run --config ../../config/vite.lib.config.js",
+    "test:watch": "vitest --config ../../config/vite.lib.config.js",
     "clean": "rimraf dist",
     "format": "prettier --write 'src/**/*.ts'",
     "lint": "eslint . --ext .ts,.tsx"

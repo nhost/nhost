@@ -30,6 +30,15 @@ export default defineConfig({
       }
     })
   ],
+  test: {
+    coverage: {
+      enabled: true
+    },
+    testTimeout: 30000,
+    globals: true,
+    environment: 'node',
+    include: [`${PWD}/src/**/*.{spec,test}.{ts,tsx}`, `${PWD}/tests/**/*.{spec,test}.{ts,tsx}`]
+  },
   build: {
     sourcemap: true,
     lib: {
