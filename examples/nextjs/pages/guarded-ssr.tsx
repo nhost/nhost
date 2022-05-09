@@ -1,9 +1,7 @@
 import { GetServerSideProps } from 'next'
-import React from 'react'
 
 import { Container, Title } from '@mantine/core'
-import { NhostSession } from '@nhost/core'
-import { getNhostSession, useAccessToken } from '@nhost/nextjs'
+import { getNhostSession, NhostSession, useAccessToken } from '@nhost/nextjs'
 
 import { authProtected } from '../components/protected-route'
 import { BACKEND_URL } from '../helpers'

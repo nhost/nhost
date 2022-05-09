@@ -1,8 +1,4 @@
 {
-  "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "outDir": "dist",
-    "composite": true
-  },
-  "include": ["src/**/*", "types/**/*", "../../types/**/*", "tests/**/*"]
+  "extends": "../../config/react-library.tsconfig.json",
+  "include": ["src"]
 }

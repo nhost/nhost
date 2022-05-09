@@ -2,6 +2,7 @@ import { NhostClient as VanillaNhostClient, NhostClientConstructorParams } from 
 
 export * from './create-server-side-client'
 export * from './get-session'
+export type { NhostSession } from '@nhost/core'
 export * from '@nhost/react'
 export { NhostReactProvider as NhostNextProvider } from '@nhost/react'
 

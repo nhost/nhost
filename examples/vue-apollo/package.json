@@ -13,6 +13,7 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
+  "lib": "workspace:*",
   "dependencies": {
     "@mdi/font": "5.9.55",
     "roboto-fontface": "*",

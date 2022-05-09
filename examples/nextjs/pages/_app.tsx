@@ -1,6 +1,5 @@
 import type { AppProps } from 'next/app'
 import Head from 'next/head'
-import React from 'react'
 
 import { AppShell, Header, MantineProvider } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'

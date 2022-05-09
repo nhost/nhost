@@ -21,46 +21,51 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.vue.js",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "dev": "vite build --config ../../config/vite.vue.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.vue.config.js",
+    "build:umd": "vite build --config ../../config/vite.vue.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./vue.typedoc.json",
+    "typedoc": "typedoc --options ./vue.typedoc.json --tsconfig ./typedoc.tsconfig.json",
     "docgen": "pnpm typedoc && docgen --config ./vue.docgen.json"
   },
-  "main": "src/index.ts",
-  "publishConfig": {
-    "access": "public",
-    "main": "dist/index.umd.js",
-    "module": "dist/index.es.js",
-    "typings": "./dist/index.d.ts",
-    "exports": {
-      ".": {
-        "import": "./dist/index.es.js",
-        "require": "./dist/index.umd.js"
-      }
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "peerDependencies": {
     "vue": "^3.2.31"
   },
   "dependencies": {
+    "@nhost/core": "workspace:*",
     "@nhost/nhost-js": "workspace:^",
     "@vueuse/core": "^8.3.1",
     "@xstate/vue": "^1.0.0",
     "immer": "^9.0.12"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:^",
-    "@nhost/docgen": "*",
+    "@nhost/docgen": "workspace:*",
     "@nhost/hasura-auth-js": "workspace:^",
     "@vitejs/plugin-vue": "^2.3.1",
     "@xstate/inspect": "^0.6.2",

@@ -1,5 +1,16 @@
 # @nhost/nhost-js
 
+## 1.1.10
+
+### Patch Changes
+
+- 584976d: - publishable directory structure changes (ESM, CJS and UMD included in the output)
+  - build system improvements
+  - fixed some bundling concerns (https://github.com/nhost/nhost/issues/428)
+- Updated dependencies [584976d]
+  - @nhost/hasura-auth-js@1.1.5
+  - @nhost/hasura-storage-js@0.2.1
+
 ## 1.1.9
 
 ### Patch Changes

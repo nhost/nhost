@@ -1,5 +1,5 @@
 {
-  "title": "React",
+  "title": "Vue",
   "path": "./.docgen/vue.json",
   "output": "../../docs/docs/reference/docgen/vue",
   "root": "reference/docgen/vue",

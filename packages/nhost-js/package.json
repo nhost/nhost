@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -20,49 +20,48 @@
     "type": "git",
     "url": "git+https://github.com/nhost/nhost.git"
   },
-  "main": "src/index.ts",
-  "publishConfig": {
-    "exports": {
-      ".": {
-        "import": {
-          "node": "./dist/index.cjs.js",
-          "default": "./dist/index.es.js"
-        },
-        "require": "./dist/index.cjs.js"
-      }
-    },
-    "access": "public",
-    "main": "dist/index.cjs.js",
-    "module": "dist/index.es.js",
-    "typings": "./dist/index.d.ts"
-  },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
   "files": [
-    "dist"
+    "dist",
+    "umd",
+    "README.md"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "run-s build:esbuild build:types",
-    "build:esbuild": "node ../../esbuild.lib.js",
-    "build:types": "tsc --build tsconfig.types.json",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./nhost-js.typedoc.json",
+    "typedoc": "typedoc --options ./nhost-js.typedoc.json --tsconfig ./typedoc.tsconfig.json",
     "docgen": "pnpm typedoc && docgen --config ./nhost-js.docgen.json"
   },
   "dependencies": {
-    "@nhost/hasura-auth-js": "workspace:^",
-    "@nhost/hasura-storage-js": "workspace:^",
-    "axios": "^0.23.0",
+    "@nhost/hasura-auth-js": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
+    "axios": "^0.26.0",
     "jwt-decode": "^3.1.2",
     "query-string": "^7.0.1"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:^",
-    "@nhost/docgen": "*",
+    "@nhost/docgen": "workspace:*",
     "graphql": "16"
   },
   "peerDependencies": {

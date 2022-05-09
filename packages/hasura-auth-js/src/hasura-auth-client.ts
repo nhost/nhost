@@ -98,7 +98,7 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * auth.signIn({email, password}); // email password
+   * auth.signUp({email, password}); // email password
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signup
@@ -572,9 +572,9 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * const  = auth.isAuthenticated();
+   * const isAuthenticated = auth.isAuthenticated();
    *
-   * if (authenticated) {
+   * if (isAuthenticated) {
    *   console.log('User is authenticated');
    * }
    * ```
@@ -590,7 +590,7 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * const isAuthenticated  = awiat auth.isAuthenticatedAsync();
+   * const isAuthenticated  = await auth.isAuthenticatedAsync();
    *
    * if (isAuthenticated) {
    *   console.log('User is authenticated');

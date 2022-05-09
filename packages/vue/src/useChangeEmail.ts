@@ -39,7 +39,7 @@ export const useChangeEmail = (
     needsEmailVerification: false
   })
 
-  const changeEmail = (email) =>
+  const changeEmail = (email: string) =>
     new Promise<ChangeEmailHandlerResult>((resolve) => {
       send('REQUEST', {
         email: unref(email),

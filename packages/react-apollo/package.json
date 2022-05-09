@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "4.2.2",
+  "version": "4.2.3",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
@@ -22,9 +22,30 @@
     "type": "git",
     "url": "git+https://github.com/nhost/nhost.git"
   },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.react.js",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "dev": "vite build --config ../../config/vite.react.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.react.config.js",
+    "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -32,42 +53,22 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "main": "src/index.ts",
-  "publishConfig": {
-    "access": "public",
-    "main": "dist/index.umd.js",
-    "module": "dist/index.es.js",
-    "typings": "dist/index.d.ts",
-    "exports": {
-      ".": {
-        "import": "./dist/index.es.js",
-        "require": "./dist/index.umd.js"
-      }
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
-    "@nhost/apollo": "workspace:^"
+    "@nhost/apollo": "workspace:*"
   },
   "peerDependencies": {
     "@apollo/client": "^3.6.2",
-    "@nhost/react": "workspace:^",
+    "@nhost/react": "workspace:*",
     "graphql": "^16.0.0",
     "react": "^17.0.0 || ^18.0.0",
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
     "@apollo/client": "^3.6.2",
-    "@nhost/core": "workspace:^",
-    "@nhost/react": "workspace:^",
+    "@nhost/react": "workspace:*",
     "@types/react": "^18.0.8",
-    "@types/ws": "^8.2.2",
     "graphql": "16",
     "react": "^18.1.0",
-    "react-dom": "^18.1.0",
-    "ws": "^8.6.0",
-    "xstate": "^4.31.0"
+    "react-dom": "^18.1.0"
   }
 }

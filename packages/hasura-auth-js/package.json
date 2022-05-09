@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "1.1.4",
+  "version": "1.1.5",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -19,50 +19,50 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "run-s build:esbuild build:types",
-    "build:esbuild": "node ../../esbuild.lib.js",
-    "build:types": "tsc --build tsconfig.types.json",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./auth.typedoc.json",
+    "typedoc": "typedoc --options ./auth.typedoc.json --tsconfig ./typedoc.tsconfig.json",
     "docgen": "pnpm typedoc && docgen --config ./auth.docgen.json"
   },
-  "main": "src/index.ts",
-  "publishConfig": {
-    "exports": {
-      ".": {
-        "import": {
-          "node": "./dist/index.cjs.js",
-          "default": "./dist/index.es.js"
-        },
-        "require": "./dist/index.cjs.js"
-      }
-    },
-    "access": "public",
-    "main": "dist/index.cjs.js",
-    "module": "dist/index.es.js",
-    "typings": "./dist/index.d.ts"
-  },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
-    "@nhost/core": "workspace:^",
-    "jwt-decode": "^3.1.2"
+    "@nhost/core": "workspace:*",
+    "jwt-decode": "^3.1.2",
+    "xstate": "^4.31.0"
   },
   "devDependencies": {
-    "@nhost/docgen": "*",
+    "@nhost/docgen": "workspace:*",
     "@types/faker": "5",
     "axios": "^0.26.0",
     "faker": "5",
     "html-urls": "^2.4.27",
-    "mailhog": "^4.16.0",
-    "xstate": "^4.31.0"
+    "mailhog": "^4.16.0"
   }
 }

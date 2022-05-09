@@ -1,28 +1,23 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "composite": false,
-    "module": "esnext",
-    "declaration": false
-    // "target": "esnext",
-    // "useDefineForClassFields": true,
-    // "module": "esnext",
-    // "moduleResolution": "node",
-    // "strict": true,
-    // "jsx": "preserve",
-    // "sourceMap": true,
-    // "resolveJsonModule": true,
-    // "isolatedModules": true,
-    // "esModuleInterop": true,
-    // "lib": ["esnext", "dom"]
+    "target": "ESNext",
+    "useDefineForClassFields": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "allowJs": false,
+    "skipLibCheck": true,
+    "esModuleInterop": false,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "declaration": false,
+    "declarationMap": false
   },
-  "include": [
-    "src/**/*",
-    "types/**/*",
-    "../../types/**/*",
-    "tests/**/*"
-  ],
-
-  // "references": [{ "path": "./tsconfig.node.json" }]
+  "include": ["src"]
 }

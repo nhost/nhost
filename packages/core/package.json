@@ -1,6 +1,6 @@
 {
   "name": "@nhost/core",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [
@@ -20,11 +20,30 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "run-s build:esbuild build:types",
-    "build:esbuild": "node ../../esbuild.lib.js",
-    "build:types": "tsc --build tsconfig.types.json",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -32,24 +51,8 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "main": "src/index.ts",
-  "publishConfig": {
-    "access": "public",
-    "main": "dist/index.cjs.js",
-    "module": "dist/index.es.js",
-    "typings": "./dist/index.d.ts",
-    "exports": {
-      ".": {
-        "import": "./dist/index.es.js",
-        "require": "./dist/index.cjs.js"
-      }
-    }
-  },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
-    "axios": "^0.25.0",
+    "axios": "^0.26.0",
     "js-cookie": "^3.0.1",
     "xstate": "^4.31.0"
   },

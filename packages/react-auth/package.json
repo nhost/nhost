@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-auth",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Nhost React client",
   "license": "MIT",
   "keywords": [
@@ -21,9 +21,30 @@
     "type": "git",
     "url": "git+https://github.com/nhost/nhost.git"
   },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.tsx",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "vite build --config ../../vite.lib.react.js",
-    "test": "pnpm jest --runInBand --config ../../jest.config.base.js",
+    "dev": "vite build --config ../../config/vite.react.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.react.config.js",
+    "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
+    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -31,30 +52,16 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "main": "src/index.tsx",
-  "exports": {
-    ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.umd.js"
-    }
+  "dependencies": {
+    "@nhost/hasura-auth-js": "workspace:*"
   },
-  "publishConfig": {
-    "access": "public",
-    "main": "dist/index.umd.js",
-    "module": "dist/index.es.js",
-    "typings": "dist/index.d.ts"
-  },
-  "files": [
-    "dist"
-  ],
-  "dependencies": {},
   "peerDependencies": {
+    "@nhost/react": "workspace:*",
     "react": "^16.0.0 || ^17.0.0 || ^18.0.0",
     "react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@nhost/react": "workspace:^",
-    "@nhost/nhost-js": "workspace:^",
+    "@nhost/react": "workspace:*",
     "@types/react": "^17.0.38",
     "react": "^17.0.2",
     "react-dom": "^17.0.2"

@@ -10,6 +10,7 @@ export class NhostClient extends VanillaClient {
     super({ ...params, start: true })
   }
 
+  /** @internal */
   install(app: App) {
     app.provide(DefaultNhostClient, this)
     app.mixin({
