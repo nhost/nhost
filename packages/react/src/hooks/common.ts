@@ -27,7 +27,10 @@ export interface ActionHookSuccessState {
   isSuccess: boolean
 }
 
-export interface DefaultActionHookState extends CommonActionHookState, ActionHookSuccessState {}
+export interface DefaultActionHookState extends CommonActionHookState, ActionHookSuccessState {
+  /** @depreacted use `!isSuccess` or `!!error` instead */
+  isError: boolean
+}
 
 export const useNhostClient = (): NhostClient => {
   const nhost = useContext(NhostReactContext)
@@ -176,13 +179,11 @@ export const useSignOut = (stateAll: boolean = false) => {
     (a, b) => a === b
   )
 
-  const isError = !isSuccess
-
   const error = useSelector(
     service,
     (state) => state.context.errors.signout || null,
     (a, b) => a?.error === b?.error
   )
 
-  return { signOut, isSuccess, isError, error }
+  return { signOut, isSuccess, error }
 }

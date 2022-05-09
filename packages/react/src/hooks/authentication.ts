@@ -14,14 +14,14 @@ import { useSelector } from '@xstate/react'
 import { NhostReactContext } from '../provider'
 
 import {
-  ActionHookErrorState,
   ActionHookSuccessState,
+  CommonActionHookState,
   DefaultActionHookState,
   useAuthenticated,
   useAuthInterpreter
 } from './common'
 
-interface SignInHookState extends DefaultActionHookState {
+interface SignInHookState extends CommonActionHookState, ActionHookSuccessState {
   user: User | null
   accessToken: string | null
 }
@@ -148,6 +148,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
             email: 'awaitingVerification'
           })
         ) {
+          // TODO consider sending an error when email needs verification or user needs MFA (breaking change)
           resolve({
             accessToken: null,
             error: null,
@@ -246,9 +247,8 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   }
 }
 
-interface SignInEmailPasswordlessHandlerResult
-  extends ActionHookErrorState,
-    ActionHookSuccessState {}
+type SignInEmailPasswordlessState = DefaultActionHookState
+type SignInEmailPasswordlessHandlerResult = Omit<SignInEmailPasswordlessState, 'isLoading'>
 interface SignInEmailPasswordlessHandler {
   (email: string, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
   /** @deprecated */
@@ -381,15 +381,18 @@ export function useSignInEmailPasswordless(
 // TODO deanonymize
 // TODO review nhost.auth.signIn()
 
-type SignInAnonymousHookState = SignInHookState
-
-type SignInAnonymousHookStateHandlerResult = Omit<SignInAnonymousHookState, 'isLoading'>
-interface SignInAnonymousHookResult extends SignInAnonymousHookState {
-  signInAnonymous(): Promise<SignInAnonymousHookStateHandlerResult>
+interface SignInAnonymousHookState extends DefaultActionHookState {
+  user: User | null
+  accessToken: string | null
 }
+type SignInAnonymousHandlerResult = Omit<SignInAnonymousHookState, 'isLoading'>
+interface SignInAnonymousHookResult extends SignInAnonymousHookState {
+  signInAnonymous(): Promise<SignInAnonymousHandlerResult>
+}
+
 export const useSignInAnonymous = (): SignInAnonymousHookResult => {
   const service = useAuthInterpreter()
-  const signInAnonymous = (): Promise<SignInAnonymousHookStateHandlerResult> =>
+  const signInAnonymous = (): Promise<SignInAnonymousHandlerResult> =>
     new Promise((resolve) => {
       const { changed } = service.send('SIGNIN_ANONYMOUS')
       if (!changed) {

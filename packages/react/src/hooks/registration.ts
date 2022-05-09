@@ -3,9 +3,14 @@ import { useMemo } from 'react'
 import { SignUpOptions, User, USER_ALREADY_SIGNED_IN } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { DefaultActionHookState, useAuthenticationStatus, useAuthInterpreter } from './common'
+import {
+  ActionHookSuccessState,
+  CommonActionHookState,
+  useAuthenticationStatus,
+  useAuthInterpreter
+} from './common'
 
-interface SignUpEmailPasswordHookState extends DefaultActionHookState {
+interface SignUpEmailPasswordHookState extends CommonActionHookState, ActionHookSuccessState {
   /** @return `true` if an email is required to complete the action, and that a verificaiton email has been sent to complete the action. */
   needsEmailVerification: boolean
   /** User information */
