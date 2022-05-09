@@ -1,4 +1,3 @@
-import React from 'react'
 import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
 
 import { useProviderLink } from '@nhost/react'

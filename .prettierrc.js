@@ -11,6 +11,11 @@ module.exports = {
   tabWidth: 2,
   trailingComma: 'none',
   useTabs: false,
+  // TODO: add import sort configuration to match ESLint rules
+  // plugins: ['./node_modules/@trivago/prettier-plugin-sort-imports'],
+  // importOrderSeparation: true,
+  // importOrderSortSpecifiers: true
+  plugins: [],
   overrides: [
     {
       files: ['*.json', '*.yaml'],
@@ -18,7 +23,5 @@ module.exports = {
         useTabs: false
       }
     }
-  ],
-  importOrderSeparation: true,
-  importOrderSortSpecifiers: true
+  ]
 }

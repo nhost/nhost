@@ -2,7 +2,7 @@ import { format } from 'prettier'
 import { snapshot } from 'valtio'
 
 import { CommentFragment, DeprecationNoteFragment, FunctionFragment } from '../fragments'
-import { removeLinksFromText } from '../helpers'
+import { mergeUrls, removeLinksFromText } from '../helpers'
 import { appState } from '../state'
 import { ClassSignature, Signature } from '../types'
 
@@ -33,7 +33,11 @@ description: ${
   }
 ${deprecationTag ? 'sidebar_class_name: deprecated' : ``}
 ${slug ? `slug: ${slug}` : ``}
-${baseEditUrl && source ? `custom_edit_url: ${baseEditUrl}/${source.fileName}#L${source.line}` : ``}
+${
+  baseEditUrl && source
+    ? `custom_edit_url: ${mergeUrls(baseEditUrl, `${source.fileName}#L${source.line}`)}`
+    : ''
+}
 ---`.replace(/\n\n/gi, '\n')
 
   return format(
