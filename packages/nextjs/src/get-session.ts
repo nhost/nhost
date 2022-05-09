@@ -45,7 +45,7 @@ export const getNhostSession = async (
   backendUrl: string,
   context: GetServerSidePropsContext
 ): Promise<NhostSession | null> => {
-  const nhost = await createServerSideClient(backendUrl, context as any)
+  const nhost = await createServerSideClient(backendUrl, context)
   const { accessToken, refreshToken, user } = nhost.auth.client.interpreter!.state.context
   return nhost.auth.isAuthenticated()
     ? {

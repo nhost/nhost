@@ -38,10 +38,21 @@ export interface Typegen0 {
     saveInvalidSignUpEmail: 'SIGNUP_EMAIL_PASSWORD'
     saveInvalidSignUpPassword: 'SIGNUP_EMAIL_PASSWORD'
     saveNoMfaTicketError: 'SIGNIN_MFA_TOTP'
+    reportAwaitEmailVerification:
+      | 'done.invoke.authenticatePasswordlessEmail'
+      | 'error.platform.authenticateUserWithPassword'
+      | 'done.invoke.registerUser'
+      | 'error.platform.registerUser'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     saveRegisrationError: 'error.platform.registerUser'
     saveRefreshAttempt: 'error.platform.refreshToken'
-    reportSignedOut: 'error.platform.importRefreshToken' | 'error.platform.authenticateWithToken'
+    reportSignedOut:
+      | 'error.platform.importRefreshToken'
+      | 'done.invoke.authenticatePasswordlessEmail'
+      | 'error.platform.authenticateUserWithPassword'
+      | 'done.invoke.registerUser'
+      | 'error.platform.registerUser'
+      | 'error.platform.authenticateWithToken'
     resetAuthenticationError: 'xstate.init'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
@@ -144,6 +155,11 @@ export interface Typegen0 {
       data: unknown
     }
     'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
+    'done.invoke.authenticatePasswordlessEmail': {
+      type: 'done.invoke.authenticatePasswordlessEmail'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'error.platform.authenticateWithToken': {
@@ -160,11 +176,6 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
-    'done.invoke.authenticatePasswordlessEmail': {
-      type: 'done.invoke.authenticatePasswordlessEmail'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
     'done.invoke.authenticatePasswordlessSms': {
       type: 'done.invoke.authenticatePasswordlessSms'
       data: unknown
@@ -214,6 +225,7 @@ export interface Typegen0 {
     isAutoRefreshDisabled: ''
     hasRefreshToken: ''
     refreshTimerShouldRefresh: ''
+    needsVerification: 'SIGNED_IN'
   }
   eventsCausingDelays: {}
   matchesStates:
@@ -222,7 +234,6 @@ export interface Typegen0 {
     | 'authentication.signedOut'
     | 'authentication.signedOut.noErrors'
     | 'authentication.signedOut.success'
-    | 'authentication.signedOut.needsEmailVerification'
     | 'authentication.signedOut.needsSmsOtp'
     | 'authentication.signedOut.needsMfa'
     | 'authentication.signedOut.failed'
@@ -257,6 +268,9 @@ export interface Typegen0 {
     | 'token.idle.noErrors'
     | 'token.idle.error'
     | 'token.running'
+    | 'email'
+    | 'email.awaitingVerification'
+    | 'email.valid'
     | {
         authentication?:
           | 'starting'
@@ -268,7 +282,6 @@ export interface Typegen0 {
               signedOut?:
                 | 'noErrors'
                 | 'success'
-                | 'needsEmailVerification'
                 | 'needsSmsOtp'
                 | 'needsMfa'
                 | 'failed'
@@ -301,6 +314,7 @@ export interface Typegen0 {
                   }
             }
         token?: 'idle' | 'running' | { idle?: 'noErrors' | 'error' }
+        email?: 'awaitingVerification' | 'valid'
       }
   tags: 'loading'
 }
