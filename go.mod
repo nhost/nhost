@@ -6,7 +6,6 @@ replace github.com/hasura/go-graphql-client => github.com/nhost/go-graphql-clien
 
 require (
 	github.com/aws/aws-sdk-go v1.43.11
-	github.com/davidbyttow/govips/v2 v2.11.0
 	github.com/gabriel-vasile/mimetype v1.4.0
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.7
@@ -55,7 +54,6 @@ require (
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	golang.org/x/crypto v0.0.0-20220214200702-86341886e292 // indirect
-	golang.org/x/image v0.0.0-20220413100746-70e8d0d3baa9 // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect

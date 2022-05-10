@@ -1,16 +1,30 @@
 package image
 
+// #cgo pkg-config: vips
+// #include <vips/vips.h>
+// #include "image.h"
+import "C"
+
 import (
 	"bytes"
 	"fmt"
 	"io"
-
-	"github.com/davidbyttow/govips/v2/vips"
+	"reflect"
+	"runtime/debug"
+	"sync"
+	"unsafe"
 )
 
 const (
 	maxWorkers = 3
-	buffSize   = 5 << 20
+)
+
+type ImageType int
+
+const (
+	ImageTypeJPEG ImageType = C.JPEG
+	ImageTypePNG  ImageType = C.PNG
+	ImageTypeWEBP ImageType = C.WEBP
 )
 
 type Options struct {
@@ -18,6 +32,7 @@ type Options struct {
 	Width   int
 	Blur    float64
 	Quality int
+	Format  ImageType
 }
 
 func (o Options) IsEmpty() bool {
@@ -26,76 +41,63 @@ func (o Options) IsEmpty() bool {
 
 type Transformer struct {
 	workers chan struct{}
+	pool    sync.Pool
 }
 
 func NewTransformer() *Transformer {
-	vips.Startup(&vips.Config{
-		ConcurrencyLevel: 1,
-		MaxCacheFiles:    0,
-		MaxCacheMem:      0,
-		MaxCacheSize:     0,
-	})
-	vips.LoggingSettings(nil, vips.LogLevelWarning)
+	name := C.CString("hasuraStorage")
+	defer C.free(unsafe.Pointer(name))
+
+	err := C.vips_init(name)
+	if err != 0 {
+		panic(fmt.Sprintf("vips error, code=%v", err))
+	}
+
+	C.vips_concurrency_set(C.int(1))
+	C.vips_cache_set_max_files(C.int(0))
+	C.vips_cache_set_max_mem(C.size_t(0))
+	C.vips_cache_set_max(C.int(0))
 
 	workers := make(chan struct{}, maxWorkers)
 	for i := 0; i < maxWorkers; i++ {
 		workers <- struct{}{}
 	}
-	return &Transformer{workers: workers}
+
+	return &Transformer{
+		workers: workers,
+		pool: sync.Pool{
+			New: func() any {
+				return new(bytes.Buffer)
+			},
+		},
+	}
 }
 
 func (t *Transformer) Shutdown() {
-	vips.Shutdown()
+	C.vips_shutdown()
 }
 
-func (t *Transformer) loadImage(b []byte, opts Options) (*vips.ImageRef, error) {
-	var image1 *vips.ImageRef
-	var err error
-	if opts.Width != 0 || opts.Height != 0 {
-		image1, err = vips.LoadThumbnailFromBuffer(
-			b, opts.Width, opts.Height, vips.InterestingCentre, vips.SizeBoth, nil,
-		)
-	} else {
-		image1, err = vips.NewImageFromBuffer(b)
-	}
-	if err != nil {
-		return nil, fmt.Errorf("problem loading image: %w", err)
-	}
-	return image1, nil
-}
-
-func (t *Transformer) Run(orig io.Reader, modified io.Writer, opts Options) error {
+func (t *Transformer) Run(orig io.Reader, length uint64, modified io.Writer, opts Options) error {
+	// this is to avoid processing too many images at the same time in order to save memory
 	<-t.workers
 	defer func() { t.workers <- struct{}{} }()
 
-	buf := bytes.NewBuffer(make([]byte, 0, buffSize))
+	buf, _ := t.pool.Get().(*bytes.Buffer)
+	defer t.pool.Put(buf)
+	defer buf.Reset()
+
+	if buf.Len() < int(length) {
+		buf.Grow(int(length))
+	}
 
 	_, err := io.Copy(buf, orig)
 	if err != nil {
 		panic(err)
 	}
 
-	image1, err := t.loadImage(buf.Bytes(), opts)
+	b, err := Manipulate(buf.Bytes(), opts)
 	if err != nil {
-		return err
-	}
-	defer image1.Close()
-
-	params := &vips.ExportParams{}
-
-	if opts.Quality != 0 {
-		params.Quality = opts.Quality
-	}
-
-	if opts.Blur != 0 {
-		if err := image1.GaussianBlur(opts.Blur); err != nil {
-			return fmt.Errorf("problem blurring image: %w", err)
-		}
-	}
-
-	b, _, err := image1.Export(params)
-	if err != nil {
-		return fmt.Errorf("problem exporting image: %w", err)
+		return fmt.Errorf("problem manipulating image: %w", err)
 	}
 
 	if _, err := modified.Write(b); err != nil {
@@ -103,4 +105,36 @@ func (t *Transformer) Run(orig io.Reader, modified io.Writer, opts Options) erro
 	}
 
 	return nil
+}
+
+func Manipulate(buf []byte, opts Options) ([]byte, error) {
+	var result C.Result
+
+	err := C.manipulate(
+		unsafe.Pointer(&buf[0]),
+		C.size_t(len(buf)),
+		&result,
+		C.Options{
+			width:  C.int(opts.Width),
+			height: C.int(opts.Height),
+			crop:   C.VIPS_INTERESTING_CENTRE,
+			size:   C.VIPS_SIZE_BOTH, // nolint: gocritic
+			blur:   C.double(opts.Blur),
+			format: C.ImageType(opts.Format), // nolint: gocritic
+		},
+	)
+	if err != 0 {
+		s := C.GoString(C.vips_error_buffer())
+		C.vips_error_clear()
+
+		return nil, fmt.Errorf("%v\nStack:\n%s", s, debug.Stack()) // nolint: goerr113
+	}
+
+	var data []byte
+	sh := (*reflect.SliceHeader)(unsafe.Pointer(&data))
+	sh.Data = uintptr(result.buf)
+	sh.Len = int(result.len)
+	sh.Cap = int(result.len)
+
+	return data, nil
 }

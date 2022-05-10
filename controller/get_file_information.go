@@ -148,7 +148,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 		}
 		defer object.Close()
 
-		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(object, opts)
+		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(object, uint64(fileMetadata.Size), opts)
 		if apiErr != nil {
 			return nil, apiErr
 		}

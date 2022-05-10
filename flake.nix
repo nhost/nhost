@@ -123,6 +123,7 @@
               gnumake
               gnused
               richgo
+              ccls
             ] ++ buildInputs ++ nativeBuildInputs;
           };
         };

@@ -200,7 +200,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 		{
 			name:     "expired",
 			filepath: "sample.txt",
-			sleep:    time.Second * 1,
+			sleep:    time.Second * 2,
 			expectedErr: &controller.ErrorResponse{
 				Message: "Request has expired",
 			},
