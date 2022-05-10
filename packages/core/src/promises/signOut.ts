@@ -13,7 +13,8 @@ export const signOutPromise = async (interpreter: AuthInterpreter, all?: boolean
     interpreter.onTransition((state) => {
       if (state.matches({ authentication: { signedOut: 'success' } })) {
         resolve({ isSuccess: true, isError: false, error: null })
-      } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } }))
+      } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } })) {
         resolve({ isSuccess: false, isError: true, error: state.context.errors.signout || null })
+      }
     })
   })

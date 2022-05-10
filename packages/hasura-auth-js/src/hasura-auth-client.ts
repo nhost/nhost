@@ -4,6 +4,8 @@ import { interpret } from 'xstate'
 import {
   AuthClient,
   AuthInterpreter,
+  changeEmailPromise,
+  changePasswordPromise,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
@@ -93,7 +95,7 @@ export class HasuraAuthClient {
    * auth.signUp({email, password}); // email password
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signup
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
   async signUp({ email, password, options }: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
@@ -133,7 +135,7 @@ export class HasuraAuthClient {
    * signIn({ phoneNumber, otp }); // [step 2/2] Finish passwordless sign in with SMS (OTP)
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signin
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
    */
   async signIn(params: SignInParams): Promise<SignInResponse> {
     const interpreter = await this.waitUntilReady()
@@ -238,7 +240,7 @@ export class HasuraAuthClient {
    * signOut();
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signout
+   * @docs https://docs.nhost.io/reference/javascript/auth/sign-out
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const interpreter = await this.waitUntilReady()
@@ -254,7 +256,7 @@ export class HasuraAuthClient {
    * auth.resetPassword({email})
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-resetpassword
+   * @docs https://docs.nhost.io/reference/javascript/auth/reset-password
    */
   async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
     const service = interpret(createResetPasswordMachine(this._client)).start()
@@ -270,21 +272,12 @@ export class HasuraAuthClient {
    * auth.changePassword({ newPassword })
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changepassword
+   * @docs https://docs.nhost.io/reference/javascript/auth/change-password
    */
-  async changePassword(params: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createChangePasswordMachine(this._client))
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.start()
-      service.send('REQUEST', { password: params.newPassword })
-    })
+  async changePassword({ newPassword }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
+    const service = interpret(createChangePasswordMachine(this._client))
+    const { error } = await changePasswordPromise(service, newPassword)
+    return { error }
   }
 
   /**
@@ -296,7 +289,7 @@ export class HasuraAuthClient {
    * auth.sendVerificationEmail({email})
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/send-verification-email
    */
   async sendVerificationEmail(
     params: SendVerificationEmailParams
@@ -323,21 +316,12 @@ export class HasuraAuthClient {
    * auth.changeEmail({newEmail})
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-changeemail
+   * @docs https://docs.nhost.io/reference/javascript/auth/change-email
    */
   async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createChangeEmailMachine(this._client))
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.start()
-      service.send('REQUEST', { email: newEmail, options })
-    })
+    const service = interpret(createChangeEmailMachine(this._client))
+    const { error } = await changeEmailPromise(service, newEmail, options)
+    return { error }
   }
 
   /**
@@ -348,7 +332,7 @@ export class HasuraAuthClient {
    * auth.deanonymize({signInMethod: 'email-password', email})
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/deanonymize
    */
   async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
     const interpreter = await this.waitUntilReady()
@@ -382,7 +366,7 @@ export class HasuraAuthClient {
    * auth.onTokenChanged(() => console.log('access token changed'));
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
    */
   onTokenChanged(fn: OnTokenChangedFunction): Function {
     const listen = (interpreter: AuthInterpreter) =>
@@ -419,7 +403,7 @@ export class HasuraAuthClient {
    * });
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-onauthstatechangedevent,-session
+   * @docs https://docs.nhost.io/reference/javascript/auth/on-auth-state-changed
    */
   onAuthStateChanged(fn: AuthChangedFunction): Function {
     const listen = (interpreter: AuthInterpreter) =>
@@ -459,7 +443,7 @@ export class HasuraAuthClient {
    * }
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/is-authenticated
    */
   isAuthenticated(): boolean {
     return !!this._client.interpreter?.state.matches({ authentication: 'signedIn' })
@@ -477,7 +461,7 @@ export class HasuraAuthClient {
    * }
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/is-authenticated-async
    */
   async isAuthenticatedAsync(): Promise<boolean> {
     const interpreter = await this.waitUntilReady()
@@ -504,7 +488,7 @@ export class HasuraAuthClient {
    * }
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-authentication-status
    */
   getAuthenticationStatus(): {
     isAuthenticated: boolean
@@ -517,7 +501,9 @@ export class HasuraAuthClient {
   }
 
   /**
+   * @internal
    * @deprecated Use `getAccessToken()` instead.
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
    */
 
   getJWTToken(): string | undefined {
@@ -532,7 +518,7 @@ export class HasuraAuthClient {
    * const accessToken = auth.getAccessToken();
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
    */
   getAccessToken(): string | undefined {
     return this._client.interpreter?.state.context.accessToken.value ?? undefined
@@ -540,7 +526,8 @@ export class HasuraAuthClient {
 
   /**
    * Decode the current decoded access token (JWT), or return `null` if the user is not authenticated (no token)
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-decoded-access-token
    */
   public getDecodedAccessToken(): JWTClaims | null {
     const jwt = this.getAccessToken()
@@ -550,7 +537,8 @@ export class HasuraAuthClient {
 
   /**
    * Decode the Hasura claims from the current access token (JWT) located in the `https://hasura.io/jwt/claims` namespace, or return `null` if the user is not authenticated (no token)
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claims
    */
   public getHasuraClaims(): JWTHasuraClaims | null {
     return this.getDecodedAccessToken()?.['https://hasura.io/jwt/claims'] || null
@@ -560,7 +548,8 @@ export class HasuraAuthClient {
    * Get the value of a given Hasura claim in the current access token (JWT). Returns null if the user is not authenticated, or if the claim is not in the token.
    * Return `null` if the user is not authenticated (no token)
    * @param name name of the variable. Automatically adds the `x-hasura-` prefix if it is missing
-   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claim
    */
   public getHasuraClaim(name: string): string | string[] | null {
     return (
@@ -579,7 +568,7 @@ export class HasuraAuthClient {
    * refreshToken(refreshToken);
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/refresh-session
    */
   async refreshSession(refreshToken?: string): Promise<{
     session: Session | null
@@ -596,7 +585,7 @@ export class HasuraAuthClient {
         if (!changed) {
           return resolve({ session: null, error: TOKEN_REFRESHER_RUNNING_ERROR })
         }
-        interpreter?.onTransition((state) => {
+        interpreter.onTransition((state) => {
           if (state.matches({ token: { idle: 'error' } })) {
             resolve({
               session: null,
@@ -623,7 +612,7 @@ export class HasuraAuthClient {
    * const session = getSession();
    * ```
    *
-   * @docs https://docs.nhost.io/TODO
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-session
    */
   getSession() {
     return getSession(this._client.interpreter?.state?.context)
@@ -638,7 +627,7 @@ export class HasuraAuthClient {
    * const user = getUser();
    * ```
    *
-   * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-getuser
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-user
    */
   getUser() {
     return this._client.interpreter?.state?.context?.user || null
