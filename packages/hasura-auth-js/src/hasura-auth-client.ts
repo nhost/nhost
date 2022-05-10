@@ -275,7 +275,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/change-password
    */
   async changePassword({ newPassword }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
-    const service = interpret(createChangePasswordMachine(this._client))
+    const service = interpret(createChangePasswordMachine(this._client)).start()
     const { error } = await changePasswordPromise(service, newPassword)
     return { error }
   }
@@ -295,7 +295,7 @@ export class HasuraAuthClient {
     params: SendVerificationEmailParams
   ): Promise<ApiSendVerificationEmailResponse> {
     return new Promise((resolve) => {
-      const service = interpret(createSendVerificationEmailMachine(this._client))
+      const service = interpret(createSendVerificationEmailMachine(this._client)).start()
       service.onTransition(({ event }) => {
         if (event.type === 'ERROR') {
           return resolve({ error: event.error })
@@ -303,7 +303,6 @@ export class HasuraAuthClient {
           return resolve({ error: null })
         }
       })
-      service.start()
       service.send('REQUEST', { email: params.email, options: params.options })
     })
   }
@@ -319,7 +318,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/change-email
    */
   async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
-    const service = interpret(createChangeEmailMachine(this._client))
+    const service = interpret(createChangeEmailMachine(this._client)).start()
     const { error } = await changeEmailPromise(service, newEmail, options)
     return { error }
   }
