@@ -1,7 +1,7 @@
+import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter, PasswordlessOptions } from '../types'
 
 import { ActionErrorState, ActionSuccessState } from './types'
-
 export interface SignInEmailPasswordlessHandlerResult
   extends ActionErrorState,
     ActionSuccessState {}
@@ -12,10 +12,17 @@ export const signInEmailPasswordlessPromise = (
   options?: PasswordlessOptions
 ) =>
   new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
-    interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', {
+    const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', {
       email,
       options
     })
+    if (!changed) {
+      return resolve({
+        error: USER_ALREADY_SIGNED_IN,
+        isError: true,
+        isSuccess: false
+      })
+    }
     interpreter.onTransition((state) => {
       if (state.matches({ authentication: { signedOut: 'failed' } })) {
         resolve({

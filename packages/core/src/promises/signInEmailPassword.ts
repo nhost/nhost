@@ -1,3 +1,4 @@
+import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter, User } from '../types'
 
 import { DefaultActionState } from './types'
@@ -19,10 +20,21 @@ export const signInEmailPasswordPromise = (
   password: string
 ) =>
   new Promise<SignInEmailPasswordHandlerResult>((resolve) => {
-    interpreter.send('SIGNIN_PASSWORD', {
+    const { changed, context } = interpreter.send('SIGNIN_PASSWORD', {
       email,
       password
     })
+    if (!changed) {
+      return resolve({
+        accessToken: context.accessToken.value,
+        error: USER_ALREADY_SIGNED_IN,
+        isError: true,
+        isSuccess: false,
+        needsEmailVerification: false,
+        needsMfaOtp: false,
+        user: context.user
+      })
+    }
     interpreter.onTransition((state) => {
       if (
         state.matches({

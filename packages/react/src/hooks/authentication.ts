@@ -17,13 +17,7 @@ import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-import {
-  ActionHookErrorState,
-  ActionHookSuccessState,
-  DefaultActionHookState,
-  useAuthenticated,
-  useAuthInterpreter
-} from './common'
+import { DefaultActionHookState, useAuthenticated, useAuthInterpreter } from './common'
 interface SignInHookState extends DefaultActionHookState {
   user: User | null
   accessToken: string | null
@@ -134,7 +128,9 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     )
 
   const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) => {
-    service.send('SIGNIN_MFA_TOTP', {
+    // TODO promisify
+    service.send({
+      type: 'SIGNIN_MFA_TOTP',
       otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
     })
   }
@@ -186,9 +182,8 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   }
 }
 
-interface SignInEmailPasswordlessHandlerResult
-  extends ActionHookErrorState,
-    ActionHookSuccessState {}
+type SignInEmailPasswordlessState = DefaultActionHookState
+type SignInEmailPasswordlessHandlerResult = Omit<SignInEmailPasswordlessState, 'isLoading'>
 interface SignInEmailPasswordlessHandler {
   (email: string, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
   /** @deprecated */
