@@ -1,11 +1,17 @@
 <script>
   import { mutation } from 'svelte-apollo'
   import { gql } from '@apollo/client'
-  import { AUTHOR_LIST } from './graphql'
-
+  
+  const AUTHORS = gql`
+  query {
+    authors(order_by: [{ name: asc }]) {
+      name
+    }
+  }
+`
   const ADD_AUTHOR = gql`
-    mutation ($name: String!) {
-      insert_author(objects: [{ name: $name }]) {
+    mutation ($authors: authors_insert_input!) {
+      insert_author(objects: [$authors) {
         affected_rows
       }
     }
@@ -19,9 +25,9 @@
       await mutate({
         variables: { name },
         update: (cache) => {
-          const existingAuthors = cache.readQuery({ query: AUTHOR_LIST })
-          const newAuthors = [...existingAuthors.author, { name, __typename: 'author' }]
-          cache.writeQuery({ query: AUTHOR_LIST, data: { author: newAuthors } })
+          const existingAuthors = cache.readQuery({ query: AUTHORS })
+          const newAuthors = [...existingAuthors.author, { name, __typename: 'authors' }]
+          cache.writeQuery({ query: AUTHORS, data: { author: newAuthors } })
         }
       })
       alert('Added successfully')
@@ -33,7 +39,7 @@
 </script>
 
 <form on:submit={addAuthor}>
-  <label for="author">Author</label>
+  <label for="authors">Author</label>
   <input type="text" id="author-name" bind:value={name} />
   <button type="submit">Add Author</button>
 </form>

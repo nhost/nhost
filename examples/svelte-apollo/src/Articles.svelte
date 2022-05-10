@@ -4,7 +4,7 @@
 
   export const ARTICLES = gql`
     {
-      article {
+      articles {
         id
         title
         author {

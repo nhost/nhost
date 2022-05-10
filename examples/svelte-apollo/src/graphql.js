@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client'
-export const AUTHOR_LIST = gql`
+export const AUTHORS = gql`
   query {
-    author(order_by: [{ name: asc }]) {
+    authors(order_by: [{ name: asc }]) {
       name
     }
   }

@@ -1,4 +1,4 @@
-CREATE TABLE "public"."author" (
+CREATE TABLE "public"."authors" (
     "id" SERIAL,
     "name" text NOT NULL,
     PRIMARY KEY ("id")

@@ -1,4 +1,4 @@
-CREATE TABLE "public"."article" (
+CREATE TABLE "public"."articles" (
     "id" SERIAL,
     "title" text NOT NULL,
     "content" text NOT NULL,
