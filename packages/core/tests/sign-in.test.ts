@@ -43,17 +43,16 @@ afterEach(() => {
 
 afterAll(() => server.close())
 
-test(`should reach an error state if email address is invalid`, async () => {
-  const email = faker.internet.userName()
-  const password = faker.internet.password(15)
+test(`should reach an error state if email address or password is invalid`, async () => {
+  // Scenario 1: Providing an invalid email address with a valid password
 
   authService.send({
     type: 'SIGNIN_PASSWORD',
-    email,
-    password
+    email: faker.internet.userName(),
+    password: faker.internet.password(15)
   })
 
-  const signInState = await new Promise<AuthState>((resolve) => {
+  const emailErrorSignInState = await new Promise<AuthState>((resolve) => {
     authService.onTransition((state) => {
       if (state.value) {
         resolve(state)
@@ -62,21 +61,20 @@ test(`should reach an error state if email address is invalid`, async () => {
   })
 
   expect(
-    signInState.matches({ authentication: { signedOut: { failed: { validation: 'email' } } } })
+    emailErrorSignInState.matches({
+      authentication: { signedOut: { failed: { validation: 'email' } } }
+    })
   ).toBeTruthy()
-})
 
-test(`should reach an error state if password is invalid`, async () => {
-  const email = faker.internet.email('john', 'doe')
-  const password = faker.internet.password(2)
+  // Scenario 2: Providing a valid email address with an invalid password
 
   authService.send({
     type: 'SIGNIN_PASSWORD',
-    email,
-    password
+    email: faker.internet.email('john', 'doe'),
+    password: faker.internet.password(2)
   })
 
-  const signInState = await new Promise<AuthState>((resolve) => {
+  const passwordErrorSignInState = await new Promise<AuthState>((resolve) => {
     authService.onTransition((state) => {
       if (state.value) {
         resolve(state)
@@ -85,7 +83,9 @@ test(`should reach an error state if password is invalid`, async () => {
   })
 
   expect(
-    signInState.matches({ authentication: { signedOut: { failed: { validation: 'password' } } } })
+    passwordErrorSignInState.matches({
+      authentication: { signedOut: { failed: { validation: 'password' } } }
+    })
   ).toBeTruthy()
 })
 
