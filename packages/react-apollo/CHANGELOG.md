@@ -1,5 +1,23 @@
 # @nhost/react-apollo
 
+## 4.2.4
+
+### Patch Changes
+
+- Updated dependencies [2887ce0]
+  - @nhost/react@0.7.4
+
+## 4.2.3
+
+### Patch Changes
+
+- 584976d: - publishable directory structure changes (ESM, CJS and UMD included in the output)
+  - build system improvements
+  - fixed some bundling concerns (https://github.com/nhost/nhost/issues/428)
+- Updated dependencies [584976d]
+  - @nhost/apollo@0.5.3
+  - @nhost/react@0.7.3
+
 ## 4.2.2
 
 ### Patch Changes
