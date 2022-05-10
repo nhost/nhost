@@ -41,6 +41,16 @@ export type SignUpResponse =
   | { session: Session | null; error: null }
 
 // Sign In
+
+export interface SignInResponse {
+  session: Session | null
+  mfa: {
+    ticket: string
+  } | null
+  error: ErrorPayload | null
+  providerUrl?: string
+  provider?: string
+}
 export interface SignInEmailPasswordParams {
   email: string
   password: string

@@ -161,6 +161,8 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     (a, b) => a === b
   )
 
+  const mfa = useSelector(service, (state) => state.context.mfa)
+
   return {
     accessToken,
     error,
@@ -169,6 +171,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     isSuccess,
     needsEmailVerification,
     needsMfaOtp,
+    mfa,
     sendMfaOtp,
     signInEmailPassword,
     user

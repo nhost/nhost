@@ -1,13 +1,9 @@
-import { AuthInterpreter, User } from '../types'
+import { INVALID_AUTHENTICATION_METHOD } from '../errors'
+import { AuthInterpreter } from '../types'
 
-import { DefaultActionState } from './types'
+import { SessionActionHandlerResult } from './types'
 
-interface SignInAnonymousState extends DefaultActionState {
-  user: User | null
-  accessToken: string | null
-}
-
-type SignInAnonymousHandlerResult = Omit<SignInAnonymousState, 'isLoading'>
+type SignInAnonymousHandlerResult = SessionActionHandlerResult
 
 export const signInAnonymousPromise = (
   interpreter: AuthInterpreter
@@ -18,8 +14,7 @@ export const signInAnonymousPromise = (
       resolve({
         isSuccess: false,
         isError: true,
-        // TODO error
-        error: null,
+        error: INVALID_AUTHENTICATION_METHOD,
         user: null,
         accessToken: null
       })

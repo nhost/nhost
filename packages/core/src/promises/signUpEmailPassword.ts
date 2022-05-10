@@ -1,14 +1,10 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
-import { AuthInterpreter, SignUpOptions, User } from '../types'
+import { AuthInterpreter, SignUpOptions } from '../types'
 
-import { DefaultActionState } from './types'
+import { SessionActionState } from './types'
 
-export interface SignUpEmailPasswordState extends DefaultActionState {
+export interface SignUpEmailPasswordState extends SessionActionState {
   needsEmailVerification: boolean
-  /** User information */
-  user: User | null
-  /** Access token (JWT) */
-  accessToken: string | null
 }
 
 export type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>

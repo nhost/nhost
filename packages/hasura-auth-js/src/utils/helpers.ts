@@ -1,6 +1,6 @@
-import { AuthContext } from '@nhost/core'
+import { AuthContext, SessionActionHandlerResult } from '@nhost/core'
 
-import { Session } from './types'
+import { Session, SignUpResponse } from './types'
 
 export const isBrowser = () => typeof window !== 'undefined'
 
@@ -20,4 +20,25 @@ export const getSession = (context?: AuthContext): Session | null => {
     refreshToken: context.refreshToken.value,
     user: context.user
   }
+}
+
+export const getAuthenticationResult = ({
+  accessToken,
+  isError,
+  user,
+  error
+}: SessionActionHandlerResult): SignUpResponse => {
+  if (isError) {
+    return {
+      session: null,
+      error
+    }
+  }
+  if (user && accessToken) {
+    return {
+      session: { accessToken, accessTokenExpiresIn: 0, refreshToken: 'TODO', user },
+      error: null
+    }
+  }
+  return { session: null, error: null }
 }

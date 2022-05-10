@@ -1,15 +1,13 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
-import { AuthInterpreter, User } from '../types'
+import { AuthInterpreter } from '../types'
 
-import { DefaultActionState } from './types'
+import { SessionActionState } from './types'
 
-export interface SignInState extends DefaultActionState {
-  user: User | null
-  accessToken: string | null
-}
-
-export interface SignInEmailPasswordState extends SignInState {
+export interface SignInEmailPasswordState extends SessionActionState {
   needsMfaOtp: boolean
+  mfa: {
+    ticket: string
+  } | null
   needsEmailVerification: boolean
 }
 export type SignInEmailPasswordHandlerResult = Omit<SignInEmailPasswordState, 'isLoading'>
@@ -32,6 +30,7 @@ export const signInEmailPasswordPromise = (
         isSuccess: false,
         needsEmailVerification: false,
         needsMfaOtp: false,
+        mfa: null,
         user: context.user
       })
     }
@@ -49,6 +48,7 @@ export const signInEmailPasswordPromise = (
           isSuccess: false,
           needsEmailVerification: true,
           needsMfaOtp: false,
+          mfa: null,
           user: null
         })
       } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
@@ -59,6 +59,7 @@ export const signInEmailPasswordPromise = (
           isSuccess: false,
           needsEmailVerification: false,
           needsMfaOtp: true,
+          mfa: state.context.mfa,
           user: null
         })
       } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
@@ -69,6 +70,7 @@ export const signInEmailPasswordPromise = (
           isSuccess: false,
           needsEmailVerification: false,
           needsMfaOtp: false,
+          mfa: null,
           user: null
         })
       } else if (state.matches({ authentication: 'signedIn' })) {
@@ -79,6 +81,7 @@ export const signInEmailPasswordPromise = (
           isSuccess: true,
           needsEmailVerification: false,
           needsMfaOtp: false,
+          mfa: null,
           user: state.context.user
         })
       }

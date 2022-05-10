@@ -1,4 +1,5 @@
 import { ErrorPayload } from '../errors'
+import { User } from '../types'
 
 export interface ActionErrorState {
   /** @return `true` if an error occurred */
@@ -22,3 +23,11 @@ export interface ActionSuccessState {
 }
 
 export interface DefaultActionState extends CommonActionState, ActionSuccessState {}
+
+export interface SessionActionState extends DefaultActionState {
+  /** User information */
+  user: User | null
+  /** Access token (JWT) */
+  accessToken: string | null
+}
+export type SessionActionHandlerResult = Omit<SessionActionState, 'isLoading'>

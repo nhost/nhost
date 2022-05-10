@@ -11,20 +11,23 @@ import {
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
   ErrorPayload,
-  INVALID_AUTHENTICATION_METHOD,
   INVALID_REFRESH_TOKEN,
   JWTClaims,
   JWTHasuraClaims,
   NO_REFRESH_TOKEN,
   resetPasswordPromise,
   rewriteRedirectTo,
+  signInAnonymousPromise,
+  signInEmailPasswordlessPromise,
+  signInEmailPasswordPromise,
   signOutPromise,
+  signUpEmailPasswordPromise,
   TOKEN_REFRESHER_RUNNING_ERROR,
   USER_ALREADY_SIGNED_IN,
   USER_NOT_ANONYMOUS
 } from '@nhost/core'
 
-import { getSession, isBrowser } from './utils/helpers'
+import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -42,6 +45,7 @@ import {
   SendVerificationEmailParams,
   Session,
   SignInParams,
+  SignInResponse,
   SignUpParams,
   SignUpResponse
 } from './utils/types'
@@ -91,31 +95,11 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signup
    */
-  async signUp(params: SignUpParams): Promise<SignUpResponse> {
+  async signUp({ email, password, options }: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
-
-    const { email, password, options } = params
-    // TODO use signUpEmailPasswordPromise
-    return new Promise((resolve) => {
-      const { changed } = interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
-      if (!changed) {
-        return resolve({ session: null, error: USER_ALREADY_SIGNED_IN })
-      }
-      interpreter.onTransition((state) => {
-        if (
-          state.matches({
-            authentication: { signedOut: 'noErrors' },
-            email: 'awaitingVerification'
-          })
-        ) {
-          return resolve({ session: null, error: null })
-        } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          return resolve({ session: null, error: state.context.errors.registration || null })
-        } else if (state.matches({ authentication: 'signedIn' })) {
-          return resolve({ session: getSession(state.context), error: null })
-        }
-      })
-    })
+    return getAuthenticationResult(
+      await signUpEmailPasswordPromise(interpreter, email, password, options)
+    )
   }
 
   /**
@@ -151,15 +135,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-signin
    */
-  async signIn(params: SignInParams): Promise<{
-    session: Session | null
-    mfa: {
-      ticket: string
-    } | null
-    error: ErrorPayload | null
-    providerUrl?: string
-    provider?: string
-  }> {
+  async signIn(params: SignInParams): Promise<SignInResponse> {
     const interpreter = await this.waitUntilReady()
 
     if ('provider' in params) {
@@ -176,74 +152,28 @@ export class HasuraAuthClient {
 
     // email password
     if ('email' in params && 'password' in params) {
-      return new Promise((resolve) => {
-        const { changed } = interpreter.send('SIGNIN_PASSWORD', params)
-        if (!changed) {
-          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
+      const res = await signInEmailPasswordPromise(interpreter, params.email, params.password)
+      if (res.needsEmailVerification) {
+        return { session: null, mfa: null, error: EMAIL_NEEDS_VERIFICATION }
+      }
+      if (res.needsMfaOtp) {
+        return {
+          session: null,
+          mfa: res.mfa,
+          error: null
         }
-        interpreter.onTransition((state) => {
-          if (state.matches({ authentication: 'signedIn' })) {
-            resolve({
-              session: getSession(state.context),
-              mfa: null,
-              error: null
-            })
-          } else if (
-            state.matches({
-              authentication: { signedOut: 'noErrors' },
-              email: 'awaitingVerification'
-            })
-          ) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: EMAIL_NEEDS_VERIFICATION
-            })
-          } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
-            resolve({
-              session: null,
-              mfa: state.context.mfa,
-              error: null
-            })
-          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: state.context.errors.authentication || null
-            })
-          }
-        })
-      })
+      }
+      return { ...getAuthenticationResult(res), mfa: null }
     }
 
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
-      return new Promise((resolve) => {
-        const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', params)
-        if (!changed) {
-          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
-        }
-        interpreter.onTransition((state) => {
-          if (
-            state.matches({
-              authentication: { signedOut: 'noErrors' },
-              email: 'awaitingVerification'
-            })
-          ) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: null
-            })
-          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: state.context.errors.authentication || null
-            })
-          }
-        })
-      })
+      const { error } = await signInEmailPasswordlessPromise(interpreter, params.email)
+      return {
+        session: null,
+        mfa: null,
+        error
+      }
     }
 
     // passwordless SMS
@@ -296,24 +226,8 @@ export class HasuraAuthClient {
       })
     }
     // * Anonymous sign-in
-    const { changed } = interpreter.send('SIGNIN_ANONYMOUS')
-    if (!changed) {
-      return { session: null, mfa: null, error: INVALID_AUTHENTICATION_METHOD }
-    }
-    return new Promise((resolve) => {
-      interpreter.onTransition((state) => {
-        if (state.matches({ authentication: 'signedIn' })) {
-          resolve({ session: getSession(state.context), mfa: null, error: null })
-        }
-        if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          resolve({
-            session: null,
-            mfa: null,
-            error: state.context.errors.authentication || null
-          })
-        }
-      })
-    })
+    const anonymousResult = await signInAnonymousPromise(interpreter)
+    return { ...getAuthenticationResult(anonymousResult), mfa: null }
   }
 
   /**
