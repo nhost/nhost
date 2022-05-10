@@ -2,7 +2,7 @@ import faker from '@faker-js/faker'
 import { rest } from 'msw'
 import { NhostSession } from '../../src/types'
 import { BASE_URL } from './config'
-import fakeUser from './fake/user'
+import fakeUser from './__mocks__/user'
 
 /**
  * Request handler for MSW to mock a successful sign in request.
@@ -14,9 +14,9 @@ export const correctEmailPasswordHandler = rest.post(
       ctx.json<{ session: NhostSession }>({
         session: {
           user: fakeUser,
-          accessTokenExpiresIn: 5000,
+          accessTokenExpiresIn: 900,
           accessToken: faker.datatype.string(40),
-          refreshToken: ''
+          refreshToken: faker.datatype.uuid()
         }
       })
     )
