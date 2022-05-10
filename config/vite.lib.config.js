@@ -36,7 +36,8 @@ export default defineConfig({
     },
     testTimeout: 30000,
     globals: true,
-    environment: 'node',
+    environment: 'jsdom',
+    reporters: 'verbose',
     include: [`${PWD}/src/**/*.{spec,test}.{ts,tsx}`, `${PWD}/tests/**/*.{spec,test}.{ts,tsx}`]
   },
   build: {

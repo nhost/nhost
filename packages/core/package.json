@@ -58,6 +58,7 @@
     "xstate": "^4.31.0"
   },
   "devDependencies": {
-    "@types/js-cookie": "^3.0.2"
+    "@types/js-cookie": "^3.0.2",
+    "msw": "^0.39.2"
   }
 }
