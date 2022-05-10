@@ -2,7 +2,9 @@ import { createApp } from 'vue'
 import { createRouter, createWebHashHistory } from 'vue-router'
 import { createVuetify, ThemeDefinition } from 'vuetify'
 
+import { createApolloClient } from '@nhost/apollo'
 import { NhostClient } from '@nhost/vue'
+import { DefaultApolloClient } from '@vue/apollo-composable'
 import { inspect } from '@xstate/inspect'
 
 // eslint-disable-next-line import/no-unresolved
@@ -12,7 +14,7 @@ import EmailPasswordless from './components/EmailPasswordlessForm.vue'
 import ErrorSnackBar from './components/ErrorSnackBar.vue'
 import OauthLinks from './components/OAuthLinks.vue'
 import App from './App.vue'
-import routes from './routes'
+import { routes } from './routes'
 
 import '@mdi/font/css/materialdesignicons.css'
 
@@ -40,7 +42,6 @@ const vuetify = createVuetify({
     }
   }
 })
-// https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 
 const devTools = !!import.meta.env.VITE_DEBUG
 if (devTools) {
@@ -50,9 +51,19 @@ if (devTools) {
   })
 }
 
-export const nhost = new NhostClient({
+const nhost = new NhostClient({
   backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337',
   devTools
+})
+
+const apolloClient = createApolloClient({ nhost })
+
+// ? Make it part of @nhost/apollo?
+nhost.auth.onAuthStateChanged((d) => {
+  if (d === 'SIGNED_OUT') {
+    console.log('clear store')
+    apolloClient.clearStore()
+  }
 })
 
 const router = createRouter({
@@ -62,7 +73,6 @@ const router = createRouter({
 
 router.beforeEach(async (to, from) => {
   const authenticated = await nhost.auth.isAuthenticatedAsync()
-  console.log('auth?', authenticated)
   if (!authenticated && to.meta.auth) {
     return '/signin'
   }
@@ -70,6 +80,7 @@ router.beforeEach(async (to, from) => {
 })
 
 createApp(App)
+  .provide(DefaultApolloClient, apolloClient)
   .use(router)
   .use(vuetify)
   .use(nhost)
