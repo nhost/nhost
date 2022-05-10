@@ -1,21 +1,25 @@
 import { ToRefs, unref } from 'vue'
 
-import { SignInEmailPasswordHandlerResult, signInEmailPasswordPromise, User } from '@nhost/core'
+import {
+  DefaultActionState,
+  SignInEmailPasswordHandlerResult,
+  signInEmailPasswordPromise,
+  User
+} from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
-import { DefaultActionComposableState } from './types'
 import { useAuthenticated } from './useAuthenticated'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 
-interface SignInEmailPasswordComposableState extends DefaultActionComposableState {
+interface SignInEmailPasswordState extends DefaultActionState {
   needsMfaOtp: boolean
   needsEmailVerification: boolean
   user: User | null
   accessToken: string | null
 }
-interface SignInEmailPasswordComposableResult extends ToRefs<SignInEmailPasswordComposableState> {
+interface SignInEmailPasswordResult extends ToRefs<SignInEmailPasswordState> {
   signInEmailPassword(
     email: RefOrValue<string>,
     password: RefOrValue<string>
@@ -26,7 +30,7 @@ interface SignInEmailPasswordComposableResult extends ToRefs<SignInEmailPassword
 /**
  * Email and Password Sign-In
  */
-export const useSignInEmailPassword = (): SignInEmailPasswordComposableResult => {
+export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
   const service = useAuthInterpreter()
   const signInEmailPassword = (email: RefOrValue<string>, password: RefOrValue<string>) =>
     signInEmailPasswordPromise(service.value, unref(email), unref(password))

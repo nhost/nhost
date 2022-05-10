@@ -16,6 +16,8 @@ export type ChangePasswordEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type ChangePasswordMachine = ReturnType<typeof createChangePasswordMachine>
+
 export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(

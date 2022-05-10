@@ -16,11 +16,12 @@ import {
   JWTClaims,
   JWTHasuraClaims,
   NO_REFRESH_TOKEN,
+  resetPasswordPromise,
   rewriteRedirectTo,
+  signOutPromise,
   TOKEN_REFRESHER_RUNNING_ERROR,
   USER_ALREADY_SIGNED_IN,
-  USER_NOT_ANONYMOUS,
-  USER_UNAUTHENTICATED
+  USER_NOT_ANONYMOUS
 } from '@nhost/core'
 
 import { getSession, isBrowser } from './utils/helpers'
@@ -94,7 +95,7 @@ export class HasuraAuthClient {
     const interpreter = await this.waitUntilReady()
 
     const { email, password, options } = params
-
+    // TODO use signUpEmailPasswordPromise
     return new Promise((resolve) => {
       const { changed } = interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
       if (!changed) {
@@ -327,19 +328,8 @@ export class HasuraAuthClient {
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const interpreter = await this.waitUntilReady()
-    return new Promise((resolve) => {
-      const { event } = interpreter.send('SIGNOUT', { all: params?.all })
-      if (event.type !== 'SIGNED_OUT') {
-        return resolve({ error: USER_UNAUTHENTICATED })
-      }
-      interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'success' } })) {
-          resolve({ error: null })
-        } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } })) {
-          resolve({ error: state.context.errors.signout || null })
-        }
-      })
-    })
+    const { error } = await signOutPromise(interpreter, params?.all)
+    return { error }
   }
 
   /**
@@ -353,18 +343,9 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth#nhost-auth-resetpassword
    */
   async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createResetPasswordMachine(this._client))
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.start()
-      service.send('REQUEST', { email, options })
-    })
+    const service = interpret(createResetPasswordMachine(this._client)).start()
+    const { error } = await resetPasswordPromise(service, email, options)
+    return { error }
   }
 
   /**

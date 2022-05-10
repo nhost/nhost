@@ -1,18 +1,22 @@
-import { reactive, ToRefs, toRefs, unref } from 'vue'
+import { ToRefs, unref } from 'vue'
 
-import { ChangeEmailOptions, createChangeEmailMachine } from '@nhost/core'
+import {
+  ChangeEmailOptions,
+  changeEmailPromise,
+  CommonActionState,
+  createChangeEmailMachine
+} from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
-import { CommonActionComposableState } from './types'
 import { useNhostClient } from './useNhostClient'
 
-interface ChangeEmailComposableState extends CommonActionComposableState {
+interface ChangeEmailState extends CommonActionState {
   needsEmailVerification: boolean
 }
-type ChangeEmailHandlerResult = Omit<ChangeEmailComposableState, 'isLoading'>
+type ChangeEmailHandlerResult = Omit<ChangeEmailState, 'isLoading'>
 
-interface ChangeEmailComposableResult extends ToRefs<ChangeEmailComposableState> {
+interface ChangeEmailComposableResult extends ToRefs<ChangeEmailState> {
   /** Requests the email change. Returns a promise with the current context  */
   changeEmail(email: RefOrValue<string>): Promise<ChangeEmailHandlerResult>
 }
@@ -30,34 +34,14 @@ export const useChangeEmail = (
   options?: RefOrValue<ChangeEmailOptions | undefined>
 ): ChangeEmailComposableResult => {
   const { client } = useNhostClient()
-  const { send, service } = useMachine(createChangeEmailMachine(client.auth.client))
+  const { service } = useMachine(createChangeEmailMachine(client.auth.client))
   const isLoading = useSelector(service, (s) => s.matches('requesting'))
 
-  const reactiveState = reactive<ChangeEmailHandlerResult>({
-    error: null,
-    isError: false,
-    needsEmailVerification: false
-  })
+  const error = useSelector(service, (state) => state.context.error)
+  const isError = useSelector(service, (state) => state.matches('idle.error'))
+  const needsEmailVerification = useSelector(service, (state) => state.matches('idle.success'))
 
-  const changeEmail = (email: string) =>
-    new Promise<ChangeEmailHandlerResult>((resolve) => {
-      send('REQUEST', {
-        email: unref(email),
-        options: unref(options)
-      })
-      service.onTransition((s) => {
-        if (s.matches({ idle: 'error' })) {
-          reactiveState.isError = true
-          reactiveState.error = s.context.error
-          resolve(reactiveState)
-        } else if (s.matches({ idle: 'success' })) {
-          reactiveState.error = null
-          reactiveState.isError = false
-          reactiveState.needsEmailVerification = true
-          resolve(reactiveState)
-        }
-      })
-    })
+  const changeEmail = (email: string) => changeEmailPromise(service, unref(email), unref(options))
 
-  return { changeEmail, isLoading, ...toRefs(reactiveState) }
+  return { changeEmail, isLoading, error, isError, needsEmailVerification }
 }

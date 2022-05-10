@@ -1,15 +1,14 @@
-import { reactive, ToRefs, toRefs, unref } from 'vue'
+import { ToRefs, unref } from 'vue'
 
-import { createChangePasswordMachine } from '@nhost/core'
+import { changePasswordPromise, createChangePasswordMachine, DefaultActionState } from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
-import { DefaultActionComposableState } from './types'
 import { useNhostClient } from './useNhostClient'
 
-type ChangePasswordHandlerResult = Omit<DefaultActionComposableState, 'isLoading'>
+type ChangePasswordHandlerResult = Omit<DefaultActionState, 'isLoading'>
 
-interface ChangePasswordComposableResult extends ToRefs<DefaultActionComposableState> {
+interface ChangePasswordComposableResult extends ToRefs<DefaultActionState> {
   changePassword(password: RefOrValue<string>): Promise<ChangePasswordHandlerResult>
 }
 
@@ -26,34 +25,15 @@ const { changePassword, isLoading, isSuccess, isError, error } =
 export const useChangePassword = (): ChangePasswordComposableResult => {
   const { client } = useNhostClient()
 
-  const { send, service } = useMachine(createChangePasswordMachine(client.auth.client))
+  const { service } = useMachine(createChangePasswordMachine(client.auth.client))
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
-  const result = reactive<ChangePasswordHandlerResult>({
-    error: null,
-    isError: false,
-    isSuccess: false
-  })
+  const error = useSelector(service, (state) => state.context.error)
+  const isError = useSelector(service, (state) => state.matches('idle.error'))
+  const isSuccess = useSelector(service, (state) => state.matches('idle.success'))
 
   const changePassword = (password: RefOrValue<string>) =>
-    new Promise<ChangePasswordHandlerResult>((resolve) => {
-      send('REQUEST', {
-        password: unref(password)
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          result.error = state.context.error
-          result.isError = true
-          result.isSuccess = false
-          resolve(result)
-        } else if (state.matches({ idle: 'success' })) {
-          result.error = null
-          result.isError = false
-          result.isSuccess = true
-          resolve(result)
-        }
-      })
-    })
+    changePasswordPromise(service, unref(password))
 
-  return { changePassword, isLoading, ...toRefs(result) }
+  return { changePassword, isLoading, error, isError, isSuccess }
 }

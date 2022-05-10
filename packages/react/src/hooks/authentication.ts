@@ -1,12 +1,15 @@
 import { useContext, useMemo } from 'react'
 
 import {
+  DefaultActionState,
   encodeQueryParameters,
   PasswordlessOptions,
   Provider,
   ProviderOptions,
   rewriteRedirectTo,
-  User
+  SignInEmailPasswordHandlerResult,
+  SignInEmailPasswordlessHandlerResult,
+  SignInEmailPasswordState
 } from '@nhost/core'
 import {
   signInAnonymousPromise,
@@ -17,17 +20,7 @@ import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-import { DefaultActionHookState, useAuthenticated, useAuthInterpreter } from './common'
-interface SignInHookState extends DefaultActionHookState {
-  user: User | null
-  accessToken: string | null
-}
-interface SignInEmailPasswordHookState extends SignInHookState {
-  needsMfaOtp: boolean
-  needsEmailVerification: boolean
-}
-
-type SignInEmailPasswordHandlerResult = Omit<SignInEmailPasswordHookState, 'isLoading'>
+import { useAuthenticated, useAuthInterpreter } from './common'
 
 interface SignInEmailPasswordHandler {
   (email: string, password: string): Promise<SignInEmailPasswordHandlerResult>
@@ -41,7 +34,7 @@ interface SendMfaOtpHander {
   (otp?: unknown): void
 }
 
-interface SignInEmailPasswordHookResult extends SignInEmailPasswordHookState {
+interface SignInEmailPasswordHookResult extends SignInEmailPasswordState {
   signInEmailPassword: SignInEmailPasswordHandler
   sendMfaOtp: SendMfaOtpHander
 }
@@ -182,15 +175,13 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   }
 }
 
-type SignInEmailPasswordlessState = DefaultActionHookState
-type SignInEmailPasswordlessHandlerResult = Omit<SignInEmailPasswordlessState, 'isLoading'>
 interface SignInEmailPasswordlessHandler {
   (email: string, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
   /** @deprecated */
   (email?: unknown, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
 }
 
-interface SignInEmailPasswordlessHookResult extends DefaultActionHookState {
+interface SignInEmailPasswordlessHookResult extends DefaultActionState {
   /** Sends a magic link to the given email */
   signInEmailPasswordless: SignInEmailPasswordlessHandler
 }

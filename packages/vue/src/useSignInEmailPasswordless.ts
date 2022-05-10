@@ -1,6 +1,7 @@
 import { ToRefs, unref } from 'vue'
 
 import {
+  DefaultActionState,
   PasswordlessOptions,
   SignInEmailPasswordlessHandlerResult,
   signInEmailPasswordlessPromise
@@ -8,11 +9,10 @@ import {
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
-import { DefaultActionComposableState } from './types'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 
-interface SignInEmailPasswordlessComposableResult extends ToRefs<DefaultActionComposableState> {
+interface SignInEmailPasswordlessResult extends ToRefs<DefaultActionState> {
   /** Sends a magic link to the given email */
   signInEmailPasswordless(email: RefOrValue<string>): Promise<SignInEmailPasswordlessHandlerResult>
 }
@@ -22,7 +22,7 @@ interface SignInEmailPasswordlessComposableResult extends ToRefs<DefaultActionCo
  */
 export const useSignInEmailPasswordless = (
   options?: RefOrValue<PasswordlessOptions>
-): SignInEmailPasswordlessComposableResult => {
+): SignInEmailPasswordlessResult => {
   const service = useAuthInterpreter()
   const signInEmailPasswordless = (email: RefOrValue<string>) =>
     signInEmailPasswordlessPromise(service.value, unref(email), unref(options))

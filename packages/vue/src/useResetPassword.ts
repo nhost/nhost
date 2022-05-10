@@ -1,22 +1,25 @@
-import { reactive, ToRefs, toRefs, unref } from 'vue'
+import { ToRefs, unref } from 'vue'
 
-import { createResetPasswordMachine, ResetPasswordOptions } from '@nhost/core'
+import {
+  CommonActionState,
+  createResetPasswordMachine,
+  ResetPasswordOptions,
+  resetPasswordPromise
+} from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
-import { CommonActionComposableState } from './types'
 import { useNhostClient } from './useNhostClient'
 
-type ResetPasswordHandlerResult = Omit<ResetPasswordComposableState, 'isLoading'>
+interface ResetPasswordState extends CommonActionState {
+  isSent: boolean
+}
+type ResetPasswordHandlerResult = Omit<ResetPasswordState, 'isLoading'>
 interface ResetPasswordHandler {
   (email: string, options?: ResetPasswordOptions): Promise<ResetPasswordHandlerResult>
 }
 
-interface ResetPasswordComposableState extends CommonActionComposableState {
-  isSent: boolean
-}
-
-interface ResetPasswordComposableResult extends ToRefs<ResetPasswordComposableState> {
+interface ResetPasswordResult extends ToRefs<ResetPasswordState> {
   /**
    * Sends an email with a temporary connection link. Returns a promise with the current context
    */
@@ -34,38 +37,17 @@ const { resetPassword, isLoading, isSent, isError, error } =
  */
 export const useResetPassword = (
   options?: RefOrValue<ResetPasswordOptions | undefined>
-): ResetPasswordComposableResult => {
+): ResetPasswordResult => {
   const { client } = useNhostClient()
-  const { send, service } = useMachine(createResetPasswordMachine(client.auth.client))
-
-  const result = reactive<ResetPasswordHandlerResult>({
-    error: null,
-    isError: false,
-    isSent: false
-  })
+  const { service } = useMachine(createResetPasswordMachine(client.auth.client))
 
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
+  const isSent = useSelector(service, (state) => state.matches({ idle: 'success' }))
+  const isError = useSelector(service, (state) => state.matches({ idle: 'error' }))
+  const error = useSelector(service, (state) => state.context.error)
 
   const resetPassword = (email: RefOrValue<string>) =>
-    new Promise<ResetPasswordHandlerResult>((resolve) => {
-      send('REQUEST', {
-        email: unref(email),
-        options: unref(options)
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          result.error = state.context.error
-          result.isError = true
-          result.isSent = false
-          resolve(result)
-        } else if (state.matches({ idle: 'success' })) {
-          result.error = null
-          result.isError = false
-          result.isSent = true
-          resolve(result)
-        }
-      })
-    })
+    resetPasswordPromise(service, unref(email), unref(options))
 
-  return { resetPassword, isLoading, ...toRefs(result) }
+  return { resetPassword, isLoading, isError, isSent, error }
 }

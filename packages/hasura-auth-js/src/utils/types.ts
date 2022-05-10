@@ -2,6 +2,7 @@ import {
   AuthClient,
   AuthOptions,
   ErrorPayload,
+  NhostSession,
   PasswordlessOptions,
   Provider,
   ProviderOptions,
@@ -19,12 +20,8 @@ export interface NhostAuthConstructorParams extends AuthOptions {
   autoLogin?: boolean
 }
 
-export interface Session {
-  accessToken: string
-  accessTokenExpiresIn: number
-  refreshToken: string
-  user: User | null
-}
+// TODO remove and use NhostSession instead
+export type Session = NhostSession
 // Sign Up
 export interface SignUpEmailPasswordParams {
   email: string

@@ -1,19 +1,21 @@
 import { reactive, ToRefs, toRefs, unref } from 'vue'
 
-import { createSendVerificationEmailMachine, SendVerificationEmailOptions } from '@nhost/core'
+import {
+  CommonActionState,
+  createSendVerificationEmailMachine,
+  SendVerificationEmailOptions
+} from '@nhost/core'
 import { useMachine, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
-import { CommonActionComposableState } from './types'
 import { useNhostClient } from './useNhostClient'
 
-type SendVerificationEmailHandlerResult = Omit<SendVerificationEmailComposableState, 'isLoading'>
-interface SendVerificationEmailComposableState extends CommonActionComposableState {
+type SendVerificationEmailHandlerResult = Omit<SendVerificationEmailState, 'isLoading'>
+interface SendVerificationEmailState extends CommonActionState {
   isSent: boolean
 }
 
-interface SendVerificationEmailComposableResult
-  extends ToRefs<SendVerificationEmailComposableState> {
+interface SendVerificationEmailResult extends ToRefs<SendVerificationEmailState> {
   /** Resend the verification email. Returns a promise with the current context */
   sendEmail(email: RefOrValue<string>): Promise<SendVerificationEmailHandlerResult>
 }
@@ -29,7 +31,7 @@ const { sendEmail, isLoading, isSent, isError, error } =
  */
 export const useSendVerificationEmail = (
   options?: RefOrValue<SendVerificationEmailOptions | undefined>
-): SendVerificationEmailComposableResult => {
+): SendVerificationEmailResult => {
   const { client } = useNhostClient()
   const { send, service } = useMachine(createSendVerificationEmailMachine(client.auth.client))
   const isLoading = useSelector(service, (state) => state.matches('requesting'))

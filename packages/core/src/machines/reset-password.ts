@@ -18,6 +18,8 @@ export type ResetPasswordEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type ResetPasswordMachine = ReturnType<typeof createResetPasswordMachine>
+
 export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(

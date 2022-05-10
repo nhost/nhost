@@ -9,7 +9,8 @@ export const getSession = (context?: AuthContext): Session | null => {
     !context ||
     !context.accessToken.value ||
     !context.refreshToken.value ||
-    !context.accessToken.expiresAt
+    !context.accessToken.expiresAt ||
+    !context.user
   ) {
     return null
   }

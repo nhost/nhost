@@ -3,12 +3,12 @@ import { AuthInterpreter, User } from '../types'
 
 import { DefaultActionState } from './types'
 
-interface SignInHookState extends DefaultActionState {
+export interface SignInState extends DefaultActionState {
   user: User | null
   accessToken: string | null
 }
 
-interface SignInEmailPasswordState extends SignInHookState {
+export interface SignInEmailPasswordState extends SignInState {
   needsMfaOtp: boolean
   needsEmailVerification: boolean
 }
