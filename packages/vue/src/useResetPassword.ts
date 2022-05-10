@@ -6,7 +6,7 @@ import {
   ResetPasswordOptions,
   resetPasswordPromise
 } from '@nhost/core'
-import { useMachine, useSelector } from '@xstate/vue'
+import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
@@ -39,7 +39,7 @@ export const useResetPassword = (
   options?: RefOrValue<ResetPasswordOptions | undefined>
 ): ResetPasswordResult => {
   const { client } = useNhostClient()
-  const { service } = useMachine(createResetPasswordMachine(client.auth.client))
+  const service = useInterpret(createResetPasswordMachine(client.auth.client))
 
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
   const isSent = useSelector(service, (state) => state.matches({ idle: 'success' }))

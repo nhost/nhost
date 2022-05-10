@@ -5,7 +5,7 @@ import {
   createSendVerificationEmailMachine,
   SendVerificationEmailOptions
 } from '@nhost/core'
-import { useMachine, useSelector } from '@xstate/vue'
+import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
@@ -33,7 +33,7 @@ export const useSendVerificationEmail = (
   options?: RefOrValue<SendVerificationEmailOptions | undefined>
 ): SendVerificationEmailResult => {
   const { client } = useNhostClient()
-  const { send, service } = useMachine(createSendVerificationEmailMachine(client.auth.client))
+  const service = useInterpret(createSendVerificationEmailMachine(client.auth.client))
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const result = reactive<SendVerificationEmailHandlerResult>({
@@ -44,7 +44,7 @@ export const useSendVerificationEmail = (
 
   const sendEmail = (email: RefOrValue<string>) =>
     new Promise<SendVerificationEmailHandlerResult>((resolve) => {
-      send('REQUEST', {
+      service.send('REQUEST', {
         email: unref(email),
         options: unref(options)
       })

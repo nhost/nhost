@@ -1,7 +1,7 @@
 import { ToRefs, unref } from 'vue'
 
 import { createEnableMfaMachine, ErrorPayload } from '@nhost/core'
-import { useMachine, useSelector } from '@xstate/vue'
+import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
@@ -42,7 +42,7 @@ interface ConfigMfaComposableState
 export const useConfigMfa = (): ConfigMfaComposableState => {
   const { client } = useNhostClient()
 
-  const { send, service } = useMachine(createEnableMfaMachine(client.auth.client))
+  const service = useInterpret(createEnableMfaMachine(client.auth.client))
 
   const isError = useSelector(
     service,
@@ -57,7 +57,7 @@ export const useConfigMfa = (): ConfigMfaComposableState => {
 
   const generateQrCode = () =>
     new Promise<GenerateQrCodeHandlerResult>((resolve) => {
-      send('GENERATE')
+      service.send('GENERATE')
       service.onTransition((state) => {
         if (state.matches('generated')) {
           resolve({
@@ -78,7 +78,7 @@ export const useConfigMfa = (): ConfigMfaComposableState => {
     })
   const activateMfa = (code: RefOrValue<string>) =>
     new Promise<ActivateMfaHandlerResult>((resolve) => {
-      send('ACTIVATE', {
+      service.send('ACTIVATE', {
         activeMfaType: 'totp',
         code: unref(code)
       })

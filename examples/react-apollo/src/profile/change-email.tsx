@@ -18,6 +18,7 @@ export const ChangeEmail: React.FC = () => {
         title: 'Error',
         message: 'You need to set a different email as the current one'
       })
+      return
     }
     const result = await changeEmail(newEmail)
     if (result.needsEmailVerification) {

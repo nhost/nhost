@@ -1,7 +1,7 @@
 import { ToRefs, unref } from 'vue'
 
 import { changePasswordPromise, createChangePasswordMachine, DefaultActionState } from '@nhost/core'
-import { useMachine, useSelector } from '@xstate/vue'
+import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
@@ -25,7 +25,7 @@ const { changePassword, isLoading, isSuccess, isError, error } =
 export const useChangePassword = (): ChangePasswordComposableResult => {
   const { client } = useNhostClient()
 
-  const { service } = useMachine(createChangePasswordMachine(client.auth.client))
+  const service = useInterpret(createChangePasswordMachine(client.auth.client))
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const error = useSelector(service, (state) => state.context.error)

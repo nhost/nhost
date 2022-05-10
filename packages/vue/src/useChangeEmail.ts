@@ -6,7 +6,7 @@ import {
   CommonActionState,
   createChangeEmailMachine
 } from '@nhost/core'
-import { useMachine, useSelector } from '@xstate/vue'
+import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
@@ -34,8 +34,9 @@ export const useChangeEmail = (
   options?: RefOrValue<ChangeEmailOptions | undefined>
 ): ChangeEmailComposableResult => {
   const { client } = useNhostClient()
-  const { service } = useMachine(createChangeEmailMachine(client.auth.client))
-  const isLoading = useSelector(service, (s) => s.matches('requesting'))
+
+  const service = useInterpret(createChangeEmailMachine(client.auth.client))
+  const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const error = useSelector(service, (state) => state.context.error)
   const isError = useSelector(service, (state) => state.matches('idle.error'))
