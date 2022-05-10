@@ -55,7 +55,7 @@ export const EmailPassword: React.FC = () => {
     return (
       <>
         <Modal
-          title="Verification email sent"
+          title="Awaiting email verification"
           transition="fade"
           centered
           transitionDuration={600}
@@ -64,8 +64,8 @@ export const EmailPassword: React.FC = () => {
             setEmailVerificationToggle(false)
           }}
         >
-          A email has been sent to {email}. Please follow the link to verify your email address and
-          to complete your registration.
+          You need to verify your email first. Please check your mailbox and follow the confirmation
+          link to complete the registration.
         </Modal>
         <TextInput
           value={email}
