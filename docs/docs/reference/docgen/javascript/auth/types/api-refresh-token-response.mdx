@@ -4,13 +4,13 @@ title: ApiRefreshTokenResponse
 sidebar_label: ApiRefreshTokenResponse
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L150
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L146
 ---
 
 # `ApiRefreshTokenResponse`
 
 ```ts
 type ApiRefreshTokenResponse =
-  | { session: null; error: ApiError }
+  | { session: null; error: ErrorPayload }
   | { session: Session; error: null }
 ```

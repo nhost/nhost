@@ -10,6 +10,7 @@ export type ErrorPayload = {
 
 export type ValidationErrorPayload = ErrorPayload & { status: typeof VALIDATION_ERROR_CODE }
 
+// TODO share with hasura-auth
 export const INVALID_EMAIL_ERROR: ValidationErrorPayload = {
   status: VALIDATION_ERROR_CODE,
   error: 'invalid-email',
@@ -51,4 +52,40 @@ export const TOKEN_REFRESHER_RUNNING_ERROR: ErrorPayload = {
   error: 'refresher-already-running',
   message:
     'The token refresher is already running. You must wait until is has finished before submitting a new token.'
+}
+
+export const USER_ALREADY_SIGNED_IN: ErrorPayload = {
+  status: STATE_ERROR_CODE,
+  error: 'already-signed-in',
+  message: 'User is already signed in'
+}
+
+export const USER_UNAUTHENTICATED: ErrorPayload = {
+  status: STATE_ERROR_CODE,
+  error: 'unauthenticated-user',
+  message: 'User is not authenticated'
+}
+
+export const USER_NOT_ANONYMOUS: ErrorPayload = {
+  status: STATE_ERROR_CODE,
+  error: 'user-not-anonymous',
+  message: 'User is not anonymous'
+}
+
+export const EMAIL_NEEDS_VERIFICATION: ErrorPayload = {
+  status: STATE_ERROR_CODE,
+  error: 'unverified-user',
+  message: 'Email needs verification'
+}
+
+export const INVALID_AUTHENTICATION_METHOD = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'invalid-authentication-method',
+  message: 'Incorrect parameters'
+}
+
+export const INVALID_REFRESH_TOKEN = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'invalid-refresh-token',
+  message: 'Invalid or expired refresh token'
 }
