@@ -46,6 +46,17 @@ export interface Typegen0 {
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     saveRegisrationError: 'error.platform.registerUser'
     saveRefreshAttempt: 'error.platform.refreshToken'
+    resetErrors:
+      | 'SIGNUP_EMAIL_PASSWORD'
+      | 'SESSION_UPDATE'
+      | 'done.invoke.importRefreshToken'
+      | ''
+      | 'done.invoke.authenticatePasswordlessSmsOtp'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.registerUser'
+      | 'done.invoke.authenticateWithToken'
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'done.invoke.authenticatePasswordlessEmail'
@@ -53,10 +64,8 @@ export interface Typegen0 {
       | 'done.invoke.registerUser'
       | 'error.platform.registerUser'
       | 'error.platform.authenticateWithToken'
-    resetAuthenticationError: 'xstate.init'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
-    resetSignUpError: 'SIGNUP_EMAIL_PASSWORD'
     reportSignedIn:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
