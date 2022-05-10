@@ -87,6 +87,7 @@ export const createAuthMachine = ({
           },
           states: {
             starting: {
+              entry: 'resetErrors',
               tags: ['loading'],
               always: { cond: 'isSignedIn', target: 'signedIn' },
               invoke: {
@@ -108,7 +109,6 @@ export const createAuthMachine = ({
                 needsSmsOtp: {},
                 needsMfa: {},
                 failed: {
-                  exit: 'resetAuthenticationError',
                   initial: 'server',
                   states: {
                     server: {},
@@ -200,6 +200,7 @@ export const createAuthMachine = ({
               }
             },
             authenticating: {
+              entry: 'resetErrors',
               states: {
                 passwordlessEmail: {
                   invoke: {
@@ -303,7 +304,7 @@ export const createAuthMachine = ({
               }
             },
             registering: {
-              entry: 'resetSignUpError',
+              entry: ['resetErrors'],
               invoke: {
                 src: 'registerUser',
                 id: 'registerUser',
@@ -333,7 +334,7 @@ export const createAuthMachine = ({
             },
             signedIn: {
               type: 'parallel',
-              entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken'],
+              entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken', 'resetErrors'],
               on: {
                 SIGNOUT: 'signedOut.signingOut',
                 DEANONYMIZE: {
@@ -527,8 +528,8 @@ export const createAuthMachine = ({
         saveAuthenticationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
-        resetAuthenticationError: assign({
-          errors: ({ errors: { authentication, ...errors } }) => errors
+        resetErrors: assign({
+          errors: (_) => ({})
         }),
         saveInvalidEmail: assign({
           errors: ({ errors }) => ({ ...errors, authentication: INVALID_EMAIL_ERROR })
@@ -541,9 +542,6 @@ export const createAuthMachine = ({
         }),
         saveRegisrationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
-        }),
-        resetSignUpError: assign({
-          errors: ({ errors: { registration, ...errors } }) => errors
         }),
         saveInvalidSignUpPassword: assign({
           errors: ({ errors }) => ({ ...errors, registration: INVALID_PASSWORD_ERROR })
