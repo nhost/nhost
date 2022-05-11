@@ -1,5 +1,16 @@
 # @nhost/core
 
+## 0.5.4
+
+### Patch Changes
+
+- 9d32314: Improve error codes
+  The errors of `signUp`, `signIn`, `signOut`, and `refreshSession` now always include an `error` field that contains a machine-readable error code.
+- e094e68: chore: bump axios from 0.26.0 to 0.27.2
+  fix: add Content-Type to file upload request headers
+- 236ce72: Correct email verification states
+  email verification returns `false` when the client has started and it is still undetermined
+
 ## 0.5.3
 
 ### Patch Changes

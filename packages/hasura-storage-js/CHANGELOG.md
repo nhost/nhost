@@ -1,5 +1,12 @@
 # @nhost/hasura-storage-js
 
+## 0.2.2
+
+### Patch Changes
+
+- e094e68: chore: bump axios from 0.26.0 to 0.27.2
+  fix: add Content-Type to file upload request headers
+
 ## 0.2.1
 
 ### Patch Changes
