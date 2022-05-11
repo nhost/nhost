@@ -1,11 +1,9 @@
-import { useMemo } from 'react'
-
-import { SignUpOptions, User } from '@nhost/core'
+import { SignUpOptions, User, USER_ALREADY_SIGNED_IN } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { DefaultActionHookState, useAuthenticationStatus, useAuthInterpreter } from './common'
+import { ActionHookSuccessState, CommonActionHookState, useAuthInterpreter } from './common'
 
-interface SignUpEmailPasswordHookState extends DefaultActionHookState {
+interface SignUpEmailPasswordHookState extends CommonActionHookState, ActionHookSuccessState {
   /** @return `true` if an email is required to complete the action, and that a verificaiton email has been sent to complete the action. */
   needsEmailVerification: boolean
   /** User information */
@@ -111,21 +109,31 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   const stateOptions = c || (typeof a !== 'string' ? a : undefined)
 
   const service = useAuthInterpreter()
-  const isError =
-    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
+  const isError = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
+
   const error = useSelector(
     service,
     (state) => state.context.errors.registration || null,
     (a, b) => a?.error === b?.error
   )
-  const { isLoading: loading, isAuthenticated: isSuccess } = useAuthenticationStatus()
-  const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
-  const needsEmailVerification =
-    !!service.status &&
-    service.state.matches({
+
+  const isLoading = useSelector(service, (state) =>
+    state.matches({ authentication: 'registering' })
+  )
+
+  const needsEmailVerification = useSelector(service, (state) =>
+    state.matches({
       authentication: { signedOut: 'noErrors' },
       email: 'awaitingVerification'
     })
+  )
+  const isSuccess = useSelector(service, (state) =>
+    state.matches({
+      authentication: 'signedIn'
+    })
+  )
 
   const signUpEmailPassword: SignUpEmailPasswordHandler = (
     valueEmail?: string | unknown,
@@ -133,12 +141,22 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
     valueOptions = stateOptions
   ) =>
     new Promise<SignUpEmailPasswordHandlerResult>((resolve) => {
-      service.send({
+      const { changed, context } = service.send({
         type: 'SIGNUP_EMAIL_PASSWORD',
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         password: valuePassword,
         options: valueOptions
       })
+      if (!changed) {
+        return resolve({
+          error: USER_ALREADY_SIGNED_IN,
+          accessToken: context.accessToken.value,
+          isError: true,
+          isSuccess: false,
+          needsEmailVerification: false,
+          user: context.user
+        })
+      }
       service.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'failed' } })) {
           resolve({

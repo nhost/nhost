@@ -309,12 +309,12 @@ importers:
   packages/core:
     specifiers:
       '@types/js-cookie': ^3.0.2
-      axios: ^0.26.0
+      axios: ^0.27.2
       js-cookie: ^3.0.1
       msw: ^0.39.2
       xstate: ^4.31.0
     dependencies:
-      axios: 0.26.1
+      axios: 0.27.2
       js-cookie: 3.0.1
       xstate: 4.31.0
     devDependencies:
@@ -361,7 +361,7 @@ importers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@types/faker': '5'
-      axios: ^0.26.0
+      axios: ^0.27.2
       faker: '5'
       html-urls: ^2.4.27
       jwt-decode: ^3.1.2
@@ -374,7 +374,7 @@ importers:
     devDependencies:
       '@nhost/docgen': link:../docgen
       '@types/faker': 5.5.9
-      axios: 0.26.1
+      axios: 0.27.2
       faker: 5.5.3
       html-urls: 2.4.34
       mailhog: 4.16.0
@@ -382,9 +382,9 @@ importers:
   packages/hasura-storage-js:
     specifiers:
       '@nhost/docgen': workspace:*
-      axios: ^0.26.0
+      axios: ^0.27.2
     dependencies:
-      axios: 0.26.1
+      axios: 0.27.2
     devDependencies:
       '@nhost/docgen': link:../docgen
 
@@ -420,14 +420,14 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
-      axios: ^0.26.0
+      axios: ^0.27.2
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
     dependencies:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      axios: 0.26.1
+      axios: 0.27.2
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
@@ -7432,7 +7432,6 @@ packages:
 
   /asynckit/0.4.0:
     resolution: {integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=}
-    dev: true
 
   /at-least-node/1.0.0:
     resolution: {integrity: sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==}
@@ -7498,10 +7497,11 @@ packages:
     transitivePeerDependencies:
       - debug
 
-  /axios/0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
+  /axios/0.27.2:
+    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
       follow-redirects: 1.14.9
+      form-data: 4.0.0
     transitivePeerDependencies:
       - debug
 
@@ -7833,8 +7833,6 @@ packages:
       qs: 6.9.7
       raw-body: 2.4.3
       type-is: 1.6.18
-    transitivePeerDependencies:
-      - supports-color
 
   /bonjour-service/1.0.11:
     resolution: {integrity: sha512-drMprzr2rDTCtgEE3VgdA9uUFaUHF+jXduwYSThHJnKMYM+FhI9Z3ph+TX3xy0LtgYHae6CHYPJ/2UnK8nQHcA==}
@@ -8481,7 +8479,6 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       delayed-stream: 1.0.0
-    dev: true
 
   /comma-separated-tokens/1.0.8:
     resolution: {integrity: sha512-GHuDRO12Sypu2cV70d1dkA2EUmXHgntrzbpvOB+Qy+49ypNfGgFQIC2fhhXbnyrJRynDCAARsT7Ou0M6hirpfw==}
@@ -9667,7 +9664,6 @@ packages:
   /delayed-stream/1.0.0:
     resolution: {integrity: sha1-3zrhmayt+31ECqrgsp4icrJOxhk=}
     engines: {node: '>=0.4.0'}
-    dev: true
 
   /delegates/1.0.0:
     resolution: {integrity: sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=}
@@ -10645,12 +10641,8 @@ packages:
         optional: true
     dependencies:
       '@typescript-eslint/parser': 5.20.0_eslint@8.14.0+typescript@4.5.5
-      debug: 3.2.7
       eslint-import-resolver-node: 0.3.6
       eslint-import-resolver-typescript: 2.7.1_662e1b2e8ef3f6aa5d22c3f7cd670612
-      find-up: 2.1.0
-    transitivePeerDependencies:
-      - supports-color
     dev: true
 
   /eslint-module-utils/2.7.3_b12fba4a6c5578e93f1b97ff1f20ebb4:
@@ -11114,8 +11106,6 @@ packages:
       type-is: 1.6.18
       utils-merge: 1.0.1
       vary: 1.1.2
-    transitivePeerDependencies:
-      - supports-color
 
   /extend-shallow/2.0.1:
     resolution: {integrity: sha1-Ua99YUrZqfYQ6huvu5idaxxWiQ8=}
@@ -11316,8 +11306,6 @@ packages:
       parseurl: 1.3.3
       statuses: 1.5.0
       unpipe: 1.0.0
-    transitivePeerDependencies:
-      - supports-color
 
   /find-cache-dir/3.3.2:
     resolution: {integrity: sha512-wXZV5emFEjrridIgED11OoUKLxiYjAcqot/NJdAkOhlJ+vGzwhOAfcG5OX1jP+S0PcjEn8bdMJv+g2jwQ3Onig==}
@@ -11455,7 +11443,6 @@ packages:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
-    dev: true
 
   /format/0.2.2:
     resolution: {integrity: sha1-1hcBB+nv3E7TDJ3DkBbflCtctYs=}
@@ -17211,8 +17198,6 @@ packages:
       on-finished: 2.3.0
       range-parser: 1.2.1
       statuses: 1.5.0
-    transitivePeerDependencies:
-      - supports-color
 
   /sentence-case/3.0.4:
     resolution: {integrity: sha512-8LS0JInaQMCRoQ7YUytAo/xUu5W2XnQxV2HI/6uM6U7CITS1RqPElr30V6uIqyMKM9lJGRVFy5/4CuzcixNYSg==}
@@ -17270,8 +17255,6 @@ packages:
       escape-html: 1.0.3
       parseurl: 1.3.3
       send: 0.17.2
-    transitivePeerDependencies:
-      - supports-color
 
   /set-blocking/2.0.0:
     resolution: {integrity: sha1-BF+XgtARrppoA93TgrJDkrPYkPc=}

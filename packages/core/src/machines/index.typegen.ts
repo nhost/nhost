@@ -278,6 +278,7 @@ export interface Typegen0 {
     | 'token.idle.error'
     | 'token.running'
     | 'email'
+    | 'email.unknown'
     | 'email.awaitingVerification'
     | 'email.valid'
     | {
@@ -323,7 +324,7 @@ export interface Typegen0 {
                   }
             }
         token?: 'idle' | 'running' | { idle?: 'noErrors' | 'error' }
-        email?: 'awaitingVerification' | 'valid'
+        email?: 'unknown' | 'awaitingVerification' | 'valid'
       }
   tags: 'loading'
 }

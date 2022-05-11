@@ -13,14 +13,6 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hoo
 
 ---
 
-**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> `boolean`
-
-**`@returns`**
-
-`true` if an error occurred
-
----
-
 **<span className="parameter-name">error</span>** <span className="optional-status">required</span> `null` | `ErrorPayload`
 
 Provides details about the error
@@ -38,5 +30,13 @@ Provides details about the error
 **<span className="parameter-name">isSuccess</span>** <span className="optional-status">required</span> `boolean`
 
 Returns `true` if the action is successful.
+
+---
+
+**<span className="parameter-name">isError</span>** <span className="optional-status">required</span> `boolean`
+
+**`@depreacted`**
+
+use `!isSuccess` or `!!error` instead
 
 ---
