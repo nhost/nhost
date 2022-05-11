@@ -177,7 +177,6 @@ if (ENV.AUTH_SMS_PROVIDER) {
       'AUTH_SMS_TWILIO_ACCOUNT_SID',
       'AUTH_SMS_TWILIO_AUTH_TOKEN',
       'AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID',
-      'AUTH_SMS_TWILIO_FROM',
     ].forEach((env) => {
       if (isUnset(process.env[env])) {
         errors.push(
