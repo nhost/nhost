@@ -32,6 +32,7 @@ export const email = Joi.string()
   .description('A valid email');
 
 export const locale = Joi.string()
+  .length(2)
   // TODO reactivate ENV.AUTH_LOCALE_ALLOWED_LOCALES check
   // * For the moment, the Nhost console does not allow selecting activated locales.
   // * Once it will be possible, we will need to reactivate this check to make sure an undeclared locale falls back to the default one, but tries it all the way
