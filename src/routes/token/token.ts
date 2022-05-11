@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express';
-import { getNewSession, gqlSdk } from '@/utils';
+import { getNewOrUpdateCurrentSession, gqlSdk } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, refreshToken } from '@/validation';
 
@@ -31,7 +31,7 @@ export const tokenHandler: RequestHandler<
   }
 
   const user = refreshTokens[0].user;
-  const currentRefreshToken = refreshTokens[0].refreshToken;
+  const currentRefreshToken = refreshToken;
 
   if (!user) {
     return sendError(res, 'invalid-refresh-token');
@@ -51,7 +51,7 @@ export const tokenHandler: RequestHandler<
     gqlSdk.deleteExpiredRefreshTokens();
   }
 
-  const session = await getNewSession({
+  const session = await getNewOrUpdateCurrentSession({
     user,
     currentRefreshToken,
   });
