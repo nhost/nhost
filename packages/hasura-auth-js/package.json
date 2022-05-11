@@ -60,7 +60,7 @@
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
     "@types/faker": "5",
-    "axios": "^0.26.0",
+    "axios": "^0.27.2",
     "faker": "5",
     "html-urls": "^2.4.27",
     "mailhog": "^4.16.0"

@@ -34,7 +34,8 @@ export class HasuraStorageApi {
       const res = await this.httpClient.post('/files', params.file, {
         headers: {
           ...this.generateUploadHeaders(params),
-          ...this.generateAuthHeaders()
+          ...this.generateAuthHeaders(),
+          'Content-Type': 'multipart/form-data'
         }
       })
 

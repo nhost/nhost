@@ -51,7 +51,7 @@
     "docgen": "pnpm typedoc && docgen --config ./storage.docgen.json"
   },
   "dependencies": {
-    "axios": "^0.26.0"
+    "axios": "^0.27.2"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*"
