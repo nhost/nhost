@@ -217,10 +217,10 @@ const SignUp = () => {
     error,
   } = useSignUpEmailPassword();
 
-  const handleOnSubmit = (e) => {
+  const handleOnSubmit = asyn (e) => {
     e.preventDefault();
 
-    signUpEmailPassword(email, password, {
+    await signUpEmailPassword(email, password, {
       displayName: `${firstName} ${lastName}`.trim(),
       metadata: {
         firstName,
@@ -348,9 +348,9 @@ const SignIn = () => {
     error,
   } = useSignInEmailPassword();
 
-  const handleOnSubmit = (e) => {
+  const handleOnSubmit = async (e) => {
     e.preventDefault();
-    signInEmailPassword(email, password);
+    await signInEmailPassword(email, password);
   };
 
   if (isSuccess) {
@@ -465,7 +465,7 @@ import { useAuthenticationStatus } from '@nhost/nextjs';
 import Spinner from './components/Spinner';
 
 export default function withAuth(Component) {
-  return function (props) {
+  return function AuthProtected(props) {
     const router = useRouter();
     const { isLoading, isAuthenticated } = useAuthenticationStatus();
 
@@ -492,8 +492,8 @@ Then, wrap our Next.js pages, `index.js` and `profile.js`, with it:
 <Tabs
 defaultValue="index"
 values={[
-  {label: 'index.js', value: 'index'},
-  {label: 'profile.js', value: 'profile'},
+  {label: 'pages/index.js', value: 'index'},
+  {label: 'pages/profile.js', value: 'profile'},
 ]}>
 <TabItem value="index">
 
@@ -697,7 +697,7 @@ export function UserProvider() {
 Then, replace the `useUserData` hook with the `useUserId` hook to retrieve the current user's ID only.
 
 ```js title="UserProvider.js"
-import { useUserId } from '@nhost/react';
+import { useUserId } from '@nhost/nextjs';
 
 export function UserProvider() {
   const id = useUserId();
