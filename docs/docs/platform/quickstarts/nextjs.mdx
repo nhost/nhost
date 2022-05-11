@@ -217,7 +217,7 @@ const SignUp = () => {
     error,
   } = useSignUpEmailPassword();
 
-  const handleOnSubmit = asyn (e) => {
+  const handleOnSubmit = async (e) => {
     e.preventDefault();
 
     await signUpEmailPassword(email, password, {
