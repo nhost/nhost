@@ -13,6 +13,7 @@ import { Typegen0 } from '../src/machines/index.typegen'
 import faker from '@faker-js/faker'
 import { waitFor } from 'xstate/lib/waitFor'
 import server from './helpers/server'
+import customStorage from './helpers/storage'
 
 type AuthState = State<
   AuthContext,
@@ -25,30 +26,27 @@ type AuthState = State<
   ResolveTypegenMeta<Typegen0, AuthEvents, BaseActionObject, ServiceMap>
 >
 
-let authMachine: AuthMachine
-let authService: Interpreter<
-  AuthContext,
-  any,
-  AuthEvents,
-  { value: any; context: AuthContext },
-  ResolveTypegenMeta<Typegen0, AuthEvents, BaseActionObject, ServiceMap>
->
+// Initialzing AuthMachine with custom storage to have control over its content between tests
+const authMachine = createAuthMachine({
+  backendUrl: 'http://localhost:1337/v1/auth',
+  clientUrl: 'http://localhost:3000',
+  clientStorage: customStorage,
+  clientStorageType: 'custom'
+})
+
+const authService = interpret(authMachine)
 
 beforeAll(() => server.listen())
 
 beforeEach(() => {
-  authMachine = createAuthMachine({
-    backendUrl: 'http://localhost:1337/v1/auth',
-    clientUrl: 'http://localhost:3000'
-  })
-
-  authService = interpret(authMachine).start(authMachine.initialState)
+  authService.start()
 })
 
-afterEach(() => {
-  authMachine = null
-  authService = null
+beforeAll(() => server.listen())
 
+afterEach(() => {
+  authService.stop()
+  customStorage.clear()
   server.resetHandlers()
 })
 
