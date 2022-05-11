@@ -1,19 +1,16 @@
 import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
-import { incorrectEmailPasswordHandler } from './helpers/signInHandlers'
-import { AuthContext, AuthEvents, AuthMachine, createAuthMachine } from '../src/machines'
 import {
-  BaseActionObject,
-  interpret,
-  Interpreter,
-  ResolveTypegenMeta,
-  ServiceMap,
-  State
-} from 'xstate'
+  emailPasswordNetworkErrorHandler,
+  incorrectEmailPasswordHandler
+} from './helpers/signInHandlers'
+import { AuthContext, AuthEvents, createAuthMachine } from '../src/machines'
+import { BaseActionObject, interpret, ResolveTypegenMeta, ServiceMap, State } from 'xstate'
 import { Typegen0 } from '../src/machines/index.typegen'
 import faker from '@faker-js/faker'
 import { waitFor } from 'xstate/lib/waitFor'
 import server from './helpers/server'
 import customStorage from './helpers/storage'
+import { authTokenNetworkErrorHandler } from './helpers/generalHandlers'
 
 type AuthState = State<
   AuthContext,
@@ -51,6 +48,30 @@ afterEach(() => {
 })
 
 afterAll(() => server.close())
+
+test(`should throw an error if network is not available`, async () => {
+  server.use(emailPasswordNetworkErrorHandler, authTokenNetworkErrorHandler)
+
+  authService.send({
+    type: 'SIGNIN_PASSWORD',
+    email: faker.internet.email(),
+    password: faker.internet.password(15)
+  })
+
+  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+  )
+
+  expect(state.context.errors).toMatchInlineSnapshot(`
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 0,
+      },
+    }
+  `)
+})
 
 test(`should reach an error state if email address or password is invalid`, async () => {
   // Scenario 1: Providing an invalid email address with a valid password
@@ -106,9 +127,15 @@ test(`should reach an error state if incorrect credentials were provided`, async
     state.matches({ authentication: { signedOut: { failed: 'server' } } })
   )
 
-  expect(signInState.context.errors).toMatchObject({
-    authentication: expect.objectContaining({ message: 'Incorrect email or password' })
-  })
+  expect(signInState.context.errors).toMatchInlineSnapshot(`
+    {
+      "authentication": {
+        "error": "invalid-email-password",
+        "message": "Incorrect email or password",
+        "status": 401,
+      },
+    }
+  `)
 })
 
 test(`should be able to sign in if correct credentials were provided`, async () => {

@@ -17,3 +17,10 @@ export const authTokenSuccessHandler = rest.post(`${BASE_URL}/token`, (_req, res
     })
   )
 })
+
+/**
+ * Request handler for MSW to mock a network error when requesting a new access token.
+ */
+export const authTokenNetworkErrorHandler = rest.post(`${BASE_URL}/token`, (_req, res) => {
+  return res.networkError('Network error')
+})

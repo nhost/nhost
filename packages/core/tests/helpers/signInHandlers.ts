@@ -40,3 +40,13 @@ export const incorrectEmailPasswordHandler = rest.post(
     )
   }
 )
+
+/**
+ * Request handler for MSW to mock a network error when trying to sign in.
+ */
+export const emailPasswordNetworkErrorHandler = rest.post(
+  `${BASE_URL}/signin/email-password`,
+  (_req, res) => {
+    return res.networkError('Network error')
+  }
+)
