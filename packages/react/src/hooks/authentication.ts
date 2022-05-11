@@ -6,20 +6,21 @@ import {
   Provider,
   ProviderOptions,
   rewriteRedirectTo,
-  User
+  User,
+  USER_ALREADY_SIGNED_IN
 } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
 import {
-  ActionHookErrorState,
   ActionHookSuccessState,
+  CommonActionHookState,
   DefaultActionHookState,
   useAuthInterpreter
 } from './common'
 
-interface SignInHookState extends DefaultActionHookState {
+interface SignInHookState extends CommonActionHookState, ActionHookSuccessState {
   user: User | null
   accessToken: string | null
 }
@@ -123,11 +124,22 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     valuePassword?: string
   ) =>
     new Promise<SignInEmailPasswordHandlerResult>((resolve) => {
-      service.send({
+      const { changed, context } = service.send({
         type: 'SIGNIN_PASSWORD',
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         password: typeof valuePassword === 'string' ? valuePassword : statePassword
       })
+      if (!changed) {
+        return resolve({
+          accessToken: context.accessToken.value,
+          error: USER_ALREADY_SIGNED_IN,
+          isError: true,
+          isSuccess: false,
+          needsEmailVerification: false,
+          needsMfaOtp: false,
+          user: context.user
+        })
+      }
       service.onTransition((state) => {
         if (
           state.matches({
@@ -135,6 +147,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
             email: 'awaitingVerification'
           })
         ) {
+          // TODO consider sending an error when email needs verification or user needs MFA (breaking change)
           resolve({
             accessToken: null,
             error: null,
@@ -179,6 +192,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     })
 
   const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) => {
+    // TODO promisify
     service.send({
       type: 'SIGNIN_MFA_TOTP',
       otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
@@ -236,9 +250,8 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   }
 }
 
-interface SignInEmailPasswordlessHandlerResult
-  extends ActionHookErrorState,
-    ActionHookSuccessState {}
+type SignInEmailPasswordlessState = DefaultActionHookState
+type SignInEmailPasswordlessHandlerResult = Omit<SignInEmailPasswordlessState, 'isLoading'>
 interface SignInEmailPasswordlessHandler {
   (email: string, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
   /** @deprecated */
@@ -317,11 +330,18 @@ export function useSignInEmailPasswordless(
     valueOptions = stateOptions
   ) =>
     new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
-      service.send({
+      const { changed } = service.send({
         type: 'SIGNIN_PASSWORDLESS_EMAIL',
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         options: valueOptions
       })
+      if (!changed) {
+        return resolve({
+          error: USER_ALREADY_SIGNED_IN,
+          isError: true,
+          isSuccess: false
+        })
+      }
       service.onTransition((state) => {
         if (state.matches({ authentication: { signedOut: 'failed' } })) {
           resolve({
@@ -367,15 +387,18 @@ export function useSignInEmailPasswordless(
 // TODO deanonymize
 // TODO review nhost.auth.signIn()
 
-type SignInAnonymousHookState = SignInHookState
-
-type SignInAnonymousHookStateHandlerResult = Omit<SignInAnonymousHookState, 'isLoading'>
-interface SignInAnonymousHookResult extends SignInAnonymousHookState {
-  signInAnonymous(): Promise<SignInAnonymousHookStateHandlerResult>
+interface SignInAnonymousHookState extends DefaultActionHookState {
+  user: User | null
+  accessToken: string | null
 }
+type SignInAnonymousHandlerResult = Omit<SignInAnonymousHookState, 'isLoading'>
+interface SignInAnonymousHookResult extends SignInAnonymousHookState {
+  signInAnonymous(): Promise<SignInAnonymousHandlerResult>
+}
+
 export const useSignInAnonymous = (): SignInAnonymousHookResult => {
   const service = useAuthInterpreter()
-  const signInAnonymous = (): Promise<SignInAnonymousHookStateHandlerResult> =>
+  const signInAnonymous = (): Promise<SignInAnonymousHandlerResult> =>
     new Promise((resolve) => {
       const { changed } = service.send('SIGNIN_ANONYMOUS')
       if (!changed) {

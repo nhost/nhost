@@ -4,13 +4,13 @@ title: SignUpResponse
 sidebar_label: SignUpResponse
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L41
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L37
 ---
 
 # `SignUpResponse`
 
 ```ts
 type SignUpResponse =
-  | { session: null; error: ApiError }
+  | { session: null; error: ErrorPayload }
   | { session: Session | null; error: null }
 ```
