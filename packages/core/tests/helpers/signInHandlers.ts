@@ -24,8 +24,9 @@ export const correctEmailPasswordHandler = rest.post(
 )
 
 /**
- * Request handler for MSW to mock an unsuccessful sign in request. Useful if you'd like to mock a
- * scenario where the user provided an incorrect email or password.
+ * Request handler for MSW to mock an unsuccessful sign in request using the email and
+ * password method. Useful if you'd like to mock a scenario where the user provided an incorrect
+ * email or password.
  */
 export const incorrectEmailPasswordHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
@@ -42,10 +43,22 @@ export const incorrectEmailPasswordHandler = rest.post(
 )
 
 /**
- * Request handler for MSW to mock a network error when trying to sign in.
+ * Request handler for MSW to mock a network error when trying to sign in using the email and
+ * password method.
  */
 export const emailPasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
+  (_req, res) => {
+    return res.networkError('Network error')
+  }
+)
+
+/**
+ * Request handler for MSW to mock a network error when trying to sign in using the passwordless
+ * email sign in method.
+ */
+export const passwordlessEmailPasswordNetworkErrorHandler = rest.post(
+  `${BASE_URL}/signin/passwordless/email`,
   (_req, res) => {
     return res.networkError('Network error')
   }

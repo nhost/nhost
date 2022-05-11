@@ -19,6 +19,20 @@ export const authTokenSuccessHandler = rest.post(`${BASE_URL}/token`, (_req, res
 })
 
 /**
+ * Request handler for MSW to mock an unauthorized error when trying to get a new access token.
+ */
+export const authTokenUnauthorizedHandler = rest.post(`${BASE_URL}/token`, (_req, res, ctx) => {
+  return res(
+    ctx.status(401),
+    ctx.json({
+      status: 401,
+      message: 'Invalid or expired refresh token',
+      error: 'invalid-refresh-token'
+    })
+  )
+})
+
+/**
  * Request handler for MSW to mock a network error when requesting a new access token.
  */
 export const authTokenNetworkErrorHandler = rest.post(`${BASE_URL}/token`, (_req, res) => {
