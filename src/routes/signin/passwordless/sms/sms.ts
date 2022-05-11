@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import twilio from 'twilio';
+import { ReasonPhrases } from 'http-status-codes';
 
 import { PasswordLessSmsBody } from '@/types';
 import {
@@ -8,7 +9,6 @@ import {
   getUserByPhoneNumber,
   insertUser,
   ENV,
-  getSignInResponse,
 } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, registrationOptions } from '@/validation';
@@ -107,10 +107,5 @@ export const signInPasswordlessSmsHandler: RequestHandler<
     throw Error('No sms provider set');
   }
 
-  const signInResponse = await getSignInResponse({
-    userId: user.id,
-    checkMFA: true,
-  });
-
-  return res.send(signInResponse);
+  return res.send(ReasonPhrases.OK);
 };

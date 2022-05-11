@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express';
 import { v4 as uuidv4 } from 'uuid';
+import { ReasonPhrases } from 'http-status-codes';
 
 import {
   gqlSdk,
@@ -9,7 +10,6 @@ import {
   generateTicketExpiresAt,
   ENV,
   createEmailRedirectionLink,
-  getSignInResponse,
 } from '@/utils';
 import { emailClient } from '@/email';
 import { EMAIL_TYPES, PasswordLessEmailBody } from '@/types';
@@ -119,10 +119,5 @@ export const signInPasswordlessEmailHandler: RequestHandler<
     },
   });
 
-  const signInResponse = await getSignInResponse({
-    userId: user.id,
-    checkMFA: true,
-  });
-
-  return res.send(signInResponse);
+  return res.send(ReasonPhrases.OK);
 };
