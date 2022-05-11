@@ -61,7 +61,7 @@ export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
     return sendError(res, 'invalid-otp');
   }
 
-  if (ENV.AUTH_SMS_PROVIDER !== 'twilio') {
+  if (!ENV.AUTH_SMS_PROVIDER) {
     throw Error('No sms provider set');
   }
 

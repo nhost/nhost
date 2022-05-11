@@ -70,41 +70,42 @@ export const signInPasswordlessSmsHandler: RequestHandler<
     },
   });
 
-  if (ENV.AUTH_SMS_PROVIDER === 'twilio') {
-    const twilioClient = twilio(
-      ENV.AUTH_SMS_TWILIO_ACCOUNT_SID,
-      ENV.AUTH_SMS_TWILIO_AUTH_TOKEN
-    );
+  if (!ENV.AUTH_SMS_PROVIDER) {
+    throw Error('No sms provider set');
+  }
 
-    try {
-      const messagingServiceSid = ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID;
+  const twilioClient = twilio(
+    ENV.AUTH_SMS_TWILIO_ACCOUNT_SID,
+    ENV.AUTH_SMS_TWILIO_AUTH_TOKEN
+  );
 
-      if (isVerifySid(messagingServiceSid)) {
-        await twilioClient.verify
-          .services(messagingServiceSid)
-          .verifications.create({
-            channel: 'sms',
-            to: phoneNumber,
-          });
-      } else {
-        await twilioClient.messages.create({
-          body: `Your code is ${otp}`,
-          messagingServiceSid: ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID,
+  try {
+    const messagingServiceSid = ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID;
+
+    if (isVerifySid(messagingServiceSid)) {
+      await twilioClient.verify
+        .services(messagingServiceSid)
+        .verifications.create({
+          channel: 'sms',
           to: phoneNumber,
         });
-      }
-    } catch (error) {
-      // delete user that was inserted because we were not able to send the SMS
-      if (!userExists) {
-        await gqlSdk.deleteUser({
-          userId: user.id,
-        });
-      }
-
-      throw Error('Error sending SMS');
+    } else {
+      await twilioClient.messages.create({
+        body: `Your code is ${otp}`,
+        messagingServiceSid: ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID,
+        from: ENV.AUTH_SMS_TWILIO_FROM,
+        to: phoneNumber,
+      });
     }
-  } else {
-    throw Error('No sms provider set');
+  } catch (error) {
+    // delete user that was inserted because we were not able to send the SMS
+    if (!userExists) {
+      await gqlSdk.deleteUser({
+        userId: user.id,
+      });
+    }
+
+    throw Error('Error sending SMS');
   }
 
   return res.send(ReasonPhrases.OK);
