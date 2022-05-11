@@ -54,6 +54,17 @@ export const emailPasswordNetworkErrorHandler = rest.post(
 )
 
 /**
+ * Request handler for MSW to mock a successful sign in request using the passwordless email sign in
+ * method.
+ */
+export const correctPasswordlessEmailHandler = rest.post(
+  `${BASE_URL}/signin/passwordless/email`,
+  (_req, res, ctx) => {
+    return res(ctx.status(200))
+  }
+)
+
+/**
  * Request handler for MSW to mock a network error when trying to sign in using the passwordless
  * email sign in method.
  */

@@ -31,9 +31,6 @@ export default defineConfig({
     })
   ],
   test: {
-    coverage: {
-      enabled: true
-    },
     testTimeout: 30000,
     globals: true,
     environment: 'jsdom',
