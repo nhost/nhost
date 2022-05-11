@@ -17,7 +17,6 @@ powered by Nhost for the backend. It includes:
 - Instant GraphQL API: [Hasura](https://hasura.io/)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
 - Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
-- [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
 By the end of this guide, you'll have a full-stack app that allows users to log
 in to access a protected dashboard and update their profile information.
@@ -27,12 +26,7 @@ in to access a protected dashboard and update their profile information.
 Before getting started, let's make sure that your development environment is
 ready.
 
-- You'll need **Node.js** version 10.13 or later.
-  [Install it from here](https://nodejs.org/en/).
-- You'll need the **Nhost CLI** and **Docker**. View the
-  [installation instructions](https://docs.nhost.io/platform/overview/get-started-with-nhost-cli).
-- You'll need a **Github repository**. Create a
-  [new repository](https://github.com/new).
+You'll need **Node.js** version 10.13 or later: [install it from here](https://nodejs.org/en/).
 
 ## Project setup
 
@@ -141,17 +135,25 @@ Use the following code to instantiate a new Nhost client and link it to your
 Nhost backend:
 
 ```jsx title="pages/_app.js"
-import { NhostNextProvider } from '@nhost/nextjs';
-import { NhostClient } from '@nhost/nextjs';
+import { UserProvider } from '../UserProvider';
+// highlight-start
+import { NhostNextProvider, NhostClient } from '@nhost/nextjs';
+// highlight-end
 
+// highlight-start
 const nhost = new NhostClient({
   backendUrl: process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || '',
 });
+// highlight-end
 
 function MyApp({ Component, pageProps }) {
   return (
+    {/* highlight-next-line */}
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
-      {/* ... */}
+      <UserProvider>
+        {/* ... */}
+      </UserProvider>
+    {/* highlight-next-line */}
     </NhostNextProvider>
   );
 }
@@ -161,7 +163,7 @@ Finally, make sure to create an environment variable named
 `NEXT_PUBLIC_NHOST_BACKEND_URL` to store your Nhost backend URL:
 
 ```yaml title=".env.development"
-NEXT_PUBLIC_NHOST_BACKEND_URL=YOUR_NHOST_URL
+NEXT_PUBLIC_NHOST_BACKEND_URL=YOUR_NHOST_BACKEND_URL
 ```
 
 You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
@@ -309,7 +311,7 @@ const SignUp = () => {
 export default SignUp;
 ```
 
-By default, the user must verify his email address before fully signing up. You can change this setting from your Nhost config file, `nhost/config.yaml`.
+By default, the user must verify his email address before fully signing up. You can change this setting from your Nhost dashboard.
 
 #### 2. Sign-in
 
@@ -457,6 +459,7 @@ Nhost SDK by creating a
 [high-order component](https://reactjs.org/docs/higher-order-components.html):
 
 ```jsx title="withAuth.js"
+import styles from './styles/pages/ProtectedRoute.module.css';
 import { useRouter } from 'next/router';
 import { useAuthenticationStatus } from '@nhost/nextjs';
 import Spinner from './components/Spinner';
@@ -468,7 +471,7 @@ export default function withAuth(Component) {
 
     if (isLoading) {
       return (
-        <div className="h-screen flex items-center justify-center">
+        <div className={styles.container}>
           <Spinner />
         </div>
       );
@@ -528,16 +531,26 @@ dashboard to make the app more personalized.
 Getting the current authenticated user data is quite easy. We
 can use the `useUserData` hook provided by Nhost to do it.
 
-So, open the `components/Layout.js`, `pages/index.js`, and `pages/profile.js`
-files and use this hook like so:
+So, open the `UserProvider.js` file and use this hook like so:
 
 ```js
+import React, { useContext } from 'react';
+// highlight-next-line
 import { useUserData } from '@nhost/nextjs';
 
-const Layout = () => {
+const UserContext = React.createContext(null);
+
+export function UserProvider({ children = null }) {
+  // highlight-next-line
   const user = useUserData();
-  //...
-};
+  return (
+    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
+  );
+}
+
+export function useUserContext() {
+  return useContext(UserContext);
+}
 ```
 
 That's it! The JSX code for rendering the user data (email, display name, etc.)
@@ -600,7 +613,9 @@ const UPDATE_USER_MUTATION = gql`
       pk_columns: { id: $id }
       _set: { displayName: $displayName, metadata: $metadata }
     ) {
+      id
       displayName
+      metadata
     }
   }
 `;
@@ -636,8 +651,7 @@ const Profile = () => {
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
 set any permissions yet, our GraphQL mutations would fail.
 
-So, open the Hasura console from [http://localhost:1337](http://localhost:1337),
-go to the **permissions** tab for the `users` table, type in `user` in the role
+So, open the Hasura console from the **Data** tab of your project from [your Nhost dashboard](https://app.nhost.io/). Then, go to the **permissions** tab of the `users` table, type in `user` in the role
 cell, and click the edit icon on the `select` operation:
 
 ![Hasura users permissions](/img/quickstarts/hasura-permissions-1.png)
@@ -648,12 +662,77 @@ requests.
 
 ![Hasura users permissions](/img/quickstarts/hasura-permissions-2.png)
 
-Finally, select the columns you'd like the users to have access to, and click
+Next, select the columns you'd like the users to have access to, and click
 **Save Permissions**.
 
 ![Hasura users permissions](/img/quickstarts/hasura-permissions-3.png)
 
 Repeat the same steps on the `update` operation for the `user` role to allow
 users to update their `displayName` and `metadata` only.
+
+Finally, to add caching, synchronizing, and updating server state in your Next.js app, let's refactor the user data fetching by using the Apollo client and our GraphQL API instead.
+
+So, first add the following GraphQL query to retrieve the current user data from the `UserProvider.js` file:
+
+```js title="UserProvider.js"
+import { gql } from '@apollo/client';
+
+const GET_USER_QUERY = gql`
+  query GetUser($id: uuid!) {
+    user(id: $id) {
+      id
+      email
+      displayName
+      metadata
+      avatarUrl
+    }
+  }
+`;
+
+export function UserProvider() {
+  //...
+}
+```
+
+Then, replace the `useUserData` hook with the `useUserId` hook to retrieve the current user's ID only.
+
+```js title="UserProvider.js"
+import { useUserId } from '@nhost/react';
+
+export function UserProvider() {
+  const id = useUserId();
+  //...
+}
+```
+
+Finally, we can run our GraphQL query using the `useQuery` hook and the current user's ID.
+
+```jsx title="UserProvider.js"
+// highlight-next-line
+import { gql, useQuery } from '@apollo/client';
+
+export function UserProvider({ children = null }) {
+  const id = useUserId();
+  // highlight-start
+  const { loading, error, data } = useQuery(GET_USER_QUERY, {
+    variables: { id },
+  });
+  const user = data?.user;
+  // highlight-end
+
+  // highlight-start
+  if (error) {
+    return <p>Something went wrong. Try to refresh the page.</p>;
+  }
+  if (loading) {
+    return null;
+  }
+  // highlight-end
+
+  return (
+    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
+  );
+}
+```
 
 Once done, you are ready to deploy your changes to production!
