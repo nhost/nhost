@@ -1,17 +1,20 @@
+import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest'
+import { BaseActionObject, interpret, ResolveTypegenMeta, ServiceMap, State } from 'xstate'
+import { waitFor } from 'xstate/lib/waitFor'
+import { AuthContext, AuthEvents, createAuthMachine } from '../src/machines'
+import { Typegen0 } from '../src/machines/index.typegen'
 import {
+  authTokenNetworkErrorHandler,
   emailPasswordNetworkErrorHandler,
   incorrectEmailPasswordHandler,
-  passwordlessEmailPasswordNetworkErrorHandler
-} from './helpers/signInHandlers'
-import { AuthContext, AuthEvents, createAuthMachine } from '../src/machines'
-import { BaseActionObject, interpret, ResolveTypegenMeta, ServiceMap, State } from 'xstate'
-import { Typegen0 } from '../src/machines/index.typegen'
-import faker from '@faker-js/faker'
-import { waitFor } from 'xstate/lib/waitFor'
+  passwordlessEmailInternalErrorHandler,
+  passwordlessEmailNetworkErrorHandler,
+  passwordlessSmsInternalErrorHandler,
+  passwordlessSmsNetworkErrorHandler
+} from './helpers/handlers'
 import server from './helpers/server'
 import customStorage from './helpers/storage'
-import { authTokenNetworkErrorHandler } from './helpers/generalHandlers'
 
 type AuthState = State<
   AuthContext,
@@ -63,13 +66,37 @@ describe('Email and password sign in', () => {
     )
 
     expect(state.context.errors).toMatchInlineSnapshot(`
-    {
-      "authentication": {
-        "error": "OK",
-        "message": "Network Error",
-        "status": 200,
-      },
-    }
+      {
+        "authentication": {
+          "error": "OK",
+          "message": "Network Error",
+          "status": 200,
+        },
+      }
+    `)
+  })
+
+  test(`should fail if a server error occurred`, async () => {
+    server.use(emailPasswordNetworkErrorHandler, authTokenNetworkErrorHandler)
+
+    authService.send({
+      type: 'SIGNIN_PASSWORD',
+      email: faker.internet.email(),
+      password: faker.internet.password(15)
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "OK",
+          "message": "Network Error",
+          "status": 200,
+        },
+      }
     `)
   })
 
@@ -152,14 +179,14 @@ describe('Email and password sign in', () => {
     )
 
     expect(state.context.errors).toMatchInlineSnapshot(`
-            {
-              "authentication": {
-                "error": "invalid-email-password",
-                "message": "Incorrect email or password",
-                "status": 401,
-              },
-            }
-            `)
+      {
+        "authentication": {
+          "error": "invalid-email-password",
+          "message": "Incorrect email or password",
+          "status": 401,
+        },
+      }
+    `)
   })
 
   test(`should succeed if correct credentials are provided`, async () => {
@@ -182,7 +209,7 @@ describe('Email and password sign in', () => {
 
 describe('Passwordless email sign in', () => {
   test('should fail if network is unavailable', async () => {
-    server.use(passwordlessEmailPasswordNetworkErrorHandler)
+    server.use(passwordlessEmailNetworkErrorHandler)
 
     authService.send({
       type: 'SIGNIN_PASSWORDLESS_EMAIL',
@@ -194,13 +221,36 @@ describe('Passwordless email sign in', () => {
     )
 
     expect(state.context.errors).toMatchInlineSnapshot(`
-    {
-      "authentication": {
-        "error": "OK",
-        "message": "Network Error",
-        "status": 200,
-      },
-    }
+      {
+        "authentication": {
+          "error": "OK",
+          "message": "Network Error",
+          "status": 200,
+        },
+      }
+    `)
+  })
+
+  test('should fail if a server error occurred', async () => {
+    server.use(passwordlessEmailInternalErrorHandler)
+
+    authService.send({
+      type: 'SIGNIN_PASSWORDLESS_EMAIL',
+      email: faker.internet.email()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "internal-error",
+          "message": "Internal error",
+          "status": 500,
+        },
+      }
     `)
   })
 
@@ -227,6 +277,84 @@ describe('Passwordless email sign in', () => {
 
     const state: AuthState = await waitFor(authService, (state: AuthState) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
+    )
+
+    expect(state.context.user).toBeNull()
+    expect(state.context.errors).toMatchInlineSnapshot(`{}`)
+  })
+})
+
+describe('Passwordless SMS sign in', () => {
+  test(`should fail if network is unavailable`, async () => {
+    server.use(passwordlessSmsNetworkErrorHandler)
+
+    authService.send({
+      type: 'SIGNIN_PASSWORDLESS_SMS',
+      phoneNumber: faker.phone.phoneNumber()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "OK",
+          "message": "Network Error",
+          "status": 200,
+        },
+      }
+    `)
+  })
+
+  test('should fail if a server error occurred', async () => {
+    server.use(passwordlessSmsInternalErrorHandler)
+
+    authService.send({
+      type: 'SIGNIN_PASSWORDLESS_SMS',
+      phoneNumber: faker.phone.phoneNumber()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "internal-error",
+          "message": "Internal error",
+          "status": 500,
+        },
+      }
+    `)
+  })
+
+  test(`should fail if the provided phone number was invalid`, async () => {
+    authService.send({
+      type: 'SIGNIN_PASSWORDLESS_SMS',
+      // TODO: Phone number validation is not implemented yet
+      phoneNumber: ''
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) => !!state.value)
+
+    expect(
+      state.matches({
+        authentication: { signedOut: { failed: { validation: 'phoneNumber' } } }
+      })
+    ).toBeTruthy()
+  })
+
+  test(`should succeed if the provided phone number was valid`, async () => {
+    authService.send({
+      type: 'SIGNIN_PASSWORDLESS_SMS',
+      phoneNumber: faker.phone.phoneNumber()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: 'needsSmsOtp' } })
     )
 
     expect(state.context.user).toBeNull()

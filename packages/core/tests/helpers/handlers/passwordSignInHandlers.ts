@@ -1,11 +1,12 @@
 import faker from '@faker-js/faker'
 import { rest } from 'msw'
-import { NhostSession } from '../../src/types'
-import { BASE_URL } from './config'
-import fakeUser from './__mocks__/user'
+import { NhostSession } from '../../../src/types'
+import { BASE_URL } from '../config'
+import fakeUser from '../__mocks__/user'
 
 /**
- * Request handler for MSW to mock a successful sign in request.
+ * Request handler for MSW to mock a successful sign in request when using the email and password
+ * sign in method.
  */
 export const correctEmailPasswordHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
@@ -25,8 +26,8 @@ export const correctEmailPasswordHandler = rest.post(
 
 /**
  * Request handler for MSW to mock an unsuccessful sign in request using the email and
- * password method. Useful if you'd like to mock a scenario where the user provided an incorrect
- * email or password.
+ * password sign in method. Useful if you'd like to mock a scenario where the user provided an
+ * incorrect email or password.
  */
 export const incorrectEmailPasswordHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
@@ -44,7 +45,7 @@ export const incorrectEmailPasswordHandler = rest.post(
 
 /**
  * Request handler for MSW to mock a network error when trying to sign in using the email and
- * password method.
+ * password sign in method.
  */
 export const emailPasswordNetworkErrorHandler = rest.post(
   `${BASE_URL}/signin/email-password`,
@@ -54,23 +55,15 @@ export const emailPasswordNetworkErrorHandler = rest.post(
 )
 
 /**
- * Request handler for MSW to mock a successful sign in request using the passwordless email sign in
- * method.
+ * Request handler for MSW to mock an internal server error when trying to sign in using the email
+ * and password sign in method.
  */
-export const correctPasswordlessEmailHandler = rest.post(
-  `${BASE_URL}/signin/passwordless/email`,
+export const emailPasswordInternalErrorHandler = rest.post(
+  `${BASE_URL}/signin/email-password`,
   (_req, res, ctx) => {
-    return res(ctx.status(200))
-  }
-)
-
-/**
- * Request handler for MSW to mock a network error when trying to sign in using the passwordless
- * email sign in method.
- */
-export const passwordlessEmailPasswordNetworkErrorHandler = rest.post(
-  `${BASE_URL}/signin/passwordless/email`,
-  (_req, res) => {
-    return res.networkError('Network error')
+    return res(
+      ctx.status(500),
+      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+    )
   }
 )

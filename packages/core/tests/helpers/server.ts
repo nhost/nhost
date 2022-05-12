@@ -1,13 +1,16 @@
-import { rest } from 'msw'
 import { setupServer } from 'msw/node'
-import { BASE_URL } from './config'
-import { authTokenSuccessHandler } from './generalHandlers'
-import { correctEmailPasswordHandler, correctPasswordlessEmailHandler } from './signInHandlers'
+import {
+  authTokenSuccessHandler,
+  correctEmailPasswordHandler,
+  correctPasswordlessEmailHandler,
+  correctPasswordlessSmsHandler
+} from './handlers'
 
 export const defaultSuccessHandlers = [
   authTokenSuccessHandler,
   correctEmailPasswordHandler,
-  correctPasswordlessEmailHandler
+  correctPasswordlessEmailHandler,
+  correctPasswordlessSmsHandler
 ]
 export const server = setupServer(...defaultSuccessHandlers)
 
