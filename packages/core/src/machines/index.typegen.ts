@@ -38,13 +38,14 @@ export interface Typegen0 {
     saveInvalidSignUpEmail: 'SIGNUP_EMAIL_PASSWORD'
     saveInvalidSignUpPassword: 'SIGNUP_EMAIL_PASSWORD'
     saveNoMfaTicketError: 'SIGNIN_MFA_TOTP'
+    saveInvalidMfaTicketError: 'SIGNIN_MFA_TOTP'
     reportAwaitEmailVerification:
       | 'done.invoke.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
       | 'done.invoke.registerUser'
       | 'error.platform.registerUser'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    saveRegisrationError: 'error.platform.registerUser'
+    saveRegistrationError: 'error.platform.registerUser'
     saveRefreshAttempt: 'error.platform.refreshToken'
     resetErrors:
       | 'SIGNUP_EMAIL_PASSWORD'
@@ -228,6 +229,7 @@ export interface Typegen0 {
     invalidPassword: 'SIGNIN_PASSWORD' | 'SIGNUP_EMAIL_PASSWORD'
     invalidPhoneNumber: 'SIGNIN_PASSWORDLESS_SMS' | 'SIGNIN_PASSWORDLESS_SMS_OTP'
     noMfaTicket: 'SIGNIN_MFA_TOTP'
+    invalidMfaTicket: 'SIGNIN_MFA_TOTP'
     hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
     unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
     noToken: ''
@@ -251,6 +253,7 @@ export interface Typegen0 {
     | 'authentication.signedOut.failed.validation.password'
     | 'authentication.signedOut.failed.validation.email'
     | 'authentication.signedOut.failed.validation.phoneNumber'
+    | 'authentication.signedOut.failed.validation.mfaTicket'
     | 'authentication.signedOut.signingOut'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
@@ -300,7 +303,7 @@ export interface Typegen0 {
                     failed?:
                       | 'server'
                       | 'validation'
-                      | { validation?: 'password' | 'email' | 'phoneNumber' }
+                      | { validation?: 'password' | 'email' | 'phoneNumber' | 'mfaTicket' }
                   }
               authenticating?:
                 | 'passwordlessEmail'

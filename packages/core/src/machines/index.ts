@@ -9,6 +9,7 @@ import {
 } from '../constants'
 import {
   INVALID_EMAIL_ERROR,
+  INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
   NO_MFA_TICKET_ERROR,
@@ -19,7 +20,7 @@ import { nhostApiClient } from '../hasura-auth'
 import { localStorageGetter, localStorageSetter } from '../storage'
 import { AuthOptions, Mfa, NhostSession } from '../types'
 import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
-import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
+import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from '../validators'
 
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
 import { AuthEvents } from './events'
@@ -116,7 +117,8 @@ export const createAuthMachine = ({
                       states: {
                         password: {},
                         email: {},
-                        phoneNumber: {}
+                        phoneNumber: {},
+                        mfaTicket: {}
                       }
                     }
                   }
@@ -193,6 +195,11 @@ export const createAuthMachine = ({
                   {
                     cond: 'noMfaTicket',
                     actions: ['saveNoMfaTicketError'],
+                    target: '.failed'
+                  },
+                  {
+                    cond: 'invalidMfaTicket',
+                    actions: ['saveInvalidMfaTicketError'],
                     target: '.failed'
                   },
                   '#nhost.authentication.authenticating.mfa.totp'
@@ -326,7 +333,7 @@ export const createAuthMachine = ({
                     target: 'signedOut'
                   },
                   {
-                    actions: 'saveRegisrationError',
+                    actions: 'saveRegistrationError',
                     target: 'signedOut.failed.server'
                   }
                 ]
@@ -541,7 +548,13 @@ export const createAuthMachine = ({
         saveInvalidPhoneNumber: assign({
           errors: ({ errors }) => ({ ...errors, authentication: INVALID_PHONE_NUMBER_ERROR })
         }),
-        saveRegisrationError: assign({
+        saveInvalidMfaTicketError: assign({
+          errors: ({ errors }) => ({ ...errors, authentication: INVALID_MFA_TICKET_ERROR })
+        }),
+        saveNoMfaTicketError: assign({
+          errors: ({ errors }) => ({ ...errors, authentication: NO_MFA_TICKET_ERROR })
+        }),
+        saveRegistrationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
         saveInvalidSignUpPassword: assign({
@@ -549,9 +562,6 @@ export const createAuthMachine = ({
         }),
         saveInvalidSignUpEmail: assign({
           errors: ({ errors }) => ({ ...errors, registration: INVALID_EMAIL_ERROR })
-        }),
-        saveNoMfaTicketError: assign({
-          errors: ({ errors }) => ({ ...errors, registration: NO_MFA_TICKET_ERROR })
         }),
 
         destroyRefreshToken: assign({
@@ -626,7 +636,8 @@ export const createAuthMachine = ({
         hasMfaTicket: (_, e: any) => !!e.data?.mfa,
         invalidEmail: (_, { email }) => !isValidEmail(email),
         invalidPassword: (_, { password }) => !isValidPassword(password),
-        invalidPhoneNumber: (_, { phoneNumber }) => !isValidPhoneNumber(phoneNumber)
+        invalidPhoneNumber: (_, { phoneNumber }) => !isValidPhoneNumber(phoneNumber),
+        invalidMfaTicket: (_, { ticket }) => !isValidTicket(ticket)
       },
 
       services: {

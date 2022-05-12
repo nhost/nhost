@@ -8,6 +8,8 @@ import {
   authTokenNetworkErrorHandler,
   emailPasswordNetworkErrorHandler,
   incorrectEmailPasswordHandler,
+  mfaTotpInternalErrorHandler,
+  mfaTotpNetworkErrorHandler,
   passwordlessEmailInternalErrorHandler,
   passwordlessEmailNetworkErrorHandler,
   passwordlessSmsInternalErrorHandler,
@@ -54,7 +56,7 @@ afterEach(() => {
   server.resetHandlers()
 })
 
-describe('Email and password sign in', () => {
+describe(`Email and password sign in`, () => {
   test(`should fail if network is unavailable`, async () => {
     server.use(emailPasswordNetworkErrorHandler, authTokenNetworkErrorHandler)
 
@@ -234,7 +236,7 @@ describe('Passwordless email sign in', () => {
     `)
   })
 
-  test('should fail if a server error occurred', async () => {
+  test(`should fail if a server error occurred`, async () => {
     server.use(passwordlessEmailInternalErrorHandler)
 
     authService.send({
@@ -287,7 +289,7 @@ describe('Passwordless email sign in', () => {
   })
 })
 
-describe('Passwordless SMS sign in', () => {
+describe(`Passwordless SMS sign in`, () => {
   test(`should fail if network is unavailable`, async () => {
     server.use(passwordlessSmsNetworkErrorHandler)
 
@@ -311,7 +313,7 @@ describe('Passwordless SMS sign in', () => {
     `)
   })
 
-  test('should fail if a server error occurred', async () => {
+  test(`should fail if a server error occurred`, async () => {
     server.use(passwordlessSmsInternalErrorHandler)
 
     authService.send({
@@ -365,7 +367,7 @@ describe('Passwordless SMS sign in', () => {
   })
 })
 
-describe('SMS OTP sign in', () => {
+describe(`SMS OTP sign in`, () => {
   test(`should fail if network is unavailable`, async () => {
     server.use(passwordlessSmsOtpNetworkErrorHandler)
 
@@ -390,7 +392,7 @@ describe('SMS OTP sign in', () => {
     `)
   })
 
-  test('should fail if a server error occurred', async () => {
+  test(`should fail if a server error occurred`, async () => {
     server.use(passwordlessSmsOtpInternalErrorHandler)
 
     authService.send({
@@ -467,5 +469,97 @@ describe('SMS OTP sign in', () => {
     )
 
     expect(state.context.user).not.toBeNull()
+  })
+})
+
+describe(`MFA TOTP sign in`, () => {
+  test(`should fail if network is unavailable`, async () => {
+    server.use(mfaTotpNetworkErrorHandler)
+
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
+      ticket: `mfaTotp:${faker.datatype.uuid()}`,
+      otp: faker.random.numeric(6).toString()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "OK",
+          "message": "Network Error",
+          "status": 200,
+        },
+      }
+    `)
+  })
+
+  test(`should fail if a server error occurred`, async () => {
+    server.use(mfaTotpInternalErrorHandler)
+
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
+      ticket: `mfaTotp:${faker.datatype.uuid()}`,
+      otp: faker.random.numeric(6).toString()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "internal-error",
+          "message": "Internal error",
+          "status": 500,
+        },
+      }
+    `)
+  })
+
+  test(`should fail if ticket is not provided or invalid`, async () => {
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
+      ticket: '',
+      otp: faker.random.numeric(6).toString()
+    })
+
+    const noTicketState: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(noTicketState.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "no-mfa-ticket",
+          "message": "No MFA ticket has been provided",
+          "status": 10,
+        },
+      }
+    `)
+
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
+      ticket: '',
+      otp: faker.random.numeric(6).toString()
+    })
+
+    const invalidTicketState: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(invalidTicketState.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "no-mfa-ticket",
+          "message": "No MFA ticket has been provided",
+          "status": 10,
+        },
+      }
+    `)
   })
 })
