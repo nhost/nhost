@@ -1,6 +1,6 @@
 import faker from '@faker-js/faker'
 import { rest } from 'msw'
-import { NhostSession } from '../../../src/types'
+import { Mfa, NhostSession } from '../../../src/types'
 import { BASE_URL } from '../config'
 import fakeUser from '../__mocks__/user'
 
@@ -49,13 +49,14 @@ export const correctPasswordlessSmsOtpHandler = rest.post(
   (_req, res, ctx) => {
     return res(
       ctx.status(200),
-      ctx.json<{ session: NhostSession }>({
+      ctx.json<{ mfa: Mfa | null; session: NhostSession | null }>({
         session: {
           user: fakeUser,
           accessTokenExpiresIn: 900,
           accessToken: faker.datatype.string(40),
           refreshToken: faker.datatype.uuid()
-        }
+        },
+        mfa: null
       })
     )
   }

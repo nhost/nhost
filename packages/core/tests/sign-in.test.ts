@@ -1,11 +1,13 @@
 import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest'
-import { BaseActionObject, interpret, ResolveTypegenMeta, ServiceMap, State } from 'xstate'
+import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { AuthContext, AuthEvents, createAuthMachine } from '../src/machines'
+import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
+import { BASE_URL } from './helpers/config'
 import {
   authTokenNetworkErrorHandler,
+  correctEmailPasswordWithMfaHandler,
   emailPasswordNetworkErrorHandler,
   incorrectEmailPasswordHandler,
   mfaTotpInternalErrorHandler,
@@ -17,25 +19,18 @@ import {
   passwordlessSmsNetworkErrorHandler,
   passwordlessSmsOtpInternalErrorHandler,
   passwordlessSmsOtpInvalidOtpHandler,
-  passwordlessSmsOtpNetworkErrorHandler
+  passwordlessSmsOtpNetworkErrorHandler,
+  unverifiedEmailErrorHandler
 } from './helpers/handlers'
 import server from './helpers/server'
 import customStorage from './helpers/storage'
+import { GeneralAuthState } from './helpers/types'
 
-type AuthState = State<
-  AuthContext,
-  AuthEvents,
-  any,
-  {
-    value: any
-    context: AuthContext
-  },
-  ResolveTypegenMeta<Typegen0, AuthEvents, BaseActionObject, ServiceMap>
->
+type AuthState = GeneralAuthState<Typegen0>
 
 // Initialzing AuthMachine with custom storage to have control over its content between tests
 const authMachine = createAuthMachine({
-  backendUrl: 'http://localhost:1337/v1/auth',
+  backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
   clientStorage: customStorage,
   clientStorageType: 'custom',
@@ -171,13 +166,10 @@ describe(`Email and password sign in`, () => {
   test(`should fail if incorrect credentials are provided`, async () => {
     server.use(incorrectEmailPasswordHandler)
 
-    const email = faker.internet.email('john', 'doe')
-    const password = faker.internet.password(15)
-
     authService.send({
       type: 'SIGNIN_PASSWORD',
-      email,
-      password
+      email: faker.internet.email('john', 'doe'),
+      password: faker.internet.password(15)
     })
 
     const state: AuthState = await waitFor(authService, (state: AuthState) =>
@@ -195,14 +187,63 @@ describe(`Email and password sign in`, () => {
     `)
   })
 
-  test(`should succeed if correct credentials are provided`, async () => {
-    const email = faker.internet.email('john', 'doe')
-    const password = faker.internet.password(15)
+  test(`should fail if user email needs verification`, async () => {
+    server.use(unverifiedEmailErrorHandler)
 
     authService.send({
       type: 'SIGNIN_PASSWORD',
-      email,
-      password
+      email: faker.internet.email('john', 'doe'),
+      password: faker.internet.password(15)
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "unverified-email",
+          "message": "Email needs verification",
+          "status": 401,
+        },
+      }
+    `)
+  })
+
+  test(`should save MFA ticket if MFA is set up for the account`, async () => {
+    server.use(correctEmailPasswordWithMfaHandler)
+
+    authService.send({
+      type: 'SIGNIN_PASSWORD',
+      email: faker.internet.email('john', 'doe'),
+      password: faker.internet.password(15)
+    })
+
+    const signInPasswordState: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: 'needsMfa' } })
+    )
+
+    expect(signInPasswordState.context.mfa.ticket).not.toBeNull()
+
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
+      ticket: signInPasswordState.context.mfa.ticket,
+      otp: faker.random.numeric(6)
+    })
+
+    const mfaTotpState: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(mfaTotpState.context.user).not.toBeNull()
+  })
+
+  test(`should succeed if correct credentials are provided`, async () => {
+    authService.send({
+      type: 'SIGNIN_PASSWORD',
+      email: faker.internet.email('john', 'doe'),
+      password: faker.internet.password(15)
     })
 
     const state: AuthState = await waitFor(authService, (state: AuthState) =>
@@ -286,7 +327,6 @@ describe('Passwordless email sign in', () => {
     )
 
     expect(state.context.user).toBeNull()
-    expect(state.context.errors).toMatchInlineSnapshot(`{}`)
   })
 })
 

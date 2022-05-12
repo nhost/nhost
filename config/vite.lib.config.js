@@ -31,7 +31,6 @@ export default defineConfig({
     })
   ],
   test: {
-    testTimeout: 30000,
     globals: true,
     environment: 'jsdom',
     reporters: 'verbose',

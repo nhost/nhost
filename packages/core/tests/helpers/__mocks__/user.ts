@@ -11,7 +11,7 @@ export const fakeUser: User = {
   avatarUrl: faker.internet.avatar(),
   locale: 'en',
   isAnonymous: faker.datatype.boolean(),
-  emailVerified: false,
+  emailVerified: true,
   defaultRole: 'user',
   roles: ['user', 'me'],
   phoneNumber: null,
