@@ -9,6 +9,7 @@ import {
   emailPasswordNetworkErrorHandler,
   incorrectEmailPasswordHandler,
   mfaTotpInternalErrorHandler,
+  mfaTotpInvalidOtpHandler,
   mfaTotpNetworkErrorHandler,
   passwordlessEmailInternalErrorHandler,
   passwordlessEmailNetworkErrorHandler,
@@ -521,7 +522,7 @@ describe(`MFA TOTP sign in`, () => {
     `)
   })
 
-  test(`should fail if ticket is not provided or invalid`, async () => {
+  test(`should fail if MFA ticket is not provided or invalid`, async () => {
     authService.send({
       type: 'SIGNIN_MFA_TOTP',
       ticket: '',
@@ -561,5 +562,43 @@ describe(`MFA TOTP sign in`, () => {
         },
       }
     `)
+  })
+
+  test(`should fail if TOTP is invalid`, async () => {
+    server.use(mfaTotpInvalidOtpHandler)
+
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
+      ticket: `mfaTotp:${faker.datatype.uuid()}`,
+      otp: faker.random.numeric(6).toString()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-otp",
+          "message": "Invalid or expired OTP",
+          "status": 401,
+        },
+      }
+    `)
+  })
+
+  test(`should succeed if the provided MFA ticket and TOTP were valid`, async () => {
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
+      ticket: `mfaTotp:${faker.datatype.uuid()}`,
+      otp: faker.random.numeric(6).toString()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(state.context.user).not.toBeNull()
   })
 })

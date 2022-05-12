@@ -42,3 +42,21 @@ export const mfaTotpInternalErrorHandler = rest.post(
     )
   }
 )
+
+/**
+ * Request handler for MSW to mock an internal server error when trying to sign in using the
+ * MFA TOTP sign in method.
+ */
+export const mfaTotpInvalidOtpHandler = rest.post(
+  `${BASE_URL}/signin/mfa/totp`,
+  (_req, res, ctx) => {
+    return res(
+      ctx.status(401),
+      ctx.json({
+        status: 401,
+        message: 'Invalid or expired OTP',
+        error: 'invalid-otp'
+      })
+    )
+  }
+)
