@@ -121,8 +121,7 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
 
   const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) => {
     // TODO promisify
-    service.send({
-      type: 'SIGNIN_MFA_TOTP',
+    service.send('SIGNIN_MFA_TOTP', {
       otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
     })
   }

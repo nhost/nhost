@@ -22,8 +22,7 @@ export const signUpEmailPasswordPromise = (
   options?: SignUpOptions
 ): Promise<SignUpEmailPasswordHandlerResult> =>
   new Promise<SignUpEmailPasswordHandlerResult>((resolve) => {
-    const { changed, context } = interpreter.send({
-      type: 'SIGNUP_EMAIL_PASSWORD',
+    const { changed, context } = interpreter.send('SIGNUP_EMAIL_PASSWORD', {
       email,
       password,
       options

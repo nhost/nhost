@@ -11,10 +11,7 @@ export const signOutPromise = async (
   all?: boolean
 ): Promise<SignOutlessHandlerResult> =>
   new Promise<{ isSuccess: boolean; error: ErrorPayload | null; isError: boolean }>((resolve) => {
-    const { event } = interpreter.send({
-      type: 'SIGNOUT',
-      all
-    })
+    const { event } = interpreter.send('SIGNOUT', { all })
     if (event.type !== 'SIGNED_OUT') {
       return resolve({ isSuccess: false, isError: true, error: USER_UNAUTHENTICATED })
     }
