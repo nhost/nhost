@@ -35,24 +35,6 @@ Object where the refresh token will be persisted and read locally.
 
 ---
 
-**<span className="parameter-name deprecated">clientStorageGetter</span>** <span className="optional-status">optional</span> `StorageGetter`
-
-:::caution Deprecated
-Use clientStorage / clientStorageType instead
-:::
-
----
-
-**<span className="parameter-name deprecated">clientStorageSetter</span>** <span className="optional-status">optional</span> `StorageSetter`
-
-Define a way to set information about the refresh token and its exipration date.
-
-:::caution Deprecated
-Use clientStorage / clientStorageType instead
-:::
-
----
-
 **<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
 
 When set to true, will automatically refresh token before it expires
@@ -68,14 +50,6 @@ When set to true, will parse the url on startup to check if it contains a refres
 **<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
 
 Activate devTools e.g. the ability to connect to the xstate inspector
-
----
-
-**<span className="parameter-name deprecated">autoLogin</span>** <span className="optional-status">optional</span> `boolean`
-
-:::caution Deprecated
-@alias autoSignIn - use autoSignIn instead
-:::
 
 ---
 

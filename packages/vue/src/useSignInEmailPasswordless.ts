@@ -1,10 +1,10 @@
 import { ToRefs, unref } from 'vue'
 
 import {
-  DefaultActionState,
   PasswordlessOptions,
   SignInEmailPasswordlessHandlerResult,
-  signInEmailPasswordlessPromise
+  signInEmailPasswordlessPromise,
+  SignInEmailPasswordlessState
 } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
@@ -12,7 +12,7 @@ import { RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 
-interface SignInEmailPasswordlessResult extends ToRefs<DefaultActionState> {
+interface SignInEmailPasswordlessResult extends ToRefs<SignInEmailPasswordlessState> {
   /** Sends a magic link to the given email */
   signInEmailPasswordless(email: RefOrValue<string>): Promise<SignInEmailPasswordlessHandlerResult>
 }

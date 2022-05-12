@@ -2,9 +2,11 @@ import { InterpreterFrom } from 'xstate'
 
 import { ChangePasswordMachine } from '../machines'
 
-import { DefaultActionState } from './types'
+import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
 
-export type ChangePasswordHandlerResult = Omit<DefaultActionState, 'isLoading'>
+export interface ChangePasswordState extends ChangePasswordHandlerResult, ActionLoadingState {}
+
+export interface ChangePasswordHandlerResult extends ActionErrorState, ActionSuccessState {}
 
 export const changePasswordPromise = async (
   interpreter: InterpreterFrom<ChangePasswordMachine>,

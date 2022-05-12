@@ -3,12 +3,10 @@ import { InterpreterFrom } from 'xstate'
 import { ChangeEmailMachine } from '../machines'
 import { ChangeEmailOptions } from '../types'
 
-import { CommonActionState } from './types'
+import { ActionErrorState, ActionLoadingState, NeedsEmailVerificationState } from './types'
+export interface ChangeEmailHandlerResult extends ActionErrorState, NeedsEmailVerificationState {}
 
-export interface ChangeEmailState extends CommonActionState {
-  needsEmailVerification: boolean
-}
-export type ChangeEmailHandlerResult = Omit<ChangeEmailState, 'isLoading'>
+export interface ChangeEmailState extends ChangeEmailHandlerResult, ActionLoadingState {}
 
 export const changeEmailPromise = async (
   interpreter: InterpreterFrom<ChangeEmailMachine>,

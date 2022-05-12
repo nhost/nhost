@@ -19,6 +19,7 @@ import {
   NO_REFRESH_TOKEN,
   resetPasswordPromise,
   rewriteRedirectTo,
+  sendVerificationEmailPromise,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
@@ -291,20 +292,13 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/send-verification-email
    */
-  async sendVerificationEmail(
-    params: SendVerificationEmailParams
-  ): Promise<ApiSendVerificationEmailResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createSendVerificationEmailMachine(this._client)).start()
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.send('REQUEST', { email: params.email, options: params.options })
-    })
+  async sendVerificationEmail({
+    email,
+    options
+  }: SendVerificationEmailParams): Promise<ApiSendVerificationEmailResponse> {
+    const service = interpret(createSendVerificationEmailMachine(this._client)).start()
+    const { error } = await sendVerificationEmailPromise(service, email, options)
+    return { error }
   }
 
   /**

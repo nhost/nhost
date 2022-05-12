@@ -1,36 +1,32 @@
 import { ToRefs, unref } from 'vue'
 
-import { createEnableMfaMachine, ErrorPayload } from '@nhost/core'
+import { ActionErrorState, createEnableMfaMachine } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
-interface ActivateMfaComposableState {
-  isActivating: boolean
+export interface ActivateMfaHandlerResult extends ActionErrorState {
   isActivated: boolean
-  isError: boolean
-  error: ErrorPayload | null
 }
-interface GenerateQrCodeComposableState {
+
+export interface ActivateMfaComposableState extends ActivateMfaHandlerResult {
+  isActivating: boolean
+}
+export interface GenerateQrCodeHandlerResult extends ActionErrorState {
   qrCodeDataUrl: string
-  isGenerating: boolean
   isGenerated: boolean
-  isError: boolean
-  error: ErrorPayload | null
 }
 
-type ActivateMfaHandlerResult = Omit<ActivateMfaComposableState, 'isActivating'>
-type ActivateMfaHandler = (code: string) => Promise<ActivateMfaHandlerResult>
+export interface GenerateQrCodeComposableState extends GenerateQrCodeHandlerResult {
+  isGenerating: boolean
+}
 
-type GenerateQrCodeHandlerResult = Omit<GenerateQrCodeComposableState, 'isGenerating'>
-type GenerateQrCodeHandler = () => Promise<GenerateQrCodeHandlerResult>
-
-interface ConfigMfaComposableState
+export interface ConfigMfaComposableState
   extends ToRefs<ActivateMfaComposableState>,
     ToRefs<GenerateQrCodeComposableState> {
-  generateQrCode: GenerateQrCodeHandler
-  activateMfa: ActivateMfaHandler
+  generateQrCode: () => Promise<GenerateQrCodeHandlerResult>
+  activateMfa: (code: string) => Promise<ActivateMfaHandlerResult>
 }
 
 /**

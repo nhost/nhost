@@ -1,19 +1,16 @@
 import { reactive, ToRefs, toRefs, unref } from 'vue'
 
 import {
-  CommonActionState,
   createSendVerificationEmailMachine,
-  SendVerificationEmailOptions
+  SendVerificationEmailHandlerResult,
+  SendVerificationEmailOptions,
+  sendVerificationEmailPromise,
+  SendVerificationEmailState
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
-
-type SendVerificationEmailHandlerResult = Omit<SendVerificationEmailState, 'isLoading'>
-interface SendVerificationEmailState extends CommonActionState {
-  isSent: boolean
-}
 
 interface SendVerificationEmailResult extends ToRefs<SendVerificationEmailState> {
   /** Resend the verification email. Returns a promise with the current context */
@@ -43,24 +40,7 @@ export const useSendVerificationEmail = (
   })
 
   const sendEmail = (email: RefOrValue<string>) =>
-    new Promise<SendVerificationEmailHandlerResult>((resolve) => {
-      service.send('REQUEST', {
-        email: unref(email),
-        options: unref(options)
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          result.isError = true
-          result.error = state.context.error
-          result.isSent = false
-          resolve(result)
-        } else if (state.matches({ idle: 'success' })) {
-          result.isError = false
-          result.error = null
-          result.isSent = true
-          resolve(result)
-        }
-      })
-    })
+    sendVerificationEmailPromise(service, unref(email), unref(options))
+
   return { sendEmail, isLoading, ...toRefs(result) }
 }

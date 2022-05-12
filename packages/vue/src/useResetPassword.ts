@@ -1,29 +1,19 @@
 import { ToRefs, unref } from 'vue'
 
 import {
-  CommonActionState,
   createResetPasswordMachine,
+  ResetPasswordHandlerResult,
   ResetPasswordOptions,
-  resetPasswordPromise
+  resetPasswordPromise,
+  ResetPasswordState
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
-interface ResetPasswordState extends CommonActionState {
-  isSent: boolean
-}
-type ResetPasswordHandlerResult = Omit<ResetPasswordState, 'isLoading'>
-interface ResetPasswordHandler {
-  (email: string, options?: ResetPasswordOptions): Promise<ResetPasswordHandlerResult>
-}
-
 interface ResetPasswordResult extends ToRefs<ResetPasswordState> {
-  /**
-   * Sends an email with a temporary connection link. Returns a promise with the current context
-   */
-  resetPassword: ResetPasswordHandler
+  resetPassword: (email: RefOrValue<string>) => Promise<ResetPasswordHandlerResult>
 }
 
 /**

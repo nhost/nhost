@@ -21,7 +21,8 @@
       "@nhost/nhost-js": ["../nhost-js/src/index.ts"],
       "@nhost/react": ["../react/src/index.ts"],
       "@nhost/react-apollo": ["../react-apollo/src/index.ts"],
-      "@nhost/react-auth": ["../react-auth/src/index.ts"]
+      "@nhost/react-auth": ["../react-auth/src/index.ts"],
+      "@nhost/vue": ["../vue/src/index.ts"]
     }
   }
 }

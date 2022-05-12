@@ -1,9 +1,10 @@
 import { ToRefs, unref } from 'vue'
 
 import {
+  ChangeEmailHandlerResult,
   ChangeEmailOptions,
   changeEmailPromise,
-  CommonActionState,
+  ChangeEmailState,
   createChangeEmailMachine
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
@@ -11,12 +12,7 @@ import { useInterpret, useSelector } from '@xstate/vue'
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
-interface ChangeEmailState extends CommonActionState {
-  needsEmailVerification: boolean
-}
-type ChangeEmailHandlerResult = Omit<ChangeEmailState, 'isLoading'>
-
-interface ChangeEmailComposableResult extends ToRefs<ChangeEmailState> {
+export interface ChangeEmailComposableResult extends ToRefs<ChangeEmailState> {
   /** Requests the email change. Returns a promise with the current context  */
   changeEmail(email: RefOrValue<string>): Promise<ChangeEmailHandlerResult>
 }

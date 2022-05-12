@@ -1,10 +1,9 @@
 import { ToRefs, unref } from 'vue'
 
 import {
-  DefaultActionState,
   SignInEmailPasswordHandlerResult,
   signInEmailPasswordPromise,
-  User
+  SignInEmailPasswordState
 } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
@@ -13,12 +12,6 @@ import { useAuthenticated } from './useAuthenticated'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 
-interface SignInEmailPasswordState extends DefaultActionState {
-  needsMfaOtp: boolean
-  needsEmailVerification: boolean
-  user: User | null
-  accessToken: string | null
-}
 interface SignInEmailPasswordResult extends ToRefs<SignInEmailPasswordState> {
   signInEmailPassword(
     email: RefOrValue<string>,
@@ -66,6 +59,7 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
     (a, b) => a === b
   )
 
+  const mfa = useSelector(service.value, (state) => state.context.mfa)
   const needsMfaOtp = useSelector(
     service.value,
     (state) => state.matches({ authentication: { signedOut: 'needsMfa' } }),
@@ -86,6 +80,7 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
     isSuccess,
     needsEmailVerification,
     needsMfaOtp,
+    mfa,
     sendMfaOtp,
     signInEmailPassword,
     user

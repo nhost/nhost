@@ -1,7 +1,6 @@
 import { useContext, useMemo } from 'react'
 
 import {
-  DefaultActionState,
   encodeQueryParameters,
   PasswordlessOptions,
   Provider,
@@ -188,7 +187,7 @@ interface SignInEmailPasswordlessHandler {
   (email?: unknown, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
 }
 
-interface SignInEmailPasswordlessHookResult extends DefaultActionState {
+interface SignInEmailPasswordlessHookResult extends SignInEmailPasswordState {
   /** Sends a magic link to the given email */
   signInEmailPasswordless: SignInEmailPasswordlessHandler
 }

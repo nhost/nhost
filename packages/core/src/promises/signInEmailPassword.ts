@@ -1,16 +1,24 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../types'
 
-import { SessionActionState } from './types'
+import {
+  ActionLoadingState,
+  NeedsEmailVerificationState,
+  SessionActionHandlerResult
+} from './types'
 
-export interface SignInEmailPasswordState extends SessionActionState {
+export interface SignInEmailPasswordHandlerResult
+  extends SessionActionHandlerResult,
+    NeedsEmailVerificationState {
   needsMfaOtp: boolean
   mfa: {
     ticket: string
   } | null
-  needsEmailVerification: boolean
 }
-export type SignInEmailPasswordHandlerResult = Omit<SignInEmailPasswordState, 'isLoading'>
+
+export interface SignInEmailPasswordState
+  extends SignInEmailPasswordHandlerResult,
+    ActionLoadingState {}
 
 export const signInEmailPasswordPromise = (
   interpreter: AuthInterpreter,

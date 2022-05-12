@@ -10,7 +10,6 @@ import {
   ChangeEmailState,
   ChangePasswordHandlerResult,
   changePasswordPromise,
-  CommonActionState,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createEnableMfaMachine,
@@ -22,7 +21,10 @@ import {
   ResetPasswordOptions,
   resetPasswordPromise,
   ResetPasswordState,
-  SendVerificationEmailOptions
+  SendVerificationEmailHandlerResult,
+  SendVerificationEmailOptions,
+  sendVerificationEmailPromise,
+  SendVerificationEmailState
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
 
@@ -481,9 +483,6 @@ export const useUserRoles = () => {
     (a, b) => a.every((i) => b.includes(i) && b.every((i) => a.includes(i)))
   )
 }
-
-// TODO code this hook in Vue, and make it a promise
-type SendVerificationEmailHandlerResult = Omit<SendVerificationEmailState, 'isLoading'>
 interface SendVerificationEmailHandler {
   (
     email: string,
@@ -494,10 +493,6 @@ interface SendVerificationEmailHandler {
     email?: unknown,
     options?: SendVerificationEmailOptions
   ): Promise<SendVerificationEmailHandlerResult>
-}
-
-interface SendVerificationEmailState extends CommonActionState {
-  isSent: boolean
 }
 
 interface SendVerificationEmailHookResult extends SendVerificationEmailState {
@@ -562,19 +557,12 @@ export const useSendVerificationEmail: SendVerificationEmailHook = (
     valueEmail?: string | unknown,
     valueOptions = stateOptions
   ) =>
-    new Promise<SendVerificationEmailHandlerResult>((resolve) => {
-      service.send('REQUEST', {
-        email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-        options: valueOptions
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          resolve({ error: state.context.error, isError: true, isSent: false })
-        } else if (state.matches({ idle: 'success' })) {
-          resolve({ error: null, isError: false, isSent: true })
-        }
-      })
-    })
+    sendVerificationEmailPromise(
+      service,
+      typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
+      valueOptions
+    )
+
   return { sendEmail, isLoading, isSent, isError, error }
 }
 

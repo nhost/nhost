@@ -1,14 +1,17 @@
 import { ToRefs, unref } from 'vue'
 
-import { changePasswordPromise, createChangePasswordMachine, DefaultActionState } from '@nhost/core'
+import {
+  ChangePasswordHandlerResult,
+  changePasswordPromise,
+  ChangePasswordState,
+  createChangePasswordMachine
+} from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
-type ChangePasswordHandlerResult = Omit<DefaultActionState, 'isLoading'>
-
-interface ChangePasswordComposableResult extends ToRefs<DefaultActionState> {
+export interface ChangePasswordComposableResult extends ToRefs<ChangePasswordState> {
   changePassword(password: RefOrValue<string>): Promise<ChangePasswordHandlerResult>
 }
 

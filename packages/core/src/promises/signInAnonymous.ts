@@ -1,9 +1,10 @@
 import { INVALID_AUTHENTICATION_METHOD } from '../errors'
 import { AuthInterpreter } from '../types'
 
-import { SessionActionHandlerResult } from './types'
+import { ActionLoadingState, SessionActionHandlerResult } from './types'
 
-type SignInAnonymousHandlerResult = SessionActionHandlerResult
+export interface SignInAnonymousHandlerResult extends SessionActionHandlerResult {}
+export interface SignInAnonymousState extends SignInAnonymousHandlerResult, ActionLoadingState {}
 
 export const signInAnonymousPromise = (
   interpreter: AuthInterpreter

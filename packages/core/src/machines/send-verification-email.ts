@@ -20,6 +20,7 @@ export type SendVerificationEmailEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type SendVerificationEmailMachine = ReturnType<typeof createSendVerificationEmailMachine>
 export const createSendVerificationEmailMachine = ({
   backendUrl,
   clientUrl,

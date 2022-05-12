@@ -1,13 +1,19 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter, SignUpOptions } from '../types'
 
-import { SessionActionState } from './types'
+import {
+  ActionLoadingState,
+  NeedsEmailVerificationState,
+  SessionActionHandlerResult
+} from './types'
 
-export interface SignUpEmailPasswordState extends SessionActionState {
-  needsEmailVerification: boolean
-}
+export interface SignUpEmailPasswordHandlerResult
+  extends SessionActionHandlerResult,
+    NeedsEmailVerificationState {}
 
-export type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>
+export interface SignUpEmailPasswordState
+  extends SignUpEmailPasswordHandlerResult,
+    ActionLoadingState {}
 
 export const signUpEmailPasswordPromise = (
   interpreter: AuthInterpreter,

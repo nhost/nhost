@@ -1,6 +1,11 @@
 import { computed, ToRefs, unref } from 'vue'
 
-import { DefaultActionState, signUpEmailPasswordPromise, SignUpOptions, User } from '@nhost/core'
+import {
+  SignUpEmailPasswordHandlerResult,
+  signUpEmailPasswordPromise,
+  SignUpEmailPasswordState,
+  SignUpOptions
+} from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
@@ -10,16 +15,6 @@ import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 import { useUserData } from './useUserData'
 
-interface SignUpEmailPasswordState extends DefaultActionState {
-  /** @return `true` if an email is required to complete the action, and that a verificaiton email has been sent to complete the action. */
-  needsEmailVerification: boolean
-  /** User information */
-  user: User | null
-  /** Access token (JWT) */
-  accessToken: string | null
-}
-
-type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>
 interface SignUpEmailPasswordResult extends ToRefs<SignUpEmailPasswordState> {
   /** Used for a new user to sign up. Returns a promise with the current context */
   signUpEmailPassword(

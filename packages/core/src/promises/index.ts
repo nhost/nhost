@@ -1,6 +1,7 @@
 export * from './changeEmail'
 export * from './changePassword'
 export * from './resetPassword'
+export * from './sendVerificationEmail'
 export * from './signInAnonymous'
 export * from './signInEmailPassword'
 export * from './signInEmailPasswordless'

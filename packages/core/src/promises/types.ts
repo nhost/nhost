@@ -15,19 +15,19 @@ export interface ActionLoadingState {
   isLoading: boolean
 }
 
-export interface CommonActionState extends ActionErrorState, ActionLoadingState {}
-
 export interface ActionSuccessState {
   /** Returns `true` if the action is successful. */
   isSuccess: boolean
 }
 
-export interface DefaultActionState extends CommonActionState, ActionSuccessState {}
-
-export interface SessionActionState extends DefaultActionState {
+export interface SessionActionHandlerResult extends ActionSuccessState, ActionErrorState {
   /** User information */
   user: User | null
   /** Access token (JWT) */
   accessToken: string | null
 }
-export type SessionActionHandlerResult = Omit<SessionActionState, 'isLoading'>
+
+export interface NeedsEmailVerificationState {
+  /** @return `true` if an email is required to complete the action, and that a verification email has been sent to complete the action. */
+  needsEmailVerification: boolean
+}

@@ -17,14 +17,6 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-j
 
 ---
 
-**<span className="parameter-name deprecated">autoLogin</span>** <span className="optional-status">optional</span> `boolean`
-
-:::caution Deprecated
-@alias autoSignIn - use autoSignIn instead
-:::
-
----
-
 **<span className="parameter-name">start</span>** <span className="optional-status">optional</span> `boolean`
 
 ---
@@ -44,24 +36,6 @@ When set to true, will parse the url on startup to check if it contains a refres
 **<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
 
 When set to true, will automatically refresh token before it expires
-
----
-
-**<span className="parameter-name deprecated">clientStorageSetter</span>** <span className="optional-status">optional</span> [`StorageSetter`](/reference/docgen/javascript/auth/types/storage-setter)
-
-Define a way to set information about the refresh token and its exipration date.
-
-:::caution Deprecated
-Use clientStorage / clientStorageType instead
-:::
-
----
-
-**<span className="parameter-name deprecated">clientStorageGetter</span>** <span className="optional-status">optional</span> [`StorageGetter`](/reference/docgen/javascript/auth/types/storage-getter)
-
-:::caution Deprecated
-Use clientStorage / clientStorageType instead
-:::
 
 ---
 
