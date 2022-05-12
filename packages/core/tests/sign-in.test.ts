@@ -77,7 +77,7 @@ describe(`Email and password sign in`, () => {
     `)
   })
 
-  test(`should fail if a server error occurred`, async () => {
+  test(`should fail if server returns an error`, async () => {
     server.use(emailPasswordNetworkErrorHandler, authTokenNetworkErrorHandler)
 
     authService.send({
@@ -125,7 +125,7 @@ describe(`Email and password sign in`, () => {
     expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
   })
 
-  test(`should fail if either the provided email address or provided password was invalid`, async () => {
+  test(`should fail if either email or password is incorrectly formatted`, async () => {
     // Scenario 1: Providing an invalid email address with a valid password
     authService.send({
       type: 'SIGNIN_PASSWORD',
@@ -147,7 +147,7 @@ describe(`Email and password sign in`, () => {
     // Scenario 2: Providing a valid email address with an invalid password
     authService.send({
       type: 'SIGNIN_PASSWORD',
-      email: faker.internet.email('john', 'doe'),
+      email: faker.internet.email(),
       password: faker.internet.password(2)
     })
 
@@ -168,7 +168,7 @@ describe(`Email and password sign in`, () => {
 
     authService.send({
       type: 'SIGNIN_PASSWORD',
-      email: faker.internet.email('john', 'doe'),
+      email: faker.internet.email(),
       password: faker.internet.password(15)
     })
 
@@ -192,7 +192,7 @@ describe(`Email and password sign in`, () => {
 
     authService.send({
       type: 'SIGNIN_PASSWORD',
-      email: faker.internet.email('john', 'doe'),
+      email: faker.internet.email(),
       password: faker.internet.password(15)
     })
 
@@ -216,7 +216,7 @@ describe(`Email and password sign in`, () => {
 
     authService.send({
       type: 'SIGNIN_PASSWORD',
-      email: faker.internet.email('john', 'doe'),
+      email: faker.internet.email(),
       password: faker.internet.password(15)
     })
 
@@ -242,7 +242,7 @@ describe(`Email and password sign in`, () => {
   test(`should succeed if correct credentials are provided`, async () => {
     authService.send({
       type: 'SIGNIN_PASSWORD',
-      email: faker.internet.email('john', 'doe'),
+      email: faker.internet.email(),
       password: faker.internet.password(15)
     })
 
@@ -278,7 +278,7 @@ describe('Passwordless email sign in', () => {
     `)
   })
 
-  test(`should fail if a server error occurred`, async () => {
+  test(`should fail if server returns an error`, async () => {
     server.use(passwordlessEmailInternalErrorHandler)
 
     authService.send({
@@ -354,7 +354,7 @@ describe(`Passwordless SMS sign in`, () => {
     `)
   })
 
-  test(`should fail if a server error occurred`, async () => {
+  test(`should fail if server returns an error`, async () => {
     server.use(passwordlessSmsInternalErrorHandler)
 
     authService.send({
@@ -433,7 +433,7 @@ describe(`SMS OTP sign in`, () => {
     `)
   })
 
-  test(`should fail if a server error occurred`, async () => {
+  test(`should fail if server returns an error`, async () => {
     server.use(passwordlessSmsOtpInternalErrorHandler)
 
     authService.send({
@@ -538,7 +538,7 @@ describe(`MFA TOTP sign in`, () => {
     `)
   })
 
-  test(`should fail if a server error occurred`, async () => {
+  test(`should fail if server returns an error`, async () => {
     server.use(mfaTotpInternalErrorHandler)
 
     authService.send({
