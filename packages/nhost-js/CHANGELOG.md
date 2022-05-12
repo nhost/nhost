@@ -1,5 +1,16 @@
 # @nhost/nhost-js
 
+## 1.1.11
+
+### Patch Changes
+
+- e094e68: chore: bump axios from 0.26.0 to 0.27.2
+  fix: add Content-Type to file upload request headers
+- Updated dependencies [9d32314]
+- Updated dependencies [e094e68]
+  - @nhost/hasura-auth-js@1.1.6
+  - @nhost/hasura-storage-js@0.2.2
+
 ## 1.1.10
 
 ### Patch Changes

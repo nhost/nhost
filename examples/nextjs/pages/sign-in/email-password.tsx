@@ -26,7 +26,8 @@ export const SignInPasswordPage: NextPage = () => {
       showNotification({
         color: 'red',
         title: 'Error',
-        message: 'Email is not verified'
+        message:
+          'You need to verify your email first. Please check your mailbox and follow the confirmation link to complete the registration.'
       })
     } else {
       router.replace('/')

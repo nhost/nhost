@@ -20,7 +20,7 @@ import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
-import { useAuthenticated, useAuthInterpreter } from './common'
+import { useAuthInterpreter } from './common'
 
 interface SignInEmailPasswordHandler {
   (email: string, password: string): Promise<SignInEmailPasswordHandlerResult>
@@ -138,7 +138,11 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     (state) => state.context.errors.authentication || null,
     (a, b) => a?.error === b?.error
   )
-  const isSuccess = useAuthenticated()
+  const isSuccess = useSelector(service, (state) =>
+    state.matches({
+      authentication: 'signedIn'
+    })
+  )
   const isLoading = useSelector(
     service,
     (state) => state.matches({ authentication: { authenticating: 'password' } }),
@@ -266,17 +270,20 @@ export function useSignInEmailPasswordless(
     (state) => state.context.errors.authentication || null,
     (a, b) => a?.error === b?.error
   )
-  const isLoading =
-    !!service.status &&
-    service.state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
-  const isSuccess =
-    !!service.status &&
-    service.state.matches({
+  const isLoading = useSelector(service, (state) =>
+    state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
+  )
+
+  const isSuccess = useSelector(service, (state) =>
+    state.matches({
       authentication: { signedOut: 'noErrors' },
       email: 'awaitingVerification'
     })
-  const isError =
-    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
+  )
+
+  const isError = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
 
   return { signInEmailPasswordless, isLoading, isSuccess, isError, error }
 }
@@ -293,11 +300,17 @@ export const useSignInAnonymous = () => {
     (state) => state.context.errors.authentication || null,
     (a, b) => a?.error === b?.error
   )
-  const isLoading =
-    !!service.status && service.state.matches({ authentication: { authenticating: 'anonymous' } })
-  const isSuccess = useAuthenticated()
-  const isError =
-    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
+  const isLoading = useSelector(service, (state) =>
+    state.matches({ authentication: { authenticating: 'anonymous' } })
+  )
+  const isSuccess = useSelector(service, (state) =>
+    state.matches({
+      authentication: 'signedIn'
+    })
+  )
+  const isError = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
   const user = useSelector(
     service,
     (state) => state.context.user,

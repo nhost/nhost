@@ -1,5 +1,21 @@
 # @nhost/react
 
+## 0.7.5
+
+### Patch Changes
+
+- 9d32314: Return an error when trying sign to in/up/out from hooks while in the wrong authentication status
+  The actions of the authentication hooks were not resolving the promise when executed from the wrong authentication status.
+  They now return an error.
+- 236ce72: Correct `useSignUpEmailPassword` loading state
+- 236ce72: Correct email verification states
+  email verification returns `false` when the client has started and it is still undetermined
+- Updated dependencies [9d32314]
+- Updated dependencies [e094e68]
+- Updated dependencies [236ce72]
+  - @nhost/core@0.5.4
+  - @nhost/nhost-js@1.1.11
+
 ## 0.7.4
 
 ### Patch Changes

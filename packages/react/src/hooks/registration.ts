@@ -1,14 +1,9 @@
-import { useMemo } from 'react'
-
-import {
-  SignUpEmailPasswordHandlerResult,
-  signUpEmailPasswordPromise,
-  SignUpEmailPasswordState,
-  SignUpOptions
-} from '@nhost/core'
+import { signUpEmailPasswordPromise, SignUpEmailPasswordState, SignUpOptions } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { useAuthenticationStatus, useAuthInterpreter } from './common'
+import { useAuthInterpreter } from './common'
+
+type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>
 
 interface SignUpEmailPasswordHandler {
   (
@@ -105,21 +100,31 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   const stateOptions = c || (typeof a !== 'string' ? a : undefined)
 
   const service = useAuthInterpreter()
-  const isError =
-    !!service.status && service.state.matches({ authentication: { signedOut: 'failed' } })
+  const isError = useSelector(service, (state) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
+
   const error = useSelector(
     service,
     (state) => state.context.errors.registration || null,
     (a, b) => a?.error === b?.error
   )
-  const { isLoading: loading, isAuthenticated: isSuccess } = useAuthenticationStatus()
-  const isLoading = useMemo(() => loading && !isSuccess, [loading, isSuccess])
-  const needsEmailVerification =
-    !!service.status &&
-    service.state.matches({
+
+  const isLoading = useSelector(service, (state) =>
+    state.matches({ authentication: 'registering' })
+  )
+
+  const needsEmailVerification = useSelector(service, (state) =>
+    state.matches({
       authentication: { signedOut: 'noErrors' },
       email: 'awaitingVerification'
     })
+  )
+  const isSuccess = useSelector(service, (state) =>
+    state.matches({
+      authentication: 'signedIn'
+    })
+  )
 
   const signUpEmailPassword: SignUpEmailPasswordHandler = (
     valueEmail?: string | unknown,

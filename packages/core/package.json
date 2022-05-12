@@ -1,6 +1,6 @@
 {
   "name": "@nhost/core",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [
@@ -52,7 +52,7 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "axios": "^0.26.0",
+    "axios": "^0.27.2",
     "js-cookie": "^3.0.1",
     "xstate": "^4.31.0"
   },

@@ -1,8 +1,5 @@
 /* eslint-disable react/react-in-jsx-scope */
-import { useEffect } from 'react'
-import { Route, Routes, useNavigate } from 'react-router-dom'
-
-import { useSignOut } from '@nhost/react'
+import { Route, Routes } from 'react-router-dom'
 
 import { AuthGate, PublicGate } from './components/auth-gates'
 import { AboutPage } from './About'
@@ -19,13 +16,6 @@ import { NotificationsProvider } from '@mantine/notifications'
 const title = 'Nhost with React and Apollo'
 
 function App() {
-  const { signOut, isSuccess: signedOut } = useSignOut()
-
-  const navigate = useNavigate()
-  useEffect(() => {
-    if (signedOut) navigate('/')
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedOut])
   return (
     <MantineProvider
       withGlobalStyles

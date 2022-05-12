@@ -396,7 +396,7 @@ export const createAuthMachine = ({
           }
         },
         email: {
-          initial: 'awaitingVerification',
+          initial: 'unknown',
           on: {
             SIGNED_IN: [
               {
@@ -405,10 +405,11 @@ export const createAuthMachine = ({
               },
               '.valid'
             ],
-            SIGNOUT: '.awaitingVerification',
+            SIGNOUT: '.unknown',
             AWAIT_EMAIL_VERIFICATION: '.awaitingVerification'
           },
           states: {
+            unknown: {},
             awaitingVerification: {},
             valid: {}
           }

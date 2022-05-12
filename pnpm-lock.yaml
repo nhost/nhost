@@ -354,11 +354,11 @@ importers:
   packages/core:
     specifiers:
       '@types/js-cookie': ^3.0.2
-      axios: ^0.26.0
+      axios: ^0.27.2
       js-cookie: ^3.0.1
       xstate: ^4.31.0
     dependencies:
-      axios: 0.26.1
+      axios: 0.27.2
       js-cookie: 3.0.1
       xstate: 4.31.0
     devDependencies:
@@ -404,7 +404,7 @@ importers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@types/faker': '5'
-      axios: ^0.26.0
+      axios: ^0.27.2
       faker: '5'
       html-urls: ^2.4.27
       jwt-decode: ^3.1.2
@@ -417,7 +417,7 @@ importers:
     devDependencies:
       '@nhost/docgen': link:../docgen
       '@types/faker': 5.5.9
-      axios: 0.26.1
+      axios: 0.27.2
       faker: 5.5.3
       html-urls: 2.4.34
       mailhog: 4.16.0
@@ -425,9 +425,9 @@ importers:
   packages/hasura-storage-js:
     specifiers:
       '@nhost/docgen': workspace:*
-      axios: ^0.26.0
+      axios: ^0.27.2
     dependencies:
-      axios: 0.26.1
+      axios: 0.27.2
     devDependencies:
       '@nhost/docgen': link:../docgen
 
@@ -463,14 +463,14 @@ importers:
       '@nhost/docgen': workspace:*
       '@nhost/hasura-auth-js': workspace:*
       '@nhost/hasura-storage-js': workspace:*
-      axios: ^0.26.0
+      axios: ^0.27.2
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
     dependencies:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
-      axios: 0.26.1
+      axios: 0.27.2
       jwt-decode: 3.1.2
       query-string: 7.1.1
     devDependencies:
@@ -6959,7 +6959,7 @@ packages:
       vite: ^2.5.10
       vue: ^3.2.25
     dependencies:
-      vite: 2.9.7_sass@1.32.0
+      vite: 2.9.7
       vue: 3.2.33
     dev: true
 
@@ -7750,7 +7750,6 @@ packages:
 
   /asynckit/0.4.0:
     resolution: {integrity: sha1-x57Zf380y48robyXkLzDZkdLS3k=}
-    dev: true
 
   /at-least-node/1.0.0:
     resolution: {integrity: sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==}
@@ -7816,10 +7815,11 @@ packages:
     transitivePeerDependencies:
       - debug
 
-  /axios/0.26.1:
-    resolution: {integrity: sha512-fPwcX4EvnSHuInCMItEhAGnaSEXRBjtzh9fOtsE6E1G6p7vl7edEeZe11QHf18+6+9gR5PbKV/sGKNaD8YaMeA==}
+  /axios/0.27.2:
+    resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
       follow-redirects: 1.14.9
+      form-data: 4.0.0
     transitivePeerDependencies:
       - debug
 
@@ -8764,7 +8764,6 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       delayed-stream: 1.0.0
-    dev: true
 
   /comma-separated-tokens/1.0.8:
     resolution: {integrity: sha512-GHuDRO12Sypu2cV70d1dkA2EUmXHgntrzbpvOB+Qy+49ypNfGgFQIC2fhhXbnyrJRynDCAARsT7Ou0M6hirpfw==}
@@ -9939,7 +9938,6 @@ packages:
   /delayed-stream/1.0.0:
     resolution: {integrity: sha1-3zrhmayt+31ECqrgsp4icrJOxhk=}
     engines: {node: '>=0.4.0'}
-    dev: true
 
   /delegates/1.0.0:
     resolution: {integrity: sha1-hMbhWbgZBP3KWaDvRM2HDTElD5o=}
@@ -11643,7 +11641,6 @@ packages:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.35
-    dev: true
 
   /format/0.2.2:
     resolution: {integrity: sha1-1hcBB+nv3E7TDJ3DkBbflCtctYs=}
