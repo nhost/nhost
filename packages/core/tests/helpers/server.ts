@@ -3,15 +3,18 @@ import {
   authTokenSuccessHandler,
   correctEmailPasswordHandler,
   correctPasswordlessEmailHandler,
-  correctPasswordlessSmsHandler
+  correctPasswordlessSmsHandler,
+  correctPasswordlessSmsOtpHandler
 } from './handlers'
 
 export const defaultSuccessHandlers = [
   authTokenSuccessHandler,
   correctEmailPasswordHandler,
   correctPasswordlessEmailHandler,
-  correctPasswordlessSmsHandler
+  correctPasswordlessSmsHandler,
+  correctPasswordlessSmsOtpHandler
 ]
+
 export const server = setupServer(...defaultSuccessHandlers)
 
 export default server
