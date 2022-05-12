@@ -8,9 +8,10 @@
   </v-list>
 </template>
 <script lang="ts">
-import { useAuthenticated, useSignOut } from '@nhost/vue'
 import { defineComponent } from 'vue'
 import { useRouter } from 'vue-router'
+
+import { useAuthenticated, useSignOut } from '@nhost/vue'
 
 export default defineComponent({
   setup() {

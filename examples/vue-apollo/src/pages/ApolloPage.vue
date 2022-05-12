@@ -14,9 +14,10 @@
 
 <script lang="ts">
 import { computed, defineComponent } from 'vue'
+
 import { gql } from '@apollo/client'
-import { useQuery } from '@vue/apollo-composable'
 import { useAuthenticated } from '@nhost/vue'
+import { useQuery } from '@vue/apollo-composable'
 
 const GET_BOOKS = gql`
   query BooksQuery {
