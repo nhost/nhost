@@ -149,6 +149,13 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/gdangelo">
+            <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
+            <br />
+            <sub><b>Grégory D'Angelo</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/nunopato">
             <img src="https://avatars.githubusercontent.com/u/1523504?v=4" width="100;" alt="nunopato"/>
             <br />
@@ -161,15 +168,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Subha Das</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/guicurcio">
             <img src="https://avatars.githubusercontent.com/u/20285232?v=4" width="100;" alt="guicurcio"/>
             <br />
             <sub><b>Guido Curcio</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/sebagudelo">
             <img src="https://avatars.githubusercontent.com/u/43288271?v=4" width="100;" alt="sebagudelo"/>
@@ -182,13 +189,6 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/9859731?v=4" width="100;" alt="mrinalwahal"/>
             <br />
             <sub><b>Mrinal Wahal</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/gdangelo">
-            <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
-            <br />
-            <sub><b>Grégory D'Angelo</b></sub>
         </a>
     </td>
     <td align="center">
