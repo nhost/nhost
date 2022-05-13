@@ -23,7 +23,6 @@ Data is stored in Postgres and files are stored in S3.
 The open source tools used for the full Nhost stack are:
 
 - Database: [Postgres](https://www.postgresql.org/)
-- S3: [Minio](https://github.com/minio/minio)
 - GraphQL: [Hasura](https://github.com/hasura/graphql-engine)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth)
 - Storage: [Hasura Storage](https://github.com/nhost/hasura-storage)
