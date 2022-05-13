@@ -226,9 +226,9 @@ describe(`Email and password sign in`, () => {
 
     expect(signInPasswordState.context.mfa.ticket).not.toBeNull()
 
+    // Note: MFA ticket is already in context
     authService.send({
       type: 'SIGNIN_MFA_TOTP',
-      ticket: signInPasswordState.context.mfa.ticket,
       otp: faker.random.numeric(6)
     })
 
@@ -585,7 +585,7 @@ describe(`MFA TOTP sign in`, () => {
 
     authService.send({
       type: 'SIGNIN_MFA_TOTP',
-      ticket: '',
+      ticket: faker.datatype.uuid(),
       otp: faker.random.numeric(6).toString()
     })
 
@@ -596,8 +596,8 @@ describe(`MFA TOTP sign in`, () => {
     expect(invalidTicketState.context.errors).toMatchInlineSnapshot(`
       {
         "authentication": {
-          "error": "no-mfa-ticket",
-          "message": "No MFA ticket has been provided",
+          "error": "invalid-mfa-ticket",
+          "message": "MFA ticket is invalid",
           "status": 10,
         },
       }
@@ -632,6 +632,21 @@ describe(`MFA TOTP sign in`, () => {
     authService.send({
       type: 'SIGNIN_MFA_TOTP',
       ticket: `mfaTotp:${faker.datatype.uuid()}`,
+      otp: faker.random.numeric(6).toString()
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(state.context.user).not.toBeNull()
+  })
+
+  test(`should succeed if MFA ticket is already in context and TOTP was valid`, async () => {
+    authService.state.context.mfa = { ticket: `mfaTotp:${faker.datatype.uuid()}` }
+
+    authService.send({
+      type: 'SIGNIN_MFA_TOTP',
       otp: faker.random.numeric(6).toString()
     })
 

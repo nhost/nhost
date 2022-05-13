@@ -637,7 +637,7 @@ export const createAuthMachine = ({
         invalidEmail: (_, { email }) => !isValidEmail(email),
         invalidPassword: (_, { password }) => !isValidPassword(password),
         invalidPhoneNumber: (_, { phoneNumber }) => !isValidPhoneNumber(phoneNumber),
-        invalidMfaTicket: (_, { ticket }) => !isValidTicket(ticket)
+        invalidMfaTicket: (ctx, { ticket }) => !isValidTicket(ticket || ctx.mfa?.ticket)
       },
 
       services: {
