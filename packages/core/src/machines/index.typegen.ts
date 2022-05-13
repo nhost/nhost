@@ -26,6 +26,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateWithToken'
     saveAuthenticationError:
       | 'error.platform.importRefreshToken'
+      | 'error.platform.signingOut'
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticatePasswordlessSms'
       | 'error.platform.authenticatePasswordlessSmsOtp'
@@ -144,6 +145,7 @@ export interface Typegen0 {
       type: 'error.platform.importRefreshToken'
       data: unknown
     }
+    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
       data: unknown
@@ -185,7 +187,6 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'done.invoke.authenticatePasswordlessSms': {
       type: 'done.invoke.authenticatePasswordlessSms'
       data: unknown

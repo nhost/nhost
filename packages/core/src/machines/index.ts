@@ -133,8 +133,8 @@ export const createAuthMachine = ({
                       target: 'success'
                     },
                     onError: {
-                      target: 'failed.server'
-                      // TODO save error
+                      target: 'failed.server',
+                      actions: ['saveAuthenticationError']
                     }
                   }
                 }
