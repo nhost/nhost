@@ -38,7 +38,7 @@ export function useNhostClient(): UseNhostClientReturn {
     const client = resolveImpl()
     if (!client) {
       throw new Error(
-        `Nhost client found. Use provideNhostClient() if you are outside of a component setup.`
+        `No Nhost client found. Use provideNhostClient() if you are outside of a component setup.`
       )
     }
     return client

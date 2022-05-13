@@ -19,7 +19,8 @@ interface SignUpEmailPasswordResult extends ToRefs<SignUpEmailPasswordState> {
   /** Used for a new user to sign up. Returns a promise with the current context */
   signUpEmailPassword(
     email: RefOrValue<string>,
-    password: RefOrValue<string>
+    password: RefOrValue<string>,
+    options?: RefOrValue<SignUpOptions | undefined>
   ): Promise<SignUpEmailPasswordHandlerResult>
 }
 
@@ -54,8 +55,15 @@ export const useSignUpEmailPassword = (
   )
   const accessToken = useAccessToken()
   const user = useUserData()
-  const signUpEmailPassword = (email: RefOrValue<string>, password: RefOrValue<string>) =>
-    signUpEmailPasswordPromise(service.value, unref(email), unref(password), unref(options))
+  const signUpEmailPassword = (
+    email: RefOrValue<string>,
+    password: RefOrValue<string>,
+    handlerOptions: RefOrValue<SignUpOptions | undefined>
+  ) =>
+    signUpEmailPasswordPromise(service.value, unref(email), unref(password), {
+      ...unref(options),
+      ...unref(handlerOptions)
+    })
 
   return {
     signUpEmailPassword,

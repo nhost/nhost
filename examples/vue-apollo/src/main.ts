@@ -52,8 +52,7 @@ if (devTools) {
 }
 
 const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337',
-  devTools
+  backendUrl: import.meta.env.VITE_NHOST_URL
 })
 
 const apolloClient = createApolloClient({ nhost })

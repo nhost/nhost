@@ -1,0 +1,632 @@
+---
+title: 'Quickstart: Vue'
+sidebar_position: 3
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+# Quickstart: Vue
+
+## Introduction
+
+This quickstart guide provides the steps you need to build a simple Vue app
+powered by Nhost for the backend. It includes:
+
+- Database: [PostgreSQL](https://www.postgresql.org/)
+- Instant GraphQL API: [Hasura](https://hasura.io/)
+- Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
+- Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
+
+By the end of this guide, you'll have a full-stack app that allows users to log
+in to access a protected dashboard and update their profile information.
+
+:::tip
+You can see the result of this quickstart [in our main repository](https://github.com/nhost/nhost/tree/main/examples/quickstart-vue).
+
+You can also edit it in the browser: [![StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/nhost/nhost/tree/main/examples/quickstart-vue)
+:::
+
+## Prerequisites
+
+Before getting started, let's make sure that your development environment is
+ready.
+
+You'll need **Node.js** version 14 or later: [install it from here](https://nodejs.org/en/).
+
+## Project setup
+
+### Create a new Nhost app
+
+:::warning TODO
+Use a shared component
+:::
+
+## Initialize the app
+
+### Create a Vue app
+
+We will use [Vitesse Lite](https://github.com/antfu/vitesse-lite), a ready-to-deploy Vite template by Anthony Fu. We can scaffold it with [degit](https://github.com/Rich-Harris/degit).
+
+Open your terminal, and run the following command:
+
+```bash
+npx degit antfu/vitesse-lite my-vue-app
+```
+
+You can now go into your project directory, install dependencies, and start the development server:
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+cd my-nhost-app
+npm install
+npm dev
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+cd my-nhost-app
+yarn
+yarn dev
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+cd my-nhost-app
+pnpm install
+pnpm dev
+```
+
+  </TabItem>
+</Tabs>
+
+If everything is working fine, your Vue development server should be running
+on port 3000. Open [http://localhost:3000](http://localhost:3000) from your
+browser to check this out.
+
+### Configure Nhost with Vue
+
+To work with Nhost from within our Vue app, we'll use the
+[Vue SDK](https://github.com/nhost/nhost/tree/main/packages/react) provided
+by Nhost. It's a wrapper around the
+[Nhost JavaScript SDK](https://github.com/nhost/nhost/tree/main/packages/nhost-js) which
+gives us a way to interact with our Nhost backend using Vue composables.
+
+You can install the Nhost Vue SDK with:
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+npm install @nhost/vue graphql
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add @nhost/vue graphql
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add @nhost/vue graphql
+```
+
+  </TabItem>
+</Tabs>
+
+Next, open your `src/main.ts` file as we'll now configure Nhost inside our app.
+
+The Nhost Vue SDK comes with a `NhostClient` that can be loaded into the Vue application as a plugin.
+It makes the authentication state and all the provided Vue composables available in our
+application.
+
+Use the following code to instantiate a new Nhost client and link it to your
+Nhost backend:
+
+```tsx title="src/main.ts"
+import { createApp } from 'vue'
+import { createRouter, createWebHistory } from 'vue-router'
+import routes from 'virtual:generated-pages'
+// highlight-start
+import { NhostClient } from '@nhost/vue'
+// highlight-end
+import App from './App.vue'
+
+import '@unocss/reset/tailwind.css'
+import './styles/main.css'
+import 'uno.css'
+
+// highlight-start
+const nhost = new NhostClient({
+  backendUrl: import.meta.env.VITE_NHOST_URL
+})
+// highlight-end
+
+const app = createApp(App)
+const router = createRouter({
+  history: createWebHistory(import.meta.env.BASE_URL),
+  routes
+})
+app
+  .use(router)
+  // highlight-start
+  .use(nhost)
+// highlight-end
+app.mount('#app')
+```
+
+Finally, make sure to create an environment variable named
+`VITE_NHOST_URL` to store your Nhost backend URL:
+
+```bash title=".env"
+VITE_NHOST_URL=YOUR_NHOST_BACKEND_URL
+```
+
+You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+
+![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
+
+## Build the app
+
+### Add authentication
+
+#### 1. Sign-up
+
+The next step is to allow our users to authenticate into our application.
+Let's start with implementing the sign-up process.
+
+For that, we'll use the `useSignUpEmailPassword` composable provided by the Nhost
+Vue SDK within a `/sign-up` page.
+
+Let's create a new page in your project using the following code:
+
+```html title="src/pages/sign-up.vue"
+<script setup lang="ts">
+  import { defineComponent, ref } from 'vue'
+  import { useSignUpEmailPassword } from '@nhost/vue'
+  import { useRouter } from 'vue-router'
+  const inputClass =
+    'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
+
+  const { signUpEmailPassword, needsEmailVerification } = useSignUpEmailPassword()
+  const router = useRouter()
+  const firstName = ref('')
+  const lastName = ref('')
+  const email = ref('')
+  const password = ref('')
+  const handleSubmit = async () => {
+    const { isSuccess, error } = await signUpEmailPassword(email, password, {
+      metadata: { firstName: firstName.value, lastName: lastName.value }
+    })
+    if (isSuccess) router.push('/')
+  }
+</script>
+
+<template>
+  <p v-if="needsEmailVerification">
+    Please check your mailbox and follow the verification link to verify your email.
+  </p>
+
+  <div v-else>
+    <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
+    <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
+    <input v-model="email" type="email" placeholder="Email" :class="inputClass" /><br />
+    <input v-model="password" type="password" placeholder="Password" :class="inputClass" /><br />
+
+    <button class="m-3 text-sm btn" @click="handleSubmit">Sign up</button>
+  </div>
+</template>
+```
+
+#### 2. Sign-in
+
+Now that new users can sign up for our application, let's see how to allow
+existing users to sign in with email and password.
+
+For that, we will use the Nhost composable named `useSignInEmailPassword` inside a new
+`sign-in` page the same way we did with our `sign-up` page. Let's create a `src/pages/sign-in.vue` component:
+
+```html title="src/pages/sign-in.vue"
+<script setup lang="ts">
+  import { defineComponent, ref } from 'vue'
+  import { useSignInEmailPassword } from '@nhost/vue'
+  import { useRouter } from 'vue-router'
+  const inputClass =
+    'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
+  const { signInEmailPassword, needsEmailVerification } = useSignInEmailPassword()
+  const router = useRouter()
+  const email = ref('')
+  const password = ref('')
+  const handleSubmit = async () => {
+    const { isSuccess } = await signInEmailPassword(email, password)
+    if (isSuccess) router.push('/')
+  }
+</script>
+
+<template>
+  <p v-if="needsEmailVerification">
+    Your email is not yet verified. Please check your mailbox and follow the verification link
+    finish registration.
+  </p>
+
+  <div v-else>
+    <input v-model="email" type="email" placeholder="Email" :class="inputClass" /><br />
+    <input v-model="password" type="password" placeholder="Password" :class="inputClass" /><br />
+
+    <button class="m-3 text-sm btn" @click="handleSubmit">Sign in</button>
+    <p>No account yet? <router-link to="/sign-up"> Sign up </router-link></p>
+  </div>
+</template>
+```
+
+#### 3. Home page
+
+Let's also add links to sign up and sign in in our index page. We'll take the opportunity to :
+:::warning TODO
+explain useAuthenticationStatus
+:::
+
+```html title="src/pages/index.vue"
+<script setup lang="ts">
+  import { useAuthenticationStatus } from '@nhost/vue'
+  const { isAuthenticated, isLoading } = useAuthenticationStatus()
+</script>
+
+<template>
+  <div>
+    <div i-carbon-home text-4xl inline-block />
+    <p>Vue with Nhost</p>
+    <p>
+      <em text-sm op75>Quickstart</em>
+    </p>
+    <div py-4 />
+    <div v-if="isLoading">Loading...</div>
+    <div v-else-if="isAuthenticated">Authenticated user</div>
+    <div v-else>
+      <router-link class="btn" to="/sign-up"> Sign Up </router-link><br />
+      <router-link class="btn" to="/sign-in"> Sign In </router-link>
+    </div>
+  </div>
+</template>
+```
+
+#### 4. Sign-out
+
+Finally, to allow the users to sign out from the app, we can use the Nhost
+`useSignOut` composable. We'll also use `useAuthenticationStatus` to show the button only when the user is authenticated:
+
+```html title="src/components/Footer.vue"
+<script setup lang="ts">
+  import { useRouter } from 'vue-router'
+  import { useAuthenticated, useSignOut } from '@nhost/vue'
+  import { isDark, toggleDark } from '~/composables'
+  const isAuthenticated = useAuthenticated()
+  const { signOut } = useSignOut()
+  const router = useRouter()
+  const handleSignOut = () => {
+    signOut()
+    router.push('/')
+  }
+</script>
+
+<template>
+  <nav text-xl mt-6 inline-flex gap-2>
+    <button class="icon-btn !outline-none" @click="toggleDark()">
+      <div v-if="isDark" i-carbon-moon />
+      <div v-else i-carbon-sun />
+    </button>
+
+    <button v-if="isAuthenticated" class="icon-btn !outline-none" @click="handleSignOut">
+      <div i-carbon-logout />
+    </button>
+  </nav>
+</template>
+```
+
+:::warning TODO
+finish the following steps
+:::
+
+### Protect routes
+
+Now that we have implemented authentication, we can easily decide who can access
+certain parts of our application.
+
+In our case, we'll only allow authenticated users to have access to the `/` and
+`/profile` routes. All the other users should be redirected to the `/sign-in`
+page if they try to access those routes.
+
+To do so, we can create a wrapper component (`ProtectedRoute`) to check the authentication status of the current user using the Nhost SDK:
+
+```tsx title="src/components/ProtectedRoute.js"
+import styles from '../styles/components/ProtectedRoute.module.css'
+import { useAuthenticationStatus } from '@nhost/vue'
+import { Navigate, useLocation } from 'react-router-dom'
+import Spinner from './Spinner'
+
+const ProtectedRoute = ({ children }) => {
+  const { isAuthenticated, isLoading } = useAuthenticationStatus()
+  const location = useLocation()
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <Spinner />
+      </div>
+    )
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/sign-in" state={{ from: location }} replace />
+  }
+
+  return children
+}
+
+export default ProtectedRoute
+```
+
+Then, we can use a [layout route](https://reactrouter.com/docs/en/v6/getting-started/concepts#layout-routes) in our `App.js` file, to wrap the `ProtectedRoute` component around the routes we want to protect:
+
+```tsx title="src/App.js"
+import ProtectedRoute from './components/ProtectedRoute'
+
+function App() {
+  return (
+    <NhostVueProvider nhost={nhost}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="sign-up" element={<SignUp />} />
+          <Route path="sign-in" element={<SignIn />} />
+          <Route
+            path="/"
+            // highlight-start
+            element={
+              <ProtectedRoute>
+                <Layout />
+              </ProtectedRoute>
+            }
+            // highlight-end
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="profile" element={<Profile />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </NhostVueProvider>
+  )
+}
+```
+
+### Retrieve user data
+
+Finally, let's display the information of the authenticated user throughout his
+dashboard to make the app more personalized.
+
+Getting the current authenticated user data is quite easy. Indeed, we
+can use the `useUserData` composable provided by Nhost to do it.
+
+So, open the `components/Layout.js` file and use this composable like so:
+
+```js
+import { useUserData } from '@nhost/vue'
+
+const Layout = () => {
+  const user = useUserData()
+  //...
+}
+```
+
+That's it! The tsx code for rendering the user data (email, display name, etc.)
+is already included in your components as part of the template you've
+bootstraped at the beginning of this guide.
+
+### Update user data
+
+Nhost provides a GraphQL API through Hasura so that we can query and mutate our
+data instantly.
+
+In this tutorial, we'll use
+[Vue Apollo v4](https://v4.apollo.vuejs.org//) for interacting with
+this GraphQL API. Nhost comes with a custom Apollo client that syncs the Apollo client with the authentication status of your users.
+
+So, start by installing the following dependencies:
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+npm install @nhost/apollo @apollo/client graphql graphql-tag @vue/apollo-composable
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add @nhost/apollo @apollo/client graphql graphql-tag @vue/apollo-composable
+```
+
+  </TabItem>
+  <TabItem value="pnpm" label="pnpm">
+
+```bash
+pnpm add @nhost/apollo @apollo/client graphql graphql-tag @vue/apollo-composable
+```
+
+  </TabItem>
+</Tabs>
+
+Then, create the Apollo client in your `src/main.ts` file, and add provide it to your Vue app:
+
+```tsx title="src/main.ts"
+import { createApolloClient } from '@nhost/apollo'
+import { DefaultApolloClient } from '@vue/apollo-composable'
+
+const nhost = new NhostClient({
+  backendUrl: import.meta.env.VITE_NHOST_URL
+})
+
+//highlight-start
+
+const apolloClient = createApolloClient({ nhost })
+
+createApp(App).provide(DefaultApolloClient, apolloClient).use(nhost).mount('#app')
+
+// highlight-end
+```
+
+From there, we can construct our GraphQL query and use the Apollo `useMutation`
+composable to execute that query when the user submits the form from the profile page:
+
+```js title="src/pages/Profile.js"
+import { gql, useMutation } from '@apollo/client'
+import { toast } from 'react-hot-toast'
+
+const UPDATE_USER_MUTATION = gql`
+  mutation ($id: uuid!, $displayName: String!, $metadata: jsonb) {
+    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName, metadata: $metadata }) {
+      id
+      displayName
+      metadata
+    }
+  }
+`
+
+const Profile = () => {
+  const [mutateUser, { loading: updatingProfile }] = useMutation(UPDATE_USER_MUTATION)
+
+  const updateUserProfile = async (e) => {
+    e.preventDefault()
+
+    try {
+      await mutateUser({
+        variables: {
+          id: user.id,
+          displayName: `${firstName} ${lastName}`.trim(),
+          metadata: {
+            firstName,
+            lastName
+          }
+        }
+      })
+      toast.success('Updated successfully', { id: 'updateProfile' })
+    } catch (error) {
+      toast.error('Unable to update profile', { id: 'updateProfile' })
+    }
+  }
+
+  //...
+}
+```
+
+Finally, since Hasura has an **allow nothing by default** policy, and we haven't
+set any permissions yet, our GraphQL mutations would fail.
+
+So, open the Hasura console from the **Data** tab of your project from [your Nhost dashboard](https://app.nhost.io/). Then, go to the **permissions** tab of the `users` table, type in `user` in the role
+cell, and click the edit icon on the `select` operation:
+
+![Hasura users permissions](/img/quickstarts/hasura-permissions-1.png)
+
+To restrict the user to read his own data only, specify a condition with the
+user's ID and the `X-Hasura-User-ID` session variable, which is passed with each
+requests.
+
+![Hasura users permissions](/img/quickstarts/hasura-permissions-2.png)
+
+Next, select the columns you'd like the users to have access to, and click
+**Save Permissions**.
+
+![Hasura users permissions](/img/quickstarts/hasura-permissions-3.png)
+
+Repeat the same steps on the `update` operation for the `user` role to allow
+users to update their `displayName` and `metadata` only.
+
+Finally, to add caching, synchronizing, and updating server state in your Vue app, let's refactor the user data fetching using the Apollo client and our GraphQL API instead.
+
+So, first add the following GraphQL query to retrieve the current user data from the `Layout` component:
+
+```js title="src/components/Layout.js"
+import { gql } from '@apollo/client'
+
+const GET_USER_QUERY = gql`
+  query GetUser($id: uuid!) {
+    user(id: $id) {
+      id
+      email
+      displayName
+      metadata
+      avatarUrl
+    }
+  }
+`
+
+const Layout = () => {
+  //...
+}
+```
+
+Then, replace the `useUserData` composable with the `useUserId` composable to retrieve the current user's ID.
+
+```js title="src/components/Layout.js"
+import { useUserId } from '@nhost/vue'
+
+const Layout = () => {
+  const id = useUserId()
+  //...
+}
+```
+
+Finally, we can run our GraphQL query using the `useQuery` composable and the current user's ID.
+
+```tsx title="src/components/Layout.js"
+// highlight-next-line
+import { gql, useQuery } from '@apollo/client'
+
+const Layout = () => {
+  const id = useUserId()
+  // highlight-start
+  const { loading, error, data } = useQuery(GET_USER_QUERY, {
+    variables: { id }
+  })
+  const user = data?.user
+  // highlight-end
+
+  //...
+
+  return (
+    <div>
+      <header>{/* ... */}</header>
+
+      <main className={styles.main}>
+        <div className={styles['main-container']}>
+          {/* highlight-start */}
+          {error ? (
+            <p>Something went wrong. Try to refresh the page.</p>
+          ) : !loading ? (
+            <Outlet context={{ user }} />
+          ) : null}
+          {/* highlight-end */}
+        </div>
+      </main>
+    </div>
+  )
+}
+```
+
+You now have a fully functional Vue application. Congratulations!
+
+## Next Steps
+
+- Did you enjoy Nhost? Give us a star ⭐ on [Github](https://github.com/nhost/nhost). Thank you!
+- Check out our more in-depth [examples](https://github.com/nhost/nhost/tree/main/examples).
+- Build your next app with [Nhost](https://app.nhost.io/)!
