@@ -1,10 +1,10 @@
 <script context="module">
   import { client } from './apollo'
-  import { AUTHOR_LIST } from './graphql'
+  import { AUTHORS } from './graphql'
 
   export async function preload() {
     return {
-      authorCache: await client.query({ query: AUTHOR_LIST })
+      authorCache: await client.query({ query: AUTHORS })
     }
   }
 </script>
@@ -13,9 +13,9 @@
   import { restore, query } from 'svelte-apollo'
   export let authorCache
 
-  restore(AUTHOR_LIST, authorCache)
+  restore(AUTHORS, authorCache)
 
-  const authors = query(AUTHOR_LIST)
+  const authors = query(AUTHORS)
 </script>
 
 <ul>

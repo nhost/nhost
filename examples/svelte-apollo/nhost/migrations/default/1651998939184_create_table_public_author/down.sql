@@ -1,1 +1,1 @@
-DROP TABLE "public"."author";
+DROP TABLE "public"."authors";

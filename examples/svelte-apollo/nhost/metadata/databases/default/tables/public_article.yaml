@@ -1,5 +1,5 @@
 table:
-  name: article
+  name: articles
   schema: public
 object_relationships:
 - name: author
