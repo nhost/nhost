@@ -118,7 +118,7 @@ export class HasuraAuthClient {
    * Use `nhost.auth.signIn` to sign in users using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in users in various ways depending on the parameters.
    *
    * @example
-   * ### Sign in a user with email and password
+   * ### Sign in a user using email and password
    * ```ts
    * nhost.auth.signIn({
    *   email: 'joe@example.com',
@@ -127,24 +127,24 @@ export class HasuraAuthClient {
    * ```
    *
    * @example
-   * ### Sign in a user with an OAuth provider (e.g: Google or Facebook)
+   * ### Sign in a user using an OAuth provider (e.g: Google or Facebook)
    * ```ts
    * nhost.auth.signIn({ provider: 'google' })
    * ```
    *
    * @example
-   * ### Sign in a user with passwordless email (Magic Link)
+   * ### Sign in a user using passwordless email (Magic Link)
    * ```ts
    * nhost.auth.signIn({ email: 'joe@example.com' })
    * ```
    *
    * @example
-   * ### Sign in a user with Passwordless SMS
+   * ### Sign in a user using passwordless SMS
    * ```ts
-   * // [step 1/2] Passwordless sign in with SMS
+   * // [step 1/2] Passwordless sign in using SMS
    * nhost.auth.signIn({ phoneNumber: '001122334455' })
    *
-   * // [step 2/2] Finish passwordless sign in with SMS (OTP)
+   * // [step 2/2] Finish passwordless sign in using SMS (OTP)
    * nhost.auth.signIn({ phoneNumber: '001122334455', otp: '123456' })
    * ```
    *
