@@ -47,7 +47,7 @@ test('should fail if network is unavailable', async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -70,7 +70,7 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -90,13 +90,19 @@ test(`should fail if the provided email address was invalid`, async () => {
     email: faker.internet.userName()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) => !!state.value)
+  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
+  )
 
-  expect(
-    state.matches({
-      authentication: { signedOut: { failed: { validation: 'email' } } }
-    })
-  ).toBeTruthy()
+  expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-email",
+          "message": "Email is incorrectly formatted",
+          "status": 10,
+        },
+      }
+    `)
 })
 
 test(`should succeed if the provided email address was valid`, async () => {

@@ -237,12 +237,6 @@ export interface Typegen0 {
     | 'authentication.signedOut.needsSmsOtp'
     | 'authentication.signedOut.needsMfa'
     | 'authentication.signedOut.failed'
-    | 'authentication.signedOut.failed.server'
-    | 'authentication.signedOut.failed.validation'
-    | 'authentication.signedOut.failed.validation.password'
-    | 'authentication.signedOut.failed.validation.email'
-    | 'authentication.signedOut.failed.validation.phoneNumber'
-    | 'authentication.signedOut.failed.validation.mfaTicket'
     | 'authentication.signedOut.signingOut'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
@@ -288,12 +282,6 @@ export interface Typegen0 {
                 | 'needsMfa'
                 | 'failed'
                 | 'signingOut'
-                | {
-                    failed?:
-                      | 'server'
-                      | 'validation'
-                      | { validation?: 'password' | 'email' | 'phoneNumber' | 'mfaTicket' }
-                  }
               authenticating?:
                 | 'passwordlessEmail'
                 | 'passwordlessSms'

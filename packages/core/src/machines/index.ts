@@ -69,7 +69,7 @@ export const createAuthMachine = ({
         context: {} as AuthContext,
         events: {} as AuthEvents
       },
-      tsTypes: {} as import('./index.typegen').Typegen0,
+      tsTypes: {} as import("./index.typegen").Typegen0,
       context: INITIAL_MACHINE_CONTEXT,
       preserveActionOrder: true,
       id: 'nhost',
@@ -109,20 +109,7 @@ export const createAuthMachine = ({
                 success: {},
                 needsSmsOtp: {},
                 needsMfa: {},
-                failed: {
-                  initial: 'server',
-                  states: {
-                    server: {},
-                    validation: {
-                      states: {
-                        password: {},
-                        email: {},
-                        phoneNumber: {},
-                        mfaTicket: {}
-                      }
-                    }
-                  }
-                },
+                failed: {},
                 signingOut: {
                   entry: ['clearContextExceptRefreshToken'],
                   exit: ['destroyRefreshToken', 'reportTokenChanged'],
@@ -133,7 +120,7 @@ export const createAuthMachine = ({
                       target: 'success'
                     },
                     onError: {
-                      target: 'failed.server',
+                      target: 'failed',
                       actions: ['saveAuthenticationError']
                     }
                   }
@@ -163,7 +150,7 @@ export const createAuthMachine = ({
                     },
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -174,7 +161,7 @@ export const createAuthMachine = ({
                     onDone: '#nhost.authentication.signedOut.needsSmsOtp',
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -188,7 +175,7 @@ export const createAuthMachine = ({
                     },
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -215,7 +202,7 @@ export const createAuthMachine = ({
                       },
                       {
                         actions: 'saveAuthenticationError',
-                        target: '#nhost.authentication.signedOut.failed.server'
+                        target: '#nhost.authentication.signedOut.failed'
                       }
                     ]
                   }
@@ -230,7 +217,7 @@ export const createAuthMachine = ({
                     },
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -246,7 +233,7 @@ export const createAuthMachine = ({
                         },
                         onError: {
                           actions: ['saveAuthenticationError'],
-                          target: '#nhost.authentication.signedOut.failed.server'
+                          target: '#nhost.authentication.signedOut.failed'
                         }
                       }
                     }
@@ -278,7 +265,7 @@ export const createAuthMachine = ({
                   },
                   {
                     actions: 'saveRegistrationError',
-                    target: 'signedOut.failed.server'
+                    target: 'signedOut.failed'
                   }
                 ]
               }
@@ -601,17 +588,21 @@ export const createAuthMachine = ({
           })
         },
         signInAnonymous: (_) => postRequest('/signin/anonymous'),
-        signInMfaTotp: (context, { ticket, otp }) => {
-          if (!ticket && !context.mfa?.ticket) {
+        signInMfaTotp: (context, data) => {
+          const ticket = data.ticket || context.mfa?.ticket
+          if (!ticket) {
             return Promise.reject({ error: NO_MFA_TICKET_ERROR })
+          }
+          if (!isValidTicket(ticket)) {
+            return Promise.reject({ error: INVALID_MFA_TICKET_ERROR })
           }
 
           return postRequest<
             { mfa: Mfa | null; session: NhostSession | null },
             { mfa: Mfa | null; session: NhostSession | null }
           >('/signin/mfa/totp', {
-            ticket: ticket || context.mfa?.ticket,
-            otp
+            ticket,
+            otp: data.otp
           })
         },
         refreshToken: async (ctx, event) => {

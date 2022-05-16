@@ -66,7 +66,7 @@ test(`should fail if network is unavailable`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -90,7 +90,7 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -115,7 +115,7 @@ test(`should fail if user wants to sign out from all devices using an invalid to
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`

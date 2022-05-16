@@ -51,7 +51,7 @@ test(`should fail if network is unavailable`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -75,7 +75,7 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -121,17 +121,19 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(15)
   })
 
-  const emailErrorSignInState: AuthState = await waitFor(
-    authService,
-    (state: AuthState) => !!state.value
+  const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches('authentication.signedOut.failed')
   )
 
-  expect(
-    emailErrorSignInState.matches({
-      authentication: { signedOut: { failed: { validation: 'email' } } }
-    })
-  ).toBeTruthy()
-
+  expect(emailErrorSignInState.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-email",
+          "message": "Email is incorrectly formatted",
+          "status": 10,
+        },
+      }
+  `)
   // Scenario 2: Providing a valid email address with an invalid password
   authService.send({
     type: 'SIGNIN_PASSWORD',
@@ -139,16 +141,19 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(2)
   })
 
-  const passwordErrorSignInState: AuthState = await waitFor(
-    authService,
-    (state: AuthState) => !!state.value
+  const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches('authentication.signedOut.failed')
   )
 
-  expect(
-    passwordErrorSignInState.matches({
-      authentication: { signedOut: { failed: { validation: 'password' } } }
-    })
-  ).toBeTruthy()
+  expect(passwordErrorSignInState.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-password",
+          "message": "Password is incorrectly formatted",
+          "status": 10,
+        },
+      }
+    `)
 })
 
 test(`should fail if incorrect credentials are provided`, async () => {
@@ -161,7 +166,7 @@ test(`should fail if incorrect credentials are provided`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -185,7 +190,7 @@ test(`should fail if user email needs verification`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -209,7 +214,7 @@ test(`should save MFA ticket if MFA is set up for the account`, async () => {
   })
 
   const signInPasswordState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: 'needsMfa' } })
+    state.matches('authentication.signedOut.needsMfa')
   )
 
   expect(signInPasswordState.context.mfa.ticket).not.toBeNull()
