@@ -1,5 +1,5 @@
 import faker from '@faker-js/faker'
-import { afterAll, afterEach, beforeAll, describe, expect, test } from 'vitest'
+import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
@@ -16,7 +16,7 @@ import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initialzing AuthMachine with custom storage to have control over its content between tests
+// Initializing AuthMachine with custom storage to have control over its content between tests
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -54,14 +54,14 @@ test(`should fail if network is unavailable`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "OK",
-          "message": "Network Error",
-          "status": 200,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 200,
+      },
+    }
+  `)
 })
 
 test(`should fail if server returns an error`, async () => {
@@ -78,14 +78,14 @@ test(`should fail if server returns an error`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "internal-error",
-          "message": "Internal error",
-          "status": 500,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "internal-error",
+        "message": "Internal error",
+        "status": 500,
+      },
+    }
+  `)
 })
 
 test(`should fail if MFA ticket is not provided or invalid`, async () => {
@@ -100,14 +100,14 @@ test(`should fail if MFA ticket is not provided or invalid`, async () => {
   )
 
   expect(noTicketState.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "no-mfa-ticket",
-          "message": "No MFA ticket has been provided",
-          "status": 10,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "no-mfa-ticket",
+        "message": "No MFA ticket has been provided",
+        "status": 10,
+      },
+    }
+  `)
 
   authService.send({
     type: 'SIGNIN_MFA_TOTP',
@@ -120,14 +120,14 @@ test(`should fail if MFA ticket is not provided or invalid`, async () => {
   )
 
   expect(invalidTicketState.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "invalid-mfa-ticket",
-          "message": "MFA ticket is invalid",
-          "status": 10,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "invalid-mfa-ticket",
+        "message": "MFA ticket is invalid",
+        "status": 10,
+      },
+    }
+  `)
 })
 
 test(`should fail if TOTP is invalid`, async () => {
@@ -144,14 +144,14 @@ test(`should fail if TOTP is invalid`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "invalid-otp",
-          "message": "Invalid or expired OTP",
-          "status": 401,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "invalid-otp",
+        "message": "Invalid or expired OTP",
+        "status": 401,
+      },
+    }
+  `)
 })
 
 test(`should succeed if the provided MFA ticket and TOTP were valid`, async () => {

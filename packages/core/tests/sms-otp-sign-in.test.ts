@@ -15,7 +15,7 @@ import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initialzing AuthMachine with custom storage to have control over its content between tests
+// Initializing AuthMachine with custom storage to have control over its content between tests
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -53,14 +53,14 @@ test(`should fail if network is unavailable`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "OK",
-          "message": "Network Error",
-          "status": 200,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 200,
+      },
+    }
+  `)
 })
 
 test(`should fail if server returns an error`, async () => {
@@ -77,14 +77,14 @@ test(`should fail if server returns an error`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "internal-error",
-          "message": "Internal error",
-          "status": 500,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "internal-error",
+        "message": "Internal error",
+        "status": 500,
+      },
+    }
+  `)
 })
 
 test(`should fail if the provided phone number was invalid`, async () => {
@@ -118,14 +118,14 @@ test(`should fail if the provided OTP was invalid`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "invalid-otp",
-          "message": "Invalid or expired OTP",
-          "status": 401,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "invalid-otp",
+        "message": "Invalid or expired OTP",
+        "status": 401,
+      },
+    }
+  `)
 })
 
 test(`should succeed if the provided phone number and OTP were valid`, async () => {

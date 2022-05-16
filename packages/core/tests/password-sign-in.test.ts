@@ -17,7 +17,7 @@ import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initialzing AuthMachine with custom storage to have control over its content between tests
+// Initializing AuthMachine with custom storage to have control over its content between tests
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -55,14 +55,14 @@ test(`should fail if network is unavailable`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "OK",
-          "message": "Network Error",
-          "status": 200,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 200,
+      },
+    }
+  `)
 })
 
 test(`should fail if server returns an error`, async () => {
@@ -79,14 +79,14 @@ test(`should fail if server returns an error`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "OK",
-          "message": "Network Error",
-          "status": 200,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 200,
+      },
+    }
+  `)
 })
 
 test(`should retry token refresh if refresh endpoint is unreachable`, async () => {
@@ -165,14 +165,14 @@ test(`should fail if incorrect credentials are provided`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "invalid-email-password",
-          "message": "Incorrect email or password",
-          "status": 401,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "invalid-email-password",
+        "message": "Incorrect email or password",
+        "status": 401,
+      },
+    }
+  `)
 })
 
 test(`should fail if user email needs verification`, async () => {
@@ -189,14 +189,14 @@ test(`should fail if user email needs verification`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "unverified-email",
-          "message": "Email needs verification",
-          "status": 401,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "unverified-email",
+        "message": "Email needs verification",
+        "status": 401,
+      },
+    }
+  `)
 })
 
 test(`should save MFA ticket if MFA is set up for the account`, async () => {

@@ -1,6 +1,7 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
+import { NHOST_REFRESH_TOKEN_KEY } from '../src/constants'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
@@ -32,7 +33,7 @@ function simulateSignIn(): Promise<AuthState> {
   )
 }
 
-// Initialzing AuthMachine with custom storage to have control over its content between tests
+// Initializing AuthMachine with custom storage to have control over its content between tests
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -152,8 +153,12 @@ test(`should succeed if user wants to sign out from all devices and provides a v
   expect(signedOutState.context.accessToken.value).toBeNull()
   expect(signedOutState.context.user).toBeNull()
 
-  // todo: we expect refresh token to be removed from the storage
-  // expect(customStorage.getItem(NHOST_REFRESH_TOKEN_KEY)).toBeNull()
+  // todo: this is not ideal
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 250)
+  })
+
+  expect(customStorage.getItem(NHOST_REFRESH_TOKEN_KEY)).not.toBeDefined()
 })
 
 test(`should succeed if user was previously signed in`, async () => {
@@ -170,6 +175,10 @@ test(`should succeed if user was previously signed in`, async () => {
   expect(signedOutState.context.accessToken.value).toBeNull()
   expect(signedOutState.context.user).toBeNull()
 
-  // todo: we expect refresh token to be removed from the storage
-  // expect(customStorage.getItem(NHOST_REFRESH_TOKEN_KEY)).toBeNull()
+  // todo: this is not ideal
+  await new Promise<void>((resolve) => {
+    setTimeout(resolve, 250)
+  })
+
+  expect(customStorage.getItem(NHOST_REFRESH_TOKEN_KEY)).not.toBeDefined()
 })
