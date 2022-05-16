@@ -124,7 +124,7 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.setAccessToken` to a specific access token to be used in subsequent storage requests.
+   * Use `nhost.storage.setAccessToken` to a set an access token to be used in subsequent storage requests. Note that if you're signin in users with `nhost.auth.signIn()` the access token will be set automatically.
    *
    * @example
    * ```ts
