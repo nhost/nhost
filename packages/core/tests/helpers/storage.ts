@@ -1,20 +1,30 @@
+import { ClientStorage } from '../../src/types'
+
 /**
  * Custom in memory storage implementation for testing purposes.
  */
-export const customStorage = {
-  map: new Map<string, any>(),
-  getItem(key: string) {
-    return this.map.get(key)
-  },
-  removeItem(key: string) {
-    return this.map.delete(key)
-  },
-  setItem(key: string, value: any) {
-    return this.map.set(key, value)
-  },
-  clear() {
-    return this.map.clear()
+export class CustomClientStorage implements ClientStorage {
+  private _storage: Map<string, any>
+
+  constructor(storage: Map<string, any>) {
+    this._storage = storage
+  }
+
+  public getItem = (key: string) => {
+    return this._storage.get(key)
+  }
+
+  public setItem = (key: string, value: any) => {
+    return this._storage.set(key, value)
+  }
+
+  public removeItem = (key: string) => {
+    this._storage.delete(key)
+  }
+
+  public clear = () => {
+    this._storage.clear()
   }
 }
 
-export default customStorage
+export default CustomClientStorage

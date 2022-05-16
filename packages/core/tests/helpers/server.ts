@@ -6,7 +6,7 @@ import {
   correctPasswordlessEmailHandler,
   correctPasswordlessSmsHandler,
   correctPasswordlessSmsOtpHandler,
-  singOutHandler,
+  signOutHandler,
   signUpSuccessHandler
 } from './handlers'
 
@@ -17,7 +17,7 @@ export const defaultSuccessHandlers = [
   correctPasswordlessSmsHandler,
   correctPasswordlessSmsOtpHandler,
   correctMfaTotpHandler,
-  singOutHandler,
+  signOutHandler,
   signUpSuccessHandler
 ]
 

@@ -9,12 +9,13 @@ import {
   passwordlessSmsNetworkErrorHandler
 } from './helpers/handlers'
 import server from './helpers/server'
-import customStorage from './helpers/storage'
+import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initializing AuthMachine with custom storage to have control over its content between tests
+const customStorage = new CustomClientStorage(new Map())
+
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
