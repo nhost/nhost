@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import { mergeUrls } from './mergeUrls'
 
 test('should merge two URLs', () => {

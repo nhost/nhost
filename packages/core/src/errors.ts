@@ -35,6 +35,12 @@ export const INVALID_PHONE_NUMBER_ERROR: ValidationErrorPayload = {
   message: 'Phone number is incorrectly formatted'
 }
 
+export const INVALID_MFA_TICKET_ERROR: ValidationErrorPayload = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'invalid-mfa-ticket',
+  message: 'MFA ticket is invalid'
+}
+
 export const NO_MFA_TICKET_ERROR: ValidationErrorPayload = {
   status: VALIDATION_ERROR_CODE,
   error: 'no-mfa-ticket',

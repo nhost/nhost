@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import CommentTagFragment from './CommentTagFragment'
 
 test('should create a fragment with a formatted tag name and the text', () => {

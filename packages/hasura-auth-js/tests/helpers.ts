@@ -1,6 +1,7 @@
 import axios from 'axios'
 import htmlUrls from 'html-urls'
 import createMailhogClient from 'mailhog'
+import { expect } from 'vitest'
 
 import { HasuraAuthClient, SignUpParams } from '../src'
 

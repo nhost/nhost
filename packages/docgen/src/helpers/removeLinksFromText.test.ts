@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import removeLinksFromText from './removeLinksFromText'
 
 test('should return an empty string if text is undefined', () => {

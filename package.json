@@ -21,7 +21,7 @@
     "dev": "turbo run dev --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples}/*,docs}/{dist,umd,.next,.turbo,coverage}",
-    "ci": "turbo run build test --concurrency=4 --filter=!@nhost/docs --filter=!@nhost-examples/* && pnpm run lint",
+    "ci": "turbo run build test lint --filter=!@nhost/docs --filter=!@nhost-examples/*",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
     "coverage": "pnpm run test --coverage",
     "prettier": "prettier --check .",
@@ -53,6 +53,7 @@
     "@typescript-eslint/eslint-plugin": "^5.22.0",
     "@typescript-eslint/parser": "^5.22.0",
     "@vitejs/plugin-react": "^1.3.2",
+    "c8": "^7.11.2",
     "eslint": "^8.14.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^8.0.3",
@@ -75,6 +76,7 @@
     "vite": "^2.9.7",
     "vite-plugin-dts": "^0.9.10",
     "vite-tsconfig-paths": "^3.4.1",
+    "vitest": "^0.12.1",
     "wait-on": "^6.0.1"
   },
   "resolutions": {

@@ -43,7 +43,8 @@
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build --config ../../config/vite.lib.config.js",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
-    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
+    "test": "vitest run --config ../../config/vite.lib.config.js",
+    "test:watch": "vitest --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -57,6 +58,7 @@
     "xstate": "^4.31.0"
   },
   "devDependencies": {
-    "@types/js-cookie": "^3.0.2"
+    "@types/js-cookie": "^3.0.2",
+    "msw": "^0.39.2"
   }
 }

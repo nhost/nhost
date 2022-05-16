@@ -1,4 +1,5 @@
 import faker from 'faker'
+import { describe, expect, it } from 'vitest'
 
 import { auth, signUpAndInUser } from './helpers'
 

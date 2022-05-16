@@ -1,3 +1,5 @@
+import { describe, expect, it } from 'vitest'
+
 import { NhostClient } from '../src'
 
 const BACKEND_URL = 'http://localhost:1337'

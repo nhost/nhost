@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import mockParameter from '../__mocks__/mockParameter'
 import mockSignature from '../__mocks__/mockSignature'
 import { Parameter, Signature } from '../types'
