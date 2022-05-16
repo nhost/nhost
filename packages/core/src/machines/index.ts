@@ -112,7 +112,6 @@ export const createAuthMachine = ({
                 failed: {
                   initial: 'server',
                   states: {
-                    unknown: {},
                     server: {},
                     validation: {
                       states: {
@@ -144,8 +143,7 @@ export const createAuthMachine = ({
                       initial: 'pending',
                       states: {
                         pending: {},
-                        failed: {},
-                        success: {}
+                        failed: {}
                       },
                       invoke: {
                         id: 'destroyingRefreshToken',

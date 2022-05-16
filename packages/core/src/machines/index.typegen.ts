@@ -262,7 +262,6 @@ export interface Typegen0 {
     | 'authentication.signedOut.needsSmsOtp'
     | 'authentication.signedOut.needsMfa'
     | 'authentication.signedOut.failed'
-    | 'authentication.signedOut.failed.unknown'
     | 'authentication.signedOut.failed.server'
     | 'authentication.signedOut.failed.validation'
     | 'authentication.signedOut.failed.validation.password'
@@ -274,7 +273,6 @@ export interface Typegen0 {
     | 'authentication.signedOut.signingOut.destroyingRefreshToken'
     | 'authentication.signedOut.signingOut.destroyingRefreshToken.pending'
     | 'authentication.signedOut.signingOut.destroyingRefreshToken.failed'
-    | 'authentication.signedOut.signingOut.destroyingRefreshToken.success'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
     | 'authentication.authenticating.passwordlessSms'
@@ -321,14 +319,13 @@ export interface Typegen0 {
                 | 'signingOut'
                 | {
                     failed?:
-                      | 'unknown'
                       | 'server'
                       | 'validation'
                       | { validation?: 'password' | 'email' | 'phoneNumber' | 'mfaTicket' }
                     signingOut?:
                       | 'pending'
                       | 'destroyingRefreshToken'
-                      | { destroyingRefreshToken?: 'pending' | 'failed' | 'success' }
+                      | { destroyingRefreshToken?: 'pending' | 'failed' }
                   }
               authenticating?:
                 | 'passwordlessEmail'
