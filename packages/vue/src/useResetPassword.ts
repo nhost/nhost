@@ -28,8 +28,8 @@ const { resetPassword, isLoading, isSent, isError, error } =
 export const useResetPassword = (
   options?: RefOrValue<ResetPasswordOptions | undefined>
 ): ResetPasswordResult => {
-  const { client } = useNhostClient()
-  const service = useInterpret(createResetPasswordMachine(client.auth.client))
+  const { nhost } = useNhostClient()
+  const service = useInterpret(createResetPasswordMachine(nhost.auth.client))
 
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
   const isSent = useSelector(service, (state) => state.matches({ idle: 'success' }))

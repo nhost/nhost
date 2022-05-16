@@ -26,9 +26,9 @@ const { changePassword, isLoading, isSuccess, isError, error } =
  * 
  */
 export const useChangePassword = (): ChangePasswordComposableResult => {
-  const { client } = useNhostClient()
+  const { nhost } = useNhostClient()
 
-  const service = useInterpret(createChangePasswordMachine(client.auth.client))
+  const service = useInterpret(createChangePasswordMachine(nhost.auth.client))
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const error = useSelector(service, (state) => state.context.error)

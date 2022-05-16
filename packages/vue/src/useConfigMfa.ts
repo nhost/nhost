@@ -36,9 +36,9 @@ export interface ConfigMfaComposableState
  * @returns
  */
 export const useConfigMfa = (): ConfigMfaComposableState => {
-  const { client } = useNhostClient()
+  const { nhost } = useNhostClient()
 
-  const service = useInterpret(createEnableMfaMachine(client.auth.client))
+  const service = useInterpret(createEnableMfaMachine(nhost.auth.client))
 
   const isError = useSelector(
     service,

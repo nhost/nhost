@@ -29,8 +29,8 @@ const { sendEmail, isLoading, isSent, isError, error } =
 export const useSendVerificationEmail = (
   options?: RefOrValue<SendVerificationEmailOptions | undefined>
 ): SendVerificationEmailResult => {
-  const { client } = useNhostClient()
-  const service = useInterpret(createSendVerificationEmailMachine(client.auth.client))
+  const { nhost } = useNhostClient()
+  const service = useInterpret(createSendVerificationEmailMachine(nhost.auth.client))
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const result = reactive<SendVerificationEmailHandlerResult>({

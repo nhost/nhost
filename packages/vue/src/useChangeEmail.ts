@@ -29,9 +29,9 @@ const { changeEmail, isLoading, needsEmailVerification, isError, error } =
 export const useChangeEmail = (
   options?: RefOrValue<ChangeEmailOptions | undefined>
 ): ChangeEmailComposableResult => {
-  const { client } = useNhostClient()
+  const { nhost } = useNhostClient()
 
-  const service = useInterpret(createChangeEmailMachine(client.auth.client))
+  const service = useInterpret(createChangeEmailMachine(nhost.auth.client))
   const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const error = useSelector(service, (state) => state.context.error)

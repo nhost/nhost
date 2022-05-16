@@ -13,14 +13,14 @@ const providerLink = useProviderLink();
 ```
 */
 export const useProviderLink = (options?: RefOrValue<ProviderOptions>) => {
-  const { client } = useNhostClient()
+  const { nhost } = useNhostClient()
   return reactive(
     new Proxy({} as Record<Provider, string>, {
       get(_, provider: string) {
         const optionsValue = unref(options)
         return encodeQueryParameters(
-          `${client.auth.client.backendUrl}/signin/provider/${provider}`,
-          rewriteRedirectTo(client.auth.client.clientUrl, optionsValue as any)
+          `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
+          rewriteRedirectTo(nhost.auth.client.clientUrl, optionsValue as any)
         )
       }
     })

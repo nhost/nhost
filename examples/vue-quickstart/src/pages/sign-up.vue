@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineComponent, ref } from 'vue'
+import { ref } from 'vue'
 import { useSignUpEmailPassword } from '@nhost/vue'
 import { useRouter } from 'vue-router'
 const inputClass
@@ -12,7 +12,7 @@ const lastName = ref('')
 const email = ref('')
 const password = ref('')
 const handleSubmit = async () => {
-  const { isSuccess, error } = await signUpEmailPassword(email, password, {
+  const { isSuccess } = await signUpEmailPassword(email, password, {
     metadata: { firstName: firstName.value, lastName: lastName.value },
   })
   if (isSuccess)

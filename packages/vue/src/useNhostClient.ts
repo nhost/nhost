@@ -10,8 +10,8 @@ let currentNhostClient: NullableNhostClient
 type ResolveClient = () => NullableNhostClient
 
 export interface UseNhostClientReturn {
-  resolveClient: ResolveClient
-  readonly client: NhostClient
+  resolveNhostClient: ResolveClient
+  readonly nhost: NhostClient
 }
 
 export function useNhostClient(): UseNhostClientReturn {
@@ -34,7 +34,7 @@ export function useNhostClient(): UseNhostClientReturn {
     }
   }
 
-  function resolveClient() {
+  function resolveNhostClient() {
     const client = resolveImpl()
     if (!client) {
       throw new Error(
@@ -45,9 +45,9 @@ export function useNhostClient(): UseNhostClientReturn {
   }
 
   return {
-    resolveClient,
-    get client() {
-      return resolveClient()
+    resolveNhostClient,
+    get nhost() {
+      return resolveNhostClient()
     }
   }
 }

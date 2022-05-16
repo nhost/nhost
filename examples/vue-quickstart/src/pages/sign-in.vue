@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineComponent, ref } from 'vue'
+import { ref } from 'vue'
 import { useSignInEmailPassword } from '@nhost/vue'
 import { useRouter } from 'vue-router'
 const inputClass = 'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'

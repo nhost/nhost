@@ -7,10 +7,10 @@ import { useNhostClient } from './useNhostClient'
 
 /** @internal */
 export const useAuthInterpreter = (): Ref<InterpreterFrom<AuthMachine>> => {
-  const { client } = useNhostClient()
+  const { nhost } = useNhostClient()
 
   return computed(() => {
-    const interpreter = client.auth.client.interpreter
+    const interpreter = nhost.auth.client.interpreter
     if (!interpreter) throw Error('No interpreter')
     return interpreter
   })

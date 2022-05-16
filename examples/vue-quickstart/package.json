@@ -10,9 +10,13 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@apollo/client": "^3.6.2",
+    "@nhost/apollo": "^0.5.4",
     "@nhost/vue": "*",
+    "@vue/apollo-composable": "^4.0.0-alpha.17",
     "@vueuse/core": "^8.4.2",
-    "graphql": "15.7.2",
+    "graphql": "^15.7.2",
+    "graphql-tag": "^2.12.6",
     "vue": "^3.2.33",
     "vue-router": "^4.0.15"
   },
