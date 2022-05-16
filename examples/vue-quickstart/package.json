@@ -1,4 +1,5 @@
 {
+  "name": "@nhost-examples/vue-quickstart",
   "private": true,
   "scripts": {
     "build": "vite build",
@@ -9,7 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@nhost/vue": "workspace:^0.0.1",
+    "@nhost/vue": "*",
     "@vueuse/core": "^8.4.2",
     "graphql": "15.7.2",
     "vue": "^3.2.33",
