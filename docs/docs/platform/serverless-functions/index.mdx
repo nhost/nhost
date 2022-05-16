@@ -90,6 +90,12 @@ Serverless functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seco
 
 1 GB-sec is 1 function with 1 GB of RAM running for 1 second. If 1 function with 1 GB of RAM runs for 3600 seconds, that's the equivalent of 1 GB-hour.
 
+All serverless functions in production are running with 128 MB of RAM. It's not currently possible to change this.
+
+## Node Version
+
+All serverless functions in production are running Node.js version 14.x. It's not currently possible to change this.
+
 ## Regions
 
 Serverless Functions are always deployed to the same region as your app.
