@@ -10,7 +10,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.signUpUser'
+      | 'done.invoke.signUp'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
     resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
@@ -21,7 +21,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.signUpUser'
+      | 'done.invoke.signUp'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
     saveAuthenticationError:
@@ -36,10 +36,10 @@ export interface Typegen0 {
     reportAwaitEmailVerification:
       | 'done.invoke.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
-      | 'done.invoke.signUpUser'
-      | 'error.platform.signUpUser'
+      | 'done.invoke.signUp'
+      | 'error.platform.signUp'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    saveRegistrationError: 'error.platform.signUpUser'
+    saveRegistrationError: 'error.platform.signUp'
     saveRefreshAttempt: 'error.platform.refreshToken'
     resetErrors:
       | 'SIGNUP_EMAIL_PASSWORD'
@@ -50,14 +50,14 @@ export interface Typegen0 {
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.signUpUser'
+      | 'done.invoke.signUp'
       | 'done.invoke.authenticateWithToken'
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'done.invoke.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
-      | 'done.invoke.signUpUser'
-      | 'error.platform.signUpUser'
+      | 'done.invoke.signUp'
+      | 'error.platform.signUp'
       | 'error.platform.authenticateWithToken'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
@@ -69,7 +69,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.signUpUser'
+      | 'done.invoke.signUp'
       | 'done.invoke.authenticateWithToken'
     cleanUrl:
       | 'SESSION_UPDATE'
@@ -79,7 +79,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.signUpUser'
+      | 'done.invoke.signUp'
       | 'done.invoke.authenticateWithToken'
     broadcastToken:
       | 'SESSION_UPDATE'
@@ -89,7 +89,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.signUpUser'
+      | 'done.invoke.signUp'
       | 'done.invoke.authenticateWithToken'
   }
   internalEvents: {
@@ -118,8 +118,8 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'done.invoke.signUpUser': {
-      type: 'done.invoke.signUpUser'
+    'done.invoke.signUp': {
+      type: 'done.invoke.signUp'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -165,7 +165,7 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.signUpUser': { type: 'error.platform.signUpUser'; data: unknown }
+    'error.platform.signUp': { type: 'error.platform.signUp'; data: unknown }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'error.platform.authenticateWithToken': {
       type: 'error.platform.authenticateWithToken'
@@ -195,7 +195,7 @@ export interface Typegen0 {
     signInPassword: 'done.invoke.authenticateUserWithPassword'
     signInAnonymous: 'done.invoke.authenticateAnonymously'
     signInMfaTotp: 'done.invoke.signInMfaTotp'
-    signUpUser: 'done.invoke.signUpUser'
+    signUp: 'done.invoke.signUp'
     refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
   }
   missingImplementations: {
@@ -210,17 +210,17 @@ export interface Typegen0 {
     signInPasswordlessEmail: 'SIGNIN_PASSWORDLESS_EMAIL'
     signInPasswordlessSms: 'SIGNIN_PASSWORDLESS_SMS'
     signInPasswordlessSmsOtp: 'SIGNIN_PASSWORDLESS_SMS_OTP'
-    signUpUser: 'SIGNUP_EMAIL_PASSWORD'
+    signUp: 'SIGNUP_EMAIL_PASSWORD'
     signInAnonymous: 'SIGNIN_ANONYMOUS'
     signInMfaTotp: 'SIGNIN_MFA_TOTP'
     signout: 'SIGNOUT'
     refreshToken: '' | 'TRY_TOKEN'
   }
   eventsCausingGuards: {
-    hasSession: 'SESSION_UPDATE' | 'done.invoke.signUpUser'
+    hasSession: 'SESSION_UPDATE' | 'done.invoke.signUp'
     isSignedIn: '' | 'error.platform.authenticateWithToken'
     hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.signUpUser'
+    unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.signUp'
     noToken: ''
     isAutoRefreshDisabled: ''
     hasRefreshToken: ''

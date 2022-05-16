@@ -69,7 +69,7 @@ export const createAuthMachine = ({
         context: {} as AuthContext,
         events: {} as AuthEvents
       },
-      tsTypes: {} as import("./index.typegen").Typegen0,
+      tsTypes: {} as import('./index.typegen').Typegen0,
       context: INITIAL_MACHINE_CONTEXT,
       preserveActionOrder: true,
       id: 'nhost',
@@ -244,8 +244,8 @@ export const createAuthMachine = ({
             registering: {
               entry: ['resetErrors'],
               invoke: {
-                src: 'signUpUser',
-                id: 'signUpUser',
+                src: 'signUp',
+                id: 'signUp',
                 onDone: [
                   {
                     cond: 'hasSession',
@@ -463,7 +463,7 @@ export const createAuthMachine = ({
           })
         }),
 
-        // * Authenticaiton errors
+        // * Authentication errors
         saveAuthenticationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
@@ -618,7 +618,7 @@ export const createAuthMachine = ({
             all: !!e.all
           }),
 
-        signUpUser: (_, { email, password, options }) => {
+        signUp: (_, { email, password, options }) => {
           if (!isValidEmail(email)) {
             return Promise.reject({ error: INVALID_EMAIL_ERROR })
           }

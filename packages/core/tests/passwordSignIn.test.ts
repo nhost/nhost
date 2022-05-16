@@ -5,10 +5,11 @@ import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
-  signUpConflictErrorHandler,
-  signUpInternalErrorHandler,
-  signUpNetworkErrorHandler,
-  signUpWithSessionHandler
+  authTokenNetworkErrorHandler,
+  correctEmailPasswordWithMfaHandler,
+  emailPasswordNetworkErrorHandler,
+  incorrectEmailPasswordHandler,
+  unverifiedEmailErrorHandler
 } from './helpers/handlers'
 import server from './helpers/server'
 import customStorage from './helpers/storage'
@@ -16,7 +17,7 @@ import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initialzing AuthMachine with custom storage to have control over its content between tests
+// Initializing AuthMachine with custom storage to have control over its content between tests
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -41,10 +42,10 @@ afterEach(() => {
 })
 
 test(`should fail if network is unavailable`, async () => {
-  server.use(signUpNetworkErrorHandler)
+  server.use(emailPasswordNetworkErrorHandler, authTokenNetworkErrorHandler)
 
   authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
+    type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
     password: faker.internet.password(15)
   })
@@ -54,21 +55,21 @@ test(`should fail if network is unavailable`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "registration": {
-          "error": "OK",
-          "message": "Network Error",
-          "status": 200,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 200,
+      },
+    }
+  `)
 })
 
 test(`should fail if server returns an error`, async () => {
-  server.use(signUpInternalErrorHandler)
+  server.use(emailPasswordNetworkErrorHandler, authTokenNetworkErrorHandler)
 
   authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
+    type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
     password: faker.internet.password(15)
   })
@@ -78,20 +79,44 @@ test(`should fail if server returns an error`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "registration": {
-          "error": "internal-error",
-          "message": "Internal error",
-          "status": 500,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 200,
+      },
+    }
+  `)
+})
+
+test(`should retry token refresh if refresh endpoint is unreachable`, async () => {
+  server.use(authTokenNetworkErrorHandler)
+
+  authService.send({
+    type: 'SIGNIN_PASSWORD',
+    email: faker.internet.email(),
+    password: faker.internet.password(15)
+  })
+
+  await waitFor(authService, (state: AuthState) =>
+    state.matches({
+      authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } }
+    })
+  )
+
+  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
+      authentication: { signedIn: { refreshTimer: { running: 'pending' } } }
+    })
+  )
+
+  expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
 })
 
 test(`should fail if either email or password is incorrectly formatted`, async () => {
   // Scenario 1: Providing an invalid email address with a valid password
   authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
+    type: 'SIGNIN_PASSWORD',
     email: faker.internet.userName(),
     password: faker.internet.password(15)
   })
@@ -102,17 +127,16 @@ test(`should fail if either email or password is incorrectly formatted`, async (
 
   expect(emailErrorSignInState.context.errors).toMatchInlineSnapshot(`
       {
-        "registration": {
+        "authentication": {
           "error": "invalid-email",
           "message": "Email is incorrectly formatted",
           "status": 10,
         },
       }
-    `)
-
+  `)
   // Scenario 2: Providing a valid email address with an invalid password
   authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
+    type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
     password: faker.internet.password(2)
   })
@@ -123,7 +147,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
 
   expect(passwordErrorSignInState.context.errors).toMatchInlineSnapshot(`
       {
-        "registration": {
+        "authentication": {
           "error": "invalid-password",
           "message": "Password is incorrectly formatted",
           "status": 10,
@@ -132,11 +156,11 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     `)
 })
 
-test(`should fail if email has already been taken`, async () => {
-  server.use(signUpConflictErrorHandler)
+test(`should fail if incorrect credentials are provided`, async () => {
+  server.use(incorrectEmailPasswordHandler)
 
   authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
+    type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
     password: faker.internet.password(15)
   })
@@ -146,36 +170,71 @@ test(`should fail if email has already been taken`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "registration": {
-          "error": "email-already-in-use",
-          "message": "Email already in use",
-          "status": 409,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "invalid-email-password",
+        "message": "Incorrect email or password",
+        "status": 401,
+      },
+    }
+  `)
 })
 
-test(`should succeed if email and password are correctly formatted`, async () => {
+test(`should fail if user email needs verification`, async () => {
+  server.use(unverifiedEmailErrorHandler)
+
   authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
+    type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
     password: faker.internet.password(15)
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ email: 'awaitingVerification', authentication: { signedOut: 'noErrors' } })
+    state.matches('authentication.signedOut.failed')
   )
 
-  expect(state.context.user).toBeNull()
-  expect(state.context.errors).toMatchInlineSnapshot('{}')
+  expect(state.context.errors).toMatchInlineSnapshot(`
+    {
+      "authentication": {
+        "error": "unverified-email",
+        "message": "Email needs verification",
+        "status": 401,
+      },
+    }
+  `)
 })
 
-test(`should succeed if email and password are correctly formatted and user is already signed up`, async () => {
-  server.use(signUpWithSessionHandler)
+test(`should save MFA ticket if MFA is set up for the account`, async () => {
+  server.use(correctEmailPasswordWithMfaHandler)
 
   authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
+    type: 'SIGNIN_PASSWORD',
+    email: faker.internet.email(),
+    password: faker.internet.password(15)
+  })
+
+  const signInPasswordState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches('authentication.signedOut.needsMfa')
+  )
+
+  expect(signInPasswordState.context.mfa.ticket).not.toBeNull()
+
+  // Note: MFA ticket is already in context
+  authService.send({
+    type: 'SIGNIN_MFA_TOTP',
+    otp: faker.random.numeric(6)
+  })
+
+  const mfaTotpState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+  )
+
+  expect(mfaTotpState.context.user).not.toBeNull()
+})
+
+test(`should succeed if correct credentials are provided`, async () => {
+  authService.send({
+    type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
     password: faker.internet.password(15)
   })

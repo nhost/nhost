@@ -5,8 +5,8 @@ import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
-  passwordlessSmsInternalErrorHandler,
-  passwordlessSmsNetworkErrorHandler
+  passwordlessEmailInternalErrorHandler,
+  passwordlessEmailNetworkErrorHandler
 } from './helpers/handlers'
 import server from './helpers/server'
 import customStorage from './helpers/storage'
@@ -14,7 +14,7 @@ import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initialzing AuthMachine with custom storage to have control over its content between tests
+// Initializing AuthMachine with custom storage to have control over its content between tests
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -38,12 +38,12 @@ afterEach(() => {
   server.resetHandlers()
 })
 
-test(`should fail if network is unavailable`, async () => {
-  server.use(passwordlessSmsNetworkErrorHandler)
+test('should fail if network is unavailable', async () => {
+  server.use(passwordlessEmailNetworkErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
-    phoneNumber: faker.phone.phoneNumber()
+    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    email: faker.internet.email()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
@@ -51,71 +51,69 @@ test(`should fail if network is unavailable`, async () => {
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "OK",
-          "message": "Network Error",
-          "status": 200,
-        },
-      }
-    `)
+    {
+      "authentication": {
+        "error": "OK",
+        "message": "Network Error",
+        "status": 200,
+      },
+    }
+  `)
 })
 
 test(`should fail if server returns an error`, async () => {
-  server.use(passwordlessSmsInternalErrorHandler)
+  server.use(passwordlessEmailInternalErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
-    phoneNumber: faker.phone.phoneNumber()
+    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    email: faker.internet.email()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
     state.matches('authentication.signedOut.failed')
+  )
+
+  expect(state.context.errors).toMatchInlineSnapshot(`
+    {
+      "authentication": {
+        "error": "internal-error",
+        "message": "Internal error",
+        "status": 500,
+      },
+    }
+  `)
+})
+
+test(`should fail if the provided email address was invalid`, async () => {
+  authService.send({
+    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    email: faker.internet.userName()
+  })
+
+  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({ authentication: { signedOut: 'failed' } })
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
       {
         "authentication": {
-          "error": "internal-error",
-          "message": "Internal error",
-          "status": 500,
+          "error": "invalid-email",
+          "message": "Email is incorrectly formatted",
+          "status": 10,
         },
       }
     `)
 })
 
-test(`should fail if the provided phone number was invalid`, async () => {
+test(`should succeed if the provided email address was valid`, async () => {
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
-    // TODO: Phone number validation is not implemented yet
-    phoneNumber: ''
+    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    email: faker.internet.email()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
-  )
-
-  expect(state.context.errors).toMatchInlineSnapshot(`
-        {
-          "authentication": {
-            "error": "invalid-phone-number",
-            "message": "Phone number is incorrectly formatted",
-            "status": 10,
-          },
-        }
-        `)
-})
-
-test(`should succeed if the provided phone number was valid`, async () => {
-  authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
-    phoneNumber: faker.phone.phoneNumber()
-  })
-
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: 'needsSmsOtp' } })
+    state.matches({ authentication: { signedOut: 'noErrors' } })
   )
 
   expect(state.context.user).toBeNull()
-  expect(state.context.errors).toMatchInlineSnapshot(`{}`)
 })
