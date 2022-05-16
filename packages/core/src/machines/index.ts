@@ -112,6 +112,7 @@ export const createAuthMachine = ({
                 failed: {
                   initial: 'server',
                   states: {
+                    unknown: {},
                     server: {},
                     validation: {
                       states: {
@@ -124,17 +125,40 @@ export const createAuthMachine = ({
                   }
                 },
                 signingOut: {
+                  initial: 'pending',
                   entry: ['clearContextExceptRefreshToken'],
-                  exit: ['destroyRefreshToken', 'reportTokenChanged'],
                   invoke: {
                     src: 'signout',
                     id: 'signingOut',
                     onDone: {
-                      target: 'success'
+                      target: '.destroyingRefreshToken'
                     },
                     onError: {
                       target: 'failed.server',
                       actions: ['saveAuthenticationError']
+                    }
+                  },
+                  states: {
+                    pending: {},
+                    destroyingRefreshToken: {
+                      initial: 'pending',
+                      states: {
+                        pending: {},
+                        failed: {},
+                        success: {}
+                      },
+                      invoke: {
+                        id: 'destroyingRefreshToken',
+                        src: 'destroyRefreshToken',
+                        onDone: {
+                          target: '#nhost.authentication.signedOut.success',
+                          actions: ['removeRefreshToken', 'reportTokenChanged']
+                        },
+                        onError: {
+                          target: '.failed',
+                          actions: ['saveAuthenticationError']
+                        }
+                      }
                     }
                   }
                 }
@@ -532,7 +556,7 @@ export const createAuthMachine = ({
           })
         }),
 
-        // * Authenticaiton errors
+        // * Authentication errors
         saveAuthenticationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
@@ -564,9 +588,8 @@ export const createAuthMachine = ({
           errors: ({ errors }) => ({ ...errors, registration: INVALID_EMAIL_ERROR })
         }),
 
-        destroyRefreshToken: assign({
+        removeRefreshToken: assign({
           refreshToken: (_) => {
-            storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
             return { value: null }
           }
         }),
@@ -683,6 +706,10 @@ export const createAuthMachine = ({
             refreshToken: ctx.refreshToken.value,
             all: !!e.all
           }),
+
+        destroyRefreshToken: async () => {
+          return Promise.resolve(storageSetter(NHOST_REFRESH_TOKEN_KEY, null))
+        },
 
         registerUser: (_, { email, password, options }) =>
           postRequest('/signup/email-password', {

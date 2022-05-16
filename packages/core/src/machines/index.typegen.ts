@@ -17,6 +17,7 @@ export interface Typegen0 {
     reportTokenChanged:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
+      | 'done.invoke.destroyingRefreshToken'
       | 'done.invoke.authenticatePasswordlessSmsOtp'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
@@ -27,6 +28,7 @@ export interface Typegen0 {
     saveAuthenticationError:
       | 'error.platform.importRefreshToken'
       | 'error.platform.signingOut'
+      | 'error.platform.destroyingRefreshToken'
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticatePasswordlessSms'
       | 'error.platform.authenticatePasswordlessSmsOtp'
@@ -40,6 +42,7 @@ export interface Typegen0 {
     saveInvalidSignUpPassword: 'SIGNUP_EMAIL_PASSWORD'
     saveNoMfaTicketError: 'SIGNIN_MFA_TOTP'
     saveInvalidMfaTicketError: 'SIGNIN_MFA_TOTP'
+    removeRefreshToken: 'done.invoke.destroyingRefreshToken'
     reportAwaitEmailVerification:
       | 'done.invoke.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
@@ -66,7 +69,6 @@ export interface Typegen0 {
       | 'done.invoke.registerUser'
       | 'error.platform.registerUser'
       | 'error.platform.authenticateWithToken'
-    destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
     reportSignedIn:
       | 'SESSION_UPDATE'
@@ -141,11 +143,20 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     '': { type: '' }
+    'done.invoke.destroyingRefreshToken': {
+      type: 'done.invoke.destroyingRefreshToken'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
     'error.platform.importRefreshToken': {
       type: 'error.platform.importRefreshToken'
       data: unknown
     }
     'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
+    'error.platform.destroyingRefreshToken': {
+      type: 'error.platform.destroyingRefreshToken'
+      data: unknown
+    }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
       data: unknown
@@ -181,12 +192,12 @@ export interface Typegen0 {
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
-    'xstate.init': { type: 'xstate.init' }
     'done.invoke.signingOut': {
       type: 'done.invoke.signingOut'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
+    'xstate.init': { type: 'xstate.init' }
     'done.invoke.authenticatePasswordlessSms': {
       type: 'done.invoke.authenticatePasswordlessSms'
       data: unknown
@@ -196,6 +207,7 @@ export interface Typegen0 {
   invokeSrcNameMap: {
     importRefreshToken: 'done.invoke.importRefreshToken'
     signout: 'done.invoke.signingOut'
+    destroyRefreshToken: 'done.invoke.destroyingRefreshToken'
     signInPasswordlessEmail: 'done.invoke.authenticatePasswordlessEmail'
     signInPasswordlessSms: 'done.invoke.authenticatePasswordlessSms'
     signInPasswordlessSmsOtp: 'done.invoke.authenticatePasswordlessSmsOtp'
@@ -221,6 +233,7 @@ export interface Typegen0 {
     signInAnonymous: 'SIGNIN_ANONYMOUS'
     signInMfaTotp: 'SIGNIN_MFA_TOTP'
     signout: 'SIGNOUT'
+    destroyRefreshToken: 'done.invoke.signingOut'
     refreshToken: '' | 'TRY_TOKEN'
   }
   eventsCausingGuards: {
@@ -249,6 +262,7 @@ export interface Typegen0 {
     | 'authentication.signedOut.needsSmsOtp'
     | 'authentication.signedOut.needsMfa'
     | 'authentication.signedOut.failed'
+    | 'authentication.signedOut.failed.unknown'
     | 'authentication.signedOut.failed.server'
     | 'authentication.signedOut.failed.validation'
     | 'authentication.signedOut.failed.validation.password'
@@ -256,6 +270,11 @@ export interface Typegen0 {
     | 'authentication.signedOut.failed.validation.phoneNumber'
     | 'authentication.signedOut.failed.validation.mfaTicket'
     | 'authentication.signedOut.signingOut'
+    | 'authentication.signedOut.signingOut.pending'
+    | 'authentication.signedOut.signingOut.destroyingRefreshToken'
+    | 'authentication.signedOut.signingOut.destroyingRefreshToken.pending'
+    | 'authentication.signedOut.signingOut.destroyingRefreshToken.failed'
+    | 'authentication.signedOut.signingOut.destroyingRefreshToken.success'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
     | 'authentication.authenticating.passwordlessSms'
@@ -302,9 +321,14 @@ export interface Typegen0 {
                 | 'signingOut'
                 | {
                     failed?:
+                      | 'unknown'
                       | 'server'
                       | 'validation'
                       | { validation?: 'password' | 'email' | 'phoneNumber' | 'mfaTicket' }
+                    signingOut?:
+                      | 'pending'
+                      | 'destroyingRefreshToken'
+                      | { destroyingRefreshToken?: 'pending' | 'failed' | 'success' }
                   }
               authenticating?:
                 | 'passwordlessEmail'

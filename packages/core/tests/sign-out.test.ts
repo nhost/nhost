@@ -148,16 +148,14 @@ test(`should succeed if user wants to sign out from all devices and provides a v
     all: true
   })
 
-  const signedOutState: AuthState = await waitFor(authService, (state: AuthState) => !!state.value)
+  const signedOutState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
+      authentication: { signedOut: 'success' }
+    })
+  )
 
   expect(signedOutState.context.accessToken.value).toBeNull()
   expect(signedOutState.context.user).toBeNull()
-
-  // todo: this is not ideal
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 250)
-  })
-
   expect(customStorage.getItem(NHOST_REFRESH_TOKEN_KEY)).not.toBeDefined()
 })
 
@@ -170,15 +168,13 @@ test(`should succeed if user was previously signed in`, async () => {
     type: 'SIGNOUT'
   })
 
-  const signedOutState: AuthState = await waitFor(authService, (state: AuthState) => !!state.value)
+  const signedOutState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
+      authentication: { signedOut: 'success' }
+    })
+  )
 
   expect(signedOutState.context.accessToken.value).toBeNull()
   expect(signedOutState.context.user).toBeNull()
-
-  // todo: this is not ideal
-  await new Promise<void>((resolve) => {
-    setTimeout(resolve, 250)
-  })
-
   expect(customStorage.getItem(NHOST_REFRESH_TOKEN_KEY)).not.toBeDefined()
 })
