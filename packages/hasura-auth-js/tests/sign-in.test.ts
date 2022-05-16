@@ -2,6 +2,7 @@ import { USER_ALREADY_SIGNED_IN } from '@nhost/core'
 import axios from 'axios'
 import faker from 'faker'
 import htmlUrls from 'html-urls'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { auth, mailhog, signUpAndInUser, signUpAndVerifyUser } from './helpers'
 

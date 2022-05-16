@@ -26,6 +26,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateWithToken'
     saveAuthenticationError:
       | 'error.platform.importRefreshToken'
+      | 'error.platform.signingOut'
       | 'error.platform.authenticatePasswordlessEmail'
       | 'error.platform.authenticatePasswordlessSms'
       | 'error.platform.authenticatePasswordlessSmsOtp'
@@ -38,8 +39,19 @@ export interface Typegen0 {
       | 'done.invoke.signUpUser'
       | 'error.platform.signUpUser'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    saveRegisrationError: 'error.platform.signUpUser'
+    saveRegistrationError: 'error.platform.signUpUser'
     saveRefreshAttempt: 'error.platform.refreshToken'
+    resetErrors:
+      | 'SIGNUP_EMAIL_PASSWORD'
+      | 'SESSION_UPDATE'
+      | 'done.invoke.importRefreshToken'
+      | ''
+      | 'done.invoke.authenticatePasswordlessSmsOtp'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.signUpUser'
+      | 'done.invoke.authenticateWithToken'
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'done.invoke.authenticatePasswordlessEmail'
@@ -47,10 +59,8 @@ export interface Typegen0 {
       | 'done.invoke.signUpUser'
       | 'error.platform.signUpUser'
       | 'error.platform.authenticateWithToken'
-    resetAuthenticationError: 'xstate.init'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
-    resetSignUpError: 'SIGNUP_EMAIL_PASSWORD'
     reportSignedIn:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
@@ -128,6 +138,7 @@ export interface Typegen0 {
       type: 'error.platform.importRefreshToken'
       data: unknown
     }
+    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'error.platform.authenticatePasswordlessEmail': {
       type: 'error.platform.authenticatePasswordlessEmail'
       data: unknown
@@ -169,7 +180,6 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'done.invoke.authenticatePasswordlessSms': {
       type: 'done.invoke.authenticatePasswordlessSms'
       data: unknown
@@ -232,6 +242,7 @@ export interface Typegen0 {
     | 'authentication.signedOut.failed.validation.password'
     | 'authentication.signedOut.failed.validation.email'
     | 'authentication.signedOut.failed.validation.phoneNumber'
+    | 'authentication.signedOut.failed.validation.mfaTicket'
     | 'authentication.signedOut.signingOut'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessEmail'
@@ -281,7 +292,7 @@ export interface Typegen0 {
                     failed?:
                       | 'server'
                       | 'validation'
-                      | { validation?: 'password' | 'email' | 'phoneNumber' }
+                      | { validation?: 'password' | 'email' | 'phoneNumber' | 'mfaTicket' }
                   }
               authenticating?:
                 | 'passwordlessEmail'

@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import { Parameter, Signature } from '../types'
 import findNestedParametersByReferenceId from './findNestedParametersByReferenceId'
 

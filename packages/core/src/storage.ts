@@ -47,7 +47,7 @@ export const localStorageGetter = (
   }
   if (!clientStorage) {
     throw Error(
-      `clientStorageType is set to '${clientStorageType}' but no clienStorage has been given`
+      `clientStorageType is set to '${clientStorageType}' but no clientStorage has been given`
     )
   }
   if (clientStorageType === 'react-native') {
@@ -67,7 +67,7 @@ export const localStorageGetter = (
       return clientStorage.getItemAsync
     }
     throw Error(
-      `clientStorageType is set to 'custom' but clientStorage is missing getItem or getItemAsync property`
+      `clientStorageType is set to 'custom' but clientStorage is missing either "getItem" and "removeItem" properties or "getItemAsync" property`
     )
   }
   throw Error(`Unknown storage type: ${clientStorageType}`)

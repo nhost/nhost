@@ -1,5 +1,6 @@
 import { USER_ALREADY_SIGNED_IN } from '@nhost/core'
 import faker from 'faker'
+import { afterEach, describe, expect, it, test } from 'vitest'
 
 import { auth, signUpAndInUser } from './helpers'
 

@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import getModuleContentMap from './getModuleContentMap'
 
 test('should categorize elements of groups in a Map', () => {

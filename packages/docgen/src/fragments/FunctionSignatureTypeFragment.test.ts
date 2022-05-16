@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import FunctionSignatureTypeFragment from './FunctionSignatureTypeFragment'
 
 test('should generate function signature with a list of arguments', () => {

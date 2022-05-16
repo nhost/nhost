@@ -9,6 +9,7 @@ import {
 } from '../constants'
 import {
   INVALID_EMAIL_ERROR,
+  INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
   NO_MFA_TICKET_ERROR,
@@ -19,7 +20,7 @@ import { nhostApiClient } from '../hasura-auth'
 import { localStorageGetter, localStorageSetter } from '../storage'
 import { AuthOptions, Mfa, NhostSession } from '../types'
 import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
-import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
+import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from '../validators'
 
 import { AuthContext, INITIAL_MACHINE_CONTEXT, StateErrorTypes } from './context'
 import { AuthEvents } from './events'
@@ -87,6 +88,7 @@ export const createAuthMachine = ({
           },
           states: {
             starting: {
+              entry: 'resetErrors',
               tags: ['loading'],
               always: { cond: 'isSignedIn', target: 'signedIn' },
               invoke: {
@@ -108,7 +110,6 @@ export const createAuthMachine = ({
                 needsSmsOtp: {},
                 needsMfa: {},
                 failed: {
-                  exit: 'resetAuthenticationError',
                   initial: 'server',
                   states: {
                     server: {},
@@ -116,7 +117,8 @@ export const createAuthMachine = ({
                       states: {
                         password: {},
                         email: {},
-                        phoneNumber: {}
+                        phoneNumber: {},
+                        mfaTicket: {}
                       }
                     }
                   }
@@ -131,8 +133,8 @@ export const createAuthMachine = ({
                       target: 'success'
                     },
                     onError: {
-                      target: 'failed.server'
-                      // TODO save error
+                      target: 'failed.server',
+                      actions: ['saveAuthenticationError']
                     }
                   }
                 }
@@ -149,6 +151,7 @@ export const createAuthMachine = ({
               }
             },
             authenticating: {
+              entry: 'resetErrors',
               states: {
                 passwordlessEmail: {
                   invoke: {
@@ -252,7 +255,7 @@ export const createAuthMachine = ({
               }
             },
             registering: {
-              entry: 'resetSignUpError',
+              entry: ['resetErrors'],
               invoke: {
                 src: 'signUpUser',
                 id: 'signUpUser',
@@ -274,7 +277,7 @@ export const createAuthMachine = ({
                     target: 'signedOut'
                   },
                   {
-                    actions: 'saveRegisrationError',
+                    actions: 'saveRegistrationError',
                     target: 'signedOut.failed.server'
                   }
                 ]
@@ -282,7 +285,7 @@ export const createAuthMachine = ({
             },
             signedIn: {
               type: 'parallel',
-              entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken'],
+              entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken', 'resetErrors'],
               on: {
                 SIGNOUT: 'signedOut.signingOut',
                 DEANONYMIZE: {
@@ -477,16 +480,12 @@ export const createAuthMachine = ({
         saveAuthenticationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
-        resetAuthenticationError: assign({
-          errors: ({ errors: { authentication, ...errors } }) => errors
+        resetErrors: assign({
+          errors: (_) => ({})
         }),
-        saveRegisrationError: assign({
+        saveRegistrationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
-        resetSignUpError: assign({
-          errors: ({ errors: { registration, ...errors } }) => errors
-        }),
-
         destroyRefreshToken: assign({
           refreshToken: (_) => {
             storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
