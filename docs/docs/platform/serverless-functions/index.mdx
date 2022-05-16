@@ -19,7 +19,7 @@ Every `.js` (JavaScript) and `.ts` (TypeScript) file in the `functions/` folder 
 <Tabs groupId="language">
   <TabItem value="ts" label="TypeScript" default>
 
-```ts title=functions/hello/[name].ts
+```ts title=functions/test.ts
 import { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {
@@ -29,9 +29,9 @@ export default (req: Request, res: Response) => {
 
 :::info
 
-You **MUST** install the `express` package locally for serverless functions to work.
+You **MUST** install `express` locally in the base directory of your Nhost app.
 
-```
+```bash
 npm install -d express @types/express
 # or yarn
 yarn add -d express @types/express
@@ -42,7 +42,7 @@ yarn add -d express @types/express
   </TabItem>
   <TabItem value="js" label="JavaScript">
 
-```js title=functions/hello/[name].js
+```js title=functions/test.js
 export default (req, res) => {
   res.status(200).send(`Hello ${req.query.name}!`)
 }
@@ -50,9 +50,9 @@ export default (req, res) => {
 
 :::info
 
-You **MUST** install the `express` package locally for serverless functions to work.
+You **MUST** install `express` locally in the base directory of your Nhost app.
 
-```
+```bash
 npm install -d express
 # or yarn
 yarn add -d express
@@ -69,21 +69,14 @@ yarn add -d express
 
 HTTP endpoints are automatically generated based on the file structure inside `functions/`.
 
-Here's an example of four serverless functions:
+Here's an example of four serverless functions with their files and their HTTP endpoints:
 
-```text
-functions/index.js
-functions/users/index.ts
-functions/active.ts
-functions/my-company.js
-```
-
-The following endpoints will be available:
-
-- https://[app-subdomain].nhost.run/v1/functions/ from `functions/index.js`.
-- https://[app-subdomain].nhost.run/v1/functions/users from `functions/users/index.ts`.
-- https://[app-subdomain].nhost.run/v1/functions/users/active from `functions/users/active.ts`.
-- https://[app-subdomain].nhost.run/v1/functions/my-company from `functions/my-company.js`.
+| File                        | HTTP Endpoint                                                 |
+| --------------------------- | ------------------------------------------------------------- |
+| `functions/index.js`        | `https://[app-subdomain].nhost.run/v1/functions/`             |
+| `functions/users/index.ts`  | `https://[app-subdomain].nhost.run/v1/functions/users`        |
+| `functions/users/active.ts` | `https://[app-subdomain].nhost.run/v1/functions/users/active` |
+| `functions/my-copmany.js`   | `https://[app-subdomain].nhost.run/v1/functions/my-company`   |
 
 ---
 
