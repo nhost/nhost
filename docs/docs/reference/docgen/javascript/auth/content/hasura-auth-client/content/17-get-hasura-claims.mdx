@@ -3,14 +3,14 @@
 title: getHasuraClaims()
 sidebar_label: getHasuraClaims()
 slug: /reference/javascript/auth/get-hasura-claims
-description: Decode the Hasura claims from the current access token (JWT) located in the `https://hasura.io/jwt/claims` namespace, or return `null` if the user is not authenticated (no token)
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L660
+description: Use `getHasuraClaims` to get the hasura claims of the signed-in user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L665
 ---
 
 # `getHasuraClaims()`
 
-Decode the Hasura claims from the current access token (JWT) located in the `https://hasura.io/jwt/claims` namespace, or return `null` if the user is not authenticated (no token)
+Use `getHasuraClaims` to get the hasura claims of the signed-in user.
 
-**`@see`**
-
-{@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+```ts
+const hasuraClaims = nhost.auth.getHasuraClaims()
+```

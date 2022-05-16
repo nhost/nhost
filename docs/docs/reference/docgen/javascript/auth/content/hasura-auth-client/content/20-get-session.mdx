@@ -3,14 +3,14 @@
 title: getSession()
 sidebar_label: getSession()
 slug: /reference/javascript/auth/get-session
-description: Use `getSession()` to get the current session.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L733
+description: Use `getSession()` to get the session of the signed-in user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L747
 ---
 
 # `getSession()`
 
-Use `getSession()` to get the current session.
+Use `getSession()` to get the session of the signed-in user.
 
 ```ts
-const session = getSession()
+const session = nhost.auth.getSession()
 ```

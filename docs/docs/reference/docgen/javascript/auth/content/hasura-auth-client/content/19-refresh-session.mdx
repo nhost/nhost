@@ -3,18 +3,20 @@
 title: refreshSession()
 sidebar_label: refreshSession()
 slug: /reference/javascript/auth/refresh-session
-description: Use `refreshSession()` to refresh the current session or refresh the session with an provided `refreshToken`.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L689
+description: Use `refreshSession` to refresh the session with either the current internal refresh token or an external refresh token.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L703
 ---
 
 # `refreshSession()`
 
-Use `refreshSession()` to refresh the current session or refresh the
-session with an provided `refreshToken`.
+Use `refreshSession` to refresh the session with either the current internal refresh token or an external refresh token.
 
 ```ts
-refreshToken()
-refreshToken(refreshToken)
+// Refresh the session with the the current internal refresh token.
+nhost.auth.refreshToken()
+
+// Refresh the session with an external refresh token.
+nhost.auth.refreshToken(refreshToken)
 ```
 
 ## Parameters

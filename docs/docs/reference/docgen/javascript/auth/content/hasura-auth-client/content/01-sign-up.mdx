@@ -3,16 +3,16 @@
 title: signUp()
 sidebar_label: signUp()
 slug: /reference/javascript/auth/sign-up
-description: Use `signUp` to sign up users using email an password.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L93
+description: Use `signUp` to sign up users using email and password. If you want to sign up users using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L90
 ---
 
 # `signUp()`
 
-Use `signUp` to sign up users using email an password.
+Use `signUp` to sign up users using email and password. If you want to sign up users using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
 
 ```ts
-auth.signUp({ email, password }) // email password
+nhost.auth.signUp({ email, password })
 ```
 
 ## Parameters
