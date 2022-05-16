@@ -34,13 +34,15 @@ yarn add @nhost/nhost-js graphql
   </TabItem>
 </Tabs>
 
-Then import and initialize a single `nhost` instance:
+## Initializing
+
+Initialize a single `nhost` instance using your Nhost backend URL:
 
 ```ts title=utils/nhost.ts
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: '<nhost-backend-url>'
+  backendUrl: '<Your Nhost Backend URL>'
 })
 ```
 
