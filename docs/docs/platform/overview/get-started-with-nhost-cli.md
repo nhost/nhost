@@ -229,6 +229,10 @@ to production:
 - Hasura Metadata
 - Serverless Functions
 
+:::caution
+Settings in `nhost/config.yaml` are not being applied to production. They only work locally for now.
+:::
+
 ### Database migrations
 
 Database changes are tracked and managed through migrations.
