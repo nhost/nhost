@@ -7,9 +7,11 @@ export const DefaultNhostClient = Symbol('default-nhost-client')
 type NullableNhostClient = NhostClient | null
 let currentNhostClient: NullableNhostClient
 
-type ResolveClient = () => NullableNhostClient
+interface ResolveClient {
+  (): NullableNhostClient
+}
 
-export interface UseNhostClientReturn {
+interface UseNhostClientReturn {
   resolveNhostClient: ResolveClient
   readonly nhost: NhostClient
 }
