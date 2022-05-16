@@ -593,8 +593,8 @@ importers:
     specifiers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
-      '@nhost/hasura-auth-js': workspace:^
-      '@nhost/nhost-js': workspace:^
+      '@nhost/hasura-auth-js': workspace:*
+      '@nhost/nhost-js': workspace:*
       '@vitejs/plugin-vue': ^2.3.1
       '@vueuse/core': ^8.3.1
       '@xstate/inspect': ^0.6.2

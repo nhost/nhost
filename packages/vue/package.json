@@ -44,7 +44,8 @@
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build --config ../../config/vite.vue.config.js",
     "build:umd": "vite build --config ../../config/vite.vue.umd.config.js",
-    "test": "pnpm jest --runInBand --config ../../config/jest.config.js",
+    "test": "vitest run --config ../../config/vite.vue.config.js",
+    "test:watch": "vitest --config ../../config/vite.vue.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.vue",
@@ -59,14 +60,14 @@
   },
   "dependencies": {
     "@nhost/core": "workspace:*",
-    "@nhost/nhost-js": "workspace:^",
+    "@nhost/nhost-js": "workspace:*",
     "@vueuse/core": "^8.3.1",
     "@xstate/vue": "^1.0.0",
     "immer": "^9.0.12"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "@nhost/hasura-auth-js": "workspace:^",
+    "@nhost/hasura-auth-js": "workspace:*",
     "@vitejs/plugin-vue": "^2.3.1",
     "@xstate/inspect": "^0.6.2",
     "vue": "^3.2.31",
