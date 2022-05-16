@@ -3,19 +3,29 @@
 title: useChangeEmail()
 sidebar_label: useChangeEmail()
 slug: /reference/nextjs/use-change-email
-description: Change email hook
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L80
+description: Use the hook `useChangeEmail` to change email for the current user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L62
 ---
 
 # `useChangeEmail()`
 
 ## Overload 1 of 2
 
-Change email hook
+Use the hook `useChangeEmail` to change email for the current user.
 
-```js
+```tsx
 const { changeEmail, isLoading, needsEmailVerification, isError, error } =
   useChangeEmail()
+
+console.log({ isLoading, needsEmailVerification, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await changeEmail({
+    email: 'new@example.com'
+  })
+}
 ```
 
 ### Parameters
@@ -25,38 +35,6 @@ const { changeEmail, isLoading, needsEmailVerification, isError, error } =
 **<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `ChangeEmailOptions`
 
 ---
-
-### Examples
-
-```js
-const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-  useChangeEmail()
-```
-
-```jsx
-import { useState } from 'react'
-import { useChangeEmail } from '@nhost/react'
-
-const Component = () => {
-  const [email, setEmail] = useState('')
-  const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-    useChangeEmail()
-
-  return (
-    <div>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={() => changeEmail(email)}>Change email</button>
-
-      {needsEmailVerification && (
-        <div>
-          Please check your mailbox and follow the verification link to confirm
-          your new email
-        </div>
-      )}
-    </div>
-  )
-}
-```
 
 ## Overload 2 of 2
 

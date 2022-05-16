@@ -40,42 +40,24 @@ interface ChangeEmailHookResult extends ChangeEmailHookState {
 }
 
 /**
- * Change email hook
+ * Use the hook `useChangeEmail` to change email for the current user.
  *
  * @example
- * ```js
- * const {
- *   changeEmail,
- *   isLoading,
- *   needsEmailVerification,
- *   isError,
- *   error
- * } = useChangeEmail();
+ * ```tsx
+ * const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail();
+ *
+ * console.log({ isLoading, needsEmailVerification, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await changeEmail({
+ *     email: 'new@example.com',
+ *   })
+ * }
  * ```
  *
- * @example
- * ```jsx
- * import { useState } from 'react';
- * import { useChangeEmail } from '@nhost/react';
- *
- * const Component = () => {
- *   const [email, setEmail] = useState('');
- *   const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail();
- *
- *   return (
- *     <div>
- *       <input value={email} onChange={(event) => setEmail(event.target.value)} />
- *       <button onClick={() => changeEmail(email)}>Change email</button>
- *
- *       {needsEmailVerification && (
- *         <div>
- *           Please check your mailbox and follow the verification link to confirm your new email
- *         </div>
- *       )}
- *     </div>
- *   );
- * };
- * ```
+ * @docs https://docs.nhost.io/reference/react/use-change-email
  */
 export function useChangeEmail(options?: ChangeEmailOptions): ChangeEmailHookResult
 
@@ -146,35 +128,22 @@ interface ChangePasswordHook {
 }
 
 /**
- * Change password
- * 
+ * Use the hook `useChangePassword` to change password for the current user.
+ *
  * @example
-```js
-const { changePassword, isLoading, isSuccess, isError, error } =
-  useChangePassword();
-```
-* @example
-```jsx
-import { useState } from 'react';
-import { useChangePassword } from '@nhost/react';
-
-const Component = () => {
-  const [password, setPassword] = useState('');
-  const { changePassword, isLoading, isSuccess, isError, error } =
-    useChangePassword();
-
-  return (
-    <div>
-      <input
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-      />
-      <button onClick={() => changePassword(password)}>Change password</button>
-    </div>
-  );
-};
-```
- * 
+ * ```tsx
+ * const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword();
+ *
+ * console.log({ isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await changePassword('my-new-password')
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-change-password
  */
 export const useChangePassword: ChangePasswordHook = (statePassword?: string) => {
   const nhost = useNhostClient()
@@ -228,32 +197,24 @@ interface ResetPasswordHook {
 }
 
 /**
- * If a user loses their password, we can resend them an email to authenticate so that they can change it to a new one
+ * Use the hook `useResetPassword` to reset the password for a user. This will send a reset password link in an email to the user. When the user clicks on the reset-password link the user is automatically signed in and can change their password using the hook `useChangePassword`.
+ *
  * @example
-```js
-const { resetPassword, isLoading, isSent, isError, error } =
-  useResetPassword();
-```
- * 
- * @example
-```jsx
-import { useState } from 'react';
-import { useResetPassword } from '@nhost/react';
-
-const Component = () => {
-  const [email, setEmail] = useState('');
-  const { resetPassword, isLoading, isSent, isError, error } =
-    useResetPassword();
-
-  return (
-    <div>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={() => resetPassword(email)}>Send reset link</button>
-    </div>
-  );
-};
-```
- * 
+ * ```tsx
+ * const { resetPassword, isLoading, isSent, isError, error } = useResetPassword();
+ *
+ * console.log({ isLoading, isSent, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await resetPassword('joe@example.com', {
+ *     redirectTo: 'http://localhost:3000/settings/change-password'
+ *   })
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-reset-password
  */
 export const useResetPassword: ResetPasswordHook = (
   a?: string | ResetPasswordOptions,
@@ -291,24 +252,14 @@ export const useResetPassword: ResetPasswordHook = (
 }
 
 /**
- * User data
+ * Use the hook `useUserData` to get the user data of the current user.
+ *
  * @example
-```js
-const {
-  id,
-  email,
-  displayName,
-  avatarUrl,
-  isAnonymous,
-  locale,
-  defaultRole,
-  roles,
-  metadata,
-  createdAt,
-} = useUserData();
-```
+ * ```tsx
+ * const userData = useUserData();
+ * ```
  * 
- * @example Example of an authenticated user
+   * @example Example of user data
 ```json
 {
   "avatarUrl": "https://s.gravatar.com/avatar",
@@ -326,6 +277,8 @@ const {
   "roles": ["user", "me"]
 }
 ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-data
  */
 export const useUserData = () => {
   const service = useAuthInterpreter()
@@ -337,17 +290,14 @@ export const useUserData = () => {
 }
 
 /**
- * User avatar
+ * Use the hook `useUserAvatarUrl` to get the avatar URL of the current user.
+ *
  * @example
-```jsx
-import { useAvatarUrl } from '@nhost/react';
-
-const Avatar = () => {
-  const avatar = useAvatarUrl();
-
-  return <img src={avatar} alt="Avatar" />;
-};
-```
+ * ```tsx
+ * const userAvatarUrl = useUserAvatarUrl();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-avatar-url
  */
 export const useUserAvatarUrl = () => {
   const service = useAuthInterpreter()
@@ -364,23 +314,14 @@ export const useUserAvatarUrl = () => {
 export const useAvatarUrl = useUserAvatarUrl
 
 /**
- * Gets the user's default role
+ * Use the hook `useUserDefaultRole` to get the default role of the current user.
+ *
  * @example
-```jsx
-import { useUserRoles, useDefaultRole } from '@nhost/react';
-
-const Avatar = () => {
-  const roles = useUserRoles();
-  const defaultRole = useDefaultRole();
-
-  return (
-    <div>
-      Your default role is {defaultRole}. You have the following roles:{' '}
-      {roles.join(', ')}
-    </div>
-  );
-};
-```
+ * ```tsx
+ * const userDefaultRole = useUserDefaultRole();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-default-role
  */
 export const useUserDefaultRole = () => {
   const service = useAuthInterpreter()
@@ -397,17 +338,14 @@ export const useUserDefaultRole = () => {
 export const useDefaultRole = useUserDefaultRole
 
 /**
- * Gets the user's display name
+ * Use the hook `useUserDisplayName` to get the display name of the current user.
+ *
  * @example
-```jsx
-import { useDisplayName } from '@nhost/react';
-
-const Avatar = () => {
-  const displayName = useDisplayName();
-
-  return <div>Hello, {displayName}</div>;
-};
-```
+ * ```tsx
+ * const userDisplayName = useUserDisplayName();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-display-name
  */
 export const useUserDisplayName = () => {
   const service = useAuthInterpreter()
@@ -424,12 +362,14 @@ export const useUserDisplayName = () => {
 export const useDisplayName = useUserDisplayName
 
 /**
- * Gets the user's email
+ * Use the hook `useUserEmail` to get the email of the current user.
+ *
  * @example
-```js
-import { useEmail } from '@nhost/react';
-const email = useEmail();
-```
+ * ```tsx
+ * const userEmail = useUserEmail();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-email
  */
 export const useUserEmail = () => {
   const service = useAuthInterpreter()
@@ -446,12 +386,14 @@ export const useUserEmail = () => {
 export const useEmail = useUserEmail
 
 /**
- * Gets the user id
+ * Use the hook `useUserId` to get the id of the current user.
+ *
  * @example
-```js
-import { useUserId } from '@nhost/react';
-const id = useUserId();
-```
+ * ```tsx
+ * const userId = useUserId();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-id
  */
 export const useUserId = () => {
   const service = useAuthInterpreter()
@@ -549,37 +491,25 @@ interface SendVerificationEmailHook {
 }
 
 /**
- * Send email verification
+ * Use the hook `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
+ *
  * @example
-```js
-const { sendEmail, isLoading, isSent, isError, error } =
+ * ```tsx
+ * const { sendEmail, isLoading, isSent, isError, error } =
   useSendVerificationEmail();
-```
- * 
- * @example
-```jsx
-import { useState } from 'react';
-import { useSendVerificationEmail } from '@nhost/react';
-
-const Component = () => {
-  const [email, setEmail] = useState('');
-  const { sendEmail, isLoading, isSent, isError, error } =
-    useSendVerificationEmail();
-
-  return (
-    <div>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={() => sendEmail(email)}>Send email verification</button>
-      {isSent && (
-        <div>
-          Please check your mailbox and follow the verification link to confirm
-          your email
-        </div>
-      )}
-    </div>
-  );
-};
-```
+ *
+ * console.log({ isLoading, isSent, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await sendEmail({
+ *     email: 'joe@example.com',
+ *   })
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-send-verification-email
  */
 export const useSendVerificationEmail: SendVerificationEmailHook = (
   a?: string | SendVerificationEmailOptions,
@@ -710,16 +640,14 @@ export const useConfigMfa: ConfigMfaHook = () => {
 }
 
 /**
- * Decode the current decoded access token (JWT), or return `null` if the user is not authenticated (no token)
- * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+ * Use the hook `useDecodedAccessToken` to get the decoded access token of the current user.
+ *
  * @example
- * ```ts
- * import { useDecodedAccessToken } from '@nhost/react'
- * const Component = () => {
- *    const decodedToken = useDecodedAccessToken()
- *    return <div>Decoded access token: {JSON.stringify(decodedToken)}</div>
- * }
+ * ```tsx
+ * const decodedAccessToken = useDecodedAccessToken()
  * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-decoded-access-token
  */
 export const useDecodedAccessToken = () => {
   const jwt = useAccessToken()
@@ -727,16 +655,14 @@ export const useDecodedAccessToken = () => {
 }
 
 /**
- * Decode the Hasura claims from the current access token (JWT) located in the `https://hasura.io/jwt/claims` namespace, or return `null` if the user is not authenticated (no token)
- * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+ * Use the hook `useHasuraClaims` to get the Hasura claims of the current user.
+ *
  * @example
- * ```ts
- * import { useHasuraClaims } from '@nhost/react'
- * const Component = () => {
- *    const hasuraClaims = useHasuraClaims()
- *    return <div>JWT claims in the `https://hasura.io/jwt/claims` namespace: {JSON.stringify(hasuraClaims)}</div>
- * }
+ * ```tsx
+ * const hasuraClaims = useHasuraClaims()
  * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-hasura-claims
  */
 export const useHasuraClaims = () => {
   const claims = useDecodedAccessToken()
@@ -744,18 +670,15 @@ export const useHasuraClaims = () => {
 }
 
 /**
- * Get the value of a given Hasura claim in the current access token (JWT). Returns null if the user is not authenticated, or if the claim is not in the token.
- * Return `null` if the user is not authenticated (no token)
- * @param name name of the variable. Automatically adds the `x-hasura-` prefix if it is missing
- * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
+ * Use the hook `useHasruaClaim` to get the value of a specific Hasura claim of the current user.
+ *
  * @example
- * ```ts
- * import { useHasuraClaim } from '@nhost/react'
- * const Component = () => {
- *    const claim = useHasuraClaim('user-id')
- *    return <div>User id extracted from the JWT access token: {claim}</div>
- * }
+ * ```tsx
+ * // if `x-hasura-company-id` exists as a custom claim
+ * const companyId = useHasuraClaim('company-id')
  * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-hasura-claim
  */
 export const useHasuraClaim = (name: string) => {
   const hasuraClaims = useHasuraClaims()

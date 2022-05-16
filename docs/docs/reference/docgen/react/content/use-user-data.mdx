@@ -3,47 +3,25 @@
 title: useUserData()
 sidebar_label: useUserData()
 slug: /reference/react/use-user-data
-description: User data
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L330
+description: Use the hook `useUserData` to get the user data of the current user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L283
 ---
 
 # `useUserData()`
 
-User data
+Use the hook `useUserData` to get the user data of the current user.
 
-```js
-const {
-  id,
-  email,
-  displayName,
-  avatarUrl,
-  isAnonymous,
-  locale,
-  defaultRole,
-  roles,
-  metadata,
-  createdAt
-} = useUserData()
+```tsx
+const userData = useUserData()
 ```
 
 ## Examples
 
-```js
-const {
-  id,
-  email,
-  displayName,
-  avatarUrl,
-  isAnonymous,
-  locale,
-  defaultRole,
-  roles,
-  metadata,
-  createdAt
-} = useUserData()
+```tsx
+const userData = useUserData()
 ```
 
-Example of an authenticated user
+Example of user data
 
 ```json
 {

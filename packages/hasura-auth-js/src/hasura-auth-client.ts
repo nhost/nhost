@@ -623,7 +623,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.getAccessToken` to get the access token of the signed-in user.
+   * Use `nhost.auth.getAccessToken` to get the access token of the current user.
    *
    * @example
    * ```ts
@@ -637,7 +637,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.getDecodedAccessToken` to get the decoded access token of the signed-in user.
+   * Use `nhost.auth.getDecodedAccessToken` to get the decoded access token of the current user.
    *
    * @example
    * ```ts
@@ -653,7 +653,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.getHasuraClaims` to get the hasura claims of the signed-in user.
+   * Use `nhost.auth.getHasuraClaims` to get the Hasura claims of the current user.
    *
    * @example
    * ```ts
@@ -667,7 +667,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.getHasuraClaim` to get the value of a specific Hasura claim of the signed-in user.
+   * Use `nhost.auth.getHasuraClaim` to get the value of a specific Hasura claim of the current user.
    *
    * @example
    * ```ts
@@ -735,7 +735,7 @@ export class HasuraAuthClient {
 
   /**
    *
-   * Use `nhost.auth.getSession()` to get the session of the signed-in user.
+   * Use `nhost.auth.getSession()` to get the session of the current user.
    *
    * @example
    * ```ts

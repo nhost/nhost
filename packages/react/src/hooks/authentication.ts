@@ -53,65 +53,25 @@ interface SignInEmailPasswordHook {
   /** @deprecated */
   (email?: string, password?: string, otp?: string): SignInEmailPasswordHookResult
 }
+
+// TODO: Add MFA example once MFA is available at Nhost Cloud.
 /**
- * Email and Password Sign-In
+ * Use the hook `useSignInEmailPassword` to sign in a user using email and password.
+ *
  * @example
-```js
-const {
-  signInEmailPassword,
-  isLoading,
-  needsEmailVerification,
-  needsMfaOtp,
-  sendMfaOtp,
-  isSuccess,
-  isError,
-  error,
-  user,
-} = useSignInEmailPassword();
-```
-  * @example
-```jsx
-import { useState } from 'react';
-import { useSignInEmailPassword } from '@nhost/react';
-
-const Component = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const {
-    signInEmailPassword,
-    isLoading,
-    isSuccess,
-    needsEmailVerification,
-    isError,
-    error,
-  } = useSignInEmailPassword();
-
-  return (
-    <div>
-      <input
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="Email"
-      />
-      <input
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="Password"
-      />
-      <button onClick={() => signInEmailPassword(email, password)}>
-        Register
-      </button>
-      {isSuccess && <div>Authentication suceeded</div>}
-      {needsEmailVerification && (
-        <div>
-          You must verify your email to sign in. Check your mailbox and follow
-          the instructions to verify your email.
-        </div>
-      )}
-    </div>
-  );
-};
-```
+ * ```tsx
+ * const { signInEmailPassword, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInEmailPassword()
+ *
+ * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signInEmailPassword('joe@example.com','secret-password')
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-sign-in-email-password
  */
 export const useSignInEmailPassword: SignInEmailPasswordHook = (
   stateEmail?: string,

@@ -3,19 +3,29 @@
 title: useSendVerificationEmail()
 sidebar_label: useSendVerificationEmail()
 slug: /reference/react/use-send-verification-email
-description: Send email verification
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L584
+description: Use the hook `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L514
 ---
 
 # `useSendVerificationEmail()`
 
 ## Overload 1 of 2
 
-Send email verification
+Use the hook `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
 
-```js
+```tsx
 const { sendEmail, isLoading, isSent, isError, error } =
   useSendVerificationEmail()
+
+console.log({ isLoading, isSent, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await sendEmail({
+    email: 'joe@example.com'
+  })
+}
 ```
 
 ### Parameters
@@ -26,44 +36,23 @@ const { sendEmail, isLoading, isSent, isError, error } =
 
 ---
 
-### Examples
-
-```js
-const { sendEmail, isLoading, isSent, isError, error } =
-  useSendVerificationEmail()
-```
-
-```jsx
-import { useState } from 'react'
-import { useSendVerificationEmail } from '@nhost/react'
-
-const Component = () => {
-  const [email, setEmail] = useState('')
-  const { sendEmail, isLoading, isSent, isError, error } =
-    useSendVerificationEmail()
-
-  return (
-    <div>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={() => sendEmail(email)}>Send email verification</button>
-      {isSent && (
-        <div>
-          Please check your mailbox and follow the verification link to confirm
-          your email
-        </div>
-      )}
-    </div>
-  )
-}
-```
-
 ## Overload 2 of 2
 
-Send email verification
+Use the hook `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
 
-```js
+```tsx
 const { sendEmail, isLoading, isSent, isError, error } =
   useSendVerificationEmail()
+
+console.log({ isLoading, isSent, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await sendEmail({
+    email: 'joe@example.com'
+  })
+}
 ```
 
 ### Parameters
@@ -77,34 +66,3 @@ const { sendEmail, isLoading, isSent, isError, error } =
 **<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `SendVerificationEmailOptions`
 
 ---
-
-### Examples
-
-```js
-const { sendEmail, isLoading, isSent, isError, error } =
-  useSendVerificationEmail()
-```
-
-```jsx
-import { useState } from 'react'
-import { useSendVerificationEmail } from '@nhost/react'
-
-const Component = () => {
-  const [email, setEmail] = useState('')
-  const { sendEmail, isLoading, isSent, isError, error } =
-    useSendVerificationEmail()
-
-  return (
-    <div>
-      <input value={email} onChange={(event) => setEmail(event.target.value)} />
-      <button onClick={() => sendEmail(email)}>Send email verification</button>
-      {isSent && (
-        <div>
-          Please check your mailbox and follow the verification link to confirm
-          your email
-        </div>
-      )}
-    </div>
-  )
-}
-```
