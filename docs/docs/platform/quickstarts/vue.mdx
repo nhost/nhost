@@ -38,9 +38,9 @@ You'll need **Node.js** version 14 or later: [install it from here](https://node
 
 ### Create a new Nhost app
 
-:::warning TODO
-Use a shared component
-:::
+import CreateApp from '@site/fragments/create-nhost-app.mdx'
+
+<CreateApp github />
 
 ## Initialize the app
 
@@ -271,10 +271,9 @@ For that, we will use the Nhost composable named `useSignInEmailPassword` inside
 
 #### 3. Home page
 
-Let's also add links to sign up and sign in in our index page. We'll take the opportunity to :
-:::warning TODO
-explain useAuthenticationStatus
-:::
+Let's also add links to sign up and sign in in our index page.
+
+Le'ts also use the `useAuthenticationStatus` composable so the home page shows a "loading" text while the Nhost client is determining the authentication status of the user. Let's also hide the sign up and sign in links when the user is already authenticated:
 
 ```html title="src/pages/index.vue"
 <script setup lang="ts">
@@ -285,7 +284,7 @@ explain useAuthenticationStatus
 <template>
   <div>
     <div i-carbon-home text-4xl inline-block />
-    <p>Vue with Nhost</p>
+    <p>Nhost with Vue</p>
     <p>
       <em text-sm op75>Quickstart</em>
     </p>

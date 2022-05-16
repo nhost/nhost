@@ -100,20 +100,9 @@ nhost logout
 
 ### 1. Create a new Nhost app
 
-First things first, we need to create a new Nhost project.
+import CreateApp from '@site/fragments/create-nhost-app.mdx';
 
-So, log in to your Nhost dashboard and click the **Create your first app**
-button.
-
-![Nhost Create App](/img/architecture/cli/create-app-step-1.png)
-
-Next, give your new Nhost app a name, select a geographic region for your Nhost
-services and click **Create App**.
-
-![Nhost Create App](/img/architecture/cli/create-app-step-2.png)
-
-After a few seconds, you should get a PostgreSQL database, a GraphQL API with
-Hasura, file storage, and authentication set up.
+<CreateApp />
 
 ### 2. Create a new GitHub Repository
 
@@ -364,13 +353,11 @@ Then, create a new file named `time.ts` inside the `functions/` folder of your
 working directory, and paste the following code:
 
 ```ts title="functions/time.ts"
-import { Request, Response } from 'express';
+import { Request, Response } from 'express'
 
 export default (req: Request, res: Response) => {
-  return res
-    .status(200)
-    .send(`Hello ${req.query.name}! It's now: ${new Date().toUTCString()}`);
-};
+  return res.status(200).send(`Hello ${req.query.name}! It's now: ${new Date().toUTCString()}`)
+}
 ```
 
 Every JavaScript and TypeScript file inside the `functions/` folder becomes an
