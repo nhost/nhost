@@ -15,7 +15,7 @@ In this section:
 
 ### React
 
-- [Getting started](/reference/react/getting-started)
+- [Getting started](/reference/react)
 - [Protecting routes](/reference/react/protecting-routes)
 - [Apollo GraphQL](/reference/react/apollo)
 
