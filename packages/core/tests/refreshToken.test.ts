@@ -15,64 +15,102 @@ import fakeUser from './helpers/__mocks__/user'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-const customStorage = new CustomClientStorage(new Map())
+describe('Disabled auto-sign in', () => {
+  const customStorage = new CustomClientStorage(new Map())
 
-const authMachine = createAuthMachine({
-  backendUrl: BASE_URL,
-  clientUrl: 'http://localhost:3000',
-  clientStorage: customStorage,
-  clientStorageType: 'custom',
-  refreshIntervalTime: 1
-})
+  customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
+  customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.datatype.uuid())
 
-const authService = interpret(authMachine)
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterAll(() => server.close())
-
-beforeEach(() => {
-  authService.start()
-})
-
-afterEach(() => {
-  authService.stop()
-  customStorage.clear()
-  server.resetHandlers()
-})
-
-test(`should save provided session on session update`, async () => {
-  const user = { ...fakeUser }
-  const accessToken = faker.datatype.string(40)
-  const refreshToken = faker.datatype.uuid()
-
-  expect(authService.state.context.user).toBeNull()
-  expect(authService.state.context.accessToken.value).toBeNull()
-  expect(authService.state.context.refreshToken.value).toBeNull()
-
-  authService.send({
-    type: 'SESSION_UPDATE',
-    data: {
-      session: {
-        accessToken,
-        accessTokenExpiresIn: 900,
-        refreshToken,
-        user
-      }
-    }
+  const authMachine = createAuthMachine({
+    backendUrl: BASE_URL,
+    clientUrl: 'http://localhost:3000',
+    clientStorage: customStorage,
+    clientStorageType: 'custom',
+    refreshIntervalTime: 10,
+    autoSignIn: false
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
-  )
+  const authService = interpret(authMachine)
 
-  expect(state.context.user).toMatchObject(user)
-  expect(state.context.accessToken.value).toBe(accessToken)
-  expect(state.context.refreshToken.value).toBe(refreshToken)
+  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+  afterAll(() => server.close())
+
+  beforeEach(() => {
+    authService.start()
+  })
+
+  afterEach(() => {
+    authService.stop()
+    customStorage.clear()
+    server.resetHandlers()
+  })
+
+  test(`should save provided session on session update`, async () => {
+    const user = { ...fakeUser }
+    const accessToken = faker.datatype.string(40)
+    const refreshToken = faker.datatype.uuid()
+
+    expect(authService.state.context.user).toBeNull()
+    expect(authService.state.context.accessToken.value).toBeNull()
+    expect(authService.state.context.refreshToken.value).toBeNull()
+
+    authService.send({
+      type: 'SESSION_UPDATE',
+      data: {
+        session: {
+          accessToken,
+          accessTokenExpiresIn: 900,
+          refreshToken,
+          user
+        }
+      }
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(state.context.user).toMatchObject(user)
+    expect(state.context.accessToken.value).toBe(accessToken)
+    expect(state.context.accessToken.expiresAt).not.toBeNull()
+    expect(state.context.refreshToken.value).toBe(refreshToken)
+  })
+
+  test(`should automatically refresh token if expration date was not provided`, async () => {
+    const user = { ...fakeUser }
+    const accessToken = faker.datatype.string(40)
+    const refreshToken = faker.datatype.uuid()
+
+    authService.send({
+      type: 'SESSION_UPDATE',
+      data: {
+        session: {
+          user,
+          accessTokenExpiresIn: null,
+          accessToken,
+          refreshToken
+        }
+      }
+    })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    // Note: Access token must have been refreshed
+    expect(state.context.accessToken).not.toBeNull()
+    expect(state.context.accessToken).not.toBe(accessToken)
+
+    // Note: JWT expiration date must have been updated in the storage
+    expect(customStorage.getItem(NHOST_JWT_EXPIRES_AT_KEY)).not.toBeNull()
+  })
 })
 
 describe(`Auto sign-in`, () => {
-  let autoSignInAuthMachine: ReturnType<typeof createAuthMachine>
-  let autoSignInAuthService: Interpreter<
+  const customStorage = new CustomClientStorage(new Map())
+
+  let authMachine: ReturnType<typeof createAuthMachine>
+  let authService: Interpreter<
     AuthContext,
     any,
     AuthEvents,
@@ -87,10 +125,12 @@ describe(`Auto sign-in`, () => {
   let windowSpy: jest.SpyInstance
 
   beforeAll(() => {
-    customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, '1')
-    customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, '1')
+    server.listen({ onUnhandledRequest: 'error' })
 
-    autoSignInAuthMachine = createAuthMachine({
+    customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
+    customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.datatype.uuid())
+
+    authMachine = createAuthMachine({
       backendUrl: BASE_URL,
       clientUrl: 'http://localhost:3000',
       clientStorage: customStorage,
@@ -99,15 +139,18 @@ describe(`Auto sign-in`, () => {
       autoSignIn: true
     })
 
-    autoSignInAuthService = interpret(autoSignInAuthMachine)
+    authService = interpret(authMachine)
   })
+
+  afterAll(() => server.close())
 
   beforeEach(() => {
     windowSpy = vi.spyOn(global, 'window', 'get')
   })
 
   afterEach(() => {
-    autoSignInAuthService.stop()
+    server.resetHandlers()
+    authService.stop()
     customStorage.clear()
     vi.restoreAllMocks()
   })
@@ -121,9 +164,9 @@ describe(`Auto sign-in`, () => {
       }
     }))
 
-    autoSignInAuthService.start()
+    authService.start()
 
-    const state: AuthState = await waitFor(autoSignInAuthService, (state: AuthState) =>
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
@@ -149,9 +192,9 @@ describe(`Auto sign-in`, () => {
       }
     }))
 
-    autoSignInAuthService.start()
+    authService.start()
 
-    const state: AuthState = await waitFor(autoSignInAuthService, (state: AuthState) =>
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
@@ -177,9 +220,9 @@ describe(`Auto sign-in`, () => {
       }
     }))
 
-    autoSignInAuthService.start()
+    authService.start()
 
-    const state: AuthState = await waitFor(autoSignInAuthService, (state: AuthState) =>
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
@@ -203,9 +246,9 @@ describe(`Auto sign-in`, () => {
       }
     }))
 
-    autoSignInAuthService.start()
+    authService.start()
 
-    const state: AuthState = await waitFor(autoSignInAuthService, (state: AuthState) =>
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 

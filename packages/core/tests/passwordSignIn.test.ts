@@ -2,6 +2,7 @@ import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
+import { INITIAL_MACHINE_CONTEXT } from '../src/machines/context'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
@@ -14,6 +15,7 @@ import {
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
+import fakeUser from './helpers/__mocks__/user'
 
 type AuthState = GeneralAuthState<Typegen0>
 
@@ -240,4 +242,30 @@ test(`should succeed if correct credentials are provided`, async () => {
   )
 
   expect(state.context.user).not.toBeNull()
+})
+
+test(`should transition to signed in state if user is already signed in`, async () => {
+  const user = { ...fakeUser }
+  const accessToken = faker.datatype.string(40)
+  const refreshToken = faker.datatype.uuid()
+  const expiresAt = new Date(Date.now() * 900000)
+
+  const authServiceWithInitialUser = interpret(
+    authMachine.withContext({
+      ...INITIAL_MACHINE_CONTEXT,
+      user,
+      accessToken: { value: accessToken, expiresAt },
+      refreshToken: { value: refreshToken }
+    })
+  )
+
+  authServiceWithInitialUser.start()
+
+  const state: AuthState = await waitFor(authServiceWithInitialUser, (state: AuthState) =>
+    state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+  )
+
+  expect(state.context.user).toMatchObject(user)
+
+  authServiceWithInitialUser.stop()
 })

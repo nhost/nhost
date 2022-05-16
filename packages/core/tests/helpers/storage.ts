@@ -10,21 +10,10 @@ export class CustomClientStorage implements ClientStorage {
     this._storage = storage
   }
 
-  public getItem = (key: string) => {
-    return this._storage.get(key)
-  }
-
-  public setItem = (key: string, value: any) => {
-    return this._storage.set(key, value)
-  }
-
-  public removeItem = (key: string) => {
-    this._storage.delete(key)
-  }
-
-  public clear = () => {
-    this._storage.clear()
-  }
+  public getItem = (key: string) => this._storage.get(key)
+  public setItem = (key: string, value: any) => this._storage.set(key, value)
+  public removeItem = (key: string) => this._storage.delete(key)
+  public clear = () => this._storage.clear()
 }
 
 export default CustomClientStorage
