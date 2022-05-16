@@ -190,7 +190,7 @@ Vue SDK within a `/sign-up` page.
 
 Let's create a new page in your project using the following code:
 
-```html title="src/pages/sign-up.vue"
+```markup title="src/pages/sign-up.vue"
 <script setup lang="ts">
   import { ref } from 'vue'
   import { useSignUpEmailPassword } from '@nhost/vue'
@@ -236,7 +236,7 @@ existing users to sign in with email and password.
 For that, we will use the Nhost composable named `useSignInEmailPassword` inside a new
 `sign-in` page the same way we did with our `sign-up` page. Let's create a `src/pages/sign-in.vue` component:
 
-```html title="src/pages/sign-in.vue"
+```markup title="src/pages/sign-in.vue"
 <script setup lang="ts">
   import { ref } from 'vue'
   import { useSignInEmailPassword } from '@nhost/vue'
@@ -273,7 +273,7 @@ For that, we will use the Nhost composable named `useSignInEmailPassword` inside
 
 Let's also add links to sign up and sign in in our index page.
 
-```html title="src/pages/index.vue"
+```markup title="src/pages/index.vue"
 <template>
   <div>
     <div i-carbon-home text-4xl inline-block />
@@ -293,7 +293,7 @@ Let's also add links to sign up and sign in in our index page.
 Finally, to allow the users to sign out from the app, we can use the Nhost
 `useSignOut` composable. We'll also use `useAuthenticationStatus` to show the button only when the user is authenticated:
 
-```html title="src/components/Footer.vue"
+```markup title="src/components/Footer.vue"
 <script setup lang="ts">
   import { useRouter } from 'vue-router'
   import { useAuthenticated, useSignOut } from '@nhost/vue'
@@ -328,7 +328,7 @@ certain parts of our application.
 
 Let's create a profile page that will be only accessible to authenticated users. If an unauthenticated user attempts to load it, it will redirect them to the `/sign-up` page:
 
-```html title="src/pages/profile.vue"
+```markup title="src/pages/profile.vue"
 <template>
   <div>
     <div i-carbon-home text-4xl inline-block />
@@ -375,7 +375,7 @@ app.mount('#app')
 
 Let's finally add a link to the profile page in the index page `/`:
 
-```html title="src/pages/index.vue"
+```markup title="src/pages/index.vue"
 <template>
   <div>
     <div i-carbon-home text-4xl inline-block />
@@ -403,7 +403,7 @@ can use the `useUserData` composable provided by Nhost to do it. When the user i
 
 Let's update the profile page to use it:
 
-```html title="src/pages/profile.vue"
+```markup title="src/pages/profile.vue"
 <!-- highlight-start -->
 <script setup lang="ts">
   import { useUserData } from '@nhost/vue'
@@ -510,7 +510,7 @@ app
 From there, we can construct our GraphQL query and use the Apollo `useMutation`
 composable to execute that query when the user submits the form from the profile page:
 
-```html title="src/pages/profile.vue"
+```markup title="src/pages/profile.vue"
 <script setup lang="ts">
   import { gql } from '@apollo/client'
   import { useNhostClient, useUserData } from '@nhost/vue'
@@ -625,7 +625,7 @@ const id = useUserId()
 
 Finally, we can run our GraphQL subscription using the `useSubscription` composable and the current user's ID. Here is the full `profile.vue` page:
 
-```html title="src/pages/profile.vue"
+```markup title="src/pages/profile.vue"
 <script setup lang="ts">
   import { gql } from '@apollo/client'
   // highlight-start
