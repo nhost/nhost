@@ -3,10 +3,10 @@ title: 'Overview'
 sidebar_position: 1
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
-Nhost SDK is the primary way of interacting with your Nhost app. It exposes a standard interface for each of the following services:
+The Nhost client is the primary way of interacting with your Nhost app. It exposes a standard interface for each of the following services:
 
 - [Authentication](/reference/javascript/auth)
 - [Storage](/reference/javascript/storage)
@@ -15,9 +15,9 @@ Nhost SDK is the primary way of interacting with your Nhost app. It exposes a st
 
 ## Installation
 
-Install the dependency:
+Install the the Nhost client together with GraphQL:
 
-<Tabs>
+<Tabs groupId="package-manager">
   <TabItem value="npm" label="npm" default>
 
 ```bash
@@ -34,30 +34,31 @@ yarn add @nhost/nhost-js graphql
   </TabItem>
 </Tabs>
 
-Then import and initialize a single `nhost` instance in your code:
+Then import and initialize a single `nhost` instance:
 
-```js
-import { NhostClient } from '@nhost/nhost-js';
+```ts title=utils/nhost.ts
+import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: '<nhost-backend-url>',
-});
+  backendUrl: '<nhost-backend-url>'
+})
 ```
 
----
+## GraphQL Support
 
-## GraphQL support
+The Nhost client has a small GraphQL client built-in which is great to use server-side or in very simple frontend apps. For more serious frontend apps, we recommend using a more complete GraphQL client such as:
 
-While the Nhost SDK comes with a lightweight GraphQL client, you can connect to your Nhost backend with any GraphQL client of your choice. For complex applications, [Apollo Client](https://github.com/apollographql/apollo-client), [React Query](https://github.com/tannerlinsley/react-query) or [URQL](https://github.com/FormidableLabs/urql) might be good options.
+- [Apollo Client](https://www.apollographql.com/docs/react/)
+- [URQL](https://formidable.com/open-source/urql/)
+- [React Query](https://react-query.tanstack.com/graphql)
+- [SWR](https://swr.vercel.app/docs/data-fetching#graphql)
 
----
+## Tokens and Permissions
 
-## Security
+The Nhost client manages refresh tokens and access tokens automatically. The correct authorization headers are set if the user is signed in. Both access tokens and refresh tokens are automatically refreshed in the background.
 
-The SDK manages refresh tokens automatically to respect the permission rules of your Nhost apps. Requests will be anonymous by default, and when you use the SDK to log a user in, the permissions for that user will be used for GraphQL, storage and cloud function calls.
+If the user is not signed in no authorization header is set. If no authorization header is set, requests to GraphQL and Storage resolve permissions using the `public` role.
 
----
+## TypeScript Support
 
-## TypeScript support
-
-The SDK has TypeScript typings included. You don’t have to import types separately.
+The Nhost JS SDK has TypeScript typings included. You don’t have to import types separately.
