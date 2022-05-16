@@ -3,16 +3,16 @@
 title: delete()
 sidebar_label: delete()
 slug: /reference/javascript/storage/delete
-description: Use `.delete` to delete a file.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L102
+description: Use `nhost.storage.delete` to delete a file.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L117
 ---
 
 # `delete()`
 
-Use `.delete` to delete a file.
+Use `nhost.storage.delete` to delete a file.
 
 ```ts
-storage.delete({ fileId: 'uuid' })
+const { error } = await nhost.storage.delete({ fileId: 'uuid' })
 ```
 
 ## Parameters

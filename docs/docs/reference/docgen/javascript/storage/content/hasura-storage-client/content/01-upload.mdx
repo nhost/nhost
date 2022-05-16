@@ -3,16 +3,16 @@
 title: upload()
 sidebar_label: upload()
 slug: /reference/javascript/storage/upload
-description: Use `.upload` to upload a file.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L32
+description: Use `nhost.storage.upload` to upload a file.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L34
 ---
 
 # `upload()`
 
-Use `.upload` to upload a file.
+Use `nhost.storage.upload` to upload a file.
 
 ```ts
-storage.upload({ file })
+await nhost.storage.upload({ file })
 ```
 
 ## Parameters

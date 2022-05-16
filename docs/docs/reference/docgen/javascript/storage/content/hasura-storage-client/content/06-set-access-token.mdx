@@ -3,17 +3,17 @@
 title: setAccessToken()
 sidebar_label: setAccessToken()
 slug: /reference/javascript/storage/set-access-token
-description: Set the access token to use for authentication.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L117
+description: Use `nhost.storage.setAccessToken` to a specific access token to be used in subsequent storage requests.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L138
 ---
 
 # `setAccessToken()`
 
-Set the access token to use for authentication.
+Use `nhost.storage.setAccessToken` to a specific access token to be used in subsequent storage requests.
 
-**`@returns`**
-
-Hasura Storage Client instance
+```ts
+nhost.storage.setAccessToken('some-access-token')
+```
 
 ## Parameters
 
