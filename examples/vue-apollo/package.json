@@ -13,12 +13,11 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "lib": "workspace:*",
   "dependencies": {
     "@apollo/client": "^3.6.2",
     "@mdi/font": "5.9.55",
-    "@nhost/apollo": "workspace:^",
-    "@nhost/vue": "workspace:^",
+    "@nhost/apollo": "*",
+    "@nhost/vue": "*",
     "@vue/apollo-composable": "^4.0.0-alpha.17",
     "graphql": "15.7.2",
     "graphql-tag": "^2.12.6",
@@ -29,7 +28,7 @@
     "webfontloader": "^1.0.0"
   },
   "devDependencies": {
-    "@nhost/core": "workspace:^",
+    "@nhost/core": "*",
     "@types/webfontloader": "^1.0.0",
     "@vitejs/plugin-vue": "^2.3.1",
     "@vuetify/vite-plugin": "^1.0.0-alpha.0",

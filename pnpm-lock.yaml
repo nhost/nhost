@@ -299,9 +299,9 @@ importers:
     specifiers:
       '@apollo/client': ^3.6.2
       '@mdi/font': 5.9.55
-      '@nhost/apollo': workspace:^
-      '@nhost/core': workspace:^
-      '@nhost/vue': workspace:^
+      '@nhost/apollo': '*'
+      '@nhost/core': '*'
+      '@nhost/vue': '*'
       '@types/webfontloader': ^1.0.0
       '@vitejs/plugin-vue': ^2.3.1
       '@vue/apollo-composable': ^4.0.0-alpha.17
@@ -346,7 +346,8 @@ importers:
     specifiers:
       '@antfu/eslint-config': ^0.23.0
       '@iconify-json/carbon': ^1.1.4
-      '@nhost/vue': workspace:^0.0.1
+      '@nhost/core': '*'
+      '@nhost/vue': '*'
       '@types/node': ^17.0.32
       '@unocss/reset': ^0.33.2
       '@vitejs/plugin-vue': ^2.3.2
@@ -375,6 +376,7 @@ importers:
     devDependencies:
       '@antfu/eslint-config': 0.23.0_eslint@8.15.0+typescript@4.6.4
       '@iconify-json/carbon': 1.1.4
+      '@nhost/core': link:../../packages/core
       '@types/node': 17.0.33
       '@unocss/reset': 0.33.4
       '@vitejs/plugin-vue': 2.3.3_vite@2.9.9+vue@3.2.33
