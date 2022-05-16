@@ -78,7 +78,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `signUp` to sign up users using email and password. If you want to sign up users using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
+   * Use `nhost.auth.signUp` to sign up users using email and password. If you want to sign up users using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
    *
    * @example
    * ```ts
@@ -115,7 +115,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `signIn` to sign in users using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in users in various ways depending on the parameters.
+   * Use `nhost.auth.signIn` to sign in users using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in users in various ways depending on the parameters.
    *
    * @example
    * ### Sign in a user with email and password
@@ -316,7 +316,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `signOut` to sign out the user.
+   * Use `nhost.auth.signOut` to sign out the user.
    *
    * @example
    * ```ts
@@ -343,7 +343,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `resetPassword` to reset the password for a user. This will send a reset password email to the user that will sign-in the user. Once the user is signed in, they can change their password using `changePassword()`.
+   * Use `nhost.auth.resetPassword` to reset the password for a user. This will send a reset password email to the user that will sign-in the user. Once the user is signed in, they can change their password using `changePassword()`.
    *
    * @example
    * ```ts
@@ -368,7 +368,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `changePassword` to change the password for the user. The old password does not have to be provided.
+   * Use `nhost.auth.changePassword` to change the password for the user. The old password does not have to be provided.
    *
    * @example
    * ```ts
@@ -393,7 +393,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `sendVerificationEmail` to send a verification email to the specified email. This email will contain a link that can be used to verify the email address.
+   * Use `nhost.auth.sendVerificationEmail` to send a verification email to the specified email. This email will contain a link that can be used to verify the email address.
    *
    * @example
    * ```ts
@@ -420,7 +420,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `changeEmail` to change a user's email.
+   * Use `nhost.auth.changeEmail` to change a user's email.
    *
    * @example
    * ```ts
@@ -445,7 +445,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `deanonymize` to deanonymize a user.
+   * Use `nhost.auth.deanonymize` to deanonymize a user.
    *
    * @example
    * ```ts
@@ -478,7 +478,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `onTokenChanged` to add a custom function that runs every time the access or refresh token is changed.
+   * Use `nhost.auth.onTokenChanged` to add a custom function that runs every time the access or refresh token is changed.
    *
    *
    * @example
@@ -512,7 +512,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `onAuthStateChanged` to add a custom function that runs every time the authentication status of the user changes. E.g. if the authentication status changes from signed-in to signed-out or vice versa.
+   * Use `nhost.auth.onAuthStateChanged` to add a custom function that runs every time the authentication status of the user changes. E.g. if the authentication status changes from signed-in to signed-out or vice versa.
    *
    * @example
    * ```ts
@@ -546,9 +546,9 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `isAuthenticated` to check if the user is authenticated or not.
+   * Use `nhost.auth.isAuthenticated` to check if the user is authenticated or not.
    *
-   * Note that `isAuthenticated()` can return `false` before the auth status has been resolved. Use `getAuthenticationStatus` to get both loading and auth status.
+   * Note that `isAuthenticated()` can return `false` before the auth status has been resolved. Use `nhost.auth.getAuthenticationStatus` to get both loading and auth status.
    *
    * @example
    * ```ts
@@ -566,7 +566,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `isAuthenticatedAsync` to wait and check if the user is authenticated or not.
+   * Use `nhost.auth.isAuthenticatedAsync` to wait and check if the user is authenticated or not.
    *
    * @example
    * ```ts
@@ -585,7 +585,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `getAuthenticationStatus` to get the authentication status of the user.
+   * Use `nhost.auth.getAuthenticationStatus` to get the authentication status of the user.
    *
    * if `isLoading` is `true`, the client does not yet know if the user is signed in or not because the auth network request is in transit.
    *
@@ -615,7 +615,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * @deprecated Use `getAccessToken()` instead.
+   * @deprecated Use `nhost.auth.getAccessToken()` instead.
    */
 
   getJWTToken(): string | undefined {
@@ -623,7 +623,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `getAccessToken` to get the access token of the signed-in user.
+   * Use `nhost.auth.getAccessToken` to get the access token of the signed-in user.
    *
    * @example
    * ```ts
@@ -637,7 +637,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `getDecodedAccessToken` to get the decoded access token of the signed-in user.
+   * Use `nhost.auth.getDecodedAccessToken` to get the decoded access token of the signed-in user.
    *
    * @example
    * ```ts
@@ -653,7 +653,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `getHasuraClaims` to get the hasura claims of the signed-in user.
+   * Use `nhost.auth.getHasuraClaims` to get the hasura claims of the signed-in user.
    *
    * @example
    * ```ts
@@ -667,7 +667,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `getHasuraClaim` to get the value of a specific Hasura claim of the signed-in user.
+   * Use `nhost.auth.getHasuraClaim` to get the value of a specific Hasura claim of the signed-in user.
    *
    * @example
    * ```ts
@@ -687,7 +687,7 @@ export class HasuraAuthClient {
 
   /**
    *
-   * Use `refreshSession` to refresh the session with either the current internal refresh token or an external refresh token.
+   * Use `nhost.auth.refreshSession` to refresh the session with either the current internal refresh token or an external refresh token.
    *
    * @example
    * ```ts
@@ -735,7 +735,7 @@ export class HasuraAuthClient {
 
   /**
    *
-   * Use `getSession()` to get the session of the signed-in user.
+   * Use `nhost.auth.getSession()` to get the session of the signed-in user.
    *
    * @example
    * ```ts
@@ -750,7 +750,7 @@ export class HasuraAuthClient {
 
   /**
    *
-   * Use `getUser()` to get the signed-in user.
+   * Use `nhost.auth.getUser()` to get the signed-in user.
    *
    * @example
    * ```ts
