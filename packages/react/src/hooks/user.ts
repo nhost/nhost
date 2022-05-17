@@ -4,6 +4,9 @@ import { useCallback, useMemo } from 'react'
 import {
   ActionErrorState,
   ActionSuccessState,
+  ActivateMfaHandlerResult,
+  activateMfaPromise,
+  ActivateMfaState,
   ChangeEmailHandlerResult,
   ChangeEmailOptions,
   changeEmailPromise,
@@ -15,7 +18,9 @@ import {
   createEnableMfaMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
-  ErrorPayload,
+  GenerateQrCodeHandlerResult,
+  generateQrCodePromise,
+  GenerateQrCodeState,
   JWTClaims,
   ResetPasswordHandlerResult,
   ResetPasswordOptions,
@@ -500,34 +505,13 @@ export const useSendVerificationEmail: SendVerificationEmailHook = (
   return { sendEmail, isLoading, isSent, isError, error }
 }
 
-interface ActivateMfaState {
-  isActivating: boolean
-  isActivated: boolean
-  isError: boolean
-  error: ErrorPayload | null
-}
-interface GenerateQrCodeState {
-  qrCodeDataUrl: string
-  isGenerating: boolean
-  isGenerated: boolean
-  isError: boolean
-  error: ErrorPayload | null
-}
-type ActivateMfaHandlerResult = Omit<ActivateMfaState, 'isActivating'>
-type ActivateMfaHandler = (code: string) => Promise<ActivateMfaHandlerResult>
-
-type GenerateQrCodeHandlerResult = Omit<GenerateQrCodeState, 'isGenerating'>
-type GenerateQrCodeHandler = () => Promise<GenerateQrCodeHandlerResult>
-
 interface ConfigMfaState extends ActivateMfaState, GenerateQrCodeState {
-  generateQrCode: GenerateQrCodeHandler
-  activateMfa: ActivateMfaHandler
+  generateQrCode: () => Promise<GenerateQrCodeHandlerResult>
+  activateMfa: (code: string) => Promise<ActivateMfaHandlerResult>
 }
-
-type ConfigMfaHook = () => ConfigMfaState
 
 // TODO documentation when available in Nhost Cloud - see changelog
-export const useConfigMfa: ConfigMfaHook = () => {
+export const useConfigMfa = (): ConfigMfaState => {
   const nhost = useNhostClient()
 
   const machine = useMemo(() => createEnableMfaMachine(nhost.auth.client), [nhost])
@@ -544,41 +528,10 @@ export const useConfigMfa: ConfigMfaHook = () => {
   const error = useSelector(service, (state) => state.context.error)
   const qrCodeDataUrl = useSelector(service, (state) => state.context.imageUrl || '')
 
-  const generateQrCode: GenerateQrCodeHandler = () =>
-    new Promise<GenerateQrCodeHandlerResult>((resolve) => {
-      service.send('GENERATE')
-      service.onTransition((state) => {
-        if (state.matches('generated')) {
-          resolve({
-            error: null,
-            isError: false,
-            isGenerated: true,
-            qrCodeDataUrl: state.context.imageUrl || ''
-          })
-        } else if (state.matches({ idle: 'error' })) {
-          resolve({
-            error: state.context.error || null,
-            isError: true,
-            isGenerated: false,
-            qrCodeDataUrl: ''
-          })
-        }
-      })
-    })
-  const activateMfa: ActivateMfaHandler = (code: string) =>
-    new Promise<ActivateMfaHandlerResult>((resolve) => {
-      service.send('ACTIVATE', {
-        activeMfaType: 'totp',
-        code
-      })
-      service.onTransition((state) => {
-        if (state.matches({ generated: 'activated' })) {
-          resolve({ error: null, isActivated: true, isError: false })
-        } else if (state.matches({ generated: { idle: 'error' } })) {
-          resolve({ error: state.context.error, isActivated: false, isError: true })
-        }
-      })
-    })
+  const generateQrCode = () => generateQrCodePromise(service)
+
+  const activateMfa = (code: string) => activateMfaPromise(service, code)
+
   return {
     generateQrCode,
     isGenerating,

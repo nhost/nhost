@@ -1,5 +1,6 @@
 export * from './changeEmail'
 export * from './changePassword'
+export * from './mfa'
 export * from './resetPassword'
 export * from './sendVerificationEmail'
 export * from './signInAnonymous'

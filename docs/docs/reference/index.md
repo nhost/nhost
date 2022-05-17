@@ -21,9 +21,9 @@ In this section:
 
 ### Next.js
 
-- [Introduction](/reference/nextjs/introduction)
-- [Configuration](/reference/nextjs/configuration)
+- [Introduction](/reference/nextjs)
 - [Protecting routes](/reference/nextjs/protecting-routes)
+- [Architecture](/reference/nextjs/architecture)
 
 ### Vue 3
 
