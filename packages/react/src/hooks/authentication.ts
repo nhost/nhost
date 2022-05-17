@@ -224,46 +224,22 @@ interface SignInEmailPasswordlessHookResult extends DefaultActionHookState {
 }
 
 /**
- * Passwordless email authentication hook
+ * Use the hook `useSignInEmailPasswordless` to sign in a user using passwordless email (Magic Link).
  *
  * @example
- * ```js
- * const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
- *   useSignInEmailPasswordless();
+ * ```tsx
+ * const { signInEmailPasswordless, isLoading, isSuccess, isError, error } = useSignInEmailPasswordless()
+ *
+ * console.log({ isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signInEmailPasswordless('joe@example.com');
+ * }
  * ```
  *
- * @example
- * ```jsx
- * import { useState } from 'react';
- * import { useSignInEmailPasswordless } from '@nhost/react';
- *
- * const Component = () => {
- *   const [email, setEmail] = useState('');
- *   const { signInEmailPasswordless, isLoading, isSuccess, isError, error } =
- *     useSignInEmailPasswordless();
- *
- *   return (
- *     <div>
- *       <input
- *         value={email}
- *         onChange={(event) => setEmail(event.target.value)}
- *         placeholder="Email"
- *       />
- *
- *       <button onClick={() => signInEmailPasswordless(email)}>
- *         Authenticate
- *       </button>
- *
- *       {isSuccess && (
- *         <div>
- *           An email has been sent to {email}. Please check your mailbox and click on the
- *           authentication link.
- *         </div>
- *       )}
- *     </div>
- *   );
- * };
- * ```
+ * @docs https://docs.nhost.io/reference/react/use-sign-in-email-passwordless
  */
 export function useSignInEmailPasswordless(
   options?: PasswordlessOptions
@@ -419,7 +395,7 @@ export const useSignInAnonymous = (): SignInAnonymousHookResult => {
 }
 
 /**
- * Hook that returns OAuth provider URLs
+ *  Use the hook `useProviderLink` to get a OAuth provider URL that can be used to sign in users.
  *
  * @example
  * ```js
@@ -435,8 +411,8 @@ export const useSignInAnonymous = (): SignInAnonymousHookResult => {
  *
  *   return (
  *     <div>
- *       <a href={facebook}>Authenticate with Facebook</a>
- *       <a href={github}>Authenticate with GitHub</a>
+ *       <a href={facebook}>Sign in with Facebook</a>
+ *       <a href={github}>Sign in with GitHub</a>
  *     </div>
  *   );
  * };

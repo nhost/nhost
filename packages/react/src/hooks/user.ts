@@ -405,12 +405,14 @@ export const useUserId = () => {
 }
 
 /**
- * Returns whether the user is anonymous ot not
+ * Use the hook `useUserIsAnonymous` to see if the user is anonymous or not.
+ *
  * @example
-```js
-import { useIsAnonymous } from '@nhost/react';
-const isAnonymous = useIsAnonymous();
-```
+ * ```tsx
+ * const userIsAnonymous = useUserIsAnonymous();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-is-anonymous
  */
 export const useUserIsAnonymous = () => {
   const service = useAuthInterpreter()
@@ -427,12 +429,14 @@ export const useUserIsAnonymous = () => {
 export const useIsAnonymous = useUserIsAnonymous
 
 /**
- * Gets the user locale
+ * Use the hook `useUserLocale` to get the locale of the current user.
+ *
  * @example
-```js
-import { useUserLocale } from '@nhost/react';
-const locale = useUserLocale();
-```
+ * ```tsx
+ * const userLocale = useUserLocale();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-user-locale
  */
 export const useUserLocale = () => {
   const service = useAuthInterpreter()
@@ -444,14 +448,14 @@ export const useUserLocale = () => {
 }
 
 /**
- * Hook to get the current user's roles.
+ * Use the hook `useUserRoles` to get all allowed roles of the current user.
  *
  * @example
- * ```ts
- * const roles = useUserRoles()
+ * ```tsx
+ * const userRoles = useUserRoles();
  * ```
  *
- * @returns Roles of the current user
+ * @docs https://docs.nhost.io/reference/react/use-user-roles
  */
 export const useUserRoles = () => {
   const service = useAuthInterpreter()

@@ -176,6 +176,29 @@ const Component = () => {
 };
 ```
 */
+/**
+ * Use the hook `useSignOut` to sign out the current user.
+ *
+ * @example
+ * ```tsx
+ * import { useSignOut, useAuthenticated } from '@nhost/react'
+ *
+ * const Component = () => {
+ *   const { signOut } = useSignOut()
+ *   const isAutenticated = useAuthenticated()
+ *
+ *   if (isAuthenticated) {
+ *     return (
+ *       <button onClick={() => signOut()}>Sign Out</button>
+ *     )
+ *   }
+ *
+ *   return <div>Not authenticated</div>
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-sign-out
+ */
 export const useSignOut = (stateAll: boolean = false) => {
   const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>
