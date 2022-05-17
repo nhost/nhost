@@ -3,25 +3,17 @@
 title: useHasuraClaim()
 sidebar_label: useHasuraClaim()
 slug: /reference/nextjs/use-hasura-claim
-description: Get the value of a given Hasura claim in the current access token (JWT). Returns null if the user is not authenticated, or if the claim is not in the token. Return `null` if the user is not authenticated (no token)
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L709
+description: Use the hook `useHasruaClaim` to get the value of a specific Hasura claim of the current user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L636
 ---
 
 # `useHasuraClaim()`
 
-Get the value of a given Hasura claim in the current access token (JWT). Returns null if the user is not authenticated, or if the claim is not in the token.
-Return `null` if the user is not authenticated (no token)
+Use the hook `useHasruaClaim` to get the value of a specific Hasura claim of the current user.
 
-**`@see`**
-
-{@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/|Hasura documentation}
-
-```ts
-import { useHasuraClaim } from '@nhost/react'
-const Component = () => {
-  const claim = useHasuraClaim('user-id')
-  return <div>User id extracted from the JWT access token: {claim}</div>
-}
+```tsx
+// if `x-hasura-company-id` exists as a custom claim
+const companyId = useHasuraClaim('company-id')
 ```
 
 ## Parameters
@@ -29,7 +21,5 @@ const Component = () => {
 ---
 
 **<span className="parameter-name">name</span>** <span className="optional-status">required</span> `string`
-
-name of the variable. Automatically adds the `x-hasura-` prefix if it is missing
 
 ---

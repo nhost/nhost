@@ -2,7 +2,10 @@ import { ErrorPayload } from '../errors'
 import { User } from '../types'
 
 export interface ActionErrorState {
-  /** @return `true` if an error occurred */
+  /**
+   * @return `true` if an error occurred
+   * @depreacted use `!isSuccess` or `!!error` instead
+   * */
   isError: boolean
   /** Provides details about the error */
   error: ErrorPayload | null

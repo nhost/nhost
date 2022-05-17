@@ -7,6 +7,16 @@ import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
 
+/**
+ * Use the hook `useNhostClient` to get the Nhost client.
+ *
+ * @example
+ * ```tsx
+ * const nhost = useNhostClient()
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-nhost-client
+ */
 export const useNhostClient = (): NhostClient => {
   const nhost = useContext(NhostReactContext)
   return nhost
@@ -20,6 +30,16 @@ export const useAuthInterpreter = (): InterpreterFrom<AuthMachine> => {
   return interpreter
 }
 
+/**
+ * Use the hook `useNhostBackendUrl` to get the Nhost backend URL.
+ *
+ * @example
+ * ```tsx
+ * const nhostBackendUrl = useNhostBackendUrl()
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-nhost-backend-url
+ */
 export const useNhostBackendUrl = () => {
   const nhost = useContext(NhostReactContext)
   return nhost.auth.client.backendUrl.replace('/v1/auth', '')
@@ -40,28 +60,13 @@ export const useAuthLoading = () => {
 }
 
 /**
- * The Nhost client may need some initial steps to determine the authentication status during startup, like fetching a new JWT from an existing refresh token.
- * @return `isLoading` will return `true` until the authentication status is known.
- * 
- * `        isAuthenticated` returns `true` if the user is authenticated, `false` if not or if the client is still determining the status.
+ * Use `useAuthenticationStatus` to get the authentication status for the user.
+ *
  * @example
-```jsx
-import { useAuthenticationStatus } from '@nhost/react';
-
-const Component = () => {
-  const { isLoading, isAuthenticated } = useAuthenticationStatus();
-  if (isLoading) {
-    return <div>Loading Nhost authentication status...</div>;
-  }
-
-  if (isAuthenticated) {
-    return <div>User is authenticated</div>;
-  }
-
-  return <div>Public section</div>;
-};
-```
-*/
+ * ```tsx
+ * const { isAuthenticated, isLoading } = useAuthenticationStatus();
+ * ```
+ */
 export const useAuthenticationStatus = () => {
   const service = useAuthInterpreter()
   return useSelector(
@@ -76,6 +81,16 @@ export const useAuthenticationStatus = () => {
   )
 }
 
+/**
+ * Use `useAuthenticated` to get the authentication status of the user.
+ *
+ * @example
+ * ```ts
+ * const isAuthenticated = useAuthenticated();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-access-token
+ */
 export const useAuthenticated = () => {
   const service = useAuthInterpreter()
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -92,7 +107,14 @@ export const useAuthenticated = () => {
 }
 
 /**
- * Get the JWT access token
+ * Use `useAccessToken` to get the access token of the user.
+ *
+ * @example
+ * ```ts
+ * const accessToken = useAccessToken();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-access-token
  */
 export const useAccessToken = () => {
   const service = useAuthInterpreter()
@@ -129,6 +151,29 @@ const Component = () => {
 };
 ```
 */
+/**
+ * Use the hook `useSignOut` to sign out the current user.
+ *
+ * @example
+ * ```tsx
+ * import { useSignOut, useAuthenticated } from '@nhost/react'
+ *
+ * const Component = () => {
+ *   const { signOut } = useSignOut()
+ *   const isAutenticated = useAuthenticated()
+ *
+ *   if (isAuthenticated) {
+ *     return (
+ *       <button onClick={() => signOut()}>Sign Out</button>
+ *     )
+ *   }
+ *
+ *   return <div>Not authenticated</div>
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-sign-out
+ */
 export const useSignOut = (stateAll: boolean = false) => {
   const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>

@@ -21,6 +21,16 @@ export class NhostFunctionsClient {
     })
   }
 
+  /**
+   * Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
+   *
+   * @example
+   * ```ts
+   * await nhost.functions.call('send-welcome-email', { email: 'joe@example.com', name: 'Joe Doe' })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/call
+   */
   async call<T = unknown, D = any>(
     url: string,
     data: D,
@@ -50,6 +60,16 @@ export class NhostFunctionsClient {
     return { res, error: null }
   }
 
+  /**
+   * Use `nhost.functions.setAccessToken` to a set an access token to be used in subsequent functions requests. Note that if you're signin in users with `nhost.auth.signIn()` the access token will be set automatically.
+   *
+   * @example
+   * ```ts
+   * nhost.functions.setAccessToken('some-access-token')
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/nhost-js/functions/set-access-token
+   */
   setAccessToken(accessToken: string | undefined) {
     if (!accessToken) {
       this.accessToken = null

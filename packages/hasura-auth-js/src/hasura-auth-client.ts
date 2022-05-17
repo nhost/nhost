@@ -86,14 +86,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `signUp` to sign up users using email an password.
-   *
-   * If you want to sign up a user using magic link or a social provider, use
-   * the `signIn` function instead.
+   * Use `nhost.auth.signUp` to sign up users using email and password. If you want to sign up users using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
    *
    * @example
    * ```ts
-   * auth.signUp({email, password}); // email password
+   * nhost.auth.signUp({email, password})
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
@@ -106,34 +103,37 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `signIn` to sign in users using email and password, passwordless
-   * (email or sms) or an external provider.
-   * `signIn` can be used in various ways depending on the parameters.
+   * Use `nhost.auth.signIn` to sign in users using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in users in various ways depending on the parameters.
    *
    * @example
-   * ### Sign in with email and password
+   * ### Sign in a user using email and password
    * ```ts
-   * signIn({ email, password });
+   * nhost.auth.signIn({
+   *   email: 'joe@example.com',
+   *   password: 'secret-password'
+   * })
    * ```
    *
    * @example
-   * ### Sign in with an external provider (e.g: Google or Facebook)
+   * ### Sign in a user using an OAuth provider (e.g: Google or Facebook)
    * ```ts
-   * signIn({ provider });
+   * nhost.auth.signIn({ provider: 'google' })
    * ```
    *
    * @example
-   * ### Passwordless sign in with email (magic link)
+   * ### Sign in a user using passwordless email (Magic Link)
    * ```ts
-   * signIn({ email }); // [step 1/2] Passwordless sign in with Email (Magic Link)
-   * signIn({ email, otp }); // [step 2/2] Finish passwordless sign in with email (OTP)
+   * nhost.auth.signIn({ email: 'joe@example.com' })
    * ```
    *
    * @example
-   * ### Passwordless sign in with SMS
+   * ### Sign in a user using passwordless SMS
    * ```ts
-   * signIn({ phoneNumber }); // [step 1/2] Passwordless sign in with SMS
-   * signIn({ phoneNumber, otp }); // [step 2/2] Finish passwordless sign in with SMS (OTP)
+   * // [step 1/2] Passwordless sign in using SMS
+   * nhost.auth.signIn({ phoneNumber: '001122334455' })
+   *
+   * // [step 2/2] Finish passwordless sign in using SMS (OTP)
+   * nhost.auth.signIn({ phoneNumber: '001122334455', otp: '123456' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
@@ -234,11 +234,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `signOut` to sign out a user
+   * Use `nhost.auth.signOut` to sign out the user.
    *
    * @example
    * ```ts
-   * signOut();
+   * nhost.auth.signOut()
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-out
@@ -250,11 +250,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `resetPassword` to reset a user's password.
+   * Use `nhost.auth.resetPassword` to reset the password for a user. This will send a reset-password link in an email to the user. When the user clicks the reset-password link the user is automatically signed-in. Once signed-in, the user can change their password using `nhost.auth.changePassword()`.
    *
    * @example
    * ```ts
-   * auth.resetPassword({email})
+   * nhost.auth.resetPassword({email: 'joe@example.com' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/reset-password
@@ -266,11 +266,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `changePassword` to change a user's password.
+   * Use `nhost.auth.changePassword` to change the password for the user. The old password is not needed.
    *
    * @example
    * ```ts
-   * auth.changePassword({ newPassword })
+   * nhost.auth.changePassword({ newPassword: 'new-secret-password' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-password
@@ -282,12 +282,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `sendVerificationEmail` to send a verification email
-   * to the specified email.
+   * Use `nhost.auth.sendVerificationEmail` to send a verification email to the specified email. The email contains a verification-email link. When the user clicks the verification-email link their email is verified.
    *
    * @example
    * ```ts
-   * auth.sendVerificationEmail({email})
+   * nhost.auth.sendVerificationEmail({ email: 'joe@example.com' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/send-verification-email
@@ -302,11 +301,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `changeEmail` to change a user's email
+   * Use `nhost.auth.changeEmail` to change a user's email. This will send a confirm-email-change link in an email to the new email. Once the user clicks on the confirm-email-change link the email will be change to the new email.
    *
    * @example
    * ```ts
-   * auth.changeEmail({newEmail})
+   * nhost.auth.changeEmail({ newEmail: 'doe@example.com' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-email
@@ -318,11 +317,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `deanonymize` to deanonymize a user
+   * Use `nhost.auth.deanonymize` to deanonymize a user.
    *
    * @example
    * ```ts
-   * auth.deanonymize({signInMethod: 'email-password', email})
+   * nhost.auth.deanonymize({signInMethod: 'email-password', email: 'joe@example.com' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/deanonymize
@@ -351,12 +350,12 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `onTokenChanged` to add a custom function that will trigger whenever
-   * the access and refresh token is changed.
+   * Use `nhost.auth.onTokenChanged` to add a custom function that runs every time the access or refresh token is changed.
+   *
    *
    * @example
    * ```ts
-   * auth.onTokenChanged(() => console.log('access token changed'));
+   * nhost.auth.onTokenChanged(() => console.log('The access and refresh token has changed'));
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/on-token-changed
@@ -385,14 +384,12 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `onAuthStateChanged` to add a custom function that will trigger
-   * whenever the state of the user changed. Ex from signed in to signed out or
-   * vice versa.
+   * Use `nhost.auth.onAuthStateChanged` to add a custom function that runs every time the authentication status of the user changes. E.g. add a custom function that runs every time the authentication status changes from signed-in to signed-out.
    *
    * @example
    * ```ts
-   * auth.onAuthStateChanged((event, session) => {
-   *   console.log(`Auth state changed. State is now ${event} with session: ${session}`)
+   * nhost.auth.onAuthStateChanged((event, session) => {
+   *   console.log(`The auth state has changed. State is now ${event} with session: ${session}`)
    * });
    * ```
    *
@@ -421,15 +418,17 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `isAuthenticated` to check if the user is authenticated or not.
+   * Use `nhost.auth.isAuthenticated` to check if the user is authenticated or not.
    *
-   * Note that `isAuthenticated` can return `false` before the auth status has
-   * been resolved. Use `getAuthenticationStatus` to get both loading and auth status.
+   * Note: `nhsot.auth.isAuthenticated()` can return `false` for two reasons:
+   * 1. The user is not authenticated
+   * 2. The user is not authenticated but _might_ be authenticated soon (loading) because there is a network request in transit.
    *
+   * Use `nhost.auth.getAuthenticationStatus` to get both authentication and loading status.
    *
    * @example
    * ```ts
-   * const isAuthenticated = auth.isAuthenticated();
+   * const isAuthenticated = nhost.auth.isAuthenticated();
    *
    * if (isAuthenticated) {
    *   console.log('User is authenticated');
@@ -443,11 +442,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `isAuthenticatedAsync` to wait and check if the user is authenticated or not.
+   * Use `nhost.auth.isAuthenticatedAsync` to wait (await) for any internal authentication network requests to finish and then return the authentication status.
    *
    * @example
    * ```ts
-   * const isAuthenticated  = await auth.isAuthenticatedAsync();
+   * const isAuthenticated  = await nhost.auth.isAuthenticatedAsync();
    *
    * if (isAuthenticated) {
    *   console.log('User is authenticated');
@@ -462,15 +461,13 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `getAuthenticationStatus` to get the authentication status of the user.
+   * Use `nhost.auth.getAuthenticationStatus` to get the authentication status of the user.
    *
-   * if `isLoading` is true, the auth request is in transit and the SDK does not
-   * yet know if the user will be logged in or not.
-   *
+   * if `isLoading` is `true`, the client does not yet know if the user is authenticated or not because any internal authentication network requests has not yet finished.
    *
    * @example
    * ```ts
-   * const { isAuthenticated, isLoading } = auth.getAuthenticationStatus();
+   * const { isAuthenticated, isLoading } = nhost.auth.getAuthenticationStatus();
    *
    * if (isLoading) {
    *   console.log('Loading...')
@@ -495,7 +492,7 @@ export class HasuraAuthClient {
 
   /**
    * @internal
-   * @deprecated Use `getAccessToken()` instead.
+   * @deprecated Use `nhost.auth.getAccessToken()` instead.
    * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
    */
 
@@ -504,11 +501,11 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `getAccessToken` to get the logged in user's access token.
+   * Use `nhost.auth.getAccessToken` to get the access token of the user.
    *
    * @example
    * ```ts
-   * const accessToken = auth.getAccessToken();
+   * const accessToken = nhost.auth.getAccessToken();
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
@@ -518,7 +515,13 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Decode the current decoded access token (JWT), or return `null` if the user is not authenticated (no token)
+   * Use `nhost.auth.getDecodedAccessToken` to get the decoded access token of the user.
+   *
+   * @example
+   * ```ts
+   * const decodedAccessToken = nhost.auth.getDecodedAccessToken();
+   * ```
+   *
    * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-decoded-access-token
    */
@@ -529,7 +532,13 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Decode the Hasura claims from the current access token (JWT) located in the `https://hasura.io/jwt/claims` namespace, or return `null` if the user is not authenticated (no token)
+   * Use `nhost.auth.getHasuraClaims` to get the Hasura claims of the user.
+   *
+   * @example
+   * ```ts
+   * const hasuraClaims = nhost.auth.getHasuraClaims();
+   * ```
+   *
    * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claims
    */
@@ -538,9 +547,16 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Get the value of a given Hasura claim in the current access token (JWT). Returns null if the user is not authenticated, or if the claim is not in the token.
-   * Return `null` if the user is not authenticated (no token)
-   * @param name name of the variable. Automatically adds the `x-hasura-` prefix if it is missing
+   * Use `nhost.auth.getHasuraClaim` to get the value of a specific Hasura claim of the user.
+   *
+   * @example
+   * ```ts
+   * // if `x-hasura-company-id` exists as a custom claim
+   * const companyId = nhost.auth.getHsauraClaim('company-id')
+   * ```
+   *
+   * @param name Name of the variable. You don't have to specify `x-hasura-`.
+   *
    * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claim
    */
@@ -552,13 +568,17 @@ export class HasuraAuthClient {
 
   /**
    *
-   * Use `refreshSession()` to refresh the current session or refresh the
-   * session with an provided `refreshToken`.
+   * Use `nhost.auth.refreshSession` to refresh the session with either the current internal refresh token or an external refresh token.
+   *
+   * Note: The Nhost client automatically refreshes the session when the user is authenticated but `nhost.auth.refreshSession` can be useful in some special cases.
    *
    * @example
    * ```ts
-   * refreshToken();
-   * refreshToken(refreshToken);
+   * // Refresh the session with the the current internal refresh token.
+   * nhost.auth.refreshToken();
+   *
+   * // Refresh the session with an external refresh token.
+   * nhost.auth.refreshToken(refreshToken);
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/refresh-session
@@ -598,11 +618,11 @@ export class HasuraAuthClient {
 
   /**
    *
-   * Use `getSession()` to get the current session.
+   * Use `nhost.auth.getSession()` to get the session of the user.
    *
    * @example
    * ```ts
-   * const session = getSession();
+   * const session = nhost.auth.getSession();
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/get-session
@@ -613,11 +633,11 @@ export class HasuraAuthClient {
 
   /**
    *
-   * Use `getUser()` to get the current user.
+   * Use `nhost.auth.getUser()` to get the signed-in user.
    *
    * @example
    * ```ts
-   * const user = getUser();
+   * const user = nhsot.auth.getUser();
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/get-user
