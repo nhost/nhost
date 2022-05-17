@@ -45,14 +45,6 @@ const nhost = new NhostClient({
 
 const apolloClient = createApolloClient({ nhost })
 
-// ? Make it part of @nhost/apollo?
-nhost.auth.onAuthStateChanged((d) => {
-  if (d === 'SIGNED_OUT') {
-    console.log('clear store')
-    apolloClient.clearStore()
-  }
-})
-
 createApp(App).provide(DefaultApolloClient, apolloClient).use(nhost).mount('#app')
 ```
 
