@@ -2,6 +2,8 @@ import { BaseActionObject, ResolveTypegenMeta, ServiceMap, State, TypegenConstra
 import {
   AuthContext,
   AuthEvents,
+  EnableMfaContext,
+  EnableMfaEvents,
   ResetPasswordContext,
   ResetPasswordEvents,
   SendVerificationEmailContext,
@@ -39,4 +41,15 @@ export type GeneralSendVerificationEmailState<Typegen extends TypegenConstraint>
     context: SendVerificationEmailContext
   },
   ResolveTypegenMeta<Typegen, SendVerificationEmailEvents, BaseActionObject, ServiceMap>
+>
+
+export type GeneralEnableMfaState<Typegen extends TypegenConstraint> = State<
+  EnableMfaContext,
+  EnableMfaEvents,
+  any,
+  {
+    value: any
+    context: EnableMfaContext
+  },
+  ResolveTypegenMeta<Typegen, EnableMfaEvents, BaseActionObject, ServiceMap>
 >
