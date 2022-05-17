@@ -1,3 +1,5 @@
+import { expect, test } from 'vitest'
+
 import { mockSignature } from '../__mocks__/mockSignature'
 import getExamplesFromSignature from './getExamplesFromSignature'
 

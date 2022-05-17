@@ -1,4 +1,5 @@
 import { defineConfig } from 'vite'
+
 import viteReactConfig from './vite.react.config'
 
 export default defineConfig({

@@ -9,6 +9,7 @@ import {
 } from '../constants'
 import {
   INVALID_EMAIL_ERROR,
+  INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
   NO_MFA_TICKET_ERROR,
@@ -19,7 +20,7 @@ import { nhostApiClient } from '../hasura-auth'
 import { localStorageGetter, localStorageSetter } from '../storage'
 import { AuthOptions, Mfa, NhostSession } from '../types'
 import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
-import { isValidEmail, isValidPassword, isValidPhoneNumber } from '../validators'
+import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from '../validators'
 
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
 import { AuthEvents } from './events'
@@ -87,6 +88,7 @@ export const createAuthMachine = ({
           },
           states: {
             starting: {
+              entry: 'resetErrors',
               tags: ['loading'],
               always: { cond: 'isSignedIn', target: 'signedIn' },
               invoke: {
@@ -108,7 +110,6 @@ export const createAuthMachine = ({
                 needsSmsOtp: {},
                 needsMfa: {},
                 failed: {
-                  exit: 'resetAuthenticationError',
                   initial: 'server',
                   states: {
                     server: {},
@@ -116,23 +117,46 @@ export const createAuthMachine = ({
                       states: {
                         password: {},
                         email: {},
-                        phoneNumber: {}
+                        phoneNumber: {},
+                        mfaTicket: {}
                       }
                     }
                   }
                 },
                 signingOut: {
+                  initial: 'pending',
                   entry: ['clearContextExceptRefreshToken'],
-                  exit: ['destroyRefreshToken', 'reportTokenChanged'],
                   invoke: {
                     src: 'signout',
                     id: 'signingOut',
                     onDone: {
-                      target: 'success'
+                      target: '.destroyingRefreshToken'
                     },
                     onError: {
-                      target: 'failed.server'
-                      // TODO save error
+                      target: 'failed.server',
+                      actions: ['saveAuthenticationError']
+                    }
+                  },
+                  states: {
+                    pending: {},
+                    destroyingRefreshToken: {
+                      initial: 'pending',
+                      states: {
+                        pending: {},
+                        failed: {}
+                      },
+                      invoke: {
+                        id: 'destroyingRefreshToken',
+                        src: 'destroyRefreshToken',
+                        onDone: {
+                          target: '#nhost.authentication.signedOut.success',
+                          actions: ['removeRefreshToken', 'reportTokenChanged']
+                        },
+                        onError: {
+                          target: '.failed',
+                          actions: ['saveAuthenticationError']
+                        }
+                      }
                     }
                   }
                 }
@@ -195,11 +219,17 @@ export const createAuthMachine = ({
                     actions: ['saveNoMfaTicketError'],
                     target: '.failed'
                   },
+                  {
+                    cond: 'invalidMfaTicket',
+                    actions: ['saveInvalidMfaTicketError'],
+                    target: '.failed'
+                  },
                   '#nhost.authentication.authenticating.mfa.totp'
                 ]
               }
             },
             authenticating: {
+              entry: 'resetErrors',
               states: {
                 passwordlessEmail: {
                   invoke: {
@@ -303,7 +333,7 @@ export const createAuthMachine = ({
               }
             },
             registering: {
-              entry: 'resetSignUpError',
+              entry: ['resetErrors'],
               invoke: {
                 src: 'registerUser',
                 id: 'registerUser',
@@ -325,7 +355,7 @@ export const createAuthMachine = ({
                     target: 'signedOut'
                   },
                   {
-                    actions: 'saveRegisrationError',
+                    actions: 'saveRegistrationError',
                     target: 'signedOut.failed.server'
                   }
                 ]
@@ -333,7 +363,7 @@ export const createAuthMachine = ({
             },
             signedIn: {
               type: 'parallel',
-              entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken'],
+              entry: ['reportSignedIn', 'cleanUrl', 'broadcastToken', 'resetErrors'],
               on: {
                 SIGNOUT: 'signedOut.signingOut',
                 DEANONYMIZE: {
@@ -524,12 +554,12 @@ export const createAuthMachine = ({
           })
         }),
 
-        // * Authenticaiton errors
+        // * Authentication errors
         saveAuthenticationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
         }),
-        resetAuthenticationError: assign({
-          errors: ({ errors: { authentication, ...errors } }) => errors
+        resetErrors: assign({
+          errors: (_) => ({})
         }),
         saveInvalidEmail: assign({
           errors: ({ errors }) => ({ ...errors, authentication: INVALID_EMAIL_ERROR })
@@ -540,11 +570,14 @@ export const createAuthMachine = ({
         saveInvalidPhoneNumber: assign({
           errors: ({ errors }) => ({ ...errors, authentication: INVALID_PHONE_NUMBER_ERROR })
         }),
-        saveRegisrationError: assign({
-          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
+        saveInvalidMfaTicketError: assign({
+          errors: ({ errors }) => ({ ...errors, authentication: INVALID_MFA_TICKET_ERROR })
         }),
-        resetSignUpError: assign({
-          errors: ({ errors: { registration, ...errors } }) => errors
+        saveNoMfaTicketError: assign({
+          errors: ({ errors }) => ({ ...errors, authentication: NO_MFA_TICKET_ERROR })
+        }),
+        saveRegistrationError: assign({
+          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
         saveInvalidSignUpPassword: assign({
           errors: ({ errors }) => ({ ...errors, registration: INVALID_PASSWORD_ERROR })
@@ -552,13 +585,9 @@ export const createAuthMachine = ({
         saveInvalidSignUpEmail: assign({
           errors: ({ errors }) => ({ ...errors, registration: INVALID_EMAIL_ERROR })
         }),
-        saveNoMfaTicketError: assign({
-          errors: ({ errors }) => ({ ...errors, registration: NO_MFA_TICKET_ERROR })
-        }),
 
-        destroyRefreshToken: assign({
+        removeRefreshToken: assign({
           refreshToken: (_) => {
-            storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
             return { value: null }
           }
         }),
@@ -628,7 +657,8 @@ export const createAuthMachine = ({
         hasMfaTicket: (_, e: any) => !!e.data?.mfa,
         invalidEmail: (_, { email }) => !isValidEmail(email),
         invalidPassword: (_, { password }) => !isValidPassword(password),
-        invalidPhoneNumber: (_, { phoneNumber }) => !isValidPhoneNumber(phoneNumber)
+        invalidPhoneNumber: (_, { phoneNumber }) => !isValidPhoneNumber(phoneNumber),
+        invalidMfaTicket: (ctx, { ticket }) => !isValidTicket(ticket || ctx.mfa?.ticket)
       },
 
       services: {
@@ -674,6 +704,10 @@ export const createAuthMachine = ({
             refreshToken: ctx.refreshToken.value,
             all: !!e.all
           }),
+
+        destroyRefreshToken: async () => {
+          return Promise.resolve(storageSetter(NHOST_REFRESH_TOKEN_KEY, null))
+        },
 
         registerUser: (_, { email, password, options }) =>
           postRequest('/signup/email-password', {

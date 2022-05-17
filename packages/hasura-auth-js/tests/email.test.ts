@@ -1,6 +1,7 @@
 import axios from 'axios'
 import faker from 'faker'
 import htmlUrls from 'html-urls'
+import { afterEach, describe, expect, it } from 'vitest'
 
 import { auth, mailhog } from './helpers'
 

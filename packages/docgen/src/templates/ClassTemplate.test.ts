@@ -1,4 +1,5 @@
 import { snapshot } from 'valtio/vanilla'
+import { afterEach, expect, test } from 'vitest'
 
 import mockClass from '../__mocks__/mockClass'
 import { appState } from '../state'
