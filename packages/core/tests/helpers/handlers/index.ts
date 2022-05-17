@@ -1,5 +1,6 @@
 export * from './authTokenHandlers'
 export * from './changeEmailHandlers'
+export * from './changePasswordHandlers'
 export * from './enableMfaHandlers'
 export * from './mfaTotpSignInHandlers'
 export * from './passwordlessEmailSignInHandlers'

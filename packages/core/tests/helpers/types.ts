@@ -11,6 +11,8 @@ import {
   AuthEvents,
   ChangeEmailContext,
   ChangeEmailEvents,
+  ChangePasswordContext,
+  ChangePasswordEvents,
   EnableMfaContext,
   EnableMfaEvents,
   ResetPasswordContext,
@@ -61,5 +63,11 @@ export type GeneralEnableMfaState<Typegen extends TypegenConstraint> = GeneralSt
 export type GeneralChangeEmailState<Typegen extends TypegenConstraint> = GeneralState<
   ChangeEmailContext,
   ChangeEmailEvents,
+  Typegen
+>
+
+export type GeneralChangePasswordState<Typegen extends TypegenConstraint> = GeneralState<
+  ChangePasswordContext,
+  ChangePasswordEvents,
   Typegen
 >
