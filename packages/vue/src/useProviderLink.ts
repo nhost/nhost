@@ -6,7 +6,7 @@ import { NestedRefOfValue, nestedUnref } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
 /**
- *  Use the composable `useProviderLink` to get a OAuth provider URL that can be used to sign in users.
+ *  Use the composable `useProviderLink` to get an OAuth provider URL that can be used to sign in users.
  *
  * @example
  * ```js

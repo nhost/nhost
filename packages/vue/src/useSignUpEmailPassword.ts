@@ -24,7 +24,7 @@ interface SignUpEmailPasswordResult extends ToRefs<SignUpEmailPasswordState> {
 }
 
 /**
- * Use the composable `useSIgnUpEmailPassword` to sign up a user using email and password.
+ * Use the composable `useSignUpEmailPassword` to sign up a user using email and password.
  *
  * @example
  * ```tsx
