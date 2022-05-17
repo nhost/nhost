@@ -22,7 +22,7 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.upload` to upload a file. The `file` must be of type `File` (https://developer.mozilla.org/en-US/docs/Web/API/File).
+   * Use `nhost.storage.upload` to upload a file. The `file` must be of type [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
    * 
    * If no `bucket` is specified the `default` bucket will be used.
    *

@@ -130,7 +130,7 @@ export const useAccessToken = () => {
  *
  * const Component = () => {
  *   const { signOut } = useSignOut()
- *   const isAutenticated = useAuthenticated()
+ *   const isAuthenticated = useAuthenticated()
  *
  *   if (isAuthenticated) {
  *     return (

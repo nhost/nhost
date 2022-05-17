@@ -16,7 +16,7 @@ import { useSignOut, useAuthenticated } from '@nhost/react'
 
 const Component = () => {
   const { signOut } = useSignOut()
-  const isAutenticated = useAuthenticated()
+  const isAuthenticated = useAuthenticated()
 
   if (isAuthenticated) {
     return <button onClick={() => signOut()}>Sign Out</button>

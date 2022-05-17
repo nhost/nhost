@@ -90,7 +90,7 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * nhost.auth.signIn({
+   * nhost.auth.signUp({
    *   email: 'joe@example.com',
    *   password: 'secret-password'
    * })
