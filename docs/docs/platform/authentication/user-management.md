@@ -17,6 +17,7 @@ query {
     id
     displayName
     email
+    metadata
   }
 }
 ```
@@ -29,6 +30,7 @@ query {
     id
     displayName
     email
+    metadata
   }
 }
 ```
@@ -85,3 +87,8 @@ await nhost.graphql.request(
 ```
 
 If the request is not part of the user's roles, the request will fail.
+
+---
+## Metadata
+
+Custom additional user information stored in the `metadata` column. Can be any JSON object.
