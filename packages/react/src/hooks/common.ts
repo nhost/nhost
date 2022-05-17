@@ -33,7 +33,7 @@ export interface DefaultActionHookState extends CommonActionHookState, ActionHoo
 }
 
 /**
- * Use the hook `useNhostClient` to get the Nhost client.
+ * Use the hook `useNhostClient` to get the Nhost JavaScript client (https://docs.nhost.io/reference/javascript).
  *
  * @example
  * ```tsx
@@ -177,7 +177,7 @@ const Component = () => {
 ```
 */
 /**
- * Use the hook `useSignOut` to sign out the current user.
+ * Use the hook `useSignOut` to sign out the user.
  *
  * @example
  * ```tsx

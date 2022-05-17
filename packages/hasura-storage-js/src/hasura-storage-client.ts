@@ -58,7 +58,7 @@ export class HasuraStorageClient {
   }
 
   /**
-   * @deprecated use `nhost.storage.getPublicUrl()` instead
+   * @deprecated Use `nhost.storage.getPublicUrl()` instead.
    */
   getUrl(params: StorageGetUrlParams): string {
     return this.getPublicUrl(params)
