@@ -25,7 +25,7 @@ In this section:
 - [Configuration](/reference/nextjs/configuration)
 - [Protecting routes](/reference/nextjs/protecting-routes)
 
-### Vue
+### Vue 3
 
 - [Getting started](/reference/vue/getting-started)
 - [Protecting routes](/reference/vue/protecting-routes)

@@ -70,7 +70,7 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
   const authenticated = await nhost.auth.isAuthenticatedAsync()
   if (!authenticated && to.meta.auth) {
     return '/signin'
