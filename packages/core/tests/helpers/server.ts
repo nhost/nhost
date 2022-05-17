@@ -2,6 +2,7 @@ import { setupServer } from 'msw/node'
 import {
   activateMfaTotpSuccessHandler,
   authTokenSuccessHandler,
+  changeEmailSuccessHandler,
   correctEmailPasswordHandler,
   correctMfaTotpHandler,
   correctPasswordlessEmailHandler,
@@ -17,6 +18,7 @@ import {
 export const defaultSuccessHandlers = [
   activateMfaTotpSuccessHandler,
   authTokenSuccessHandler,
+  changeEmailSuccessHandler,
   correctEmailPasswordHandler,
   correctPasswordlessEmailHandler,
   correctPasswordlessSmsHandler,

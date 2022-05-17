@@ -87,8 +87,6 @@ test(`should fail if server returns an error`, async () => {
 })
 
 test(`should fail if email is invalid`, async () => {
-  server.use(resetPasswordInvalidEmailHandler)
-
   resetPasswordService.send({
     type: 'REQUEST',
     email: faker.internet.userName()

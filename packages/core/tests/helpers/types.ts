@@ -1,7 +1,16 @@
-import { BaseActionObject, ResolveTypegenMeta, ServiceMap, State, TypegenConstraint } from 'xstate'
+import {
+  BaseActionObject,
+  EventObject,
+  ResolveTypegenMeta,
+  ServiceMap,
+  State,
+  TypegenConstraint
+} from 'xstate'
 import {
   AuthContext,
   AuthEvents,
+  ChangeEmailContext,
+  ChangeEmailEvents,
   EnableMfaContext,
   EnableMfaEvents,
   ResetPasswordContext,
@@ -10,46 +19,47 @@ import {
   SendVerificationEmailEvents
 } from '../../src/machines'
 
-export type GeneralAuthState<Typegen extends TypegenConstraint> = State<
+export type GeneralState<
+  Context,
+  Events extends EventObject,
+  Typegen extends TypegenConstraint
+> = State<
+  Context,
+  Events,
+  any,
+  {
+    value: any
+    context: Context
+  },
+  ResolveTypegenMeta<Typegen, Events, BaseActionObject, ServiceMap>
+>
+
+export type GeneralAuthState<Typegen extends TypegenConstraint> = GeneralState<
   AuthContext,
   AuthEvents,
-  any,
-  {
-    value: any
-    context: AuthContext
-  },
-  ResolveTypegenMeta<Typegen, AuthEvents, BaseActionObject, ServiceMap>
+  Typegen
 >
 
-export type GeneralResetPasswordState<Typegen extends TypegenConstraint> = State<
+export type GeneralResetPasswordState<Typegen extends TypegenConstraint> = GeneralState<
   ResetPasswordContext,
   ResetPasswordEvents,
-  any,
-  {
-    value: any
-    context: ResetPasswordContext
-  },
-  ResolveTypegenMeta<Typegen, ResetPasswordEvents, BaseActionObject, ServiceMap>
+  Typegen
 >
 
-export type GeneralSendVerificationEmailState<Typegen extends TypegenConstraint> = State<
+export type GeneralSendVerificationEmailState<Typegen extends TypegenConstraint> = GeneralState<
   SendVerificationEmailContext,
   SendVerificationEmailEvents,
-  any,
-  {
-    value: any
-    context: SendVerificationEmailContext
-  },
-  ResolveTypegenMeta<Typegen, SendVerificationEmailEvents, BaseActionObject, ServiceMap>
+  Typegen
 >
 
-export type GeneralEnableMfaState<Typegen extends TypegenConstraint> = State<
+export type GeneralEnableMfaState<Typegen extends TypegenConstraint> = GeneralState<
   EnableMfaContext,
   EnableMfaEvents,
-  any,
-  {
-    value: any
-    context: EnableMfaContext
-  },
-  ResolveTypegenMeta<Typegen, EnableMfaEvents, BaseActionObject, ServiceMap>
+  Typegen
+>
+
+export type GeneralChangeEmailState<Typegen extends TypegenConstraint> = GeneralState<
+  ChangeEmailContext,
+  ChangeEmailEvents,
+  Typegen
 >
