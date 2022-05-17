@@ -86,7 +86,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.signUp` to sign up users using email and password. If you want to sign up users using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
+   * Use `nhost.auth.signUp` to sign up a user using email and password. If you want to sign up a user using passwordless email (Magic Link), SMS, or an OAuth provider, use the `signIn` function instead.
    *
    * @example
    * ```ts
@@ -103,7 +103,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.signIn` to sign in users using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in users in various ways depending on the parameters.
+   * Use `nhost.auth.signIn` to sign in a user using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in a user in various ways depending on the parameters.
    *
    * @example
    * ### Sign in a user using email and password
