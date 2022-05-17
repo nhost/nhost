@@ -466,10 +466,10 @@ export const createAuthMachine = ({
                   target: ['#nhost.authentication.signedIn', 'idle.noErrors']
                 },
                 onError: [
-                  // TODO save error
                   { cond: 'isSignedIn', target: 'idle.error' },
                   {
-                    target: ['#nhost.authentication.signedOut', 'idle.error']
+                    actions: 'saveAuthenticationError',
+                    target: ['#nhost.authentication.signedOut.failed.server', 'idle.error']
                   }
                 ]
               }

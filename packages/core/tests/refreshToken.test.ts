@@ -7,7 +7,11 @@ import { INVALID_REFRESH_TOKEN } from '../src/errors'
 import { AuthContext, AuthEvents, createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
-import { authTokenInternalErrorHandler, authTokenNetworkErrorHandler } from './helpers/handlers'
+import {
+  authTokenInternalErrorHandler,
+  authTokenNetworkErrorHandler,
+  authTokenUnauthorizedHandler
+} from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
@@ -15,7 +19,7 @@ import fakeUser from './helpers/__mocks__/user'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-describe('Disabled auto-sign in', () => {
+describe('General and disabled auto-sign in', () => {
   const customStorage = new CustomClientStorage(new Map())
 
   customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
@@ -76,7 +80,7 @@ describe('Disabled auto-sign in', () => {
     expect(state.context.refreshToken.value).toBe(refreshToken)
   })
 
-  test(`should automatically refresh token if expration date was not provided`, async () => {
+  test(`should automatically refresh token if expiration date was not part in session`, async () => {
     const user = { ...fakeUser }
     const accessToken = faker.datatype.string(40)
     const refreshToken = faker.datatype.uuid()
@@ -103,6 +107,56 @@ describe('Disabled auto-sign in', () => {
 
     // Note: JWT expiration date must have been updated in the storage
     expect(customStorage.getItem(NHOST_JWT_EXPIRES_AT_KEY)).not.toBeNull()
+  })
+
+  test(`should fail if network is unavailable`, async () => {
+    server.use(authTokenNetworkErrorHandler)
+
+    authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "OK",
+          "message": "Network Error",
+          "status": 200,
+        },
+      }
+    `)
+  })
+
+  test(`should fail if refresh token is invalid`, async () => {
+    server.use(authTokenUnauthorizedHandler)
+
+    authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    )
+
+    expect(state.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-refresh-token",
+          "message": "Invalid or expired refresh token",
+          "status": 401,
+        },
+      }
+    `)
+  })
+
+  test(`should succeed if a valid custom token is provided`, async () => {
+    authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
+
+    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(state.context.user).not.toBeNull()
   })
 })
 
