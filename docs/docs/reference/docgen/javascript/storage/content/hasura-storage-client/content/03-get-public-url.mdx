@@ -3,16 +3,16 @@
 title: getPublicUrl()
 sidebar_label: getPublicUrl()
 slug: /reference/javascript/storage/get-public-url
-description: Use `nhost.storage.getPublicUrl` to get the public URL of a file. For users to access public files the `public` role must have permissions to read the file.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L70
+description: Use `nhost.storage.getPublicUrl` to get the public URL of a file. The public URL can be used for un-authenticated users to access files. To access public files the `public` role must have permissions to select the file in the `storage.files` table.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L77
 ---
 
 # `getPublicUrl()`
 
-Use `nhost.storage.getPublicUrl` to get the public URL of a file. For users to access public files the `public` role must have permissions to read the file.
+Use `nhost.storage.getPublicUrl` to get the public URL of a file. The public URL can be used for un-authenticated users to access files. To access public files the `public` role must have permissions to select the file in the `storage.files` table.
 
 ```ts
-const publicUrl = nhost.storage.getPublicUrl({ fileId: 'some-file-id' })
+const publicUrl = nhost.storage.getPublicUrl({ fileId: '<File-ID>' })
 ```
 
 ## Parameters

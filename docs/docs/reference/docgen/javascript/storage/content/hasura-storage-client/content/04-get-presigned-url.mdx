@@ -3,17 +3,17 @@
 title: getPresignedUrl()
 sidebar_label: getPresignedUrl()
 slug: /reference/javascript/storage/get-presigned-url
-description: Use `nhost.storage.getPresignedUrl` to get a presigned URL of a file.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L92
+description: Use `nhost.storage.getPresignedUrl` to get a presigned URL of a file. To get a presigned URL the user must have permission to select the file in the `storage.files` table.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-client.ts#L99
 ---
 
 # `getPresignedUrl()`
 
-Use `nhost.storage.getPresignedUrl` to get a presigned URL of a file.
+Use `nhost.storage.getPresignedUrl` to get a presigned URL of a file. To get a presigned URL the user must have permission to select the file in the `storage.files` table.
 
 ```ts
 const { presignedUrl, error } = await nhost.storage.getPresignedUrl({
-  fileId: 'uuid'
+  fileId: '<File-ID>'
 })
 
 if (error) {

@@ -22,11 +22,18 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.upload` to upload a file.
+   * Use `nhost.storage.upload` to upload a file. The `file` must be of type `File` (https://developer.mozilla.org/en-US/docs/Web/API/File).
+   * 
+   * If no `bucket` is specified the `default` bucket will be used.
    *
    * @example
    * ```ts
    * await nhost.storage.upload({ file })
+   * ```
+   * 
+    @example
+   * ```ts
+   * await nhost.storage.upload({ file, bucketId: '<Bucket-ID>' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/storage/upload
@@ -58,11 +65,11 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.getPublicUrl` to get the public URL of a file. For users to access public files the `public` role must have permissions to read the file.
+   * Use `nhost.storage.getPublicUrl` to get the public URL of a file. The public URL can be used for un-authenticated users to access files. To access public files the `public` role must have permissions to select the file in the `storage.files` table.
    *
    * @example
    * ```ts
-   * const publicUrl = nhost.storage.getPublicUrl({ fileId: 'some-file-id' })
+   * const publicUrl = nhost.storage.getPublicUrl({ fileId: '<File-ID>' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/storage/get-public-url
@@ -73,11 +80,11 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.getPresignedUrl` to get a presigned URL of a file.
+   * Use `nhost.storage.getPresignedUrl` to get a presigned URL of a file. To get a presigned URL the user must have permission to select the file in the `storage.files` table.
    *
    * @example
    * ```ts
-   * const { presignedUrl, error} = await nhost.storage.getPresignedUrl({ fileId: 'uuid' })
+   * const { presignedUrl, error} = await nhost.storage.getPresignedUrl({ fileId: '<File-ID>' })
    *
    * if (error) {
    *   throw error;
@@ -105,7 +112,7 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.delete` to delete a file.
+   * Use `nhost.storage.delete` to delete a file. To delete a file the user must have permissions to delete the file in the `storage.files` table. Deleting the file using `nhost.storage.delete()` will delete both the file and its metadata.
    *
    * @example
    * ```ts
