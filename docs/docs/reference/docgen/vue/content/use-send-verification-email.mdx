@@ -3,13 +3,28 @@
 title: useSendVerificationEmail()
 sidebar_label: useSendVerificationEmail()
 slug: /reference/vue/use-send-verification-email
-description: Send an email verification
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useSendVerificationEmail.ts#L29
+description: Use the composable `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useSendVerificationEmail.ts#L41
 ---
 
 # `useSendVerificationEmail()`
 
-Send an email verification
+Use the composable `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
+
+```tsx
+const { sendEmail, isLoading, isSent, isError, error } =
+  useSendVerificationEmail()
+
+console.log({ isLoading, isSent, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await sendEmail({
+    email: 'joe@example.com'
+  })
+}
+```
 
 ## Parameters
 

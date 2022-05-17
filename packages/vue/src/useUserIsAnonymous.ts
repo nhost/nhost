@@ -3,9 +3,16 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Returns whether the user is anonymous ot not
+ * Use the composable `useUserIsAnonymous` to see if the user is anonymous or not.
+ *
+ * @example
+ * ```tsx
+ * const userIsAnonymous = useUserIsAnonymous();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-user-is-anonymous
  */
-export const useIsAnonymous = () => {
+export const useUserIsAnonymous = () => {
   const service = useAuthInterpreter()
   return useSelector(
     service.value,

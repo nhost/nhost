@@ -16,6 +16,16 @@ interface UseNhostClientReturn {
   readonly nhost: NhostClient
 }
 
+/**
+ * Use the composable `useNhostClient` to get the Nhost client.
+ *
+ * @example
+ * ```tsx
+ * const { nhost } = useNhostClient()
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-nhost-client
+ */
 export function useNhostClient(): UseNhostClientReturn {
   let resolveImpl: ResolveClient
 

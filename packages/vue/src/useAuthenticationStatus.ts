@@ -4,7 +4,12 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * The Nhost client may need some initial steps to determine the authentication status during startup, like fetching a new JWT from an existing refresh token.
+ * Use `useAuthenticationStatus` to get the authentication status for the user.
+ *
+ * @example
+ * ```tsx
+ * const { isAuthenticated, isLoading } = useAuthenticationStatus();
+ * ```
  */
 export const useAuthenticationStatus = () => {
   const service = useAuthInterpreter()

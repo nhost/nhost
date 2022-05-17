@@ -3,7 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * @retusn `Ref` to the user id
+ * Use the composable `useUserId` to get the id of the current user.
+ *
+ * @example
+ * ```tsx
+ * const userId = useUserId();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-user-id
  */
 export const useUserId = () => {
   const service = useAuthInterpreter()

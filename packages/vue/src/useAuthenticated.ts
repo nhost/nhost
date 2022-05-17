@@ -3,7 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Gets the authentication status as a `Ref`, either `true` when authenticated, or `false` when not authenticated or when the Nhost client is still loading.
+ * Use `useAuthenticated` to get the authentication status of the user.
+ *
+ * @example
+ * ```ts
+ * const isAuthenticated = useAuthenticated();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-access-token
  */
 export const useAuthenticated = () => {
   const service = useAuthInterpreter()

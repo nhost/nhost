@@ -7,7 +7,27 @@ import { RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Sign the current user out
+ * Use the composable `useSignOut` to sign out the current user.
+ *
+ * @example
+ * ```tsx
+ * import { useSignOut, useAuthenticated } from '@nhost/vue'
+ *
+ * const Component = () => {
+ *   const { signOut } = useSignOut()
+ *   const isAutenticated = useAuthenticated()
+ *
+ *   if (isAuthenticated) {
+ *     return (
+ *       <button onClick={() => signOut()}>Sign Out</button>
+ *     )
+ *   }
+ *
+ *   return <div>Not authenticated</div>
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-sign-out
  */
 export const useSignOut = () => {
   const service = useAuthInterpreter()

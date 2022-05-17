@@ -18,13 +18,25 @@ interface SendVerificationEmailResult extends ToRefs<SendVerificationEmailState>
 }
 
 /**
- * Send an email verification
+ * Use the composable `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
+ *
  * @example
-```js
-const { sendEmail, isLoading, isSent, isError, error } =
+ * ```tsx
+ * const { sendEmail, isLoading, isSent, isError, error } =
   useSendVerificationEmail();
-```
- * 
+ *
+ * console.log({ isLoading, isSent, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await sendEmail({
+ *     email: 'joe@example.com',
+ *   })
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-send-verification-email
  */
 export const useSendVerificationEmail = (
   options?: NestedRefOfValue<SendVerificationEmailOptions | undefined>

@@ -3,14 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Composable to get the current user's roles.
+ * Use the composable `useUserRoles` to get all allowed roles of the current user.
  *
  * @example
- * ```ts
- * const roles = useUserRoles()
+ * ```tsx
+ * const userRoles = useUserRoles();
  * ```
  *
- * @returns `Ref` to the roles of the current user
+ * @docs https://docs.nhost.io/reference/vue/use-user-roles
  */
 export const useUserRoles = () => {
   const service = useAuthInterpreter()

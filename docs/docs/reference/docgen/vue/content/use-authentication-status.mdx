@@ -3,10 +3,14 @@
 title: useAuthenticationStatus()
 sidebar_label: useAuthenticationStatus()
 slug: /reference/vue/use-authentication-status
-description: The Nhost client may need some initial steps to determine the authentication status during startup, like fetching a new JWT from an existing refresh token.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useAuthenticationStatus.ts#L9
+description: Use `useAuthenticationStatus` to get the authentication status for the user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useAuthenticationStatus.ts#L14
 ---
 
 # `useAuthenticationStatus()`
 
-The Nhost client may need some initial steps to determine the authentication status during startup, like fetching a new JWT from an existing refresh token.
+Use `useAuthenticationStatus` to get the authentication status for the user.
+
+```tsx
+const { isAuthenticated, isLoading } = useAuthenticationStatus()
+```

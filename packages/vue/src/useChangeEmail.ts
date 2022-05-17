@@ -18,14 +18,25 @@ export interface ChangeEmailComposableResult extends ToRefs<ChangeEmailState> {
 }
 
 /**
- * Change email
- * 
+ * Use the composable `useChangeEmail` to change email for the current user.
+ *
  * @example
-```js
-const { changeEmail, isLoading, needsEmailVerification, isError, error } =
-  useChangeEmail();
-  ```
-*/
+ * ```tsx
+ * const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail();
+ *
+ * console.log({ isLoading, needsEmailVerification, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await changeEmail({
+ *     email: 'new@example.com',
+ *   })
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-change-email
+ */
 export const useChangeEmail = (
   options?: NestedRefOfValue<ChangeEmailOptions | undefined>
 ): ChangeEmailComposableResult => {

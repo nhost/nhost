@@ -3,7 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * @returns `Ref` to the user locale
+ * Use the composable `useUserLocale` to get the locale of the current user.
+ *
+ * @example
+ * ```tsx
+ * const userLocale = useUserLocale();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-user-locale
  */
 export const useUserLocale = () => {
   const service = useAuthInterpreter()

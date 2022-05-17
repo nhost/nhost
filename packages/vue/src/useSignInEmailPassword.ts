@@ -20,8 +20,24 @@ interface SignInEmailPasswordResult extends ToRefs<SignInEmailPasswordState> {
   sendMfaOtp(otp: RefOrValue<string>): void
 }
 
+// TODO: Add MFA example once MFA is available at Nhost Cloud.
 /**
- * Email and Password Sign-In
+ * Use the composable `useSignInEmailPassword` to sign in a user using email and password.
+ *
+ * @example
+ * ```tsx
+ * const { signInEmailPassword, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInEmailPassword()
+ *
+ * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signInEmailPassword('joe@example.com','secret-password')
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-sign-in-email-password
  */
 export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
   const service = useAuthInterpreter()

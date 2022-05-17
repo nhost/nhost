@@ -3,7 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * @return `Ref` to the user's default role
+ * Use the composable `useUserDefaultRole` to get the default role of the current user.
+ *
+ * @example
+ * ```tsx
+ * const userDefaultRole = useUserDefaultRole();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-user-default-role
  */
 export const useUserDefaultRole = () => {
   const service = useAuthInterpreter()

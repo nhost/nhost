@@ -3,17 +3,27 @@
 title: useChangeEmail()
 sidebar_label: useChangeEmail()
 slug: /reference/vue/use-change-email
-description: Change email
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useChangeEmail.ts#L29
+description: Use the composable `useChangeEmail` to change email for the current user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useChangeEmail.ts#L40
 ---
 
 # `useChangeEmail()`
 
-Change email
+Use the composable `useChangeEmail` to change email for the current user.
 
-```js
+```tsx
 const { changeEmail, isLoading, needsEmailVerification, isError, error } =
   useChangeEmail()
+
+console.log({ isLoading, needsEmailVerification, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await changeEmail({
+    email: 'new@example.com'
+  })
+}
 ```
 
 ## Parameters

@@ -3,24 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * User data
+ * Use the composable `useUserData` to get the user data of the current user.
+ *
  * @example
-```js
-const {
-  id,
-  email,
-  displayName,
-  avatarUrl,
-  isAnonymous,
-  locale,
-  defaultRole,
-  roles,
-  metadata,
-  createdAt,
-} = useUserData();
-```
+ * ```tsx
+ * const userData = useUserData();
+ * ```
  * 
- * @example Example of an authenticated user
+   * @example Example of user data
 ```json
 {
   "avatarUrl": "https://s.gravatar.com/avatar",
@@ -38,6 +28,8 @@ const {
   "roles": ["user", "me"]
 }
 ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-user-data
  */
 export const useUserData = () => {
   const service = useAuthInterpreter()

@@ -17,13 +17,24 @@ interface ResetPasswordResult extends ToRefs<ResetPasswordState> {
 }
 
 /**
- * If a user loses their password, we can resend them an email to authenticate so that they can change it to a new one
+ * Use the composable `useResetPassword` to reset the password for a user. This will send a reset password link in an email to the user. When the user clicks on the reset-password link the user is automatically signed in and can change their password using the composable `useChangePassword`.
+ *
  * @example
-```js
-const { resetPassword, isLoading, isSent, isError, error } =
-  useResetPassword();
-```
- * 
+ * ```tsx
+ * const { resetPassword, isLoading, isSent, isError, error } = useResetPassword();
+ *
+ * console.log({ isLoading, isSent, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await resetPassword('joe@example.com', {
+ *     redirectTo: 'http://localhost:3000/settings/change-password'
+ *   })
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-reset-password
  */
 export const useResetPassword = (
   options?: NestedRefOfValue<ResetPasswordOptions | undefined>

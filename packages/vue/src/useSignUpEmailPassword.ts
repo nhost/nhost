@@ -24,17 +24,22 @@ interface SignUpEmailPasswordResult extends ToRefs<SignUpEmailPasswordState> {
 }
 
 /**
- * Email and Password Sign-Up
+ * Use the composable `useSIgnUpEmailPassword` to sign up a user using email and password.
+ *
  * @example
-```js
-const {
-  isError,
-  isLoading,
-  isSuccess,
-  needsEmailVerification,
-  signUpEmailPassword
-} = useSignUpEmailPassword();
-```
+ * ```tsx
+ * const { signUpEmailPassword, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpEmailPassword()
+ *
+ * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signUpEmailPassword('joe@example.com','secret-password')
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-sign-up-email-password
  */
 export const useSignUpEmailPassword = (
   options?: NestedRefOfValue<SignUpOptions | undefined>

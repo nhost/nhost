@@ -18,7 +18,22 @@ interface SignInEmailPasswordlessResult extends ToRefs<SignInEmailPasswordlessSt
 }
 
 /**
- * Passwordless email authentication
+ * Use the composable `useSignInEmailPasswordless` to sign in a user using passwordless email (Magic Link).
+ *
+ * @example
+ * ```tsx
+ * const { signInEmailPasswordless, isLoading, isSuccess, isError, error } = useSignInEmailPasswordless()
+ *
+ * console.log({ isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signInEmailPasswordless('joe@example.com');
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-sign-in-email-passwordless
  */
 export const useSignInEmailPasswordless = (
   options?: NestedRefOfValue<PasswordlessOptions | undefined>

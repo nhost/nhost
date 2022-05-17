@@ -3,7 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * @returns Ref to the user's display name
+ * Use the composable `useUserDisplayName` to get the display name of the current user.
+ *
+ * @example
+ * ```tsx
+ * const userDisplayName = useUserDisplayName();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-user-display-name
  */
 export const useUserDisplayName = () => {
   const service = useAuthInterpreter()

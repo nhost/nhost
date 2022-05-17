@@ -6,12 +6,29 @@ import { NestedRefOfValue, nestedUnref } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
 /**
- * Oauth Providers
+ *  Use the composable `useProviderLink` to get a OAuth provider URL that can be used to sign in users.
+ *
  * @example
-```js
-const providerLink = useProviderLink();
-```
-*/
+ * ```js
+ * const providerLink = useProviderLink();
+ * ```
+ *
+ * @example
+ * ```jsx
+ * import { useProviderLink } from '@nhost/vue';
+ *
+ * const Component = () => {
+ *   const { facebook, github } = useProviderLink();
+ *
+ *   return (
+ *     <div>
+ *       <a href={facebook}>Sign in with Facebook</a>
+ *       <a href={github}>Sign in with GitHub</a>
+ *     </div>
+ *   );
+ * };
+ * ```
+ */
 export const useProviderLink = (options?: NestedRefOfValue<ProviderOptions | undefined>) => {
   const { nhost } = useNhostClient()
   return reactive(

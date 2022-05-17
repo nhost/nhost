@@ -3,18 +3,14 @@
 title: useUserRoles()
 sidebar_label: useUserRoles()
 slug: /reference/vue/use-user-roles
-description: Composable to get the current user's roles.
+description: Use the composable `useUserRoles` to get all allowed roles of the current user.
 custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useUserRoles.ts#L15
 ---
 
 # `useUserRoles()`
 
-Composable to get the current user's roles.
+Use the composable `useUserRoles` to get all allowed roles of the current user.
 
-**`@returns`**
-
-`Ref` to the roles of the current user
-
-```ts
-const roles = useUserRoles()
+```tsx
+const userRoles = useUserRoles()
 ```

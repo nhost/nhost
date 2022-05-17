@@ -3,10 +3,14 @@
 title: useAuthenticated()
 sidebar_label: useAuthenticated()
 slug: /reference/vue/use-authenticated
-description: Gets the authentication status as a `Ref`, either `true` when authenticated, or `false` when not authenticated or when the Nhost client is still loading.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useAuthenticated.ts#L8
+description: Use `useAuthenticated` to get the authentication status of the user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/vue/src/useAuthenticated.ts#L15
 ---
 
 # `useAuthenticated()`
 
-Gets the authentication status as a `Ref`, either `true` when authenticated, or `false` when not authenticated or when the Nhost client is still loading.
+Use `useAuthenticated` to get the authentication status of the user.
+
+```ts
+const isAuthenticated = useAuthenticated()
+```

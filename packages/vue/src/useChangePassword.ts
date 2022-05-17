@@ -16,14 +16,22 @@ export interface ChangePasswordComposableResult extends ToRefs<ChangePasswordSta
 }
 
 /**
- * Change password
- * 
+ * Use the composable `useChangePassword` to change password for the current user.
+ *
  * @example
-```js
-const { changePassword, isLoading, isSuccess, isError, error } =
-  useChangePassword();
-```
- * 
+ * ```tsx
+ * const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword();
+ *
+ * console.log({ isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await changePassword('my-new-password')
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-change-password
  */
 export const useChangePassword = (): ChangePasswordComposableResult => {
   const { nhost } = useNhostClient()

@@ -3,7 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Get the JWT access token
+ * Use `useAccessToken` to get the access token of the user.
+ *
+ * @example
+ * ```ts
+ * const accessToken = useAccessToken();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-access-token
  */
 export const useAccessToken = () => {
   const service = useAuthInterpreter()

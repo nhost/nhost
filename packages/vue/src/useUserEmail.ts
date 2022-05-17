@@ -3,7 +3,14 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * @returns `Ref` to the user's email
+ * Use the composbale `useUserEmail` to get the email of the current user.
+ *
+ * @example
+ * ```tsx
+ * const userEmail = useUserEmail();
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-user-email
  */
 export const useUserEmail = () => {
   const service = useAuthInterpreter()
