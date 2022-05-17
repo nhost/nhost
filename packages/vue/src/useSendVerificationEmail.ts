@@ -9,7 +9,7 @@ import {
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
 
-import { RefOrValue } from './helpers'
+import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
 interface SendVerificationEmailResult extends ToRefs<SendVerificationEmailState> {
@@ -27,7 +27,7 @@ const { sendEmail, isLoading, isSent, isError, error } =
  * 
  */
 export const useSendVerificationEmail = (
-  options?: RefOrValue<SendVerificationEmailOptions | undefined>
+  options?: NestedRefOfValue<SendVerificationEmailOptions | undefined>
 ): SendVerificationEmailResult => {
   const { nhost } = useNhostClient()
   const service = useInterpret(createSendVerificationEmailMachine(nhost.auth.client))
@@ -40,7 +40,7 @@ export const useSendVerificationEmail = (
   })
 
   const sendEmail = (email: RefOrValue<string>) =>
-    sendVerificationEmailPromise(service, unref(email), unref(options))
+    sendVerificationEmailPromise(service, unref(email), nestedUnref(options))
 
   return { sendEmail, isLoading, ...toRefs(result) }
 }

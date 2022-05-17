@@ -40,7 +40,7 @@ export default defineComponent({
     const { signUpEmailPassword, error } = useSignUpEmailPassword()
 
     const signUp = async () => {
-      const result = await signUpEmailPassword(email.value, password.value)
+      const result = await signUpEmailPassword(email, password)
       if (result.error) {
       }
     }

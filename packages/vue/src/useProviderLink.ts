@@ -1,8 +1,8 @@
-import { reactive, unref } from 'vue'
+import { reactive } from 'vue'
 
 import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
 
-import { RefOrValue } from './helpers'
+import { NestedRefOfValue, nestedUnref } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
 /**
@@ -12,12 +12,12 @@ import { useNhostClient } from './useNhostClient'
 const providerLink = useProviderLink();
 ```
 */
-export const useProviderLink = (options?: RefOrValue<ProviderOptions>) => {
+export const useProviderLink = (options?: NestedRefOfValue<ProviderOptions | undefined>) => {
   const { nhost } = useNhostClient()
   return reactive(
     new Proxy({} as Record<Provider, string>, {
       get(_, provider: string) {
-        const optionsValue = unref(options)
+        const optionsValue = nestedUnref(options)
         return encodeQueryParameters(
           `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
           rewriteRedirectTo(nhost.auth.client.clientUrl, optionsValue as any)

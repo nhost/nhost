@@ -33,6 +33,7 @@ export interface ConfigMfaComposableState
  * @internal
  * TODO documentation when available in Nhost Cloud - see changelog
  * TODO use a common reactive 'result' state - see for instance useChangeEmail
+ * TODO use the promise action
  * @returns
  */
 export const useConfigMfa = (): ConfigMfaComposableState => {

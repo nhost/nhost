@@ -8,7 +8,7 @@ import {
 } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
-import { RefOrValue } from './helpers'
+import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 
@@ -21,11 +21,11 @@ interface SignInEmailPasswordlessResult extends ToRefs<SignInEmailPasswordlessSt
  * Passwordless email authentication
  */
 export const useSignInEmailPasswordless = (
-  options?: RefOrValue<PasswordlessOptions>
+  options?: NestedRefOfValue<PasswordlessOptions | undefined>
 ): SignInEmailPasswordlessResult => {
   const service = useAuthInterpreter()
   const signInEmailPasswordless = (email: RefOrValue<string>) =>
-    signInEmailPasswordlessPromise(service.value, unref(email), unref(options))
+    signInEmailPasswordlessPromise(service.value, unref(email), nestedUnref(options))
 
   const error = useError('authentication')
 

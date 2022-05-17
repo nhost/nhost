@@ -9,7 +9,7 @@ import {
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
 
-import { RefOrValue } from './helpers'
+import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
 export interface ChangeEmailComposableResult extends ToRefs<ChangeEmailState> {
@@ -27,7 +27,7 @@ const { changeEmail, isLoading, needsEmailVerification, isError, error } =
   ```
 */
 export const useChangeEmail = (
-  options?: RefOrValue<ChangeEmailOptions | undefined>
+  options?: NestedRefOfValue<ChangeEmailOptions | undefined>
 ): ChangeEmailComposableResult => {
   const { nhost } = useNhostClient()
 
@@ -38,7 +38,8 @@ export const useChangeEmail = (
   const isError = useSelector(service, (state) => state.matches('idle.error'))
   const needsEmailVerification = useSelector(service, (state) => state.matches('idle.success'))
 
-  const changeEmail = (email: string) => changeEmailPromise(service, unref(email), unref(options))
+  const changeEmail = (email: string) =>
+    changeEmailPromise(service, unref(email), nestedUnref(options))
 
   return { changeEmail, isLoading, error, isError, needsEmailVerification }
 }

@@ -9,7 +9,7 @@ import {
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/vue'
 
-import { RefOrValue } from './helpers'
+import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useNhostClient } from './useNhostClient'
 
 interface ResetPasswordResult extends ToRefs<ResetPasswordState> {
@@ -26,7 +26,7 @@ const { resetPassword, isLoading, isSent, isError, error } =
  * 
  */
 export const useResetPassword = (
-  options?: RefOrValue<ResetPasswordOptions | undefined>
+  options?: NestedRefOfValue<ResetPasswordOptions | undefined>
 ): ResetPasswordResult => {
   const { nhost } = useNhostClient()
   const service = useInterpret(createResetPasswordMachine(nhost.auth.client))
@@ -37,7 +37,7 @@ export const useResetPassword = (
   const error = useSelector(service, (state) => state.context.error)
 
   const resetPassword = (email: RefOrValue<string>) =>
-    resetPasswordPromise(service, unref(email), unref(options))
+    resetPasswordPromise(service, unref(email), nestedUnref(options))
 
   return { resetPassword, isLoading, isError, isSent, error }
 }

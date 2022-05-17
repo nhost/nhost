@@ -13,7 +13,7 @@ const email = ref('')
 const password = ref('')
 const handleSubmit = async () => {
   const { isSuccess } = await signUpEmailPassword(email, password, {
-    metadata: { firstName: firstName.value, lastName: lastName.value },
+    metadata: { firstName, lastName },
   })
   if (isSuccess)
     router.push('/')

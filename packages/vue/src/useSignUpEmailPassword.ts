@@ -8,19 +8,18 @@ import {
 } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
-import { RefOrValue } from './helpers'
+import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAccessToken } from './useAccessToken'
 import { useAuthenticationStatus } from './useAuthenticationStatus'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 import { useUserData } from './useUserData'
-
 interface SignUpEmailPasswordResult extends ToRefs<SignUpEmailPasswordState> {
   /** Used for a new user to sign up. Returns a promise with the current context */
   signUpEmailPassword(
     email: RefOrValue<string>,
     password: RefOrValue<string>,
-    options?: RefOrValue<SignUpOptions | undefined>
+    options?: NestedRefOfValue<SignUpOptions | undefined>
   ): Promise<SignUpEmailPasswordHandlerResult>
 }
 
@@ -38,7 +37,7 @@ const {
 ```
  */
 export const useSignUpEmailPassword = (
-  options?: RefOrValue<SignUpOptions>
+  options?: NestedRefOfValue<SignUpOptions | undefined>
 ): SignUpEmailPasswordResult => {
   const service = useAuthInterpreter()
   const isError = useSelector(service.value, (state) =>
@@ -58,11 +57,11 @@ export const useSignUpEmailPassword = (
   const signUpEmailPassword = (
     email: RefOrValue<string>,
     password: RefOrValue<string>,
-    handlerOptions: RefOrValue<SignUpOptions | undefined>
+    handlerOptions: NestedRefOfValue<SignUpOptions | undefined>
   ) =>
     signUpEmailPasswordPromise(service.value, unref(email), unref(password), {
-      ...unref(options),
-      ...unref(handlerOptions)
+      ...nestedUnref(options),
+      ...nestedUnref(handlerOptions)
     })
 
   return {

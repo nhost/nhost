@@ -42,7 +42,7 @@ export default defineComponent({
     const router = useRouter()
     const { signInEmailPassword, error } = useSignInEmailPassword()
     const signIn = async () => {
-      const { isSuccess } = await signInEmailPassword(email.value, password.value)
+      const { isSuccess } = await signInEmailPassword(email, password)
       if (isSuccess) {
         router.replace('/')
       }
