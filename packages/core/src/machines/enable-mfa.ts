@@ -1,7 +1,7 @@
 import { assign, createMachine, send } from 'xstate'
 
 import { AuthClient } from '../client'
-import { ErrorPayload, INVALID_MFA_TYPE_ERROR } from '../errors'
+import { ErrorPayload, INVALID_MFA_CODE_ERROR, INVALID_MFA_TYPE_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 
 export type EnableMfaContext = {
@@ -69,6 +69,11 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
                     target: '.error'
                   },
                   {
+                    cond: 'invalidMfaCode',
+                    actions: 'saveInvalidMfaCodeError',
+                    target: '.error'
+                  },
+                  {
                     target: 'activating'
                   }
                 ]
@@ -91,6 +96,7 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
     {
       actions: {
         saveInvalidMfaTypeError: assign({ error: (_) => INVALID_MFA_TYPE_ERROR }),
+        saveInvalidMfaCodeError: assign({ error: (_) => INVALID_MFA_CODE_ERROR }),
         saveError: assign({
           error: (_, { data: { error } }: any) => error
         }),
@@ -104,6 +110,7 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
         reportGeneratedError: send((ctx) => ({ type: 'GENERATED_ERROR', error: ctx.error }))
       },
       guards: {
+        invalidMfaCode: (_, { code }) => !code,
         invalidMfaType: (_, { activeMfaType }) => !activeMfaType || activeMfaType !== 'totp'
       },
       services: {

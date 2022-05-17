@@ -23,6 +23,12 @@ export const INVALID_MFA_TYPE_ERROR: ValidationErrorPayload = {
   message: 'MFA type is invalid'
 }
 
+export const INVALID_MFA_CODE_ERROR: ValidationErrorPayload = {
+  status: VALIDATION_ERROR_CODE,
+  error: 'invalid-mfa-code',
+  message: 'MFA code is invalid'
+}
+
 export const INVALID_PASSWORD_ERROR: ValidationErrorPayload = {
   status: VALIDATION_ERROR_CODE,
   error: 'invalid-password',

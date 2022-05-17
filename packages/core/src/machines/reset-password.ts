@@ -1,10 +1,11 @@
 import { assign, createMachine, send } from 'xstate'
 
 import { AuthClient } from '../client'
-import { ErrorPayload } from '../errors'
+import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { ResetPasswordOptions } from '../types'
 import { rewriteRedirectTo } from '../utils'
+import { isValidEmail } from '../validators'
 
 export type ResetPasswordContext = {
   error: ErrorPayload | null
@@ -34,7 +35,16 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
       states: {
         idle: {
           on: {
-            REQUEST: 'requesting'
+            REQUEST: [
+              {
+                cond: 'invalidEmail',
+                actions: 'saveInvalidEmailError',
+                target: '.error'
+              },
+              {
+                target: 'requesting'
+              }
+            ]
           },
           initial: 'initial',
           states: {
@@ -55,14 +65,15 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
     },
     {
       actions: {
+        saveInvalidEmailError: assign({ error: (_) => INVALID_EMAIL_ERROR }),
         saveRequestError: assign({
-          error: (_, { data: { error } }: any) => {
-            console.log(error)
-            return error
-          }
+          error: (_, { data: { error } }: any) => error
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
         reportSuccess: send('SUCCESS')
+      },
+      guards: {
+        invalidEmail: (_, { email }) => !isValidEmail(email)
       },
       services: {
         requestChange: (_, { email, options }) =>

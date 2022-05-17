@@ -33,6 +33,16 @@ export const authTokenUnauthorizedHandler = rest.post(`${BASE_URL}/token`, (_req
 })
 
 /**
+ * Request handler for MSW to mock an internal server error when trying to get a new access token.
+ */
+export const authTokenInternalErrorHandler = rest.post(`${BASE_URL}/token`, (_req, res, ctx) => {
+  return res(
+    ctx.status(500),
+    ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+  )
+})
+
+/**
  * Request handler for MSW to mock a network error when requesting a new access token.
  */
 export const authTokenNetworkErrorHandler = rest.post(`${BASE_URL}/token`, (_req, res) => {

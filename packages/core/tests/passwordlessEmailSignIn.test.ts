@@ -1,6 +1,7 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
+import { INVALID_EMAIL_ERROR } from '../src/errors'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
@@ -9,12 +10,13 @@ import {
   passwordlessEmailNetworkErrorHandler
 } from './helpers/handlers'
 import server from './helpers/server'
-import customStorage from './helpers/storage'
+import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initializing AuthMachine with custom storage to have control over its content between tests
+const customStorage = new CustomClientStorage(new Map())
+
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -90,13 +92,13 @@ test(`should fail if the provided email address was invalid`, async () => {
     email: faker.internet.userName()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) => !!state.value)
-
-  expect(
+  const state: AuthState = await waitFor(authService, (state: AuthState) =>
     state.matches({
       authentication: { signedOut: { failed: { validation: 'email' } } }
     })
-  ).toBeTruthy()
+  )
+
+  expect(state.context.errors).toMatchObject({ authentication: INVALID_EMAIL_ERROR })
 })
 
 test(`should succeed if the provided email address was valid`, async () => {

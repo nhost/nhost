@@ -1,7 +1,9 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
+import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine } from '../src/machines'
+import { INITIAL_MACHINE_CONTEXT } from '../src/machines/context'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
@@ -12,12 +14,14 @@ import {
   unverifiedEmailErrorHandler
 } from './helpers/handlers'
 import server from './helpers/server'
-import customStorage from './helpers/storage'
+import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
+import fakeUser from './helpers/__mocks__/user'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initializing AuthMachine with custom storage to have control over its content between tests
+const customStorage = new CustomClientStorage(new Map())
+
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',
@@ -121,16 +125,15 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(15)
   })
 
-  const emailErrorSignInState: AuthState = await waitFor(
-    authService,
-    (state: AuthState) => !!state.value
-  )
-
-  expect(
-    emailErrorSignInState.matches({
+  const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
       authentication: { signedOut: { failed: { validation: 'email' } } }
     })
-  ).toBeTruthy()
+  )
+
+  expect(emailErrorSignInState.context.errors).toMatchObject({
+    authentication: INVALID_EMAIL_ERROR
+  })
 
   // Scenario 2: Providing a valid email address with an invalid password
   authService.send({
@@ -139,16 +142,15 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(2)
   })
 
-  const passwordErrorSignInState: AuthState = await waitFor(
-    authService,
-    (state: AuthState) => !!state.value
-  )
-
-  expect(
-    passwordErrorSignInState.matches({
+  const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
       authentication: { signedOut: { failed: { validation: 'password' } } }
     })
-  ).toBeTruthy()
+  )
+
+  expect(passwordErrorSignInState.context.errors).toMatchObject({
+    authentication: INVALID_PASSWORD_ERROR
+  })
 })
 
 test(`should fail if incorrect credentials are provided`, async () => {
@@ -239,4 +241,30 @@ test(`should succeed if correct credentials are provided`, async () => {
   )
 
   expect(state.context.user).not.toBeNull()
+})
+
+test(`should transition to signed in state if user is already signed in`, async () => {
+  const user = { ...fakeUser }
+  const accessToken = faker.datatype.string(40)
+  const refreshToken = faker.datatype.uuid()
+  const expiresAt = new Date(Date.now() * 900000)
+
+  const authServiceWithInitialUser = interpret(
+    authMachine.withContext({
+      ...INITIAL_MACHINE_CONTEXT,
+      user,
+      accessToken: { value: accessToken, expiresAt },
+      refreshToken: { value: refreshToken }
+    })
+  )
+
+  authServiceWithInitialUser.start()
+
+  const state: AuthState = await waitFor(authServiceWithInitialUser, (state: AuthState) =>
+    state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+  )
+
+  expect(state.context.user).toMatchObject(user)
+
+  authServiceWithInitialUser.stop()
 })

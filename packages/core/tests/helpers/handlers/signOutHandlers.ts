@@ -21,7 +21,7 @@ export const signOutInternalErrorHandler = rest.post(`${BASE_URL}/signout`, (_re
 /**
  * Request handler for MSW to mock successful sign out requests or bad requests.
  */
-export const singOutHandler = rest.post(
+export const signOutHandler = rest.post(
   `${BASE_URL}/signout`,
   (req: RestRequest<{ refreshToken?: string }>, res, ctx) => {
     if (!req.body.refreshToken) {

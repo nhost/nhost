@@ -25,12 +25,12 @@ import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from
 import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
 import { AuthEvents } from './events'
 
-export type { AuthContext, AuthEvents }
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'
 export * from './reset-password'
 export * from './send-verification-email'
+export type { AuthContext, AuthEvents }
 
 export interface AuthMachineOptions extends AuthOptions {
   backendUrl: string
@@ -466,10 +466,10 @@ export const createAuthMachine = ({
                   target: ['#nhost.authentication.signedIn', 'idle.noErrors']
                 },
                 onError: [
-                  // TODO save error
                   { cond: 'isSignedIn', target: 'idle.error' },
                   {
-                    target: ['#nhost.authentication.signedOut', 'idle.error']
+                    actions: 'saveAuthenticationError',
+                    target: ['#nhost.authentication.signedOut.failed.server', 'idle.error']
                   }
                 ]
               }

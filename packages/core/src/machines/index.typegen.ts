@@ -35,6 +35,7 @@ export interface Typegen0 {
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.authenticateAnonymously'
       | 'error.platform.signInMfaTotp'
+      | 'error.platform.authenticateWithToken'
     saveInvalidEmail: 'SIGNIN_PASSWORD' | 'SIGNIN_PASSWORDLESS_EMAIL'
     saveInvalidPassword: 'SIGNIN_PASSWORD'
     saveInvalidPhoneNumber: 'SIGNIN_PASSWORDLESS_SMS' | 'SIGNIN_PASSWORDLESS_SMS_OTP'
@@ -68,7 +69,6 @@ export interface Typegen0 {
       | 'error.platform.authenticateUserWithPassword'
       | 'done.invoke.registerUser'
       | 'error.platform.registerUser'
-      | 'error.platform.authenticateWithToken'
     clearContextExceptRefreshToken: 'SIGNOUT'
     reportSignedIn:
       | 'SESSION_UPDATE'
@@ -178,6 +178,10 @@ export interface Typegen0 {
       data: unknown
     }
     'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
+    'error.platform.authenticateWithToken': {
+      type: 'error.platform.authenticateWithToken'
+      data: unknown
+    }
     'done.invoke.authenticatePasswordlessEmail': {
       type: 'done.invoke.authenticatePasswordlessEmail'
       data: unknown
@@ -185,10 +189,6 @@ export interface Typegen0 {
     }
     'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
-    'error.platform.authenticateWithToken': {
-      type: 'error.platform.authenticateWithToken'
-      data: unknown
-    }
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
