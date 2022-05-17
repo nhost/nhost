@@ -24,7 +24,9 @@ export interface ChangeEmailComposableResult extends ToRefs<ChangeEmailState> {
  * ```tsx
  * const { changeEmail, isLoading, needsEmailVerification, isError, error } = useChangeEmail();
  *
- * console.log({ isLoading, needsEmailVerification, isError, error });
+ * watchEffect(() => {
+ *   console.log(isLoading.value, needsEmailVerification.value, isError.value, error.value);
+ * })
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();

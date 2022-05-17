@@ -28,7 +28,9 @@ interface SignInEmailPasswordResult extends ToRefs<SignInEmailPasswordState> {
  * ```tsx
  * const { signInEmailPassword, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInEmailPassword()
  *
- * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
+ * watchEffect(() => {
+ *   console.log(needsEmailVerification.value, isLoading.value, isSuccess.value, isError.value, error.value);
+ * })
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();

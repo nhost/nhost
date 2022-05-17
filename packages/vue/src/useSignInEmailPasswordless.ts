@@ -24,7 +24,9 @@ interface SignInEmailPasswordlessResult extends ToRefs<SignInEmailPasswordlessSt
  * ```tsx
  * const { signInEmailPasswordless, isLoading, isSuccess, isError, error } = useSignInEmailPasswordless()
  *
- * console.log({ isLoading, isSuccess, isError, error });
+ * watchEffect(() => {
+ *   console.log(isLoading.value, isSuccess.value, isError.value, error.value);
+ * })
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();

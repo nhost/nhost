@@ -22,7 +22,9 @@ export interface ChangePasswordComposableResult extends ToRefs<ChangePasswordSta
  * ```tsx
  * const { changePassword, isLoading, isSuccess, isError, error } = useChangePassword();
  *
- * console.log({ isLoading, isSuccess, isError, error });
+ * watchEffect(() => {
+ *   console.log(isLoading.value, isSuccess.value, isError.value, error.value);
+ * })
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();

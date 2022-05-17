@@ -25,8 +25,10 @@ interface SendVerificationEmailResult extends ToRefs<SendVerificationEmailState>
  * const { sendEmail, isLoading, isSent, isError, error } =
   useSendVerificationEmail();
  *
- * console.log({ isLoading, isSent, isError, error });
- *
+ * watchEffect(() => {
+ *   console.log(isLoading.value, isSent.value, isError.value, error.value);
+ * })
+ * 
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
  *

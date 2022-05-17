@@ -23,7 +23,9 @@ interface ResetPasswordResult extends ToRefs<ResetPasswordState> {
  * ```tsx
  * const { resetPassword, isLoading, isSent, isError, error } = useResetPassword();
  *
- * console.log({ isLoading, isSent, isError, error });
+ * watchEffect(() => {
+ *   console.log(isLoading.value, isSent.value, isError.value, error.value);
+ * })
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
