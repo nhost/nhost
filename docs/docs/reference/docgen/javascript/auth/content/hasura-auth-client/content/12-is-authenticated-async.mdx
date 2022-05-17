@@ -3,13 +3,13 @@
 title: isAuthenticatedAsync()
 sidebar_label: isAuthenticatedAsync()
 slug: /reference/javascript/auth/is-authenticated-async
-description: Use `nhost.auth.isAuthenticatedAsync` to wait and check if the user is authenticated or not.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L582
+description: Use `nhost.auth.isAuthenticatedAsync` to wait (await) for any internal authentication network requests to finish and then return the authentication status.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L586
 ---
 
 # `isAuthenticatedAsync()`
 
-Use `nhost.auth.isAuthenticatedAsync` to wait and check if the user is authenticated or not.
+Use `nhost.auth.isAuthenticatedAsync` to wait (await) for any internal authentication network requests to finish and then return the authentication status.
 
 ```ts
 const isAuthenticated = await nhost.auth.isAuthenticatedAsync()
