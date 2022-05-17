@@ -18,7 +18,7 @@ export interface ChangeEmailComposableResult extends ToRefs<ChangeEmailState> {
 }
 
 /**
- * Use the composable `useChangeEmail` to change email for the current user.
+ * Use the composable `useChangeEmail` to change email for the user.
  *
  * @example
  * ```tsx

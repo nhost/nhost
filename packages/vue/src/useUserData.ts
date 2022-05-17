@@ -3,7 +3,7 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Use the composable `useUserData` to get the user data of the current user.
+ * Use the composable `useUserData` to get the user data of the user.
  *
  * @example
  * ```tsx

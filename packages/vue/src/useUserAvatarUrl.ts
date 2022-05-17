@@ -3,7 +3,7 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Use the composable `useUserAvatarUrl` to get the avatar URL of the current user.
+ * Use the composable `useUserAvatarUrl` to get the avatar URL of the user.
  *
  * @example
  * ```tsx

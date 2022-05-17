@@ -47,7 +47,7 @@ interface ChangeEmailHookResult extends ChangeEmailState {
 }
 
 /**
- * Use the hook `useChangeEmail` to change email for the current user.
+ * Use the hook `useChangeEmail` to change email for the user.
  *
  * @example
  * ```tsx
@@ -117,7 +117,7 @@ interface ChangePasswordHook {
 }
 
 /**
- * Use the hook `useChangePassword` to change password for the current user.
+ * Use the hook `useChangePassword` to change password for the user.
  *
  * @example
  * ```tsx
@@ -221,7 +221,7 @@ export const useResetPassword: ResetPasswordHook = (
 }
 
 /**
- * Use the hook `useUserData` to get the user data of the current user.
+ * Use the hook `useUserData` to get the user data of the user.
  *
  * @example
  * ```tsx
@@ -259,7 +259,7 @@ export const useUserData = () => {
 }
 
 /**
- * Use the hook `useUserAvatarUrl` to get the avatar URL of the current user.
+ * Use the hook `useUserAvatarUrl` to get the avatar URL of the user.
  *
  * @example
  * ```tsx
@@ -283,7 +283,7 @@ export const useUserAvatarUrl = () => {
 export const useAvatarUrl = useUserAvatarUrl
 
 /**
- * Use the hook `useUserDefaultRole` to get the default role of the current user.
+ * Use the hook `useUserDefaultRole` to get the default role of the user.
  *
  * @example
  * ```tsx
@@ -307,7 +307,7 @@ export const useUserDefaultRole = () => {
 export const useDefaultRole = useUserDefaultRole
 
 /**
- * Use the hook `useUserDisplayName` to get the display name of the current user.
+ * Use the hook `useUserDisplayName` to get the display name of the user.
  *
  * @example
  * ```tsx
@@ -331,7 +331,7 @@ export const useUserDisplayName = () => {
 export const useDisplayName = useUserDisplayName
 
 /**
- * Use the hook `useUserEmail` to get the email of the current user.
+ * Use the hook `useUserEmail` to get the email of the user.
  *
  * @example
  * ```tsx
@@ -355,7 +355,7 @@ export const useUserEmail = () => {
 export const useEmail = useUserEmail
 
 /**
- * Use the hook `useUserId` to get the id of the current user.
+ * Use the hook `useUserId` to get the id of the user.
  *
  * @example
  * ```tsx
@@ -398,7 +398,7 @@ export const useUserIsAnonymous = () => {
 export const useIsAnonymous = useUserIsAnonymous
 
 /**
- * Use the hook `useUserLocale` to get the locale of the current user.
+ * Use the hook `useUserLocale` to get the locale of the user.
  *
  * @example
  * ```tsx
@@ -417,7 +417,7 @@ export const useUserLocale = () => {
 }
 
 /**
- * Use the hook `useUserRoles` to get all allowed roles of the current user.
+ * Use the hook `useUserRoles` to get all allowed roles of the user.
  *
  * @example
  * ```tsx
@@ -546,7 +546,7 @@ export const useConfigMfa = (): ConfigMfaState => {
 }
 
 /**
- * Use the hook `useDecodedAccessToken` to get the decoded access token of the current user.
+ * Use the hook `useDecodedAccessToken` to get the decoded access token of the user.
  *
  * @example
  * ```tsx
@@ -561,7 +561,7 @@ export const useDecodedAccessToken = () => {
 }
 
 /**
- * Use the hook `useHasuraClaims` to get the Hasura claims of the current user.
+ * Use the hook `useHasuraClaims` to get the Hasura claims of the user.
  *
  * @example
  * ```tsx
@@ -576,7 +576,7 @@ export const useHasuraClaims = () => {
 }
 
 /**
- * Use the hook `useHasruaClaim` to get the value of a specific Hasura claim of the current user.
+ * Use the hook `useHasuraClaim` to get the value of a specific Hasura claim of the user.
  *
  * @example
  * ```tsx

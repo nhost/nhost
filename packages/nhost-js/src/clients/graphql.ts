@@ -27,7 +27,7 @@ export class NhostGraphqlClient {
   }
 
   /**
-   * Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage in your app we recommend using a GraphQL client library such as `apollo-client`.
+   * Use `nhost.graphql.request` to send a GraphQL request. For more serious GraphQL usage in your app we recommend using a GraphQL client such as Apollo Client (https://www.apollographql.com/docs/react).
    *
    * @example
    * ```ts

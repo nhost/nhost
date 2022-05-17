@@ -16,7 +16,7 @@ export interface ChangePasswordComposableResult extends ToRefs<ChangePasswordSta
 }
 
 /**
- * Use the composable `useChangePassword` to change password for the current user.
+ * Use the composable `useChangePassword` to change password for the user.
  *
  * @example
  * ```tsx

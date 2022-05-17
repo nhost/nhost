@@ -3,7 +3,7 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Use the composable `useUserLocale` to get the locale of the current user.
+ * Use the composable `useUserLocale` to get the locale of the user.
  *
  * @example
  * ```tsx

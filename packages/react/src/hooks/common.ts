@@ -8,7 +8,7 @@ import { useSelector } from '@xstate/react'
 import { NhostReactContext } from '../provider'
 
 /**
- * Use the hook `useNhostClient` to get the Nhost client.
+ * Use the hook `useNhostClient` to get the Nhost JavaScript client (https://docs.nhost.io/reference/javascript).
  *
  * @example
  * ```tsx
@@ -122,7 +122,7 @@ export const useAccessToken = () => {
 }
 
 /**
- * Use the hook `useSignOut` to sign out the current user.
+ * Use the hook `useSignOut` to sign out the user.
  *
  * @example
  * ```tsx

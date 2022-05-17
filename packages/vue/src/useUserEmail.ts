@@ -3,7 +3,7 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Use the composbale `useUserEmail` to get the email of the current user.
+ * Use the composbale `useUserEmail` to get the email of the user.
  *
  * @example
  * ```tsx

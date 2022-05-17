@@ -90,7 +90,10 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * nhost.auth.signUp({email, password})
+   * nhost.auth.signIn({
+   *   email: 'joe@example.com',
+   *   password: 'secret-password'
+   * })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
@@ -237,8 +240,15 @@ export class HasuraAuthClient {
    * Use `nhost.auth.signOut` to sign out the user.
    *
    * @example
+   * ### Sign out the user from current device
    * ```ts
    * nhost.auth.signOut()
+   * ```
+   *
+   * @example
+   * ### Sign out the user from all decvices
+   * ```ts
+   * nhost.auth.signOut({all: true})
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-out

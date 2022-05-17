@@ -17,7 +17,7 @@ interface UseNhostClientReturn {
 }
 
 /**
- * Use the composable `useNhostClient` to get the Nhost client.
+ * Use the composable `useNhostClient` to get the Nhost JavaScript client (https://docs.nhost.io/reference/javascript).
  *
  * @example
  * ```tsx

@@ -3,7 +3,7 @@ import { useSelector } from '@xstate/vue'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**
- * Use the composable `useUserDefaultRole` to get the default role of the current user.
+ * Use the composable `useUserDefaultRole` to get the default role of the user.
  *
  * @example
  * ```tsx
