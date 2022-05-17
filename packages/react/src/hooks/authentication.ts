@@ -395,7 +395,7 @@ export const useSignInAnonymous = (): SignInAnonymousHookResult => {
 }
 
 /**
- *  Use the hook `useProviderLink` to get a OAuth provider URL that can be used to sign in users.
+ *  Use the hook `useProviderLink` to get an OAuth provider URL that can be used to sign in users.
  *
  * @example
  * ```js

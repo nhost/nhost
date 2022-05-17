@@ -40,7 +40,7 @@ interface SignUpEmailPasswordHook {
 }
 
 /**
- * Use the hook `useSIgnUpEmailPassword` to sign up a user using email and password.
+ * Use the hook `useSignUpEmailPassword` to sign up a user using email and password.
  *
  * @example
  * ```tsx

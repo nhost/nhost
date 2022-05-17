@@ -495,7 +495,7 @@ interface SendVerificationEmailHook {
 }
 
 /**
- * Use the hook `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and inclides a link to verify the email address.
+ * Use the hook `useSendVerificationEmail` to send a verification email. The verification email is sent to the user's email address and includes a link to verify the email address.
  *
  * @example
  * ```tsx

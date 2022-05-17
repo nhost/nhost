@@ -147,36 +147,6 @@ export const useAccessToken = () => {
 }
 
 /**
- * Sign out
- * The `useSignOut` hook accepts an `all` argument that will be used when the `signOut` method will be called. This value can be overriden in calling `signOut(allValue)`.
- * 
- * @example
-```js
-const { signOut, isSuccess } = useSignOut();
-```
- * @example
-```jsx
-import { useState } from 'react';
-import { useSignOut, useAuthenticated } from '@nhost/react';
-
-const Component = () => {
-  const { signOut, isSuccess } = useSignOut();
-  const authenticated = useAuthenticated();
-
-  if (authenticated) {
-    return (
-      <div>
-        <button onClick={signUp}>Sign Out</button>
-        {isSuccess && <div>You have successfully signed out!</div>}
-      </div>
-    );
-  }
-
-  return <div>Not authenticated</div>;
-};
-```
-*/
-/**
  * Use the hook `useSignOut` to sign out the user.
  *
  * @example
@@ -185,7 +155,7 @@ const Component = () => {
  *
  * const Component = () => {
  *   const { signOut } = useSignOut()
- *   const isAutenticated = useAuthenticated()
+ *   const isAuthenticated = useAuthenticated()
  *
  *   if (isAuthenticated) {
  *     return (
