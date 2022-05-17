@@ -27,7 +27,7 @@ In this section:
 
 ### Vue 3
 
-- [Getting started](/reference/vue/getting-started)
+- [Getting started](/reference/vue)
 - [Protecting routes](/reference/vue/protecting-routes)
 - [Apollo GraphQL](/reference/vue/apollo)
 
