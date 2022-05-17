@@ -1,9 +1,7 @@
 ---
-title: 'Introduction'
-sidebar_position: 1
+title: 'Architecture'
+sidebar_position: 3
 ---
-
-All the React hooks and helpers from [`@nhost/react`](/reference/react) are available in Next.js and are exported in the `@nhost/nextjs` package.
 
 When rendering a page from the server-side, Next.js needs to get some information from the client to determine their authentication status. Such communication is only available from cookies, and the Nhost client is designed to enable such a mechanism.
 
@@ -31,7 +29,7 @@ sequenceDiagram
 
 ## Refreshing the JWT token
 
-For security considerations, the Nhost JS tools never persist the JWT anywhere in the browser either in `localStorage` or in a cookie, and the JWT expires regularly (15 minutes by default). As a result, the Nhost client regularly calls the `hasura-auth` service to get a new JWT from a valid refresh token. The new JWT is emitted together with a new refresh token, while the old one is invalidated.
+For security considerations, the Nhost clients never persist the JWT anywhere in the browser either in `localStorage` or in a cookie, and the JWT expires regularly (15 minutes by default). As a result, the Nhost client regularly calls the `hasura-auth` service to get a new JWT from a valid refresh token. The new JWT is emitted together with a new refresh token, while the old one is invalidated.
 As a result, it is important to ensure both the browser and the Next.js will always use the last refresh token, as it will be the only one that is still valid.
 The above diagram illustrates how a JWT is renewed, while making sure the refresh token is updated:
 
