@@ -3,13 +3,13 @@
 title: useProviderLink()
 sidebar_label: useProviderLink()
 slug: /reference/react/use-provider-link
-description: Hook that returns OAuth provider URLs
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/authentication.ts#L485
+description: Use the hook `useProviderLink` to get an OAuth provider URL that can be used to sign in users.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/authentication.ts#L421
 ---
 
 # `useProviderLink()`
 
-Hook that returns OAuth provider URLs
+Use the hook `useProviderLink` to get an OAuth provider URL that can be used to sign in users.
 
 ```js
 const providerLink = useProviderLink()
@@ -37,8 +37,8 @@ const Component = () => {
 
   return (
     <div>
-      <a href={facebook}>Authenticate with Facebook</a>
-      <a href={github}>Authenticate with GitHub</a>
+      <a href={facebook}>Sign in with Facebook</a>
+      <a href={github}>Sign in with GitHub</a>
     </div>
   )
 }

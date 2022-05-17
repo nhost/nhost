@@ -3,20 +3,14 @@
 title: useUserDisplayName()
 sidebar_label: useUserDisplayName()
 slug: /reference/react/use-user-display-name
-description: Gets the user's display name
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L412
+description: Use the hook `useUserDisplayName` to get the display name of the user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/user.ts#L350
 ---
 
 # `useUserDisplayName()`
 
-Gets the user's display name
+Use the hook `useUserDisplayName` to get the display name of the user.
 
-```jsx
-import { useDisplayName } from '@nhost/react'
-
-const Avatar = () => {
-  const displayName = useDisplayName()
-
-  return <div>Hello, {displayName}</div>
-}
+```tsx
+const userDisplayName = useUserDisplayName()
 ```

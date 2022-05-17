@@ -40,64 +40,22 @@ interface SignUpEmailPasswordHook {
 }
 
 /**
- * Email and Password Sign-Up
+ * Use the hook `useSignUpEmailPassword` to sign up a user using email and password.
+ *
  * @example
-
-```js
-const {
-  signUpEmailPassword,
-  isLoading,
-  isSuccess,
-  needsEmailVerification,
-  isError,
-  error,
-} = useSignUpEmailPassword();
-```
- * @example
-```jsx
-import { useState } from 'react';
-import { useSignUpEmailPassword } from '@nhost/react';
-
-const Component = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const {
-    signUpEmailPassword,
-    isLoading,
-    isSuccess,
-    needsEmailVerification,
-    isError,
-    error,
-  } = useSignUpEmailPassword();
-
-  return (
-    <div>
-      <input
-        value={email}
-        onChange={(event) => setEmail(event.target.value)}
-        placeholder="Email"
-      />
-      <input
-        value={password}
-        onChange={(event) => setPassword(event.target.value)}
-        placeholder="Password"
-      />
-      <button onClick={() => signUpEmailPassword(email, password)}>
-        Register
-      </button>
-      {isSuccess && (
-        <div>Your account have beed created! You are now authenticated</div>
-      )}
-      {needsEmailVerification && (
-        <div>
-          Please check your mailbox and follow the verification link to verify
-          your email
-        </div>
-      )}
-    </div>
-  );
-};
-```
+ * ```tsx
+ * const { signUpEmailPassword, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpEmailPassword()
+ *
+ * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signUpEmailPassword('joe@example.com','secret-password')
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-sign-up-email-password
  */
 export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   a?: string | SignUpOptions,

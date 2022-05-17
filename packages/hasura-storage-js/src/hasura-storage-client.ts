@@ -22,12 +22,21 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `.upload` to upload a file.
+   * Use `nhost.storage.upload` to upload a file. The `file` must be of type [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
+   * 
+   * If no `bucket` is specified the `default` bucket will be used.
    *
    * @example
    * ```ts
-   * storage.upload({ file })
+   * await nhost.storage.upload({ file })
    * ```
+   * 
+    @example
+   * ```ts
+   * await nhost.storage.upload({ file, bucketId: '<Bucket-ID>' })
+   * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/upload
    */
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
     const file = new FormData()
@@ -49,19 +58,21 @@ export class HasuraStorageClient {
   }
 
   /**
-   * @deprecated use `.getPublicUrl` instead
+   * @deprecated Use `nhost.storage.getPublicUrl()` instead.
    */
   getUrl(params: StorageGetUrlParams): string {
     return this.getPublicUrl(params)
   }
 
   /**
-   * Use `.getPublicUrl` to direct file URL to a file.
+   * Use `nhost.storage.getPublicUrl` to get the public URL of a file. The public URL can be used for un-authenticated users to access files. To access public files the `public` role must have permissions to select the file in the `storage.files` table.
    *
    * @example
    * ```ts
-   * storage.getPublicUrl({ fileId: 'uuid' })
+   * const publicUrl = nhost.storage.getPublicUrl({ fileId: '<File-ID>' })
    * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/get-public-url
    */
   getPublicUrl(params: StorageGetUrlParams): string {
     const { fileId } = params
@@ -69,12 +80,21 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `.getPresignedUrl` to get a presigned URL to a file.
+   * Use `nhost.storage.getPresignedUrl` to get a presigned URL of a file. To get a presigned URL the user must have permission to select the file in the `storage.files` table.
    *
    * @example
    * ```ts
-   * storage.getPresignedUrl({ fileId: 'uuid' })
+   * const { presignedUrl, error} = await nhost.storage.getPresignedUrl({ fileId: '<File-ID>' })
+   *
+   * if (error) {
+   *   throw error;
+   * }
+   *
+   * console.log('url: ', presignedUrl.url)
+   * console.log('expiration: ', presignedUrl.expiration)
    * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/get-presigned-url
    */
   async getPresignedUrl(
     params: StorageGetPresignedUrlParams
@@ -92,12 +112,14 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `.delete` to delete a file.
+   * Use `nhost.storage.delete` to delete a file. To delete a file the user must have permissions to delete the file in the `storage.files` table. Deleting the file using `nhost.storage.delete()` will delete both the file and its metadata.
    *
    * @example
    * ```ts
-   * storage.delete({ fileId: 'uuid' })
+   * const { error } = await nhost.storage.delete({ fileId: 'uuid' })
    * ```
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/delete
    */
   async delete(params: StorageDeleteParams): Promise<StorageDeleteResponse> {
     const { error } = await this.api.delete(params)
@@ -109,10 +131,16 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Set the access token to use for authentication.
+   * Use `nhost.storage.setAccessToken` to a set an access token to be used in subsequent storage requests. Note that if you're signin in users with `nhost.auth.signIn()` the access token will be set automatically.
+   *
+   * @example
+   * ```ts
+   * nhost.storage.setAccessToken('some-access-token')
+   * ```
    *
    * @param accessToken Access token
-   * @returns Hasura Storage Client instance
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/set-access-token
    */
   setAccessToken(accessToken?: string): HasuraStorageClient {
     this.api.setAccessToken(accessToken)
@@ -121,10 +149,16 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Set the admin secret to use for authentication.
+   * Use `nhost.storage.adminSecret` to set the admin secret to be used for subsequent storage requests. This is useful if you want to run storage in "admin mode".
+   *
+   * @example
+   * ```ts
+   * nhost.storage.setAdminSecret('some-admin-secret')
+   * ```
    *
    * @param adminSecret Hasura admin secret
-   * @returns Hasura Storage Client instance
+   *
+   * @docs https://docs.nhost.io/reference/javascript/storage/set-admin-secret
    */
   setAdminSecret(adminSecret?: string): HasuraStorageClient {
     this.api.setAdminSecret(adminSecret)

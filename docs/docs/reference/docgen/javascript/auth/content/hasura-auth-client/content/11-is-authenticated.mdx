@@ -3,16 +3,16 @@
 title: isAuthenticated()
 sidebar_label: isAuthenticated()
 slug: /reference/javascript/auth/is-authenticated
-description: Use `isAuthenticated` to check if the user is authenticated or not.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L569
+description: Use `nhost.auth.isAuthenticated` to check if the user is authenticated or not.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L578
 ---
 
 # `isAuthenticated()`
 
-Use `isAuthenticated` to check if the user is authenticated or not.
+Use `nhost.auth.isAuthenticated` to check if the user is authenticated or not.
 
 ```ts
-const isAuthenticated = auth.isAuthenticated()
+const isAuthenticated = nhost.auth.isAuthenticated()
 
 if (isAuthenticated) {
   console.log('User is authenticated')

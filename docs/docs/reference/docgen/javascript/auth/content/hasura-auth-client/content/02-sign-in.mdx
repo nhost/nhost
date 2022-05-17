@@ -3,18 +3,19 @@
 title: signIn()
 sidebar_label: signIn()
 slug: /reference/javascript/auth/sign-in
-description: Use `signIn` to sign in users using email and password, passwordless (email or sms) or an external provider. `signIn` can be used in various ways depending on the parameters.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L153
+description: Use `nhost.auth.signIn` to sign in a user using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in a user in various ways depending on the parameters.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L156
 ---
 
 # `signIn()`
 
-Use `signIn` to sign in users using email and password, passwordless
-(email or sms) or an external provider.
-`signIn` can be used in various ways depending on the parameters.
+Use `nhost.auth.signIn` to sign in a user using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in a user in various ways depending on the parameters.
 
 ```ts
-signIn({ email, password })
+nhost.auth.signIn({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
 ```
 
 ## Parameters
@@ -27,28 +28,33 @@ signIn({ email, password })
 
 ## Examples
 
-### Sign in with email and password
+### Sign in a user using email and password
 
 ```ts
-signIn({ email, password })
+nhost.auth.signIn({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
 ```
 
-### Sign in with an external provider (e.g: Google or Facebook)
+### Sign in a user using an OAuth provider (e.g: Google or Facebook)
 
 ```ts
-signIn({ provider })
+nhost.auth.signIn({ provider: 'google' })
 ```
 
-### Passwordless sign in with email (magic link)
+### Sign in a user using passwordless email (Magic Link)
 
 ```ts
-signIn({ email }) // [step 1/2] Passwordless sign in with Email (Magic Link)
-signIn({ email, otp }) // [step 2/2] Finish passwordless sign in with email (OTP)
+nhost.auth.signIn({ email: 'joe@example.com' })
 ```
 
-### Passwordless sign in with SMS
+### Sign in a user using passwordless SMS
 
 ```ts
-signIn({ phoneNumber }) // [step 1/2] Passwordless sign in with SMS
-signIn({ phoneNumber, otp }) // [step 2/2] Finish passwordless sign in with SMS (OTP)
+// [step 1/2] Passwordless sign in using SMS
+nhost.auth.signIn({ phoneNumber: '001122334455' })
+
+// [step 2/2] Finish passwordless sign in using SMS (OTP)
+nhost.auth.signIn({ phoneNumber: '001122334455', otp: '123456' })
 ```

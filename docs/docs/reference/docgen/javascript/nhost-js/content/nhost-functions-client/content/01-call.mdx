@@ -3,11 +3,20 @@
 title: call()
 sidebar_label: call()
 slug: /reference/javascript/nhost-js/functions/call
-description: No description provided.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/clients/functions.ts#L24
+description: Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nhost-js/src/clients/functions.ts#L34
 ---
 
 # `call()`
+
+Use `nhost.functions.call` to call (sending a POST request to) a serverless function.
+
+```ts
+await nhost.functions.call('send-welcome-email', {
+  email: 'joe@example.com',
+  name: 'Joe Doe'
+})
+```
 
 ## Parameters
 

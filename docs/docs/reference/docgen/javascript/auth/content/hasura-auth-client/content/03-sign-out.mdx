@@ -3,16 +3,16 @@
 title: signOut()
 sidebar_label: signOut()
 slug: /reference/javascript/auth/sign-out
-description: Use `signOut` to sign out a user
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L328
+description: Use `nhost.auth.signOut` to sign out the user.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L338
 ---
 
 # `signOut()`
 
-Use `signOut` to sign out a user
+Use `nhost.auth.signOut` to sign out the user.
 
 ```ts
-signOut()
+nhost.auth.signOut()
 ```
 
 ## Parameters
@@ -22,3 +22,17 @@ signOut()
 **<span className="parameter-name">params</span>** <span className="optional-status">optional</span> `{ all: boolean }`
 
 ---
+
+## Examples
+
+### Sign out the user from current device
+
+```ts
+nhost.auth.signOut()
+```
+
+### Sign out the user from all decvices
+
+```ts
+nhost.auth.signOut({ all: true })
+```
