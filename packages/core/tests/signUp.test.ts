@@ -1,6 +1,7 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
+import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
@@ -97,16 +98,13 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(15)
   })
 
-  const emailErrorSignInState: AuthState = await waitFor(
-    authService,
-    (state: AuthState) => !!state.value
-  )
-
-  expect(
-    emailErrorSignInState.matches({
+  const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
       authentication: { signedOut: { failed: { validation: 'email' } } }
     })
-  ).toBeTruthy()
+  )
+
+  expect(emailErrorSignInState.context.errors).toMatchObject({ registration: INVALID_EMAIL_ERROR })
 
   // Scenario 2: Providing a valid email address with an invalid password
   authService.send({
@@ -115,16 +113,15 @@ test(`should fail if either email or password is incorrectly formatted`, async (
     password: faker.internet.password(2)
   })
 
-  const passwordErrorSignInState: AuthState = await waitFor(
-    authService,
-    (state: AuthState) => !!state.value
-  )
-
-  expect(
-    passwordErrorSignInState.matches({
+  const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
       authentication: { signedOut: { failed: { validation: 'password' } } }
     })
-  ).toBeTruthy()
+  )
+
+  expect(passwordErrorSignInState.context.errors).toMatchObject({
+    registration: INVALID_PASSWORD_ERROR
+  })
 })
 
 test(`should fail if email has already been taken`, async () => {

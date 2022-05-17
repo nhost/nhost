@@ -2,6 +2,7 @@ import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
+import { INVALID_EMAIL_ERROR } from '../src/errors'
 import { createResetPasswordMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/reset-password.typegen'
 import { BASE_URL } from './helpers/config'
@@ -13,7 +14,7 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState, GeneralResetPasswordState } from './helpers/types'
+import { GeneralResetPasswordState } from './helpers/types'
 
 type ResetPasswordState = GeneralResetPasswordState<Typegen0>
 
@@ -98,13 +99,7 @@ test(`should fail if email is invalid`, async () => {
     (state: ResetPasswordState) => state.matches({ idle: 'error' })
   )
 
-  expect(state.context.error).toMatchInlineSnapshot(`
-    {
-      "error": "invalid-request",
-      "message": "\\"email\\" must be a valid email",
-      "status": 400,
-    }
-  `)
+  expect(state.context.error).toMatchObject(INVALID_EMAIL_ERROR)
 })
 
 test(`should fail if user is not found`, async () => {

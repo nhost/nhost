@@ -3,7 +3,9 @@ import {
   AuthContext,
   AuthEvents,
   ResetPasswordContext,
-  ResetPasswordEvents
+  ResetPasswordEvents,
+  SendVerificationEmailContext,
+  SendVerificationEmailEvents
 } from '../../src/machines'
 
 export type GeneralAuthState<Typegen extends TypegenConstraint> = State<
@@ -26,4 +28,15 @@ export type GeneralResetPasswordState<Typegen extends TypegenConstraint> = State
     context: ResetPasswordContext
   },
   ResolveTypegenMeta<Typegen, ResetPasswordEvents, BaseActionObject, ServiceMap>
+>
+
+export type GeneralSendVerificationEmailState<Typegen extends TypegenConstraint> = State<
+  SendVerificationEmailContext,
+  SendVerificationEmailEvents,
+  any,
+  {
+    value: any
+    context: SendVerificationEmailContext
+  },
+  ResolveTypegenMeta<Typegen, SendVerificationEmailEvents, BaseActionObject, ServiceMap>
 >

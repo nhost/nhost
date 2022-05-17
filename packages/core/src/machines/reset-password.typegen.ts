@@ -3,6 +3,7 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
+    saveInvalidEmailError: 'REQUEST'
     reportSuccess: 'done.invoke.requestChange'
     saveRequestError: 'error.platform.requestChange'
     reportError: 'error.platform.requestChange'
@@ -28,7 +29,9 @@ export interface Typegen0 {
   eventsCausingServices: {
     requestChange: 'REQUEST'
   }
-  eventsCausingGuards: {}
+  eventsCausingGuards: {
+    invalidEmail: 'REQUEST'
+  }
   eventsCausingDelays: {}
   matchesStates:
     | 'idle'
