@@ -208,7 +208,7 @@ export function useSignInEmailPasswordless(
 
   const isSuccess = useSelector(service, (state) =>
     state.matches({
-      authentication: 'signedOut',
+      authentication: { signedOut: 'noErrors' },
       email: 'awaitingVerification'
     })
   )

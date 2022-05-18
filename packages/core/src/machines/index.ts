@@ -648,7 +648,6 @@ export const createAuthMachine = ({
             return Promise.reject({ error: INVALID_PASSWORD_ERROR })
           }
           if (context.user?.isAnonymous) {
-            // ! TODO add missing tests
             return postRequest(
               '/user/deanonymize',
               {
