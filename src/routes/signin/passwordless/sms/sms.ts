@@ -81,11 +81,10 @@ export const signInPasswordlessSmsHandler: RequestHandler<
       await gqlSdk.deleteUser({
         userId: user.id,
       });
-
-      throw Error('Error sending SMS');
+      return sendError(res, 'cannot-send-sms');
     }
   } else {
-    throw Error('No sms provider set');
+    return sendError(res, 'invalid-sms-provider-type');
   }
 
   return res.send(ReasonPhrases.OK);
