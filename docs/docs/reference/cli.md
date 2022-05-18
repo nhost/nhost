@@ -3,9 +3,7 @@ title: 'CLI'
 sidebar_position: 4
 ---
 
-This section is a reference for the command available in the Nhost CLI.
-
-To get started with the CLI we recommend reading our [general documentation for the CLI](/platform/cli).
+This section is a reference for the command available in the [Nhost CLI](/platform/cli).
 
 ## init
 
@@ -15,7 +13,9 @@ Intialize a local Nhost app in the current working directory.
 nhost init
 ```
 
-If you already have a Nhost app in Nhost Cloud you can use that app as a starting point with the following command:
+If you already have a Nhost app in Nhost Cloud you can use that app as a starting point by appending `--remote` to the command.
+
+This will pull the database migrations and Hasura metadata from the Nhost Cloud app locally for you to use as a starting point.
 
 ```
 nhost init --remote
