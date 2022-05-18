@@ -21,7 +21,7 @@ This will pull the database migrations and Hasura metadata from the Nhost Cloud 
 nhost init --remote
 ```
 
-## dev
+## up
 
 Launch the development environment for your app. Once the environment is up, the command will:
 
@@ -30,21 +30,21 @@ Launch the development environment for your app. Once the environment is up, the
 - Apply seed data.
 
 ```bash
-nhost dev
+nhost up
 ```
 
-## purge
+## down
 
-Delete all containers created by `nhost dev`
+Delete all containers created by `nhost up`
 
 ```bash
-nhost purge
+nhost down
 ```
 
 To delete all containers **and the local database**, append `--data` to the command.
 
 ```bash
-nhost purge --data
+nhost down --data
 ```
 
 ## link
@@ -86,7 +86,7 @@ Turn on debug output.
 ### `--debug`, `-d`
 
 ```bash
-nhost dev --debug
+nhost up --debug
 nhost init -d
 ```
 
@@ -95,6 +95,6 @@ nhost init -d
 Save output to a given file.
 
 ```bash
-nhost dev -d --log-file some-file.txt
+nhost up -d --log-file some-file.txt
 nhost logs -f some-file.txt
 ```
