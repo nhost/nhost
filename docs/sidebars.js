@@ -146,7 +146,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: 'Vue 3',
+      label: 'Vue',
       link: {
         type: 'doc',
         id: 'reference/vue/index'
