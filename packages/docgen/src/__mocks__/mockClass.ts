@@ -471,7 +471,7 @@ const mockClass: ClassSignature = {
                       ],
                       type: {
                         type: 'literal',
-                        value: 'SIGNIN_PASSWORDLESS_EMAIL'
+                        value: 'PASSWORDLESS_EMAIL'
                       }
                     },
                     {
@@ -1555,7 +1555,7 @@ const mockClass: ClassSignature = {
                               ],
                               type: {
                                 type: 'literal',
-                                value: 'SIGNIN_PASSWORDLESS_EMAIL'
+                                value: 'PASSWORDLESS_EMAIL'
                               }
                             },
                             {
@@ -2585,7 +2585,7 @@ const mockClass: ClassSignature = {
                                   ],
                                   type: {
                                     type: 'literal',
-                                    value: 'SIGNIN_PASSWORDLESS_EMAIL'
+                                    value: 'PASSWORDLESS_EMAIL'
                                   }
                                 },
                                 {

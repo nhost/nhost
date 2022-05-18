@@ -12,7 +12,7 @@ export type AuthEvents =
     }
   | { type: 'SIGNIN_PASSWORD'; email?: string; password?: string }
   | {
-      type: 'SIGNIN_PASSWORDLESS_EMAIL'
+      type: 'PASSWORDLESS_EMAIL'
       email?: string
       options?: PasswordlessOptions
     }

@@ -221,7 +221,7 @@ export class HasuraAuthClient {
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
       return new Promise((resolve) => {
-        const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', params)
+        const { changed } = interpreter.send('PASSWORDLESS_EMAIL', params)
         if (!changed) {
           return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
         }
@@ -465,26 +465,7 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/deanonymize
    */
   async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
-    const interpreter = await this.waitUntilReady()
-    return new Promise((resolve) => {
-      if (!this.isAuthenticated() || !interpreter.state.context.user?.isAnonymous) {
-        return { error: USER_NOT_ANONYMOUS }
-      }
-      const { signInMethod, connection, ...options } = params
-      interpreter.send('DEANONYMIZE', {
-        signInMethod,
-        connection,
-        options
-      })
-      interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedIn: { deanonymizing: 'success' } } })) {
-          resolve({ error: null })
-        } else if (state.matches({ authentication: { signedIn: { deanonymizing: 'error' } } })) {
-          resolve({ error: state.context.errors.authentication || null })
-        }
-      })
-      interpreter.start()
-    })
+    return this.signIn(params)
   }
 
   /**

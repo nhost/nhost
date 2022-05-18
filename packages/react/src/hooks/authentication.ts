@@ -267,7 +267,7 @@ export function useSignInEmailPasswordless(
   ) =>
     new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
       const { changed } = service.send({
-        type: 'SIGNIN_PASSWORDLESS_EMAIL',
+        type: 'PASSWORDLESS_EMAIL',
         email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
         options: valueOptions
       })
@@ -301,13 +301,11 @@ export function useSignInEmailPasswordless(
     (state) => state.context.errors.authentication || null,
     (a, b) => a?.error === b?.error
   )
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
-  )
+  const isLoading = useSelector(service, (state) => state.matches('registration.passwordlessEmail'))
 
   const isSuccess = useSelector(service, (state) =>
     state.matches({
-      authentication: { signedOut: 'noErrors' },
+      authentication: 'signedOut',
       email: 'awaitingVerification'
     })
   )
@@ -320,6 +318,7 @@ export function useSignInEmailPasswordless(
 }
 
 // TODO documentation when available in Nhost Cloud - see changelog
+
 // TODO deanonymize
 // TODO review nhost.auth.signIn()
 

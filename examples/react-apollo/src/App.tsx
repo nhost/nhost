@@ -62,7 +62,7 @@ function App() {
             <Route
               path="/sign-up/*"
               element={
-                <PublicGate>
+                <PublicGate anonymous>
                   <SignUpPage />
                 </PublicGate>
               }

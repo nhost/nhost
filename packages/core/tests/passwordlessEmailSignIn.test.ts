@@ -44,7 +44,7 @@ test('should fail if network is unavailable', async () => {
   server.use(passwordlessEmailNetworkErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    type: 'PASSWORDLESS_EMAIL',
     email: faker.internet.email()
   })
 
@@ -67,7 +67,7 @@ test(`should fail if server returns an error`, async () => {
   server.use(passwordlessEmailInternalErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    type: 'PASSWORDLESS_EMAIL',
     email: faker.internet.email()
   })
 
@@ -88,7 +88,7 @@ test(`should fail if server returns an error`, async () => {
 
 test(`should fail if the provided email address was invalid`, async () => {
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    type: 'PASSWORDLESS_EMAIL',
     email: faker.internet.userName()
   })
 
@@ -103,7 +103,7 @@ test(`should fail if the provided email address was invalid`, async () => {
 
 test(`should succeed if the provided email address was valid`, async () => {
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_EMAIL',
+    type: 'PASSWORDLESS_EMAIL',
     email: faker.internet.email()
   })
 
