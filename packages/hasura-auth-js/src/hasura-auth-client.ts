@@ -4,6 +4,8 @@ import { interpret } from 'xstate'
 import {
   AuthClient,
   AuthInterpreter,
+  changeEmailPromise,
+  changePasswordPromise,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
@@ -11,19 +13,24 @@ import {
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
   ErrorPayload,
-  INVALID_AUTHENTICATION_METHOD,
   INVALID_REFRESH_TOKEN,
   JWTClaims,
   JWTHasuraClaims,
   NO_REFRESH_TOKEN,
+  resetPasswordPromise,
   rewriteRedirectTo,
+  sendVerificationEmailPromise,
+  signInAnonymousPromise,
+  signInEmailPasswordlessPromise,
+  signInEmailPasswordPromise,
+  signOutPromise,
+  signUpEmailPasswordPromise,
   TOKEN_REFRESHER_RUNNING_ERROR,
   USER_ALREADY_SIGNED_IN,
-  USER_NOT_ANONYMOUS,
-  USER_UNAUTHENTICATED
+  USER_NOT_ANONYMOUS
 } from '@nhost/core'
 
-import { getSession, isBrowser } from './utils/helpers'
+import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
 import {
   ApiChangeEmailResponse,
   ApiChangePasswordResponse,
@@ -41,6 +48,7 @@ import {
   SendVerificationEmailParams,
   Session,
   SignInParams,
+  SignInResponse,
   SignUpParams,
   SignUpResponse
 } from './utils/types'
@@ -90,31 +98,11 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
-  async signUp(params: SignUpParams): Promise<SignUpResponse> {
+  async signUp({ email, password, options }: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
-
-    const { email, password, options } = params
-
-    return new Promise((resolve) => {
-      const { changed } = interpreter.send('SIGNUP_EMAIL_PASSWORD', { email, password, options })
-      if (!changed) {
-        return resolve({ session: null, error: USER_ALREADY_SIGNED_IN })
-      }
-      interpreter.onTransition((state) => {
-        if (
-          state.matches({
-            authentication: { signedOut: 'noErrors' },
-            email: 'awaitingVerification'
-          })
-        ) {
-          return resolve({ session: null, error: null })
-        } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          return resolve({ session: null, error: state.context.errors.registration || null })
-        } else if (state.matches({ authentication: 'signedIn' })) {
-          return resolve({ session: getSession(state.context), error: null })
-        }
-      })
-    })
+    return getAuthenticationResult(
+      await signUpEmailPasswordPromise(interpreter, email, password, options)
+    )
   }
 
   /**
@@ -153,15 +141,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
    */
-  async signIn(params: SignInParams): Promise<{
-    session: Session | null
-    mfa: {
-      ticket: string
-    } | null
-    error: ErrorPayload | null
-    providerUrl?: string
-    provider?: string
-  }> {
+  async signIn(params: SignInParams): Promise<SignInResponse> {
     const interpreter = await this.waitUntilReady()
 
     if ('provider' in params) {
@@ -178,74 +158,28 @@ export class HasuraAuthClient {
 
     // email password
     if ('email' in params && 'password' in params) {
-      return new Promise((resolve) => {
-        const { changed } = interpreter.send('SIGNIN_PASSWORD', params)
-        if (!changed) {
-          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
+      const res = await signInEmailPasswordPromise(interpreter, params.email, params.password)
+      if (res.needsEmailVerification) {
+        return { session: null, mfa: null, error: EMAIL_NEEDS_VERIFICATION }
+      }
+      if (res.needsMfaOtp) {
+        return {
+          session: null,
+          mfa: res.mfa,
+          error: null
         }
-        interpreter.onTransition((state) => {
-          if (state.matches({ authentication: 'signedIn' })) {
-            resolve({
-              session: getSession(state.context),
-              mfa: null,
-              error: null
-            })
-          } else if (
-            state.matches({
-              authentication: { signedOut: 'noErrors' },
-              email: 'awaitingVerification'
-            })
-          ) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: EMAIL_NEEDS_VERIFICATION
-            })
-          } else if (state.matches({ authentication: { signedOut: 'needsMfa' } })) {
-            resolve({
-              session: null,
-              mfa: state.context.mfa,
-              error: null
-            })
-          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: state.context.errors.authentication || null
-            })
-          }
-        })
-      })
+      }
+      return { ...getAuthenticationResult(res), mfa: null }
     }
 
     // passwordless Email (magic link)
     if ('email' in params && !('otp' in params)) {
-      return new Promise((resolve) => {
-        const { changed } = interpreter.send('PASSWORDLESS_EMAIL', params)
-        if (!changed) {
-          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
-        }
-        interpreter.onTransition((state) => {
-          if (
-            state.matches({
-              authentication: { signedOut: 'noErrors' },
-              email: 'awaitingVerification'
-            })
-          ) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: null
-            })
-          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: state.context.errors.authentication || null
-            })
-          }
-        })
-      })
+      const { error } = await signInEmailPasswordlessPromise(interpreter, params.email)
+      return {
+        session: null,
+        mfa: null,
+        error
+      }
     }
 
     // passwordless SMS
@@ -298,24 +232,8 @@ export class HasuraAuthClient {
       })
     }
     // * Anonymous sign-in
-    const { changed } = interpreter.send('SIGNIN_ANONYMOUS')
-    if (!changed) {
-      return { session: null, mfa: null, error: INVALID_AUTHENTICATION_METHOD }
-    }
-    return new Promise((resolve) => {
-      interpreter.onTransition((state) => {
-        if (state.matches({ authentication: 'signedIn' })) {
-          resolve({ session: getSession(state.context), mfa: null, error: null })
-        }
-        if (state.matches({ authentication: { signedOut: 'failed' } })) {
-          resolve({
-            session: null,
-            mfa: null,
-            error: state.context.errors.authentication || null
-          })
-        }
-      })
-    })
+    const anonymousResult = await signInAnonymousPromise(interpreter)
+    return { ...getAuthenticationResult(anonymousResult), mfa: null }
   }
 
   /**
@@ -337,19 +255,8 @@ export class HasuraAuthClient {
    */
   async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
     const interpreter = await this.waitUntilReady()
-    return new Promise((resolve) => {
-      const { event } = interpreter.send('SIGNOUT', { all: params?.all })
-      if (event.type !== 'SIGNED_OUT') {
-        return resolve({ error: USER_UNAUTHENTICATED })
-      }
-      interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'success' } })) {
-          resolve({ error: null })
-        } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } })) {
-          resolve({ error: state.context.errors.signout || null })
-        }
-      })
-    })
+    const { error } = await signOutPromise(interpreter, params?.all)
+    return { error }
   }
 
   /**
@@ -363,18 +270,9 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/reset-password
    */
   async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createResetPasswordMachine(this._client))
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.start()
-      service.send('REQUEST', { email, options })
-    })
+    const service = interpret(createResetPasswordMachine(this._client)).start()
+    const { error } = await resetPasswordPromise(service, email, options)
+    return { error }
   }
 
   /**
@@ -387,19 +285,10 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-password
    */
-  async changePassword(params: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createChangePasswordMachine(this._client))
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.start()
-      service.send('REQUEST', { password: params.newPassword })
-    })
+  async changePassword({ newPassword }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
+    const service = interpret(createChangePasswordMachine(this._client)).start()
+    const { error } = await changePasswordPromise(service, newPassword)
+    return { error }
   }
 
   /**
@@ -412,21 +301,13 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/send-verification-email
    */
-  async sendVerificationEmail(
-    params: SendVerificationEmailParams
-  ): Promise<ApiSendVerificationEmailResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createSendVerificationEmailMachine(this._client))
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.start()
-      service.send('REQUEST', { email: params.email, options: params.options })
-    })
+  async sendVerificationEmail({
+    email,
+    options
+  }: SendVerificationEmailParams): Promise<ApiSendVerificationEmailResponse> {
+    const service = interpret(createSendVerificationEmailMachine(this._client)).start()
+    const { error } = await sendVerificationEmailPromise(service, email, options)
+    return { error }
   }
 
   /**
@@ -440,18 +321,9 @@ export class HasuraAuthClient {
    * @docs https://docs.nhost.io/reference/javascript/auth/change-email
    */
   async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
-    return new Promise((resolve) => {
-      const service = interpret(createChangeEmailMachine(this._client))
-      service.onTransition(({ event }) => {
-        if (event.type === 'ERROR') {
-          return resolve({ error: event.error })
-        } else if (event.type === 'SUCCESS') {
-          return resolve({ error: null })
-        }
-      })
-      service.start()
-      service.send('REQUEST', { email: newEmail, options })
-    })
+    const service = interpret(createChangeEmailMachine(this._client)).start()
+    const { error } = await changeEmailPromise(service, newEmail, options)
+    return { error }
   }
 
   /**
@@ -610,7 +482,9 @@ export class HasuraAuthClient {
   }
 
   /**
+   * @internal
    * @deprecated Use `nhost.auth.getAccessToken()` instead.
+   * @docs https://docs.nhost.io/reference/javascript/auth/get-access-token
    */
 
   getJWTToken(): string | undefined {
@@ -639,6 +513,7 @@ export class HasuraAuthClient {
    * const decodedAccessToken = nhost.auth.getDecodedAccessToken();
    * ```
    *
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-decoded-access-token
    */
   public getDecodedAccessToken(): JWTClaims | null {
@@ -655,6 +530,7 @@ export class HasuraAuthClient {
    * const hasuraClaims = nhost.auth.getHasuraClaims();
    * ```
    *
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claims
    */
   public getHasuraClaims(): JWTHasuraClaims | null {
@@ -672,6 +548,7 @@ export class HasuraAuthClient {
    *
    * @param name Name of the variable. You don't have to specify `x-hasura-`.
    *
+   * @see {@link https://hasura.io/docs/latest/graphql/core/auth/authentication/jwt/| Hasura documentation}
    * @docs https://docs.nhost.io/reference/javascript/auth/get-hasura-claim
    */
   public getHasuraClaim(name: string): string | string[] | null {
@@ -712,7 +589,7 @@ export class HasuraAuthClient {
         if (!changed) {
           return resolve({ session: null, error: TOKEN_REFRESHER_RUNNING_ERROR })
         }
-        interpreter?.onTransition((state) => {
+        interpreter.onTransition((state) => {
           if (state.matches({ token: { idle: 'error' } })) {
             resolve({
               session: null,

@@ -3,8 +3,8 @@ title: 'Quickstart: Next.js'
 sidebar_position: 2
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 # Quickstart: Next.js
 
@@ -32,24 +32,9 @@ You'll need **Node.js** version 12 or later: [install it from here](https://node
 
 ### Create a new Nhost app
 
-First things first, we need to create a new Nhost project.
+import CreateApp from '@site/fragments/create-nhost-app.mdx'
 
-So, log in to your Nhost dashboard and click the **Create your first app**
-button.
-
-![nhost-first-app](/img/quickstarts/create-app-step-1.png)
-
-Next, give your new Nhost app a name, select a geographic region for your Nhost
-services and click **Create App**.
-
-![nhost-first-app](/img/quickstarts/create-app-step-2.png)
-
-After a few seconds, you should get a PostgreSQL database, a GraphQL API with
-Hasura, file storage, and authentication set up.
-
-:::info
-You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
-:::
+<CreateApp github />
 
 ## Initialize the app
 
@@ -191,50 +176,44 @@ So, open up the corresponding file from your project, and use the following
 code:
 
 ```jsx title="components/SignUp.js"
-import styles from '../styles/components/SignUp.module.css';
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { useSignUpEmailPassword } from '@nhost/nextjs';
-import Link from 'next/link';
-import Image from 'next/image';
-import Input from './Input';
-import Spinner from './Spinner';
+import styles from '../styles/components/SignUp.module.css'
+import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useSignUpEmailPassword } from '@nhost/nextjs'
+import Link from 'next/link'
+import Image from 'next/image'
+import Input from './Input'
+import Spinner from './Spinner'
 
 const SignUp = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const router = useRouter();
+  const router = useRouter()
 
-  const {
-    signUpEmailPassword,
-    isLoading,
-    isSuccess,
-    needsEmailVerification,
-    isError,
-    error,
-  } = useSignUpEmailPassword();
+  const { signUpEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
+    useSignUpEmailPassword()
 
   const handleOnSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     await signUpEmailPassword(email, password, {
       displayName: `${firstName} ${lastName}`.trim(),
       metadata: {
         firstName,
-        lastName,
-      },
-    });
-  };
-
-  if (isSuccess) {
-    router.push('/');
-    return null;
+        lastName
+      }
+    })
   }
 
-  const disableForm = isLoading || needsEmailVerification;
+  if (isSuccess) {
+    router.push('/')
+    return null
+  }
+
+  const disableForm = isLoading || needsEmailVerification
 
   return (
     <div className={styles.container}>
@@ -245,8 +224,7 @@ const SignUp = () => {
 
         {needsEmailVerification ? (
           <p className={styles['verification-text']}>
-            Please check your mailbox and follow the verification link to verify
-            your email.
+            Please check your mailbox and follow the verification link to verify your email.
           </p>
         ) : (
           <form onSubmit={handleOnSubmit} className={styles.form}>
@@ -283,17 +261,11 @@ const SignUp = () => {
               required
             />
 
-            <button
-              type="submit"
-              disabled={disableForm}
-              className={styles.button}
-            >
+            <button type="submit" disabled={disableForm} className={styles.button}>
               {isLoading ? <Spinner size="sm" /> : 'Create account'}
             </button>
 
-            {isError ? (
-              <p className={styles['error-text']}>{error?.message}</p>
-            ) : null}
+            {isError ? <p className={styles['error-text']}>{error?.message}</p> : null}
           </form>
         )}
       </div>
@@ -305,10 +277,10 @@ const SignUp = () => {
         </Link>
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default SignUp;
+export default SignUp
 ```
 
 By default, the user must verify his email address before fully signing up. You can change this setting from your Nhost dashboard.
@@ -324,41 +296,35 @@ what your component should look like after applying the changes for the sign-in
 logic:
 
 ```jsx title="components/SignIn.js"
-import styles from '../styles/components/SignIn.module.css';
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import { useSignInEmailPassword } from '@nhost/nextjs';
-import Link from 'next/link';
-import Image from 'next/image';
-import Input from './Input';
-import Spinner from './Spinner';
+import styles from '../styles/components/SignIn.module.css'
+import { useState } from 'react'
+import { useRouter } from 'next/router'
+import { useSignInEmailPassword } from '@nhost/nextjs'
+import Link from 'next/link'
+import Image from 'next/image'
+import Input from './Input'
+import Spinner from './Spinner'
 
 const SignIn = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const router = useRouter();
+  const router = useRouter()
 
-  const {
-    signInEmailPassword,
-    isLoading,
-    isSuccess,
-    needsEmailVerification,
-    isError,
-    error,
-  } = useSignInEmailPassword();
+  const { signInEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
+    useSignInEmailPassword()
 
   const handleOnSubmit = async (e) => {
-    e.preventDefault();
-    await signInEmailPassword(email, password);
-  };
-
-  if (isSuccess) {
-    router.push('/');
-    return null;
+    e.preventDefault()
+    await signInEmailPassword(email, password)
   }
 
-  const disableForm = isLoading || needsEmailVerification;
+  if (isSuccess) {
+    router.push('/')
+    return null
+  }
+
+  const disableForm = isLoading || needsEmailVerification
 
   return (
     <div className={styles.container}>
@@ -369,8 +335,7 @@ const SignIn = () => {
 
         {needsEmailVerification ? (
           <p className={styles['verification-text']}>
-            Please check your mailbox and follow the verification link to verify
-            your email.
+            Please check your mailbox and follow the verification link to verify your email.
           </p>
         ) : (
           <>
@@ -392,17 +357,11 @@ const SignIn = () => {
                 required
               />
 
-              <button
-                type="submit"
-                disabled={disableForm}
-                className={styles.button}
-              >
+              <button type="submit" disabled={disableForm} className={styles.button}>
                 {isLoading ? <Spinner size="sm" /> : 'Sign in'}
               </button>
 
-              {isError ? (
-                <p className={styles['error-text']}>{error?.message}</p>
-              ) : null}
+              {isError ? <p className={styles['error-text']}>{error?.message}</p> : null}
             </form>
           </>
         )}
@@ -415,10 +374,10 @@ const SignIn = () => {
         </Link>
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default SignIn;
+export default SignIn
 ```
 
 #### 3. Sign-out
@@ -427,22 +386,22 @@ Finally, to allow the users to sign out from the app, we can use the Nhost
 `useSignOut` hook:
 
 ```jsx title="components/Layout.js"
-import { useSignOut } from '@nhost/nextjs';
+import { useSignOut } from '@nhost/nextjs'
 
 const Layout = ({ children = null }) => {
-  const { signOut } = useSignOut();
+  const { signOut } = useSignOut()
 
   const menuItems = [
     //..
     {
       label: 'Logout',
       onClick: signOut,
-      icon: LogoutIcon,
-    },
-  ];
+      icon: LogoutIcon
+    }
+  ]
 
   //...
-};
+}
 ```
 
 ### Protect routes
@@ -459,31 +418,31 @@ Nhost SDK by creating a
 [high-order component](https://reactjs.org/docs/higher-order-components.html):
 
 ```jsx title="withAuth.js"
-import styles from './styles/pages/ProtectedRoute.module.css';
-import { useRouter } from 'next/router';
-import { useAuthenticationStatus } from '@nhost/nextjs';
-import Spinner from './components/Spinner';
+import styles from './styles/pages/ProtectedRoute.module.css'
+import { useRouter } from 'next/router'
+import { useAuthenticationStatus } from '@nhost/nextjs'
+import Spinner from './components/Spinner'
 
 export default function withAuth(Component) {
   return function AuthProtected(props) {
-    const router = useRouter();
-    const { isLoading, isAuthenticated } = useAuthenticationStatus();
+    const router = useRouter()
+    const { isLoading, isAuthenticated } = useAuthenticationStatus()
 
     if (isLoading) {
       return (
         <div className={styles.container}>
           <Spinner />
         </div>
-      );
+      )
     }
 
     if (!isAuthenticated) {
-      router.push('/sign-in');
-      return null;
+      router.push('/sign-in')
+      return null
     }
 
-    return <Component {...props} />;
-  };
+    return <Component {...props} />
+  }
 }
 ```
 
@@ -498,26 +457,26 @@ values={[
 <TabItem value="index">
 
 ```js
-import withAuth from '../withAuth';
+import withAuth from '../withAuth'
 
 const Home = () => {
   //...
-};
+}
 
-export default withAuth(Home);
+export default withAuth(Home)
 ```
 
 </TabItem>
 <TabItem value="profile">
 
 ```js
-import withAuth from '../withAuth';
+import withAuth from '../withAuth'
 
 const Profile = () => {
   //...
-};
+}
 
-export default withAuth(Profile);
+export default withAuth(Profile)
 ```
 
 </TabItem>
@@ -534,22 +493,20 @@ can use the `useUserData` hook provided by Nhost to do it.
 So, open the `UserProvider.js` file and use this hook like so:
 
 ```js
-import React, { useContext } from 'react';
+import React, { useContext } from 'react'
 // highlight-next-line
-import { useUserData } from '@nhost/nextjs';
+import { useUserData } from '@nhost/nextjs'
 
-const UserContext = React.createContext(null);
+const UserContext = React.createContext(null)
 
 export function UserProvider({ children = null }) {
   // highlight-next-line
-  const user = useUserData();
-  return (
-    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
-  );
+  const user = useUserData()
+  return <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
 }
 
 export function useUserContext() {
-  return useContext(UserContext);
+  return useContext(UserContext)
 }
 ```
 
@@ -589,14 +546,14 @@ Then, add the `NhostApolloProvider` from `@nhost/react-apollo` into your
 `_app_.js` file.
 
 ```jsx title="pages/_app.js"
-import { NhostApolloProvider } from '@nhost/react-apollo';
+import { NhostApolloProvider } from '@nhost/react-apollo'
 
 function MyApp({ Component, pageProps }) {
   return (
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
       <NhostApolloProvider nhost={nhost}>{/* ... */}</NhostApolloProvider>
     </NhostNextProvider>
-  );
+  )
 }
 ```
 
@@ -604,28 +561,24 @@ From there, we can construct our GraphQL query and use the Apollo `useMutation`
 hook to execute that query when the user submits the form from the profile page:
 
 ```js title="pages/profile.js"
-import { gql, useMutation } from '@apollo/client';
-import { toast } from 'react-hot-toast';
+import { gql, useMutation } from '@apollo/client'
+import { toast } from 'react-hot-toast'
 
 const UPDATE_USER_MUTATION = gql`
   mutation ($id: uuid!, $displayName: String!, $metadata: jsonb) {
-    updateUser(
-      pk_columns: { id: $id }
-      _set: { displayName: $displayName, metadata: $metadata }
-    ) {
+    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName, metadata: $metadata }) {
       id
       displayName
       metadata
     }
   }
-`;
+`
 
 const Profile = () => {
-  const [mutateUser, { loading: updatingProfile }] =
-    useMutation(UPDATE_USER_MUTATION);
+  const [mutateUser, { loading: updatingProfile }] = useMutation(UPDATE_USER_MUTATION)
 
   const updateUserProfile = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     try {
       await mutateUser({
@@ -634,18 +587,18 @@ const Profile = () => {
           displayName: `${firstName} ${lastName}`.trim(),
           metadata: {
             firstName,
-            lastName,
-          },
-        },
-      });
-      toast.success('Updated successfully', { id: 'updateProfile' });
+            lastName
+          }
+        }
+      })
+      toast.success('Updated successfully', { id: 'updateProfile' })
     } catch (error) {
-      toast.error('Unable to update profile', { id: 'updateProfile' });
+      toast.error('Unable to update profile', { id: 'updateProfile' })
     }
-  };
+  }
 
   //...
-};
+}
 ```
 
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
@@ -675,7 +628,7 @@ Finally, to add caching, synchronizing, and updating server state in your Next.j
 So, first add the following GraphQL query to retrieve the current user data from the `UserProvider.js` file:
 
 ```js title="UserProvider.js"
-import { gql } from '@apollo/client';
+import { gql } from '@apollo/client'
 
 const GET_USER_QUERY = gql`
   query GetUser($id: uuid!) {
@@ -687,7 +640,7 @@ const GET_USER_QUERY = gql`
       avatarUrl
     }
   }
-`;
+`
 
 export function UserProvider() {
   //...
@@ -697,10 +650,10 @@ export function UserProvider() {
 Then, replace the `useUserData` hook with the `useUserId` hook to retrieve the current user's ID only.
 
 ```js title="UserProvider.js"
-import { useUserId } from '@nhost/nextjs';
+import { useUserId } from '@nhost/nextjs'
 
 export function UserProvider() {
-  const id = useUserId();
+  const id = useUserId()
   //...
 }
 ```
@@ -709,29 +662,27 @@ Finally, we can run our GraphQL query using the `useQuery` hook and the current 
 
 ```jsx title="UserProvider.js"
 // highlight-next-line
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery } from '@apollo/client'
 
 export function UserProvider({ children = null }) {
-  const id = useUserId();
+  const id = useUserId()
   // highlight-start
   const { loading, error, data } = useQuery(GET_USER_QUERY, {
-    variables: { id },
-  });
-  const user = data?.user;
+    variables: { id }
+  })
+  const user = data?.user
   // highlight-end
 
   // highlight-start
   if (error) {
-    return <p>Something went wrong. Try to refresh the page.</p>;
+    return <p>Something went wrong. Try to refresh the page.</p>
   }
   if (loading) {
-    return null;
+    return null
   }
   // highlight-end
 
-  return (
-    <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
-  );
+  return <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
 }
 ```
 

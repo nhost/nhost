@@ -1,7 +1,8 @@
+import { USER_ALREADY_SIGNED_IN } from '@nhost/core'
 import faker from 'faker'
 import { afterEach, describe, expect, it, test } from 'vitest'
 
-import { auth } from './helpers'
+import { auth, signUpAndInUser } from './helpers'
 
 describe('sign-up', () => {
   afterEach(async () => {
@@ -94,5 +95,24 @@ describe('sign-up', () => {
 
     expect(error).toBeTruthy()
     expect(session).toBeNull()
+  })
+
+  it('should not be possible to sign up when authenticated', async () => {
+    const email = faker.internet.email().toLocaleLowerCase()
+    const password = faker.internet.password(8)
+
+    await signUpAndInUser({ email, password })
+    const user = auth.getUser()
+    const jwt = auth.getAccessToken()
+
+    const { session, error } = await auth.signUp({
+      email: faker.internet.email().toLocaleLowerCase(),
+      password
+    })
+
+    expect(error).toEqual(USER_ALREADY_SIGNED_IN)
+    expect(session).toBeNull()
+    expect(auth.getAccessToken()).toEqual(jwt)
+    expect(auth.getUser()).toEqual(user)
   })
 })

@@ -18,7 +18,7 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
 }) => {
   const machine = nhost.auth.client.machine
   const interpreter = useInterpret(machine, {
-    devTools: true,
+    devTools: nhost.devTools,
     context: produce<AuthContext>(machine.context, (ctx: AuthContext) => {
       if (initial) {
         ctx.user = initial.user
@@ -36,7 +36,7 @@ export const NhostReactProvider: React.FC<PropsWithChildren<NhostReactProviderPr
       isInitialMount.current = false
     } else {
       if (initial) {
-        interpreter.send({ type: 'SESSION_UPDATE', data: { session: initial } })
+        interpreter.send('SESSION_UPDATE', { data: { session: initial } })
       }
     }
   }, [initial, interpreter])

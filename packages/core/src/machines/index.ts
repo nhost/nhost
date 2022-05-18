@@ -22,7 +22,7 @@ import { AuthOptions, Mfa, NhostSession } from '../types'
 import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from '../validators'
 
-import { AuthContext, INITIAL_MACHINE_CONTEXT } from './context'
+import { AuthContext, INITIAL_MACHINE_CONTEXT, StateErrorTypes } from './context'
 import { AuthEvents } from './events'
 
 export * from './change-email'
@@ -30,7 +30,7 @@ export * from './change-password'
 export * from './enable-mfa'
 export * from './reset-password'
 export * from './send-verification-email'
-export type { AuthContext, AuthEvents }
+export type { AuthContext, AuthEvents, StateErrorTypes }
 
 export interface AuthMachineOptions extends AuthOptions {
   backendUrl: string
@@ -109,103 +109,29 @@ export const createAuthMachine = ({
                 success: {},
                 needsSmsOtp: {},
                 needsMfa: {},
-                failed: {
-                  initial: 'server',
-                  states: {
-                    server: {},
-                    validation: {
-                      states: {
-                        password: {},
-                        email: {},
-                        phoneNumber: {},
-                        mfaTicket: {}
-                      }
-                    }
-                  }
-                },
+                failed: {},
                 signingOut: {
-                  initial: 'pending',
                   entry: ['clearContextExceptRefreshToken'],
+                  exit: ['destroyRefreshToken', 'reportTokenChanged'],
                   invoke: {
                     src: 'signout',
                     id: 'signingOut',
                     onDone: {
-                      target: '.destroyingRefreshToken'
+                      target: 'success'
                     },
                     onError: {
-                      target: 'failed.server',
+                      target: 'failed',
                       actions: ['saveAuthenticationError']
-                    }
-                  },
-                  states: {
-                    pending: {},
-                    destroyingRefreshToken: {
-                      initial: 'pending',
-                      states: {
-                        pending: {},
-                        failed: {}
-                      },
-                      invoke: {
-                        id: 'destroyingRefreshToken',
-                        src: 'destroyRefreshToken',
-                        onDone: {
-                          target: '#nhost.authentication.signedOut.success',
-                          actions: ['removeRefreshToken', 'reportTokenChanged']
-                        },
-                        onError: {
-                          target: '.failed',
-                          actions: ['saveAuthenticationError']
-                        }
-                      }
                     }
                   }
                 }
               },
               on: {
-                SIGNIN_PASSWORD: [
-                  {
-                    cond: 'invalidEmail',
-                    actions: ['saveInvalidEmail'],
-                    target: '.failed.validation.email'
-                  },
-                  {
-                    cond: 'invalidPassword',
-                    actions: ['saveInvalidPassword'],
-                    target: '.failed.validation.password'
-                  },
-                  'authenticating.password'
-                ],
-
-                SIGNIN_PASSWORDLESS_SMS: [
-                  {
-                    cond: 'invalidPhoneNumber',
-                    actions: 'saveInvalidPhoneNumber',
-                    target: '.failed.validation.phoneNumber'
-                  },
-                  'authenticating.passwordlessSms'
-                ],
-                SIGNIN_PASSWORDLESS_SMS_OTP: [
-                  {
-                    cond: 'invalidPhoneNumber',
-                    actions: 'saveInvalidPhoneNumber',
-                    target: '.failed.validation.phoneNumber'
-                  },
-                  'authenticating.passwordlessSmsOtp'
-                ],
+                SIGNIN_PASSWORD: 'authenticating.password',
+                SIGNIN_PASSWORDLESS_SMS: 'authenticating.passwordlessSms',
+                SIGNIN_PASSWORDLESS_SMS_OTP: 'authenticating.passwordlessSmsOtp',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
-                SIGNIN_MFA_TOTP: [
-                  {
-                    cond: 'noMfaTicket',
-                    actions: ['saveNoMfaTicketError'],
-                    target: '.failed'
-                  },
-                  {
-                    cond: 'invalidMfaTicket',
-                    actions: ['saveInvalidMfaTicketError'],
-                    target: '.failed'
-                  },
-                  'authenticating.mfa.totp'
-                ]
+                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
               }
             },
             authenticating: {
@@ -218,7 +144,7 @@ export const createAuthMachine = ({
                     onDone: '#nhost.authentication.signedOut.needsSmsOtp',
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -232,7 +158,7 @@ export const createAuthMachine = ({
                     },
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -259,7 +185,7 @@ export const createAuthMachine = ({
                       },
                       {
                         actions: 'saveAuthenticationError',
-                        target: '#nhost.authentication.signedOut.failed.server'
+                        target: '#nhost.authentication.signedOut.failed'
                       }
                     ]
                   }
@@ -274,7 +200,7 @@ export const createAuthMachine = ({
                     },
                     onError: {
                       actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed.server'
+                      target: '#nhost.authentication.signedOut.failed'
                     }
                   }
                 },
@@ -290,7 +216,7 @@ export const createAuthMachine = ({
                         },
                         onError: {
                           actions: ['saveAuthenticationError'],
-                          target: '#nhost.authentication.signedOut.failed.server'
+                          target: '#nhost.authentication.signedOut.failed'
                         }
                       }
                     }
@@ -394,7 +320,7 @@ export const createAuthMachine = ({
                   { cond: 'isSignedIn', target: 'idle.error' },
                   {
                     actions: 'saveAuthenticationError',
-                    target: ['#nhost.authentication.signedOut.failed.server', 'idle.error']
+                    target: ['#nhost.authentication.signedOut.failed', 'idle.error']
                   }
                 ]
               }
@@ -429,8 +355,12 @@ export const createAuthMachine = ({
           states: {
             incomplete: {
               on: {
-                SIGNUP_EMAIL_PASSWORD: 'registering',
-                PASSWORDLESS_EMAIL: 'passwordlessEmail'
+                SIGNUP_EMAIL_PASSWORD: {
+                  target: ['registering', '#nhost.authentication.signedOut']
+                },
+                PASSWORDLESS_EMAIL: {
+                  target: ['passwordlessEmail', '#nhost.authentication.signedOut']
+                }
               }
             },
             registering: {
@@ -545,27 +475,12 @@ export const createAuthMachine = ({
         resetErrors: assign({
           errors: (_) => ({})
         }),
-        saveInvalidEmail: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: INVALID_EMAIL_ERROR })
-        }),
-        saveInvalidPassword: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: INVALID_PASSWORD_ERROR })
-        }),
-        saveInvalidPhoneNumber: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: INVALID_PHONE_NUMBER_ERROR })
-        }),
-        saveInvalidMfaTicketError: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: INVALID_MFA_TICKET_ERROR })
-        }),
-        saveNoMfaTicketError: assign({
-          errors: ({ errors }) => ({ ...errors, authentication: NO_MFA_TICKET_ERROR })
-        }),
         saveRegistrationError: assign({
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
-
-        removeRefreshToken: assign({
+        destroyRefreshToken: assign({
           refreshToken: (_) => {
+            storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
             return { value: null }
           }
         }),
@@ -600,7 +515,6 @@ export const createAuthMachine = ({
         isNotAnonymous: (ctx, e) => !ctx.user?.isAnonymous,
         isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
-        noMfaTicket: (ctx, { ticket }) => !ticket && !ctx.mfa?.ticket,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,
         isAutoRefreshDisabled: () => !autoRefreshToken,
         refreshTimerShouldRefresh: (ctx) => {
@@ -629,34 +543,51 @@ export const createAuthMachine = ({
         },
         // * Authentication errors
         unverified: (_, { data: { error } }: any) =>
-          error.status === 401 && error.message === 'Email is not verified',
+          error.status === 401 &&
+          // * legacy: don't use the message contents to determine if the email is unverified, but the error type (error.error)
+          (error.message === 'Email is not verified' || error.error === 'unverified-user'),
 
         // * Event guards
         hasSession: (_, e: any) => !!e.data?.session,
-        hasMfaTicket: (_, e: any) => !!e.data?.mfa,
-        invalidEmail: (_, { email }) => !isValidEmail(email),
-        invalidPassword: (_, { password }) => !isValidPassword(password),
-        invalidPhoneNumber: (_, { phoneNumber }) => !isValidPhoneNumber(phoneNumber),
-        invalidMfaTicket: (ctx, { ticket }) => !isValidTicket(ticket || ctx.mfa?.ticket)
+        hasMfaTicket: (_, e: any) => !!e.data?.mfa
       },
 
       services: {
-        signInPassword: (_, { email, password }) =>
-          postRequest('/signin/email-password', {
+        signInPassword: (_, { email, password }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+          if (!isValidPassword(password)) {
+            return Promise.reject({ error: INVALID_PASSWORD_ERROR })
+          }
+          return postRequest('/signin/email-password', {
             email,
             password
-          }),
-        signInPasswordlessSms: (_, { phoneNumber, options }) =>
-          postRequest('/signin/passwordless/sms', {
+          })
+        },
+        signInPasswordlessSms: (_, { phoneNumber, options }) => {
+          if (!isValidPhoneNumber(phoneNumber)) {
+            return Promise.reject({ error: INVALID_PHONE_NUMBER_ERROR })
+          }
+
+          return postRequest('/signin/passwordless/sms', {
             phoneNumber,
             options: rewriteRedirectTo(clientUrl, options)
-          }),
-        signInPasswordlessSmsOtp: (_, { phoneNumber, otp }) =>
-          postRequest('/signin/passwordless/sms/otp', {
+          })
+        },
+        signInPasswordlessSmsOtp: (_, { phoneNumber, otp }) => {
+          if (!isValidPhoneNumber(phoneNumber)) {
+            return Promise.reject({ error: INVALID_PHONE_NUMBER_ERROR })
+          }
+          return postRequest('/signin/passwordless/sms/otp', {
             phoneNumber,
             otp
-          }),
+          })
+        },
         passwordlessEmail: (context, { email, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
           if (context.user?.isAnonymous) {
             return postRequest(
               '/user/deanonymize',
@@ -680,14 +611,23 @@ export const createAuthMachine = ({
           }
         },
         signInAnonymous: (_) => postRequest('/signin/anonymous'),
-        signInMfaTotp: (context, { ticket, otp }) =>
-          postRequest<
+        signInMfaTotp: (context, data) => {
+          const ticket = data.ticket || context.mfa?.ticket
+          if (!ticket) {
+            return Promise.reject({ error: NO_MFA_TICKET_ERROR })
+          }
+          if (!isValidTicket(ticket)) {
+            return Promise.reject({ error: INVALID_MFA_TICKET_ERROR })
+          }
+
+          return postRequest<
             { mfa: Mfa | null; session: NhostSession | null },
             { mfa: Mfa | null; session: NhostSession | null }
           >('/signin/mfa/totp', {
-            ticket: ticket || context.mfa?.ticket,
-            otp
-          }),
+            ticket,
+            otp: data.otp
+          })
+        },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest('/token', {
@@ -701,11 +641,13 @@ export const createAuthMachine = ({
             all: !!e.all
           }),
 
-        destroyRefreshToken: async () => {
-          return Promise.resolve(storageSetter(NHOST_REFRESH_TOKEN_KEY, null))
-        },
-
         registerUser: (context, { email, password, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+          }
+          if (!isValidPassword(password)) {
+            return Promise.reject({ error: INVALID_PASSWORD_ERROR })
+          }
           if (context.user?.isAnonymous) {
             // ! TODO add missing tests
             return postRequest(

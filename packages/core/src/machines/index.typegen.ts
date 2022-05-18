@@ -17,7 +17,6 @@ export interface Typegen0 {
     reportTokenChanged:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
-      | 'done.invoke.destroyingRefreshToken'
       | 'done.invoke.authenticatePasswordlessSmsOtp'
       | 'done.invoke.authenticateUserWithPassword'
       | 'done.invoke.authenticateAnonymously'
@@ -28,7 +27,6 @@ export interface Typegen0 {
     saveAuthenticationError:
       | 'error.platform.importRefreshToken'
       | 'error.platform.signingOut'
-      | 'error.platform.destroyingRefreshToken'
       | 'error.platform.authenticatePasswordlessSms'
       | 'error.platform.authenticatePasswordlessSmsOtp'
       | 'error.platform.authenticateUserWithPassword'
@@ -36,12 +34,6 @@ export interface Typegen0 {
       | 'error.platform.signInMfaTotp'
       | 'error.platform.authenticateWithToken'
       | 'error.platform.passwordlessEmail'
-    saveInvalidEmail: 'SIGNIN_PASSWORD'
-    saveInvalidPassword: 'SIGNIN_PASSWORD'
-    saveInvalidPhoneNumber: 'SIGNIN_PASSWORDLESS_SMS' | 'SIGNIN_PASSWORDLESS_SMS_OTP'
-    saveNoMfaTicketError: 'SIGNIN_MFA_TOTP'
-    saveInvalidMfaTicketError: 'SIGNIN_MFA_TOTP'
-    removeRefreshToken: 'done.invoke.destroyingRefreshToken'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     reportAwaitEmailVerification:
       | 'error.platform.authenticateUserWithPassword'
@@ -64,8 +56,11 @@ export interface Typegen0 {
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'error.platform.authenticateUserWithPassword'
+      | 'SIGNUP_EMAIL_PASSWORD'
+      | 'PASSWORDLESS_EMAIL'
       | 'done.invoke.registerUser'
       | 'error.platform.registerUser'
+    destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
     reportSignedIn:
       | 'SESSION_UPDATE'
@@ -140,20 +135,11 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     '': { type: '' }
-    'done.invoke.destroyingRefreshToken': {
-      type: 'done.invoke.destroyingRefreshToken'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
     'error.platform.importRefreshToken': {
       type: 'error.platform.importRefreshToken'
       data: unknown
     }
     'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
-    'error.platform.destroyingRefreshToken': {
-      type: 'error.platform.destroyingRefreshToken'
-      data: unknown
-    }
     'error.platform.authenticatePasswordlessSms': {
       type: 'error.platform.authenticatePasswordlessSms'
       data: unknown
@@ -186,12 +172,12 @@ export interface Typegen0 {
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
+    'xstate.init': { type: 'xstate.init' }
     'done.invoke.signingOut': {
       type: 'done.invoke.signingOut'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'xstate.init': { type: 'xstate.init' }
     'done.invoke.authenticatePasswordlessSms': {
       type: 'done.invoke.authenticatePasswordlessSms'
       data: unknown
@@ -201,7 +187,6 @@ export interface Typegen0 {
   invokeSrcNameMap: {
     importRefreshToken: 'done.invoke.importRefreshToken'
     signout: 'done.invoke.signingOut'
-    destroyRefreshToken: 'done.invoke.destroyingRefreshToken'
     signInPasswordlessSms: 'done.invoke.authenticatePasswordlessSms'
     signInPasswordlessSmsOtp: 'done.invoke.authenticatePasswordlessSmsOtp'
     signInPassword: 'done.invoke.authenticateUserWithPassword'
@@ -225,7 +210,6 @@ export interface Typegen0 {
     signInAnonymous: 'SIGNIN_ANONYMOUS'
     signInMfaTotp: 'SIGNIN_MFA_TOTP'
     signout: 'SIGNOUT'
-    destroyRefreshToken: 'done.invoke.signingOut'
     refreshToken: '' | 'TRY_TOKEN'
     registerUser: 'SIGNUP_EMAIL_PASSWORD'
     passwordlessEmail: 'PASSWORDLESS_EMAIL'
@@ -233,11 +217,6 @@ export interface Typegen0 {
   eventsCausingGuards: {
     hasSession: 'SESSION_UPDATE' | 'done.invoke.registerUser'
     isSignedIn: '' | 'error.platform.authenticateWithToken'
-    invalidEmail: 'SIGNIN_PASSWORD'
-    invalidPassword: 'SIGNIN_PASSWORD'
-    invalidPhoneNumber: 'SIGNIN_PASSWORDLESS_SMS' | 'SIGNIN_PASSWORDLESS_SMS_OTP'
-    noMfaTicket: 'SIGNIN_MFA_TOTP'
-    invalidMfaTicket: 'SIGNIN_MFA_TOTP'
     hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
     unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
     noToken: ''
@@ -257,17 +236,7 @@ export interface Typegen0 {
     | 'authentication.signedOut.needsSmsOtp'
     | 'authentication.signedOut.needsMfa'
     | 'authentication.signedOut.failed'
-    | 'authentication.signedOut.failed.server'
-    | 'authentication.signedOut.failed.validation'
-    | 'authentication.signedOut.failed.validation.password'
-    | 'authentication.signedOut.failed.validation.email'
-    | 'authentication.signedOut.failed.validation.phoneNumber'
-    | 'authentication.signedOut.failed.validation.mfaTicket'
     | 'authentication.signedOut.signingOut'
-    | 'authentication.signedOut.signingOut.pending'
-    | 'authentication.signedOut.signingOut.destroyingRefreshToken'
-    | 'authentication.signedOut.signingOut.destroyingRefreshToken.pending'
-    | 'authentication.signedOut.signingOut.destroyingRefreshToken.failed'
     | 'authentication.authenticating'
     | 'authentication.authenticating.passwordlessSms'
     | 'authentication.authenticating.passwordlessSmsOtp'
@@ -311,16 +280,6 @@ export interface Typegen0 {
                 | 'needsMfa'
                 | 'failed'
                 | 'signingOut'
-                | {
-                    failed?:
-                      | 'server'
-                      | 'validation'
-                      | { validation?: 'password' | 'email' | 'phoneNumber' | 'mfaTicket' }
-                    signingOut?:
-                      | 'pending'
-                      | 'destroyingRefreshToken'
-                      | { destroyingRefreshToken?: 'pending' | 'failed' }
-                  }
               authenticating?:
                 | 'passwordlessSms'
                 | 'passwordlessSmsOtp'

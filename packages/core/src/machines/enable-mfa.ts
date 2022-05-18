@@ -24,6 +24,8 @@ export type EnableMfaEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type EnableMfadMachine = ReturnType<typeof createEnableMfaMachine>
+
 export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
