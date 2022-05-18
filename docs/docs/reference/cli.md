@@ -71,6 +71,22 @@ Remove authentication for the CLI.
 nhost logout
 ```
 
+## list
+
+List all your Nhost apps in Nhost Cloud.
+
+```bash
+nhost list
+```
+
+## upgrade
+
+Upgrade the CLI to the latest version.
+
+```bash
+nhost upgrade
+```
+
 ## logs
 
 Output logs of any service container
