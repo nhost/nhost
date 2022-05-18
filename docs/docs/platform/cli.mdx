@@ -1,0 +1,80 @@
+---
+title: 'CLI'
+sidebar_position: 11
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+Nhost CLI, or `nhost`, is a command-line interface that lets you run and manage Nhost apps locally on Mac, Linux and Windows (WSL2).
+
+This means you get a full-featured Nhost app running locally on your machine:
+
+- Postgres Database
+- Hasura GraphQL API
+- Hasura Console
+- Auth
+- Storage
+- Serverless Functions
+
+This way, you can develop and test local changes before you deploy them live. The CLI automatically tracks:
+
+- Postgres database migrations
+- Hasura metadata
+- Serverless functions
+
+It's recommended to commit and push changes to GitHub and use the [GitHub integration](/platform/github-integration) for Nhost to automatically deploy those changes live.
+
+## Installation
+
+To download and install Nhost CLI, run the following command:
+
+```bash
+sudo curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+```
+
+### Dependencies
+
+The following dependencies are required:
+
+- [Git](https://git-scm.com/downloads)
+- [Docker](https://www.docker.com/get-started) (must be running while using the CLI)
+
+## Get started
+
+Start by authenticating yourself to Nhost Cloud:
+
+```
+nhost login
+```
+
+Once signed in, you can list all your Nhost apps using:
+
+```
+nhost list
+```
+
+Let's start by initializing a remote Nhost app locally with the following command:
+
+```
+nhost init --remote
+```
+
+Pick a Nhost app to use then change the directory once the app initialization is completed:
+
+```
+cd my_test_app
+```
+
+Then start the Nhost app locally:
+
+```
+nhost up
+```
+
+Hasura Console starts automatically and your Nhost app is running locally with the backend URL: `http://localhost:1337`.
+
+## What's next?
+
+- Read our in-depth guide on [Get started with Nhost CLI](/platform/overview/get-started-with-nhost-cli)
+- [CLI commands reference](/reference/cli)
