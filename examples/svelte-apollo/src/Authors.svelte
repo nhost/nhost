@@ -22,7 +22,7 @@
   {#await $authors}
     <li>Loading...</li>
   {:then result}
-    {#each result.data.author as author}
+    {#each result.data.authors as author}
       <li>{author.name}</li>
     {:else}
       <li>No authors found</li>

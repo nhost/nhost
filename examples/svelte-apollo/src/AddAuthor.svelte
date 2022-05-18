@@ -11,7 +11,7 @@
 `
   const ADD_AUTHOR = gql`
     mutation ($authors: authors_insert_input!) {
-      insert_author(objects: [$authors) {
+      insert_author(objects: [$authors]) {
         affected_rows
       }
     }

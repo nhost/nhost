@@ -10,7 +10,7 @@
     }
   `
   const ADD_ARTICLE = gql`
-    mutation ($article:s articles_insert_input!) {
+    mutation ($articles: articles_insert_input!) {
       insert_article(objects: [$articles]) {
         affected_rows
       }

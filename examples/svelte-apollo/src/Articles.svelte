@@ -33,7 +33,7 @@
   {#await $articles}
     <li>Loading...</li>
   {:then result}
-    {#each result.data.article as article}
+    {#each result.data.articles as article}
       <li>{article.title}</li>
     {:else}
       <li>No articles found</li>
