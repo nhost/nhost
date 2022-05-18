@@ -268,24 +268,6 @@ const mockClass: ClassSignature = {
                   flags: {},
                   children: [
                     {
-                      id: 719,
-                      name: 'type',
-                      kind: 1024,
-                      kindString: 'Property',
-                      flags: {},
-                      sources: [
-                        {
-                          fileName: 'core/src/machines/events.ts',
-                          line: 8,
-                          character: 6
-                        }
-                      ],
-                      type: {
-                        type: 'literal',
-                        value: 'DEANONYMIZE'
-                      }
-                    },
-                    {
                       id: 720,
                       name: 'signInMethod',
                       kind: 1024,
@@ -1352,24 +1334,6 @@ const mockClass: ClassSignature = {
                           flags: {},
                           children: [
                             {
-                              id: 829,
-                              name: 'type',
-                              kind: 1024,
-                              kindString: 'Property',
-                              flags: {},
-                              sources: [
-                                {
-                                  fileName: 'core/src/machines/events.ts',
-                                  line: 8,
-                                  character: 6
-                                }
-                              ],
-                              type: {
-                                type: 'literal',
-                                value: 'DEANONYMIZE'
-                              }
-                            },
-                            {
                               id: 830,
                               name: 'signInMethod',
                               kind: 1024,
@@ -2381,24 +2345,6 @@ const mockClass: ClassSignature = {
                               kindString: 'Type literal',
                               flags: {},
                               children: [
-                                {
-                                  id: 882,
-                                  name: 'type',
-                                  kind: 1024,
-                                  kindString: 'Property',
-                                  flags: {},
-                                  sources: [
-                                    {
-                                      fileName: 'core/src/machines/events.ts',
-                                      line: 8,
-                                      character: 6
-                                    }
-                                  ],
-                                  type: {
-                                    type: 'literal',
-                                    value: 'DEANONYMIZE'
-                                  }
-                                },
                                 {
                                   id: 883,
                                   name: 'signInMethod',
