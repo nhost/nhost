@@ -7,7 +7,8 @@ const { signInEmailPassword, needsEmailVerification } = useSignInEmailPassword()
 const router = useRouter()
 const email = ref('')
 const password = ref('')
-const handleSubmit = async () => {
+const handleSubmit = async (event: Event) => {
+  event.preventDefault()
   const { isSuccess } = await signInEmailPassword(email, password)
   if (isSuccess)
     router.push('/')
@@ -20,8 +21,8 @@ const handleSubmit = async () => {
     finish registration.
   </p>
 
-  <div
-    v-else
+  <form
+    v-else @submit="handleSubmit"
   >
     <input
       v-model="email"
@@ -36,7 +37,7 @@ const handleSubmit = async () => {
       :class="inputClass"
     ><br>
 
-    <button class="m-3 text-sm btn" @click="handleSubmit">
+    <button class="m-3 text-sm btn" type="submit">
       Sign in
     </button>
     <p>
@@ -44,5 +45,5 @@ const handleSubmit = async () => {
         Sign up
       </router-link>
     </p>
-  </div>
+  </form>
 </template>

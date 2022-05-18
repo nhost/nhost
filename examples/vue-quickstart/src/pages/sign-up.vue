@@ -11,7 +11,8 @@ const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
 const password = ref('')
-const handleSubmit = async () => {
+const handleSubmit = async (event: Event) => {
+  event.preventDefault()
   const { isSuccess } = await signUpEmailPassword(email, password, {
     metadata: { firstName, lastName },
   })
@@ -25,14 +26,14 @@ const handleSubmit = async () => {
     Please check your mailbox and follow the verification link to verify your email.
   </p>
 
-  <div v-else>
+  <form v-else @submit="handleSubmit">
     <input v-model="firstName" placeholder="First name" :class="inputClass"><br>
     <input v-model="lastName" placeholder="Last name" :class="inputClass"><br>
     <input v-model="email" type="email" placeholder="Email" :class="inputClass"><br>
     <input v-model="password" type="password" placeholder="Password" :class="inputClass"><br>
 
-    <button class="m-3 text-sm btn" @click="handleSubmit">
+    <button class="m-3 text-sm btn" type="submit">
       Sign up
     </button>
-  </div>
+  </form>
 </template>

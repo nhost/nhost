@@ -1,11 +1,11 @@
 import { defineConfig } from 'vite'
 
-import viteReactConfig from './vite.vue.config'
+import viteVueConfig from './vite.vue.config'
 
 export default defineConfig({
-  ...viteReactConfig,
+  ...viteVueConfig,
   build: {
-    ...viteReactConfig.build,
+    ...viteVueConfig.build,
     watch: {
       buildDelay: 500
     }

@@ -204,7 +204,8 @@ Let's create a new page in your project using the following code:
   const lastName = ref('')
   const email = ref('')
   const password = ref('')
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: Event) => {
+    event.preventDefault()
     const { isSuccess } = await signUpEmailPassword(email, password, {
       metadata: { firstName, lastName }
     })
@@ -217,14 +218,14 @@ Let's create a new page in your project using the following code:
     Please check your mailbox and follow the verification link to verify your email.
   </p>
 
-  <div v-else>
+  <form v-else @submit="handleSubmit">
     <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
     <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
     <input v-model="email" type="email" placeholder="Email" :class="inputClass" /><br />
     <input v-model="password" type="password" placeholder="Password" :class="inputClass" /><br />
 
-    <button class="m-3 text-sm btn" @click="handleSubmit">Sign up</button>
-  </div>
+    <button class="m-3 text-sm btn" type="submit">Sign up</button>
+  </form>
 </template>
 ```
 
@@ -247,7 +248,8 @@ For that, we will use the Nhost composable named `useSignInEmailPassword` inside
   const router = useRouter()
   const email = ref('')
   const password = ref('')
-  const handleSubmit = async () => {
+  const handleSubmit = async (event: Event) => {
+    event.preventDefault()
     const { isSuccess } = await signInEmailPassword(email, password)
     if (isSuccess) router.push('/')
   }
@@ -259,13 +261,13 @@ For that, we will use the Nhost composable named `useSignInEmailPassword` inside
     finish registration.
   </p>
 
-  <div v-else>
+  <form v-else @submit="handleSubmit">
     <input v-model="email" type="email" placeholder="Email" :class="inputClass" /><br />
     <input v-model="password" type="password" placeholder="Password" :class="inputClass" /><br />
 
-    <button class="m-3 text-sm btn" @click="handleSubmit">Sign in</button>
+    <button class="m-3 text-sm btn" type="submit">Sign in</button>
     <p>No account yet? <router-link to="/sign-up"> Sign up </router-link></p>
-  </div>
+  </form>
 </template>
 ```
 
@@ -534,7 +536,8 @@ composable to execute that query when the user submits the form from the profile
   const lastName = ref('')
   const { mutate, loading, error } = useMutation(UPDATE_USER_MUTATION)
 
-  const updateUserProfile = async () => {
+  const updateUserProfile = async (event: Event) => {
+    event.preventDefault()
     if (user.value) {
       await mutate({
         id: user.value.id,
@@ -561,19 +564,19 @@ composable to execute that query when the user submits the form from the profile
     </p>
     <div v-if="user" py-4>
       <p>Hello, {{ user?.displayName }}. Your email is {{ user?.email }}.</p>
-      <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
-      <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
-      <button className="m-3 text-sm btn" :disabled="loading" @click="updateUserProfile">
-        Save
-      </button>
-      <div v-if="error">{{ error.message }}</div>
+      <form @submit="updateUserProfile">
+        <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
+        <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
+        <button className="m-3 text-sm btn" :disabled="loading">Save</button>
+        <div v-if="error">{{ error.message }}</div>
+      </form>
     </div>
   </div>
 </template>
 ```
 
 :::tip
-You probably have noticed that we are calling `client.auth.refreshSession()` after we updated the user using the GraphQl mutation. The Nhost client only extracts user information from the access token (JWT), that is kept in memory and refreshed every 15 minutes. As user information has been updated, we force an access token refresh so it is kept up to date.
+You probably have noticed that we are calling `client.auth.refreshSession()` after we updated the user using the GraphQL mutation. The Nhost client only extracts user information from the access token (JWT), that is kept in memory and refreshed every 15 minutes. As user information has been updated, we force an access token refresh so it is kept up to date.
 :::
 
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
@@ -628,7 +631,6 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
 ```markup title="src/pages/profile.vue"
 <script setup lang="ts">
   import { gql } from '@apollo/client'
-  // highlight-start
   import { useNhostClient, useUserId } from '@nhost/vue'
   import { useMutation, useSubscription } from '@vue/apollo-composable'
   import { computed, ref } from 'vue'
@@ -652,7 +654,6 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
     computed(() => ({ id: id.value }))
   )
   const user = computed(() => result.value?.user)
-  // highlight-end
 
   const UPDATE_USER_MUTATION = gql`
     mutation ($id: uuid!, $displayName: String!, $metadata: jsonb) {
@@ -670,7 +671,8 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
   const lastName = ref('')
   const { mutate, loading, error } = useMutation(UPDATE_USER_MUTATION)
 
-  const updateUserProfile = async () => {
+  const updateUserProfile = async (event: Event) => {
+    event.preventDefault()
     if (user.value) {
       await mutate({
         id: user.value.id,
@@ -697,12 +699,12 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
     </p>
     <div v-if="user" py-4>
       <p>Hello, {{ user.displayName }}. Your email is {{ user.email }}.</p>
-      <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
-      <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
-      <button className="m-3 text-sm btn" :disabled="loading" @click="updateUserProfile">
-        Save
-      </button>
-      <div v-if="error">{{ error.message }}</div>
+      <form @submit="updateUserProfile">
+        <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
+        <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
+        <button className="m-3 text-sm btn" :disabled="loading">Save</button>
+        <div v-if="error">{{ error.message }}</div>
+      </form>
     </div>
   </div>
 </template>

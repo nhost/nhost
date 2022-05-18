@@ -34,7 +34,8 @@ const firstName = ref('')
 const lastName = ref('')
 const { mutate, loading, error } = useMutation(UPDATE_USER_MUTATION)
 
-const updateUserProfile = async () => {
+const updateUserProfile = async (event: Event) => {
+  event.preventDefault()
   if (user.value) {
     await mutate({
       id: user.value.id,
@@ -63,12 +64,16 @@ const inputClass =
       <p>
         Hello, {{ user.displayName }}. Your email is {{ user.email }}.
       </p>
-      <input v-model="firstName" placeholder="First name" :class="inputClass"><br>
-      <input v-model="lastName" placeholder="Last name" :class="inputClass"><br>
-      <button className="m-3 text-sm btn" :disabled="loading" @click="updateUserProfile">
-        Save
-      </button>
-      <div v-if="error">{{ error.message }}</div>
+      <form @submit="updateUserProfile" >
+        <input v-model="firstName" placeholder="First name" :class="inputClass"><br>
+        <input v-model="lastName" placeholder="Last name" :class="inputClass"><br>
+        <button className="m-3 text-sm btn" :disabled="loading">
+          Save
+        </button>
+        <div v-if="error">
+          {{ error.message }}
+        </div>
+      </form>
     </div>
   </div>
 </template>
