@@ -2,7 +2,7 @@ import faker from '@faker-js/faker'
 import { rest } from 'msw'
 import { Mfa, NhostSession } from '../../../src/types'
 import { BASE_URL } from '../config'
-import fakeUser from '../__mocks__/user'
+import fakeUser from '../mocks/user'
 
 /**
  * Request handler for MSW to mock a network error when trying to sign up.

@@ -1,15 +1,10 @@
 import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
-import { interpret, Interpreter } from 'xstate'
+import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
-import {
-  INVALID_MFA_CODE_ERROR,
-  INVALID_MFA_TICKET_ERROR,
-  INVALID_MFA_TYPE_ERROR
-} from '../src/errors'
+import { INVALID_MFA_CODE_ERROR, INVALID_MFA_TYPE_ERROR } from '../src/errors'
 import { createAuthMachine, createEnableMfaMachine } from '../src/machines'
-import { INITIAL_MACHINE_CONTEXT } from '../src/machines/context'
 import { Typegen0 } from '../src/machines/enable-mfa.typegen'
 import { BASE_URL } from './helpers/config'
 import {
@@ -20,10 +15,10 @@ import {
   generateMfaTotpNetworkErrorHandler,
   generateMfaTotpUnauthorizedErrorHandler
 } from './helpers/handlers'
+import contextWithUser from './helpers/mocks/contextWithUser'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralEnableMfaState } from './helpers/types'
-import fakeUser from './helpers/__mocks__/user'
 
 type EnableMfaState = GeneralEnableMfaState<Typegen0>
 
@@ -41,15 +36,7 @@ authClient.interpreter = interpret(
     clientUrl: 'http://localhost:3000',
     clientStorageType: 'custom',
     clientStorage: customStorage
-  }).withContext({
-    ...INITIAL_MACHINE_CONTEXT,
-    user: fakeUser,
-    accessToken: {
-      value: faker.datatype.string(40),
-      expiresAt: faker.date.future()
-    },
-    refreshToken: { value: faker.datatype.uuid() }
-  })
+  }).withContext(contextWithUser)
 ).start()
 
 describe(`Generation`, () => {
