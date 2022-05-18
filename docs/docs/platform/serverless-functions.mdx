@@ -67,6 +67,8 @@ yarn add -d express
 
 Serverless functions are automatically deployed using Nhost's [GitHub integration](/platform/github-integration).
 
+You can prepend files and folders with `_` to prevent them from being treated as serverless functions. This is useful if you have a utils file (`functions/_utils.js`) or a utils folder (`functions/_utils/[multiple-files].js`).
+
 ## Routing
 
 HTTP endpoints are automatically generated based on the file structure inside `functions/`.
@@ -80,19 +82,9 @@ Here's an example of four serverless functions with their files and their HTTP e
 | `functions/users/active.ts` | `https://[app-subdomain].nhost.run/v1/functions/users/active` |
 | `functions/my-copmany.js`   | `https://[app-subdomain].nhost.run/v1/functions/my-company`   |
 
----
-
 ## Environment Variables
 
 [Environment variables](/platform/environment-variables) are available inside your serverless functions. Both in production and when running Nhost locally using the [Nhost CLI](/platform/cli).
-
-## Billing
-
-Serverless functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seconds.
-
-1 GB-sec is 1 function with 1 GB of RAM running for 1 second. If 1 function with 1 GB of RAM runs for 3600 seconds, that's the equivalent of 1 GB-hour.
-
-All serverless functions in production are running with 128 MB of RAM.
 
 ## Node Version
 
@@ -101,3 +93,11 @@ All serverless functions in production are running Node.js version 14.x.
 ## Regions
 
 Serverless Functions are always deployed to the same region as your app.
+
+## Billing
+
+Serverless functions are billed per GB-sec or GB-hour. 1 GB-hour is 3600 GB-seconds.
+
+1 GB-sec is 1 function with 1 GB of RAM running for 1 second. If 1 function with 1 GB of RAM runs for 3600 seconds, that's the equivalent of 1 GB-hour.
+
+All serverless functions in production are running with 128 MB of RAM.
