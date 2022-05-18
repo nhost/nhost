@@ -1,5 +1,6 @@
 ---
-title: 'Nhost CLI'
+title: 'CLI'
+sidebar_position: 4
 ---
 
 Run `nhost help` in your terminal to get a detailed listing of all available commands.
