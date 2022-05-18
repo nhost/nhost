@@ -3,92 +3,94 @@ title: 'CLI'
 sidebar_position: 4
 ---
 
-Run `nhost help` in your terminal to get a detailed listing of all available commands.
+This section is a reference for the command available in the Nhost CLI.
 
----
+To get started with the CLI we recommend reading our [general documentation for the CLI](/platform/cli).
 
-## `nhost`
+## init
 
-Run the Nhost development environment. If the current directory has not been initialized as an Nhost app, `nhost` will run you through the initialization.
+Intialize a local Nhost app in the current working directory.
 
-```bash
-nhost
+```
+nhost init
 ```
 
-### Frontend templates
+If you already have a Nhost app in Nhost Cloud you can use that app as a starting point with the following command:
 
-The `nhost` command will offer you the option of cloning frontend templates for framework of your choice (Nuxt, Next.js, React).
+```
+nhost init --remote
+```
 
-The frontend template will be cloned in the `web/` directory of your app root. It will have the Nhost SDK preinstalled and configured.
+## dev
 
----
+Launch the development environment for your app. Once the environment is up, the command will:
 
-## `nhost dev`
-
-Launch the development environment for your app.
+- Apply database migrations.
+- Apply the Hasura metadata.
+- Apply seed data.
 
 ```bash
 nhost dev
 ```
 
-To trace all output and debug issues, run `nhost dev --debug`.
+## purge
+
+Delete all containers created by `nhost dev`
 
 ```bash
-nhost dev --debug
+nhost purge
 ```
 
----
-
-## `nhost init`
-
-Intialize a blank local app in current working directory:
+To delete all containers **and the local database**, append `--data` to the command.
 
 ```bash
-nhost init
+nhost purge --data
 ```
 
-Or clone an existing app from [nhost.io](https://nhost.io):
+## link
 
-```bash
-nhost init --remote
-```
-
----
-
-## `nhost link`
-
-Link the local Nhost app in your working directory to [nhost.io](https://nhost.io).
+Link the local Nhost app in your working directory to an app in Nhost Cloud.
 
 ```bash
 nhost link
 ```
 
----
+## login
 
-## `nhost logs`
+Authenticate the CLI with your Nhost user.
 
-Check real-time logs of any service container
+```bash
+nhost login
+```
 
-You can run this command in parallel, while your local environment is already running. Use `-f` to save output to a file.
+## logout
+
+Remove authentication for the CLI.
+
+```bash
+nhost logout
+```
+
+## logs
+
+Output logs of any service container
 
 ```bash
 nhost logs
 ```
 
----
-
 ## Global flags
 
 Turn on debug output.
 
-#### `--debug`, `-d`
+### `--debug`, `-d`
 
 ```bash
 nhost dev --debug
 nhost init -d
 ```
 
-#### `--log-file`, `-f`
+### `--log-file`, `-f`
 
 Save output to a given file.
 
