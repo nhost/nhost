@@ -1,7 +1,7 @@
 import type { ErrorPayload } from '../errors'
 import { User } from '../types'
 
-export type StateErrorTypes = 'registration' | 'authentication' | 'signout'
+export type StateErrorTypes = 'signUp' | 'authentication' | 'signOut'
 
 export type AuthContext = {
   user: User | null

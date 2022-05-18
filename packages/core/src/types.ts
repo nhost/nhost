@@ -59,7 +59,7 @@ interface RegistrationOptions {
    */
   defaultRole?: string
   /**
-   * Display name of the user. If not provided, it will use the display name given by the social provider (Oauth) used on registration, or the email address otherwise.
+   * Display name of the user. If not provided, it will use the display name given by the social provider (Oauth) used on sign-up, or the email address otherwise.
    */
   displayName?: string
   /**

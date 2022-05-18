@@ -157,7 +157,7 @@ export const useSignOut = (stateAll: boolean = false) => {
 
   const error = useSelector(
     service,
-    (state) => state.context.errors.signout || null,
+    (state) => state.context.errors.signOut || null,
     (a, b) => a?.error === b?.error
   )
 

@@ -51,7 +51,7 @@ export const useSignUpEmailPassword = (
     state.matches({ authentication: { signedOut: 'failed' } })
   )
 
-  const error = useError('registration')
+  const error = useError('signUp')
 
   const { isLoading: loading, isAuthenticated: isSuccess } = useAuthenticationStatus()
 

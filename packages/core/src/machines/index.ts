@@ -346,7 +346,7 @@ export const createAuthMachine = ({
             valid: {}
           }
         },
-        registration: {
+        signUp: {
           initial: 'incomplete',
           on: {
             SIGNED_OUT: '.incomplete',
@@ -356,18 +356,18 @@ export const createAuthMachine = ({
             incomplete: {
               on: {
                 SIGNUP_EMAIL_PASSWORD: {
-                  target: ['registering', '#nhost.authentication.signedOut']
+                  target: ['emailPassword', '#nhost.authentication.signedOut']
                 },
                 PASSWORDLESS_EMAIL: {
                   target: ['passwordlessEmail', '#nhost.authentication.signedOut']
                 }
               }
             },
-            registering: {
+            emailPassword: {
               entry: ['resetErrors'],
               invoke: {
-                src: 'registerUser',
-                id: 'registerUser',
+                src: 'signUpEmailPassword',
+                id: 'signUpEmailPassword',
                 onDone: [
                   {
                     cond: 'hasSession',
@@ -386,7 +386,7 @@ export const createAuthMachine = ({
                     target: ['#nhost.authentication.signedOut', 'incomplete']
                   },
                   {
-                    actions: 'saveRegistrationError',
+                    actions: 'saveSignUpError',
                     target: ['#nhost.authentication.signedOut.failed', 'incomplete']
                   }
                 ]
@@ -475,8 +475,8 @@ export const createAuthMachine = ({
         resetErrors: assign({
           errors: (_) => ({})
         }),
-        saveRegistrationError: assign({
-          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
+        saveSignUpError: assign({
+          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, signUp: error })
         }),
         destroyRefreshToken: assign({
           refreshToken: (_) => {
@@ -640,8 +640,7 @@ export const createAuthMachine = ({
             refreshToken: ctx.refreshToken.value,
             all: !!e.all
           }),
-
-        registerUser: (context, { email, password, options }) => {
+        signUpEmailPassword: (context, { email, password, options }) => {
           if (!isValidEmail(email)) {
             return Promise.reject({ error: INVALID_EMAIL_ERROR })
           }
@@ -672,6 +671,7 @@ export const createAuthMachine = ({
             })
           }
         },
+
         importRefreshToken: async () => {
           let error: ValidationErrorPayload | null = null
           if (autoSignIn) {

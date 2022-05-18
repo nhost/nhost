@@ -58,15 +58,15 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   const stateOptions = c || (typeof a !== 'string' ? a : undefined)
 
   const service = useAuthInterpreter()
-  const isError = useSelector(service, (state) => !!state.context.errors.registration)
+  const isError = useSelector(service, (state) => !!state.context.errors.signUp)
 
   const error = useSelector(
     service,
-    (state) => state.context.errors.registration || null,
+    (state) => state.context.errors.signUp || null,
     (a, b) => a?.error === b?.error
   )
 
-  const isLoading = useSelector(service, (state) => state.matches('registration.registering'))
+  const isLoading = useSelector(service, (state) => state.matches('signUp.emailPassword'))
 
   const needsEmailVerification = useSelector(service, (state) =>
     state.matches({

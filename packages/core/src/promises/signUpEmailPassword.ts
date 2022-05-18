@@ -41,7 +41,7 @@ export const signUpEmailPasswordPromise = (
       if (state.matches({ authentication: { signedOut: 'failed' } })) {
         resolve({
           accessToken: null,
-          error: state.context.errors.registration || null,
+          error: state.context.errors.signUp || null,
           isError: true,
           isSuccess: false,
           needsEmailVerification: false,

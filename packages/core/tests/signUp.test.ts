@@ -57,7 +57,7 @@ test(`should fail if network is unavailable`, async () => {
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "registration": {
+      "signup": {
         "error": "OK",
         "message": "Network Error",
         "status": 200,
@@ -81,7 +81,7 @@ test(`should fail if server returns an error`, async () => {
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "registration": {
+      "signup": {
         "error": "internal-error",
         "message": "Internal error",
         "status": 500,
@@ -104,7 +104,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
 
   expect(emailErrorSignInState.context.errors).toMatchInlineSnapshot(`
       {
-        "registration": {
+        "signup": {
           "error": "invalid-email",
           "message": "Email is incorrectly formatted",
           "status": 10,
@@ -125,7 +125,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
 
   expect(passwordErrorSignInState.context.errors).toMatchInlineSnapshot(`
       {
-        "registration": {
+        "signup": {
           "error": "invalid-password",
           "message": "Password is incorrectly formatted",
           "status": 10,
@@ -149,7 +149,7 @@ test(`should fail if email has already been taken`, async () => {
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "registration": {
+      "signup": {
         "error": "email-already-in-use",
         "message": "Email already in use",
         "status": 409,

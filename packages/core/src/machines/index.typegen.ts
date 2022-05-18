@@ -12,7 +12,7 @@ export interface Typegen0 {
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.registerUser'
+      | 'done.invoke.signUpEmailPassword'
     resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
     reportTokenChanged:
       | 'SESSION_UPDATE'
@@ -23,7 +23,7 @@ export interface Typegen0 {
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.refreshToken'
       | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.registerUser'
+      | 'done.invoke.signUpEmailPassword'
     saveAuthenticationError:
       | 'error.platform.importRefreshToken'
       | 'error.platform.signingOut'
@@ -37,11 +37,11 @@ export interface Typegen0 {
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     reportAwaitEmailVerification:
       | 'error.platform.authenticateUserWithPassword'
-      | 'done.invoke.registerUser'
-      | 'error.platform.registerUser'
+      | 'done.invoke.signUpEmailPassword'
+      | 'error.platform.signUpEmailPassword'
       | 'done.invoke.passwordlessEmail'
     saveRefreshAttempt: 'error.platform.refreshToken'
-    saveRegistrationError: 'error.platform.registerUser'
+    saveSignUpError: 'error.platform.signUpEmailPassword'
     resetErrors:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
@@ -51,15 +51,15 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.registerUser'
+      | 'done.invoke.signUpEmailPassword'
       | 'SIGNUP_EMAIL_PASSWORD'
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'error.platform.authenticateUserWithPassword'
       | 'SIGNUP_EMAIL_PASSWORD'
       | 'PASSWORDLESS_EMAIL'
-      | 'done.invoke.registerUser'
-      | 'error.platform.registerUser'
+      | 'done.invoke.signUpEmailPassword'
+      | 'error.platform.signUpEmailPassword'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
     reportSignedIn:
@@ -71,7 +71,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.registerUser'
+      | 'done.invoke.signUpEmailPassword'
     cleanUrl:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
@@ -81,7 +81,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.registerUser'
+      | 'done.invoke.signUpEmailPassword'
     broadcastToken:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
@@ -91,7 +91,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateAnonymously'
       | 'done.invoke.signInMfaTotp'
       | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.registerUser'
+      | 'done.invoke.signUpEmailPassword'
   }
   internalEvents: {
     'done.invoke.importRefreshToken': {
@@ -129,8 +129,8 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'done.invoke.registerUser': {
-      type: 'done.invoke.registerUser'
+    'done.invoke.signUpEmailPassword': {
+      type: 'done.invoke.signUpEmailPassword'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -162,7 +162,10 @@ export interface Typegen0 {
       data: unknown
     }
     'error.platform.passwordlessEmail': { type: 'error.platform.passwordlessEmail'; data: unknown }
-    'error.platform.registerUser': { type: 'error.platform.registerUser'; data: unknown }
+    'error.platform.signUpEmailPassword': {
+      type: 'error.platform.signUpEmailPassword'
+      data: unknown
+    }
     'done.invoke.passwordlessEmail': {
       type: 'done.invoke.passwordlessEmail'
       data: unknown
@@ -193,7 +196,7 @@ export interface Typegen0 {
     signInAnonymous: 'done.invoke.authenticateAnonymously'
     signInMfaTotp: 'done.invoke.signInMfaTotp'
     refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
-    registerUser: 'done.invoke.registerUser'
+    signUpEmailPassword: 'done.invoke.signUpEmailPassword'
     passwordlessEmail: 'done.invoke.passwordlessEmail'
   }
   missingImplementations: {
@@ -211,14 +214,14 @@ export interface Typegen0 {
     signInMfaTotp: 'SIGNIN_MFA_TOTP'
     signout: 'SIGNOUT'
     refreshToken: '' | 'TRY_TOKEN'
-    registerUser: 'SIGNUP_EMAIL_PASSWORD'
+    signUpEmailPassword: 'SIGNUP_EMAIL_PASSWORD'
     passwordlessEmail: 'PASSWORDLESS_EMAIL'
   }
   eventsCausingGuards: {
-    hasSession: 'SESSION_UPDATE' | 'done.invoke.registerUser'
+    hasSession: 'SESSION_UPDATE' | 'done.invoke.signUpEmailPassword'
     isSignedIn: '' | 'error.platform.authenticateWithToken'
     hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.registerUser'
+    unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.signUpEmailPassword'
     noToken: ''
     isAutoRefreshDisabled: ''
     hasRefreshToken: ''
@@ -261,11 +264,11 @@ export interface Typegen0 {
     | 'email.unknown'
     | 'email.awaitingVerification'
     | 'email.valid'
-    | 'registration'
-    | 'registration.incomplete'
-    | 'registration.registering'
-    | 'registration.passwordlessEmail'
-    | 'registration.complete'
+    | 'signUp'
+    | 'signUp.incomplete'
+    | 'signUp.emailPassword'
+    | 'signUp.passwordlessEmail'
+    | 'signUp.complete'
     | {
         authentication?:
           | 'starting'
@@ -300,7 +303,7 @@ export interface Typegen0 {
             }
         token?: 'idle' | 'running' | { idle?: 'noErrors' | 'error' }
         email?: 'unknown' | 'awaitingVerification' | 'valid'
-        registration?: 'incomplete' | 'registering' | 'passwordlessEmail' | 'complete'
+        signUp?: 'incomplete' | 'emailPassword' | 'passwordlessEmail' | 'complete'
       }
   tags: 'loading'
 }

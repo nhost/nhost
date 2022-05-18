@@ -46,9 +46,7 @@ export const useSignInEmailPasswordless = (
 
   const error = useError('authentication')
 
-  const isLoading = useSelector(service.value, (state) =>
-    state.matches('registration.passwordlessEmail')
-  )
+  const isLoading = useSelector(service.value, (state) => state.matches('signUp.passwordlessEmail'))
 
   const isSuccess = useSelector(service.value, (state) =>
     state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' })
