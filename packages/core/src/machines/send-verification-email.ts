@@ -21,11 +21,7 @@ export type SendVerificationEmailEvents =
   | { type: 'ERROR'; error: ErrorPayload | null }
 
 export type SendVerificationEmailMachine = ReturnType<typeof createSendVerificationEmailMachine>
-export const createSendVerificationEmailMachine = ({
-  backendUrl,
-  clientUrl,
-  interpreter
-}: AuthClient) => {
+export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {

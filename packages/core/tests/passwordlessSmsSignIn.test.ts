@@ -1,6 +1,7 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
+import { INVALID_PHONE_NUMBER_ERROR } from '../src/errors'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
@@ -9,12 +10,13 @@ import {
   passwordlessSmsNetworkErrorHandler
 } from './helpers/handlers'
 import server from './helpers/server'
-import customStorage from './helpers/storage'
+import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
 
 type AuthState = GeneralAuthState<Typegen0>
 
-// Initializing AuthMachine with custom storage to have control over its content between tests
+const customStorage = new CustomClientStorage(new Map())
+
 const authMachine = createAuthMachine({
   backendUrl: BASE_URL,
   clientUrl: 'http://localhost:3000',

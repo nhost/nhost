@@ -8,6 +8,7 @@ export interface Typegen0 {
     saveError: 'error.platform.generate' | 'error.platform.activate'
     reportGeneratedError: 'error.platform.generate'
     saveInvalidMfaTypeError: 'ACTIVATE'
+    saveInvalidMfaCodeError: 'ACTIVATE'
     reportSuccess: 'done.invoke.activate'
     reportError: 'error.platform.activate'
   }
@@ -42,6 +43,7 @@ export interface Typegen0 {
   }
   eventsCausingGuards: {
     invalidMfaType: 'ACTIVATE'
+    invalidMfaCode: 'ACTIVATE'
   }
   eventsCausingDelays: {}
   matchesStates:

@@ -43,7 +43,7 @@ importers:
       vite: ^2.9.7
       vite-plugin-dts: ^0.9.10
       vite-tsconfig-paths: ^3.4.1
-      vitest: ^0.12.1
+      vitest: ^0.12.6
       wait-on: ^6.0.1
     devDependencies:
       '@babel/core': 7.17.10

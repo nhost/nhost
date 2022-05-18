@@ -33,6 +33,7 @@ export interface Typegen0 {
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.authenticateAnonymously'
       | 'error.platform.signInMfaTotp'
+      | 'error.platform.authenticateWithToken'
     reportAwaitEmailVerification:
       | 'done.invoke.authenticatePasswordlessEmail'
       | 'error.platform.authenticateUserWithPassword'
@@ -58,7 +59,6 @@ export interface Typegen0 {
       | 'error.platform.authenticateUserWithPassword'
       | 'done.invoke.signUp'
       | 'error.platform.signUp'
-      | 'error.platform.authenticateWithToken'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
     reportSignedIn:
@@ -160,6 +160,10 @@ export interface Typegen0 {
       data: unknown
     }
     'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
+    'error.platform.authenticateWithToken': {
+      type: 'error.platform.authenticateWithToken'
+      data: unknown
+    }
     'done.invoke.authenticatePasswordlessEmail': {
       type: 'done.invoke.authenticatePasswordlessEmail'
       data: unknown
@@ -167,10 +171,6 @@ export interface Typegen0 {
     }
     'error.platform.signUp': { type: 'error.platform.signUp'; data: unknown }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
-    'error.platform.authenticateWithToken': {
-      type: 'error.platform.authenticateWithToken'
-      data: unknown
-    }
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
