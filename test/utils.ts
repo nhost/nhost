@@ -129,7 +129,7 @@ export const decodeAccessToken = (accessToken: string | null) => {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const urlParameters = (request: any) => {
+export const getUrlParameters = (request: any) => {
   expect(request).toBeObject();
   const { header } = request;
   expect(header).toBeObject();
@@ -142,6 +142,6 @@ export const expectUrlParameters = (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   request: any
 ): jest.JestMatchers<string[]> => {
-  const params = urlParameters(request);
+  const params = getUrlParameters(request);
   return expect(Array.from(params.keys()));
 };

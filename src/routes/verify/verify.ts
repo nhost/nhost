@@ -1,5 +1,10 @@
 import { RequestHandler } from 'express';
-import { getNewRefreshToken, gqlSdk, generateRedirectUrl } from '@/utils';
+import {
+  getNewRefreshToken,
+  gqlSdk,
+  generateRedirectUrl,
+  getUserByEmail,
+} from '@/utils';
 import { Joi, redirectTo } from '@/validation';
 import { sendError } from '@/errors';
 import { EmailType, EMAIL_TYPES } from '@/types';
@@ -65,6 +70,12 @@ export const verifyHandler: RequestHandler<
       },
     });
   } else if (type === EMAIL_TYPES.CONFIRM_CHANGE) {
+    // * Send an error if the new email is already used by another user
+    // * This check is also done when requesting a new email, but is done again here as
+    // * an account with `newEmail` as an email could have been created since the email change occurred
+    if (await getUserByEmail(user.newEmail)) {
+      return sendError(res, 'email-already-in-use', { redirectTo });
+    }
     // set new email for user
     await gqlSdk.updateUser({
       id: user.id,
