@@ -142,24 +142,27 @@ func (s *S3) GetFileWithPresignedURL(
 		return nil, controller.InternalServerError(fmt.Errorf("problem getting file: %w", err))
 	}
 
-	if !(resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusPartialContent) {
+	if !(resp.StatusCode == http.StatusOK ||
+		resp.StatusCode == http.StatusPartialContent ||
+		resp.StatusCode == http.StatusNotModified) {
 		return nil, parseS3Error(resp)
 	}
 
 	respHeaders := make(http.Header)
+	var length int64
 	switch resp.StatusCode {
-	case http.StatusOK, http.StatusPartialContent, http.StatusNotModified:
+	case http.StatusOK, http.StatusPartialContent:
 		respHeaders = http.Header{
 			"Accept-Ranges": []string{"bytes"},
 		}
 		if resp.StatusCode == http.StatusPartialContent {
 			respHeaders["Content-Range"] = []string{resp.Header.Get("Content-Range")}
 		}
-	}
 
-	length, err := strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64) // nolint: gomnd
-	if err != nil {
-		return nil, controller.InternalServerError(fmt.Errorf("problem parsing Content-Length: %w", err))
+		length, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 64) // nolint: gomnd
+		if err != nil {
+			return nil, controller.InternalServerError(fmt.Errorf("problem parsing Content-Length: %w", err))
+		}
 	}
 
 	return &controller.FileWithPresignedURL{

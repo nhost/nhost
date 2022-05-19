@@ -168,6 +168,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 		name               string
 		filepath           string
 		sleep              time.Duration
+		requestHeaders     http.Header
 		expected           *controller.FileWithPresignedURL
 		expectedContent    string
 		expectedErr        *controller.ErrorResponse
@@ -188,6 +189,22 @@ func TestGetFilePresignedURL(t *testing.T) {
 			},
 			expectedContent:    "this is a sample\n",
 			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name:     "not modified",
+			filepath: "sample.txt",
+			requestHeaders: http.Header{
+				"If-None-Match": {`"8ba761284b556cd234f73ec0b75fa054"`},
+			},
+			expected: &controller.FileWithPresignedURL{
+				ContentLength: 0,
+				Etag:          `"8ba761284b556cd234f73ec0b75fa054"`,
+				StatusCode:    304,
+				Body:          nil,
+				ExtraHeaders:  map[string][]string{},
+			},
+			expectedContent:    "",
+			expectedStatusCode: http.StatusNotModified,
 		},
 		{
 			name:     "file not found",
@@ -224,7 +241,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 
 			time.Sleep(tc.sleep)
 
-			got, apiErr := s3.GetFileWithPresignedURL(context.Background(), tc.filepath, signature, http.Header{})
+			got, apiErr := s3.GetFileWithPresignedURL(context.Background(), tc.filepath, signature, tc.requestHeaders)
 			opts := cmp.Options{
 				cmpopts.IgnoreFields(controller.FileWithPresignedURL{}, "Body"),
 			}
