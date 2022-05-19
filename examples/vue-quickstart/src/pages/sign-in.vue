@@ -2,7 +2,6 @@
 import { ref } from 'vue'
 import { useSignInEmailPassword } from '@nhost/vue'
 import { useRouter } from 'vue-router'
-const inputClass = 'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
 const { signInEmailPassword, needsEmailVerification } = useSignInEmailPassword()
 const router = useRouter()
 const email = ref('')
@@ -21,23 +20,11 @@ const handleSubmit = async (event: Event) => {
     finish registration.
   </p>
 
-  <form
-    v-else @submit="handleSubmit"
-  >
-    <input
-      v-model="email"
-      type="email"
-      placeholder="Email"
-      :class="inputClass"
-    ><br>
-    <input
-      v-model="password"
-      type="password"
-      placeholder="Password"
-      :class="inputClass"
-    ><br>
+  <form v-else @submit="handleSubmit">
+    <input v-model="email" type="email" placeholder="Email" class="input" /><br />
+    <input v-model="password" type="password" placeholder="Password" class="input" /><br />
 
-    <button class="m-3 text-sm btn" type="submit">
+    <button class="btn-submit" type="submit">
       Sign in
     </button>
     <p>

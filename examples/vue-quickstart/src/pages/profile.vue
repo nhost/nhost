@@ -49,8 +49,6 @@ const updateUserProfile = async (event: Event) => {
   }
 }
 
-const inputClass =
-  'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
 </script>
 
 <template>
@@ -64,10 +62,10 @@ const inputClass =
       <p>
         Hello, {{ user.displayName }}. Your email is {{ user.email }}.
       </p>
-      <form @submit="updateUserProfile" >
-        <input v-model="firstName" placeholder="First name" :class="inputClass"><br>
-        <input v-model="lastName" placeholder="Last name" :class="inputClass"><br>
-        <button className="m-3 text-sm btn" :disabled="loading">
+      <form @submit="updateUserProfile">
+        <input v-model="firstName" placeholder="First name" class="input"><br>
+        <input v-model="lastName" placeholder="Last name" class="input"><br>
+        <button class="btn-submit" :disabled="loading">
           Save
         </button>
         <div v-if="error">
