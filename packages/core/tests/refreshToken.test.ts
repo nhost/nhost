@@ -2,7 +2,11 @@ import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
 import { BaseActionObject, interpret, Interpreter, ResolveTypegenMeta, ServiceMap } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { NHOST_JWT_EXPIRES_AT_KEY, NHOST_REFRESH_TOKEN_KEY } from '../src/constants'
+import {
+  NHOST_JWT_EXPIRES_AT_KEY,
+  NHOST_REFRESH_TOKEN_KEY,
+  TOKEN_REFRESH_MARGIN
+} from '../src/constants'
 import { INVALID_REFRESH_TOKEN } from '../src/errors'
 import { AuthContext, AuthEvents, createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
@@ -12,12 +16,189 @@ import {
   authTokenNetworkErrorHandler,
   authTokenUnauthorizedHandler
 } from './helpers/handlers'
+import contextWithUser from './helpers/mocks/contextWithUser'
+import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
-import fakeUser from './helpers/__mocks__/user'
 
 type AuthState = GeneralAuthState<Typegen0>
+
+describe(`Time based token refresh`, () => {
+  const initialToken = faker.datatype.uuid()
+  const initialExpiration = faker.date.future()
+  const customStorage = new CustomClientStorage(new Map())
+
+  const authMachineWithInitialSession = createAuthMachine({
+    backendUrl: BASE_URL,
+    clientUrl: 'http://localhost:3000',
+    clientStorage: customStorage,
+    clientStorageType: 'custom',
+    autoSignIn: false
+  }).withContext({
+    ...contextWithUser,
+    accessToken: {
+      value: initialToken,
+      expiresAt: initialExpiration
+    }
+  })
+
+  const authServiceWithInitialSession = interpret(authMachineWithInitialSession).start()
+
+  beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+  afterAll(() => server.close())
+
+  beforeEach(() => {
+    customStorage.setItem(NHOST_JWT_EXPIRES_AT_KEY, faker.date.future().toISOString())
+    customStorage.setItem(NHOST_REFRESH_TOKEN_KEY, faker.datatype.uuid())
+    authServiceWithInitialSession.start()
+  })
+
+  afterEach(() => {
+    authServiceWithInitialSession.stop()
+    customStorage.clear()
+    server.resetHandlers()
+  })
+
+  test(`token refresh should fail if the signed-in user's refresh token was invalid`, async () => {
+    server.use(authTokenUnauthorizedHandler)
+
+    // Fast forwarding to initial expiration date
+    vi.setSystemTime(initialExpiration)
+
+    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
+    )
+
+    const state: AuthState = await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
+  })
+
+  test(`access token should always be refreshed when reaching the expiration margin`, async () => {
+    // Fast forward to the initial expiration date
+    vi.setSystemTime(new Date(initialExpiration.getTime() - TOKEN_REFRESH_MARGIN * 1000))
+
+    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
+    )
+
+    const firstRefreshState: AuthState = await waitFor(
+      authServiceWithInitialSession,
+      (state: AuthState) =>
+        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    const firstRefreshAccessToken = firstRefreshState.context.accessToken.value
+    const firstRefreshAccessTokenExpiration = firstRefreshState.context.accessToken.expiresAt
+
+    expect(firstRefreshAccessToken).not.toBeNull()
+    expect(firstRefreshAccessToken).not.toBe(initialToken)
+    expect(firstRefreshAccessTokenExpiration.getTime()).toBeGreaterThan(initialExpiration.getTime())
+
+    // Fast forward to the expiration date of the access token
+    vi.setSystemTime(
+      new Date(firstRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN * 1000)
+    )
+
+    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
+    )
+
+    const secondRefreshState: AuthState = await waitFor(
+      authServiceWithInitialSession,
+      (state: AuthState) =>
+        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    const secondRefreshAccessToken = secondRefreshState.context.accessToken.value
+    const secondRefreshAccessTokenExpiration = secondRefreshState.context.accessToken.expiresAt
+
+    expect(secondRefreshAccessToken).not.toBeNull()
+    expect(secondRefreshAccessToken).not.toBe(firstRefreshAccessToken)
+    expect(secondRefreshAccessTokenExpiration.getTime()).toBeGreaterThan(
+      firstRefreshAccessTokenExpiration.getTime()
+    )
+
+    // Fast forward to a time when the access token is still valid, so nothing should be refreshed
+    vi.setSystemTime(
+      new Date(secondRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN * 5 * 1000)
+    )
+
+    const thirdRefreshState: AuthState = await waitFor(
+      authServiceWithInitialSession,
+      (state: AuthState) =>
+        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    const thirdRefreshAccessToken = thirdRefreshState.context.accessToken.value
+    const thirdRefreshAccessTokenExpiration = thirdRefreshState.context.accessToken.expiresAt
+
+    expect(thirdRefreshAccessToken).toBe(secondRefreshAccessToken)
+    expect(thirdRefreshAccessTokenExpiration.getTime()).toBe(
+      thirdRefreshAccessTokenExpiration.getTime()
+    )
+  })
+
+  test(`token should be refreshed every N seconds based on the refresh interval`, async () => {
+    const refreshIntervalTime = faker.datatype.number({ min: 800, max: 900 })
+
+    const authMachineWithInitialSession = createAuthMachine({
+      backendUrl: BASE_URL,
+      clientUrl: 'http://localhost:3000',
+      clientStorage: customStorage,
+      clientStorageType: 'custom',
+      refreshIntervalTime,
+      autoSignIn: false
+    }).withContext({
+      ...contextWithUser,
+      accessToken: {
+        value: initialToken,
+        expiresAt: initialExpiration
+      }
+    })
+
+    const authServiceWithInitialSession = interpret(authMachineWithInitialSession).start()
+
+    // Fast N seconds to the refresh interval
+    vi.setSystemTime(new Date(Date.now() + refreshIntervalTime * 1000))
+
+    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
+    )
+
+    const firstRefreshState: AuthState = await waitFor(
+      authServiceWithInitialSession,
+      (state: AuthState) =>
+        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(firstRefreshState.context.accessToken.value).not.toBeNull()
+    expect(firstRefreshState.context.accessToken.value).not.toBe(initialToken)
+
+    // Fast N seconds to the refresh interval
+    vi.setSystemTime(new Date(Date.now() + refreshIntervalTime * 1000))
+
+    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
+    )
+
+    const secondRefreshState: AuthState = await waitFor(
+      authServiceWithInitialSession,
+      (state: AuthState) =>
+        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(secondRefreshState.context.accessToken.value).not.toBeNull()
+    expect(secondRefreshState.context.accessToken.value).not.toBe(
+      firstRefreshState.context.accessToken.value
+    )
+
+    authServiceWithInitialSession.stop()
+  })
+})
 
 describe('General and disabled auto-sign in', () => {
   const customStorage = new CustomClientStorage(new Map())
@@ -209,7 +390,8 @@ describe(`Auto sign-in`, () => {
     vi.restoreAllMocks()
   })
 
-  test(`should throw an error if "error" was in the URL`, async () => {
+  test(`should throw an error if "error" was in the URL when opening the application`, async () => {
+    // Scenario 1: Testing when `errorDescription` is provided.
     windowSpy.mockImplementation(() => ({
       ...originalWindow,
       location: {
@@ -220,15 +402,42 @@ describe(`Auto sign-in`, () => {
 
     authService.start()
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const firstState: AuthState = await waitFor(authService, (state: AuthState) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
-    expect(state.context.errors).toMatchInlineSnapshot(`
+    expect(firstState.context.errors).toMatchInlineSnapshot(`
       {
         "authentication": {
           "error": "invalid-refresh-token",
           "message": "Invalid or expired refresh token",
+          "status": 10,
+        },
+      }
+    `)
+
+    authService.stop()
+
+    // Scenario 2: Testing when `errorDescription` is not provided.
+    windowSpy.mockImplementation(() => ({
+      ...originalWindow,
+      location: {
+        ...originalWindow.location,
+        href: `http://localhost:3000/?error=${INVALID_REFRESH_TOKEN.error}`
+      }
+    }))
+
+    authService.start()
+
+    const secondState: AuthState = await waitFor(authService, (state: AuthState) =>
+      state.matches({ authentication: { signedOut: 'noErrors' } })
+    )
+
+    expect(secondState.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-refresh-token",
+          "message": "invalid-refresh-token",
           "status": 10,
         },
       }
