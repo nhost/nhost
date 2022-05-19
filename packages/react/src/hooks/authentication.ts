@@ -208,19 +208,17 @@ export function useSignInEmailPasswordless(
 
   const isSuccess = useSelector(service, (state) =>
     state.matches({
-      authentication: { signedOut: 'noErrors' },
+      signUp: { incomplete: 'noError' },
       email: 'awaitingVerification'
     })
   )
 
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
-  )
+  const isError = useSelector(service, (state) => state.matches('signUp.incomplete.failed'))
 
   return { signInEmailPasswordless, isLoading, isSuccess, isError, error }
 }
 
-// TODO documentation when available in Nhost Cloud
+// TODO document when available in Nhost Cloud
 export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
   const signInAnonymous = () => signInAnonymousPromise(service)

@@ -47,9 +47,7 @@ export const useSignUpEmailPassword = (
   options?: NestedRefOfValue<SignUpOptions | undefined>
 ): SignUpEmailPasswordResult => {
   const service = useAuthInterpreter()
-  const isError = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
-  )
+  const isError = useSelector(service.value, (state) => state.matches('signUp.incomplete.failed'))
 
   const error = useError('signUp')
 
@@ -57,7 +55,7 @@ export const useSignUpEmailPassword = (
 
   const isLoading = computed(() => loading.value && !isSuccess.value)
   const needsEmailVerification = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' })
+    state.matches({ signUp: 'incomplete', email: 'awaitingVerification' })
   )
   const accessToken = useAccessToken()
   const user = useUserData()

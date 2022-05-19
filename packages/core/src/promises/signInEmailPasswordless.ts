@@ -27,7 +27,7 @@ export const signInEmailPasswordlessPromise = (
       })
     }
     interpreter.onTransition((state) => {
-      if (state.matches({ authentication: { signedOut: 'failed' } })) {
+      if (state.matches('signUp.incomplete.failed')) {
         resolve({
           error: state.context.errors.authentication || null,
           isError: true,

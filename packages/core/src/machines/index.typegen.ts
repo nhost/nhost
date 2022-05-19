@@ -56,10 +56,6 @@ export interface Typegen0 {
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'error.platform.authenticateUserWithPassword'
-      | 'SIGNUP_EMAIL_PASSWORD'
-      | 'PASSWORDLESS_EMAIL'
-      | 'done.invoke.signUpEmailPassword'
-      | 'error.platform.signUpEmailPassword'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
     reportSignedIn:
@@ -266,6 +262,8 @@ export interface Typegen0 {
     | 'email.valid'
     | 'signUp'
     | 'signUp.incomplete'
+    | 'signUp.incomplete.noError'
+    | 'signUp.incomplete.failed'
     | 'signUp.emailPassword'
     | 'signUp.passwordlessEmail'
     | 'signUp.complete'
@@ -303,7 +301,12 @@ export interface Typegen0 {
             }
         token?: 'idle' | 'running' | { idle?: 'noErrors' | 'error' }
         email?: 'unknown' | 'awaitingVerification' | 'valid'
-        signUp?: 'incomplete' | 'emailPassword' | 'passwordlessEmail' | 'complete'
+        signUp?:
+          | 'incomplete'
+          | 'emailPassword'
+          | 'passwordlessEmail'
+          | 'complete'
+          | { incomplete?: 'noError' | 'failed' }
       }
   tags: 'loading'
 }

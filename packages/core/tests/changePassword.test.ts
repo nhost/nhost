@@ -21,7 +21,8 @@ const customStorage = new CustomClientStorage(new Map())
 
 const authClient = new AuthClient({
   backendUrl: BASE_URL,
-  clientUrl: 'http://localhost:3000'
+  clientUrl: 'http://localhost:3000',
+  start: false
 })
 
 authClient.interpreter = interpret(
@@ -69,7 +70,7 @@ test(`should fail if there is a network error`, async () => {
   `)
 })
 
-test(`should fail if server returns an error`, async () => {
+test(`YYY should fail if server returns an error`, async () => {
   server.use(changePasswordInternalErrorHandler)
 
   changePasswordService.send({

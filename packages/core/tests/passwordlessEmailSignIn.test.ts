@@ -48,7 +48,7 @@ test('should fail if network is unavailable', async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('signUp.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -71,7 +71,7 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('signUp.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -92,7 +92,7 @@ test(`should fail if the provided email address was invalid`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
+    state.matches('signUp.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`

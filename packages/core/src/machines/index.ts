@@ -355,12 +355,13 @@ export const createAuthMachine = ({
           states: {
             incomplete: {
               on: {
-                SIGNUP_EMAIL_PASSWORD: {
-                  target: ['emailPassword', '#nhost.authentication.signedOut']
-                },
-                PASSWORDLESS_EMAIL: {
-                  target: ['passwordlessEmail', '#nhost.authentication.signedOut']
-                }
+                SIGNUP_EMAIL_PASSWORD: 'emailPassword',
+                PASSWORDLESS_EMAIL: 'passwordlessEmail'
+              },
+              initial: 'noError',
+              states: {
+                noError: {},
+                failed: {}
               }
             },
             emailPassword: {
@@ -376,18 +377,18 @@ export const createAuthMachine = ({
                   },
                   {
                     actions: 'reportAwaitEmailVerification',
-                    target: ['#nhost.authentication.signedOut', 'incomplete']
+                    target: 'complete'
                   }
                 ],
                 onError: [
                   {
                     cond: 'unverified',
                     actions: 'reportAwaitEmailVerification',
-                    target: ['#nhost.authentication.signedOut', 'incomplete']
+                    target: 'incomplete.failed'
                   },
                   {
                     actions: 'saveSignUpError',
-                    target: ['#nhost.authentication.signedOut.failed', 'incomplete']
+                    target: 'incomplete.failed'
                   }
                 ]
               }
@@ -398,11 +399,11 @@ export const createAuthMachine = ({
                 id: 'passwordlessEmail',
                 onDone: {
                   actions: 'reportAwaitEmailVerification',
-                  target: ['#nhost.authentication.signedOut.noErrors', 'incomplete']
+                  target: 'complete'
                 },
                 onError: {
                   actions: 'saveAuthenticationError',
-                  target: ['#nhost.authentication.signedOut.failed', 'incomplete']
+                  target: 'incomplete.failed'
                 }
               }
             },
@@ -509,9 +510,7 @@ export const createAuthMachine = ({
       },
 
       guards: {
-        needsVerification: (ctx, e) => {
-          return !ctx.user || ctx.user.isAnonymous
-        },
+        needsVerification: (ctx, e) => !ctx.user || ctx.user.isAnonymous,
         isNotAnonymous: (ctx, e) => !ctx.user?.isAnonymous,
         isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
@@ -640,7 +639,7 @@ export const createAuthMachine = ({
             refreshToken: ctx.refreshToken.value,
             all: !!e.all
           }),
-        signUpEmailPassword: (context, { email, password, options }) => {
+        signUpEmailPassword: async (context, { email, password, options }) => {
           if (!isValidEmail(email)) {
             return Promise.reject({ error: INVALID_EMAIL_ERROR })
           }
