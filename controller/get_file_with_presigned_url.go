@@ -1,18 +1,26 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+)
+
+const (
+	amzDateFormat = "20060102T150405Z"
 )
 
 type GetFileWithPresignedURLRequest struct {
 	fileID    string
 	signature string
 	headers   getFileInformationHeaders
+	Expires   int
 }
 
 type File struct {
@@ -24,16 +32,42 @@ type File struct {
 	ExtraHeaders  http.Header
 }
 
+func expiresIn(urlValues url.Values) (int, *APIError) {
+	amzExpires, err := strconv.Atoi(urlValues.Get("X-Amz-Expires"))
+	if err != nil {
+		return 0, BadDataError(err, fmt.Sprintf("problem parsing X-Amz-Expires: %s", err))
+	}
+
+	date, err := time.Parse(amzDateFormat, urlValues.Get("X-Amz-Date"))
+	if err != nil {
+		return 0, BadDataError(err, fmt.Sprintf("problem parsing X-Amz-Date: %s", err))
+	}
+
+	expires := time.Second*time.Duration(amzExpires) - time.Since(date)
+
+	if expires <= 0 {
+		return 0, BadDataError(errors.New("signature already expired"), "signature already expired") // nolint: goerr113
+	}
+
+	return int(expires.Seconds()), nil
+}
+
 func (ctrl *Controller) getFileWithPresignedURLParse(ctx *gin.Context) (GetFileWithPresignedURLRequest, *APIError) {
 	var headers getFileInformationHeaders
 	if err := ctx.ShouldBindHeader(&headers); err != nil {
 		return GetFileWithPresignedURLRequest{}, InternalServerError(fmt.Errorf("problem parsing request headers: %w", err))
 	}
 
+	expires, apiErr := expiresIn(ctx.Request.URL.Query())
+	if apiErr != nil {
+		return GetFileWithPresignedURLRequest{}, apiErr
+	}
+
 	return GetFileWithPresignedURLRequest{
 		fileID:    ctx.Param("id"),
 		signature: ctx.Request.URL.RawQuery,
 		headers:   headers,
+		Expires:   expires,
 	}, nil
 }
 
@@ -43,7 +77,7 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		return nil, apiErr
 	}
 
-	fileMetadata, bucketMetadata, apiErr := ctrl.getFileMetadata(
+	fileMetadata, _, apiErr := ctrl.getFileMetadata(
 		ctx.Request.Context(),
 		req.fileID,
 		http.Header{"x-hasura-admin-secret": []string{ctrl.hasuraAdminSecret}},
@@ -87,7 +121,7 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		download.ContentType,
 		download.ContentLength,
 		download.Etag,
-		bucketMetadata.CacheControl,
+		fmt.Sprintf("max-age=%d", req.Expires),
 		updateAt,
 		download.StatusCode,
 		download.Body,
