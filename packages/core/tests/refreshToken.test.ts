@@ -136,11 +136,67 @@ describe(`Time based token refresh`, () => {
     const thirdRefreshAccessToken = thirdRefreshState.context.accessToken.value
     const thirdRefreshAccessTokenExpiration = thirdRefreshState.context.accessToken.expiresAt
 
-    expect(thirdRefreshAccessToken).not.toBeNull()
     expect(thirdRefreshAccessToken).toBe(secondRefreshAccessToken)
     expect(thirdRefreshAccessTokenExpiration.getTime()).toBe(
       thirdRefreshAccessTokenExpiration.getTime()
     )
+  })
+
+  test(`token should be refreshed every N seconds based on the refresh interval`, async () => {
+    const refreshIntervalTime = faker.datatype.number({ min: 800, max: 900 })
+
+    const authMachineWithInitialSession = createAuthMachine({
+      backendUrl: BASE_URL,
+      clientUrl: 'http://localhost:3000',
+      clientStorage: customStorage,
+      clientStorageType: 'custom',
+      refreshIntervalTime,
+      autoSignIn: false
+    }).withContext({
+      ...contextWithUser,
+      accessToken: {
+        value: initialToken,
+        expiresAt: initialExpiration
+      }
+    })
+
+    const authServiceWithInitialSession = interpret(authMachineWithInitialSession).start()
+
+    // Fast N seconds to the refresh interval
+    vi.setSystemTime(new Date(Date.now() + refreshIntervalTime * 1000))
+
+    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
+    )
+
+    const firstRefreshState: AuthState = await waitFor(
+      authServiceWithInitialSession,
+      (state: AuthState) =>
+        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(firstRefreshState.context.accessToken.value).not.toBeNull()
+    expect(firstRefreshState.context.accessToken.value).not.toBe(initialToken)
+
+    // Fast N seconds to the refresh interval
+    vi.setSystemTime(new Date(Date.now() + refreshIntervalTime * 1000))
+
+    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
+    )
+
+    const secondRefreshState: AuthState = await waitFor(
+      authServiceWithInitialSession,
+      (state: AuthState) =>
+        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    )
+
+    expect(secondRefreshState.context.accessToken.value).not.toBeNull()
+    expect(secondRefreshState.context.accessToken.value).not.toBe(
+      firstRefreshState.context.accessToken.value
+    )
+
+    authServiceWithInitialSession.stop()
   })
 })
 
