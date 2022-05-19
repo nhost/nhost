@@ -394,6 +394,7 @@ export const createAuthMachine = ({
               }
             },
             passwordlessEmail: {
+              entry: ['resetErrors'],
               invoke: {
                 src: 'passwordlessEmail',
                 id: 'passwordlessEmail',
@@ -402,7 +403,7 @@ export const createAuthMachine = ({
                   target: 'complete'
                 },
                 onError: {
-                  actions: 'saveAuthenticationError',
+                  actions: 'saveSignUpError',
                   target: 'incomplete.failed'
                 }
               }

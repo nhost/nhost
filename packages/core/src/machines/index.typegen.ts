@@ -33,7 +33,6 @@ export interface Typegen0 {
       | 'error.platform.authenticateAnonymously'
       | 'error.platform.signInMfaTotp'
       | 'error.platform.authenticateWithToken'
-      | 'error.platform.passwordlessEmail'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
     reportAwaitEmailVerification:
       | 'error.platform.authenticateUserWithPassword'
@@ -41,7 +40,7 @@ export interface Typegen0 {
       | 'error.platform.signUpEmailPassword'
       | 'done.invoke.passwordlessEmail'
     saveRefreshAttempt: 'error.platform.refreshToken'
-    saveSignUpError: 'error.platform.signUpEmailPassword'
+    saveSignUpError: 'error.platform.signUpEmailPassword' | 'error.platform.passwordlessEmail'
     resetErrors:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
@@ -53,6 +52,7 @@ export interface Typegen0 {
       | 'done.invoke.authenticateWithToken'
       | 'done.invoke.signUpEmailPassword'
       | 'SIGNUP_EMAIL_PASSWORD'
+      | 'PASSWORDLESS_EMAIL'
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'error.platform.authenticateUserWithPassword'
@@ -157,7 +157,6 @@ export interface Typegen0 {
       type: 'error.platform.authenticateWithToken'
       data: unknown
     }
-    'error.platform.passwordlessEmail': { type: 'error.platform.passwordlessEmail'; data: unknown }
     'error.platform.signUpEmailPassword': {
       type: 'error.platform.signUpEmailPassword'
       data: unknown
@@ -168,6 +167,7 @@ export interface Typegen0 {
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
     'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
+    'error.platform.passwordlessEmail': { type: 'error.platform.passwordlessEmail'; data: unknown }
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
