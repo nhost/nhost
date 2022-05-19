@@ -21,10 +21,12 @@ const excludedTags = ['remarks', 'alias', 'example', 'deprecated', 'docs']
  * @returns Comment documentation fragment
  */
 export const CommentFragment = (
-  { shortText, returns = '', tags }: Comment,
+  { shortText, text, returns = '', tags }: Comment,
   { highlightTitle = false }: CommentFragmentOptions = {}
 ) =>
   `${highlightTitle ? (shortText ? `## ${shortText}` : '') : shortText || ``}
+
+${text || ``}
 
 ${
   tags
