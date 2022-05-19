@@ -296,7 +296,7 @@ describe('General and disabled auto-sign in', () => {
     authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
 
     const state: AuthState = await waitFor(authService, (state: AuthState) =>
-      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+      state.matches('authentication.signedOut.failed')
     )
 
     expect(state.context.errors).toMatchInlineSnapshot(`
@@ -316,7 +316,7 @@ describe('General and disabled auto-sign in', () => {
     authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
 
     const state: AuthState = await waitFor(authService, (state: AuthState) =>
-      state.matches({ authentication: { signedOut: { failed: 'server' } } })
+      state.matches('authentication.signedOut.failed')
     )
 
     expect(state.context.errors).toMatchInlineSnapshot(`

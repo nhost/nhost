@@ -1,40 +1,47 @@
 import jwt_decode from 'jwt-decode'
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo } from 'react'
 
 import {
+  ActionErrorState,
+  ActionSuccessState,
+  ActivateMfaHandlerResult,
+  activateMfaPromise,
+  ActivateMfaState,
+  ChangeEmailHandlerResult,
   ChangeEmailOptions,
+  changeEmailPromise,
+  ChangeEmailState,
+  ChangePasswordHandlerResult,
+  changePasswordPromise,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createEnableMfaMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
-  ErrorPayload,
+  GenerateQrCodeHandlerResult,
+  generateQrCodePromise,
+  GenerateQrCodeState,
   JWTClaims,
+  ResetPasswordHandlerResult,
   ResetPasswordOptions,
-  SendVerificationEmailOptions
+  resetPasswordPromise,
+  ResetPasswordState,
+  SendVerificationEmailHandlerResult,
+  SendVerificationEmailOptions,
+  sendVerificationEmailPromise,
+  SendVerificationEmailState
 } from '@nhost/core'
-import { useMachine, useSelector } from '@xstate/react'
+import { useInterpret, useSelector } from '@xstate/react'
 
-import {
-  ActionHookErrorState,
-  ActionHookSuccessState,
-  CommonActionHookState,
-  useAccessToken,
-  useAuthInterpreter,
-  useNhostClient
-} from './common'
-interface ChangeEmailHookState extends CommonActionHookState {
-  needsEmailVerification: boolean
-}
+import { useAccessToken, useAuthInterpreter, useNhostClient } from './common'
 
-type ChangeEmailHandlerResult = Omit<ChangeEmailHookState, 'isLoading'>
 interface ChangeEmailHandler {
   (email: string, options?: ChangeEmailOptions): Promise<ChangeEmailHandlerResult>
   /** @deprecated */
   (email?: unknown, options?: ChangeEmailOptions): Promise<ChangeEmailHandlerResult>
 }
 
-interface ChangeEmailHookResult extends ChangeEmailHookState {
+interface ChangeEmailHookResult extends ChangeEmailState {
   /** Requests the email change. Returns a promise with the current context  */
   changeEmail: ChangeEmailHandler
 }
@@ -67,48 +74,30 @@ export function useChangeEmail(options?: ChangeEmailOptions): ChangeEmailHookRes
 export function useChangeEmail(email?: string, options?: ChangeEmailOptions): ChangeEmailHookResult
 
 export function useChangeEmail(a?: string | ChangeEmailOptions, b?: ChangeEmailOptions) {
-  const stateEmail = typeof a === 'string' ? a : undefined
-  const stateOptions = typeof a !== 'string' ? a : b
+  const stateEmail = useMemo(() => (typeof a === 'string' ? a : undefined), [a])
+  const stateOptions = useMemo(() => (typeof a !== 'string' ? a : b), [a, b])
   const nhost = useNhostClient()
   const machine = useMemo(() => createChangeEmailMachine(nhost.auth.client), [nhost])
-  const [, send, service] = useMachine(machine)
-  const [isError, setIsError] = useState(false)
-  const [needsEmailVerification, setNeedsEmailVerification] = useState(false)
-  const [error, setError] = useState<ErrorPayload | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const changeEmail: ChangeEmailHandler = async (
-    valueEmail?: string | unknown,
-    valueOptions = stateOptions
-  ) =>
-    new Promise<ChangeEmailHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
-        email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-        options: valueOptions
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          const error = state.context.error
-          setIsError(true)
-          setError(error)
-          setIsLoading(false)
-          resolve({ isError: true, error, needsEmailVerification })
-        } else if (state.matches('requesting')) {
-          setIsLoading(true)
-        } else if (state.matches({ idle: 'success' })) {
-          setIsError(false)
-          setError(null)
-          setIsLoading(false)
-          setNeedsEmailVerification(true)
-          resolve({ isError: false, error: null, needsEmailVerification: true })
-        }
-      })
-    })
+
+  const service = useInterpret(machine)
+
+  const isLoading = useSelector(service, (s) => s.matches('requesting'))
+  const error = useSelector(service, (state) => state.context.error)
+  const isError = useSelector(service, (state) => state.matches('idle.error'))
+  const needsEmailVerification = useSelector(service, (state) => state.matches('idle.success'))
+
+  const changeEmail: ChangeEmailHandler = useCallback(
+    async (valueEmail?: string | unknown, valueOptions = stateOptions) =>
+      changeEmailPromise(
+        service,
+        typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
+        valueOptions
+      ),
+    [service, stateEmail, stateOptions]
+  )
 
   return { changeEmail, isLoading, needsEmailVerification, isError, error }
 }
-
-interface ChangePasswordHandlerResult extends ActionHookErrorState, ActionHookSuccessState {}
 
 interface ChangePasswordHandler {
   (password: string): Promise<ChangePasswordHandlerResult>
@@ -116,7 +105,7 @@ interface ChangePasswordHandler {
   (password?: unknown): Promise<ChangePasswordHandlerResult>
 }
 
-interface ChangePasswordHookResult extends ActionHookErrorState, ActionHookSuccessState {
+interface ChangePasswordHookResult extends ActionErrorState, ActionSuccessState {
   /** Requests the password change. Returns a promise with the current context */
   changePassword: ChangePasswordHandler
 }
@@ -148,42 +137,29 @@ interface ChangePasswordHook {
 export const useChangePassword: ChangePasswordHook = (statePassword?: string) => {
   const nhost = useNhostClient()
   const machine = useMemo(() => createChangePasswordMachine(nhost.auth.client), [nhost])
-  const [current, send, service] = useMachine(machine)
-  const isError = current.matches({ idle: 'error' })
-  const isSuccess = current.matches({ idle: 'success' })
-  const error = current.context.error
-  const isLoading = current.matches('requesting')
+  const service = useInterpret(machine)
+
+  const isError = useSelector(service, (state) => state.matches({ idle: 'error' }))
+  const isSuccess = useSelector(service, (state) => state.matches({ idle: 'success' }))
+  const error = useSelector(service, (state) => state.context.error)
+  const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const changePassword: ChangePasswordHandler = (valuePassword?: string | unknown) =>
-    new Promise<ChangePasswordHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
-        password: typeof valuePassword === 'string' ? valuePassword : statePassword
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          resolve({ error: state.context.error, isError: true, isSuccess: false })
-        } else if (state.matches({ idle: 'success' })) {
-          resolve({ error: null, isError: false, isSuccess: true })
-        }
-      })
-    })
+    changePasswordPromise(
+      service,
+      typeof valuePassword === 'string' ? valuePassword : (statePassword as string)
+    )
 
   return { changePassword, isLoading, isSuccess, isError, error }
 }
 
-type ResetPasswordHandlerResult = Omit<ResetPasswordHookState, 'isLoading'>
 interface ResetPasswordHandler {
   (email: string, options?: ResetPasswordOptions): Promise<ResetPasswordHandlerResult>
   /** @deprecated */
   (email?: unknown, options?: ResetPasswordOptions): Promise<ResetPasswordHandlerResult>
 }
 
-interface ResetPasswordHookState extends CommonActionHookState {
-  isSent: boolean
-}
-
-interface ResetPasswordHookResult extends ResetPasswordHookState {
+interface ResetPasswordHookResult extends ResetPasswordState {
   /**
    * Sends an email with a temporary connection link. Returns a promise with the current context
    */
@@ -224,30 +200,23 @@ export const useResetPassword: ResetPasswordHook = (
   const stateOptions = typeof a !== 'string' ? a : b
   const nhost = useNhostClient()
   const machine = useMemo(() => createResetPasswordMachine(nhost.auth.client), [nhost])
-  const [current, send, service] = useMachine(machine)
-  const isError = current.matches({ idle: 'error' })
-  const isSent = current.matches({ idle: 'success' })
-  const error = current.context.error
-  const isLoading = current.matches('requesting')
+  const service = useInterpret(machine)
+
+  const isLoading = useSelector(service, (s) => s.matches('requesting'))
+  const error = useSelector(service, (state) => state.context.error)
+  const isError = useSelector(service, (state) => state.matches('idle.error'))
+  const isSent = useSelector(service, (state) => state.matches('idle.success'))
 
   const resetPassword: ResetPasswordHandler = (
     valueEmail?: string | unknown,
     valueOptions = stateOptions
   ) =>
-    new Promise<ResetPasswordHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
-        email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-        options: valueOptions
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          resolve({ error: state.context.error, isError: true, isSent: false })
-        } else if (state.matches({ idle: 'success' })) {
-          resolve({ error: null, isError: false, isSent: true })
-        }
-      })
-    })
+    resetPasswordPromise(
+      service,
+      typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
+      valueOptions
+    )
+
   return { resetPassword, isLoading, isSent, isError, error }
 }
 
@@ -465,8 +434,6 @@ export const useUserRoles = () => {
     (a, b) => a.every((i) => b.includes(i) && b.every((i) => a.includes(i)))
   )
 }
-
-type SendVerificationEmailHandlerResult = Omit<SendVerificationEmailHookState, 'isLoading'>
 interface SendVerificationEmailHandler {
   (
     email: string,
@@ -479,11 +446,7 @@ interface SendVerificationEmailHandler {
   ): Promise<SendVerificationEmailHandlerResult>
 }
 
-interface SendVerificationEmailHookState extends CommonActionHookState {
-  isSent: boolean
-}
-
-interface SendVerificationEmailHookResult extends SendVerificationEmailHookState {
+interface SendVerificationEmailHookResult extends SendVerificationEmailState {
   /** Resend the verification email. Returns a promise with the current context */
   sendEmail: SendVerificationEmailHandler
 }
@@ -523,113 +486,52 @@ export const useSendVerificationEmail: SendVerificationEmailHook = (
   const stateOptions = typeof a !== 'string' ? a : b
   const nhost = useNhostClient()
   const machine = useMemo(() => createSendVerificationEmailMachine(nhost.auth.client), [nhost])
-  const [current, send, service] = useMachine(machine)
-  const isError = current.matches({ idle: 'error' })
-  const isSent = current.matches({ idle: 'success' })
-  const error = current.context.error
-  const isLoading = current.matches('requesting')
+  const service = useInterpret(machine)
+  const isError = useSelector(service, (state) => state.matches({ idle: 'error' }))
+  const isSent = useSelector(service, (state) => state.matches({ idle: 'success' }))
+  const error = useSelector(service, (state) => state.context.error)
+  const isLoading = useSelector(service, (state) => state.matches('requesting'))
 
   const sendEmail: SendVerificationEmailHandler = (
     valueEmail?: string | unknown,
     valueOptions = stateOptions
   ) =>
-    new Promise<SendVerificationEmailHandlerResult>((resolve) => {
-      send({
-        type: 'REQUEST',
-        email: typeof valueEmail === 'string' ? valueEmail : stateEmail,
-        options: valueOptions
-      })
-      service.onTransition((state) => {
-        if (state.matches({ idle: 'error' })) {
-          resolve({ error: state.context.error, isError: true, isSent: false })
-        } else if (state.matches({ idle: 'success' })) {
-          resolve({ error: null, isError: false, isSent: true })
-        }
-      })
-    })
+    sendVerificationEmailPromise(
+      service,
+      typeof valueEmail === 'string' ? valueEmail : (stateEmail as string),
+      valueOptions
+    )
+
   return { sendEmail, isLoading, isSent, isError, error }
 }
 
-interface ActivateMfaHookState {
-  isActivating: boolean
-  isActivated: boolean
-  isError: boolean
-  error: ErrorPayload | null
+interface ConfigMfaState extends ActivateMfaState, GenerateQrCodeState {
+  generateQrCode: () => Promise<GenerateQrCodeHandlerResult>
+  activateMfa: (code: string) => Promise<ActivateMfaHandlerResult>
 }
-interface GenerateQrCodeHookState {
-  qrCodeDataUrl: string
-  isGenerating: boolean
-  isGenerated: boolean
-  isError: boolean
-  error: ErrorPayload | null
-}
-type ActivateMfaHandlerResult = Omit<ActivateMfaHookState, 'isActivating'>
-type ActivateMfaHandler = (code: string) => Promise<ActivateMfaHandlerResult>
-
-type GenerateQrCodeHandlerResult = Omit<GenerateQrCodeHookState, 'isGenerating'>
-type GenerateQrCodeHandler = () => Promise<GenerateQrCodeHandlerResult>
-
-interface ConfigMfaHookState extends ActivateMfaHookState, GenerateQrCodeHookState {
-  generateQrCode: GenerateQrCodeHandler
-  activateMfa: ActivateMfaHandler
-}
-
-type ConfigMfaHook = () => ConfigMfaHookState
 
 // TODO documentation when available in Nhost Cloud - see changelog
-export const useConfigMfa: ConfigMfaHook = () => {
+export const useConfigMfa = (): ConfigMfaState => {
   const nhost = useNhostClient()
 
   const machine = useMemo(() => createEnableMfaMachine(nhost.auth.client), [nhost])
-  const [current, send, service] = useMachine(machine)
+  const service = useInterpret(machine)
 
-  const isError = useMemo(
-    () => current.matches({ idle: 'error' }) || current.matches({ generated: { idle: 'error' } }),
-    [current]
+  const isError = useSelector(
+    service,
+    (state) => state.matches({ idle: 'error' }) || state.matches({ generated: { idle: 'error' } })
   )
-  const isGenerating = current.matches('generating')
-  const isGenerated = current.matches('generated')
-  const isActivating = current.matches({ generated: 'activating' })
-  const isActivated = current.matches({ generated: 'activated' })
-  const error = current.context.error
-  const qrCodeDataUrl = current.context.imageUrl || ''
+  const isGenerating = useSelector(service, (state) => state.matches('generating'))
+  const isGenerated = useSelector(service, (state) => state.matches('generated'))
+  const isActivating = useSelector(service, (state) => state.matches({ generated: 'activating' }))
+  const isActivated = useSelector(service, (state) => state.matches({ generated: 'activated' }))
+  const error = useSelector(service, (state) => state.context.error)
+  const qrCodeDataUrl = useSelector(service, (state) => state.context.imageUrl || '')
 
-  const generateQrCode: GenerateQrCodeHandler = () =>
-    new Promise<GenerateQrCodeHandlerResult>((resolve) => {
-      send('GENERATE')
-      service.onTransition((state) => {
-        if (state.matches('generated')) {
-          resolve({
-            error: null,
-            isError: false,
-            isGenerated: true,
-            qrCodeDataUrl: state.context.imageUrl || ''
-          })
-        } else if (state.matches({ idle: 'error' })) {
-          resolve({
-            error: state.context.error || null,
-            isError: true,
-            isGenerated: false,
-            qrCodeDataUrl: ''
-          })
-        }
-      })
-    })
-  const activateMfa: ActivateMfaHandler = (code: string) =>
-    new Promise<ActivateMfaHandlerResult>((resolve) => {
-      send({
-        type: 'ACTIVATE',
-        activeMfaType: 'totp',
-        code
-      })
-      service.onTransition((state) => {
-        if (state.matches({ generated: 'activated' })) {
-          resolve({ error: null, isActivated: true, isError: false })
-        } else if (state.matches({ generated: { idle: 'error' } })) {
-          resolve({ error: state.context.error, isActivated: false, isError: true })
-        }
-      })
-    })
+  const generateQrCode = () => generateQrCodePromise(service)
+
+  const activateMfa = (code: string) => activateMfaPromise(service, code)
+
   return {
     generateQrCode,
     isGenerating,

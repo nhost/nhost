@@ -42,7 +42,8 @@
       "@nhost/nhost-js": ["../packages/nhost-js/src/index.ts"],
       "@nhost/react": ["../packages/react/src/index.ts"],
       "@nhost/react-apollo": ["../packages/react-apollo/src/index.ts"],
-      "@nhost/react-auth": ["../packages/react-auth/src/index.ts"]
+      "@nhost/react-auth": ["../packages/react-auth/src/index.ts"],
+      "@nhost/vue": ["../packages/vue/src/index.ts"]
     }
   },
   "exclude": [

@@ -1,0 +1,79 @@
+{
+  "name": "@nhost/vue",
+  "version": "0.0.1",
+  "description": "Nhost Vue library",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "storage",
+    "auth",
+    "authentication",
+    "graphql",
+    "postgresql",
+    "realtime",
+    "vue"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.es.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build --config ../../config/vite.vue.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.vue.config.js",
+    "build:umd": "vite build --config ../../config/vite.vue.umd.config.js",
+    "test": "vitest run --config ../../config/vite.vue.config.js",
+    "test:watch": "vitest --config ../../config/vite.vue.config.js",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.vue",
+    "lint:fix": "eslint . --ext .ts,.vue --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./vue.typedoc.json --tsconfig ./typedoc.tsconfig.json",
+    "docgen": "pnpm typedoc && docgen --config ./vue.docgen.json"
+  },
+  "peerDependencies": {
+    "vue": "^3.2.31"
+  },
+  "dependencies": {
+    "@nhost/core": "workspace:*",
+    "@nhost/nhost-js": "workspace:*",
+    "@vueuse/core": "^8.3.1",
+    "@xstate/vue": "^1.0.0",
+    "immer": "^9.0.12",
+    "jwt-decode": "^3.1.2"
+  },
+  "devDependencies": {
+    "@nhost/docgen": "workspace:*",
+    "@nhost/hasura-auth-js": "workspace:*",
+    "@vitejs/plugin-vue": "^2.3.1",
+    "@xstate/inspect": "^0.6.2",
+    "vue": "^3.2.31",
+    "vue-router": "^4.0.14",
+    "ws": "^8.4.2",
+    "xstate": "^4.30.5"
+  }
+}

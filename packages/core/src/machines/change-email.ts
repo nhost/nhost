@@ -20,6 +20,8 @@ export type ChangeEmailEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type ChangeEmailMachine = ReturnType<typeof createChangeEmailMachine>
+
 export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(

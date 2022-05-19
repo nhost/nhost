@@ -8,16 +8,18 @@ import { inspect } from '@xstate/inspect'
 
 import App from './App'
 
-const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337'
-})
-
-if (import.meta.env.VITE_DEBUG) {
+const devTools = !!import.meta.env.VITE_DEBUG
+if (devTools) {
   inspect({
     url: 'https://stately.ai/viz?inspect',
     iframe: false
   })
 }
+
+const nhost = new NhostClient({
+  backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337',
+  devTools
+})
 
 const container = document.getElementById('root')
 const root = createRoot(container!)
