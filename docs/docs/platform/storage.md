@@ -1,5 +1,6 @@
 ---
 title: 'Storage'
+sidebar_position: 7
 ---
 
 Nhost stores and serves files of any type in your backend.
