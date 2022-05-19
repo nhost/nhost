@@ -1,5 +1,15 @@
 # @nhost/core
 
+## 0.5.5
+
+### Patch Changes
+
+- 0b58894e: Accept query parameters from both relative `redirectTo` URLs and the client URL
+  URLs where malformed When the client URL was defining query parameters and a relative `redirectTo` URL was passed on as an option.
+  It is now possible to define query parameters in both the base client URL and the relative `redirectTo`
+- c7a407f1: - improved validation of MFA and password reset workflows
+  - improved token refresh error handling
+
 ## 0.5.4
 
 ### Patch Changes
