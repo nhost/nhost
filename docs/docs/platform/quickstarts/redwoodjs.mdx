@@ -1144,6 +1144,7 @@ import { useUserContext } from 'src/UserProvider'
 const DashLayout = ({ children }) => {
   // highlight-next-line
   const { user } = useUserContext()
+  const { logOut } = useAuth()
   //...
 }
 ```
