@@ -2,11 +2,6 @@
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/platform/:path*",
-      "destination": "/:path*",
-      "permanent": true
-    },
-    {
       "source": "/reference/sdk/:path*",
       "destination": "/reference/javascript/:path*",
       "permanent": true
