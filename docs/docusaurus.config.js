@@ -117,7 +117,7 @@ const config = {
             items: [
               {
                 label: 'Documentation',
-                to: '/docs'
+                to: '/'
               },
               {
                 label: 'Reference',

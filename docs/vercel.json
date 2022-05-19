@@ -2,11 +2,6 @@
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/",
-      "destination": "/get-started",
-      "permanent": true
-    },
-    {
       "source": "/reference/sdk/:path*",
       "destination": "/reference/javascript/:path*",
       "permanent": true
