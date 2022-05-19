@@ -27,16 +27,18 @@ export interface AuthOptions {
    */
   clientStorage?: ClientStorage
   /**
-   * @deprecated Use clientStorage / clientStorageType instead */
+   *  @internal @deprecated Use clientStorage / clientStorageType instead  */
   clientStorageGetter?: StorageGetter
   /**
    * Define a way to set information about the refresh token and its exipration date.
-   * @deprecated  Use clientStorage / clientStorageType instead */
+   * @internal @deprecated  Use clientStorage / clientStorageType instead  */
   clientStorageSetter?: StorageSetter
   /** When set to true, will automatically refresh token before it expires */
   autoRefreshToken?: boolean
   /** When set to true, will parse the url on startup to check if it contains a refresh token to start the session with */
   autoSignIn?: boolean
+  /** Activate devTools e.g. the ability to connect to the xstate inspector */
+  devTools?: boolean
 }
 // TODO import generated typings from 'hasura-auth'
 export type AuthInterpreter = InterpreterFrom<AuthMachine>

@@ -1,0 +1,30 @@
+table:
+  name: files
+  schema: storage
+configuration:
+  custom_column_names:
+    bucket_id: bucketId
+    created_at: createdAt
+    etag: etag
+    id: id
+    is_uploaded: isUploaded
+    mime_type: mimeType
+    name: name
+    size: size
+    updated_at: updatedAt
+    uploaded_by_user_id: uploadedByUserId
+  custom_name: files
+  custom_root_fields:
+    delete: deleteFiles
+    delete_by_pk: deleteFile
+    insert: insertFiles
+    insert_one: insertFile
+    select: files
+    select_aggregate: filesAggregate
+    select_by_pk: file
+    update: updateFiles
+    update_by_pk: updateFile
+object_relationships:
+- name: bucket
+  using:
+    foreign_key_constraint_on: bucket_id

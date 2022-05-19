@@ -7,7 +7,9 @@ import AuthLink from '../components/AuthLink'
 
 export const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState('')
-  const { resetPassword } = useResetPassword({ redirectTo: '/profile' })
+  const { resetPassword } = useResetPassword({
+    redirectTo: '/profile'
+  })
 
   const reset = async () => {
     const result = await resetPassword(email)
@@ -16,6 +18,11 @@ export const ForgotPassword: React.FC = () => {
         color: 'red',
         title: 'Error',
         message: result.error?.message
+      })
+    } else {
+      showNotification({
+        title: 'Email sent',
+        message: 'A link to reset your password has been sent by email'
       })
     }
   }

@@ -3,7 +3,6 @@ import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine } from '../src/machines'
-import { INITIAL_MACHINE_CONTEXT } from '../src/machines/context'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
@@ -13,10 +12,11 @@ import {
   incorrectEmailPasswordHandler,
   unverifiedEmailErrorHandler
 } from './helpers/handlers'
+import contextWithUser from './helpers/mocks/contextWithUser'
+import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
-import fakeUser from './helpers/__mocks__/user'
 
 type AuthState = GeneralAuthState<Typegen0>
 
@@ -55,7 +55,7 @@ test(`should fail if network is unavailable`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -79,7 +79,7 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -126,15 +126,18 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   })
 
   const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      authentication: { signedOut: { failed: { validation: 'email' } } }
-    })
+    state.matches('authentication.signedOut.failed')
   )
 
-  expect(emailErrorSignInState.context.errors).toMatchObject({
-    authentication: INVALID_EMAIL_ERROR
-  })
-
+  expect(emailErrorSignInState.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-email",
+          "message": "Email is incorrectly formatted",
+          "status": 10,
+        },
+      }
+  `)
   // Scenario 2: Providing a valid email address with an invalid password
   authService.send({
     type: 'SIGNIN_PASSWORD',
@@ -143,14 +146,18 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   })
 
   const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({
-      authentication: { signedOut: { failed: { validation: 'password' } } }
-    })
+    state.matches('authentication.signedOut.failed')
   )
 
-  expect(passwordErrorSignInState.context.errors).toMatchObject({
-    authentication: INVALID_PASSWORD_ERROR
-  })
+  expect(passwordErrorSignInState.context.errors).toMatchInlineSnapshot(`
+      {
+        "authentication": {
+          "error": "invalid-password",
+          "message": "Password is incorrectly formatted",
+          "status": 10,
+        },
+      }
+    `)
 })
 
 test(`should fail if incorrect credentials are provided`, async () => {
@@ -163,7 +170,7 @@ test(`should fail if incorrect credentials are provided`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -187,7 +194,7 @@ test(`should fail if user email needs verification`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: { failed: 'server' } } })
+    state.matches('authentication.signedOut.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -211,7 +218,7 @@ test(`should save MFA ticket if MFA is set up for the account`, async () => {
   })
 
   const signInPasswordState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: 'needsMfa' } })
+    state.matches('authentication.signedOut.needsMfa')
   )
 
   expect(signInPasswordState.context.mfa.ticket).not.toBeNull()
@@ -245,18 +252,8 @@ test(`should succeed if correct credentials are provided`, async () => {
 
 test(`should transition to signed in state if user is already signed in`, async () => {
   const user = { ...fakeUser }
-  const accessToken = faker.datatype.string(40)
-  const refreshToken = faker.datatype.uuid()
-  const expiresAt = new Date(Date.now() * 900000)
 
-  const authServiceWithInitialUser = interpret(
-    authMachine.withContext({
-      ...INITIAL_MACHINE_CONTEXT,
-      user,
-      accessToken: { value: accessToken, expiresAt },
-      refreshToken: { value: refreshToken }
-    })
-  )
+  const authServiceWithInitialUser = interpret(authMachine.withContext(contextWithUser))
 
   authServiceWithInitialUser.start()
 

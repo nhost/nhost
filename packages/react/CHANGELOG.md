@@ -1,5 +1,13 @@
 # @nhost/react
 
+## 0.7.7
+
+### Patch Changes
+
+- Updated dependencies [6c423394]
+  - @nhost/core@0.5.6
+  - @nhost/nhost-js@1.1.13
+
 ## 0.7.6
 
 ### Patch Changes

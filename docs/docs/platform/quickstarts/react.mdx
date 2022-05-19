@@ -3,8 +3,8 @@ title: 'Quickstart: React'
 sidebar_position: 1
 ---
 
-import Tabs from '@theme/Tabs';
-import TabItem from '@theme/TabItem';
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 # Quickstart: React
 
@@ -32,21 +32,9 @@ You'll need **Node.js** version 14 or later: [install it from here](https://node
 
 ### Create a new Nhost app
 
-First things first, we need to create a new Nhost project.
+import CreateApp from '@site/src/components/create-nhost-app.mdx'
 
-So, log in to your Nhost dashboard and click the **Create your first app**
-button.
-
-![nhost-first-app](/img/quickstarts/create-app-step-1.png)
-
-Next, give your new Nhost app a name, select a geographic region for your Nhost
-services and click **Create App**.
-
-![nhost-first-app](/img/quickstarts/create-app-step-2.png)
-
-After a few seconds, you should get a PostgreSQL database, a GraphQL API with
-Hasura, file storage, and authentication set up.
-
+<CreateApp />
 :::info
 You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
 :::
@@ -135,21 +123,21 @@ Use the following code to instantiate a new Nhost client and link it to your
 Nhost backend:
 
 ```jsx title="src/App.js"
-import { NhostClient, NhostReactProvider } from '@nhost/react';
+import { NhostClient, NhostReactProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
-  backendUrl: process.env.REACT_APP_NHOST_BACKEND_URL || '',
-});
+  backendUrl: process.env.REACT_APP_NHOST_BACKEND_URL || ''
+})
 
 function App() {
   return (
     <NhostReactProvider nhost={nhost}>
       <BrowserRouter>{/* ... */}</BrowserRouter>
     </NhostReactProvider>
-  );
+  )
 }
 
-export default App;
+export default App
 ```
 
 Finally, make sure to create an environment variable named
@@ -184,45 +172,39 @@ So, open up the corresponding file from your project, and use the following
 code:
 
 ```jsx title="src/components/SignUp.js"
-import styles from '../styles/components/SignUp.module.css';
-import { useState } from 'react';
-import { useSignUpEmailPassword } from '@nhost/react';
-import { Link, Navigate } from 'react-router-dom';
-import Input from './Input';
-import Spinner from './Spinner';
+import styles from '../styles/components/SignUp.module.css'
+import { useState } from 'react'
+import { useSignUpEmailPassword } from '@nhost/react'
+import { Link, Navigate } from 'react-router-dom'
+import Input from './Input'
+import Spinner from './Spinner'
 
 const SignUp = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const {
-    signUpEmailPassword,
-    isLoading,
-    isSuccess,
-    needsEmailVerification,
-    isError,
-    error,
-  } = useSignUpEmailPassword();
+  const { signUpEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
+    useSignUpEmailPassword()
 
   const handleOnSubmit = (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     signUpEmailPassword(email, password, {
       displayName: `${firstName} ${lastName}`.trim(),
       metadata: {
         firstName,
-        lastName,
-      },
-    });
-  };
-
-  if (isSuccess) {
-    return <Navigate to="/" replace={true} />;
+        lastName
+      }
+    })
   }
 
-  const disableForm = isLoading || needsEmailVerification;
+  if (isSuccess) {
+    return <Navigate to="/" replace={true} />
+  }
+
+  const disableForm = isLoading || needsEmailVerification
 
   return (
     <div className={styles.container}>
@@ -233,8 +215,7 @@ const SignUp = () => {
 
         {needsEmailVerification ? (
           <p className={styles['verification-text']}>
-            Please check your mailbox and follow the verification link to verify
-            your email.
+            Please check your mailbox and follow the verification link to verify your email.
           </p>
         ) : (
           <form onSubmit={handleOnSubmit} className={styles.form}>
@@ -271,17 +252,11 @@ const SignUp = () => {
               required
             />
 
-            <button
-              type="submit"
-              disabled={disableForm}
-              className={styles.button}
-            >
+            <button type="submit" disabled={disableForm} className={styles.button}>
               {isLoading ? <Spinner size="sm" /> : 'Create account'}
             </button>
 
-            {isError ? (
-              <p className={styles['error-text']}>{error?.message}</p>
-            ) : null}
+            {isError ? <p className={styles['error-text']}>{error?.message}</p> : null}
           </form>
         )}
       </div>
@@ -293,10 +268,10 @@ const SignUp = () => {
         </Link>
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default SignUp;
+export default SignUp
 ```
 
 By default, the user must verify his email address before fully signing up. You can change this setting from your Nhost dashboard.
@@ -312,36 +287,30 @@ what your component should look like after applying the changes for the sign-in
 logic:
 
 ```jsx title="src/components/SignIn.js"
-import styles from '../styles/components/SignIn.module.css';
-import { useState } from 'react';
-import { useSignInEmailPassword } from '@nhost/react';
-import { Link, Navigate } from 'react-router-dom';
-import Input from './Input';
-import Spinner from './Spinner';
+import styles from '../styles/components/SignIn.module.css'
+import { useState } from 'react'
+import { useSignInEmailPassword } from '@nhost/react'
+import { Link, Navigate } from 'react-router-dom'
+import Input from './Input'
+import Spinner from './Spinner'
 
 const SignIn = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
 
-  const {
-    signInEmailPassword,
-    isLoading,
-    isSuccess,
-    needsEmailVerification,
-    isError,
-    error,
-  } = useSignInEmailPassword();
+  const { signInEmailPassword, isLoading, isSuccess, needsEmailVerification, isError, error } =
+    useSignInEmailPassword()
 
   const handleOnSubmit = (e) => {
-    e.preventDefault();
-    signInEmailPassword(email, password);
-  };
-
-  if (isSuccess) {
-    return <Navigate to="/" replace={true} />;
+    e.preventDefault()
+    signInEmailPassword(email, password)
   }
 
-  const disableForm = isLoading || needsEmailVerification;
+  if (isSuccess) {
+    return <Navigate to="/" replace={true} />
+  }
+
+  const disableForm = isLoading || needsEmailVerification
 
   return (
     <div className={styles.container}>
@@ -352,8 +321,7 @@ const SignIn = () => {
 
         {needsEmailVerification ? (
           <p className={styles['verification-text']}>
-            Please check your mailbox and follow the verification link to verify
-            your email.
+            Please check your mailbox and follow the verification link to verify your email.
           </p>
         ) : (
           <form onSubmit={handleOnSubmit} className={styles.form}>
@@ -374,17 +342,11 @@ const SignIn = () => {
               required
             />
 
-            <button
-              type="submit"
-              disabled={disableForm}
-              className={styles.button}
-            >
+            <button type="submit" disabled={disableForm} className={styles.button}>
               {isLoading ? <Spinner size="sm" /> : 'Sign in'}
             </button>
 
-            {isError ? (
-              <p className={styles['error-text']}>{error?.message}</p>
-            ) : null}
+            {isError ? <p className={styles['error-text']}>{error?.message}</p> : null}
           </form>
         )}
       </div>
@@ -396,10 +358,10 @@ const SignIn = () => {
         </Link>
       </p>
     </div>
-  );
-};
+  )
+}
 
-export default SignIn;
+export default SignIn
 ```
 
 #### 3. Sign-out
@@ -408,22 +370,22 @@ Finally, to allow the users to sign out from the app, we can use the Nhost
 `useSignOut` hook:
 
 ```jsx title="src/components/Layout.js"
-import { useSignOut } from '@nhost/react';
+import { useSignOut } from '@nhost/react'
 
 const Layout = () => {
-  const { signOut } = useSignOut();
+  const { signOut } = useSignOut()
 
   const menuItems = [
     //..
     {
       label: 'Logout',
       onClick: signOut,
-      icon: LogoutIcon,
-    },
-  ];
+      icon: LogoutIcon
+    }
+  ]
 
   //...
-};
+}
 ```
 
 ### Protect routes
@@ -438,37 +400,37 @@ page if they try to access those routes.
 To do so, we can create a wrapper component (`ProtectedRoute`) to check the authentication status of the current user using the Nhost SDK:
 
 ```jsx title="src/components/ProtectedRoute.js"
-import styles from '../styles/components/ProtectedRoute.module.css';
-import { useAuthenticationStatus } from '@nhost/react';
-import { Navigate, useLocation } from 'react-router-dom';
-import Spinner from './Spinner';
+import styles from '../styles/components/ProtectedRoute.module.css'
+import { useAuthenticationStatus } from '@nhost/react'
+import { Navigate, useLocation } from 'react-router-dom'
+import Spinner from './Spinner'
 
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthenticationStatus();
-  const location = useLocation();
+  const { isAuthenticated, isLoading } = useAuthenticationStatus()
+  const location = useLocation()
 
   if (isLoading) {
     return (
       <div className={styles.container}>
         <Spinner />
       </div>
-    );
+    )
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/sign-in" state={{ from: location }} replace />;
+    return <Navigate to="/sign-in" state={{ from: location }} replace />
   }
 
-  return children;
-};
+  return children
+}
 
-export default ProtectedRoute;
+export default ProtectedRoute
 ```
 
 Then, we can use a [layout route](https://reactrouter.com/docs/en/v6/getting-started/concepts#layout-routes) in our `App.js` file, to wrap the `ProtectedRoute` component around the routes we want to protect:
 
 ```jsx title="src/App.js"
-import ProtectedRoute from './components/ProtectedRoute';
+import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
@@ -493,7 +455,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </NhostReactProvider>
-  );
+  )
 }
 ```
 
@@ -508,12 +470,12 @@ can use the `useUserData` hook provided by Nhost to do it.
 So, open the `components/Layout.js` file and use this hook like so:
 
 ```js
-import { useUserData } from '@nhost/react';
+import { useUserData } from '@nhost/react'
 
 const Layout = () => {
-  const user = useUserData();
+  const user = useUserData()
   //...
-};
+}
 ```
 
 That's it! The JSX code for rendering the user data (email, display name, etc.)
@@ -552,14 +514,14 @@ Then, add the `NhostApolloProvider` from `@nhost/react-apollo` into your
 `App.js` file.
 
 ```jsx title="src/App.js"
-import { NhostApolloProvider } from '@nhost/react-apollo';
+import { NhostApolloProvider } from '@nhost/react-apollo'
 
 function App() {
   return (
     <NhostReactProvider nhost={nhost}>
       <NhostApolloProvider nhost={nhost}>{/* ... */}</NhostApolloProvider>
     </NhostReactProvider>
-  );
+  )
 }
 ```
 
@@ -567,28 +529,24 @@ From there, we can construct our GraphQL query and use the Apollo `useMutation`
 hook to execute that query when the user submits the form from the profile page:
 
 ```js title="src/pages/Profile.js"
-import { gql, useMutation } from '@apollo/client';
-import { toast } from 'react-hot-toast';
+import { gql, useMutation } from '@apollo/client'
+import { toast } from 'react-hot-toast'
 
 const UPDATE_USER_MUTATION = gql`
   mutation ($id: uuid!, $displayName: String!, $metadata: jsonb) {
-    updateUser(
-      pk_columns: { id: $id }
-      _set: { displayName: $displayName, metadata: $metadata }
-    ) {
+    updateUser(pk_columns: { id: $id }, _set: { displayName: $displayName, metadata: $metadata }) {
       id
       displayName
       metadata
     }
   }
-`;
+`
 
 const Profile = () => {
-  const [mutateUser, { loading: updatingProfile }] =
-    useMutation(UPDATE_USER_MUTATION);
+  const [mutateUser, { loading: updatingProfile }] = useMutation(UPDATE_USER_MUTATION)
 
   const updateUserProfile = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
     try {
       await mutateUser({
@@ -597,18 +555,18 @@ const Profile = () => {
           displayName: `${firstName} ${lastName}`.trim(),
           metadata: {
             firstName,
-            lastName,
-          },
-        },
-      });
-      toast.success('Updated successfully', { id: 'updateProfile' });
+            lastName
+          }
+        }
+      })
+      toast.success('Updated successfully', { id: 'updateProfile' })
     } catch (error) {
-      toast.error('Unable to update profile', { id: 'updateProfile' });
+      toast.error('Unable to update profile', { id: 'updateProfile' })
     }
-  };
+  }
 
   //...
-};
+}
 ```
 
 Finally, since Hasura has an **allow nothing by default** policy, and we haven't
@@ -638,7 +596,7 @@ Finally, to add caching, synchronizing, and updating server state in your React 
 So, first add the following GraphQL query to retrieve the current user data from the `Layout` component:
 
 ```js title="src/components/Layout.js"
-import { gql } from '@apollo/client';
+import { gql } from '@apollo/client'
 
 const GET_USER_QUERY = gql`
   query GetUser($id: uuid!) {
@@ -650,37 +608,37 @@ const GET_USER_QUERY = gql`
       avatarUrl
     }
   }
-`;
+`
 
 const Layout = () => {
   //...
-};
+}
 ```
 
 Then, replace the `useUserData` hook with the `useUserId` hook to retrieve the current user's ID.
 
 ```js title="src/components/Layout.js"
-import { useUserId } from '@nhost/react';
+import { useUserId } from '@nhost/react'
 
 const Layout = () => {
-  const id = useUserId();
+  const id = useUserId()
   //...
-};
+}
 ```
 
 Finally, we can run our GraphQL query using the `useQuery` hook and the current user's ID.
 
 ```jsx title="src/components/Layout.js"
 // highlight-next-line
-import { gql, useQuery } from '@apollo/client';
+import { gql, useQuery } from '@apollo/client'
 
 const Layout = () => {
-  const id = useUserId();
+  const id = useUserId()
   // highlight-start
   const { loading, error, data } = useQuery(GET_USER_QUERY, {
-    variables: { id },
-  });
-  const user = data?.user;
+    variables: { id }
+  })
+  const user = data?.user
   // highlight-end
 
   //...
@@ -701,8 +659,8 @@ const Layout = () => {
         </div>
       </main>
     </div>
-  );
-};
+  )
+}
 ```
 
 You now have a fully functional React application. Congratulations!

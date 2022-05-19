@@ -1,6 +1,8 @@
 import type { ErrorPayload } from '../errors'
 import { User } from '../types'
 
+export type StateErrorTypes = 'registration' | 'authentication' | 'signout'
+
 export type AuthContext = {
   user: User | null
   mfa: {
@@ -18,7 +20,7 @@ export type AuthContext = {
   refreshToken: {
     value: string | null
   }
-  errors: Partial<Record<'registration' | 'authentication' | 'signout', ErrorPayload>>
+  errors: Partial<Record<StateErrorTypes, ErrorPayload>>
 }
 
 export const INITIAL_MACHINE_CONTEXT: AuthContext = {

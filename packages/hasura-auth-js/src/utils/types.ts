@@ -15,16 +15,18 @@ export type { AuthClient, Provider, StorageGetter, StorageSetter, User }
 export interface NhostAuthConstructorParams extends AuthOptions {
   url: string
   start?: boolean
-  /** @deprecated @alias autoSignIn - use autoSignIn instead */
+  /** @internal @deprecated @alias autoSignIn - use autoSignIn instead  */
   autoLogin?: boolean
 }
 
+// TODO remove and use NhostSession instead
 export interface Session {
   accessToken: string
   accessTokenExpiresIn: number
   refreshToken: string
   user: User | null
 }
+
 // Sign Up
 export interface SignUpEmailPasswordParams {
   email: string
@@ -39,6 +41,16 @@ export type SignUpResponse =
   | { session: Session | null; error: null }
 
 // Sign In
+
+export interface SignInResponse {
+  session: Session | null
+  mfa: {
+    ticket: string
+  } | null
+  error: ErrorPayload | null
+  providerUrl?: string
+  provider?: string
+}
 export interface SignInEmailPasswordParams {
   email: string
   password: string
