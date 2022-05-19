@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.5.6
+
+### Patch Changes
+
+- 6c423394: Improved authentication state machine logic
+
 ## 0.5.5
 
 ### Patch Changes
