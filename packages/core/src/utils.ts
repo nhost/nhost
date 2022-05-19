@@ -17,15 +17,32 @@ export const encodeQueryParameters = (baseUrl: string, parameters?: Record<strin
   else return baseUrl
 }
 
-export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl: string, options?: T) =>
-  options?.redirectTo
-    ? {
-        ...options,
-        redirectTo: options?.redirectTo?.startsWith('/')
-          ? clientUrl + options.redirectTo
-          : options?.redirectTo
-      }
-    : options
+export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl: string, options?: T) => {
+  if (!options?.redirectTo) {
+    return options
+  }
+  const baseClientUrl = new URL(clientUrl)
+  const clientParams = Object.fromEntries(new URLSearchParams(baseClientUrl.search))
+  const url = new URL(
+    options.redirectTo.startsWith('/')
+      ? baseClientUrl.origin + options.redirectTo
+      : options.redirectTo
+  )
+  const additionalParams = new URLSearchParams(url.search)
+  let combinedParams = Object.fromEntries(additionalParams)
+
+  if (options.redirectTo.startsWith('/')) {
+    combinedParams = { ...clientParams, ...combinedParams }
+  }
+  let pathName = baseClientUrl.pathname
+  if (url.pathname.length > 1) {
+    pathName += url.pathname.slice(1)
+  }
+  return {
+    ...options,
+    redirectTo: encodeQueryParameters(url.origin + pathName, combinedParams)
+  }
+}
 
 export function getParameterByName(name: string, url?: string) {
   if (!url) {
