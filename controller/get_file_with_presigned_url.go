@@ -15,7 +15,7 @@ type GetFileWithPresignedURLRequest struct {
 	headers   getFileInformationHeaders
 }
 
-type FileWithPresignedURL struct {
+type File struct {
 	ContentType   string
 	ContentLength int64
 	Etag          string
@@ -67,7 +67,7 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		return nil, apiErr
 	}
 
-	updateAt, apiErr := timeInRFC3339(fileMetadata.UpdatedAt)
+	updateAt, apiErr := timeFromRFC3339ToRFC1123(fileMetadata.UpdatedAt)
 	if apiErr != nil {
 		return nil, apiErr
 	}

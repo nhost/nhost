@@ -64,8 +64,15 @@ func TestGetFile(t *testing.T) {
 
 			contentStorage.EXPECT().GetFile(
 				"55af1e60-0f28-454e-885e-ea6aab2bb288",
+				gomock.Any(),
 			).Return(
-				io.NopCloser(strings.NewReader("Hello, world!")),
+				&controller.File{
+					StatusCode:    200,
+					Etag:          `"55af1e60-0f28-454e-885e-ea6aab2bb288"`,
+					Body:          io.NopCloser(strings.NewReader("Hello, world!")),
+					ContentLength: 64,
+					ExtraHeaders:  make(http.Header),
+				},
 				nil,
 			)
 

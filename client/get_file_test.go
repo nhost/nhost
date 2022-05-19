@@ -47,6 +47,23 @@ func TestGetFile(t *testing.T) {
 		opts        []client.GetFileInformationOpt
 	}{
 		{
+			name: "get file, range",
+			id:   testFiles.ProcessedFiles[0].ID,
+			opts: []client.GetFileInformationOpt{client.WithRange("bytes=1-3")},
+			expected: &client.FileInformationHeaderWithReader{
+				Filename: "alphabet.txt",
+				FileInformationHeader: &client.FileInformationHeader{
+					CacheControl:  "max-age=3600",
+					ContentLength: 3,
+					ContentType:   "text/plain; charset=utf-8",
+					Etag:          `"588be441fe7a59460850b0aa3e1c5a65"`,
+					LastModified:  "Tue, 18 Jan 2022 13:18:04 UTC",
+					StatusCode:    206,
+				},
+			},
+			expectedSha: "f7000c92088f827e35e0280d3b6ae7afbaccbc9ad5c9f9159df5f0202852107c",
+		},
+		{
 			name: "get file, if-match==etag",
 			id:   testFiles.ProcessedFiles[0].ID,
 			opts: []client.GetFileInformationOpt{client.WithIfMatch(testFiles.ProcessedFiles[0].ETag)},

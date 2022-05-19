@@ -68,7 +68,8 @@ func (c *Client) GetFile(
 
 	if resp.StatusCode != http.StatusOK &&
 		resp.StatusCode != http.StatusNotModified &&
-		resp.StatusCode != http.StatusPreconditionFailed {
+		resp.StatusCode != http.StatusPreconditionFailed &&
+		resp.StatusCode != http.StatusPartialContent {
 		defer resp.Body.Close()
 		return nil, unmarshalGetFileError(resp)
 	}

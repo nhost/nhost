@@ -85,7 +85,7 @@ func (s *S3) PutFile(content io.ReadSeeker, filepath string, contentType string)
 	return *object.ETag, nil
 }
 
-func (s *S3) GetFile(filepath string) (io.ReadCloser, *controller.APIError) {
+func (s *S3) GetFile(filepath string, headers http.Header) (*controller.File, *controller.APIError) {
 	object, err := s.session.GetObject(
 		&s3.GetObjectInput{
 			Bucket: s.bucket,
@@ -94,13 +94,32 @@ func (s *S3) GetFile(filepath string) (io.ReadCloser, *controller.APIError) {
 			// IfModifiedSince:   &time.Time{},
 			// IfNoneMatch:       new(string),
 			// IfUnmodifiedSince: &time.Time{},
-			// Range:             new(string),
+			Range: aws.String(headers.Get("range")),
 		},
 	)
 	if err != nil {
 		return nil, controller.InternalServerError(fmt.Errorf("problem getting object: %w", err))
 	}
-	return object.Body, nil
+
+	status := http.StatusOK
+
+	respHeaders := make(http.Header)
+	if object.ContentRange != nil {
+		respHeaders = http.Header{
+			"Accept-Ranges": []string{"bytes"},
+		}
+		respHeaders["Content-Range"] = []string{*object.ContentRange}
+		status = http.StatusPartialContent
+	}
+
+	return &controller.File{
+		ContentType:   *object.ContentType,
+		ContentLength: *object.ContentLength,
+		Etag:          *object.ETag,
+		StatusCode:    status,
+		Body:          object.Body,
+		ExtraHeaders:  respHeaders,
+	}, nil
 }
 
 func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, *controller.APIError) {
@@ -125,7 +144,7 @@ func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, 
 
 func (s *S3) GetFileWithPresignedURL(
 	ctx context.Context, filepath, signature string, headers http.Header,
-) (*controller.FileWithPresignedURL, *controller.APIError) {
+) (*controller.File, *controller.APIError) {
 	if s.rootFolder != "" {
 		filepath = s.rootFolder + "/" + filepath
 	}
@@ -165,7 +184,7 @@ func (s *S3) GetFileWithPresignedURL(
 		}
 	}
 
-	return &controller.FileWithPresignedURL{
+	return &controller.File{
 		ContentType:   resp.Header.Get("Content-Type"),
 		ContentLength: length,
 		Etag:          resp.Header.Get("Etag"),

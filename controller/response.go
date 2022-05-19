@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func timeInRFC3339(t string) (string, *APIError) {
+func timeFromRFC3339ToRFC1123(t string) (string, *APIError) {
 	datetime, err := time.Parse(time.RFC3339, t)
 	if err != nil {
 		return "", InternalServerError(err)

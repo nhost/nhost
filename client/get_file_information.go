@@ -52,6 +52,12 @@ func fileInformationFromResponse(resp *http.Response) (*FileInformationHeader, e
 
 type GetFileInformationOpt func(req *http.Request)
 
+func WithRange(rangeV string) GetFileInformationOpt {
+	return func(req *http.Request) {
+		req.Header.Set("Range", rangeV)
+	}
+}
+
 func WithIfMatch(etags ...string) GetFileInformationOpt {
 	return func(req *http.Request) {
 		for _, e := range etags {

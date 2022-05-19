@@ -127,7 +127,7 @@ func (ctrl *Controller) manipulateImage(
 
 func (ctrl *Controller) processFileToDownload(
 	ctx *gin.Context,
-	object io.ReadCloser,
+	download *File,
 	fileMetadata FileMetadata,
 	bucketMetadata BucketMetadata,
 	infoHeaders getFileInformationHeaders,
@@ -137,13 +137,19 @@ func (ctrl *Controller) processFileToDownload(
 		return nil, apiErr
 	}
 
-	updateAt, apiErr := timeInRFC3339(fileMetadata.UpdatedAt)
+	updateAt, apiErr := timeFromRFC3339ToRFC1123(fileMetadata.UpdatedAt)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
+	body := download.Body
+	contentLength := download.ContentLength
+	etag := download.Etag
+
 	if !opts.IsEmpty() {
-		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(object, uint64(fileMetadata.Size), opts)
+		defer body.Close()
+
+		body, contentLength, etag, apiErr = ctrl.manipulateImage(body, uint64(contentLength), opts)
 		if apiErr != nil {
 			return nil, apiErr
 		}
@@ -151,21 +157,21 @@ func (ctrl *Controller) processFileToDownload(
 		updateAt = time.Now().Format(time.RFC3339)
 	}
 
-	statusCode, apiErr := checkConditionals(fileMetadata, infoHeaders)
+	statusCode, apiErr := checkConditionals(etag, updateAt, infoHeaders, download.StatusCode)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
 	return NewFileResponse(
 		fileMetadata.MimeType,
-		fileMetadata.Size,
-		fileMetadata.ETag,
+		contentLength,
+		etag,
 		bucketMetadata.CacheControl,
 		updateAt,
 		statusCode,
-		object,
+		body,
 		fileMetadata.Name,
-		make(http.Header),
+		download.ExtraHeaders,
 	), nil
 }
 
@@ -180,12 +186,12 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIErr
 		return nil, apiErr
 	}
 
-	object, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID)
+	download, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID, ctx.Request.Header)
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
-	response, apiErr := ctrl.processFileToDownload(ctx, object, fileMetadata, bucketMetadata, req.headers)
+	response, apiErr := ctrl.processFileToDownload(ctx, download, fileMetadata, bucketMetadata, req.headers)
 	if apiErr != nil {
 		return nil, apiErr
 	}

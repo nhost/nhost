@@ -3,6 +3,7 @@ package controller
 import (
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -66,7 +67,7 @@ func etagFound(etag string, candidates []string) bool {
 }
 
 func modifiedSince(updatedAt string, modifiedSince string) (bool, *APIError) {
-	modtime, err := time.Parse(time.RFC3339, updatedAt)
+	modtime, err := time.Parse(time.RFC1123, updatedAt)
 	if err != nil {
 		return false, InternalServerError(err)
 	}
@@ -80,19 +81,21 @@ func modifiedSince(updatedAt string, modifiedSince string) (bool, *APIError) {
 }
 
 func checkConditionals( // nolint: cyclop
-	fileMetadata FileMetadata,
+	etag string,
+	updatedAt string,
 	headers getFileInformationHeaders,
+	defaultStatusCode int,
 ) (int, *APIError) {
-	if len(headers.IfMatch) > 0 && !etagFound(fileMetadata.ETag, headers.IfMatch) {
+	if len(headers.IfMatch) > 0 && !etagFound(etag, headers.IfMatch) {
 		return http.StatusPreconditionFailed, nil
 	}
 
-	if len(headers.IfNoneMatch) > 0 && etagFound(fileMetadata.ETag, headers.IfNoneMatch) {
+	if len(headers.IfNoneMatch) > 0 && etagFound(etag, headers.IfNoneMatch) {
 		return http.StatusNotModified, nil
 	}
 
 	if headers.IfModifiedSince != "" {
-		b, err := modifiedSince(fileMetadata.UpdatedAt, headers.IfModifiedSince)
+		b, err := modifiedSince(updatedAt, headers.IfModifiedSince)
 		if err != nil {
 			return 0, err
 		}
@@ -102,7 +105,7 @@ func checkConditionals( // nolint: cyclop
 	}
 
 	if headers.IfUnmodifiedSince != "" {
-		b, err := modifiedSince(fileMetadata.UpdatedAt, headers.IfUnmodifiedSince)
+		b, err := modifiedSince(updatedAt, headers.IfUnmodifiedSince)
 		if err != nil {
 			return 0, err
 		}
@@ -111,7 +114,7 @@ func checkConditionals( // nolint: cyclop
 		}
 	}
 
-	return http.StatusOK, nil
+	return defaultStatusCode, nil
 }
 
 func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileResponse, *APIError) {
@@ -126,7 +129,12 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 		return nil, apiErr
 	}
 
-	statusCode, apiErr := checkConditionals(fileMetadata, req.headers)
+	updateAt, apiErr := timeFromRFC3339ToRFC1123(fileMetadata.UpdatedAt)
+	if apiErr != nil {
+		return nil, apiErr
+	}
+
+	statusCode, apiErr := checkConditionals(fileMetadata.ETag, updateAt, req.headers, http.StatusOK)
 	if apiErr != nil {
 		return nil, apiErr
 	}
@@ -136,19 +144,17 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 		return nil, apiErr
 	}
 
-	updateAt, apiErr := timeInRFC3339(fileMetadata.UpdatedAt)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
 	if !opts.IsEmpty() {
-		object, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID)
+		download, apiErr := ctrl.contentStorage.GetFile(fileMetadata.ID, ctx.Request.Header)
 		if apiErr != nil {
 			return nil, apiErr
 		}
-		defer object.Close()
+		defer download.Body.Close()
 
-		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(object, uint64(fileMetadata.Size), opts)
+		var object io.ReadCloser
+		object, fileMetadata.Size, fileMetadata.ETag, apiErr = ctrl.manipulateImage(
+			download.Body, uint64(fileMetadata.Size), opts,
+		)
 		if apiErr != nil {
 			return nil, apiErr
 		}
