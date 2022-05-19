@@ -3,7 +3,6 @@ import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine } from '../src/machines'
-import { INITIAL_MACHINE_CONTEXT } from '../src/machines/context'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
@@ -13,10 +12,11 @@ import {
   incorrectEmailPasswordHandler,
   unverifiedEmailErrorHandler
 } from './helpers/handlers'
+import contextWithUser from './helpers/mocks/contextWithUser'
+import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
-import fakeUser from './helpers/__mocks__/user'
 
 type AuthState = GeneralAuthState<Typegen0>
 
@@ -252,18 +252,8 @@ test(`should succeed if correct credentials are provided`, async () => {
 
 test(`should transition to signed in state if user is already signed in`, async () => {
   const user = { ...fakeUser }
-  const accessToken = faker.datatype.string(40)
-  const refreshToken = faker.datatype.uuid()
-  const expiresAt = new Date(Date.now() * 900000)
 
-  const authServiceWithInitialUser = interpret(
-    authMachine.withContext({
-      ...INITIAL_MACHINE_CONTEXT,
-      user,
-      accessToken: { value: accessToken, expiresAt },
-      refreshToken: { value: refreshToken }
-    })
-  )
+  const authServiceWithInitialUser = interpret(authMachine.withContext(contextWithUser))
 
   authServiceWithInitialUser.start()
 

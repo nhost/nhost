@@ -449,7 +449,7 @@ export const createAuthMachine = ({
           }
         }),
         saveMfaTicket: assign({
-          mfa: (_, e: any) => e.data?.mfa ?? null
+          mfa: (_, e: any) => e.data?.mfa
         }),
 
         resetTimer: assign({
@@ -530,7 +530,7 @@ export const createAuthMachine = ({
           if (refreshIntervalTime) {
             // * If a refreshIntervalTime has been passed on as an option, it will notify
             // * the token should be refershed when this interval is overdue
-            const elapsed = Date.now() - (ctx.refreshTimer.startedAt?.getTime() || 0)
+            const elapsed = Date.now() - ctx.refreshTimer.startedAt!.getTime()
             if (elapsed > refreshIntervalTime * 1_000) {
               return true
             }

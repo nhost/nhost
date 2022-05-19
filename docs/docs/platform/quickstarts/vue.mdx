@@ -38,20 +38,24 @@ You'll need **Node.js** version 14 or later: [install it from here](https://node
 
 ### Create a new Nhost app
 
-import CreateApp from '@site/fragments/create-nhost-app.mdx'
+import CreateApp from '@site/src/components/create-nhost-app.mdx'
 
-<CreateApp github />
+<CreateApp />
+
+:::info
+You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+:::
 
 ## Initialize the app
 
 ### Create a Vue app
 
-We will use [Vitesse Lite](https://github.com/antfu/vitesse-lite), a ready-to-deploy Vite template by Anthony Fu. We can scaffold it with [degit](https://github.com/Rich-Harris/degit).
+We will use an simple adaptation of [Vitesse Lite](https://github.com/antfu/vitesse-lite), a ready-to-deploy Vite template by Anthony Fu. We can scaffold it with [degit](https://github.com/Rich-Harris/degit).
 
 Open your terminal, and run the following command:
 
 ```bash
-npx degit antfu/vitesse-lite my-nhost-app
+npx degit nhost/vue-quickstart my-nhost-app
 ```
 
 You can now go into your project directory, install dependencies, and start the development server:
@@ -195,8 +199,6 @@ Let's create a new page in your project using the following code:
   import { ref } from 'vue'
   import { useSignUpEmailPassword } from '@nhost/vue'
   import { useRouter } from 'vue-router'
-  const inputClass =
-    'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
 
   const { signUpEmailPassword, needsEmailVerification } = useSignUpEmailPassword()
   const router = useRouter()
@@ -219,12 +221,12 @@ Let's create a new page in your project using the following code:
   </p>
 
   <form v-else @submit="handleSubmit">
-    <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
-    <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
-    <input v-model="email" type="email" placeholder="Email" :class="inputClass" /><br />
-    <input v-model="password" type="password" placeholder="Password" :class="inputClass" /><br />
+    <input v-model="firstName" placeholder="First name" class="input" /><br />
+    <input v-model="lastName" placeholder="Last name" class="input" /><br />
+    <input v-model="email" type="email" placeholder="Email" class="input" /><br />
+    <input v-model="password" type="password" placeholder="Password" class="input" /><br />
 
-    <button class="m-3 text-sm btn" type="submit">Sign up</button>
+    <button class="btn-submit" type="submit">Sign up</button>
   </form>
 </template>
 ```
@@ -242,8 +244,6 @@ For that, we will use the Nhost composable named `useSignInEmailPassword` inside
   import { ref } from 'vue'
   import { useSignInEmailPassword } from '@nhost/vue'
   import { useRouter } from 'vue-router'
-  const inputClass =
-    'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
   const { signInEmailPassword, needsEmailVerification } = useSignInEmailPassword()
   const router = useRouter()
   const email = ref('')
@@ -262,10 +262,10 @@ For that, we will use the Nhost composable named `useSignInEmailPassword` inside
   </p>
 
   <form v-else @submit="handleSubmit">
-    <input v-model="email" type="email" placeholder="Email" :class="inputClass" /><br />
-    <input v-model="password" type="password" placeholder="Password" :class="inputClass" /><br />
+    <input v-model="email" type="email" placeholder="Email" class="input" /><br />
+    <input v-model="password" type="password" placeholder="Password" class="input" /><br />
 
-    <button class="m-3 text-sm btn" type="submit">Sign in</button>
+    <button class="btn-submit" type="submit">Sign in</button>
     <p>No account yet? <router-link to="/sign-up"> Sign up </router-link></p>
   </form>
 </template>
@@ -550,9 +550,6 @@ composable to execute that query when the user submits the form from the profile
       await client.auth.refreshSession()
     }
   }
-
-  const inputClass =
-    'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
 </script>
 
 <template>
@@ -565,8 +562,8 @@ composable to execute that query when the user submits the form from the profile
     <div v-if="user" py-4>
       <p>Hello, {{ user?.displayName }}. Your email is {{ user?.email }}.</p>
       <form @submit="updateUserProfile">
-        <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
-        <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
+        <input v-model="firstName" placeholder="First name" class="input" /><br />
+        <input v-model="lastName" placeholder="Last name" class="input" /><br />
         <button className="m-3 text-sm btn" :disabled="loading">Save</button>
         <div v-if="error">{{ error.message }}</div>
       </form>
@@ -685,9 +682,6 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
       await nhost.auth.refreshSession()
     }
   }
-
-  const inputClass =
-    'px-4 py-2 bg-transparent border-1 border-gray-200 rounded outline-none w-250px outline-active:none dark:border-gray-700'
 </script>
 
 <template>
@@ -700,8 +694,8 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
     <div v-if="user" py-4>
       <p>Hello, {{ user.displayName }}. Your email is {{ user.email }}.</p>
       <form @submit="updateUserProfile">
-        <input v-model="firstName" placeholder="First name" :class="inputClass" /><br />
-        <input v-model="lastName" placeholder="Last name" :class="inputClass" /><br />
+        <input v-model="firstName" placeholder="First name" class="input" /><br />
+        <input v-model="lastName" placeholder="Last name" class="input" /><br />
         <button className="m-3 text-sm btn" :disabled="loading">Save</button>
         <div v-if="error">{{ error.message }}</div>
       </form>

@@ -5,16 +5,15 @@ import { AuthClient } from '../src/client'
 import { INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine, createChangePasswordMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/change-password.typegen'
-import { INITIAL_MACHINE_CONTEXT } from '../src/machines/context'
 import { BASE_URL } from './helpers/config'
 import {
   changePasswordInternalErrorHandler,
   changePasswordNetworkErrorHandler
 } from './helpers/handlers'
+import contextWithUser from './helpers/mocks/contextWithUser'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralChangePasswordState } from './helpers/types'
-import fakeUser from './helpers/__mocks__/user'
 
 type ChangePasswordState = GeneralChangePasswordState<Typegen0>
 
@@ -26,15 +25,10 @@ const authClient = new AuthClient({
 })
 
 authClient.interpreter = interpret(
-  createAuthMachine({ backendUrl: BASE_URL, clientUrl: 'http://localhost:3000' }).withContext({
-    ...INITIAL_MACHINE_CONTEXT,
-    user: fakeUser,
-    accessToken: {
-      value: faker.datatype.string(40),
-      expiresAt: faker.date.future()
-    },
-    refreshToken: { value: faker.datatype.uuid() }
-  })
+  createAuthMachine({
+    backendUrl: BASE_URL,
+    clientUrl: 'http://localhost:3000'
+  }).withContext(contextWithUser)
 ).start()
 
 const changePasswordMachine = createChangePasswordMachine(authClient)

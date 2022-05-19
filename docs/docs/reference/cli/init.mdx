@@ -1,0 +1,18 @@
+---
+title: 'init'
+sidebar_position: 1
+---
+
+Intialize a local Nhost app in the current working directory.
+
+```
+nhost init
+```
+
+If you already have a Nhost app in Nhost Cloud you can use that app as a starting point by appending `--remote` to the command.
+
+This will pull the database migrations and Hasura metadata from the Nhost Cloud app locally for you to use as a starting point.
+
+```
+nhost init --remote
+```

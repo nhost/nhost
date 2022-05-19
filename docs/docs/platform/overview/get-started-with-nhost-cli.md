@@ -100,7 +100,7 @@ nhost logout
 
 ### 1. Create a new Nhost app
 
-import CreateApp from '@site/fragments/create-nhost-app.mdx';
+import CreateApp from '@site/src/components/create-nhost-app.mdx';
 
 <CreateApp />
 
