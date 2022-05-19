@@ -83,7 +83,7 @@ func modifiedSince(updatedAt string, modifiedSince string) (bool, *APIError) {
 func checkConditionals( // nolint: cyclop
 	etag string,
 	updatedAt string,
-	headers getFileInformationHeaders,
+	headers *getFileInformationHeaders,
 	defaultStatusCode int,
 ) (int, *APIError) {
 	if len(headers.IfMatch) > 0 && !etagFound(etag, headers.IfMatch) {
@@ -134,7 +134,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 		return nil, apiErr
 	}
 
-	statusCode, apiErr := checkConditionals(fileMetadata.ETag, updateAt, req.headers, http.StatusOK)
+	statusCode, apiErr := checkConditionals(fileMetadata.ETag, updateAt, &req.headers, http.StatusOK)
 	if apiErr != nil {
 		return nil, apiErr
 	}

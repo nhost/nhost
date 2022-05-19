@@ -96,40 +96,7 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		return nil, apiErr
 	}
 
-	opts, apiErr := getImageManipulationOptions(ctx, fileMetadata.MimeType)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-
-	updateAt, apiErr := timeFromRFC3339ToRFC1123(fileMetadata.UpdatedAt)
-	if apiErr != nil {
-		return nil, apiErr
-	}
-	if !opts.IsEmpty() {
-		defer download.Body.Close()
-
-		download.Body, download.ContentLength, download.Etag, apiErr = ctrl.manipulateImage(
-			download.Body, uint64(fileMetadata.Size), opts)
-		if apiErr != nil {
-			return nil, apiErr
-		}
-
-		updateAt = time.Now().Format(time.RFC3339)
-	}
-
-	response := NewFileResponse(
-		download.ContentType,
-		download.ContentLength,
-		download.Etag,
-		fmt.Sprintf("max-age=%d", req.Expires),
-		updateAt,
-		download.StatusCode,
-		download.Body,
-		fileMetadata.Name,
-		download.ExtraHeaders,
-	)
-
-	return response, nil
+	return ctrl.processFileToDownload(ctx, download, fileMetadata, fmt.Sprintf("max-age=%d", req.Expires), nil)
 }
 
 func (ctrl *Controller) GetFileWithPresignedURL(ctx *gin.Context) {

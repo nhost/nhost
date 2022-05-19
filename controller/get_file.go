@@ -129,8 +129,8 @@ func (ctrl *Controller) processFileToDownload(
 	ctx *gin.Context,
 	download *File,
 	fileMetadata FileMetadata,
-	bucketMetadata BucketMetadata,
-	infoHeaders getFileInformationHeaders,
+	cacheControl string,
+	infoHeaders *getFileInformationHeaders,
 ) (*FileResponse, *APIError) {
 	opts, apiErr := getImageManipulationOptions(ctx, fileMetadata.MimeType)
 	if apiErr != nil {
@@ -157,16 +157,19 @@ func (ctrl *Controller) processFileToDownload(
 		updateAt = time.Now().Format(time.RFC3339)
 	}
 
-	statusCode, apiErr := checkConditionals(etag, updateAt, infoHeaders, download.StatusCode)
-	if apiErr != nil {
-		return nil, apiErr
+	statusCode := download.StatusCode
+	if infoHeaders != nil {
+		statusCode, apiErr = checkConditionals(etag, updateAt, infoHeaders, download.StatusCode)
+		if apiErr != nil {
+			return nil, apiErr
+		}
 	}
 
 	return NewFileResponse(
 		fileMetadata.MimeType,
 		contentLength,
 		etag,
-		bucketMetadata.CacheControl,
+		cacheControl,
 		updateAt,
 		statusCode,
 		body,
@@ -191,7 +194,7 @@ func (ctrl *Controller) getFileProcess(ctx *gin.Context) (*FileResponse, *APIErr
 		return nil, apiErr
 	}
 
-	response, apiErr := ctrl.processFileToDownload(ctx, download, fileMetadata, bucketMetadata, req.headers)
+	response, apiErr := ctrl.processFileToDownload(ctx, download, fileMetadata, bucketMetadata.CacheControl, &req.headers)
 	if apiErr != nil {
 		return nil, apiErr
 	}
