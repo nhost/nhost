@@ -376,8 +376,8 @@ const DashLayout = ({ children }) => {
     <div>
       <header className="fixed z-10 top-0 inset-x-0 h-[60px] shadow bg-white">
         <div className="container mx-auto px-4 py-3 flex justify-between">
-          <Link to={routes.home()}>
-            <img src="logo.svg" alt="logo" />
+          <Link to={routes.home()} className="h-9">
+            <img src="https://i.imgur.com/CmLlufz.png" alt="logo" className="max-h-full w-auto" />
           </Link>
 
           <Menu as="div" className="relative z-50">
@@ -539,7 +539,7 @@ const SignUpPage = () => {
         <div className="w-full max-w-lg">
           <div className="sm:rounded-xl sm:shadow-md sm:border border-opacity-50 sm:bg-white px-4 sm:px-8 py-12 flex flex-col items-center">
             <div className="h-14">
-              <img src="logo.svg" alt="logo" className="w-full h-full" />
+              <img src="https://i.imgur.com/CmLlufz.png" alt="logo" className="w-full h-full" />
             </div>
 
             {needsEmailVerification ? (
@@ -668,7 +668,7 @@ const SignInPage = () => {
         <div className="w-full max-w-lg">
           <div className="sm:rounded-xl sm:shadow-md sm:border border-opacity-50 sm:bg-white px-4 sm:px-8 py-12 flex flex-col items-center">
             <div className="h-14">
-              <img src="./logo.svg" alt="logo" className="w-full h-full" />
+              <img src="https://i.imgur.com/CmLlufz.png" alt="logo" className="w-full h-full" />
             </div>
 
             {needsEmailVerification ? (
