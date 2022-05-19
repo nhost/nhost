@@ -9,9 +9,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math"
 	"reflect"
 	"runtime/debug"
 	"sync"
+	"sync/atomic"
 	"unsafe"
 )
 
@@ -20,6 +22,8 @@ const (
 )
 
 type ImageType int
+
+var initialized int32 = 0 // nolint: gochecknoglobals
 
 const (
 	ImageTypeJPEG ImageType = C.JPEG
@@ -45,18 +49,22 @@ type Transformer struct {
 }
 
 func NewTransformer() *Transformer {
-	name := C.CString("hasuraStorage")
-	defer C.free(unsafe.Pointer(name))
+	if atomic.CompareAndSwapInt32(&initialized, 0, 1) {
+		// thread-safe way of initializing vips once and only once
+		// mostly interesting for testing in parallel
+		name := C.CString("hasuraStorage")
+		defer C.free(unsafe.Pointer(name))
 
-	err := C.vips_init(name)
-	if err != 0 {
-		panic(fmt.Sprintf("vips error, code=%v", err))
+		err := C.vips_init(name)
+		if err != 0 {
+			panic(fmt.Sprintf("vips error, code=%v", err))
+		}
+
+		C.vips_concurrency_set(C.int(1))
+		C.vips_cache_set_max_files(C.int(0))
+		C.vips_cache_set_max_mem(C.size_t(0))
+		C.vips_cache_set_max(C.int(0))
 	}
-
-	C.vips_concurrency_set(C.int(1))
-	C.vips_cache_set_max_files(C.int(0))
-	C.vips_cache_set_max_mem(C.size_t(0))
-	C.vips_cache_set_max(C.int(0))
 
 	workers := make(chan struct{}, maxWorkers)
 	for i := 0; i < maxWorkers; i++ {
@@ -86,8 +94,11 @@ func (t *Transformer) Run(orig io.Reader, length uint64, modified io.Writer, opt
 	defer t.pool.Put(buf)
 	defer buf.Reset()
 
-	if buf.Len() < int(length) {
-		buf.Grow(int(length))
+	if length > math.MaxUint32 {
+		panic("length is too big")
+	}
+	if l := int(length); buf.Len() < l {
+		buf.Grow(l)
 	}
 
 	_, err := io.Copy(buf, orig)
