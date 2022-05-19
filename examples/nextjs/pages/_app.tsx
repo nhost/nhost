@@ -12,7 +12,8 @@ import { BACKEND_URL } from '../helpers'
 
 import '../styles/globals.css'
 
-if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_DEBUG) {
+const devTools = typeof window !== 'undefined' && !!process.env.NEXT_PUBLIC_DEBUG
+if (devTools) {
   inspect({
     url: 'https://stately.ai/viz?inspect',
     iframe: false

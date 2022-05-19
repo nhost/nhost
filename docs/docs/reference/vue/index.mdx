@@ -1,0 +1,47 @@
+---
+title: 'Overview'
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+The Nhost Vue client exports a Nhost client that can be installed as a [Vue plugin](https://vuejs.org/guide/reusability/plugins.html), and [composables](https://vuejs.org/guide/reusability/composables.html) that make it easier to work with Nhost in your Vue app.
+
+## Installation
+
+Install the Nhost Vue client together with GraphQL:
+
+<Tabs groupId="package-manager">
+  <TabItem value="npm" label="npm" default>
+
+```bash
+npm install @nhost/vue graphql
+```
+
+  </TabItem>
+  <TabItem value="yarn" label="Yarn">
+
+```bash
+yarn add @nhost/vue graphql
+```
+
+  </TabItem>
+</Tabs>
+
+## Initializing
+
+Initialize a single `nhost` instance, and install it as a plugin in your Vue app.
+
+```js title=src/main.js
+import { createApp } from 'vue'
+import { NhostClient } from '@nhost/vue'
+
+import App from './App.vue'
+
+const nhost = new NhostClient({
+  backendUrl: '<Your Nhost Backend URL>'
+})
+
+createApp(App).use(nhost).mount('#app')
+```

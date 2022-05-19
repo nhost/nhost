@@ -1,36 +1,11 @@
 import { useContext, useEffect, useState } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { AuthMachine, ErrorPayload, USER_UNAUTHENTICATED } from '@nhost/core'
+import { AuthMachine, signOutPromise } from '@nhost/core'
 import { NhostClient } from '@nhost/nhost-js'
 import { useSelector } from '@xstate/react'
 
 import { NhostReactContext } from '../provider'
-
-export interface ActionHookErrorState {
-  /** @return `true` if an error occurred */
-  isError: boolean
-  /** Provides details about the error */
-  error: ErrorPayload | null
-}
-
-export interface ActionHookLoadingState {
-  /**
-   * @return `true` when the action is executing, `false` when it finished its execution.
-   */
-  isLoading: boolean
-}
-export interface CommonActionHookState extends ActionHookErrorState, ActionHookLoadingState {}
-
-export interface ActionHookSuccessState {
-  /** Returns `true` if the action is successful. */
-  isSuccess: boolean
-}
-
-export interface DefaultActionHookState extends CommonActionHookState, ActionHookSuccessState {
-  /** @depreacted use `!isSuccess` or `!!error` instead */
-  isError: boolean
-}
 
 /**
  * Use the hook `useNhostClient` to get the Nhost JavaScript client (https://docs.nhost.io/reference/javascript).
@@ -72,12 +47,12 @@ export const useNhostBackendUrl = () => {
 
 /**
  * @deprecated
- * When using both `useAuthLoading` and `useAuthenticated` together, their initial state
- * will change three times:
+ * When using both {@link useAuthLoading} and {@link useAuthenticated} together, their initial state will change
+ * three times:
  *
  * `(true, false)` -> `(false, false)` -> `(false, true)`
  *
- * Use `useAuthenticationStatus` instead.
+ * Use {@link useAuthenticationStatus} instead.
  */
 export const useAuthLoading = () => {
   const service = useAuthInterpreter()
@@ -172,21 +147,7 @@ export const useAccessToken = () => {
 export const useSignOut = (stateAll: boolean = false) => {
   const service = useAuthInterpreter()
   const signOut = (valueAll?: boolean | unknown) =>
-    new Promise<{ isSuccess: boolean; error: ErrorPayload | null; isError: boolean }>((resolve) => {
-      const { event } = service.send({
-        type: 'SIGNOUT',
-        all: typeof valueAll === 'boolean' ? valueAll : stateAll
-      })
-      if (event.type !== 'SIGNED_OUT') {
-        return resolve({ isSuccess: false, isError: true, error: USER_UNAUTHENTICATED })
-      }
-      service.onTransition((state) => {
-        if (state.matches({ authentication: { signedOut: 'success' } })) {
-          resolve({ isSuccess: true, isError: false, error: null })
-        } else if (state.matches({ authentication: { signedOut: { failed: 'server' } } }))
-          resolve({ isSuccess: false, isError: true, error: state.context.errors.signout || null })
-      })
-    })
+    signOutPromise(service, typeof valueAll === 'boolean' ? valueAll : stateAll)
 
   const isSuccess = useSelector(
     service,

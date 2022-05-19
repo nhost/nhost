@@ -5,16 +5,16 @@ sidebar_label: useAuthLoading()
 slug: /reference/nextjs/use-auth-loading
 sidebar_class_name: deprecated
 description: No description provided.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/common.ts#L82
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/common.ts#L57
 ---
 
 # `useAuthLoading()`
 
 :::caution Deprecated
-When using both `useAuthLoading` and `useAuthenticated` together, their initial state
-will change three times:
+When using both useAuthLoading and useAuthenticated together, their initial state will change
+three times:
 
 `(true, false)` -> `(false, false)` -> `(false, true)`
 
-Use `useAuthenticationStatus` instead.
+Use useAuthenticationStatus instead.
 :::
