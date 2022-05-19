@@ -1,5 +1,15 @@
 # @nhost/nextjs
 
+## 1.2.6
+
+### Patch Changes
+
+- Updated dependencies [0b58894e]
+- Updated dependencies [c7a407f1]
+  - @nhost/core@0.5.5
+  - @nhost/react@0.7.6
+  - @nhost/nhost-js@1.1.12
+
 ## 1.2.5
 
 ### Patch Changes
