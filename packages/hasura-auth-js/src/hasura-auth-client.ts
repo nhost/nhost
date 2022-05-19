@@ -770,7 +770,7 @@ export class HasuraAuthClient {
    *
    * @example
    * ```ts
-   * const user = nhsot.auth.getUser();
+   * const user = nhost.auth.getUser();
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/get-user
