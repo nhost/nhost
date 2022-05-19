@@ -44,7 +44,7 @@ export const useSignInEmailPasswordless = (
   const signInEmailPasswordless = (email: RefOrValue<string>) =>
     signInEmailPasswordlessPromise(service.value, unref(email), nestedUnref(options))
 
-  const error = useError('authentication')
+  const error = useError('signUp')
 
   const isLoading = useSelector(service.value, (state) => state.matches('signUp.passwordlessEmail'))
 

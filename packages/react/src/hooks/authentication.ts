@@ -201,7 +201,7 @@ export function useSignInEmailPasswordless(
 
   const error = useSelector(
     service,
-    (state) => state.context.errors.authentication || null,
+    (state) => state.context.errors.signUp || null,
     (a, b) => a?.error === b?.error
   )
   const isLoading = useSelector(service, (state) => state.matches('signUp.passwordlessEmail'))

@@ -53,7 +53,7 @@ test('should fail if network is unavailable', async () => {
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "authentication": {
+      "signUp": {
         "error": "OK",
         "message": "Network Error",
         "status": 200,
@@ -76,7 +76,7 @@ test(`should fail if server returns an error`, async () => {
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "authentication": {
+      "signUp": {
         "error": "internal-error",
         "message": "Internal error",
         "status": 500,
@@ -97,7 +97,7 @@ test(`should fail if the provided email address was invalid`, async () => {
 
   expect(state.context.errors).toMatchInlineSnapshot(`
       {
-        "authentication": {
+        "signUp": {
           "error": "invalid-email",
           "message": "Email is incorrectly formatted",
           "status": 10,
