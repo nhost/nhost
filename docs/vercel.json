@@ -2,8 +2,18 @@
   "cleanUrls": true,
   "redirects": [
     {
+      "source": "/get-started/quick-start",
+      "destination": "https://nhost.io/blog/nhost-understanding-the-basics",
+      "permanent": true
+    },
+    {
       "source": "/get-started/quick-start/:path*",
       "destination": "https://nhost.io/blog/nhost-understanding-the-basics",
+      "permanent": true
+    },
+    {
+      "source": "/get-started/cli-workflow",
+      "destination": "/platform/overview/get-started-with-nhost-cli",
       "permanent": true
     },
     {
