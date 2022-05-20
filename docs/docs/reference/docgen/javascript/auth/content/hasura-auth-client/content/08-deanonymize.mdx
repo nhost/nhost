@@ -4,7 +4,7 @@ title: deanonymize()
 sidebar_label: deanonymize()
 slug: /reference/javascript/auth/deanonymize
 description: Use `nhost.auth.deanonymize` to deanonymize a user.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L338
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L306
 ---
 
 # `deanonymize()`
@@ -23,14 +23,5 @@ nhost.auth.deanonymize({
 ---
 
 **<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`DeanonymizeParams`](/reference/docgen/javascript/auth/types/deanonymize-params)
-
-| Property                                                                                        | Type                                   | Required | Notes |
-| :---------------------------------------------------------------------------------------------- | :------------------------------------- | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">params.</span>email</span>        | `string`                               |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>signInMethod</span> | `"passwordless"` \| `"email-password"` |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>allowedRoles</span> | `Array<string>`                        |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>defaultRole</span>  | `string`                               |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>connection</span>   | `"email"` \| `"sms"`                   |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>password</span>     | `string`                               |          |       |
 
 ---

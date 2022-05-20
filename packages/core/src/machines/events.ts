@@ -11,11 +11,11 @@ export type AuthEvents =
       options?: PasswordlessOptions
     }
   | {
-      type: 'SIGNIN_PASSWORDLESS_SMS'
+      type: 'PASSWORDLESS_SMS'
       phoneNumber?: string
       options?: PasswordlessOptions
     }
-  | { type: 'SIGNIN_PASSWORDLESS_SMS_OTP'; phoneNumber?: string; otp?: string }
+  | { type: 'PASSWORDLESS_SMS_OTP'; phoneNumber?: string; otp?: string }
   | { type: 'SIGNUP_EMAIL_PASSWORD'; email?: string; password?: string; options?: SignUpOptions }
   | { type: 'SIGNOUT'; all?: boolean }
   | { type: 'SIGNIN_MFA_TOTP'; ticket?: string; otp?: string }

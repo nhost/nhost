@@ -44,18 +44,18 @@ test(`should fail if network is unavailable`, async () => {
   server.use(passwordlessSmsOtpNetworkErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS_OTP',
+    type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.phoneNumber(),
     otp: faker.random.numeric(6).toString()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "authentication": {
+      "registration": {
         "error": "OK",
         "message": "Network Error",
         "status": 200,
@@ -68,18 +68,18 @@ test(`should fail if server returns an error`, async () => {
   server.use(passwordlessSmsOtpInternalErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS_OTP',
+    type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.phoneNumber(),
     otp: faker.random.numeric(6).toString()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "authentication": {
+      "registration": {
         "error": "internal-error",
         "message": "Internal error",
         "status": 500,
@@ -90,19 +90,19 @@ test(`should fail if server returns an error`, async () => {
 
 test(`should fail if the provided phone number was invalid`, async () => {
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS_OTP',
+    type: 'PASSWORDLESS_SMS_OTP',
     // TODO: Phone number validation is not implemented yet
     phoneNumber: '',
     otp: faker.random.numeric(6).toString()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
       {
-        "authentication": {
+        "registration": {
           "error": "invalid-phone-number\",
           "message": "Phone number is incorrectly formatted\",
           "status": 10,
@@ -115,18 +115,18 @@ test(`should fail if the provided OTP was invalid`, async () => {
   server.use(passwordlessSmsOtpInvalidOtpHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS_OTP',
+    type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.phoneNumber(),
     otp: faker.random.numeric(6).toString()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "authentication": {
+      "registration": {
         "error": "invalid-otp",
         "message": "Invalid or expired OTP",
         "status": 401,
@@ -137,7 +137,7 @@ test(`should fail if the provided OTP was invalid`, async () => {
 
 test(`should succeed if the provided phone number and OTP were valid`, async () => {
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS_OTP',
+    type: 'PASSWORDLESS_SMS_OTP',
     phoneNumber: faker.phone.phoneNumber(),
     otp: faker.random.numeric(6).toString()
   })

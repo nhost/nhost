@@ -128,8 +128,6 @@ export const createAuthMachine = ({
               },
               on: {
                 SIGNIN_PASSWORD: 'authenticating.password',
-                SIGNIN_PASSWORDLESS_SMS: 'authenticating.passwordlessSms',
-                SIGNIN_PASSWORDLESS_SMS_OTP: 'authenticating.passwordlessSmsOtp',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
               }
@@ -137,31 +135,6 @@ export const createAuthMachine = ({
             authenticating: {
               entry: 'resetErrors',
               states: {
-                passwordlessSms: {
-                  invoke: {
-                    src: 'signInPasswordlessSms',
-                    id: 'authenticatePasswordlessSms',
-                    onDone: '#nhost.authentication.signedOut.needsSmsOtp',
-                    onError: {
-                      actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed'
-                    }
-                  }
-                },
-                passwordlessSmsOtp: {
-                  invoke: {
-                    src: 'signInPasswordlessSmsOtp',
-                    id: 'authenticatePasswordlessSmsOtp',
-                    onDone: {
-                      actions: ['saveSession', 'reportTokenChanged'],
-                      target: '#nhost.authentication.signedIn'
-                    },
-                    onError: {
-                      actions: 'saveAuthenticationError',
-                      target: '#nhost.authentication.signedOut.failed'
-                    }
-                  }
-                },
                 password: {
                   invoke: {
                     src: 'signInPassword',
@@ -182,7 +155,7 @@ export const createAuthMachine = ({
                         cond: 'unverified',
                         target: [
                           '#nhost.authentication.signedOut',
-                          '#nhost.registration.incomplete.awaitingVerification'
+                          '#nhost.registration.incomplete.needsEmailVerification'
                         ]
                       },
                       {
@@ -338,12 +311,15 @@ export const createAuthMachine = ({
             incomplete: {
               on: {
                 SIGNUP_EMAIL_PASSWORD: 'emailPassword',
-                PASSWORDLESS_EMAIL: 'passwordlessEmail'
+                PASSWORDLESS_EMAIL: 'passwordlessEmail',
+                PASSWORDLESS_SMS: 'passwordlessSms',
+                PASSWORDLESS_SMS_OTP: 'passwordlessSmsOtp'
               },
               initial: 'noErrors',
               states: {
                 noErrors: {},
-                awaitingVerification: {},
+                needsEmailVerification: {},
+                needsOtp: {},
                 failed: {}
               }
             },
@@ -360,13 +336,13 @@ export const createAuthMachine = ({
                   },
                   {
                     actions: 'clearContext',
-                    target: ['#nhost.authentication.signedOut', 'incomplete.awaitingVerification']
+                    target: ['#nhost.authentication.signedOut', 'incomplete.needsEmailVerification']
                   }
                 ],
                 onError: [
                   {
                     cond: 'unverified',
-                    target: 'incomplete.awaitingVerification'
+                    target: 'incomplete.needsEmailVerification'
                   },
                   {
                     actions: 'saveRegistrationError',
@@ -382,7 +358,7 @@ export const createAuthMachine = ({
                 id: 'passwordlessEmail',
                 onDone: {
                   actions: 'clearContext',
-                  target: ['#nhost.authentication.signedOut', 'incomplete.awaitingVerification']
+                  target: ['#nhost.authentication.signedOut', 'incomplete.needsEmailVerification']
                 },
                 onError: {
                   actions: 'saveRegistrationError',
@@ -390,6 +366,37 @@ export const createAuthMachine = ({
                 }
               }
             },
+            passwordlessSms: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'passwordlessSms',
+                id: 'passwordlessSms',
+                onDone: {
+                  actions: 'clearContext',
+                  target: ['#nhost.authentication.signedOut', 'incomplete.needsOtp']
+                },
+                onError: {
+                  actions: 'saveRegistrationError',
+                  target: 'incomplete.failed'
+                }
+              }
+            },
+            passwordlessSmsOtp: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'passwordlessSmsOtp',
+                id: 'passwordlessSmsOtp',
+                onDone: {
+                  actions: ['saveSession', 'reportTokenChanged'],
+                  target: '#nhost.authentication.signedIn'
+                },
+                onError: {
+                  actions: 'saveRegistrationError',
+                  target: 'incomplete.failed'
+                }
+              }
+            },
+
             complete: {
               on: {
                 SIGNED_OUT: 'incomplete'
@@ -556,17 +563,38 @@ export const createAuthMachine = ({
             password
           })
         },
-        signInPasswordlessSms: (_, { phoneNumber, options }) => {
+        passwordlessSms: (context, { phoneNumber, options }) => {
           if (!isValidPhoneNumber(phoneNumber)) {
             return Promise.reject({ error: INVALID_PHONE_NUMBER_ERROR })
           }
-
-          return postRequest('/signin/passwordless/sms', {
-            phoneNumber,
-            options: rewriteRedirectTo(clientUrl, options)
-          })
+          if (context.user?.isAnonymous) {
+            // TODO implement in hasura-auth
+            // * See https://github.com/nhost/hasura-auth/blob/9c6d0f4ded4fc8fd1b8031926c02796c74a7eada/src/routes/user/deanonymize.ts
+            console.warn(
+              'Deanonymisation from a phone number is not yet implemented in hasura-auth'
+            )
+            return postRequest(
+              '/user/deanonymize',
+              {
+                signInMethod: 'passwordless',
+                connection: 'sms',
+                phoneNumber,
+                options: rewriteRedirectTo(clientUrl, options)
+              },
+              {
+                headers: {
+                  authorization: `Bearer ${context.accessToken.value}`
+                }
+              }
+            )
+          } else {
+            return postRequest('/signin/passwordless/sms', {
+              phoneNumber,
+              options: rewriteRedirectTo(clientUrl, options)
+            })
+          }
         },
-        signInPasswordlessSmsOtp: (_, { phoneNumber, otp }) => {
+        passwordlessSmsOtp: (_, { phoneNumber, otp }) => {
           if (!isValidPhoneNumber(phoneNumber)) {
             return Promise.reject({ error: INVALID_PHONE_NUMBER_ERROR })
           }

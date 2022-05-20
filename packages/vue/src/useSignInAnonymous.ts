@@ -5,8 +5,28 @@ import { useAuthenticated } from './useAuthenticated'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 
-// TODO documentation when available in Nhost Cloud
-/** @internal not ready yet */
+/**
+ * Use the hook `useSignInAnonymous` to sign in a user anonymously.
+ * As a result, the user will have the `anonymous` role and subsequent set of permissions.
+ * The user can then register at a later stage using email+password sign-up, passwordless email (magic link), or passwordless SMS.
+ *
+ * @example
+ * ```tsx
+ * const { signInAnonymous, isLoading, isSuccess, isError, error } = useSignInAnonymous()
+ *
+ * watchEffect(() => {
+ *   console.log(isLoading.value, isSuccess.value, isError.value, error.value);
+ * })
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signInAnonymous();
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/vue/use-sign-in-anonymous
+ */
 export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
   const signInAnonymous = () => signInAnonymousPromise(service.value)

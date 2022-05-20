@@ -166,7 +166,7 @@ test(`should succeed if email and password are correctly formatted`, async () =>
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
     state.matches({
-      registration: { incomplete: 'awaitingVerification' },
+      registration: { incomplete: 'needsEmailVerification' },
       authentication: { signedOut: 'noErrors' }
     })
   )

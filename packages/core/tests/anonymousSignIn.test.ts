@@ -92,14 +92,14 @@ test('should deanonymise a user with email and password', async () => {
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
     state.matches({
       authentication: 'signedOut',
-      registration: { incomplete: 'awaitingVerification' }
+      registration: { incomplete: 'needsEmailVerification' }
     })
   )
 
   expect(state.context.user).toBeNull()
 })
 
-test('should deanonymise a user with passwordless', async () => {
+test('should deanonymise a user with passwordless email', async () => {
   server.use(correctAnonymousHandler, deamonymisationSuccessfulHandler)
   authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
@@ -113,16 +113,30 @@ test('should deanonymise a user with passwordless', async () => {
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
     state.matches({
       authentication: 'signedOut',
-      registration: { incomplete: 'awaitingVerification' }
+      registration: { incomplete: 'needsEmailVerification' }
     })
   )
 
   expect(state.context.user).toBeNull()
 })
 
-// TODO look at the following cases
-// MFA
-// change email
-// change password
-// reset password
-// sms passwordless
+test('should deanonymise a user with passwordless sms', async () => {
+  server.use(correctAnonymousHandler, deamonymisationSuccessfulHandler)
+  authService.send({ type: 'SIGNIN_ANONYMOUS' })
+
+  await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
+
+  authService.send({
+    type: 'PASSWORDLESS_SMS',
+    phoneNumber: faker.phone.phoneNumber()
+  })
+
+  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
+      authentication: 'signedOut',
+      registration: { incomplete: 'needsOtp' }
+    })
+  )
+
+  expect(state.context.user).toBeNull()
+})

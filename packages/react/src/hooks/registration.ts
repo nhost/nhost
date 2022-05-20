@@ -69,7 +69,7 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   const isLoading = useSelector(service, (state) => state.matches('registration.emailPassword'))
 
   const needsEmailVerification = useSelector(service, (state) =>
-    state.matches('registration.incomplete.awaitingVerification')
+    state.matches('registration.incomplete.needsEmailVerification')
   )
 
   const isSuccess = useSelector(service, (state) =>

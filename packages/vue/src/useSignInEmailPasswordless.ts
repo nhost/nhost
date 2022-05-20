@@ -51,7 +51,7 @@ export const useSignInEmailPasswordless = (
   )
 
   const isSuccess = useSelector(service.value, (state) =>
-    state.matches('registration.incomplete.awaitingVerification')
+    state.matches('registration.incomplete.needsEmailVerification')
   )
 
   const isError = useSelector(service.value, (state) =>

@@ -3,8 +3,25 @@
 title: useSignInAnonymous()
 sidebar_label: useSignInAnonymous()
 slug: /reference/nextjs/use-sign-in-anonymous
-description: No description provided.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/authentication.ts#L222
+description: Use the hook `useSignInAnonymous` to sign in a user anonymously. As a result, the user will have the `anonymous` role and subsequent set of permissions. The user can then register at a later stage using email+password sign-up, passwordless email (magic link), or passwordless SMS.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/hooks/authentication.ts#L241
 ---
 
 # `useSignInAnonymous()`
+
+Use the hook `useSignInAnonymous` to sign in a user anonymously.
+As a result, the user will have the `anonymous` role and subsequent set of permissions.
+The user can then register at a later stage using email+password sign-up, passwordless email (magic link), or passwordless SMS.
+
+```tsx
+const { signInAnonymous, isLoading, isSuccess, isError, error } =
+  useSignInAnonymous()
+
+console.log({ isLoading, isSuccess, isError, error })
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await signInAnonymous()
+}
+```

@@ -75,7 +75,7 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
     (state) =>
       state.matches({
         authentication: { signedOut: 'noErrors' },
-        registration: { incomplete: 'awaitingVerification' }
+        registration: { incomplete: 'needsEmailVerification' }
       }),
     (a, b) => a === b
   )

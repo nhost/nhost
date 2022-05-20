@@ -531,7 +531,7 @@ const mockClass: ClassSignature = {
                       ],
                       type: {
                         type: 'literal',
-                        value: 'SIGNIN_PASSWORDLESS_SMS'
+                        value: 'PASSWORDLESS_SMS'
                       }
                     },
                     {
@@ -609,7 +609,7 @@ const mockClass: ClassSignature = {
                       ],
                       type: {
                         type: 'literal',
-                        value: 'SIGNIN_PASSWORDLESS_SMS_OTP'
+                        value: 'PASSWORDLESS_SMS_OTP'
                       }
                     },
                     {
@@ -1597,7 +1597,7 @@ const mockClass: ClassSignature = {
                               ],
                               type: {
                                 type: 'literal',
-                                value: 'SIGNIN_PASSWORDLESS_SMS'
+                                value: 'PASSWORDLESS_SMS'
                               }
                             },
                             {
@@ -1675,7 +1675,7 @@ const mockClass: ClassSignature = {
                               ],
                               type: {
                                 type: 'literal',
-                                value: 'SIGNIN_PASSWORDLESS_SMS_OTP'
+                                value: 'PASSWORDLESS_SMS_OTP'
                               }
                             },
                             {
@@ -2609,7 +2609,7 @@ const mockClass: ClassSignature = {
                                   ],
                                   type: {
                                     type: 'literal',
-                                    value: 'SIGNIN_PASSWORDLESS_SMS'
+                                    value: 'PASSWORDLESS_SMS'
                                   }
                                 },
                                 {
@@ -2687,7 +2687,7 @@ const mockClass: ClassSignature = {
                                   ],
                                   type: {
                                     type: 'literal',
-                                    value: 'SIGNIN_PASSWORDLESS_SMS_OTP'
+                                    value: 'PASSWORDLESS_SMS_OTP'
                                   }
                                 },
                                 {

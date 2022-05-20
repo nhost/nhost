@@ -46,7 +46,7 @@ export const signInEmailPasswordPromise = (
       if (
         state.matches({
           authentication: { signedOut: 'noErrors' },
-          registration: { incomplete: 'awaitingVerification' }
+          registration: { incomplete: 'needsEmailVerification' }
         })
       ) {
         resolve({
