@@ -101,7 +101,6 @@ export interface ChangeEmailParams {
   options?: RedirectOption
 }
 
-// TODO define type in @nhost/core
 export type DeanonymizeParams =
   | ({
       signInMethod: 'email-password'
