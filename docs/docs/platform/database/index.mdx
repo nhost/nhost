@@ -28,7 +28,7 @@ Open the Hasura Console by clicking on **Data** in the top menu in the Nhost Das
 
 ## Schemas
 
-The two schemas `auth` and `storage` are reserved for Nhost Auth and Nhost Storage to work. You're allowed to modify **permissions** and **add relationships**. However, never modify any tables or remove relationships that was added by Nhost inside the `auth` and `storage` schemas.
+The two schemas `auth` and `storage` are reserved for Nhost Auth and Nhost Storage to work. You're allowed to modify **permissions** and **add relationships**. However, never modify any tables or remove relationships that were added by Nhost inside the `auth` and `storage` schemas.
 
 Generally, you should use the `public` schema when creating and managing your tables for your app. It's also ok to add custom schemas for more advanced usage.
 
@@ -42,9 +42,9 @@ Generally, you should use the `public` schema when creating and managing your ta
 6. (Optional) Add unique keys.
 7. Click **Add Table**.
 
-When a table is created, the table is created in Postgres and instantly available through the [GraphQL API](/platform/graphql).
+When a table is created the table is instantly available through the [GraphQL API](/platform/graphql).
 
-Here's an example of creating a `customers` table:
+Here's an example of how to create a `customers` table:
 
 <Tabs groupId="hasura-console-vs-sql">
   <TabItem value="hasura-cosnole" label="Hasura Console" default>
@@ -72,7 +72,7 @@ CREATE TABLE "public"."customers" (
 2. Click **Modify**.
 3. Modify or add table columns.
 
-Here's an example of modifying a `customers` table by adding an `address` column:
+Here's an example of how to modify a `customers` table by adding an `address` column:
 
 <Tabs groupId="hasura-console-vs-sql">
   <TabItem value="hasura-cosnole" label="Hasura Console" default>
@@ -98,7 +98,7 @@ ALTER TABLE "public"."customers" ADD COLUMN "address" text;
 3. Scroll to the bottom of the page and click **Delete table** to open the confirmation dialog.
 4. Type the **name of the table** and click OK.
 
-Here's an example of deleting a `customers` table:
+Here's an example of how to delete a `customers` table:
 
 <Tabs groupId="hasura-console-vs-sql">
   <TabItem value="hasura-cosnole" label="Hasura Console" default>
