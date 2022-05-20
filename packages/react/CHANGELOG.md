@@ -1,5 +1,19 @@
 # @nhost/react
 
+## 0.7.8
+
+### Patch Changes
+
+- 7c8f0926: add the `mfa` ticket to `useSignInEmailPassword`
+  The `useSignInEmailPassword` hook was not returning the MFA ticket. This releases fixes the issue.
+- 7c8f0926: use the [same methods and typings](https://github.com/nhost/nhost/tree/feat/vue/packages/core/src/promises) to interact with xstate machines in both `@nhost/hasura-auth-js`, `@nhost/react` hooks and `@nhost/vue` composables
+  Both `@nhost/react`, `@nhost/hasura-auth-js` and `@nhost/vue` interact with the authentication state in a similar way. As a result, the same code was repeated three times, with risks of insonsistency and difficult maintainability. `@nhost/core` now contains the logic and Typescript interfaces that are used in the Vanilla client, React hooks and Vue composables.
+- Updated dependencies [7c8f0926]
+- Updated dependencies [7c8f0926]
+- Updated dependencies [7c8f0926]
+  - @nhost/core@0.6.0
+  - @nhost/nhost-js@1.1.14
+
 ## 0.7.7
 
 ### Patch Changes

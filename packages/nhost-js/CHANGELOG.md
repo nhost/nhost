@@ -1,5 +1,15 @@
 # @nhost/nhost-js
 
+## 1.1.14
+
+### Patch Changes
+
+- 7c8f0926: add `devTools` option to the Nhost client
+  The Nhost client now accepts a `devTools` parameter that can be used to inspect the authentication state machine with [@xstate/inspect](https://xstate.js.org/docs/packages/xstate-inspect/)
+- Updated dependencies [7c8f0926]
+- Updated dependencies [7c8f0926]
+  - @nhost/hasura-auth-js@1.1.9
+
 ## 1.1.13
 
 ### Patch Changes
