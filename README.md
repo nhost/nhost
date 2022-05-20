@@ -135,17 +135,17 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/szilarddoro">
-            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
-            <br />
-            <sub><b>Szilárd Dóró</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/elitan">
             <img src="https://avatars.githubusercontent.com/u/331818?v=4" width="100;" alt="elitan"/>
             <br />
             <sub><b>Johan Eliasson</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/szilarddoro">
+            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
+            <br />
+            <sub><b>Szilárd Dóró</b></sub>
         </a>
     </td>
     <td align="center">
