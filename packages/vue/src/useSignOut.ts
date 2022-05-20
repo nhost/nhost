@@ -23,7 +23,7 @@ export const useSignOut = () => {
     state.matches({ authentication: { signedOut: 'success' } })
   )
 
-  const error = useError('signOut')
+  const error = useError('signout')
 
   return { signOut, isSuccess, error }
 }

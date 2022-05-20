@@ -19,7 +19,7 @@ export const signOutPromise = async (
       if (state.matches({ authentication: { signedOut: 'success' } })) {
         resolve({ isSuccess: true, isError: false, error: null })
       } else if (state.matches('authentication.signedOut.failed')) {
-        resolve({ isSuccess: false, isError: true, error: state.context.errors.signOut || null })
+        resolve({ isSuccess: false, isError: true, error: state.context.errors.signout || null })
       }
     })
   })
