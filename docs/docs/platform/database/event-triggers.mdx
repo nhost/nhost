@@ -3,7 +3,7 @@ title: 'Event triggers'
 sidebar_position: 2
 ---
 
-Event Triggers enable you to invoke webhooks when a database event triggers. Event Triggers are typically used to do post-processing tasks, using custom backend code, after a database event has occurred.
+Event Triggers enable you to invoke webhooks when a database event happens. Event Triggers are typically used to do post-processing tasks, using custom backend code, based on database events.
 
 Event Triggers are associated with a specific table in the database the following event types are available:
 
@@ -21,7 +21,7 @@ To send out an email every time a new order is placed, you create an event trigg
 
 ## Create Event Trigger
 
-Event Triggers are managed in the Hasura Console. Select **Events** in the main menu and press "Create".
+Event Triggers are managed in the Hasura Console. Select **Events** in the main menu and click **Create** to add an Event Trigger.
 
 <video width="99%" autoPlay muted loop controls="true">
   <source src="/videos/hasura-create-event-trigger.mp4" type="video/mp4" />
@@ -29,7 +29,7 @@ Event Triggers are managed in the Hasura Console. Select **Events** in the main 
 
 ## Event Triggers and Serverless Functions
 
-Event Triggers and [Serverless Functions](/platform/serverless-functions) is a perfect combination to build powerful backend logic. Every Serverless Function is exposed as an HTTP endpoint that can be used as a webhook for your Event Triggers.
+Event Triggers and [Serverless Functions](/platform/serverless-functions) is a perfect combination to build powerful database-backend logic. Every Serverless Function is exposed as an HTTP endpoint that can be used as a webhook for your Event Triggers.
 
 ### Format
 
@@ -41,23 +41,23 @@ When using Serverless Functions as webhooks you should configure the webhook usi
 
 ![as](/img/database/event-triggers/webhook-url-format.png)
 
-The `NHOST_BACKEND_URL` is a [system environment variable](/platform/environment-variables#system-environment-variables) and it's available in production and in development environments using the [CLI](/platform/cli).
+The `NHOST_BACKEND_URL` is a [system environment variable](/platform/environment-variables#system-environment-variables) and available in production and in development environments using the [CLI](/platform/cli).
 
 ### Security
 
-To make sure incoming request to your webhook comes from Hasura, and not some malicious third party, you can use a shared webhook secret between Hasura and your webhook handler.
+To make sure incoming requests to your webhook comes from Hasura, and not some malicious third party, you can use a shared webhook secret between Hasura and your webhook handler (e.g. your Serverless Function).
 
-It's recommended to use the `NHOST_WEBHOOK_SECRET`, which is a [system environment variable](/platform/environment-variables#system-environment-variables) and it's available in production and in development environments using the [CLI](/platform/cli).
+It is recommended to use the `NHOST_WEBHOOK_SECRET`, which is a [system environment variable](/platform/environment-variables#system-environment-variables) and available in production and in development environments using the [CLI](/platform/cli). The `NHOST_WEBHOOK_SECRET` is available both in Hasura and in every Serverless Function.
 
-This is a two step process:
+To set this up is a two-step process:
 
 - Step 1: Add the header `nhost-webhook-secret` with the value `NHOST_WEBHOOK_SECRET` (From env var) when creating the Event Trigger in the Hasura Console.
 
 ![as](/img/database/event-triggers/webhook-secret-header.png)
 
-- Step 2: Check the header `nhost-webhook-secret` for the incoming request and make sure it is the same as the environment variable `NHOST_WEBHOOK_SECRET`.
+- Step 2: Check the header `nhost-webhook-secret` for incoming requests and make sure the header is the same as the environment variable `NHOST_WEBHOOK_SECRET`.
 
-Here's an example of how to check the header in your Serverless Function:
+Here is an example of how to check the header in a Serverless Function:
 
 ```js
 export default async function handler(req, res) {
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
 }
 ```
 
-The `NHOST_WEBHOOK_SECRET` is a [system environment variable](/platform/environment-variables#system-environment-variables) and it's available in production and in development environments using the [CLI](/platform/cli).
+The `NHOST_WEBHOOK_SECRET` is a [system environment variable](/platform/environment-variables#system-environment-variables) and available in production and in development environments using the [CLI](/platform/cli).
 
 ## Next Steps
 

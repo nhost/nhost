@@ -30,7 +30,7 @@ Open the Hasura Console by clicking on **Data** in the top menu in the Nhost Das
 
 The two schemas `auth` and `storage` are reserved for Nhost Auth and Nhost Storage to work. You're allowed to modify **permissions** and **add relationships**. However, never modify any tables or remove relationships that was added by Nhost inside the `auth` and `storage` schemas.
 
-Generally, you should use the `public` schema when creating and managing your tables for your app. It's also ok to add custom schemas for more advanced usages.
+Generally, you should use the `public` schema when creating and managing your tables for your app. It's also ok to add custom schemas for more advanced usage.
 
 ## Create Table
 
@@ -42,7 +42,7 @@ Generally, you should use the `public` schema when creating and managing your ta
 6. (Optional) Add unique keys.
 7. Click **Add Table**.
 
-When a table is created, the table is created in Postgres and added to your [GraphQL API](/platform/graphql).
+When a table is created, the table is created in Postgres and instantly available through the [GraphQL API](/platform/graphql).
 
 Here's an example of creating a `customers` table:
 
