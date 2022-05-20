@@ -1,0 +1,143 @@
+---
+title: 'Database'
+sidebar_position: 1
+---
+
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
+
+Every Nhost app comes with its own [Postgres database](https://postgres.org/). Postgres is the world's most advanced open-source relational database and it's the most [popular SQL database for developers](https://insights.stackoverflow.com/survey/2021#section-most-loved-dreaded-and-wanted-databases).
+
+:::info
+
+It's currently not possible to connect directly to the Postgres database via a connection string. We're working on making the database available soon. You can follow [this issue on GitHub](https://github.com/nhost/nhost/issues/113).
+
+:::
+
+The database is managed via the Hasura Console where you can manage the database via an intuative UI. You can also use SQL to directly interact with the database via the Hasura Console.
+
+## Hasura Console
+
+Hasura Console is where you manage your database. This is where you create and manage tables, schemas, and data.
+
+Open the Hasura Console by clicking on **Data** in the top menu in the Nhost Dashboard, copy the **admin secret**, and click **Open Hasura**. Use the **admin secret** to sign in.
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source src="/videos/open-hasura-console.mp4" type="video/mp4" />
+</video>
+
+## Schemas
+
+The two schemas `auth` and `storage` are reserved for Nhost Auth and Nhost Storage to work. You're allowed to modify **permissions** and **add relationships**. However, never modify any tables or remove relationships that were added by Nhost inside the `auth` and `storage` schemas.
+
+Generally, you should use the `public` schema when creating and managing your tables for your app. It's also ok to add custom schemas for more advanced usage.
+
+## Create Table
+
+1. In Hasura Console, go to the **Data** tab, select the **public** schema in the left menu and click **Create Table**.
+2. Enter a table name.
+3. Add table columns.
+4. Add a primary key (usually the ID column).
+5. (Optional) Add foreign keys.
+6. (Optional) Add unique keys.
+7. Click **Add Table**.
+
+When a table is created the table is instantly available through the [GraphQL API](/platform/graphql).
+
+Here's an example of how to create a `customers` table:
+
+<Tabs groupId="hasura-console-vs-sql">
+  <TabItem value="hasura-cosnole" label="Hasura Console" default>
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source src="/videos/hasura-create-table.mp4" type="video/mp4" />
+</video>
+
+  </TabItem>
+  <TabItem value="sql" label="SQL">
+
+```sql
+CREATE TABLE "public"."customers" (
+  "id" serial NOT NULL PRIMARY KEY,
+  "name" text NOT NULL
+);
+```
+
+  </TabItem>
+</Tabs>
+
+## Modify Table
+
+1. In Hasura Console, go to the **Data** tab and click on the table you want to edit in the left menu.
+2. Click **Modify**.
+3. Modify or add table columns.
+
+Here's an example of how to modify a `customers` table by adding an `address` column:
+
+<Tabs groupId="hasura-console-vs-sql">
+  <TabItem value="hasura-cosnole" label="Hasura Console" default>
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source src="/videos/hasura-modify-table.mp4" type="video/mp4" />
+</video>
+
+  </TabItem>
+  <TabItem value="sql" label="SQL">
+
+```sql
+ALTER TABLE "public"."customers" ADD COLUMN "address" text;
+```
+
+  </TabItem>
+</Tabs>
+
+## Delete Table
+
+1. In Hasura Console, go to the **Data** tab and select the table you want to delete in the left menu.
+2. Click **Modify**.
+3. Scroll to the bottom of the page and click **Delete table** to open the confirmation dialog.
+4. Type the **name of the table** and click OK.
+
+Here's an example of how to delete a `customers` table:
+
+<Tabs groupId="hasura-console-vs-sql">
+  <TabItem value="hasura-cosnole" label="Hasura Console" default>
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source src="/videos/hasura-delete-table.mp4" type="video/mp4" />
+</video>
+
+  </TabItem>
+  <TabItem value="sql" label="SQL">
+
+```sql
+DROP TABLE "public"."customers";
+```
+
+  </TabItem>
+</Tabs>
+
+## Migrations
+
+To track database changes, use the [Nhost CLI](/platform/cli) to develop locally and use our [GitHub integration](/platform/github-integration) to automatically deploy database migrations live.
+
+1. Develop locally using the Nhost CLI.
+2. Push changes to GitHub.
+3. Nhost automatically deploys changes.
+
+Learn how to [get started with Nhost CLI](/platform/overview/get-started-with-nhost-cli).
+
+## Backups
+
+Databases on [Pro and Enterprise plans](https://nhost.io/pricing) are backed up automatically.
+
+## Best Practices
+
+- Use lower-case names for tables. E.g. `customers` instead of `Customers`.
+- Use plural names for tables. E.g. `customers` instead of `customer`.
+
+## Next Steps
+
+- [Learn PostgreSQL Tutorial - Full Course for Beginners (YouTube)](https://www.youtube.com/watch?v=qw--VYLpxG4).
+- Learn more about how to manage your [Postgres database in Hasura](https://hasura.io/docs/latest/graphql/core/databases/postgres/schema/index/).
+- Learn about the [GraphQL API](/platform/graphql).
