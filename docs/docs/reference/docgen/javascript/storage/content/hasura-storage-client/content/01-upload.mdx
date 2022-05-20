@@ -11,6 +11,8 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 
 Use `nhost.storage.upload` to upload a file. The `file` must be of type [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
 
+If no `bucket` is specified the `default` bucket will be used.
+
 ```ts
 await nhost.storage.upload({ file })
 ```

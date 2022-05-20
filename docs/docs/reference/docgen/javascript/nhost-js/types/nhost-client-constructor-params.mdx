@@ -39,6 +39,18 @@ Define a way to get information about the refresh token and its exipration date.
 
 Object where the refresh token will be persisted and read locally.
 
+Recommended values:
+
+- `'web'` and `'cookies'`: no value is required
+- `'react-native'`: `import Storage from @react-native-async-storage/async-storage`
+- `'cookies'`: `localStorage`
+- `'custom'`: an object that defines the following methods:
+  - `setItem` or `setItemAsync`
+  - `getItem` or `getItemAsync`
+  - `removeItem`
+- `'capacitor'`: `import { Storage } from @capacitor/storage`
+- `'expo-secure-store'`: `import * as SecureStore from 'expo-secure-store'`
+
 ---
 
 **<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
