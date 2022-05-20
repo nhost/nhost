@@ -430,7 +430,7 @@ export class HasuraAuthClient {
   /**
    * Use `nhost.auth.isAuthenticated` to check if the user is authenticated or not.
    *
-   * Note: `nhsot.auth.isAuthenticated()` can return `false` for two reasons:
+   * Note: `nhost.auth.isAuthenticated()` can return `false` for two reasons:
    * 1. The user is not authenticated
    * 2. The user is not authenticated but _might_ be authenticated soon (loading) because there is a network request in transit.
    *
@@ -473,7 +473,8 @@ export class HasuraAuthClient {
   /**
    * Use `nhost.auth.getAuthenticationStatus` to get the authentication status of the user.
    *
-   * if `isLoading` is `true`, the client does not yet know if the user is authenticated or not because any internal authentication network requests has not yet finished.
+   * If `isLoading` is `true`, the client doesn't know whether the user is authenticated yet or not
+   * because some internal authentication network requests have not been resolved yet.
    *
    * @example
    * ```ts

@@ -22,7 +22,7 @@ export interface AuthOptions {
    *     - `setItem` or `setItemAsync`
    *     - `getItem` or `getItemAsync`
    *     - `removeItem`
-   * - `'capacitor``: `import { Storage } from @capacitor/storage`
+   * - `'capacitor'`: `import { Storage } from @capacitor/storage`
    * - `'expo-secure-store'`: `import * as SecureStore from 'expo-secure-store'`
    */
   clientStorage?: ClientStorage

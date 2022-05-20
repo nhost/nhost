@@ -39,6 +39,7 @@ export type Source = {
 
 export type Comment = {
   shortText?: string
+  text?: string
   returns?: string
   tags?: Array<CommentTag>
 }
