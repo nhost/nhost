@@ -2,8 +2,28 @@
   "cleanUrls": true,
   "redirects": [
     {
-      "source": "/",
-      "destination": "/get-started",
+      "source": "/get-started/quick-start",
+      "destination": "https://nhost.io/blog/nhost-understanding-the-basics",
+      "permanent": true
+    },
+    {
+      "source": "/get-started/quick-start/:path*",
+      "destination": "https://nhost.io/blog/nhost-understanding-the-basics",
+      "permanent": true
+    },
+    {
+      "source": "/get-started/cli-workflow",
+      "destination": "/platform/overview/get-started-with-nhost-cli",
+      "permanent": true
+    },
+    {
+      "source": "/get-started/cli-workflow/:path*",
+      "destination": "/platform/overview/get-started-with-nhost-cli",
+      "permanent": true
+    },
+    {
+      "source": "get-started/upgrade",
+      "destination": "https://nhost.io/blog/migrate-from-nhost-v1-to-v2",
       "permanent": true
     },
     {
