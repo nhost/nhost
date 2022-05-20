@@ -2,6 +2,11 @@
   "cleanUrls": true,
   "redirects": [
     {
+      "source": "/get-started/cli-workflow*",
+      "destination": "/platform/overview/get-started-with-nhost-cli",
+      "permanent": true
+    },
+    {
       "source": "/reference/sdk/:path*",
       "destination": "/reference/javascript/:path*",
       "permanent": true
