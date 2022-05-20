@@ -1,5 +1,5 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
-import { AuthInterpreter, PasswordlessOptions } from '../types'
+import { AuthInterpreter } from '../types'
 
 import { ActionLoadingState, SessionActionHandlerResult } from './types'
 

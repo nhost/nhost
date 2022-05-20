@@ -48,7 +48,6 @@ const updateUserProfile = async (event: Event) => {
     await nhost.auth.refreshSession()
   }
 }
-
 </script>
 
 <template>

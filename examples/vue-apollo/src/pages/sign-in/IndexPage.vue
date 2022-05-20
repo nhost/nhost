@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { useSignInAnonymous } from '@nhost/vue'
 import { useRouter } from 'vue-router'
+
+import { useSignInAnonymous } from '@nhost/vue'
 const { signInAnonymous } = useSignInAnonymous()
 const router = useRouter()
 const handleSignInAnonymous = async (e: Event) => {

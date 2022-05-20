@@ -1,4 +1,4 @@
-import type { DeanonymizeOptions, NhostSession, PasswordlessOptions, SignUpOptions } from '../types'
+import type { NhostSession, PasswordlessOptions, SignUpOptions } from '../types'
 
 export type AuthEvents =
   | { type: 'SESSION_UPDATE'; data: { session: NhostSession } }

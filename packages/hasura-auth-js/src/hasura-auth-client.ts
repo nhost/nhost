@@ -27,8 +27,7 @@ import {
   signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
-  TOKEN_REFRESHER_RUNNING_ERROR,
-  USER_ALREADY_SIGNED_IN
+  TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
 import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
