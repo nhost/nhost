@@ -27,16 +27,16 @@ export const signInEmailPasswordlessPromise = (
       })
     }
     interpreter.onTransition((state) => {
-      if (state.matches('signUp.incomplete.failed')) {
+      if (state.matches('registration.incomplete.failed')) {
         resolve({
-          error: state.context.errors.signUp || null,
+          error: state.context.errors.registration || null,
           isError: true,
           isSuccess: false
         })
       } else if (
         state.matches({
           authentication: { signedOut: 'noErrors' },
-          email: 'awaitingVerification'
+          registration: { incomplete: 'awaitingVerification' }
         })
       ) {
         resolve({ error: null, isError: false, isSuccess: true })

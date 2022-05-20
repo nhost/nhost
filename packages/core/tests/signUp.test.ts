@@ -51,12 +51,12 @@ test(`should fail if network is unavailable`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "signUp": {
+      "registration": {
         "error": "OK",
         "message": "Network Error",
         "status": 200,
@@ -75,12 +75,12 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "signUp": {
+      "registration": {
         "error": "internal-error",
         "message": "Internal error",
         "status": 500,
@@ -98,12 +98,12 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   })
 
   const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(emailErrorSignInState.context.errors).toMatchInlineSnapshot(`
       {
-        "signUp": {
+        "registration": {
           "error": "invalid-email",
           "message": "Email is incorrectly formatted",
           "status": 10,
@@ -119,12 +119,12 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   })
 
   const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(passwordErrorSignInState.context.errors).toMatchInlineSnapshot(`
       {
-        "signUp": {
+        "registration": {
           "error": "invalid-password",
           "message": "Password is incorrectly formatted",
           "status": 10,
@@ -143,12 +143,12 @@ test(`should fail if email has already been taken`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "signUp": {
+      "registration": {
         "error": "email-already-in-use",
         "message": "Email already in use",
         "status": 409,
@@ -165,7 +165,10 @@ test(`should succeed if email and password are correctly formatted`, async () =>
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ email: 'awaitingVerification', authentication: { signedOut: 'noErrors' } })
+    state.matches({
+      registration: { incomplete: 'awaitingVerification' },
+      authentication: { signedOut: 'noErrors' }
+    })
   )
 
   expect(state.context.user).toBeNull()

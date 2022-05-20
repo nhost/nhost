@@ -34,13 +34,9 @@ export interface Typegen0 {
       | 'error.platform.signInMfaTotp'
       | 'error.platform.authenticateWithToken'
     saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    reportAwaitEmailVerification:
-      | 'error.platform.authenticateUserWithPassword'
-      | 'done.invoke.signUpEmailPassword'
-      | 'error.platform.signUpEmailPassword'
-      | 'done.invoke.passwordlessEmail'
     saveRefreshAttempt: 'error.platform.refreshToken'
-    saveSignUpError: 'error.platform.signUpEmailPassword' | 'error.platform.passwordlessEmail'
+    clearContext: 'done.invoke.signUpEmailPassword' | 'done.invoke.passwordlessEmail'
+    saveRegistrationError: 'error.platform.signUpEmailPassword' | 'error.platform.passwordlessEmail'
     resetErrors:
       | 'SESSION_UPDATE'
       | 'done.invoke.importRefreshToken'
@@ -56,6 +52,8 @@ export interface Typegen0 {
     reportSignedOut:
       | 'error.platform.importRefreshToken'
       | 'error.platform.authenticateUserWithPassword'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.passwordlessEmail'
     destroyRefreshToken: 'xstate.init'
     clearContextExceptRefreshToken: 'SIGNOUT'
     reportSignedIn:
@@ -157,16 +155,16 @@ export interface Typegen0 {
       type: 'error.platform.authenticateWithToken'
       data: unknown
     }
-    'error.platform.signUpEmailPassword': {
-      type: 'error.platform.signUpEmailPassword'
-      data: unknown
-    }
+    'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'done.invoke.passwordlessEmail': {
       type: 'done.invoke.passwordlessEmail'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
+    'error.platform.signUpEmailPassword': {
+      type: 'error.platform.signUpEmailPassword'
+      data: unknown
+    }
     'error.platform.passwordlessEmail': { type: 'error.platform.passwordlessEmail'; data: unknown }
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
@@ -222,8 +220,7 @@ export interface Typegen0 {
     isAutoRefreshDisabled: ''
     hasRefreshToken: ''
     refreshTimerShouldRefresh: ''
-    needsVerification: 'SIGNED_IN'
-    isNotAnonymous: 'SIGNED_IN'
+    isAnonymous: 'SIGNED_IN'
   }
   eventsCausingDelays: {}
   matchesStates:
@@ -256,17 +253,14 @@ export interface Typegen0 {
     | 'token.idle.noErrors'
     | 'token.idle.error'
     | 'token.running'
-    | 'email'
-    | 'email.unknown'
-    | 'email.awaitingVerification'
-    | 'email.valid'
-    | 'signUp'
-    | 'signUp.incomplete'
-    | 'signUp.incomplete.noError'
-    | 'signUp.incomplete.failed'
-    | 'signUp.emailPassword'
-    | 'signUp.passwordlessEmail'
-    | 'signUp.complete'
+    | 'registration'
+    | 'registration.incomplete'
+    | 'registration.incomplete.noErrors'
+    | 'registration.incomplete.awaitingVerification'
+    | 'registration.incomplete.failed'
+    | 'registration.emailPassword'
+    | 'registration.passwordlessEmail'
+    | 'registration.complete'
     | {
         authentication?:
           | 'starting'
@@ -300,13 +294,12 @@ export interface Typegen0 {
                   }
             }
         token?: 'idle' | 'running' | { idle?: 'noErrors' | 'error' }
-        email?: 'unknown' | 'awaitingVerification' | 'valid'
-        signUp?:
+        registration?:
           | 'incomplete'
           | 'emailPassword'
           | 'passwordlessEmail'
           | 'complete'
-          | { incomplete?: 'noError' | 'failed' }
+          | { incomplete?: 'noErrors' | 'awaitingVerification' | 'failed' }
       }
   tags: 'loading'
 }

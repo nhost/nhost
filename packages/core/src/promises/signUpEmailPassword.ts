@@ -38,10 +38,10 @@ export const signUpEmailPasswordPromise = (
       })
     }
     interpreter.onTransition((state) => {
-      if (state.matches('signUp.incomplete.failed')) {
+      if (state.matches('registration.incomplete.failed')) {
         resolve({
           accessToken: null,
-          error: state.context.errors.signUp || null,
+          error: state.context.errors.registration || null,
           isError: true,
           isSuccess: false,
           needsEmailVerification: false,
@@ -50,7 +50,7 @@ export const signUpEmailPasswordPromise = (
       } else if (
         state.matches({
           authentication: { signedOut: 'noErrors' },
-          email: 'awaitingVerification'
+          registration: { incomplete: 'awaitingVerification' }
         })
       ) {
         resolve({
@@ -61,7 +61,7 @@ export const signUpEmailPasswordPromise = (
           needsEmailVerification: true,
           user: null
         })
-      } else if (state.matches({ authentication: 'signedIn' })) {
+      } else if (state.matches({ authentication: 'signedIn', registration: 'complete' })) {
         resolve({
           accessToken: state.context.accessToken.value,
           error: null,

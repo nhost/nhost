@@ -180,8 +180,10 @@ export const createAuthMachine = ({
                     onError: [
                       {
                         cond: 'unverified',
-                        actions: 'reportAwaitEmailVerification',
-                        target: '#nhost.authentication.signedOut'
+                        target: [
+                          '#nhost.authentication.signedOut',
+                          '#nhost.registration.incomplete.awaitingVerification'
+                        ]
                       },
                       {
                         actions: 'saveAuthenticationError',
@@ -327,30 +329,10 @@ export const createAuthMachine = ({
             }
           }
         },
-        email: {
-          initial: 'unknown',
-          on: {
-            SIGNED_IN: [
-              {
-                cond: 'needsVerification',
-                target: '.awaitingVerification'
-              },
-              '.valid'
-            ],
-            SIGNOUT: '.unknown',
-            AWAIT_EMAIL_VERIFICATION: '.awaitingVerification'
-          },
-          states: {
-            unknown: {},
-            awaitingVerification: {},
-            valid: {}
-          }
-        },
-        signUp: {
+        registration: {
           initial: 'incomplete',
           on: {
-            SIGNED_OUT: '.incomplete',
-            SIGNED_IN: [{ cond: 'isNotAnonymous', target: '.complete' }]
+            SIGNED_IN: [{ cond: 'isAnonymous', target: '.incomplete' }, '.complete']
           },
           states: {
             incomplete: {
@@ -358,9 +340,10 @@ export const createAuthMachine = ({
                 SIGNUP_EMAIL_PASSWORD: 'emailPassword',
                 PASSWORDLESS_EMAIL: 'passwordlessEmail'
               },
-              initial: 'noError',
+              initial: 'noErrors',
               states: {
-                noError: {},
+                noErrors: {},
+                awaitingVerification: {},
                 failed: {}
               }
             },
@@ -373,21 +356,20 @@ export const createAuthMachine = ({
                   {
                     cond: 'hasSession',
                     actions: ['saveSession', 'reportTokenChanged'],
-                    target: ['#nhost.authentication.signedIn', 'complete']
+                    target: '#nhost.authentication.signedIn'
                   },
                   {
-                    actions: 'reportAwaitEmailVerification',
-                    target: 'complete'
+                    actions: 'clearContext',
+                    target: ['#nhost.authentication.signedOut', 'incomplete.awaitingVerification']
                   }
                 ],
                 onError: [
                   {
                     cond: 'unverified',
-                    actions: 'reportAwaitEmailVerification',
-                    target: 'incomplete.failed'
+                    target: 'incomplete.awaitingVerification'
                   },
                   {
-                    actions: 'saveSignUpError',
+                    actions: 'saveRegistrationError',
                     target: 'incomplete.failed'
                   }
                 ]
@@ -399,16 +381,20 @@ export const createAuthMachine = ({
                 src: 'passwordlessEmail',
                 id: 'passwordlessEmail',
                 onDone: {
-                  actions: 'reportAwaitEmailVerification',
-                  target: 'complete'
+                  actions: 'clearContext',
+                  target: ['#nhost.authentication.signedOut', 'incomplete.awaitingVerification']
                 },
                 onError: {
-                  actions: 'saveSignUpError',
+                  actions: 'saveRegistrationError',
                   target: 'incomplete.failed'
                 }
               }
             },
-            complete: {}
+            complete: {
+              on: {
+                SIGNED_OUT: 'incomplete'
+              }
+            }
           }
         }
       }
@@ -417,8 +403,14 @@ export const createAuthMachine = ({
       actions: {
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
-        reportAwaitEmailVerification: send('AWAIT_EMAIL_VERIFICATION'),
         reportTokenChanged: send('TOKEN_CHANGED'),
+        clearContext: assign(() => {
+          storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+          storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
+          return {
+            ...INITIAL_MACHINE_CONTEXT
+          }
+        }),
         clearContextExceptRefreshToken: assign(({ refreshToken: { value } }) => {
           storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           return {
@@ -477,8 +469,8 @@ export const createAuthMachine = ({
         resetErrors: assign({
           errors: (_) => ({})
         }),
-        saveSignUpError: assign({
-          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, signUp: error })
+        saveRegistrationError: assign({
+          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
         destroyRefreshToken: assign({
           refreshToken: (_) => {
@@ -511,8 +503,7 @@ export const createAuthMachine = ({
       },
 
       guards: {
-        needsVerification: (ctx, e) => !ctx.user || ctx.user.isAnonymous,
-        isNotAnonymous: (ctx, e) => !ctx.user?.isAnonymous,
+        isAnonymous: (ctx, e) => !!ctx.user?.isAnonymous,
         isSignedIn: (ctx) => !!ctx.user && !!ctx.refreshToken.value && !!ctx.accessToken.value,
         noToken: (ctx) => !ctx.refreshToken.value,
         hasRefreshToken: (ctx) => !!ctx.refreshToken.value,

@@ -9,7 +9,6 @@ import {
   correctAnonymousHandler,
   deamonymisationSuccessfulHandler
 } from './helpers/handlers'
-import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
@@ -91,10 +90,13 @@ test('should deanonymise a user with email and password', async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: 'signedIn', signUp: 'complete' })
+    state.matches({
+      authentication: 'signedOut',
+      registration: { incomplete: 'awaitingVerification' }
+    })
   )
 
-  expect(state.context.user).toMatchObject(fakeUser)
+  expect(state.context.user).toBeNull()
 })
 
 test('should deanonymise a user with passwordless', async () => {
@@ -109,10 +111,13 @@ test('should deanonymise a user with passwordless', async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: 'signedIn', signUp: 'complete' })
+    state.matches({
+      authentication: 'signedOut',
+      registration: { incomplete: 'awaitingVerification' }
+    })
   )
 
-  expect(state.context.user).toMatchObject(fakeUser)
+  expect(state.context.user).toBeNull()
 })
 
 // TODO look at the following cases

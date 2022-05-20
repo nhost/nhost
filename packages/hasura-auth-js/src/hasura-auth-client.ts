@@ -26,8 +26,7 @@ import {
   signOutPromise,
   signUpEmailPasswordPromise,
   TOKEN_REFRESHER_RUNNING_ERROR,
-  USER_ALREADY_SIGNED_IN,
-  USER_NOT_ANONYMOUS
+  USER_ALREADY_SIGNED_IN
 } from '@nhost/core'
 
 import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'

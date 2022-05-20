@@ -109,7 +109,10 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   const needsEmailVerification = useSelector(
     service,
     (state) =>
-      state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' }),
+      state.matches({
+        authentication: { signedOut: 'noErrors' },
+        registration: { incomplete: 'awaitingVerification' }
+      }),
     (a, b) => a === b
   )
   const needsMfaOtp = useSelector(
@@ -201,19 +204,16 @@ export function useSignInEmailPasswordless(
 
   const error = useSelector(
     service,
-    (state) => state.context.errors.signUp || null,
+    (state) => state.context.errors.registration || null,
     (a, b) => a?.error === b?.error
   )
-  const isLoading = useSelector(service, (state) => state.matches('signUp.passwordlessEmail'))
+  const isLoading = useSelector(service, (state) => state.matches('registration.passwordlessEmail'))
 
   const isSuccess = useSelector(service, (state) =>
-    state.matches({
-      signUp: { incomplete: 'noError' },
-      email: 'awaitingVerification'
-    })
+    state.matches('registration.incomplete.awaitingVerification')
   )
 
-  const isError = useSelector(service, (state) => state.matches('signUp.incomplete.failed'))
+  const isError = useSelector(service, (state) => state.matches('registration.incomplete.failed'))
 
   return { signInEmailPasswordless, isLoading, isSuccess, isError, error }
 }

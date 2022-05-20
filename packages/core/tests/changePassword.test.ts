@@ -70,7 +70,7 @@ test(`should fail if there is a network error`, async () => {
   `)
 })
 
-test(`YYY should fail if server returns an error`, async () => {
+test(`should fail if server returns an error`, async () => {
   server.use(changePasswordInternalErrorHandler)
 
   changePasswordService.send({

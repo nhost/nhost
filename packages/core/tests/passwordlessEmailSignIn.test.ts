@@ -48,12 +48,12 @@ test('should fail if network is unavailable', async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "signUp": {
+      "registration": {
         "error": "OK",
         "message": "Network Error",
         "status": 200,
@@ -71,12 +71,12 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "signUp": {
+      "registration": {
         "error": "internal-error",
         "message": "Internal error",
         "status": 500,
@@ -92,12 +92,12 @@ test(`should fail if the provided email address was invalid`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('signUp.incomplete.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
       {
-        "signUp": {
+        "registration": {
           "error": "invalid-email",
           "message": "Email is incorrectly formatted",
           "status": 10,

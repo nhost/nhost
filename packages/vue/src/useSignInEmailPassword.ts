@@ -73,7 +73,10 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
   const needsEmailVerification = useSelector(
     service.value,
     (state) =>
-      state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' }),
+      state.matches({
+        authentication: { signedOut: 'noErrors' },
+        registration: { incomplete: 'awaitingVerification' }
+      }),
     (a, b) => a === b
   )
 

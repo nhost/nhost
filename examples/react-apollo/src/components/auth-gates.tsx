@@ -31,7 +31,7 @@ export const PublicGate: React.FC<
     return <div>Loading...</div>
   }
 
-  if (isAuthenticated && (anonymous || !isAnonymous)) {
+  if (isAuthenticated && !(anonymous || !isAnonymous)) {
     return <Navigate to={'/'} state={{ from: location }} replace />
   }
 
