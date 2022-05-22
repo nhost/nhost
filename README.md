@@ -4,11 +4,11 @@
 
 # Nhost
 
-<a href="https://docs.nhost.io/get-started">Quickstart</a>
+<a href="https://docs.nhost.io/#quickstart">Quickstart</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="http://nhost.io/">Website</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://docs.nhost.io/get-started">Docs</a>
+<a href="https://docs.nhost.io">Docs</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/blog">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
