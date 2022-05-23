@@ -9,10 +9,6 @@ The GraphQL API has instant support for inserting, selecting, updating, and dele
 
 It's the [Hasura GraphQL engine](https://github.com/hasura/graphql-engine) that powers the GraphQL API which means that all documentation about [queries](https://hasura.io/docs/latest/graphql/core/databases/postgres/queries/index/), [mutations](https://hasura.io/docs/latest/graphql/core/databases/postgres/mutations/index/), and [subscriptions](https://hasura.io/docs/latest/graphql/core/databases/postgres/subscriptions/index/) from Hasura's documentation is applicable.
 
-## Endpoint
-
-The GraphQL API is available at `https://[subdomain].nhost.run/v1/graphql`. When using the [CLI](/platform/cli) the GraphQL API is available at `http://localhost:1337/v1/graphql`.
-
 ## What is GraphQL
 
 GraphQL is a query language for APIs that prioritize developer experience. The GraphQL API can be used to both fetch (query) and modify (mutation) data. GraphQL is especially powerful for frontend developers who want to build products fast.
@@ -21,9 +17,13 @@ GraphQL has grown rapidly in popularity in the last years and has been adopted b
 
 Building your GraphQL API is a lot of work, but with Nhost it's easy because every table and column is instantly available in your GraphQL API.
 
+## Endpoint
+
+The GraphQL API is available at `https://[subdomain].nhost.run/v1/graphql` When using the [CLI](/platform/cli) the GraphQL API is available at `http://localhost:1337/v1/graphql`.
+
 ### GraphQL Clients for JavaScript
 
-The Nhost JavaScript client comes with a simple [GraphQL client](reference/javascript/nhost-js/graphql) that works well for the backend or simple applications.
+The Nhost JavaScript client comes with a simple [GraphQL client](/reference/javascript/nhost-js/graphql) that works well for the backend or simple applications.
 
 When building frontend applications it's recommended to use a more advanced GraphQL client such as:
 
