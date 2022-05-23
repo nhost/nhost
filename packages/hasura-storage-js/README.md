@@ -1,6 +1,6 @@
 # Hasura Storage JS SDK
 
-Hasura Auth JS SDK to handle **Auth** with [Hasura](https://hasura.io/).
+Hasura Storage JS SDK to handle **Storage** with [Hasura](https://hasura.io/).
 
 ## Install
 
