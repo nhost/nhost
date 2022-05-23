@@ -49,13 +49,13 @@ Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentati
 
 # Get Started
 
-## Nhost Hosted Platform
+## Option 1: Nhost Hosted Platform
 
 1. Sign in to [Nhost](https://app.nhost.io).
 2. Create Nhost app.
 3. Done.
 
-### Option 2: Self-hosting
+## Option 2: Self-hosting
 
 Since Nhost is 100% open source, you can self-host the whole Nhost stack. Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
 
