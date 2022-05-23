@@ -14,24 +14,11 @@ export const tokenHandler: RequestHandler<
 > = async (req, res) => {
   const { refreshToken } = req.body;
 
-  const refreshTokens = await gqlSdk
-    .getUsersByRefreshTokenOld({
+  const user = (
+    await gqlSdk.getUsersByRefreshTokenOld({
       refreshToken,
     })
-    .then((gqlres) => {
-      return gqlres.authRefreshTokens;
-    });
-
-  if (!refreshTokens) {
-    return sendError(res, 'invalid-refresh-token');
-  }
-
-  if (refreshTokens.length === 0) {
-    return sendError(res, 'invalid-refresh-token');
-  }
-
-  const user = refreshTokens[0].user;
-  const currentRefreshToken = refreshToken;
+  ).authRefreshTokens[0]?.user;
 
   if (!user) {
     return sendError(res, 'invalid-refresh-token');
@@ -41,19 +28,16 @@ export const tokenHandler: RequestHandler<
     return sendError(res, 'disabled-user');
   }
 
-  const randomNumber = Math.floor(Math.random() * 10);
-
-  // 10% chance
   // 1 in 10 request will delete expired refresh tokens
   // TODO: CRONJOB in the future.
-  if (randomNumber === 1) {
+  if (Math.random() < 0.1) {
     // no await
     gqlSdk.deleteExpiredRefreshTokens();
   }
 
   const session = await getNewOrUpdateCurrentSession({
     user,
-    currentRefreshToken,
+    currentRefreshToken: refreshToken,
   });
 
   return res.send(session);
