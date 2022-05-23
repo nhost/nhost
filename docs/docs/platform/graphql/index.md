@@ -21,11 +21,11 @@ Building your GraphQL API is a lot of work, but with Nhost it's easy because eve
 
 The GraphQL API is available at `https://[subdomain].nhost.run/v1/graphql` When using the [CLI](/platform/cli) the GraphQL API is available at `http://localhost:1337/v1/graphql`.
 
-### GraphQL Clients for JavaScript
+## GraphQL Clients for JavaScript
 
 The Nhost JavaScript client comes with a simple [GraphQL client](/reference/javascript/nhost-js/graphql) that works well for the backend or simple applications.
 
-When building frontend applications it's recommended to use a more advanced GraphQL client such as:
+When building a more complex frontend applications, we recommend using a more advanced GraphQL client such as:
 
 - [Apollo Client](https://www.apollographql.com/docs/react/)
 - [URQL](https://formidable.com/open-source/urql/)
