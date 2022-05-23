@@ -1,4 +1,4 @@
-![Nhost](https://imgur.com/fGo6E4d.png)
+![Nhost](https://imgur.com/t2CxRLx.png)
 
 <div align="center">
 
@@ -20,12 +20,12 @@
   <hr />
 </div>
 
-**Nhost is an open-source GraphQL backend,** built with the following things in mind:
+**Nhost is an open source Firebase alternative with GraphQL,** built with the following things in mind:
 
-- Open-Source
-- Developer Productivity
-- SQL
+- Open Source
 - GraphQL
+- SQL
+- Great Developer Experience
 
 Nhost consists of open source software:
 
@@ -47,19 +47,19 @@ Nhost consists of open source software:
 
 Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
 
-# How to get started
+# Get Started
 
-### Option 1: One-click deployment with Nhost (recommended)
+## Nhost Hosted Platform
 
-1. Create [Nhost account](https://app.nhost.io) (you can use GitHub to sign up)
-2. Create Nhost app
-3. Done!
+1. Sign in to [Nhost](https://app.nhost.io).
+2. Create Nhost app.
+3. Done.
 
 ### Option 2: Self-hosting
 
 Since Nhost is 100% open source, you can self-host the whole Nhost stack. Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
 
-## Sign in a user and make your first GraphQL query
+## Sign In and Make A GraphQL Request
 
 Install the `@nhost/nhost-js` package and start build your app:
 
