@@ -108,6 +108,7 @@
     "@types/passport-github2": "1.2.4",
     "@types/passport-google-oauth20": "2.0.3",
     "@types/passport-linkedin-oauth2": "^1.5.1",
+    "@types/passport-oauth2": "^1.4.11",
     "@types/passport-oauth2-refresh": "^1.1.1",
     "@types/passport-spotify": "^1.1.0",
     "@types/passport-twitter": "^1.0.34",
