@@ -103,6 +103,7 @@ Nhost libraries and tools
 - [Nhost CLI](https://docs.nhost.io/reference/cli)
 - [Nhost React](https://docs.nhost.io/reference/react)
 - [Nhost Next.js](https://docs.nhost.io/reference/nextjs)
+- [Nhost Vue](https://docs.nhost.io/reference/vue)
 
 ## Community ❤️
 
