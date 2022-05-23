@@ -206,13 +206,20 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/heygambo">
+            <img src="https://avatars.githubusercontent.com/u/449438?v=4" width="100;" alt="heygambo"/>
+            <br />
+            <sub><b>Christian Gambardella</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
         <a href="https://github.com/chrtze">
             <img src="https://avatars.githubusercontent.com/u/3797215?v=4" width="100;" alt="chrtze"/>
             <br />
             <sub><b>Christopher Möller</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/dbarrosop">
             <img src="https://avatars.githubusercontent.com/u/6246622?v=4" width="100;" alt="dbarrosop"/>
@@ -247,15 +254,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Mustafa Hanif</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/timpratim">
             <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
             <br />
             <sub><b>Pratim</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/Savinvadim1312">
             <img src="https://avatars.githubusercontent.com/u/16936043?v=4" width="100;" alt="Savinvadim1312"/>
@@ -275,13 +282,6 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/30059155?v=4" width="100;" alt="akd-io"/>
             <br />
             <sub><b>Anders Kjær Damgaard</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/heygambo">
-            <img src="https://avatars.githubusercontent.com/u/449438?v=4" width="100;" alt="heygambo"/>
-            <br />
-            <sub><b>Christian Gambardella</b></sub>
         </a>
     </td>
     <td align="center">
