@@ -22,7 +22,7 @@
       "permanent": true
     },
     {
-      "source": "get-started/upgrade",
+      "source": "/get-started/upgrade",
       "destination": "https://nhost.io/blog/migrate-from-nhost-v1-to-v2",
       "permanent": true
     },
