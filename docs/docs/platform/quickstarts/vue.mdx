@@ -514,7 +514,7 @@ composable to execute that query when the user submits the form from the profile
 
 ```markup title="src/pages/profile.vue"
 <script setup lang="ts">
-  import { gql } from '@apollo/client'
+  import { gql } from '@apollo/client/core'
   import { useNhostClient, useUserData } from '@nhost/vue'
   import { useMutation } from '@vue/apollo-composable'
   import { ref } from 'vue'
@@ -600,7 +600,7 @@ Finally, to add real-time caching, synchronizing, and updating server state in y
 First add the following GraphQL subscription to retrieve the current user data component:
 
 ```ts title="src/pages/profile.vue"
-import { gql } from '@apollo/client'
+import { gql } from '@apollo/client/core'
 
 const GET_USER_SUBSCRIPTION = gql`
   subscription GetUser($id: uuid!) {
@@ -627,7 +627,7 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
 
 ```markup title="src/pages/profile.vue"
 <script setup lang="ts">
-  import { gql } from '@apollo/client'
+  import { gql } from '@apollo/client/core'
   import { useNhostClient, useUserId } from '@nhost/vue'
   import { useMutation, useSubscription } from '@vue/apollo-composable'
   import { computed, ref } from 'vue'
