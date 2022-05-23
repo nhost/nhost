@@ -57,7 +57,7 @@ You can now use all [Apollo Vue composables](https://v4.apollo.vuejs.org/guide-c
 ```html
 <script setup>
   import { useQuery } from '@vue/apollo-composable'
-  import { gql } from '@apollo/client'
+  import { gql } from '@apollo/client/core'
 
   const { loading, result, error } = useQuery(gql`
     query Books {

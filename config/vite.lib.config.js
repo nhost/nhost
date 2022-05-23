@@ -53,6 +53,7 @@ export default defineConfig({
         globals: {
           'graphql/language/printer': 'graphql/language/printer',
           '@apollo/client': '@apollo/client',
+          '@apollo/client/core': '@apollo/client/core',
           '@apollo/client/link/context': '@apollo/client/link/context',
           '@apollo/client/link/subscriptions': '@apollo/client/link/subscriptions',
           '@apollo/client/utilities': '@apollo/client/utilities',
