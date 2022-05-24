@@ -132,7 +132,7 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, middleware ...gin.H
 
 	router.GET("/healthz", ctrl.Health)
 
-	apiRoot := router.Group("/v1/storage")
+	apiRoot := router.Group("/v1")
 	{
 		apiRoot.GET("/openapi.yaml", ctrl.OpenAPI)
 		apiRoot.GET("/version", ctrl.Version)

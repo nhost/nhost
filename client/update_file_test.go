@@ -1,3 +1,4 @@
+//go:build integration
 // +build integration
 
 package client_test
@@ -31,7 +32,7 @@ func updateFile(
 }
 
 func TestUpdateFile(t *testing.T) {
-	baseURL := "http://localhost:8000/v1/storage"
+	baseURL := "http://localhost:8000/v1"
 	cl := client.New(baseURL, os.Getenv("HASURA_AUTH_BEARER"))
 
 	id1 := uuid.NewString()

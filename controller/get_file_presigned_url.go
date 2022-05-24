@@ -47,7 +47,7 @@ func (ctrl *Controller) getFilePresignedURL(ctx *gin.Context) (GetFilePresignedU
 			apiErr.ExtendError(fmt.Sprintf("problem creating presigned URL for file %s", fileMetadata.Name))
 	}
 
-	url := fmt.Sprintf("%s/v1/storage/files/%s/presignedurl/content?%s", ctrl.publicURL, fileMetadata.ID, signature)
+	url := fmt.Sprintf("%s/v1/files/%s/presignedurl/content?%s", ctrl.publicURL, fileMetadata.ID, signature)
 	return GetFilePresignedURLResponse{nil, url, bucketMetadata.DownloadExpiration}, nil
 }
 

@@ -177,7 +177,7 @@ func TestUploadFile(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/storage/files/", body)
+			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/files/", body)
 
 			req.Header.Set("Content-Type", contentType)
 

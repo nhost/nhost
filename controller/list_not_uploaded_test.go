@@ -88,7 +88,7 @@ func TestListNotUploaded(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/storage/ops/list-not-uploaded", nil)
+			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/ops/list-not-uploaded", nil)
 
 			router.ServeHTTP(responseRecorder, req)
 

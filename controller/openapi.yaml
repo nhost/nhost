@@ -9,7 +9,7 @@ info:
     name: LICENSE-TBD
     url: https://LICENSE-TBD
 servers:
-  - url: http://{domain}:{port}/v1/storage
+  - url: http://{domain}:{port}/v1
     description: The development API server
     variables:
       domain:

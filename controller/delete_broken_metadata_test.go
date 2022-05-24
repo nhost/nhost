@@ -107,7 +107,7 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/storage/ops/delete-broken-metadata", nil)
+			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/ops/delete-broken-metadata", nil)
 
 			router.ServeHTTP(responseRecorder, req)
 

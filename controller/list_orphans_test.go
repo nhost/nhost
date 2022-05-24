@@ -78,7 +78,7 @@ func TestListOrphans(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/storage/ops/list-orphans", nil)
+			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/ops/list-orphans", nil)
 
 			router.ServeHTTP(responseRecorder, req)
 

@@ -100,7 +100,7 @@ func TestListBrokenMetadata(t *testing.T) {
 
 			responseRecorder := httptest.NewRecorder()
 
-			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/storage/ops/list-broken-metadata", nil)
+			req, _ := http.NewRequestWithContext(context.Background(), "POST", "/v1/ops/list-broken-metadata", nil)
 
 			router.ServeHTTP(responseRecorder, req)
 

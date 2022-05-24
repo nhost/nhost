@@ -99,7 +99,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 			req, err := http.NewRequestWithContext(
 				context.Background(),
 				"GET",
-				"/v1/storage/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl",
+				"/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl",
 				nil,
 			)
 			if err != nil {
@@ -121,7 +121,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 
 			if tc.fileFound {
 				assert(t, resp, &controller.GetFilePresignedURLResponse{
-					URL:        "http://asd/v1/storage/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl/content?this-is-the-signature", // nolint: lll
+					URL:        "http://asd/v1/files/55af1e60-0f28-454e-885e-ea6aab2bb288/presignedurl/content?this-is-the-signature", // nolint: lll
 					Expiration: 30,
 				})
 			} else {
