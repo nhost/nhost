@@ -59,7 +59,7 @@ Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentati
 
 Since Nhost is 100% open source, you can self-host the whole Nhost stack. Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
 
-## Sign In and Make A GraphQL Request
+## Sign In and Make a Graphql Request
 
 Install the `@nhost/nhost-js` package and start build your app:
 
