@@ -6,9 +6,21 @@ import { NhostGraphqlClient } from '../clients/graphql'
 
 export interface NhostClientConstructorParams extends Omit<NhostAuthConstructorParams, 'url'> {
   /**
-   * Nhost backend URL and Region.
+   * Nhost backend URL
+   * Will be deprecated in favor of `subdomain` and `region`
    */
-  backendUrl: string
+  backendUrl?: string
+
+  /**
+   * App subdomain (e.g., ifieniwenfiwenwng)
+   * Use `localhost` in development
+   */
+  subdomain?: string
+
+  /**
+   * App region (e.g. eu-central-1)
+   * Optional in development
+   */
   region?: string
 }
 
@@ -23,12 +35,13 @@ export class NhostClient {
    * Nhost Client
    *
    * @example
-   * const nhost = new NhostClient({ url });
+   * const nhost = new NhostClient({ subdomain, region });
    *
    * @docs https://docs.nhost.io/reference/javascript
    */
   constructor({
     backendUrl,
+    subdomain,
     region,
     refreshIntervalTime,
     clientStorageGetter,
@@ -40,13 +53,27 @@ export class NhostClient {
     devTools,
     start = true
   }: NhostClientConstructorParams) {
-    if (!backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
+    if (!backendUrl && !subdomain)
+      throw new Error('Please specify either `backendUrl` or `subdomain`. Docs: [todo]!')
 
-    const subdomain = new URL(backendUrl).host.split('.')[0]
+    if (subdomain && subdomain !== 'localhost' && !region)
+      throw new Error('When using a subdomain, please specify a region.')
 
-    let url = region ? `${subdomain}.auth.${region}.nhost.run/v1` : `${backendUrl}/v1/auth`
+    const urlFromEnv = (
+      backendUrl?: string,
+      subdomain?: string,
+      region?: string,
+      service?: string
+    ) => {
+      if (backendUrl) return `${backendUrl}/v1/${service}`
+
+      if (subdomain === 'localhost') return `http://${subdomain}`
+
+      return `${subdomain}.${service}.${region}.nhost.run/v1`
+    }
+
     this.auth = new HasuraAuthClient({
-      url,
+      url: urlFromEnv(backendUrl, subdomain, region, 'auth'),
       refreshIntervalTime,
       clientStorageGetter,
       clientStorageSetter,
@@ -57,14 +84,17 @@ export class NhostClient {
       start
     })
 
-    url = region ? `${subdomain}.storage.${region}.nhost.run/v1` : `${backendUrl}/v1/storage`
-    this.storage = new HasuraStorageClient({ url })
+    this.storage = new HasuraStorageClient({
+      url: urlFromEnv(backendUrl, subdomain, region, 'storage')
+    })
 
-    url = region ? `${subdomain}.functions.${region}.nhost.run/v1` : `${backendUrl}/v1/functions`
-    this.functions = new NhostFunctionsClient({ url })
+    this.functions = new NhostFunctionsClient({
+      url: urlFromEnv(backendUrl, subdomain, region, 'functions')
+    })
 
-    url = region ? `${subdomain}.graphql.${region}.nhost.run/v1` : `${backendUrl}/v1/graphql`
-    this.graphql = new NhostGraphqlClient({ url })
+    this.graphql = new NhostGraphqlClient({
+      url: urlFromEnv(backendUrl, subdomain, region, 'graphql')
+    })
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())
