@@ -25,9 +25,11 @@ The GraphQL API is available at `https://[subdomain].nhost.run/v1/graphql` When 
 
 The Nhost JavaScript client comes with a simple [GraphQL client](/reference/javascript/nhost-js/graphql) that works well for the backend or simple applications.
 
-When building a more complex frontend applications, we recommend using a more advanced GraphQL client such as:
+When building more complex frontend applications, we recommend using a more advanced GraphQL client such as:
 
-- [Apollo Client](https://www.apollographql.com/docs/react/)
+- [Apollo Client](https://www.apollographql.com/docs/react/):
+  - [Nhost Apollo Client for React](/reference/react/apollo)
+  - [Nhost Apollo Client for Vue](/reference/vue/apollo)
 - [URQL](https://formidable.com/open-source/urql/)
 - [React Query](https://react-query.tanstack.com/graphql)
 - [SWR](https://swr.vercel.app/docs/data-fetching#graphql)
