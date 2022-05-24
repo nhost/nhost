@@ -57,7 +57,7 @@ export class NhostClient {
       throw new Error('Please specify either `backendUrl` or `subdomain`. Docs: [todo]!')
 
     if (subdomain && subdomain !== 'localhost' && !region)
-      throw new Error('When using a subdomain, please specify a region.')
+      throw new Error('`region` is required when using `subdomain` (except for "localhost").')
 
     const urlFromEnv = (
       backendUrl?: string,
