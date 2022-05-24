@@ -132,6 +132,14 @@ export const ERRORS = asErrors({
     status: StatusCodes.BAD_REQUEST,
     message: 'Incorrect sign in method',
   },
+  'cannot-send-sms': {
+    status: StatusCodes.INTERNAL_SERVER_ERROR,
+    message: 'Error sending SMS',
+  },
+  'invalid-sms-provider-type': {
+    status: StatusCodes.INTERNAL_SERVER_ERROR,
+    message: 'Absent or invalid SMS provider type',
+  },
 });
 
 export const sendError = (

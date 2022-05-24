@@ -7,10 +7,12 @@ import {
   generateTicketExpiresAt,
   ENV,
   createEmailRedirectionLink,
+  getUserByEmail,
 } from '@/utils';
 import { emailClient } from '@/email';
 import { Joi, email, redirectTo } from '@/validation';
 import { EMAIL_TYPES } from '@/types';
+import { sendError } from '@/errors';
 
 export const userEmailChangeSchema = Joi.object({
   newEmail: email,
@@ -38,6 +40,11 @@ export const userEmailChange: RequestHandler<
 
   const ticket = `${EMAIL_TYPES.CONFIRM_CHANGE}:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60); // 1 hour
+
+  // * Send an error if the new email is already used by another user
+  if (await getUserByEmail(newEmail)) {
+    return sendError(res, 'email-already-in-use');
+  }
 
   // set newEmail for user
   const updatedUserResponse = await gqlSdk.updateUser({

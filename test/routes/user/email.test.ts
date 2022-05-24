@@ -1,18 +1,24 @@
 import { Client } from 'pg';
 import { v4 as uuidv4 } from 'uuid';
 import { StatusCodes } from 'http-status-codes';
+import * as faker from 'faker';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
-import { expectUrlParameters, mailHogSearch } from '../../utils';
+import {
+  expectUrlParameters,
+  mailHogSearch,
+  getUrlParameters,
+} from '../../utils';
+import { ERRORS } from '@/errors';
 
 describe('user email', () => {
   let client: Client;
   let accessToken: string | undefined;
   let body: SignInResponse | undefined;
-  const email = 'asdasd@asdasd.com';
-  const password = '123123123';
+  const email = faker.internet.email();
+  const password = faker.internet.password(8);
 
   beforeAll(async () => {
     client = new Client({
@@ -55,7 +61,7 @@ describe('user email', () => {
 
     // request to reset (to-change) email
 
-    const newEmail = 'newemail@example.com';
+    const newEmail = faker.internet.email();
 
     await request
       .post('/user/email/change')
@@ -110,6 +116,58 @@ describe('user email', () => {
       .send({ email: newEmail, password })
       .expect(StatusCodes.OK);
   });
+  it('should not allow changing the email to one that is already used by another user', async () => {
+    expect(body?.session).toBeTruthy();
+
+    // * Create another account
+    const existingEmail = faker.internet.email();
+    await request
+      .post('/signup/email-password')
+      .send({ email: existingEmail, password: faker.internet.password(8) })
+      .expect(StatusCodes.OK);
+
+    const res = await request
+      .post('/user/email/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newEmail: existingEmail })
+      .expect(StatusCodes.CONFLICT);
+    expect(res.body).toMatchObject(ERRORS['email-already-in-use']);
+  });
+
+  it('should not allow changing the email to one that has been created after sending the verification link', async () => {
+    expect(body?.session).toBeTruthy();
+
+    const existingEmail = faker.internet.email();
+
+    await request
+      .post('/user/email/change')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ newEmail: existingEmail })
+      .expect(StatusCodes.OK);
+
+    // * In the meantime, create another account with the same email
+    await request
+      .post('/signup/email-password')
+      .send({ email: existingEmail, password: faker.internet.password(8) })
+      .expect(StatusCodes.OK);
+
+    // get ticket on new email
+    const [message] = await mailHogSearch(existingEmail);
+    expect(message).toBeTruthy();
+
+    const link = message.Content.Headers['X-Link'][0];
+
+    // wrong ticket should fail
+    const res = await request
+      .get(link.replace('http://localhost:4000', ''))
+      .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    const urlParams = getUrlParameters(res);
+    expect(urlParams.get('error')).toEqual('email-already-in-use');
+    expect(urlParams.get('errorDescription')).toEqual(
+      ERRORS['email-already-in-use'].message
+    );
+  });
 
   it('change email with redirect', async () => {
     expect(body?.session).toBeTruthy();
@@ -118,7 +176,7 @@ describe('user email', () => {
       redirectTo: 'http://localhost:3000/email-redirect',
     };
 
-    const newEmail = 'newemail@example.com';
+    const newEmail = faker.internet.email();
 
     await request
       .post('/user/email/change')

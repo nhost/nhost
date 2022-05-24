@@ -7,7 +7,7 @@ import {
   mailHogSearch,
   deleteAllMailHogEmails,
   expectUrlParameters,
-  urlParameters,
+  getUrlParameters,
 } from '../../utils';
 
 const params = {
@@ -100,7 +100,7 @@ describe('Redirections', () => {
       .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
-    const resParams = urlParameters(res);
+    const resParams = getUrlParameters(res);
     expect(Array.from(resParams.keys())).toIncludeAllMembers(
       Object.keys(params)
     );
@@ -111,5 +111,24 @@ describe('Redirections', () => {
       'error',
       'errorDescription',
     ]);
+  });
+
+  it('should not allow a locale of more than two characters', async () => {
+    const email = faker.internet.email();
+
+    const { body } = await request
+      .post('/signin/passwordless/email')
+      .send({
+        email,
+        options: {
+          locale: 'en-us',
+        },
+      })
+      .expect(StatusCodes.BAD_REQUEST);
+
+    expect(body).toBeObject();
+    expect(body.message).toEqual(
+      '"options.locale" length must be 2 characters long'
+    );
   });
 });

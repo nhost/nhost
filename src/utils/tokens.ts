@@ -17,6 +17,15 @@ function newRefreshExpiry() {
   return date;
 }
 
+const updateRefreshTokenExpiry = async (refreshToken: string) => {
+  await gqlSdk.getUsersByRefreshTokenAndUpdateRefreshTokenExpiresAt({
+    refreshToken,
+    expiresAt: new Date(newRefreshExpiry()),
+  });
+
+  return refreshToken;
+};
+
 export const getNewRefreshToken = async (
   userId: string,
   refreshToken = uuidv4()
@@ -32,10 +41,18 @@ export const getNewRefreshToken = async (
   return refreshToken;
 };
 
-export const getNewSession = async ({
+/**
+ * Get new or update current user session
+ *
+ * @param userAndToken - User field fragment and current refresh token if any
+ * @returns Returns new user session if no valid current refresh token is passed, otherwise update current session
+ */
+export const getNewOrUpdateCurrentSession = async ({
   user,
+  currentRefreshToken,
 }: {
   user: UserFieldsFragment;
+  currentRefreshToken?: string;
 }): Promise<Session> => {
   // update user's last seen
   gqlSdk.updateUser({
@@ -48,7 +65,10 @@ export const getNewSession = async ({
   const sessionUser = await getUser({ userId: user.id });
 
   const accessToken = await createHasuraAccessToken(user);
-  const refreshToken = await getNewRefreshToken(user.id);
+  const refreshToken =
+    (currentRefreshToken &&
+      (await updateRefreshTokenExpiry(currentRefreshToken))) ||
+    (await getNewRefreshToken(user.id));
 
   return {
     accessToken,
@@ -94,7 +114,7 @@ export const getSignInResponse = async ({
     };
   }
 
-  const session = await getNewSession({ user });
+  const session = await getNewOrUpdateCurrentSession({ user });
 
   return {
     session,

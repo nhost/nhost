@@ -29,6 +29,7 @@ import { verifySchema } from '@/routes/verify/verify';
 import * as responses from './responses';
 import { Joi } from '@/validation';
 import { pascalCase } from 'pascal-case';
+import { verifyTokenSchema } from '@/routes/token/verify';
 
 const schema: Record<string, unknown> & { components: SwaggerSchema } = {
   tags: [],
@@ -52,6 +53,7 @@ const requestSchemas = [
   userDeanonymizeSchema,
   userProviderTokensSchema,
   tokenSchema,
+  verifyTokenSchema,
   providerCallbackQuerySchema,
   verifySchema,
 ];

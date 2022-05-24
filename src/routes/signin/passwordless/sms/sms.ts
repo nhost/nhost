@@ -104,8 +104,7 @@ export const signInPasswordlessSmsHandler: RequestHandler<
         userId: user.id,
       });
     }
-
-    throw Error('Error sending SMS');
+    return sendError(res, 'cannot-send-sms');
   }
 
   return res.send(ReasonPhrases.OK);
