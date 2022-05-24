@@ -61,19 +61,22 @@ export const metadata = Joi.object().default({}).example({
   lastName: 'Smith',
 });
 
-export const redirectTo = Joi.alternatives()
-  .default(ENV.AUTH_CLIENT_URL)
-  .try(
-    ...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map((value) =>
-      Joi.string()
-        .lowercase()
-        .regex(new RegExp('^' + value))
-    ),
-    Joi.string()
-      .lowercase()
-      .regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
-  )
-  .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`);
+export const redirectTo = ENV.AUTH_CLIENT_URL
+  ? Joi.alternatives()
+      .default(ENV.AUTH_CLIENT_URL)
+      .try(
+        ...ENV.AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS.map((value) =>
+          Joi.string()
+            .lowercase()
+            .regex(new RegExp('^' + value))
+        ),
+        Joi.string()
+          .lowercase()
+          .regex(new RegExp('^' + ENV.AUTH_CLIENT_URL))
+      )
+      // // ? Problem? if validation fails, it will always fall back to `ENV.AUTH_CLIENT_URL` instead of raising an error.
+      .example(`${ENV.AUTH_CLIENT_URL}/catch-redirection`)
+  : Joi.string().uri();
 
 export const uuid = Joi.string()
   .regex(uuidRegex)

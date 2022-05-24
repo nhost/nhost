@@ -67,7 +67,6 @@ export const userPasswordResetHandler: RequestHandler<
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
       displayName: user.displayName,
       serverUrl: ENV.AUTH_SERVER_URL,
-      clientUrl: ENV.AUTH_CLIENT_URL,
     },
     message: {
       to: email,
