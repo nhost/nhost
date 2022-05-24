@@ -1,4 +1,4 @@
-![Nhost](https://imgur.com/t2CxRLx.png)
+![Nhost](https://i.imgur.com/FrcdOZg.png)
 
 <div align="center">
 
