@@ -1,6 +1,27 @@
 
 
-## [0.7.1](https://github.com/nhost/hasura-auth/compare/v0.7.0...v0.7.1) (2022-04-28)
+# [0.8.0](https://github.com/nhost/hasura-auth/compare/v0.7.1...v0.8.0) (2022-05-24)
+
+
+### Bug Fixes
+
+* **token:** reuse and update expiration date of a valid refresh token instead of invalidating it and creating a new one ([7583997](https://github.com/nhost/hasura-auth/commit/7583997e45f323005a23f8b4b2aaa83ef27d3dea)), closes [#65](https://github.com/nhost/hasura-auth/issues/65)
+* check locales are not more than two characters ([e2eac38](https://github.com/nhost/hasura-auth/commit/e2eac3897a6d666996d501aca9b73c73fd24be28))
+* check the new email is not already in use before changing it ([0436574](https://github.com/nhost/hasura-auth/commit/043657441c009b3bc8ccf491f1d5aa2ad7fe55ab))
+* return standard error codes in sms passwordless sign-in ([74087dd](https://github.com/nhost/hasura-auth/commit/74087dda41d6aa024e7f1097523d84f68bd1b247))
+* Verify Twillio configuration before using it
+* Don't delete the user if sending message with Twillio fails, closes [#79](https://github.com/nhost/hasura-auth/issues/79)
+* Check user is active when authenticating with SMS passwordless, closes [#99](https://github.com/nhost/hasura-auth/issues/99)
+
+
+### Features
+
+* **token:** add verify token endpoint ([0a3457a](https://github.com/nhost/hasura-auth/commit/0a3457a1008f69491d74677dfc4b671de8afbb0a)), closes [#83](https://github.com/nhost/hasura-auth/issues/83)
+
+
+### Reverts
+
+* Revert "Return signIn responses for passwordless" ([363bbbc](https://github.com/nhost/hasura-auth/commit/363bbbceb30bf89a878fc1db984e8c9493ed4371))## [0.7.1](https://github.com/nhost/hasura-auth/compare/v0.7.0...v0.7.1) (2022-04-28)
 
 
 ### Features
