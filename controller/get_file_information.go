@@ -164,6 +164,7 @@ func (ctrl *Controller) getFileInformationProcess(ctx *gin.Context) (*FileRespon
 	}
 
 	return NewFileResponse(
+		fileMetadata.ID,
 		fileMetadata.MimeType,
 		fileMetadata.Size,
 		fileMetadata.ETag,

@@ -164,8 +164,8 @@ func (ctrl *Controller) processFileToDownload(
 			return nil, apiErr
 		}
 	}
-
 	return NewFileResponse(
+		fileMetadata.ID,
 		fileMetadata.MimeType,
 		contentLength,
 		etag,

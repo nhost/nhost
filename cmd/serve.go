@@ -10,6 +10,7 @@ import (
 	"github.com/nhost/hasura-storage/controller"
 	"github.com/nhost/hasura-storage/image"
 	"github.com/nhost/hasura-storage/metadata"
+	"github.com/nhost/hasura-storage/middleware/cdn/fastly"
 	"github.com/nhost/hasura-storage/migrations"
 	"github.com/nhost/hasura-storage/storage"
 	"github.com/sirupsen/logrus"
@@ -32,6 +33,8 @@ const (
 	s3RootFolderFlag             = "s3-root-folder"
 	postgresMigrationsFlag       = "postgres-migrations"
 	postgresMigrationsSourceFlag = "postgres-migrations-source"
+	fastlyServiceFlag            = "fastly-service"
+	fastlyKeyFlag                = "fastly-key"
 )
 
 func ginLogger(logger *logrus.Logger) gin.HandlerFunc {
@@ -81,7 +84,17 @@ func getGin(
 
 	ctrl := controller.New(publicURL, hasuraAdminSecret, metadataStorage, contentStorage, imageTransformer, logger)
 
-	return ctrl.SetupRouter(trustedProxies, ginLogger(logger)) // nolint: wrapcheck
+	middlewares := []gin.HandlerFunc{
+		ginLogger(logger),
+	}
+
+	fastlyService := viper.GetString(fastlyServiceFlag)
+	if fastlyService != "" {
+		logger.Info("enabling fastly middleware")
+		middlewares = append(middlewares, fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger))
+	}
+
+	return ctrl.SetupRouter(trustedProxies, middlewares...) // nolint: wrapcheck
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
@@ -181,6 +194,11 @@ func init() {
 	{
 		addBoolFlag(serveCmd.Flags(), hasuraMetadataFlag, false, "Apply Hasura's metadata")
 		addStringFlag(serveCmd.Flags(), hasuraAdminSecretFlag, "", "")
+	}
+
+	{
+		addStringFlag(serveCmd.Flags(), fastlyServiceFlag, "", "Enable Fastly middleware and enable automated purges")
+		addStringFlag(serveCmd.Flags(), fastlyKeyFlag, "", "Fastly CDN Key to authenticate purges")
 	}
 }
 

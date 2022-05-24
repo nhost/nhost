@@ -24,6 +24,8 @@ func (ctrl *Controller) deleteFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		return FileMetadata{}, apiErr
 	}
 
+	ctx.Set("FileChanged", id)
+
 	return fileMetadata.FileMetadata, nil
 }
 

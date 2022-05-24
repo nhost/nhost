@@ -18,6 +18,7 @@ func timeFromRFC3339ToRFC1123(t string) (string, *APIError) {
 }
 
 type FileResponse struct {
+	fileID        string
 	contentType   string
 	contentLength int64
 	etag          string
@@ -30,6 +31,7 @@ type FileResponse struct {
 }
 
 func NewFileResponse(
+	fileID string,
 	contentType string,
 	contentLength int64,
 	etag string,
@@ -41,6 +43,7 @@ func NewFileResponse(
 	headers http.Header,
 ) *FileResponse {
 	return &FileResponse{
+		fileID:        fileID,
 		contentType:   contentType,
 		contentLength: contentLength,
 		etag:          etag,
@@ -62,12 +65,17 @@ func (r *FileResponse) Write(ctx *gin.Context) {
 		}
 	}
 
-	ctx.Header("Content-Length", fmt.Sprintf("%d", r.contentLength))
-	ctx.Header("Content-Type", r.contentType)
+	if r.statusCode != http.StatusNotModified {
+		// https://www.rfc-editor.org/rfc/rfc7232#section-4.1
+		ctx.Header("Content-Length", fmt.Sprintf("%d", r.contentLength))
+		ctx.Header("Content-Type", r.contentType)
+		ctx.Header("Surrogate-Key", r.fileID)
+		ctx.Header("Last-modified", r.lastModified)
+	}
 
-	ctx.Header("Etag", r.etag)
+	ctx.Header("Surrogate-Control", "max-age=604800")
 	ctx.Header("Cache-Control", r.cacheControl)
-	ctx.Header("Last-modified", r.lastModified)
+	ctx.Header("Etag", r.etag)
 
 	if r.body != nil && (r.statusCode == http.StatusOK || r.statusCode == http.StatusPartialContent) {
 		ctx.Writer.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s"`, r.name))

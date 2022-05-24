@@ -104,6 +104,8 @@ func (ctrl *Controller) updateFile(ctx *gin.Context) (FileMetadata, *APIError) {
 		return FileMetadata{}, apiErr.ExtendError(fmt.Sprintf("problem populating file metadata for file %s", file.Name))
 	}
 
+	ctx.Set("FileChanged", file.ID)
+
 	return newMetadata, nil
 }
 

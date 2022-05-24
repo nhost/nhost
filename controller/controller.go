@@ -103,7 +103,7 @@ func New(
 	}
 }
 
-func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerFunc) (*gin.Engine, error) {
+func (ctrl *Controller) SetupRouter(trustedProxies []string, middleware ...gin.HandlerFunc) (*gin.Engine, error) {
 	router := gin.New()
 	if err := router.SetTrustedProxies(trustedProxies); err != nil {
 		return nil, fmt.Errorf("problem setting trusted proxies: %w", err)
@@ -111,7 +111,11 @@ func (ctrl *Controller) SetupRouter(trustedProxies []string, logger gin.HandlerF
 
 	router.MaxMultipartMemory = 1000 << 20 // nolint:gomnd  // 1GB
 	router.Use(gin.Recovery())
-	router.Use(logger)
+
+	for _, mw := range middleware {
+		router.Use(mw)
+	}
+
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{"*"},
 		AllowMethods: []string{"GET", "PUT", "POST", "HEAD", "DELETE"},
