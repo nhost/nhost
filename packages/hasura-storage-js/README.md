@@ -1,6 +1,15 @@
-# Hasura Storage JS SDK
+<h1 align="center">@nhost/hasura-storage-js</h1>
+<h2 align="center">Hasura Storage SDK</h2>
 
-Hasura Auth JS SDK to handle **Auth** with [Hasura](https://hasura.io/).
+<p align="center">
+  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/hasura-storage-js">
+  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/hasura-storage-js">
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
+  </a>
+</p>
+
+Hasura JS SDK to handle **Storage** with [Hasura](https://hasura.io/).
 
 ## Install
 
