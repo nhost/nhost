@@ -28,7 +28,7 @@ yarn add @nhost/nhost-js
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://xxx.nhost.run'
+  backendUrl: 'https://subdomain.nhost.run'
 })
 ```
 

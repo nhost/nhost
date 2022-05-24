@@ -6,9 +6,10 @@ import { NhostGraphqlClient } from '../clients/graphql'
 
 export interface NhostClientConstructorParams extends Omit<NhostAuthConstructorParams, 'url'> {
   /**
-   * Nhost backend URL.
+   * Nhost backend URL and Region.
    */
   backendUrl: string
+  region?: string
 }
 
 export class NhostClient {
@@ -28,6 +29,7 @@ export class NhostClient {
    */
   constructor({
     backendUrl,
+    region,
     refreshIntervalTime,
     clientStorageGetter,
     clientStorageSetter,
@@ -39,8 +41,12 @@ export class NhostClient {
     start = true
   }: NhostClientConstructorParams) {
     if (!backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
+
+    const subdomain = new URL(backendUrl).host.split('.')[0]
+
+    let url = region ? `${subdomain}.auth.${region}.nhost.run/v1` : `${backendUrl}/v1/auth`
     this.auth = new HasuraAuthClient({
-      url: `${backendUrl}/v1/auth`,
+      url,
       refreshIntervalTime,
       clientStorageGetter,
       clientStorageSetter,
@@ -51,17 +57,14 @@ export class NhostClient {
       start
     })
 
-    this.storage = new HasuraStorageClient({
-      url: `${backendUrl}/v1/storage`
-    })
+    url = region ? `${subdomain}.storage.${region}.nhost.run/v1` : `${backendUrl}/v1/storage`
+    this.storage = new HasuraStorageClient({ url })
 
-    this.functions = new NhostFunctionsClient({
-      url: `${backendUrl}/v1/functions`
-    })
+    url = region ? `${subdomain}.functions.${region}.nhost.run/v1` : `${backendUrl}/v1/functions`
+    this.functions = new NhostFunctionsClient({ url })
 
-    this.graphql = new NhostGraphqlClient({
-      url: `${backendUrl}/v1/graphql`
-    })
+    url = region ? `${subdomain}.graphql.${region}.nhost.run/v1` : `${backendUrl}/v1/graphql`
+    this.graphql = new NhostGraphqlClient({ url })
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())
