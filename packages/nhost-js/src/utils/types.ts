@@ -15,24 +15,18 @@ type BackendUrl = {
 type Subdomain = {
   /**
    * App subdomain (e.g, ieingiwnginwnfnegqwvdqwdwq)
+   * Use "localhost" in development
    */
   subdomain: string
 
   /**
    * App region (e.g., eu-central-1)
+   * Not required in development
    */
-  region: string
+  region?: string
 }
 
-type Localhost = {
-  /**
-   * Use "localhost" in development
-   * App region not required
-   */
-  subdomain: 'localhost'
-}
-
-export type BackendOrSubdomain = BackendUrl | Subdomain | Localhost
+export type BackendOrSubdomain = BackendUrl | Subdomain
 
 export type NhostClientConstructorParams = BackendOrSubdomain &
   Omit<NhostAuthConstructorParams, 'url'>
