@@ -20,23 +20,13 @@ The Nhost Next.js client exports a React provider for Next.js and React hooks th
 
 Install the Nhost Next.js client, React client together with GraphQL:
 
-<Tabs groupId="package-manager">
-  <TabItem value="npm" label="npm" default>
-
 ```bash
+# With npm
 npm install @nhost/react @nhost/nextjs graphql
-```
 
-  </TabItem>
-  <TabItem value="yarn" label="Yarn">
-
-```bash
+# With Yarn
 yarn add @nhost/react @nhost/nextjs graphql
 ```
-
-  </TabItem>
-</Tabs>
-
 ## Initializing
 
 Initialize a single `nhost` instance and wrap your app with the `NhostNextProvider`.
@@ -60,12 +50,6 @@ function MyApp({ Component, pageProps }: AppProps) {
 
 export default MyApp
 ```
-
-:::info
-
-The `nhost` instance created with the `NhostClient` above is the same as the [JavaScript Nhost client](/reference/javascript).
-
-:::
 
 ## Server-Side Rendering (SSR)
 
@@ -119,22 +103,13 @@ You can use Apollo's GraphQL Client together with Next.js and Nhost.
 
 ### Installation
 
-<Tabs groupId="package-manager">
-  <TabItem value="npm" label="npm" default>
-
 ```bash
+# With npm
 npm install @nhost/react-apollo @apollo/client
-```
 
-  </TabItem>
-  <TabItem value="yarn" label="Yarn">
-
-```bash
+# With Yarn
 yarn add @nhost/react-apollo @apollo/client
 ```
-
-  </TabItem>
-</Tabs>
 
 ### Initializing
 
