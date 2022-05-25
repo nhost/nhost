@@ -20,7 +20,7 @@ describe('urlFromParams', () => {
       it('should return the appropriate url', async () => {
         const url = urlFromParams({ subdomain: 'myawesomedomain', region: 'eu-central-1' }, 'auth')
 
-        expect(url).toBe('myawesomedomain.auth.eu-central-1.nhost.run/v1')
+        expect(url).toBe('https://myawesomedomain.auth.eu-central-1.nhost.run/v1')
       })
     })
 

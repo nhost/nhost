@@ -21,5 +21,5 @@ export function urlFromParams(backendOrSubdomain: BackendOrSubdomain, service: s
     throw new Error('A region must be specified when using a `subdomain` other than "localhost".')
   }
 
-  return `${backendOrSubdomain.subdomain}.${service}.${backendOrSubdomain.region}.nhost.run/v1`
+  return `https://${backendOrSubdomain.subdomain}.${service}.${backendOrSubdomain.region}.nhost.run/v1`
 }
