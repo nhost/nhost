@@ -1,28 +1,10 @@
-import { HasuraAuthClient, NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
+import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
-
-export interface NhostClientConstructorParams extends Omit<NhostAuthConstructorParams, 'url'> {
-  /**
-   * Nhost backend URL
-   * Will be deprecated in favor of `subdomain` and `region`
-   */
-  backendUrl?: string
-
-  /**
-   * App subdomain (e.g., ifieniwenfiwenwng)
-   * Use `localhost` in development
-   */
-  subdomain?: string
-
-  /**
-   * App region (e.g. eu-central-1)
-   * Optional in development
-   */
-  region?: string
-}
+import { urlFromParams } from '../utils/helpers'
+import { NhostClientConstructorParams } from '../utils/types'
 
 export class NhostClient {
   auth: HasuraAuthClient
@@ -40,9 +22,6 @@ export class NhostClient {
    * @docs https://docs.nhost.io/reference/javascript
    */
   constructor({
-    backendUrl,
-    subdomain,
-    region,
     refreshIntervalTime,
     clientStorageGetter,
     clientStorageSetter,
@@ -51,29 +30,11 @@ export class NhostClient {
     autoRefreshToken,
     autoSignIn,
     devTools,
-    start = true
+    start = true,
+    ...urlParams
   }: NhostClientConstructorParams) {
-    if (!backendUrl && !subdomain)
-      throw new Error('Please specify either `backendUrl` or `subdomain`. Docs: [todo]!')
-
-    if (subdomain && subdomain !== 'localhost' && !region)
-      throw new Error('`region` is required when using `subdomain` (except for "localhost").')
-
-    const urlFromEnv = (
-      backendUrl?: string,
-      subdomain?: string,
-      region?: string,
-      service?: string
-    ) => {
-      if (backendUrl) return `${backendUrl}/v1/${service}`
-
-      if (subdomain === 'localhost') return `http://${subdomain}`
-
-      return `${subdomain}.${service}.${region}.nhost.run/v1`
-    }
-
     this.auth = new HasuraAuthClient({
-      url: urlFromEnv(backendUrl, subdomain, region, 'auth'),
+      url: urlFromParams(urlParams, 'auth'),
       refreshIntervalTime,
       clientStorageGetter,
       clientStorageSetter,
@@ -85,15 +46,15 @@ export class NhostClient {
     })
 
     this.storage = new HasuraStorageClient({
-      url: urlFromEnv(backendUrl, subdomain, region, 'storage')
+      url: urlFromParams(urlParams, 'storage')
     })
 
     this.functions = new NhostFunctionsClient({
-      url: urlFromEnv(backendUrl, subdomain, region, 'functions')
+      url: urlFromParams(urlParams, 'functions')
     })
 
     this.graphql = new NhostGraphqlClient({
-      url: urlFromEnv(backendUrl, subdomain, region, 'graphql')
+      url: urlFromParams(urlParams, 'graphql')
     })
 
     // * Set current token if token is already accessable

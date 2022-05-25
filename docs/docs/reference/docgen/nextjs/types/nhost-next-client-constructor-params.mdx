@@ -4,56 +4,21 @@ title: NhostNextClientConstructorParams
 sidebar_label: NhostNextClientConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nextjs/src/index.ts#L11
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/nextjs/src/index.ts#L15
 ---
 
 # `NhostNextClientConstructorParams`
 
-## Parameters
-
----
-
-**<span className="parameter-name">region</span>** <span className="optional-status">optional</span> `string`
-
-App region (e.g. eu-central-1)
-Optional in development
-
----
-
-**<span className="parameter-name">subdomain</span>** <span className="optional-status">optional</span> `string`
-
-App subdomain (e.g., ifieniwenfiwenwng)
-Use `localhost` in development
-
----
-
-**<span className="parameter-name">backendUrl</span>** <span className="optional-status">optional</span> `string`
-
-Nhost backend URL
-Will be deprecated in favor of `subdomain` and `region`
-
----
-
-**<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
-
-Activate devTools e.g. the ability to connect to the xstate inspector
-
----
-
-**<span className="parameter-name">autoSignIn</span>** <span className="optional-status">optional</span> `boolean`
-
-When set to true, will parse the url on startup to check if it contains a refresh token to start the session with
-
----
-
-**<span className="parameter-name">autoRefreshToken</span>** <span className="optional-status">optional</span> `boolean`
-
-When set to true, will automatically refresh token before it expires
-
----
-
-**<span className="parameter-name">refreshIntervalTime</span>** <span className="optional-status">optional</span> `number`
-
-Time interval until token refreshes, in seconds
-
----
+```ts
+type NhostNextClientConstructorParams = BackendOrSubdomain &
+  Omit<
+    NhostAuthConstructorParams,
+    | 'url'
+    | 'start'
+    | 'client'
+    | 'clientStorage'
+    | 'clientStorageType'
+    | 'clientStorageGetter'
+    | 'clientStorageSetter'
+  >
+```

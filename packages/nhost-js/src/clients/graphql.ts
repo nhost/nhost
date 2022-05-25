@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
 import type { DocumentNode } from 'graphql'
 import { print } from 'graphql/language/printer'
 
-import { GraphqlRequestResponse, GraphqlResponse } from '../types'
+import { GraphqlRequestResponse, GraphqlResponse } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
   url: string
