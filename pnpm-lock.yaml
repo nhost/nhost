@@ -184,6 +184,7 @@ importers:
     specifiers:
       '@apollo/client': ^3.6.2
       '@mantine/core': ^4.2.2
+      '@mantine/dropzone': ^4.2.6
       '@mantine/hooks': ^4.2.2
       '@mantine/notifications': ^4.2.2
       '@mantine/prism': ^4.2.2
@@ -205,6 +206,7 @@ importers:
     dependencies:
       '@apollo/client': 3.6.2_graphql@15.7.2+react@18.1.0
       '@mantine/core': 4.2.2_ea9d0c51a4562a6544166c6277bf397c
+      '@mantine/dropzone': 4.2.6_af46c71ecf518c86fb9b76e8a89b700a
       '@mantine/hooks': 4.2.2_react@18.1.0
       '@mantine/notifications': 4.2.2_af46c71ecf518c86fb9b76e8a89b700a
       '@mantine/prism': 4.2.2_af46c71ecf518c86fb9b76e8a89b700a
@@ -4408,6 +4410,21 @@ packages:
       - '@types/react'
     dev: false
 
+  /@mantine/dropzone/4.2.6_af46c71ecf518c86fb9b76e8a89b700a:
+    resolution: {integrity: sha512-BqG0FAkJa8ThH5XyVhS/zQnSWTS5SdizTabbYMJIkOL75DfV8ITJx6S30iv9FPMwmJDSSvXneVgDLBfLpeGoTw==}
+    peerDependencies:
+      '@mantine/core': 4.2.6
+      '@mantine/hooks': 4.2.6
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+    dependencies:
+      '@mantine/core': 4.2.2_ea9d0c51a4562a6544166c6277bf397c
+      '@mantine/hooks': 4.2.2_react@18.1.0
+      react: 18.1.0
+      react-dom: 18.1.0_react@18.1.0
+      react-dropzone: 11.7.1_react@18.1.0
+    dev: false
+
   /@mantine/hooks/4.2.2_react@18.1.0:
     resolution: {integrity: sha512-H580XCbgH0UnmaiHOvWGGFcFpNnXwl3zFTFLAH8fhp80AeLhIoYdI9+kvbg4G69UZlZrhr1h9naWCN9O8gjizg==}
     peerDependencies:
@@ -7287,6 +7304,11 @@ packages:
   /at-least-node/1.0.0:
     resolution: {integrity: sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==}
     engines: {node: '>= 4.0.0'}
+    dev: false
+
+  /attr-accept/2.2.2:
+    resolution: {integrity: sha512-7prDjvt9HmqiZ0cl5CRjtS84sEyhsHP2coDkaZKRKVfCDo9s7iw7ChVmar78Gu9pC4SoR/28wFu/G5JJhTnqEg==}
+    engines: {node: '>=4'}
     dev: false
 
   /audio-extensions/0.0.0:
@@ -10519,6 +10541,8 @@ packages:
     dependencies:
       debug: 3.2.7
       resolve: 1.22.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /eslint-import-resolver-typescript/2.7.1_662e1b2e8ef3f6aa5d22c3f7cd670612:
@@ -11474,6 +11498,13 @@ packages:
       loader-utils: 2.0.2
       schema-utils: 3.1.1
       webpack: 5.72.0
+    dev: false
+
+  /file-selector/0.4.0:
+    resolution: {integrity: sha512-iACCiXeMYOvZqlF1kTiYINzgepRBymz1wwjiuup9u9nayhb6g4fSwiyJ/6adli+EPwrWtpgQAh2PoS7HukEGEg==}
+    engines: {node: '>= 10'}
+    dependencies:
+      tslib: 2.4.0
     dev: false
 
   /filesize/8.0.7:
@@ -16693,6 +16724,18 @@ packages:
       loose-envify: 1.4.0
       react: 18.1.0
       scheduler: 0.22.0
+
+  /react-dropzone/11.7.1_react@18.1.0:
+    resolution: {integrity: sha512-zxCMwhfPy1olUEbw3FLNPLhAm/HnaYH5aELIEglRbqabizKAdHs0h+WuyOpmA+v1JXn0++fpQDdNfUagWt5hJQ==}
+    engines: {node: '>= 10.13'}
+    peerDependencies:
+      react: '>= 16.8'
+    dependencies:
+      attr-accept: 2.2.2
+      file-selector: 0.4.0
+      prop-types: 15.8.1
+      react: 18.1.0
+    dev: false
 
   /react-error-overlay/6.0.11:
     resolution: {integrity: sha512-/6UZ2qgEyH2aqzYZgQPxEnz33NJ2gNsnHA2o5+o4wW9bLM/JYQitNP9xPhsXwC08hMMovfGe/8retsdDsczPRg==}

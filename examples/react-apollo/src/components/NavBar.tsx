@@ -1,4 +1,4 @@
-import { FaHouseUser, FaQuestion, FaSignOutAlt } from 'react-icons/fa'
+import { FaFile, FaHouseUser, FaQuestion, FaSignOutAlt } from 'react-icons/fa'
 import { SiApollographql } from 'react-icons/si'
 import { Group, MantineColor, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
 import { useAuthenticated, useSignOut } from '@nhost/react'
@@ -51,6 +51,7 @@ const MenuItem: React.FC<MenuItemProps> = ({ icon, color, label, link, action })
 const data: MenuItemProps[] = [
   { icon: <FaHouseUser size={16} />, label: 'Home', link: '/' },
   { icon: <FaHouseUser size={16} />, label: 'Profile', link: '/profile' },
+  { icon: <FaFile size={16} />, label: 'Storage', link: '/storage' },
   { icon: <SiApollographql size={16} />, label: 'Apollo', link: '/apollo' },
   { icon: <FaQuestion size={16} />, label: 'About', link: '/about' }
 ]

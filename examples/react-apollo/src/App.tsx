@@ -13,6 +13,7 @@ import './App.css'
 import NavBar from './components/NavBar'
 import { MantineProvider, AppShell, Header } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'
+import { StoragePage } from './Storage'
 const title = 'Nhost with React and Apollo'
 
 function App() {
@@ -72,6 +73,14 @@ function App() {
               element={
                 <AuthGate>
                   <ProfilePage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/storage"
+              element={
+                <AuthGate>
+                  <StoragePage />
                 </AuthGate>
               }
             />

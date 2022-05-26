@@ -1,0 +1,33 @@
+// This file was automatically generated. Edits will be overwritten
+
+export interface Typegen0 {
+  '@@xstate/typegen': true
+  eventsCausingActions: {
+    addFile: 'ADD'
+    setUploadProgress: 'UPLOAD_PROGRESS'
+    sendProgress: 'UPLOAD_PROGRESS'
+    resetProgress: 'UPLOAD'
+    sendDone: 'UPLOAD_DONE'
+  }
+  internalEvents: {
+    'xstate.init': { type: 'xstate.init' }
+  }
+  invokeSrcNameMap: {
+    uploadFile: 'done.invoke.(machine).uploading:invocation[0]'
+  }
+  missingImplementations: {
+    actions: never
+    services: never
+    guards: never
+    delays: never
+  }
+  eventsCausingServices: {
+    uploadFile: 'UPLOAD'
+  }
+  eventsCausingGuards: {
+    hasFile: 'UPLOAD'
+  }
+  eventsCausingDelays: {}
+  matchesStates: 'idle' | 'uploading' | 'uploaded' | 'error'
+  tags: never
+}

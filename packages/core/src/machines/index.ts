@@ -28,8 +28,11 @@ import { AuthEvents } from './events'
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'
+export * from './file'
+export * from './files-list'
 export * from './reset-password'
 export * from './send-verification-email'
+
 export type { AuthContext, AuthEvents, StateErrorTypes }
 
 export interface AuthMachineOptions extends AuthOptions {
