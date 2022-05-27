@@ -3,6 +3,9 @@ import { NhostClient as VanillaClient, NhostClientConstructorParams } from '@nho
 export * from './hooks'
 export * from './provider'
 
+export * from './useFileUpload'
+export * from './useMultipleFilesUpload'
+
 export interface NhostReactClientConstructorParams
   extends Omit<NhostClientConstructorParams, 'start' | 'client'> {}
 

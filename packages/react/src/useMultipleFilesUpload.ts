@@ -1,6 +1,6 @@
 import { createFilesListMachine, FileItemRef } from '@nhost/core'
 import { useActor, useInterpret, useSelector } from '@xstate/react'
-import { useAuthInterpreter, useNhostBackendUrl } from './common'
+import { useAuthInterpreter, useNhostBackendUrl } from './hooks/common'
 import { useMemo } from 'react'
 
 type UploadMultipleFilesActionParams = {

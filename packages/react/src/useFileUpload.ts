@@ -1,6 +1,6 @@
 import { createFileMachine } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
-import { useAuthInterpreter, useNhostBackendUrl } from './common'
+import { useAuthInterpreter, useNhostBackendUrl } from './hooks/common'
 import { useMemo } from 'react'
 
 export const useFileUpload = () => {
