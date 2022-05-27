@@ -1,10 +1,6 @@
-import jwt_decode from 'jwt-decode'
-import { useMemo } from 'react'
+import { useSelector } from '@xstate/react'
 
-import { useInterpret, useSelector } from '@xstate/react'
-import { useAccessToken } from './useAccessToken'
 import { useAuthInterpreter } from './useAuthInterpreter'
-import { useNhostClient } from './useNhostClient'
 
 /**
  * Use the hook `useUserAvatarUrl` to get the avatar URL of the user.

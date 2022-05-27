@@ -1,39 +1,14 @@
-import jwt_decode from 'jwt-decode'
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 
 import {
   ActionErrorState,
   ActionSuccessState,
-  ActivateMfaHandlerResult,
-  activateMfaPromise,
-  ActivateMfaState,
-  ChangeEmailHandlerResult,
-  ChangeEmailOptions,
-  changeEmailPromise,
-  ChangeEmailState,
   ChangePasswordHandlerResult,
   changePasswordPromise,
-  createChangeEmailMachine,
-  createChangePasswordMachine,
-  createEnableMfaMachine,
-  createResetPasswordMachine,
-  createSendVerificationEmailMachine,
-  GenerateQrCodeHandlerResult,
-  generateQrCodePromise,
-  GenerateQrCodeState,
-  JWTClaims,
-  ResetPasswordHandlerResult,
-  ResetPasswordOptions,
-  resetPasswordPromise,
-  ResetPasswordState,
-  SendVerificationEmailHandlerResult,
-  SendVerificationEmailOptions,
-  sendVerificationEmailPromise,
-  SendVerificationEmailState
+  createChangePasswordMachine
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
-import { useAccessToken } from './useAccessToken'
-import { useAuthInterpreter } from './useAuthInterpreter'
+
 import { useNhostClient } from './useNhostClient'
 
 interface ChangePasswordHandler {

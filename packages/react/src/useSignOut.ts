@@ -1,5 +1,6 @@
 import { signOutPromise } from '@nhost/core'
 import { useSelector } from '@xstate/react'
+
 import { useAuthInterpreter } from './useAuthInterpreter'
 
 /**

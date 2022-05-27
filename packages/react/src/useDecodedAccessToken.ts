@@ -1,6 +1,7 @@
 import jwt_decode from 'jwt-decode'
 
 import { JWTClaims } from '@nhost/core'
+
 import { useAccessToken } from './useAccessToken'
 
 /**

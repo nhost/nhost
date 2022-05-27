@@ -8,6 +8,7 @@ import {
   ResetPasswordState
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
+
 import { useNhostClient } from './useNhostClient'
 
 interface ResetPasswordHandler {

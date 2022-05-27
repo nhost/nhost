@@ -1,17 +1,14 @@
 import { useMemo } from 'react'
 
 import {
-  ActivateMfaHandlerResult,
-  ActivateMfaState,
   createSendVerificationEmailMachine,
-  GenerateQrCodeHandlerResult,
-  GenerateQrCodeState,
   SendVerificationEmailHandlerResult,
   SendVerificationEmailOptions,
   sendVerificationEmailPromise,
   SendVerificationEmailState
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
+
 import { useNhostClient } from './useNhostClient'
 
 interface SendVerificationEmailHandler {
@@ -83,9 +80,4 @@ export const useSendVerificationEmail: SendVerificationEmailHook = (
     )
 
   return { sendEmail, isLoading, isSent, isError, error }
-}
-
-interface ConfigMfaState extends ActivateMfaState, GenerateQrCodeState {
-  generateQrCode: () => Promise<GenerateQrCodeHandlerResult>
-  activateMfa: (code: string) => Promise<ActivateMfaHandlerResult>
 }

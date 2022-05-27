@@ -1,16 +1,14 @@
 import { useCallback, useMemo } from 'react'
 
 import {
-  ActionErrorState,
-  ActionSuccessState,
   ChangeEmailHandlerResult,
   ChangeEmailOptions,
   changeEmailPromise,
   ChangeEmailState,
-  ChangePasswordHandlerResult,
   createChangeEmailMachine
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
+
 import { useNhostClient } from './useNhostClient'
 
 interface ChangeEmailHandler {
@@ -75,21 +73,4 @@ export function useChangeEmail(a?: string | ChangeEmailOptions, b?: ChangeEmailO
   )
 
   return { changeEmail, isLoading, needsEmailVerification, isError, error }
-}
-
-interface ChangePasswordHandler {
-  (password: string): Promise<ChangePasswordHandlerResult>
-  /** @deprecated */
-  (password?: unknown): Promise<ChangePasswordHandlerResult>
-}
-
-interface ChangePasswordHookResult extends ActionErrorState, ActionSuccessState {
-  /** Requests the password change. Returns a promise with the current context */
-  changePassword: ChangePasswordHandler
-}
-
-interface ChangePasswordHook {
-  (): ChangePasswordHookResult
-  /** @deprecated */
-  (email?: string): ChangePasswordHookResult
 }

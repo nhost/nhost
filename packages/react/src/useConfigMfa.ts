@@ -10,6 +10,7 @@ import {
   GenerateQrCodeState
 } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
+
 import { useNhostClient } from './useNhostClient'
 
 interface ConfigMfaState extends ActivateMfaState, GenerateQrCodeState {

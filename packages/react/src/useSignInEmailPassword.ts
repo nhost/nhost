@@ -1,9 +1,4 @@
-import {
-  PasswordlessOptions,
-  SignInEmailPasswordHandlerResult,
-  SignInEmailPasswordlessHandlerResult,
-  SignInEmailPasswordState
-} from '@nhost/core'
+import { SignInEmailPasswordHandlerResult, SignInEmailPasswordState } from '@nhost/core'
 import { signInEmailPasswordPromise } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
@@ -126,15 +121,4 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
     signInEmailPassword,
     user
   }
-}
-
-interface SignInEmailPasswordlessHandler {
-  (email: string, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
-  /** @deprecated */
-  (email?: unknown, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
-}
-
-interface SignInEmailPasswordlessHookResult extends SignInEmailPasswordState {
-  /** Sends a magic link to the given email */
-  signInEmailPasswordless: SignInEmailPasswordlessHandler
 }
