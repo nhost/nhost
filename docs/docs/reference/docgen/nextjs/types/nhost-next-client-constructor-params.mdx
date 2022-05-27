@@ -19,6 +19,13 @@ Nhost backend URL.
 
 ---
 
+**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
+
+Admin secret. When set, it is sent as `x-hasura-admin-secret` header with
+any GraphQL, Storage or Functions request.
+
+---
+
 **<span className="parameter-name">devTools</span>** <span className="optional-status">optional</span> `boolean`
 
 Activate devTools e.g. the ability to connect to the xstate inspector
