@@ -3,12 +3,11 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosRes
 import { FunctionCallResponse } from '../types'
 export interface NhostFunctionsConstructorParams {
   /**
-   * Nhost functions endpoint.
+   * Serverless Functions endpoint.
    */
   url: string
   /**
-   * Admin secret. When set, it is sent as `x-hasura-admin-secret` header with
-   * any request.
+   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
    */
   adminSecret?: string
 }

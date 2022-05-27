@@ -4,4 +4,4 @@
 ---
 
 New `adminSecret` option
-It is now possible to add a new `adminSecret` when creating a Nhost client. When set, it is sent as `x-hasura-admin-secret` header with any GraphQL, Storage or Functions request.
+It is now possible to add a new adminSecret when creating a Nhost client. When set, it is sent as an `x-hasura-admin-secret` header for all GraphQL, Storage, and Serverless Functions requests.

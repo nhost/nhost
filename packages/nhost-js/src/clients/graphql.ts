@@ -6,12 +6,11 @@ import { GraphqlRequestResponse, GraphqlResponse } from '../types'
 
 export interface NhostGraphqlConstructorParams {
   /**
-   * Hasura GraphQL engine endpoint.
+   * GraphQL endpoint.
    */
   url: string
   /**
-   * Admin secret. When set, it is sent as `x-hasura-admin-secret` header with
-   * any request.
+   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
    */
   adminSecret?: string
 }

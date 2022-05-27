@@ -10,8 +10,8 @@ export interface NhostClientConstructorParams extends Omit<NhostAuthConstructorP
    */
   backendUrl: string
   /**
-   * Admin secret. When set, it is sent as `x-hasura-admin-secret` header with
-   * any GraphQL, Storage or Functions request.
+   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all
+   * GraphQL, Storage, and Serverless Functions requests.
    */
   adminSecret?: string
 }
