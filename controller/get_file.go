@@ -155,6 +155,10 @@ func (ctrl *Controller) processFileToDownload(
 		}
 
 		updateAt = time.Now().Format(time.RFC3339)
+
+		if _, ok := download.ExtraHeaders["Content-Range"]; ok {
+			download.ExtraHeaders["Content-Range"] = []string{fmt.Sprintf("bytes 0-%d/%d", contentLength-1, contentLength)}
+		}
 	}
 
 	statusCode := download.StatusCode
