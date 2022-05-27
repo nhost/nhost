@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-URL=http://localhost:8000/v1/storage/files
+URL=http://localhost:8000/v1/files
 AUTH="Authorization: Bearer $(make dev-jwt)"
 BUCKET=default
 

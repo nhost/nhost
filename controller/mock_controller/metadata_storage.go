@@ -37,12 +37,11 @@ func (m *MockMetadataStorage) EXPECT() *MockMetadataStorageMockRecorder {
 }
 
 // DeleteFileByID mocks base method.
-func (m *MockMetadataStorage) DeleteFileByID(arg0 context.Context, arg1 string, arg2 http.Header) (controller.FileMetadataWithBucket, *controller.APIError) {
+func (m *MockMetadataStorage) DeleteFileByID(arg0 context.Context, arg1 string, arg2 http.Header) *controller.APIError {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DeleteFileByID", arg0, arg1, arg2)
-	ret0, _ := ret[0].(controller.FileMetadataWithBucket)
-	ret1, _ := ret[1].(*controller.APIError)
-	return ret0, ret1
+	ret0, _ := ret[0].(*controller.APIError)
+	return ret0
 }
 
 // DeleteFileByID indicates an expected call of DeleteFileByID.

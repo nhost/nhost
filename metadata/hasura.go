@@ -287,13 +287,11 @@ func (h *Hasura) SetIsUploaded(
 	return nil
 }
 
-func (h *Hasura) DeleteFileByID(
-	ctx context.Context,
-	fileID string,
-	headers http.Header,
-) (controller.FileMetadataWithBucket, *controller.APIError) {
+func (h *Hasura) DeleteFileByID(ctx context.Context, fileID string, headers http.Header) *controller.APIError {
 	var query struct {
-		StorageFileByPK FileMetadataWithBucket `graphql:"deleteFile(id: $id)"`
+		StorageFileByPK struct {
+			ID graphql.String `graphql:"id"`
+		} `graphql:"deleteFile(id: $id)"`
 	}
 
 	variables := map[string]interface{}{
@@ -304,14 +302,14 @@ func (h *Hasura) DeleteFileByID(
 	err := client.Mutate(ctx, &query, variables)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return controller.FileMetadataWithBucket{}, aerr.ExtendError("problem executing query")
+		return aerr.ExtendError("problem executing query")
 	}
 
-	if query.StorageFileByPK.ID == graphql.String("") {
-		return controller.FileMetadataWithBucket{}, controller.ErrFileNotFound
+	if query.StorageFileByPK.ID == "" {
+		return controller.ErrFileNotFound
 	}
 
-	return query.StorageFileByPK.ToControllerType(), nil
+	return nil
 }
 
 func (h *Hasura) ListFiles(ctx context.Context, headers http.Header) ([]controller.FileSummary, *controller.APIError) {

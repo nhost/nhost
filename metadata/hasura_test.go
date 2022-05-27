@@ -449,38 +449,13 @@ func TestDeleteFileByID(t *testing.T) {
 		name                   string
 		fileID                 string
 		headers                http.Header
-		expected               controller.FileMetadataWithBucket
 		expectedStatusCode     int
 		expectedPublicResponse *controller.ErrorResponse
 	}{
 		{
-			name:    "success",
-			fileID:  fileID,
-			headers: getAuthHeader(),
-			expected: controller.FileMetadataWithBucket{
-				FileMetadata: controller.FileMetadata{
-					ID:               fileID,
-					Name:             "name",
-					Size:             123,
-					BucketID:         "default",
-					ETag:             "asdasd",
-					CreatedAt:        "",
-					UpdatedAt:        "",
-					IsUploaded:       true,
-					MimeType:         "text",
-					UploadedByUserID: "",
-				},
-				Bucket: controller.BucketMetadata{
-					ID:                   "default",
-					MinUploadFile:        1,
-					MaxUploadFile:        50000000,
-					PresignedURLsEnabled: true,
-					DownloadExpiration:   30,
-					CreatedAt:            "2022-01-05T19:02:58.387709+00:00",
-					UpdatedAt:            "2022-01-05T19:02:58.387709+00:00",
-					CacheControl:         "max-age=3600",
-				},
-			},
+			name:                   "success",
+			fileID:                 fileID,
+			headers:                getAuthHeader(),
 			expectedStatusCode:     0,
 			expectedPublicResponse: &controller.ErrorResponse{},
 		},
@@ -519,21 +494,13 @@ func TestDeleteFileByID(t *testing.T) {
 			t.Parallel()
 			tc := tc
 
-			got, err := hasura.DeleteFileByID(context.Background(), tc.fileID, tc.headers)
+			err := hasura.DeleteFileByID(context.Background(), tc.fileID, tc.headers)
 			if tc.expectedStatusCode != err.StatusCode() {
 				t.Errorf("wrong status code, expected %d, got %d", tc.expectedStatusCode, err.StatusCode())
 			}
 			if err != nil {
 				if !cmp.Equal(err.PublicResponse(), tc.expectedPublicResponse) {
 					t.Error(cmp.Diff(err.PublicResponse(), tc.expectedPublicResponse))
-				}
-			} else {
-				opts := cmp.Options{
-					cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"),
-					cmpopts.IgnoreFields(controller.BucketMetadata{}, "CreatedAt", "UpdatedAt"),
-				}
-				if !cmp.Equal(got, tc.expected, opts...) {
-					t.Error(cmp.Diff(got, tc.expected, opts...))
 				}
 			}
 		})

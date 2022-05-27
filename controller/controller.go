@@ -60,7 +60,7 @@ type MetadataStorage interface {
 		headers http.Header) (FileMetadata, *APIError,
 	)
 	SetIsUploaded(ctx context.Context, fileID string, isUploaded bool, headers http.Header) *APIError
-	DeleteFileByID(ctx context.Context, fileID string, headers http.Header) (FileMetadataWithBucket, *APIError)
+	DeleteFileByID(ctx context.Context, fileID string, headers http.Header) *APIError
 	ListFiles(ctx context.Context, headers http.Header) ([]FileSummary, *APIError)
 }
 

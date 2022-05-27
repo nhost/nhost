@@ -14,7 +14,7 @@ func (ctrl *Controller) deleteBrokenMetadata(ctx *gin.Context) ([]FileSummary, *
 	}
 
 	for _, m := range missing {
-		if _, apiErr := ctrl.metadataStorage.DeleteFileByID(ctx.Request.Context(), m.ID, ctx.Request.Header); apiErr != nil {
+		if apiErr := ctrl.metadataStorage.DeleteFileByID(ctx.Request.Context(), m.ID, ctx.Request.Header); apiErr != nil {
 			return nil, apiErr
 		}
 	}

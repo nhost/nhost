@@ -96,10 +96,10 @@ func TestDeleteBrokenMetadata(t *testing.T) {
 
 			metadataStorage.EXPECT().DeleteFileByID(
 				gomock.Any(), "b3b4e653-ca59-412c-a165-92d251c3fe86", gomock.Any(),
-			).Return(controller.FileMetadataWithBucket{}, nil)
+			).Return(nil)
 			metadataStorage.EXPECT().DeleteFileByID(
 				gomock.Any(), "e6aad336-ad79-4df7-a09b-5782f71948f4", gomock.Any(),
-			).Return(controller.FileMetadataWithBucket{}, nil)
+			).Return(nil)
 
 			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, nil, logger)
 
