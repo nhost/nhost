@@ -9,7 +9,6 @@
   "main": "dist/start.js",
   "scripts": {
     "build": "rimraf dist && tsc --project tsconfig.build.json && tsc-alias",
-    "build:docker": "docker build -t nhost/hasura-auth:local .",
     "start": "node ./dist/start.js",
     "lint": "eslint --ext .ts .",
     "lint:fix": "npm run lint --fix",
