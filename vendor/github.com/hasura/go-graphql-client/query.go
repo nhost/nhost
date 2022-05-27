@@ -43,7 +43,8 @@ func constructOptions(options []Option) (*constructOptionsOutput, error) {
 	return output, nil
 }
 
-func constructQuery(v interface{}, variables map[string]interface{}, options ...Option) (string, error) {
+// ConstructQuery build GraphQL query string from struct and variables
+func ConstructQuery(v interface{}, variables map[string]interface{}, options ...Option) (string, error) {
 	query := query(v)
 
 	optionsOutput, err := constructOptions(options)
@@ -62,7 +63,8 @@ func constructQuery(v interface{}, variables map[string]interface{}, options ...
 	return fmt.Sprintf("query %s%s%s", optionsOutput.operationName, optionsOutput.OperationDirectivesString(), query), nil
 }
 
-func constructMutation(v interface{}, variables map[string]interface{}, options ...Option) (string, error) {
+// ConstructQuery build GraphQL mutation string from struct and variables
+func ConstructMutation(v interface{}, variables map[string]interface{}, options ...Option) (string, error) {
 	query := query(v)
 	optionsOutput, err := constructOptions(options)
 	if err != nil {
@@ -79,7 +81,8 @@ func constructMutation(v interface{}, variables map[string]interface{}, options 
 	return fmt.Sprintf("mutation %s%s%s", optionsOutput.operationName, optionsOutput.OperationDirectivesString(), query), nil
 }
 
-func constructSubscription(v interface{}, variables map[string]interface{}, options ...Option) (string, error) {
+// ConstructSubscription build GraphQL subscription string from struct and variables
+func ConstructSubscription(v interface{}, variables map[string]interface{}, options ...Option) (string, error) {
 	query := query(v)
 	optionsOutput, err := constructOptions(options)
 	if err != nil {
@@ -129,6 +132,18 @@ func writeArgumentType(w io.Writer, t reflect.Type, value bool) {
 		return
 	}
 
+	if t.Implements(graphqlTypeInterface) {
+		graphqlType, ok := reflect.Zero(t).Interface().(GraphQLType)
+		if ok {
+			io.WriteString(w, graphqlType.GetGraphQLType())
+			if value {
+				// Value is a required type, so add "!" to the end.
+				io.WriteString(w, "!")
+			}
+			return
+		}
+	}
+
 	switch t.Kind() {
 	case reflect.Slice, reflect.Array:
 		// List. E.g., "[Int]".
@@ -138,9 +153,11 @@ func writeArgumentType(w io.Writer, t reflect.Type, value bool) {
 	default:
 		// Named type. E.g., "Int".
 		name := t.Name()
+
 		if name == "string" { // HACK: Workaround for https://github.com/shurcooL/githubv4/issues/12.
 			name = "ID"
 		}
+
 		io.WriteString(w, name)
 	}
 
@@ -174,12 +191,19 @@ func writeQuery(w io.Writer, t reflect.Type, v reflect.Value, inline bool) {
 		if !inline {
 			io.WriteString(w, "{")
 		}
+		iter := 0
 		for i := 0; i < t.NumField(); i++ {
-			if i != 0 {
-				io.WriteString(w, ",")
-			}
 			f := t.Field(i)
 			value, ok := f.Tag.Lookup("graphql")
+			// Skip this field if the tag value is hyphen
+			if value == "-" {
+				continue
+			}
+			if iter != 0 {
+				io.WriteString(w, ",")
+			}
+			iter++
+
 			inlineField := f.Anonymous && !ok
 			if !inlineField {
 				if ok {
@@ -246,6 +270,8 @@ func FieldSafe(valStruct reflect.Value, i int) reflect.Value {
 }
 
 var jsonUnmarshaler = reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+
+var graphqlTypeInterface = reflect.TypeOf((*GraphQLType)(nil)).Elem()
 
 func isTrue(s string) bool {
 	b, _ := strconv.ParseBool(s)

@@ -176,10 +176,10 @@ func (h *Hasura) GetBucketByID(
 }
 
 func (h *Hasura) InitializeFile(ctx context.Context, fileID string, headers http.Header) *controller.APIError {
-	var query struct {
-		InsertStorageFiles struct {
-			ID graphql.String `graphql:"id"`
-		} `graphql:"insertFile (object: {id: $id})"`
+	var result struct {
+		InsertFiles struct {
+			AffectedRows int `graphql:"affected_rows"`
+		} `graphql:"insertFiles"`
 	}
 
 	variables := map[string]interface{}{
@@ -187,8 +187,12 @@ func (h *Hasura) InitializeFile(ctx context.Context, fileID string, headers http
 	}
 
 	client := h.client.WithRequestModifier(h.authorizer(headers))
-	err := client.Mutate(ctx, &query, variables)
-	if err != nil {
+	if err := client.Exec(
+		ctx,
+		`mutation InitializeFile($id: uuid) {insertFiles(objects: {id: $id}) {affected_rows}}`,
+		&result,
+		variables,
+	); err != nil {
 		aerr := parseGraphqlError(err)
 		return aerr.ExtendError("problem initializing file metadata")
 	}
