@@ -68,7 +68,8 @@ export class NhostClient {
     })
 
     this.graphql = new NhostGraphqlClient({
-      url: `${backendUrl}/v1/graphql`
+      url: `${backendUrl}/v1/graphql`,
+      adminSecret
     })
 
     // * Set current token if token is already accessable
