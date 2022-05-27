@@ -28,7 +28,7 @@ dev: check-port install compose-up  ## Start development environment.
 
 
 .PHONY: test
-test: check-port compose-up ## Run end-to-end tests.
+test: check-port install compose-up ## Run end-to-end tests.
 	pnpm test
 
 .PHONY: check-port
@@ -36,7 +36,7 @@ check-port:
 	[[ -z $$(lsof -t -i tcp:$(PORT)) ]] || (echo "The port $(PORT) is already in use"; exit 1;)
 
 .PHONY: docgen
-docgen: check-port compose-up ## Generate the openapi.json file.
+docgen: check-port install compose-up ## Generate the openapi.json file.
 	AUTH_CLIENT_URL=https://my-app.com AUTH_LOG_LEVEL=error AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS= pnpm dev &
 	while [[ "$$(curl -s -o /dev/null -w ''%{http_code}'' http://localhost:$(PORT)/healthz)" != "200" ]]; do sleep 1; done
 	curl http://localhost:$(PORT)/openapi.json | json_pp > docs/openapi.json
@@ -45,12 +45,12 @@ docgen: check-port compose-up ## Generate the openapi.json file.
 
 
 .PHONY: watch
-watch: check-port compose-up ## Start tests in watch mode.
+watch: check-port install compose-up ## Start tests in watch mode.
 	bash -c "trap 'make compose-down' EXIT; pnpm test:watch"
 
 
 .PHONY: build
-build: install
+build: 
 	docker build -t $(IMAGE) .
 
 
