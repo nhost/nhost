@@ -2,7 +2,7 @@ import { assign, createMachine, spawn, actions, InterpreterFrom, send, ActorRefF
 import { AuthInterpreter } from '../types'
 import { createFileMachine } from './file'
 
-const { pure, sendParent } = actions
+const { pure, sendParent, log } = actions
 
 export type FileItemRef = ActorRefFrom<ReturnType<typeof createFileMachine>>
 
@@ -20,6 +20,8 @@ type FilesListEvents =
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
   | { type: 'CANCEL' }
+  | { type: 'REMOVE' }
+  | { type: 'CLEAR' }
 
 export const createFilesListMachine = (url: string, authInterpreter: AuthInterpreter) => {
   return createMachine(
@@ -44,6 +46,13 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
         },
         ADD: {
           actions: 'add'
+        },
+        REMOVE: {
+          actions: ['remove', 'setUploadProgress']
+        },
+        CLEAR: {
+          target: 'idle',
+          actions: 'clear'
         }
       },
       states: {
@@ -113,7 +122,8 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
                     .withConfig({
                       actions: {
                         sendProgress: sendParent('UPLOAD_PROGRESS'),
-                        sendDone: sendParent('UPLOAD_DONE')
+                        sendDone: sendParent('UPLOAD_DONE'),
+                        sendDestroy: sendParent('REMOVE')
                       }
                     })
                     .withContext({
@@ -130,6 +140,19 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
             progress
           }
         }),
+        remove: assign({
+          files: (context) =>
+            context.files.filter((ref) => {
+              const stopped = ref.getSnapshot()?.matches('stopped')
+              if (stopped) {
+                ref.stop?.()
+              }
+              return !stopped
+            })
+        }),
+        clear: pure((context) =>
+          context.files.map((ref) => send({ type: 'DESTROY' }, { to: ref.id }))
+        ),
         upload: pure((context, { bucket }) =>
           context.files.map((ref) => send({ type: 'UPLOAD', bucket }, { to: ref.id }))
         )

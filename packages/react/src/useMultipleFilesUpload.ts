@@ -22,13 +22,17 @@ export const useMultipleFilesUpload = () => {
   const add = (files: File | File[]) => {
     service.send('ADD', { files })
   }
+  const clear = () => {
+    service.send('CLEAR')
+  }
   const upload = (options: UploadMultipleFilesActionParams = { bucket: 'default' }) => {
     const { bucket } = options
     service.send('UPLOAD', { bucket })
   }
 
   const list = useSelector(service, (state) => state.context.files)
-  return { upload, add, progress, isUploaded, isUploading, list }
+  return { upload, add, clear, progress, isUploaded, isUploading, list }
 }
 
+// TODO same signature as useFileUpload
 export const useFilesListItem = (ref: FileItemRef) => useActor(ref)

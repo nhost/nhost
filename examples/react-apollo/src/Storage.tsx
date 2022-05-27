@@ -11,12 +11,15 @@ import {
   Center,
   ThemeIcon,
   Grid,
-  Card
+  Card,
+  Group,
+  ActionIcon,
+  SimpleGrid
 } from '@mantine/core'
 import { Dropzone, DropzoneStatus } from '@mantine/dropzone'
 import React from 'react'
 import { useFileUpload, useMultipleFilesUpload, useFilesListItem } from '@nhost/react'
-import { FaCloudUploadAlt, FaCheckCircle } from 'react-icons/fa'
+import { FaCloudUploadAlt, FaCheckCircle, FaTrashAlt } from 'react-icons/fa'
 import { FileItemRef } from '@nhost/core'
 
 function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
@@ -77,11 +80,21 @@ export const DropzoneChildren: React.FC<
 )
 
 const ListItem: React.FC<React.PropsWithChildren<{ fileRef: FileItemRef }>> = ({ fileRef }) => {
-  const [actor] = useFilesListItem(fileRef)
+  const [
+    {
+      context: { file, progress }
+    },
+    send
+  ] = useFilesListItem(fileRef)
   return (
     <tr>
-      <td>{actor.context.file?.name}</td>
-      <td>{actor.context.progress && <Progress value={actor.context.progress} />}</td>
+      <td>{file?.name}</td>
+      <td>{progress && <Progress value={progress} />}</td>
+      <td>
+        <ActionIcon onClick={() => send('DESTROY')}>
+          <FaTrashAlt color="red" />
+        </ActionIcon>
+      </td>
     </tr>
   )
 }
@@ -94,7 +107,8 @@ export const StoragePage: React.FC = () => {
     progress: progressAll,
     isUploaded: uploadedAll,
     isUploading: uploadingAll,
-    list
+    list,
+    clear
   } = useMultipleFilesUpload()
   const theme = useMantineTheme()
 
@@ -132,50 +146,55 @@ export const StoragePage: React.FC = () => {
       </Card>
       <Card shadow="sm" p="lg" m="sm">
         <Title order={2}>Upload multiple files</Title>
-
-        <Dropzone
-          onDrop={(files) => {
-            add(files)
-          }}
-          onReject={(files) => console.log('rejected files', files)}
-        >
-          {(status) => (
-            <DropzoneChildren
-              status={status}
-              theme={theme}
-              success={uploadedAll}
-              progress={progressAll || 0}
+        <SimpleGrid cols={1}>
+          <Dropzone
+            onDrop={(files) => {
+              add(files)
+            }}
+            onReject={(files) => console.log('rejected files', files)}
+          >
+            {(status) => (
+              <DropzoneChildren
+                status={status}
+                theme={theme}
+                success={uploadedAll}
+                progress={progressAll || 0}
+              >
+                {uploadedAll ? (
+                  <Text size="xl">Successfully uploaded</Text>
+                ) : uploadingAll ? (
+                  <Text size="xl">Uploading...</Text>
+                ) : (
+                  <Text size="xl">Drag files here or click to select</Text>
+                )}
+              </DropzoneChildren>
+            )}
+          </Dropzone>
+          <Table style={{ width: '100%' }}>
+            <colgroup>
+              <col />
+              <col width="20%" />
+              <col />
+            </colgroup>
+            <tbody>
+              {list.map((ref) => (
+                <ListItem key={ref.id} fileRef={ref} />
+              ))}
+            </tbody>
+          </Table>
+          <Group grow>
+            <Button
+              leftIcon={<FaCloudUploadAlt size={14} />}
+              onClick={() => uploadAll()}
+              loading={isUploading}
             >
-              {uploadedAll ? (
-                <Text size="xl">Successfully uploaded</Text>
-              ) : uploadingAll ? (
-                <Text size="xl">Uploading...</Text>
-              ) : (
-                <Text size="xl">Drag files here or click to select</Text>
-              )}
-            </DropzoneChildren>
-          )}
-        </Dropzone>
-        <Table verticalSpacing="xs">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Progress</th>
-            </tr>
-          </thead>
-          <tbody>
-            {list.map((ref) => (
-              <ListItem key={ref.id} fileRef={ref} />
-            ))}
-          </tbody>
-        </Table>
-        <Button
-          leftIcon={<FaCloudUploadAlt size={14} />}
-          onClick={() => uploadAll()}
-          loading={isUploading}
-        >
-          Upload
-        </Button>
+              Upload
+            </Button>
+            <Button leftIcon={<FaCloudUploadAlt size={14} />} onClick={() => clear()}>
+              Clear
+            </Button>
+          </Group>
+        </SimpleGrid>
       </Card>
     </Container>
   )

@@ -18,6 +18,7 @@ type FileEvents =
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
   | { type: 'CANCEL' }
+  | { type: 'DESTROY' }
 
 export const createFileMachine = (url: string, authInterpreter: AuthInterpreter) =>
   createMachine(
@@ -36,6 +37,10 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
       on: {
         ADD: {
           actions: 'addFile'
+        },
+        DESTROY: {
+          actions: 'sendDestroy',
+          target: 'stopped'
         }
       },
       states: {
@@ -61,7 +66,8 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
         uploaded: {
           entry: ['sendDone']
         },
-        error: {}
+        error: {},
+        stopped: { type: 'final' }
       }
     },
     {
@@ -75,6 +81,7 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
           progress: (_, event) => event.progress
         }),
         sendProgress: () => {},
+        sendDestroy: () => {},
         sendDone: () => {},
         resetProgress: assign({ progress: (_) => null, loaded: (_) => 0 }),
         addFile: assign({

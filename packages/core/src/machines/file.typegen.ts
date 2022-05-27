@@ -4,6 +4,7 @@ export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
     addFile: 'ADD'
+    sendDestroy: 'DESTROY'
     setUploadProgress: 'UPLOAD_PROGRESS'
     sendProgress: 'UPLOAD_PROGRESS'
     resetProgress: 'UPLOAD'
@@ -28,6 +29,6 @@ export interface Typegen0 {
     hasFile: 'UPLOAD'
   }
   eventsCausingDelays: {}
-  matchesStates: 'idle' | 'uploading' | 'uploaded' | 'error'
+  matchesStates: 'idle' | 'uploading' | 'uploaded' | 'error' | 'stopped'
   tags: never
 }

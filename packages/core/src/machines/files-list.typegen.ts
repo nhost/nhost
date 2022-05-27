@@ -4,7 +4,9 @@ export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
     add: 'ADD'
-    setUploadProgress: 'UPLOAD_PROGRESS' | 'UPLOAD_DONE'
+    remove: 'REMOVE'
+    setUploadProgress: 'REMOVE' | 'UPLOAD_PROGRESS' | 'UPLOAD_DONE'
+    clear: 'CLEAR'
     upload: 'UPLOAD'
     initProgress: 'UPLOAD'
   }
