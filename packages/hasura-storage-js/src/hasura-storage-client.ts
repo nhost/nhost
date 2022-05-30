@@ -9,16 +9,6 @@ import {
 } from './utils/types'
 import { HasuraStorageApi } from './hasura-storage-api'
 
-interface NhostStorageConstructorParams {
-  /**
-   * Storage endpoint.
-   */
-  url: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
-   */
-  adminSecret?: string
-}
 /**
  * @alias Storage
  */
@@ -26,10 +16,9 @@ export class HasuraStorageClient {
   private url: string
   private api: HasuraStorageApi
 
-  constructor({ url, adminSecret }: NhostStorageConstructorParams) {
+  constructor({ url }: { url: string }) {
     this.url = url
     this.api = new HasuraStorageApi({ url })
-    this.setAdminSecret(adminSecret)
   }
 
   /**

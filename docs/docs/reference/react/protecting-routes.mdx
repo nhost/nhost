@@ -67,15 +67,3 @@ export function App() {
   )
 }
 ```
-
-Where `nhost` comes from `lib/nhost.js` like this:
-
-```jsx title="src/lib/nhost.js"
-import { NhostClient } from '@nhost/react'
-
-const nhost = new NhostClient({
-  backendUrl: '<Your Nhost Backend URL>'
-})
-
-export { nhost }
-```

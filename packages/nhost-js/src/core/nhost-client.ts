@@ -9,11 +9,6 @@ export interface NhostClientConstructorParams extends Omit<NhostAuthConstructorP
    * Nhost backend URL.
    */
   backendUrl: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all
-   * GraphQL, Storage, and Serverless Functions requests.
-   */
-  adminSecret?: string
 }
 
 export class NhostClient {
@@ -40,7 +35,6 @@ export class NhostClient {
     clientStorageType,
     autoRefreshToken,
     autoSignIn,
-    adminSecret,
     devTools,
     start = true
   }: NhostClientConstructorParams) {
@@ -58,18 +52,15 @@ export class NhostClient {
     })
 
     this.storage = new HasuraStorageClient({
-      url: `${backendUrl}/v1/storage`,
-      adminSecret
+      url: `${backendUrl}/v1/storage`
     })
 
     this.functions = new NhostFunctionsClient({
-      url: `${backendUrl}/v1/functions`,
-      adminSecret
+      url: `${backendUrl}/v1/functions`
     })
 
     this.graphql = new NhostGraphqlClient({
-      url: `${backendUrl}/v1/graphql`,
-      adminSecret
+      url: `${backendUrl}/v1/graphql`
     })
 
     // * Set current token if token is already accessable

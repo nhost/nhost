@@ -1,7 +1,7 @@
 import { signUpEmailPasswordPromise, SignUpEmailPasswordState, SignUpOptions } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
-import { useAuthInterpreter } from './useAuthInterpreter'
+import { useAuthInterpreter } from './common'
 
 type SignUpEmailPasswordHandlerResult = Omit<SignUpEmailPasswordState, 'isLoading'>
 
@@ -19,7 +19,7 @@ interface SignUpEmailPasswordHandler {
   ): Promise<SignUpEmailPasswordHandlerResult>
 }
 
-export interface SignUpEmailPasswordHookResult extends SignUpEmailPasswordState {
+interface SignUpEmailPasswordHookResult extends SignUpEmailPasswordState {
   /** Used for a new user to sign up. Returns a promise with the current context */
   signUpEmailPassword: SignUpEmailPasswordHandler
 }

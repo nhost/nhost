@@ -329,27 +329,20 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/MelodicCrypter">
-            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
-            <br />
-            <sub><b>Hugh Caluscusin</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/jladuval">
             <img src="https://avatars.githubusercontent.com/u/1935359?v=4" width="100;" alt="jladuval"/>
             <br />
             <sub><b>Jacob Duval</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/leothorp">
             <img src="https://avatars.githubusercontent.com/u/12928449?v=4" width="100;" alt="leothorp"/>
             <br />
             <sub><b>Leo Thorp</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/MarcelloTheArcane">
             <img src="https://avatars.githubusercontent.com/u/21159570?v=4" width="100;" alt="MarcelloTheArcane"/>
