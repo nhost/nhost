@@ -6,7 +6,7 @@ import { useInterpret, useSelector } from '@xstate/react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useNhostBackendUrl } from './useNhostBackendUrl'
 type UploadMultipleFilesActionParams = {
-  bucket?: string
+  bucketId?: string
 }
 
 /**
@@ -30,15 +30,15 @@ export const useMultipleFilesUpload = () => {
   const url = useNhostBackendUrl()
   const auth = useAuthInterpreter()
   const machine = useMemo(() => createMultipleFilesUploadMachine({ url, auth }), [url, auth])
-  const service = useInterpret(machine, { devTools: true })
+  const service = useInterpret(machine)
 
   const add = (files: File | File[]) => {
     service.send('ADD', { files })
   }
 
-  const upload = (options: UploadMultipleFilesActionParams = { bucket: 'default' }) => {
-    const { bucket } = options
-    service.send('UPLOAD', { bucket })
+  const upload = (options: UploadMultipleFilesActionParams = { bucketId: 'default' }) => {
+    const { bucketId } = options
+    service.send('UPLOAD', { bucketId })
   }
 
   const cancel = () => {

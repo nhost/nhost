@@ -53,7 +53,7 @@ export const useFileUploadItem = (
 
   const progress = useSelector(ref, (state) => state.context.progress)
   const id = useSelector(ref, (state) => state.context.id)
-  const bucket = useSelector(ref, (state) => state.context.bucket)
+  const bucketId = useSelector(ref, (state) => state.context.bucketId)
   const name = useSelector(ref, (state) => state.context.file?.name)
 
   //   ? Implement here or in another hook ?
@@ -103,7 +103,7 @@ export const useFileUploadItem = (
     /**
      * Returns the bucket id
      */
-    bucket,
+    bucketId,
     /**
      * Returns the name of the file
      */
@@ -124,7 +124,7 @@ export const useFileUploadItem = (
     isError,
     progress,
     id,
-    bucket,
+    bucketId,
     name } = useFileUpload();
  *
  *
@@ -141,7 +141,7 @@ export const useFileUpload = () => {
   const url = useNhostBackendUrl()
   const auth = useAuthInterpreter()
   const machine = useMemo(() => createFileUploadMachine({ url, auth }), [url, auth])
-  const service = useInterpret(machine, { devTools: false })
+  const service = useInterpret(machine)
 
   return useFileUploadItem(service)
 }

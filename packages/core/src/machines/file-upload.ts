@@ -7,15 +7,15 @@ type FileContext = {
   progress: number | null
   loaded: number
   id?: string
-  bucket?: string
+  bucketId?: string
   file?: File
 }
 
 type FileEvents =
-  | { type: 'ADD'; file: File; id?: string; bucket?: string; name?: string }
-  | { type: 'UPLOAD'; file?: File; id?: string; bucket?: string; name?: string }
+  | { type: 'ADD'; file: File; id?: string; bucketId?: string; name?: string }
+  | { type: 'UPLOAD'; file?: File; id?: string; bucketId?: string; name?: string }
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
-  | { type: 'UPLOAD_DONE'; id: string; bucket: string }
+  | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
   | { type: 'UPLOAD_ERROR' }
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
@@ -65,12 +65,12 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
 
       actions: {
         incrementProgress: assign({
-          loaded: (_, event) => event.loaded,
-          progress: (_, event) => event.progress
+          loaded: (_, { loaded }) => loaded,
+          progress: (_, { progress }) => progress
         }),
         setFileMetadata: assign({
-          id: (_, event) => event.id,
-          bucket: (_, event) => event.bucket,
+          id: (_, { id }) => id,
+          bucketId: (_, { bucketId }) => bucketId,
           progress: (_) => 100
         }),
         sendProgress: () => {},
@@ -80,7 +80,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
         resetProgress: assign({ progress: (_) => null, loaded: (_) => 0 }),
         addFile: assign({
           file: (_, { file }) => file,
-          bucket: (_, { bucket }) => bucket,
+          bucketId: (_, { bucketId }) => bucketId,
           id: (_, { id }) => id
         })
       },
@@ -93,9 +93,9 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
           if (fileId) {
             headers['x-nhost-file-id'] = fileId
           }
-          const bucket = event.bucket || context.bucket
-          if (bucket) {
-            headers['x-nhost-bucket-id'] = bucket
+          const bucketId = event.bucketId || context.bucketId
+          if (bucketId) {
+            headers['x-nhost-bucket-id'] = bucketId
           }
           const name = event.name || context.file?.name
           if (name) {
@@ -139,8 +139,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
               }
             })
             .then(({ data: { id, bucketId } }) => {
-              //   TODO get some info back from hasura-storage
-              callback({ type: 'UPLOAD_DONE', id, bucket: bucketId })
+              callback({ type: 'UPLOAD_DONE', id, bucketId })
               callback('UPLOAD_DONE')
             })
             .catch((err) => {
