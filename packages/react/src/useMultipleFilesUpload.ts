@@ -32,8 +32,10 @@ export const useMultipleFilesUpload = () => {
     service.send('UPLOAD', { bucket })
   }
 
+  const hasError = useSelector(service, (state) => state.matches('error'))
+
   const list = useSelector(service, (state) => state.context.files)
-  return { upload, add, clear, progress, isUploaded, isUploading, list }
+  return { upload, add, clear, progress, isUploaded, isUploading, list, hasError }
 }
 
 // TODO same signature as useFileUpload

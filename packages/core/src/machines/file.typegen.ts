@@ -9,6 +9,7 @@ export interface Typegen0 {
     sendProgress: 'UPLOAD_PROGRESS'
     resetProgress: 'UPLOAD'
     sendDone: 'UPLOAD_DONE'
+    sendError: 'UPLOAD_ERROR'
   }
   internalEvents: {
     'xstate.init': { type: 'xstate.init' }

@@ -2,7 +2,7 @@ import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstat
 
 import { AuthInterpreter } from '../types'
 
-import { createFileMachine } from './file'
+import { createFileMachine, INITIAL_FILE_CONTEXT } from './file'
 
 const { pure, sendParent } = actions
 
@@ -18,7 +18,7 @@ type FilesListContext = {
 type FilesListEvents =
   | { type: 'ADD'; files: File | File[] }
   | { type: 'UPLOAD'; bucket?: string }
-  | { type: 'UPLOAD_PROGRESS' }
+  | { type: 'UPLOAD_PROGRESS'; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
   | { type: 'CANCEL' }
@@ -42,20 +42,10 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
       },
       initial: 'idle',
       on: {
-        UPLOAD: {
-          cond: 'hasFileToDownload',
-          target: 'uploading'
-        },
-        ADD: {
-          actions: 'add'
-        },
-        REMOVE: {
-          actions: ['remove', 'setUploadProgress']
-        },
-        CLEAR: {
-          target: 'idle',
-          actions: 'clear'
-        }
+        UPLOAD: { cond: 'hasFileToDownload', target: 'uploading' },
+        ADD: { actions: 'add' },
+        REMOVE: { actions: 'remove' },
+        CLEAR: { target: 'idle', actions: 'clear' }
       },
       states: {
         idle: {},
@@ -65,9 +55,8 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
             UPLOAD_PROGRESS: { actions: ['setUploadProgress'] },
             UPLOAD_DONE: [
               { cond: 'isAllUploaded', target: 'uploaded' },
-              { actions: 'setUploadProgress' }
+              { cond: 'isAllUploadedOrError', target: 'error' }
             ],
-
             UPLOAD_ERROR: 'error'
           }
         },
@@ -80,36 +69,29 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
         hasFileToDownload: (context) =>
           context.files.some((ref) => ref.getSnapshot()!.matches('idle')),
         isAllUploaded: (context) =>
-          context.files.every((item) => item.getSnapshot()?.matches('uploaded'))
+          context.files.every((item) => item.getSnapshot()?.matches('uploaded')),
+        isAllUploadedOrError: (context) =>
+          context.files.every((item) => {
+            const snap = item.getSnapshot()
+            return snap?.matches('error') || snap?.matches('uploaded')
+          })
       },
 
       actions: {
-        setUploadProgress: assign((context, e) => {
-          const { loaded, total } = context.files.reduce(
-            (agg, curr) => {
-              const {
-                context: { loaded, file }
-              } = curr.getSnapshot()!
-              agg.loaded += loaded
-              agg.total += file?.size!
-              return agg
-            },
-            { loaded: 0, total: 0 }
-          )
+        setUploadProgress: assign((context, event) => {
+          const total = context.total
+          const loaded = context.loaded + event.additions
           const progress = Math.round((loaded * 100) / total)
           return { ...context, loaded, progress, total }
         }),
-        initProgress: assign((context) => {
-          const total = context.files
-            .map((ref) => ref.getSnapshot()!)
-            .filter((snap) => snap.value !== 'uploaded')
-            .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
-          return {
-            files: context.files,
-            loaded: 0,
-            progress: null,
-            total
-          }
+        initProgress: assign({
+          progress: (_) => 0,
+          loaded: (_) => 0,
+          total: ({ files }) =>
+            files
+              .map((ref) => ref.getSnapshot()!)
+              .filter((snap) => snap.value !== 'uploaded')
+              .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
         }),
         add: assign((context, { files }) => {
           const additions = Array.isArray(files) ? files : [files]
@@ -125,14 +107,11 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
                       actions: {
                         sendProgress: sendParent('UPLOAD_PROGRESS'),
                         sendDone: sendParent('UPLOAD_DONE'),
+                        sendError: sendParent('UPLOAD_ERROR'),
                         sendDestroy: sendParent('REMOVE')
                       }
                     })
-                    .withContext({
-                      file,
-                      progress: null,
-                      loaded: 0
-                    }),
+                    .withContext({ ...INITIAL_FILE_CONTEXT, file }),
                   { sync: true }
                 )
               )

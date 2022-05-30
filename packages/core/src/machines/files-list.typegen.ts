@@ -5,8 +5,8 @@ export interface Typegen0 {
   eventsCausingActions: {
     add: 'ADD'
     remove: 'REMOVE'
-    setUploadProgress: 'REMOVE' | 'UPLOAD_PROGRESS' | 'UPLOAD_DONE'
     clear: 'CLEAR'
+    setUploadProgress: 'UPLOAD_PROGRESS'
     upload: 'UPLOAD'
     initProgress: 'UPLOAD'
   }
@@ -24,6 +24,7 @@ export interface Typegen0 {
   eventsCausingGuards: {
     hasFileToDownload: 'UPLOAD'
     isAllUploaded: 'UPLOAD_DONE'
+    isAllUploadedOrError: 'UPLOAD_DONE'
   }
   eventsCausingDelays: {}
   matchesStates: 'idle' | 'uploading' | 'uploaded' | 'error'

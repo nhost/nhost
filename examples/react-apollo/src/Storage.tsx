@@ -19,7 +19,14 @@ import {
 import { Dropzone, DropzoneStatus } from '@mantine/dropzone'
 import React from 'react'
 import { useFileUpload, useMultipleFilesUpload, useFilesListItem } from '@nhost/react'
-import { FaCloudUploadAlt, FaCheckCircle, FaTrashAlt } from 'react-icons/fa'
+import {
+  FaCloudUploadAlt,
+  FaCheckCircle,
+  FaExclamationCircle,
+  FaCheck,
+  FaMinus,
+  FaExclamationTriangle
+} from 'react-icons/fa'
 import { FileItemRef } from '@nhost/core'
 
 function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
@@ -37,9 +44,10 @@ export const DropzoneChildren: React.FC<
     status: DropzoneStatus
     theme: MantineTheme
     success: boolean
+    error: boolean
     progress: number
   }>
-> = ({ status, theme, success, progress, children }) => (
+> = ({ status, theme, success, progress, error, children }) => (
   <Grid style={{ pointerEvents: 'none' }} align="center">
     <Grid.Col span={4}>
       {success ? (
@@ -53,6 +61,10 @@ export const DropzoneChildren: React.FC<
             </Center>
           }
         />
+      ) : error ? (
+        <Center>
+          <FaExclamationTriangle size={22} style={{ color: 'red', maxWidth: '80px' }} size={80} />
+        </Center>
       ) : progress ? (
         <RingProgress
           sections={[{ value: progress, color: 'blue' }]}
@@ -80,19 +92,16 @@ export const DropzoneChildren: React.FC<
 )
 
 const ListItem: React.FC<React.PropsWithChildren<{ fileRef: FileItemRef }>> = ({ fileRef }) => {
-  const [
-    {
-      context: { file, progress }
-    },
-    send
-  ] = useFilesListItem(fileRef)
+  const [state, send] = useFilesListItem(fileRef)
   return (
     <tr>
-      <td>{file?.name}</td>
-      <td>{progress && <Progress value={progress} />}</td>
+      <td>
+        {state.context.file?.name} {state.matches('error') && <FaExclamationTriangle color="red" />}
+      </td>
+      <td>{state.context.progress && <Progress value={state.context.progress} />}</td>
       <td>
         <ActionIcon onClick={() => send('DESTROY')}>
-          <FaTrashAlt color="red" />
+          {state.matches('uploaded') ? <FaCheck color="teal" /> : <FaMinus />}
         </ActionIcon>
       </td>
     </tr>
@@ -100,13 +109,14 @@ const ListItem: React.FC<React.PropsWithChildren<{ fileRef: FileItemRef }>> = ({
 }
 
 export const StoragePage: React.FC = () => {
-  const { upload, progress, isUploaded, isUploading } = useFileUpload()
+  const { upload, progress, isUploaded, isUploading, isError } = useFileUpload()
   const {
     add,
     upload: uploadAll,
     progress: progressAll,
     isUploaded: uploadedAll,
     isUploading: uploadingAll,
+    hasError,
     list,
     clear
   } = useMultipleFilesUpload()
@@ -132,11 +142,14 @@ export const StoragePage: React.FC = () => {
               theme={theme}
               success={isUploaded}
               progress={progress || 0}
+              error={isError}
             >
               {isUploaded ? (
                 <Text size="xl">Successfully uploaded</Text>
               ) : isUploading ? (
                 <Text size="xl">Uploading...</Text>
+              ) : isError ? (
+                <Text size="xl">Error uploading the file</Text>
               ) : (
                 <Text size="xl">Drag files here or click to select</Text>
               )}
@@ -158,19 +171,22 @@ export const StoragePage: React.FC = () => {
                 status={status}
                 theme={theme}
                 success={uploadedAll}
+                error={hasError}
                 progress={progressAll || 0}
               >
                 {uploadedAll ? (
                   <Text size="xl">Successfully uploaded</Text>
                 ) : uploadingAll ? (
                   <Text size="xl">Uploading...</Text>
+                ) : hasError ? (
+                  <div>Error uploading some files</div>
                 ) : (
                   <Text size="xl">Drag files here or click to select</Text>
                 )}
               </DropzoneChildren>
             )}
           </Dropzone>
-          <Table style={{ width: '100%' }}>
+          <Table style={{ width: '100%', maxWidth: '100%' }}>
             <colgroup>
               <col />
               <col width="20%" />

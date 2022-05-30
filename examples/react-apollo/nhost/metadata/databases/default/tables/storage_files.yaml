@@ -75,7 +75,3 @@ update_permissions:
     - uploaded_by_user_id
     filter: {}
   role: user
-delete_permissions:
-- permission:
-    filter: {}
-  role: user

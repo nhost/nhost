@@ -15,11 +15,13 @@ type FileContext = {
 type FileEvents =
   | { type: 'ADD'; file: File; id?: string; bucket?: string; name?: string }
   | { type: 'UPLOAD'; file?: File; id?: string; bucket?: string; name?: string }
-  | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number }
+  | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
+
+export const INITIAL_FILE_CONTEXT: FileContext = { progress: null, loaded: 0 }
 
 export const createFileMachine = (url: string, authInterpreter: AuthInterpreter) =>
   createMachine(
@@ -30,44 +32,28 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
         events: {} as FileEvents
       },
       tsTypes: {} as import('./file.typegen').Typegen0,
-      context: {
-        progress: null,
-        loaded: 0
-      },
+      context: { ...INITIAL_FILE_CONTEXT },
       initial: 'idle',
       on: {
-        ADD: {
-          actions: 'addFile'
-        },
-        DESTROY: {
-          actions: 'sendDestroy',
-          target: 'stopped'
-        }
+        ADD: { actions: 'addFile' },
+        DESTROY: { actions: 'sendDestroy', target: 'stopped' }
       },
       states: {
         idle: {
-          on: {
-            UPLOAD: {
-              cond: 'hasFile',
-              target: 'uploading'
-            }
-          }
+          on: { UPLOAD: { cond: 'hasFile', target: 'uploading' } }
         },
         uploading: {
           entry: 'resetProgress',
           on: {
             UPLOAD_PROGRESS: { actions: ['setUploadProgress', 'sendProgress'] },
             UPLOAD_DONE: 'uploaded',
-            UPLOAD_ERROR: 'error'
+            UPLOAD_ERROR: 'error',
+            CANCEL: 'idle'
           },
-          invoke: {
-            src: 'uploadFile'
-          }
+          invoke: { src: 'uploadFile' }
         },
-        uploaded: {
-          entry: ['sendDone']
-        },
-        error: {},
+        uploaded: { entry: 'sendDone' },
+        error: { entry: 'sendError' },
         stopped: { type: 'final' }
       }
     },
@@ -82,6 +68,7 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
           progress: (_, event) => event.progress
         }),
         sendProgress: () => {},
+        sendError: () => {},
         sendDestroy: () => {},
         sendDone: () => {},
         resetProgress: assign({ progress: (_) => null, loaded: (_) => 0 }),
@@ -111,11 +98,13 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
           }
           const data = new FormData()
           data.append('file', (event.file || context.file)!)
-          // TODO hasura admin secret
+          // TODO also add hasura admin secret
           const jwt = authInterpreter.state.context.accessToken.value
           if (jwt) {
             headers['Authorization'] = `Bearer ${jwt}`
           }
+          let currentLoaded = 0
+          const controller = new AbortController()
           axios
             .post<{
               bucketId: string
@@ -130,34 +119,33 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
               uploadedByUserId: string
             }>(url + '/v1/storage/files', data, {
               headers,
-              onUploadProgress: ({ loaded, total }: ProgressEvent) => {
+              signal: controller.signal,
+              onUploadProgress: (event: ProgressEvent) => {
+                const loaded = Math.round((event.loaded * context.file?.size!) / event.total)
+                const additions = loaded - currentLoaded
+                currentLoaded = loaded
                 callback({
                   type: 'UPLOAD_PROGRESS',
-                  progress: Math.round((loaded * 100) / total),
-                  loaded: Math.round((loaded * context.file?.size!) / total)
+                  progress: Math.round((loaded * 100) / event.total),
+                  loaded,
+                  additions
                 })
               }
             })
             .then((res) => {
               //   TODO get some info back from hasura-storage
-              callback({ type: 'UPLOAD_DONE' })
+              callback('UPLOAD_DONE')
             })
             .catch((err) => {
               //   TODO get some info back from hasura-storage
-              callback({ type: 'UPLOAD_ERROR' })
+              callback('UPLOAD_ERROR')
             })
 
-          onReceive((e) => {
-            if (e.type === 'CANCEL') {
-              console.log('cancel upload') // TODO
+          onReceive(({ type }) => {
+            if (type === 'CANCEL') {
+              controller.abort()
             }
           })
-
-          return () => {
-            // TODO
-            //   console.log('file upload done')
-            // clearInterval(id)
-          }
         }
       }
     }

@@ -20,6 +20,7 @@ export const useFileUpload = () => {
   }
   const isUploaded = useSelector(service, (state) => state.matches('uploaded'))
   const isUploading = useSelector(service, (state) => state.matches('uploading'))
+  const isError = useSelector(service, (state) => state.matches('error'))
   //   ? Implement here ?
   //   const presign = () => {}
   //   const download = () => {}
@@ -32,6 +33,7 @@ export const useFileUpload = () => {
     upload,
     progress,
     isUploaded,
-    isUploading
+    isUploading,
+    isError
   }
 }
