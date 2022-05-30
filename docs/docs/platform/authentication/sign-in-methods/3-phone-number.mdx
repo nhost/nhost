@@ -1,0 +1,27 @@
+---
+title: Sign In with Phone Number (SMS)
+sidebar_label: Phone Number (SMS)
+slug: /platform/authentication/sign-in-with-phone-number-sms
+---
+
+Follow this guide to sign in users with a phone number (SMS).
+
+## Sign In
+
+To sign in users with a phone number is a two-step process:
+
+1. Send a one-time password (OTP) to the user's phone number.
+2. The user use the OTP to sign in
+
+```js
+// Step 1: Send OTP to the user's phone number
+await nhost.auth.signIn({
+  phoneNumber: '0011233213123'
+})
+
+// Step 2: Sign in user using their phone number and OTP
+await nhost.auth.signIn({
+  phoneNumber: '0011233213123'
+  otp: '123456',
+})
+```
