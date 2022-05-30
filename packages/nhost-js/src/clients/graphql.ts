@@ -1,6 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
-import type { DocumentNode } from 'graphql'
-import { print } from 'graphql/language/printer'
+import { DocumentNode, print } from 'graphql'
 
 import { GraphqlRequestResponse, GraphqlResponse } from '../types'
 
