@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 
-import { useAuthenticationStatus } from './common'
-import { useUserData } from './user'
+import { useAuthenticationStatus } from './useAuthenticationStatus'
+import { useUserData } from './useUserData'
 
 /**
  * @deprecated
