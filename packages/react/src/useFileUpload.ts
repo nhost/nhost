@@ -10,7 +10,7 @@ import { useNhostBackendUrl } from './useNhostBackendUrl'
 /**
  * Use the hook `useFileUploadFromRef` to control the file upload of a file in a multiple file upload.
  *
- * It has the same signature of `useFileUpload`.
+ * It has the same signature as `useFileUpload`.
  *
  * @example
  * ```tsx
