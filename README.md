@@ -51,7 +51,7 @@ Find more information about Hasura Auth in [our documentation](https://docs.nhos
   - LinkedIn
   - Windows Live
   - Spotify
-  - Strave
+  - Strava
   - GitLab
   - BitBucket
 
