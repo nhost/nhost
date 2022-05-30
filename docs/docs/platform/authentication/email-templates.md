@@ -16,7 +16,7 @@ Changing email templates is only available for apps on the [Pro and Enterprise p
 
 ## Update Email Templates
 
-Your app must be connected to a GitHub repository using the [GitHub Integration](/platform/github-integrations) to be able to change the email templates.
+Your app must be connected to a GitHub repository using the [GitHub Integration](/platform/github-integration) to be able to change the email templates.
 
 Email templates are automatically deployed during a deployment, just like database migrations, Hasura metadata, and Serverless Functions.
 
