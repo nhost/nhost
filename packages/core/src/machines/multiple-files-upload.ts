@@ -51,13 +51,13 @@ export const createMultipleFilesUploadMachine = (params: {
       },
       states: {
         idle: {
-          entry: ['resetProgress'],
+          entry: ['resetProgress', 'resetLoaded', 'resetTotal'],
           on: {
             CLEAR: { actions: 'clearList', target: 'idle' }
           }
         },
         uploading: {
-          entry: ['upload', 'startProgress'],
+          entry: ['upload', 'startProgress', 'resetLoaded', 'resetTotal'],
           on: {
             UPLOAD_PROGRESS: { actions: ['incrementProgress'] },
             UPLOAD_DONE: [
@@ -109,24 +109,16 @@ export const createMultipleFilesUploadMachine = (params: {
               .filter((snap) => snap.matches('uploaded'))
               .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
         }),
-        startProgress: assign({
-          progress: (_) => 0,
-          loaded: (_) => 0,
+        resetTotal: assign({
           total: ({ files }) =>
             files
               .map((ref) => ref.getSnapshot()!)
               .filter((snap) => !snap.matches('uploaded'))
               .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
         }),
-        resetProgress: assign({
-          progress: (_) => null,
-          loaded: (_) => 0,
-          total: ({ files }) =>
-            files
-              .map((ref) => ref.getSnapshot()!)
-              .filter((snap) => !snap.matches('uploaded'))
-              .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
-        }),
+        resetLoaded: assign({ loaded: (_) => 0 }),
+        startProgress: assign({ progress: (_) => 0 }),
+        resetProgress: assign({ progress: (_) => null }),
         addItem: assign((context, { files }) => {
           const additions = Array.isArray(files) ? files : [files]
           const total = context.total + additions.reduce((agg, curr) => agg + curr.size, 0)

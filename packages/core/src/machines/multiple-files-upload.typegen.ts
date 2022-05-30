@@ -9,6 +9,8 @@ export interface Typegen0 {
     incrementProgress: 'UPLOAD_PROGRESS'
     cancel: 'CANCEL'
     resetProgress: 'CLEAR' | 'CANCEL'
+    resetLoaded: 'CLEAR' | 'CANCEL' | 'UPLOAD'
+    resetTotal: 'CLEAR' | 'CANCEL' | 'UPLOAD'
     upload: 'UPLOAD'
     startProgress: 'UPLOAD'
     setUploaded: 'UPLOAD_DONE'
