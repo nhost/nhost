@@ -57,7 +57,8 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
               { cond: 'isAllUploaded', target: 'uploaded' },
               { cond: 'isAllUploadedOrError', target: 'error' }
             ],
-            UPLOAD_ERROR: 'error'
+            UPLOAD_ERROR: 'error',
+            CANCEL: { actions: 'cancel', target: 'idle' }
           }
         },
         uploaded: {},
@@ -136,6 +137,9 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
         ),
         upload: pure((context, { bucket }) =>
           context.files.map((ref) => send({ type: 'UPLOAD', bucket }, { to: ref.id }))
+        ),
+        cancel: pure((context) =>
+          context.files.map((ref) => send({ type: 'CANCEL' }, { to: ref.id }))
         )
       }
     }

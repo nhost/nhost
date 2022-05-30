@@ -18,11 +18,10 @@ import {
 } from '@mantine/core'
 import { Dropzone, DropzoneStatus } from '@mantine/dropzone'
 import React from 'react'
-import { useFileUpload, useMultipleFilesUpload, useFilesListItem } from '@nhost/react'
+import { useFileUpload, useMultipleFilesUpload, useFileUploadFromRef } from '@nhost/react'
 import {
   FaCloudUploadAlt,
   FaCheckCircle,
-  FaExclamationCircle,
   FaCheck,
   FaMinus,
   FaExclamationTriangle
@@ -63,7 +62,7 @@ export const DropzoneChildren: React.FC<
         />
       ) : error ? (
         <Center>
-          <FaExclamationTriangle size={22} style={{ color: 'red', maxWidth: '80px' }} size={80} />
+          <FaExclamationTriangle style={{ color: 'red', maxWidth: '80px' }} size={80} />
         </Center>
       ) : progress ? (
         <RingProgress
@@ -92,16 +91,16 @@ export const DropzoneChildren: React.FC<
 )
 
 const ListItem: React.FC<React.PropsWithChildren<{ fileRef: FileItemRef }>> = ({ fileRef }) => {
-  const [state, send] = useFilesListItem(fileRef)
+  const { progress, isUploaded, fileName, isError, destroy } = useFileUploadFromRef(fileRef)
   return (
     <tr>
       <td>
-        {state.context.file?.name} {state.matches('error') && <FaExclamationTriangle color="red" />}
+        {fileName} {isError && <FaExclamationTriangle color="red" />}
       </td>
-      <td>{state.context.progress && <Progress value={state.context.progress} />}</td>
+      <td>{progress && <Progress value={progress} />}</td>
       <td>
-        <ActionIcon onClick={() => send('DESTROY')}>
-          {state.matches('uploaded') ? <FaCheck color="teal" /> : <FaMinus />}
+        <ActionIcon onClick={destroy}>
+          {isUploaded ? <FaCheck color="teal" /> : <FaMinus />}
         </ActionIcon>
       </td>
     </tr>
@@ -118,7 +117,8 @@ export const StoragePage: React.FC = () => {
     isUploading: uploadingAll,
     hasError,
     list,
-    clear
+    clear,
+    cancel
   } = useMultipleFilesUpload()
   const theme = useMantineTheme()
 
@@ -202,13 +202,17 @@ export const StoragePage: React.FC = () => {
             <Button
               leftIcon={<FaCloudUploadAlt size={14} />}
               onClick={() => uploadAll()}
-              loading={isUploading}
+              loading={uploadingAll}
             >
               Upload
             </Button>
-            <Button leftIcon={<FaCloudUploadAlt size={14} />} onClick={() => clear()}>
-              Clear
-            </Button>
+            {uploadingAll ? (
+              <Button onClick={cancel}>Cancel</Button>
+            ) : (
+              <Button leftIcon={<FaCloudUploadAlt size={14} />} onClick={() => clear()}>
+                Clear
+              </Button>
+            )}
           </Group>
         </SimpleGrid>
       </Card>

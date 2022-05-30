@@ -7,6 +7,7 @@ export interface Typegen0 {
     remove: 'REMOVE'
     clear: 'CLEAR'
     setUploadProgress: 'UPLOAD_PROGRESS'
+    cancel: 'CANCEL'
     upload: 'UPLOAD'
     initProgress: 'UPLOAD'
   }
