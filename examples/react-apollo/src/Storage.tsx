@@ -18,7 +18,7 @@ import {
 } from '@mantine/core'
 import { Dropzone, DropzoneStatus } from '@mantine/dropzone'
 import React from 'react'
-import { useFileUpload, useMultipleFilesUpload, useFileUploadFromRef } from '@nhost/react'
+import { useFileUpload, useMultipleFilesUpload, useFileUploadItem } from '@nhost/react'
 import {
   FaCloudUploadAlt,
   FaCheckCircle,
@@ -91,7 +91,7 @@ export const DropzoneChildren: React.FC<
 )
 
 const ListItem: React.FC<React.PropsWithChildren<{ fileRef: FileItemRef }>> = ({ fileRef }) => {
-  const { progress, isUploaded, name, isError, destroy } = useFileUploadFromRef(fileRef)
+  const { progress, isUploaded, name, isError, destroy } = useFileUploadItem(fileRef)
   return (
     <tr>
       <td>

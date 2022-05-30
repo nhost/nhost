@@ -83,7 +83,7 @@ export const useMultipleFilesUpload = () => {
      */
     isUploading,
     /**
-     * The list of files. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadFromRef` hook.
+     * The list of files. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadItem` hook.
      */
     list,
     /**

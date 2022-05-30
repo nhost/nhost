@@ -8,14 +8,14 @@ import { useAuthInterpreter } from './useAuthInterpreter'
 import { useNhostBackendUrl } from './useNhostBackendUrl'
 
 /**
- * Use the hook `useFileUploadFromRef` to control the file upload of a file in a multiple file upload.
+ * Use the hook `useFileUploadItem` to control the file upload of a file in a multiple file upload.
  *
  * It has the same signature as `useFileUpload`.
  *
  * @example
  * ```tsx
  * const Item = ({itemRef}) => {
- *    const { name, progress} = useFileUploadFromRef(itemRef)
+ *    const { name, progress} = useFileUploadItem(itemRef)
  *    return <li>{name} {progress}</li>
  * }
  *
@@ -28,7 +28,7 @@ import { useNhostBackendUrl } from './useNhostBackendUrl'
  *
  * ```
  */
-export const useFileUploadFromRef = (
+export const useFileUploadItem = (
   ref: FileItemRef | InterpreterFrom<ReturnType<typeof createFileUploadMachine>>
 ) => {
   const add = (file: File) => {
@@ -143,5 +143,5 @@ export const useFileUpload = () => {
   const machine = useMemo(() => createFileUploadMachine({ url, auth }), [url, auth])
   const service = useInterpret(machine, { devTools: false })
 
-  return useFileUploadFromRef(service)
+  return useFileUploadItem(service)
 }
