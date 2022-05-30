@@ -31,16 +31,12 @@ import { NhostReactContext } from './provider'
 export const useProviderLink = (options?: ProviderOptions) => {
   const nhost = useContext(NhostReactContext)
 
-  return useMemo(
-    () =>
-      new Proxy({} as Record<Provider, string>, {
-        get(_, provider: string) {
-          return encodeQueryParameters(
-            `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
-            rewriteRedirectTo(nhost.auth.client.clientUrl, options as any)
-          )
-        }
-      }),
-    [nhost, options]
-  )
+  return new Proxy({} as Record<Provider, string>, {
+    get(_, provider: string) {
+      return encodeQueryParameters(
+        `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
+        rewriteRedirectTo(nhost.auth.client.clientUrl, options as any)
+      )
+    }
+  })
 }
