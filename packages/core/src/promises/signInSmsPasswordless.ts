@@ -1,14 +1,14 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter, PasswordlessOptions } from '../types'
 
-import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
+import { ActionErrorState, ActionSuccessState } from './types'
 
 export interface SignInSmsPasswordlessHandlerResult extends ActionErrorState, ActionSuccessState {
+  /**
+   * Returns true when the one-time password has been sent over by SMS, and the user needs to send it back to complete sign-in.
+   */
   needsOtp: boolean
 }
-export interface SignInSmsPasswordlessState
-  extends SignInSmsPasswordlessHandlerResult,
-    ActionLoadingState {}
 
 export const signInSmsPasswordlessPromise = (
   interpreter: AuthInterpreter,
