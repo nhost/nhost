@@ -96,10 +96,9 @@ export const createMultipleFilesUploadMachine = (params: {
 
       actions: {
         incrementProgress: assign((context, event) => {
-          const total = context.total
           const loaded = context.loaded + event.additions
-          const progress = Math.round((loaded * 100) / total)
-          return { ...context, loaded, progress, total }
+          const progress = Math.round((loaded * 100) / context.total)
+          return { ...context, loaded, progress }
         }),
         setUploaded: assign({
           progress: (_) => 100,
