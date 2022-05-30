@@ -46,16 +46,20 @@ export const createMultipleFilesUploadMachine = (params: {
       initial: 'idle',
       on: {
         UPLOAD: { cond: 'hasFileToDownload', target: 'uploading' },
-        ADD: { actions: 'add' },
-        REMOVE: { actions: 'remove' },
-        CLEAR: { target: 'idle', actions: 'clear' }
+        ADD: { actions: 'addItem' },
+        REMOVE: { actions: 'removeItem' }
       },
       states: {
-        idle: {},
-        uploading: {
-          entry: ['upload', 'initProgress'],
+        idle: {
+          entry: ['resetProgress'],
           on: {
-            UPLOAD_PROGRESS: { actions: ['setUploadProgress'] },
+            CLEAR: { actions: 'clearList', target: 'idle' }
+          }
+        },
+        uploading: {
+          entry: ['upload', 'startProgress'],
+          on: {
+            UPLOAD_PROGRESS: { actions: ['incrementProgress'] },
             UPLOAD_DONE: [
               { cond: 'isAllUploaded', target: 'uploaded' },
               { cond: 'isAllUploadedOrError', target: 'error' }
@@ -65,9 +69,16 @@ export const createMultipleFilesUploadMachine = (params: {
           }
         },
         uploaded: {
-          entry: 'setUploaded'
+          entry: 'setUploaded',
+          on: {
+            CLEAR: { actions: 'clearList', target: 'idle' }
+          }
         },
-        error: {}
+        error: {
+          on: {
+            CLEAR: { actions: 'clearList', target: 'idle' }
+          }
+        }
       }
     },
     {
@@ -84,7 +95,7 @@ export const createMultipleFilesUploadMachine = (params: {
       },
 
       actions: {
-        setUploadProgress: assign((context, event) => {
+        incrementProgress: assign((context, event) => {
           const total = context.total
           const loaded = context.loaded + event.additions
           const progress = Math.round((loaded * 100) / total)
@@ -98,7 +109,7 @@ export const createMultipleFilesUploadMachine = (params: {
               .filter((snap) => snap.matches('uploaded'))
               .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
         }),
-        initProgress: assign({
+        startProgress: assign({
           progress: (_) => 0,
           loaded: (_) => 0,
           total: ({ files }) =>
@@ -107,7 +118,16 @@ export const createMultipleFilesUploadMachine = (params: {
               .filter((snap) => !snap.matches('uploaded'))
               .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
         }),
-        add: assign((context, { files }) => {
+        resetProgress: assign({
+          progress: (_) => null,
+          loaded: (_) => 0,
+          total: ({ files }) =>
+            files
+              .map((ref) => ref.getSnapshot()!)
+              .filter((snap) => !snap.matches('uploaded'))
+              .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
+        }),
+        addItem: assign((context, { files }) => {
           const additions = Array.isArray(files) ? files : [files]
           const total = context.total + additions.reduce((agg, curr) => agg + curr.size, 0)
           const progress = Math.round((context.loaded * 100) / total)
@@ -135,7 +155,7 @@ export const createMultipleFilesUploadMachine = (params: {
             progress
           }
         }),
-        remove: assign({
+        removeItem: assign({
           files: (context) =>
             context.files.filter((ref) => {
               const stopped = ref.getSnapshot()?.matches('stopped')
@@ -145,7 +165,7 @@ export const createMultipleFilesUploadMachine = (params: {
               return !stopped
             })
         }),
-        clear: pure((context) =>
+        clearList: pure((context) =>
           context.files.map((ref) => send({ type: 'DESTROY' }, { to: ref.id }))
         ),
         upload: pure((context, { bucket }) =>

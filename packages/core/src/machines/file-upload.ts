@@ -34,24 +34,26 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
       context: { ...INITIAL_FILE_CONTEXT },
       initial: 'idle',
       on: {
-        ADD: { actions: 'addFile' },
         DESTROY: { actions: 'sendDestroy', target: 'stopped' }
       },
       states: {
         idle: {
-          on: { UPLOAD: { cond: 'hasFile', target: 'uploading' } }
+          on: {
+            ADD: { actions: 'addFile' },
+            UPLOAD: { cond: 'hasFile', target: 'uploading' }
+          }
         },
         uploading: {
           entry: 'resetProgress',
           on: {
-            UPLOAD_PROGRESS: { actions: ['setUploadProgress', 'sendProgress'] },
+            UPLOAD_PROGRESS: { actions: ['incrementProgress', 'sendProgress'] },
             UPLOAD_DONE: 'uploaded',
             UPLOAD_ERROR: 'error',
             CANCEL: 'idle'
           },
           invoke: { src: 'uploadFile' }
         },
-        uploaded: { entry: ['sendDone', 'setMetadata'] },
+        uploaded: { entry: ['setFileMetadata', 'sendDone'] },
         error: { entry: 'sendError' },
         stopped: { type: 'final' }
       }
@@ -62,11 +64,11 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
       },
 
       actions: {
-        setUploadProgress: assign({
+        incrementProgress: assign({
           loaded: (_, event) => event.loaded,
           progress: (_, event) => event.progress
         }),
-        setMetadata: assign({
+        setFileMetadata: assign({
           id: (_, event) => event.id,
           bucket: (_, event) => event.bucket,
           progress: (_) => 100

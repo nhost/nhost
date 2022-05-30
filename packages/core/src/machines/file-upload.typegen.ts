@@ -3,13 +3,13 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
-    addFile: 'ADD'
     sendDestroy: 'DESTROY'
-    setUploadProgress: 'UPLOAD_PROGRESS'
+    addFile: 'ADD'
+    incrementProgress: 'UPLOAD_PROGRESS'
     sendProgress: 'UPLOAD_PROGRESS'
     resetProgress: 'UPLOAD'
+    setFileMetadata: 'UPLOAD_DONE'
     sendDone: 'UPLOAD_DONE'
-    setMetadata: 'UPLOAD_DONE'
     sendError: 'UPLOAD_ERROR'
   }
   internalEvents: {

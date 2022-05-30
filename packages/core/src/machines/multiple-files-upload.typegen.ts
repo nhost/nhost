@@ -3,13 +3,14 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
-    add: 'ADD'
-    remove: 'REMOVE'
-    clear: 'CLEAR'
-    setUploadProgress: 'UPLOAD_PROGRESS'
+    addItem: 'ADD'
+    removeItem: 'REMOVE'
+    clearList: 'CLEAR'
+    incrementProgress: 'UPLOAD_PROGRESS'
     cancel: 'CANCEL'
+    resetProgress: 'CLEAR' | 'CANCEL'
     upload: 'UPLOAD'
-    initProgress: 'UPLOAD'
+    startProgress: 'UPLOAD'
     setUploaded: 'UPLOAD_DONE'
   }
   internalEvents: {
