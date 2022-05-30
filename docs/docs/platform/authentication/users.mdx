@@ -1,0 +1,111 @@
+---
+title: Users
+sidebar_label: Users
+sidebar_position: 1
+---
+
+Users are stored in the database in the `users` table in the `auth` schema.
+
+## Get User Information using GraphQL
+
+**Example:** Get all users.
+
+```graphql
+query {
+  users {
+    id
+    displayName
+    email
+    metadata
+  }
+}
+```
+
+**Example:** Get a single user.
+
+```graphql
+query {
+  user(id: "<user-id>") {
+    id
+    displayName
+    email
+    metadata
+  }
+}
+```
+
+## Creating Users
+
+Users should be created using the sign-up or sign-in flows as described under [sign-in methods](/platform/authentication/sign-in-methods).
+
+- **Never** create users directly via GraphQL or database.
+- **Never** modify the `auth.users` table.
+- **Never** modify the GraphQL root queries or fields for any of the tables in the `auth` schema.
+
+You're allowed to:
+
+- Add and remove your GraphQL relationships for the `users` table and other tables in the `auth` schema.
+- Create, edit and delete permissions for the `users` table and other tables in the `auth` schema.
+
+## Roles
+
+Each user can have one or multiple roles for API requests. You can see the roles of a user and set a default role in Nhost Console under **Users**.
+
+Every GraphQL request is made with a specific role. This role will be used to resolve permissions when querying the database. In other words, every user can have multiple roles, but only one role will be applied for any given GraphQL request.
+
+### Default Role
+
+The default role is used when no role is specified in the GraphQL request. By default, users' default role is `user`.
+
+### Allowed Roles
+
+By default, users have two allowed roles:
+
+- `user`
+- `me`
+
+### Public Role
+
+The `public` role is used to resolve GraphQL permissions for unauthenticated users.
+
+### Set Role for GraphQL Requests
+
+When no request role is specified, the user's default role will be used:
+
+```js
+await nhost.graphql.request(QUERY, {})
+```
+
+Make a GraphQL request with the `me` role:
+
+```js
+await nhost.graphql.request(
+  QUERY,
+  {},
+  {
+    headers: {
+      'x-hasura-role': 'me'
+    }
+  }
+)
+```
+
+If the request is not part of the user's allowed roles, the request will fail.
+
+## Metadata
+
+You can store custom information about the user in the `metadata` column of the `users` table. The `metadata` column is of type JSONB so any JSON data can be stored.
+
+This is how you attach custom metadata to a user during sign-up:
+
+```js
+await nhost.auth.signUp({
+  email: 'joe@nhost.io',
+  password: 'secret-password',
+  options: {
+    metadata: {
+      custom: 'data' // any custom json data
+    }
+  }
+})
+```
