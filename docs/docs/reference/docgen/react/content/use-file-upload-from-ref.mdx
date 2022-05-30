@@ -3,11 +3,37 @@
 title: useFileUploadFromRef()
 sidebar_label: useFileUploadFromRef()
 slug: /reference/react/use-file-upload-from-ref
-description: No description provided.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useFileUpload.ts#L10
+description: Use the hook `useFileUploadFromRef` to control the file upload of a file in a multiple file upload.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useFileUpload.ts#L31
 ---
 
 # `useFileUploadFromRef()`
+
+Use the hook `useFileUploadFromRef` to control the file upload of a file in a multiple file upload.
+
+It has the same signature of `useFileUpload`.
+
+```tsx
+const Item = ({ itemRef }) => {
+  const { name, progress } = useFileUploadFromRef(itemRef)
+  return (
+    <li>
+      {name} {progress}
+    </li>
+  )
+}
+
+const List = () => {
+  const { list } = useMultipleFilesUpload()
+  return (
+    <ul>
+      {list.map((itemRef) => (
+        <Item key={item.id} itemRef={item} />
+      ))}
+    </ul>
+  )
+}
+```
 
 ## Parameters
 

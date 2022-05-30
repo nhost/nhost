@@ -7,6 +7,27 @@ import { useInterpret, useSelector } from '@xstate/react'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useNhostBackendUrl } from './useNhostBackendUrl'
 
+/**
+ * Use the hook `useFileUploadFromRef` to control the file upload of a file in a multiple file upload.
+ *
+ * It has the same signature of `useFileUpload`.
+ *
+ * @example
+ * ```tsx
+ * const Item = ({itemRef}) => {
+ *    const { name, progress} = useFileUploadFromRef(itemRef)
+ *    return <li>{name} {progress}</li>
+ * }
+ *
+ * const List = () => {
+ *    const { list } = useMultipleFilesUpload()
+ *    return <ul>
+ *            {list.map((itemRef) => <Item key={item.id} itemRef={item} />)}
+ *           </ul>
+ * }
+ *
+ * ```
+ */
 export const useFileUploadFromRef = (
   ref: FileItemRef | InterpreterFrom<ReturnType<typeof createFileUploadMachine>>
 ) => {
@@ -43,20 +64,79 @@ export const useFileUploadFromRef = (
   //   const id = fileId || 'todo'
 
   return {
+    /**
+     * Add the file without uploading it
+     */
     add,
+    /**
+     * Upload the file given as a parameter, or that has been previously added
+     */
+    upload,
+    /**
+     * Cancel the ongoing upload
+     */
+    cancel,
+    /**
+     * @internal - used by the MultipleFilesUpload component notice the file should be removed from the list
+     */
+    destroy,
+    /**
+     * Returns `true` when the file has been successfully uploaded
+     */
+    isUploaded,
+    /**
+     * Returns `true` when the file is being uploaded
+     */
+    isUploading,
+    /**
+     * Returns `true` when the file has failed to upload
+     */
+    isError,
+    /**
+     * Returns the progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
+     */
+    progress,
+    /**
+     * Returns the id of the file
+     */
+    id,
+    /**
+     * Returns the bucket id
+     */
+    bucket,
+    /**
+     * Returns the name of the file
+     */
+    name
+  }
+}
+
+/**
+ * Use the hook `useFileUpload` to upload a file.
+ *
+ * @example
+ * ```tsx
+ * const {  add,
     upload,
     cancel,
-    destroy,
     isUploaded,
     isUploading,
     isError,
     progress,
     id,
     bucket,
-    name
-  }
-}
-
+    name } = useFileUpload();
+ *
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await upload({ file })
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-file-upload
+ */
 export const useFileUpload = () => {
   const url = useNhostBackendUrl()
   const auth = useAuthInterpreter()

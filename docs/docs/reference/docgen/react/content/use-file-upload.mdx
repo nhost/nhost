@@ -3,8 +3,31 @@
 title: useFileUpload()
 sidebar_label: useFileUpload()
 slug: /reference/react/use-file-upload
-description: No description provided.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useFileUpload.ts#L60
+description: Use the hook `useFileUpload` to upload a file.
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useFileUpload.ts#L140
 ---
 
 # `useFileUpload()`
+
+Use the hook `useFileUpload` to upload a file.
+
+```tsx
+const {
+  add,
+  upload,
+  cancel,
+  isUploaded,
+  isUploading,
+  isError,
+  progress,
+  id,
+  bucket,
+  name
+} = useFileUpload()
+
+const handleFormSubmit = async (e) => {
+  e.preventDefault()
+
+  await upload({ file })
+}
+```
