@@ -222,7 +222,7 @@ export function useSignInEmailPasswordless(
  * Use the hook `useSignInAnonymous` to sign in a user anonymously.
  *
  * As a result, the user will have the `anonymous` role and subsequent set of permissions.
- * The user can then be converted as a regular user at a later stage using email+password sign-up, passwordless email (magic link), or passwordless SMS.
+ * The user can then be converted to a regular user at a later stage using email+password sign-up, passwordless email (magic link), or passwordless SMS.
  *
  * @example
  * ```tsx
