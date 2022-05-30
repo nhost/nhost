@@ -17,7 +17,7 @@ interface ChangePasswordHandler {
   (password?: unknown): Promise<ChangePasswordHandlerResult>
 }
 
-interface ChangePasswordHookResult extends ActionErrorState, ActionSuccessState {
+export interface ChangePasswordHookResult extends ActionErrorState, ActionSuccessState {
   /** Requests the password change. Returns a promise with the current context */
   changePassword: ChangePasswordHandler
 }

@@ -16,7 +16,7 @@ interface SendMfaOtpHander {
   (otp?: unknown): void
 }
 
-interface SignInEmailPasswordHookResult extends SignInEmailPasswordState {
+export interface SignInEmailPasswordHookResult extends SignInEmailPasswordState {
   signInEmailPassword: SignInEmailPasswordHandler
   sendMfaOtp: SendMfaOtpHander
 }

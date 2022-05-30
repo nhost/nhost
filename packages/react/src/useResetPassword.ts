@@ -17,7 +17,7 @@ interface ResetPasswordHandler {
   (email?: unknown, options?: ResetPasswordOptions): Promise<ResetPasswordHandlerResult>
 }
 
-interface ResetPasswordHookResult extends ResetPasswordState {
+export interface ResetPasswordHookResult extends ResetPasswordState {
   /**
    * Sends an email with a temporary connection link. Returns a promise with the current context
    */

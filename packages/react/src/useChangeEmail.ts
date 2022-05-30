@@ -17,7 +17,7 @@ interface ChangeEmailHandler {
   (email?: unknown, options?: ChangeEmailOptions): Promise<ChangeEmailHandlerResult>
 }
 
-interface ChangeEmailHookResult extends ChangeEmailState {
+export interface ChangeEmailHookResult extends ChangeEmailState {
   /** Requests the email change. Returns a promise with the current context  */
   changeEmail: ChangeEmailHandler
 }

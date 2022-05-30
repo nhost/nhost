@@ -23,7 +23,7 @@ interface SendVerificationEmailHandler {
   ): Promise<SendVerificationEmailHandlerResult>
 }
 
-interface SendVerificationEmailHookResult extends SendVerificationEmailState {
+export interface SendVerificationEmailHookResult extends SendVerificationEmailState {
   /** Resend the verification email. Returns a promise with the current context */
   sendEmail: SendVerificationEmailHandler
 }

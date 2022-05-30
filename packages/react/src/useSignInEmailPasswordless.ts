@@ -14,7 +14,7 @@ interface SignInEmailPasswordlessHandler {
   (email?: unknown, options?: PasswordlessOptions): Promise<SignInEmailPasswordlessHandlerResult>
 }
 
-interface SignInEmailPasswordlessHookResult extends SignInEmailPasswordState {
+export interface SignInEmailPasswordlessHookResult extends SignInEmailPasswordState {
   /** Sends a magic link to the given email */
   signInEmailPasswordless: SignInEmailPasswordlessHandler
 }
