@@ -1,14 +1,14 @@
-![Nhost](https://imgur.com/fGo6E4d.png)
+![Nhost](https://i.imgur.com/FrcdOZg.png)
 
 <div align="center">
 
 # Nhost
 
-<a href="https://docs.nhost.io/get-started">Quickstart</a>
+<a href="https://docs.nhost.io/#quickstart">Quickstart</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="http://nhost.io/">Website</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://docs.nhost.io/get-started">Docs</a>
+<a href="https://docs.nhost.io">Docs</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/blog">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -20,12 +20,12 @@
   <hr />
 </div>
 
-**Nhost is an open-source GraphQL backend,** built with the following things in mind:
+**Nhost is an open source Firebase alternative with GraphQL,** built with the following things in mind:
 
-- Open-Source
-- Developer Productivity
-- SQL
+- Open Source
 - GraphQL
+- SQL
+- Great Developer Experience
 
 Nhost consists of open source software:
 
@@ -47,19 +47,19 @@ Nhost consists of open source software:
 
 Visit [https://docs.nhost.io](http://docs.nhost.io) for the complete documentation.
 
-# How to get started
+# Get Started
 
-### Option 1: One-click deployment with Nhost (recommended)
+## Option 1: Nhost Hosted Platform
 
-1. Create [Nhost account](https://app.nhost.io) (you can use GitHub to sign up)
-2. Create Nhost app
-3. Done!
+1. Sign in to [Nhost](https://app.nhost.io).
+2. Create Nhost app.
+3. Done.
 
-### Option 2: Self-hosting
+## Option 2: Self-hosting
 
 Since Nhost is 100% open source, you can self-host the whole Nhost stack. Check out the example [docker-compose file](https://github.com/nhost/nhost/tree/main/examples/docker-compose) to self-host Nhost.
 
-## Sign in a user and make your first GraphQL query
+## Sign In and Make a Graphql Request
 
 Install the `@nhost/nhost-js` package and start build your app:
 
@@ -103,6 +103,7 @@ Nhost libraries and tools
 - [Nhost CLI](https://docs.nhost.io/reference/cli)
 - [Nhost React](https://docs.nhost.io/reference/react)
 - [Nhost Next.js](https://docs.nhost.io/reference/nextjs)
+- [Nhost Vue](https://docs.nhost.io/reference/vue)
 
 ## Community ❤️
 
@@ -135,17 +136,17 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/szilarddoro">
-            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
-            <br />
-            <sub><b>Szilárd Dóró</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/elitan">
             <img src="https://avatars.githubusercontent.com/u/331818?v=4" width="100;" alt="elitan"/>
             <br />
             <sub><b>Johan Eliasson</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/szilarddoro">
+            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
+            <br />
+            <sub><b>Szilárd Dóró</b></sub>
         </a>
     </td>
     <td align="center">
@@ -206,13 +207,20 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/heygambo">
+            <img src="https://avatars.githubusercontent.com/u/449438?v=4" width="100;" alt="heygambo"/>
+            <br />
+            <sub><b>Christian Gambardella</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
         <a href="https://github.com/chrtze">
             <img src="https://avatars.githubusercontent.com/u/3797215?v=4" width="100;" alt="chrtze"/>
             <br />
             <sub><b>Christopher Möller</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/dbarrosop">
             <img src="https://avatars.githubusercontent.com/u/6246622?v=4" width="100;" alt="dbarrosop"/>
@@ -247,15 +255,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Mustafa Hanif</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/timpratim">
             <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
             <br />
             <sub><b>Pratim</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/Savinvadim1312">
             <img src="https://avatars.githubusercontent.com/u/16936043?v=4" width="100;" alt="Savinvadim1312"/>
@@ -278,10 +286,10 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/heygambo">
-            <img src="https://avatars.githubusercontent.com/u/449438?v=4" width="100;" alt="heygambo"/>
+        <a href="https://github.com/Sonichigo">
+            <img src="https://avatars.githubusercontent.com/u/53110238?v=4" width="100;" alt="Sonichigo"/>
             <br />
-            <sub><b>Christian Gambardella</b></sub>
+            <sub><b>Animesh Pathak</b></sub>
         </a>
     </td>
     <td align="center">
@@ -290,15 +298,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Colin Broderick</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/dohomi">
             <img src="https://avatars.githubusercontent.com/u/489221?v=4" width="100;" alt="dohomi"/>
             <br />
             <sub><b>Dominic Garms</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/gaurav1999">
             <img src="https://avatars.githubusercontent.com/u/20752142?v=4" width="100;" alt="gaurav1999"/>
@@ -321,10 +329,25 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/MelodicCrypter">
+            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
+            <br />
+            <sub><b>Hugh Caluscusin</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/jladuval">
             <img src="https://avatars.githubusercontent.com/u/1935359?v=4" width="100;" alt="jladuval"/>
             <br />
             <sub><b>Jacob Duval</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/leothorp">
+            <img src="https://avatars.githubusercontent.com/u/12928449?v=4" width="100;" alt="leothorp"/>
+            <br />
+            <sub><b>Leo Thorp</b></sub>
         </a>
     </td>
     <td align="center">
@@ -340,8 +363,7 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Nirmalya Ghosh</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/quentin-decre">
             <img src="https://avatars.githubusercontent.com/u/1137511?v=4" width="100;" alt="quentin-decre"/>

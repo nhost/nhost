@@ -7,7 +7,7 @@ import {
   RequestHandler,
   split,
   WatchQueryFetchPolicy
-} from '@apollo/client'
+} from '@apollo/client/core'
 import { setContext } from '@apollo/client/link/context'
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
 import { getMainDefinition } from '@apollo/client/utilities'

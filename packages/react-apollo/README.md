@@ -1,6 +1,18 @@
-# Nhost React Apollo
+<h1 align="center">@nhost/react-apollo</h1>
+<h2 align="center">For easy usage of Apollo and React</h2>
 
-For easy usage of Apollo and React with [Nhost](https://nhost.io).
+<p align="center">
+  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/react-apollo">
+  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/react-apollo">
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
+  </a>
+</p>
+
+
+## Documentation
+
+[Reference documentation](https://docs.nhost.io/reference/react/apollo)
 
 ## Install
 
@@ -36,6 +48,3 @@ ReactDOM.render(
 )
 ```
 
-## Documentation
-
-[https://docs.nhost.io/reference/react/apollo](https://docs.nhost.io/reference/react/apollo)

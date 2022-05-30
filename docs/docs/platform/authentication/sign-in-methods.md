@@ -56,7 +56,7 @@ Users can sign in with passwordless SMS. The passwordless SMS sign in method has
 First, "sign in" the user with a phone number.
 
 ```js
-await nnhost.auth.signIn({
+await nhost.auth.signIn({
   phoneNumber: '+467610337135',
 });
 ```
