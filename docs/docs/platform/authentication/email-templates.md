@@ -56,7 +56,7 @@ Default templates are automatically generated when the app is initialized with t
 
 ## Languages
 
-The user's language is what decides what template to send. The user's language is stored in the `auth.users` table in the `locale` columne. This `locale` column contains a two-letter language code in [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
+The user's language is what decides what template to send. The user's language is stored in the `auth.users` table in the `locale` column. This `locale` column contains a two-letter language code in [ISO 639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format.
 
 This value is `en` by default for new users.
 

@@ -17,9 +17,9 @@ If you're using the [Nhost JavaScript client](/reference/javascript), all tokens
 
 ### Access Token
 
-An access token (also called JWT token) contains information about the user such as user id. Users send this token to the Nhost services (GraphQL, Auth, Storage, Serverless Functions) to let the services know who's making the request so the services can verify the user's identity and resolve the correct permissions.
+An access token (also called JWT token) contains information about the user such as the user id. Users send this token to the Nhost services (GraphQL, Auth, Storage, Serverless Functions) to let the services know who's making the request so the services can verify the user's identity and resolve the correct permissions.
 
-The access token is added as an `Authorization` header when making request, like this:
+The access token is added as an `Authorization` header when making a request, like this:
 
 ```http title="Header"
 Authorization: Bearer <access_token>
@@ -48,7 +48,7 @@ The decoded payload of this access token is a JSON object that looks like this:
 }
 ```
 
-As you see, the token contains information about user id, default role, allowed roles, if the user is anonymous or not and some other metadata.
+As you see, the token contains information about the user id, default role, allowed roles, if the user is anonymous or not, and some other metadata.
 
 :::info
 You can add custom claims ### TODO###
@@ -58,7 +58,7 @@ You can add custom claims ### TODO###
 You can manually decode an access token using [JWT.io](https://jwt.io/).
 :::
 
-The token is cryptographically signed by Nhost Authentication, which means that all other Nhost servies can trust the information in the token.
+The token is cryptographically signed by Nhost Authentication, which means that all other Nhost services can trust the information in the token.
 
 :::info
 Use the `NHOST_JWT_SECRET` [system environment variable](/platform/environment-variables#system-environment-variables) to verify access tokens in [Serverless Functions](/platform/serverless-functions). Here's a guide on how to [Get the authenticated user in a Serverless Function](https://github.com/nhost/nhost/discussions/278).

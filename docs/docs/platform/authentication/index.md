@@ -20,7 +20,7 @@ Nhost Authentication lets you authenticate users to your app using different sig
 ## How it works
 
 1. When a user signs up or is created, the user's information is inserted into the `auth.users` table in your database.
-2. Nhost returns an access and refresh token, together with the user's information.
+2. Nhost returns an access token and a refresh token, together with the user's information.
 3. The user sends requests to Nhost services (GraphQL API, Authentication, Storage, Functions) with the access token as a header.
 4. The Nhost services use the user's access token to authorize the requests.
 
