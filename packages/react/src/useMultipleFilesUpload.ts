@@ -58,16 +58,16 @@ export const useMultipleFilesUpload = () => {
 
   return {
     /**
-     * Upload the files that has been previously added to the list
+     * Upload the files that has been previously added to the list.
      */
     upload,
     /**
-     * Add one or multiple files to add to the list of files to upload
+     * Add one or multiple files to add to the list of files to upload.
      */
 
     add,
     /**
-     * Clear the list of files
+     * Clear the list of files.
      */
     clear,
     /**
@@ -75,11 +75,11 @@ export const useMultipleFilesUpload = () => {
      */
     progress,
     /**
-     * Returns `true` when all the files have been successfully uploaded`
+     * Returns `true` when all the files have been successfully uploaded.
      */
     isUploaded,
     /**
-     * Returns `true` when the files are being uploaded
+     * Returns `true` when the files are being uploaded.
      */
     isUploading,
     /**

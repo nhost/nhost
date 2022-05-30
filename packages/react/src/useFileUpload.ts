@@ -56,40 +56,33 @@ export const useFileUploadItem = (
   const bucketId = useSelector(ref, (state) => state.context.bucketId)
   const name = useSelector(ref, (state) => state.context.file?.name)
 
-  //   ? Implement here or in another hook ?
-  //   const presign = () => {}
-  //   const download = () => {}
-  //   const publicUrl = 'todo'
-  //   const presignedUrl = 'todo'
-  //   const id = fileId || 'todo'
-
   return {
     /**
-     * Add the file without uploading it
+     * Add the file without uploading it.
      */
     add,
     /**
-     * Upload the file given as a parameter, or that has been previously added
+     * Upload the file given as a parameter, or that has been previously added.
      */
     upload,
     /**
-     * Cancel the ongoing upload
+     * Cancel the ongoing upload.
      */
     cancel,
     /**
-     * @internal - used by the MultipleFilesUpload component notice the file should be removed from the list
+     * @internal - used by the MultipleFilesUpload component to notice the file should be removed from the list.
      */
     destroy,
     /**
-     * Returns `true` when the file has been successfully uploaded
+     * Returns `true` when the file has been successfully uploaded.
      */
     isUploaded,
     /**
-     * Returns `true` when the file is being uploaded
+     * Returns `true` when the file is being uploaded.
      */
     isUploading,
     /**
-     * Returns `true` when the file has failed to upload
+     * Returns `true` when the file has failed to upload.
      */
     isError,
     /**
@@ -97,15 +90,15 @@ export const useFileUploadItem = (
      */
     progress,
     /**
-     * Returns the id of the file
+     * Returns the id of the file.
      */
     id,
     /**
-     * Returns the bucket id
+     * Returns the bucket id.
      */
     bucketId,
     /**
-     * Returns the name of the file
+     * Returns the name of the file.
      */
     name
   }
