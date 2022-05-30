@@ -58,7 +58,7 @@ export const useMultipleFilesUpload = () => {
 
   return {
     /**
-     * Upload the files given as a parameter, or that has been previously added
+     * Upload the files that has been previously added to the list
      */
     upload,
     /**
