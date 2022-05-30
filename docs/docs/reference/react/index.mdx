@@ -31,7 +31,7 @@ yarn add @nhost/react graphql
 
 ## Initializing
 
-After installation, you are suggested to create a nhost file and initialize a single `nhost` instance within that file.
+After installation, initialize a single Nhost Client (`nhost`) under `src/lib/nhost.js`.
 
 ```jsx title=src/lib/nhost.js
 import { NhostClient } from '@nhost/react'
@@ -41,7 +41,7 @@ const nhost = new NhostClient({
 export { nhost }
 ```
 
-After creation of the nhost library file, you must import the nhost instance and then wrap your app with the `NhostReactProvider`.
+Import `nhost` and wrap your app with the `NhostReactProvider`.
 
 ```jsx title=src/App.tsx
 import React from 'react'
