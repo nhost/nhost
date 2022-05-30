@@ -4,7 +4,7 @@ title: NhostReactClientConstructorParams
 sidebar_label: NhostReactClientConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/index.ts#L6
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/client.ts#L3
 ---
 
 # `NhostReactClientConstructorParams`
@@ -68,5 +68,12 @@ Activate devTools e.g. the ability to connect to the xstate inspector
 **<span className="parameter-name">backendUrl</span>** <span className="optional-status">required</span> `string`
 
 Nhost backend URL.
+
+---
+
+**<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
+
+Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all
+GraphQL, Storage, and Serverless Functions requests.
 
 ---
