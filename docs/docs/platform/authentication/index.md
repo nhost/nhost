@@ -25,16 +25,3 @@ Nhost Authentication lets you authenticate users to your app using different sig
 4. The Nhost services use the user's access token to authorize the requests.
 
 Nhost's authentication service is integrated with your database. All users are stored in the `users` table under the `auth` schema.
-
-Users can also be accessed via GraphQL:
-
-```graphql
-query {
-  users {
-    id
-    displayName
-    avatarUrl
-    email
-  }
-}
-```
