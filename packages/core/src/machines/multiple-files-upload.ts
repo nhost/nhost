@@ -25,7 +25,10 @@ type FilesListEvents =
   | { type: 'REMOVE' }
   | { type: 'CLEAR' }
 
-export const createMultipleFilesUploadMachine = (url: string, authInterpreter: AuthInterpreter) => {
+export const createMultipleFilesUploadMachine = (params: {
+  url: string
+  auth: AuthInterpreter
+}) => {
   return createMachine(
     {
       id: 'files-list',
@@ -61,7 +64,9 @@ export const createMultipleFilesUploadMachine = (url: string, authInterpreter: A
             CANCEL: { actions: 'cancel', target: 'idle' }
           }
         },
-        uploaded: {},
+        uploaded: {
+          entry: 'setUploaded'
+        },
         error: {}
       }
     },
@@ -85,13 +90,21 @@ export const createMultipleFilesUploadMachine = (url: string, authInterpreter: A
           const progress = Math.round((loaded * 100) / total)
           return { ...context, loaded, progress, total }
         }),
+        setUploaded: assign({
+          progress: (_) => 100,
+          loaded: ({ files }) =>
+            files
+              .map((ref) => ref.getSnapshot()!)
+              .filter((snap) => snap.matches('uploaded'))
+              .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
+        }),
         initProgress: assign({
           progress: (_) => 0,
           loaded: (_) => 0,
           total: ({ files }) =>
             files
               .map((ref) => ref.getSnapshot()!)
-              .filter((snap) => snap.value !== 'uploaded')
+              .filter((snap) => !snap.matches('uploaded'))
               .reduce((agg, curr) => agg + curr.context.file?.size!, 0)
         }),
         add: assign((context, { files }) => {
@@ -103,7 +116,7 @@ export const createMultipleFilesUploadMachine = (url: string, authInterpreter: A
               ...context.files,
               ...additions.map((file) =>
                 spawn(
-                  createFileUploadMachine(url, authInterpreter)
+                  createFileUploadMachine(params)
                     .withConfig({
                       actions: {
                         sendProgress: sendParent('UPLOAD_PROGRESS'),

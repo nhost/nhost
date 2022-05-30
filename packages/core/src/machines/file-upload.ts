@@ -7,7 +7,6 @@ type FileContext = {
   progress: number | null
   loaded: number
   id?: string
-  name?: string
   bucket?: string
   file?: File
 }
@@ -16,14 +15,14 @@ type FileEvents =
   | { type: 'ADD'; file: File; id?: string; bucket?: string; name?: string }
   | { type: 'UPLOAD'; file?: File; id?: string; bucket?: string; name?: string }
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
-  | { type: 'UPLOAD_DONE' }
+  | { type: 'UPLOAD_DONE'; id: string; bucket: string }
   | { type: 'UPLOAD_ERROR' }
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 
 export const INITIAL_FILE_CONTEXT: FileContext = { progress: null, loaded: 0 }
 
-export const createFileUploadMachine = (url: string, authInterpreter: AuthInterpreter) =>
+export const createFileUploadMachine = ({ url, auth }: { url: string; auth: AuthInterpreter }) =>
   createMachine(
     {
       preserveActionOrder: true,
@@ -31,7 +30,7 @@ export const createFileUploadMachine = (url: string, authInterpreter: AuthInterp
         context: {} as FileContext,
         events: {} as FileEvents
       },
-      tsTypes: {} as import("./file-upload.typegen").Typegen0,
+      tsTypes: {} as import('./file-upload.typegen').Typegen0,
       context: { ...INITIAL_FILE_CONTEXT },
       initial: 'idle',
       on: {
@@ -52,7 +51,7 @@ export const createFileUploadMachine = (url: string, authInterpreter: AuthInterp
           },
           invoke: { src: 'uploadFile' }
         },
-        uploaded: { entry: 'sendDone' },
+        uploaded: { entry: ['sendDone', 'setMetadata'] },
         error: { entry: 'sendError' },
         stopped: { type: 'final' }
       }
@@ -67,6 +66,11 @@ export const createFileUploadMachine = (url: string, authInterpreter: AuthInterp
           loaded: (_, event) => event.loaded,
           progress: (_, event) => event.progress
         }),
+        setMetadata: assign({
+          id: (_, event) => event.id,
+          bucket: (_, event) => event.bucket,
+          progress: (_) => 100
+        }),
         sendProgress: () => {},
         sendError: () => {},
         sendDestroy: () => {},
@@ -75,12 +79,11 @@ export const createFileUploadMachine = (url: string, authInterpreter: AuthInterp
         addFile: assign({
           file: (_, { file }) => file,
           bucket: (_, { bucket }) => bucket,
-          name: (_, { name }) => name,
           id: (_, { id }) => id
         })
       },
       services: {
-        uploadFile: (context, event) => (callback, onReceive) => {
+        uploadFile: (context, event) => (callback) => {
           const headers: AxiosRequestHeaders = {
             'Content-Type': 'multipart/form-data'
           }
@@ -92,14 +95,14 @@ export const createFileUploadMachine = (url: string, authInterpreter: AuthInterp
           if (bucket) {
             headers['x-nhost-bucket-id'] = bucket
           }
-          const name = event.name || context.name
+          const name = event.name || context.file?.name
           if (name) {
             headers['x-nhost-file-name'] = name
           }
           const data = new FormData()
           data.append('file', (event.file || context.file)!)
           // TODO also add hasura admin secret
-          const jwt = authInterpreter.state.context.accessToken.value
+          const jwt = auth.state.context.accessToken.value
           if (jwt) {
             headers['Authorization'] = `Bearer ${jwt}`
           }
@@ -132,8 +135,9 @@ export const createFileUploadMachine = (url: string, authInterpreter: AuthInterp
                 })
               }
             })
-            .then((res) => {
+            .then(({ data: { id, bucketId } }) => {
               //   TODO get some info back from hasura-storage
+              callback({ type: 'UPLOAD_DONE', id, bucket: bucketId })
               callback('UPLOAD_DONE')
             })
             .catch((err) => {

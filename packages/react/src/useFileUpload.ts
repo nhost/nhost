@@ -31,9 +31,11 @@ export const useFileUploadFromRef = (
   const isError = useSelector(ref, (state) => state.matches('error'))
 
   const progress = useSelector(ref, (state) => state.context.progress)
-  const fileName = useSelector(ref, (state) => state.context.file?.name)
+  const id = useSelector(ref, (state) => state.context.id)
+  const bucket = useSelector(ref, (state) => state.context.bucket)
+  const name = useSelector(ref, (state) => state.context.file?.name)
 
-  //   ? Implement here ?
+  //   ? Implement here or in another hook ?
   //   const presign = () => {}
   //   const download = () => {}
   //   const publicUrl = 'todo'
@@ -45,21 +47,20 @@ export const useFileUploadFromRef = (
     upload,
     cancel,
     destroy,
-    progress,
     isUploaded,
     isUploading,
     isError,
-    fileName
+    progress,
+    id,
+    bucket,
+    name
   }
 }
 
 export const useFileUpload = () => {
   const url = useNhostBackendUrl()
-  const authInterpreter = useAuthInterpreter()
-  const machine = useMemo(
-    () => createFileUploadMachine(url, authInterpreter),
-    [authInterpreter, url]
-  )
+  const auth = useAuthInterpreter()
+  const machine = useMemo(() => createFileUploadMachine({ url, auth }), [url, auth])
   const service = useInterpret(machine, { devTools: false })
 
   return useFileUploadFromRef(service)

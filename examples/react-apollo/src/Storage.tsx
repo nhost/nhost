@@ -91,11 +91,11 @@ export const DropzoneChildren: React.FC<
 )
 
 const ListItem: React.FC<React.PropsWithChildren<{ fileRef: FileItemRef }>> = ({ fileRef }) => {
-  const { progress, isUploaded, fileName, isError, destroy } = useFileUploadFromRef(fileRef)
+  const { progress, isUploaded, name, isError, destroy } = useFileUploadFromRef(fileRef)
   return (
     <tr>
       <td>
-        {fileName} {isError && <FaExclamationTriangle color="red" />}
+        {name} {isError && <FaExclamationTriangle color="red" />}
       </td>
       <td>{progress && <Progress value={progress} />}</td>
       <td>

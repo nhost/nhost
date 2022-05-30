@@ -11,11 +11,8 @@ type UploadMultipleFilesActionParams = {
 
 export const useMultipleFilesUpload = () => {
   const url = useNhostBackendUrl()
-  const authInterpreter = useAuthInterpreter()
-  const machine = useMemo(
-    () => createMultipleFilesUploadMachine(url, authInterpreter),
-    [authInterpreter, url]
-  )
+  const auth = useAuthInterpreter()
+  const machine = useMemo(() => createMultipleFilesUploadMachine({ url, auth }), [url, auth])
   const service = useInterpret(machine, { devTools: true })
 
   const add = (files: File | File[]) => {

@@ -10,6 +10,7 @@ export interface Typegen0 {
     cancel: 'CANCEL'
     upload: 'UPLOAD'
     initProgress: 'UPLOAD'
+    setUploaded: 'UPLOAD_DONE'
   }
   internalEvents: {
     'xstate.init': { type: 'xstate.init' }
