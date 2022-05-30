@@ -1,9 +1,10 @@
 import { useMemo } from 'react'
 
-import { createFilesListMachine } from '@nhost/core'
+import { createMultipleFilesUploadMachine } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
-import { useNhostBackendUrl } from './useNhostBackendUrl'
+
 import { useAuthInterpreter } from './useAuthInterpreter'
+import { useNhostBackendUrl } from './useNhostBackendUrl'
 type UploadMultipleFilesActionParams = {
   bucket?: string
 }
@@ -12,7 +13,7 @@ export const useMultipleFilesUpload = () => {
   const url = useNhostBackendUrl()
   const authInterpreter = useAuthInterpreter()
   const machine = useMemo(
-    () => createFilesListMachine(url, authInterpreter),
+    () => createMultipleFilesUploadMachine(url, authInterpreter),
     [authInterpreter, url]
   )
   const service = useInterpret(machine, { devTools: true })

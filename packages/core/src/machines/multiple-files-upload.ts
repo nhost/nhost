@@ -2,11 +2,11 @@ import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstat
 
 import { AuthInterpreter } from '../types'
 
-import { createFileMachine, INITIAL_FILE_CONTEXT } from './file'
+import { createFileUploadMachine, INITIAL_FILE_CONTEXT } from './file-upload'
 
 const { pure, sendParent } = actions
 
-export type FileItemRef = ActorRefFrom<ReturnType<typeof createFileMachine>>
+export type FileItemRef = ActorRefFrom<ReturnType<typeof createFileUploadMachine>>
 
 type FilesListContext = {
   progress: number | null
@@ -25,7 +25,7 @@ type FilesListEvents =
   | { type: 'REMOVE' }
   | { type: 'CLEAR' }
 
-export const createFilesListMachine = (url: string, authInterpreter: AuthInterpreter) => {
+export const createMultipleFilesUploadMachine = (url: string, authInterpreter: AuthInterpreter) => {
   return createMachine(
     {
       id: 'files-list',
@@ -33,7 +33,7 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
         context: {} as FilesListContext,
         events: {} as FilesListEvents
       },
-      tsTypes: {} as import('./files-list.typegen').Typegen0,
+      tsTypes: {} as import('./multiple-files-upload.typegen').Typegen0,
       context: {
         progress: null,
         files: [],
@@ -103,7 +103,7 @@ export const createFilesListMachine = (url: string, authInterpreter: AuthInterpr
               ...context.files,
               ...additions.map((file) =>
                 spawn(
-                  createFileMachine(url, authInterpreter)
+                  createFileUploadMachine(url, authInterpreter)
                     .withConfig({
                       actions: {
                         sendProgress: sendParent('UPLOAD_PROGRESS'),

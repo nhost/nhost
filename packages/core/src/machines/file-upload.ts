@@ -23,7 +23,7 @@ type FileEvents =
 
 export const INITIAL_FILE_CONTEXT: FileContext = { progress: null, loaded: 0 }
 
-export const createFileMachine = (url: string, authInterpreter: AuthInterpreter) =>
+export const createFileUploadMachine = (url: string, authInterpreter: AuthInterpreter) =>
   createMachine(
     {
       preserveActionOrder: true,
@@ -31,7 +31,7 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
         context: {} as FileContext,
         events: {} as FileEvents
       },
-      tsTypes: {} as import('./file.typegen').Typegen0,
+      tsTypes: {} as import("./file-upload.typegen").Typegen0,
       context: { ...INITIAL_FILE_CONTEXT },
       initial: 'idle',
       on: {
@@ -141,11 +141,9 @@ export const createFileMachine = (url: string, authInterpreter: AuthInterpreter)
               callback('UPLOAD_ERROR')
             })
 
-          onReceive(({ type }) => {
-            if (type === 'CANCEL') {
-              controller.abort()
-            }
-          })
+          return () => {
+            controller.abort()
+          }
         }
       }
     }

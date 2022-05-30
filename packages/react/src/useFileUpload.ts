@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
-
-import { createFileMachine, FileItemRef } from '@nhost/core'
-import { useInterpret, useSelector } from '@xstate/react'
-import { useNhostBackendUrl } from './useNhostBackendUrl'
-import { useAuthInterpreter } from './useAuthInterpreter'
 import { InterpreterFrom } from 'xstate'
 
+import { createFileUploadMachine, FileItemRef } from '@nhost/core'
+import { useInterpret, useSelector } from '@xstate/react'
+
+import { useAuthInterpreter } from './useAuthInterpreter'
+import { useNhostBackendUrl } from './useNhostBackendUrl'
+
 export const useFileUploadFromRef = (
-  ref: FileItemRef | InterpreterFrom<ReturnType<typeof createFileMachine>>
+  ref: FileItemRef | InterpreterFrom<ReturnType<typeof createFileUploadMachine>>
 ) => {
   const add = (file: File) => {
     ref.send({ type: 'ADD', file })
@@ -55,7 +56,10 @@ export const useFileUploadFromRef = (
 export const useFileUpload = () => {
   const url = useNhostBackendUrl()
   const authInterpreter = useAuthInterpreter()
-  const machine = useMemo(() => createFileMachine(url, authInterpreter), [authInterpreter, url])
+  const machine = useMemo(
+    () => createFileUploadMachine(url, authInterpreter),
+    [authInterpreter, url]
+  )
   const service = useInterpret(machine, { devTools: false })
 
   return useFileUploadFromRef(service)
