@@ -139,7 +139,10 @@ export const createMultipleFilesUploadMachine = (params: {
                   createFileUploadMachine(params)
                     .withConfig({
                       actions: {
-                        sendProgress: sendParent('UPLOAD_PROGRESS'),
+                        sendProgress: sendParent((_, { additions }) => ({
+                          type: 'UPLOAD_PROGRESS',
+                          additions
+                        })),
                         sendDone: sendParent('UPLOAD_DONE'),
                         sendError: sendParent('UPLOAD_ERROR'),
                         sendDestroy: sendParent('REMOVE')

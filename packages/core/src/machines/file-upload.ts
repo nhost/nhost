@@ -101,8 +101,9 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
           if (name) {
             headers['x-nhost-file-name'] = name
           }
+          const file = (event.file || context.file)!
           const data = new FormData()
-          data.append('file', (event.file || context.file)!)
+          data.append('file', file)
           // TODO also add hasura admin secret
           const jwt = auth.state.context.accessToken.value
           if (jwt) {
@@ -126,7 +127,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
               headers,
               signal: controller.signal,
               onUploadProgress: (event: ProgressEvent) => {
-                const loaded = Math.round((event.loaded * context.file?.size!) / event.total)
+                const loaded = Math.round((event.loaded * file.size!) / event.total)
                 const additions = loaded - currentLoaded
                 currentLoaded = loaded
                 callback({
