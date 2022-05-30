@@ -13,7 +13,9 @@ import {
   resetPasswordSuccessHandler,
   sendVerificationEmailSuccessHandler,
   signOutHandler,
-  signUpSuccessHandler
+  signUpSuccessHandler,
+  correctAnonymousHandler,
+  deamonymisationSuccessfulHandler
 } from './handlers'
 
 export const defaultSuccessHandlers = [
@@ -30,7 +32,9 @@ export const defaultSuccessHandlers = [
   resetPasswordSuccessHandler,
   sendVerificationEmailSuccessHandler,
   signOutHandler,
-  signUpSuccessHandler
+  signUpSuccessHandler,
+  correctAnonymousHandler,
+  deamonymisationSuccessfulHandler
 ]
 
 export const server = setupServer(...defaultSuccessHandlers)

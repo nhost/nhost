@@ -6,9 +6,11 @@ import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   anonymousNetworkErrorHandler,
-  correctAnonymousHandler,
-  deamonymisationSuccessfulHandler
+  anonymousInternalErrorHandler,
+  invalidDeamonymisationEmailError
 } from './helpers/handlers'
+import { fakeAnonymousUser } from './helpers/mocks/user'
+
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
 import { GeneralAuthState } from './helpers/types'
@@ -58,7 +60,7 @@ test(`should fail if network is unavailable`, async () => {
 })
 
 test(`should fail if server returns an error`, async () => {
-  server.use(anonymousNetworkErrorHandler)
+  server.use(anonymousInternalErrorHandler)
 
   authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
@@ -69,16 +71,15 @@ test(`should fail if server returns an error`, async () => {
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
       "authentication": {
-        "error": "OK",
-        "message": "Network Error",
-        "status": 200,
+        "error": "internal-error",
+        "message": "Internal error",
+        "status": 500,
       },
     }
   `)
 })
 
 test('should deanonymise a user with email and password', async () => {
-  server.use(correctAnonymousHandler, deamonymisationSuccessfulHandler)
   authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
   await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
@@ -100,7 +101,6 @@ test('should deanonymise a user with email and password', async () => {
 })
 
 test('should deanonymise a user with passwordless email', async () => {
-  server.use(correctAnonymousHandler, deamonymisationSuccessfulHandler)
   authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
   await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
@@ -121,7 +121,6 @@ test('should deanonymise a user with passwordless email', async () => {
 })
 
 test('should deanonymise a user with passwordless sms', async () => {
-  server.use(correctAnonymousHandler, deamonymisationSuccessfulHandler)
   authService.send({ type: 'SIGNIN_ANONYMOUS' })
 
   await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
@@ -139,4 +138,24 @@ test('should deanonymise a user with passwordless sms', async () => {
   )
 
   expect(state.context.user).toBeNull()
+})
+
+test('should fail deanonymisation when using an invalid email', async () => {
+  server.use(invalidDeamonymisationEmailError)
+  authService.send({ type: 'SIGNIN_ANONYMOUS' })
+
+  await waitFor(authService, (state: AuthState) => state.matches('authentication.signedIn'))
+
+  authService.send({
+    type: 'PASSWORDLESS_EMAIL',
+    email: 'invalid//email'
+  })
+
+  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    state.matches({
+      registration: { incomplete: 'failed' }
+    })
+  )
+
+  expect(state.context.user).toMatchObject(fakeAnonymousUser)
 })

@@ -15,6 +15,19 @@ export const anonymousNetworkErrorHandler = rest.post(
 )
 
 /**
+ * Request handler for MSW to mock an internal server error when trying to sign anonymously.
+ */
+export const anonymousInternalErrorHandler = rest.post(
+  `${BASE_URL}/signin/anonymous`,
+  (_req, res, ctx) => {
+    return res(
+      ctx.status(500),
+      ctx.json({ status: 500, error: 'internal-error', message: 'Internal error' })
+    )
+  }
+)
+
+/**
  * Request handler for MSW to mock a successful anonymous sign.
  */
 export const correctAnonymousHandler = rest.post(
@@ -42,4 +55,20 @@ export const deamonymisationSuccessfulHandler = rest.post(
   (_req, res, ctx) => {
     return res(ctx.status(200))
   }
+)
+
+/**
+ * Request handler for MSW to mock a deanonymisation error for an invalid deanonymisation method
+ */
+export const invalidDeamonymisationEmailError = rest.post(
+  `${BASE_URL}/user/deanonymize`,
+  (_req, res, ctx) =>
+    res(
+      ctx.status(400),
+      ctx.json({
+        status: 400,
+        message: '"email" must be a valid email',
+        error: 'invalid-request'
+      })
+    )
 )
