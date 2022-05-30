@@ -1,8 +1,10 @@
-import { assign, createMachine, spawn, actions, InterpreterFrom, send, ActorRefFrom } from 'xstate'
+import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstate'
+
 import { AuthInterpreter } from '../types'
+
 import { createFileMachine } from './file'
 
-const { pure, sendParent, log } = actions
+const { pure, sendParent } = actions
 
 export type FileItemRef = ActorRefFrom<ReturnType<typeof createFileMachine>>
 

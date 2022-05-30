@@ -1,11 +1,18 @@
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import type { DocumentNode } from 'graphql'
 import { print } from 'graphql/language/printer'
 
 import { GraphqlRequestResponse, GraphqlResponse } from '../types'
 
 export interface NhostGraphqlConstructorParams {
+  /**
+   * GraphQL endpoint.
+   */
   url: string
+  /**
+   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
+   */
+  adminSecret?: string
 }
 
 /**
@@ -15,12 +22,14 @@ export class NhostGraphqlClient {
   private url: string
   private instance: AxiosInstance
   private accessToken: string | null
+  private adminSecret?: string
 
   constructor(params: NhostGraphqlConstructorParams) {
-    const { url } = params
+    const { url, adminSecret } = params
 
     this.url = url
     this.accessToken = null
+    this.adminSecret = adminSecret
     this.instance = axios.create({
       baseURL: url
     })
@@ -51,8 +60,8 @@ export class NhostGraphqlClient {
   ): Promise<GraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {
-      ...config?.headers,
-      ...this.generateAccessTokenHeaders()
+      ...this.generateAccessTokenHeaders(),
+      ...config?.headers
     }
 
     try {
@@ -130,14 +139,17 @@ export class NhostGraphqlClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders() {
-    if (!this.accessToken) {
-      return
+  private generateAccessTokenHeaders(): AxiosRequestHeaders {
+    if (this.adminSecret) {
+      return {
+        'x-hasura-admin-secret': this.adminSecret
+      }
     }
-
-    // eslint-disable-next-line consistent-return
-    return {
-      Authorization: `Bearer ${this.accessToken}`
+    if (this.accessToken) {
+      return {
+        Authorization: `Bearer ${this.accessToken}`
+      }
     }
+    return {}
   }
 }

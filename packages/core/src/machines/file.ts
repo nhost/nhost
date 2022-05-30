@@ -1,5 +1,6 @@
-import { assign, createMachine } from 'xstate'
 import axios, { AxiosRequestHeaders } from 'axios'
+import { assign, createMachine } from 'xstate'
+
 import { AuthInterpreter } from '../types'
 
 type FileContext = {

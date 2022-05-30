@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
+
 import { createFileMachine } from '@nhost/core'
 import { useInterpret, useSelector } from '@xstate/react'
-import { useAuthInterpreter, useNhostBackendUrl } from './hooks/common'
-import { useMemo } from 'react'
+import { useNhostBackendUrl } from './useNhostBackendUrl'
+import { useAuthInterpreter } from './useAuthInterpreter'
 
 export const useFileUpload = () => {
   const url = useNhostBackendUrl()
