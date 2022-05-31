@@ -1,6 +1,6 @@
 ---
-title: Sign in with LinkedIn
-sidebar_position: 4
+title: Sign In with LinkedIn
+sidebar_label: LinkedIn
 slug: /platform/authentication/sign-in-with-linkedin
 ---
 
@@ -15,11 +15,11 @@ Follow this guide to sign in users with LinkedIn with your Nhost App.
   />
 </p>
 
-## Create LinkedIn account
+## Create LinkedIn Account
 
 - Create a [LinkedIn account](https://linkedin.com/) if you don't have one already.
 
-## Create LinkedIn OAuth App
+## Create a LinkedIn OAuth App
 
 - Go to the [LinkedIn Developer Dashboard](https://www.linkedin.com/developers/apps).
 - Click on Create App in the top right.
@@ -27,10 +27,10 @@ Follow this guide to sign in users with LinkedIn with your Nhost App.
 - Click **“I have read and agree to these terms”**.
 - Click **Create app** in the bottom right.
 
-## LinkedIn OAuth App information
+## LinkedIn OAuth App Information
 
 - Click on **Auth** in the top menu.
-- Click on the **pen icon** under **OAuth 2.0 settings** and right next to **Authorized redirect URLs for your app.**
+- Click on the **pen icon** under **OAuth 2.0 settings** and right next to **Authorized redirect URLs for your app**.
 - Click **Add redirect URL**.
 - Copy and past the **OAuth Callback URL** from Nhost.
 - Click **Update**.
@@ -43,17 +43,17 @@ Follow this guide to sign in users with LinkedIn with your Nhost App.
 
 ## Enable Auth for your LinkedIn OAuth App
 
-- Click on **Products** in the top menu
+- Click on **Products** in the top menu.
 - Click Select on the **Sign In with LinkedIn**.
-- Check the checkbox **I have read and agree to these terms.**
+- Check the checkbox **I have read and agree to these terms**.
 - Click **Add product**.
 
-## Sign In users in your app
+## Sign In Users
 
 Use the [Nhost JavaScript client](/reference/javascript) to sign in users in your app:
 
 ```js
 nhost.auth.signIn({
-  provider: 'linkedin',
-});
+  provider: 'linkedin'
+})
 ```
