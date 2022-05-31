@@ -654,11 +654,20 @@ export function UserProvider() {
 Then, replace the `useUserData` hook with the `useUserId` hook to retrieve the current user's ID only.
 
 ```js title="UserProvider.js"
-import { useUserId } from '@nhost/nextjs'
+import { useAuthenticationStatus, useUserId } from '@nhost/nextjs'
 
 export function UserProvider() {
-  const id = useUserId()
-  //...
+  const { isAuthenticated } = useAuthenticationStatus()
+  var user = null;
+  if(isAuthenticated){
+    const id = useUserId()
+    
+    //...
+    user = data?.user
+    //...
+  }
+  
+  return (<UserContext.Provider value={{ user }}>{children}</UserContext.Provider>);
 }
 ```
 
@@ -669,24 +678,30 @@ Finally, we can run our GraphQL query using the `useQuery` hook and the current 
 import { gql, useQuery } from '@apollo/client'
 
 export function UserProvider({ children = null }) {
-  const id = useUserId()
   // highlight-start
-  const { loading, error, data } = useQuery(GET_USER_QUERY, {
-    variables: { id }
-  })
-  const user = data?.user
-  // highlight-end
-
-  // highlight-start
-  if (error) {
-    return <p>Something went wrong. Try to refresh the page.</p>
+  const { isAuthenticated } = useAuthenticationStatus()
+  var user = null;
+  
+  if(isAuthenticated){
+    // highlight-end
+    const id = useUserId()
+    
+    const { loading, error, data } = useQuery(GET_USER_QUERY, {
+      variables: { id }
+    })
+    // highlight-start
+    user = data?.user
+    // highlight-end
+    if (error) {
+      return <p>Something went wrong. Try to refresh the page.</p>
+    }
+    if (loading) {
+      return null
+    }
+    // highlight-start
   }
-  if (loading) {
-    return null
-  }
   // highlight-end
-
-  return <UserContext.Provider value={{ user }}>{children}</UserContext.Provider>
+  return (<UserContext.Provider value={{ user }}>{children}</UserContext.Provider>);
 }
 ```
 
