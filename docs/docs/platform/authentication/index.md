@@ -2,6 +2,7 @@
 title: Nhost Authentication
 sidebar_label: Authentication
 sidebar_position: 1
+image: /img/og/platform/authentication.png
 ---
 
 Nhost Authentication is a ready-to-use authentication service that is integrated with the [GraphQL API](/platform/graphql) and its permission system from Hasura.

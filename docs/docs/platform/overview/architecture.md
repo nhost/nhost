@@ -1,6 +1,7 @@
 ---
 title: 'Architecture'
 sidebar_position: 2
+image: /img/og/platform/architecture.png
 ---
 
 Nhost is a backend as a service built with open source tools to provide developers the general building blocks required to build fantastic digital apps and products.

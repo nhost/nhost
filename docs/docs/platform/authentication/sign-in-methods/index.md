@@ -1,6 +1,7 @@
 ---
 title: 'Sign-In Methods'
 slug: /platform/authentication/sign-in-methods
+image: /img/og/platform/sign-in-methods.png
 ---
 
 Nhost Authentication support the following sign-in methods:

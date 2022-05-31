@@ -1,6 +1,7 @@
 ---
 title: 'Permissions'
 sidebar_position: 1
+image: /img/og/platform/permissions.png
 ---
 
 The GraphQL API is protected by a role-based permission system.
