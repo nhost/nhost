@@ -1,8 +1,6 @@
-import fs from 'fs'
 import path from 'path'
 
 import { defineConfig } from 'vite'
-import dts from 'vite-plugin-dts'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
 import vue from '@vitejs/plugin-vue'
@@ -15,20 +13,7 @@ const pkg = require(path.join(PWD, 'package.json'))
 const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies))]
 
 export default defineConfig({
-  plugins: [
-    vue(),
-    tsconfigPaths(),
-    dts({
-      exclude: ['**/*.spec.ts', '**/*.test.ts', '**/tests/**'],
-      afterBuild: () => {
-        const types = fs.readdirSync(path.join(PWD, 'umd/src'))
-        types.forEach((file) => {
-          fs.renameSync(path.join(PWD, 'umd/src', file), path.join(PWD, 'umd', file))
-        })
-        fs.rmdirSync(path.join(PWD, 'umd/src'))
-      }
-    })
-  ],
+  plugins: [vue(), tsconfigPaths()],
   build: {
     ...(baseLibConfig.build || {}),
     outDir: 'umd',

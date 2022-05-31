@@ -24,7 +24,7 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -34,8 +34,11 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
+      "node": {
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.cjs.js"
+      },
+      "default": "./dist/index.es.js"
     }
   },
   "publishConfig": {
@@ -44,7 +47,7 @@
   "scripts": {
     "dev": "vite build --config ../../config/vite.react.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../config/vite.react.config.js",
+    "build:lib": "vite build --config ../../config/vite.react.config.js && cp dist/index.mjs dist/index.es.js && cp dist/index.mjs.map dist/index.es.js.map",
     "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
     "test": "vitest run --config ../../config/vite.react.config.js",
     "test:watch": "vitest --config ../../config/vite.react.config.js",
