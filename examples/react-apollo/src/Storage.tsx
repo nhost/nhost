@@ -151,7 +151,7 @@ export const StoragePage: React.FC = () => {
               ) : isError ? (
                 <Text size="xl">Error uploading the file</Text>
               ) : (
-                <Text size="xl">Drag files here or click to select</Text>
+                <Text size="xl">Drag a file here or click to select</Text>
               )}
             </DropzoneChildren>
           )}
