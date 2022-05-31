@@ -100,11 +100,13 @@ This is how you attach custom metadata to a user during sign-up:
 
 ```js
 await nhost.auth.signUp({
-  email: 'joe@nhost.io',
+  email: 'joe@example.com',
   password: 'secret-password',
   options: {
     metadata: {
-      custom: 'data' // any custom json data
+      birthYear: 1989,
+      town: 'Stockholm',
+      likes: ['Postgres', 'GraphQL', 'Hasura', 'Authentication', 'Storage', 'Serverless Functions']
     }
   }
 })
