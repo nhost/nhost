@@ -70,7 +70,7 @@ services:
       - "traefik.http.routers.auth.middlewares=strip-auth@docker"
       - "traefik.http.routers.auth.entrypoints=web"
   storage:
-    image: nhost/hasura-storage:0.1.5
+    image: nhost/hasura-storage:0.2.1
     depends_on:
       - postgres
       - graphql-engine
@@ -95,6 +95,10 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.storage.rule=Host(`localhost`) && PathPrefix(`/v1/storage`)"
       - "traefik.http.routers.storage.entrypoints=web"
+      # Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
+      - "traefik.http.middlewares.strip-suffix.replacepathregex.regex=^/v1/storage/(.*)"
+      - "traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1"
+      - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
     command: serve
   minio:
     image: minio/minio:RELEASE.2021-09-24T00-24-24Z
