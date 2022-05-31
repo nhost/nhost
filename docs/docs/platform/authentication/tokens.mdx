@@ -48,11 +48,9 @@ The decoded payload of this access token is a JSON object that looks like this:
 }
 ```
 
-As you see, the token contains information about the user id, default role, allowed roles, if the user is anonymous or not, and some other metadata.
+The token contains information about the user id, default role, allowed roles, if the user is anonymous or not, and other metadata.
 
-:::info
-You can add custom claims ### TODO###
-:::
+The claims under `https://hasura.io/jwt/claims` are the same claims that are used by the GraphQL API to create [permissions](/platform/graphql/permissions). The claims (`x-hasura-*`) are also called permission variables. It's possible to add custom [permission variables](/platform/graphql/permissions#custom-permission-variables).
 
 :::info
 You can manually decode an access token using [JWT.io](https://jwt.io/).
