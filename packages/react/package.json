@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react",
-  "version": "0.7.8",
+  "version": "0.7.10",
   "description": "Nhost React library",
   "license": "MIT",
   "keywords": [
@@ -22,7 +22,7 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.esm.mjs",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -32,8 +32,11 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
+      "node": {
+        "import": "./dist/index.esm.mjs",
+        "require": "./dist/index.cjs.js"
+      },
+      "default": "./dist/index.esm.js"
     }
   },
   "publishConfig": {
@@ -42,7 +45,7 @@
   "scripts": {
     "dev": "vite build --config ../../config/vite.react.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../config/vite.react.config.js",
+    "build:lib": "vite build --config ../../config/vite.react.config.js && cpy --flat dist/index.esm.mjs dist --rename=index.esm.js && cpy --flat dist/index.esm.mjs.map dist --rename index.esm.js.map",
     "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
     "test": "vitest run --config ../../config/vite.react.config.js",
     "test:watch": "vitest --config ../../config/vite.react.config.js",
@@ -59,7 +62,7 @@
     "@nhost/core": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
     "@xstate/react": "^3.0.0",
-    "immer": "^9.0.12",
+    "immer": "^9.0.14",
     "jwt-decode": "^3.1.2",
     "xstate": "^4.31.0"
   },

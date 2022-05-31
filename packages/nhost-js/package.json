@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "1.1.14",
+  "version": "1.2.1",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -21,7 +21,7 @@
     "url": "git+https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.esm.mjs",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -31,8 +31,11 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
+      "node": {
+        "import": "./dist/index.esm.mjs",
+        "require": "./dist/index.cjs.js"
+      },
+      "default": "./dist/index.esm.js"
     }
   },
   "publishConfig": {
@@ -41,7 +44,7 @@
   "scripts": {
     "dev": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js && cpy --flat dist/index.esm.mjs dist --rename=index.esm.js && cpy --flat dist/index.esm.mjs.map dist --rename index.esm.js.map",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run --config ../../config/vite.lib.config.js",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",
