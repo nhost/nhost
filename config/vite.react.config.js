@@ -6,5 +6,8 @@ import baseLibConfig from './vite.lib.config'
 
 export default defineConfig({
   ...baseLibConfig,
-  plugins: [react(), ...baseLibConfig.plugins]
+  optimizeDeps: {
+    include: ['react/jsx-runtime']
+  },
+  plugins: [react({ jsxRuntime: 'classic' }), ...baseLibConfig.plugins]
 })
