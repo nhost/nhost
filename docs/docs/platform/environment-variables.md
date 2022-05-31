@@ -1,6 +1,7 @@
 ---
 title: 'Environment Variables'
 sidebar_position: 9
+image: /img/og/platform/environment-variables.png
 ---
 
 Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys.
