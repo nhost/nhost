@@ -1,5 +1,12 @@
 # @nhost/hasura-storage-js
 
+## 0.3.1
+
+### Patch Changes
+
+- 78341491: fix: Next.js and React issues with ESM packages
+  chore: Updated output bundle names
+
 ## 0.3.0
 
 ### Minor Changes

@@ -1,5 +1,15 @@
 # @nhost/nhost-js
 
+## 1.2.1
+
+### Patch Changes
+
+- 78341491: fix: Next.js and React issues with ESM packages
+  chore: Updated output bundle names
+- Updated dependencies [78341491]
+  - @nhost/hasura-auth-js@1.1.11
+  - @nhost/hasura-storage-js@0.3.1
+
 ## 1.2.0
 
 ### Minor Changes

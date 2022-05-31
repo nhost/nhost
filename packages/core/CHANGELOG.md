@@ -1,5 +1,12 @@
 # @nhost/core
 
+## 0.6.2
+
+### Patch Changes
+
+- 78341491: fix: Next.js and React issues with ESM packages
+  chore: Updated output bundle names
+
 ## 0.6.1
 
 ### Patch Changes

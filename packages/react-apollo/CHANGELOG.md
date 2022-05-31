@@ -1,5 +1,15 @@
 # @nhost/react-apollo
 
+## 4.2.11
+
+### Patch Changes
+
+- 78341491: fix: Next.js and React issues with ESM packages
+  chore: Updated output bundle names
+- Updated dependencies [78341491]
+  - @nhost/apollo@0.5.10
+  - @nhost/react@0.7.10
+
 ## 4.2.10
 
 ### Patch Changes
