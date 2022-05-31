@@ -10,6 +10,12 @@ type BackendUrl = {
    * Will be deprecated in favor of `subdomain` and `region`
    */
   backendUrl: string
+
+  /**
+   * When set, the admin secret is sent as an header, `x-hasura-admin-secret`,
+   * for all requests to GraphQL, Storage, and Functions.
+   */
+  adminSecret?: string
 }
 
 type Subdomain = {
@@ -24,6 +30,12 @@ type Subdomain = {
    * Not required in development
    */
   region?: string
+
+  /**
+   * When set, the admin secret is sent as an header, `x-hasura-admin-secret`,
+   * for all requests to GraphQL, Storage, and Functions.
+   */
+  adminSecret?: string
 }
 
 export type BackendOrSubdomain = BackendUrl | Subdomain

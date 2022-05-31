@@ -7,22 +7,22 @@
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
   </a>
-  <a href="https://prettier.io">
-    <img src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg" alt="code style: prettier" />
-  </a>
 </p>
 
-## Get Started
+## Documentation
 
-### Install
+[Reference documentation](https://docs.nhost.io/reference/javascript)
+
+## Install
 
 ```
 npm install @nhost/nhost-js
+
 # or yarn
 yarn add @nhost/nhost-js
 ```
 
-### Initialize
+### Initialise
 
 ```js
 import { NhostClient } from '@nhost/nhost-js'
@@ -50,6 +50,3 @@ Access Nhost Storage methods using `nhost.storage`.
 
 Access Nhost Functions methods via `nhost.functions`.
 
-## Documentation
-
-[https://docs.nhost.io/reference/javascript](https://docs.nhost.io/reference/javascript)

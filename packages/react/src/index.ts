@@ -1,17 +1,33 @@
-import {
-  BackendOrSubdomain,
-  NhostAuthConstructorParams,
-  NhostClient as VanillaClient
-} from '@nhost/nhost-js'
-
-export * from './hooks'
+export * from './client'
 export * from './provider'
-
-export type NhostReactClientConstructorParams = BackendOrSubdomain &
-  Omit<NhostAuthConstructorParams, 'url' | 'start' | 'client'>
-
-export class NhostClient extends VanillaClient {
-  constructor(params: NhostReactClientConstructorParams) {
-    super({ ...params, start: false })
-  }
-}
+export * from './useAccessToken'
+export * from './useAuthenticated'
+export * from './useAuthenticationStatus'
+export * from './useAuthInterpreter'
+export * from './useAuthLoading'
+export * from './useChangeEmail'
+export * from './useChangePassword'
+export * from './useConfigMfa'
+export * from './useDecodedAccessToken'
+export * from './useHasuraClaim'
+export * from './useHasuraClaims'
+export * from './useNhostAuth'
+export * from './useNhostBackendUrl'
+export * from './useNhostClient'
+export * from './useProviderLink'
+export * from './useResetPassword'
+export * from './useSendVerificationEmail'
+export * from './useSignInAnonymous'
+export * from './useSignInEmailPassword'
+export * from './useSignInEmailPasswordless'
+export * from './useSignOut'
+export * from './useSignUpEmailPassword'
+export * from './useUserAvatarUrl'
+export * from './useUserData'
+export * from './useUserDefaultRole'
+export * from './useUserDisplayName'
+export * from './useUserEmail'
+export * from './useUserId'
+export * from './useUserIsAnonymous'
+export * from './useUserLocale'
+export * from './useUserRoles'

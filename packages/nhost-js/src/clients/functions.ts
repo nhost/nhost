@@ -1,8 +1,15 @@
-import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
+import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
 
 import { FunctionCallResponse } from '../utils/types'
 export interface NhostFunctionsConstructorParams {
+  /**
+   * Serverless Functions endpoint.
+   */
   url: string
+  /**
+   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all requests.
+   */
+  adminSecret?: string
 }
 
 /**
@@ -11,11 +18,13 @@ export interface NhostFunctionsConstructorParams {
 export class NhostFunctionsClient {
   private instance: AxiosInstance
   private accessToken: string | null
+  private adminSecret?: string
 
   constructor(params: NhostFunctionsConstructorParams) {
-    const { url } = params
+    const { url, adminSecret } = params
 
     this.accessToken = null
+    this.adminSecret = adminSecret
     this.instance = axios.create({
       baseURL: url
     })
@@ -79,14 +88,17 @@ export class NhostFunctionsClient {
     this.accessToken = accessToken
   }
 
-  private generateAccessTokenHeaders(): { Authorization: string } | undefined {
-    if (!this.accessToken) {
-      return
+  private generateAccessTokenHeaders(): AxiosRequestHeaders {
+    if (this.adminSecret) {
+      return {
+        'x-hasura-admin-secret': this.adminSecret
+      }
     }
-
-    // eslint-disable-next-line consistent-return
-    return {
-      Authorization: `Bearer ${this.accessToken}`
+    if (this.accessToken) {
+      return {
+        Authorization: `Bearer ${this.accessToken}`
+      }
     }
+    return {}
   }
 }

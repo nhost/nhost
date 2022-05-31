@@ -78,11 +78,10 @@
   --ifm-background-color: #ffffff;
   --ifm-font-color-base: #21324b;
   --ifm-font-color-base-opaque: rgba(33, 50, 75, 0.65);
-  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, 'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol';
-  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, Liberation Mono, Courier New, monospace;
+  --ifm-font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+  --ifm-font-family-monospace: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    Liberation Mono, Courier New, monospace;
   --ifm-color-primary: #003990;
   --ifm-color-primary-dark: #0046ae;
   --ifm-color-primary-darker: #004ab8;
@@ -93,6 +92,7 @@
   --ifm-code-font-size: 95%;
   --ifm-h1-font-size: 2rem;
   --max-content-width: 1440px;
+  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.075);
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
@@ -106,6 +106,7 @@
   --ifm-color-primary-light: #569aff;
   --ifm-color-primary-lighter: #66a3ff;
   --ifm-color-primary-lightest: #94bfff;
+  --docusaurus-highlighted-code-line-bg: rgba(255, 255, 255, 0.1);
 }
 
 .docusaurus-highlight-code-line {
@@ -186,8 +187,7 @@ article {
   background-color: var(--ifm-color-primary-lighter);
   color: var(--ifm-color-white);
   border-radius: 0.375rem;
-  padding: var(--ifm-menu-link-padding-vertical)
-    var(--ifm-menu-link-padding-horizontal);
+  padding: var(--ifm-menu-link-padding-vertical) var(--ifm-menu-link-padding-horizontal);
   transition: background-color 0.25s ease-in-out;
   order: 3;
 }
@@ -206,13 +206,11 @@ article {
   --ifm-color-primary-lighter: #005eec;
   --ifm-color-primary-lightest: #0b6dff;
 
-
   text-align: center;
   background-color: var(--ifm-color-primary-lighter);
   color: var(--ifm-color-white);
   border-radius: 0.375rem;
-  padding: var(--ifm-menu-link-padding-vertical)
-    var(--ifm-menu-link-padding-horizontal);
+  padding: var(--ifm-menu-link-padding-vertical) var(--ifm-menu-link-padding-horizontal);
   transition: background-color 0.25s ease-in-out;
   order: 3;
 }

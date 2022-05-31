@@ -29,6 +29,7 @@ export class NhostClient {
     clientStorageType,
     autoRefreshToken,
     autoSignIn,
+    adminSecret,
     devTools,
     start = true,
     ...urlParams
@@ -46,16 +47,20 @@ export class NhostClient {
     })
 
     this.storage = new HasuraStorageClient({
-      url: urlFromParams(urlParams, 'storage')
+      url: urlFromParams(urlParams, 'storage'),
+      adminSecret
     })
 
     this.functions = new NhostFunctionsClient({
-      url: urlFromParams(urlParams, 'functions')
+      url: urlFromParams(urlParams, 'functions'),
+      adminSecret
     })
 
     this.graphql = new NhostGraphqlClient({
-      url: urlFromParams(urlParams, 'graphql')
+      url: urlFromParams(urlParams, 'graphql'),
+      adminSecret
     })
+
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())

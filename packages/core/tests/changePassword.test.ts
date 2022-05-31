@@ -1,6 +1,6 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor'
+import { waitFor } from 'xstate/lib/waitFor.js'
 import { AuthClient } from '../src/client'
 import { INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine, createChangePasswordMachine } from '../src/machines'
