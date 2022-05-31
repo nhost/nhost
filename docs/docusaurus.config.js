@@ -46,17 +46,13 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      image: 'img/splash.png',
       colorMode: {
         defaultMode: 'light',
         disableSwitch: false,
         respectPrefersColorScheme: true
       },
-      metadata: [
-        {
-          name: 'og:image',
-          content: 'https://docs.nhost.io/img/splash.png'
-        }
-      ],
+      metadata: [{ name: 'robots', content: 'max-image-preview:large' }],
       navbar: {
         hideOnScroll: true,
         logo: {
