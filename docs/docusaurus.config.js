@@ -17,16 +17,15 @@ const getBaseUrl = () => {
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Nhost Docs',
-  tagline:
-    'Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.',
+  tagline: 'Nhost is an open source Firebase alternative with GraphQL.',
   url: getBaseUrl(),
   trailingSlash: false,
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',
-  organizationName: 'nhost', // Usually your GitHub org/user name.
-  projectName: 'docs', // Usually your repo name.
+  organizationName: 'nhost',
+  projectName: 'docs',
 
   presets: [
     [
@@ -43,7 +42,6 @@ const config = {
           breadcrumbs: false,
           sidebarPath: require.resolve('./sidebars.js'),
           remarkPlugins: [require('mdx-mermaid')],
-          // Please change this to your repo.
           editUrl: 'https://github.com/nhost/nhost/edit/main/docs/'
         },
         theme: {
