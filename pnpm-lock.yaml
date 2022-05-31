@@ -549,7 +549,7 @@ importers:
       '@nhost/nhost-js': workspace:*
       '@types/react': ^18.0.8
       '@xstate/react': ^3.0.0
-      immer: ^9.0.12
+      immer: ^9.0.14
       jwt-decode: ^3.1.2
       react: ^18.1.0
       xstate: ^4.31.0
@@ -557,7 +557,7 @@ importers:
       '@nhost/core': link:../core
       '@nhost/nhost-js': link:../nhost-js
       '@xstate/react': 3.0.0_65f3e99bcdc7699822790fc36fa14e77
-      immer: 9.0.12
+      immer: 9.0.14
       jwt-decode: 3.1.2
       xstate: 4.31.0
     devDependencies:
@@ -4594,6 +4594,7 @@ packages:
       url-regex-safe: 3.0.0_re2@1.17.4
       video-extensions: 1.2.0
     transitivePeerDependencies:
+      - bluebird
       - bufferutil
       - canvas
       - supports-color
@@ -7896,6 +7897,8 @@ packages:
       ssri: 8.0.1
       tar: 6.1.11
       unique-filename: 1.1.1
+    transitivePeerDependencies:
+      - bluebird
     dev: true
 
   /cacheable-request/6.1.0:
@@ -12419,6 +12422,7 @@ packages:
       lodash: 4.17.21
       matcher: 4.0.0
     transitivePeerDependencies:
+      - bluebird
       - bufferutil
       - canvas
       - supports-color
@@ -12627,6 +12631,10 @@ packages:
 
   /immer/9.0.12:
     resolution: {integrity: sha512-lk7UNmSbAukB5B6dh9fnh5D0bJTOFKxVg2cyJWTYrWRfhLrLMBquONcUs3aFq507hNoIZEDDh8lb8UtOizSMhA==}
+    dev: false
+
+  /immer/9.0.14:
+    resolution: {integrity: sha512-ubBeqQutOSLIFCUBN03jGeOS6a3DoYlSYwYJTa+gSKEZKU5redJIqkIdZ3JVv/4RZpfcXdAWH5zCNLWPRv2WDw==}
     dev: false
 
   /immutable/3.7.6:
@@ -13178,6 +13186,7 @@ packages:
       re2: 1.17.4
       url-regex-safe: 3.0.0_re2@1.17.4
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -14613,6 +14622,7 @@ packages:
       socks-proxy-agent: 6.2.0
       ssri: 8.0.1
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -15262,6 +15272,7 @@ packages:
       tar: 6.1.11
       which: 2.0.2
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -16506,6 +16517,11 @@ packages:
 
   /promise-inflight/1.0.1:
     resolution: {integrity: sha1-mEcocL8igTL8vdhoEputEsPAKeM=}
+    peerDependencies:
+      bluebird: '*'
+    peerDependenciesMeta:
+      bluebird:
+        optional: true
     dev: true
 
   /promise-retry/2.0.1:
@@ -16782,6 +16798,7 @@ packages:
       nan: 2.15.0
       node-gyp: 8.4.1
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -17933,6 +17950,8 @@ packages:
       escape-html: 1.0.3
       parseurl: 1.3.3
       send: 0.17.2
+    transitivePeerDependencies:
+      - supports-color
 
   /set-blocking/2.0.0:
     resolution: {integrity: sha1-BF+XgtARrppoA93TgrJDkrPYkPc=}

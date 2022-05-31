@@ -44,7 +44,7 @@ export default defineConfig({
     lib: {
       entry,
       name: pkg.name,
-      fileName: (format) => (format === 'cjs' ? `index.cjs.js` : `index.mjs`),
+      fileName: (format) => (format === 'cjs' ? `index.cjs.js` : `index.esm.mjs`),
       formats: ['cjs', 'es']
     },
     rollupOptions: {

@@ -1,7 +1,7 @@
 import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
 import { BaseActionObject, interpret, Interpreter, ResolveTypegenMeta, ServiceMap } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor'
+import { waitFor } from 'xstate/lib/waitFor.js'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
