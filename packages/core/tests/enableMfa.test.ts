@@ -1,7 +1,7 @@
 import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor'
+import { waitFor } from 'xstate/lib/waitFor.js'
 import { AuthClient } from '../src/client'
 import { INVALID_MFA_CODE_ERROR, INVALID_MFA_TYPE_ERROR } from '../src/errors'
 import { createAuthMachine, createEnableMfaMachine } from '../src/machines'
