@@ -1,5 +1,18 @@
 # @nhost/apollo
 
+## 0.5.9
+
+### Patch Changes
+
+- bc11c9e5: chore: Changed copy script to support Windows
+  fix: Fixed warnings about unknown globals occurring while building the packages
+- 2b2f8e91: fix: ESM related issues in Node environments
+  chore: Improved the way different formats are exposed via `exports` field in package.js
+- Updated dependencies [bc11c9e5]
+- Updated dependencies [2b2f8e91]
+- Updated dependencies [858014e4]
+  - @nhost/nhost-js@1.2.0
+
 ## 0.5.8
 
 ### Patch Changes

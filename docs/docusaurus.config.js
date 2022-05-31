@@ -4,19 +4,28 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github')
 const darkCodeTheme = require('prism-react-renderer/themes/dracula')
 
+const getBaseUrl = () => {
+  if (process.env.VERCEL_ENV === 'production') {
+    return 'https://docs.nhost.io'
+  } else if (process.env.VERCEL_ENV === 'preview') {
+    return `https://${process.env.VERCEL_URL}`
+  } else {
+    return `http://localhost:3000`
+  }
+}
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Nhost Docs',
-  tagline:
-    'Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.',
-  url: 'https://docs.nhost.io',
+  tagline: 'Nhost is an open source Firebase alternative with GraphQL.',
+  url: getBaseUrl(),
   trailingSlash: false,
   baseUrl: '/',
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.png',
-  organizationName: 'nhost', // Usually your GitHub org/user name.
-  projectName: 'docs', // Usually your repo name.
+  organizationName: 'nhost',
+  projectName: 'docs',
 
   presets: [
     [
@@ -33,7 +42,6 @@ const config = {
           breadcrumbs: false,
           sidebarPath: require.resolve('./sidebars.js'),
           remarkPlugins: [require('mdx-mermaid')],
-          // Please change this to your repo.
           editUrl: 'https://github.com/nhost/nhost/edit/main/docs/'
         },
         theme: {
@@ -46,17 +54,13 @@ const config = {
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
+      image: 'img/splash.png',
       colorMode: {
         defaultMode: 'light',
         disableSwitch: false,
         respectPrefersColorScheme: true
       },
-      metadata: [
-        {
-          name: 'og:image',
-          content: 'https://docs.nhost.io/img/splash.png'
-        }
-      ],
+      metadata: [{ name: 'robots', content: 'max-image-preview:large' }],
       navbar: {
         hideOnScroll: true,
         logo: {

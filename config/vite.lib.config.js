@@ -44,14 +44,14 @@ export default defineConfig({
     lib: {
       entry,
       name: pkg.name,
-      fileName: 'index',
+      fileName: (format) => (format === 'cjs' ? `index.cjs.js` : `index.mjs`),
       formats: ['cjs', 'es']
     },
     rollupOptions: {
       external: (id) => deps.some((dep) => id.startsWith(dep)),
       output: {
         globals: {
-          'graphql/language/printer': 'graphql/language/printer',
+          graphql: 'graphql',
           '@apollo/client': '@apollo/client',
           '@apollo/client/core': '@apollo/client/core',
           '@apollo/client/link/context': '@apollo/client/link/context',
@@ -64,7 +64,9 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': '_jsx',
-          '@nhost/react': '@nhost/react'
+          '@nhost/react': '@nhost/react',
+          vue: 'Vue',
+          'vue-demi': 'vue-demi'
         }
       }
     }

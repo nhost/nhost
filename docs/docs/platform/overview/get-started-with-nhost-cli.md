@@ -1,6 +1,7 @@
 ---
 title: 'Get Started with Nhost CLI'
 sidebar_position: 2
+image: /img/og/platform/get-started-with-nhost-cli.png
 ---
 
 # Get started with Nhost CLI

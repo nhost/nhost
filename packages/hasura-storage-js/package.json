@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -18,7 +18,7 @@
     "url": "https://github.com/nhost/hasura-storage-js.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -28,8 +28,11 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
-      "require": "./dist/index.cjs.js"
+      "node": {
+        "import": "./dist/index.mjs",
+        "require": "./dist/index.cjs.js"
+      },
+      "default": "./dist/index.es.js"
     }
   },
   "publishConfig": {
@@ -38,7 +41,7 @@
   "scripts": {
     "dev": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js && cpy --flat dist/index.mjs dist --rename=index.es.js && cpy --flat dist/index.mjs.map dist --rename index.es.js.map",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run --config ../../config/vite.lib.config.js",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",

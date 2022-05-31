@@ -1,5 +1,14 @@
 # @nhost/core
 
+## 0.6.1
+
+### Patch Changes
+
+- bc11c9e5: chore: Changed copy script to support Windows
+  fix: Fixed warnings about unknown globals occurring while building the packages
+- 2b2f8e91: fix: ESM related issues in Node environments
+  chore: Improved the way different formats are exposed via `exports` field in package.js
+
 ## 0.6.0
 
 ### Minor Changes
