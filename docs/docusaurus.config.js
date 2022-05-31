@@ -4,12 +4,22 @@
 const lightCodeTheme = require('prism-react-renderer/themes/github')
 const darkCodeTheme = require('prism-react-renderer/themes/dracula')
 
+const getBaseUrl = () => {
+  if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'production') {
+    return 'https://docs.nhost.io'
+  } else if (process.env.NEXT_PUBLIC_VERCEL_ENV === 'preview') {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  } else {
+    return `http://localhost:3000`
+  }
+}
+
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Nhost Docs',
   tagline:
     'Nhost is an open-source, real-time, server-less backend platform for building reliable apps that scale with your business.',
-  url: 'https://docs.nhost.io',
+  url: getBaseUrl(),
   trailingSlash: false,
   baseUrl: '/',
   onBrokenLinks: 'throw',
