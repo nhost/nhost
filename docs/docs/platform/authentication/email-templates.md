@@ -24,35 +24,53 @@ Email templates are automatically deployed during a deployment, just like databa
 
 Emails are located in the `nhost/` folder like this:
 
-The email templates should be provided as body.html and subject.txt files in this predefined folder structure:
+The email templates should be provided as body.html and subject.txt files in this predefined folder structure.
+
+**Example:** Email templates for `en` (English) and `es` (Spanish):
 
 ```txt
-|____nhost       <-- Nhost folder
-| |____emails    <-- Emails folder
-| | |____en      <-- Email language folder
-| | | |____email-verify
-| | | | |____body.html
-| | | | |____subject.txt
-| | | |____email-confirm-change
-| | | | |____body.html
-| | | | |____subject.txt
-| | | |____signin-passwordless
-| | | | |____body.html
-| | | | |____subject.txt
-| | | |____password-reset
-| | | | |____body.html
-| | | | |____subject.txt
-| | |____es      <-- Another email language folder
-| | | |____etc..
+my-nhost-app/
+└── nhost/
+    ├── config.yaml
+    ├── emails/
+    │   ├── en/
+    │   │   ├── email-verify/
+    │   │   │   ├── subject.txt
+    │   │   │   └── body.html
+    │   │   ├── email-confirm-change/
+    │   │   │   ├── subject.txt
+    │   │   │   └── body.html
+    │   │   ├── signin-passwordless/
+    │   │   │   ├── subject.txt
+    │   │   │   └── body.html
+    │   │   └── password-reset/
+    │   │       ├── subject.txt
+    │   │       └── body.html
+    │   └── es/
+    │       ├── email-verify/
+    │       │   ├── subject.txt
+    │       │   └── body.html
+    │       ├── email-confirm-change/
+    │       │   ├── subject.txt
+    │       │   └── body.html
+    │       ├── signin-passwordless/
+    │       │   ├── subject.txt
+    │       │   └── body.html
+    │       └── password-reset/
+    │           ├── subject.txt
+    │           └── body.html
+    ├── migrations/
+    ├── metadata/
+    └── seeds
 ```
 
 As you see, the format is:
 
 ```
-nhost/emails/{two-letter-language-code}/{email-template}/[body.html, subject.text]
+nhost/emails/{two-letter-language-code}/{email-template}/[subject.txt, body.html]
 ```
 
-Default templates are automatically generated when the app is initialized with the [CLI](/platform/cli).
+Default templates for English (`en`) and French (`fr`) are automatically generated when the app is initialized with the [CLI](/platform/cli).
 
 ## Languages
 
