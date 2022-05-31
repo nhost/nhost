@@ -379,6 +379,14 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/atapas">
+            <img src="https://avatars.githubusercontent.com/u/3633137?v=4" width="100;" alt="atapas"/>
+            <br />
+            <sub><b>Tapas Adhikary</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
         <a href="https://github.com/komninoschat">
             <img src="https://avatars.githubusercontent.com/u/29049104?v=4" width="100;" alt="komninoschat"/>
             <br />
