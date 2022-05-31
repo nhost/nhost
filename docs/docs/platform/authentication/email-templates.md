@@ -85,6 +85,10 @@ The following variables are available to use in the email templates:
 | Variable    | Description                                                                                                                        |
 | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | link        | The full URL to the target of the transaction. This should be used in the main call to action. This is available in all templates. |
+| serverUrl   | URL of the authentication server                                                                                                   |
+| clientUrl   | URL to your frontend app                                                                                                           |
+| redirectTo  | URL where the user will be redirected to after clicking the link and finishing the action of the email                             |
+| ticket      | Ticket that is used to authorize the link request                                                                                  |
 | displayName | The display name of the user.                                                                                                      |
 | email       | The email of the user.                                                                                                             |
 | locale      | Locale of the user as a two-letter language code. E.g. "en".                                                                       |
