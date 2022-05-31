@@ -15,9 +15,9 @@ Users get both an access token and a refresh token when they sign in.
 If you're using the [Nhost JavaScript client](/reference/javascript), all tokens are automatically set and updated for you. But it can still be good to understand how they work.
 :::
 
-### Access Token
+## Access Token
 
-An access token (also called JWT token) contains information about the user such as the user id. Users send this token to the Nhost services (GraphQL, Auth, Storage, Serverless Functions) to let the services know who's making the request so the services can verify the user's identity and resolve the correct permissions.
+An access token (also called [JSON Web Token or JWT](https://en.wikipedia.org/wiki/JSON_Web_Token)) contains information about the user such as the user id. Users send this token to the Nhost services (GraphQL, Auth, Storage, Serverless Functions) to let the services know who's making the request so the services can verify the user's identity and resolve the correct permissions.
 
 The access token is added as an `Authorization` header when making a request, like this:
 
@@ -66,7 +66,7 @@ Use the `NHOST_JWT_SECRET` [system environment variable](/platform/environment-v
 
 The access token can not be revoked. Instead, the token is only valid for 15 minutes. The user can get a new access token by using the refresh token.
 
-### Refresh Token
+## Refresh Token
 
 A refresh token is used to request a new access token. Refresh tokens are long-lived tokens stored in the database in the `auth.refresh_tokens` table.
 
