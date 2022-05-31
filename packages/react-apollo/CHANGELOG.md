@@ -1,5 +1,18 @@
 # @nhost/react-apollo
 
+## 4.2.10
+
+### Patch Changes
+
+- bc11c9e5: chore: Changed copy script to support Windows
+  fix: Fixed warnings about unknown globals occurring while building the packages
+- 2b2f8e91: fix: ESM related issues in Node environments
+  chore: Improved the way different formats are exposed via `exports` field in package.js
+- Updated dependencies [bc11c9e5]
+- Updated dependencies [2b2f8e91]
+  - @nhost/apollo@0.5.9
+  - @nhost/react@0.7.9
+
 ## 4.2.9
 
 ### Patch Changes
