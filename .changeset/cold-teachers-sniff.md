@@ -12,4 +12,4 @@
 ---
 
 chore: Changed copy script to support Windows
-fix: Fixed warnings about unknown globals while building the packages
+fix: Fixed warnings about unknown globals occurring while building the packages
