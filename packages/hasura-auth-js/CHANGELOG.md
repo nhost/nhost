@@ -1,5 +1,13 @@
 # @nhost/hasura-auth-js
 
+## 1.1.12
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/core@0.6.3
+
 ## 1.1.11
 
 ### Patch Changes

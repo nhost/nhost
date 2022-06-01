@@ -1,5 +1,15 @@
 # @nhost/nextjs
 
+## 1.2.11
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/core@0.6.3
+  - @nhost/nhost-js@1.2.2
+  - @nhost/react@0.7.11
+
 ## 1.2.10
 
 ### Patch Changes

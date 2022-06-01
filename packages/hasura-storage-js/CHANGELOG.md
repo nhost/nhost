@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 0.3.2
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+
 ## 0.3.1
 
 ### Patch Changes

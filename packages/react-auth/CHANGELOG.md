@@ -1,5 +1,14 @@
 # @nhost/react-auth
 
+## 3.0.9
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/hasura-auth-js@1.1.12
+  - @nhost/react@0.7.11
+
 ## 3.0.8
 
 ### Patch Changes

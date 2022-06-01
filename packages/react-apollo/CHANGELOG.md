@@ -1,5 +1,14 @@
 # @nhost/react-apollo
 
+## 4.2.12
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/apollo@0.5.11
+  - @nhost/react@0.7.11
+
 ## 4.2.11
 
 ### Patch Changes

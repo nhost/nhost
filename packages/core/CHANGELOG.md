@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.6.3
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+
 ## 0.6.2
 
 ### Patch Changes
