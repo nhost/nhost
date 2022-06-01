@@ -122,6 +122,7 @@ export const signUpEmailPasswordHandler: RequestHandler<
         redirectTo: encodeURIComponent(redirectTo),
         locale: user.locale,
         serverUrl: ENV.AUTH_SERVER_URL,
+        clientUrl: ENV.AUTH_CLIENT_URL,
       },
     });
   }

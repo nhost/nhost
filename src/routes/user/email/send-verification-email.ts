@@ -96,6 +96,7 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
       redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
       serverUrl: ENV.AUTH_SERVER_URL,
+      clientUrl: ENV.AUTH_CLIENT_URL,
     },
   });
 
