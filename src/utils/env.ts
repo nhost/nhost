@@ -73,9 +73,6 @@ export const ENV = {
   get AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID() {
     return castStringEnv('AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID', '');
   },
-  get AUTH_SMS_TWILIO_FROM() {
-    return castStringEnv('AUTH_SMS_TWILIO_FROM', '');
-  },
 
   // GRAVATAR
   get AUTH_GRAVATAR_ENABLED() {
