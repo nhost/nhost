@@ -28,7 +28,7 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "sourceMap": true,
-    "types": ["node"],
+    "types": ["node", "cypress"],
     "typeRoots": [
       "./node_modules/@types", "**/*/dist", "**/*/build", "**/*/.next", "**/*/umd"
     ],

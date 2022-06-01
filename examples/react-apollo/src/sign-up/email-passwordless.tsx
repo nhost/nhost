@@ -1,7 +1,6 @@
 import { Divider } from '@mantine/core'
-import React from 'react'
-import AuthLink from '../components/AuthLink'
 
+import AuthLink from '../components/AuthLink'
 import EmailPasswordlessForm from '../components/SignUpServerlessForm'
 
 export const EmailPasswordless: React.FC = () => {

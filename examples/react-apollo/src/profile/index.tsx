@@ -1,12 +1,10 @@
-import React from 'react'
-
+import { Button, Card, Container, Title } from '@mantine/core'
+import { Prism } from '@mantine/prism'
 import { useHasuraClaims, useNhostClient, useUserData } from '@nhost/react'
 
 import { ChangeEmail } from './change-email'
 import { ChangePassword } from './change-password'
 import { Mfa } from './mfa'
-import { Button, Card, Container, Title } from '@mantine/core'
-import { Prism } from '@mantine/prism'
 
 export const ProfilePage: React.FC = () => {
   const claims = useHasuraClaims()

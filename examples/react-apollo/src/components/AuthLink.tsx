@@ -1,7 +1,6 @@
-import React from 'react'
+import { Link } from 'react-router-dom'
 
 import { Button, ButtonVariant } from '@mantine/core'
-import { Link } from 'react-router-dom'
 
 const AuthLink: React.FC<{
   icon?: React.ReactNode

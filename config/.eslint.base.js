@@ -61,5 +61,13 @@ module.exports = {
       }
     ],
     'import/extensions': ['error', { js: 'always' }]
-  }
+  },
+  overrides: [
+    {
+      files: ['*.test.js', '*.spec.js'],
+      rules: {
+        '@typescript-eslint/no-unused-expressions': 'off'
+      }
+    }
+  ]
 }
