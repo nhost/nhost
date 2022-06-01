@@ -70,6 +70,7 @@ export default defineConfig({
           '@apollo/client': '@apollo/client',
           '@apollo/client/core/index.js': '@apollo/client/core',
           '@apollo/client/link/context/index.js': '@apollo/client/link/context',
+          '@apollo/client/react/index.js': '@apollo/client/react',
           '@apollo/client/link/subscriptions/index.js': '@apollo/client/link/subscriptions',
           '@apollo/client/utilities/index.js': '@apollo/client/utilities',
           'graphql-ws': 'graphql-ws',
