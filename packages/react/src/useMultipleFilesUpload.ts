@@ -25,6 +25,7 @@ type UploadMultipleFilesActionParams = {
  *   upload()
  * }
  * ```
+ * @docs https://docs.nhost.io/reference/react/use-multiple-files-upload
  */
 export const useMultipleFilesUpload = () => {
   const url = useNhostBackendUrl()
