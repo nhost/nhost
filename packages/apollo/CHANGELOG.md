@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 0.5.11
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/nhost-js@1.2.2
+
 ## 0.5.10
 
 ### Patch Changes
