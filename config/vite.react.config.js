@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 import react from '@vitejs/plugin-react'
 
-import baseLibConfig from './vite.lib.config'
+import baseLibConfig from './vite.lib.config.js'
 
 export default defineConfig({
   ...baseLibConfig,

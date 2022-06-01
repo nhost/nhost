@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// eslint-disable-next-line import/extensions
 import { snapshot } from 'valtio/vanilla'
 
 import { getModuleContentMap } from './helpers'

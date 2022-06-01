@@ -1,3 +1,4 @@
+// eslint-disable-next-line import/extensions
 import { proxyWithComputed } from 'valtio/utils'
 
 export type AppState = {
