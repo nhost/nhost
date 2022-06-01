@@ -1,5 +1,11 @@
 # @nhost/react-apollo
 
+## 4.2.13
+
+### Patch Changes
+
+- ef8c8f9c: fixed imports in `@nhost/react-apollo`
+
 ## 4.2.12
 
 ### Patch Changes
