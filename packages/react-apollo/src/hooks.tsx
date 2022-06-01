@@ -3,10 +3,9 @@ import {
   OperationVariables,
   QueryHookOptions,
   SubscriptionHookOptions,
-  TypedDocumentNode,
-  useQuery,
-  useSubscription
+  TypedDocumentNode
 } from '@apollo/client'
+import { useQuery, useSubscription } from '@apollo/client/react/index.js'
 import { useAuthenticated } from '@nhost/react'
 
 export function useAuthQuery<TData = any, TVariables = OperationVariables>(
