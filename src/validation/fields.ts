@@ -1,4 +1,5 @@
 import { pwnedPassword } from 'hibp';
+import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
 
 import { ENV } from '../utils/env';
 
@@ -136,3 +137,21 @@ export const activeMfaType = Joi.alternatives()
   .description(
     'Multi-factor authentication type. A null value deactivates MFA'
   );
+
+export const phoneNumber = Joi.string()
+  .required()
+  .custom((value: string) => {
+    // * Replace '00' by '+'
+    if (value.startsWith('00')) {
+      value = value.replace('00', '+');
+    }
+    // * Add '+' if missing
+    if (!value.startsWith('+')) {
+      value = `+${value}`;
+    }
+    if (isValidPhoneNumber(value)) {
+      return parsePhoneNumber(value).formatInternational();
+    } else {
+      throw new Error('invalid phone number');
+    }
+  }, 'valid phone number');

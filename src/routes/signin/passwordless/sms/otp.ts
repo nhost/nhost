@@ -4,12 +4,12 @@ import bcrypt from 'bcryptjs';
 import { ENV, getSignInResponse, gqlSdk } from '@/utils';
 import { OtpSmsBody } from '@/types';
 import { sendError } from '@/errors';
-import { Joi } from '@/validation';
+import { Joi, phoneNumber } from '@/validation';
 import { isVerifySid } from '@/utils/twilio';
 import twilio from 'twilio';
 
 export const signInOtpSchema = Joi.object({
-  phoneNumber: Joi.string().required(),
+  phoneNumber,
   otp: Joi.string().required(),
 }).meta({ className: 'SignInOtpSchema' });
 

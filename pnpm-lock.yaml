@@ -89,6 +89,7 @@ specifiers:
   js-yaml: 3.13.1
   json-to-graphql-query: ^2.2.0
   jsonata: ^1.8.5
+  libphonenumber-js: ^1.10.6
   lint-staged: 10.1.3
   nocache: ^2.1.0
   node-fetch: ^2.6.1
@@ -157,6 +158,7 @@ dependencies:
   js-yaml: 3.13.1
   json-to-graphql-query: 2.2.3
   jsonata: 1.8.6
+  libphonenumber-js: 1.10.6
   nocache: 2.1.0
   node-fetch: 2.6.7
   nodemailer: 6.4.16
@@ -8281,6 +8283,10 @@ packages:
       iconv-lite: 0.6.2
       libbase64: 1.2.1
       libqp: 1.1.0
+    dev: false
+
+  /libphonenumber-js/1.10.6:
+    resolution: {integrity: sha512-CIjT100/SmntsUjsLVs2t3ufeN4KdNXUxhD07tH153pdbaCWuAjv0jK/gPuywR3IImB/U/MQM+x9RfhMs5XZiA==}
     dev: false
 
   /libqp/1.1.0:

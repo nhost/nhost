@@ -11,12 +11,12 @@ import {
   ENV,
 } from '@/utils';
 import { sendError } from '@/errors';
-import { Joi, registrationOptions } from '@/validation';
+import { Joi, phoneNumber, registrationOptions } from '@/validation';
 import { isVerifySid } from '@/utils/twilio';
 import { logger } from '@/logger';
 
 export const signInPasswordlessSmsSchema = Joi.object({
-  phoneNumber: Joi.string().required(),
+  phoneNumber,
   options: registrationOptions,
 }).meta({ className: 'SignInPasswordlessSmsSchema' });
 
