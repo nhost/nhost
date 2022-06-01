@@ -141,13 +141,9 @@ export const activeMfaType = Joi.alternatives()
 export const phoneNumber = Joi.string()
   .required()
   .custom((value: string) => {
-    // * Replace '00' by '+'
+    // * Replace '00' prefix by '+'
     if (value.startsWith('00')) {
       value = value.replace('00', '+');
-    }
-    // * Add '+' if missing
-    if (!value.startsWith('+')) {
-      value = `+${value}`;
     }
     if (isValidPhoneNumber(value)) {
       return parsePhoneNumber(value).formatInternational();

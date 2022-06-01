@@ -37,10 +37,15 @@ describe('Unit tests on field validation', () => {
       expect(value).toEqual('+33 1 40 50 60 70');
     });
 
-    it("should accept phone numbers that don't start with '+'", () => {
-      const { error, value } = phoneNumber.validate('33140506070')!;
-      expect(error).toBeUndefined();
-      expect(value).toEqual('+33 1 40 50 60 70');
+    it("should not accept phone numbers that don't start with '+'", () => {
+      const error = phoneNumber.validate('33140506070').error!;
+      expect(error).not.toBeUndefined();
+      const {
+        details: [{ message }],
+      } = error;
+      expect(message).toBe(
+        '"value" failed custom validation because invalid phone number'
+      );
     });
 
     it("should accept phone numbers starts with '00'", () => {
