@@ -1,6 +1,12 @@
 
 
-## [0.8.1](https://github.com/nhost/hasura-auth/compare/v0.8.0...v0.8.1) (2022-06-01)# [0.8.0](https://github.com/nhost/hasura-auth/compare/v0.7.1...v0.8.0) (2022-05-24)
+## [0.8.1](https://github.com/nhost/hasura-auth/compare/v0.8.0...v0.8.1) (2022-06-01)
+### Bug Fixes
+
+* Able to use both phone number and messaging service id as `from`
+This way users can use both a simple phone number without setting up a Twilio messaging service or use a messaging service from Twilio ([doc](https://support.twilio.com/hc/en-us/articles/223181308-Getting-started-with-Messaging-Services)).
+
+# [0.8.0](https://github.com/nhost/hasura-auth/compare/v0.7.1...v0.8.0) (2022-05-24)
 
 
 ### Bug Fixes
