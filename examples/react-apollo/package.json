@@ -20,6 +20,9 @@
   "lib": "workspace:*",
   "scripts": {
     "dev": "vite",
+    "start:nhost": "nhost -d & wait-on http://localhost:1337/v1/auth/healthz",
+    "test": "cypress run",
+    "cypress": "cypress open",
     "build": "vite build",
     "preview": "vite preview",
     "prettier": "prettier --check .",
@@ -54,6 +57,7 @@
     "cypress": "^9.7.0",
     "typescript": "^4.6.3",
     "vite": "^2.9.7",
+    "wait-on": "^6.0.1",
     "xstate": "^4.31.0"
   }
 }
