@@ -59,6 +59,7 @@ module.exports = {
         allowArrowFunction: true,
         allowAnonymousFunction: true
       }
-    ]
+    ],
+    'import/extensions': ['error', { js: 'always' }]
   }
 }

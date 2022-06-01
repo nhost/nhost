@@ -7,10 +7,10 @@ import {
   RequestHandler,
   split,
   WatchQueryFetchPolicy
-} from '@apollo/client/core'
-import { setContext } from '@apollo/client/link/context'
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions'
-import { getMainDefinition } from '@apollo/client/utilities'
+} from '@apollo/client/core/index.js'
+import { setContext } from '@apollo/client/link/context/index.js'
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js'
+import { getMainDefinition } from '@apollo/client/utilities/index.js'
 import { NhostClient } from '@nhost/nhost-js'
 
 import { createRestartableClient } from './ws'

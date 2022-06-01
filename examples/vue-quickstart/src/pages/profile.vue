@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { gql } from '@apollo/client/core'
+import { gql } from '@apollo/client/core/index.js'
 import { useNhostClient, useUserId } from '@nhost/vue'
 import { useMutation, useSubscription } from '@vue/apollo-composable'
 import { computed, ref } from 'vue'
@@ -18,7 +18,10 @@ const GET_USER_SUBSCRIPTION = gql`
 `
 const id = useUserId()
 
-const { result } = useSubscription(GET_USER_SUBSCRIPTION, computed(() => ({ id: id.value })))
+const { result } = useSubscription(
+  GET_USER_SUBSCRIPTION,
+  computed(() => ({ id: id.value }))
+)
 const user = computed(() => result.value?.user)
 
 const UPDATE_USER_MUTATION = gql`
@@ -42,13 +45,12 @@ const updateUserProfile = async (event: Event) => {
       displayName: `${firstName.value} ${lastName.value}`.trim(),
       metadata: {
         firstName: firstName.value,
-        lastName: lastName.value,
-      },
+        lastName: lastName.value
+      }
     })
     await nhost.auth.refreshSession()
   }
 }
-
 </script>
 
 <template>
@@ -59,15 +61,11 @@ const updateUserProfile = async (event: Event) => {
       <em text-sm op75>Quickstart</em>
     </p>
     <div v-if="user" py-4>
-      <p>
-        Hello, {{ user.displayName }}. Your email is {{ user.email }}.
-      </p>
+      <p>Hello, {{ user.displayName }}. Your email is {{ user.email }}.</p>
       <form @submit="updateUserProfile">
-        <input v-model="firstName" placeholder="First name" class="input"><br>
-        <input v-model="lastName" placeholder="Last name" class="input"><br>
-        <button class="btn-submit" :disabled="loading">
-          Save
-        </button>
+        <input v-model="firstName" placeholder="First name" class="input" /><br />
+        <input v-model="lastName" placeholder="Last name" class="input" /><br />
+        <button class="btn-submit" :disabled="loading">Save</button>
         <div v-if="error">
           {{ error.message }}
         </div>
