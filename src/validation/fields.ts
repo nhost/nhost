@@ -146,7 +146,7 @@ export const phoneNumber = Joi.string()
       value = value.replace('00', '+');
     }
     if (isValidPhoneNumber(value)) {
-      return parsePhoneNumber(value).formatInternational();
+      return parsePhoneNumber(value).format('E.164');
     } else {
       throw new Error('invalid phone number');
     }

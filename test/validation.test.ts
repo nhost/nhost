@@ -34,7 +34,7 @@ describe('Unit tests on field validation', () => {
     it('should transform a phone number to its international format', () => {
       const { error, value } = phoneNumber.validate('+33140506070')!;
       expect(error).toBeUndefined();
-      expect(value).toEqual('+33 1 40 50 60 70');
+      expect(value).toEqual('+33140506070');
     });
 
     it("should not accept phone numbers that don't start with '+'", () => {
@@ -51,7 +51,7 @@ describe('Unit tests on field validation', () => {
     it("should accept phone numbers starts with '00'", () => {
       const { error, value } = phoneNumber.validate('0033140506070')!;
       expect(error).toBeUndefined();
-      expect(value).toEqual('+33 1 40 50 60 70');
+      expect(value).toEqual('+33140506070');
     });
   });
 });
