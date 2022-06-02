@@ -7,7 +7,7 @@ services:
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    version: 0.8.1
+    version: 0.9.0
   storage:
     version: 0.2.1
 auth:
