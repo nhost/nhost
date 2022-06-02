@@ -7,7 +7,7 @@ import { inspect } from '@xstate/inspect'
 
 import App from './App'
 
-const devTools = !!import.meta.env.VITE_DEBUG
+const devTools = import.meta.env.MODE === 'development' && import.meta.env.VITE_DEBUG === 'true'
 if (devTools) {
   inspect({
     url: 'https://stately.ai/viz?inspect',

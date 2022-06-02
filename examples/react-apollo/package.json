@@ -20,11 +20,13 @@
   "lib": "workspace:*",
   "scripts": {
     "dev": "vite",
-    "start:nhost": "nhost -d & wait-on http://localhost:1337/v1/auth/healthz",
-    "test": "cypress run",
     "cypress": "cypress open",
+    "test": "cypress run",
+    "ci": "start-test start:backend :1337/v1/auth/healthz start:frontend 3000 test",
+    "ci:backend": "nhost -d",
+    "ci:frontend": "run-s build preview",
     "build": "vite build",
-    "preview": "vite preview",
+    "preview": "vite preview --host localhost --port 3000",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "lint": "eslint . --ext .ts,.tsx",
@@ -50,14 +52,17 @@
     ]
   },
   "devDependencies": {
+    "@faker-js/faker": "^6.3.1",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
     "@vitejs/plugin-react": "^1.3.2",
     "@xstate/inspect": "^0.6.2",
-    "cypress": "^9.7.0",
+    "cypress": "^10.0.1",
+    "cypress-mailhog": "^1.4.0",
+    "start-server-and-test": "^1.14.0",
     "typescript": "^4.6.3",
     "vite": "^2.9.7",
-    "wait-on": "^6.0.1",
+    "ws": "^8.7.0",
     "xstate": "^4.31.0"
   }
 }

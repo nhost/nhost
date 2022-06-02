@@ -1,6 +1,6 @@
 {
-  "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ESNext",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
@@ -13,10 +13,9 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "resolveJsonModule": true,
-    "isolatedModules": true,
+    "isolatedModules": false,
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"],
-  "references": [{ "path": "../../config/tsconfig.base.json" }]
+  "include": ["src", "cypress", "cypress.config.ts"]
 }

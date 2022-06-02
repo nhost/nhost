@@ -64,7 +64,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['*.test.js', '*.spec.js'],
+      files: ['*.test.js', '*.spec.js', '*.test.ts', '*.spec.ts', '*.cy.js', '*.cy.ts'],
       rules: {
         '@typescript-eslint/no-unused-expressions': 'off'
       }
