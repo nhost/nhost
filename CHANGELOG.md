@@ -12,10 +12,6 @@
 
 * allow any `redirectTo` when no `AUTH_CLIENT_URL` is set ([73c0262](https://github.com/nhost/hasura-auth/commit/73c02629bbcf8b935f1773598bbf413751148ba7))
 
-
-### Reverts
-
-* add clientUrl back to emails ([ad52155](https://github.com/nhost/hasura-auth/commit/ad521551ab6024893774a137f6b3180755390f5e))## [0.8.1](https://github.com/nhost/hasura-auth/compare/v0.8.0...v0.8.1) (2022-06-01)
 ### Bug Fixes
 
 * Able to use both phone number and messaging service id as `from`
