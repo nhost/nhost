@@ -1,5 +1,14 @@
 # @nhost/nhost-js
 
+## 1.2.3
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/hasura-auth-js@1.1.13
+  - @nhost/hasura-storage-js@0.3.3
+
 ## 1.2.2
 
 ### Patch Changes

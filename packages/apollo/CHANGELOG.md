@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 0.5.12
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/nhost-js@1.2.3
+
 ## 0.5.11
 
 ### Patch Changes

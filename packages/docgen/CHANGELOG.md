@@ -1,5 +1,11 @@
 # @nhost/docgen
 
+## 0.1.2
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+
 ## 0.1.1
 
 ### Patch Changes

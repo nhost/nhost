@@ -1,5 +1,13 @@
 # @nhost/hasura-auth-js
 
+## 1.1.13
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/core@0.6.4
+
 ## 1.1.12
 
 ### Patch Changes
