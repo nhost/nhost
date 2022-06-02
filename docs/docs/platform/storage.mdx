@@ -7,7 +7,7 @@ image: /img/og/platform/storage.png
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-Nhost Storage enables you to let your users upload and download files.
+Nhost Storage enables you to let your users upload and download files. Nhost Storage is integrated with the [GraphQL API](/platform/graphql) and its permission system from Hasura.
 
 ## Files
 
@@ -17,7 +17,7 @@ File metadata is stored in your database in the `files` table in the `storage` s
 
 - Read file metadata via GraphQL.
 - Manage file permissions (in Hasura).
-- Create GraphQL relationships between files and your custom tables.
+- Create GraphQL relationships between files and your database tables.
 
 :::warning
 Don't modify the database schema, nor GraphQL root fields in any of the tables in the `storage` schema. 
@@ -33,7 +33,7 @@ You're allowed to add and modify the following:
 
 ### Upload File
 
-When a file is uploaded, the file metadata is inserted into the `storage.files` table and a file `id` is returned.  The file's `id` is how you reference the file in the future. It's recommended to create your own table to store the uploaded file `id`, so you can access the file in the future.
+When a file is uploaded, the file metadata is inserted into the `storage.files` table and a file `id` is returned. The file's `id` is how you reference and access the file. It's recommended to create your own table to store the uploaded file `id`, to access the file in the future.
 
 <Tabs groupId="http-sdk">
   <TabItem value="js" label="JavaScript">
@@ -155,7 +155,7 @@ There is a default bucket (`default`) that is used if no bucket is specified dur
 
 ## Permissions
 
-Permissions to Upload, Access (Download), and Delete files are managed through Hasura's permission system for the `storage.files` table.
+Permissions to upload, download, and delete files are managed through Hasura's permission system on the `storage.files` table.
 
 ### Upload
 
@@ -195,7 +195,7 @@ https://[subdomain].nhost.run/v1/storage/files/08e6fa32-0880-4d0e-a832-278198acb
 
 ## Example: CRM System
 
-Let's say you want to build a CRM system and you want to store files for customers. This is one way of how you could do that.
+Let's say you want to build a CRM system and you want to store files for customers. This is one way how you could do that.
 
 Start with, you would have two tables:
 
