@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
-import viteLibConfig from './vite.lib.config.js'
+import viteLibConfig from './vite.lib.config'
 
 export default defineConfig({
   ...viteLibConfig,

@@ -1,6 +1,6 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor.js'
+import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
 import { INVALID_EMAIL_ERROR } from '../src/errors'
 import { createSendVerificationEmailMachine } from '../src/machines'

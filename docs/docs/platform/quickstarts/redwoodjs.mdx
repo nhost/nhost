@@ -1090,7 +1090,8 @@ export function UserProvider({ children = null }) {
   const { userMetadata } = useAuth()
 
   const { loading, error, data } = useQuery(GET_USER_QUERY, {
-    variables: { id: userMetadata?.id }
+    variables: { id: userMetadata?.id },
+    skip: !userMetadata?.id
   })
   const user = data?.user
 

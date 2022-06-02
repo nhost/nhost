@@ -13,23 +13,6 @@ const entry = fs.existsSync(tsEntry) ? tsEntry : tsEntry.replace('.ts', '.tsx')
 
 const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))]
 
-function createModuleJsAndMapAfterBuild() {
-  return {
-    closeBundle() {
-      if (
-        fs.existsSync(path.join(PWD, 'dist/index.esm.js')) &&
-        fs.existsSync(path.join(PWD, 'dist/index.esm.js.map'))
-      ) {
-        fs.copyFileSync(path.join(PWD, 'dist/index.esm.js'), path.join(PWD, 'dist/index.esm.mjs'))
-        fs.copyFileSync(
-          path.join(PWD, 'dist/index.esm.js.map'),
-          path.join(PWD, 'dist/index.esm.mjs.map')
-        )
-      }
-    }
-  }
-}
-
 export default defineConfig({
   plugins: [
     tsconfigPaths(),
@@ -42,8 +25,7 @@ export default defineConfig({
         })
         fs.rmdirSync(path.join(PWD, 'dist/src'))
       }
-    }),
-    createModuleJsAndMapAfterBuild()
+    })
   ],
   test: {
     globals: true,
@@ -68,10 +50,11 @@ export default defineConfig({
         globals: {
           graphql: 'graphql',
           '@apollo/client': '@apollo/client',
-          '@apollo/client/core/index.js': '@apollo/client/core',
-          '@apollo/client/link/context/index.js': '@apollo/client/link/context',
-          '@apollo/client/link/subscriptions/index.js': '@apollo/client/link/subscriptions',
-          '@apollo/client/utilities/index.js': '@apollo/client/utilities',
+          '@apollo/client/core': '@apollo/client/core',
+          '@apollo/client/link/context': '@apollo/client/link/context',
+          '@apollo/client/react': '@apollo/client/react',
+          '@apollo/client/link/subscriptions': '@apollo/client/link/subscriptions',
+          '@apollo/client/utilities': '@apollo/client/utilities',
           'graphql-ws': 'graphql-ws',
           xstate: 'xstate',
           axios: 'axios',

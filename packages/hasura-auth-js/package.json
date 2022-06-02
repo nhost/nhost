@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-auth-js",
-  "version": "1.1.12",
+  "version": "1.1.13",
   "description": "Hasura-auth client",
   "license": "MIT",
   "keywords": [
@@ -20,7 +20,7 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.mjs",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -30,11 +30,8 @@
   ],
   "exports": {
     ".": {
-      "node": {
-        "import": "./dist/index.esm.mjs",
-        "require": "./dist/index.cjs.js"
-      },
-      "default": "./dist/index.esm.js"
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js"
     }
   },
   "publishConfig": {

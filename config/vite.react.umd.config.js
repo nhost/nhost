@@ -5,7 +5,7 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 import react from '@vitejs/plugin-react'
 
-import baseLibConfig from './vite.lib.config.js'
+import baseLibConfig from './vite.lib.config'
 
 const PWD = process.env.PWD
 const pkg = require(path.join(PWD, 'package.json'))

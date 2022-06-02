@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
-import viteReactConfig from './vite.react.config.js'
+import viteReactConfig from './vite.react.config'
 
 export default defineConfig({
   ...viteReactConfig,

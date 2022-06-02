@@ -1,5 +1,14 @@
 # @nhost/vue
 
+## 0.1.5
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/core@0.6.4
+  - @nhost/nhost-js@1.2.3
+
 ## 0.1.4
 
 ### Patch Changes

@@ -1,4 +1,4 @@
-const base = require('./.eslint.base.js')
+const base = require('./.eslint.base')
 module.exports = {
   ...base,
   extends: ['react-app', 'plugin:react/recommended', 'plugin:react-hooks/recommended'],

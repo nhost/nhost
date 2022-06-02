@@ -1,5 +1,4 @@
 import { format } from 'prettier'
-// eslint-disable-next-line import/extensions
 import { snapshot } from 'valtio/vanilla'
 
 import {

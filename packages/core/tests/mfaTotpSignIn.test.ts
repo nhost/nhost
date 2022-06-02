@@ -1,7 +1,7 @@
 import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor.js'
+import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'

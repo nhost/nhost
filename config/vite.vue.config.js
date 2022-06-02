@@ -2,7 +2,7 @@ import { defineConfig } from 'vite'
 
 import vue from '@vitejs/plugin-vue'
 
-import baseLibConfig from './vite.lib.config.js'
+import baseLibConfig from './vite.lib.config'
 
 export default defineConfig({
   ...baseLibConfig,

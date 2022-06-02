@@ -1,6 +1,6 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor.js'
+import { waitFor } from 'xstate/lib/waitFor'
 import { NHOST_REFRESH_TOKEN_KEY } from '../src/constants'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'

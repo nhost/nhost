@@ -1,6 +1,6 @@
 import { defineConfig } from 'vite'
 
-import viteVueConfig from './vite.vue.config.js'
+import viteVueConfig from './vite.vue.config'
 
 export default defineConfig({
   ...viteVueConfig,
