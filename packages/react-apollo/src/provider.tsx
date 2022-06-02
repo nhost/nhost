@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { ApolloClient } from '@apollo/client/core/index.js'
-import { ApolloProvider } from '@apollo/client/react/index.js'
+import { ApolloClient, ApolloProvider } from '@apollo/client'
 import { createApolloClient, NhostApolloClientOptions } from '@nhost/apollo'
 
 export const NhostApolloProvider: React.FC<

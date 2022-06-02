@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { gql } from '@apollo/client/core/index.js'
+import { gql } from '@apollo/client/core'
 import { useNhostClient, useUserId } from '@nhost/vue'
 import { useMutation, useSubscription } from '@vue/apollo-composable'
 import { computed, ref } from 'vue'

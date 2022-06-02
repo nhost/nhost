@@ -1,4 +1,4 @@
-const base = require('./.eslint.base.js')
+const base = require('./.eslint.base')
 module.exports = {
   ...base,
   extends: ['plugin:import/recommended', 'plugin:import/typescript'],

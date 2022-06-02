@@ -15,7 +15,7 @@
 <script lang="ts">
 import { computed, defineComponent } from 'vue'
 
-import { gql } from '@apollo/client/core/index.js'
+import { gql } from '@apollo/client/core'
 import { useAuthenticated } from '@nhost/vue'
 import { useQuery } from '@vue/apollo-composable'
 
