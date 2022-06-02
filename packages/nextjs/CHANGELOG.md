@@ -1,5 +1,15 @@
 # @nhost/nextjs
 
+## 1.2.12
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/core@0.6.4
+  - @nhost/nhost-js@1.2.3
+  - @nhost/react@0.7.12
+
 ## 1.2.11
 
 ### Patch Changes

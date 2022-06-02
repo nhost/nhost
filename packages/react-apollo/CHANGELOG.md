@@ -1,5 +1,14 @@
 # @nhost/react-apollo
 
+## 4.2.14
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/apollo@0.5.12
+  - @nhost/react@0.7.12
+
 ## 4.2.13
 
 ### Patch Changes

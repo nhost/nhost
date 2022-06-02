@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.6.4
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+
 ## 0.6.3
 
 ### Patch Changes
