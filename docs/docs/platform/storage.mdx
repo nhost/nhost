@@ -42,7 +42,7 @@ When a file is uploaded, the file metadata is inserted into the `storage.files` 
 await nhost.storage.upload({ file })
 ```
 
-Learn more about [`getPublicUrl()`](/reference/javascript/storage/get-public-url).
+Learn more about [`upload()`](/reference/javascript/storage/upload).
 
   </TabItem>
   <TabItem value="http" label="HTTP" default>
@@ -142,7 +142,7 @@ DELETE /v1/storage/files/{file_id} HTTP/1.1
 
 Buckets are used to organize files and group permissions for files. Buckets are stored in the `storage.buckets` table in your database, and accessible via `buckets` in your GraphQL API.
 
-For each bucket, you can specify file permissions for things like:
+For each bucket, you can specify file permissions for the following properties:
 
 - MIME type.
 - Minimum size.
@@ -168,7 +168,7 @@ To upload a file, a user must have the **`insert` permission** to the `storage.f
 
 ### Download
 
-To download a file, a user must have the **`select` permission** to the `storage.files` table. Only the `id` column is required, but as a best practice you should allow reading all file columns.
+To download a file, a user must have the **`select` permission** to the `storage.files` table. Only the `id` column is required, but we recommend allowing to select all columns. 
 
 ### Delete
 
@@ -176,7 +176,7 @@ To delete a file, a user must have the **`delete` permission** to the `storage.f
 
 Updating an existing file is not supported. If you need to update a file, delete the file and upload a new file.
 
-Just deleting the file metadata in the `storage.files` table does **not** delete the actual file. Instead, always delete files via Nhost Storage. This way, both the file metadata and actual file are deleted.
+Just deleting the file metadata in the `storage.files` table does **not** delete the actual file. Always delete files via Nhost Storage. This way, both the file metadata and the actual file are deleted.
 
 ## Image Transformation
 
@@ -195,48 +195,50 @@ https://[subdomain].nhost.run/v1/storage/files/08e6fa32-0880-4d0e-a832-278198acb
 
 ## Example: CRM System
 
-Let's say we're building a CRM and we want to store files for each customer.
+Let's say you want to build a CRM system and you want to store files for customers. This is one way of how you could do that.
 
-In our CRM, we have the following two tables:
+Start with, you would have two tables:
 
-```text
+1. `customers` - Customer data.
+2. `customer_files` - What file belongs to what customer.
+
+```text 
 - customers
   - id
   - name
   - address
-- customer_files
+customer_files
   - id
-  - customer_id (foreign key to `customers.id`)
-  - file_id (foreign key to `storage.files.id`)
+  - customer_id (Foreign Key to `customers.id`)
+  - file_id (Foreign Key to `storage.files.id`)
 ```
 
-We also have created relationships between `customers` and `customer_files` and between `customer_files` and `storage.files`.
+You would also create [Hasura Relationships](https://hasura.io/docs/latest/graphql/core/databases/postgres/schema/table-relationships/index/) (GraphQL relationships) between between `customers` and `customer_files` and between `customer_files` and `storage.files`.
 
-We can now query the data with the following query:
+With the two tables and GraphQL relationships in place, you can query customers and the customer's files like this:
 
 ```graphql
 query {
-  customer {
-    # customer table
+  customers { # customers table
     id
     name
-    customer_files {
-      # customer_files table
+    customer_files { # customer_files tabel
       id
-      file {
-        # storage.files table
+      file { # storage.files table
         id
         name
         size
-        mime_type
+        mimeType
       }
     }
   }
 }
 ```
 
-To upload a file, this is what we do;
+The file upload process would be as follows:
 
-1. Upload a file
-2. Get the `id` of the file. The server returns this.
-3. Insert the `id` of the file together with the customer's id into the `customer_files` table.
+1. Upload a file.
+2. Get the returned file id.
+3. Insert the file `id` and the customer's `id` into the `customer_files` table.
+
+This would allow you to upload and download files belonging to specific customers in your CRM system.
