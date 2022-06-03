@@ -32,7 +32,13 @@ jobs:
           version: 6.32.14
       - name: List example packages with a ci script
         id: set-matrix
-        run: echo "::set-output name=matrix::$(pnpm recursive list --depth -1 --filter "{./examples}" --parseable | sed -e 's/$/\/package.json/' | xargs jq  --raw-output "if (.scripts.ci | length) != 0  then .name else \"\" end" | awk NF | jq -R -s -c 'split("\n")[:-1]')"
+        run: |
+          echo "::set-output name=matrix::$(pnpm recursive list --depth -1 --filter "{./examples}" --parseable \
+            | sed -e 's/$/\/package.json/' \
+            | xargs jq  --raw-output "if (.scripts.ci \ 
+            | length) != 0  then .name else \"\" end" \
+            | awk NF \
+            | jq -R -s -c 'split("\n")[:-1]')"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
   run:
@@ -43,7 +49,7 @@ jobs:
         package: ${{ fromJson(needs.prepare.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v2
-      - name: Install nhost CLI
+      - name: Install Nhost CLI
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
       - uses: pnpm/action-setup@v2.2.1
         with:
