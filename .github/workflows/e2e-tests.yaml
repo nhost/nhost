@@ -1,0 +1,68 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+# Poached from https://github.com/hayes/pothos/tree/main/.github/workflows, thanks to the original author
+
+name: End-to-end tests
+
+on:
+  push:
+    branches: [test/ci]
+    paths-ignore:
+      - 'docs/**'
+      - 'templates/**'
+      - 'assets/**'
+      - '**.md'
+      - 'LICENSE'
+  # pull_request:
+  #   branches: [main]
+  #   paths-ignore:
+  #     - 'docs/**'
+  #     - 'templates/**'
+  #     - 'assets/**'
+  #     - '**.md'
+  #     - 'LICENSE'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14, 16]
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install nhost CLI
+        run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
+
+      # - name: Start Nhost Backend
+      #   run: |
+      #     cp -R examples/testing-project /tmp/
+      #     cd /tmp/testing-project
+      #     nhost dev &
+
+      - uses: pnpm/action-setup@v2.2.1
+        with:
+          version: 6.32.14
+
+      # - name: Use Node.js ${{ matrix.node-version }}
+      #   uses: actions/setup-node@v2
+      #   with:
+      #     node-version: ${{ matrix.node-version }}
+      #     cache: 'pnpm'
+
+      # - name: Cache turbo
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ./node_modules/.cache/turbo
+      #     key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
+      #     restore-keys: |
+      #       turbo-${{ github.job }}-${{ github.ref_name }}-
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # - name: Wait for Nhost
+      #   run: pnpm run wait
+
+      - name: Build, tests and lint
+        run: pnpm run ci
