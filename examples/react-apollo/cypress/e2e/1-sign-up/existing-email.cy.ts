@@ -5,6 +5,7 @@ context('Failed attempt to sign up with an email already present in the database
     const email = faker.internet.email()
     const password = faker.internet.password(10)
     cy.signUpEmailPassword(email, password)
+    cy.contains('Verification email sent').should('be.visible')
     cy.signUpEmailPassword(email, password)
     cy.contains('Email already in use').should('be.visible')
   })

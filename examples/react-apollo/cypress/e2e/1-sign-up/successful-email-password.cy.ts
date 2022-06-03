@@ -11,5 +11,6 @@ context('Successful email+password sign-up', () => {
     cy.signUpEmailPassword(email, faker.internet.password())
     cy.contains('Verification email sent').should('be.visible')
     cy.confirmEmail(email)
+    cy.contains('You are authenticated')
   })
 })

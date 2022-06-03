@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-
+import '@testing-library/cypress/add-commands'
 import 'cypress-mailhog'
 
 declare global {
@@ -14,20 +14,18 @@ declare global {
 Cypress.Commands.add('signUpEmailPassword', (email, password) => {
   cy.visit('/sign-up')
   cy.contains('Continue with email + password').click()
-  cy.get('[placeholder="First name"]').type(faker.name.firstName())
-  cy.get('[placeholder="Last name"]').type(faker.name.lastName())
-  cy.get('[placeholder="Email Address"]').type(email)
-  cy.get('[placeholder="Password"]').type(password)
-  cy.get('[placeholder="Confirm Password"]').type(password)
+  cy.findByPlaceholderText('First name').type(faker.name.firstName())
+  cy.findByPlaceholderText('Last name').type(faker.name.lastName())
+  cy.findByPlaceholderText('Email Address').type(email)
+  cy.findByPlaceholderText('Password').type(password)
+  cy.findByPlaceholderText('Confirm Password').type(password)
   cy.contains('Continue with email + password').click()
 })
 
 Cypress.Commands.add('confirmEmail', (email) => {
-  cy.log('confirmEmail')
   cy.mhGetMailsByRecipient(email)
     .should('have.length', 1)
     .then(([message]) => {
       cy.visit(message.Content.Headers['X-Link'][0])
-      cy.contains('You are authenticated')
     })
 })

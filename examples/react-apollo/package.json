@@ -21,7 +21,7 @@
     "dev": "vite",
     "cypress": "cypress open",
     "test": "cypress run",
-    "ci": "start-test start:backend :1337/v1/auth/healthz start:frontend 3000 test",
+    "ci": "start-test ci:backend :1337/v1/auth/healthz ci:frontend 3000 test",
     "ci:backend": "nhost -d",
     "ci:frontend": "run-s build preview",
     "build": "vite build",
@@ -52,6 +52,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^6.3.1",
+    "@testing-library/cypress": "^8.0.2",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
     "@vitejs/plugin-react": "^1.3.2",
