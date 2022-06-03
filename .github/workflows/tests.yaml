@@ -66,5 +66,11 @@ jobs:
       - name: Wait for Nhost
         run: pnpm run wait
 
-      - name: Build, tests and lint
-        run: pnpm run ci
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Lint
+        run: pnpm run test
