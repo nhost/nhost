@@ -17,14 +17,26 @@ export const encodeQueryParameters = (baseUrl: string, parameters?: Record<strin
   else return baseUrl
 }
 
-export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl?: string, options?: T) => {
+/**
+ * Transform options that include a redirectTo property so the
+ * redirect url is absolute, given a base clientUrl.
+ * If no client url is given, any relative redirectUrl is removed while
+ * the other options are sent as-is.
+ * @param clientUrl base client url
+ * @param options
+ * @returns
+ */
+export const rewriteRedirectTo = <T extends RedirectOption>(
+  clientUrl?: string,
+  options?: T
+): (Omit<T, 'redirectTo'> & { redirectTo?: string }) | undefined => {
   if (!options?.redirectTo) {
     return options
   }
   const { redirectTo, ...otherOptions } = options
-  // If the clientUrl is not defined, we can't rewrite the redirectTo
+  // * If the clientUrl is not defined, we can't rewrite the redirectTo
   if (!clientUrl) {
-    // If redirectTo is a relative path, we therefore pull it out of the options
+    // * If redirectTo is a relative path, we therefore pull it out of the options
     if (redirectTo.startsWith('/')) {
       return otherOptions
     } else {
