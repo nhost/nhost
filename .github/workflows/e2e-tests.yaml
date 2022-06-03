@@ -33,12 +33,12 @@ jobs:
       - name: List example packages with a ci script
         id: set-matrix
         run: |
-          echo "::set-output name=matrix::$(pnpm recursive list --depth -1 --filter "{./examples}" --parseable \
+          PACKAGES=$(pnpm recursive list --depth -1 --filter "{./examples}" --parseable \
             | sed -e 's/$/\/package.json/' \
-            | xargs jq  --raw-output "if (.scripts.ci \ 
-            | length) != 0  then .name else \"\" end" \
+            | xargs jq  --raw-output "if (.scripts.ci | length) != 0  then .name else \"\" end" \
             | awk NF \
-            | jq -R -s -c 'split("\n")[:-1]')"
+            | jq -R -s -c 'split("\n")[:-1]')
+          echo "::set-output name=matrix::$PACKAGES"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
   run:
