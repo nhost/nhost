@@ -1,0 +1,16 @@
+name: Install dependencies
+description: 'Install Node dependencies with pnpm'
+runs:
+  using: 'composite'
+  steps:
+    - uses: pnpm/action-setup@v2.2.1
+      with:
+        version: 6.32.14
+    - name: Use Node.js 16
+      uses: actions/setup-node@v2
+      with:
+        node-version: 16
+        cache: 'pnpm'
+    - shell: bash
+      name: Install packages
+      run: pnpm install --frozen-lockfile
