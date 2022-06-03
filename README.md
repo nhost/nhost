@@ -265,6 +265,13 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/nbourdin">
+            <img src="https://avatars.githubusercontent.com/u/5602476?v=4" width="100;" alt="nbourdin"/>
+            <br />
+            <sub><b>Nicolas Bourdin</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/timpratim">
             <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
             <br />
@@ -291,15 +298,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Anders Kjær Damgaard</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/Sonichigo">
             <img src="https://avatars.githubusercontent.com/u/53110238?v=4" width="100;" alt="Sonichigo"/>
             <br />
             <sub><b>Animesh Pathak</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/rustyb">
             <img src="https://avatars.githubusercontent.com/u/53086?v=4" width="100;" alt="rustyb"/>
@@ -334,15 +341,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Hoang Do</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/MelodicCrypter">
             <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
             <br />
             <sub><b>Hugh Caluscusin</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/jladuval">
             <img src="https://avatars.githubusercontent.com/u/1935359?v=4" width="100;" alt="jladuval"/>
@@ -362,13 +369,6 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/21159570?v=4" width="100;" alt="MarcelloTheArcane"/>
             <br />
             <sub><b>Max Reynolds</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/nbourdin">
-            <img src="https://avatars.githubusercontent.com/u/5602476?v=4" width="100;" alt="nbourdin"/>
-            <br />
-            <sub><b>Nicolas Bourdin</b></sub>
         </a>
     </td>
     <td align="center">
