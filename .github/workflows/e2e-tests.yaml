@@ -60,10 +60,9 @@ jobs:
           key: turbo-${{ github.job }}-${{ github.ref_name }}-${{ github.sha }}
           restore-keys: |
             turbo-${{ github.job }}-${{ github.ref_name }}-
-      - name: Install dependencies
+      - name: Install packages
         run: pnpm install
-      - name: Build packages
-        # TODO filter only the example dependencies
-        run: pnpm build
+      - name: Build package dependencies
+        run: pnpm build -- --filter="${{ matrix.package }}^..."
       - name: Run e2e test
         run: pnpm run ci --filter="${{ matrix.package }}"
