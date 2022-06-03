@@ -17,21 +17,27 @@ export const encodeQueryParameters = (baseUrl: string, parameters?: Record<strin
   else return baseUrl
 }
 
-export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl: string, options?: T) => {
+export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl?: string, options?: T) => {
   if (!options?.redirectTo) {
     return options
   }
+  const { redirectTo, ...otherOptions } = options
+  // If the clientUrl is not defined, we can't rewrite the redirectTo
+  if (!clientUrl) {
+    // If redirectTo is a relative path, we therefore pull it out of the options
+    if (redirectTo.startsWith('/')) {
+      return otherOptions
+    } else {
+      return options
+    }
+  }
   const baseClientUrl = new URL(clientUrl)
   const clientParams = Object.fromEntries(new URLSearchParams(baseClientUrl.search))
-  const url = new URL(
-    options.redirectTo.startsWith('/')
-      ? baseClientUrl.origin + options.redirectTo
-      : options.redirectTo
-  )
+  const url = new URL(redirectTo.startsWith('/') ? baseClientUrl.origin + redirectTo : redirectTo)
   const additionalParams = new URLSearchParams(url.search)
   let combinedParams = Object.fromEntries(additionalParams)
 
-  if (options.redirectTo.startsWith('/')) {
+  if (redirectTo.startsWith('/')) {
     combinedParams = { ...clientParams, ...combinedParams }
   }
   let pathName = baseClientUrl.pathname
@@ -39,7 +45,7 @@ export const rewriteRedirectTo = <T extends RedirectOption>(clientUrl: string, o
     pathName += url.pathname.slice(1)
   }
   return {
-    ...options,
+    ...otherOptions,
     redirectTo: encodeQueryParameters(url.origin + pathName, combinedParams)
   }
 }
