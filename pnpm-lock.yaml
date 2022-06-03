@@ -190,8 +190,8 @@ importers:
       '@mantine/hooks': ^4.2.2
       '@mantine/notifications': ^4.2.2
       '@mantine/prism': ^4.2.2
-      '@nhost/react': workspace:*
-      '@nhost/react-apollo': workspace:*
+      '@nhost/react': '*'
+      '@nhost/react-apollo': '*'
       '@types/react': ^18.0.8
       '@types/react-dom': ^18.0.3
       '@vitejs/plugin-react': ^1.3.2
