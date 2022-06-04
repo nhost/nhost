@@ -36,7 +36,7 @@ jobs:
           PACKAGES=$(pnpm recursive list --depth -1 --parseable \
             | xargs -I@ jq "if (.scripts.ci | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
-            | jq --slurp)
+            | jq -c --slurp)
           echo "::set-output name=matrix::$PACKAGES"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
