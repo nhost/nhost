@@ -54,3 +54,6 @@ todo.md
 # TypeDoc output
 
 .docgen
+
+# Nhost CLI data
+.nhost

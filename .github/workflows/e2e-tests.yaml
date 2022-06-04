@@ -30,14 +30,13 @@ jobs:
       - uses: pnpm/action-setup@v2.2.1
         with:
           version: 6.32.14
-      - name: List example packages with a test:ci script
+      - name: List example packages with a ci script
         id: set-matrix
         run: |
-          PACKAGES=$(pnpm recursive list --depth -1 --filter "{./examples}" --parseable \
-            | sed -e 's/$/\/package.json/' \
-            | xargs jq  --raw-output "if (.scripts.\"test:ci\" | length) != 0  then .name else \"\" end" \
-            | awk NF \
-            | jq -R -s -c 'split("\n")[:-1]')
+          PACKAGES=$(pnpm recursive list --depth -1 --parseable \
+            | xargs -I@ jq "if (.scripts.ci | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
+            | awk "!/null/" \
+            | jq --slurp)
           echo "::set-output name=matrix::$PACKAGES"
     outputs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -50,6 +49,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install Nhost CLI
+        if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
       - uses: pnpm/action-setup@v2.2.1
         with:
@@ -69,6 +69,6 @@ jobs:
       - name: Install packages
         run: pnpm install
       - name: Build package dependencies
-        run: pnpm build -- --filter="${{ matrix.package }}^..."
+        run: pnpm build -- --filter="${{ matrix.package.name }}^..."
       - name: Run e2e test
-        run: pnpm run test:ci --filter="${{ matrix.package }}"
+        run: pnpm run ci --filter="${{ matrix.package.name }}"

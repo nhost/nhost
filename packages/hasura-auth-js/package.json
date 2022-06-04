@@ -42,7 +42,9 @@
     "build": "run-p build:lib build:umd",
     "build:lib": "vite build",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
-    "test": "vitest run",
+    "ci:test": "vitest run",
+    "ci": "start-test ci:backend :1337/v1/auth/healthz ci:test",
+    "ci:backend": "nhost dev",
     "test:watch": "vitest",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -64,6 +66,7 @@
     "axios": "^0.27.2",
     "faker": "5",
     "html-urls": "^2.4.27",
-    "mailhog": "^4.16.0"
+    "mailhog": "^4.16.0",
+    "start-server-and-test": "^1.14.0"
   }
 }

@@ -33,15 +33,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install nhost CLI
-        run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
-
-      - name: Start Nhost Backend
-        run: |
-          cp -R examples/testing-project /tmp/
-          cd /tmp/testing-project
-          nhost dev &
-
       - uses: pnpm/action-setup@v2.2.1
         with:
           version: 6.32.3
@@ -62,9 +53,6 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install
-
-      - name: Wait for Nhost
-        run: pnpm run wait
 
       - name: Lint
         run: pnpm run lint
