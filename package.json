@@ -16,8 +16,9 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install",
-    "build": "turbo run build --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
-    "build:docs": "pnpm run build --filter=@nhost/docs",
+    "build": "pnpm run build:all -- --filter=!@nhost/docs --filter=!@nhost-examples/*",
+    "build:docs": "pnpm run build:all -- --filter=@nhost/docs",
+    "build:all": "turbo run build  --include-dependencies",
     "dev": "turbo run dev --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples}/*,docs}/{dist,umd,.next,.turbo,coverage}",
@@ -31,6 +32,7 @@
     "release": "pnpm run prerelease && changeset publish",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
     "test": "turbo run test --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
+    "ci": "turbo run ci",
     "changeset": "changeset",
     "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :"
   },
