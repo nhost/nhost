@@ -48,6 +48,7 @@ jobs:
     name: 'e2e: ${{ matrix.package.name }}'
     needs: build
     strategy:
+      fail-fast: false # don't cancel other matrices when one fails
       matrix:
         package: ${{ fromJson(needs.build.outputs.matrix) }}
     runs-on: ubuntu-latest
