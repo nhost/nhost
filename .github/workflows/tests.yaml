@@ -28,7 +28,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/install-dependencies
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - name: Build packages
         # * Build all Nhost packages as they are all supposed to be tested.
         # * They will be reused through the Turborepo cache
@@ -58,7 +59,8 @@ jobs:
         # * Detect if the Nhost CLI should be installed
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
-      - uses: ./.github/actions/install-dependencies
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - name: Run e2e test
         run: pnpm run ci -- --filter="${{ matrix.package.name }}"
       - name: Upload Cypress videos and screenshots
@@ -75,7 +77,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/install-dependencies
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - name: Run unit tests
         run: pnpm run test
   lint:
@@ -84,6 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/install-dependencies
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - name: Lint
         run: pnpm run lint
