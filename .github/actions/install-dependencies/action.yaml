@@ -1,4 +1,4 @@
-name: Install dependencies
+name: Install Node and package dependencies
 description: 'Install Node dependencies with pnpm'
 runs:
   using: 'composite'

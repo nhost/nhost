@@ -22,19 +22,19 @@ on:
 env:
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
-  PNPM_VERSION: 6.32.14
-  NODE_VERSION: 16
 jobs:
   build:
     name: Build @nhost packages
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
+      - uses: ./.github/actions/install-dependencies
       - name: Build packages
+        # * Build all Nhost packages as they are all supposed to be tested.
+        # * They will be reused through the Turborepo cache
         run: pnpm build
       - name: List examples with a ci script
+        # * List packagesthat has a `ci` script, except the root, and return their name and path
         id: set-matrix
         run: |
           PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter=!nhost-root \
@@ -55,10 +55,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Install Nhost CLI
+        # * Detect if the Nhost CLI should be installed
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
         run: curl -L https://raw.githubusercontent.com/nhost/cli/main/get.sh | bash
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
+      - uses: ./.github/actions/install-dependencies
       - name: Run e2e test
         run: pnpm run ci -- --filter="${{ matrix.package.name }}"
       - name: Upload Cypress videos and screenshots
@@ -75,8 +75,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
+      - uses: ./.github/actions/install-dependencies
       - name: Run unit tests
         run: pnpm run test
   lint:
@@ -85,7 +84,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Install Node and dependencies
-        uses: ./.github/actions/install-dependencies
+      - uses: ./.github/actions/install-dependencies
       - name: Lint
         run: pnpm run lint
