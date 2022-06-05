@@ -44,7 +44,7 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "ci": "start-test ci:backend :1337/v1/auth/healthz ci:test",
     "ci:test": "vitest run",
-    "ci:backend": "nhost dev",
+    "ci:backend": "nhost dev --no-browser",
     "test:watch": "vitest",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",

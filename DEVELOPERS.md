@@ -60,17 +60,22 @@ $ pnpm start
 
 ## Run test suites
 
-In order to run tests, the Nhost testing backend should be running locally. You can run it from a separate terminal:
+### Unit tests
 
-```sh
-$ cd examples/testing-project
-$ nhost -d
-```
-
-Once Nhost is started locally, you can run the tests with the following command from the repository root:
+You can run the unit tests with the following command from the repository root:
 
 ```sh
 $ pnpm test
+```
+
+### End-to-end tests
+
+Each package that defines end-to-end tests embeds their own Nhost configuration, that will be automatically when running the tests. As a result, you must make sure you are not running the Nhost CLI before running the tests.
+
+You can run the e2e tests with the following command from the repository root:
+
+```sh
+$ pnpm ci
 ```
 
 ## Changesets

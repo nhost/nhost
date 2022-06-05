@@ -22,7 +22,7 @@
     "cypress": "cypress open",
     "test": "cypress run",
     "ci": "start-test ci:backend :1337/v1/auth/healthz ci:frontend 3000 test",
-    "ci:backend": "nhost dev",
+    "ci:backend": "nhost dev --no-browser",
     "ci:frontend": "run-s build preview",
     "build": "vite build",
     "preview": "vite preview --host localhost --port 3000",
