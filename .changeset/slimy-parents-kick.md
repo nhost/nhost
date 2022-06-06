@@ -2,4 +2,4 @@
 '@nhost/apollo': patch
 ---
 
-Add headers to subscription when creating the Apollo client
+Add headers to the websocket connection when creating the Apollo client
