@@ -36,7 +36,7 @@ export const createApolloClient = ({
   cache = new InMemoryCache(),
   connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
   onError
-}: NhostApolloClientOptions): ApolloClient<unknown> => {
+}: NhostApolloClientOptions): ApolloClient<any> => {
   let backendUrl = graphqlUrl || nhost?.graphql.getUrl()
   if (!backendUrl) {
     throw Error("Can't initialize the Apollo Client: no backend Url has been provided")
@@ -71,7 +71,10 @@ export const createApolloClient = ({
     createRestartableClient({
       url: uri.startsWith('https') ? uri.replace(/^https/, 'wss') : uri.replace(/^http/, 'ws'),
       connectionParams: () => ({
-        headers: getAuthHeaders()
+        headers: {
+          ...headers,
+          ...getAuthHeaders()
+        }
       })
     })
   const wsLink = wsClient && new GraphQLWsLink(wsClient)
