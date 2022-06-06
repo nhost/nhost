@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk, hashPassword } from '@/utils';
+import { gqlSdk, hashPassword, getUserByTicket } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, password } from '@/validation';
 
@@ -18,28 +18,11 @@ export const userPasswordHandler: RequestHandler<
 
   const { ticket } = req.body;
 
-  // get the user from the ticket
-  const ticketed_user = await gqlSdk
-      .users({
-        where: {
-          _and: [
-            {
-              ticket: {
-                _eq: ticket,
-              },
-            },
-            {
-              ticketExpiresAt: {
-                _gt: new Date(),
-              },
-            },
-          ],
-        },
-      })
-      .then((gqlRes) => gqlRes.users[0]);
+  // get the user from the ticket, but if no ticket then return null
+  const userByTicket = await getUserByTicket(ticket || "")
 
   // check if user is logged in or has valid ticket
-  if (!req.auth?.userId && !ticketed_user) {
+  if (!req.auth?.userId && !userByTicket) {
     return sendError(res, 'unauthenticated-user');
   }
 
@@ -47,7 +30,7 @@ export const userPasswordHandler: RequestHandler<
 
   const newPasswordHash = await hashPassword(newPassword);
 
-  const userId = req.auth?.userId || ticketed_user.id;
+  const userId = req.auth?.userId || userByTicket?.id;
 
   const { user } = await gqlSdk.user({
     id: userId,

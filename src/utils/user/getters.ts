@@ -76,6 +76,12 @@ export const getUserByEmail = async (email: string) => {
 };
 
 export const getUserByTicket = async (ticket: string) => {
+
+  // return null if ticket is empty
+  if (ticket === "") {
+    return null;
+  }
+
   const now = new Date();
 
   const { users } = await gqlSdk.users({
