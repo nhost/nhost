@@ -12,6 +12,7 @@ export type ChangePasswordEvents =
   | {
       type: 'REQUEST'
       password?: string
+      ticket?: string
     }
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
@@ -75,10 +76,10 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthCli
         invalidPassword: (_, { password }) => !isValidPassword(password)
       },
       services: {
-        requestChange: (_, { password }) =>
+        requestChange: (_, { password, ticket }) =>
           api.post<string, { data: { error?: ErrorPayload } }>(
             '/user/password',
-            { newPassword: password },
+            { newPassword: password, ticket: ticket },
             {
               headers: {
                 authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
