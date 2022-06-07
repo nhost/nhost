@@ -193,13 +193,6 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/timpratim">
-            <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
-            <br />
-            <sub><b>Pratim</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/FuzzyReason">
             <img src="https://avatars.githubusercontent.com/u/62517920?v=4" width="100;" alt="FuzzyReason"/>
             <br />
@@ -211,6 +204,13 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/831190?v=4" width="100;" alt="macmac49"/>
             <br />
             <sub><b>Macmac49</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/timpratim">
+            <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
+            <br />
+            <sub><b>Pratim</b></sub>
         </a>
     </td></tr>
 <tr>
