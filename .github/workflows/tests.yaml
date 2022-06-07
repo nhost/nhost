@@ -35,12 +35,12 @@ jobs:
       # * They will be reused through the Turborepo cache
       - name: Build packages
         run: pnpm build
-      # * List packagesthat has a `ci` script, except the root, and return their name and path
-      - name: List examples with a ci script
+      # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
+      - name: List examples with an e2e script
         id: set-matrix
         run: |
           PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter=!nhost-root \
-            | xargs -I@ jq "if (.scripts.ci | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
+            | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
             | jq -c --slurp)
           echo "::set-output name=matrix::$PACKAGES"
@@ -66,7 +66,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
-        run: pnpm run ci -- --filter="${{ matrix.package.name }}"
+        run: pnpm run e2e -- --filter="${{ matrix.package.name }}"
       # * Run this step only if the previous step failed, and some Cypress screenshots/videos exist
       - name: Upload Cypress videos and screenshots
         if: ${{ failure() && hashFiles(format('{0}/cypress/screenshots/**', matrix.package.path), format('{0}/cypress/videos/**', matrix.package.path)) != ''}}
@@ -88,6 +88,15 @@ jobs:
       # * Run every `test` script in the workspace . Dependencies build is cached by Turborepo
       - name: Run unit tests
         run: pnpm run test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: '**/coverage/coverage-final.json'
+          name: codecov-umbrella
+      - name: Create summary
+        run: |
+          echo '### Code coverage' >> $GITHUB_STEP_SUMMARY
+          echo 'Visit [codecov](https://https://app.codecov.io/gh/plmercereau/nhost/) to see the code coverage reports' >> $GITHUB_STEP_SUMMARY
   lint:
     name: Lint
     needs: build
