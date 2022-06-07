@@ -96,7 +96,7 @@ jobs:
       - name: Create summary
         run: |
           echo '### Code coverage' >> $GITHUB_STEP_SUMMARY
-          echo 'Visit [codecov](https://https://app.codecov.io/gh/plmercereau/nhost/) to see the code coverage reports' >> $GITHUB_STEP_SUMMARY
+          echo 'Visit [codecov](https://app.codecov.io/gh/nhost/nhost/) to see the code coverage reports' >> $GITHUB_STEP_SUMMARY
   lint:
     name: Lint
     needs: build
