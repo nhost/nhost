@@ -88,6 +88,11 @@ jobs:
       # * Run every `test` script in the workspace . Dependencies build is cached by Turborepo
       - name: Run unit tests
         run: pnpm run test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          files: '**/coverage/coverage-final.json'
+          name: codecov-umbrella
   lint:
     name: Lint
     needs: build
