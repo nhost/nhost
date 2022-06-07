@@ -1,5 +1,4 @@
-import React from 'react'
-import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa'
+import { FaFacebook, FaGithub, FaGoogle } from 'react-icons/fa/index.js'
 
 import { useProviderLink } from '@nhost/react'
 

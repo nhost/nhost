@@ -2,6 +2,7 @@ table:
   name: roles
   schema: auth
 configuration:
+  column_config: {}
   custom_column_names: {}
   custom_name: authRoles
   custom_root_fields:

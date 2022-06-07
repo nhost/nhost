@@ -1,9 +1,8 @@
-import React from 'react'
 import { useState } from 'react'
 
-import { useConfigMfa } from '@nhost/react'
-import { Card, Button, TextInput, Title } from '@mantine/core'
+import { Button, Card, TextInput, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
+import { useConfigMfa } from '@nhost/react'
 
 export const Mfa: React.FC = () => {
   const [code, setCode] = useState('')
