@@ -1,5 +1,11 @@
 # @nhost/apollo
 
+## 0.5.14
+
+### Patch Changes
+
+- 8b2d1b00: Add headers to the websocket connection when creating the Apollo client
+
 ## 0.5.13
 
 ### Patch Changes
