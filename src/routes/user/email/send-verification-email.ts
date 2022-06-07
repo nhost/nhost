@@ -92,6 +92,8 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
     locals: {
       link,
       displayName: user.displayName,
+      email: user.email,
+      newEmail: user.newEmail,
       ticket,
       redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

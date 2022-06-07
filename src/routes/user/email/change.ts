@@ -73,6 +73,8 @@ export const userEmailChange: RequestHandler<
     locals: {
       link,
       displayName: user.displayName,
+      email: user.email,
+      newEmail,
       ticket,
       redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

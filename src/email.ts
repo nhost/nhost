@@ -113,10 +113,22 @@ const readRemoteTemplate = async (
   }
 };
 
+type EmailOptions = {
+  link: string;
+  displayName: string;
+  email: string;
+  newEmail: string;
+  ticket: string;
+  redirectTo: string;
+  locale: string;
+  serverUrl: string;
+  clientUrl: string;
+};
+
 /**
  * Reusable email client.
  */
-export const emailClient = new Email({
+export const emailClient = new Email<EmailOptions>({
   transport,
   message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,
