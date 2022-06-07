@@ -1,5 +1,12 @@
 # @nhost/core
 
+## 0.6.5
+
+### Patch Changes
+
+- 08a37aae: correct rewriting options when `clientUrl` is not available
+  The client URL is set to `window.location.origin`, so it can rewrite redirection urls that are passed on to authenticaion methods. However, `clientUrl` is set to `''` when running on the server side. This fix then avoid raising an error when trying to rewrite `redirectTo` on non-browser environment, and forces `useProviderLink` to be rendered on the client side.
+
 ## 0.6.4
 
 ### Patch Changes
