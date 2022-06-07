@@ -8,7 +8,7 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": ["coverage/**"]
     },
     "e2e": {
       "dependsOn": ["^build"],
