@@ -113,7 +113,7 @@ const readRemoteTemplate = async (
   }
 };
 
-type EmailOptions = {
+type EmailLocals = {
   link: string;
   displayName: string;
   email: string;
@@ -128,7 +128,7 @@ type EmailOptions = {
 /**
  * Reusable email client.
  */
-export const emailClient = new Email<EmailOptions>({
+export const emailClient = new Email<EmailLocals>({
   transport,
   message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,
