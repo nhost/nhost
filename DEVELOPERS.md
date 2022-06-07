@@ -75,7 +75,7 @@ Each package that defines end-to-end tests embeds their own Nhost configuration,
 You can run the e2e tests with the following command from the repository root:
 
 ```sh
-$ pnpm ci
+$ pnpm e2e
 ```
 
 ## Changesets

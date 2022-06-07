@@ -10,7 +10,7 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "ci": {
+    "e2e": {
       "dependsOn": ["^build"],
       "outputs": []
     },

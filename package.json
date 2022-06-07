@@ -32,7 +32,7 @@
     "release": "pnpm run prerelease && changeset publish",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
     "test": "turbo run test --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
-    "ci": "turbo run ci --concurrency=1",
+    "e2e": "turbo run e2e --concurrency=1",
     "changeset": "changeset",
     "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :"
   },
