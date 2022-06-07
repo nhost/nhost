@@ -12,7 +12,9 @@ const tsEntry = path.resolve(PWD, 'src/index.ts')
 const entry = fs.existsSync(tsEntry) ? tsEntry : tsEntry.replace('.ts', '.tsx')
 
 const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))]
-
+console.log(process.env)
+console.log(process.env.CI)
+console.log(process.env.CI === 'true')
 export default defineConfig({
   plugins: [
     tsconfigPaths(),
