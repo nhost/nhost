@@ -207,13 +207,20 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/timpratim">
+            <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
+            <br />
+            <sub><b>Pratim</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
         <a href="https://github.com/subhendukundu">
             <img src="https://avatars.githubusercontent.com/u/20059141?v=4" width="100;" alt="subhendukundu"/>
             <br />
             <sub><b>Subhendu Kundu</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/heygambo">
             <img src="https://avatars.githubusercontent.com/u/449438?v=4" width="100;" alt="heygambo"/>
@@ -248,15 +255,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Gavan Wilhite</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/jerryjappinen">
             <img src="https://avatars.githubusercontent.com/u/1101002?v=4" width="100;" alt="jerryjappinen"/>
             <br />
             <sub><b>Jerry Jäppinen</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/mustafa-hanif">
             <img src="https://avatars.githubusercontent.com/u/30019262?v=4" width="100;" alt="mustafa-hanif"/>
@@ -269,13 +276,6 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/5602476?v=4" width="100;" alt="nbourdin"/>
             <br />
             <sub><b>Nicolas Bourdin</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/timpratim">
-            <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
-            <br />
-            <sub><b>Pratim</b></sub>
         </a>
     </td>
     <td align="center">
