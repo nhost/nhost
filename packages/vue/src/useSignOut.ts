@@ -15,8 +15,8 @@ import { useAuthInterpreter } from './useAuthInterpreter'
  *
  * const { signOut, isSuccess } = useSignOut()
  *
- * const handleSignOut = (e) => {
- *   e.preventDefault();
+ * const handleSignOut = async (e) => {
+ *   e.preventDefault()
  *   await signOut()
  * }
  * ```
