@@ -57,9 +57,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - id: file-name
-        run: PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
-          echo "::set-output name=fileName::$PACKAGE_FILE_NAME"
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
       - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
@@ -70,6 +67,12 @@ jobs:
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
         run: pnpm run e2e -- --filter="${{ matrix.package.name }}"
+      - id: file-name
+        if: ${{ failure() }}
+        name: Tranform package name into a valid file name
+        run: |
+          PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
+          echo "::set-output name=fileName::$PACKAGE_FILE_NAME"
       # * Run this step only if the previous step failed, and some Cypress screenshots/videos exist
       - name: Upload Cypress videos and screenshots
         if: ${{ failure() && hashFiles(format('{0}/cypress/screenshots/**', matrix.package.path), format('{0}/cypress/videos/**', matrix.package.path)) != ''}}
