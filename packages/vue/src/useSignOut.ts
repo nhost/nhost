@@ -9,6 +9,18 @@ import { useAuthInterpreter } from './useAuthInterpreter'
 /**
  * Use the composable `useSignOut` to sign out the user.
  *
+ * @example
+ * ```jsx
+ * import { useSignOut } from '@nhost/vue'
+ *
+ * const { signOut, isSuccess } = useSignOut()
+ *
+ * const handleSignOut = async (e) => {
+ *   e.preventDefault()
+ *   await signOut()
+ * }
+ * ```
+ *
  * @docs https://docs.nhost.io/reference/vue/use-sign-out
  */
 export const useSignOut = () => {
