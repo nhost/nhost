@@ -69,7 +69,9 @@ Cypress.Commands.add('confirmEmail', (email) => {
 Cypress.Commands.add('quickSignUp', (givenEmail) => {
   const email = givenEmail || faker.internet.email()
   cy.signUpEmailPasswordless(email)
-  cy.confirmEmail(email)
+  // ! intentional bug
+  // cy.contains('Verification email sent').should('be.visible')
+  // cy.confirmEmail(email)
 })
 
 Cypress.Commands.add('saveRefreshToken', () => {
