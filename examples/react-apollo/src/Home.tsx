@@ -1,5 +1,4 @@
 import { Container, Title } from '@mantine/core'
-import React from 'react'
 
 const HomePage: React.FC = () => {
   return (

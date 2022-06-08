@@ -1,4 +1,4 @@
-import { useContext } from 'react'
+import { useContext, useEffect, useState } from 'react'
 
 import { encodeQueryParameters, Provider, ProviderOptions, rewriteRedirectTo } from '@nhost/core'
 
@@ -29,13 +29,25 @@ import { NhostReactContext } from './provider'
  * ```
  */
 export const useProviderLink = (options?: ProviderOptions) => {
+  /**
+   * @internal When using Nextjs or any SSR framework, nhost.auth.client.clientUrl will be set to `undefined`
+   * as its value is set to window.location.origin.
+   * This is because the request context is not available when setting up the client `new NhostClient()` outside of
+   * the React/Nextjs context.
+   */
+  const [isSSR, setIsSSR] = useState(true)
+
+  useEffect(() => {
+    setIsSSR(false)
+  }, [])
+
   const nhost = useContext(NhostReactContext)
 
   return new Proxy({} as Record<Provider, string>, {
     get(_, provider: string) {
       return encodeQueryParameters(
         `${nhost.auth.client.backendUrl}/signin/provider/${provider}`,
-        rewriteRedirectTo(nhost.auth.client.clientUrl, options as any)
+        rewriteRedirectTo(isSSR ? undefined : nhost.auth.client.clientUrl, options as any)
       )
     }
   })

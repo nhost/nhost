@@ -1,8 +1,9 @@
 import React, { useState } from 'react'
 
-import { useResetPassword } from '@nhost/react'
-import { showNotification } from '@mantine/notifications'
 import { Button, Divider, TextInput } from '@mantine/core'
+import { showNotification } from '@mantine/notifications'
+import { useResetPassword } from '@nhost/react'
+
 import AuthLink from '../components/AuthLink'
 
 export const ForgotPassword: React.FC = () => {

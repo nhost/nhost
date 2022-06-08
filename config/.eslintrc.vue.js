@@ -6,5 +6,8 @@ module.exports = {
   parserOptions: {
     ...base.parserOptions,
     parser: '@typescript-eslint/parser'
+  },
+  rules: {
+    'vue/html-self-closing': 'off'
   }
 }

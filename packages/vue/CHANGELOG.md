@@ -1,5 +1,31 @@
 # @nhost/vue
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies [08a37aae]
+  - @nhost/core@0.6.5
+  - @nhost/nhost-js@1.2.4
+
+## 0.1.5
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/core@0.6.4
+  - @nhost/nhost-js@1.2.3
+
+## 0.1.4
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/core@0.6.3
+  - @nhost/nhost-js@1.2.2
+
 ## 0.1.3
 
 ### Patch Changes

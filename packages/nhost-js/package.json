@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "1.2.1",
+  "version": "1.2.4",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -21,7 +21,7 @@
     "url": "git+https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.mjs",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -31,11 +31,8 @@
   ],
   "exports": {
     ".": {
-      "node": {
-        "import": "./dist/index.esm.mjs",
-        "require": "./dist/index.cjs.js"
-      },
-      "default": "./dist/index.esm.js"
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js"
     }
   },
   "publishConfig": {
@@ -44,9 +41,11 @@
   "scripts": {
     "dev": "vite build --config ../../config/vite.lib.dev.config.js",
     "build": "run-p build:lib build:umd",
-    "build:lib": "vite build --config ../../config/vite.lib.config.js && cpy --flat dist/index.esm.mjs dist --rename=index.esm.js && cpy --flat dist/index.esm.mjs.map dist --rename index.esm.js.map",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js",
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
-    "test": "vitest run --config ../../config/vite.lib.config.js",
+    "e2e": "start-test e2e:backend :1337/v1/auth/healthz ci:test",
+    "ci:test": "vitest run --config ../../config/vite.lib.config.js",
+    "e2e:backend": "nhost dev --no-browser",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
@@ -66,7 +65,8 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "graphql": "16"
+    "graphql": "16",
+    "start-server-and-test": "^1.14.0"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0 || ^16.0.0"

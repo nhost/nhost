@@ -16,12 +16,12 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install",
-    "build": "turbo run build --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
-    "build:docs": "pnpm run build --filter=@nhost/docs",
+    "build": "pnpm run build:all -- --filter=!@nhost/docs --filter=!@nhost-examples/*",
+    "build:docs": "pnpm run build:all -- --filter=@nhost/docs",
+    "build:all": "turbo run build  --include-dependencies",
     "dev": "turbo run dev --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples}/*,docs}/{dist,umd,.next,.turbo,coverage}",
-    "ci": "pnpm build && pnpm lint -- --filter=!@nhost/docs --filter=!@nhost-examples/*",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
     "coverage": "pnpm run test --coverage",
     "prettier": "prettier --check .",
@@ -32,8 +32,8 @@
     "release": "pnpm run prerelease && changeset publish",
     "snapshot": "pnpm prerelease && changeset version --snapshot preview && pnpm install && changeset publish --tag preview",
     "test": "turbo run test --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
+    "e2e": "turbo run e2e --concurrency=1",
     "changeset": "changeset",
-    "wait": "wait-on http://localhost:1337/v1/auth/healthz -i 500 -t 120000",
     "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :"
   },
   "workspaces": [
@@ -54,7 +54,6 @@
     "@typescript-eslint/parser": "^5.22.0",
     "@vitejs/plugin-react": "^1.3.2",
     "c8": "^7.11.2",
-    "cpy-cli": "^4.1.0",
     "eslint": "^8.14.0",
     "eslint-config-react-app": "^7.0.1",
     "eslint-plugin-flowtype": "^8.0.3",
@@ -78,8 +77,7 @@
     "vite": "^2.9.7",
     "vite-plugin-dts": "^0.9.10",
     "vite-tsconfig-paths": "^3.4.1",
-    "vitest": "^0.12.6",
-    "wait-on": "^6.0.1"
+    "vitest": "^0.12.6"
   },
   "resolutions": {
     "graphql": "15.7.2"

@@ -1,9 +1,10 @@
 import { FaFile, FaHouseUser, FaQuestion, FaSignOutAlt } from 'react-icons/fa'
 import { SiApollographql } from 'react-icons/si'
+import { useLocation,useNavigate } from 'react-router'
+import { Link } from 'react-router-dom'
+
 import { Group, MantineColor, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
 import { useAuthenticated, useSignOut } from '@nhost/react'
-import { useNavigate, useLocation } from 'react-router'
-import { Link } from 'react-router-dom'
 interface MenuItemProps {
   icon: React.ReactNode
   color?: MantineColor

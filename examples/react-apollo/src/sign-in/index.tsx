@@ -1,14 +1,14 @@
-import React from 'react'
 import { FaLock } from 'react-icons/fa'
 import { Link, Route, Routes } from 'react-router-dom'
 
+import { Anchor, Center, Divider, Text } from '@mantine/core'
+
+import AuthLayout from '../components/AuthLayout'
+import AuthLink from '../components/AuthLink'
 import OAuthLinks from '../components/OauthLinks'
 
 import { EmailPassword } from './email-password'
 import { EmailPasswordless } from './email-passwordless'
-import AuthLayout from '../components/AuthLayout'
-import { Center, Text, Anchor, Divider } from '@mantine/core'
-import AuthLink from '../components/AuthLink'
 import { ForgotPassword } from './forgot-password'
 
 const Index: React.FC = () => (

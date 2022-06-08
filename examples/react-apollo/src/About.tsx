@@ -1,7 +1,7 @@
+import { Link } from 'react-router-dom'
+
 import { Container, Title } from '@mantine/core'
 import { useNhostClient, useSignInAnonymous } from '@nhost/react'
-import React from 'react'
-import { Link } from 'react-router-dom'
 
 export const AboutPage: React.FC = () => {
   const nhost = useNhostClient()

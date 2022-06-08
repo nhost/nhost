@@ -26,7 +26,7 @@ const config = {
   favicon: 'img/favicon.png',
   organizationName: 'nhost',
   projectName: 'docs',
-
+  plugins: [require.resolve("docusaurus-plugin-image-zoom")],
   presets: [
     [
       'classic',
@@ -180,6 +180,16 @@ const config = {
         apiKey: 'a76361eaed8ebcd4cf5d9ae2f0c9e746',
         indexName: 'nhost',
         contextualSearch: false
+      },
+      zoom: {
+        selector: '.markdown :not(em) > img',
+        config: {
+          // options you can specify via https://github.com/francoischalifour/medium-zoom#usage
+          background: {
+            light: 'rgb(255, 255, 255)',
+            dark: 'rgb(50, 50, 50)'
+          }
+        }
       }
     })
 }
