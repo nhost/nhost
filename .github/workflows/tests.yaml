@@ -57,6 +57,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - id: file-name
+        run: PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
+          echo "::set-output name=fileName::$PACKAGE_FILE_NAME"
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
       - name: Install Nhost CLI
         if: hashFiles(format('{0}/nhost/config.yaml', matrix.package.path)) != ''
@@ -72,7 +75,7 @@ jobs:
         if: ${{ failure() && hashFiles(format('{0}/cypress/screenshots/**', matrix.package.path), format('{0}/cypress/videos/**', matrix.package.path)) != ''}}
         uses: actions/upload-artifact@v3
         with:
-          name: cypress-${{ matrix.package.name }}
+          name: cypress-${{ steps.file-name.outputs.fileName }}
           path: |
             ${{format('{0}/cypress/screenshots/**', matrix.package.path)}}
             ${{format('{0}/cypress/videos/**', matrix.package.path)}}
