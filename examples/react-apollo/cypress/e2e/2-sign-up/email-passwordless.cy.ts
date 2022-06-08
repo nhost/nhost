@@ -8,4 +8,10 @@ context('Sign up with passwordless email', () => {
     cy.confirmEmail(email)
     cy.contains('Profile page')
   })
+
+  it('should fail when network is not available', () => {
+    cy.disconnectBackend()
+    cy.signUpEmailPasswordless(faker.internet.email())
+    cy.contains('Error').should('be.visible')
+  })
 })

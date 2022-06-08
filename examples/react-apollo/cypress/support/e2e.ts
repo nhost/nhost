@@ -13,11 +13,18 @@ declare global {
       signUpEmailPassword(email: string, password: string): Chainable<Element>
       signUpEmailPasswordless(email: string): Chainable<Element>
       signInEmailPassword(email: string, password: string): Chainable<Element>
-      signInToken(): Chainable<Element>
+      /** Sign in from the refresh token stored in the global state */
+      signInToken(path?: string): Chainable<Element>
+      /** Click on the 'Sign Out' item of the left side menu to sign out the current user */
       signOut(): Chainable<Element>
+      /** Run a sign-up + authentication sequence with passwordless to use an authenticated user in other tests */
       quickSignUp(email?: string): Chainable<Element>
+      /** Gets a confirmation email and click on the link */
       confirmEmail(email: string): Chainable<Element>
+      /** Save the refresh token in the global state so it can be reused with `this.refreshToken` */
       saveRefreshToken(): Chainable<Element>
+      /** Make the Nhost backend unavailable */
+      disconnectBackend(): Chainable<Element>
     }
   }
 }
@@ -49,8 +56,8 @@ Cypress.Commands.add('signInEmailPassword', (email, password) => {
   cy.saveRefreshToken()
 })
 
-Cypress.Commands.add('signInToken', function () {
-  cy.visit('/#refreshToken=' + this.refreshToken)
+Cypress.Commands.add('signInToken', function (path = '/') {
+  cy.visit(path + '#refreshToken=' + this.refreshToken)
 })
 
 Cypress.Commands.add('signOut', () => {
@@ -77,4 +84,10 @@ Cypress.Commands.add('saveRefreshToken', () => {
   cy.contains('Sign Out')
     .then(() => localStorage.getItem('nhostRefreshToken'))
     .as('refreshToken')
+})
+
+Cypress.Commands.add('disconnectBackend', () => {
+  cy.intercept(Cypress.env('backendUrl') + '/**', {
+    forceNetworkError: true
+  })
 })

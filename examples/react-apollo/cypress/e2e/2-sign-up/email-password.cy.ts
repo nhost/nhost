@@ -18,4 +18,11 @@ context('Sign up with email+password', () => {
     cy.signUpEmailPassword(email, password)
     cy.contains('Email already in use').should('be.visible')
   })
+
+  // TODO implement in the UI
+  it.skip('should fail when network is not available', () => {
+    cy.disconnectBackend()
+    cy.signUpEmailPassword(faker.internet.email(), faker.internet.password())
+    cy.contains('Error').should('be.visible')
+  })
 })

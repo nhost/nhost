@@ -14,4 +14,11 @@ context('Sign in with email+password', () => {
     cy.signInEmailPassword(email, password)
     cy.contains('You are authenticated')
   })
+
+  // TODO implement in the UI
+  it.skip('should fail when network is not available', () => {
+    cy.disconnectBackend()
+    cy.signInEmailPassword(email, password)
+    cy.contains('Error').should('be.visible')
+  })
 })
