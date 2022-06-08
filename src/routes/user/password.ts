@@ -30,7 +30,11 @@ export const userPasswordHandler: RequestHandler<
   });
 
   if (!user) {
-    throw new Error('Unable to get user');
+    return sendError(res, 'user-not-found');
+  }
+
+  if (user.isAnonymous) {
+    return sendError(res, 'forbidden-anonymous');
   }
 
   // set new password for user

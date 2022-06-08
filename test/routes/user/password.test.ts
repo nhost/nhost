@@ -5,6 +5,7 @@ import { StatusCodes } from 'http-status-codes';
 import { request } from '../../server';
 import { ENV } from '../../../src/utils/env';
 import { mailHogSearch } from '../../utils';
+import { SignInResponse } from '@/types';
 
 describe('user password', () => {
   let client: Client;
@@ -143,5 +144,22 @@ describe('user password', () => {
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
     expect(redirectTo).toStrictEqual(options.redirectTo);
+  });
+
+  it('shoud not be possible to change password when anonymous', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+    });
+
+    const { body }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/user/password')
+      .set('Authorization', `Bearer ${body.session!.accessToken}`)
+      .send({ newPassword: faker.internet.password() })
+      .expect(StatusCodes.FORBIDDEN);
   });
 });

@@ -108,6 +108,10 @@ export const ERRORS = asErrors({
     status: StatusCodes.BAD_REQUEST,
     message: 'Logged in user is not anonymous',
   },
+  'forbidden-anonymous': {
+    status: StatusCodes.FORBIDDEN,
+    message: 'Anonymous users cannot access this endpoint',
+  },
   'invalid-refresh-token': {
     status: StatusCodes.UNAUTHORIZED,
     message: 'Invalid or expired refresh token',
