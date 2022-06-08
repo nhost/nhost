@@ -8,6 +8,10 @@
     },
     "test": {
       "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "e2e": {
+      "dependsOn": ["^build"],
       "outputs": []
     },
     "dev": {
@@ -16,7 +20,10 @@
     "docgen": {
       "cache": false
     },
-    "lint": { "outputs": [] },
+    "lint": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
     "lint:fix": { "outputs": [] }
   }
 }

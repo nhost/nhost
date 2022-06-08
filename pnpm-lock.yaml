@@ -44,7 +44,6 @@ importers:
       vite-plugin-dts: ^0.9.10
       vite-tsconfig-paths: ^3.4.1
       vitest: ^0.12.6
-      wait-on: ^6.0.1
     devDependencies:
       '@babel/core': 7.17.10
       '@babel/eslint-parser': 7.17.0_7449dd49ffed0eea046851524f1e657b
@@ -83,7 +82,6 @@ importers:
       vite-plugin-dts: 0.9.10_vite@2.9.7
       vite-tsconfig-paths: 3.4.1_vite@2.9.7
       vitest: 0.12.6_c8@7.11.2
-      wait-on: 6.0.1
 
   docs:
     specifiers:
@@ -306,9 +304,6 @@ importers:
       typescript: 4.6.3
       vite: 2.9.7
 
-  examples/testing-project:
-    specifiers: {}
-
   examples/vue-apollo:
     specifiers:
       '@apollo/client': ^3.6.2
@@ -486,6 +481,7 @@ importers:
       html-urls: ^2.4.27
       jwt-decode: ^3.1.2
       mailhog: ^4.16.0
+      start-server-and-test: ^1.14.0
       xstate: ^4.31.0
     dependencies:
       '@nhost/core': link:../core
@@ -498,6 +494,7 @@ importers:
       faker: 5.5.3
       html-urls: 2.4.34
       mailhog: 4.16.0
+      start-server-and-test: 1.14.0
 
   packages/hasura-storage-js:
     specifiers:
@@ -544,6 +541,7 @@ importers:
       graphql: 15.7.2
       jwt-decode: ^3.1.2
       query-string: ^7.0.1
+      start-server-and-test: ^1.14.0
     dependencies:
       '@nhost/hasura-auth-js': link:../hasura-auth-js
       '@nhost/hasura-storage-js': link:../hasura-storage-js
@@ -553,6 +551,7 @@ importers:
     devDependencies:
       '@nhost/docgen': link:../docgen
       graphql: 15.7.2
+      start-server-and-test: 1.14.0
 
   packages/react:
     specifiers:
@@ -7585,6 +7584,7 @@ packages:
       follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
+    dev: false
 
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
@@ -21021,6 +21021,7 @@ packages:
       rxjs: 7.5.5
     transitivePeerDependencies:
       - debug
+    dev: false
 
   /walker/1.0.8:
     resolution: {integrity: sha512-ts/8E8l5b7kY0vlWLewOkDXMmPdLcVV4GmOQLyxuSswIJsweeFZtAsMF7k1Nszz+TYBQrlYRmzOnr398y1JemQ==}
