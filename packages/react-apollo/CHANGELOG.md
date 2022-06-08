@@ -1,5 +1,67 @@
 # @nhost/react-apollo
 
+## 4.2.16
+
+### Patch Changes
+
+- Updated dependencies [8b2d1b00]
+  - @nhost/apollo@0.5.14
+
+## 4.2.15
+
+### Patch Changes
+
+- Updated dependencies [08a37aae]
+  - @nhost/react@0.7.13
+  - @nhost/apollo@0.5.13
+
+## 4.2.14
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/apollo@0.5.12
+  - @nhost/react@0.7.12
+
+## 4.2.13
+
+### Patch Changes
+
+- ef8c8f9c: fixed imports in `@nhost/react-apollo`
+
+## 4.2.12
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/apollo@0.5.11
+  - @nhost/react@0.7.11
+
+## 4.2.11
+
+### Patch Changes
+
+- 78341491: fix: Next.js and React issues with ESM packages
+  chore: Updated output bundle names
+- Updated dependencies [78341491]
+  - @nhost/apollo@0.5.10
+  - @nhost/react@0.7.10
+
+## 4.2.10
+
+### Patch Changes
+
+- bc11c9e5: chore: Changed copy script to support Windows
+  fix: Fixed warnings about unknown globals occurring while building the packages
+- 2b2f8e91: fix: ESM related issues in Node environments
+  chore: Improved the way different formats are exposed via `exports` field in package.js
+- Updated dependencies [bc11c9e5]
+- Updated dependencies [2b2f8e91]
+  - @nhost/apollo@0.5.9
+  - @nhost/react@0.7.9
+
 ## 4.2.9
 
 ### Patch Changes

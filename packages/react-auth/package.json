@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-auth",
-  "version": "3.0.6",
+  "version": "3.0.11",
   "description": "Nhost React client",
   "license": "MIT",
   "keywords": [
@@ -22,9 +22,9 @@
     "url": "git+https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
-  "source": "src/index.tsx",
+  "source": "src/index.ts",
   "files": [
     "dist",
     "umd",
@@ -32,7 +32,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
+      "import": "./dist/index.esm.js",
       "require": "./dist/index.cjs.js"
     }
   },

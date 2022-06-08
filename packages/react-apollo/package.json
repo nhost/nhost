@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "4.2.9",
+  "version": "4.2.16",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
@@ -23,7 +23,7 @@
     "url": "git+https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -33,7 +33,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
+      "import": "./dist/index.esm.js",
       "require": "./dist/index.cjs.js"
     }
   },

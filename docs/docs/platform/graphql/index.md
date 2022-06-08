@@ -1,6 +1,7 @@
 ---
 title: 'GraphQL'
 sidebar_position: 1
+image: /img/og/platform/graphql.png
 ---
 
 A GraphQL API is automatically and instantly available based on the tables and columns in your [database](/platform/database).

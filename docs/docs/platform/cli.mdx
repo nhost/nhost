@@ -1,6 +1,7 @@
 ---
 title: 'CLI'
 sidebar_position: 11
+image: /img/og/platform/cli.png
 ---
 
 import Tabs from '@theme/Tabs'
@@ -40,6 +41,12 @@ The following dependencies are required:
 - [Git](https://git-scm.com/downloads)
 - [Docker](https://www.docker.com/get-started) (must be running while using the CLI)
 
+:::info
+
+Make sure you have the correct permissions for Docker so you don't have to run Docker with `sudo`. See ["Post-installation steps for Linux"](https://docs.docker.com/engine/install/linux-postinstall/) from Docker's documentation.
+
+:::
+
 ## Get started
 
 Start by authenticating yourself to Nhost Cloud:
@@ -73,6 +80,18 @@ nhost up
 ```
 
 Hasura Console starts automatically and your Nhost app is running locally with the backend URL: `http://localhost:1337`.
+
+## Emails
+
+During local development with the CLI, all transactional emails from Authentication are sent to a local Mailhog instance, instead of to the recipient's email address. You'll see an address where after starting [`nhost up`](/reference/cli/up) where all emails are sent to.
+
+For the example below, all emails are accessable at `http://localhost:8839`.
+
+```bash
+$ nhost up
+✔ Your app is running at http://localhost:1337 (Ctrl+C to stop)
+ℹ Emails will be sent to http://localhost:8839
+```
 
 ## What's next?
 

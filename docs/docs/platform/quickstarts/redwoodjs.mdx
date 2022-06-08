@@ -1,6 +1,7 @@
 ---
 title: 'Quickstart: RedwoodJS'
 sidebar_position: 3
+image: /img/og/platform/quickstart-redwoodjs.png
 ---
 
 import Tabs from '@theme/Tabs'
@@ -1089,7 +1090,8 @@ export function UserProvider({ children = null }) {
   const { userMetadata } = useAuth()
 
   const { loading, error, data } = useQuery(GET_USER_QUERY, {
-    variables: { id: userMetadata?.id }
+    variables: { id: userMetadata?.id },
+    skip: !userMetadata?.id
   })
   const user = data?.user
 

@@ -1,6 +1,7 @@
 ---
 title: 'Event triggers'
 sidebar_position: 2
+image: /img/og/platform/event-triggers.png
 ---
 
 Event Triggers enable you to invoke webhooks when a database event happens. Event Triggers are typically used to do post-processing tasks, using custom backend code, based on database events.
@@ -17,7 +18,7 @@ Event Triggers can also be triggered manually in the Hasura Console.
 
 Let's say you're building an e-commerce application and you want to send an email to the customer when a new order is placed. Orders are stored in the `orders` table in your database.
 
-To send out an email every time a new order is placed, you create an event trigger that listens for the `INSERT` event on the `orders` table. Now every time an order is placed, the even trigger invokes a webhook with the order information, and the webhook sends out the email.
+To send out an email every time a new order is placed, you create an event trigger that listens for the `INSERT` event on the `orders` table. Now every time an order is placed, the event trigger invokes a webhook with the order information, and the webhook sends out the email.
 
 ## Create Event Trigger
 

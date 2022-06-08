@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "0.2.2",
+  "version": "0.3.3",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -18,7 +18,7 @@
     "url": "https://github.com/nhost/hasura-storage-js.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -28,7 +28,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
+      "import": "./dist/index.esm.js",
       "require": "./dist/index.cjs.js"
     }
   },

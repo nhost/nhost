@@ -1,6 +1,6 @@
 {
   "name": "@nhost/core",
-  "version": "0.6.0",
+  "version": "0.6.5",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [
@@ -21,7 +21,7 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "main": "dist/index.cjs.js",
-  "module": "dist/index.es.js",
+  "module": "dist/index.esm.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
@@ -31,7 +31,7 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.es.js",
+      "import": "./dist/index.esm.js",
       "require": "./dist/index.cjs.js"
     }
   },

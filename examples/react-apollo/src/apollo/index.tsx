@@ -1,8 +1,6 @@
-import React from 'react'
-
 import { gql } from '@apollo/client'
-import { useAuthQuery } from '@nhost/react-apollo'
 import { Container, Loader, Title } from '@mantine/core'
+import { useAuthQuery } from '@nhost/react-apollo'
 
 const GET_BOOKS = gql`
   query BooksQuery {

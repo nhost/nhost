@@ -1,9 +1,8 @@
-import React from 'react'
 import { useState } from 'react'
 
-import { useChangePassword } from '@nhost/react'
 import { Button, Card, Grid, PasswordInput, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
+import { useChangePassword } from '@nhost/react'
 
 export const ChangePassword: React.FC = () => {
   const [password, setPassword] = useState('')

@@ -6,6 +6,18 @@ test(`should not add redirectTo when none is given`, async () => {
   expect(rewriteRedirectTo('https://frontend.com')).toBeUndefined()
 })
 
+test(`should remove redirectTo when it's relative and no clientUrl is given`, async () => {
+  const options: RedirectOption = { redirectTo: '/index' }
+  expect(rewriteRedirectTo('', options)).toEqual({})
+  expect(rewriteRedirectTo(undefined, options)).toEqual({})
+})
+
+test(`should preserve options when redirectTo is not a relative url and no clientUrl is given`, async () => {
+  const options: RedirectOption = { redirectTo: 'https://frontend.com' }
+  expect(rewriteRedirectTo('', options)).toEqual(options)
+  expect(rewriteRedirectTo(undefined, options)).toEqual(options)
+})
+
 test(`should append redirectTo with the clientUrl prefix`, async () => {
   const options: RedirectOption = { redirectTo: '/index' }
 

@@ -11,12 +11,12 @@ import Unocss from 'unocss/vite'
 export default defineConfig({
   resolve: {
     alias: {
-      '~/': `${path.resolve(__dirname, 'src')}/`,
-    },
+      '~/': `${path.resolve(__dirname, 'src')}/`
+    }
   },
   plugins: [
     Vue({
-      reactivityTransform: true,
+      reactivityTransform: true
     }),
 
     // https://github.com/hannoeru/vite-plugin-pages
@@ -25,21 +25,21 @@ export default defineConfig({
     // https://github.com/antfu/unplugin-auto-import
     AutoImport({
       imports: ['vue/macros', 'vue-router', '@vueuse/core'],
-      dts: true,
+      dts: true
     }),
 
     // https://github.com/antfu/vite-plugin-components
     Components({
-      dts: true,
+      dts: true
     }),
 
     // https://github.com/antfu/unocss
     // see unocss.config.ts for config
-    Unocss(),
+    Unocss()
   ],
 
   // https://github.com/vitest-dev/vitest
   test: {
-    environment: 'jsdom',
-  },
+    environment: 'jsdom'
+  }
 })

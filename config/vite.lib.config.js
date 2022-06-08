@@ -14,9 +14,6 @@ const entry = fs.existsSync(tsEntry) ? tsEntry : tsEntry.replace('.ts', '.tsx')
 const deps = [...Object.keys(Object.assign({}, pkg.peerDependencies, pkg.dependencies))]
 
 export default defineConfig({
-  optimizeDeps: {
-    include: ['react/jsx-runtime']
-  },
   plugins: [
     tsconfigPaths(),
     dts({
@@ -37,24 +34,29 @@ export default defineConfig({
     include: [`${PWD}/src/**/*.{spec,test}.{ts,tsx}`, `${PWD}/tests/**/*.{spec,test}.{ts,tsx}`],
     // Note: temporarily disabled threads, because of a bug in vitest
     // https://github.com/vitest-dev/vitest/issues/1171
-    threads: false
+    threads: false,
+    coverage: {
+      enabled: process.env.CI === 'true',
+      reporter: ['json']
+    }
   },
   build: {
     sourcemap: true,
     lib: {
       entry,
       name: pkg.name,
-      fileName: 'index',
+      fileName: (format) => (format === 'cjs' ? `index.cjs.js` : `index.esm.js`),
       formats: ['cjs', 'es']
     },
     rollupOptions: {
       external: (id) => deps.some((dep) => id.startsWith(dep)),
       output: {
         globals: {
-          'graphql/language/printer': 'graphql/language/printer',
+          graphql: 'graphql',
           '@apollo/client': '@apollo/client',
           '@apollo/client/core': '@apollo/client/core',
           '@apollo/client/link/context': '@apollo/client/link/context',
+          '@apollo/client/react': '@apollo/client/react',
           '@apollo/client/link/subscriptions': '@apollo/client/link/subscriptions',
           '@apollo/client/utilities': '@apollo/client/utilities',
           'graphql-ws': 'graphql-ws',
@@ -64,7 +66,9 @@ export default defineConfig({
           react: 'React',
           'react-dom': 'ReactDOM',
           'react/jsx-runtime': '_jsx',
-          '@nhost/react': '@nhost/react'
+          '@nhost/react': '@nhost/react',
+          vue: 'Vue',
+          'vue-demi': 'vue-demi'
         }
       }
     }

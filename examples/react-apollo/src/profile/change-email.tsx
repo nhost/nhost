@@ -1,9 +1,8 @@
-/* eslint-disable react/react-in-jsx-scope */
 import { useState } from 'react'
 
-import { useChangeEmail, useUserEmail } from '@nhost/react'
 import { Button, Card, Grid, TextInput, Title } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
+import { useChangeEmail, useUserEmail } from '@nhost/react'
 
 export const ChangeEmail: React.FC = () => {
   const [newEmail, setNewEmail] = useState('')

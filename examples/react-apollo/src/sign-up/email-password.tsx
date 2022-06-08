@@ -1,11 +1,11 @@
-/* eslint-disable react/react-in-jsx-scope */
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useSignUpEmailPassword } from '@nhost/react'
 import { Button, Divider, Modal, PasswordInput, SimpleGrid, TextInput } from '@mantine/core'
-import AuthLink from '../components/AuthLink'
 import { showNotification } from '@mantine/notifications'
+import { useSignUpEmailPassword } from '@nhost/react'
+
+import AuthLink from '../components/AuthLink'
 
 export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')

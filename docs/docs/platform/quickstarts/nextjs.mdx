@@ -1,6 +1,7 @@
 ---
 title: 'Quickstart: Next.js'
 sidebar_position: 2
+image: /img/og/platform/quickstart-nextjs.png
 ---
 
 import Tabs from '@theme/Tabs'
@@ -672,7 +673,8 @@ export function UserProvider({ children = null }) {
   const id = useUserId()
   // highlight-start
   const { loading, error, data } = useQuery(GET_USER_QUERY, {
-    variables: { id }
+    variables: { id },
+    skip: !id
   })
   const user = data?.user
   // highlight-end
