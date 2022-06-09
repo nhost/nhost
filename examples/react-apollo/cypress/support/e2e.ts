@@ -25,6 +25,8 @@ declare global {
       saveRefreshToken(): Chainable<Element>
       /** Make the Nhost backend unavailable */
       disconnectBackend(): Chainable<Element>
+      /** Get the left side navigation bar */
+      getNavBar(): Chainable<Element>
     }
   }
 }
@@ -61,7 +63,7 @@ Cypress.Commands.add('visitPathWithRefreshToken', function (path = '/') {
 })
 
 Cypress.Commands.add('signOut', () => {
-  cy.contains('Sign Out').click()
+  cy.getNavBar().contains('Sign Out').click()
 })
 
 Cypress.Commands.add('confirmEmail', (email) => {
@@ -90,4 +92,8 @@ Cypress.Commands.add('disconnectBackend', () => {
   cy.intercept(Cypress.env('backendUrl') + '/**', {
     forceNetworkError: true
   })
+})
+
+Cypress.Commands.add('getNavBar', () => {
+  cy.get('.mantine-Navbar-root')
 })
