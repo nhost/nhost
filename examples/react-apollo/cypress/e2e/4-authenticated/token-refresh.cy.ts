@@ -1,8 +1,6 @@
 import faker from '@faker-js/faker'
 
 context('Token refresh', () => {
-  beforeEach(() => {})
-
   it('should refresh token one minute before it expires', () => {
     const email = faker.internet.email()
     cy.signUpEmailPasswordless(email)
