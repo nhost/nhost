@@ -23,11 +23,11 @@ import {
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
+  signInSmsPasswordlessOtpPromise,
+  signInSmsPasswordlessPromise,
   signOutPromise,
   signUpEmailPasswordPromise,
-  TOKEN_REFRESHER_RUNNING_ERROR,
-  USER_ALREADY_SIGNED_IN,
-  USER_NOT_ANONYMOUS
+  TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
 import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
@@ -184,52 +184,18 @@ export class HasuraAuthClient {
 
     // passwordless SMS
     if ('phoneNumber' in params && !('otp' in params)) {
-      return new Promise((resolve) => {
-        const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_SMS', params)
-        if (!changed) {
-          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
-        }
-        interpreter.onTransition((state) => {
-          if (state.matches({ authentication: { signedOut: 'needsSmsOtp' } })) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: null
-            })
-          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: state.context.errors.authentication || null
-            })
-          }
-        })
-      })
+      const { error } = await signInSmsPasswordlessPromise(
+        interpreter,
+        params.phoneNumber,
+        params.options
+      )
+      return { error, mfa: null, session: null }
     }
 
     // sign in using SMS OTP
     if ('otp' in params) {
-      return new Promise((resolve) => {
-        const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_SMS_OTP', params)
-        if (!changed) {
-          return resolve({ session: null, mfa: null, error: USER_ALREADY_SIGNED_IN })
-        }
-        interpreter.onTransition((state) => {
-          if (state.matches({ authentication: 'signedIn' })) {
-            resolve({
-              session: getSession(state.context),
-              mfa: null,
-              error: null
-            })
-          } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-            resolve({
-              session: null,
-              mfa: null,
-              error: state.context.errors.authentication || null
-            })
-          }
-        })
-      })
+      const res = await signInSmsPasswordlessOtpPromise(interpreter, params.phoneNumber, params.otp)
+      return { ...getAuthenticationResult(res), mfa: null }
     }
     // * Anonymous sign-in
     const anonymousResult = await signInAnonymousPromise(interpreter)
@@ -338,25 +304,34 @@ export class HasuraAuthClient {
    */
   async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
     const interpreter = await this.waitUntilReady()
-    return new Promise((resolve) => {
-      if (!this.isAuthenticated() || !interpreter.state.context.user?.isAnonymous) {
-        return { error: USER_NOT_ANONYMOUS }
+    if (params.signInMethod === 'passwordless') {
+      if (params.connection === 'email') {
+        const { error } = await signInEmailPasswordlessPromise(
+          interpreter,
+          params.email,
+          params.options
+        )
+        return { error }
       }
-      const { signInMethod, connection, ...options } = params
-      interpreter.send('DEANONYMIZE', {
-        signInMethod,
-        connection,
-        options
-      })
-      interpreter.onTransition((state) => {
-        if (state.matches({ authentication: { signedIn: { deanonymizing: 'success' } } })) {
-          resolve({ error: null })
-        } else if (state.matches({ authentication: { signedIn: { deanonymizing: 'error' } } })) {
-          resolve({ error: state.context.errors.authentication || null })
-        }
-      })
-      interpreter.start()
-    })
+      if (params.connection === 'sms') {
+        const { error } = await signInSmsPasswordlessPromise(
+          interpreter,
+          params.phoneNumber,
+          params.options
+        )
+        return { error }
+      }
+    }
+    if (params.signInMethod === 'email-password') {
+      const { error } = await signUpEmailPasswordPromise(
+        interpreter,
+        params.email,
+        params.password,
+        params.options
+      )
+      return { error }
+    }
+    throw Error(`Unknown deanonymization method`)
   }
 
   /**

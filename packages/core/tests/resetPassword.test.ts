@@ -23,7 +23,8 @@ const customStorage = new CustomClientStorage(new Map())
 const resetPasswordMachine = createResetPasswordMachine(
   new AuthClient({
     backendUrl: BASE_URL,
-    clientUrl: 'http://localhost:3000'
+    clientUrl: 'http://localhost:3000',
+    start: false
   })
 )
 

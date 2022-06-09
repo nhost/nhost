@@ -3,9 +3,27 @@ import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
 
-// TODO documentation when available in Nhost Cloud - see changelog
-// TODO deanonymize
-// TODO review nhost.auth.signIn()
+/**
+ * Use the hook `useSignInAnonymous` to sign in a user anonymously.
+ *
+ * As a result, the user will have the `anonymous` role and subsequent set of permissions.
+ * The user can then be converted to a regular user at a later stage using email+password sign-up, passwordless email (magic link), or passwordless SMS.
+ *
+ * @example
+ * ```tsx
+ * const { signInAnonymous, isLoading, isSuccess, isError, error } = useSignInAnonymous()
+ *
+ * console.log({ isLoading, isSuccess, isError, error });
+ *
+ * const handleFormSubmit = async (e) => {
+ *   e.preventDefault();
+ *
+ *   await signInAnonymous();
+ * }
+ * ```
+ *
+ * @docs https://docs.nhost.io/reference/react/use-sign-in-anonymous
+ */
 export const useSignInAnonymous = () => {
   const service = useAuthInterpreter()
   const signInAnonymous = () => signInAnonymousPromise(service)

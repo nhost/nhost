@@ -48,16 +48,24 @@ export const useSignUpEmailPassword = (
 ): SignUpEmailPasswordResult => {
   const service = useAuthInterpreter()
   const isError = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
+    state.matches('registration.incomplete.failed')
   )
 
   const error = useError('registration')
 
-  const { isLoading: loading, isAuthenticated: isSuccess } = useAuthenticationStatus()
+  const isLoading = useSelector(service.value, (state) =>
+    state.matches('registration.emailPassword')
+  )
 
-  const isLoading = computed(() => loading.value && !isSuccess.value)
+  const isSuccess = useSelector(service.value, (state) =>
+    state.matches({
+      authentication: 'signedIn',
+      registration: 'complete'
+    })
+  )
+
   const needsEmailVerification = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' })
+    state.matches('registration.incomplete.needsEmailVerification')
   )
   const accessToken = useAccessToken()
   const user = useUserData()

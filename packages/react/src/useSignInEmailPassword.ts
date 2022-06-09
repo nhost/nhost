@@ -92,7 +92,10 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   const needsEmailVerification = useSelector(
     service,
     (state) =>
-      state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' }),
+      state.matches({
+        authentication: { signedOut: 'noErrors' },
+        registration: { incomplete: 'needsEmailVerification' }
+      }),
     (a, b) => a === b
   )
   const needsMfaOtp = useSelector(

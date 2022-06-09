@@ -44,18 +44,18 @@ export const useSignInEmailPasswordless = (
   const signInEmailPasswordless = (email: RefOrValue<string>) =>
     signInEmailPasswordlessPromise(service.value, unref(email), nestedUnref(options))
 
-  const error = useError('authentication')
+  const error = useError('registration')
 
   const isLoading = useSelector(service.value, (state) =>
-    state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
+    state.matches('registration.passwordlessEmail')
   )
 
   const isSuccess = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' })
+    state.matches('registration.incomplete.needsEmailVerification')
   )
 
   const isError = useSelector(service.value, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
+    state.matches('registration.incomplete.failed')
   )
 
   return { signInEmailPasswordless, isLoading, isSuccess, isError, error }

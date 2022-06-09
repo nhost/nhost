@@ -5,6 +5,7 @@ import { useSelector } from '@xstate/vue'
 
 import { RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
+import { useError } from './useError'
 
 /**
  * Use the composable `useSignOut` to sign out the user.
@@ -33,5 +34,8 @@ export const useSignOut = () => {
   const isSuccess = useSelector(service.value, (state) =>
     state.matches({ authentication: { signedOut: 'success' } })
   )
-  return { signOut, isSuccess }
+
+  const error = useError('signout')
+
+  return { signOut, isSuccess, error }
 }

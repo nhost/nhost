@@ -1,7 +1,6 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
-import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
