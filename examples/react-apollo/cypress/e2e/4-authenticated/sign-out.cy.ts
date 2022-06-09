@@ -1,10 +1,10 @@
 context('Sign out', () => {
-  it('should sign-up', () => {
-    cy.quickSignUp()
+  beforeEach(() => {
+    cy.signUpAndConfirmEmail()
   })
 
-  it('should sign out', function () {
-    cy.signInToken()
+  it('should sign out', () => {
+    cy.visitPathWithRefreshToken()
     cy.visit('/profile')
     cy.contains('Profile page')
     cy.signOut()

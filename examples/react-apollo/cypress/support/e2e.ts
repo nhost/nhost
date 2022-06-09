@@ -14,11 +14,11 @@ declare global {
       signUpEmailPasswordless(email: string): Chainable<Element>
       signInEmailPassword(email: string, password: string): Chainable<Element>
       /** Sign in from the refresh token stored in the global state */
-      signInToken(path?: string): Chainable<Element>
+      visitPathWithRefreshToken(path?: string): Chainable<Element>
       /** Click on the 'Sign Out' item of the left side menu to sign out the current user */
       signOut(): Chainable<Element>
       /** Run a sign-up + authentication sequence with passwordless to use an authenticated user in other tests */
-      quickSignUp(email?: string): Chainable<Element>
+      signUpAndConfirmEmail(email?: string): Chainable<Element>
       /** Gets a confirmation email and click on the link */
       confirmEmail(email: string): Chainable<Element>
       /** Save the refresh token in the global state so it can be reused with `this.refreshToken` */
@@ -56,7 +56,7 @@ Cypress.Commands.add('signInEmailPassword', (email, password) => {
   cy.saveRefreshToken()
 })
 
-Cypress.Commands.add('signInToken', function (path = '/') {
+Cypress.Commands.add('visitPathWithRefreshToken', function (path = '/') {
   cy.visit(path + '#refreshToken=' + this.refreshToken)
 })
 
@@ -73,7 +73,7 @@ Cypress.Commands.add('confirmEmail', (email) => {
     })
 })
 
-Cypress.Commands.add('quickSignUp', (givenEmail) => {
+Cypress.Commands.add('signUpAndConfirmEmail', (givenEmail) => {
   const email = givenEmail || faker.internet.email()
   cy.signUpEmailPasswordless(email)
   cy.contains('Verification email sent').should('be.visible')

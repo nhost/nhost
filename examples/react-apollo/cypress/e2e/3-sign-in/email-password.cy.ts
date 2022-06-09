@@ -10,7 +10,7 @@ context('Sign in with email+password', () => {
     cy.confirmEmail(email)
   })
 
-  it('should sign-in with email and password', function () {
+  it('should sign-in with email and password', () => {
     cy.signInEmailPassword(email, password)
     cy.contains('You are authenticated')
   })
