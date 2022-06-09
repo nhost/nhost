@@ -69,23 +69,16 @@ export function useSignInEmailPasswordless(
 
   const error = useSelector(
     service,
-    (state) => state.context.errors.authentication || null,
+    (state) => state.context.errors.registration || null,
     (a, b) => a?.error === b?.error
   )
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: { authenticating: 'passwordlessEmail' } })
-  )
+  const isLoading = useSelector(service, (state) => state.matches('registration.passwordlessEmail'))
 
   const isSuccess = useSelector(service, (state) =>
-    state.matches({
-      authentication: { signedOut: 'noErrors' },
-      email: 'awaitingVerification'
-    })
+    state.matches('registration.incomplete.needsEmailVerification')
   )
 
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
-  )
+  const isError = useSelector(service, (state) => state.matches('registration.incomplete.failed'))
 
   return { signInEmailPasswordless, isLoading, isSuccess, isError, error }
 }

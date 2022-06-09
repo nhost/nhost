@@ -22,7 +22,8 @@ const customStorage = new CustomClientStorage(new Map())
 const sendVerificationEmailMachine = createSendVerificationEmailMachine(
   new AuthClient({
     backendUrl: BASE_URL,
-    clientUrl: 'http://localhost:3000'
+    clientUrl: 'http://localhost:3000',
+    start: false
   })
 )
 

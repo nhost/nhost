@@ -101,15 +101,18 @@ export interface ChangeEmailParams {
   options?: RedirectOption
 }
 
-// TODO define type in @nhost/core
-export interface DeanonymizeParams {
-  signInMethod: 'email-password' | 'passwordless'
-  email: string
-  password?: string
-  connection?: 'email' | 'sms'
-  defaultRole?: string
-  allowedRoles?: string[]
-}
+export type DeanonymizeParams =
+  | ({
+      signInMethod: 'email-password'
+    } & SignUpParams)
+  | ({
+      signInMethod: 'passwordless'
+      connection: 'email'
+    } & SignInPasswordlessEmailParams)
+  | ({
+      signInMethod: 'passwordless'
+      connection: 'sms'
+    } & SignInPasswordlessSmsParams)
 
 export interface SignInReponse {
   session: Session | null

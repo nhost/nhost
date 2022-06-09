@@ -90,12 +90,6 @@ export const EMAIL_NEEDS_VERIFICATION: ErrorPayload = {
   message: 'Email needs verification'
 }
 
-export const INVALID_AUTHENTICATION_METHOD = {
-  status: VALIDATION_ERROR_CODE,
-  error: 'invalid-authentication-method',
-  message: 'Incorrect parameters'
-}
-
 export const INVALID_REFRESH_TOKEN = {
   status: VALIDATION_ERROR_CODE,
   error: 'invalid-refresh-token',
