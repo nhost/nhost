@@ -67,12 +67,18 @@ jobs:
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
         run: pnpm run e2e -- --filter="${{ matrix.package.name }}"
+      - id: file-name
+        if: ${{ failure() }}
+        name: Tranform package name into a valid file name
+        run: |
+          PACKAGE_FILE_NAME=$(echo "${{ matrix.package.name }}" | sed 's/@//g; s/\//-/g')
+          echo "::set-output name=fileName::$PACKAGE_FILE_NAME"
       # * Run this step only if the previous step failed, and some Cypress screenshots/videos exist
       - name: Upload Cypress videos and screenshots
         if: ${{ failure() && hashFiles(format('{0}/cypress/screenshots/**', matrix.package.path), format('{0}/cypress/videos/**', matrix.package.path)) != ''}}
         uses: actions/upload-artifact@v3
         with:
-          name: cypress-${{ matrix.package.name }}
+          name: cypress-${{ steps.file-name.outputs.fileName }}
           path: |
             ${{format('{0}/cypress/screenshots/**', matrix.package.path)}}
             ${{format('{0}/cypress/videos/**', matrix.package.path)}}
