@@ -33,28 +33,28 @@ declare global {
 
 Cypress.Commands.add('signUpEmailPassword', (email, password) => {
   cy.visit('/sign-up')
-  cy.contains('Continue with email + password').click()
+  cy.findByRole('button', { name: /Continue with email \+ password/i }).click()
   cy.findByPlaceholderText('First name').type(faker.name.firstName())
   cy.findByPlaceholderText('Last name').type(faker.name.lastName())
   cy.findByPlaceholderText('Email Address').type(email)
   cy.findByPlaceholderText('Password').type(password)
   cy.findByPlaceholderText('Confirm Password').type(password)
-  cy.contains('Continue with email + password').click()
+  cy.findByRole('button', { name: /Continue with email \+ password/i }).click()
 })
 
 Cypress.Commands.add('signUpEmailPasswordless', (email) => {
   cy.visit('/sign-up')
-  cy.contains('Continue with passwordless email').click()
+  cy.findByRole('button', { name: /Continue with passwordless email/i }).click()
   cy.findByPlaceholderText('Email Address').type(email)
-  cy.contains('Continue with email').click()
+  cy.findByRole('button', { name: /Continue with email/i }).click()
 })
 
 Cypress.Commands.add('signInEmailPassword', (email, password) => {
   cy.visit('/sign-in')
-  cy.contains('Continue with email + password').click()
+  cy.findByRole('button', { name: /Continue with email \+ password/i }).click()
   cy.findByPlaceholderText('Email Address').type(email)
   cy.findByPlaceholderText('Password').type(password)
-  cy.contains('Sign in').click()
+  cy.findByRole('button', { name: /Sign in/i }).click()
   cy.saveRefreshToken()
 })
 
@@ -63,7 +63,9 @@ Cypress.Commands.add('visitPathWithRefreshToken', function (path = '/') {
 })
 
 Cypress.Commands.add('signOut', () => {
-  cy.getNavBar().contains('Sign Out').click()
+  cy.getNavBar()
+    .findByRole('button', { name: /Sign Out/i })
+    .click()
 })
 
 Cypress.Commands.add('confirmEmail', (email) => {
