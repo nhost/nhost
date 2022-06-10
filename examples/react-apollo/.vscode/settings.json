@@ -1,5 +1,0 @@
-{
-  "yaml.schemas": {
-    "https://unpkg.com/graphql-config/config-schema.json": "file:///Users/pilou/dev/nhost/nhost/examples/react-apollo/graphql.config.yaml"
-  }
-}
