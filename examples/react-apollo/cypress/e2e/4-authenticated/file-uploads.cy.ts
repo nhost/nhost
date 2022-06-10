@@ -2,8 +2,6 @@ context('File uploads', () => {
   it('should upload a single file', () => {
     cy.signUpAndConfirmEmail()
     cy.findByRole('button', { name: /Storage/i }).click()
-    cy.findByRole('heading', { name: 'Storage' }).should('be.visible')
-
     cy.findByRole('button', { name: /Drag a file here or click to select/i })
       .children('input[type=file]')
       .selectFile(
@@ -36,7 +34,6 @@ context('File uploads', () => {
     ]
     cy.signUpAndConfirmEmail()
     cy.findByRole('button', { name: /Storage/i }).click()
-    cy.findByRole('heading', { name: 'Storage' }).should('be.visible')
     cy.findByRole('button', { name: /Drag files here or click to select/i })
       .children('input[type=file]')
       .selectFile(files, { force: true })
