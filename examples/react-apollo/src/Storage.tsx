@@ -100,7 +100,7 @@ const ListItem: React.FC<React.PropsWithChildren<{ fileRef: FileItemRef }>> = ({
       <td>{progress && <Progress value={progress} />}</td>
       <td>
         <ActionIcon onClick={destroy}>
-          {isUploaded ? <FaCheck color="teal" /> : <FaMinus />}
+          {isUploaded ? <FaCheck color="teal" title="success" /> : <FaMinus />}
         </ActionIcon>
       </td>
     </tr>
