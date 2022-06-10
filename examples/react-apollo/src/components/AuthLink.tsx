@@ -12,6 +12,7 @@ const AuthLink: React.FC<{
   return (
     // <Link to={link}>
     <Button
+      role="button"
       component={Link}
       fullWidth
       radius="sm"
