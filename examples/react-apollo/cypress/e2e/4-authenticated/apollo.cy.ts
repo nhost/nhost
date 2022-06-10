@@ -7,10 +7,12 @@ context('Apollo', () => {
 
   it('should add an item to the todo list', () => {
     const sentence = faker.lorem.sentence()
-    cy.getNavBar().contains('Apollo').click()
+    cy.getNavBar()
+      .findByRole('button', { name: /Apollo/i })
+      .click()
     cy.contains('Todo list')
     cy.focused().type(sentence)
-    cy.get('button').contains('Add').click()
+    cy.findByRole('button', { name: /Add/i }).click()
     cy.get('ul').contains(sentence)
   })
 })
