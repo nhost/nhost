@@ -31,8 +31,8 @@ type Param struct {
 // It is therefore safe to read values by the index.
 type Params []Param
 
-// Get returns the value of the first Param which key matches the given name.
-// If no matching Param is found, an empty string is returned.
+// Get returns the value of the first Param which key matches the given name and a boolean true.
+// If no matching Param is found, an empty string is returned and a boolean false .
 func (ps Params) Get(name string) (string, bool) {
 	for _, entry := range ps {
 		if entry.Key == name {
@@ -81,7 +81,7 @@ func longestCommonPrefix(a, b string) int {
 	return i
 }
 
-// addChild will add a child node, keeping wildcards at the end
+// addChild will add a child node, keeping wildcardChild at the end
 func (n *node) addChild(child *node) {
 	if n.wildChild && len(n.children) > 0 {
 		wildcardChild := n.children[len(n.children)-1]
@@ -107,8 +107,7 @@ func countSections(path string) uint16 {
 type nodeType uint8
 
 const (
-	static nodeType = iota // default
-	root
+	root nodeType = iota + 1
 	param
 	catchAll
 )
@@ -297,7 +296,7 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 			break
 		}
 
-		// The wildcard name must not contain ':' and '*'
+		// The wildcard name must only contain one ':' or '*' character
 		if !valid {
 			panic("only one wildcard per path segment is allowed, has: '" +
 				wildcard + "' in path '" + fullPath + "'")
@@ -326,7 +325,7 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 			n.priority++
 
 			// if the path doesn't end with the wildcard, then there
-			// will be another non-wildcard subpath starting with '/'
+			// will be another subpath starting with '/'
 			if len(wildcard) < len(path) {
 				path = path[len(wildcard):]
 
@@ -350,7 +349,12 @@ func (n *node) insertChild(path string, fullPath string, handlers HandlersChain)
 		}
 
 		if len(n.path) > 0 && n.path[len(n.path)-1] == '/' {
-			panic("catch-all conflicts with existing handle for the path segment root in path '" + fullPath + "'")
+			pathSeg := strings.SplitN(n.children[0].path, "/", 2)[0]
+			panic("catch-all wildcard '" + path +
+				"' in new path '" + fullPath +
+				"' conflicts with existing path segment '" + pathSeg +
+				"' in existing prefix '" + n.path + pathSeg +
+				"'")
 		}
 
 		// currently fixed width 1 for '/'
@@ -531,7 +535,7 @@ walk: // Outer loop for walking the tree
 						// No handle found. Check if a handle for this path + a
 						// trailing slash exists for TSR recommendation
 						n = n.children[0]
-						value.tsr = n.path == "/" && n.handlers != nil
+						value.tsr = (n.path == "/" && n.handlers != nil) || (n.path == "" && n.indices == "/")
 					}
 					return
 

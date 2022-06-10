@@ -33,6 +33,8 @@ const (
 	excludedWithoutTag    = "excluded_without"
 	excludedWithTag       = "excluded_with"
 	excludedWithAllTag    = "excluded_with_all"
+	excludedIfTag         = "excluded_if"
+	excludedUnlessTag     = "excluded_unless"
 	skipValidationTag     = "-"
 	diveTag               = "dive"
 	keysTag               = "keys"
@@ -84,6 +86,7 @@ type Validate struct {
 	aliases          map[string]string
 	validations      map[string]internalValidationFuncWrapper
 	transTagFunc     map[ut.Translator]map[string]TranslationFunc // map[<locale>]map[<tag>]TranslationFunc
+	rules            map[reflect.Type]map[string]string
 	tagCache         *tagCache
 	structCache      *structCache
 }
@@ -120,7 +123,7 @@ func New() *Validate {
 		switch k {
 		// these require that even if the value is nil that the validation should run, omitempty still overrides this behaviour
 		case requiredIfTag, requiredUnlessTag, requiredWithTag, requiredWithAllTag, requiredWithoutTag, requiredWithoutAllTag,
-			excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
+			excludedIfTag, excludedUnlessTag, excludedWithTag, excludedWithAllTag, excludedWithoutTag, excludedWithoutAllTag:
 			_ = v.registerValidation(k, wrapFunc(val), true, true)
 		default:
 			// no need to error check here, baked in will always be valid
@@ -152,15 +155,24 @@ func (v *Validate) SetTagName(name string) {
 func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
 	errs := make(map[string]interface{})
 	for field, rule := range rules {
-		if reflect.ValueOf(rule).Kind() == reflect.Map && reflect.ValueOf(data[field]).Kind() == reflect.Map {
-			err := v.ValidateMapCtx(ctx, data[field].(map[string]interface{}), rule.(map[string]interface{}))
-			if len(err) > 0 {
-				errs[field] = err
+		if ruleObj, ok := rule.(map[string]interface{}); ok {
+			if dataObj, ok := data[field].(map[string]interface{}); ok {
+				err := v.ValidateMapCtx(ctx, dataObj, ruleObj)
+				if len(err) > 0 {
+					errs[field] = err
+				}
+			} else if dataObjs, ok := data[field].([]map[string]interface{}); ok {
+				for _, obj := range dataObjs {
+					err := v.ValidateMapCtx(ctx, obj, ruleObj)
+					if len(err) > 0 {
+						errs[field] = err
+					}
+				}
+			} else {
+				errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
 			}
-		} else if reflect.ValueOf(rule).Kind() == reflect.Map {
-			errs[field] = errors.New("The field: '" + field + "' is not a map to dive")
-		} else {
-			err := v.VarCtx(ctx, data[field], rule.(string))
+		} else if ruleStr, ok := rule.(string); ok {
+			err := v.VarCtx(ctx, data[field], ruleStr)
 			if err != nil {
 				errs[field] = err
 			}
@@ -169,7 +181,7 @@ func (v Validate) ValidateMapCtx(ctx context.Context, data map[string]interface{
 	return errs
 }
 
-// ValidateMap validates map data form a map of tags
+// ValidateMap validates map data from a map of tags
 func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]interface{}) map[string]interface{} {
 	return v.ValidateMapCtx(context.Background(), data, rules)
 }
@@ -180,6 +192,7 @@ func (v *Validate) ValidateMap(data map[string]interface{}, rules map[string]int
 //
 //    validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 //        name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+//        // skip if tag key says it should be ignored
 //        if name == "-" {
 //            return ""
 //        }
@@ -271,6 +284,34 @@ func (v *Validate) RegisterStructValidationCtx(fn StructLevelFuncCtx, types ...i
 	}
 }
 
+// RegisterStructValidationMapRules registers validate map rules.
+// Be aware that map validation rules supersede those defined on a/the struct if present.
+//
+// NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
+func (v *Validate) RegisterStructValidationMapRules(rules map[string]string, types ...interface{}) {
+	if v.rules == nil {
+		v.rules = make(map[reflect.Type]map[string]string)
+	}
+
+	deepCopyRules := make(map[string]string)
+	for i, rule := range rules {
+		deepCopyRules[i] = rule
+	}
+
+	for _, t := range types {
+		typ := reflect.TypeOf(t)
+
+		if typ.Kind() == reflect.Ptr {
+			typ = typ.Elem()
+		}
+
+		if typ.Kind() != reflect.Struct {
+			continue
+		}
+		v.rules[typ] = deepCopyRules
+	}
+}
+
 // RegisterCustomTypeFunc registers a CustomTypeFunc against a number of types
 //
 // NOTE: this method is not thread-safe it is intended that these all be registered prior to any validation
@@ -331,7 +372,7 @@ func (v *Validate) StructCtx(ctx context.Context, s interface{}) (err error) {
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -376,7 +417,7 @@ func (v *Validate) StructFilteredCtx(ctx context.Context, s interface{}, fn Filt
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -424,7 +465,7 @@ func (v *Validate) StructPartialCtx(ctx context.Context, s interface{}, fields .
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
@@ -514,7 +555,7 @@ func (v *Validate) StructExceptCtx(ctx context.Context, s interface{}, fields ..
 		val = val.Elem()
 	}
 
-	if val.Kind() != reflect.Struct || val.Type() == timeType {
+	if val.Kind() != reflect.Struct || val.Type().ConvertibleTo(timeType) {
 		return &InvalidValidationError{Type: reflect.TypeOf(s)}
 	}
 
