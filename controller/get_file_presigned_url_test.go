@@ -79,7 +79,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 				}, nil)
 
 				contentStorage.EXPECT().CreatePresignedURL(
-					"55af1e60-0f28-454e-885e-ea6aab2bb288", 30*time.Minute,
+					"55af1e60-0f28-454e-885e-ea6aab2bb288", 30*time.Second,
 				).Return(
 					"this-is-the-signature", nil,
 				)
