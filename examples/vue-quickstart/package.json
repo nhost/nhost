@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@apollo/client": "^3.6.2",
-    "@nhost/apollo": "^0.5.4",
+    "@nhost/apollo": "*",
     "@nhost/vue": "*",
     "@vue/apollo-composable": "^4.0.0-alpha.17",
     "@vueuse/core": "^8.4.2",
