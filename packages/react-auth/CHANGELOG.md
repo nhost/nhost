@@ -1,5 +1,14 @@
 # @nhost/react-auth
 
+## 3.1.0
+
+### Patch Changes
+
+- Updated dependencies [c1613394]
+- Updated dependencies [c1613394]
+  - @nhost/react@0.8.0
+  - @nhost/hasura-auth-js@1.2.0
+
 ## 3.0.11
 
 ### Patch Changes
