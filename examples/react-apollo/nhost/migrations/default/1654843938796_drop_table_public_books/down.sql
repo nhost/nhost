@@ -1,3 +1,2 @@
--- Could not auto-generate a down migration.
--- Please write an appropriate down migration for the SQL below:
--- DROP table "public"."books";
+CREATE TABLE "public"."books" ("id" uuid NOT NULL DEFAULT gen_random_uuid(), "title" text NOT NULL, PRIMARY KEY ("id") );
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
