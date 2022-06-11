@@ -201,4 +201,28 @@ describe('email-password', () => {
       .send({ email, password })
       .expect(StatusCodes.OK);
   });
+
+  it('should return an error when asking an unauthorised redirection url', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    // set env vars
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_USER_DEFAULT_ALLOWED_ROLES: '',
+    });
+
+    const { body } = await request
+      .post('/signup/email-password')
+      .send({
+        email,
+        password,
+        options: { redirectTo: 'http://this-redirection-url-is-forbidden.com' },
+      })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(body.message).toEqual(
+      '"options.redirectTo" does not match any of the allowed types'
+    );
+  });
 });

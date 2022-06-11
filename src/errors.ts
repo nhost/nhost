@@ -148,13 +148,14 @@ export const sendError = (
   {
     customMessage,
     redirectTo,
-  }: { customMessage?: string; redirectTo?: string } = {}
+  }: { customMessage?: string; redirectTo?: string } = {},
+  redirect?: boolean
 ) => {
   const error = ERRORS[code];
   const message = customMessage ?? error.message;
   const status = error.status;
 
-  if (redirectTo) {
+  if (redirect && redirectTo) {
     const redirectUrl = generateRedirectUrl(redirectTo, {
       error: code,
       errorDescription: message,
