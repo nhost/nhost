@@ -1,19 +1,19 @@
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/solid'
-import classNames from 'classnames'
-import { Link } from 'react-router-dom'
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
+import classNames from "classnames";
+import { Link } from "react-router-dom";
 
 type BreadcrumbsProps = {
-  backLink: string
-  breadcrumbs: Breadcrumb[]
-}
+  backLink: string;
+  breadcrumbs: Breadcrumb[];
+};
 
 type Breadcrumb = {
-  link: string
-  text: string
-}
+  link: string;
+  text: string;
+};
 
 export function Breadcrumbs(props: BreadcrumbsProps) {
-  const { backLink, breadcrumbs } = props
+  const { backLink, breadcrumbs } = props;
 
   return (
     <div>
@@ -32,10 +32,13 @@ export function Breadcrumbs(props: BreadcrumbsProps) {
       <nav className="hidden sm:flex" aria-label="Breadcrumb">
         <ol className="flex items-center space-x-4">
           {breadcrumbs.map((breadcrumb, i) => {
-            const isFirstItem = i === 0
-            const classes = classNames('text-sm font-medium text-gray-500 hover:text-gray-700', {
-              'ml-4': !isFirstItem
-            })
+            const isFirstItem = i === 0;
+            const classes = classNames(
+              "text-sm font-medium text-gray-500 hover:text-gray-700",
+              {
+                "ml-4": !isFirstItem,
+              }
+            );
 
             return (
               <li key={i}>
@@ -51,10 +54,10 @@ export function Breadcrumbs(props: BreadcrumbsProps) {
                   </Link>
                 </div>
               </li>
-            )
+            );
           })}
         </ol>
       </nav>
     </div>
-  )
+  );
 }

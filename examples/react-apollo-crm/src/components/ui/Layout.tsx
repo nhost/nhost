@@ -1,51 +1,55 @@
-import React, { Fragment, useEffect, useState } from 'react'
-import { Dialog, Menu, Transition } from '@headlessui/react'
+import React, { Fragment, useEffect, useState } from "react";
+import { Dialog, Menu, Transition } from "@headlessui/react";
 import {
   FolderIcon,
   HomeIcon,
   InboxIcon,
   MenuAlt2Icon,
   UsersIcon,
-  XIcon
-} from '@heroicons/react/outline'
-import { SearchIcon } from '@heroicons/react/solid'
-import { NavLink, Outlet } from 'react-router-dom'
-import { nhost } from '../../utils/nhost'
-import { ChangePasswordModal } from '../ChangePasswordModal'
+  XIcon,
+} from "@heroicons/react/outline";
+import { SearchIcon } from "@heroicons/react/solid";
+import { NavLink, Outlet } from "react-router-dom";
+import { nhost } from "../../utils/nhost";
+import { ChangePasswordModal } from "../ChangePasswordModal";
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon, current: true },
-  { name: 'Orders', href: '/orders', icon: UsersIcon, current: false },
-  { name: 'Customers', href: '/customers', icon: FolderIcon, current: false },
-  { name: 'Settings', href: '/settings', icon: InboxIcon, current: false }
-]
+  { name: "Dashboard", href: "/", icon: HomeIcon, current: true },
+  { name: "Orders", href: "/orders", icon: UsersIcon, current: false },
+  { name: "Customers", href: "/customers", icon: FolderIcon, current: false },
+  { name: "Settings", href: "/settings", icon: InboxIcon, current: false },
+];
 
 function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
+  return classes.filter(Boolean).join(" ");
 }
 
 export function Layout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
-  console.log('Layout Reload')
+  console.log("Layout Reload");
 
   useEffect(() => {
-    console.log('useEffect RUN')
+    console.log("useEffect RUN");
 
-    if (window.location.hash.search('type=passwordReset') !== -1) {
-      console.log('FOUND!')
+    if (window.location.hash.search("type=passwordReset") !== -1) {
+      console.log("FOUND!");
 
-      setShowChangePasswordModal(true)
+      setShowChangePasswordModal(true);
     }
-  }, [])
+  }, []);
 
   return (
     <>
       {showChangePasswordModal && <ChangePasswordModal />}
       <div>
         <Transition.Root show={sidebarOpen} as={Fragment}>
-          <Dialog as="div" className="fixed inset-0 z-40 flex md:hidden" onClose={setSidebarOpen}>
+          <Dialog
+            as="div"
+            className="fixed inset-0 z-40 flex md:hidden"
+            onClose={setSidebarOpen}
+          >
             <Transition.Child
               as={Fragment}
               enter="transition-opacity ease-linear duration-300"
@@ -83,7 +87,10 @@ export function Layout() {
                       onClick={() => setSidebarOpen(false)}
                     >
                       <span className="sr-only">Close sidebar</span>
-                      <XIcon className="w-6 h-6 text-white" aria-hidden="true" />
+                      <XIcon
+                        className="w-6 h-6 text-white"
+                        aria-hidden="true"
+                      />
                     </button>
                   </div>
                 </Transition.Child>
@@ -102,9 +109,11 @@ export function Layout() {
                         to={item.href}
                         className={({ isActive }) => {
                           return classNames(
-                            isActive ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-600',
-                            'group flex items-center px-2 py-2 text-base font-medium rounded-md'
-                          )
+                            isActive
+                              ? "bg-blue-800 text-white"
+                              : "text-blue-100 hover:bg-blue-600",
+                            "group flex items-center px-2 py-2 text-base font-medium rounded-md"
+                          );
                         }}
                       >
                         <item.icon
@@ -129,7 +138,9 @@ export function Layout() {
           {/* Sidebar component, swap this element with another sidebar if you like */}
           <div className="flex flex-col flex-grow pt-5 overflow-y-auto bg-blue-700">
             <div className="flex items-center flex-shrink-0 px-4">
-              <span className="text-lg font-semibold text-white">AquaSystem</span>
+              <span className="text-lg font-semibold text-white">
+                AquaSystem
+              </span>
             </div>
             <div className="flex flex-col flex-1 mt-5">
               <nav className="flex-1 px-2 pb-4 space-y-1">
@@ -139,9 +150,11 @@ export function Layout() {
                     to={item.href}
                     className={({ isActive }) => {
                       return classNames(
-                        isActive ? 'bg-blue-800 text-white' : 'text-blue-100 hover:bg-blue-600',
-                        'group flex items-center px-2 py-2 text-sm font-medium rounded-md'
-                      )
+                        isActive
+                          ? "bg-blue-800 text-white"
+                          : "text-blue-100 hover:bg-blue-600",
+                        "group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                      );
                     }}
                   >
                     <item.icon
@@ -221,11 +234,11 @@ export function Layout() {
                           <div
                             // to={"/login"}
                             onClick={async () => {
-                              await nhost.auth.signOut()
+                              await nhost.auth.signOut();
                             }}
                             className={classNames(
-                              active ? 'bg-gray-100' : '',
-                              'block px-4 py-2 text-sm text-gray-700'
+                              active ? "bg-gray-100" : "",
+                              "block px-4 py-2 text-sm text-gray-700"
                             )}
                           >
                             Sign out
@@ -247,5 +260,5 @@ export function Layout() {
         </div>
       </div>
     </>
-  )
+  );
 }

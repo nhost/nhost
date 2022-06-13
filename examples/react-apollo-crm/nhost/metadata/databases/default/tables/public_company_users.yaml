@@ -20,23 +20,23 @@ configuration:
     update: updateCompanyUsers
     update_by_pk: updateCompanyUser
 object_relationships:
-  - name: company
-    using:
-      foreign_key_constraint_on: company_id
-  - name: user
-    using:
-      foreign_key_constraint_on: user_id
+- name: company
+  using:
+    foreign_key_constraint_on: company_id
+- name: user
+  using:
+    foreign_key_constraint_on: user_id
 select_permissions:
-  - permission:
-      columns:
-        - id
-        - created_at
-        - updated_at
-        - company_id
-        - user_id
-      filter:
-        company:
-          companyUsers:
-            user_id:
-              _eq: X-Hasura-User-Id
-    role: user
+- permission:
+    columns:
+    - id
+    - created_at
+    - updated_at
+    - company_id
+    - user_id
+    filter:
+      company:
+        companyUsers:
+          user_id:
+            _eq: X-Hasura-User-Id
+  role: user

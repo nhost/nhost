@@ -1,0 +1,3 @@
+node_modules/**/*
+.nhost/**/*
+src/utils/__generated__/**/*

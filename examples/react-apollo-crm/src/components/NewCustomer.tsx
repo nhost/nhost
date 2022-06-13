@@ -1,64 +1,67 @@
-import { useState } from 'react'
-import { Main } from './ui/Main'
-import { Breadcrumbs } from './ui/Breadcrumbs'
-import { HeaderSection } from './ui/HeaderSection'
-import { PageHeader } from './ui/PageHeader'
-import { useGetCompanyWhereQuery, useInsertCustomerMutation } from '../utils/__generated__/graphql'
-import { nhost } from '../utils/nhost'
-import { useNavigate } from 'react-router-dom'
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Main } from "./ui/Main";
+import { Breadcrumbs } from "./ui/Breadcrumbs";
+import { HeaderSection } from "./ui/HeaderSection";
+import { PageHeader } from "./ui/PageHeader";
+import {
+  useGetCompanyWhereQuery,
+  useInsertCustomerMutation,
+} from "../utils/__generated__/graphql";
+import { nhost } from "../utils/nhost";
 
 export function NewCustomer() {
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [addressLine1, setAddressLine1] = useState('')
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [addressLine1, setAddressLine1] = useState("");
 
-  const user = nhost.auth.getUser()
-  let navigate = useNavigate()
+  const user = nhost.auth.getUser();
+  const navigate = useNavigate();
 
   const { data } = useGetCompanyWhereQuery({
     variables: {
       where: {
         companyUsers: {
           userId: {
-            _eq: user?.id
-          }
-        }
-      }
-    }
-  })
+            _eq: user?.id,
+          },
+        },
+      },
+    },
+  });
 
-  const [insertCustomer, { loading }] = useInsertCustomerMutation()
+  const [insertCustomer, { loading }] = useInsertCustomerMutation();
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    console.log('handle submit')
+    console.log("handle submit");
 
-    let res
+    let res;
     try {
       res = await insertCustomer({
         variables: {
           customer: {
             name,
             addressLine1,
-            companyId: data?.companies[0].id
-          }
-        }
-      })
+            companyId: data?.companies[0].id,
+          },
+        },
+      });
     } catch (error) {
-      return alert(`error: ${error}`)
+      return alert(`error: ${error}`);
     }
 
-    navigate(`/customers/${res.data?.insertCustomer?.id}`)
-  }
+    navigate(`/customers/${res.data?.insertCustomer?.id}`);
+  };
 
   return (
     <Main>
       <Breadcrumbs
-        backLink={''}
+        backLink=""
         breadcrumbs={[
-          { link: '/customers', text: 'Customers' },
-          { link: '/new-customer', text: 'New Customer' }
+          { link: "/customers", text: "Customers" },
+          { link: "/new-customer", text: "New Customer" },
         ]}
       />
       <HeaderSection>
@@ -70,7 +73,10 @@ export function NewCustomer() {
           <div className="pt-12">
             <div className="grid grid-cols-1 mt-6 gap-y-6 gap-x-4 sm:grid-cols-6">
               <div className="sm:col-span-3">
-                <label htmlFor="first-name" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="first-name"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Name
                 </label>
                 <div className="mt-1">
@@ -87,7 +93,10 @@ export function NewCustomer() {
               </div>
 
               <div className="sm:col-span-3">
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="email"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Email address
                 </label>
                 <div className="mt-1">
@@ -104,7 +113,10 @@ export function NewCustomer() {
               </div>
 
               <div className="sm:col-span-6">
-                <label htmlFor="street-address" className="block text-sm font-medium text-gray-700">
+                <label
+                  htmlFor="street-address"
+                  className="block text-sm font-medium text-gray-700"
+                >
                   Street address
                 </label>
                 <div className="mt-1">
@@ -135,5 +147,5 @@ export function NewCustomer() {
         </div>
       </form>
     </Main>
-  )
+  );
 }

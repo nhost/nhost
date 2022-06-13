@@ -1,26 +1,30 @@
-import { Fragment, useState } from 'react'
-import { Dialog, Transition } from '@headlessui/react'
-import { nhost } from '../utils/nhost'
+import { Fragment, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { nhost } from "../utils/nhost";
 
 export function ChangePasswordModal() {
-  const [open, setOpen] = useState(true)
-  const [newPassword, setNewPassword] = useState('')
+  const [open, setOpen] = useState(true);
+  const [newPassword, setNewPassword] = useState("");
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const { error } = await nhost.auth.changePassword({ newPassword })
+    const { error } = await nhost.auth.changePassword({ newPassword });
 
     if (error) {
-      return alert(error.message)
+      return alert(error.message);
     }
 
-    setOpen(false)
-  }
+    setOpen(false);
+  };
 
   return (
     <Transition.Root show={open} as={Fragment}>
-      <Dialog as="div" className="fixed inset-0 z-10 overflow-y-auto" onClose={setOpen}>
+      <Dialog
+        as="div"
+        className="fixed inset-0 z-10 overflow-y-auto"
+        onClose={setOpen}
+      >
         <div className="flex items-end justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
           <Transition.Child
             as={Fragment}
@@ -35,7 +39,10 @@ export function ChangePasswordModal() {
           </Transition.Child>
 
           {/* This element is to trick the browser into centering the modal contents. */}
-          <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">
+          <span
+            className="hidden sm:inline-block sm:align-middle sm:h-screen"
+            aria-hidden="true"
+          >
             &#8203;
           </span>
           <Transition.Child
@@ -51,7 +58,10 @@ export function ChangePasswordModal() {
               <form onSubmit={handleSubmit}>
                 <div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900">
+                    <Dialog.Title
+                      as="h3"
+                      className="text-lg font-medium leading-6 text-gray-900"
+                    >
                       Change Password
                     </Dialog.Title>
                     <div className="mt-2">
@@ -83,5 +93,5 @@ export function ChangePasswordModal() {
         </div>
       </Dialog>
     </Transition.Root>
-  )
+  );
 }

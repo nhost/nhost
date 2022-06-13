@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export function PageHeader({ children }: { children: React.ReactNode }) {
   return (
@@ -7,5 +7,5 @@ export function PageHeader({ children }: { children: React.ReactNode }) {
         {children}
       </h2>
     </div>
-  )
+  );
 }
