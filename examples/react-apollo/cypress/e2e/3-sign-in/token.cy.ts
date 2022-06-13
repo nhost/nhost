@@ -2,8 +2,9 @@ context('Sign in with a refresh token', () => {
   it('should sign-in with a refresh token', () => {
     cy.signUpAndConfirmEmail()
     cy.contains('Profile page')
-    cy.clearLocalStorage()
+    cy.clearLocalStorage().then(() => {})
     cy.reload()
+    cy.contains('Log in to the Application')
     cy.visitPathWithRefreshToken('/profile')
     cy.contains('Profile page')
   })
@@ -14,6 +15,7 @@ context('Sign in with a refresh token', () => {
     cy.disconnectBackend()
     cy.clearLocalStorage()
     cy.reload()
+    cy.contains('Log in to the Application')
     cy.visitPathWithRefreshToken('/profile')
     cy.location('pathname').should('equal', '/sign-in')
   })
