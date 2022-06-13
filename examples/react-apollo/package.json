@@ -19,6 +19,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "generate": "graphql-codegen --config graphql.config.yaml",
     "cypress": "cypress open",
     "test": "cypress run",
     "e2e": "start-test e2e:backend :1337/v1/auth/healthz e2e:frontend 3000 test",
@@ -52,6 +53,7 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^6.3.1",
+    "@graphql-codegen/cli": "^2.6.2",
     "@testing-library/cypress": "^8.0.3",
     "@types/react": "^18.0.8",
     "@types/react-dom": "^18.0.3",
