@@ -9,6 +9,9 @@ module.exports = {
     "airbnb",
     "plugin:prettier/recommended",
   ],
+  globals: {
+    JSX: true,
+  },
   parser: "@typescript-eslint/parser",
   parserOptions: {
     ecmaFeatures: {
@@ -19,6 +22,8 @@ module.exports = {
   },
   plugins: ["react", "@typescript-eslint", "prettier"],
   rules: {
+    "no-shadow": "off",
+    "import/prefer-default-export": "off",
     "import/no-unresolved": "off",
     "import/extensions": [
       "error",

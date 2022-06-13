@@ -2,14 +2,14 @@ import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/solid";
 import classNames from "classnames";
 import { Link } from "react-router-dom";
 
-type BreadcrumbsProps = {
-  backLink: string;
-  breadcrumbs: Breadcrumb[];
-};
-
 type Breadcrumb = {
   link: string;
   text: string;
+};
+
+type BreadcrumbsProps = {
+  backLink: string;
+  breadcrumbs: Breadcrumb[];
 };
 
 export function Breadcrumbs(props: BreadcrumbsProps) {
@@ -41,7 +41,7 @@ export function Breadcrumbs(props: BreadcrumbsProps) {
             );
 
             return (
-              <li key={i}>
+              <li key={breadcrumb.text}>
                 <div className="flex items-center">
                   {!isFirstItem && (
                     <ChevronRightIcon

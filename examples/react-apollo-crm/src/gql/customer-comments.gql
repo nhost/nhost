@@ -1,4 +1,6 @@
-mutation insertCustomerComment($customerComment: customerComments_insert_input!) {
+mutation insertCustomerComment(
+  $customerComment: customerComments_insert_input!
+) {
   insertCustomerComment(object: $customerComment) {
     id
   }

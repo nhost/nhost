@@ -1,3 +1,5 @@
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
 import { ChatAltIcon } from "@heroicons/react/solid";
 import { useParams } from "react-router-dom";
 import { PhotographIcon } from "@heroicons/react/outline";
@@ -78,6 +80,7 @@ export function CustomerActivities() {
                     {comment.file && (
                       <div
                         className="flex items-center mt-3 text-sm text-gray-700 cursor-pointer"
+                        // eslint-disable-next-line consistent-return
                         onClick={async () => {
                           const { presignedUrl, error } =
                             await nhost.storage.getPresignedUrl({

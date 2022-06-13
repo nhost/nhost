@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useParams, NavLink, Outlet } from "react-router-dom";
 import classNames from "classnames";
 import { Main } from "./ui/Main";

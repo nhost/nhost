@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { nhost } from "../../_utils/nhost";
 
+// eslint-disable-next-line consistent-return
 const handler = async (req: Request, res: Response) => {
   if (
     req.headers["nhsot-webhook-secret"] !== process.env.NHSOT_WEBHOOK_SECRET

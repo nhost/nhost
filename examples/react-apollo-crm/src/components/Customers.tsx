@@ -6,34 +6,6 @@ import { HeaderSection } from "./ui/HeaderSection";
 import { PageHeader } from "./ui/PageHeader";
 import { useGetCustomersSubscription } from "../utils/__generated__/graphql";
 
-export function Customers() {
-  return (
-    <Main>
-      <Breadcrumbs
-        backLink=""
-        breadcrumbs={[{ link: "/customers", text: "Customers" }]}
-      />
-      <HeaderSection>
-        <PageHeader>Customers</PageHeader>
-        <div className="flex flex-shrink-0 mt-4 md:mt-0 md:ml-4">
-          <Link to="/customers/new">
-            <button
-              type="button"
-              className="inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              New Customer
-            </button>
-          </Link>
-        </div>
-      </HeaderSection>
-
-      <div className="py-12">
-        <CustomersList />
-      </div>
-    </Main>
-  );
-}
-
 function CustomersList() {
   const { data } = useGetCustomersSubscription();
 
@@ -78,10 +50,16 @@ function CustomersList() {
 
       <div className="flex items-center justify-between px-4 py-3 sm:px-6">
         <div className="flex justify-between flex-1 sm:hidden">
-          <button className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+          <button
+            type="button"
+            className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
             Previous
           </button>
-          <button className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+          <button
+            type="button"
+            className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          >
             Next
           </button>
         </div>
@@ -98,36 +76,58 @@ function CustomersList() {
               className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm"
               aria-label="Pagination"
             >
-              <button className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50">
+              <button
+                type="button"
+                className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md hover:bg-gray-50"
+              >
                 <span className="sr-only">Previous</span>
                 <ChevronLeftIcon className="w-5 h-5" aria-hidden="true" />
               </button>
               {/* Current: "z-10 bg-indigo-50 border-indigo-500 text-indigo-600", Default: "bg-white border-gray-300 text-gray-500 hover:bg-gray-50" */}
               <button
+                type="button"
                 aria-current="page"
                 className="relative z-10 inline-flex items-center px-4 py-2 text-sm font-medium text-indigo-600 border border-indigo-500 bg-indigo-50"
               >
                 1
               </button>
-              <button className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+              <button
+                type="button"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+              >
                 2
               </button>
-              <button className="relative items-center hidden px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 md:inline-flex">
+              <button
+                type="button"
+                className="relative items-center hidden px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 md:inline-flex"
+              >
                 3
               </button>
               <span className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300">
                 ...
               </span>
-              <button className="relative items-center hidden px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 md:inline-flex">
+              <button
+                type="button"
+                className="relative items-center hidden px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50 md:inline-flex"
+              >
                 8
               </button>
-              <button className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+              <button
+                type="button"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+              >
                 9
               </button>
-              <button className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50">
+              <button
+                type="button"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 hover:bg-gray-50"
+              >
                 10
               </button>
-              <button className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50">
+              <button
+                type="button"
+                className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md hover:bg-gray-50"
+              >
                 <span className="sr-only">Next</span>
                 <ChevronRightIcon className="w-5 h-5" aria-hidden="true" />
               </button>
@@ -136,5 +136,33 @@ function CustomersList() {
         </div>
       </div>
     </div>
+  );
+}
+
+export function Customers() {
+  return (
+    <Main>
+      <Breadcrumbs
+        backLink=""
+        breadcrumbs={[{ link: "/customers", text: "Customers" }]}
+      />
+      <HeaderSection>
+        <PageHeader>Customers</PageHeader>
+        <div className="flex flex-shrink-0 mt-4 md:mt-0 md:ml-4">
+          <Link to="/customers/new">
+            <button
+              type="button"
+              className="inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              New Customer
+            </button>
+          </Link>
+        </div>
+      </HeaderSection>
+
+      <div className="py-12">
+        <CustomersList />
+      </div>
+    </Main>
   );
 }

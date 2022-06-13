@@ -1,5 +1,7 @@
+/* eslint-disable jsx-a11y/tabindex-no-positive */
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useNhostAuth } from "@nhost/react";
-import { useState } from "react";
+import { useState, SyntheticEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { nhost } from "../utils/nhost";
 
@@ -11,7 +13,8 @@ export function SignUp() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  // eslint-disable-next-line consistent-return
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const { error } = await nhost.auth.signUp({ email, password });

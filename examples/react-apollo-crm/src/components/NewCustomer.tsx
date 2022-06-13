@@ -1,4 +1,5 @@
-import { useState } from "react";
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import { useState, SyntheticEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { Main } from "./ui/Main";
 import { Breadcrumbs } from "./ui/Breadcrumbs";
@@ -32,7 +33,8 @@ export function NewCustomer() {
 
   const [insertCustomer, { loading }] = useInsertCustomerMutation();
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  // eslint-disable-next-line consistent-return
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     console.log("handle submit");

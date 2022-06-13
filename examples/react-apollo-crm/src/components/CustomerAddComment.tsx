@@ -1,4 +1,5 @@
-import { useState } from "react";
+/* eslint-disable jsx-a11y/label-has-associated-control */
+import { useState, SyntheticEvent } from "react";
 import { useParams } from "react-router-dom";
 import { nhost } from "../utils/nhost";
 import { useInsertCustomerCommentMutation } from "../utils/__generated__/graphql";
@@ -11,7 +12,7 @@ export function CustomerAddComment() {
   const [insertCustomerComment, { loading }] =
     useInsertCustomerCommentMutation();
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     let fileMetadata;

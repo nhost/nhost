@@ -13,16 +13,6 @@ import { SignUp } from "./components/SignUp";
 import { SignIn } from "./components/SignIn";
 import { ResetPassword } from "./components/ResetPassword";
 
-function App() {
-  return (
-    <NhostReactProvider nhost={nhost}>
-      <NhostApolloProvider nhost={nhost}>
-        <AppRouter />
-      </NhostApolloProvider>
-    </NhostReactProvider>
-  );
-}
-
 function AppRouter() {
   return (
     <Routes>
@@ -55,6 +45,16 @@ function AppRouter() {
         </Route>
       </Route>
     </Routes>
+  );
+}
+
+function App() {
+  return (
+    <NhostReactProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost}>
+        <AppRouter />
+      </NhostApolloProvider>
+    </NhostReactProvider>
   );
 }
 

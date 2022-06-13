@@ -1,5 +1,7 @@
+/* eslint-disable jsx-a11y/tabindex-no-positive */
+/* eslint-disable jsx-a11y/label-has-associated-control */
 import { useNhostAuth } from "@nhost/react";
-import { useState } from "react";
+import { useState, SyntheticEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { nhost } from "../utils/nhost";
 
@@ -11,7 +13,8 @@ export function SignIn() {
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  // eslint-disable-next-line consistent-return
+  const handleSubmit = async (e: SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     const { error } = await nhost.auth.signIn({ email, password });
@@ -108,7 +111,7 @@ export function SignIn() {
           </form>
         </div>
         <div className="text-center py-4">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link to="/sign-up" className="text-blue-600 hover:text-blue-500">
             Sign Up
           </Link>
