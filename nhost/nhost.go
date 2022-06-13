@@ -940,7 +940,7 @@ func (config *Configuration) Init(port string) error {
 
 		"HASURA_METADATA=1",
 		fmt.Sprintf(`HASURA_ENDPOINT=http://%s:%d/v1`, config.Services["hasura"].Name, config.Services["hasura"].Port),
-		"HASURA_GRAPHQL_ADMIN_SECRET=%s"+ util.ADMIN_SECRET,
+		fmt.Sprintf("HASURA_GRAPHQL_ADMIN_SECRET=%s", util.ADMIN_SECRET),
 
 		fmt.Sprintf("S3_ACCESS_KEY=%s", minioConfig.Environment["minio_root_user"]),
 		fmt.Sprintf("S3_SECRET_KEY=%s", minioConfig.Environment["minio_root_password"]),
