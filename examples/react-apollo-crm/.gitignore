@@ -25,4 +25,4 @@ yarn-debug.log*
 yarn-error.log*
 
 .nhost
-examples/react-apollo-crm/src/utils/__generated__
+src/utils/__generated__
