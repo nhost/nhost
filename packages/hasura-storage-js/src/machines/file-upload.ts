@@ -1,9 +1,9 @@
 import axios, { AxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
 
-import { AuthInterpreter } from '../types'
+import { AuthInterpreter } from '@nhost/core'
 
-type FileContext = {
+export type FileUploadContext = {
   progress: number | null
   loaded: number
   id?: string
@@ -11,7 +11,7 @@ type FileContext = {
   file?: File
 }
 
-type FileEvents =
+export type FileUploadEvents =
   | { type: 'ADD'; file: File; id?: string; bucketId?: string; name?: string }
   | { type: 'UPLOAD'; file?: File; id?: string; bucketId?: string; name?: string }
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
@@ -20,15 +20,15 @@ type FileEvents =
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 
-export const INITIAL_FILE_CONTEXT: FileContext = { progress: null, loaded: 0 }
+export const INITIAL_FILE_CONTEXT: FileUploadContext = { progress: null, loaded: 0 }
 
 export const createFileUploadMachine = ({ url, auth }: { url: string; auth: AuthInterpreter }) =>
   createMachine(
     {
       preserveActionOrder: true,
       schema: {
-        context: {} as FileContext,
-        events: {} as FileEvents
+        context: {} as FileUploadContext,
+        events: {} as FileUploadEvents
       },
       tsTypes: {} as import('./file-upload.typegen').Typegen0,
       context: { ...INITIAL_FILE_CONTEXT },
@@ -123,7 +123,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
               size: number
               updatedAt: string
               uploadedByUserId: string
-            }>(url + '/v1/storage/files', data, {
+            }>(url + '/files', data, {
               headers,
               signal: controller.signal,
               onUploadProgress: (event: ProgressEvent) => {

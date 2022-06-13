@@ -18,7 +18,7 @@ import {
 } from '@mantine/core'
 import { Dropzone, DropzoneStatus } from '@mantine/dropzone'
 import React from 'react'
-import { useFileUpload, useMultipleFilesUpload, useFileUploadItem } from '@nhost/react'
+import { useFileUpload, useMultipleFilesUpload, useFileUploadItem, FileItemRef } from '@nhost/react'
 import {
   FaCloudUploadAlt,
   FaCheckCircle,
@@ -26,7 +26,6 @@ import {
   FaMinus,
   FaExclamationTriangle
 } from 'react-icons/fa'
-import { FileItemRef } from '@nhost/core'
 
 function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
   return status.accepted
@@ -129,9 +128,9 @@ export const StoragePage: React.FC = () => {
         <Title order={2}>Upload a single file</Title>
 
         <Dropzone
-          onDrop={(files) => {
-            console.log('accepted files', files)
-            upload(files[0])
+          onDrop={([file]) => {
+            console.log('accepted file', file)
+            upload(file)
           }}
           onReject={(files) => console.log('rejected files', files)}
           multiple={false}
@@ -162,6 +161,7 @@ export const StoragePage: React.FC = () => {
         <SimpleGrid cols={1}>
           <Dropzone
             onDrop={(files) => {
+              console.log('accepted files', files)
               add(files)
             }}
             onReject={(files) => console.log('rejected files', files)}

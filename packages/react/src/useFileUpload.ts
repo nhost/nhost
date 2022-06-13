@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 import { InterpreterFrom } from 'xstate'
 
-import { createFileUploadMachine, FileItemRef } from '@nhost/core'
+import { createFileUploadMachine, FileItemRef } from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
-import { useNhostBackendUrl } from './useNhostBackendUrl'
+import { useNhostClient } from './useNhostClient'
+
+export type { FileItemRef }
 
 /**
  * Use the hook `useFileUploadItem` to control the file upload of a file in a multiple file upload.
@@ -131,9 +133,13 @@ export const useFileUploadItem = (
  * @docs https://docs.nhost.io/reference/react/use-file-upload
  */
 export const useFileUpload = () => {
-  const url = useNhostBackendUrl()
+  const nhost = useNhostClient()
   const auth = useAuthInterpreter()
-  const machine = useMemo(() => createFileUploadMachine({ url, auth }), [url, auth])
+
+  const machine = useMemo(
+    () => createFileUploadMachine({ url: nhost.storage.url, auth }),
+    [nhost, auth]
+  )
   const service = useInterpret(machine)
 
   return useFileUploadItem(service)

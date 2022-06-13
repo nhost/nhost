@@ -1,6 +1,6 @@
 import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstate'
 
-import { AuthInterpreter } from '../types'
+import { AuthInterpreter } from '@nhost/core'
 
 import { createFileUploadMachine, INITIAL_FILE_CONTEXT } from './file-upload'
 
@@ -8,14 +8,14 @@ const { pure, sendParent } = actions
 
 export type FileItemRef = ActorRefFrom<ReturnType<typeof createFileUploadMachine>>
 
-type FilesListContext = {
+export type MultipleFilesUploadContext = {
   progress: number | null
-  files: Array<FileItemRef>
+  files: FileItemRef[]
   loaded: number
   total: number
 }
 
-type FilesListEvents =
+export type MultipleFilesUploadEvents =
   | { type: 'ADD'; files: File | File[] }
   | { type: 'UPLOAD'; bucketId?: string }
   | { type: 'UPLOAD_PROGRESS'; additions: number }
@@ -33,8 +33,8 @@ export const createMultipleFilesUploadMachine = (params: {
     {
       id: 'files-list',
       schema: {
-        context: {} as FilesListContext,
-        events: {} as FilesListEvents
+        context: {} as MultipleFilesUploadContext,
+        events: {} as MultipleFilesUploadEvents
       },
       tsTypes: {} as import('./multiple-files-upload.typegen').Typegen0,
       context: {

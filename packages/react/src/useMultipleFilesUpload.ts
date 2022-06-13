@@ -1,10 +1,11 @@
 import { useMemo } from 'react'
 
-import { createMultipleFilesUploadMachine } from '@nhost/core'
+import { createMultipleFilesUploadMachine, FileItemRef } from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
-import { useNhostBackendUrl } from './useNhostBackendUrl'
+import { useNhostClient } from './useNhostClient'
+
 type UploadMultipleFilesActionParams = {
   bucketId?: string
 }
@@ -28,9 +29,12 @@ type UploadMultipleFilesActionParams = {
  * @docs https://docs.nhost.io/reference/react/use-multiple-files-upload
  */
 export const useMultipleFilesUpload = () => {
-  const url = useNhostBackendUrl()
+  const nhost = useNhostClient()
   const auth = useAuthInterpreter()
-  const machine = useMemo(() => createMultipleFilesUploadMachine({ url, auth }), [url, auth])
+  const machine = useMemo(
+    () => createMultipleFilesUploadMachine({ url: nhost.storage.url, auth }),
+    [nhost, auth]
+  )
   const service = useInterpret(machine)
 
   const add = (files: File | File[]) => {
@@ -55,7 +59,7 @@ export const useMultipleFilesUpload = () => {
   const hasError = useSelector(service, (state) => state.matches('error'))
 
   const progress = useSelector(service, (state) => state.context.progress)
-  const list = useSelector(service, (state) => state.context.files)
+  const list: FileItemRef[] = useSelector(service, (state) => state.context.files)
 
   return {
     /**

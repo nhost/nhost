@@ -52,9 +52,15 @@
     "docgen": "pnpm typedoc && docgen --config ./storage.docgen.json"
   },
   "dependencies": {
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "xstate": "^4.32.1"
+  },
+  "peerDependencies": {
+    "@nhost/core": "workspace:*"
   },
   "devDependencies": {
-    "@nhost/docgen": "workspace:*"
+    "@nhost/core": "workspace:*",
+    "@nhost/docgen": "workspace:*",
+    "msw": "^0.39.2"
   }
 }

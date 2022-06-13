@@ -28,8 +28,6 @@ import { AuthEvents } from './events'
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'
-export * from './file-upload'
-export * from './multiple-files-upload'
 export * from './reset-password'
 export * from './send-verification-email'
 
