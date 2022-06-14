@@ -1400,7 +1400,7 @@
             "type" : "object"
          },
          "Version" : {
-            "example" : "0.8.0",
+            "example" : "0.9.1",
             "type" : "string"
          }
       },
@@ -1419,7 +1419,7 @@
       },
       "termsOfService" : "",
       "title" : "Hasura auth",
-      "version" : "0.8.0"
+      "version" : "0.9.1"
    },
    "openapi" : "3.0.0",
    "paths" : {
