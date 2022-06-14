@@ -5,9 +5,9 @@
 
 ### Bug Fixes
 
-* add `email` and `newEmail`  variables to all email templates ([d2235e9](https://github.com/nhost/hasura-auth/commit/d2235e9f549efe2d9a345cf8a7a3d345fe8feb6e))
+* add `displayName`, `email`, and `newEmail` variables to all email templates ([d2235e9](https://github.com/nhost/hasura-auth/commit/d2235e9f549efe2d9a345cf8a7a3d345fe8feb6e))
 * do not actually follow redirection when redirectTo is invalid ([7d24e55](https://github.com/nhost/hasura-auth/commit/7d24e55d3a45207e2434cff39497984af6ae406c))
-* workaround for outlook safelinks ([1f12a53](https://github.com/nhost/hasura-auth/commit/1f12a5351d7894c71a773052c9c7d4b8e64ac2d2)), closes [#189](https://github.com/nhost/hasura-auth/issues/189)# [0.9.0](https://github.com/nhost/hasura-auth/compare/v0.8.1...v0.9.0) (2022-06-02)
+* workaround for outlook safelinks: add `HEAD` operation to the `/verify` route ([1f12a53](https://github.com/nhost/hasura-auth/commit/1f12a5351d7894c71a773052c9c7d4b8e64ac2d2)), closes [#189](https://github.com/nhost/hasura-auth/issues/189)# [0.9.0](https://github.com/nhost/hasura-auth/compare/v0.8.1...v0.9.0) (2022-06-02)
 
 
 ### Bug Fixes
