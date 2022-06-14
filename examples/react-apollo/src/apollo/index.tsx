@@ -1,8 +1,9 @@
+import { AddItemMutation, TodoListQuery } from 'src/generated'
+
 import { gql, useMutation } from '@apollo/client'
 import { Button, Card, Container, Grid, Loader, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
 import { useAuthQuery } from '@nhost/react-apollo'
-import { AddItemMutation, TodoListQuery } from 'src/generated'
 
 const TODO_LIST = gql`
   query TodoList {

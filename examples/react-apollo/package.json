@@ -34,11 +34,6 @@
     "verify": "run-p prettier lint",
     "verify:fix": "run-p prettier:fix lint:fix"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app"
-    ]
-  },
   "browserslist": {
     "production": [
       ">0.2%",

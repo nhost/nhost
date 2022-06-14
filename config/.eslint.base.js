@@ -20,7 +20,8 @@ module.exports = {
     'tests/**/*.ts',
     'tests/**/*.d.ts'
   ],
-  plugins: ['@typescript-eslint', 'simple-import-sort'],
+  plugins: ['@typescript-eslint', 'simple-import-sort', 'cypress'],
+  extends: ['plugin:cypress/recommended'],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module'
@@ -60,13 +61,5 @@ module.exports = {
         allowAnonymousFunction: true
       }
     ]
-  },
-  overrides: [
-    {
-      files: ['*.test.js', '*.spec.js', '*.test.ts', '*.spec.ts', '*.cy.js', '*.cy.ts'],
-      rules: {
-        '@typescript-eslint/no-unused-expressions': 'off'
-      }
-    }
-  ]
+  }
 }
