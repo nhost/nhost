@@ -1,5 +1,10 @@
-import { SignInEmailPasswordHandlerResult, SignInEmailPasswordState } from '@nhost/core'
-import { signInEmailPasswordPromise } from '@nhost/core'
+import { SignInMfaTotpHandlerResult } from '@nhost/core'
+import {
+  SignInEmailPasswordHandlerResult,
+  signInEmailPasswordPromise,
+  SignInEmailPasswordState,
+  signInMfaTotpPromise
+} from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
@@ -11,9 +16,9 @@ interface SignInEmailPasswordHandler {
 }
 
 interface SendMfaOtpHander {
-  (otp: string): void
+  (otp: string): Promise<SignInMfaTotpHandlerResult>
   /** @deprecated */
-  (otp?: unknown): void
+  (otp?: unknown): Promise<SignInMfaTotpHandlerResult>
 }
 
 export interface SignInEmailPasswordHookResult extends SignInEmailPasswordState {
@@ -58,16 +63,13 @@ export const useSignInEmailPassword: SignInEmailPasswordHook = (
   ) =>
     signInEmailPasswordPromise(
       service,
-      (typeof valueEmail === 'string' ? valueEmail : stateEmail) as string,
-      (typeof valuePassword === 'string' ? valuePassword : statePassword) as string
+      typeof valueEmail === 'string' ? valueEmail : stateEmail!,
+      typeof valuePassword === 'string' ? valuePassword : statePassword!
     )
 
-  const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) => {
-    // TODO promisify
-    service.send('SIGNIN_MFA_TOTP', {
-      otp: typeof valueOtp === 'string' ? valueOtp : stateOtp
-    })
-  }
+  const sendMfaOtp: SendMfaOtpHander = (valueOtp?: string | unknown) =>
+    signInMfaTotpPromise(service, typeof valueOtp === 'string' ? valueOtp : stateOtp!)
+
   const user = useSelector(
     service,
     (state) => state.context.user,

@@ -193,9 +193,11 @@ importers:
       '@mantine/prism': ^4.2.2
       '@nhost/react': '*'
       '@nhost/react-apollo': '*'
+      '@nuintun/qrcode': ^3.3.0
       '@testing-library/cypress': ^8.0.3
       '@types/react': ^18.0.8
       '@types/react-dom': ^18.0.3
+      '@types/totp-generator': ^0.0.4
       '@vitejs/plugin-react': ^1.3.2
       '@xstate/inspect': ^0.6.2
       cypress: ^10.0.1
@@ -207,6 +209,7 @@ importers:
       react-router: ^6.3.0
       react-router-dom: ^6.3.0
       start-server-and-test: ^1.14.0
+      totp-generator: ^0.0.13
       typescript: ^4.6.3
       vite: ^2.9.7
       ws: ^8.7.0
@@ -228,14 +231,17 @@ importers:
     devDependencies:
       '@faker-js/faker': 6.3.1
       '@graphql-codegen/cli': 2.6.2_69d0880ffe20510408ab76445f7abda8
+      '@nuintun/qrcode': 3.3.0
       '@testing-library/cypress': 8.0.3_cypress@10.0.1
       '@types/react': 18.0.8
       '@types/react-dom': 18.0.3
+      '@types/totp-generator': 0.0.4
       '@vitejs/plugin-react': 1.3.2
       '@xstate/inspect': 0.6.5_ws@8.7.0+xstate@4.31.0
       cypress: 10.0.1
       cypress-mailhog: 1.4.0
       start-server-and-test: 1.14.0
+      totp-generator: 0.0.13
       typescript: 4.6.3
       vite: 2.9.7
       ws: 8.7.0
@@ -5092,6 +5098,12 @@ packages:
       rimraf: 3.0.2
     dev: true
 
+  /@nuintun/qrcode/3.3.0:
+    resolution: {integrity: sha512-DJ8vmYyRdq8oX2l1/sGNmJjAD1KGaVvhtNUtHPJLbXpe5GoZut5UFQLM4FoFK9eyoZA1Y7chJEmEkNfs9Bdjrw==}
+    dependencies:
+      tslib: 2.4.0
+    dev: true
+
   /@open-draft/until/1.0.3:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
     dev: true
@@ -6093,6 +6105,10 @@ packages:
     resolution: {integrity: sha512-tZqX/nShvNqtJ7WAfwOK7mphK1jqmEre4mUJh+R1RyCFVODsMTG4My2nqjXpSm8NfhVGmbFH3giD17AXmgsaJw==}
     dependencies:
       '@types/react': 18.0.5
+    dev: true
+
+  /@types/totp-generator/0.0.4:
+    resolution: {integrity: sha512-rs5nfg//Q6zXGRiIqZ6UUhh65lBgEM5/s8knGw3fO2TBa0i1GlSLx4+P45vXNTrp3uNnqdSS1z4I33Oi3egDDg==}
     dev: true
 
   /@types/unist/2.0.6:
@@ -14645,6 +14661,10 @@ packages:
       verror: 1.10.0
     dev: true
 
+  /jssha/3.2.0:
+    resolution: {integrity: sha512-QuruyBENDWdN4tZwJbQq7/eAK85FqrI4oDbXjy5IBhYD+2pTJyBUWZe8ctWaCkrV0gy6AaelgOZZBMeswEa/6Q==}
+    dev: true
+
   /jstransformer/1.0.0:
     resolution: {integrity: sha1-7Yvwkh4vPx7U1cGkT2hwntJHIsM=}
     dependencies:
@@ -19514,6 +19534,12 @@ packages:
   /totalist/3.0.0:
     resolution: {integrity: sha512-eM+pCBxXO/njtF7vdFsHuqb+ElbxqtI4r5EAvk6grfAFyJ6IvWlSkfZ5T9ozC6xWw3Fj1fGoSmrl0gUs46JVIw==}
     engines: {node: '>=6'}
+    dev: true
+
+  /totp-generator/0.0.13:
+    resolution: {integrity: sha512-/Sg4eXvaLfaXNJJWv/OLPQm1GVKQXOe6mbDNXFBRZdYnaN9iY6Grk6uPYLph9MDn+cGn6GLNaqpak34jfu1CQQ==}
+    dependencies:
+      jssha: 3.2.0
     dev: true
 
   /tough-cookie/2.5.0:
