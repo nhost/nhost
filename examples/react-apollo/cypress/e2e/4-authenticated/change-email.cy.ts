@@ -1,0 +1,20 @@
+import faker from '@faker-js/faker'
+
+context('Change email', () => {
+  it('should change email', () => {
+    const email = faker.internet.email()
+    cy.signUpAndConfirmEmail(email)
+    const newEmail = faker.internet.email()
+    cy.findByPlaceholderText('New email').type(newEmail)
+    cy.findByText(/Change Email/i)
+      .parent()
+      .findByRole('button')
+      .click()
+    cy.contains('Please check your inbox and follow the link to confirm the email change').should(
+      'be.visible'
+    )
+    cy.signOut()
+    cy.confirmEmail(newEmail)
+    cy.contains('Profile page')
+  })
+})
