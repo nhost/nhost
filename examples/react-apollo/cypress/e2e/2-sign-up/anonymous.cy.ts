@@ -48,6 +48,7 @@ context('Anonymous users', () => {
       })
   })
 
+  // TODO implement deanonymisation with Oauth?
   // TODO forbid email/password change, MFA activation, and password reset when the following PR is released
   // * https://github.com/nhost/hasura-auth/pull/190
 })
