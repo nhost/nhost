@@ -6,6 +6,9 @@ export default defineConfig({
     chromeWebSecurity: false,
     // * for some reason, the mailhog API is not systematically available
     // * when using `localhost` instead of `127.0.0.1`
-    mailHogUrl: 'http://127.0.0.1:8025'
+    mailHogUrl: 'http://127.0.0.1:8025',
+    env: {
+      backendUrl: 'http://localhost:1337'
+    }
   }
 } as Cypress.ConfigOptions)

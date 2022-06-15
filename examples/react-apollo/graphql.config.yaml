@@ -1,0 +1,15 @@
+schema:
+  - http://localhost:1337/v1/graphql:
+      headers:
+        x-hasura-admin-secret: nhost-admin-secret
+        x-hasura-role: user
+documents: 'src/**/!(*.d).{ts,tsx}'
+generates:
+  ./src/generated.ts:
+    config:
+      namingConvention:
+        typeNames: change-case-all#pascalCase
+        transformUnderscore: true
+    plugins:
+      - typescript
+      - typescript-operations
