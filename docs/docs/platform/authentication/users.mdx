@@ -60,10 +60,34 @@ The default role is used when no role is specified in the GraphQL request. By de
 
 ### Allowed Roles
 
+Allowed roles are roles the user is allowed to use when making a GraphQL request. Usually you would change the role from `user` (the default role) to some other role because you want Hasura to use a different role to resolve permissions for a particular GraphQL request.
+
 By default, users have two allowed roles:
 
 - `user`
 - `me`
+
+You can manage what allowed roles users should get when they sign up under **Users** -> **Roles & Permissions**.
+
+:::info
+
+You must also add the roles manually to the `auth.roles` table.
+
+:::
+
+It's also possible to give users a subset of allowed roles during signup.
+
+**Example:** Only give the `user` role (without the `me` role) for the user's allowed roles:
+
+```js
+await nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password'
+  options: {
+    allowedRoles: ['user']
+  }
+})
+```
 
 ### Public Role
 
