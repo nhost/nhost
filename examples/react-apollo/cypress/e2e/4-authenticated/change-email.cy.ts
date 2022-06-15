@@ -2,9 +2,8 @@ import faker from '@faker-js/faker'
 
 context('Change email', () => {
   it('should change email', () => {
-    const email = faker.internet.email()
-    cy.signUpAndConfirmEmail(email)
     const newEmail = faker.internet.email()
+    cy.signUpAndConfirmEmail()
     cy.findByPlaceholderText('New email').type(newEmail)
     cy.findByText(/Change Email/i)
       .parent()
