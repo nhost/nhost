@@ -64,7 +64,7 @@ describe('user password', () => {
       .expect(StatusCodes.OK);
   });
 
-  it('should change password with ticket', async () => {
+  it('should change password with link', async () => {
     await request
       .post('/user/password/reset')
       .send({ email })
@@ -118,6 +118,26 @@ describe('user password', () => {
     //   .post('/signin/email-password')
     //   .send({ email, password: newPassword })
     //   .expect(StatusCodes.OK);
+  });
+  it('should change password with ticket', async () => {
+    const newPassword = faker.internet.password();
+
+    await request
+        .post('/user/password/reset')
+        .send({ email })
+        .expect(StatusCodes.OK);
+
+    // get ticket from email
+    const [message] = await mailHogSearch(email);
+    expect(message).toBeTruthy();
+
+    const ticket = message.Content.Headers['X-Ticket'][0];
+
+    // use ticket to reset password
+    await request
+        .post('/user/password')
+        .send({ newPassword, ticket })
+        .expect(StatusCodes.OK);
   });
 
   it('should be able to pass "redirectTo" when changing password with ticket when ', async () => {
