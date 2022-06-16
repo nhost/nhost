@@ -158,50 +158,46 @@ export class HasuraAuthClient {
       return { providerUrl, provider, session: null, mfa: null, error: null }
     }
 
-    if ('email' in params) {
-      if ('password' in params) {
-        // * Email + password
-        const res = await signInEmailPasswordPromise(interpreter, params.email, params.password)
-        if (res.needsEmailVerification) {
-          return { session: null, mfa: null, error: EMAIL_NEEDS_VERIFICATION }
-        }
-        if (res.needsMfaOtp) {
-          return {
-            session: null,
-            mfa: res.mfa,
-            error: null
-          }
-        }
-        return { ...getAuthenticationResult(res), mfa: null }
-      } else {
-        // * Passwordless Email (magic link)
-        const { error } = await signInEmailPasswordlessPromise(interpreter, params.email)
+    // * Email + password
+    if ('email' in params && 'password' in params) {
+      const res = await signInEmailPasswordPromise(interpreter, params.email, params.password)
+      if (res.needsEmailVerification) {
+        return { session: null, mfa: null, error: EMAIL_NEEDS_VERIFICATION }
+      }
+      if (res.needsMfaOtp) {
         return {
           session: null,
-          mfa: null,
-          error
+          mfa: res.mfa,
+          error: null
         }
+      }
+      return { ...getAuthenticationResult(res), mfa: null }
+    }
+
+    // * Passwordless Email (magic link)
+    if ('email' in params) {
+      const { error } = await signInEmailPasswordlessPromise(interpreter, params.email)
+      return {
+        session: null,
+        mfa: null,
+        error
       }
     }
 
-    // * Passwordless SMS
+    // * Passwordless SMS: [step 2/2] sign in using SMS OTP
+    if ('phoneNumber' in params && 'otp' in params) {
+      const res = await signInSmsPasswordlessOtpPromise(interpreter, params.phoneNumber, params.otp)
+      return { ...getAuthenticationResult(res), mfa: null }
+    }
+
+    // * Passwordless SMS: [step 1/2] sign in using SMS
     if ('phoneNumber' in params) {
-      // * Sign in using SMS OTP
-      if ('otp' in params) {
-        const res = await signInSmsPasswordlessOtpPromise(
-          interpreter,
-          params.phoneNumber,
-          params.otp
-        )
-        return { ...getAuthenticationResult(res), mfa: null }
-      } else {
-        const { error } = await signInSmsPasswordlessPromise(
-          interpreter,
-          params.phoneNumber,
-          params.options
-        )
-        return { error, mfa: null, session: null }
-      }
+      const { error } = await signInSmsPasswordlessPromise(
+        interpreter,
+        params.phoneNumber,
+        params.options
+      )
+      return { error, mfa: null, session: null }
     }
 
     // * Email + password MFA TOTP
