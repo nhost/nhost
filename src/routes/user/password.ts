@@ -19,7 +19,7 @@ export const userPasswordHandler: RequestHandler<
   const { ticket } = req.body;
 
   // get the user from the ticket, but if no ticket then return null
-  const userByTicket = await getUserByTicket(ticket || "")
+  const userByTicket = await getUserByTicket(ticket)
 
   // check if user is logged in or has valid ticket
   if (!req.auth?.userId && !userByTicket) {

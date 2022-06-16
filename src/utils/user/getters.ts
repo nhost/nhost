@@ -75,10 +75,10 @@ export const getUserByEmail = async (email: string) => {
   return users[0];
 };
 
-export const getUserByTicket = async (ticket: string) => {
+export const getUserByTicket = async (ticket: string | undefined) => {
 
   // return null if ticket is empty
-  if (ticket === "") {
+  if (!ticket) {
     return null;
   }
 
