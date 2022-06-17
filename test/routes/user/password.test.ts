@@ -123,9 +123,9 @@ describe('user password', () => {
     const newPassword = faker.internet.password();
 
     await request
-        .post('/user/password/reset')
-        .send({ email })
-        .expect(StatusCodes.OK);
+      .post('/user/password/reset')
+      .send({ email })
+      .expect(StatusCodes.OK);
 
     // get ticket from email
     const [message] = await mailHogSearch(email);
@@ -135,9 +135,46 @@ describe('user password', () => {
 
     // use ticket to reset password
     await request
-        .post('/user/password')
-        .send({ newPassword, ticket })
-        .expect(StatusCodes.OK);
+      .post('/user/password')
+      .send({ newPassword, ticket })
+      .expect(StatusCodes.OK);
+  });
+
+  it('should not be able to use same ticket twice to change password', async () => {
+    const newPassword = faker.internet.password();
+
+    await request
+      .post('/user/password/reset')
+      .send({ email })
+      .expect(StatusCodes.OK);
+
+    // get ticket from email
+    const [message] = await mailHogSearch(email);
+    expect(message).toBeTruthy();
+
+    const ticket = message.Content.Headers['X-Ticket'][0];
+
+    // use ticket to reset password
+    await request
+      .post('/user/password')
+      .send({ newPassword, ticket })
+      .expect(StatusCodes.OK);
+
+    // use same ticket to reset password
+    await request
+      .post('/user/password')
+      .send({ newPassword, ticket })
+      .expect(StatusCodes.UNAUTHORIZED);
+  });
+
+  it('should fail to change password with invalid ticket', async () => {
+    const newPassword = faker.internet.password();
+
+    // use ticket to reset password
+    await request
+      .post('/user/password')
+      .send({ newPassword, ticket: 'inavlid-ticket' })
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 
   it('should be able to pass "redirectTo" when changing password with ticket when ', async () => {

@@ -20,6 +20,16 @@ export const userPasswordHandler: RequestHandler<
   // get the user from the ticket, but if no ticket then return null
   const userByTicket = await getUserByTicket(ticket);
 
+  if (userByTicket) {
+    // clear current ticket so the ticket can only be used once
+    await gqlSdk.updateUser({
+      id: userByTicket.id,
+      user: {
+        ticket: null,
+      },
+    });
+  }
+
   // check if user is logged in or has valid ticket
   if (!req.auth?.userId && !userByTicket) {
     return sendError(res, 'unauthenticated-user');
