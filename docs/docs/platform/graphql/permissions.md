@@ -54,6 +54,16 @@ query {
 }
 ```
 
+### Local Custom Permission Variables
+
+To use custom permission variables locally, add your claims to the `config.yml` as following:
+
+```
+auth:
+  jwt:
+    custom_claims: '{"x-hasura-organisation-id":"user.profile.organisation.id"}'
+```
+
 ## Roles
 
 Every GraphQL request is resolved based on a **single role**. Roles are added in the Hasura Console when selecting a table and clicking **Permisisons**.
