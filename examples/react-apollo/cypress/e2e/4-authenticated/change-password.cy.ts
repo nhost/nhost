@@ -15,4 +15,15 @@ context('Change password', () => {
     cy.signInEmailPassword(email, newPassword)
     cy.contains('You are authenticated')
   })
+
+  it('should not accept an invalid password', () => {
+    const newPassword = faker.random.alphaNumeric(2)
+    cy.signUpAndConfirmEmail()
+    cy.findByPlaceholderText('New password').type(newPassword)
+    cy.findByText(/Change Password/i)
+      .parent()
+      .findByRole('button')
+      .click()
+    cy.contains('Password is incorrectly formatted').should('be.visible')
+  })
 })

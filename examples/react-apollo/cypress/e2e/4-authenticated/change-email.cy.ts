@@ -16,4 +16,15 @@ context('Change email', () => {
     cy.confirmEmail(newEmail)
     cy.contains('Profile page')
   })
+
+  it('should not accept an invalid email', () => {
+    const newEmail = faker.random.alphaNumeric()
+    cy.signUpAndConfirmEmail()
+    cy.findByPlaceholderText('New email').type(newEmail)
+    cy.findByText(/Change Email/i)
+      .parent()
+      .findByRole('button')
+      .click()
+    cy.contains('Email is incorrectly formatted').should('be.visible')
+  })
 })
