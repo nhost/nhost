@@ -112,7 +112,7 @@ Cypress.Commands.add('disconnectBackend', () => {
 })
 
 Cypress.Commands.add('getNavBar', () => {
-  cy.get('.mantine-Navbar-root')
+  cy.findByRole(`navigation`, { name: /main navigation/i })
 })
 
 Cypress.Commands.add('goToProfilePage', () => {
