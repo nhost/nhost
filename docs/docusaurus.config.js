@@ -26,7 +26,7 @@ const config = {
   favicon: 'img/favicon.png',
   organizationName: 'nhost',
   projectName: 'docs',
-  plugins: [require.resolve("docusaurus-plugin-image-zoom")],
+  plugins: [require.resolve('docusaurus-plugin-image-zoom')],
   presets: [
     [
       'classic',
@@ -179,7 +179,7 @@ const config = {
         appId: '3A3MJQTKHU',
         apiKey: 'a76361eaed8ebcd4cf5d9ae2f0c9e746',
         indexName: 'nhost',
-        contextualSearch: false
+        contextualSearch: true
       },
       zoom: {
         selector: '.markdown :not(em) > img',
