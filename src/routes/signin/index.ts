@@ -17,6 +17,7 @@ import {
   signInPasswordlessSmsSchema,
 } from './passwordless';
 import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
+import { signInVerifyWebauthnHandler, signInWebauthnHandler } from './webauthn';
 
 const router = Router();
 
@@ -82,6 +83,20 @@ router.post(
   bodyValidator(signInOtpSchema),
   aw(signInOtpHandler)
 );
+
+/**
+ * POST /signin/webauthn
+ * @summary FIDO2 Webauthn authentication using public-key cryptography
+ * @tags Authentication
+ */
+router.post('/signin/webauthn', aw(signInWebauthnHandler));
+
+/**
+ * POST /signin/webauthn/verify
+ * @summary Verfiy FIDO2 Webauthn authentication using public-key cryptography
+ * @tags Authentication
+ */
+router.post('/signin/webauthn/verify', aw(signInVerifyWebauthnHandler));
 
 /**
  * POST /signin/anonymous
