@@ -3,6 +3,7 @@ import { AddItemMutation, TodoListQuery } from 'src/generated'
 import { gql, useMutation } from '@apollo/client'
 import { Button, Card, Container, Grid, Loader, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
+import { showNotification } from '@mantine/notifications'
 import { useAuthQuery } from '@nhost/react-apollo'
 
 const TODO_LIST = gql`
@@ -32,6 +33,17 @@ export const ApolloPage: React.FC = () => {
 
   const [mutate] = useMutation<AddItemMutation>(ADD_ITEM, {
     variables: { contents },
+    onCompleted: () => {
+      setContents('')
+    },
+    onError: (error) => {
+      console.log(error)
+      showNotification({
+        color: 'red',
+        title: error.networkError ? 'Network error' : 'Error',
+        message: error.message
+      })
+    },
     update: (cache, { data }) => {
       cache.modify({
         fields: {
@@ -52,13 +64,12 @@ export const ApolloPage: React.FC = () => {
     }
   })
 
-  const add = async () => {
-    if (!contents) {
-      return
+  const add = () => {
+    if (contents) {
+      mutate()
     }
-    await mutate()
-    setContents('')
   }
+
   return (
     <Container>
       {loading && <Loader />}

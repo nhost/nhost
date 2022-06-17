@@ -10,9 +10,7 @@ context('Sign in with email+password', () => {
     cy.signUpEmailPassword(email, password)
     cy.contains('Verification email sent').should('be.visible')
     cy.confirmEmail(email)
-    cy.getNavBar()
-      .findByRole('button', { name: /Sign Out/i })
-      .click()
+    cy.signOut()
     cy.contains('Log in to the Application').should('be.visible')
     cy.signInEmailPassword(email, password)
 

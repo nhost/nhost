@@ -5,7 +5,7 @@ context('Sign out', () => {
 
   it('should sign out', () => {
     cy.visitPathWithRefreshToken()
-    cy.visit('/profile')
+    cy.goToProfilePage()
     cy.contains('Profile page')
     cy.signOut()
     cy.contains('Log in to the Application')

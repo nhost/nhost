@@ -41,10 +41,13 @@ export const SignInPage: React.FC = () => {
         <Center>
           <Text>
             Don&lsquo;t have an account?{' '}
-            <Anchor component={Link} to="/sign-up">
+            <Anchor role="link" component={Link} to="/sign-up">
               Sign up
             </Anchor>{' '}
-            or <Anchor onClick={anonymousHandler}>sign in anonymously</Anchor>
+            or{' '}
+            <Anchor role="link" onClick={anonymousHandler}>
+              sign in anonymously
+            </Anchor>
           </Text>
         </Center>
       }
