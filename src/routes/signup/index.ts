@@ -31,11 +31,9 @@ router.post(
 
 /**
  * POST /signup/webauthn
- * @summary Signup with FIDO2 Webauthn
- * @param {SignUpEmailPasswordSchema} request.body.required
- * @return {SessionPayload} 200 - Successfully registered. Null session means email verification is pending - application/json
+ * @summary Signup new device for a email using FIDO2 Webauthn
+ * @param {SignUpWebauthnSchema} request.body.required
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {EmailAlreadyInUseError} 409 - Email is already present in the database - application/json
  * @tags Registration
  */
 router.post(
@@ -50,7 +48,6 @@ router.post(
  * @param {SignUpVerifyWebauthnSchema} request.body.required
  * @return {SessionPayload} 200 - Successfully registered. Null session means email verification is pending - application/json
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
- * @return {EmailAlreadyInUseError} 409 - Email is already present in the database - application/json
  * @tags Registration
  */
 router.post(

@@ -1,21 +1,21 @@
 import { sendError } from '@/errors';
-import { getSignInResponse, getUserByEmail, gqlSdk } from '@/utils';
+import { ENV, getSignInResponse, getUserByEmail, gqlSdk } from '@/utils';
 import { RequestHandler } from 'express';
 
 import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
-import { Joi, uuid } from '@/validation';
+import { email, Joi } from '@/validation';
+
+export const signInWebauthnSchema = Joi.object({
+  email: email.required(),
+}).meta({ className: 'SignInWebauthnSchema' });
 
 export const signInVerifyWebauthnSchema = Joi.object({
-  user: {
-    id: uuid.required(),
-    name: Joi.string().required(),
-    displayName: Joi.string().required(),
-  },
+  email: email.required(),
   credential: Joi.object().required(),
-}).meta({ className: 'SignUpVerifyWebauthnSchema' });
+}).meta({ className: 'SignInVerifyWebauthnSchema' });
 
 // A unique identifier for your website
 const rpID = 'localhost';
@@ -40,6 +40,10 @@ export const signInWebauthnHandler: RequestHandler<
 
   if (user.disabled) {
     return sendError(res, 'disabled-user');
+  }
+
+  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+    return sendError(res, 'unverified-user');
   }
 
   const userAuthenticators = await gqlSdk
@@ -126,7 +130,6 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       requireUserVerification: true,
     });
   } catch (error) {
-    console.error(error);
     return sendError(res, 'unauthenticated-user');
   }
 

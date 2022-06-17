@@ -1,22 +1,20 @@
 import { sendError } from '@/errors';
-import { v4 as uuidv4 } from 'uuid';
 import { UserRegistrationOptions } from '@/types';
-import {
-  ENV,
-  generateTicketExpiresAt,
-  getGravatarUrl,
-  getSignInResponse,
-  getUserByEmail,
-  gqlSdk,
-  insertUser,
-} from '@/utils';
+import { ENV, getSignInResponse, getUserByEmail, gqlSdk } from '@/utils';
 import { RequestHandler } from 'express';
 
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
-import { email, Joi } from '@/validation';
+import { email, Joi, passwordInsert, registrationOptions } from '@/validation';
+import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
+
+export const signUpWebauthnSchema = Joi.object({
+  email: email.required(),
+  password: passwordInsert.optional(),
+  options: registrationOptions,
+}).meta({ className: 'SignUpWebauthnSchema' });
 
 export const signUpVerifyWebauthnSchema = Joi.object({
   email: email.required(),
@@ -35,47 +33,24 @@ export const signUpWebauthnHandler: RequestHandler<
   {},
   {
     email: string;
-    password: string;
+    password?: string;
     options: UserRegistrationOptions & {
       redirectTo: string;
     };
   }
 > = async (req, res) => {
   const { body } = req;
-  const {
+  const { email, password, options } = body;
+
+  const user = await createUserAndSendVerificationEmail(
     email,
-    options: {
-      locale,
-      defaultRole,
-      allowedRoles,
-      metadata,
-      displayName = email,
-    },
-  } = body;
+    options,
+    password
+  );
 
-  // create ticket
-  const ticket = `verifyEmail:${uuidv4()}`;
-  const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
-
-  // insert user
-  const user =
-    (await getUserByEmail(email)) ??
-    (await insertUser({
-      disabled: ENV.AUTH_DISABLE_NEW_USERS,
-      displayName,
-      avatarUrl: getGravatarUrl(email),
-      email,
-      ticket,
-      ticketExpiresAt,
-      emailVerified: false,
-      locale,
-      defaultRole,
-      roles: {
-        // restructure user roles to be inserted in GraphQL mutation
-        data: allowedRoles.map((role: string) => ({ role })),
-      },
-      metadata,
-    }));
+  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+    return res.send({ session: null, mfa: null });
+  }
 
   const userAuthenticators = await gqlSdk
     .getUserAuthenticators({
@@ -83,23 +58,16 @@ export const signUpWebauthnHandler: RequestHandler<
     })
     .then((gqlres) => gqlres.authUserAuthenticators);
 
-  const options = generateRegistrationOptions({
+  const registrationOptions = generateRegistrationOptions({
     rpName,
     rpID,
     userID: user.id,
     userName: user.displayName ?? user.email,
-    // Don't prompt users for additional information about the authenticator
-    // (Recommended for smoother UX)
     attestationType: 'indirect',
-    // Prevent users from re-registering existing authenticators
     excludeCredentials: userAuthenticators.map((authenticator) => ({
       id: Buffer.from(authenticator.credentialId, 'base64url'),
       type: 'public-key',
     })),
-    /**
-     * The optional authenticatorSelection property allows for specifying more constraints around
-     * the types of authenticators that users to can use for registration
-     */
     authenticatorSelection: {
       userVerification: 'required',
     },
@@ -111,10 +79,10 @@ export const signUpWebauthnHandler: RequestHandler<
 
   await gqlSdk.updateUserChallenge({
     userId: user.id,
-    challenge: options.challenge,
+    challenge: registrationOptions.challenge,
   });
 
-  return res.send(options);
+  return res.send(registrationOptions);
 };
 
 export const signUpVerifyWebauthnHandler: RequestHandler<
@@ -152,7 +120,6 @@ export const signUpVerifyWebauthnHandler: RequestHandler<
       expectedRPID: rpID,
     });
   } catch (error) {
-    console.error(error);
     return sendError(res, 'unauthenticated-user');
   }
 

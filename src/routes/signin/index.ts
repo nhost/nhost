@@ -86,7 +86,10 @@ router.post(
 
 /**
  * POST /signin/webauthn
- * @summary FIDO2 Webauthn authentication using public-key cryptography
+ * @summary Sign in using email via FIDO2 Webauthn authentication
+ * @param {SignInWebauthnSchema} request.body.required
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post('/signin/webauthn', aw(signInWebauthnHandler));
@@ -94,6 +97,11 @@ router.post('/signin/webauthn', aw(signInWebauthnHandler));
 /**
  * POST /signin/webauthn/verify
  * @summary Verfiy FIDO2 Webauthn authentication using public-key cryptography
+ * @param {SignInVerifyWebauthnSchema} request.body.required
+ * @return {SessionPayload} 200 - Signed in successfully - application/json
+ * @return {InvalidRequestError} 400 - The payload is invalid - application/json
+ * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
+ * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
 router.post('/signin/webauthn/verify', aw(signInVerifyWebauthnHandler));
