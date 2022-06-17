@@ -179,12 +179,7 @@ const config = {
         appId: '3A3MJQTKHU',
         apiKey: 'a76361eaed8ebcd4cf5d9ae2f0c9e746',
         indexName: 'nhost',
-        contextualSearch: true,
-        initialIndexSettings: {
-          nhost: {
-            attributesForFaceting: ['type', 'lang', 'language', 'version', 'docusaurus_tag']
-          }
-        }
+        contextualSearch: true
       },
       zoom: {
         selector: '.markdown :not(em) > img',
