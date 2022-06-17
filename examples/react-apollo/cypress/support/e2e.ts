@@ -31,6 +31,8 @@ declare global {
       getNavBar(): Chainable<Element>
       /** Go to the profile page */
       goToProfilePage(): Chainable<Element>
+      /** Go to the home page */
+      goToHomePage(): Chainable<Element>
       /** Go getch the user ID in the profile page*/
       fetchUserData(): Chainable<User>
     }
@@ -116,6 +118,10 @@ Cypress.Commands.add('goToProfilePage', () => {
   cy.getNavBar()
     .findByRole('button', { name: /Profile/i })
     .click()
+})
+
+Cypress.Commands.add('goToHomePage', () => {
+  cy.getNavBar().findByRole('button', { name: /Home/i }).click()
 })
 
 Cypress.Commands.add('fetchUserData', () => {

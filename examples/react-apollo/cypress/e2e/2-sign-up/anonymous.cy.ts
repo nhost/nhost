@@ -6,8 +6,6 @@ context('Anonymous users', () => {
   })
 
   it('should sign-up anonymously', () => {
-    cy.contains('You are authenticated')
-    cy.fetchUserData().its('isAnonymous').should('equal', true)
     cy.contains('You signed in anonymously')
   })
 
@@ -20,11 +18,10 @@ context('Anonymous users', () => {
         cy.signUpEmailPassword(email, password)
         cy.contains('Verification email sent').should('be.visible')
         cy.confirmEmail(email)
-        cy.contains('You are authenticated')
+        cy.contains('You signed in anonymously').should('not.exist')
 
         cy.fetchUserData().then((user) => {
           cy.wrap(user).its('id').should('equal', id)
-          cy.wrap(user).its('isAnonymous').should('equal', false)
           cy.wrap(user).its('email').should('equal', email)
         })
       })
@@ -38,11 +35,11 @@ context('Anonymous users', () => {
         cy.signUpEmailPasswordless(email)
         cy.contains('Verification email sent').should('be.visible')
         cy.confirmEmail(email)
-        cy.contains('Profile page')
+        cy.goToHomePage()
+        cy.contains('You signed in anonymously').should('not.exist')
 
         cy.fetchUserData().then((user) => {
           cy.wrap(user).its('id').should('equal', id)
-          cy.wrap(user).its('isAnonymous').should('equal', false)
           cy.wrap(user).its('email').should('equal', email)
         })
       })

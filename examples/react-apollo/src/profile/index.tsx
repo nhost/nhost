@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom'
-
-import { Anchor, Button, Card, Container, Title } from '@mantine/core'
+import { Button, Card, Container, Title } from '@mantine/core'
 import { Prism } from '@mantine/prism'
 import { useHasuraClaims, useNhostClient, useUserData } from '@nhost/react'
 
@@ -20,15 +18,6 @@ export const ProfilePage: React.FC = () => {
       <ChangePassword />
       <Card shadow="sm" p="lg" m="sm">
         <Title>User information</Title>
-        {userData?.isAnonymous && (
-          <div>
-            You signed in anonymously.{' '}
-            <Anchor role="link" component={Link} to="/sign-up">
-              Sign up
-            </Anchor>{' '}
-            to complete your registration
-          </div>
-        )}
         {userData && <Prism language="json">{JSON.stringify(userData, null, 2)}</Prism>}
       </Card>
       <Card shadow="sm" p="lg" m="sm">
