@@ -16,8 +16,8 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install",
-    "build": "pnpm run build:all -- --filter=!@nhost/docs --filter=!@nhost-examples/*",
-    "build:docs": "pnpm run build:all -- --filter=@nhost/docs",
+    "build": "pnpm run build:all --filter=!@nhost/docs --filter=!@nhost-examples/*",
+    "build:docs": "pnpm run build:all --filter=@nhost/docs",
     "build:all": "turbo run build  --include-dependencies",
     "dev": "turbo run dev --filter=!@nhost/docs --filter=!@nhost-examples/* --filter=!@nhost/docgen --no-deps --include-dependencies",
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/{.nhost,node_modules} node_modules",
