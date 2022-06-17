@@ -99,7 +99,8 @@ Cypress.Commands.add('signUpAndConfirmEmail', (givenEmail) => {
 })
 
 Cypress.Commands.add('saveRefreshToken', () => {
-  cy.contains('Sign Out')
+  cy.getNavBar()
+    .findByRole('button', { name: /Sign Out/i })
     .then(() => localStorage.getItem('nhostRefreshToken'))
     .as('refreshToken')
 })
