@@ -43,7 +43,7 @@ export const signInWebauthnHandler: RequestHandler<
   }
 
   const userAuthenticators = await gqlSdk
-    .authUserAuthenticators({
+    .getUserAuthenticators({
       id: user.id,
     })
     .then((gqlres) => gqlres.authUserAuthenticators);
@@ -53,15 +53,12 @@ export const signInWebauthnHandler: RequestHandler<
     allowCredentials: userAuthenticators.map((authenticator) => ({
       id: Buffer.from(authenticator.credentialId, 'base64url'),
       type: 'public-key',
-      transports:
-        (authenticator.transports.split(',') as AuthenticatorTransport[]) ??
-        (['usb', 'ble', 'nfc', 'internal'] as AuthenticatorTransport[]),
     })),
     userVerification: 'preferred',
     rpID,
   });
 
-  await gqlSdk.updateAuthUserChallenge({
+  await gqlSdk.updateUserChallenge({
     userId: user.id,
     challenge: options.challenge,
   });
@@ -74,27 +71,29 @@ export const signInVerifyWebauthnHandler: RequestHandler<
   {},
   {
     credential: any;
-    user: {
-      id: string;
-      name: string;
-      displayName: string;
-    };
+    email: string;
   }
 > = async (req, res) => {
-  const { credential, user } = req.body;
+  const { credential, email } = req.body;
+
+  const user = await getUserByEmail(email);
+
+  if (!user) {
+    return sendError(res, 'user-not-found');
+  }
 
   const expectedChallenge = await gqlSdk
     .getUserChallenge({
       id: user.id,
     })
-    .then((gqlres) => gqlres.user?.current_challenge);
+    .then((gqlres) => gqlres.user?.currentChallenge);
 
   if (!expectedChallenge) {
-    return sendError(res, 'user-not-found');
+    return sendError(res, 'invalid-request');
   }
 
   const userAuthenticators = await gqlSdk
-    .authUserAuthenticators({
+    .getUserAuthenticators({
       id: user.id,
     })
     .then((gqlres) => gqlres.authUserAuthenticators);
@@ -114,9 +113,6 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       authenticator.credentialPublicKey.substr(2),
       'hex'
     ),
-    transports:
-      (authenticator.transports.split(',') as AuthenticatorTransport[]) ??
-      (['usb', 'ble', 'nfc', 'internal'] as AuthenticatorTransport[]),
   };
 
   let verification;
@@ -140,12 +136,20 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  if (verified) {
-    const signInResponse = await getSignInResponse({
-      userId: user.id,
-      checkMFA: false,
-    });
+  const { authenticationInfo } = verification;
+  const { newCounter } = authenticationInfo;
 
-    return res.send(signInResponse);
+  if (authenticator.counter != newCounter) {
+    await gqlSdk.updateUserAuthenticator({
+      id: authenticator.id,
+      counter: newCounter,
+    });
   }
+
+  const signInResponse = await getSignInResponse({
+    userId: user.id,
+    checkMFA: false,
+  });
+
+  return res.send(signInResponse);
 };

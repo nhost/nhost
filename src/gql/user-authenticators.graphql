@@ -1,4 +1,4 @@
-query authUserAuthenticators($id: uuid!) {
+query getUserAuthenticators($id: uuid!) {
   authUserAuthenticators(where: { userId: { _eq: $id } }) {
     counter
     credentialId
@@ -18,7 +18,7 @@ query getUserChallenge($id: uuid!) {
   }
 }
 
-mutation updateAuthUserChallenge($userId: uuid!, $challenge: String!) {
+mutation updateUserChallenge($userId: uuid!, $challenge: String!) {
   updateUser(
     pk_columns: { id: $userId }
     _set: { currentChallenge: $challenge }

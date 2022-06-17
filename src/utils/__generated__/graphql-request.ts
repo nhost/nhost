@@ -2446,7 +2446,7 @@ export type Users = {
   authenticators_aggregate: AuthUserAuthenticators_Aggregate;
   avatarUrl: Scalars['String'];
   createdAt: Scalars['timestamptz'];
-  current_challenge?: Maybe<Scalars['String']>;
+  currentChallenge?: Maybe<Scalars['String']>;
   defaultRole: Scalars['String'];
   /** An object relationship */
   defaultRoleByRole: AuthRoles;
@@ -2620,7 +2620,7 @@ export type Users_Bool_Exp = {
   authenticators?: InputMaybe<AuthUserAuthenticators_Bool_Exp>;
   avatarUrl?: InputMaybe<String_Comparison_Exp>;
   createdAt?: InputMaybe<Timestamptz_Comparison_Exp>;
-  current_challenge?: InputMaybe<String_Comparison_Exp>;
+  currentChallenge?: InputMaybe<String_Comparison_Exp>;
   defaultRole?: InputMaybe<String_Comparison_Exp>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Bool_Exp>;
   disabled?: InputMaybe<Boolean_Comparison_Exp>;
@@ -2679,7 +2679,7 @@ export type Users_Insert_Input = {
   authenticators?: InputMaybe<AuthUserAuthenticators_Arr_Rel_Insert_Input>;
   avatarUrl?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  current_challenge?: InputMaybe<Scalars['String']>;
+  currentChallenge?: InputMaybe<Scalars['String']>;
   defaultRole?: InputMaybe<Scalars['String']>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Obj_Rel_Insert_Input>;
   disabled?: InputMaybe<Scalars['Boolean']>;
@@ -2713,7 +2713,7 @@ export type Users_Max_Fields = {
   activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  current_challenge?: Maybe<Scalars['String']>;
+  currentChallenge?: Maybe<Scalars['String']>;
   defaultRole?: Maybe<Scalars['String']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
@@ -2737,7 +2737,7 @@ export type Users_Max_Order_By = {
   activeMfaType?: InputMaybe<Order_By>;
   avatarUrl?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  current_challenge?: InputMaybe<Order_By>;
+  currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
   displayName?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
@@ -2762,7 +2762,7 @@ export type Users_Min_Fields = {
   activeMfaType?: Maybe<Scalars['String']>;
   avatarUrl?: Maybe<Scalars['String']>;
   createdAt?: Maybe<Scalars['timestamptz']>;
-  current_challenge?: Maybe<Scalars['String']>;
+  currentChallenge?: Maybe<Scalars['String']>;
   defaultRole?: Maybe<Scalars['String']>;
   displayName?: Maybe<Scalars['String']>;
   email?: Maybe<Scalars['citext']>;
@@ -2786,7 +2786,7 @@ export type Users_Min_Order_By = {
   activeMfaType?: InputMaybe<Order_By>;
   avatarUrl?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  current_challenge?: InputMaybe<Order_By>;
+  currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
   displayName?: InputMaybe<Order_By>;
   email?: InputMaybe<Order_By>;
@@ -2834,7 +2834,7 @@ export type Users_Order_By = {
   authenticators_aggregate?: InputMaybe<AuthUserAuthenticators_Aggregate_Order_By>;
   avatarUrl?: InputMaybe<Order_By>;
   createdAt?: InputMaybe<Order_By>;
-  current_challenge?: InputMaybe<Order_By>;
+  currentChallenge?: InputMaybe<Order_By>;
   defaultRole?: InputMaybe<Order_By>;
   defaultRoleByRole?: InputMaybe<AuthRoles_Order_By>;
   disabled?: InputMaybe<Order_By>;
@@ -2881,7 +2881,7 @@ export enum Users_Select_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
-  CurrentChallenge = 'current_challenge',
+  CurrentChallenge = 'currentChallenge',
   /** column name */
   DefaultRole = 'defaultRole',
   /** column name */
@@ -2931,7 +2931,7 @@ export type Users_Set_Input = {
   activeMfaType?: InputMaybe<Scalars['String']>;
   avatarUrl?: InputMaybe<Scalars['String']>;
   createdAt?: InputMaybe<Scalars['timestamptz']>;
-  current_challenge?: InputMaybe<Scalars['String']>;
+  currentChallenge?: InputMaybe<Scalars['String']>;
   defaultRole?: InputMaybe<Scalars['String']>;
   disabled?: InputMaybe<Scalars['Boolean']>;
   displayName?: InputMaybe<Scalars['String']>;
@@ -2964,7 +2964,7 @@ export enum Users_Update_Column {
   /** column name */
   CreatedAt = 'createdAt',
   /** column name */
-  CurrentChallenge = 'current_challenge',
+  CurrentChallenge = 'currentChallenge',
   /** column name */
   DefaultRole = 'defaultRole',
   /** column name */
@@ -3074,27 +3074,27 @@ export type DeleteExpiredRefreshTokensMutationVariables = Exact<{ [key: string]:
 
 export type DeleteExpiredRefreshTokensMutation = { __typename?: 'mutation_root', deleteAuthRefreshTokens?: { __typename?: 'authRefreshTokens_mutation_response', affected_rows: number } | null };
 
-export type AuthUserAuthenticatorsQueryVariables = Exact<{
+export type GetUserAuthenticatorsQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type AuthUserAuthenticatorsQuery = { __typename?: 'query_root', authUserAuthenticators: Array<{ __typename?: 'authUserAuthenticators', counter: any, credentialId: string, credentialPublicKey?: any | null, transports: string, id: any, user: { __typename?: 'users', id: any } }> };
+export type GetUserAuthenticatorsQuery = { __typename?: 'query_root', authUserAuthenticators: Array<{ __typename?: 'authUserAuthenticators', counter: any, credentialId: string, credentialPublicKey?: any | null, transports: string, id: any, user: { __typename?: 'users', id: any } }> };
 
 export type GetUserChallengeQueryVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type GetUserChallengeQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, current_challenge?: string | null } | null };
+export type GetUserChallengeQuery = { __typename?: 'query_root', user?: { __typename?: 'users', id: any, currentChallenge?: string | null } | null };
 
-export type UpdateAuthUserChallengeMutationVariables = Exact<{
+export type UpdateUserChallengeMutationVariables = Exact<{
   userId: Scalars['uuid'];
   challenge: Scalars['String'];
 }>;
 
 
-export type UpdateAuthUserChallengeMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any } | null };
+export type UpdateUserChallengeMutation = { __typename?: 'mutation_root', updateUser?: { __typename?: 'users', id: any } | null };
 
 export type AddUserAuthenticatorMutationVariables = Exact<{
   userAuthenticator: AuthUserAuthenticators_Insert_Input;
@@ -3339,8 +3339,8 @@ export const DeleteExpiredRefreshTokensDocument = gql`
   }
 }
     `;
-export const AuthUserAuthenticatorsDocument = gql`
-    query authUserAuthenticators($id: uuid!) {
+export const GetUserAuthenticatorsDocument = gql`
+    query getUserAuthenticators($id: uuid!) {
   authUserAuthenticators(where: {userId: {_eq: $id}}) {
     counter
     credentialId
@@ -3357,13 +3357,13 @@ export const GetUserChallengeDocument = gql`
     query getUserChallenge($id: uuid!) {
   user(id: $id) {
     id
-    current_challenge
+    currentChallenge
   }
 }
     `;
-export const UpdateAuthUserChallengeDocument = gql`
-    mutation updateAuthUserChallenge($userId: uuid!, $challenge: String!) {
-  updateUser(pk_columns: {id: $userId}, _set: {current_challenge: $challenge}) {
+export const UpdateUserChallengeDocument = gql`
+    mutation updateUserChallenge($userId: uuid!, $challenge: String!) {
+  updateUser(pk_columns: {id: $userId}, _set: {currentChallenge: $challenge}) {
     id
   }
 }
@@ -3590,14 +3590,14 @@ export function getSdk(client: GraphQLClient, withWrapper: SdkFunctionWrapper = 
     deleteExpiredRefreshTokens(variables?: DeleteExpiredRefreshTokensMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<DeleteExpiredRefreshTokensMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<DeleteExpiredRefreshTokensMutation>(DeleteExpiredRefreshTokensDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'deleteExpiredRefreshTokens', 'mutation');
     },
-    authUserAuthenticators(variables: AuthUserAuthenticatorsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AuthUserAuthenticatorsQuery> {
-      return withWrapper((wrappedRequestHeaders) => client.request<AuthUserAuthenticatorsQuery>(AuthUserAuthenticatorsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'authUserAuthenticators', 'query');
+    getUserAuthenticators(variables: GetUserAuthenticatorsQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserAuthenticatorsQuery> {
+      return withWrapper((wrappedRequestHeaders) => client.request<GetUserAuthenticatorsQuery>(GetUserAuthenticatorsDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserAuthenticators', 'query');
     },
     getUserChallenge(variables: GetUserChallengeQueryVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<GetUserChallengeQuery> {
       return withWrapper((wrappedRequestHeaders) => client.request<GetUserChallengeQuery>(GetUserChallengeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'getUserChallenge', 'query');
     },
-    updateAuthUserChallenge(variables: UpdateAuthUserChallengeMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateAuthUserChallengeMutation> {
-      return withWrapper((wrappedRequestHeaders) => client.request<UpdateAuthUserChallengeMutation>(UpdateAuthUserChallengeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateAuthUserChallenge', 'mutation');
+    updateUserChallenge(variables: UpdateUserChallengeMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<UpdateUserChallengeMutation> {
+      return withWrapper((wrappedRequestHeaders) => client.request<UpdateUserChallengeMutation>(UpdateUserChallengeDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'updateUserChallenge', 'mutation');
     },
     addUserAuthenticator(variables: AddUserAuthenticatorMutationVariables, requestHeaders?: Dom.RequestInit["headers"]): Promise<AddUserAuthenticatorMutation> {
       return withWrapper((wrappedRequestHeaders) => client.request<AddUserAuthenticatorMutation>(AddUserAuthenticatorDocument, variables, {...requestHeaders, ...wrappedRequestHeaders}), 'addUserAuthenticator', 'mutation');
