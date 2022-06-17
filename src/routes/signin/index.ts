@@ -17,7 +17,12 @@ import {
   signInPasswordlessSmsSchema,
 } from './passwordless';
 import { signInMfaTotpHandler, signInMfaTotpSchema } from './mfa';
-import { signInVerifyWebauthnHandler, signInWebauthnHandler } from './webauthn';
+import {
+  signInVerifyWebauthnHandler,
+  signInVerifyWebauthnSchema,
+  signInWebauthnHandler,
+  signInWebauthnSchema,
+} from './webauthn';
 
 const router = Router();
 
@@ -92,7 +97,11 @@ router.post(
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
-router.post('/signin/webauthn', aw(signInWebauthnHandler));
+router.post(
+  '/signin/webauthn',
+  bodyValidator(signInWebauthnSchema),
+  aw(signInWebauthnHandler)
+);
 
 /**
  * POST /signin/webauthn/verify
@@ -104,7 +113,11 @@ router.post('/signin/webauthn', aw(signInWebauthnHandler));
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
  */
-router.post('/signin/webauthn/verify', aw(signInVerifyWebauthnHandler));
+router.post(
+  '/signin/webauthn/verify',
+  bodyValidator(signInVerifyWebauthnSchema),
+  aw(signInVerifyWebauthnHandler)
+);
 
 /**
  * POST /signin/anonymous

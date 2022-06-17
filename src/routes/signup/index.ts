@@ -10,6 +10,7 @@ import {
   signUpVerifyWebauthnHandler,
   signUpVerifyWebauthnSchema,
   signUpWebauthnHandler,
+  signUpWebauthnSchema,
 } from './webauthn';
 
 const router = Router();
@@ -38,7 +39,7 @@ router.post(
  */
 router.post(
   '/signup/webauthn',
-  bodyValidator(signUpEmailPasswordSchema),
+  bodyValidator(signUpWebauthnSchema),
   aw(signUpWebauthnHandler)
 );
 
