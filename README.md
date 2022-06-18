@@ -404,7 +404,7 @@ Here are some ways of contributing to making Nhost better:
         <a href="https://github.com/muttenzer">
             <img src="https://avatars.githubusercontent.com/u/49474412?v=4" width="100;" alt="muttenzer"/>
             <br />
-            <sub><b>muttenzer</b></sub>
+            <sub><b>Muttenzer</b></sub>
         </a>
     </td></tr>
 </table>
