@@ -21,7 +21,9 @@ interface ResetPasswordResult extends ToRefs<ResetPasswordState> {
  *
  * @example
  * ```tsx
- * const { resetPassword, isLoading, isSent, isError, error } = useResetPassword();
+ * const { resetPassword, isLoading, isSent, isError, error } = useResetPassword({
+ *   redirectTo: 'http://localhost:3000/settings/change-password'
+ * });
  *
  * watchEffect(() => {
  *   console.log(isLoading.value, isSent.value, isError.value, error.value);
@@ -30,9 +32,7 @@ interface ResetPasswordResult extends ToRefs<ResetPasswordState> {
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
  *
- *   await resetPassword('joe@example.com', {
- *     redirectTo: 'http://localhost:3000/settings/change-password'
- *   })
+ *   await resetPassword('joe@example.com')
  * }
  * ```
  *
