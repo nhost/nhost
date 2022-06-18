@@ -17,11 +17,6 @@ export const signInVerifyWebauthnSchema = Joi.object({
   credential: Joi.object().required(),
 }).meta({ className: 'SignInVerifyWebauthnSchema' });
 
-// A unique identifier for your website
-const rpID = 'localhost';
-// The URL at which registrations and authentications should occur
-const origin = `http://${rpID}:8000`;
-
 export const signInWebauthnHandler: RequestHandler<
   {},
   {},
@@ -29,13 +24,17 @@ export const signInWebauthnHandler: RequestHandler<
     email: string;
   }
 > = async (req, res) => {
+  if (!ENV.AUTH_WEBAUTHN_ENABLED) {
+    return sendError(res, 'disabled-endpoint');
+  }
+
   const { body } = req;
   const { email } = body;
 
   const user = await getUserByEmail(email);
 
   if (!user) {
-    return sendError(res, 'invalid-email-password');
+    return sendError(res, 'user-not-found');
   }
 
   if (user.disabled) {
@@ -53,13 +52,13 @@ export const signInWebauthnHandler: RequestHandler<
     .then((gqlres) => gqlres.authUserAuthenticators);
 
   const options = generateAuthenticationOptions({
-    timeout: 60000,
+    rpID: ENV.AUTH_WEBAUTHN_RP_ID,
+    userVerification: 'preferred',
+    timeout: ENV.AUTH_WEBAUTHN_ATTESTATION_TIMEOUT,
     allowCredentials: userAuthenticators.map((authenticator) => ({
       id: Buffer.from(authenticator.credentialId, 'base64url'),
       type: 'public-key',
     })),
-    userVerification: 'preferred',
-    rpID,
   });
 
   await gqlSdk.updateUserChallenge({
@@ -78,6 +77,10 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     email: string;
   }
 > = async (req, res) => {
+  if (!ENV.AUTH_WEBAUTHN_ENABLED) {
+    return sendError(res, 'disabled-endpoint');
+  }
+
   const { credential, email } = req.body;
 
   const user = await getUserByEmail(email);
@@ -124,8 +127,11 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     verification = await verifyAuthenticationResponse({
       credential: credential,
       expectedChallenge,
-      expectedOrigin: origin,
-      expectedRPID: rpID,
+      expectedOrigin: Array.from([
+        ENV.AUTH_CLIENT_URL,
+        ...ENV.AUTH_WEBAUTHN_RP_ORIGINS,
+      ]).filter(Boolean),
+      expectedRPID: ENV.AUTH_WEBAUTHN_RP_ID,
       authenticator: authenticatorDevice,
       requireUserVerification: true,
     });

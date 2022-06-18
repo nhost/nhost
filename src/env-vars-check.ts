@@ -191,6 +191,20 @@ if (ENV.AUTH_SMS_PROVIDER) {
   }
 }
 
+if (ENV.AUTH_WEBAUTHN_ENABLED) {
+  [
+    'AUTH_WEBAUTHN_RP_ID',
+    'AUTH_WEBAUTHN_RP_NAME',
+    'AUTH_WEBAUTHN_RP_ORIGINS',
+  ].forEach((env) => {
+    if (isUnset(process.env[env])) {
+      errors.push(
+        `Env var ${env} is required when the Webauthn is enabled, but no value was provided`
+      );
+    }
+  });
+}
+
 if (errors.length) {
   logger.error(errors.join('\n'));
   throw new Error('Invalid configuration');
