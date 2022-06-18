@@ -3,6 +3,10 @@ import fetch, { Response } from 'node-fetch';
 
 import { ENV } from '../src/utils/env';
 import { JwtSecret, Token } from '../src/types';
+import { request } from './server';
+import { StatusCodes } from 'http-status-codes';
+import { hashPassword } from '@/utils';
+import { ClientBase } from 'pg';
 
 interface MailhogEmailAddress {
   Relays: string | null;
@@ -144,4 +148,37 @@ export const expectUrlParameters = (
 ): jest.JestMatchers<string[]> => {
   const params = getUrlParameters(request);
   return expect(Array.from(params.keys()));
+};
+
+export const verfiyUserTicket = async (email: string) => {
+  // get ticket from email
+  const [message] = await mailHogSearch(email);
+  expect(message).toBeTruthy();
+  const link = message.Content.Headers['X-Link'][0];
+
+  // use ticket to verify email
+  const res = await request
+    .get(link.replace('http://localhost:4000', ''))
+    .expect(StatusCodes.MOVED_TEMPORARILY);
+
+  expectUrlParameters(res).not.toIncludeAnyMembers([
+    'error',
+    'errorDescription',
+  ]);
+};
+
+export const insertDbUser = async (
+  client: ClientBase,
+  email: string,
+  password: string,
+  verified = true,
+  disabled = false
+) => {
+  const queryString = `INSERT INTO auth.users(
+    email, password_hash, email_verified, disabled, locale
+    ) VALUES(
+    '${email}', '${hashPassword(password)}', '${verified}', '${disabled}','en'
+    )`;
+
+  return await client.query(queryString);
 };
