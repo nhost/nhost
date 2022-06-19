@@ -61,8 +61,10 @@ To use custom permission variables locally, add your claims to the `config.yml` 
 ```
 auth:
   jwt:
-    custom_claims: '{"x-hasura-organisation-id":"user.profile.organisation.id"}'
+    custom_claims: '{"organisation-id":"profile.organisation.id"}'
 ```
+
+Your custom claim will be automatically prefixed with `x-hasura-`, therefore, the example above results in a custom permission variable named `x-hasura-organisation-id`.
 
 ## Roles
 
