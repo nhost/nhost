@@ -4,13 +4,12 @@ import { NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
 
 export type { NhostAuthConstructorParams }
 
-type BackendUrl = {
+export type BackendUrl = {
   /**
    * Nhost backend URL
    * Will be deprecated in favor of `subdomain` and `region`
    */
   backendUrl: string
-
   /**
    * When set, the admin secret is sent as an header, `x-hasura-admin-secret`,
    * for all requests to GraphQL, Storage, and Functions.
@@ -18,7 +17,7 @@ type BackendUrl = {
   adminSecret?: string
 }
 
-type Subdomain = {
+export type Subdomain = {
   /**
    * App subdomain (e.g, ieingiwnginwnfnegqwvdqwdwq)
    * Use "localhost" in development
@@ -30,7 +29,6 @@ type Subdomain = {
    * Not required in development
    */
   region?: string
-
   /**
    * When set, the admin secret is sent as an header, `x-hasura-admin-secret`,
    * for all requests to GraphQL, Storage, and Functions.
@@ -40,8 +38,10 @@ type Subdomain = {
 
 export type BackendOrSubdomain = BackendUrl | Subdomain
 
-export type NhostClientConstructorParams = BackendOrSubdomain &
-  Omit<NhostAuthConstructorParams, 'url'>
+export interface NhostClientConstructorParams
+  extends Partial<BackendUrl>,
+    Partial<Subdomain>,
+    Omit<NhostAuthConstructorParams, 'url'> {}
 
 export type GraphqlRequestResponse<T = unknown> =
   | {

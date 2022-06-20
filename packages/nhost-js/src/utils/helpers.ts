@@ -1,4 +1,4 @@
-import { BackendOrSubdomain } from './types'
+import { NhostClientConstructorParams } from './types'
 
 const LOCALHOST = /^localhost(:\d+)*$/
 
@@ -8,12 +8,15 @@ const LOCALHOST = /^localhost(:\d+)*$/
  * @param service
  * @returns
  */
-export function urlFromParams(backendOrSubdomain: BackendOrSubdomain, service: string) {
+export function urlFromParams(
+  backendOrSubdomain: Pick<NhostClientConstructorParams, 'region' | 'subdomain' | 'backendUrl'>,
+  service: string
+) {
   if ('backendUrl' in backendOrSubdomain) {
     return `${backendOrSubdomain.backendUrl}/v1/${service}`
   }
 
-  if (backendOrSubdomain.subdomain.match(LOCALHOST)) {
+  if (backendOrSubdomain.subdomain !== undefined && backendOrSubdomain.subdomain.match(LOCALHOST)) {
     return `http://${backendOrSubdomain.subdomain}/v1/${service}`
   }
 

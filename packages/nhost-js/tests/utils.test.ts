@@ -23,6 +23,12 @@ describe('urlFromParams', () => {
         expect(url).toBe('https://myawesomedomain.auth.eu-central-1.nhost.run/v1')
       })
     })
+    
+    it('Missing region with subdomain should throw error', async () => {
+      expect(() => {
+        urlFromParams({ subdomain: 'myawesomedomain' }, 'auth')
+      }).toThrow('A region must be specified when using a `subdomain` other than "localhost".')
+    })
 
     it('should return "http://localhost/v1/auth" when passed "localhost" and "auth"', async () => {
       const url = urlFromParams({ subdomain: 'localhost' }, 'auth')

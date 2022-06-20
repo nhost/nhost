@@ -1,11 +1,11 @@
-import {
-  BackendOrSubdomain,
-  NhostAuthConstructorParams,
-  NhostClient as VanillaClient
-} from '@nhost/nhost-js'
+import { Subdomain } from '@nhost/nhost-js'
+import { BackendUrl } from '@nhost/nhost-js'
+import { NhostAuthConstructorParams, NhostClient as VanillaClient } from '@nhost/nhost-js'
 
-export type NhostReactClientConstructorParams = BackendOrSubdomain &
-  Omit<NhostAuthConstructorParams, 'url' | 'start' | 'client'>
+export interface NhostReactClientConstructorParams
+  extends Partial<BackendUrl>,
+    Partial<Subdomain>,
+    Omit<NhostAuthConstructorParams, 'url' | 'start' | 'client'> {}
 
 export class NhostClient extends VanillaClient {
   constructor(params: NhostReactClientConstructorParams) {

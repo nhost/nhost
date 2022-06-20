@@ -17,7 +17,9 @@ export class NhostClient {
    * Nhost Client
    *
    * @example
+   * ```ts
    * const nhost = new NhostClient({ subdomain, region });
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript
    */
@@ -60,7 +62,6 @@ export class NhostClient {
       url: urlFromParams(urlParams, 'graphql'),
       adminSecret
     })
-
 
     // * Set current token if token is already accessable
     this.storage.setAccessToken(this.auth.getAccessToken())

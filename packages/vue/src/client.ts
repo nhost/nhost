@@ -2,15 +2,19 @@ import { App, getCurrentInstance } from 'vue'
 import { Router } from 'vue-router'
 
 import {
-  BackendOrSubdomain,
+  BackendUrl,
   NhostAuthConstructorParams,
-  NhostClient as VanillaClient
+  NhostClient as VanillaClient,
+  Subdomain
 } from '@nhost/nhost-js'
 
 import { DefaultNhostClient } from './useNhostClient'
 
-export type NhostVueClientConstructorParams = BackendOrSubdomain &
-  Omit<NhostAuthConstructorParams, 'url' | 'start' | 'client'>
+export interface NhostVueClientConstructorParams
+  extends Partial<BackendUrl>,
+    Partial<Subdomain>,
+    Omit<NhostAuthConstructorParams, 'url' | 'start' | 'client'> {}
+
 export class NhostClient extends VanillaClient {
   constructor(params: NhostVueClientConstructorParams) {
     super({ ...params, start: true })
