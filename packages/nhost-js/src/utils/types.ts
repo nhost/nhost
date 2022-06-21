@@ -7,11 +7,11 @@ export type { NhostAuthConstructorParams }
 export type BackendUrl = {
   /**
    * Nhost backend URL
-   * Will be deprecated in favor of `subdomain` and `region`
+   * Should only be used when self-hosting
    */
   backendUrl: string
   /**
-   * When set, the admin secret is sent as an header, `x-hasura-admin-secret`,
+   * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
    * for all requests to GraphQL, Storage, and Functions.
    */
   adminSecret?: string
@@ -20,17 +20,18 @@ export type BackendUrl = {
 export type Subdomain = {
   /**
    * App subdomain (e.g, ieingiwnginwnfnegqwvdqwdwq)
+   * Should be used when using the Nhost platform
    * Use "localhost" in development
    */
   subdomain: string
 
   /**
    * App region (e.g., eu-central-1)
-   * Not required in development
+   * Not required in development (when `subdomain` is "localhost")
    */
   region?: string
   /**
-   * When set, the admin secret is sent as an header, `x-hasura-admin-secret`,
+   * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
    * for all requests to GraphQL, Storage, and Functions.
    */
   adminSecret?: string

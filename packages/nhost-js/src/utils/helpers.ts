@@ -3,7 +3,9 @@ import { NhostClientConstructorParams } from './types'
 const LOCALHOST = /^localhost(:\d+)*$/
 
 /**
- * `backendUrl` will be deprecated in favor of `subdomain` and `region`
+ * `backendUrl` should now be used only when self-hosting
+ * `subdomain` and `region` should be used instead when using the Nhost platform
+ * `
  * @param backendOrSubdomain
  * @param service
  * @returns
