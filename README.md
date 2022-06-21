@@ -392,7 +392,8 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Nirmalya Ghosh</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/quentin-decre">
             <img src="https://avatars.githubusercontent.com/u/1137511?v=4" width="100;" alt="quentin-decre"/>
