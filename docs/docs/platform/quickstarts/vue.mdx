@@ -633,7 +633,7 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
   import { useMutation, useSubscription } from '@vue/apollo-composable'
   import { computed, ref } from 'vue'
 
-  const { nhost } = useNhostClient()
+  const { client } = useNhostClient()
   const GET_USER_SUBSCRIPTION = gql`
     subscription GetUser($id: uuid!) {
       user(id: $id) {
@@ -680,7 +680,7 @@ Finally, we can run our GraphQL subscription using the `useSubscription` composa
           lastName: lastName.value
         }
       })
-      await nhost.auth.refreshSession()
+      await client.auth.refreshSession()
     }
   }
 </script>
