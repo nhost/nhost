@@ -78,6 +78,7 @@ export interface SignInPasswordlessSmsOtpParams {
 export interface SignInWithProviderOptions {
   provider: Provider
   options?: ProviderOptions
+  redirectTo?: string
 }
 
 export type SignInParams =
