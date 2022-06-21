@@ -1,7 +1,6 @@
-import React from 'react'
+import { Link } from 'react-router-dom'
 
 import { Button, ButtonVariant } from '@mantine/core'
-import { Link } from 'react-router-dom'
 
 const AuthLink: React.FC<{
   icon?: React.ReactNode
@@ -11,8 +10,8 @@ const AuthLink: React.FC<{
   variant?: ButtonVariant
 }> = ({ icon, color, link, variant, children }) => {
   return (
-    // <Link to={link}>
     <Button
+      role="button"
       component={Link}
       fullWidth
       radius="sm"
@@ -34,7 +33,6 @@ const AuthLink: React.FC<{
     >
       {children}
     </Button>
-    // </Link>
   )
 }
 

@@ -56,6 +56,11 @@ export interface SignInEmailPasswordParams {
   password: string
 }
 
+export interface SignInEmailPasswordOtpParams {
+  otp: string
+  ticket?: string
+}
+
 export interface SignInPasswordlessEmailParams {
   email: string
   options?: PasswordlessOptions
@@ -77,6 +82,7 @@ export interface SignInWithProviderOptions {
 
 export type SignInParams =
   | SignInEmailPasswordParams
+  | SignInEmailPasswordOtpParams
   | SignInPasswordlessEmailParams
   | SignInPasswordlessSmsOtpParams
   | SignInPasswordlessSmsParams
@@ -101,15 +107,18 @@ export interface ChangeEmailParams {
   options?: RedirectOption
 }
 
-// TODO define type in @nhost/core
-export interface DeanonymizeParams {
-  signInMethod: 'email-password' | 'passwordless'
-  email: string
-  password?: string
-  connection?: 'email' | 'sms'
-  defaultRole?: string
-  allowedRoles?: string[]
-}
+export type DeanonymizeParams =
+  | ({
+      signInMethod: 'email-password'
+    } & SignUpParams)
+  | ({
+      signInMethod: 'passwordless'
+      connection: 'email'
+    } & SignInPasswordlessEmailParams)
+  | ({
+      signInMethod: 'passwordless'
+      connection: 'sms'
+    } & SignInPasswordlessSmsParams)
 
 export interface SignInReponse {
   session: Session | null
@@ -127,12 +136,6 @@ export type AuthChangeEvent = 'SIGNED_IN' | 'SIGNED_OUT'
 export type AuthChangedFunction = (event: AuthChangeEvent, session: Session | null) => void
 
 export type OnTokenChangedFunction = (session: Session | null) => void
-
-export interface LoginData {
-  mfa?: boolean
-  ticket?: string
-}
-
 export interface Headers {
   Authorization?: string
 }

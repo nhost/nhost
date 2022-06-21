@@ -1,0 +1,104 @@
+table:
+  name: todos
+  schema: public
+configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userId
+  custom_column_names:
+    created_at: createdAt
+    updated_at: updatedAt
+    user_id: userId
+  custom_root_fields:
+    delete: deleteTodos
+    delete_by_pk: deleteTodo
+    insert: insertTodos
+    insert_one: insertTodo
+    select_aggregate: todosAggregate
+    select_by_pk: todo
+    update: updateTodos
+    update_by_pk: updateTodo
+object_relationships:
+- name: user
+  using:
+    foreign_key_constraint_on: user_id
+insert_permissions:
+- permission:
+    check: {}
+    columns:
+    - contents
+    - id
+    set:
+      user_id: x-hasura-user-id
+  role: anonymous
+- permission:
+    check: {}
+    columns:
+    - contents
+    - id
+    set:
+      user_id: x-hasura-user-id
+  role: user
+select_permissions:
+- permission:
+    allow_aggregations: true
+    columns:
+    - contents
+    - created_at
+    - updated_at
+    - id
+    - user_id
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: anonymous
+- permission:
+    allow_aggregations: true
+    columns:
+    - contents
+    - created_at
+    - updated_at
+    - id
+    - user_id
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: user
+update_permissions:
+- permission:
+    check:
+      user_id:
+        _eq: X-Hasura-User-Id
+    columns:
+    - contents
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: anonymous
+- permission:
+    check:
+      user_id:
+        _eq: X-Hasura-User-Id
+    columns:
+    - contents
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: user
+delete_permissions:
+- permission:
+    backend_only: false
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: anonymous
+- permission:
+    backend_only: false
+    filter:
+      user_id:
+        _eq: X-Hasura-User-Id
+  role: user

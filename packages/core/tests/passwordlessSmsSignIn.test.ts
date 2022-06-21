@@ -1,7 +1,6 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor.js'
-import { INVALID_PHONE_NUMBER_ERROR } from '../src/errors'
+import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
@@ -44,17 +43,17 @@ test(`should fail if network is unavailable`, async () => {
   server.use(passwordlessSmsNetworkErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
+    type: 'PASSWORDLESS_SMS',
     phoneNumber: faker.phone.phoneNumber()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "authentication": {
+      "registration": {
         "error": "OK",
         "message": "Network Error",
         "status": 200,
@@ -67,17 +66,17 @@ test(`should fail if server returns an error`, async () => {
   server.use(passwordlessSmsInternalErrorHandler)
 
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
+    type: 'PASSWORDLESS_SMS',
     phoneNumber: faker.phone.phoneNumber()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
     {
-      "authentication": {
+      "registration": {
         "error": "internal-error",
         "message": "Internal error",
         "status": 500,
@@ -88,18 +87,18 @@ test(`should fail if server returns an error`, async () => {
 
 test(`should fail if the provided phone number was invalid`, async () => {
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
+    type: 'PASSWORDLESS_SMS',
     // TODO: Phone number validation is not implemented yet
     phoneNumber: ''
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
         {
-          "authentication": {
+          "registration": {
             "error": "invalid-phone-number",
             "message": "Phone number is incorrectly formatted",
             "status": 10,
@@ -110,12 +109,12 @@ test(`should fail if the provided phone number was invalid`, async () => {
 
 test(`should succeed if the provided phone number was valid`, async () => {
   authService.send({
-    type: 'SIGNIN_PASSWORDLESS_SMS',
+    type: 'PASSWORDLESS_SMS',
     phoneNumber: faker.phone.phoneNumber()
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ authentication: { signedOut: 'needsSmsOtp' } })
+    state.matches('registration.incomplete.needsOtp')
   )
 
   expect(state.context.user).toBeNull()

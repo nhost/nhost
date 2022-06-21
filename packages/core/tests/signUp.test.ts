@@ -1,7 +1,6 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor.js'
-import { INVALID_EMAIL_ERROR, INVALID_PASSWORD_ERROR } from '../src/errors'
+import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
@@ -52,7 +51,7 @@ test(`should fail if network is unavailable`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -76,7 +75,7 @@ test(`should fail if server returns an error`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -99,7 +98,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   })
 
   const emailErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(emailErrorSignInState.context.errors).toMatchInlineSnapshot(`
@@ -120,7 +119,7 @@ test(`should fail if either email or password is incorrectly formatted`, async (
   })
 
   const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(passwordErrorSignInState.context.errors).toMatchInlineSnapshot(`
@@ -144,7 +143,7 @@ test(`should fail if email has already been taken`, async () => {
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('authentication.signedOut.failed')
+    state.matches('registration.incomplete.failed')
   )
 
   expect(state.context.errors).toMatchInlineSnapshot(`
@@ -166,7 +165,10 @@ test(`should succeed if email and password are correctly formatted`, async () =>
   })
 
   const state: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches({ email: 'awaitingVerification', authentication: { signedOut: 'noErrors' } })
+    state.matches({
+      registration: { incomplete: 'needsEmailVerification' },
+      authentication: { signedOut: 'noErrors' }
+    })
   )
 
   expect(state.context.user).toBeNull()

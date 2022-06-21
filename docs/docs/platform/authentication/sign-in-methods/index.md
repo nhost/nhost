@@ -17,7 +17,7 @@ Nhost Authentication support the following sign-in methods:
 
 ## Enabling Social Sign-In Provider
 
-To start with social sign-in, select your app in Nhost Console and go to **Users** → **Login settings**.
+To start with social sign-in, select your app in Nhost Console and go to **Users** → **Authentication Settings**.
 
 You need to set the Client ID and Client Secret for each provider that you want to enable.
 
@@ -33,7 +33,7 @@ nhost.auth.signIn({
 })
 ```
 
-Users are redirected to your Nhost app's **client URL** by default. By default, your Nhost app's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Login settings** → **Client URL**.
+Users are redirected to your Nhost app's **client URL** by default. By default, your Nhost app's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Authentication Settings** → **Client URL**.
 
 ## Provider OAuth scopes
 

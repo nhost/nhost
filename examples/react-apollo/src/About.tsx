@@ -1,33 +1,12 @@
-import { Container, Title } from '@mantine/core'
-import { useNhostClient, useSignInAnonymous } from '@nhost/react'
-import React from 'react'
 import { Link } from 'react-router-dom'
 
+import { Container, Title } from '@mantine/core'
+
 export const AboutPage: React.FC = () => {
-  const nhost = useNhostClient()
-  const { signInAnonymous } = useSignInAnonymous()
-  const fetch = async () => {
-    const req = await nhost.graphql.request(`query BooksQuery {
-      books {
-        id
-        title
-      }
-    }`)
-    console.log(req)
-  }
   return (
     <Container>
       <Title>About this example</Title>
-      <button
-        onClick={async () => {
-          const result = await signInAnonymous()
-          console.log(result)
-        }}
-      >
-        ANONYMOUS
-      </button>
       <p>This application demonstrates the available features of the Nhost stack.</p>
-      <button onClick={fetch}>Fetch</button>
       <div>
         Nhost cloud leverages the following services in the backend:
         <ul>
@@ -47,7 +26,7 @@ export const AboutPage: React.FC = () => {
         </ul>
       </div>
       <div>
-        Noew let&apos;s go to the <Link to="/">index page</Link>
+        Now let&apos;s go to the <Link to="/">index page</Link>
       </div>
     </Container>
   )

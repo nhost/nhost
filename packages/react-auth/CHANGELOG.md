@@ -1,5 +1,49 @@
 # @nhost/react-auth
 
+## 3.2.0
+
+### Patch Changes
+
+- Updated dependencies [6f0a3005]
+- Updated dependencies [6f0a3005]
+  - @nhost/hasura-auth-js@1.3.0
+  - @nhost/react@0.9.0
+
+## 3.1.0
+
+### Patch Changes
+
+- Updated dependencies [c1613394]
+- Updated dependencies [c1613394]
+  - @nhost/react@0.8.0
+  - @nhost/hasura-auth-js@1.2.0
+
+## 3.0.11
+
+### Patch Changes
+
+- Updated dependencies [08a37aae]
+  - @nhost/react@0.7.13
+  - @nhost/hasura-auth-js@1.1.14
+
+## 3.0.10
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/hasura-auth-js@1.1.13
+  - @nhost/react@0.7.12
+
+## 3.0.9
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/hasura-auth-js@1.1.12
+  - @nhost/react@0.7.11
+
 ## 3.0.8
 
 ### Patch Changes

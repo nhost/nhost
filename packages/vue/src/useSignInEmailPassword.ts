@@ -3,7 +3,9 @@ import { ToRefs, unref } from 'vue'
 import {
   SignInEmailPasswordHandlerResult,
   signInEmailPasswordPromise,
-  SignInEmailPasswordState
+  SignInEmailPasswordState,
+  SignInMfaTotpHandlerResult,
+  signInMfaTotpPromise
 } from '@nhost/core'
 import { useSelector } from '@xstate/vue'
 
@@ -17,7 +19,7 @@ interface SignInEmailPasswordResult extends ToRefs<SignInEmailPasswordState> {
     email: RefOrValue<string>,
     password: RefOrValue<string>
   ): Promise<SignInEmailPasswordHandlerResult>
-  sendMfaOtp(otp: RefOrValue<string>): void
+  sendMfaOtp(otp: RefOrValue<string>): Promise<SignInMfaTotpHandlerResult>
 }
 
 // TODO: Add MFA example once MFA is available at Nhost Cloud.
@@ -46,11 +48,7 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
   const signInEmailPassword = (email: RefOrValue<string>, password: RefOrValue<string>) =>
     signInEmailPasswordPromise(service.value, unref(email), unref(password))
 
-  const sendMfaOtp = (otp: RefOrValue<string>) => {
-    service.value.send('SIGNIN_MFA_TOTP', {
-      otp: unref(otp)
-    })
-  }
+  const sendMfaOtp = (otp: RefOrValue<string>) => signInMfaTotpPromise(service.value, unref(otp))
 
   const user = useSelector(
     service.value,
@@ -73,7 +71,10 @@ export const useSignInEmailPassword = (): SignInEmailPasswordResult => {
   const needsEmailVerification = useSelector(
     service.value,
     (state) =>
-      state.matches({ authentication: { signedOut: 'noErrors' }, email: 'awaitingVerification' }),
+      state.matches({
+        authentication: { signedOut: 'noErrors' },
+        registration: { incomplete: 'needsEmailVerification' }
+      }),
     (a, b) => a === b
   )
 

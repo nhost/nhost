@@ -1,11 +1,11 @@
-/* eslint-disable react/react-in-jsx-scope */
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { useSignInEmailPassword } from '@nhost/react'
 import { Button, Modal, TextInput } from '@mantine/core'
-import AuthLink from '../components/AuthLink'
 import { showNotification } from '@mantine/notifications'
+import { useSignInEmailPassword } from '@nhost/react'
+
+import AuthLink from '../components/AuthLink'
 
 export const EmailPassword: React.FC = () => {
   const [email, setEmail] = useState('')
@@ -13,7 +13,6 @@ export const EmailPassword: React.FC = () => {
   const [otp, setOtp] = useState('')
   const { signInEmailPassword, needsMfaOtp, sendMfaOtp } = useSignInEmailPassword()
   const navigate = useNavigate()
-
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
 
   const signIn = async () => {
@@ -26,14 +25,22 @@ export const EmailPassword: React.FC = () => {
       })
     } else if (result.needsEmailVerification) {
       setEmailVerificationToggle(true)
-    } else if (!result.needsEmailVerification) {
+    } else if (result.isSuccess) {
       navigate('/', { replace: true })
     }
   }
 
   const sendOtp = async () => {
-    sendMfaOtp(otp)
-    console.log('TODO')
+    const result = await sendMfaOtp(otp)
+    if (result.isError) {
+      showNotification({
+        color: 'red',
+        title: 'Error',
+        message: result.error?.message
+      })
+    } else {
+      navigate('/', { replace: true })
+    }
   }
   if (needsMfaOtp)
     return (

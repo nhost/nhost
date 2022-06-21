@@ -1,7 +1,10 @@
-/* eslint-disable react/react-in-jsx-scope */
 import { Route, Routes } from 'react-router-dom'
 
+import { AppShell, Header, MantineProvider } from '@mantine/core'
+import { NotificationsProvider } from '@mantine/notifications'
+
 import { AuthGate, PublicGate } from './components/auth-gates'
+import NavBar from './components/NavBar'
 import { AboutPage } from './About'
 import { ApolloPage } from './apollo'
 import Home from './Home'
@@ -10,9 +13,6 @@ import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
 
 import './App.css'
-import NavBar from './components/NavBar'
-import { MantineProvider, AppShell, Header } from '@mantine/core'
-import { NotificationsProvider } from '@mantine/notifications'
 const title = 'Nhost with React and Apollo'
 
 function App() {
@@ -62,7 +62,7 @@ function App() {
             <Route
               path="/sign-up/*"
               element={
-                <PublicGate>
+                <PublicGate anonymous>
                   <SignUpPage />
                 </PublicGate>
               }

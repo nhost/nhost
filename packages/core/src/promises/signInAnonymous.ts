@@ -1,4 +1,4 @@
-import { INVALID_AUTHENTICATION_METHOD } from '../errors'
+import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter } from '../types'
 
 import { ActionLoadingState, SessionActionHandlerResult } from './types'
@@ -15,7 +15,7 @@ export const signInAnonymousPromise = (
       resolve({
         isSuccess: false,
         isError: true,
-        error: INVALID_AUTHENTICATION_METHOD,
+        error: USER_ALREADY_SIGNED_IN,
         user: null,
         accessToken: null
       })

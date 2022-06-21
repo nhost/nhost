@@ -1,7 +1,7 @@
-import React from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 
 import { useAuthenticationStatus } from '@nhost/react'
+import { useUserIsAnonymous } from '@nhost/react'
 
 export const AuthGate: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
   const { isLoading, isAuthenticated } = useAuthenticationStatus()
@@ -17,14 +17,20 @@ export const AuthGate: React.FC<React.PropsWithChildren<unknown>> = ({ children 
   return <div>{children}</div>
 }
 
-export const PublicGate: React.FC<React.PropsWithChildren<unknown>> = ({ children }) => {
+export const PublicGate: React.FC<
+  React.PropsWithChildren<{
+    /** Set to `true` if you want this route to be accessible to anonymous users */
+    anonymous?: boolean
+  }>
+> = ({ anonymous, children }) => {
   const { isLoading, isAuthenticated } = useAuthenticationStatus()
+  const isAnonymous = useUserIsAnonymous()
   const location = useLocation()
   if (isLoading) {
     return <div>Loading...</div>
   }
 
-  if (isAuthenticated) {
+  if (isAuthenticated && !anonymous && isAnonymous) {
     return <Navigate to={'/'} state={{ from: location }} replace />
   }
 

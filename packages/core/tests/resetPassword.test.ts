@@ -1,6 +1,6 @@
 import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
-import { waitFor } from 'xstate/lib/waitFor.js'
+import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
 import { INVALID_EMAIL_ERROR } from '../src/errors'
 import { createResetPasswordMachine } from '../src/machines'
@@ -23,7 +23,8 @@ const customStorage = new CustomClientStorage(new Map())
 const resetPasswordMachine = createResetPasswordMachine(
   new AuthClient({
     backendUrl: BASE_URL,
-    clientUrl: 'http://localhost:3000'
+    clientUrl: 'http://localhost:3000',
+    start: false
   })
 )
 

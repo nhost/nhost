@@ -58,9 +58,7 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
   const stateOptions = c || (typeof a !== 'string' ? a : undefined)
 
   const service = useAuthInterpreter()
-  const isError = useSelector(service, (state) =>
-    state.matches({ authentication: { signedOut: 'failed' } })
-  )
+  const isError = useSelector(service, (state) => !!state.context.errors.registration)
 
   const error = useSelector(
     service,
@@ -68,19 +66,16 @@ export const useSignUpEmailPassword: SignUpEmailPasswordHook = (
     (a, b) => a?.error === b?.error
   )
 
-  const isLoading = useSelector(service, (state) =>
-    state.matches({ authentication: 'registering' })
-  )
+  const isLoading = useSelector(service, (state) => state.matches('registration.emailPassword'))
 
   const needsEmailVerification = useSelector(service, (state) =>
-    state.matches({
-      authentication: { signedOut: 'noErrors' },
-      email: 'awaitingVerification'
-    })
+    state.matches('registration.incomplete.needsEmailVerification')
   )
+
   const isSuccess = useSelector(service, (state) =>
     state.matches({
-      authentication: 'signedIn'
+      authentication: 'signedIn',
+      registration: 'complete'
     })
   )
 

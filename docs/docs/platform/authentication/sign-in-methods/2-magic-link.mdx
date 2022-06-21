@@ -9,6 +9,14 @@ Follow this guide to sign in users with Magic Link, also called passwordless ema
 
 The Magic Link sign-in method enables you to sign in users to your app using an email address, without requiring a password.
 
+## Setup
+
+Enable the Magic Link sign-in method in the Nhost dashboard under **Users** -> **Authentication Settings** -> **Magic Link**.
+
+![Magic Link Setup with Nhost](/img/platform/authentication/sign-in-methods/magic-link/magic-link-setup.png)
+
+## Sign In
+
 To sign in users with Magic Link is a two-step process:
 
 1. Send a Magic Link to the user's email address.
@@ -21,3 +29,5 @@ nhost.auth.signIn({
   email: 'joe@example.com'
 })
 ```
+
+If you want to change the email for your magic link emails, you can do so by changing the [email templates](/platform/authentication/email-templates).

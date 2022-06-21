@@ -1,5 +1,47 @@
 # @nhost/apollo
 
+## 0.5.16
+
+### Patch Changes
+
+- Updated dependencies [6f0a3005]
+  - @nhost/nhost-js@1.4.0
+
+## 0.5.15
+
+### Patch Changes
+
+- Updated dependencies [c1613394]
+  - @nhost/nhost-js@1.3.0
+
+## 0.5.14
+
+### Patch Changes
+
+- 8b2d1b00: Add headers to the websocket connection when creating the Apollo client
+
+## 0.5.13
+
+### Patch Changes
+
+- @nhost/nhost-js@1.2.4
+
+## 0.5.12
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+- Updated dependencies [ebad0936]
+  - @nhost/nhost-js@1.2.3
+
+## 0.5.11
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+- Updated dependencies [1b37b9f6]
+  - @nhost/nhost-js@1.2.2
+
 ## 0.5.10
 
 ### Patch Changes

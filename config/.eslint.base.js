@@ -20,7 +20,8 @@ module.exports = {
     'tests/**/*.ts',
     'tests/**/*.d.ts'
   ],
-  plugins: ['@typescript-eslint', 'simple-import-sort'],
+  plugins: ['@typescript-eslint', 'simple-import-sort', 'cypress'],
+  extends: ['plugin:cypress/recommended'],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module'

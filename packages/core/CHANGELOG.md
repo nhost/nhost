@@ -1,5 +1,39 @@
 # @nhost/core
 
+## 0.7.1
+
+### Patch Changes
+
+- 6f0a3005: `sendMfaOtp` now returns a promise
+  When using `useSignInEmailPassword`, the `sendMfaOtp` was `void`. It now returns a promise that resolves when the server returned the result of the OTP code submission, and returns `isSuccess`, `isError`, and `error`.
+
+## 0.7.0
+
+### Minor Changes
+
+- c1613394: Deanonymisation
+  Once signed in anonymously, users can deanonymise using `nhost.auth.deanonymize`.
+  Deanonymisation works the same way as email+password sign-up or passwordless sign-in. The related methods, hooks in React and composables in Vue can therefore be used for deanonymising users, such as `nhost.auth.signUp`, `useSignUpEmailPassword`, and `useSignInEmailPasswordless`.
+
+## 0.6.5
+
+### Patch Changes
+
+- 08a37aae: correct rewriting options when `clientUrl` is not available
+  The client URL is set to `window.location.origin`, so it can rewrite redirection urls that are passed on to authenticaion methods. However, `clientUrl` is set to `''` when running on the server side. This fix then avoid raising an error when trying to rewrite `redirectTo` on non-browser environment, and forces `useProviderLink` to be rendered on the client side.
+
+## 0.6.4
+
+### Patch Changes
+
+- ebad0936: reverted ESM related changes
+
+## 0.6.3
+
+### Patch Changes
+
+- 1b37b9f6: fix: ESM import path fixes
+
 ## 0.6.2
 
 ### Patch Changes

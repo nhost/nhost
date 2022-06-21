@@ -15,7 +15,7 @@ export const signInEmailPasswordlessPromise = (
   options?: PasswordlessOptions
 ) =>
   new Promise<SignInEmailPasswordlessHandlerResult>((resolve) => {
-    const { changed } = interpreter.send('SIGNIN_PASSWORDLESS_EMAIL', {
+    const { changed } = interpreter.send('PASSWORDLESS_EMAIL', {
       email,
       options
     })
@@ -27,16 +27,16 @@ export const signInEmailPasswordlessPromise = (
       })
     }
     interpreter.onTransition((state) => {
-      if (state.matches({ authentication: { signedOut: 'failed' } })) {
+      if (state.matches('registration.incomplete.failed')) {
         resolve({
-          error: state.context.errors.authentication || null,
+          error: state.context.errors.registration || null,
           isError: true,
           isSuccess: false
         })
       } else if (
         state.matches({
           authentication: { signedOut: 'noErrors' },
-          email: 'awaitingVerification'
+          registration: { incomplete: 'needsEmailVerification' }
         })
       ) {
         resolve({ error: null, isError: false, isSuccess: true })
