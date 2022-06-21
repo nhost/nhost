@@ -1,5 +1,20 @@
 # @nhost/vue
 
+## 0.3.0
+
+### Minor Changes
+
+- 6f0a3005: `sendMfaOtp` now returns a promise
+  When using `useSignInEmailPassword`, the `sendMfaOtp` was `void`. It now returns a promise that resolves when the server returned the result of the OTP code submission, and returns `isSuccess`, `isError`, and `error`.
+
+### Patch Changes
+
+- 756d9960: correct useResetPassword inline example
+- Updated dependencies [6f0a3005]
+- Updated dependencies [6f0a3005]
+  - @nhost/nhost-js@1.4.0
+  - @nhost/core@0.7.1
+
 ## 0.2.1
 
 ### Patch Changes
