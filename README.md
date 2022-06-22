@@ -115,6 +115,20 @@ Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discus
 
 This repository, and most of our other open source projects, are licensed under the MIT license.
 
+<a
+    href="https://runacap.com/ross-index/q1-2022/"
+    target="_blank"
+    rel="noopener"
+>
+    <img
+        style="width: 260px; height: 56px"
+        src="https://runacap.com/wp-content/uploads/2022/06/ROSS_badge_black_Q1_2022.svg"
+        alt="ROSS Index - Fastest Growing Open-Source Startups in Q1 2022 | Runa Capital"
+        width="260"
+        height="56"
+    />
+</a>
+
 ### How to contribute
 
 Here are some ways of contributing to making Nhost better:
