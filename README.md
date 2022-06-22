@@ -82,12 +82,12 @@ Read our [configuration guide](./docs/configuration.md) to customise the Hasura 
 - [Change email](./docs/workflows/change-email.md)
 - [Change password](./docs/workflows/change-password.md)
 - [Reset password](./docs/workflows/reset-password.md)
-- [Refresh tokens](./docs/workflows/refesh-token.md)
+- [Refresh tokens](./docs/workflows/refresh-token.md)
 
 ## Recipes
 
 - Extending Hasura's permissions with [Custom JWT claims](./docs/recipes/custom-hasura-claims.md)
-- [Extending the user schema](./docs/recipes/extending-user-claims.md)
+- [Extending the user schema](./docs/recipes/extending-user-schema.md)
 
 ## Reference
 

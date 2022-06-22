@@ -49,7 +49,7 @@ sequenceDiagram
 		A->>-U: HTTP OK response
 		Note left of A: MFA code
 		U->>+G: Ask for a TOTP code
-		G->>-U:
+		G->>-U: &nbsp;
 		U->>+A: HTTP POST /signin/mfa/totp
 		Note right of U: TOTP code
 		A->>-U: HTTP OK reponse
