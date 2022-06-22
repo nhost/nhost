@@ -3,7 +3,7 @@
   "baseBranch": "origin/main",
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "$VITE_NHOST_URL"],
       "outputs": ["dist/**", "umd/**", "build/**", ".next"]
     },
     "test": {
