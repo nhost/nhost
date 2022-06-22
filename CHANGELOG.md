@@ -1,6 +1,11 @@
 
 
-## [0.9.1](https://github.com/nhost/hasura-auth/compare/v0.9.0...v0.9.1) (2022-06-14)
+## [0.9.2](https://github.com/nhost/hasura-auth/compare/v0.9.1...v0.9.2) (2022-06-22)
+
+
+### Bug Fixes
+
+* forbid anonymous users to change email or password, or to activate MFA ([064b15b](https://github.com/nhost/hasura-auth/commit/064b15be7da6eebb9f647d269e2c9cb9a6a795a6))## [0.9.1](https://github.com/nhost/hasura-auth/compare/v0.9.0...v0.9.1) (2022-06-14)
 
 
 ### Bug Fixes
