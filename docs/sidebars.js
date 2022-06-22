@@ -142,18 +142,6 @@ const sidebars = {
         'reference/cli/logs',
         'reference/cli/global-flags'
       ]
-    },
-    {
-      type: 'category',
-      label: 'Hasura Auth',
-      link: { type: 'doc', id: 'reference/hasura-auth/index' },
-      items: [
-        'reference/hasura-auth/installation',
-        'reference/hasura-auth/configuration',
-        'reference/hasura-auth/environment-variables',
-        'reference/hasura-auth/schema',
-        'reference/hasura-auth/api-reference'
-      ]
     }
   ]
 }
