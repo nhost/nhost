@@ -28,7 +28,6 @@ object_relationships:
     foreign_key_constraint_on: user_id
 insert_permissions:
 - permission:
-    backend_only: false
     check: {}
     columns:
     - contents
@@ -37,7 +36,6 @@ insert_permissions:
       user_id: x-hasura-user-id
   role: anonymous
 - permission:
-    backend_only: false
     check: {}
     columns:
     - contents
@@ -93,11 +91,13 @@ update_permissions:
   role: user
 delete_permissions:
 - permission:
+    backend_only: false
     filter:
       user_id:
         _eq: X-Hasura-User-Id
   role: anonymous
 - permission:
+    backend_only: false
     filter:
       user_id:
         _eq: X-Hasura-User-Id

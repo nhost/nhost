@@ -1,5 +1,12 @@
 # @nhost/core
 
+## 0.7.1
+
+### Patch Changes
+
+- 6f0a3005: `sendMfaOtp` now returns a promise
+  When using `useSignInEmailPassword`, the `sendMfaOtp` was `void`. It now returns a promise that resolves when the server returned the result of the OTP code submission, and returns `isSuccess`, `isError`, and `error`.
+
 ## 0.7.0
 
 ### Minor Changes
