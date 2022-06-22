@@ -64,7 +64,7 @@ jobs:
       - name: Run Jest tests
         # env:
         #   AUTH_LOCALE_ALLOWED_LOCALES: en,fr
-        run: pnpm run test -- --coverage
+        run: pnpm run test --coverage
       - name: Upload test results
         uses: actions/upload-artifact@v1
         with:
