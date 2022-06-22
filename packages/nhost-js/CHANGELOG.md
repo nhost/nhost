@@ -1,5 +1,13 @@
 # @nhost/nhost-js
 
+## 1.4.1
+
+### Patch Changes
+
+- b8f4b75b: Introduce `subdomain` and `region` alongside `backendUrl`.
+
+  `backendUrl` should now be used only for self-hosting. `subdomain` and `region` should be used when interacting with the hosted Nhost platform.
+
 ## 1.4.0
 
 ### Minor Changes
