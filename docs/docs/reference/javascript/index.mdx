@@ -42,7 +42,8 @@ Initialize a single `nhost` instance using your Nhost backend URL:
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: '<Your Nhost Backend URL>'
+  subdomain: '<your-subdomain>',
+  region: '<your-region>'
 })
 ```
 
