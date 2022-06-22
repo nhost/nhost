@@ -1,4 +1,4 @@
-## Custom Hasura JWT claims
+# Custom Hasura JWT claims
 
 Hasura comes with a [powerful authorisation system](https://hasura.io/docs/latest/graphql/core/auth/authorization/index.html). Hasura Auth is already configured to add `x-hasura-user-id`, `x-hasura-allowed-roles`, and `x-hasura-user-isAnonymous` to the JSON Web Tokens it generates.
 

@@ -1,6 +1,6 @@
-## Configuration Guide
+# Configuration Guide
 
-### Email configuration
+## Email configuration
 
 Hasura Auth automatically sends transactional emails to manage the following operations:
 
@@ -9,7 +9,7 @@ Hasura Auth automatically sends transactional emails to manage the following ope
 - Email change
 - Passwordless with emails
 
-#### SMTP settings
+### SMTP settings
 
 ```bash
 AUTH_SMTP_HOST=smtp.example.com
@@ -21,15 +21,15 @@ AUTH_SMTP_SENDER=hasura-auth@example.com
 
 See the [environment variables](./environment-variables) for additional information about how to connnect to an SMTP server.
 
-#### Email templates
+### Email templates
 
 You can create your own templates to customize the emails that will be sent to the users. You can have a look at the [official email templates](https://github.com/nhost/hasura-auth/tree/main/email-templates) to understand how they are structured.
 
-##### Within Docker
+#### Within Docker
 
 When using Docker, you can mount your own email templates from the local file system. You can have a look at this [docker-compose example](https://github.com/nhost/hasura-auth/blob/16df3e84b6c9a4f888b2ff07bd85afc34f8ed051/docker-compose-example.yaml#L41) to see how to set it up.
 
-##### Remote email templates
+#### Remote email templates
 
 When running Hasura Auth in its own infrastructure, it is possible to mount a volume with custom `email-templates` directory. However, in some cases, we may want to fetch templates from an external HTTP endpoint. Hence the introduction of a new `AUTH_EMAIL_TEMPLATE_FETCH_URL` environment variable:
 
@@ -47,7 +47,7 @@ The context variables in email templates have been simplified: the `${link}` var
 
 ---
 
-### Redirections
+## Redirections
 
 Some authentication operations redirects the users to the frontend application:
 
@@ -62,9 +62,9 @@ AUTH_CLIENT_URL=https://my-app.vercel.com
 
 ---
 
-### Email + password authentication
+## Email + password authentication
 
-#### Email checks
+### Email checks
 
 You can specify a list of allowed emails or domains with `AUTH_ACCESS_CONTROL_ALLOWED_EMAILS` and `AUTH_ACCESS_CONTROL_ALLOWED_EMAIL_DOMAINS`.
 
@@ -79,29 +79,29 @@ In the above example, users with the following emails would be able to register 
 
 Similarly, it is possible to provide a list of forbidden emails or domains with `AUTH_ACCESS_CONTROL_BLOCKED_EMAILS` and `AUTH_ACCESS_CONTROL_BLOCKED_EMAIL_DOMAINS`.
 
-#### Password checks
+### Password checks
 
 Hasura auth does not accepts passwords with less than three characters. This limit can be changed in changing the `AUTH_PASSWORD_MIN_LENGTH` environment variable.
 
 It is also possible to only allow [passwords that have not been pwned](https://haveibeenpwned.com/) in setting `AUTH_PASSWORD_HIBP_ENABLED` to `true`.
 
-#### Time-based one-time password (TOTP) Multi-Factor authentication
+### Time-based one-time password (TOTP) Multi-Factor authentication
 
 It is possible to add a step to authentication with email and password authentication. In order for users to be able to activate MFA TOTP, `AUTH_MFA_ENABLED` must be set to `true`.
 
-<!-- TODO ### OAuth authentication -->
+<!-- TODO ## OAuth authentication -->
 
 ---
 
-### Passwordless with emails (magic links)
+## Passwordless with emails (magic links)
 
 Hasura Auth supports email [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). It requires [SMTP](#email-configuration) to be configured properly.
 
 Set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true` to enable passwordless authentication.
 
-<!-- TODO ### Passwordless with SMS -->
+<!-- TODO ## Passwordless with SMS -->
 
-### Gravatar
+## Gravatar
 
 Hasura Auth stores the avatar URL of users in `auth.users.avatar_url`. By default, it will look for the Gravatar linked to the email, and store it into this field.
 It is possible to deactivate the use of Gravatar in setting the `AUTH_GRAVATAR_ENABLED` environment variable to `false`.

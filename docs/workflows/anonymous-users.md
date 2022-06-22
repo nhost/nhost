@@ -1,6 +1,6 @@
-## Anonymous Users
+# Anonymous Users
 
-### Sign-in anonymously
+## Sign-in anonymously
 
 ```mermaid
 sequenceDiagram
@@ -13,7 +13,7 @@ sequenceDiagram
 	Note left of A: Refresh token + access token
 ```
 
-### Deanonymisation
+## Deanonymisation
 
 ```mermaid
 sequenceDiagram

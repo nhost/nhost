@@ -37,12 +37,12 @@ Find more information about Hasura Auth in [our documentation](https://docs.nhos
 
 ## Sign in methods:
 
-- **Email and Password** - simple email and password method.
-- **Email** - also called **passwordless email** or **magic link**.
-- **SMS** - also called **passwordless sms**.
-- **Anonymous** - sign in users without any method. Anonymous users can be
+- [**Email and Password**](./docs/workflows/email-password.md) - simple email and password method.
+- [**Email**](./docs/workflows/passwordless-email.md) - also called **passwordless email** or **magic link**.
+- [**SMS**](./docs/workflows/passwordless-sms.md) - also called **passwordless sms**.
+- [**Anonymous**](./docs/workflows/anonymous-users.md) - sign in users without any method. Anonymous users can be
   converted to _regular_ users.
-- **OAuth providers**:
+- [**OAuth providers**](./docs/workflows/oauth-providers.md):
   - Facebook
   - Google
   - GitHub
@@ -86,8 +86,8 @@ Read our [configuration guide](./docs/configuration.md) to customise the Hasura 
 
 ## Recipes
 
-- [Custom Hasura JWT claims](./docs/recipes/custom-hasura-claims.md)
-- [Extending user schema](./docs/recipes/extending-user-claims.md)
+- Extending Hasura's permissions with [Custom JWT claims](./docs/recipes/custom-hasura-claims.md)
+- [Extending the user schema](./docs/recipes/extending-user-claims.md)
 
 ## Reference
 

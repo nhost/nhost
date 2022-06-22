@@ -1,4 +1,4 @@
-## Passwordless with SMS
+# Passwordless with SMS
 
 ```mermaid
 sequenceDiagram

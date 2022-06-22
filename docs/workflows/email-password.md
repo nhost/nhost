@@ -1,6 +1,6 @@
-## Sign up and sign in users with email and password
+# Sign up and sign in users with email and password
 
-### Sign up
+## Sign up
 
 ```mermaid
 sequenceDiagram
@@ -33,7 +33,7 @@ sequenceDiagram
 	end
 ```
 
-### Sign in
+## Sign in
 
 ```mermaid
 sequenceDiagram
@@ -57,7 +57,7 @@ sequenceDiagram
 	end
 ```
 
-### Activate Multi-Factor Authentication
+## Activate Multi-Factor Authentication
 
 It is possible to add a step to authentication with email and password authentication. Once users registered, they can activate MFA TOTP:
 

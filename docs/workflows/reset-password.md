@@ -1,4 +1,4 @@
-## Reset password
+# Reset password
 
 ```mermaid
 sequenceDiagram

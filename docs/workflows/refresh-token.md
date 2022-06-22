@@ -1,4 +1,4 @@
-## Refresh tokens
+# Refresh tokens
 
 ```mermaid
 sequenceDiagram

@@ -1,4 +1,4 @@
-## Change email
+# Change email
 
 ```mermaid
 sequenceDiagram

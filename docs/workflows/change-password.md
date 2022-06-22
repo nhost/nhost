@@ -1,4 +1,4 @@
-## Change password
+# Change password
 
 ```mermaid
 sequenceDiagram

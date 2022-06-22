@@ -1,4 +1,4 @@
-## Passwordless with emails (magic links)
+# Passwordless with emails (magic links)
 
 ```mermaid
 sequenceDiagram

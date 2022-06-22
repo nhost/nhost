@@ -1,4 +1,4 @@
-## Oauth social providers
+# Oauth social providers
 
 ```mermaid
 sequenceDiagram

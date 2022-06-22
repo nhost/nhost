@@ -1,4 +1,4 @@
-## General environment variables
+# General environment variables
 
 | Name (a star**\*** means the variable is required) | Description                                                                                                                                                                                            | Default value                |
 | -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
@@ -47,7 +47,7 @@
 | AUTH_EMAIL_TEMPLATE_FETCH_URL                      |                                                                                                                                                                                                        |                              |
 | AUTH_JWT_CUSTOM_CLAIMS                             |                                                                                                                                                                                                        |                              |
 
-## OAuth environment variables
+# OAuth environment variables
 
 | Name (a star**\*** means the variable is required when the provider is enabled) | Default value                       |
 | ------------------------------------------------------------------------------- | ----------------------------------- |
