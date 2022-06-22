@@ -3,8 +3,12 @@
   "baseBranch": "origin/main",
   "pipeline": {
     "build": {
-      "dependsOn": ["^build", "$VITE_NHOST_URL"],
+      "dependsOn": ["^build"],
       "outputs": ["dist/**", "umd/**", "build/**", ".next"]
+    },
+    "@nhost-examples/react-apollo#build": {
+      "dependsOn": ["^build", "$VITE_NHOST_URL"],
+      "outputs": ["dist/**"]
     },
     "test": {
       "dependsOn": ["^build"],
