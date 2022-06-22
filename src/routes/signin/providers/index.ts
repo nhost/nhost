@@ -36,6 +36,7 @@ export default (parentRouter: Router) => {
    * @summary
    * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,windowslive,linkedin,spotify,strava,gitlab,bitbucket
    * @param {string} redirectUrl.query.required -
+   * @return {string} 302 - Redirect to the provider's authentication page
    * @tags Authentication
    */
 

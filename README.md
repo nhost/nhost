@@ -68,6 +68,33 @@ cp .env.example .env
 docker-compose -f docker-compose-example.yaml up
 ```
 
+## Configuration
+
+Read our [configuration guide](./docs/configuration.md) to customise the Hasura Auth settings.
+
+## Workflows
+
+- [Email and password](./docs/workflows/email-password.md)
+- [Oauth social providers](./docs/workflows/oauth-providers.md)
+- [Passwordless with emails (magic links)](./docs/workflows/passwordless-email.md)
+- [Passwordless with SMS](./docs/workflows/passwordless-sms.md)
+- [Anonymous users](./docs/workflows/anonymous-users.md)
+- [Change email](./docs/workflows/change-email.md)
+- [Change password](./docs/workflows/change-password.md)
+- [Reset password](./docs/workflows/reset-password.md)
+- [Refresh tokens](./docs/workflows/refesh-token.md)
+
+## Recipes
+
+- [Custom Hasura JWT claims](./docs/recipes/custom-hasura-claims.md)
+- [Extending user schema](./docs/recipes/extending-user-claims.md)
+
+## Reference
+
+- List of the available [environment variables](./docs/environment-variables.md).
+- The service comes with an [OpenAPI definition](./docs/openapi.json) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/hasura-auth/main/docs/openapi.json).
+- [Database Schema](./docs/schema.md)
+
 ## 🤝 Contributing
 
 Contributions and issues are welcome. Please have a look at the [developer's guide](./DEVELOPERS.md) if you want to prepare a pull request.
