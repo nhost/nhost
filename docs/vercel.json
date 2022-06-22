@@ -40,6 +40,16 @@
       "source": "/reference/react/hooks",
       "destination": "/reference/react",
       "permanent": true
+    },
+    {
+      "source": "/reference/hasura-auth",
+      "destination": "https://github.com/nhost/hasura-auth",
+      "permanent": true
+    },
+    {
+      "source": "/reference/hasura-auth/:path*",
+      "destination": "https://github.com/nhost/hasura-auth",
+      "permanent": true
     }
   ]
 }

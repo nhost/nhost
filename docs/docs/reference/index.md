@@ -34,12 +34,3 @@ In this section:
 ### Nhost CLI
 
 - [CLI overview](/reference/cli)
-
-### Hasura Auth
-
-- [Overview](/reference/hasura-auth)
-- [Installation](/reference/hasura-auth/installation)
-- [Configuration](/reference/hasura-auth/configuration)
-- [Environment variables](/reference/hasura-auth/environment-variables)
-- [Schema](/reference/hasura-auth/schema)
-- [API](/reference/hasura-auth/api-reference)
