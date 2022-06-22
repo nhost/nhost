@@ -21,11 +21,7 @@
   </a>
 </p>
 
-## Documentation:
-
-Find more information about Hasura Auth in [our documentation](https://docs.nhost.io/reference/hasura-auth).
-
-## Core Features:
+## Core Features
 
 - 🧑‍🤝‍🧑 Users are stored in Postgres and accessed via GraphQL
 - 🔑 Multiple sign-in methods.
@@ -35,7 +31,7 @@ Find more information about Hasura Auth in [our documentation](https://docs.nhos
 - ✅ Optional checking for Pwned Passwords.
 - 👨‍💻 Written 100% in TypeScript.
 
-## Sign in methods:
+## Sign in methods
 
 - [**Email and Password**](./docs/workflows/email-password.md) - simple email and password method.
 - [**Email**](./docs/workflows/passwordless-email.md) - also called **passwordless email** or **magic link**.
