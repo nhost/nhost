@@ -67,7 +67,8 @@ Install the `@nhost/nhost-js` package and start build your app:
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://awesome-app.nhost.run'
+  subdomain: '<your-subdomain>',
+  region: '<your-region>'
 })
 
 await nhost.auth.signIn({ email: 'elon@musk.com', password: 'spaceX' })

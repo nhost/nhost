@@ -1,20 +1,10 @@
-import { HasuraAuthClient, NhostAuthConstructorParams } from '@nhost/hasura-auth-js'
+import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 import { HasuraStorageClient } from '@nhost/hasura-storage-js'
 
 import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
-
-export interface NhostClientConstructorParams extends Omit<NhostAuthConstructorParams, 'url'> {
-  /**
-   * Nhost backend URL.
-   */
-  backendUrl: string
-  /**
-   * Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all
-   * GraphQL, Storage, and Serverless Functions requests.
-   */
-  adminSecret?: string
-}
+import { urlFromParams } from '../utils/helpers'
+import { NhostClientConstructorParams } from '../utils/types'
 
 export class NhostClient {
   auth: HasuraAuthClient
@@ -27,12 +17,13 @@ export class NhostClient {
    * Nhost Client
    *
    * @example
-   * const nhost = new NhostClient({ url });
+   * ```ts
+   * const nhost = new NhostClient({ subdomain, region });
+   * ```
    *
    * @docs https://docs.nhost.io/reference/javascript
    */
   constructor({
-    backendUrl,
     refreshIntervalTime,
     clientStorageGetter,
     clientStorageSetter,
@@ -42,11 +33,11 @@ export class NhostClient {
     autoSignIn,
     adminSecret,
     devTools,
-    start = true
+    start = true,
+    ...urlParams
   }: NhostClientConstructorParams) {
-    if (!backendUrl) throw new Error('Please specify a `backendUrl`. Docs: [todo]!')
     this.auth = new HasuraAuthClient({
-      url: `${backendUrl}/v1/auth`,
+      url: urlFromParams(urlParams, 'auth'),
       refreshIntervalTime,
       clientStorageGetter,
       clientStorageSetter,
@@ -58,17 +49,17 @@ export class NhostClient {
     })
 
     this.storage = new HasuraStorageClient({
-      url: `${backendUrl}/v1/storage`,
+      url: urlFromParams(urlParams, 'storage'),
       adminSecret
     })
 
     this.functions = new NhostFunctionsClient({
-      url: `${backendUrl}/v1/functions`,
+      url: urlFromParams(urlParams, 'functions'),
       adminSecret
     })
 
     this.graphql = new NhostGraphqlClient({
-      url: `${backendUrl}/v1/graphql`,
+      url: urlFromParams(urlParams, 'graphql'),
       adminSecret
     })
 

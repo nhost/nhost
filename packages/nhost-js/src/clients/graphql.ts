@@ -1,7 +1,7 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import { DocumentNode, print } from 'graphql'
 
-import { GraphqlRequestResponse, GraphqlResponse } from '../types'
+import { GraphqlRequestResponse, GraphqlResponse } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
   /**
