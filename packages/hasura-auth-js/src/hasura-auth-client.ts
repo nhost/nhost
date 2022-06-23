@@ -220,7 +220,7 @@ export class HasuraAuthClient {
    * ```
    *
    * @example
-   * ### Sign out the user from all decvices
+   * ### Sign out the user from all devices
    * ```ts
    * nhost.auth.signOut({all: true})
    * ```
