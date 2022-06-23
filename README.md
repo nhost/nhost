@@ -263,6 +263,13 @@ Here are some ways of contributing to making Nhost better:
     </td></tr>
 <tr>
     <td align="center">
+        <a href="https://github.com/MelodicCrypter">
+            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
+            <br />
+            <sub><b>Hugh Caluscusin</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/jerryjappinen">
             <img src="https://avatars.githubusercontent.com/u/1101002?v=4" width="100;" alt="jerryjappinen"/>
             <br />
@@ -296,15 +303,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Muttenzer</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/ahmic">
             <img src="https://avatars.githubusercontent.com/u/13452362?v=4" width="100;" alt="ahmic"/>
             <br />
             <sub><b>Amir Ahmic</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/akd-io">
             <img src="https://avatars.githubusercontent.com/u/30059155?v=4" width="100;" alt="akd-io"/>
@@ -339,27 +346,20 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Gaurav Agrawal</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/alveshelio">
             <img src="https://avatars.githubusercontent.com/u/8176422?v=4" width="100;" alt="alveshelio"/>
             <br />
             <sub><b>Helio Alves</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/nkhdo">
             <img src="https://avatars.githubusercontent.com/u/26102306?v=4" width="100;" alt="nkhdo"/>
             <br />
             <sub><b>Hoang Do</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/MelodicCrypter">
-            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
-            <br />
-            <sub><b>Hugh Caluscusin</b></sub>
         </a>
     </td>
     <td align="center">
