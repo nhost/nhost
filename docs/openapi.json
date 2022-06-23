@@ -2049,7 +2049,18 @@
                   }
                }
             ],
-            "responses" : {},
+            "responses" : {
+               "302" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "type" : "string"
+                        }
+                     }
+                  },
+                  "description" : "Redirect to the provider's authentication page"
+               }
+            },
             "security" : [],
             "summary" : "",
             "tags" : [
