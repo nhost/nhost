@@ -1,5 +1,57 @@
 # @nhost/vue
 
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [b8f4b75b]
+  - @nhost/nhost-js@1.4.1
+
+## 0.3.0
+
+### Minor Changes
+
+- 6f0a3005: `sendMfaOtp` now returns a promise
+  When using `useSignInEmailPassword`, the `sendMfaOtp` was `void`. It now returns a promise that resolves when the server returned the result of the OTP code submission, and returns `isSuccess`, `isError`, and `error`.
+
+### Patch Changes
+
+- 756d9960: correct useResetPassword inline example
+- Updated dependencies [6f0a3005]
+- Updated dependencies [6f0a3005]
+  - @nhost/nhost-js@1.4.0
+  - @nhost/core@0.7.1
+
+## 0.2.1
+
+### Patch Changes
+
+- 6f45856c: Correct use of ref values in action options
+  The `nestedUnref` helper was not correctly un-refing nested values. For instance, the values the properties of the following metadata were still `refs`:
+
+  ```jsx
+  const { signUpEmailPassword } = useSignUpEmailPassword()
+  const firstName = ref('John')
+  const lastName = ref('Doe')
+  signUpEmailPassword((email: 'john@world.com'), (password: 'not-1234'), {
+    metadata: { firstName, lastName }
+  })
+  ```
+
+## 0.2.0
+
+### Minor Changes
+
+- c1613394: Deanonymisation
+  Once signed in anonymously, users can deanonymise using `nhost.auth.deanonymize`.
+  Deanonymisation works the same way as email+password sign-up or passwordless sign-in. The related methods, hooks in React and composables in Vue can therefore be used for deanonymising users, such as `nhost.auth.signUp`, `useSignUpEmailPassword`, and `useSignInEmailPasswordless`.
+
+### Patch Changes
+
+- Updated dependencies [c1613394]
+  - @nhost/core@0.7.0
+  - @nhost/nhost-js@1.3.0
+
 ## 0.1.6
 
 ### Patch Changes

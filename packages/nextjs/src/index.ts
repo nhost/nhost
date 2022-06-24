@@ -1,4 +1,9 @@
-import { NhostClient as VanillaNhostClient, NhostClientConstructorParams } from '@nhost/nhost-js'
+import {
+  BackendUrl,
+  NhostAuthConstructorParams,
+  NhostClient as VanillaNhostClient,
+  Subdomain
+} from '@nhost/nhost-js'
 
 export * from './create-server-side-client'
 export * from './get-session'
@@ -9,10 +14,18 @@ export { NhostReactProvider as NhostNextProvider } from '@nhost/react'
 const isBrowser = typeof window !== 'undefined'
 
 export interface NhostNextClientConstructorParams
-  extends Omit<
-    NhostClientConstructorParams,
-    'start' | 'clientStorage' | 'clientStorageType' | 'clientStorageGetter' | 'clientStorageSetter'
-  > {}
+  extends Partial<BackendUrl>,
+    Partial<Subdomain>,
+    Omit<
+      NhostAuthConstructorParams,
+      | 'url'
+      | 'start'
+      | 'client'
+      | 'clientStorage'
+      | 'clientStorageType'
+      | 'clientStorageGetter'
+      | 'clientStorageSetter'
+    > {}
 
 export class NhostClient extends VanillaNhostClient {
   constructor(params: NhostNextClientConstructorParams) {

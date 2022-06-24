@@ -1,5 +1,36 @@
 # @nhost/hasura-auth-js
 
+## 1.3.0
+
+### Minor Changes
+
+- 6f0a3005: Complete sign-in when email+password MFA is activated
+  It was not possible to complete authentication with `nhost.auth.signIn` in sending the TOTP code when email+password MFA was activated.
+  An user that activated MFA can now sign in with the two following steps:
+  ```js
+  await nhost.auth.signIn({ email: 'email@domain.com', password: 'not-my-birthday' })
+  // Get the one-time password with an OTP application e.g. Google Authenticator
+  await nhost.auth.signIn({ otp: '123456' })
+  ```
+
+### Patch Changes
+
+- Updated dependencies [6f0a3005]
+  - @nhost/core@0.7.1
+
+## 1.2.0
+
+### Minor Changes
+
+- c1613394: Extend deanonymisation options
+  The Nhost Auth client method `auth.deanonymize` was only accepting `allowedRoles` and `defaultRole` as additional parameters. It is not possible to pass on an `options` parameter with the usual registration options such as `redirectTo`, `locale`, `metadata`, and `displayName`.
+  The `auth.deanonymize` parameters are now strongly typed.
+
+### Patch Changes
+
+- Updated dependencies [c1613394]
+  - @nhost/core@0.7.0
+
 ## 1.1.14
 
 ### Patch Changes

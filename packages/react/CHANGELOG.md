@@ -1,5 +1,40 @@
 # @nhost/react
 
+## 0.9.1
+
+### Patch Changes
+
+- Updated dependencies [b8f4b75b]
+  - @nhost/nhost-js@1.4.1
+
+## 0.9.0
+
+### Minor Changes
+
+- 6f0a3005: `sendMfaOtp` now returns a promise
+  When using `useSignInEmailPassword`, the `sendMfaOtp` was `void`. It now returns a promise that resolves when the server returned the result of the OTP code submission, and returns `isSuccess`, `isError`, and `error`.
+
+### Patch Changes
+
+- Updated dependencies [6f0a3005]
+- Updated dependencies [6f0a3005]
+  - @nhost/nhost-js@1.4.0
+  - @nhost/core@0.7.1
+
+## 0.8.0
+
+### Minor Changes
+
+- c1613394: Deanonymisation
+  Once signed in anonymously, users can deanonymise using `nhost.auth.deanonymize`.
+  Deanonymisation works the same way as email+password sign-up or passwordless sign-in. The related methods, hooks in React and composables in Vue can therefore be used for deanonymising users, such as `nhost.auth.signUp`, `useSignUpEmailPassword`, and `useSignInEmailPasswordless`.
+
+### Patch Changes
+
+- Updated dependencies [c1613394]
+  - @nhost/core@0.7.0
+  - @nhost/nhost-js@1.3.0
+
 ## 0.7.13
 
 ### Patch Changes

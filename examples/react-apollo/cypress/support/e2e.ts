@@ -1,7 +1,8 @@
 import { faker } from '@faker-js/faker'
+import { User } from '@nhost/core'
+
 import '@testing-library/cypress/add-commands'
 import 'cypress-mailhog'
-
 declare module 'mocha' {
   export interface Context {
     refreshToken?: string
@@ -13,6 +14,7 @@ declare global {
       signUpEmailPassword(email: string, password: string): Chainable<Element>
       signUpEmailPasswordless(email: string): Chainable<Element>
       signInEmailPassword(email: string, password: string): Chainable<Element>
+      signInAnonymous(): Chainable<Element>
       /** Sign in from the refresh token stored in the global state */
       visitPathWithRefreshToken(path?: string): Chainable<Element>
       /** Click on the 'Sign Out' item of the left side menu to sign out the current user */
@@ -27,6 +29,12 @@ declare global {
       disconnectBackend(): Chainable<Element>
       /** Get the left side navigation bar */
       getNavBar(): Chainable<Element>
+      /** Go to the profile page */
+      goToProfilePage(): Chainable<Element>
+      /** Go to the home page */
+      goToHomePage(): Chainable<Element>
+      /** Go getch the user ID in the profile page*/
+      fetchUserData(): Chainable<User>
     }
   }
 }
@@ -58,6 +66,12 @@ Cypress.Commands.add('signInEmailPassword', (email, password) => {
   cy.saveRefreshToken()
 })
 
+Cypress.Commands.add('signInAnonymous', () => {
+  cy.visit('/sign-in')
+  cy.findByRole('link', { name: /sign in anonymously/i }).click()
+  cy.saveRefreshToken()
+})
+
 Cypress.Commands.add('visitPathWithRefreshToken', function (path = '/') {
   cy.visit(path + '#refreshToken=' + this.refreshToken)
 })
@@ -85,7 +99,8 @@ Cypress.Commands.add('signUpAndConfirmEmail', (givenEmail) => {
 })
 
 Cypress.Commands.add('saveRefreshToken', () => {
-  cy.contains('Sign Out')
+  cy.getNavBar()
+    .findByRole('button', { name: /Sign Out/i })
     .then(() => localStorage.getItem('nhostRefreshToken'))
     .as('refreshToken')
 })
@@ -97,5 +112,28 @@ Cypress.Commands.add('disconnectBackend', () => {
 })
 
 Cypress.Commands.add('getNavBar', () => {
-  cy.get('.mantine-Navbar-root')
+  cy.findByRole(`navigation`, { name: /main navigation/i })
+})
+
+Cypress.Commands.add('goToProfilePage', () => {
+  cy.getNavBar()
+    .findByRole('button', { name: /Profile/i })
+    .click()
+})
+
+Cypress.Commands.add('goToHomePage', () => {
+  cy.getNavBar().findByRole('button', { name: /Home/i }).click()
+})
+
+Cypress.Commands.add('fetchUserData', () => {
+  cy.goToProfilePage()
+  cy.findByText('User information')
+    .parent()
+    .within(() => {
+      cy.get('pre')
+        .invoke('text')
+        .then((text) => JSON.parse(text))
+        .as('user')
+    })
+  return cy.get<User>('@user')
 })

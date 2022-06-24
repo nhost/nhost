@@ -74,7 +74,8 @@ Where `nhost` comes from `lib/nhost.js` like this:
 import { NhostClient } from '@nhost/react'
 
 const nhost = new NhostClient({
-  backendUrl: '<Your Nhost Backend URL>'
+  subdomain: '<your-subdomain>',
+  region: '<your-region>'
 })
 
 export { nhost }

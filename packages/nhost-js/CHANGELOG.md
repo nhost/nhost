@@ -1,5 +1,44 @@
 # @nhost/nhost-js
 
+## 1.4.1
+
+### Patch Changes
+
+- b8f4b75b: Introduce `subdomain` and `region` alongside `backendUrl`.
+
+  `backendUrl` should now be used only for self-hosting. `subdomain` and `region` should be used when interacting with the hosted Nhost platform.
+
+## 1.4.0
+
+### Minor Changes
+
+- 6f0a3005: Complete sign-in when email+password MFA is activated
+  It was not possible to complete authentication with `nhost.auth.signIn` in sending the TOTP code when email+password MFA was activated.
+  An user that activated MFA can now sign in with the two following steps:
+  ```js
+  await nhost.auth.signIn({ email: 'email@domain.com', password: 'not-my-birthday' })
+  // Get the one-time password with an OTP application e.g. Google Authenticator
+  await nhost.auth.signIn({ otp: '123456' })
+  ```
+
+### Patch Changes
+
+- Updated dependencies [6f0a3005]
+  - @nhost/hasura-auth-js@1.3.0
+
+## 1.3.0
+
+### Minor Changes
+
+- c1613394: Deanonymisation
+  Once signed in anonymously, users can deanonymise using `nhost.auth.deanonymize`.
+  Deanonymisation works the same way as email+password sign-up or passwordless sign-in. The related methods, hooks in React and composables in Vue can therefore be used for deanonymising users, such as `nhost.auth.signUp`, `useSignUpEmailPassword`, and `useSignInEmailPasswordless`.
+
+### Patch Changes
+
+- Updated dependencies [c1613394]
+  - @nhost/hasura-auth-js@1.2.0
+
 ## 1.2.4
 
 ### Patch Changes

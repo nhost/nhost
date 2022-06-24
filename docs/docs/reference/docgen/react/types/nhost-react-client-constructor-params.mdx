@@ -4,7 +4,7 @@ title: NhostReactClientConstructorParams
 sidebar_label: NhostReactClientConstructorParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/client.ts#L3
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/client.ts#L5
 ---
 
 # `NhostReactClientConstructorParams`
@@ -13,16 +13,32 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/cli
 
 ---
 
-**<span className="parameter-name">backendUrl</span>** <span className="optional-status">required</span> `string`
+**<span className="parameter-name">region</span>** <span className="optional-status">optional</span> `string`
 
-Nhost backend URL.
+App region (e.g., eu-central-1)
+Not required in development (when `subdomain` is "localhost")
+
+---
+
+**<span className="parameter-name">subdomain</span>** <span className="optional-status">optional</span> `string`
+
+App subdomain (e.g, ieingiwnginwnfnegqwvdqwdwq)
+Should be used when using the Nhost platform
+Use "localhost" in development
 
 ---
 
 **<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
 
-Admin secret. When set, it is sent as an `x-hasura-admin-secret` header for all
-GraphQL, Storage, and Serverless Functions requests.
+When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
+for all requests to GraphQL, Storage, and Functions.
+
+---
+
+**<span className="parameter-name">backendUrl</span>** <span className="optional-status">optional</span> `string`
+
+Nhost backend URL
+Should only be used when self-hosting
 
 ---
 

@@ -10,7 +10,6 @@ const AuthLink: React.FC<{
   variant?: ButtonVariant
 }> = ({ icon, color, link, variant, children }) => {
   return (
-    // <Link to={link}>
     <Button
       role="button"
       component={Link}
@@ -34,7 +33,6 @@ const AuthLink: React.FC<{
     >
       {children}
     </Button>
-    // </Link>
   )
 }
 

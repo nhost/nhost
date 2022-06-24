@@ -67,7 +67,8 @@ Install the `@nhost/nhost-js` package and start build your app:
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://awesome-app.nhost.run'
+  subdomain: '<your-subdomain>',
+  region: '<your-region>'
 })
 
 await nhost.auth.signIn({ email: 'elon@musk.com', password: 'spaceX' })
@@ -114,6 +115,10 @@ Also, follow Nhost on [GitHub Discussions](https://github.com/nhost/nhost/discus
 ### Nhost is Open Source
 
 This repository, and most of our other open source projects, are licensed under the MIT license.
+
+<a href="https://runacap.com/ross-index/q1-2022/" target="_blank" rel="noopener">
+    <img style="width: 260px; height: 56px" src="https://runacap.com/wp-content/uploads/2022/06/ROSS_badge_black_Q1_2022.svg" alt="ROSS Index - Fastest Growing Open-Source Startups in Q1 2022 | Runa Capital" width="260" height="56" />
+</a>
 
 ### How to contribute
 
@@ -164,18 +169,18 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/subatuba21">
-            <img src="https://avatars.githubusercontent.com/u/34824571?v=4" width="100;" alt="subatuba21"/>
-            <br />
-            <sub><b>Subha Das</b></sub>
-        </a>
-    </td></tr>
-<tr>
-    <td align="center">
         <a href="https://github.com/guicurcio">
             <img src="https://avatars.githubusercontent.com/u/20285232?v=4" width="100;" alt="guicurcio"/>
             <br />
             <sub><b>Guido Curcio</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/subatuba21">
+            <img src="https://avatars.githubusercontent.com/u/34824571?v=4" width="100;" alt="subatuba21"/>
+            <br />
+            <sub><b>Subha Das</b></sub>
         </a>
     </td>
     <td align="center">
@@ -258,6 +263,13 @@ Here are some ways of contributing to making Nhost better:
     </td></tr>
 <tr>
     <td align="center">
+        <a href="https://github.com/MelodicCrypter">
+            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
+            <br />
+            <sub><b>Hugh Caluscusin</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/jerryjappinen">
             <img src="https://avatars.githubusercontent.com/u/1101002?v=4" width="100;" alt="jerryjappinen"/>
             <br />
@@ -286,6 +298,14 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/muttenzer">
+            <img src="https://avatars.githubusercontent.com/u/49474412?v=4" width="100;" alt="muttenzer"/>
+            <br />
+            <sub><b>Muttenzer</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
         <a href="https://github.com/ahmic">
             <img src="https://avatars.githubusercontent.com/u/13452362?v=4" width="100;" alt="ahmic"/>
             <br />
@@ -298,8 +318,7 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Anders Kjær Damgaard</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/Sonichigo">
             <img src="https://avatars.githubusercontent.com/u/53110238?v=4" width="100;" alt="Sonichigo"/>
@@ -327,7 +346,8 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Gaurav Agrawal</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/alveshelio">
             <img src="https://avatars.githubusercontent.com/u/8176422?v=4" width="100;" alt="alveshelio"/>
@@ -341,20 +361,19 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Hoang Do</b></sub>
         </a>
-    </td></tr>
-<tr>
-    <td align="center">
-        <a href="https://github.com/MelodicCrypter">
-            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
-            <br />
-            <sub><b>Hugh Caluscusin</b></sub>
-        </a>
     </td>
     <td align="center">
         <a href="https://github.com/jladuval">
             <img src="https://avatars.githubusercontent.com/u/1935359?v=4" width="100;" alt="jladuval"/>
             <br />
             <sub><b>Jacob Duval</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/kylehayes">
+            <img src="https://avatars.githubusercontent.com/u/509932?v=4" width="100;" alt="kylehayes"/>
+            <br />
+            <sub><b>Kyle Hayes</b></sub>
         </a>
     </td>
     <td align="center">
@@ -370,7 +389,8 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Max Reynolds</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/ghoshnirmalya">
             <img src="https://avatars.githubusercontent.com/u/6391763?v=4" width="100;" alt="ghoshnirmalya"/>
@@ -384,8 +404,7 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Quentin Decré</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/atapas">
             <img src="https://avatars.githubusercontent.com/u/3633137?v=4" width="100;" alt="atapas"/>

@@ -14,9 +14,9 @@ export type NestedRefOfValue<T> = RefOrValue<{
 
 export const nestedUnref = <T>(input: NestedRefOfValue<T>): T => {
   const result: NestedRefOfValue<T> = unref(input)
-  if (result) {
+  if (result && typeof result === 'object') {
     return Object.entries(result).reduce(
-      (aggr, [key, value]) => ({ ...aggr, [key]: unref(value) }),
+      (aggr, [key, value]) => ({ ...aggr, [key]: nestedUnref(value as NestedRefOfValue<unknown>) }),
       {} as T
     )
   } else {

@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders, AxiosResponse } from 'axios'
 
-import { FunctionCallResponse } from '../types'
+import { FunctionCallResponse } from '../utils/types'
 export interface NhostFunctionsConstructorParams {
   /**
    * Serverless Functions endpoint.

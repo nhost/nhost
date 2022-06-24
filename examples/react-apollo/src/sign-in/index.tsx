@@ -2,6 +2,7 @@ import { FaLock } from 'react-icons/fa'
 import { Link, Route, Routes, useNavigate } from 'react-router-dom'
 
 import { Anchor, Center, Divider, Text } from '@mantine/core'
+import { useSignInAnonymous } from '@nhost/react'
 
 import AuthLayout from '../components/AuthLayout'
 import AuthLink from '../components/AuthLink'
@@ -10,7 +11,6 @@ import OAuthLinks from '../components/OauthLinks'
 import { EmailPassword } from './email-password'
 import { EmailPasswordless } from './email-passwordless'
 import { ForgotPassword } from './forgot-password'
-import { useSignInAnonymous } from '@nhost/react'
 
 const Index: React.FC = () => (
   <>
@@ -41,10 +41,13 @@ export const SignInPage: React.FC = () => {
         <Center>
           <Text>
             Don&lsquo;t have an account?{' '}
-            <Anchor component={Link} to="/sign-up">
+            <Anchor role="link" component={Link} to="/sign-up">
               Sign up
             </Anchor>{' '}
-            or <Anchor onClick={anonymousHandler}>sign in anonymously</Anchor>
+            or{' '}
+            <Anchor role="link" onClick={anonymousHandler}>
+              sign in anonymously
+            </Anchor>
           </Text>
         </Center>
       }

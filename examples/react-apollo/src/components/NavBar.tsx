@@ -1,6 +1,6 @@
 import { FaFile, FaHouseUser, FaQuestion, FaSignOutAlt } from 'react-icons/fa'
 import { SiApollographql } from 'react-icons/si'
-import { useLocation,useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 import { Link } from 'react-router-dom'
 
 import { Group, MantineColor, Navbar, Text, ThemeIcon, UnstyledButton } from '@mantine/core'
@@ -63,7 +63,7 @@ export default function NavBar() {
   const navigate = useNavigate()
   const links = data.map((link) => <MenuItem {...link} key={link.label} />)
   return (
-    <Navbar width={{ sm: 300, lg: 400, base: 100 }}>
+    <Navbar width={{ sm: 300, lg: 400, base: 100 }} aria-label="main navigation">
       <Navbar.Section grow mt="md">
         {links}
         {authenticated && (

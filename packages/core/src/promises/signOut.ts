@@ -1,4 +1,4 @@
-import { ErrorPayload, USER_UNAUTHENTICATED } from '../errors'
+import { USER_UNAUTHENTICATED } from '../errors'
 import { AuthInterpreter } from '../types'
 
 import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
@@ -10,7 +10,7 @@ export const signOutPromise = async (
   interpreter: AuthInterpreter,
   all?: boolean
 ): Promise<SignOutlessHandlerResult> =>
-  new Promise<{ isSuccess: boolean; error: ErrorPayload | null; isError: boolean }>((resolve) => {
+  new Promise<SignOutlessHandlerResult>((resolve) => {
     const { event } = interpreter.send('SIGNOUT', { all })
     if (event.type !== 'SIGNED_OUT') {
       return resolve({ isSuccess: false, isError: true, error: USER_UNAUTHENTICATED })
