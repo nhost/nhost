@@ -12,7 +12,14 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 ```ts
 type FileUploadEvents =
   | { type: 'ADD'; file: File; id: string; bucketId: string; name: string }
-  | { type: 'UPLOAD'; file: File; id: string; bucketId: string; name: string }
+  | {
+      type: 'UPLOAD'
+      file: File
+      id: string
+      bucketId: string
+      name: string
+      adminSecret: string
+    }
   | {
       type: 'UPLOAD_PROGRESS'
       progress: number

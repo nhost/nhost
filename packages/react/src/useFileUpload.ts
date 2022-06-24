@@ -83,12 +83,14 @@ export type { FileItemRef }
 export const useFileUploadItem = (
   ref: FileItemRef | InterpreterFrom<ReturnType<typeof createFileUploadMachine>>
 ): FileUploadHookResult => {
+  const nhost = useNhostClient()
+
   const add = (file: File) => {
     ref.send({ type: 'ADD', file })
   }
 
   const upload = (file?: File) => {
-    ref.send({ type: 'UPLOAD', file })
+    ref.send({ type: 'UPLOAD', file, adminSecret: nhost.adminSecret })
   }
 
   const cancel = () => {
@@ -150,7 +152,7 @@ export const useFileUploadItem = (
  *
  * @docs https://docs.nhost.io/reference/react/use-file-upload
  */
-export const useFileUpload = () => {
+export const useFileUpload = (): FileUploadHookResult => {
   const nhost = useNhostClient()
   const auth = useAuthInterpreter()
 

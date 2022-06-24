@@ -14,7 +14,14 @@ export type FileUploadContext = {
 
 export type FileUploadEvents =
   | { type: 'ADD'; file: File; id?: string; bucketId?: string; name?: string }
-  | { type: 'UPLOAD'; file?: File; id?: string; bucketId?: string; name?: string }
+  | {
+      type: 'UPLOAD'
+      file?: File
+      id?: string
+      bucketId?: string
+      name?: string
+      adminSecret?: string
+    }
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
   | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
   | { type: 'UPLOAD_ERROR'; error: ErrorPayload }
@@ -31,7 +38,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
         context: {} as FileUploadContext,
         events: {} as FileUploadEvents
       },
-      tsTypes: {} as import("./file-upload.typegen").Typegen0,
+      tsTypes: {} as import('./file-upload.typegen').Typegen0,
       context: { ...INITIAL_FILE_CONTEXT },
       initial: 'idle',
       on: {
@@ -106,7 +113,9 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
           const file = (event.file || context.file)!
           const data = new FormData()
           data.append('file', file)
-          // TODO also add hasura admin secret
+          if (event.adminSecret) {
+            headers['x-hasura-admin-secret'] = event.adminSecret
+          }
           const jwt = auth.state.context.accessToken.value
           if (jwt) {
             headers['Authorization'] = `Bearer ${jwt}`

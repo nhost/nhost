@@ -34,11 +34,11 @@ export interface MultipleFilesHookResult extends MultipleFilesUploadState {
   /**
    * Add one or multiple files to add to the list of files to upload.
    */
-  add: (file: File) => void
+  add: (files: File[]) => void
   /**
    * Upload the files that has been previously added to the list.
    */
-  upload: (options: UploadMultipleFilesActionParams) => void // TODO promisify
+  upload: (options?: UploadMultipleFilesActionParams) => void // TODO promisify
   /**
    * Cancel the ongoing upload. The files that have been successfully uploaded will not be deleted from the server.
    */
@@ -86,7 +86,7 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
 
   const upload = (options: UploadMultipleFilesActionParams = { bucketId: 'default' }) => {
     const { bucketId } = options
-    service.send('UPLOAD', { bucketId })
+    service.send({ type: 'UPLOAD', bucketId, adminSecret: nhost.adminSecret })
   }
 
   const cancel = () => {

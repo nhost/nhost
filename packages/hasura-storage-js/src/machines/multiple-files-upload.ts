@@ -17,7 +17,7 @@ export type MultipleFilesUploadContext = {
 
 export type MultipleFilesUploadEvents =
   | { type: 'ADD'; files: File | File[] }
-  | { type: 'UPLOAD'; bucketId?: string }
+  | { type: 'UPLOAD'; bucketId?: string; adminSecret?: string }
   | { type: 'UPLOAD_PROGRESS'; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
@@ -162,8 +162,10 @@ export const createMultipleFilesUploadMachine = (params: {
         clearList: pure((context) =>
           context.files.map((ref) => send({ type: 'DESTROY' }, { to: ref.id }))
         ),
-        upload: pure((context, { bucketId }) =>
-          context.files.map((ref) => send({ type: 'UPLOAD', bucketId }, { to: ref.id }))
+        upload: pure((context, { bucketId, adminSecret }) =>
+          context.files.map((ref) =>
+            send({ type: 'UPLOAD', bucketId, adminSecret }, { to: ref.id })
+          )
         ),
         cancel: pure((context) =>
           context.files.map((ref) => send({ type: 'CANCEL' }, { to: ref.id }))

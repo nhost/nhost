@@ -4,7 +4,8 @@ import {
   FaCheckCircle,
   FaCloudUploadAlt,
   FaExclamationTriangle,
-  FaMinus} from 'react-icons/fa'
+  FaMinus
+} from 'react-icons/fa'
 
 import {
   ActionIcon,
@@ -22,9 +23,10 @@ import {
   Text,
   ThemeIcon,
   Title,
-  useMantineTheme} from '@mantine/core'
+  useMantineTheme
+} from '@mantine/core'
 import { Dropzone, DropzoneStatus } from '@mantine/dropzone'
-import { FileItemRef,useFileUpload, useFileUploadItem, useMultipleFilesUpload } from '@nhost/react'
+import { FileItemRef, useFileUpload, useFileUploadItem, useMultipleFilesUpload } from '@nhost/react'
 
 function getIconColor(status: DropzoneStatus, theme: MantineTheme) {
   return status.accepted
