@@ -1,19 +1,14 @@
-import { ClientStorage } from '@nhost/core'
+import { ClientStorage, NHOST_REFRESH_TOKEN_KEY, NHOST_JWT_EXPIRES_AT_KEY } from '@nhost/core'
 
 /**
- * Custom in memory storage implementation for testing purposes.
+ * Custom emory storage implementation that always return a mock refresh token
  */
-export class CustomClientStorage implements ClientStorage {
-  private _storage: Map<string, any>
-
-  constructor(storage: Map<string, any>) {
-    this._storage = storage
-  }
-
-  public getItem = (key: string) => this._storage.get(key)
-  public setItem = (key: string, value: any) => this._storage.set(key, value)
-  public removeItem = (key: string) => this._storage.delete(key)
-  public clear = () => this._storage.clear()
+export const clientStorage: ClientStorage = {
+  getItem: (key: string) =>
+    ({
+      [NHOST_REFRESH_TOKEN_KEY]: 'mockRefreshTokenValue',
+      [NHOST_JWT_EXPIRES_AT_KEY]: Date.now().toString()
+    }[key]),
+  setItem: () => {},
+  removeItem: () => {}
 }
-
-export default CustomClientStorage

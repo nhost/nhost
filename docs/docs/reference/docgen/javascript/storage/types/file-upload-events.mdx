@@ -4,7 +4,7 @@ title: FileUploadEvents
 sidebar_label: FileUploadEvents
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/machines/file-upload.ts#L14
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/machines/file-upload.ts#L15
 ---
 
 # `FileUploadEvents`
@@ -20,7 +20,7 @@ type FileUploadEvents =
       additions: number
     }
   | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
-  | { type: 'UPLOAD_ERROR' }
+  | { type: 'UPLOAD_ERROR'; error: ErrorPayload }
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 ```

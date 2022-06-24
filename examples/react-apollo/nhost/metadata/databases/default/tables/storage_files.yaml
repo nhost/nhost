@@ -51,7 +51,6 @@ object_relationships:
     foreign_key_constraint_on: bucket_id
 insert_permissions:
 - permission:
-    backend_only: false
     check: {}
     columns:
     - is_uploaded

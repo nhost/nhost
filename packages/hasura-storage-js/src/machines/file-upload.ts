@@ -1,11 +1,12 @@
-import axios, { AxiosRequestHeaders } from 'axios'
+import axios, { AxiosError, AxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
 
-import { AuthInterpreter } from '@nhost/core'
+import { AuthInterpreter, ErrorPayload } from '@nhost/core'
 
 export type FileUploadContext = {
   progress: number | null
   loaded: number
+  error?: ErrorPayload
   id?: string
   bucketId?: string
   file?: File
@@ -16,7 +17,7 @@ export type FileUploadEvents =
   | { type: 'UPLOAD'; file?: File; id?: string; bucketId?: string; name?: string }
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
   | { type: 'UPLOAD_DONE'; id: string; bucketId: string }
-  | { type: 'UPLOAD_ERROR' }
+  | { type: 'UPLOAD_ERROR'; error: ErrorPayload }
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 
@@ -30,7 +31,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
         context: {} as FileUploadContext,
         events: {} as FileUploadEvents
       },
-      tsTypes: {} as import('./file-upload.typegen').Typegen0,
+      tsTypes: {} as import("./file-upload.typegen").Typegen0,
       context: { ...INITIAL_FILE_CONTEXT },
       initial: 'idle',
       on: {
@@ -54,7 +55,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
           invoke: { src: 'uploadFile' }
         },
         uploaded: { entry: ['setFileMetadata', 'sendDone'] },
-        error: { entry: 'sendError' },
+        error: { entry: ['setError', 'sendError'] },
         stopped: { type: 'final' }
       }
     },
@@ -73,6 +74,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
           bucketId: (_, { bucketId }) => bucketId,
           progress: (_) => 100
         }),
+        setError: assign({ error: (_, { error }) => error }),
         sendProgress: () => {},
         sendError: () => {},
         sendDestroy: () => {},
@@ -142,9 +144,14 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
               callback({ type: 'UPLOAD_DONE', id, bucketId })
               callback('UPLOAD_DONE')
             })
-            .catch((err) => {
-              //   TODO get some info back from hasura-storage
-              callback('UPLOAD_ERROR')
+            .catch((err: AxiosError<{ error?: { message: string } }>) => {
+              const error: ErrorPayload = {
+                status: err.response?.status ?? 0,
+                message: err.response?.data.error?.message || err.message,
+                // TODO errors from hasura-storage are not codified
+                error: err.response?.data.error?.message || err.message
+              }
+              callback({ type: 'UPLOAD_ERROR', error })
             })
 
           return () => {

@@ -10,6 +10,7 @@ export interface Typegen0 {
     resetProgress: 'UPLOAD'
     setFileMetadata: 'UPLOAD_DONE'
     sendDone: 'UPLOAD_DONE'
+    setError: 'UPLOAD_ERROR'
     sendError: 'UPLOAD_ERROR'
   }
   internalEvents: {

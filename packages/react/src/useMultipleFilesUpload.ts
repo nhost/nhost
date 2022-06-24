@@ -4,7 +4,50 @@ import { createMultipleFilesUploadMachine, FileItemRef } from '@nhost/hasura-sto
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
+import { UploadProgressState } from './useFileUpload'
 import { useNhostClient } from './useNhostClient'
+
+export interface MultipleFilesUploadState extends UploadProgressState {
+  /**
+   * Returns `true` when all the files have been successfully uploaded.
+   */
+  isUploaded: boolean
+  /**
+   * Returns `true` when the files are being uploaded.
+   */
+  isUploading: boolean
+  /**
+   * Returns the overall progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
+   */
+  progress: number | null
+  /**
+   * The list of files. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadItem` hook.
+   */
+  list: FileItemRef[]
+  /**
+   * Returns `true` when at least one file failed to upload.
+   */
+  hasError: boolean
+}
+
+export interface MultipleFilesHookResult extends MultipleFilesUploadState {
+  /**
+   * Add one or multiple files to add to the list of files to upload.
+   */
+  add: (file: File) => void
+  /**
+   * Upload the files that has been previously added to the list.
+   */
+  upload: (options: UploadMultipleFilesActionParams) => void // TODO promisify
+  /**
+   * Cancel the ongoing upload. The files that have been successfully uploaded will not be deleted from the server.
+   */
+  cancel: () => void
+  /**
+   * Clear the list of files.
+   */
+  clear: () => void
+}
 
 type UploadMultipleFilesActionParams = {
   bucketId?: string
@@ -28,7 +71,7 @@ type UploadMultipleFilesActionParams = {
  * ```
  * @docs https://docs.nhost.io/reference/react/use-multiple-files-upload
  */
-export const useMultipleFilesUpload = () => {
+export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   const nhost = useNhostClient()
   const auth = useAuthInterpreter()
   const machine = useMemo(
@@ -59,45 +102,17 @@ export const useMultipleFilesUpload = () => {
   const hasError = useSelector(service, (state) => state.matches('error'))
 
   const progress = useSelector(service, (state) => state.context.progress)
-  const list: FileItemRef[] = useSelector(service, (state) => state.context.files)
+  const list = useSelector(service, (state) => state.context.files)
 
   return {
-    /**
-     * Upload the files that has been previously added to the list.
-     */
     upload,
-    /**
-     * Add one or multiple files to add to the list of files to upload.
-     */
-
     add,
-    /**
-     * Clear the list of files.
-     */
     clear,
-    /**
-     * Returns the overall progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
-     */
+    cancel,
     progress,
-    /**
-     * Returns `true` when all the files have been successfully uploaded.
-     */
     isUploaded,
-    /**
-     * Returns `true` when the files are being uploaded.
-     */
     isUploading,
-    /**
-     * The list of files. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadItem` hook.
-     */
     list,
-    /**
-     * Returns `true` when at least one file failed to upload.
-     */
-    hasError,
-    /**
-     * Cancel the ongoing upload. The files that have been successfully uploaded will not be deleted from the server.
-     */
-    cancel
+    hasError
   }
 }

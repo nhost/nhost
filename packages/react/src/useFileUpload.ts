@@ -1,11 +1,61 @@
 import { useMemo } from 'react'
 import { InterpreterFrom } from 'xstate'
 
+import { ActionErrorState } from '@nhost/core'
 import { createFileUploadMachine, FileItemRef } from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useNhostClient } from './useNhostClient'
+
+export interface UploadProgressState {
+  /**
+   * Returns `true` when the file has been successfully uploaded.
+   */
+  isUploaded: boolean
+  /**
+   * Returns `true` when the file is being uploaded.
+   */
+  isUploading: boolean
+  /**
+   * Returns the progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
+   */
+  progress: number | null
+}
+export interface FileUploadState extends ActionErrorState, UploadProgressState {
+  /**
+   * Returns the id of the file.
+   */
+  id?: string
+  /**
+   * Returns the bucket id.
+   */
+  bucketId?: string
+  /**
+   * Returns the name of the file.
+   */
+  name?: string
+}
+
+export interface FileUploadHookResult extends FileUploadState {
+  /**
+   * Add the file without uploading it.
+   */
+  add: (file: File) => void
+
+  /**
+   * Upload the file given as a parameter, or that has been previously added.
+   */
+  upload: (file?: File) => void // TODO promisify
+  /**
+   * Cancel the ongoing upload.
+   */
+  cancel: () => void
+  /**
+   * @internal - used by the MultipleFilesUpload component to notice the file should be removed from the list.
+   */
+  destroy: () => void
+}
 
 export type { FileItemRef }
 
@@ -32,7 +82,7 @@ export type { FileItemRef }
  */
 export const useFileUploadItem = (
   ref: FileItemRef | InterpreterFrom<ReturnType<typeof createFileUploadMachine>>
-) => {
+): FileUploadHookResult => {
   const add = (file: File) => {
     ref.send({ type: 'ADD', file })
   }
@@ -52,56 +102,24 @@ export const useFileUploadItem = (
   const isUploading = useSelector(ref, (state) => state.matches('uploading'))
   const isUploaded = useSelector(ref, (state) => state.matches('uploaded'))
   const isError = useSelector(ref, (state) => state.matches('error'))
-
+  const error = useSelector(ref, (state) => state.context.error || null)
   const progress = useSelector(ref, (state) => state.context.progress)
   const id = useSelector(ref, (state) => state.context.id)
   const bucketId = useSelector(ref, (state) => state.context.bucketId)
   const name = useSelector(ref, (state) => state.context.file?.name)
 
   return {
-    /**
-     * Add the file without uploading it.
-     */
     add,
-    /**
-     * Upload the file given as a parameter, or that has been previously added.
-     */
     upload,
-    /**
-     * Cancel the ongoing upload.
-     */
     cancel,
-    /**
-     * @internal - used by the MultipleFilesUpload component to notice the file should be removed from the list.
-     */
     destroy,
-    /**
-     * Returns `true` when the file has been successfully uploaded.
-     */
     isUploaded,
-    /**
-     * Returns `true` when the file is being uploaded.
-     */
     isUploading,
-    /**
-     * Returns `true` when the file has failed to upload.
-     */
     isError,
-    /**
-     * Returns the progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
-     */
+    error,
     progress,
-    /**
-     * Returns the id of the file.
-     */
     id,
-    /**
-     * Returns the bucket id.
-     */
     bucketId,
-    /**
-     * Returns the name of the file.
-     */
     name
   }
 }

@@ -1,5 +1,5 @@
 import faker from '@faker-js/faker'
-import { User } from '../../../src/types'
+import { User } from '@nhost/core'
 
 /**
  * A fake user object.
