@@ -1,9 +1,6 @@
-import { useMemo } from 'react'
-
 import { createMultipleFilesUploadMachine, FileItemRef } from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
-import { useAuthInterpreter } from './useAuthInterpreter'
 import { UploadProgressState } from './useFileUpload'
 import { useNhostClient } from './useNhostClient'
 
@@ -73,12 +70,7 @@ type UploadMultipleFilesActionParams = {
  */
 export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   const nhost = useNhostClient()
-  const auth = useAuthInterpreter()
-  const machine = useMemo(
-    () => createMultipleFilesUploadMachine({ url: nhost.storage.url, auth }),
-    [nhost, auth]
-  )
-  const service = useInterpret(machine)
+  const service = useInterpret(createMultipleFilesUploadMachine())
 
   const add = (files: File | File[]) => {
     service.send('ADD', { files })
@@ -86,7 +78,13 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
 
   const upload = (options: UploadMultipleFilesActionParams = { bucketId: 'default' }) => {
     const { bucketId } = options
-    service.send({ type: 'UPLOAD', bucketId, adminSecret: nhost.adminSecret })
+    service.send({
+      type: 'UPLOAD',
+      url: nhost.storage.url,
+      bucketId,
+      accessToken: nhost.auth.getAccessToken(),
+      adminSecret: nhost.adminSecret
+    })
   }
 
   const cancel = () => {

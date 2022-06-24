@@ -1,11 +1,9 @@
-import { useMemo } from 'react'
 import { InterpreterFrom } from 'xstate'
 
 import { ActionErrorState } from '@nhost/core'
 import { createFileUploadMachine, FileItemRef } from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
-import { useAuthInterpreter } from './useAuthInterpreter'
 import { useNhostClient } from './useNhostClient'
 
 export interface UploadProgressState {
@@ -90,7 +88,13 @@ export const useFileUploadItem = (
   }
 
   const upload = (file?: File) => {
-    ref.send({ type: 'UPLOAD', file, adminSecret: nhost.adminSecret })
+    ref.send({
+      type: 'UPLOAD',
+      url: nhost.storage.url,
+      file,
+      accessToken: nhost.auth.getAccessToken(),
+      adminSecret: nhost.adminSecret
+    })
   }
 
   const cancel = () => {
@@ -153,14 +157,7 @@ export const useFileUploadItem = (
  * @docs https://docs.nhost.io/reference/react/use-file-upload
  */
 export const useFileUpload = (): FileUploadHookResult => {
-  const nhost = useNhostClient()
-  const auth = useAuthInterpreter()
-
-  const machine = useMemo(
-    () => createFileUploadMachine({ url: nhost.storage.url, auth }),
-    [nhost, auth]
-  )
-  const service = useInterpret(machine)
+  const service = useInterpret(createFileUploadMachine())
 
   return useFileUploadItem(service)
 }

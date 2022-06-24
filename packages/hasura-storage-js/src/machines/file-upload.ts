@@ -1,7 +1,7 @@
 import axios, { AxiosError, AxiosRequestHeaders } from 'axios'
 import { assign, createMachine } from 'xstate'
 
-import { AuthInterpreter, ErrorPayload } from '@nhost/core'
+import { ErrorPayload } from '@nhost/core'
 
 export type FileUploadContext = {
   progress: number | null
@@ -16,10 +16,12 @@ export type FileUploadEvents =
   | { type: 'ADD'; file: File; id?: string; bucketId?: string; name?: string }
   | {
       type: 'UPLOAD'
+      url: string
       file?: File
       id?: string
       bucketId?: string
       name?: string
+      accessToken?: string
       adminSecret?: string
     }
   | { type: 'UPLOAD_PROGRESS'; progress: number; loaded: number; additions: number }
@@ -30,7 +32,7 @@ export type FileUploadEvents =
 
 export const INITIAL_FILE_CONTEXT: FileUploadContext = { progress: null, loaded: 0 }
 
-export const createFileUploadMachine = ({ url, auth }: { url: string; auth: AuthInterpreter }) =>
+export const createFileUploadMachine = () =>
   createMachine(
     {
       preserveActionOrder: true,
@@ -116,9 +118,8 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
           if (event.adminSecret) {
             headers['x-hasura-admin-secret'] = event.adminSecret
           }
-          const jwt = auth.state.context.accessToken.value
-          if (jwt) {
-            headers['Authorization'] = `Bearer ${jwt}`
+          if (event.accessToken) {
+            headers['Authorization'] = `Bearer ${event.accessToken}`
           }
           let currentLoaded = 0
           const controller = new AbortController()
@@ -134,7 +135,7 @@ export const createFileUploadMachine = ({ url, auth }: { url: string; auth: Auth
               size: number
               updatedAt: string
               uploadedByUserId: string
-            }>(url + '/files', data, {
+            }>(event.url + '/files', data, {
               headers,
               signal: controller.signal,
               onUploadProgress: (event: ProgressEvent) => {

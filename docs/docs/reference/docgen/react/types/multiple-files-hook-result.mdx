@@ -4,7 +4,7 @@ title: MultipleFilesHookResult
 sidebar_label: MultipleFilesHookResult
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useMultipleFilesUpload.ts#L33
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useMultipleFilesUpload.ts#L30
 ---
 
 # `MultipleFilesHookResult`
@@ -31,7 +31,7 @@ Returns the overall progress of the upload, from 0 to 100. Returns null if the u
 
 ---
 
-**<span className="parameter-name">list</span>** <span className="optional-status">required</span> `Array<ActorRefWithDeprecatedState<FileUploadContext, { type: "ADD", file: File, id: string, bucketId: string, name: string } | { type: "UPLOAD", file: File, id: string, bucketId: string, name: string, adminSecret: string } | { type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number } | { type: "UPLOAD_DONE", id: string, bucketId: string } | { type: "UPLOAD_ERROR", error: ErrorPayload } | { type: "CANCEL" } | { type: "DESTROY" }, { value: any, context: FileUploadContext }, ResolveTypegenMeta<Typegen0, { type: "ADD", file: File, id: string, bucketId: string, name: string } | { type: "UPLOAD", file: File, id: string, bucketId: string, name: string, adminSecret: string } | { type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number } | { type: "UPLOAD_DONE", id: string, bucketId: string } | { type: "UPLOAD_ERROR", error: ErrorPayload } | { type: "CANCEL" } | { type: "DESTROY" }, BaseActionObject, ServiceMap>>>`
+**<span className="parameter-name">list</span>** <span className="optional-status">required</span> `Array<ActorRefWithDeprecatedState<FileUploadContext, { type: "ADD", file: File, id: string, bucketId: string, name: string } | { type: "UPLOAD", url: string, file: File, id: string, bucketId: string, name: string, accessToken: string, adminSecret: string } | { type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number } | { type: "UPLOAD_DONE", id: string, bucketId: string } | { type: "UPLOAD_ERROR", error: ErrorPayload } | { type: "CANCEL" } | { type: "DESTROY" }, { value: any, context: FileUploadContext }, ResolveTypegenMeta<Typegen0, { type: "ADD", file: File, id: string, bucketId: string, name: string } | { type: "UPLOAD", url: string, file: File, id: string, bucketId: string, name: string, accessToken: string, adminSecret: string } | { type: "UPLOAD_PROGRESS", progress: number, loaded: number, additions: number } | { type: "UPLOAD_DONE", id: string, bucketId: string } | { type: "UPLOAD_ERROR", error: ErrorPayload } | { type: "CANCEL" } | { type: "DESTROY" }, BaseActionObject, ServiceMap>>>`
 
 The list of files. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadItem` hook.
 

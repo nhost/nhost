@@ -14,10 +14,12 @@ type FileUploadEvents =
   | { type: 'ADD'; file: File; id: string; bucketId: string; name: string }
   | {
       type: 'UPLOAD'
+      url: string
       file: File
       id: string
       bucketId: string
       name: string
+      accessToken: string
       adminSecret: string
     }
   | {

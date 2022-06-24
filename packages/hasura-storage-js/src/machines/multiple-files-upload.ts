@@ -1,7 +1,5 @@
 import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstate'
 
-import { AuthInterpreter } from '@nhost/core'
-
 import { createFileUploadMachine, INITIAL_FILE_CONTEXT } from './file-upload'
 
 const { pure, sendParent } = actions
@@ -17,7 +15,7 @@ export type MultipleFilesUploadContext = {
 
 export type MultipleFilesUploadEvents =
   | { type: 'ADD'; files: File | File[] }
-  | { type: 'UPLOAD'; bucketId?: string; adminSecret?: string }
+  | { type: 'UPLOAD'; url: string; bucketId?: string; accessToken?: string; adminSecret?: string }
   | { type: 'UPLOAD_PROGRESS'; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
@@ -25,10 +23,7 @@ export type MultipleFilesUploadEvents =
   | { type: 'REMOVE' }
   | { type: 'CLEAR' }
 
-export const createMultipleFilesUploadMachine = (params: {
-  url: string
-  auth: AuthInterpreter
-}) => {
+export const createMultipleFilesUploadMachine = () => {
   return createMachine(
     {
       id: 'files-list',
@@ -96,7 +91,7 @@ export const createMultipleFilesUploadMachine = (params: {
 
       actions: {
         incrementProgress: assign((context, event) => {
-          const loaded = context.loaded + event.additions
+          const loaded: number = context.loaded + event.additions
           const progress = Math.round((loaded * 100) / context.total)
           return { ...context, loaded, progress }
         }),
@@ -127,7 +122,7 @@ export const createMultipleFilesUploadMachine = (params: {
               ...context.files,
               ...additions.map((file) =>
                 spawn(
-                  createFileUploadMachine(params)
+                  createFileUploadMachine()
                     .withConfig({
                       actions: {
                         sendProgress: sendParent((_, { additions }) => ({
@@ -162,11 +157,7 @@ export const createMultipleFilesUploadMachine = (params: {
         clearList: pure((context) =>
           context.files.map((ref) => send({ type: 'DESTROY' }, { to: ref.id }))
         ),
-        upload: pure((context, { bucketId, adminSecret }) =>
-          context.files.map((ref) =>
-            send({ type: 'UPLOAD', bucketId, adminSecret }, { to: ref.id })
-          )
-        ),
+        upload: pure((context, event) => context.files.map((ref) => send(event, { to: ref.id }))),
         cancel: pure((context) =>
           context.files.map((ref) => send({ type: 'CANCEL' }, { to: ref.id }))
         )
