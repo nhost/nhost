@@ -9,6 +9,7 @@ Nhost Authentication support the following sign-in methods:
 - [Email and Password](/platform/authentication/sign-in-with-email-and-password)
 - [Magic Link](/platform/authentication/sign-in-with-magic-link)
 - [Phone Number (SMS)](/platform/authentication/sign-in-with-phone-number-sms)
+- [Anonymous users](/platform/authentication/anonymous-users)
 - [Google](/platform/authentication/sign-in-with-google)
 - [Facebook](/platform/authentication/sign-in-with-facebook)
 - [GitHub](/platform/authentication/sign-in-with-github)
