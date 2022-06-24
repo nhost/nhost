@@ -20,23 +20,4 @@ export const fakeUser: User = {
   metadata: {}
 }
 
-/**
- * A fake anonymous user object with the same id and creation date as the fake user
- */
-export const fakeAnonymousUser: User = {
-  ...fakeUser,
-
-  displayName: 'Anonymous User',
-  avatarUrl: faker.internet.avatar(),
-  locale: 'en',
-  isAnonymous: true,
-  emailVerified: false,
-  defaultRole: 'anonymous',
-  roles: ['anonymous'],
-  phoneNumber: null,
-  phoneNumberVerified: false,
-  activeMfaType: null,
-  metadata: {}
-}
-
 export default fakeUser
