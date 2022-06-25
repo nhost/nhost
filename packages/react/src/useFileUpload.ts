@@ -157,7 +157,7 @@ export const useFileUploadItem = (
  * @docs https://docs.nhost.io/reference/react/use-file-upload
  */
 export const useFileUpload = (): FileUploadHookResult => {
-  const service = useInterpret(createFileUploadMachine())
+  const service = useInterpret(createFileUploadMachine)
 
   return useFileUploadItem(service)
 }

@@ -70,7 +70,7 @@ type UploadMultipleFilesActionParams = {
  */
 export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   const nhost = useNhostClient()
-  const service = useInterpret(createMultipleFilesUploadMachine())
+  const service = useInterpret(createMultipleFilesUploadMachine)
 
   const add = (files: File | File[]) => {
     service.send('ADD', { files })
