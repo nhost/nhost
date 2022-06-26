@@ -1,0 +1,56 @@
+{
+  "name": "@nhost/codesandbox",
+  "version": "0.0.1",
+  "description": "",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "codesandbox",
+    "github"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.esm.js",
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "vite build --config ../../config/vite.lib.dev.config.js",
+    "build": "run-p build:lib build:umd",
+    "build:lib": "vite build --config ../../config/vite.lib.config.js",
+    "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
+    "test": "vitest run --config ../../config/vite.lib.config.js",
+    "test:watch": "vitest --config ../../config/vite.lib.config.js",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix"
+  },
+  "dependencies": {
+    "codesandbox-import-utils": "2.2.3"
+  },
+  "devDependencies": {
+    "codesandbox-import-util-types": "^2.2.3"
+  }
+}
