@@ -12,7 +12,7 @@
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/blog">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://twitter.com/nhostio">Twitter</a>
+<a href="https://twitter.com/nhost">Twitter</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/discord">Discord</a>
 <br />
@@ -32,7 +32,7 @@ Nhost consists of open source software:
 - Database: [PostgreSQL](https://www.postgresql.org/)
 - Instant GraphQL API: [Hasura](https://hasura.io/)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
-- Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
+- Storage: [Hasura Storage](https://github.com/nhost/hasura-storage)
 - Serverless Functions: Node.js (JavaScript and TypeScript)
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
