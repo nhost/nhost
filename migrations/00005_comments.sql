@@ -16,7 +16,8 @@ comment on table auth.users is 'User account information. Don''t modify its stru
 comment on column auth.users.id is 'Auto-generated unique identifier for the user.';
 comment on column auth.users.created_at is 'Auto-generated timestamp for when the user was created.';
 comment on column auth.users.updated_at is 'Auto-generated timestamp for when the user was last updated.';
--- comment on column auth.users.last_seen is '';
+-- TODO partially implemented
+comment on column auth.users.last_seen is 'Timestamp on when an access token has been created for the user.';
 comment on column auth.users.disabled is 'Disabled users cannot sign in.';
 comment on column auth.users.display_name is 'User display name, populated on sign-up either from the options sent in the http payload, or from the provider when signing up with Oauth. Falls back to the email when not provided.';
 comment on column auth.users.avatar_url is 'The URL of the user''s avatar. Populated on sign-up when Gravatar integration is enabled.';
@@ -27,15 +28,16 @@ comment on column auth.users.password_hash is 'User password hashed with bcrypt.
 comment on column auth.users.email_verified is 'Is true when the user''s email address has been verified with a link sent by email.';
 comment on column auth.users.phone_number_verified is 'Is true when the user''s phone number has been verified with code sent by SMS.';
 comment on column auth.users.new_email is 'Tentative new email address, used to verify the new email address.';
+-- TODO not sure if this field is needed
 -- comment on column auth.users.otp_method_last_used is '';
--- comment on column auth.users.otp_hash is '';
--- comment on column auth.users.otp_hash_expires_at is '';
+comment on column auth.users.otp_hash is 'One-time password hashed with bcrypt, used to verify the user''s phone number.';
+comment on column auth.users.otp_hash_expires_at is 'One-time password hash expiration timestamp.';
 comment on column auth.users.default_role is 'The user''s default role to be used in the x-hasura-default-role JWT claim.';
 comment on column auth.users.is_anonymous is 'Is true when the user is anonymous.';
--- comment on column auth.users.totp_secret is '';
--- comment on column auth.users.active_mfa_type is '';
--- comment on column auth.users.ticket is '';
--- comment on column auth.users.ticket_expires_at is '';
+comment on column auth.users.totp_secret is 'Auto-generated secret for the user''s multi-factor authentication.';
+comment on column auth.users.active_mfa_type is 'Active multi-factor authentication type. One of: NULL, totp.';
+comment on column auth.users.ticket is 'Tickets are used to perform verifications through transactional emails.';
+comment on column auth.users.ticket_expires_at is 'Timestamp on when the ticket expires.';
 comment on column auth.users.metadata is 'Custom JSON data for the user that can be sent when the user signs up.';
 comment on table auth.refresh_tokens is 'User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don''t modify its structure as Hasura Auth relies on it to function properly.';
 comment on column auth.refresh_tokens.refresh_token is 'Auto-generated refresh token id.';
