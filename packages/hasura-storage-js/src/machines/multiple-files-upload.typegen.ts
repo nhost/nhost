@@ -13,7 +13,7 @@ export interface Typegen0 {
     resetTotal: 'CLEAR' | 'CANCEL' | 'UPLOAD'
     upload: 'UPLOAD'
     startProgress: 'UPLOAD'
-    setUploaded: 'UPLOAD_DONE'
+    setUploaded: 'UPLOAD_DONE' | 'UPLOAD_ERROR'
   }
   internalEvents: {
     'xstate.init': { type: 'xstate.init' }
@@ -28,8 +28,8 @@ export interface Typegen0 {
   eventsCausingServices: {}
   eventsCausingGuards: {
     hasFileToDownload: 'UPLOAD'
-    isAllUploaded: 'UPLOAD_DONE'
-    isAllUploadedOrError: 'UPLOAD_DONE'
+    isAllUploaded: 'UPLOAD_DONE' | 'UPLOAD_ERROR'
+    isAllUploadedOrError: 'UPLOAD_DONE' | 'UPLOAD_ERROR'
   }
   eventsCausingDelays: {}
   matchesStates: 'idle' | 'uploading' | 'uploaded' | 'error'

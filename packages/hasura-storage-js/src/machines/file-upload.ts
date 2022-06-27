@@ -6,7 +6,7 @@ import { ErrorPayload } from '@nhost/core'
 export type FileUploadContext = {
   progress: number | null
   loaded: number
-  error?: ErrorPayload
+  error: ErrorPayload | null
   id?: string
   bucketId?: string
   file?: File
@@ -30,8 +30,9 @@ export type FileUploadEvents =
   | { type: 'CANCEL' }
   | { type: 'DESTROY' }
 
-export const INITIAL_FILE_CONTEXT: FileUploadContext = { progress: null, loaded: 0 }
+export const INITIAL_FILE_CONTEXT: FileUploadContext = { progress: null, loaded: 0, error: null }
 
+export type FileUploadMachine = ReturnType<typeof createFileUploadMachine>
 export const createFileUploadMachine = () =>
   createMachine(
     {

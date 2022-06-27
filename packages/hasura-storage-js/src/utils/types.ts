@@ -1,3 +1,12 @@
+import { HasuraAuthClient } from '@nhost/hasura-auth-js'
+
+import { HasuraStorageClient } from '../hasura-storage-client'
+
+export interface INhostClient {
+  auth: HasuraAuthClient
+  storage: HasuraStorageClient
+  adminSecret?: string
+}
 export interface StorageUploadParams {
   file: File
   id?: string

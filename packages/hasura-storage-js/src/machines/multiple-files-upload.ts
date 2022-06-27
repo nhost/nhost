@@ -23,6 +23,8 @@ export type MultipleFilesUploadEvents =
   | { type: 'REMOVE' }
   | { type: 'CLEAR' }
 
+export type MultipleFilesUploadMachine = ReturnType<typeof createMultipleFilesUploadMachine>
+
 export const createMultipleFilesUploadMachine = () => {
   return createMachine(
     {
@@ -59,7 +61,10 @@ export const createMultipleFilesUploadMachine = () => {
               { cond: 'isAllUploaded', target: 'uploaded' },
               { cond: 'isAllUploadedOrError', target: 'error' }
             ],
-            UPLOAD_ERROR: 'error',
+            UPLOAD_ERROR: [
+              { cond: 'isAllUploaded', target: 'uploaded' },
+              { cond: 'isAllUploadedOrError', target: 'error' }
+            ],
             CANCEL: { actions: 'cancel', target: 'idle' }
           }
         },

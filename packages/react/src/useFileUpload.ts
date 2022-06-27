@@ -1,40 +1,15 @@
 import { InterpreterFrom } from 'xstate'
 
-import { ActionErrorState } from '@nhost/core'
-import { createFileUploadMachine, FileItemRef } from '@nhost/hasura-storage-js'
+import {
+  createFileUploadMachine,
+  FileItemRef,
+  FileUploadState,
+  UploadFileHandlerResult,
+  uploadFilePromise
+} from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useNhostClient } from './useNhostClient'
-
-export interface UploadProgressState {
-  /**
-   * Returns `true` when the file has been successfully uploaded.
-   */
-  isUploaded: boolean
-  /**
-   * Returns `true` when the file is being uploaded.
-   */
-  isUploading: boolean
-  /**
-   * Returns the progress of the upload, from 0 to 100. Returns null if the upload has not started yet.
-   */
-  progress: number | null
-}
-export interface FileUploadState extends ActionErrorState, UploadProgressState {
-  /**
-   * Returns the id of the file.
-   */
-  id?: string
-  /**
-   * Returns the bucket id.
-   */
-  bucketId?: string
-  /**
-   * Returns the name of the file.
-   */
-  name?: string
-}
-
 export interface FileUploadHookResult extends FileUploadState {
   /**
    * Add the file without uploading it.
@@ -44,11 +19,13 @@ export interface FileUploadHookResult extends FileUploadState {
   /**
    * Upload the file given as a parameter, or that has been previously added.
    */
-  upload: (file?: File) => void // TODO promisify
+  upload: (file?: File) => Promise<UploadFileHandlerResult>
+
   /**
    * Cancel the ongoing upload.
    */
   cancel: () => void
+
   /**
    * @internal - used by the MultipleFilesUpload component to notice the file should be removed from the list.
    */
@@ -87,15 +64,7 @@ export const useFileUploadItem = (
     ref.send({ type: 'ADD', file })
   }
 
-  const upload = (file?: File) => {
-    ref.send({
-      type: 'UPLOAD',
-      url: nhost.storage.url,
-      file,
-      accessToken: nhost.auth.getAccessToken(),
-      adminSecret: nhost.adminSecret
-    })
-  }
+  const upload = (file?: File) => uploadFilePromise(nhost, ref, { file, bucketId, id, name })
 
   const cancel = () => {
     ref.send({ type: 'CANCEL' })

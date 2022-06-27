@@ -13,7 +13,7 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 type FileUploadContext = () => {
   progress: number | null
   loaded: number
-  error: ErrorPayload
+  error: ErrorPayload | null
   id: string
   bucketId: string
   file: File

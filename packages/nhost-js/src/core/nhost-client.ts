@@ -5,7 +5,6 @@ import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 import { urlFromParams } from '../utils/helpers'
 import { NhostClientConstructorParams } from '../utils/types'
-
 export class NhostClient {
   auth: HasuraAuthClient
   storage: HasuraStorageClient
