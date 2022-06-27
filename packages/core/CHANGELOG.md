@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.7.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+
 ## 0.7.1
 
 ### Patch Changes

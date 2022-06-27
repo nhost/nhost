@@ -1,5 +1,15 @@
 # @nhost/nextjs
 
+## 1.4.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/core@0.7.2
+  - @nhost/nhost-js@1.4.2
+  - @nhost/react@0.9.2
+
 ## 1.4.1
 
 ### Patch Changes

@@ -1,5 +1,13 @@
 # @nhost/hasura-auth-js
 
+## 1.3.1
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/core@0.7.2
+
 ## 1.3.0
 
 ### Minor Changes
