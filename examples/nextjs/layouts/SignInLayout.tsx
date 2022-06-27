@@ -9,7 +9,7 @@ export const SignInLayout: React.FC<{ title?: string; children: React.ReactNode 
   const { signInAnonymous } = useSignInAnonymous()
   const signIn = async () => {
     await signInAnonymous()
-    // TODO capture error
+    // TODO capture errors
   }
   return (
     <AuthLayout
