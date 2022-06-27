@@ -1,0 +1,7 @@
+{
+  "ignore": ["!(package*.json|pnpm-*.yaml|yarn.lock)"],
+  "execMap": {
+    "json": "ni && nodemon -w functions -x 'node -r @swc-node/register' $SERVER_PATH/server.ts"
+  },
+  "ext": "json,yaml,lock"
+}
