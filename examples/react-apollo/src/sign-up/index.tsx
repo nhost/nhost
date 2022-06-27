@@ -21,7 +21,7 @@ const Index: React.FC = () => {
           <Divider my="sm" />
         </>
       )}
-      <AuthLink icon={<FaLock />} variant="outline" link="/sign-up/email-passwordless">
+      <AuthLink leftIcon={<FaLock />} variant="outline" link="/sign-up/email-passwordless">
         Continue with passwordless email
       </AuthLink>
       <AuthLink variant="subtle" link="/sign-up/email-password">
