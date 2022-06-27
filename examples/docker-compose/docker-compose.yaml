@@ -100,6 +100,24 @@ services:
       - "traefik.http.middlewares.strip-suffix.replacepathregex.replacement=/v1/$$1"
       - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
     command: serve
+  functions:
+    build: docker-functions
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"
+      - "traefik.http.routers.functions.rule=Host(`localhost`) && PathPrefix(`/v1/functions`)"
+      - "traefik.http.routers.functions.middlewares=strip-functions@docker"
+      - "traefik.http.routers.functions.entrypoints=web"
+    restart: always
+    expose: 
+      - 3000
+    healthcheck:
+      disable: true
+    volumes:
+      - .:/opt/project
+      - functions_node_modules:/opt/project/node_modules
+      - /opt/project/data/
+      - /opt/project/initdb.d/
   minio:
     image: minio/minio:RELEASE.2021-09-24T00-24-24Z
     entrypoint: sh
@@ -125,3 +143,5 @@ services:
       - 8025:8025
     volumes:
       - ./data/mailhog:/maildir
+volumes:
+  functions_node_modules:
