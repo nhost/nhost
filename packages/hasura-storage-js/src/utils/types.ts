@@ -1,10 +1,9 @@
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 
-import { HasuraStorageClient } from '../hasura-storage-client'
-
+// * Avoid circular references and broken links in docusaurus generated docs
 export interface INhostClient {
   auth: HasuraAuthClient
-  storage: HasuraStorageClient
+  storage: { url: string }
   adminSecret?: string
 }
 export interface StorageUploadParams {

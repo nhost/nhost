@@ -15,11 +15,11 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storag
 
 **<span className="parameter-name">nhost</span>** <span className="optional-status">required</span> [`INhostClient`](/reference/docgen/javascript/storage/types/i-nhost-client)
 
-| Property                                                                                      | Type                                                                                | Required | Notes |
-| :-------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------- | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">nhost.</span>auth</span>        | `HasuraAuthClient`                                                                  |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">nhost.</span>storage</span>     | [`HasuraStorageClient`](/reference/docgen/javascript/storage/hasura-storage-client) |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">nhost.</span>adminSecret</span> | `string`                                                                            |          |       |
+| Property                                                                                      | Type               | Required | Notes |
+| :-------------------------------------------------------------------------------------------- | :----------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">nhost.</span>auth</span>        | `HasuraAuthClient` |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">nhost.</span>storage</span>     | `{ url: string }`  |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">nhost.</span>adminSecret</span> | `string`           |          |       |
 
 ---
 
