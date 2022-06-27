@@ -111,9 +111,11 @@ export const generateCustomClaims = async (userId: string) => {
         // * Add the result to the aggregated object, prefixed with `x-hasura-`
         aggr[`x-hasura-${name}`] = jsonataValue;
       } catch {
-        // * Don't raise errors if JSONata fails. Set the currently processed claim and log a warning
+        // * Don't raise errors if JSONata fails, and log a warning
         logger.warn(`Invalid JSONata expression`, { user, path });
-        aggr[`x-hasura-${name}`] = null;
+        // * Do not add the claim to the aggregated object
+        /** @see {@link https://github.com/nhost/hasura-auth/issues/95} */
+        // aggr[`x-hasura-${name}`] = null;
       }
       return aggr;
     }, {});
