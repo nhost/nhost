@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 0.3.4
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+
 ## 0.3.3
 
 ### Patch Changes

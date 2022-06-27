@@ -1,5 +1,14 @@
 # @nhost/vue
 
+## 0.3.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/core@0.7.2
+  - @nhost/nhost-js@1.4.2
+
 ## 0.3.1
 
 ### Patch Changes

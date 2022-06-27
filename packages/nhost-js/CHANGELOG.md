@@ -1,5 +1,14 @@
 # @nhost/nhost-js
 
+## 1.4.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/hasura-auth-js@1.3.1
+  - @nhost/hasura-storage-js@0.3.4
+
 ## 1.4.1
 
 ### Patch Changes

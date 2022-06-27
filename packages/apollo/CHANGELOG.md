@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 0.5.18
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/nhost-js@1.4.2
+
 ## 0.5.17
 
 ### Patch Changes
