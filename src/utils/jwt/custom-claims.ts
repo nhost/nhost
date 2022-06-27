@@ -1,10 +1,15 @@
 import { jsonToGraphQLQuery, VariableType } from 'json-to-graphql-query';
-import { set } from 'dot-prop';
+import { get, set } from 'dot-prop';
 import jsonata from 'jsonata';
 
 import { ENV } from '../env';
 import { client } from '../gql-sdk';
 import { logger } from '@/logger';
+
+/**
+ * List of known JSON fields, in a dot-prop notation
+ */
+const JSON_FIELDS = ['metadata'];
 
 /**
  * Convert array to Postgres array
@@ -47,6 +52,14 @@ const createCustomFieldQuery = (jwtFields: Record<string, string>): string => {
     },
     {}
   );
+
+  // * Do not extend JSON field sub-paths into the GraphQL query
+  JSON_FIELDS.forEach((field) => {
+    if (get(fields, field)) {
+      set(fields, field, true);
+    }
+  });
+
   // * Prepare the query so it will accept userId as a variable
   const query = {
     query: {

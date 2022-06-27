@@ -307,4 +307,30 @@ describe('custom JWT claims', () => {
       ).toBeUndefined();
     }
   });
+
+  it('should handle a custom claim on a hard-coded JSON field', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS: '{"name": "metadata.name" }',
+    });
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+    const name = faker.name.firstName();
+    const {
+      body: { session },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+      options: {
+        metadata: { name },
+      },
+    });
+    expect(session?.user?.id).toBeString();
+    const jwt = decodeAccessToken(session.accessToken);
+    if (jwt) {
+      expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
+      expect(jwt['https://hasura.io/jwt/claims']['x-hasura-name']).toEqual(
+        name
+      );
+    }
+  });
 });
