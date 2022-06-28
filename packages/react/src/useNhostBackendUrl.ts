@@ -3,6 +3,7 @@ import { useContext } from 'react'
 import { NhostReactContext } from './provider'
 
 /**
+ * @deprecated Nhost services can now be split to subdomains to improve performance with CDN. Use `nhost.auth.url` or `nhost.storage.url` instead.
  * Use the hook `useNhostBackendUrl` to get the Nhost backend URL.
  *
  * @example

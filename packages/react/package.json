@@ -61,10 +61,11 @@
   "dependencies": {
     "@nhost/core": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
     "@xstate/react": "^3.0.0",
     "immer": "^9.0.14",
     "jwt-decode": "^3.1.2",
-    "xstate": "^4.31.0"
+    "xstate": "^4.32.1"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",

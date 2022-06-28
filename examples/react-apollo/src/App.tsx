@@ -11,6 +11,7 @@ import Home from './Home'
 import { ProfilePage } from './profile'
 import { SignInPage } from './sign-in'
 import { SignUpPage } from './sign-up'
+import { StoragePage } from './Storage'
 
 import './App.css'
 const title = 'Nhost with React and Apollo'
@@ -72,6 +73,14 @@ function App() {
               element={
                 <AuthGate>
                   <ProfilePage />
+                </AuthGate>
+              }
+            />
+            <Route
+              path="/storage"
+              element={
+                <AuthGate>
+                  <StoragePage />
                 </AuthGate>
               }
             />
