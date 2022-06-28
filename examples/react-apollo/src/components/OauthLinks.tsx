@@ -5,7 +5,7 @@ import { useProviderLink } from '@nhost/react'
 import AuthLink from './AuthLink'
 
 export default function OauthLinks() {
-  const { github, google, facebook } = useProviderLink()
+  const { github, google, facebook } = useProviderLink({ redirectTo: window.location.origin })
   return (
     <>
       <AuthLink leftIcon={<FaGithub />} link={github} color="#333">
