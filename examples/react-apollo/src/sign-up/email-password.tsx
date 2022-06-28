@@ -19,7 +19,11 @@ export const EmailPassword: React.FC = () => {
     [password, confirmPassword]
   )
   const options = useMemo(
-    () => ({ displayName: `${firstName} ${lastName}`, metadata: { firstName, lastName } }),
+    () => ({
+      displayName: `${firstName} ${lastName}`,
+      metadata: { firstName, lastName },
+      redirectTo: window.location.origin
+    }),
     [firstName, lastName]
   )
   const navigate = useNavigate()
