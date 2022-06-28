@@ -1,5 +1,12 @@
 # @nhost/core
 
+## 0.7.3
+
+### Patch Changes
+
+- f9854b15: Upload multiple files with `useMultipleFilesUpload`
+- f9854b15: `useFileUpload`: keep track of upload progress and cancel upload
+
 ## 0.7.2
 
 ### Patch Changes

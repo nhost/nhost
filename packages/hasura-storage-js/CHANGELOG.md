@@ -1,5 +1,18 @@
 # @nhost/hasura-storage-js
 
+## 0.4.0
+
+### Minor Changes
+
+- f9854b15: Upload multiple files with `useMultipleFilesUpload`
+- f9854b15: `useFileUpload`: keep track of upload progress and cancel upload
+
+### Patch Changes
+
+- Updated dependencies [f9854b15]
+- Updated dependencies [f9854b15]
+  - @nhost/core@0.7.3
+
 ## 0.3.4
 
 ### Patch Changes
