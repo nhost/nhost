@@ -6,6 +6,10 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "umd/**", "build/**", ".next"]
     },
+    "@nhost-examples/react-apollo#build": {
+      "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
+      "outputs": ["dist/**"]
+    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
