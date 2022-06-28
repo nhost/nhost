@@ -23,7 +23,7 @@ interface NhostStorageConstructorParams {
  * @alias Storage
  */
 export class HasuraStorageClient {
-  private url: string
+  readonly url: string
   private api: HasuraStorageApi
 
   constructor({ url, adminSecret }: NhostStorageConstructorParams) {

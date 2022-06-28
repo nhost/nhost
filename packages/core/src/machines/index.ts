@@ -30,6 +30,7 @@ export * from './change-password'
 export * from './enable-mfa'
 export * from './reset-password'
 export * from './send-verification-email'
+
 export type { AuthContext, AuthEvents, StateErrorTypes }
 
 export interface AuthMachineOptions extends AuthOptions {

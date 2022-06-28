@@ -59,7 +59,7 @@ import {
  */
 export class HasuraAuthClient {
   private _client: AuthClient
-
+  readonly url: string
   constructor({
     url,
     autoRefreshToken = true,
@@ -72,6 +72,7 @@ export class HasuraAuthClient {
     refreshIntervalTime,
     start = true
   }: NhostAuthConstructorParams) {
+    this.url = url
     this._client = new AuthClient({
       backendUrl: url,
       clientUrl: (typeof window !== 'undefined' && window.location?.origin) || '',

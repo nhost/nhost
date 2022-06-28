@@ -8,7 +8,6 @@ import { Typegen0 } from '../src/machines/reset-password.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   resetPasswordInternalErrorHandler,
-  resetPasswordInvalidEmailHandler,
   resetPasswordNetworkErrorHandler,
   resetPasswordUserNotFoundHandler
 } from './helpers/handlers'
