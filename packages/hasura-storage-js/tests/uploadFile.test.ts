@@ -62,15 +62,13 @@ test.skip(`should fail if there is a network error`, async () => {
   const state: FileUploadState = await waitFor(fileUploadService, (state: FileUploadState) =>
     state.matches('error')
   )
-  console.log(
-    'this test is deactivated and incomplete because msw does not support upload progress events'
-  )
+  // ! this test is deactivated and incomplete because msw does not support upload progress events
   // TODO https://github.com/mswjs/interceptors/issues/187
-  // expect(state.context.error).toMatchInlineSnapshot(`
-  //   {
-  //     "error": "OK",
-  //     "message": "Network Error",
-  //     "status": 200,
-  //   }
-  // `)
+  expect(state.context.error).toMatchInlineSnapshot(`
+    {
+      "error": "OK",
+      "message": "Network Error",
+      "status": 200,
+    }
+  `)
 })
