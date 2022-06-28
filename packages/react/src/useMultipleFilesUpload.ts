@@ -36,7 +36,7 @@ export interface MultipleFilesHookResult extends MultipleFilesUploadState {
  *
  * @example
  * ```tsx
- * const { upload, add, clear, progress, isUploaded, isUploading, list, isError, cancel } = useMultipleFilesUpload()
+ * const { upload, add, clear, progress, isUploaded, isUploading, files, isError, cancel } = useMultipleFilesUpload()
  *
  * const addFile = async (file: File) => {
  *   add(file)
@@ -81,7 +81,7 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   const isError = useSelector(service, (state) => state.matches('error'))
 
   const progress = useSelector(service, (state) => state.context.progress)
-  const list = useSelector(service, (state) => state.context.files)
+  const files = useSelector(service, (state) => state.context.files)
 
   return {
     upload,
@@ -91,7 +91,7 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
     progress,
     isUploaded,
     isUploading,
-    list,
+    files,
     isError,
     errors
   }

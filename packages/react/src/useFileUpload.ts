@@ -3,6 +3,7 @@ import { InterpreterFrom } from 'xstate'
 import {
   createFileUploadMachine,
   FileItemRef,
+  FileUploadMachine,
   FileUploadState,
   UploadFileHandlerResult,
   uploadFilePromise
@@ -56,7 +57,7 @@ export type { FileItemRef }
  * ```
  */
 export const useFileUploadItem = (
-  ref: FileItemRef | InterpreterFrom<ReturnType<typeof createFileUploadMachine>>
+  ref: FileItemRef | InterpreterFrom<FileUploadMachine>
 ): FileUploadHookResult => {
   const nhost = useNhostClient()
 
@@ -67,7 +68,7 @@ export const useFileUploadItem = (
   const upload = (file?: File) => uploadFilePromise(nhost, ref, { file, bucketId, id, name })
 
   const cancel = () => {
-    ref.send({ type: 'CANCEL' })
+    ref.send('CANCEL')
   }
 
   const destroy = () => {

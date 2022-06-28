@@ -1,10 +1,9 @@
-import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createFileUploadMachine } from '../src/machines'
 import { Typegen0 } from '../src/machines/file-upload.typegen'
 import { BASE_URL } from './helpers/config'
-import { uploadFileInternalErrorHandler, uploadFiledNetworkErrorHandler } from './helpers/handlers'
+import { uploadFiledNetworkErrorHandler } from './helpers/handlers'
 import server from './helpers/server'
 import { clientStorage } from './helpers/storage'
 import { GeneralFileUploadState } from './helpers/types'
@@ -26,10 +25,7 @@ const auth = interpret(
   })
 )
 
-const fileUploadMachine = createFileUploadMachine({
-  url: BASE_URL + '/v1/storage',
-  auth
-})
+const fileUploadMachine = createFileUploadMachine()
 
 const fileUploadService = interpret(fileUploadMachine)
 
@@ -54,6 +50,7 @@ test.skip(`should fail if there is a network error`, async () => {
   const file = new File([], 'test.txt')
   fileUploadService.send({
     type: 'UPLOAD',
+    url: BASE_URL + '/v1/storage',
     file,
     id: undefined,
     bucketId: undefined,

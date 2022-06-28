@@ -115,8 +115,8 @@ export const StoragePage: React.FC = () => {
     progress: progressAll,
     isUploaded: uploadedAll,
     isUploading: uploadingAll,
-    hasError,
-    list,
+    isError: isErrorAll,
+    files,
     clear,
     cancel
   } = useMultipleFilesUpload()
@@ -133,7 +133,7 @@ export const StoragePage: React.FC = () => {
             console.log('accepted file', file)
             upload(file)
           }}
-          onReject={(files) => console.log('rejected files', files)}
+          onReject={(additions) => console.log('rejected files', additions)}
           multiple={false}
         >
           {(status) => (
@@ -161,25 +161,25 @@ export const StoragePage: React.FC = () => {
         <Title order={2}>Upload multiple files</Title>
         <SimpleGrid cols={1}>
           <Dropzone
-            onDrop={(files) => {
-              console.log('accepted files', files)
-              add(files)
+            onDrop={(additions) => {
+              console.log('accepted files', additions)
+              add(additions)
             }}
-            onReject={(files) => console.log('rejected files', files)}
+            onReject={(additions) => console.log('rejected files', additions)}
           >
             {(status) => (
               <DropzoneChildren
                 status={status}
                 theme={theme}
                 success={uploadedAll}
-                error={hasError}
+                error={isErrorAll}
                 progress={progressAll || 0}
               >
                 {uploadedAll ? (
                   <Text size="xl">Successfully uploaded</Text>
                 ) : uploadingAll ? (
                   <Text size="xl">Uploading...</Text>
-                ) : hasError ? (
+                ) : isErrorAll ? (
                   <div>Error uploading some files</div>
                 ) : (
                   <Text size="xl">Drag files here or click to select</Text>
@@ -194,7 +194,7 @@ export const StoragePage: React.FC = () => {
               <col />
             </colgroup>
             <tbody>
-              {list.map((ref) => (
+              {files.map((ref) => (
                 <ListItem key={ref.id} fileRef={ref} />
               ))}
             </tbody>

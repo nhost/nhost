@@ -1,10 +1,10 @@
 import { actions, ActorRefFrom, assign, createMachine, send, spawn } from 'xstate'
 
-import { createFileUploadMachine, INITIAL_FILE_CONTEXT } from './file-upload'
+import { createFileUploadMachine, FileUploadMachine, INITIAL_FILE_CONTEXT } from './file-upload'
 
 const { pure, sendParent } = actions
 
-export type FileItemRef = ActorRefFrom<ReturnType<typeof createFileUploadMachine>>
+export type FileItemRef = ActorRefFrom<FileUploadMachine>
 
 export type MultipleFilesUploadContext = {
   progress: number | null

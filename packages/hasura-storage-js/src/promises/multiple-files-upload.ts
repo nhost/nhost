@@ -18,7 +18,7 @@ export interface MultipleFilesHandlerResult {
   /**
    * The list of file uploads. The properties can be accessed through `item.getSnapshot()` of with the `useFileUploadItem` hook.
    */
-  list: FileItemRef[]
+  files: FileItemRef[]
   /**
    * Returns `true` when all upload request are processed, but at least one of them has failed.
    */
@@ -61,10 +61,10 @@ export const uploadMultipleFilesPromise = async (
         resolve({
           errors: s.context.files.filter((ref) => ref.getSnapshot()?.context.error),
           isError: true,
-          list: []
+          files: []
         })
       } else if (s.matches('uploaded')) {
-        resolve({ errors: [], isError: false, list: s.context.files })
+        resolve({ errors: [], isError: false, files: s.context.files })
       }
     })
   })
