@@ -4,7 +4,7 @@ title: FileUploadHookResult
 sidebar_label: FileUploadHookResult
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useFileUpload.ts#L14
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useFileUpload.ts#L16
 ---
 
 # `FileUploadHookResult`
@@ -67,11 +67,11 @@ Returns the name of the file.
 
 ---
 
-**<span className="parameter-name">add</span>** <span className="optional-status">required</span> `(file: File) => void`
+**<span className="parameter-name">add</span>** <span className="optional-status">required</span> `(params: StorageUploadParams) => void`
 
 ---
 
-**<span className="parameter-name">upload</span>** <span className="optional-status">required</span> `(file: File) => Promise<UploadFileHandlerResult>`
+**<span className="parameter-name">upload</span>** <span className="optional-status">required</span> `(params: Partial<StorageUploadParams>) => Promise<UploadFileHandlerResult>`
 
 ---
 

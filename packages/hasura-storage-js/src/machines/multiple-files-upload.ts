@@ -6,6 +6,8 @@ const { pure, sendParent } = actions
 
 export type FileItemRef = ActorRefFrom<FileUploadMachine>
 
+export type AnyFileList = File | File[] | FileList
+
 export type MultipleFilesUploadContext = {
   progress: number | null
   files: FileItemRef[]
@@ -14,8 +16,15 @@ export type MultipleFilesUploadContext = {
 }
 
 export type MultipleFilesUploadEvents =
-  | { type: 'ADD'; files: File | File[] }
-  | { type: 'UPLOAD'; url: string; bucketId?: string; accessToken?: string; adminSecret?: string }
+  | { type: 'ADD'; files: AnyFileList; bucketId?: string }
+  | {
+      type: 'UPLOAD'
+      url: string
+      files?: AnyFileList
+      bucketId?: string
+      accessToken?: string
+      adminSecret?: string
+    }
   | { type: 'UPLOAD_PROGRESS'; additions: number }
   | { type: 'UPLOAD_DONE' }
   | { type: 'UPLOAD_ERROR' }
@@ -42,7 +51,7 @@ export const createMultipleFilesUploadMachine = () => {
       },
       initial: 'idle',
       on: {
-        UPLOAD: { cond: 'hasFileToDownload', target: 'uploading' },
+        UPLOAD: { cond: 'hasFileToDownload', actions: 'addItem', target: 'uploading' },
         ADD: { actions: 'addItem' },
         REMOVE: { actions: 'removeItem' }
       },
@@ -83,8 +92,8 @@ export const createMultipleFilesUploadMachine = () => {
     },
     {
       guards: {
-        hasFileToDownload: (context) =>
-          context.files.some((ref) => ref.getSnapshot()!.matches('idle')),
+        hasFileToDownload: (context, event) =>
+          context.files.some((ref) => ref.getSnapshot()!.matches('idle')) || !!event.files,
         isAllUploaded: (context) =>
           context.files.every((item) => item.getSnapshot()?.matches('uploaded')),
         isAllUploadedOrError: (context) =>
@@ -118,8 +127,14 @@ export const createMultipleFilesUploadMachine = () => {
         resetLoaded: assign({ loaded: (_) => 0 }),
         startProgress: assign({ progress: (_) => 0 }),
         resetProgress: assign({ progress: (_) => null }),
-        addItem: assign((context, { files }) => {
-          const additions = Array.isArray(files) ? files : [files]
+        addItem: assign((context, { files, bucketId }) => {
+          const additions = files
+            ? Array.isArray(files)
+              ? files // File[]
+              : 'length' in files // FileList
+              ? Array.from(files)
+              : [files] // File
+            : [] // No file
           const total = context.total + additions.reduce((agg, curr) => agg + curr.size, 0)
           const progress = Math.round((context.loaded * 100) / total)
           return {
@@ -139,7 +154,7 @@ export const createMultipleFilesUploadMachine = () => {
                         sendDestroy: sendParent('REMOVE')
                       }
                     })
-                    .withContext({ ...INITIAL_FILE_CONTEXT, file }),
+                    .withContext({ ...INITIAL_FILE_CONTEXT, file, bucketId }),
                   { sync: true }
                 )
               )
