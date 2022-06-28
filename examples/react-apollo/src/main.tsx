@@ -16,7 +16,7 @@ if (devTools) {
 }
 
 const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL || 'https://react-apollo-example.nhost.run',
+  backendUrl: import.meta.env.VITE_NHOST_URL || 'http://localhost:1337',
   devTools
 })
 

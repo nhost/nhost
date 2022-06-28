@@ -97,7 +97,7 @@ export const createFileUploadMachine = () =>
         })
       },
       services: {
-        uploadFile: (context, event) => async (callback) => {
+        uploadFile: (context, event) => (callback) => {
           const headers: AxiosRequestHeaders = {
             'Content-Type': 'multipart/form-data'
           }
@@ -121,10 +121,8 @@ export const createFileUploadMachine = () =>
           }
           let currentLoaded = 0
           const controller = new AbortController()
-          try {
-            const {
-              data: { id, bucketId }
-            } = await axios.post<{
+          axios
+            .post<{
               bucketId: string
               createdAt: string
               etag: string
@@ -150,19 +148,20 @@ export const createFileUploadMachine = () =>
                 })
               }
             })
-            callback({ type: 'UPLOAD_DONE', id, bucketId })
-          } catch (err) {
-            const { response, message } = err as AxiosError<{ error?: { message: string } }>
-            callback({
-              type: 'UPLOAD_ERROR',
-              error: {
-                status: response?.status ?? 0,
-                message: response?.data.error?.message || message,
-                // TODO errors from hasura-storage are not codified
-                error: response?.data.error?.message || message
-              }
+            .then(({ data: { id, bucketId } }) => {
+              callback({ type: 'UPLOAD_DONE', id, bucketId })
             })
-          }
+            .catch(({ response, message }: AxiosError<{ error?: { message: string } }>) => {
+              callback({
+                type: 'UPLOAD_ERROR',
+                error: {
+                  status: response?.status ?? 0,
+                  message: response?.data.error?.message || message,
+                  // TODO errors from hasura-storage are not codified
+                  error: response?.data.error?.message || message
+                }
+              })
+            })
 
           return () => {
             controller.abort()
