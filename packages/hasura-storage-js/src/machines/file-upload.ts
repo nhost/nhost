@@ -97,7 +97,7 @@ export const createFileUploadMachine = () =>
         })
       },
       services: {
-        uploadFile: (context, event) => (callback) => {
+        uploadFile: (context, event) => async (callback) => {
           const headers: AxiosRequestHeaders = {
             'Content-Type': 'multipart/form-data'
           }
@@ -121,8 +121,10 @@ export const createFileUploadMachine = () =>
           }
           let currentLoaded = 0
           const controller = new AbortController()
-          axios
-            .post<{
+          try {
+            const {
+              data: { id, bucketId }
+            } = await axios.post<{
               bucketId: string
               createdAt: string
               etag: string
@@ -148,19 +150,19 @@ export const createFileUploadMachine = () =>
                 })
               }
             })
-            .then(({ data: { id, bucketId } }) => {
-              callback({ type: 'UPLOAD_DONE', id, bucketId })
-              callback('UPLOAD_DONE')
-            })
-            .catch((err: AxiosError<{ error?: { message: string } }>) => {
-              const error: ErrorPayload = {
-                status: err.response?.status ?? 0,
-                message: err.response?.data.error?.message || err.message,
+            callback({ type: 'UPLOAD_DONE', id, bucketId })
+          } catch (err) {
+            const { response, message } = err as AxiosError<{ error?: { message: string } }>
+            callback({
+              type: 'UPLOAD_ERROR',
+              error: {
+                status: response?.status ?? 0,
+                message: response?.data.error?.message || message,
                 // TODO errors from hasura-storage are not codified
-                error: err.response?.data.error?.message || err.message
+                error: response?.data.error?.message || message
               }
-              callback({ type: 'UPLOAD_ERROR', error })
             })
+          }
 
           return () => {
             controller.abort()
