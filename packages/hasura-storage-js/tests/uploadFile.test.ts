@@ -48,7 +48,7 @@ afterEach(() => {
   server.resetHandlers()
 })
 
-test(`should fail if there is a network error`, async () => {
+test.skip(`should fail if there is a network error`, async () => {
   server.use(uploadFiledNetworkErrorHandler)
 
   const file = new File([], 'test.txt')
@@ -62,7 +62,10 @@ test(`should fail if there is a network error`, async () => {
   const state: FileUploadState = await waitFor(fileUploadService, (state: FileUploadState) =>
     state.matches('error')
   )
-  console.log(state.context)
+  console.log(
+    'this test is deactivated and incomplete because msw does not support upload progress events'
+  )
+  // TODO https://github.com/mswjs/interceptors/issues/187
   // expect(state.context.error).toMatchInlineSnapshot(`
   //   {
   //     "error": "OK",

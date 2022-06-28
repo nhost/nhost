@@ -3,7 +3,7 @@ import { InterpreterFrom } from 'xstate'
 import { ActionErrorState } from '@nhost/core'
 
 import { FileItemRef, FileUploadMachine } from '../machines'
-import { INhostClient, StorageUploadParams } from '../utils/types'
+import { NhostClientReturnType, StorageUploadParams } from '../utils/types'
 
 export interface UploadProgressState {
   /**
@@ -38,7 +38,7 @@ export interface UploadFileHandlerResult extends ActionErrorState {
 export interface FileUploadState extends UploadFileHandlerResult, UploadProgressState {}
 
 export const uploadFilePromise = async (
-  nhost: INhostClient,
+  nhost: NhostClientReturnType,
   interpreter: FileItemRef | InterpreterFrom<FileUploadMachine>,
   { file, bucketId, id, name }: Partial<StorageUploadParams>
 ): Promise<UploadFileHandlerResult> =>

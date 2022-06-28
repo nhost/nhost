@@ -109,11 +109,8 @@ export const createFileUploadMachine = () =>
           if (bucketId) {
             headers['x-nhost-bucket-id'] = bucketId
           }
-          const name = event.name || context.file?.name
-          if (name) {
-            headers['x-nhost-file-name'] = name
-          }
           const file = (event.file || context.file)!
+          headers['x-nhost-file-name'] = event.name || file.name
           const data = new FormData()
           data.append('file', file)
           if (event.adminSecret) {

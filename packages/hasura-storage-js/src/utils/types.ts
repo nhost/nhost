@@ -1,7 +1,7 @@
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 
 // * Avoid circular references and broken links in docusaurus generated docs
-export interface INhostClient {
+export interface NhostClientReturnType {
   auth: HasuraAuthClient
   storage: { url: string }
   adminSecret?: string

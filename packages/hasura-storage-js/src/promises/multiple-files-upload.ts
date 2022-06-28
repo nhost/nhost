@@ -1,7 +1,7 @@
 import { InterpreterFrom } from 'xstate'
 
 import { FileItemRef, MultipleFilesUploadMachine } from '../machines'
-import { INhostClient } from '../utils/types'
+import { NhostClientReturnType } from '../utils/types'
 
 export interface MultipleUploadProgressState {
   /**
@@ -43,7 +43,7 @@ export type UploadMultipleFilesActionParams = {
 }
 
 export const uploadMultipleFilesPromise = async (
-  nhost: INhostClient,
+  nhost: NhostClientReturnType,
   service: InterpreterFrom<MultipleFilesUploadMachine>,
   options: UploadMultipleFilesActionParams = { bucketId: 'default' }
 ): Promise<MultipleFilesHandlerResult> =>
