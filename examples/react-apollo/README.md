@@ -20,19 +20,13 @@ cd examples/react-apollo
 pnpm install
 ```
 
-3. Set the backend url to the local Nhost instance
-
-```sh
-echo "VITE_NHOST_URL=http://localhost:1337" > .env
-```
-
-4. Terminal 1: Start Nhost
+3. Terminal 1: Start Nhost
 
 ```sh
 nhost dev
 ```
 
-5. Terminal 2: Start the React application
+4. Terminal 2: Start the React application
 
 ```sh
 pnpm run dev
