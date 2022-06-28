@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [
@@ -32,7 +32,10 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
       "require": "./dist/index.cjs.js"
     }
   },

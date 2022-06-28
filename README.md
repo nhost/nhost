@@ -12,7 +12,7 @@
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/blog">Blog</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-<a href="https://twitter.com/nhostio">Twitter</a>
+<a href="https://twitter.com/nhost">Twitter</a>
 <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
 <a href="https://nhost.io/discord">Discord</a>
 <br />
@@ -32,7 +32,7 @@ Nhost consists of open source software:
 - Database: [PostgreSQL](https://www.postgresql.org/)
 - Instant GraphQL API: [Hasura](https://hasura.io/)
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
-- Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
+- Storage: [Hasura Storage](https://github.com/nhost/hasura-storage)
 - Serverless Functions: Node.js (JavaScript and TypeScript)
 - [Nhost CLI](https://docs.nhost.io/reference/cli) for local development
 
@@ -169,18 +169,18 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/subatuba21">
-            <img src="https://avatars.githubusercontent.com/u/34824571?v=4" width="100;" alt="subatuba21"/>
-            <br />
-            <sub><b>Subha Das</b></sub>
-        </a>
-    </td></tr>
-<tr>
-    <td align="center">
         <a href="https://github.com/guicurcio">
             <img src="https://avatars.githubusercontent.com/u/20285232?v=4" width="100;" alt="guicurcio"/>
             <br />
             <sub><b>Guido Curcio</b></sub>
+        </a>
+    </td></tr>
+<tr>
+    <td align="center">
+        <a href="https://github.com/subatuba21">
+            <img src="https://avatars.githubusercontent.com/u/34824571?v=4" width="100;" alt="subatuba21"/>
+            <br />
+            <sub><b>Subha Das</b></sub>
         </a>
     </td>
     <td align="center">
@@ -263,6 +263,13 @@ Here are some ways of contributing to making Nhost better:
     </td></tr>
 <tr>
     <td align="center">
+        <a href="https://github.com/MelodicCrypter">
+            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
+            <br />
+            <sub><b>Hugh Caluscusin</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/jerryjappinen">
             <img src="https://avatars.githubusercontent.com/u/1101002?v=4" width="100;" alt="jerryjappinen"/>
             <br />
@@ -296,15 +303,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Muttenzer</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/ahmic">
             <img src="https://avatars.githubusercontent.com/u/13452362?v=4" width="100;" alt="ahmic"/>
             <br />
             <sub><b>Amir Ahmic</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/akd-io">
             <img src="https://avatars.githubusercontent.com/u/30059155?v=4" width="100;" alt="akd-io"/>
@@ -339,27 +346,20 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Gaurav Agrawal</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/alveshelio">
             <img src="https://avatars.githubusercontent.com/u/8176422?v=4" width="100;" alt="alveshelio"/>
             <br />
             <sub><b>Helio Alves</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/nkhdo">
             <img src="https://avatars.githubusercontent.com/u/26102306?v=4" width="100;" alt="nkhdo"/>
             <br />
             <sub><b>Hoang Do</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/MelodicCrypter">
-            <img src="https://avatars.githubusercontent.com/u/18341500?v=4" width="100;" alt="MelodicCrypter"/>
-            <br />
-            <sub><b>Hugh Caluscusin</b></sub>
         </a>
     </td>
     <td align="center">

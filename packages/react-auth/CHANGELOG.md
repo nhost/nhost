@@ -1,5 +1,14 @@
 # @nhost/react-auth
 
+## 3.2.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/hasura-auth-js@1.3.1
+  - @nhost/react@0.9.2
+
 ## 3.2.1
 
 ### Patch Changes

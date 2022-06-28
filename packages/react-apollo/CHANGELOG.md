@@ -1,5 +1,14 @@
 # @nhost/react-apollo
 
+## 4.4.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/apollo@0.5.18
+  - @nhost/react@0.9.2
+
 ## 4.4.1
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/core",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [
@@ -31,7 +31,10 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
       "require": "./dist/index.cjs.js"
     }
   },

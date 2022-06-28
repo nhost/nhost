@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "4.4.1",
+  "version": "4.4.2",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
@@ -33,7 +33,10 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
       "require": "./dist/index.cjs.js"
     }
   },
