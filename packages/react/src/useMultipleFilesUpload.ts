@@ -56,7 +56,7 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
   const service = useInterpret(createMultipleFilesUploadMachine, {}, (state) => {
     if (state.event.type === 'UPLOAD_ERROR') {
       setErrors(state.context.files.filter((ref) => ref.getSnapshot()?.context.error))
-    } else if (state.matches('uploaded') || state.event.type === 'CLEAR') {
+    } else if ((state.matches('uploaded') || state.event.type === 'CLEAR') && errors.length > 0) {
       setErrors([])
     }
   })
