@@ -18,19 +18,14 @@ export const EmailPassword: React.FC = () => {
     () => password && password !== confirmPassword && 'Should match the given password',
     [password, confirmPassword]
   )
-  const options = useMemo(
-    () => ({
-      displayName: `${firstName} ${lastName}`,
-      metadata: { firstName, lastName },
-      redirectTo: window.location.origin
-    }),
-    [firstName, lastName]
-  )
   const navigate = useNavigate()
-  const { signUpEmailPassword } = useSignUpEmailPassword(options)
+  const { signUpEmailPassword } = useSignUpEmailPassword()
 
   const signUp = async () => {
-    const result = await signUpEmailPassword(email, password, { metadata: { firstName, lastName } })
+    const result = await signUpEmailPassword(email, password, {
+      metadata: { firstName, lastName, displayName: `${firstName} ${lastName}` },
+      redirectTo: window.location.origin
+    })
     if (result.isError) {
       showNotification({
         color: 'red',
