@@ -23,6 +23,8 @@ export function NewCustomer() {
       return console.error(error)
     }
 
+    setName('')
+
     alert('Customer added!')
   }
 
