@@ -1,6 +1,6 @@
 import { InterpreterFrom } from 'xstate'
 
-import { FileItemRef, MultipleFilesUploadMachine } from '../machines'
+import { AnyFileList, FileItemRef, MultipleFilesUploadMachine } from '../machines'
 import { NhostClientReturnType } from '../utils/types'
 
 export interface MultipleUploadProgressState {
@@ -39,22 +39,23 @@ export interface MultipleFilesUploadState
 }
 
 export type UploadMultipleFilesActionParams = {
+  files?: AnyFileList
   bucketId?: string
 }
 
 export const uploadMultipleFilesPromise = async (
   nhost: NhostClientReturnType,
   service: InterpreterFrom<MultipleFilesUploadMachine>,
-  options: UploadMultipleFilesActionParams = { bucketId: 'default' }
+  params?: UploadMultipleFilesActionParams
 ): Promise<MultipleFilesHandlerResult> =>
   new Promise((resolve) => {
-    const { bucketId } = options
     service.send({
       type: 'UPLOAD',
       url: nhost.storage.url,
-      bucketId,
       accessToken: nhost.auth.getAccessToken(),
-      adminSecret: nhost.adminSecret
+      adminSecret: nhost.adminSecret,
+      bucketId: params?.bucketId,
+      files: params?.files
     })
     service.onTransition((s) => {
       if (s.matches('error')) {

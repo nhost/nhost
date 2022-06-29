@@ -5,22 +5,24 @@ import {
   FileItemRef,
   FileUploadMachine,
   FileUploadState,
+  StorageUploadParams,
   UploadFileHandlerResult,
   uploadFilePromise
 } from '@nhost/hasura-storage-js'
 import { useInterpret, useSelector } from '@xstate/react'
 
 import { useNhostClient } from './useNhostClient'
+
 export interface FileUploadHookResult extends FileUploadState {
   /**
    * Add the file without uploading it.
    */
-  add: (file: File) => void
+  add: (params: StorageUploadParams) => void
 
   /**
    * Upload the file given as a parameter, or that has been previously added.
    */
-  upload: (file?: File) => Promise<UploadFileHandlerResult>
+  upload: (params: Partial<StorageUploadParams>) => Promise<UploadFileHandlerResult>
 
   /**
    * Cancel the ongoing upload.
@@ -61,11 +63,21 @@ export const useFileUploadItem = (
 ): FileUploadHookResult => {
   const nhost = useNhostClient()
 
-  const add = (file: File) => {
-    ref.send({ type: 'ADD', file })
+  const add = (params: StorageUploadParams) => {
+    ref.send({
+      type: 'ADD',
+      file: params.file,
+      bucketId: params.bucketId || bucketId
+    })
   }
 
-  const upload = (file?: File) => uploadFilePromise(nhost, ref, { file, bucketId, id, name })
+  const upload = (params: Partial<StorageUploadParams>) =>
+    uploadFilePromise(nhost, ref, {
+      file: params.file,
+      bucketId: params.bucketId || bucketId,
+      id,
+      name
+    })
 
   const cancel = () => {
     ref.send('CANCEL')
@@ -106,15 +118,16 @@ export const useFileUploadItem = (
  * @example
  * ```tsx
  * const {  add,
-    upload,
-    cancel,
-    isUploaded,
-    isUploading,
-    isError,
-    progress,
-    id,
-    bucketId,
-    name } = useFileUpload();
+ *  upload,
+ *  cancel,
+ *  isUploaded,
+ *  isUploading,
+ *  isError,
+ *  progress,
+ *  id,
+ *  bucketId,
+ *  name
+ * } = useFileUpload();
  *
  *
  * const handleFormSubmit = async (e) => {

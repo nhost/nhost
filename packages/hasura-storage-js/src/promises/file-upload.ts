@@ -40,18 +40,15 @@ export interface FileUploadState extends UploadFileHandlerResult, UploadProgress
 export const uploadFilePromise = async (
   nhost: NhostClientReturnType,
   interpreter: FileItemRef | InterpreterFrom<FileUploadMachine>,
-  { file, bucketId, id, name }: Partial<StorageUploadParams>
+  params: Partial<StorageUploadParams>
 ): Promise<UploadFileHandlerResult> =>
   new Promise<UploadFileHandlerResult>((resolve) => {
     interpreter.send({
       type: 'UPLOAD',
       url: nhost.storage.url,
-      file,
       accessToken: nhost.auth.getAccessToken(),
       adminSecret: nhost.adminSecret,
-      bucketId,
-      id,
-      name
+      ...params
     })
     interpreter.subscribe((s) => {
       if (s.matches('error')) {

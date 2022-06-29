@@ -49,11 +49,11 @@ Returns `true` when all the files have been successfully uploaded.
 
 ---
 
-**<span className="parameter-name">add</span>** <span className="optional-status">required</span> `(files: Array<File>) => void`
+**<span className="parameter-name">add</span>** <span className="optional-status">required</span> `(params: Required<Pick<UploadMultipleFilesActionParams, "files">> & UploadMultipleFilesActionParams) => void`
 
 ---
 
-**<span className="parameter-name">upload</span>** <span className="optional-status">required</span> `(options: UploadMultipleFilesActionParams) => Promise<MultipleFilesHandlerResult>`
+**<span className="parameter-name">upload</span>** <span className="optional-status">required</span> `(params: UploadMultipleFilesActionParams) => Promise<MultipleFilesHandlerResult>`
 
 ---
 
