@@ -4,7 +4,7 @@ Synchronise versions of Nhost services from `nhost-cloud.yaml` to every Nhost pr
 
 ## How it works
 
-1. Update the versions in the `nhost-cloud.yaml` FILE
+1. Update the versions in the `nhost-cloud.yaml` file
 2. Commit the file
 
 Husky and lint-staged will detect the change, and update any `nhost/config.yaml` found in the repository.
