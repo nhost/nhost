@@ -1,7 +1,7 @@
 import { NhostClient } from '@nhost/react'
 
 const nhost = new NhostClient({
-  backendUrl: 'http://localhost:3000'
+  subdomain: 'localhost:1337'
 })
 
 export { nhost }
