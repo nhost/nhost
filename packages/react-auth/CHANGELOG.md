@@ -1,6 +1,6 @@
 # @nhost/react-auth
 
-## 4.0.0
+## 3.4.0
 
 ### Patch Changes
 
