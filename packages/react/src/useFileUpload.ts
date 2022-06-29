@@ -118,15 +118,16 @@ export const useFileUploadItem = (
  * @example
  * ```tsx
  * const {  add,
-    upload,
-    cancel,
-    isUploaded,
-    isUploading,
-    isError,
-    progress,
-    id,
-    bucketId,
-    name } = useFileUpload();
+ *  upload,
+ *  cancel,
+ *  isUploaded,
+ *  isUploading,
+ *  isError,
+ *  progress,
+ *  id,
+ *  bucketId,
+ *  name
+ * } = useFileUpload();
  *
  *
  * const handleFormSubmit = async (e) => {
