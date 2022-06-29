@@ -21,10 +21,10 @@ The database is managed via the Hasura Console where you can manage the database
 
 Hasura Console is where you manage your database. This is where you create and manage tables, schemas, and data.
 
-1) Open the Hasura Console by clicking on **GraphQL** in the top menu in the Nhost Dashboard.
-2) Click **Open Hasura Console** at the top right of the page.
-3) Copy the **admin secret**, and click **Open Hasura**.
-4) Use the **admin secret** to sign in.
+1. Open the Hasura Console by clicking on **GraphQL** in the top menu in the Nhost Dashboard.
+2. Click **Open Hasura Console** at the top right of the page.
+3. Copy the **admin secret**, and click **Open Hasura**.
+4. Use the **admin secret** to sign in.
 
 <video width="99%" autoPlay muted loop controls="true">
   <source src="/videos/open-hasura-console.mp4" type="video/mp4" />
@@ -130,6 +130,21 @@ To track database changes, use the [Nhost CLI](/platform/cli) to develop locally
 3. Nhost automatically deploys changes.
 
 Learn how to [get started with Nhost CLI](/platform/overview/get-started-with-nhost-cli).
+
+## Seed Data
+
+Seed data is a way of automatically adding data to your database using SQL when a new environment is created. This is, for the moment, only applicable when you're using the [Nhost CLI](/platform/cli) to develop locally. When you're running `nhost up` for the first time, seed data is added.
+
+In the future, seed data will also be added to new preview environments.
+
+Seed data should be located in `nhost/seeds/default/` and are executed in alphabetical order.
+
+**Example:** Two seed scripts with countries and products.
+
+```text
+nhost/seeds/default/001-countries.sql
+nhost/seeds/default/002-products.sql
+```
 
 ## Backups
 
