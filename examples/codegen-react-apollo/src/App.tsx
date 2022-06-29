@@ -1,24 +1,24 @@
-import logo from './logo.svg'
-import './App.css'
+import { NewCustomer } from './components/new-customer'
+import { Customers } from './components/customers'
+import { NhostApolloProvider } from '@nhost/react-apollo'
+import { nhost } from './utils/nhost'
+import { NhostReactProvider } from '@nhost/react'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <NhostReactProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost}>
+        <div>
+          <h1>GraphQL Code Generator example with React and Apollo</h1>
+          <div>
+            <NewCustomer />
+          </div>
+          <div>
+            <Customers />
+          </div>
+        </div>
+      </NhostApolloProvider>
+    </NhostReactProvider>
   )
 }
 
