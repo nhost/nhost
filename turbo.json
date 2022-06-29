@@ -10,7 +10,7 @@
       "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
       "outputs": ["dist/**"]
     },
-    "@nhost/sync-versions#start": { "cache": false },
+    "@nhost/sync-versions#start": { "dependsOn": ["build"], "cache": false },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
