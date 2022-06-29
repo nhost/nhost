@@ -13,7 +13,6 @@
   "scripts": {
     "codegen": "graphql-codegen --config graphql.config.yaml --errors-only",
     "dev": "vite",
-    "start": "vite",
     "build": "vite build",
     "preview": "vite preview --host localhost --port 3000"
   },
