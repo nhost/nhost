@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 import fs from 'fs'
 import path from 'path'
-import glob from 'glob'
-import yaml from 'yaml'
-import findWorkspaceRoot from '@pnpm/find-workspace-dir'
 
+import glob from 'glob'
 import { set } from 'object-path'
+import yaml from 'yaml'
+
+import findWorkspaceRoot from '@pnpm/find-workspace-dir'
 
 interface NhostCloudConfig {
   hasura: string
