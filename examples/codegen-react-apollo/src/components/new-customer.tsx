@@ -1,10 +1,12 @@
 import { useState } from 'react'
-import { useInsertCustomerMutation } from '../utils/__generated__/graphql'
+import { refetchGetCustomersQuery, useInsertCustomerMutation } from '../utils/__generated__/graphql'
 
 export function NewCustomer() {
   const [name, setName] = useState('')
 
-  const [insertCustomer, { loading }] = useInsertCustomerMutation()
+  const [insertCustomer, { loading, error }] = useInsertCustomerMutation({
+    refetchQueries: [refetchGetCustomersQuery()]
+  })
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -18,7 +20,7 @@ export function NewCustomer() {
         }
       })
     } catch (error) {
-      return alert(`error: ${error}`)
+      return console.error(error)
     }
 
     alert('Customer added!')
@@ -38,6 +40,7 @@ export function NewCustomer() {
               onChange={(e) => setName(e.target.value)}
             />
           </div>
+          {error && <div>Error: {error.message}</div>}
           <div>
             <button type="submit" disabled={loading}>
               Add

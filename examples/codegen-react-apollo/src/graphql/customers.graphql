@@ -1,4 +1,4 @@
-query getCustomers {
+query GetCustomers {
   customers {
     id
     name

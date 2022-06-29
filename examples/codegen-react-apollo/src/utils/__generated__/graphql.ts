@@ -3734,7 +3734,7 @@ export type InsertCustomerMutation = { __typename?: 'mutation_root', insert_cust
 
 
 export const GetCustomersDocument = gql`
-    query getCustomers {
+    query GetCustomers {
   customers {
     id
     name
