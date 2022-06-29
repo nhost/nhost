@@ -156,9 +156,9 @@ export const createFileUploadMachine = () =>
                 type: 'UPLOAD_ERROR',
                 error: {
                   status: response?.status ?? 0,
-                  message: response?.data.error?.message || message,
+                  message: response?.data?.error?.message || message,
                   // TODO errors from hasura-storage are not codified
-                  error: response?.data.error?.message || message
+                  error: response?.data?.error?.message || message
                 }
               })
             })

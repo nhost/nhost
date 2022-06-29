@@ -16,11 +16,14 @@ export interface MultipleFilesHookResult extends MultipleFilesUploadState {
   /**
    * Add one or multiple files to add to the list of files to upload.
    */
-  add: (files: File[]) => void
+  add: (
+    params: Required<Pick<UploadMultipleFilesActionParams, 'files'>> &
+      UploadMultipleFilesActionParams
+  ) => void
   /**
    * Upload the files that has been previously added to the list.
    */
-  upload: (options?: UploadMultipleFilesActionParams) => Promise<MultipleFilesHandlerResult>
+  upload: (params?: UploadMultipleFilesActionParams) => Promise<MultipleFilesHandlerResult>
   /**
    * Cancel the ongoing upload. The files that have been successfully uploaded will not be deleted from the server.
    */
@@ -38,8 +41,8 @@ export interface MultipleFilesHookResult extends MultipleFilesUploadState {
  * ```tsx
  * const { upload, add, clear, progress, isUploaded, isUploading, files, isError, cancel } = useMultipleFilesUpload()
  *
- * const addFile = async (file: File) => {
- *   add(file)
+ * const addFile = async (files: File | File[] | FileList) => {
+ *   add({ files })
  * }
  *
  * const handleSubmit = async (e) => {
@@ -61,12 +64,15 @@ export const useMultipleFilesUpload = (): MultipleFilesHookResult => {
     }
   })
 
-  const add = (files: File | File[]) => {
-    service.send('ADD', { files })
+  const add = (
+    params: Required<Pick<UploadMultipleFilesActionParams, 'files'>> &
+      UploadMultipleFilesActionParams
+  ) => {
+    service.send({ type: 'ADD', ...params })
   }
 
-  const upload = (options: UploadMultipleFilesActionParams = { bucketId: 'default' }) =>
-    uploadMultipleFilesPromise(nhost, service, options)
+  const upload = (params?: UploadMultipleFilesActionParams) =>
+    uploadMultipleFilesPromise(nhost, service, params)
 
   const cancel = () => {
     service.send('CANCEL')

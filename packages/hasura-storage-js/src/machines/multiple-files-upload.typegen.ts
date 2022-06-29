@@ -3,7 +3,7 @@
 export interface Typegen0 {
   '@@xstate/typegen': true
   eventsCausingActions: {
-    addItem: 'ADD'
+    addItem: 'UPLOAD' | 'ADD'
     removeItem: 'REMOVE'
     clearList: 'CLEAR'
     incrementProgress: 'UPLOAD_PROGRESS'

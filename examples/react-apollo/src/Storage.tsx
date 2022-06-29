@@ -131,7 +131,7 @@ export const StoragePage: React.FC = () => {
         <Dropzone
           onDrop={([file]) => {
             console.log('accepted file', file)
-            upload(file)
+            upload({ file })
           }}
           onReject={(additions) => console.log('rejected files', additions)}
           multiple={false}
@@ -163,7 +163,7 @@ export const StoragePage: React.FC = () => {
           <Dropzone
             onDrop={(additions) => {
               console.log('accepted files', additions)
-              add(additions)
+              add({ files: additions })
             }}
             onReject={(additions) => console.log('rejected files', additions)}
           >
