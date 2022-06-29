@@ -39,7 +39,6 @@
   "dependencies": {
     "@pnpm/find-workspace-dir": "^4.0.2",
     "@types/object-path": "^0.11.1",
-    "dot-prop": "^7.2.0",
     "glob": "^8.0.3",
     "object-path": "^0.11.8",
     "yaml": "^2.1.1"

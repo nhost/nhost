@@ -12,7 +12,6 @@ importers:
       '@types/glob': ^7.2.0
       '@types/node': ^17.0.45
       '@types/object-path': ^0.11.1
-      dot-prop: ^7.2.0
       glob: ^8.0.3
       object-path: ^0.11.8
       rimraf: ^3.0.2
@@ -23,7 +22,6 @@ importers:
     dependencies:
       '@pnpm/find-workspace-dir': 4.0.2
       '@types/object-path': 0.11.1
-      dot-prop: 7.2.0
       glob: 8.0.3
       object-path: 0.11.8
       yaml: 2.1.1
@@ -409,13 +407,6 @@ packages:
     dependencies:
       path-type: 4.0.0
     dev: true
-
-  /dot-prop/7.2.0:
-    resolution: {integrity: sha512-Ol/IPXUARn9CSbkrdV4VJo7uCy1I3VuSiWCaFSg+8BdUOzF9n3jefIpcgAydvUZbTdEBZs2vEiTiS9m61ssiDA==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
-    dependencies:
-      type-fest: 2.14.0
-    dev: false
 
   /esbuild-android-64/0.14.47:
     resolution: {integrity: sha512-R13Bd9+tqLVFndncMHssZrPWe6/0Kpv2/dt4aA69soX4PRxlzsVpCvoJeFE8sOEoeVEiBkI0myjlkDodXlHa0g==}
@@ -1163,11 +1154,6 @@ packages:
       - supports-color
       - ts-node
     dev: true
-
-  /type-fest/2.14.0:
-    resolution: {integrity: sha512-hQnTQkFjL5ik6HF2fTAM8ycbr94UbQXK364wF930VHb0dfBJ5JBP8qwrR8TaK9zwUEk7meruo2JAUDMwvuxd/w==}
-    engines: {node: '>=12.20'}
-    dev: false
 
   /typescript/4.7.4:
     resolution: {integrity: sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==}
