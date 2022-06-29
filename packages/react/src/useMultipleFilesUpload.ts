@@ -41,8 +41,8 @@ export interface MultipleFilesHookResult extends MultipleFilesUploadState {
  * ```tsx
  * const { upload, add, clear, progress, isUploaded, isUploading, files, isError, cancel } = useMultipleFilesUpload()
  *
- * const addFile = async (file: File) => {
- *   add(file)
+ * const addFile = async (files: File | File[] | FileList) => {
+ *   add({ files })
  * }
  *
  * const handleSubmit = async (e) => {
