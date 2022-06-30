@@ -1,18 +1,11 @@
-import { SuperTest, Test, agent } from 'supertest';
-import { Server } from 'http';
-import getPort from 'get-port';
 import { Client } from 'pg';
 import * as faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
-import { app } from '../../../src/server';
+import { request } from '../../server';
 import { isValidAccessToken } from '../../utils';
 import { SignInResponse } from '../../../src/types';
-
-let request: SuperTest<Test>;
-
-let server: Server;
 
 describe('anonymous', () => {
   let client: Client;
@@ -30,13 +23,6 @@ describe('anonymous', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
-
-    server = app.listen(await getPort(), ENV.AUTH_HOST);
-    request = agent(server);
-  });
-
-  afterEach(async () => {
-    server.close();
   });
 
   it('should sign in as anonymous', async () => {

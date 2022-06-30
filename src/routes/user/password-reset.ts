@@ -3,7 +3,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { ReasonPhrases } from 'http-status-codes';
 
 import { emailClient } from '@/email';
-import { gqlSdk, getUserByEmail, generateTicketExpiresAt, ENV } from '@/utils';
+import {
+  gqlSdk,
+  getUserByEmail,
+  generateTicketExpiresAt,
+  ENV,
+  createEmailRedirectionLink,
+} from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, email, redirectTo } from '@/validation';
 import { EMAIL_TYPES } from '@/types';
@@ -47,14 +53,21 @@ export const userPasswordResetHandler: RequestHandler<
   });
 
   const template = 'password-reset';
+  const link = createEmailRedirectionLink(
+    EMAIL_TYPES.PASSWORD_RESET,
+    ticket,
+    redirectTo
+  );
   await emailClient.send({
     template,
     locals: {
-      link: `${ENV.AUTH_SERVER_URL}/verify?&ticket=${ticket}&type=${EMAIL_TYPES.PASSWORD_RESET}&redirectTo=${redirectTo}`,
-      ticket,
-      redirectTo,
-      locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
+      link,
       displayName: user.displayName,
+      email,
+      newEmail: user.newEmail,
+      ticket,
+      redirectTo: encodeURIComponent(redirectTo),
+      locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
       serverUrl: ENV.AUTH_SERVER_URL,
       clientUrl: ENV.AUTH_CLIENT_URL,
     },
@@ -72,6 +85,10 @@ export const userPasswordResetHandler: RequestHandler<
         'x-email-template': {
           prepared: true,
           value: template,
+        },
+        'x-link': {
+          prepared: true,
+          value: link,
         },
       },
     },

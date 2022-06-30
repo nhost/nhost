@@ -4,7 +4,11 @@ import { StatusCodes } from 'http-status-codes';
 
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
-import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
+import {
+  mailHogSearch,
+  deleteAllMailHogEmails,
+  expectUrlParameters,
+} from '../../utils';
 
 describe('email-password', () => {
   let client: Client;
@@ -179,20 +183,44 @@ describe('email-password', () => {
     // get ticket from email
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
-    const ticket = message.Content.Headers['X-Ticket'][0];
-    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
+    const link = message.Content.Headers['X-Link'][0];
 
     // use ticket to verify email
-    await request
-      .get(
-        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
-      )
+    const res = await request
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
 
     // sign in should now work
     await request
       .post('/signin/email-password')
       .send({ email, password })
       .expect(StatusCodes.OK);
+  });
+
+  it('should return an error when asking an unauthorised redirection url', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    // set env vars
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+      AUTH_USER_DEFAULT_ALLOWED_ROLES: '',
+    });
+
+    const { body } = await request
+      .post('/signup/email-password')
+      .send({
+        email,
+        password,
+        options: { redirectTo: 'http://this-redirection-url-is-forbidden.com' },
+      })
+      .expect(StatusCodes.BAD_REQUEST);
+    expect(body.message).toStartWith('"options.redirectTo"');
   });
 });

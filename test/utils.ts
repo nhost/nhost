@@ -127,3 +127,21 @@ export const decodeAccessToken = (accessToken: string | null) => {
     return null;
   }
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const getUrlParameters = (request: any) => {
+  expect(request).toBeObject();
+  const { header } = request;
+  expect(header).toBeObject();
+  expect(header.location).toBeString();
+  const url = new URL(header.location);
+  return new URLSearchParams(url.search);
+};
+
+export const expectUrlParameters = (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  request: any
+): jest.JestMatchers<string[]> => {
+  const params = getUrlParameters(request);
+  return expect(Array.from(params.keys()));
+};

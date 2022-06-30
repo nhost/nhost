@@ -6,6 +6,9 @@ import { queryValidator } from '@/validation';
 
 const router = Router();
 
+// Workaround for Outlook safe links. See: https://github.com/nhost/hasura-auth/issues/189
+router.head('/verify', (_, res) => res.sendStatus(200));
+
 // TODO: use VerifySchema in the jsdoc
 /**
  * GET /verify
@@ -13,7 +16,7 @@ const router = Router();
  * @param {string} ticket.query.required - Ticket generated in the previous actions and sent by email
  * @param {string} type.query.required - name param description - enum:emailVerify,emailConfirmChange,signinPasswordless,passwordReset
  * @param {string} redirectTo.query.required - Redirection link
- * @return {string} 302 - {redirectTo}#refreshToken=${refreshToken}&type=${type}
+ * @return {string} 302 - {redirectTo}?refreshToken=${refreshToken}&type=${type}
  * @return {InvalidRequestError} 400 - The payload format is invalid - application/json
  * @tags General
  */

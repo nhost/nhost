@@ -4,18 +4,23 @@ module.exports = {
     '@typescript-eslint/camelcase': 'off',
     'jest/expect-expect': 'off',
     'jest/no-test-callback': 'off',
-    '@typescript-eslint/explicit-function-return-type': 'off'
+    '@typescript-eslint/explicit-function-return-type': 'off',
   },
   parser: '@typescript-eslint/parser',
-  plugins: [
-    '@typescript-eslint',
-    'jest'
-  ],
+  plugins: ['@typescript-eslint', 'jest'],
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'prettier/@typescript-eslint',
     'plugin:jest/recommended',
-  ]
-}
+  ],
+  overrides: [
+    {
+      files: ['*.test.ts', '*.spec.ts'],
+      rules: {
+        '@typescript-eslint/no-non-null-assertion': 'off',
+      },
+    },
+  ],
+};

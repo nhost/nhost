@@ -124,4 +124,42 @@ describe('mfa totp', () => {
 
     expect(signInBodyThird.mfa).toBe(null);
   });
+
+  it('shoud not be possible to generate MFA code when anonymous', async () => {
+    await request.post('/change-env').send({
+      AUTH_MFA_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+    });
+
+    const { body }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+
+    await request
+      .get('/mfa/totp/generate')
+      .set('Authorization', `Bearer ${body.session!.accessToken}`)
+      .expect(StatusCodes.FORBIDDEN);
+  });
+
+  it('shoud not be possible to enable MFA when anonymous', async () => {
+    await request.post('/change-env').send({
+      AUTH_MFA_ENABLED: true,
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+    });
+
+    const { body }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/user/mfa')
+      .set('Authorization', `Bearer ${body.session!.accessToken}`)
+      .send({
+        code: authenticator.generate('anything'),
+        activeMfaType: 'totp',
+      })
+      .expect(StatusCodes.FORBIDDEN);
+  });
 });

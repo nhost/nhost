@@ -1,5 +1,6 @@
 import { PROVIDERS, castObjectEnv } from '@config';
 import { logger } from './logger';
+import { ENV } from './utils';
 
 function isUnset(val?: string) {
   return (
@@ -168,6 +169,26 @@ if (PROVIDERS.github) {
       );
     }
   });
+}
+
+if (ENV.AUTH_SMS_PROVIDER) {
+  if (ENV.AUTH_SMS_PROVIDER === 'twilio') {
+    [
+      'AUTH_SMS_TWILIO_ACCOUNT_SID',
+      'AUTH_SMS_TWILIO_AUTH_TOKEN',
+      'AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID',
+    ].forEach((env) => {
+      if (isUnset(process.env[env])) {
+        errors.push(
+          `Env var ${env} is required when the Twilio is set as SMS provider, but no value was provided`
+        );
+      }
+    });
+  } else {
+    errors.push(
+      `Incorrect SMS provider - AUTH_SMS_PROVIDER of value '${ENV.AUTH_SMS_PROVIDER}' is not one of the supported. Supported providers are: 'twilio'`
+    );
+  }
 }
 
 if (errors.length) {

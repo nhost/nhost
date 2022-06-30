@@ -4,7 +4,11 @@ import { StatusCodes } from 'http-status-codes';
 import { ENV } from '../../../src/utils/env';
 import { request } from '../../server';
 import { SignInResponse } from '../../../src/types';
-import { mailHogSearch, deleteAllMailHogEmails } from '../../utils';
+import {
+  mailHogSearch,
+  deleteAllMailHogEmails,
+  expectUrlParameters,
+} from '../../utils';
 
 // TODO: test options
 describe('email-password', () => {
@@ -64,8 +68,7 @@ describe('email-password', () => {
 
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
-    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
+    const link = message.Content.Headers['X-Link'][0];
 
     // should not be abel to login before email is verified
     await request
@@ -80,12 +83,14 @@ describe('email-password', () => {
       .expect(StatusCodes.UNAUTHORIZED);
 
     // should verify email using ticket from email
-    await request
-      .get(
-        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
-      )
+    const res = await request
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
     // should be able to sign in after activated account
     await request
       .post('/signin/email-password')
@@ -130,8 +135,7 @@ describe('email-password', () => {
     const [message] = await mailHogSearch(email);
     expect(message).toBeTruthy();
 
-    const ticket = message.Content.Headers['X-Ticket'][0];
-    const redirectTo = message.Content.Headers['X-Redirect-To'][0];
+    const link = message.Content.Headers['X-Link'][0];
 
     // should not be able to reuse old refresh token
     await request
@@ -140,11 +144,14 @@ describe('email-password', () => {
       .expect(StatusCodes.UNAUTHORIZED);
 
     // verify
-    await request
-      .get(
-        `/verify?ticket=${ticket}&type=signinPasswordless&redirectTo=${redirectTo}`
-      )
+    const res = await request
+      .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
+
+    expectUrlParameters(res).not.toIncludeAnyMembers([
+      'error',
+      'errorDescription',
+    ]);
 
     // should be able to sign in using passwordless email
     await request

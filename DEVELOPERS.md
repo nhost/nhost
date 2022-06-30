@@ -1,5 +1,8 @@
 # Developer guide
 
+## Requirements
+- [pnpm](https://pnpm.io/)
+- Docker and docker-compose
 ## Getting things ready
 
 First, clone this repository:
@@ -14,54 +17,39 @@ Then, create a `.env` file from the example:
 cd hasura-auth
 cp .env.example .env
 ```
+## Develop
 
-You will also need to install the dependencies. We are using [pnpm](https://pnpm.io/) as a package manager.
-## Start
-
-Run Hasura, PostgreSQL and the mock email server MailHog:
 
 ```sh
-docker-compose up -d
-```
-
-Start Hasura-auth:
-
-```sh
-pnpm run dev
+make dev
 ```
 
 Hasura-auth is now running on `http://localhost:4000` and will restart on evey change. GraphQL-codegen is watching the Hasura GraphQL and will regenerate every change in the schema.
 
-Don't forget to stop the docker-compose stack once you're done:
-
-```sh
-docker-compose down
-```
-
 ## Test
 
-First, you have to make sure the docker-compose stack is running.
 
 ```sh
-pnpm run test
+make test
 ```
 
-You can also run Jest in watch mode in using `pnpm run test -- --watch`
-
-## Build
-
-### Build locally
+You can also run Jest in watch mode:
 
 ```sh
-pnpm run build
+make watch
 ```
 
-### Build the Docker image
+## Build the Docker image
 
 ```sh
-pnpm run build:docker
+make build
 # Equivalent command:
 # docker build -t nhost/hasura-auth:local .
+```
+## Generate the OpenAPI specs
+
+```sh
+make docgen
 ```
 
 ## Commit changes

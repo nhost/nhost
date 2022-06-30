@@ -1,7 +1,93 @@
 
 
-# [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
+## [0.9.1](https://github.com/nhost/hasura-auth/compare/v0.9.0...v0.9.1) (2022-06-14)
 
+
+### Bug Fixes
+
+* add `displayName`, `email`, and `newEmail` variables to all email templates ([d2235e9](https://github.com/nhost/hasura-auth/commit/d2235e9f549efe2d9a345cf8a7a3d345fe8feb6e))
+* do not actually follow redirection when redirectTo is invalid ([7d24e55](https://github.com/nhost/hasura-auth/commit/7d24e55d3a45207e2434cff39497984af6ae406c))
+* workaround for outlook safelinks: add `HEAD` operation to the `/verify` route ([1f12a53](https://github.com/nhost/hasura-auth/commit/1f12a5351d7894c71a773052c9c7d4b8e64ac2d2)), closes [#189](https://github.com/nhost/hasura-auth/issues/189)# [0.9.0](https://github.com/nhost/hasura-auth/compare/v0.8.1...v0.9.0) (2022-06-02)
+
+
+### Bug Fixes
+
+* validate phone number and transform them in the international format ([70edaca](https://github.com/nhost/hasura-auth/commit/70edaca1e4ef01197929c635f4f618b1a71c8598))
+
+
+### Features
+
+* allow any `redirectTo` when no `AUTH_CLIENT_URL` is set ([73c0262](https://github.com/nhost/hasura-auth/commit/73c02629bbcf8b935f1773598bbf413751148ba7))
+
+### Bug Fixes
+
+* Able to use both phone number and messaging service id as `from`
+This way users can use both a simple phone number without setting up a Twilio messaging service or use a messaging service from Twilio ([doc](https://support.twilio.com/hc/en-us/articles/223181308-Getting-started-with-Messaging-Services)).
+
+# [0.8.0](https://github.com/nhost/hasura-auth/compare/v0.7.1...v0.8.0) (2022-05-24)
+
+
+### Bug Fixes
+
+* **token:** reuse and update expiration date of a valid refresh token instead of invalidating it and creating a new one ([7583997](https://github.com/nhost/hasura-auth/commit/7583997e45f323005a23f8b4b2aaa83ef27d3dea)), closes [#65](https://github.com/nhost/hasura-auth/issues/65)
+* check locales are not more than two characters ([e2eac38](https://github.com/nhost/hasura-auth/commit/e2eac3897a6d666996d501aca9b73c73fd24be28))
+* check the new email is not already in use before changing it ([0436574](https://github.com/nhost/hasura-auth/commit/043657441c009b3bc8ccf491f1d5aa2ad7fe55ab))
+* return standard error codes in sms passwordless sign-in ([74087dd](https://github.com/nhost/hasura-auth/commit/74087dda41d6aa024e7f1097523d84f68bd1b247))
+* Verify Twillio configuration before using it
+* Don't delete the user if sending message with Twillio fails, closes [#79](https://github.com/nhost/hasura-auth/issues/79)
+* Check user is active when authenticating with SMS passwordless, closes [#99](https://github.com/nhost/hasura-auth/issues/99)
+
+
+### Features
+
+* **token:** add verify token endpoint ([0a3457a](https://github.com/nhost/hasura-auth/commit/0a3457a1008f69491d74677dfc4b671de8afbb0a)), closes [#83](https://github.com/nhost/hasura-auth/issues/83)
+
+
+### Reverts
+
+* Revert "Return signIn responses for passwordless" ([363bbbc](https://github.com/nhost/hasura-auth/commit/363bbbceb30bf89a878fc1db984e8c9493ed4371))## [0.7.1](https://github.com/nhost/hasura-auth/compare/v0.7.0...v0.7.1) (2022-04-28)
+
+
+### Features
+
+* use query parameter instead of hash when adding the refresh token to an url ([af8ea50](https://github.com/nhost/hasura-auth/commit/af8ea5097cf04d9991977c72bed0797218f5e997))# [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
+
+
+### Bug Fixes
+
+* don't fail when unknown options are present in the query parameters ([3bf88d8](https://github.com/nhost/hasura-auth/commit/3bf88d8a44a72700d033211a09996fd76b10c948))
+
+
+### Features
+
+* use encoded `redirectTo` url value in email templates ([9b88a91](https://github.com/nhost/hasura-auth/commit/9b88a91274aeb9eeeb3824eea79f444bcca47401))## [0.6.3](https://github.com/nhost/hasura-auth/compare/v0.6.2...v0.6.3) (2022-04-21)
+
+
+### Bug Fixes
+
+* filter internal user fields in session ([d1c4c9b](https://github.com/nhost/hasura-auth/commit/d1c4c9bcb1b7901d989c6c0e194ebab617d5f579))## [0.6.2](https://github.com/nhost/hasura-auth/compare/v0.6.1...v0.6.2) (2022-04-20)
+
+
+### Bug Fixes
+
+* revert 00002 migration name to previous name when migration fails because of it ([6a0856a](https://github.com/nhost/hasura-auth/commit/6a0856a9e6a18bf264579a783adae6c55efc4351))## [0.6.1](https://github.com/nhost/hasura-auth/compare/v0.6.0...v0.6.1) (2022-04-20)
+
+
+### Bug Fixes
+
+* allow `redirectTo` option to start with any `AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS` value ([dac0332](https://github.com/nhost/hasura-auth/commit/dac0332a04f84c057f7013c65aac6223de8ab165))
+* correct redirectTo and fall back to AUTH_CLIENT_URL if the `redirectTo` option is invalid ([2e1819d](https://github.com/nhost/hasura-auth/commit/2e1819d65a90c288b68c9e47a5dc131a7ab3355d)), closes [#137](https://github.com/nhost/hasura-auth/issues/137)
+* remove the AUTH_HOST environment variable ([cacce97](https://github.com/nhost/hasura-auth/commit/cacce9757374af9bbf55b0360ad8c6b304004cd7)), closes [#139](https://github.com/nhost/hasura-auth/issues/139)
+* run a metadata reload before and after applying hasura-auth metadata ([bd9b361](https://github.com/nhost/hasura-auth/commit/bd9b3618e916e97cea3d3fc8f013223cc0188b94))
+
+
+### Performance Improvements
+
+* improve logging on startup ([c172c8a](https://github.com/nhost/hasura-auth/commit/c172c8a55b527a99678c7826104cd0b57ae79f24))
+* improve startup with async imports ([e00c073](https://github.com/nhost/hasura-auth/commit/e00c073d55c3d85fbd698e1e10c489b30d98949c))
+* set AUTH_CLIENT_URL and AUTH_ACCESS_CONTROL_ALLOWED_REDIRECT_URLS to lower case ([8bb351d](https://github.com/nhost/hasura-auth/commit/8bb351d55f0ebb15ac31d0c38265ddb8c2a22432))
+
+# [0.6.0](https://github.com/nhost/hasura-auth/compare/v0.5.0...v0.6.0) (2022-04-06)
 
 ### Bug Fixes
 
@@ -12,6 +98,8 @@
 ### Features
 
 * add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User ([4d452d7](https://github.com/nhost/hasura-auth/commit/4d452d7d0b374cad7deb3d59422ad973fb4d801e))# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
+
+# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
 
 ## What's new
 

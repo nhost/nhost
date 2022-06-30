@@ -1,5 +1,10 @@
 import { RequestHandler } from 'express';
-import { getNewRefreshToken, gqlSdk, generateRedirectUrl } from '@/utils';
+import {
+  getNewRefreshToken,
+  gqlSdk,
+  generateRedirectUrl,
+  getUserByEmail,
+} from '@/utils';
 import { Joi, redirectTo } from '@/validation';
 import { sendError } from '@/errors';
 import { EmailType, EMAIL_TYPES } from '@/types';
@@ -45,7 +50,7 @@ export const verifyHandler: RequestHandler<
     .then((gqlRes) => gqlRes.users[0]);
 
   if (!user) {
-    return sendError(res, 'invalid-ticket', { redirectTo });
+    return sendError(res, 'invalid-ticket', { redirectTo }, true);
   }
 
   // user found, delete current ticket
@@ -65,6 +70,12 @@ export const verifyHandler: RequestHandler<
       },
     });
   } else if (type === EMAIL_TYPES.CONFIRM_CHANGE) {
+    // * Send an error if the new email is already used by another user
+    // * This check is also done when requesting a new email, but is done again here as
+    // * an account with `newEmail` as an email could have been created since the email change occurred
+    if (await getUserByEmail(user.newEmail)) {
+      return sendError(res, 'email-already-in-use', { redirectTo }, true);
+    }
     // set new email for user
     await gqlSdk.updateUser({
       id: user.id,
@@ -87,9 +98,11 @@ export const verifyHandler: RequestHandler<
 
   const refreshToken = await getNewRefreshToken(user.id);
 
+  // ! temparily send the refresh token in both hash and query parameter
+  // TODO at a later stage, only send as a query parameter
   const redirectUrl = generateRedirectUrl(
     redirectTo,
-    {},
+    { refreshToken, type },
     `refreshToken=${refreshToken}&type=${type}`
   );
 

@@ -33,7 +33,11 @@ export const userMFAHandler: RequestHandler<
   });
 
   if (!user) {
-    throw new Error('user could not be fetched');
+    return sendError(res, 'user-not-found');
+  }
+
+  if (user.isAnonymous) {
+    return sendError(res, 'forbidden-anonymous');
   }
 
   if (!activeMfaType) {

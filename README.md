@@ -1,5 +1,5 @@
 <h1 align="center">Hasura Auth</h1>
-<h2 align="center">The Open Source Authentication Service for Hasura.</h2>
+<h2 align="center">Authentication for Hasura</h2>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-2.2.1-blue.svg?cacheSeconds=2592000" />
@@ -51,7 +51,7 @@ Find more information about Hasura Auth in [our documentation](https://docs.nhos
   - LinkedIn
   - Windows Live
   - Spotify
-  - Strave
+  - Strava
   - GitLab
   - BitBucket
 

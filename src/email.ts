@@ -1,3 +1,4 @@
+// TODO this library takes more than one third of the time required by hasura-auth to load
 import Email from 'email-templates';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
@@ -112,10 +113,22 @@ const readRemoteTemplate = async (
   }
 };
 
+type EmailLocals = {
+  link: string;
+  displayName: string;
+  email: string;
+  newEmail: string;
+  ticket: string;
+  redirectTo: string;
+  locale: string;
+  serverUrl: string;
+  clientUrl: string;
+};
+
 /**
  * Reusable email client.
  */
-export const emailClient = new Email({
+export const emailClient = new Email<EmailLocals>({
   transport,
   message: { from: ENV.AUTH_SMTP_SENDER },
   send: true,

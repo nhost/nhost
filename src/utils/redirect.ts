@@ -1,3 +1,6 @@
+import { EmailType } from '@/types';
+import { ENV } from './env';
+
 export const generateRedirectUrl = (
   redirectTo: string,
   queryParameters: { [key: string]: string },
@@ -36,3 +39,14 @@ export const generateRedirectUrl = (
 
   return finalRedirectTo;
 };
+
+export const createEmailRedirectionLink = (
+  type: EmailType,
+  ticket: string,
+  redirectTo: string
+) =>
+  `${
+    ENV.AUTH_SERVER_URL
+  }/verify?&ticket=${ticket}&type=${type}&redirectTo=${encodeURIComponent(
+    redirectTo
+  )}`;
