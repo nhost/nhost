@@ -1,6 +1,17 @@
 
 
-## [0.9.2](https://github.com/nhost/hasura-auth/compare/v0.9.1...v0.9.2) (2022-06-22)
+## [0.9.3](https://github.com/nhost/hasura-auth/compare/v0.9.2...v0.9.3) (2022-06-30)
+
+
+### Bug Fixes
+
+* do not add null values to custom claims ([35bf186](https://github.com/nhost/hasura-auth/commit/35bf1863f3c23957d66afc679d41736a2eac47d5))
+* use the metadata field in custom claims ([a7072d9](https://github.com/nhost/hasura-auth/commit/a7072d96c91be2bb38ec707ae96f5a0672a06c44))
+
+
+### Documentation
+
+* SQL comments on schema, tables, and colums ([aeea1d3](https://github.com/nhost/hasura-auth/commit/aeea1d335916aba04b3923bef09a05533167bed8))## [0.9.2](https://github.com/nhost/hasura-auth/compare/v0.9.1...v0.9.2) (2022-06-22)
 
 
 ### Bug Fixes
