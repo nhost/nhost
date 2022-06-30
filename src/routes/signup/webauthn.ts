@@ -7,6 +7,7 @@ import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
+import { RegistrationCredentialJSON} from '@simplewebauthn/typescript-types';
 import { email, Joi, registrationOptions } from '@/validation';
 import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
 
@@ -80,7 +81,7 @@ export const signUpVerifyWebauthnHandler: RequestHandler<
   {},
   {},
   {
-    credential: any;
+    credential: RegistrationCredentialJSON;
     email: string;
   }
 > = async (req, res) => {

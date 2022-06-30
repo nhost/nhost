@@ -8,15 +8,23 @@ import { hashPassword } from '../password';
 import { emailClient } from '@/email';
 import { createEmailRedirectionLink } from '../redirect';
 import { getUserByEmail } from './getters';
+import { UserQuery } from '../__generated__/graphql-request';
 
-const sendEmailIfNotVerified = async (
-  email: string,
-  newEmail: string,
-  user: any,
-  displayName: string,
-  ticket: string,
-  redirectTo: string
-) => {
+const sendEmailIfNotVerified = async ({
+  email,
+  newEmail,
+  user,
+  displayName,
+  ticket,
+  redirectTo,
+}: {
+  email: string;
+  newEmail: string;
+  user: NonNullable<UserQuery['user']>;
+  displayName: string;
+  ticket: string;
+  redirectTo: string;
+}) => {
   if (
     !ENV.AUTH_DISABLE_NEW_USERS &&
     ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED &&
@@ -86,18 +94,19 @@ export const createUserAndSendVerificationEmail = async (
 
   const existingUser = await getUserByEmail(email);
 
-  if (existingUser) {
-    await sendEmailIfNotVerified(
-      email,
-      email,
-      existingUser,
-      displayName,
-      existingUser.ticket!,
-      redirectTo
-    );
-
-    return existingUser;
+  if (!existingUser.ticket) {
+    throw Error(`No ticket found for the user ${existingUser.id}`);
   }
+
+  if (existingUser) {
+    await sendEmailIfNotVerified({
+      email,
+      newEmail: email,
+      user: existingUser,
+      displayName,
+      ticket: existingUser.ticket,
+      redirectTo,
+    });
 
   // hash password
   const passwordHash = password && (await hashPassword(password));
@@ -125,14 +134,14 @@ export const createUserAndSendVerificationEmail = async (
     metadata,
   });
 
-  await sendEmailIfNotVerified(
+  await sendEmailIfNotVerified({
     email,
-    user.newEmail,
+    newEmail: user.newEmail,
     user,
     displayName,
     ticket,
-    redirectTo
-  );
+    redirectTo,
+  });
 
   return user;
 };
