@@ -67,7 +67,7 @@ export const signUpWebauthnHandler: RequestHandler<
     authenticatorSelection: {
       authenticatorAttachment: 'platform',
       userVerification: 'required',
-      residentKey: 'preferred',
+      residentKey: 'required',
       requireResidentKey: true,
     },
     excludeCredentials: userAuthenticators.map((authenticator) => ({

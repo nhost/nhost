@@ -117,7 +117,9 @@ describe('webauthn', () => {
       attestation: 'indirect',
       excludeCredentials: [],
       authenticatorSelection: {
-        requireResidentKey: false,
+        requireResidentKey: true,
+        residentKey: 'required',
+        authenticatorAttachment: 'platform',
         userVerification: 'required',
       },
     });
