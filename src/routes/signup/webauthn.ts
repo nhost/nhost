@@ -7,7 +7,7 @@ import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
-import { RegistrationCredentialJSON} from '@simplewebauthn/typescript-types';
+import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
 import { email, Joi, registrationOptions } from '@/validation';
 import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
 

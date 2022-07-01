@@ -6,7 +6,7 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
-import { RegistrationCredentialJSON} from '@simplewebauthn/typescript-types';
+import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types';
 import { email, Joi } from '@/validation';
 
 export const signInWebauthnSchema = Joi.object({
@@ -74,7 +74,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
   {},
   {},
   {
-    credential: RegistrationCredentialJSON;
+    credential: AuthenticationCredentialJSON;
     email: string;
   }
 > = async (req, res) => {
@@ -125,8 +125,8 @@ export const signInVerifyWebauthnHandler: RequestHandler<
 
   let verification;
   try {
-    verification = await verifyAuthenticationResponse({
-      credential: credential,
+    verification = verifyAuthenticationResponse({
+      credential,
       expectedChallenge,
       expectedOrigin: Array.from([
         ENV.AUTH_CLIENT_URL,
