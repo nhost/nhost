@@ -108,6 +108,9 @@ export const createUserAndSendVerificationEmail = async (
       redirectTo,
     });
 
+    return existingUser;
+  }
+
   // hash password
   const passwordHash = password && (await hashPassword(password));
 
