@@ -5,8 +5,9 @@ import { ENV } from '../src/utils/env';
 import { JwtSecret, Token } from '../src/types';
 import { request } from './server';
 import { StatusCodes } from 'http-status-codes';
-import { hashPassword } from '@/utils';
+import { generateTicketExpiresAt, hashPassword } from '@/utils';
 import { ClientBase } from 'pg';
+import { v4 as uuidv4 } from 'uuid';
 
 interface MailhogEmailAddress {
   Relays: string | null;
@@ -174,11 +175,13 @@ export const insertDbUser = async (
   verified = true,
   disabled = false
 ) => {
-  const queryString = `INSERT INTO auth.users(
-    email, password_hash, email_verified, disabled, locale
-    ) VALUES(
-    '${email}', '${hashPassword(password)}', '${verified}', '${disabled}','en'
-    )`;
-
+  const ticket = `verifyEmail:${uuidv4()}`;
+  const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
+  const queryString = `INSERT INTO auth.users(display_name, email, password_hash, email_verified, disabled, locale, ticket, ticket_expires_at) 
+    VALUES('${email}', '${email}', '${hashPassword(
+    password
+  )}', '${verified}', '${disabled}','en', '${ticket}', '${ticketExpiresAt.toISOString()}'
+    )
+    RETURNING id;`;
   return await client.query(queryString);
 };

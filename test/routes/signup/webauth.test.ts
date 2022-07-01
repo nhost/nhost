@@ -3,11 +3,7 @@ import faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 import { request } from '../../server';
-import {
-  deleteAllMailHogEmails,
-  insertDbUser,
-  verfiyUserTicket,
-} from '../../utils';
+import { deleteAllMailHogEmails, insertDbUser } from '../../utils';
 
 describe('webauthn', () => {
   let client: Client;
@@ -89,17 +85,10 @@ describe('webauthn', () => {
 
   it('should return registration options when signup again but user was verified', async () => {
     const email = faker.internet.email();
+    const password = faker.internet.password();
 
-    await request
-      .post('/signup/webauthn')
-      .send({ email })
-      .expect(StatusCodes.OK);
-
-    await verfiyUserTicket(email);
-
-    const userRecord = await client.query(`SELECT id FROM auth.users LIMIT 1;`);
-    expect(userRecord.rows).toBeArrayOfSize(1);
-    expect(userRecord.rows[0]).toHaveProperty('id');
+    const record = await insertDbUser(client, email, password, true);
+    expect(record.rowCount).toEqual(1);
 
     const { body } = await request
       .post('/signup/webauthn')
@@ -116,7 +105,7 @@ describe('webauthn', () => {
         id: rpId,
       },
       user: {
-        id: userRecord.rows[0].id,
+        id: record.rows[0].id,
         name: email,
         displayName: email,
       },
