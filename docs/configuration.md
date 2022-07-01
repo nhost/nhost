@@ -93,13 +93,32 @@ It is possible to add a step to authentication with email and password authentic
 
 ---
 
-## Passwordless with emails (magic links)
+## Paswordless
+
+### Passwordless with emails (magic links)
 
 Hasura Auth supports email [passwordless authentication](https://en.wikipedia.org/wiki/Passwordless_authentication). It requires [SMTP](#email-configuration) to be configured properly.
 
 Set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true` to enable passwordless authentication.
 
 <!-- TODO ## Passwordless with SMS -->
+
+### FIDO2 Webauthn
+
+Hasura Auth supports [Webauthn authentication](https://en.wikipedia.org/wiki/WebAuthn). Users can sign up and sign in using different strong authenticators like Face ID, Touch ID, Fingerprint, Hello Windows etc. using supported devices.
+
+**Each user can sign up multiple times using different browser or device using same email.**
+
+Enabling and configuring of the Webauthn can be done by setting these env variables:
+
+```bash
+AUTH_WEBAUTHN_ENABLED=true
+AUTH_WEBAUTHN_RP_ID=https://my-app.vercel.com
+AUTH_WEBAUTHN_RP_NAME=My App
+AUTH_WEBAUTHN_RP_ORIGINS=https://my-app.example.com
+```
+
+By default if `AUTH_CLIENT_URL` is whitelisted as allowed origin for such authentication. Additional urls can be specified using `AUTH_WEBAUTHN_RP_ORIGINS`.
 
 ## Gravatar
 
