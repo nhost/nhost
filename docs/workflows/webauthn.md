@@ -12,6 +12,7 @@ sequenceDiagram
 	participant A as Hasura Auth
 	participant G as Face ID/Fingerprint/Other
 	U->>+A: HTTP POST /signup/webauthn
+     Note over U,A: Subsequent sign up requires Bearer token
     opt No user found
 		A->>A: Create user
 	end

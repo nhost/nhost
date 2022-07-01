@@ -50,6 +50,10 @@ export const signUpWebauthnHandler: RequestHandler<
     })
     .then((gqlres) => gqlres.authUserAuthenticators);
 
+  if (userAuthenticators.length && !req.auth) {
+    return sendError(res, 'unauthenticated-user');
+  }
+
   const registrationOptions = generateRegistrationOptions({
     rpID: ENV.AUTH_WEBAUTHN_RP_ID,
     rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
@@ -61,7 +65,10 @@ export const signUpWebauthnHandler: RequestHandler<
      */
     supportedAlgorithmIDs: [-7, -257],
     authenticatorSelection: {
+      authenticatorAttachment: 'platform',
       userVerification: 'required',
+      residentKey: 'preferred',
+      requireResidentKey: true,
     },
     excludeCredentials: userAuthenticators.map((authenticator) => ({
       id: Buffer.from(authenticator.credentialId, 'base64url'),

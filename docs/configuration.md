@@ -105,9 +105,9 @@ Set `AUTH_EMAIL_PASSWORDLESS_ENABLED` to `true` to enable passwordless authentic
 
 ### FIDO2 Webauthn
 
-Hasura Auth supports [Webauthn authentication](https://en.wikipedia.org/wiki/WebAuthn). Users can sign up and sign in using different strong authenticators like Face ID, Touch ID, Fingerprint, Hello Windows etc. using supported devices.
+Hasura Auth supports [Webauthn authentication](https://en.wikipedia.org/wiki/WebAuthn). Users can sign up and sign in using different strong authenticators like Face ID, Touch ID, Fingerprint, Hello Windows etc. using supported devices. **Passkeys are supported for cross-device sign in.**
 
-**Each user can sign up multiple times using different browser or device using same email.**
+**Each user can sign up multiple times using different browser or device using same email. Adding subsequent authenticator (device, browser) requires authentication token.**
 
 Enabling and configuring of the Webauthn can be done by setting these env variables:
 
