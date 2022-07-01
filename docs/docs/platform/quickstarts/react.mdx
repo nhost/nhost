@@ -128,7 +128,8 @@ Nhost backend:
 import { NhostClient, NhostReactProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
-  backendUrl: process.env.REACT_APP_NHOST_BACKEND_URL || ''
+  subdomain: process.env.YOUR_SUBDOMAIN,
+  region: process.env.YOUR_REGION
 })
 
 function App() {
@@ -143,13 +144,19 @@ export default App
 ```
 
 Finally, make sure to create an environment variable named
-`REACT_APP_NHOST_BACKEND_URL` to store your Nhost backend URL:
+`YOUR_SUBDOMAIN` and `YOUR_REGION` to store your Nhost domain details:
 
 ```yaml title=".env.local"
-REACT_APP_NHOST_BACKEND_URL=YOUR_NHOST_BACKEND_URL
+YOUR_SUBDOMAIN = YOUR_NHOST_SUBDOMAIN
+YOUR_REGION = YOUR_NHOST_REGION
 ```
+For localhost, 
 
-You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+```yaml title=".env.local"
+YOUR_SUBDOMAIN = localhost
+YOUR_REGION = 
+```
+You can find your Nhost domain details for your project from [your dashboard](https://app.nhost.io) as shown below:
 
 ![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
 
