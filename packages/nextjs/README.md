@@ -27,6 +27,7 @@ npm install @nhost/react @nhost/nextjs graphql
 # With Yarn
 yarn add @nhost/react @nhost/nextjs graphql
 ```
+
 ## Initializing
 
 Initialize a single `nhost` instance and wrap your app with the `NhostNextProvider`.
@@ -37,7 +38,8 @@ import type { AppProps } from 'next/app'
 import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 
 const nhost = new NhostClient({
-  backendUrl: '<Your Nhost Backend URL>'
+  subdomain: '<Your Nhost app subdomain>',
+  region: '<Your Nhost app region>'
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -122,7 +124,8 @@ import { NhostClient, NhostNextProvider } from '@nhost/nextjs'
 import { NhostApolloProvider } from '@nhost/react-apollo'
 
 const nhost = new NhostClient({
-  backendUrl: '<Your Nhost Backend URL>'
+  subdomain: '<Your Nhost app subdomain>',
+  region: '<Your Nhost app region>'
 })
 
 function MyApp({ Component, pageProps }: AppProps) {
