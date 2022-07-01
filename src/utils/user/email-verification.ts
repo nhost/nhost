@@ -95,7 +95,11 @@ export const createUserAndSendVerificationEmail = async (
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
-    if (!existingUser.ticket) {
+    if (
+      !existingUser.ticket &&
+      !existingUser.emailVerified &&
+      ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED
+    ) {
       throw Error(`No ticket found for the user ${existingUser.id}`);
     }
 
@@ -104,7 +108,7 @@ export const createUserAndSendVerificationEmail = async (
       newEmail: email,
       user: existingUser,
       displayName,
-      ticket: existingUser.ticket,
+      ticket: existingUser.ticket!,
       redirectTo,
     });
 

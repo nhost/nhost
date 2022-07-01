@@ -73,7 +73,7 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['String']>;
 };
 
-/** columns and relationships of "auth.provider_requests" */
+/** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProviderRequests = {
   __typename?: 'authProviderRequests';
   id: Scalars['uuid'];
@@ -81,7 +81,7 @@ export type AuthProviderRequests = {
 };
 
 
-/** columns and relationships of "auth.provider_requests" */
+/** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProviderRequestsOptionsArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
@@ -215,7 +215,7 @@ export enum AuthProviderRequests_Update_Column {
   Options = 'options'
 }
 
-/** columns and relationships of "auth.providers" */
+/** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProviders = {
   __typename?: 'authProviders';
   id: Scalars['String'];
@@ -226,7 +226,7 @@ export type AuthProviders = {
 };
 
 
-/** columns and relationships of "auth.providers" */
+/** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -236,7 +236,7 @@ export type AuthProvidersUserProvidersArgs = {
 };
 
 
-/** columns and relationships of "auth.providers" */
+/** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthProvidersUserProviders_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -351,7 +351,7 @@ export enum AuthProviders_Update_Column {
   Id = 'id'
 }
 
-/** columns and relationships of "auth.refresh_tokens" */
+/** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
   createdAt: Scalars['timestamptz'];
@@ -521,7 +521,7 @@ export enum AuthRefreshTokens_Update_Column {
   UserId = 'userId'
 }
 
-/** columns and relationships of "auth.roles" */
+/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRoles = {
   __typename?: 'authRoles';
   role: Scalars['String'];
@@ -536,7 +536,7 @@ export type AuthRoles = {
 };
 
 
-/** columns and relationships of "auth.roles" */
+/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -546,7 +546,7 @@ export type AuthRolesUserRolesArgs = {
 };
 
 
-/** columns and relationships of "auth.roles" */
+/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUserRoles_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -556,7 +556,7 @@ export type AuthRolesUserRoles_AggregateArgs = {
 };
 
 
-/** columns and relationships of "auth.roles" */
+/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRoleArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -566,7 +566,7 @@ export type AuthRolesUsersByDefaultRoleArgs = {
 };
 
 
-/** columns and relationships of "auth.roles" */
+/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthRolesUsersByDefaultRole_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -684,7 +684,7 @@ export enum AuthRoles_Update_Column {
   Role = 'role'
 }
 
-/** columns and relationships of "auth.user_authenticators" */
+/** User webauthn authenticators. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthUserAuthenticators = {
   __typename?: 'authUserAuthenticators';
   counter: Scalars['bigint'];
@@ -987,7 +987,7 @@ export type AuthUserAuthenticators_Variance_Order_By = {
   counter?: InputMaybe<Order_By>;
 };
 
-/** columns and relationships of "auth.user_providers" */
+/** Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthUserProviders = {
   __typename?: 'authUserProviders';
   accessToken: Scalars['String'];
@@ -1218,7 +1218,7 @@ export enum AuthUserProviders_Update_Column {
   UserId = 'userId'
 }
 
-/** columns and relationships of "auth.user_roles" */
+/** Roles of users. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type AuthUserRoles = {
   __typename?: 'authUserRoles';
   createdAt: Scalars['timestamptz'];
@@ -2436,7 +2436,7 @@ export type Timestamptz_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['timestamptz']>>;
 };
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type Users = {
   __typename?: 'users';
   activeMfaType?: Maybe<Scalars['String']>;
@@ -2485,7 +2485,7 @@ export type Users = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersAuthenticatorsArgs = {
   distinct_on?: InputMaybe<Array<AuthUserAuthenticators_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2495,7 +2495,7 @@ export type UsersAuthenticatorsArgs = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersAuthenticators_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserAuthenticators_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2505,13 +2505,13 @@ export type UsersAuthenticators_AggregateArgs = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2521,7 +2521,7 @@ export type UsersRefreshTokensArgs = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRefreshTokens_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2531,7 +2531,7 @@ export type UsersRefreshTokens_AggregateArgs = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2541,7 +2541,7 @@ export type UsersRolesArgs = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersRoles_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2551,7 +2551,7 @@ export type UsersRoles_AggregateArgs = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2561,7 +2561,7 @@ export type UsersUserProvidersArgs = {
 };
 
 
-/** columns and relationships of "auth.users" */
+/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
 export type UsersUserProviders_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
