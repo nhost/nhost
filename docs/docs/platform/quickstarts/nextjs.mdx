@@ -150,16 +150,16 @@ function MyApp({ Component, pageProps }) {
 }
 ```
 
-Finally, make sure to store your environment variables for `subdomain` and `region` in `.env.development`:
+Finally, store the environment variables for `subdomain` and `region` in `.env.development`:
 
 ```yaml title=".env.development"
 NEXT_PUBLIC_NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
 NEXT_PUBLIC_NHOST_REGION=YOUR_NHOST_APP_REGION
 ```
 
-You find your Nhost subdomain and region for your project from [the app dashboard](https://app.nhost.io):
+You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
 
-![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
+![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
 
 :::caution
 Don't forget to restart your Next.js server after saving your `.env.development`
