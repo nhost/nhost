@@ -28,7 +28,8 @@ yarn add @nhost/nhost-js
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://subdomain.nhost.run'
+  subdomain: '<Your Nhost app subdomain>',
+  region: '<Your Nhost app region>'
 })
 ```
 
@@ -49,4 +50,3 @@ Access Nhost Storage methods using `nhost.storage`.
 ### Functions
 
 Access Nhost Functions methods via `nhost.functions`.
-
