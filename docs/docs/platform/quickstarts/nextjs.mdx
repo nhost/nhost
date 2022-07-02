@@ -132,7 +132,8 @@ import { NhostNextProvider, NhostClient } from '@nhost/nextjs';
 
 // highlight-start
 const nhost = new NhostClient({
-  backendUrl: process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || '',
+  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || '',
+  region: process.env.NEXT_PUBLIC_NHOST_REGION || ''
 });
 // highlight-end
 
@@ -149,14 +150,14 @@ function MyApp({ Component, pageProps }) {
 }
 ```
 
-Finally, make sure to create an environment variable named
-`NEXT_PUBLIC_NHOST_BACKEND_URL` to store your Nhost backend URL:
+Finally, make sure to store your environment variables for `subdomain` and `region` in `.env.development`:
 
 ```yaml title=".env.development"
-NEXT_PUBLIC_NHOST_BACKEND_URL=YOUR_NHOST_BACKEND_URL
+NEXT_PUBLIC_NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
+NEXT_PUBLIC_NHOST_REGION=YOUR_NHOST_APP_REGION
 ```
 
-You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+You find your Nhost subdomain and region for your project from [the app dashboard](https://app.nhost.io):
 
 ![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
 
