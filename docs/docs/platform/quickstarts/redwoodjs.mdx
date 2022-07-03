@@ -136,7 +136,8 @@ import { NhostClient } from '@nhost/nhost-js'
 
 // highlight-start
 const nhostClient = new NhostClient({
-  backendUrl: process.env.NHOST_BACKEND_URL
+  subdomain: process.env.NHOST_SUBDOMAIN
+  region: process.env.NHOST_REGION
 })
 // highlight-end
 
@@ -175,16 +176,16 @@ const App = () => (
 
 That prop avoids having an additional request to fetch the current user.
 
-Next, make sure to create an environment variable named
-`NHOST_BACKEND_URL` to store your Nhost backend URL:
+Next, store the environment variables for `subdomain` and `region` in `.env`:
 
 ```yaml title=".env"
-NHOST_BACKEND_URL=YOUR_NHOST_BACKEND_URL
+NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
+NHOST_REGION=YOUR_NHOST_APP_REGION
 ```
 
-You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
 
-![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
+![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
 
 Finally, we need to customize the GraphQL Endpoint for our RedwoodJS app. Indeed, by default, RedwoodJS provides a built-in GraphQL server under the `api` side. However, as we already have our own GraphQL server through Nhost and Hasura, we do not need it.
 
@@ -194,7 +195,7 @@ So, open the RedwoodJS configuration file, `redwood.toml`, and change the GraphQ
 [web]
   apiUrl = "/.redwood/functions"
   # highlight-next-line
-  apiGraphQLUrl = "${NHOST_BACKEND_URL}/v1/graphql"
+  apiGraphQLUrl = "https://${NHOST_SUBDOMAIN}.graphql.${NHOST_REGION}.nhost.run/v1"
 ```
 
 :::caution
