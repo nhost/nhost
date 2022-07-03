@@ -28,6 +28,9 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "lint:fix": { "outputs": [] }
+    "lint:fix": { "outputs": [] },
+    "postversion": {
+      "cache": false
+    }
   }
 }

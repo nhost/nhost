@@ -1,0 +1,322 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Nhost config",
+  "description": "",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "metadata_directory": {
+      "type": "string"
+    },
+    "migrations_directory": {
+      "type": "string"
+    },
+    "seeds_directory": {
+      "type": "string"
+    },
+    "version": {
+      "type": "integer",
+      "enum": [3],
+      "$comment": "Hasura config version"
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": false,
+      "patternProperties": {
+        "hasura|postgres|auth|storage|mailhog|minio": {
+          "type": "object",
+          "properties": {
+            "port": {
+              "type": "integer"
+            },
+            "version": { "type": "string" },
+            "environment": {
+              "type": "object",
+              "additionalProperties": false,
+              "patternProperties": {
+                "": {
+                  "type": ["number", "boolean", "string", "null"]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "log_level": {
+          "enum": ["fatal", "error", "warn", "info", "debug", "trace", "silent"]
+        },
+        "access_control": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "email": {
+              "type": "object",
+              "additionalProperties": false,
+              "patternProperties": {
+                "(allowed_email_domains|allowed_emails|blocked_email_domains|blocked_emails)": {
+                  "ref": "#/$defs/comma_list"
+                }
+              }
+            },
+            "allowed_redirect_urls": { "ref": "#/$defs/comma_list" }
+          }
+        },
+        "anonymous_users": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean"
+            }
+          }
+        },
+        "client_url": {
+          "type": "string"
+        },
+        "disable_new_users": {
+          "type": "boolean"
+        },
+        "email": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "passwordless": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "template": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": { "fetch_url": { "type": "string" } }
+            },
+            "signin_email_verified_required": {
+              "type": "boolean",
+              "default": true
+            }
+          }
+        },
+        "gravatar": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "default": {
+              "type": "string"
+            },
+            "enabled": { "type": "boolean" },
+            "rating": { "type": "string", "enum": ["", "g", "pg", "r", "x"] }
+          }
+        },
+        "locale": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowed_locales": {
+              "type": "string",
+              "pattern": "^[a-zA-Z]{2}(,[a-zA-Z]{2})*$"
+            },
+            "default": { "type": "string", "minLength": 2, "maxLength": 2 }
+          }
+        },
+        "password": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "hibp": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": { "enabled": { "type": "boolean" } }
+            },
+            "min_length": {
+              "type": "integer"
+            }
+          }
+        },
+        "provider": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "apple": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "client_id": { "type": "string" },
+                "team_id": { "type": "string" },
+                "key_id": { "type": "string" },
+                "private_key": { "type": "string" },
+                "scope": { "ref": "#/$defs/comma_list" }
+              }
+            },
+            "github": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "client_id": { "type": "string" },
+                "client_secret": { "type": "string" },
+                "authorization_url": { "type": "string" },
+                "token_url": { "type": "string" },
+                "user_profile_url": { "type": "string" },
+                "scope": { "ref": "#/$defs/comma_list" }
+              }
+            },
+            "bitbucket": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "client_id": { "type": "string" },
+                "client_secret": { "type": "string" }
+              }
+            },
+            "facebook": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "client_id": { "type": "string" },
+                "client_secret": { "type": "string" },
+                "profile_fields": { "ref": "#/$defs/comma_list" },
+                "scope": { "ref": "#/$defs/comma_list" }
+              }
+            },
+            "gitlab": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "client_id": { "type": "string" },
+                "client_secret": { "type": "string" },
+                "base_url": { "type": "string" },
+                "scope": { "ref": "#/$defs/comma_list" }
+              }
+            },
+            "twilio": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "account_sid": { "type": "string" },
+                "auth_token": { "type": "string" },
+                "messaging_service_id": { "type": "string" }
+              }
+            },
+            "twitter": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "consumer_key": { "type": "string" },
+                "consumer_secret": { "type": "string" }
+              }
+            }
+          },
+          "patternProperties": {
+            "apple|windows_live|gitlab|bitbucket|spotify|linkedin|twitter|google|strava": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": { "type": "boolean" },
+                "client_id": { "type": "string" },
+                "client_secret": { "type": "string" },
+                "scope": { "ref": "#/$defs/comma_list" }
+              }
+            }
+          }
+        },
+        "sms": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "passwordless": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              }
+            },
+            "provider": { "type": "string", "enum": ["twilio"] },
+            "twilio": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "account_sid": { "type": "string" },
+                "auth_token": { "type": "string" },
+                "messaging_service_id": { "type": "string" },
+                "from": { "type": "string" }
+              }
+            }
+          }
+        },
+        "user": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "default_role": { "type": "string" },
+            "default_allowed_roles": { "$ref": "#/$defs/comma_list" }
+          }
+        },
+        "jwt": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "custom_claims": { "$ref": "#/$defs/comma_list" } }
+        },
+        "access_token": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "expires_in": { "type": "integer" } }
+        },
+        "refresh_token": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "expires_in": { "type": "integer" } }
+        },
+        "smtp": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "host": { "type": "string" },
+            "port": { "type": "integer", "default": 587 },
+            "secure": { "type": "boolean", "default": false },
+            "user": { "type": "string" },
+            "pass": { "type": "string" },
+            "sender": { "type": "string" },
+            "auth_method": { "type": "string", "default": "PLAIN" }
+          }
+        },
+        "port": {
+          "type": "integer",
+          "default": 4000
+        },
+        "server_url": {
+          "type": "string",
+          "deprecated": true
+        },
+        "mfa": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": { "type": "boolean", "default": false },
+            "totp_issuer": {
+              "type": "string",
+              "default": "hasura-auth"
+            }
+          }
+        }
+      }
+    },
+    "storage": {
+      "type": "object",
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "comma_list": { "type": "string" }
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "$id": "https://github.com/nhost/nhost/version_meta.json",
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "The meta schema for Nhost's version schema.",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "http://json-schema.org/draft-04/schema#"
+    },
+    {
+      "properties": {
+        "oneOf": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["allOf"],
+            "additionalProperties": false,
+            "properties": {
+              "allOf": {
+                "type": "array",
+                "additionalItems": false,
+                "minItems": 2,
+                "items": [
+                  {
+                    "type": "object",
+                    "required": ["properties"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "properties": {
+                        "type": "object",
+                        "required": ["version"],
+                        "additionalProperties": false,
+                        "properties": {
+                          "version": {
+                            "type": "object",
+                            "required": ["const"],
+                            "additionalProperties": false,
+                            "properties": {
+                              "const": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "required": ["$ref"],
+                    "additionalProperties": false,
+                    "properties": {
+                      "$ref": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
