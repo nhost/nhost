@@ -1,5 +1,5 @@
 <h1 align="center">Hasura Auth</h1>
-<h2 align="center">The Open Source Authentication Service for Hasura.</h2>
+<h2 align="center">Authentication for Hasura</h2>
 
 <p align="center">
   <img src="https://img.shields.io/badge/version-2.2.1-blue.svg?cacheSeconds=2592000" />
@@ -21,11 +21,7 @@
   </a>
 </p>
 
-## Documentation:
-
-Find more information about Hasura Auth in [our documentation](https://docs.nhost.io/reference/hasura-auth).
-
-## Core Features:
+## Core Features
 
 - 🧑‍🤝‍🧑 Users are stored in Postgres and accessed via GraphQL
 - 🔑 Multiple sign-in methods.
@@ -35,14 +31,14 @@ Find more information about Hasura Auth in [our documentation](https://docs.nhos
 - ✅ Optional checking for Pwned Passwords.
 - 👨‍💻 Written 100% in TypeScript.
 
-## Sign in methods:
+## Sign in methods
 
-- **Email and Password** - simple email and password method.
-- **Email** - also called **passwordless email** or **magic link**.
-- **SMS** - also called **passwordless sms**.
-- **Anonymous** - sign in users without any method. Anonymous users can be
+- [**Email and Password**](./docs/workflows/email-password.md) - simple email and password method.
+- [**Email**](./docs/workflows/passwordless-email.md) - also called **passwordless email** or **magic link**.
+- [**SMS**](./docs/workflows/passwordless-sms.md) - also called **passwordless sms**.
+- [**Anonymous**](./docs/workflows/anonymous-users.md) - sign in users without any method. Anonymous users can be
   converted to _regular_ users.
-- **OAuth providers**:
+- [**OAuth providers**](./docs/workflows/oauth-providers.md):
   - Facebook
   - Google
   - GitHub
@@ -67,6 +63,33 @@ cd hasura-auth
 cp .env.example .env
 docker-compose -f docker-compose-example.yaml up
 ```
+
+## Configuration
+
+Read our [configuration guide](./docs/configuration.md) to customise the Hasura Auth settings.
+
+## Workflows
+
+- [Email and password](./docs/workflows/email-password.md)
+- [Oauth social providers](./docs/workflows/oauth-providers.md)
+- [Passwordless with emails (magic links)](./docs/workflows/passwordless-email.md)
+- [Passwordless with SMS](./docs/workflows/passwordless-sms.md)
+- [Anonymous users](./docs/workflows/anonymous-users.md)
+- [Change email](./docs/workflows/change-email.md)
+- [Change password](./docs/workflows/change-password.md)
+- [Reset password](./docs/workflows/reset-password.md)
+- [Refresh tokens](./docs/workflows/refresh-token.md)
+
+## Recipes
+
+- Extending Hasura's permissions with [Custom JWT claims](./docs/recipes/custom-hasura-claims.md)
+- [Extending the user schema](./docs/recipes/extending-user-schema.md)
+
+## Reference
+
+- List of the available [environment variables](./docs/environment-variables.md).
+- The service comes with an [OpenAPI definition](./docs/openapi.json) which you can also see [online](https://editor.swagger.io/?url=https://raw.githubusercontent.com/nhost/hasura-auth/main/docs/openapi.json).
+- [Database Schema](./docs/schema.md)
 
 ## 🤝 Contributing
 

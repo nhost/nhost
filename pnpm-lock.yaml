@@ -10,7 +10,6 @@ specifiers:
   '@graphql-codegen/typescript-graphql-request': ^4.3.3
   '@graphql-codegen/typescript-operations': ^2.2.2
   '@milahu/patch-package-with-pnpm-support': ^6.4.8
-  '@nicokaiser/passport-apple': ^0.2.1
   '@oauth-everything/passport-discord': ^1.0.2
   '@oauth-everything/passport-twitch': ^1.0.3
   '@release-it/conventional-changelog': ^4.2.2
@@ -31,6 +30,7 @@ specifiers:
   '@types/node-fetch': ^2.5.7
   '@types/nodemailer': 6.4.0
   '@types/passport': 1.0.3
+  '@types/passport-apple': ^1.1.1
   '@types/passport-facebook': ^2.1.9
   '@types/passport-github2': 1.2.4
   '@types/passport-google-oauth20': 2.0.3
@@ -89,6 +89,7 @@ specifiers:
   js-yaml: 3.13.1
   json-to-graphql-query: ^2.2.0
   jsonata: ^1.8.5
+  libphonenumber-js: ^1.10.6
   lint-staged: 10.1.3
   nocache: ^2.1.0
   node-fetch: ^2.6.1
@@ -97,12 +98,14 @@ specifiers:
   otplib: 12.0.1
   pascal-case: ^3.1.2
   passport: 0.4.1
+  passport-apple: ^2.0.1
   passport-bitbucket-oauth2: ^0.1.2
   passport-facebook: ^3.0.0
   passport-github2: 0.1.12
   passport-gitlab2: ^5.0.0
   passport-google-oauth20: 2.0.0
   passport-linkedin-oauth2: ^2.0.0
+  passport-oauth2: ^1.6.1
   passport-oauth2-refresh: ^2.1.0
   passport-spotify: ^2.0.0
   passport-twitter: ^1.0.4
@@ -128,10 +131,10 @@ specifiers:
 dependencies:
   '@djgrant/postgres-migrations': 4.1.0-rc.1
   '@milahu/patch-package-with-pnpm-support': 6.4.8
-  '@nicokaiser/passport-apple': 0.2.1
   '@oauth-everything/passport-discord': 1.0.2
   '@oauth-everything/passport-twitch': 1.0.3
   '@riderize/passport-strava-oauth2': 1.1.1
+  '@types/passport-oauth2': 1.4.11
   axios: 0.21.1
   bcryptjs: 2.4.3
   body-parser: 1.19.0
@@ -157,18 +160,21 @@ dependencies:
   js-yaml: 3.13.1
   json-to-graphql-query: 2.2.3
   jsonata: 1.8.6
+  libphonenumber-js: 1.10.6
   nocache: 2.1.0
   node-fetch: 2.6.7
   nodemailer: 6.4.16
   otplib: 12.0.1
   pascal-case: 3.1.2
   passport: 0.4.1
+  passport-apple: 2.0.1
   passport-bitbucket-oauth2: 0.1.2
   passport-facebook: 3.0.0
   passport-github2: 0.1.12
   passport-gitlab2: 5.0.0
   passport-google-oauth20: 2.0.0
   passport-linkedin-oauth2: 2.0.0
+  passport-oauth2: 1.6.1
   passport-oauth2-refresh: 2.1.0
   passport-spotify: 2.0.0
   passport-twitter: 1.0.4
@@ -206,11 +212,11 @@ devDependencies:
   '@types/node-fetch': 2.6.1
   '@types/nodemailer': 6.4.0
   '@types/passport': 1.0.3
+  '@types/passport-apple': 1.1.1
   '@types/passport-facebook': 2.1.11
   '@types/passport-github2': 1.2.4
   '@types/passport-google-oauth20': 2.0.3
   '@types/passport-linkedin-oauth2': 1.5.3
-  '@types/passport-oauth2': 1.4.11
   '@types/passport-oauth2-refresh': 1.1.1
   '@types/passport-spotify': 1.1.0
   '@types/passport-twitter': 1.0.37
@@ -1911,15 +1917,6 @@ packages:
       graphql: 16.2.0
     dev: true
 
-  /@nicokaiser/passport-apple/0.2.1:
-    resolution: {integrity: sha512-5Spi6fl4KabSHkcjpXQEnd5BnmMptNaDNHndCiGLg2fK9OwLVE6OrgQQZi9mZqmjaPtWyivzV1dSegN+uB3xFQ==}
-    dependencies:
-      jsonwebtoken: 8.5.1
-      oauth: 0.9.15
-      passport-strategy: 1.0.0
-      uid2: 0.0.3
-    dev: false
-
   /@nodelib/fs.scandir/2.1.5:
     resolution: {integrity: sha512-vq24Bq3ym5HEQm2NKCr3yXDwjc7vTsEThRDnkp2DK9p1uqLR+DHurm/NOTo0KG7HYHU7eppKZj3MyqYuMBf62g==}
     engines: {node: '>= 8'}
@@ -2476,6 +2473,14 @@ packages:
 
   /@types/parse-json/4.0.0:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
+    dev: true
+
+  /@types/passport-apple/1.1.1:
+    resolution: {integrity: sha512-JpNC+yqkErqs9Vh/sDafoAWW5tJI9g7c7JwL+qYIhlB9A9rK6PFkl0S326DQLSm32vZFH4C0eF7aKCO3gXdp+Q==}
+    dependencies:
+      '@types/express': 4.17.6
+      '@types/passport': 1.0.3
+      '@types/passport-oauth2': 1.4.11
     dev: true
 
   /@types/passport-facebook/2.1.11:
@@ -4019,7 +4024,7 @@ packages:
       lodash: ^4.17.20
       marko: ^3.14.4
       mote: ^0.2.0
-      mustache: ^4.0.1
+      mustache: ^3.0.0
       nunjucks: ^3.2.2
       plates: ~0.4.11
       pug: ^3.0.0
@@ -6251,7 +6256,6 @@ packages:
       graphql: 16.2.0
     transitivePeerDependencies:
       - encoding
-    dev: false
 
   /graphql-request/4.0.0_graphql@16.2.0:
     resolution: {integrity: sha512-cdqQLCXlBGkaLdkLYRl4LtkwaZU6TfpE7/tnUQFl3wXfUPWN74Ov+Q61VuIh+AltS789YfGB6whghmCmeXLvTw==}
@@ -6296,7 +6300,6 @@ packages:
   /graphql/16.2.0:
     resolution: {integrity: sha512-MuQd7XXrdOcmfwuLwC2jNvx0n3rxIuNYOxUtiee5XOmfrWo613ar2U8pE7aHAKh8VwfpifubpD9IP+EdEAEOsA==}
     engines: {node: ^12.22.0 || ^14.16.0 || >=16.0.0}
-    dev: false
 
   /gravatar/1.8.2:
     resolution: {integrity: sha512-GdRwLM3oYpFQKy47MKuluw9hZ2gaCtiKPbDGdcDEuYDKlc8eNnW27KYL9LVbIDzEsx88WtDWQm2ClBcsgBnj6w==}
@@ -8283,6 +8286,10 @@ packages:
       libqp: 1.1.0
     dev: false
 
+  /libphonenumber-js/1.10.6:
+    resolution: {integrity: sha512-CIjT100/SmntsUjsLVs2t3ufeN4KdNXUxhD07tH153pdbaCWuAjv0jK/gPuywR3IImB/U/MQM+x9RfhMs5XZiA==}
+    dev: false
+
   /libqp/1.1.0:
     resolution: {integrity: sha1-9ebgatdLeU+1tbZpiL9yjvHe2+g=}
     dev: false
@@ -8442,26 +8449,26 @@ packages:
     dev: true
 
   /lodash.includes/4.3.0:
-    resolution: {integrity: sha1-YLuYqHy5I8aMoeUTJUgzFISfVT8=}
+    resolution: {integrity: sha512-W3Bx6mdkRTGtlJISOvVD/lbqjTlPPUDTMnlXZFnVwi9NKJ6tiAk6LVdlhZMm17VZisqhKcgzpO5Wz91PCt5b0w==}
 
   /lodash.isboolean/3.0.3:
-    resolution: {integrity: sha1-bC4XHbKiV82WgC/UOwGyDV9YcPY=}
+    resolution: {integrity: sha512-Bz5mupy2SVbPHURB98VAcw+aHh4vRV5IPNhILUCsOzRmsTmSQ17jIuqopAentWoehktxGd9e/hbIXq980/1QJg==}
 
   /lodash.isinteger/4.0.4:
-    resolution: {integrity: sha1-YZwK89A/iwTDH1iChAt3sRzWg0M=}
+    resolution: {integrity: sha512-DBwtEWN2caHQ9/imiNeEA5ys1JoRtRfY3d7V9wkqtbycnAmTvRRmbHKDV4a0EYc678/dia0jrte4tjYwVBaZUA==}
 
   /lodash.ismatch/4.4.0:
     resolution: {integrity: sha1-dWy1FQyjum8RCFp4hJZF8Yj4Xzc=}
     dev: true
 
   /lodash.isnumber/3.0.3:
-    resolution: {integrity: sha1-POdoEMWSjQM1IwGsKHMX8RwLH/w=}
+    resolution: {integrity: sha512-QYqzpfwO3/CWf3XP+Z+tkQsfaLL/EnUlXWVkIk5FUPc4sBdTehEqZONuyRt2P67PXAk+NXmTBcc97zw9t1FQrw==}
 
   /lodash.isplainobject/4.0.6:
-    resolution: {integrity: sha1-fFJqUtibRcRcxpC4gWO+BJf1UMs=}
+    resolution: {integrity: sha512-oSXzaWypCMHkPC3NvBEaPHf0KsA5mvPrOPgQWDsbg8n7orZ290M0BmC/jgRZ4vcJ6DTAhjrsSYgdsW/F+MFOBA==}
 
   /lodash.isstring/4.0.1:
-    resolution: {integrity: sha1-1SfftUVuynzJu5XV2ur4i6VKVFE=}
+    resolution: {integrity: sha512-0wJxfxH1wgO3GrbuP+dTTk7op+6L41QCXbGINEmD+ny/G/eCqGzxyCsh7159S+mgDDcoarnBw6PC1PS5+wUGgw==}
 
   /lodash.map/4.6.0:
     resolution: {integrity: sha1-dx7Hg540c9nEzeKLGTlMNWL09tM=}
@@ -8475,7 +8482,7 @@ packages:
     dev: false
 
   /lodash.once/4.1.1:
-    resolution: {integrity: sha1-DdOXEhPHxW34gJd9UEyI+0cal6w=}
+    resolution: {integrity: sha512-Sb487aTOCr9drQVL8pIxOzVhafOjZN9UU54hiN8PU3uAiSV7lx1yYNpbNmex2PK6dSJoNTSJUUswT651yww3Mg==}
 
   /lodash.pick/4.4.0:
     resolution: {integrity: sha1-UvBWEP/53tQiYRRB7R/BI6AwAbM=}
@@ -8880,7 +8887,7 @@ packages:
     dev: false
 
   /ms/2.0.0:
-    resolution: {integrity: sha1-VgiurfwAvmwpAd9fmGF4jeDVl8g=}
+    resolution: {integrity: sha512-Tpp60P6IUJDTuOq/5Z8cdskzJujfwqfOTkrwIwj7IRISpnkJnT6SyJ4PCPnGMoFjC9ddhal5KVIYtAt97ix05A==}
 
   /ms/2.1.1:
     resolution: {integrity: sha512-tgp+dl5cGk28utYktBsrFqA7HKgrhgPsg6Z/EfhWI4gl1Hwq8B/GmY/0oXZ6nF8hDVesS/FpnYaD/kOWhYQvyg==}
@@ -9106,7 +9113,7 @@ packages:
     dev: false
 
   /oauth/0.9.15:
-    resolution: {integrity: sha1-vR/vr2hslrdUda7VGWQS/2DPucE=}
+    resolution: {integrity: sha512-a5ERWK1kh38ExDEfoO6qUHJb32rd7aYmPHuyCu3Fta/cnICvYmgd2uhuKXvPD+PXB+gCEYYEaQdIRAjCOwAKNA==}
     dev: false
 
   /object-assign/4.1.1:
@@ -9412,6 +9419,13 @@ packages:
     resolution: {integrity: sha1-s2PlXoAGym/iF4TS2yK9FdeRfxQ=}
     engines: {node: '>=0.10.0'}
     dev: true
+
+  /passport-apple/2.0.1:
+    resolution: {integrity: sha512-+ssWcwgg/PWyHNSgNn4d1dbsgQeEb13Xgu7TRb+FlHggbCTDvCb2jzm+M+hQ0vmU9y2QOmiRPqD27b3TCRc6PQ==}
+    dependencies:
+      jsonwebtoken: 8.5.1
+      passport-oauth2: 1.6.1
+    dev: false
 
   /passport-bitbucket-oauth2/0.1.2:
     resolution: {integrity: sha1-6zr1zdDQaDCtxJt2rK5K2CKQaTs=}
@@ -10634,7 +10648,7 @@ packages:
     dev: true
 
   /semver/4.3.2:
-    resolution: {integrity: sha1-x6BxWKgL7dBSNVt3DYLWZA+AO+c=}
+    resolution: {integrity: sha512-VyFUffiBx8hABJ9HYSTXLRwyZtdDHMzMtFmID1aiNAD2BZppBmJm0Hqw3p2jkgxP9BNt1pQ9RnC49P0EcXf6cA==}
     hasBin: true
     dev: false
 
@@ -11799,10 +11813,6 @@ packages:
     dev: false
     optional: true
 
-  /uid2/0.0.3:
-    resolution: {integrity: sha1-SDEm4Rd03y9xuLY53NeZw3YWK4I=}
-    dev: false
-
   /uid2/0.0.4:
     resolution: {integrity: sha512-IevTus0SbGwQzYh3+fRsAMTVVPOoIVufzacXcHPmdlle1jUpq7BRL+mw3dgeLanvGZdwwbWhRV6XrcFNdBmjWA==}
     dev: false
@@ -11977,7 +11987,7 @@ packages:
     dev: false
 
   /utils-merge/1.0.1:
-    resolution: {integrity: sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=}
+    resolution: {integrity: sha512-pMZTvIkT1d+TFGvDOqodOclx0QWkkgi6Tdoa8gC8ffGAAqz9pzPTZWAybbsHHoED/ztMtkv/VoYTYyShUn81hA==}
     engines: {node: '>= 0.4.0'}
     dev: false
 

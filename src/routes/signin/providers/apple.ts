@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { Strategy, Profile } from '@nicokaiser/passport-apple';
+import { Strategy, Profile } from 'passport-apple';
 import { PROVIDERS } from '@config';
 import { sendError } from '@/errors';
 import { getGravatarUrl } from '@/utils';
@@ -41,7 +41,7 @@ export default (router: Router): void => {
         !options?.clientID ||
         !options?.teamID ||
         !options?.keyID ||
-        !options?.key
+        !options?.privateKeyString
       ) {
         throw new Error(`Missing environment variables for Apple OAuth`);
       } else {

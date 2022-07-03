@@ -266,4 +266,21 @@ describe('user email', () => {
       'errorDescription',
     ]);
   });
+
+  it('shoud not be possible to change email when anonymous', async () => {
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_ANONYMOUS_USERS_ENABLED: true,
+    });
+
+    const { body }: { body: SignInResponse } = await request
+      .post('/signin/anonymous')
+      .expect(StatusCodes.OK);
+
+    await request
+      .post('/user/email/change')
+      .set('Authorization', `Bearer ${body.session!.accessToken}`)
+      .send({ newEmail: faker.internet.email() })
+      .expect(StatusCodes.FORBIDDEN);
+  });
 });

@@ -119,15 +119,12 @@ const PROVIDERS = {
           get keyID() {
             return process.env.AUTH_PROVIDER_APPLE_KEY_ID || '';
           },
-          get key() {
+          get privateKeyString() {
             return (
-              (process.env.AUTH_PROVIDER_APPLE_PRIVATE_KEY &&
-                // Convert contents from base64 string to string to avoid issues with line breaks in the environment variable
-                Buffer.from(
-                  process.env.AUTH_PROVIDER_APPLE_PRIVATE_KEY,
-                  'base64'
-                ).toString('ascii')) ||
-              ''
+              process.env.AUTH_PROVIDER_APPLE_PRIVATE_KEY?.replace(
+                /\\n/g,
+                '\n'
+              ) || ''
             );
           },
           get scope() {

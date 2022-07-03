@@ -58,13 +58,13 @@ jobs:
           restore-keys: ${{ runner.os }}-
       - uses: pnpm/action-setup@v2.1.0
         with:
-          version: 6.28.0
+          version: 7.3.0
           run_install: |
             - args: [--frozen-lockfile]
       - name: Run Jest tests
         # env:
         #   AUTH_LOCALE_ALLOWED_LOCALES: en,fr
-        run: pnpm run test -- --coverage
+        run: pnpm run test --coverage
       - name: Upload test results
         uses: actions/upload-artifact@v1
         with:

@@ -59,7 +59,11 @@ export const userEmailChange: RequestHandler<
   const user = updatedUserResponse.updateUser;
 
   if (!user) {
-    throw new Error('Unable to get user');
+    return sendError(res, 'user-not-found');
+  }
+
+  if (user.isAnonymous) {
+    return sendError(res, 'forbidden-anonymous');
   }
 
   const template = 'email-confirm-change';
@@ -73,6 +77,8 @@ export const userEmailChange: RequestHandler<
     locals: {
       link,
       displayName: user.displayName,
+      email: user.email,
+      newEmail,
       ticket,
       redirectTo: encodeURIComponent(redirectTo),
       locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,

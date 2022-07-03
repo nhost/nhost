@@ -118,6 +118,7 @@ export const signUpEmailPasswordHandler: RequestHandler<
         link,
         displayName,
         email,
+        newEmail: user.newEmail,
         ticket,
         redirectTo: encodeURIComponent(redirectTo),
         locale: user.locale,

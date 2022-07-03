@@ -6,6 +6,9 @@ import { queryValidator } from '@/validation';
 
 const router = Router();
 
+// Workaround for Outlook safe links. See: https://github.com/nhost/hasura-auth/issues/189
+router.head('/verify', (_, res) => res.sendStatus(200));
+
 // TODO: use VerifySchema in the jsdoc
 /**
  * GET /verify
