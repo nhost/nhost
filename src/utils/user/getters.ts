@@ -76,7 +76,6 @@ export const getUserByEmail = async (email: string) => {
 };
 
 export const getUserByTicket = async (ticket: string) => {
-
   const now = new Date();
 
   const { users } = await gqlSdk.users({
@@ -95,7 +94,6 @@ export const getUserByTicket = async (ticket: string) => {
       ],
     },
   });
-
 
   if (users.length !== 1) {
     return null;
