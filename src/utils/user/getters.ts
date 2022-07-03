@@ -75,12 +75,7 @@ export const getUserByEmail = async (email: string) => {
   return users[0];
 };
 
-export const getUserByTicket = async (ticket: string | undefined) => {
-
-  // return null if ticket is empty
-  if (!ticket) {
-    return null;
-  }
+export const getUserByTicket = async (ticket: string) => {
 
   const now = new Date();
 
@@ -100,6 +95,7 @@ export const getUserByTicket = async (ticket: string | undefined) => {
       ],
     },
   });
+
 
   if (users.length !== 1) {
     return null;
