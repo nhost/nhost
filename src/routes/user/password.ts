@@ -17,48 +17,31 @@ export const userPasswordHandler: RequestHandler<
 > = async (req, res) => {
   const { ticket } = req.body;
 
-  // get the user from the ticket, but if no ticket then return null
-  const userByTicket = await getUserByTicket(ticket);
-
-  if (userByTicket) {
-    // clear current ticket so the ticket can only be used once
-    await gqlSdk.updateUser({
-      id: userByTicket.id,
-      user: {
-        ticket: null,
-      },
-    });
+  let user;
+  if (ticket) {
+    user = await getUserByTicket(ticket);
+    if (!user) {
+      return sendError(res, 'invalid-ticket');
+    }
+  } else {
+    if (!req.auth?.userId) {
+      return sendError(res, 'unauthenticated-user');
+    }
+    user = (await gqlSdk.user({ id: req.auth?.userId })).user;
   }
-
-  // check if user is logged in or has valid ticket
-  if (!req.auth?.userId && !userByTicket) {
-    return sendError(res, 'unauthenticated-user');
-  }
-
-  const userId = req.auth?.userId || userByTicket?.id;
-
-  if (!userId) {
-    return sendError(res, 'unauthenticated-user');
-  }
-
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
 
   if (!user) {
     throw new Error('Unable to get user');
   }
-
   const { newPassword } = req.body;
-  const newPasswordHash = await hashPassword(newPassword);
+  const passwordHash = await hashPassword(newPassword);
 
-  // set new password for user
   await gqlSdk.updateUser({
-    id: userId,
+    id: user.id,
     user: {
-      passwordHash: newPasswordHash,
+      passwordHash,
+      ticket: ticket ? null : undefined, // Hasura does not update when variable is undefined
     },
   });
-
   return res.send(ReasonPhrases.OK);
 };
