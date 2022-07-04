@@ -42,20 +42,20 @@ auth:
     min_length: 3
   provider:
     apple:
-      client_id: ''
       enabled: false
+      client_id: ''
       key_id: ''
       private_key: ''
       scope: name,email
       team_id: ''
     bitbucket:
+      enabled: false
       client_id: ''
       client_secret: ''
-      enabled: false
     facebook:
+      enabled: false
       client_id: ''
       client_secret: ''
-      enabled: false
       scope: email,photos,displayName
     github:
       enabled: false
@@ -65,48 +65,48 @@ auth:
       token_url: ''
       user_profile_url: ''
     gitlab:
+      enabled: false
       base_url: ''
       client_id: ''
       client_secret: ''
-      enabled: false
       scope: read_user
     google:
+      enabled: false
       client_id: ''
       client_secret: ''
-      enabled: false
       scope: email,profile
     linkedin:
+      enabled: false
       client_id: ''
       client_secret: ''
-      enabled: false
       scope: r_emailaddress,r_liteprofile
     spotify:
+      enabled: false
       client_id: ''
       client_secret: ''
-      enabled: false
       scope: user-read-email,user-read-private
     strava:
+      enabled: false
       client_id: ''
       client_secret: ''
-      enabled: false
     twilio:
+      enabled: false
       account_sid: ''
       auth_token: ''
-      enabled: false
       messaging_service_id: ''
     twitter:
+      enabled: false
       consumer_key: ''
       consumer_secret: ''
-      enabled: false
     windows_live:
+      enabled: false
       client_id: ''
       client_secret: ''
-      enabled: false
       scope: wl.basic,wl.emails,wl.contacts_emails
   sms:
     passwordless:
       enabled: false
-    provider: 'twilio'
+    provider: null
     twilio:
       account_sid: ''
       auth_token: ''

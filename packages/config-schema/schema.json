@@ -247,7 +247,7 @@
                 }
               }
             },
-            "provider": { "type": "string", "enum": ["twilio"] },
+            "provider": { "type": ["string", "null"], "enum": ["twilio", null] },
             "twilio": {
               "type": "object",
               "additionalProperties": false,
