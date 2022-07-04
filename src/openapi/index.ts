@@ -38,6 +38,7 @@ import {
   signUpVerifyWebauthnSchema,
   signUpWebauthnSchema,
 } from '@/routes/signup/webauthn';
+import { userVerifyAddAuthenticatorSchema } from '@/routes/user/webauthn';
 
 const schema: Record<string, unknown> & { components: SwaggerSchema } = {
   tags: [],
@@ -64,6 +65,7 @@ const requestSchemas = [
   userMfaSchema,
   userDeanonymizeSchema,
   userProviderTokensSchema,
+  userVerifyAddAuthenticatorSchema,
   tokenSchema,
   verifyTokenSchema,
   providerCallbackQuerySchema,

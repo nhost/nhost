@@ -3,7 +3,11 @@ import faker from 'faker';
 import { StatusCodes } from 'http-status-codes';
 import { Client } from 'pg';
 import { request } from '../../server';
-import { deleteAllMailHogEmails, insertDbUser } from '../../utils';
+import {
+  deleteAllMailHogEmails,
+  getDbUserByEmail,
+  insertDbUser,
+} from '../../utils';
 
 describe('webauthn', () => {
   let client: Client;
@@ -64,36 +68,34 @@ describe('webauthn', () => {
     expect(body.session).toBeNull();
   });
 
-  it('should not re-create user when sign up multiple times with same email', async () => {
-    const email = faker.internet.email();
-
-    await request
-      .post('/signup/webauthn')
-      .send({ email })
-      .expect(StatusCodes.OK);
-
-    await request
-      .post('/signup/webauthn')
-      .send({ email })
-      .expect(StatusCodes.OK);
-
-    const res = await client.query(`SELECT COUNT(*) FROM auth.users;`);
-    expect(res.rows).toBeArrayOfSize(1);
-    expect(res.rows[0]).toHaveProperty('count');
-    expect(res.rows[0].count).toEqual('1');
-  });
-
-  it('should return registration options when signup again but user was verified', async () => {
+  it('should failed when try to sign up using existing verified email', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();
 
     const record = await insertDbUser(client, email, password, true);
     expect(record.rowCount).toEqual(1);
 
+    await request
+      .post('/signup/webauthn')
+      .send({ email })
+      .expect(StatusCodes.CONFLICT);
+  });
+
+  it('should return registration options when sign in using webauthn', async () => {
+    const email = faker.internet.email();
+
+    // disable email verification
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+    });
+
     const { body } = await request
       .post('/signup/webauthn')
       .send({ email })
       .expect(StatusCodes.OK);
+
+    const record = await getDbUserByEmail(client, email);
+    expect(record.rowCount).toEqual(1);
 
     // checking its persist and remove it as cannot compare
     expect(body).toHaveProperty('challenge');
@@ -153,12 +155,32 @@ describe('webauthn', () => {
       .expect(StatusCodes.BAD_REQUEST);
   });
 
+  it('should fail verify user when user email not verified but required', async () => {
+    const email = faker.internet.email();
+
+    const { body: credential } = await request
+      .post('/signup/webauthn')
+      .send({ email })
+      .expect(StatusCodes.OK);
+
+    // enable email verification
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
+    await request
+      .post('/signup/webauthn/verify')
+      .send({ email, credential })
+      .expect(StatusCodes.UNAUTHORIZED);
+  });
+
   it('should fail verify user when there is error while verify', async () => {
     const email = faker.internet.email();
-    const password = faker.internet.password();
 
-    const record = await insertDbUser(client, email, password, true);
-    expect(record.rowCount).toEqual(1);
+    // disable email verification
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
+    });
 
     const { body: credential } = await request
       .post('/signup/webauthn')

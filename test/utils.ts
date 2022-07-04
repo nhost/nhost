@@ -185,3 +185,8 @@ export const insertDbUser = async (
     RETURNING id;`;
   return await client.query(queryString);
 };
+
+export const getDbUserByEmail = async (client: ClientBase, email: string) => {
+  const queryString = `SELECT id FROM auth.users WHERE email = '${email}'`;
+  return await client.query(queryString);
+};

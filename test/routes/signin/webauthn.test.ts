@@ -130,6 +130,32 @@ describe('webauthn', () => {
       .expect(StatusCodes.NOT_FOUND);
   });
 
+  it('should failed verify when user is disabled', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    const record = await insertDbUser(client, email, password, false, true);
+    expect(record.rowCount).toEqual(1);
+
+    await request
+      .post('/signin/webauthn')
+      .send({ email })
+      .expect(StatusCodes.UNAUTHORIZED);
+  });
+
+  it('should failed verify when user is not verified', async () => {
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    const record = await insertDbUser(client, email, password, false, false);
+    expect(record.rowCount).toEqual(1);
+
+    await request
+      .post('/signin/webauthn')
+      .send({ email })
+      .expect(StatusCodes.UNAUTHORIZED);
+  });
+
   it('should fail verify user when no credential is passed', async () => {
     const email = faker.internet.email();
     const password = faker.internet.password();

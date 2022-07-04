@@ -90,6 +90,14 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'user-not-found');
   }
 
+  if (user.disabled) {
+    return sendError(res, 'disabled-user');
+  }
+
+  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+    return sendError(res, 'unverified-user');
+  }
+
   const expectedChallenge = await gqlSdk
     .getUserChallenge({
       id: user.id,

@@ -1,6 +1,5 @@
 import { sendError } from '@/errors';
-import { UserRegistrationOptions } from '@/types';
-import { ENV, getSignInResponse, getUserByEmail, gqlSdk } from '@/utils';
+import { ENV, getSignInResponse, getUser, gqlSdk } from '@/utils';
 import { RequestHandler } from 'express';
 
 import {
@@ -8,45 +7,26 @@ import {
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
 import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
-import { email, Joi, registrationOptions } from '@/validation';
-import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
+import { Joi } from '@/validation';
 
-export const signUpWebauthnSchema = Joi.object({
-  email: email.required(),
-  options: registrationOptions,
-}).meta({ className: 'SignUpWebauthnSchema' });
-
-export const signUpVerifyWebauthnSchema = Joi.object({
-  email: email.required(),
+export const userVerifyAddAuthenticatorSchema = Joi.object({
   credential: Joi.object().required(),
-}).meta({ className: 'SignUpVerifyWebauthnSchema' });
+}).meta({ className: 'VerifyAddAuthenticatorSchema' });
 
-export const signUpWebauthnHandler: RequestHandler<
-  {},
-  {},
-  {
-    email: string;
-    options: UserRegistrationOptions & {
-      redirectTo: string;
-    };
-  }
-> = async (req, res) => {
+export const addAuthenticatorHandler: RequestHandler<{}, {}, {}> = async (
+  req,
+  res
+) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
   }
 
-  const { body } = req;
-  const { email, options } = body;
+  const { userId } = req.auth as RequestAuth;
 
-  // check if email already in use by some other user
-  if (await getUserByEmail(email)) {
-    return sendError(res, 'email-already-in-use');
-  }
-
-  const user = await createUserAndSendVerificationEmail(email, options);
+  const user = await getUser({ userId });
 
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
-    return res.send({ session: null, mfa: null });
+    return sendError(res, 'unverified-user');
   }
 
   const userAuthenticators = await gqlSdk
@@ -54,10 +34,6 @@ export const signUpWebauthnHandler: RequestHandler<
       id: user.id,
     })
     .then((gqlres) => gqlres.authUserAuthenticators);
-
-  if (userAuthenticators.length) {
-    return sendError(res, 'invalid-sign-in-method');
-  }
 
   const registrationOptions = generateRegistrationOptions({
     rpID: ENV.AUTH_WEBAUTHN_RP_ID,
@@ -89,25 +65,22 @@ export const signUpWebauthnHandler: RequestHandler<
   return res.send(registrationOptions);
 };
 
-export const signUpVerifyWebauthnHandler: RequestHandler<
+export const addAuthenticatorVerifyHandler: RequestHandler<
   {},
   {},
   {
     credential: RegistrationCredentialJSON;
-    email: string;
   }
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
   }
 
-  const { credential, email } = req.body;
+  const { credential } = req.body;
 
-  const user = await getUserByEmail(email);
+  const { userId } = req.auth as RequestAuth;
 
-  if (!user) {
-    return sendError(res, 'user-not-found');
-  }
+  const user = await getUser({ userId });
 
   if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
     return sendError(res, 'unverified-user');

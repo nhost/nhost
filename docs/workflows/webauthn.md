@@ -1,9 +1,8 @@
 # Sign up and sign in users with Webauthn using strong authenticator
 
-## Sign up
+User can sign up with webauthn only if email verification is disabled. When email verification is enabled, user must verify it's email, login via password, magic link or ther credentials and then add webauthn authenticator via `/user/webauthn/add` endpoint instead. After that user can sign in using the webauthn authenticator.
 
-**User can sign up multiple times with same email but with different authenticators.
-Authenticators can be different devices (Smartphone, Laptop, Browser) or different strong authenticators (Fingerprint, Face ID, Yubi key, etc) on same device.**
+## Sign up
 
 ```mermaid
 sequenceDiagram
@@ -12,7 +11,6 @@ sequenceDiagram
 	participant A as Hasura Auth
 	participant G as Face ID/Fingerprint/Other
 	U->>+A: HTTP POST /signup/webauthn
-     Note over U,A: Subsequent sign up requires Bearer token
     opt No user found
 		A->>A: Create user
 	end
@@ -22,9 +20,9 @@ sequenceDiagram
     opt Check disabled
         A->>A: Check if user is disabled
     end
-    alt Email not verified or user disabled
+    alt User exists, email not verified or user disabled
         A->>U: HTTP ERROR response
-    else Email verified and user not disabled
+    else 
         A->>-U: HTTP OK response
         Note left of A: Challenge
     end
@@ -79,4 +77,32 @@ sequenceDiagram
         A->>-U: HTTP OK response
         Note left of A: Refresh token + access token
     end
+```
+
+## Adding authenticator to user
+
+Users can add multiple authenticators, for example when they need to login from multiple devices or browsers. To do that, they should have a valid session.
+
+```mermaid
+sequenceDiagram
+	autonumber
+	actor U as User
+	participant A as Hasura Auth
+	participant G as Face ID/Fingerprint/Other
+	U->>+A: HTTP POST /user/webauthn/add
+    Note left of A: Passing Bearer token
+    A->>-U: HTTP OK response
+    Note left of A: Challenge
+    opt Sign challenge
+        U->>+G: Sign Challenge
+        G->>-G: Verfiy user 
+        G->>U: 
+        Note left of G: Signed Challenge 
+    end
+    U->>+A: HTTP POST /user/webauthn/verify
+    Note left of A: Signed challenge
+    A->>A: Verify Signed challenge
+	A->>A: Add authenticator
+    A->>-U: HTTP OK response 
+    Note left of A: Refresh token + access token
 ```
