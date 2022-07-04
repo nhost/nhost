@@ -1,7 +1,0 @@
-{
-  "$id": "https://github.com/nhost/nhost/versions.json",
-  "$schema": "https://raw.githubusercontent.com/nhost/nhost/main/packages/config-schema/version_meta.json#",
-  "title": "All Versions of the Nhost Configuration",
-  "type": "object",
-  "oneOf": []
-}

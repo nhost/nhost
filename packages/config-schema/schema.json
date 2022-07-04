@@ -21,8 +21,7 @@
       "description": "Directory where Hasura seeds are stored"
     },
     "version": {
-      "type": "integer",
-      "enum": [3],
+      "const": 3,
       "title": "Hasura configuration version",
       "description": "Nhost only works with Hasura configuration v3"
     },

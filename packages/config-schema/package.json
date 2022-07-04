@@ -1,18 +1,16 @@
 {
   "name": "@nhost/config-schema",
   "description": "Nhost config.yaml JSON Schema",
+  "private": true,
   "version": "0.0.1",
   "license": "MIT",
   "main": "schema.json",
   "files": [
-    "version_meta.json",
     "schema.json",
-    "versions.json",
     "README.md"
   ],
   "scripts": {
-    "format": "prettier --write .",
-    "postversion": "node -r @swc-node/register sync-versions.ts"
+    "format": "prettier --write ."
   },
   "author": "Nhost",
   "homepage": "https://nhost.io",
@@ -20,13 +18,5 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
-  },
-  "devDependencies": {
-    "@swc-node/register": "^1.5.1",
-    "@types/fs-extra": "^9.0.13",
-    "@types/json-schema": "^7.0.11",
-    "chalk": "^4.1.2",
-    "fs-extra": "^10.1.0",
-    "typescript": "^4.7.4"
   }
 }
