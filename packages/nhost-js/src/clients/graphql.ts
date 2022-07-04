@@ -1,6 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosRequestHeaders } from 'axios'
 import { DocumentNode, print } from 'graphql'
 
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+
 import { GraphqlRequestResponse, GraphqlResponse } from '../utils/types'
 
 export interface NhostGraphqlConstructorParams {
@@ -53,7 +55,7 @@ export class NhostGraphqlClient {
    * @docs https://docs.nhost.io/reference/javascript/nhost-js/graphql/request
    */
   async request<T = any, V = any>(
-    document: string | DocumentNode,
+    document: string | DocumentNode | TypedDocumentNode<T, V>,
     variables?: V,
     config?: AxiosRequestConfig
   ): Promise<GraphqlRequestResponse<T>> {
