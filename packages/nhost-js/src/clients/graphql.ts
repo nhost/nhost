@@ -56,8 +56,9 @@ export class NhostGraphqlClient {
    */
   async request<T = any, V = any>(
     document: string | DocumentNode | TypedDocumentNode<T, V>,
-    variables?: V,
-    config?: AxiosRequestConfig
+    ...[variables, config]: V extends never
+      ? [variables?: never, config?: AxiosRequestConfig]
+      : [variables: V, config?: AxiosRequestConfig]
   ): Promise<GraphqlRequestResponse<T>> {
     // add auth headers if any
     const headers = {

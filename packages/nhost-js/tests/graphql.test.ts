@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
+import { TypedDocumentNode } from '@graphql-typed-document-node/core'
+import { parse } from 'graphql'
+
 import { NhostClient } from '../src'
 
 const nhost = new NhostClient({
@@ -124,5 +127,56 @@ describe('main tests', () => {
 
     expect(error).toBeTruthy()
     expect(data).toBeNull()
+  })
+
+  it('GraphQL client works with TypedDocumentNode', async () => {
+    const document: TypedDocumentNode<{ user: User }, Record<any, never>> = parse(/* GraphQL */ `
+      query ($id: uuid!) {
+        user(id: $id) {
+          id
+          displayName
+        }
+      }
+    `)
+
+    const { data, error } = await nhost.graphql.request(
+      document,
+      {},
+      {
+        headers: {
+          'x-hasura-admin-secret': 'nhost-admin-secret'
+        }
+      }
+    )
+
+    expect(error).toBeNull()
+    expect(data).toBeTruthy()
+  })
+
+  it('GraphQL client works with TypedDocumentNode and variables', async () => {
+    const document: TypedDocumentNode<{ user: User }, { id: string } | Record<any, never>> =
+      parse(/* GraphQL */ `
+        query ($id: uuid!) {
+          user(id: $id) {
+            id
+            displayName
+          }
+        }
+      `)
+
+    const { data, error } = await nhost.graphql.request(
+      document,
+      {
+        id: '5ccdb471-8ab2-4441-a3d1-f7f7146dda0c'
+      },
+      {
+        headers: {
+          'x-hasura-admin-secret': 'nhost-admin-secret'
+        }
+      }
+    )
+
+    expect(error).toBeNull()
+    expect(data).toBeTruthy()
   })
 })
