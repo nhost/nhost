@@ -26,6 +26,7 @@ const main = async () => {
     absolute: true,
     realpath: true
   })
+  let updated = 0
   for (const file of nhostConfigs) {
     const rawInitial = fs.readFileSync(file, 'utf8')
     const doc = yaml.parse(rawInitial)
@@ -36,8 +37,14 @@ const main = async () => {
     const rawModified = yaml.stringify(doc, { singleQuote: true })
     fs.writeFileSync(file, rawModified)
     if (rawInitial !== rawModified) {
+      updated++
       console.log(`Updated ${file}`)
     }
+  }
+  if (updated) {
+    console.log(`Updated ${updated} nhost config files`)
+  } else {
+    console.log('All the Nhost config files are already up-to-date.')
   }
 }
 

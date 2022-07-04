@@ -12,10 +12,7 @@
     "README.md"
   ],
   "scripts": {
-    "dev": "ts-node ./src/index.ts",
-    "start": "node dist/index.js",
-    "build": "pnpm clean && tsup",
-    "clean": "rimraf dist",
+    "start": "node -r @swc-node/register ./src/index.ts",
     "format": "prettier --write 'src/**/*.ts'",
     "lint": "eslint . --ext .ts,.tsx"
   },
@@ -28,17 +25,15 @@
   },
   "bin": "dist/index.js",
   "devDependencies": {
+    "@swc-node/register": "^1.5.1",
     "@swc/core": "^1.2.207",
     "@types/glob": "^7.2.0",
     "@types/node": "^17.0.45",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.8.1",
-    "tsup": "^5.12.9",
+    "@types/object-path": "^0.11.1",
     "typescript": "^4.7.4"
   },
   "dependencies": {
     "@pnpm/find-workspace-dir": "^4.0.2",
-    "@types/object-path": "^0.11.1",
     "glob": "^8.0.3",
     "object-path": "^0.11.8",
     "yaml": "^2.1.1"
