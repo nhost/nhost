@@ -1,23 +1,30 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "title": "Nhost config",
+  "title": "Nhost config.yaml schema",
   "description": "",
   "type": "object",
   "additionalProperties": false,
   "properties": {
     "metadata_directory": {
-      "type": "string"
+      "type": "string",
+      "title": "Hasura metadata directory",
+      "description": "Directory where Hasura metadata is stored"
     },
     "migrations_directory": {
-      "type": "string"
+      "type": "string",
+      "title": "Hasura migrations directory",
+      "description": "Directory where Hasura migrations are stored"
     },
     "seeds_directory": {
-      "type": "string"
+      "type": "string",
+      "title": "Hasura seeds directory",
+      "description": "Directory where Hasura seeds are stored"
     },
     "version": {
       "type": "integer",
       "enum": [3],
-      "$comment": "Hasura config version"
+      "title": "Hasura configuration version",
+      "description": "Nhost only works with Hasura configuration v3"
     },
     "services": {
       "type": "object",
@@ -317,6 +324,10 @@
     }
   },
   "$defs": {
-    "comma_list": { "type": "string" }
+    "comma_list": {
+      "type": "string",
+      "title": "Comma-separated list",
+      "description": "A comma-separated list of string values"
+    }
   }
 }
