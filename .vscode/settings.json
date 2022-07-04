@@ -1,6 +1,5 @@
 {
   "yaml.schemas": {
-    "./packages/config-schema/schema.json": "**/nhost/config.yaml"
-  },
-  "yaml.schemaStore.enable": true
+    "./packages/config-schema/schema.json": "nhost/config.yaml"
+  }
 }
