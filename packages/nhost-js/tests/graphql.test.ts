@@ -149,8 +149,8 @@ describe('main tests', () => {
       }
     )
 
-    expect(error).toBeNull()
-    expect(data).toBeTruthy()
+    expect(error).toBeTruthy()
+    expect(data).toBeNull()
   })
 
   it('GraphQL client works with TypedDocumentNode and variables', async () => {
