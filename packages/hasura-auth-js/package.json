@@ -49,6 +49,7 @@
     "ci:test": "vitest run",
     "e2e:backend": "nhost dev --no-browser",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
