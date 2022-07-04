@@ -1,14 +1,14 @@
 import { urlFromParams } from '../src/utils/helpers'
 
 describe('urlFromParams', () => {
-  describe('using backendUrl', () => {
-    it('should return its value concatenated with "/v1/auth"', async () => {
+  describe('when using backendUrl', () => {
+    it('should return the full url with the path "/v1/auth" concatenated', async () => {
       const url = urlFromParams({ backendUrl: 'http://localhost' }, 'auth')
 
       expect(url).toBe('http://localhost/v1/auth')
     })
 
-    it('should return its value concatenated with "/v1/storage"', async () => {
+    it('should return the full url with the path "/v1/storage" concatenated', async () => {
       const url = urlFromParams({ backendUrl: 'http://localhost:1337' }, 'storage')
 
       expect(url).toBe('http://localhost:1337/v1/storage')
@@ -16,30 +16,36 @@ describe('urlFromParams', () => {
   })
 
   describe('using subdomain', () => {
-    describe('with an actual subdomain and region', () => {
-      it('should return the appropriate url', async () => {
-        const url = urlFromParams({ subdomain: 'myawesomedomain', region: 'eu-central-1' }, 'auth')
+    describe('other than "localhost" and a region', () => {
+      it('should return the full authentication url', async () => {
+        const url = urlFromParams({ subdomain: 'mysubdomain', region: 'eu-central-1' }, 'auth')
 
-        expect(url).toBe('https://myawesomedomain.auth.eu-central-1.nhost.run/v1')
+        expect(url).toBe('https://mysubdomain.auth.eu-central-1.nhost.run/v1')
       })
     })
-    
-    it('Missing region with subdomain should throw error', async () => {
-      expect(() => {
-        urlFromParams({ subdomain: 'myawesomedomain' }, 'auth')
-      }).toThrow('A region must be specified when using a `subdomain` other than "localhost".')
+
+    describe('other than "localhost" without a region', () => {
+      it('should throw an error', async () => {
+        expect(() => {
+          urlFromParams({ subdomain: 'mysubdomain' }, 'auth')
+        }).toThrow('A region must be specified when using a `subdomain` other than "localhost".')
+      })
     })
 
-    it('should return "http://localhost/v1/auth" when passed "localhost" and "auth"', async () => {
-      const url = urlFromParams({ subdomain: 'localhost' }, 'auth')
+    describe('"localhost" without a custom port', () => {
+      it('should use port 1337 and return "http://localhost:1337/v1/auth"', async () => {
+        const url = urlFromParams({ subdomain: 'localhost:1337' }, 'auth')
 
-      expect(url).toBe('http://localhost/v1/auth')
+        expect(url).toBe('http://localhost:1337/v1/auth')
+      })
     })
 
-    it('should return "http://localhost:1337/v1/storage" when passed "localhost:1337" and "storage"', async () => {
-      const url = urlFromParams({ subdomain: 'localhost:1337' }, 'storage')
+    describe('"localhost" with a custom port', () => {
+      it('should use the specified port and return "http://localhost:2001/v1/auth"', async () => {
+        const url = urlFromParams({ subdomain: 'localhost:2001' }, 'auth')
 
-      expect(url).toBe('http://localhost:1337/v1/storage')
+        expect(url).toBe('http://localhost:2001/v1/auth')
+      })
     })
   })
 })

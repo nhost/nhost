@@ -19,7 +19,9 @@ export function urlFromParams(
   }
 
   if (backendOrSubdomain.subdomain !== undefined && backendOrSubdomain.subdomain.match(LOCALHOST)) {
-    return `http://${backendOrSubdomain.subdomain}/v1/${service}`
+    return backendOrSubdomain === 'localhost'
+      ? `http://localhost:1337/v1/${service}`
+      : `http://${backendOrSubdomain.subdomain}/v1/${service}`
   }
 
   if (!('region' in backendOrSubdomain)) {
