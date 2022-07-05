@@ -147,19 +147,13 @@ Finally, make sure to create an environment variable named
 `REACT_APP_NHOST_SUBDOMAIN` and `REACT_APP_NHOST_REGION` to store your Nhost domain details:
 
 ```yaml title=".env.local"
-REACT_APP_NHOST_SUBDOMAIN=YOUR_NHOST_SUBDOMAIN
-REACT_APP_NHOST_REGION=YOUR_NHOST_REGION
-```
-For localhost,
-
-```yaml title=".env.local"
-REACT_APP_NHOST_SUBDOMAIN=localhost
-REACT_APP_NHOST_REGION= 
+REACT_APP_NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
+REACT_APP_NHOST_REGION=YOUR_NHOST_APP_REGION
 ```
 
-You can find your Nhost domain details for your project from [your dashboard](https://app.nhost.io) as shown below:
+You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
 
-![Nhost Domain details](/img/quickstarts/app-dashboard.png)
+![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
 
 :::caution
 Don't forget to restart your React server after saving your `.env.local`
