@@ -4,7 +4,7 @@ import { sendError } from '@/errors';
 
 export const authMiddleware: RequestHandler = async (req, _, next) => {
   try {
-    const permissionVariables = getPermissionVariables(
+    const permissionVariables = await getPermissionVariables(
       req.headers.authorization
     );
     req.auth = {

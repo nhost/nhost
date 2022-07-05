@@ -50,7 +50,7 @@
     "http-status-codes": "^2.2.0",
     "joi": "^17.4.0",
     "joi-to-swagger": "^6.0.1",
-    "jose": "1.28.1",
+    "jose": "4.8.3",
     "js-yaml": "3.13.1",
     "json-to-graphql-query": "^2.2.0",
     "jsonata": "^1.8.5",

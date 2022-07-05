@@ -1,36 +1,53 @@
-import { JWT } from 'jose';
-import { Claims, Token, JwtSecret, PermissionVariables } from '@/types';
+import { Claims, PermissionVariables, Token } from '@/types';
+import { createSecretKey } from 'crypto';
+import { jwtVerify } from 'jose';
 import { ENV } from '../env';
+
+const ALLOWED_JWT_TYPES = ['HS256', 'HS384', 'HS512'];
+
+if (!ALLOWED_JWT_TYPES.includes(ENV.HASURA_GRAPHQL_JWT_SECRET.type)) {
+  throw new Error(`Invalid JWT type: ${ENV.HASURA_GRAPHQL_JWT_SECRET.type}`);
+}
+
+if (!ENV.HASURA_GRAPHQL_JWT_SECRET.key) {
+  throw new Error('Empty JWT key');
+}
+
+export const verifyJwt = async (jwt: string) => {
+  const secret = createSecretKey(ENV.HASURA_GRAPHQL_JWT_SECRET.key, 'utf-8');
+  const result = await jwtVerify(jwt, secret);
+  return result.payload as unknown as Token;
+};
 
 /**
  * Verify JWT token and return the Hasura claims.
  * @param authorization Authorization header.
  */
-export const getClaims = (authorization: string | undefined): Claims => {
+export const getClaims = async (
+  authorization: string | undefined
+): Promise<Claims> => {
   if (!authorization) throw new Error('Missing Authorization header');
   const token = authorization.replace('Bearer ', '');
   try {
-    const jwt: JwtSecret = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET);
+    const decodedToken = await verifyJwt(token);
 
-    const decodedToken = JWT.verify(token, jwt.key) as Token;
+    const namespace =
+      ENV.HASURA_GRAPHQL_JWT_SECRET.claims_namespace ||
+      'https://hasura.io/jwt/claims';
 
-    const jwtNameSpace = jwt.claims_namespace
-      ? jwt.claims_namespace
-      : 'https://hasura.io/jwt/claims';
-
-    if (!decodedToken[jwtNameSpace]) {
+    if (!decodedToken[namespace]) {
       throw new Error('Claims namespace not found');
     }
-    return decodedToken[jwtNameSpace];
+    return decodedToken[namespace];
   } catch (err) {
     throw new Error('Invalid or expired JWT token');
   }
 };
 
-export const getPermissionVariables = (
+export const getPermissionVariables = async (
   authorization: string | undefined
-): PermissionVariables => {
-  const claims = getClaims(authorization);
+): Promise<PermissionVariables> => {
+  const claims = await getClaims(authorization);
   // * remove `x-hasura-` from claim props
   const claimsSanitized: Partial<PermissionVariables> = {};
   for (const claimKey in claims) {

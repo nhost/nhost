@@ -47,7 +47,7 @@ describe('email-password', () => {
     const { accessToken, accessTokenExpiresIn, refreshToken } = body.session;
     const { mfa } = body;
 
-    expect(isValidAccessToken(accessToken)).toBe(true);
+    expect(await isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
     expect(mfa).toBe(null);
@@ -76,7 +76,7 @@ describe('email-password', () => {
     } = body.session;
     const { mfa } = body;
     expect(metadata).toStrictEqual(metadataInput);
-    expect(isValidAccessToken(accessToken)).toBe(true);
+    expect(await isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
     expect(mfa).toBe(null);

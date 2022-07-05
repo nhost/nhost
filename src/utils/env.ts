@@ -1,4 +1,5 @@
 import { logger } from '@/logger';
+import { JwtSecret } from '@/types';
 import {
   castBooleanEnv,
   castIntEnv,
@@ -14,7 +15,7 @@ export const ENV = {
 
   // HASURA
   get HASURA_GRAPHQL_JWT_SECRET() {
-    return castStringEnv('HASURA_GRAPHQL_JWT_SECRET', '');
+    return castObjectEnv<JwtSecret>('HASURA_GRAPHQL_JWT_SECRET');
   },
   get HASURA_GRAPHQL_DATABASE_URL() {
     return castStringEnv('HASURA_GRAPHQL_DATABASE_URL', '');
@@ -174,7 +175,10 @@ export const ENV = {
 
   get AUTH_JWT_CUSTOM_CLAIMS() {
     try {
-      return castObjectEnv<Record<string, string>>('AUTH_JWT_CUSTOM_CLAIMS');
+      return castObjectEnv<Record<string, string>>(
+        'AUTH_JWT_CUSTOM_CLAIMS',
+        {}
+      );
     } catch {
       logger.warn(
         'AUTH_JWT_CUSTOM_CLAIMS cannot be parsed. Will ignore custom claims.'

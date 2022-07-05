@@ -179,7 +179,7 @@ describe('custom JWT claims', () => {
       password,
     });
 
-    const jwt = decodeAccessToken(body.session.accessToken);
+    const jwt = await decodeAccessToken(body.session.accessToken);
     expect(jwt).toBeObject();
     if (jwt) {
       expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
@@ -219,7 +219,7 @@ describe('custom JWT claims', () => {
     });
 
     expect(body).toBeDefined();
-    const jwt = decodeAccessToken(body.session.accessToken);
+    const jwt = await decodeAccessToken(body.session.accessToken);
 
     expect(jwt).not.toBeNull();
     if (jwt) {
@@ -241,7 +241,7 @@ describe('custom JWT claims', () => {
       password,
     });
 
-    const jwt = decodeAccessToken(body.session.accessToken);
+    const jwt = await decodeAccessToken(body.session.accessToken);
 
     expect(jwt).not.toBeNull();
     if (jwt) {
@@ -282,7 +282,7 @@ describe('custom JWT claims', () => {
       password,
     });
     expect(session?.user?.id).toBeString();
-    const jwt = decodeAccessToken(session.accessToken);
+    const jwt = await decodeAccessToken(session.accessToken);
     if (jwt) {
       expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
       expect(
@@ -304,7 +304,7 @@ describe('custom JWT claims', () => {
       password,
     });
     expect(session?.user?.id).toBeString();
-    const jwt = decodeAccessToken(session.accessToken);
+    const jwt = await decodeAccessToken(session.accessToken);
     if (jwt) {
       expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
       expect(
@@ -330,7 +330,7 @@ describe('custom JWT claims', () => {
       },
     });
     expect(session?.user?.id).toBeString();
-    const jwt = decodeAccessToken(session.accessToken);
+    const jwt = await decodeAccessToken(session.accessToken);
     if (jwt) {
       expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
       expect(jwt['https://hasura.io/jwt/claims']['x-hasura-name']).toEqual(

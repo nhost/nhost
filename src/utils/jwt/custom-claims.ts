@@ -20,13 +20,11 @@ function toPgArray(arr: string[]): string {
   return `{${m}}`;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const escapeValueToPg = (value: any): string => {
+export const escapeValueToPg = (value: unknown): string => {
   // ? Why escaping values? See:
   // * https://hasura.io/docs/latest/graphql/core/auth/authorization/roles-variables.html#format-of-session-variables
   // * https://github.com/hasura/graphql-engine/issues/1902
-  const type = typeof value;
-  if (type === 'string') {
+  if (typeof value === 'string') {
     return value;
   } else if (Array.isArray(value)) {
     return toPgArray(value);

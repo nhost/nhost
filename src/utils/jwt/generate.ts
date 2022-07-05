@@ -1,40 +1,29 @@
-import { JWT } from 'jose';
-import { ClaimValueType, JwtSecret } from '@/types';
+import { JWTPayload, SignJWT } from 'jose';
+import { ClaimValueType } from '@/types';
 import { UserFieldsFragment } from '../__generated__/graphql-request';
 import { ENV } from '../env';
 import { generateCustomClaims } from './custom-claims';
-
-// const RSA_TYPES = ["RS256", "RS384", "RS512"];
-const ALLOWED_JWT_TYPES = ['HS256', 'HS384', 'HS512'];
-
-const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
-
-if (!ALLOWED_JWT_TYPES.includes(jwt.type)) {
-  throw new Error(`Invalid JWT type: ${jwt.type}`);
-}
-
-if (!jwt.key) {
-  throw new Error('Empty JWT key');
-}
+import { createSecretKey } from 'crypto';
 
 /**
  * * Signs a payload with the existing JWT configuration
  */
-export const sign = ({
+export const sign = async ({
   payload,
   user,
 }: {
-  payload: object;
+  payload: JWTPayload;
   user: UserFieldsFragment;
 }) => {
-  const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
-
-  return JWT.sign(payload, jwt.key, {
-    algorithm: jwt.type,
-    expiresIn: `${ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN}s`,
-    subject: user.id,
-    issuer: jwt.issuer ? jwt.issuer : 'hasura-auth',
-  });
+  const { key, type, issuer } = ENV.HASURA_GRAPHQL_JWT_SECRET;
+  const secret = createSecretKey(key, 'utf-8');
+  return new SignJWT(payload)
+    .setProtectedHeader({ alg: type })
+    .setSubject(user.id)
+    .setIssuedAt()
+    .setExpirationTime(`${ENV.AUTH_ACCESS_TOKEN_EXPIRES_IN}s`)
+    .setIssuer(issuer || 'hasura-auth')
+    .sign(secret);
 };
 
 /**
@@ -70,15 +59,13 @@ const generateHasuraClaims = async (
 export const createHasuraAccessToken = async (
   user: UserFieldsFragment
 ): Promise<string> => {
-  const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
-
-  const jwtNameSpace = jwt.claims_namespace
-    ? jwt.claims_namespace
-    : 'https://hasura.io/jwt/claims';
+  const namespace =
+    ENV.HASURA_GRAPHQL_JWT_SECRET.claims_namespace ||
+    'https://hasura.io/jwt/claims';
 
   return sign({
     payload: {
-      [jwtNameSpace]: await generateHasuraClaims(user),
+      [namespace]: await generateHasuraClaims(user),
     },
     user,
   });

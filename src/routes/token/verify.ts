@@ -16,7 +16,7 @@ export const verifyTokenHandler: RequestHandler<
   const authorization = req.body.token || req.headers.authorization;
 
   try {
-    getClaims(authorization);
+    await getClaims(authorization);
     return res.send(ReasonPhrases.OK);
   } catch (e) {
     return sendError(res, 'unauthenticated-user');

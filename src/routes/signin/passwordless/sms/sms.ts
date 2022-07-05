@@ -97,10 +97,9 @@ export const signInPasswordlessSmsHandler: RequestHandler<
         to: phoneNumber,
       });
     }
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error sending sms');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    logger.error(error as any);
+    logger.error(error);
 
     // delete user that was inserted because we were not able to send the SMS
     if (!userExists) {

@@ -95,7 +95,7 @@ export const handleDeanonymizeUserEmailPassword = async (
         headers: {
           'x-ticket': {
             prepared: true,
-            value: ticket as string,
+            value: ticket,
           },
           'x-redirect-to': {
             prepared: true,

@@ -43,9 +43,7 @@ const rotate = async ({ providerId, userId }: BodyType) => {
         id: authUserProvider.id,
         authUserProvider: {
           accessToken,
-          refreshToken: refreshToken
-            ? refreshToken
-            : authUserProvider.refreshToken,
+          refreshToken: refreshToken || authUserProvider.refreshToken,
         },
       });
     }

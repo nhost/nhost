@@ -1,8 +1,7 @@
-import { JWT } from 'jose';
 import fetch, { Response } from 'node-fetch';
-
+import { Response as SuperTestResponse } from 'supertest';
 import { ENV } from '../src/utils/env';
-import { JwtSecret, Token } from '../src/types';
+import { verifyJwt } from '@/utils';
 
 interface MailhogEmailAddress {
   Relays: string | null;
@@ -99,39 +98,28 @@ export const getHeaderFromLatestEmailAndDelete = async (
   return headerValue;
 };
 
+export const decodeAccessToken = async (accessToken: string | null) => {
+  if (!accessToken) {
+    return null;
+  }
+  try {
+    return verifyJwt(accessToken);
+  } catch (err) {
+    return null;
+  }
+};
+
 /**
  * Verify JWT token and return the Hasura claims.
  * @param authorization Authorization header.
  */
-export const isValidAccessToken = (accessToken: string | null): boolean => {
-  if (!accessToken) {
-    return false;
-  }
-  try {
-    const jwt = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET) as JwtSecret;
-    JWT.verify(accessToken, jwt.key);
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
+export const isValidAccessToken = async (
+  accessToken: string | null
+): Promise<boolean> => (await decodeAccessToken(accessToken)) !== null;
 
-export const decodeAccessToken = (accessToken: string | null) => {
-  if (!accessToken) {
-    return null;
-  }
-  try {
-    const jwt: JwtSecret = JSON.parse(ENV.HASURA_GRAPHQL_JWT_SECRET);
-    return JWT.verify(accessToken, jwt.key) as Token;
-  } catch (err) {
-    return null;
-  }
-};
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getUrlParameters = (request: any) => {
-  expect(request).toBeObject();
-  const { header } = request;
+export const getUrlParameters = (res: SuperTestResponse) => {
+  expect(res).toBeObject();
+  const { header } = res;
   expect(header).toBeObject();
   expect(header.location).toBeString();
   const url = new URL(header.location);
@@ -139,9 +127,8 @@ export const getUrlParameters = (request: any) => {
 };
 
 export const expectUrlParameters = (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  request: any
+  res: SuperTestResponse
 ): jest.JestMatchers<string[]> => {
-  const params = getUrlParameters(request);
+  const params = getUrlParameters(res);
   return expect(Array.from(params.keys()));
 };

@@ -38,7 +38,7 @@ describe('token', () => {
     const { accessToken, accessTokenExpiresIn, refreshToken } = body.session;
     const { mfa } = body;
 
-    expect(isValidAccessToken(accessToken)).toBe(true);
+    expect(await isValidAccessToken(accessToken)).toBe(true);
     expect(typeof accessTokenExpiresIn).toBe('number');
     expect(typeof refreshToken).toBe('string');
     expect(mfa).toBe(null);

@@ -30,7 +30,7 @@ import {
   ENV,
 } from '@/utils';
 import { UserRegistrationOptions } from '@/types';
-import { JWT } from 'jose';
+import { decodeJwt, JWTPayload } from 'jose';
 
 export const providerCallbackQuerySchema = Joi.object({
   state: uuid.required(),
@@ -44,7 +44,12 @@ type ProviderCallbackQuery = Record<string, unknown> & {
   state: string;
 };
 
-type RequestWithState<Q = {}> = Request<{}, {}, {}, Q & { state: string }> & {
+type RequestWithState<Q = {}, B = {}> = Request<
+  {},
+  {},
+  B,
+  Q & { state: string }
+> & {
   state: string;
 };
 
@@ -138,7 +143,12 @@ const manageProviderStrategy =
       }
     }
 
-    const { defaultRole, locale, allowedRoles, metadata } = requestOptions;
+    const {
+      defaultRole,
+      locale,
+      allowedRoles,
+      metadata,
+    }: UserRegistrationOptions = requestOptions;
 
     const insertedUser = await insertUser({
       email,
@@ -147,7 +157,7 @@ const manageProviderStrategy =
       defaultRole,
       locale,
       roles: {
-        data: (allowedRoles as string[]).map((role) => ({
+        data: allowedRoles.map((role) => ({
           role,
         })),
       },
@@ -174,7 +184,7 @@ const providerCallback = asyncWrapper(
     // Successful authentication, redirect home.
     // generate tokens and redirect back home
 
-    req.state = req.query.state as string;
+    req.state = req.query.state;
 
     const requestOptions = await gqlSdk
       .deleteProviderRequest({
@@ -255,23 +265,26 @@ export const initProvider = <T extends Strategy>(
           passReqToCallback: true,
         },
         async (
-          req: RequestWithState<ProviderCallbackQuery>,
+          req: RequestWithState<ProviderCallbackQuery, { user: string }>,
           accessToken: string,
           refreshToken: string,
           idToken: string,
-          profile: any,
           done: VerifyCallback
         ) => {
           const provider = 'apple';
           const state = req.query.state;
 
-          const decodedIdToken = JWT.decode(idToken);
-
           const {
             sub: id,
             email,
             email_verified: emailVerified,
-          } = decodedIdToken as any;
+          }: JWTPayload & {
+            email?: string;
+            email_verified?: boolean;
+          } = decodeJwt(idToken);
+          if (!id) {
+            return done(new Error('no id found in the JWT'));
+          }
 
           const requestOptions = await gqlSdk
             .providerRequest({
@@ -333,14 +346,18 @@ export const initProvider = <T extends Strategy>(
             }
           }
 
-          const { defaultRole, locale, allowedRoles, metadata } =
-            requestOptions;
+          const {
+            defaultRole,
+            locale,
+            allowedRoles,
+            metadata,
+          }: UserRegistrationOptions = requestOptions;
 
           // get user from request
           let user;
           let displayName;
           try {
-            user = JSON.parse((req.body as any).user);
+            user = JSON.parse(req.body.user);
             displayName = `${user.name.firstName} ${user.name.lastName}`;
           } catch (error) {
             // noop
@@ -353,7 +370,7 @@ export const initProvider = <T extends Strategy>(
             defaultRole,
             locale,
             roles: {
-              data: (allowedRoles as string[]).map((role) => ({
+              data: allowedRoles.map((role) => ({
                 role,
               })),
             },
