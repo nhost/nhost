@@ -468,10 +468,14 @@ importers:
 
   packages/config-schema:
     specifiers:
+      '@pnpm/find-workspace-dir': ^4.0.2
       ajv: ^8.11.0
+      glob: ^8.0.3
       yaml: ^2.1.1
     devDependencies:
+      '@pnpm/find-workspace-dir': 4.0.2
       ajv: 8.11.0
+      glob: 8.0.3
       yaml: 2.1.1
 
   packages/core:
@@ -5457,6 +5461,26 @@ packages:
 
   /@open-draft/until/1.0.3:
     resolution: {integrity: sha512-Aq58f5HiWdyDlFffbbSjAlv596h/cOnt2DO1w3DOC7OJ5EHs0hd/nycJfiu9RJbT6Yk6F1knnRRXNSpxoIVZ9Q==}
+    dev: true
+
+  /@pnpm/constants/6.1.0:
+    resolution: {integrity: sha512-L6AiU3OXv9kjKGTJN9j8n1TeJGDcLX9atQlZvAkthlvbXjvKc5SKNWESc/eXhr5nEfuMWhQhiKHDJCpYejmeCQ==}
+    engines: {node: '>=14.19'}
+    dev: true
+
+  /@pnpm/error/3.0.1:
+    resolution: {integrity: sha512-hMlbWbFcfcfolNfSjKjpeaZFow71kNg438LZ8rAd01swiVIYRUf/sRv8gGySru6AijYfz5UqslpIJRDbYBkgQA==}
+    engines: {node: '>=14.19'}
+    dependencies:
+      '@pnpm/constants': 6.1.0
+    dev: true
+
+  /@pnpm/find-workspace-dir/4.0.2:
+    resolution: {integrity: sha512-gU7ycFSWuEGJh7RE/STa33Ch27geODTXIfc+ntiE1BietxfpJIAk34zz51kTUuCFthBkpHlO6yV7jgHD2Tuc3g==}
+    engines: {node: '>=14.6'}
+    dependencies:
+      '@pnpm/error': 3.0.1
+      find-up: 5.0.0
     dev: true
 
   /@polka/url/1.0.0-next.21:
@@ -12891,6 +12915,17 @@ packages:
       minimatch: 3.1.2
       once: 1.4.0
       path-is-absolute: 1.0.1
+
+  /glob/8.0.3:
+    resolution: {integrity: sha512-ull455NHSHI/Y1FqGaaYFaLGkNMMJbavMrEGFXG/PGrg6y7sutWHUHrz6gy6WEBH6akM1M414dWKCNs+IhKdiQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      fs.realpath: 1.0.0
+      inflight: 1.0.6
+      inherits: 2.0.4
+      minimatch: 5.0.1
+      once: 1.4.0
+    dev: true
 
   /global-dirs/3.0.0:
     resolution: {integrity: sha512-v8ho2DS5RiCjftj1nD9NmnfaOzTdud7RRnVd9kFNOjqZbISlx5DQ+OrTkywgd0dIt7oFCvKetZSHoHcP3sDdiA==}

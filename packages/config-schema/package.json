@@ -22,7 +22,9 @@
     "url": "https://github.com/nhost/nhost.git"
   },
   "devDependencies": {
+    "@pnpm/find-workspace-dir": "^4.0.2",
     "ajv": "^8.11.0",
+    "glob": "^8.0.3",
     "yaml": "^2.1.1"
   }
 }
