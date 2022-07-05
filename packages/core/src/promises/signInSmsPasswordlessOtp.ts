@@ -14,7 +14,7 @@ export const signInSmsPasswordlessOtpPromise = (
   otp: string
 ) =>
   new Promise<SignInSmsPasswordlessOtpHandlerResult>((resolve) => {
-    const { changed } = interpreter.send('PASSWORDLESS_SMS_OTP', { phoneNumber, otp })
+    const { changed } = interpreter.send({ type: 'PASSWORDLESS_SMS_OTP', phoneNumber, otp })
     if (!changed) {
       return resolve({
         error: USER_ALREADY_SIGNED_IN,
@@ -33,7 +33,7 @@ export const signInSmsPasswordlessOtpPromise = (
           user: state.context.user,
           accessToken: state.context.accessToken.value
         })
-      } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
+      } else if (state.matches({ registration: { incomplete: 'failed' } })) {
         resolve({
           error: state.context.errors.authentication || null,
           isError: true,
