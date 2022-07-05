@@ -101,7 +101,12 @@ export const ENV = {
     return castStringEnv('AUTH_WEBAUTHN_RP_NAME', '');
   },
   get AUTH_WEBAUTHN_RP_ORIGINS() {
-    return castStringArrayEnv('AUTH_WEBAUTHN_RP_ORIGINS', []);
+    const origins = castStringArrayEnv('AUTH_WEBAUTHN_RP_ORIGINS', []);
+    const clientUrl = ENV.AUTH_CLIENT_URL;
+    if (clientUrl) {
+      origins.push(clientUrl);
+    }
+    return origins.filter(Boolean);
   },
   get AUTH_WEBAUTHN_ATTESTATION_TIMEOUT() {
     return castIntEnv('AUTH_WEBAUTHN_ATTESTATION_TIMEOUT', 60000);
