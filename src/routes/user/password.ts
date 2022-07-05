@@ -1,33 +1,34 @@
 import { RequestHandler } from 'express';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { gqlSdk, hashPassword } from '@/utils';
+import { gqlSdk, hashPassword, getUserByTicket } from '@/utils';
 import { sendError } from '@/errors';
 import { Joi, password } from '@/validation';
 
 export const userPasswordSchema = Joi.object({
   newPassword: password.required(),
+  ticket: Joi.string(),
 }).meta({ className: 'UserPasswordSchema' });
 
 export const userPasswordHandler: RequestHandler<
   {},
   {},
-  { newPassword: string }
+  { newPassword: string; ticket?: string }
 > = async (req, res) => {
-  // check if user is logged in
-  if (!req.auth?.userId) {
-    return sendError(res, 'unauthenticated-user');
+  const { ticket } = req.body;
+
+  let user;
+  if (ticket) {
+    user = await getUserByTicket(ticket);
+    if (!user) {
+      return sendError(res, 'invalid-ticket');
+    }
+  } else {
+    if (!req.auth?.userId) {
+      return sendError(res, 'unauthenticated-user');
+    }
+    user = (await gqlSdk.user({ id: req.auth?.userId })).user;
   }
-
-  const { newPassword } = req.body;
-
-  const newPasswordHash = await hashPassword(newPassword);
-
-  const { userId } = req.auth;
-
-  const { user } = await gqlSdk.user({
-    id: userId,
-  });
 
   if (!user) {
     return sendError(res, 'user-not-found');
@@ -36,14 +37,15 @@ export const userPasswordHandler: RequestHandler<
   if (user.isAnonymous) {
     return sendError(res, 'forbidden-anonymous');
   }
+  const { newPassword } = req.body;
+  const passwordHash = await hashPassword(newPassword);
 
-  // set new password for user
   await gqlSdk.updateUser({
-    id: userId,
+    id: user.id,
     user: {
-      passwordHash: newPasswordHash,
+      passwordHash,
+      ticket: ticket ? null : undefined, // Hasura does not update when variable is undefined
     },
   });
-
   return res.send(ReasonPhrases.OK);
 };
