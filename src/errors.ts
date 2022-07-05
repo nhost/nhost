@@ -1,4 +1,4 @@
-import { Response, Request, NextFunction } from 'express';
+import { Response, Request } from 'express';
 import { StatusCodes } from 'http-status-codes';
 
 import { logger } from './logger';
@@ -11,9 +11,7 @@ import { generateRedirectUrl } from './utils';
 export async function serverErrors(
   error: Error,
   _req: Request,
-  res: Response,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  next: NextFunction // TODO remove this line
+  res: Response
 ): Promise<unknown> {
   logger.error(error.message);
 
