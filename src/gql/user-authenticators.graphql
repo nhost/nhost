@@ -1,0 +1,45 @@
+query getUserAuthenticators($id: uuid!) {
+  authUserAuthenticators(where: { userId: { _eq: $id } }) {
+    counter
+    credentialId
+    credentialPublicKey
+    transports
+    id
+    user {
+      id
+    }
+  }
+}
+
+query getUserChallenge($id: uuid!) {
+  user(id: $id) {
+    id
+    currentChallenge
+  }
+}
+
+mutation updateUserChallenge($userId: uuid!, $challenge: String!) {
+  updateUser(
+    pk_columns: { id: $userId }
+    _set: { currentChallenge: $challenge }
+  ) {
+    id
+  }
+}
+
+mutation addUserAuthenticator(
+  $userAuthenticator: authUserAuthenticators_insert_input!
+) {
+  insertAuthUserAuthenticator(object: $userAuthenticator) {
+    id
+  }
+}
+
+mutation updateUserAuthenticator($id: uuid!, $counter: bigint!) {
+  updateAuthUserAuthenticator(
+    pk_columns: { id: $id }
+    _set: { counter: $counter }
+  ) {
+    id
+  }
+}

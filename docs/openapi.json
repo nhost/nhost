@@ -722,6 +722,42 @@
             ],
             "type" : "object"
          },
+         "SignInVerifyWebauthnSchema" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "credential" : {
+                  "additionalProperties" : false,
+                  "properties" : {},
+                  "type" : "object"
+               },
+               "email" : {
+                  "description" : "A valid email",
+                  "example" : "john.smith@nhost.io",
+                  "format" : "email",
+                  "type" : "string"
+               }
+            },
+            "required" : [
+               "email",
+               "credential"
+            ],
+            "type" : "object"
+         },
+         "SignInWebauthnSchema" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "email" : {
+                  "description" : "A valid email",
+                  "example" : "john.smith@nhost.io",
+                  "format" : "email",
+                  "type" : "string"
+               }
+            },
+            "required" : [
+               "email"
+            ],
+            "type" : "object"
+         },
          "SignOutSchema" : {
             "additionalProperties" : false,
             "properties" : {
@@ -833,6 +869,120 @@
             "required" : [
                "email",
                "password"
+            ],
+            "type" : "object"
+         },
+         "SignUpVerifyWebauthnSchema" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "credential" : {
+                  "additionalProperties" : false,
+                  "properties" : {},
+                  "type" : "object"
+               },
+               "email" : {
+                  "description" : "A valid email",
+                  "example" : "john.smith@nhost.io",
+                  "format" : "email",
+                  "type" : "string"
+               }
+            },
+            "required" : [
+               "email",
+               "credential"
+            ],
+            "type" : "object"
+         },
+         "SignUpWebauthnSchema" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "email" : {
+                  "description" : "A valid email",
+                  "example" : "john.smith@nhost.io",
+                  "format" : "email",
+                  "type" : "string"
+               },
+               "options" : {
+                  "additionalProperties" : false,
+                  "properties" : {
+                     "allowedRoles" : {
+                        "default" : [
+                           "me",
+                           "user"
+                        ],
+                        "example" : [
+                           "me",
+                           "user"
+                        ],
+                        "items" : {
+                           "oneOf" : [
+                              {
+                                 "enum" : [
+                                    "me"
+                                 ]
+                              },
+                              {
+                                 "enum" : [
+                                    "user"
+                                 ]
+                              }
+                           ]
+                        },
+                        "type" : "array"
+                     },
+                     "defaultRole" : {
+                        "default" : "user",
+                        "enum" : [
+                           "me",
+                           "user"
+                        ],
+                        "example" : "user",
+                        "type" : "string"
+                     },
+                     "displayName" : {
+                        "example" : "John Smith",
+                        "type" : "string"
+                     },
+                     "locale" : {
+                        "default" : "en",
+                        "description" : "A two-characters locale",
+                        "example" : "en",
+                        "maxLength" : 2,
+                        "minLength" : 2,
+                        "type" : "string"
+                     },
+                     "metadata" : {
+                        "additionalProperties" : false,
+                        "default" : {},
+                        "example" : {
+                           "firstName" : "John",
+                           "lastName" : "Smith"
+                        },
+                        "properties" : {},
+                        "type" : "object"
+                     },
+                     "redirectTo" : {
+                        "anyOf" : [
+                           {
+                              "pattern" : "^https:\\/\\/my-app.com",
+                              "type" : "string"
+                           }
+                        ],
+                        "default" : "https://my-app.com",
+                        "example" : "https://my-app.com/catch-redirection"
+                     }
+                  },
+                  "type" : "object"
+               },
+               "password" : {
+                  "description" : "A password of minimum 3 characters",
+                  "example" : "Str0ngPassw#ord-94|%",
+                  "minLength" : 3,
+                  "type" : "string"
+               }
+            },
+            "required" : [
+               "email"
             ],
             "type" : "object"
          },
@@ -1975,6 +2125,114 @@
             ]
          }
       },
+      "/signin/webauthn" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "requestBody" : {
+               "content" : {
+                  "application/json" : {
+                     "schema" : {
+                        "$ref" : "#/components/schemas/SignInWebauthnSchema"
+                     }
+                  }
+               },
+               "description" : "",
+               "required" : true
+            },
+            "responses" : {
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               },
+               "404" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/DisabledEndpointError"
+                        }
+                     }
+                  },
+                  "description" : "The feature is not activated"
+               }
+            },
+            "security" : [],
+            "summary" : "Sign in using email via FIDO2 Webauthn authentication",
+            "tags" : [
+               "Authentication"
+            ]
+         }
+      },
+      "/signin/webauthn/verify" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "requestBody" : {
+               "content" : {
+                  "application/json" : {
+                     "schema" : {
+                        "$ref" : "#/components/schemas/SignInVerifyWebauthnSchema"
+                     }
+                  }
+               },
+               "description" : "",
+               "required" : true
+            },
+            "responses" : {
+               "200" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/SessionPayload"
+                        }
+                     }
+                  },
+                  "description" : "Signed in successfully"
+               },
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               },
+               "401" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/UnauthorizedError"
+                        }
+                     }
+                  },
+                  "description" : "Invalid email or password, or user is not verified"
+               },
+               "404" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/DisabledEndpointError"
+                        }
+                     }
+                  },
+                  "description" : "The feature is not activated"
+               }
+            },
+            "security" : [],
+            "summary" : "Verfiy FIDO2 Webauthn authentication using public-key cryptography",
+            "tags" : [
+               "Authentication"
+            ]
+         }
+      },
       "/signout" : {
          "post" : {
             "deprecated" : false,
@@ -2082,6 +2340,84 @@
             },
             "security" : [],
             "summary" : "Signup with email and password",
+            "tags" : [
+               "Registration"
+            ]
+         }
+      },
+      "/signup/webauthn" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "requestBody" : {
+               "content" : {
+                  "application/json" : {
+                     "schema" : {
+                        "$ref" : "#/components/schemas/SignUpWebauthnSchema"
+                     }
+                  }
+               },
+               "description" : "",
+               "required" : true
+            },
+            "responses" : {
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               }
+            },
+            "security" : [],
+            "summary" : "Signup new device for a email using FIDO2 Webauthn",
+            "tags" : [
+               "Registration"
+            ]
+         }
+      },
+      "/signup/webauthn/verify" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "requestBody" : {
+               "content" : {
+                  "application/json" : {
+                     "schema" : {
+                        "$ref" : "#/components/schemas/SignUpVerifyWebauthnSchema"
+                     }
+                  }
+               },
+               "description" : "",
+               "required" : true
+            },
+            "responses" : {
+               "200" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/SessionPayload"
+                        }
+                     }
+                  },
+                  "description" : "Successfully registered. Null session means email verification is pending"
+               },
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               }
+            },
+            "security" : [],
+            "summary" : "Verify signup with FIDO2 Webauthn",
             "tags" : [
                "Registration"
             ]

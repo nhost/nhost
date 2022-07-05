@@ -72,6 +72,10 @@ export const getUserByEmail = async (email: string) => {
     },
   });
 
+  if (users.length !== 1) {
+    return null;
+  }
+
   return users[0];
 };
 

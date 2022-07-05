@@ -250,6 +250,13 @@ export const applyMetadata = async (): Promise<void> => {
         name: 'providers',
       },
     });
+    await trackTable({
+      source: 'default',
+      table: {
+        schema: 'auth',
+        name: 'user_authenticators',
+      },
+    });
 
     // customization
     await setTableCustomization({
@@ -299,6 +306,7 @@ export const applyMetadata = async (): Promise<void> => {
           // * See: https://github.com/hasura/graphql-engine/issues/8020
           // ticket: 'ticket',
           ticket_expires_at: 'ticketExpiresAt',
+          webauthn_current_challenge: 'currentChallenge',
         },
       },
     });
@@ -464,6 +472,34 @@ export const applyMetadata = async (): Promise<void> => {
           // * See: https://github.com/hasura/graphql-engine/issues/8020
           // id: 'id',
           // redirect_url: 'redirectUrl',
+        },
+      },
+    });
+    await setTableCustomization({
+      source: 'default',
+      table: {
+        schema: 'auth',
+        name: 'user_authenticators',
+      },
+      configuration: {
+        custom_name: 'authUserAuthenticators',
+        custom_root_fields: {
+          select: 'authUserAuthenticators',
+          select_by_pk: 'authUserAuthenticator',
+          select_aggregate: 'authUserAuthenticatorsAggregate',
+          insert: 'insertAuthUserAuthenticators',
+          insert_one: 'insertAuthUserAuthenticator',
+          update: 'updateAuthUserAuthenticators',
+          update_by_pk: 'updateAuthUserAuthenticator',
+          delete: 'deleteAuthUserAuthenticators',
+          delete_by_pk: 'deleteAuthUserAuthenticator',
+        },
+        custom_column_names: {
+          // * See: https://github.com/hasura/graphql-engine/issues/8020
+          // id: 'id',
+          user_id: 'userId',
+          credential_id: 'credentialId',
+          credential_public_key: 'credentialPublicKey',
         },
       },
     });
@@ -650,6 +686,35 @@ export const applyMetadata = async (): Promise<void> => {
           table: {
             schema: 'auth',
             name: 'refresh_tokens',
+          },
+          columns: ['user_id'],
+        },
+      },
+    });
+
+    await createObjectRelationship({
+      source: 'default',
+      table: {
+        schema: 'auth',
+        name: 'user_authenticators',
+      },
+      name: 'user',
+      using: {
+        foreign_key_constraint_on: ['user_id'],
+      },
+    });
+    await createArrayRelationship({
+      source: 'default',
+      table: {
+        schema: 'auth',
+        name: 'users',
+      },
+      name: 'authenticators',
+      using: {
+        foreign_key_constraint_on: {
+          table: {
+            schema: 'auth',
+            name: 'user_authenticators',
           },
           columns: ['user_id'],
         },

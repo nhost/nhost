@@ -7,7 +7,7 @@ import { request } from '../../server';
 import {
   mailHogSearch,
   deleteAllMailHogEmails,
-  expectUrlParameters,
+  verfiyUserTicket,
 } from '../../utils';
 
 describe('email-password', () => {
@@ -180,20 +180,7 @@ describe('email-password', () => {
       .send({ email, password })
       .expect(StatusCodes.UNAUTHORIZED);
 
-    // get ticket from email
-    const [message] = await mailHogSearch(email);
-    expect(message).toBeTruthy();
-    const link = message.Content.Headers['X-Link'][0];
-
-    // use ticket to verify email
-    const res = await request
-      .get(link.replace('http://localhost:4000', ''))
-      .expect(StatusCodes.MOVED_TEMPORARILY);
-
-    expectUrlParameters(res).not.toIncludeAnyMembers([
-      'error',
-      'errorDescription',
-    ]);
+    await verfiyUserTicket(email);
 
     // sign in should now work
     await request
