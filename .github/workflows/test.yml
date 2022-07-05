@@ -33,7 +33,7 @@ jobs:
           SMTP_SECURE: 'false'
           SMTP_SENDER: hbp@hbp.com
     container:
-      image: node:14
+      image: node:16-alpine
       env:
         AUTH_PORT: 4000
         HASURA_GRAPHQL_ADMIN_SECRET: ${{ env.HASURA_GRAPHQL_ADMIN_SECRET }}
@@ -47,7 +47,6 @@ jobs:
         AUTH_SMTP_SENDER: hasura-auth@example.com
         AUTH_SMTP_SECURE: false
         AUTH_CLIENT_URL: http://localhost:3000
-        AUTH_SERVER_URL: http://localhost:4000
       options: --hostname hasura-auth
     steps:
       - uses: actions/checkout@v2
