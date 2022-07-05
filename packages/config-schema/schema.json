@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-04/schema#",
+  "$schema": "http://json-schema.org/draft-06/schema#",
   "title": "Nhost config.yaml schema",
   "description": "",
   "type": "object",
@@ -38,11 +38,8 @@
             "version": { "type": "string" },
             "environment": {
               "type": "object",
-              "additionalProperties": false,
-              "patternProperties": {
-                "": {
-                  "type": ["number", "boolean", "string", "null"]
-                }
+              "additionalProperties": {
+                "type": ["number", "boolean", "string", "null"]
               }
             }
           }
@@ -65,11 +62,11 @@
               "additionalProperties": false,
               "patternProperties": {
                 "(allowed_email_domains|allowed_emails|blocked_email_domains|blocked_emails)": {
-                  "ref": "#/$defs/comma_list"
+                  "$ref": "#/$defs/comma_list"
                 }
               }
             },
-            "allowed_redirect_urls": { "ref": "#/$defs/comma_list" }
+            "allowed_redirect_urls": { "$ref": "#/$defs/comma_list" }
           }
         },
         "anonymous_users": {
@@ -152,6 +149,7 @@
           "additionalProperties": false,
           "properties": {
             "apple": {
+              "type": "object",
               "additionalProperties": false,
               "properties": {
                 "enabled": { "type": "boolean" },
@@ -159,10 +157,11 @@
                 "team_id": { "type": "string" },
                 "key_id": { "type": "string" },
                 "private_key": { "type": "string" },
-                "scope": { "ref": "#/$defs/comma_list" }
+                "scope": { "$ref": "#/$defs/comma_list" }
               }
             },
             "github": {
+              "type": "object",
               "additionalProperties": false,
               "properties": {
                 "enabled": { "type": "boolean" },
@@ -171,10 +170,11 @@
                 "authorization_url": { "type": "string" },
                 "token_url": { "type": "string" },
                 "user_profile_url": { "type": "string" },
-                "scope": { "ref": "#/$defs/comma_list" }
+                "scope": { "$ref": "#/$defs/comma_list" }
               }
             },
             "bitbucket": {
+              "type": "object",
               "additionalProperties": false,
               "properties": {
                 "enabled": { "type": "boolean" },
@@ -183,23 +183,25 @@
               }
             },
             "facebook": {
+              "type": "object",
               "additionalProperties": false,
               "properties": {
                 "enabled": { "type": "boolean" },
                 "client_id": { "type": "string" },
                 "client_secret": { "type": "string" },
-                "profile_fields": { "ref": "#/$defs/comma_list" },
-                "scope": { "ref": "#/$defs/comma_list" }
+                "profile_fields": { "$ref": "#/$defs/comma_list" },
+                "scope": { "$ref": "#/$defs/comma_list" }
               }
             },
             "gitlab": {
+              "type": "object",
               "additionalProperties": false,
               "properties": {
                 "enabled": { "type": "boolean" },
                 "client_id": { "type": "string" },
                 "client_secret": { "type": "string" },
                 "base_url": { "type": "string" },
-                "scope": { "ref": "#/$defs/comma_list" }
+                "scope": { "$ref": "#/$defs/comma_list" }
               }
             },
             "twilio": {
@@ -223,13 +225,14 @@
             }
           },
           "patternProperties": {
-            "apple|windows_live|gitlab|bitbucket|spotify|linkedin|twitter|google|strava": {
+            "windows_live|spotify|linkedin|google|strava": {
+              "type": "object",
               "additionalProperties": false,
               "properties": {
                 "enabled": { "type": "boolean" },
                 "client_id": { "type": "string" },
                 "client_secret": { "type": "string" },
-                "scope": { "ref": "#/$defs/comma_list" }
+                "scope": { "$ref": "#/$defs/comma_list" }
               }
             }
           }

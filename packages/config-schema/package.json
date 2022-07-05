@@ -10,6 +10,8 @@
     "README.md"
   ],
   "scripts": {
+    "test": "vitest run --config ../../config/vite.lib.config.js",
+    "test:watch": "vitest --config ../../config/vite.lib.config.js",
     "format": "prettier --write ."
   },
   "author": "Nhost",
@@ -18,5 +20,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
+  },
+  "devDependencies": {
+    "ajv": "^8.11.0",
+    "yaml": "^2.1.1"
   }
 }
