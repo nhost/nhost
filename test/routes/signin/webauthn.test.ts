@@ -81,6 +81,10 @@ describe('webauthn', () => {
     const record = await insertDbUser(client, email, password, false, false);
     expect(record.rowCount).toEqual(1);
 
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
     await request
       .post('/signin/webauthn')
       .send({ email })
@@ -120,7 +124,6 @@ describe('webauthn', () => {
 
     // reset env vars
     await request.post('/change-env').send({
-      AUTH_DISABLE_NEW_USERS: false,
       AUTH_WEBAUTHN_ENABLED: false,
     });
 
@@ -137,9 +140,14 @@ describe('webauthn', () => {
     const record = await insertDbUser(client, email, password, false, true);
     expect(record.rowCount).toEqual(1);
 
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: true,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
     await request
-      .post('/signin/webauthn')
-      .send({ email })
+      .post('/signin/webauthn/verify')
+      .send({ email, credential: {} })
       .expect(StatusCodes.UNAUTHORIZED);
   });
 
@@ -150,9 +158,14 @@ describe('webauthn', () => {
     const record = await insertDbUser(client, email, password, false, false);
     expect(record.rowCount).toEqual(1);
 
+    await request.post('/change-env').send({
+      AUTH_DISABLE_NEW_USERS: false,
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
     await request
-      .post('/signin/webauthn')
-      .send({ email })
+      .post('/signin/webauthn/verify')
+      .send({ email, credential: {} })
       .expect(StatusCodes.UNAUTHORIZED);
   });
 

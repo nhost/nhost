@@ -59,6 +59,10 @@ describe('webauthn', () => {
   it('should create user and return null session waiting user to be verified', async () => {
     const email = faker.internet.email();
 
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
+
     const { body } = await request
       .post('/signup/webauthn')
       .send({ email })
@@ -74,6 +78,10 @@ describe('webauthn', () => {
 
     const record = await insertDbUser(client, email, password, true);
     expect(record.rowCount).toEqual(1);
+
+    await request.post('/change-env').send({
+      AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: true,
+    });
 
     await request
       .post('/signup/webauthn')
