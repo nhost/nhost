@@ -15,6 +15,7 @@ users ||--o{ user_roles : roles
 user_roles }o--|| roles: role
 users }o--|| roles: role
 users ||--o{ refresh_tokens: refreshTokens
+users ||--o{ user_authenticators: authenticator
 users ||--o{ user_providers: provider
 providers ||--o{ user_providers: user
 
@@ -22,7 +23,6 @@ provider_requests {
     uuid id PK "gen_random_uuid()"
     test redirect_url
 }
-
 
 refresh_tokens {
     uuid refresh_token PK
@@ -34,6 +34,7 @@ refresh_tokens {
 providers {
     text id PK
 }
+
 user_providers {
     uuid id PK "gen_random_uuid()"
     timestamptz created_at "now()"
@@ -44,12 +45,23 @@ user_providers {
     text provider_id FK
     text provider_user_id
 }
+
+user_authenticators {
+    uuid id PK "gen_random_uuid()"
+    uuid user_id FK
+    text credential_id
+    bytea credential_public_key
+    bigint counter "0"
+    text transports "''"
+}
+
 user_roles {
     uuid id PK "gen_random_uuid()"
     timestamptz created_at "now()"
     uuid user_id FK
     text role FK
 }
+
 users {
     uuid id PK "gen_random_uuid()"
     timestamptz created_at "now()"

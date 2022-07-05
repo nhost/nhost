@@ -30,6 +30,15 @@ import * as responses from './responses';
 import { Joi } from '@/validation';
 import { pascalCase } from 'pascal-case';
 import { verifyTokenSchema } from '@/routes/token/verify';
+import {
+  signInVerifyWebauthnSchema,
+  signInWebauthnSchema,
+} from '@/routes/signin/webauthn';
+import {
+  signUpVerifyWebauthnSchema,
+  signUpWebauthnSchema,
+} from '@/routes/signup/webauthn';
+import { userVerifyAddAuthenticatorSchema } from '@/routes/user/webauthn';
 
 const schema: Record<string, unknown> & { components: SwaggerSchema } = {
   tags: [],
@@ -39,7 +48,11 @@ const schema: Record<string, unknown> & { components: SwaggerSchema } = {
 const requestSchemas = [
   signInPasswordlessEmailSchema,
   signUpEmailPasswordSchema,
+  signUpWebauthnSchema,
+  signUpVerifyWebauthnSchema,
   signInEmailPasswordSchema,
+  signInWebauthnSchema,
+  signInVerifyWebauthnSchema,
   signInPasswordlessSmsSchema,
   signInOtpSchema,
   signInMfaTotpSchema,
@@ -52,6 +65,7 @@ const requestSchemas = [
   userMfaSchema,
   userDeanonymizeSchema,
   userProviderTokensSchema,
+  userVerifyAddAuthenticatorSchema,
   tokenSchema,
   verifyTokenSchema,
   providerCallbackQuerySchema,

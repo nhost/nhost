@@ -91,6 +91,28 @@ export const ENV = {
     return castStringEnv('AUTH_CLIENT_URL').toLocaleLowerCase();
   },
 
+  // WEBAUTHN
+  get AUTH_WEBAUTHN_ENABLED() {
+    return castBooleanEnv('AUTH_WEBAUTHN_ENABLED', false);
+  },
+  get AUTH_WEBAUTHN_RP_ID() {
+    return castStringEnv('AUTH_WEBAUTHN_RP_ID', '');
+  },
+  get AUTH_WEBAUTHN_RP_NAME() {
+    return castStringEnv('AUTH_WEBAUTHN_RP_NAME', '');
+  },
+  get AUTH_WEBAUTHN_RP_ORIGINS() {
+    const origins = castStringArrayEnv('AUTH_WEBAUTHN_RP_ORIGINS', []);
+    const clientUrl = ENV.AUTH_CLIENT_URL;
+    if (clientUrl) {
+      origins.push(clientUrl);
+    }
+    return origins.filter(Boolean);
+  },
+  get AUTH_WEBAUTHN_ATTESTATION_TIMEOUT() {
+    return castIntEnv('AUTH_WEBAUTHN_ATTESTATION_TIMEOUT', 60000);
+  },
+
   // SIGN UP
   get AUTH_ANONYMOUS_USERS_ENABLED() {
     return castBooleanEnv('AUTH_ANONYMOUS_USERS_ENABLED', false);
