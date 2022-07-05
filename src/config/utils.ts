@@ -23,7 +23,7 @@ export const castStringArrayEnv = (
   defaultValue: string[] = []
 ): string[] => {
   const env = process.env[envVar];
-  return env?.length
+  return typeof env === 'string'
     ? env.split(',').map((field) => field.trim())
     : defaultValue;
 };
