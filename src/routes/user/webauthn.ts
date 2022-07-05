@@ -101,10 +101,7 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     verification = await verifyRegistrationResponse({
       credential: credential,
       expectedChallenge,
-      expectedOrigin: Array.from([
-        ENV.AUTH_CLIENT_URL,
-        ...ENV.AUTH_WEBAUTHN_RP_ORIGINS,
-      ]).filter(Boolean),
+      expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
       expectedRPID: ENV.AUTH_WEBAUTHN_RP_ID,
     });
   } catch (error) {

@@ -136,10 +136,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     verification = verifyAuthenticationResponse({
       credential,
       expectedChallenge,
-      expectedOrigin: Array.from([
-        ENV.AUTH_CLIENT_URL,
-        ...ENV.AUTH_WEBAUTHN_RP_ORIGINS,
-      ]).filter(Boolean),
+      expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
       expectedRPID: ENV.AUTH_WEBAUTHN_RP_ID,
       authenticator: authenticatorDevice,
       requireUserVerification: true,

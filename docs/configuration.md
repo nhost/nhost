@@ -114,7 +114,7 @@ Enabling and configuring of the Webauthn can be done by setting these env variab
 ```bash
 AUTH_WEBAUTHN_ENABLED=true
 AUTH_WEBAUTHN_RP_ID=https://my-app.vercel.com
-AUTH_WEBAUTHN_RP_NAME=My App
+AUTH_WEBAUTHN_RP_NAME='My App'
 AUTH_WEBAUTHN_RP_ORIGINS=https://my-app.example.com
 ```
 
