@@ -1,5 +1,12 @@
 # @nhost/core
 
+## 0.7.4
+
+### Patch Changes
+
+- 6eaa5c79: Return promise when using SMS OTP and an error occurs
+  Closes [#785](https://github.com/nhost/nhost/issues/785), thanks @franzwilhelm
+
 ## 0.7.3
 
 ### Patch Changes
