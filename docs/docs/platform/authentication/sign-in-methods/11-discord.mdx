@@ -34,6 +34,10 @@ Follow this guide to sign in users with Discord with your Nhost App.
 - Copy and paste the callback URL from your Nhost OAuth settings for Discord to the input field in the Discord Developer portal.
 - Click **Save Changes** to save the added callback URL.
 
+## Sign In Users
+
+Use the [Nhost JavaScript client](/reference/javascript) to sign in users in your app:
+
 ```js
 nhost.auth.signIn({
   provider: 'discord'
