@@ -1,28 +1,8 @@
 <template>
-  <v-text-field
-    v-model="email"
-    label="Email"
-  />
-  <v-text-field
-    v-model="password"
-    label="Password"
-    type="password"
-  />
-  <v-btn
-    block
-    color="primary"
-    class="my-1"
-    @click="signIn"
-  >
-    Sign in
-  </v-btn>
-  <v-btn
-    class="my-1"
-    block
-    variant="text"
-    color="primary"
-    to="/signin"
-  >
+  <v-text-field v-model="email" label="Email" />
+  <v-text-field v-model="password" label="Password" type="password" />
+  <v-btn block color="primary" class="my-1" @click="signIn"> Sign in </v-btn>
+  <v-btn class="my-1" block variant="text" color="primary" to="/signin">
     &#8592; Other Login Options
   </v-btn>
   <error-snack-bar :error="error" />

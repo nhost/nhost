@@ -25,9 +25,8 @@ const handleSignInAnonymous = async (e: Event) => {
     </v-card>
     <v-divider class="my-4" style="min-width: 90%" />
     <div>
-      Don&lsquo;t have an account? <router-link to="/signup">
-        Sign up
-      </router-link> or <a href="#" @click="handleSignInAnonymous">sign in anonymously</a>
+      Don&lsquo;t have an account? <router-link to="/signup"> Sign up </router-link> or
+      <a href="#" @click="handleSignInAnonymous">sign in anonymously</a>
     </div>
   </div>
 </template>

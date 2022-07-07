@@ -43,7 +43,7 @@ const vuetify = createVuetify({
   }
 })
 
-const devTools = !!import.meta.env.VITE_DEBUG
+const devTools = import.meta.env.VITE_DEBUG === 'true'
 if (devTools) {
   inspect({
     url: 'https://stately.ai/viz?inspect',
@@ -52,7 +52,9 @@ if (devTools) {
 }
 
 const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || 'localhost:1337',
+  region: import.meta.env.VITE_NHOST_REGION,
+  devTools
 })
 
 const apolloClient = createApolloClient({ nhost })
