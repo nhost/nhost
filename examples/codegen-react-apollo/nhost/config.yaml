@@ -1,5 +1,4 @@
 metadata_directory: metadata
-services:
   mailhog:
     port: 8025
   hasura:
