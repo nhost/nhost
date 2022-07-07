@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nextjs",
-  "version": "1.5.0",
+  "version": "1.6.1",
   "description": "Nhost NextJS library",
   "license": "MIT",
   "keywords": [
@@ -51,6 +51,7 @@
     "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
     "test": "vitest run --config ../../config/vite.react.config.js",
     "test:watch": "vitest --config ../../config/vite.react.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",

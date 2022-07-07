@@ -1,5 +1,30 @@
 # @nhost/react
 
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies [6eaa5c79]
+  - @nhost/core@0.7.4
+  - @nhost/hasura-storage-js@0.5.1
+  - @nhost/nhost-js@1.4.5
+
+## 0.11.0
+
+### Minor Changes
+
+- 4f928756: Extend file upload parameters
+
+  - `bucketId` is available everywhere as an option
+  - It is possible to pass files as a parameter on a multiple `upload`, making the `add` action optional.
+  - The `add` and `upload` actions of multiple file upload accepts both a `File`, an array of `File` items, and a `FileList`
+
+### Patch Changes
+
+- Updated dependencies [4f928756]
+  - @nhost/hasura-storage-js@0.5.0
+  - @nhost/nhost-js@1.4.4
+
 ## 0.10.0
 
 ### Minor Changes

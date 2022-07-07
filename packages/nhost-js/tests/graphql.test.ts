@@ -2,10 +2,8 @@ import { describe, expect, it } from 'vitest'
 
 import { NhostClient } from '../src'
 
-const BACKEND_URL = 'http://localhost:1337'
-
 const nhost = new NhostClient({
-  backendUrl: BACKEND_URL
+  subdomain: 'localhost:1337'
 })
 
 type User = { id: string; displayName: string }

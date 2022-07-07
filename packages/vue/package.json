@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "0.3.3",
+  "version": "0.3.5",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [
@@ -49,6 +49,7 @@
     "build:umd": "vite build --config ../../config/vite.vue.umd.config.js",
     "test": "vitest run --config ../../config/vite.vue.config.js",
     "test:watch": "vitest --config ../../config/vite.vue.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.vue",
