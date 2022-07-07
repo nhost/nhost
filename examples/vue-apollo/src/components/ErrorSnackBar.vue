@@ -1,17 +1,8 @@
 <template>
-  <v-snackbar
-    v-model="snack"
-    :timeout="2_000"
-  >
+  <v-snackbar v-model="snack" :timeout="2_000">
     {{ error?.message }}
     <template #actions>
-      <v-btn
-        color="blue"
-        variant="text"
-        @click="snack = false"
-      >
-        Close
-      </v-btn>
+      <v-btn color="blue" variant="text" @click="snack = false"> Close </v-btn>
     </template>
   </v-snackbar>
 </template>
@@ -26,7 +17,7 @@ export default defineComponent({
   },
   setup(props) {
     const snack = ref(false)
-    
+
     watchEffect(() => {
       if (props.error) {
         snack.value = true
