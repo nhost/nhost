@@ -10,7 +10,7 @@
       "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
       "outputs": ["dist/**"]
     },
-    "@nhost-examples/react-vue#build": {
+    "@nhost-examples/vue-apollo#build": {
       "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
       "outputs": ["dist/**"]
     },
