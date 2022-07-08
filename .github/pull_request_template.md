@@ -1,4 +1,4 @@
-Before submitting this PR, please make sure the following documentation is updated accordinlgy, in particular:
+Before submitting this PR, please make sure the documentation is updated accordinlgy, in particular:
 
 - [Workflows](https://github.com/nhost/hasura-auth/tree/main/docs/workflows). Workflows are [Mermaid sequence diagrams](https://mermaid-js.github.io/mermaid/#/sequenceDiagram)
 - [Schema](https://github.com/nhost/hasura-auth/blob/main/docs/schema.md). The schema in a [Mermaid ER diagram](https://mermaid-js.github.io/mermaid/#/entityRelationshipDiagram)
