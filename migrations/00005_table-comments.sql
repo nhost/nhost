@@ -1,4 +1,5 @@
-comment on schema auth is 'Schema required by Hasura Auth to work. Don''t modify its structure as Hasura Auth relies on it to function properly.';
+-- Do not add a comment on the auth schema as the postgresql user is not necessarily the owner of the schema
+-- comment on schema auth is 'Schema required by Hasura Auth to work. Don''t modify its structure as Hasura Auth relies on it to function properly.';
 comment on table auth.migrations is 'Internal table for tracking migrations. Don''t modify its structure as Hasura Auth relies on it to function properly.';
 comment on table auth.provider_requests is 'Oauth requests, inserted before redirecting to the provider''s site. Don''t modify its structure as Hasura Auth relies on it to function properly.';
 comment on table auth.providers is 'List of available Oauth providers. Don''t modify its structure as Hasura Auth relies on it to function properly.';

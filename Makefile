@@ -24,7 +24,7 @@ get-version:  ## Return version.
 
 .PHONY: dev
 dev: check-port install dev-env-up  ## Start development environment.
-	bash -c "trap 'make dev-env-down' EXIT; pnpm dev"
+	bash -c "trap 'make dev-env-down' EXIT; pnpm dev:start"
 
 
 .PHONY: test
