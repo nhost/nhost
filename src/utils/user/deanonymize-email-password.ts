@@ -125,5 +125,5 @@ export const handleDeanonymizeUserEmailPassword = async (
     });
   }
 
-  res.send(ReasonPhrases.OK);
+  res.json(ReasonPhrases.OK);
 };

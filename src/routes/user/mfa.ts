@@ -66,7 +66,7 @@ export const userMFAHandler: RequestHandler<
       },
     });
 
-    return res.send(ReasonPhrases.OK);
+    return res.json(ReasonPhrases.OK);
   }
 
   // activate MFA
@@ -93,5 +93,5 @@ export const userMFAHandler: RequestHandler<
     },
   });
 
-  return res.send(ReasonPhrases.OK);
+  return res.json(ReasonPhrases.OK);
 };

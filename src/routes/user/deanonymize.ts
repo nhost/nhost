@@ -39,7 +39,7 @@ export const userDeanonymizeHandler: RequestHandler<
 
   if (body.signInMethod === 'passwordless' && body.connection === 'email') {
     await handleDeanonymizeUserPasswordlessEmail(body, userId, res);
-    return res.send(ReasonPhrases.OK);
+    return res.json(ReasonPhrases.OK);
   }
 
   // if (body.signInMethod === 'passwordless' && body.connection === 'sms') {

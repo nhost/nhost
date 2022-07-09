@@ -46,7 +46,7 @@ router.post(
  * POST /signin/passwordless/email
  * @summary Email passwordless authentication
  * @param {SignInPasswordlessEmailSchema} request.body.required
- * @return {string} 200 - Email sent successfully - text/plain
+ * @return {string} 200 - Email sent successfully - application/json
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {DisabledUserError} 401 - User is disabled - application/json
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
@@ -62,7 +62,7 @@ router.post(
  * POST /signin/passwordless/sms
  * @summary Send a one-time password by SMS
  * @param {SignInPasswordlessSmsSchema} request.body.required
- * @return {string} 200 - SMS sent successfully - text/plain
+ * @return {string} 200 - SMS sent successfully - application/json
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication

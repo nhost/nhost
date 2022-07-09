@@ -18,19 +18,19 @@ router.use(nocache());
 /**
  * GET /healthz
  * @summary Check if the server is up and running
- * @return 200 - Success - text/plain
+ * @return 200 - Success - application/json
  * @tags General
  */
-router.get('/healthz', (_req, res) => res.send(ReasonPhrases.OK));
+router.get('/healthz', (_req, res) => res.json(ReasonPhrases.OK));
 
 /**
  * GET /version
  * @summary Get the current Hasura-auth version
- * @return {Version} 200 - Hasura auth version - text/plain
+ * @return {Version} 200 - Hasura auth version - application/json
  * @tags General
  */
 router.get('/version', (_req, res) =>
-  res.send(JSON.stringify({ version: 'v' + process.env.npm_package_version }))
+  res.json({ version: 'v' + process.env.npm_package_version })
 );
 
 // auth routes

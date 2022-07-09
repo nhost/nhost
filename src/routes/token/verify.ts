@@ -17,7 +17,7 @@ export const verifyTokenHandler: RequestHandler<
 
   try {
     await getClaims(authorization);
-    return res.send(ReasonPhrases.OK);
+    return res.json(ReasonPhrases.OK);
   } catch (e) {
     return sendError(res, 'unauthenticated-user');
   }

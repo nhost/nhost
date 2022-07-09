@@ -108,5 +108,5 @@ export const userEmailChange: RequestHandler<
     },
   });
 
-  return res.send(ReasonPhrases.OK);
+  return res.json(ReasonPhrases.OK);
 };

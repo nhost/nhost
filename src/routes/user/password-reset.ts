@@ -94,5 +94,5 @@ export const userPasswordResetHandler: RequestHandler<
     },
   });
 
-  return res.send(ReasonPhrases.OK);
+  return res.json(ReasonPhrases.OK);
 };

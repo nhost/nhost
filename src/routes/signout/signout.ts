@@ -42,5 +42,5 @@ export const signOutHandler: RequestHandler<
     });
   }
 
-  return res.send(ReasonPhrases.OK);
+  return res.json(ReasonPhrases.OK);
 };

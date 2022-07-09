@@ -102,5 +102,5 @@ export const userEmailSendVerificationEmailHandler: RequestHandler<
     },
   });
 
-  return res.send(ReasonPhrases.OK);
+  return res.json(ReasonPhrases.OK);
 };

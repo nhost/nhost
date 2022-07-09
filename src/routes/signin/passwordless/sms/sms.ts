@@ -110,5 +110,5 @@ export const signInPasswordlessSmsHandler: RequestHandler<
     return sendError(res, 'cannot-send-sms');
   }
 
-  return res.send(ReasonPhrases.OK);
+  return res.json(ReasonPhrases.OK);
 };

@@ -973,12 +973,6 @@
                      }
                   },
                   "type" : "object"
-               },
-               "password" : {
-                  "description" : "A password of minimum 3 characters",
-                  "example" : "Str0ngPassw#ord-94|%",
-                  "minLength" : 3,
-                  "type" : "string"
                }
             },
             "required" : [
@@ -1505,6 +1499,9 @@
                "newPassword" : {
                   "example" : "Str0ngPassw#ord-94|%",
                   "type" : "string"
+               },
+               "ticket" : {
+                  "type" : "string"
                }
             },
             "required" : [
@@ -1528,6 +1525,20 @@
             "required" : [
                "providerId",
                "userId"
+            ],
+            "type" : "object"
+         },
+         "VerifyAddAuthenticatorSchema" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "credential" : {
+                  "additionalProperties" : false,
+                  "properties" : {},
+                  "type" : "object"
+               }
+            },
+            "required" : [
+               "credential"
             ],
             "type" : "object"
          },
@@ -1571,7 +1582,7 @@
             "type" : "object"
          },
          "Version" : {
-            "example" : "0.9.1",
+            "example" : "0.9.3",
             "type" : "string"
          }
       },
@@ -1590,7 +1601,7 @@
       },
       "termsOfService" : "",
       "title" : "Hasura auth",
-      "version" : "0.9.1"
+      "version" : "0.9.3"
    },
    "openapi" : "3.0.0",
    "paths" : {
@@ -1847,7 +1858,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -1911,7 +1922,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2251,7 +2262,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2496,7 +2507,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2577,7 +2588,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2635,7 +2646,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2693,7 +2704,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2737,7 +2748,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2795,7 +2806,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "tapplication/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2853,7 +2864,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2908,7 +2919,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "type" : "string"
                         }
@@ -2941,6 +2952,113 @@
             "summary" : "Refresh the Oauth access tokens of a given user. You must be an admin to perform this operation.",
             "tags" : [
                "User management"
+            ]
+         }
+      },
+      "/user/webauthn/add" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "responses" : {
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               },
+               "401" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/UnauthorizedError"
+                        }
+                     }
+                  },
+                  "description" : "Invalid email or password, or user is not verified"
+               },
+               "404" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/DisabledEndpointError"
+                        }
+                     }
+                  },
+                  "description" : "The feature is not activated"
+               }
+            },
+            "security" : [],
+            "summary" : "Initialize adding of a new webauthn authenticator (device, browser)",
+            "tags" : [
+               "Authentication"
+            ]
+         }
+      },
+      "/user/webauthn/verify" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "requestBody" : {
+               "content" : {
+                  "application/json" : {
+                     "schema" : {
+                        "$ref" : "#/components/schemas/VerifyAddAuthenticatorSchema"
+                     }
+                  }
+               },
+               "description" : "",
+               "required" : true
+            },
+            "responses" : {
+               "200" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/SessionPayload"
+                        }
+                     }
+                  },
+                  "description" : "Signed in successfully"
+               },
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               },
+               "401" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/UnauthorizedError"
+                        }
+                     }
+                  },
+                  "description" : "Invalid email or password, or user is not verified"
+               },
+               "404" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/DisabledEndpointError"
+                        }
+                     }
+                  },
+                  "description" : "The feature is not activated"
+               }
+            },
+            "security" : [],
+            "summary" : "Verfiy adding of a new webauth authenticator (device, browser)",
+            "tags" : [
+               "Authentication"
             ]
          }
       },
@@ -3021,7 +3139,7 @@
             "responses" : {
                "200" : {
                   "content" : {
-                     "text/plain" : {
+                     "application/json" : {
                         "schema" : {
                            "$ref" : "#/components/schemas/Version"
                         }

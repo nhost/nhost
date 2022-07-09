@@ -47,5 +47,5 @@ export const userPasswordHandler: RequestHandler<
       ticket: ticket ? null : undefined, // Hasura does not update when variable is undefined
     },
   });
-  return res.send(ReasonPhrases.OK);
+  return res.json(ReasonPhrases.OK);
 };
