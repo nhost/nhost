@@ -44,6 +44,15 @@ var (
 	location  string
 )
 
+var defaultTemplates = []nhost.Template{
+	{
+		Name:        "Emails",
+		Destination: &nhost.EMAILS_DIR,
+		Repository:  "github.com/nhost/hasura-auth",
+		Path:        "email-templates",
+	},
+}
+
 //  initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init [--remote | --remote <sudomain>]",
@@ -200,17 +209,7 @@ in the following manner:
 			status.Fatal("Failed to save Nhost configuration")
 		}
 
-		//  save the default templates
-		for _, item := range entities {
-			if item.Default {
-
-				//	download the files
-				if err := clone(fmt.Sprintf("github.com/%s/%s", item.Repository, item.Path), *item.Destination); err != nil {
-					log.WithField("compnent", "templates").Debug(err)
-					status.Errorln("Failed to clone templates for " + item.Name)
-				}
-			}
-		}
+		installDefaultTemplates(log)
 
 		//  append to .gitignore
 		log.Debug("Writing ", util.Rel(nhost.GITIGNORE))
@@ -270,6 +269,19 @@ in the following manner:
 	PostRun: func(cmd *cobra.Command, args []string) {
 		status.Success(fmt.Sprintf("Successful! Start your app with `cd %s && nhost dev`", filepath.Base(location)))
 	},
+}
+
+// install default templates
+func installDefaultTemplates(logger logrus.FieldLogger) {
+	tplInstaller := nhost.NewTemplatesInstaller(logger)
+
+	for _, item := range defaultTemplates {
+		//	download the files
+		if err := tplInstaller.Install(context.TODO(), *item.Destination, item.Repository, item.Path); err != nil {
+			logger.WithField("component", "templates").Debug(err)
+			status.Errorln("Failed to clone templates for " + item.Name)
+		}
+	}
 }
 
 func prepareAppList(user nhost.User) []nhost.App {
