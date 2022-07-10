@@ -2,6 +2,7 @@ package nhost
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -22,8 +23,6 @@ func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) 
 	return response
 }
 
-func GetContainerName(name string) string {
-	return strings.Join([]string{PREFIX, name}, "_")
 func GetDockerComposeProjectName() (string, error) {
 	data, err := ioutil.ReadFile(filepath.Join(DOT_NHOST_DIR, "project_name"))
 	if err != nil {

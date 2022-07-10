@@ -26,9 +26,6 @@ var (
 	//  fetch current working directory
 	NHOST_DIR string
 
-	//  initialize the names of all Nhost services in the stack
-	SERVICES []string
-
 	//  find user's home directory
 	HOME string
 
@@ -62,14 +59,8 @@ var (
 	//  path for email templates
 	EMAILS_DIR string
 
-	//  path for legacy migrations
-	LEGACY_DIR string
-
 	//  path for local git directory
 	GIT_DIR string
-
-	//  default git repository remote to watch for git ops
-	REMOTE string
 
 	//  path for .env.development
 	ENV_FILE string
@@ -89,9 +80,6 @@ var (
 	//  package repository to download latest release from
 	REPOSITORY string
 
-	//  initialize the project prefix
-	PREFIX string
-
 	//	mandatorily required locations
 	LOCATIONS Required
 )
@@ -106,10 +94,6 @@ func Init() {
 	NHOST_DIR = filepath.Join(util.WORKING_DIR, "nhost")
 
 	INFO_PATH = filepath.Join(util.WORKING_DIR, ".nhost", "nhost.yaml")
-
-
-	//  initialize the names of all Nhost services in the stack
-	SERVICES = []string{"hasura", "auth", "storage", "mailhog", "postgres", "minio"}
 
 	//  find user's home directory
 	HOME, _ = os.UserHomeDir()
@@ -142,9 +126,6 @@ func Init() {
 
 	//  path for email templates
 	EMAILS_DIR = filepath.Join(NHOST_DIR, "emails")
-
-	//  path for legacy migrations
-	LEGACY_DIR = filepath.Join(DOT_NHOST, "legacy")
 
 	//  path for local git directory
 	GIT_DIR = filepath.Join(util.WORKING_DIR, ".git")
