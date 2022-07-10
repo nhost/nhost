@@ -33,7 +33,7 @@ const (
 	// default docker images
 	svcPostgresDefaultImage      = "nhost/postgres:12-v0.0.6"
 	svcAuthDefaultImage          = "nhost/hasura-auth:0.6.3"
-	svcStorageDefaultImage       = "nhost/hasura-storage:0.2.1"
+	svcStorageDefaultImage       = "nhost/hasura-storage:0.2.2"
 	svcFunctionsDefaultImage     = "nhost/functions:0.0.2"
 	svcMinioDefaultImage         = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
 	svcMailhogDefaultImage       = "mailhog/mailhog"
