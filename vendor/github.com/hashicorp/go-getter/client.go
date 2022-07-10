@@ -2,6 +2,7 @@ package getter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -12,6 +13,9 @@ import (
 	urlhelper "github.com/hashicorp/go-getter/helper/url"
 	safetemp "github.com/hashicorp/go-safetemp"
 )
+
+// ErrSymlinkCopy means that a copy of a symlink was encountered on a request with DisableSymlinks enabled.
+var ErrSymlinkCopy = errors.New("copying of symlinks has been disabled")
 
 // Client is a client for downloading things.
 //
@@ -76,6 +80,9 @@ type Client struct {
 	// This is identical to tls.Config.InsecureSkipVerify.
 	Insecure bool
 
+	// Disable symlinks
+	DisableSymlinks bool
+
 	Options []ClientOption
 }
 
@@ -123,6 +130,17 @@ func (c *Client) Get() error {
 	dst := c.Dst
 	src, subDir := SourceDirSubdir(src)
 	if subDir != "" {
+		// Check if the subdirectory is attempting to traverse updwards, outside of
+		// the cloned repository path.
+		subDir := filepath.Clean(subDir)
+		if containsDotDot(subDir) {
+			return fmt.Errorf("subdirectory component contain path traversal out of the repository")
+		}
+		// Prevent absolute paths, remove a leading path separator from the subdirectory
+		if subDir[0] == os.PathSeparator {
+			subDir = subDir[1:]
+		}
+
 		td, tdcloser, err := safetemp.Dir("", "getter")
 		if err != nil {
 			return err
@@ -230,6 +248,10 @@ func (c *Client) Get() error {
 				filename = v
 			}
 
+			if containsDotDot(filename) {
+				return fmt.Errorf("filename query parameter contain path traversal")
+			}
+
 			dst = filepath.Join(dst, filename)
 		}
 	}
@@ -318,7 +340,7 @@ func (c *Client) Get() error {
 			return err
 		}
 
-		return copyDir(c.Ctx, realDst, subDir, false, c.umask())
+		return copyDir(c.Ctx, realDst, subDir, false, c.DisableSymlinks, c.umask())
 	}
 
 	return nil
