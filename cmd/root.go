@@ -26,20 +26,24 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/manifoldco/promptui"
+	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
 )
 
-var (
+const (
+	ErrNotLoggedIn = "Please login with `nhost login`"
+	ErrLoggedIn    = "You are already logged in, first logout with `nhost logout`"
+)
 
 var (
 	Version string
@@ -49,20 +53,19 @@ var (
 	//  rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
 		Use:   "nhost",
-		Short: "Open Source Firebase Alternative with GraphQL",
+		Short: "Nhost: The Open Source Firebase Alternative with GraphQL",
 		Long: fmt.Sprintf(`
-		_   ____               __ 
-		/ | / / /_  ____  _____/ /_
-	   /  |/ / __ \/ __ \/ ___/ __/
-	  / /|  / / / / /_/ (__  ) /_  
-	 /_/ |_/_/ /_/\____/____/\__/  
-								   
-	 
-  Nhost.io is a full-fledged serverless backend for Jamstack and client-serverless applications.
+      _   ____               __
+     / | / / /_  ____  _____/ /_
+    /  |/ / __ \/ __ \/ ___/ __/
+   / /|  / / / / /_/ (__  ) /_
+  /_/ |_/_/ /_/\____/____/\__/
+
+
+  Nhost: The Open Source Firebase Alternative with GraphQL.
   Version - %s
   Documentation - https://docs.nhost.io
   `, Version),
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 
 			//  reset the umask before creating directories anywhere in this program
@@ -114,7 +117,6 @@ func generateDocumentation() {
 }
 
 func init() {
-
 	cobra.OnInitialize(initConfig)
 
 	//  Here you will define your flags and configuration settings.
@@ -137,7 +139,6 @@ func init() {
 
 	//  Cobra also supports local flags, which will only run
 	//  when this action is called directly.
-	rootCmd.PersistentFlags().StringVarP(&logger.LOG_FILE, "log-file", "f", "", "Write logs to given file")
 	rootCmd.PersistentFlags().BoolVarP(&logger.DEBUG, "debug", "d", false, "Show debugging level logs")
 
 	path, _ := os.Getwd()

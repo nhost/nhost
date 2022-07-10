@@ -25,7 +25,9 @@ SOFTWARE.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
