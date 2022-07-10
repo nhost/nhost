@@ -5,9 +5,7 @@ builds:
     goos:
       - "darwin"
       - "linux"
-      - "windows"
     goarch:
-      - "386"
       - "arm"
       - "arm64"
       - "amd64"
