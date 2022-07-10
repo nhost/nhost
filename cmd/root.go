@@ -76,6 +76,11 @@ var (
 			util.Init(util.Config{Writer: status})
 			nhost.Init()
 
+			err := nhost.InitLocations()
+			if err != nil {
+				return err
+			}
+
 			if !util.PathExists(filepath.Join(util.WORKING_DIR, ".nhost/project_name")) {
 				rand.Seed(time.Now().UnixNano())
 				randomName := strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-")

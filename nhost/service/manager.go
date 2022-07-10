@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/avast/retry-go/v4"
 	"github.com/nhost/cli/nhost"
@@ -84,7 +83,6 @@ func (m *dockerComposeManager) SetGitBranch(gitBranch string) {
 	m.branch = gitBranch
 	m.composeConfig = compose.NewConfig(m.nhostConfig, m.ports, m.env, gitBranch, m.projectName)
 }
-
 
 func (m *dockerComposeManager) Start(ctx context.Context) error {
 	ds := &compose.DataStreams{}
