@@ -100,13 +100,6 @@ var devCmd = &cobra.Command{
 		ports := compose.NewPorts(uint32(proxyPort))
 		mgr = service.NewDockerComposeManager(config, ports, env, nhost.GetCurrentBranch(), projectName, log, status, logger.DEBUG)
 
-
-
-
-
-
-		})
-
 		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
