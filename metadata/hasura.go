@@ -223,7 +223,7 @@ func (h *Hasura) PopulateMetadata(
 	err := client.Mutate(ctx, &query, variables)
 	if err != nil {
 		aerr := parseGraphqlError(err)
-		return controller.FileMetadata{}, aerr.ExtendError("problem initializing file metadata")
+		return controller.FileMetadata{}, aerr.ExtendError("problem populating file metadata")
 	}
 
 	if query.UpdateStorageFile.ID == "" {
