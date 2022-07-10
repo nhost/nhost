@@ -20,13 +20,11 @@ const (
 
 var (
 	log    = &logger.Log
-	status = &util.Writer
 	DOMAIN string
 	API    string
 
 	//  fetch current working directory
 	NHOST_DIR string
-	DOT_NHOST string
 
 	//  initialize the names of all Nhost services in the stack
 	SERVICES []string
@@ -51,6 +49,9 @@ var (
 
 	//  path for seeds
 	SEEDS_DIR string
+
+	//  path for .nhost
+	DOT_NHOST_DIR string
 
 	//  path for frontend
 	WEB_DIR string
@@ -106,7 +107,6 @@ func Init() {
 
 	INFO_PATH = filepath.Join(util.WORKING_DIR, ".nhost", "nhost.yaml")
 
-	DOT_NHOST, _ = GetDotNhost()
 
 	//  initialize the names of all Nhost services in the stack
 	SERVICES = []string{"hasura", "auth", "storage", "mailhog", "postgres", "minio"}
@@ -131,6 +131,8 @@ func Init() {
 
 	//  path for seeds
 	SEEDS_DIR = filepath.Join(NHOST_DIR, "seeds")
+
+	DOT_NHOST_DIR = filepath.Join(util.WORKING_DIR, ".nhost")
 
 	//  path for frontend
 	WEB_DIR = filepath.Join(util.WORKING_DIR, "web")
@@ -162,20 +164,16 @@ func Init() {
 	//  package repository to download latest release from
 	REPOSITORY = "nhost/cli"
 
-	//  initialize the project prefix
-	//	PREFIX = filepath.Base(util.WORKING_DIR)
-	PREFIX = "nhost"
-
 	//	mandatorily required locations
 	LOCATIONS = Required{
 		Directories: []*string{
 			&ROOT,
+			&DOT_NHOST_DIR,
 			&NHOST_DIR,
 			&MIGRATIONS_DIR,
 			&METADATA_DIR,
 			&SEEDS_DIR,
 			&EMAILS_DIR,
-			&DOT_NHOST,
 		},
 		Files: []*string{
 			&CONFIG_PATH,

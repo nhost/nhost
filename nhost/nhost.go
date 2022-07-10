@@ -1163,7 +1163,7 @@ func GenerateConfig(options App) Configuration {
 				"allowed": "en",
 			},
 			"smtp": map[interface{}]interface{}{
-				"host":   GetContainerName("mailhog"),
+				"host":   "mailhog",
 				"port":   util.GetPort(1000, 1999),
 				"user":   "user",
 				"pass":   "password",

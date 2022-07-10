@@ -41,6 +41,11 @@ import (
 
 var (
 
+var (
+	Version string
+	cfgFile string
+	status  = &util.Writer
+	log     = &logger.Log
 	//  rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
 		Use:   "nhost",
@@ -58,56 +63,26 @@ var (
   Documentation - https://docs.nhost.io
   `, Version),
 		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 
 			//  reset the umask before creating directories anywhere in this program
 			//  otherwise applied permissions, might get affected
 			//  resetUmask()
 
 			logger.Init()
-			util.Init(util.Config{
-				WorkingDir: path,
-			})
+			util.Init(util.Config{Writer: status})
 			nhost.Init()
-		},
-		Run: func(cmd *cobra.Command, args []string) {
 
-			//  check if project is already initialized
-			if !util.PathExists(nhost.NHOST_DIR) {
-
-				//  start the "init" command
-				initCmd.Run(cmd, args)
-
-				//  offer to clone templates
-				//  templatesCmd.Run(cmd, args)
-				for _, item := range entities {
-					if !item.Default {
-						prompt := promptui.Prompt{
-							Label:     fmt.Sprintf("Do you want to install %s templates", strings.ToLower(item.Name)),
-							IsConfirm: true,
-						}
-
-						_, err := prompt.Run()
-						if err != nil {
-							continue
-						}
-
-						selected = item
-
-						//  start the "templates" command
-						templatesCmd.Run(cmd, args)
-
-						//	reset selected template choice
-						choice = ""
-					}
+			if !util.PathExists(filepath.Join(util.WORKING_DIR, ".nhost/project_name")) {
+				rand.Seed(time.Now().UnixNano())
+				randomName := strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-")
+				if err := nhost.SetDockerComposeProjectName(randomName); err != nil {
+					status.Errorln("Failed to set project name")
+					return err
 				}
 			}
 
-			//  start the "dev" command
-			if err := devCmd.PreRunE(cmd, args); err != nil {
-				log.Debug(err)
-			}
-
-			devCmd.Run(cmd, args)
+			return nil
 		},
 	}
 )
