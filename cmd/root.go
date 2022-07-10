@@ -76,9 +76,12 @@ var (
 			util.Init(util.Config{Writer: status})
 			nhost.Init()
 
-			err := nhost.InitLocations()
-			if err != nil {
-				return err
+			// if not "init" command, create directories if they don't exist
+			if initCmd.Name() != cmd.Name() {
+				err := nhost.InitLocations()
+				if err != nil {
+					return err
+				}
 			}
 
 			if !util.PathExists(filepath.Join(util.WORKING_DIR, ".nhost/project_name")) {
