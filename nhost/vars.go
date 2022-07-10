@@ -166,6 +166,7 @@ func Init() {
 }
 
 // Updates the directory paths in all variables
+// TODO: refactor
 func UpdateLocations(old, new string) {
 
 	//  Add all locations to the list
