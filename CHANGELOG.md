@@ -1,3 +1,16 @@
+# [0.10.0](https://github.com/nhost/hasura-auth/compare/v0.9.3...v0.10.0) (2022-07-13)
+
+### Bug Fixes
+
+- Quote "OK" HTTP responses so auth endpoints can be used in Hasura Actions([5e7b6e0](https://github.com/nhost/hasura-auth/commit/5e7b6e0e144b682a755b9d2b108ac78857edc85e))
+- Remove SQL comment on the `auth` schema as migration scripts should work even if the Postgres user does not own the `auth` ([6daeeee](https://github.com/nhost/hasura-auth/commit/6daeeee1efef619edcd074d5990a4cbf5a423402))
+- **webauthn:** disable unauthorized add of subsequent authenticator ([077bd17](https://github.com/nhost/hasura-auth/commit/077bd1718227522b8db1dc05b63aed459e068784))
+
+### Features
+
+- Add FIDO2 Webauthn authentication ([2e18108](https://github.com/nhost/hasura-auth/commit/2e1810896112bd9e161f2178d223b33eaac8e584)), closes [#153](https://github.com/nhost/hasura-auth/issues/153)
+- Change password with ticket ([3000223](https://github.com/nhost/hasura-auth/commit/30002238fa75723051b752ab019d775225011bf6))
+
 ## [0.9.3](https://github.com/nhost/hasura-auth/compare/v0.9.2...v0.9.3) (2022-06-30)
 
 ### Bug Fixes
@@ -8,17 +21,23 @@
 
 ### Documentation
 
-- SQL comments on schema, tables, and colums ([aeea1d3](https://github.com/nhost/hasura-auth/commit/aeea1d335916aba04b3923bef09a05533167bed8))## [0.9.2](https://github.com/nhost/hasura-auth/compare/v0.9.1...v0.9.2) (2022-06-22)
+- SQL comments on schema, tables, and colums ([aeea1d3](https://github.com/nhost/hasura-auth/commit/aeea1d335916aba04b3923bef09a05533167bed8))
+
+## [0.9.2](https://github.com/nhost/hasura-auth/compare/v0.9.1...v0.9.2) (2022-06-22)
 
 ### Bug Fixes
 
-- forbid anonymous users to change email or password, or to activate MFA ([064b15b](https://github.com/nhost/hasura-auth/commit/064b15be7da6eebb9f647d269e2c9cb9a6a795a6))## [0.9.1](https://github.com/nhost/hasura-auth/compare/v0.9.0...v0.9.1) (2022-06-14)
+- forbid anonymous users to change email or password, or to activate MFA ([064b15b](https://github.com/nhost/hasura-auth/commit/064b15be7da6eebb9f647d269e2c9cb9a6a795a6)
+
+## [0.9.1](https://github.com/nhost/hasura-auth/compare/v0.9.0...v0.9.1) (2022-06-14)
 
 ### Bug Fixes
 
 - add `displayName`, `email`, and `newEmail` variables to all email templates ([d2235e9](https://github.com/nhost/hasura-auth/commit/d2235e9f549efe2d9a345cf8a7a3d345fe8feb6e))
 - do not actually follow redirection when redirectTo is invalid ([7d24e55](https://github.com/nhost/hasura-auth/commit/7d24e55d3a45207e2434cff39497984af6ae406c))
-- workaround for outlook safelinks: add `HEAD` operation to the `/verify` route ([1f12a53](https://github.com/nhost/hasura-auth/commit/1f12a5351d7894c71a773052c9c7d4b8e64ac2d2)), closes [#189](https://github.com/nhost/hasura-auth/issues/189)# [0.9.0](https://github.com/nhost/hasura-auth/compare/v0.8.1...v0.9.0) (2022-06-02)
+- workaround for outlook safelinks: add `HEAD` operation to the `/verify` route ([1f12a53](https://github.com/nhost/hasura-auth/commit/1f12a5351d7894c71a773052c9c7d4b8e64ac2d2)), closes [#189](https://github.com/nhost/hasura-auth/issues/189)
+
+# [0.9.0](https://github.com/nhost/hasura-auth/compare/v0.8.1...v0.9.0) (2022-06-02)
 
 ### Bug Fixes
 
@@ -51,11 +70,15 @@
 
 ### Reverts
 
-- Revert "Return signIn responses for passwordless" ([363bbbc](https://github.com/nhost/hasura-auth/commit/363bbbceb30bf89a878fc1db984e8c9493ed4371))## [0.7.1](https://github.com/nhost/hasura-auth/compare/v0.7.0...v0.7.1) (2022-04-28)
+- Revert "Return signIn responses for passwordless" ([363bbbc](https://github.com/nhost/hasura-auth/commit/363bbbceb30bf89a878fc1db984e8c9493ed4371))
+
+## [0.7.1](https://github.com/nhost/hasura-auth/compare/v0.7.0...v0.7.1) (2022-04-28)
 
 ### Features
 
-- use query parameter instead of hash when adding the refresh token to an url ([af8ea50](https://github.com/nhost/hasura-auth/commit/af8ea5097cf04d9991977c72bed0797218f5e997))# [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
+- use query parameter instead of hash when adding the refresh token to an url ([af8ea50](https://github.com/nhost/hasura-auth/commit/af8ea5097cf04d9991977c72bed0797218f5e997))
+
+# [0.7.0](https://github.com/nhost/hasura-auth/compare/v0.6.3...v0.7.0) (2022-04-27)
 
 ### Bug Fixes
 
@@ -63,15 +86,21 @@
 
 ### Features
 
-- use encoded `redirectTo` url value in email templates ([9b88a91](https://github.com/nhost/hasura-auth/commit/9b88a91274aeb9eeeb3824eea79f444bcca47401))## [0.6.3](https://github.com/nhost/hasura-auth/compare/v0.6.2...v0.6.3) (2022-04-21)
+- use encoded `redirectTo` url value in email templates ([9b88a91](https://github.com/nhost/hasura-auth/commit/9b88a91274aeb9eeeb3824eea79f444bcca47401))
+
+## [0.6.3](https://github.com/nhost/hasura-auth/compare/v0.6.2...v0.6.3) (2022-04-21)
 
 ### Bug Fixes
 
-- filter internal user fields in session ([d1c4c9b](https://github.com/nhost/hasura-auth/commit/d1c4c9bcb1b7901d989c6c0e194ebab617d5f579))## [0.6.2](https://github.com/nhost/hasura-auth/compare/v0.6.1...v0.6.2) (2022-04-20)
+- filter internal user fields in session ([d1c4c9b](https://github.com/nhost/hasura-auth/commit/d1c4c9bcb1b7901d989c6c0e194ebab617d5f579))
+
+## [0.6.2](https://github.com/nhost/hasura-auth/compare/v0.6.1...v0.6.2) (2022-04-20)
 
 ### Bug Fixes
 
-- revert 00002 migration name to previous name when migration fails because of it ([6a0856a](https://github.com/nhost/hasura-auth/commit/6a0856a9e6a18bf264579a783adae6c55efc4351))## [0.6.1](https://github.com/nhost/hasura-auth/compare/v0.6.0...v0.6.1) (2022-04-20)
+- revert 00002 migration name to previous name when migration fails because of it ([6a0856a](https://github.com/nhost/hasura-auth/commit/6a0856a9e6a18bf264579a783adae6c55efc4351))
+
+## [0.6.1](https://github.com/nhost/hasura-auth/compare/v0.6.0...v0.6.1) (2022-04-20)
 
 ### Bug Fixes
 
@@ -95,7 +124,7 @@
 
 ### Features
 
-- add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User ([4d452d7](https://github.com/nhost/hasura-auth/commit/4d452d7d0b374cad7deb3d59422ad973fb4d801e))# [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
+- add `emailVerified`, `phoneNumber`, `phoneNumberVerified`, and `activeMfaType` to User ([4d452d7](https://github.com/nhost/hasura-auth/commit/4d452d7d0b374cad7deb3d59422ad973fb4d801e))
 
 # [0.5.0](https://github.com/nhost/hasura-auth/compare/v0.4.3...v0.5.0) (2022-03-31)
 
@@ -160,10 +189,19 @@ This release comes with improvements in the code structure and readiblity:
 
 ### Bug Fixes
 
-- root field typo ([#117](https://github.com/nhost/hasura-auth/issues/117)) ([ebb19f8](https://github.com/nhost/hasura-auth/commit/ebb19f8cea693f7e26039345a807308d052a532f))## [0.4.2](https://github.com/nhost/hasura-auth/compare/v0.4.1...v0.4.2) (2022-03-15)
-- check if photo item exists ([#115](https://github.com/nhost/hasura-auth/issues/115)) ([aab9637](https://github.com/nhost/hasura-auth/commit/aab963758652bf7ee045db7bf3691b6bc5766d17))## [0.4.1](https://github.com/nhost/hasura-auth/compare/v0.4.0...v0.4.1) (2022-03-15)
+- root field typo ([#117](https://github.com/nhost/hasura-auth/issues/117)) ([ebb19f8](https://github.com/nhost/hasura-auth/commit/ebb19f8cea693f7e26039345a807308d052a532f))
+
+## [0.4.2](https://github.com/nhost/hasura-auth/compare/v0.4.1...v0.4.2) (2022-03-15)
+
+- check if photo item exists ([#115](https://github.com/nhost/hasura-auth/issues/115)) ([aab9637](https://github.com/nhost/hasura-auth/commit/aab963758652bf7ee045db7bf3691b6bc5766d17))
+
+## [0.4.1](https://github.com/nhost/hasura-auth/compare/v0.4.0...v0.4.1) (2022-03-15)
+
 - 0.4.0 bugs ([#114](https://github.com/nhost/hasura-auth/issues/114)) ([0024aa1](https://github.com/nhost/hasura-auth/commit/0024aa16f7e3a98bbcb7232512c82080a5f464a9))
-- correct redirect url generation ([02e75cf](https://github.com/nhost/hasura-auth/commit/02e75cfd935926d235291eb7c5b9e82a6d929fe5))# [0.4.0](https://github.com/nhost/hasura-auth/compare/v0.3.2...v0.4.0) (2022-03-14)
+- correct redirect url generation ([02e75cf](https://github.com/nhost/hasura-auth/commit/02e75cfd935926d235291eb7c5b9e82a6d929fe5))
+
+# [0.4.0](https://github.com/nhost/hasura-auth/compare/v0.3.2...v0.4.0) (2022-03-14)
+
 - provider requests signup data and redirectTo ([#108](https://github.com/nhost/hasura-auth/issues/108)) ([068f9c0](https://github.com/nhost/hasura-auth/commit/068f9c0d650b655656d78af4b719dc2289be0e67))
 
 ## [0.3.2](https://github.com/nhost/hasura-auth/compare/v0.3.1...v0.3.2) (2022-03-09)
@@ -176,7 +214,9 @@ This release comes with improvements in the code structure and readiblity:
 
 ### Bug Fixes
 
-- use process.env.npm_package_version instead of import 'package.json' ([ab23184](https://github.com/nhost/hasura-auth/commit/ab23184e7c9638e6ae15cd0fe14232cf3c77dd67))# [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
+- use process.env.npm_package_version instead of import 'package.json' ([ab23184](https://github.com/nhost/hasura-auth/commit/ab23184e7c9638e6ae15cd0fe14232cf3c77dd67))
+
+# [0.3.0](https://github.com/nhost/hasura-auth/compare/v0.2.1...v0.3.0) (2022-03-02)
 
 ### Features
 
