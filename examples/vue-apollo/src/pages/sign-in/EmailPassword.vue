@@ -3,7 +3,7 @@
   <v-text-field v-model="password" label="Password" type="password" />
   <v-btn block color="primary" class="my-1" @click="signIn"> Sign in </v-btn>
   <v-btn class="my-1" block variant="text" color="primary" to="/signin">
-    &#8592; Other Login Options
+    &#8592; Other Sign-in Options
   </v-btn>
   <error-snack-bar :error="error" />
   <verification-email-dialog v-model="emailVerificationDialog" :email="email" />

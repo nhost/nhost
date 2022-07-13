@@ -1,7 +1,7 @@
 <template>
   <div className="d-flex align-center flex-column">
     <v-card width="400">
-      <v-card-title>Log in to the Application</v-card-title>
+      <v-card-title>Sign in to the Application</v-card-title>
       <v-card-text>
         <router-view />
       </v-card-text>

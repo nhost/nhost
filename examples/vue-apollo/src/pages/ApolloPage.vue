@@ -1,13 +1,15 @@
 <template>
   <div className="d-flex align-center flex-column">
     <v-card width="400" tile>
-      <v-card-text> Apollo </v-card-text>
-      <v-list density="compact" v-if="result">
-        <v-list-subheader>Books</v-list-subheader>
-        <v-list-item v-for="(item, i) in result.books" :key="i" :value="item.id">
-          <v-list-item-title v-text="item.title"></v-list-item-title>
-        </v-list-item>
-      </v-list>
+      <v-card-title> Apollo </v-card-title>
+      <v-card-text>
+        <v-list density="compact" v-if="result">
+          <v-list-subheader>Books</v-list-subheader>
+          <v-list-item v-for="(item, i) in result.books" :key="i" :value="item.id">
+            <v-list-item-title v-text="item.title"></v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-card-text>
     </v-card>
   </div>
 </template>
