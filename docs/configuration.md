@@ -120,6 +120,8 @@ AUTH_WEBAUTHN_RP_ORIGINS=https://my-app.example.com
 
 By default if `AUTH_CLIENT_URL` is set, will be whitelisted as allowed origin for such authentication. Additional urls can be specified using `AUTH_WEBAUTHN_RP_ORIGINS`.
 
+---
+
 ## Gravatar
 
 Hasura Auth stores the avatar URL of users in `auth.users.avatar_url`. By default, it will look for the Gravatar linked to the email, and store it into this field.
