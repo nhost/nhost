@@ -7,6 +7,14 @@ services:
     version: v2.8.0
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
+  minio:
+    environment:
+      minio_root_password: minioaccesskey123123
+      minio_root_user: minioaccesskey123123
+  postgres:
+    environment:
+      postgres_password: postgres
+      postgres_user: postgres
   auth:
     version: 0.9.1
   storage:

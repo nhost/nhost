@@ -35,6 +35,18 @@ nhost.auth.signIn({
 
 Users are redirected to your Nhost app's **client URL** by default. By default, your Nhost app's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Authentication Settings** → **Client URL**.
 
+
+Here is an example of how to redirect to another host or path:
+
+```js
+nhost.auth.signIn({
+  provider: '<provider>'
+  options: {
+    redirectTo: "<host>/<slug>" // Example: "https://example.com/dashboard"
+  },
+})
+```
+
 ## Provider OAuth scopes
 
 Scopes are a mechanism in OAuth to allow or limit an application's access to a user's account.

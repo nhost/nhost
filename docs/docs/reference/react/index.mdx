@@ -35,10 +35,12 @@ After installation, initialize a single Nhost Client (`nhost`) under `src/lib/nh
 
 ```jsx title=src/lib/nhost.js
 import { NhostClient } from '@nhost/react'
+
 const nhost = new NhostClient({
   subdomain: '<your-subdomain>',
   region: '<your-region>'
 })
+
 export { nhost }
 ```
 
