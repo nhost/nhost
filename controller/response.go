@@ -18,16 +18,17 @@ func timeFromRFC3339ToRFC1123(t string) (string, *APIError) {
 }
 
 type FileResponse struct {
-	fileID        string
-	contentType   string
-	contentLength int64
-	etag          string
-	cacheControl  string
-	lastModified  string
-	statusCode    int
-	body          io.ReadCloser
-	name          string
-	headers       http.Header
+	fileID                      string
+	contentType                 string
+	contentLength               int64
+	etag                        string
+	cacheControl                string
+	lastModified                string
+	statusCode                  int
+	body                        io.ReadCloser
+	name                        string
+	headers                     http.Header
+	disableSurrageControlHeader bool
 }
 
 func NewFileResponse(
@@ -73,7 +74,9 @@ func (r *FileResponse) Write(ctx *gin.Context) {
 		ctx.Header("Last-modified", r.lastModified)
 	}
 
-	ctx.Header("Surrogate-Control", "max-age=604800")
+	if !r.disableSurrageControlHeader {
+		ctx.Header("Surrogate-Control", "max-age=604800")
+	}
 	ctx.Header("Cache-Control", r.cacheControl)
 	ctx.Header("Etag", r.etag)
 

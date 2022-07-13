@@ -111,5 +111,6 @@ func (ctrl *Controller) GetFileWithPresignedURL(ctx *gin.Context) {
 
 	defer fileResponse.body.Close()
 
+	fileResponse.disableSurrageControlHeader = true
 	fileResponse.Write(ctx)
 }
