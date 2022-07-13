@@ -4,7 +4,9 @@
       <template #prepend>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       </template>
+      <v-app-bar-title>Nhost with Vue and Apollo</v-app-bar-title>
       <template #append>
+        <v-btn icon="mdi-github" href="https://github.com/nhost/nhost/tree/main/examples/vue-apollo" target="_blank" />
         <v-btn v-if="isAuthenticated" icon="mdi-exit-to-app" @click="signOutHandler" />
       </template>
     </v-app-bar>
