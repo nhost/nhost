@@ -2,6 +2,21 @@ table:
   name: user_providers
   schema: auth
 configuration:
+  column_config:
+    access_token:
+      custom_name: accessToken
+    created_at:
+      custom_name: createdAt
+    provider_id:
+      custom_name: providerId
+    provider_user_id:
+      custom_name: providerUserId
+    refresh_token:
+      custom_name: refreshToken
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userId
   custom_column_names:
     access_token: accessToken
     created_at: createdAt

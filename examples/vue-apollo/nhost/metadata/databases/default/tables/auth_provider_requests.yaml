@@ -2,6 +2,7 @@ table:
   name: provider_requests
   schema: auth
 configuration:
+  column_config: {}
   custom_column_names: {}
   custom_name: authProviderRequests
   custom_root_fields:

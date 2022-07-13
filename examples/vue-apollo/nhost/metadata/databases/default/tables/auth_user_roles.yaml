@@ -2,6 +2,11 @@ table:
   name: user_roles
   schema: auth
 configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    user_id:
+      custom_name: userId
   custom_column_names:
     created_at: createdAt
     user_id: userId
