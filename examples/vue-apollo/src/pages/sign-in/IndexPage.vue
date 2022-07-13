@@ -1,20 +1,3 @@
-<script setup lang="ts">
-import { useRouter } from 'vue-router'
-
-import { useSignInAnonymous } from '@nhost/vue'
-const { signInAnonymous } = useSignInAnonymous()
-const router = useRouter()
-const handleSignInAnonymous = async (e: Event) => {
-  e.preventDefault()
-  const { isSuccess, error } = await signInAnonymous()
-  if (isSuccess) {
-    router.push('/profile')
-  } else {
-    console.log(error)
-  }
-}
-</script>
-
 <template>
   <div className="d-flex align-center flex-column">
     <v-card width="400">
@@ -29,4 +12,20 @@ const handleSignInAnonymous = async (e: Event) => {
       <a href="#" @click="handleSignInAnonymous">sign in anonymously</a>
     </div>
   </div>
+  <error-snack-bar :error="error" />
 </template>
+
+<script setup lang="ts">
+import { useRouter } from 'vue-router'
+
+import { useSignInAnonymous } from '@nhost/vue'
+const { signInAnonymous, error } = useSignInAnonymous()
+const router = useRouter()
+const handleSignInAnonymous = async (e: Event) => {
+  e.preventDefault()
+  const { isSuccess } = await signInAnonymous()
+  if (isSuccess) {
+    router.push('/profile')
+  }
+}
+</script>
