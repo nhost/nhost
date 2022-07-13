@@ -6,20 +6,15 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
+import { ref } from 'vue'
 
 import { useSignInEmailPasswordless } from '@nhost/vue'
 
-export default defineComponent({
-  setup() {
-    const email = ref('')
-    const { signInEmailPasswordless, error } = useSignInEmailPasswordless({
-      redirectTo: '/#/profile'
-    })
-
-    const signIn = () => signInEmailPasswordless(email)
-    return { email, signIn, error }
-  }
+const email = ref('')
+const { signInEmailPasswordless, error } = useSignInEmailPasswordless({
+  redirectTo: '/#/profile'
 })
+
+const signIn = () => signInEmailPasswordless(email)
 </script>

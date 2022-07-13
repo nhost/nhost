@@ -18,12 +18,6 @@
     "jsx": "preserve",
     "declaration": false,
     "declarationMap": false,
-    "paths": {
-      "@/*": [
-        "src/*"
-      ],
-    },
-    "baseUrl": "."
   },
   "include": ["src"]
 }

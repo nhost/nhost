@@ -7,24 +7,21 @@
   </v-snackbar>
 </template>
 
-<script lang="ts">
-import { defineComponent, PropType, ref, watchEffect } from 'vue'
+<script lang="ts" setup>
+import { PropType, ref, watchEffect } from 'vue'
 
 import { ErrorPayload } from '@nhost/core'
-export default defineComponent({
-  props: {
-    error: Object as PropType<ErrorPayload | null>
-  },
-  setup(props) {
-    const snack = ref(false)
 
-    watchEffect(() => {
-      if (props.error) {
-        snack.value = true
-      }
-    })
+const props = defineProps({
+  error: Object as PropType<ErrorPayload | null>
+})
+const snack = ref(false)
 
-    return { snack }
+watchEffect(() => {
+  if (props.error) {
+    snack.value = true
   }
 })
+
+
 </script>

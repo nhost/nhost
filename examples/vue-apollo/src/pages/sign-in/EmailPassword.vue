@@ -8,32 +8,21 @@
   <error-snack-bar :error="error" />
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useSignInEmailPassword } from '@nhost/vue'
 
-export default defineComponent({
-  setup() {
-    const email = ref('')
-    const password = ref('')
+const email = ref('')
+const password = ref('')
 
-    const router = useRouter()
-    const { signInEmailPassword, error } = useSignInEmailPassword()
-    const signIn = async () => {
-      const { isSuccess } = await signInEmailPassword(email, password)
-      if (isSuccess) {
-        router.replace('/')
-      }
-    }
-
-    return {
-      email,
-      error,
-      password,
-      signIn
-    }
+const router = useRouter()
+const { signInEmailPassword, error } = useSignInEmailPassword()
+const signIn = async () => {
+  const { isSuccess } = await signInEmailPassword(email, password)
+  if (isSuccess) {
+    router.replace('/')
   }
-})
+}
 </script>

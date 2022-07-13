@@ -12,8 +12,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { computed, defineComponent } from 'vue'
+<script lang="ts" setup>
+import { computed } from 'vue'
 
 import { gql } from '@apollo/client/core'
 import { useAuthenticated } from '@nhost/vue'
@@ -28,20 +28,15 @@ const GET_BOOKS = gql`
   }
 `
 
-export default defineComponent({
-  setup() {
-    const isAuthenticated = useAuthenticated()
-    // TODO check if the query always runs with the headers
-    const { result } = useQuery(
-      GET_BOOKS,
-      null,
-      computed(() => ({
-        pollInterval: 5000,
-        fetchPolicy: 'cache-and-network',
-        enabled: isAuthenticated.value
-      }))
-    )
-    return { result }
-  }
-})
+const isAuthenticated = useAuthenticated()
+// TODO check if the query always runs with the headers
+const { result } = useQuery(
+  GET_BOOKS,
+  null,
+  computed(() => ({
+    pollInterval: 5000,
+    fetchPolicy: 'cache-and-network',
+    enabled: isAuthenticated.value
+  }))
+)
 </script>

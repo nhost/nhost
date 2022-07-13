@@ -17,30 +17,25 @@
   </v-app>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
+<script lang="ts" setup>
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 import { useAuthenticated, useSignOut } from '@nhost/vue'
 
 import NavBar from './components/NavBar.vue'
 
-export default defineComponent({
-  components: { NavBar },
-  setup() {
-    const router = useRouter()
-    const isAuthenticated = useAuthenticated()
-    const { signOut } = useSignOut()
-    const drawer = ref(true)
-    const signOutHandler = async () => {
-      await signOut()
-      router.replace('/signout')
-    }
-    return {
-      drawer,
-      isAuthenticated,
-      signOutHandler
-    }
-  }
-})
+const router = useRouter()
+const isAuthenticated = useAuthenticated()
+const { signOut } = useSignOut()
+const drawer = ref(true)
+const signOutHandler = async () => {
+  await signOut()
+  router.replace('/signout')
+}
+return {
+  drawer,
+  isAuthenticated,
+  signOutHandler
+}
 </script>

@@ -6,13 +6,12 @@
     &#8592; Other registration Options!
   </v-btn>
   <error-snack-bar :error="error" />
-  <VerificationEmailDialog v-model="emailVerificationDialog" :email="email" />
+  <verification-email-dialog v-model="emailVerificationDialog" :email="email" />
 
 </template>
 
 <script lang="ts" setup>
 import { ref } from 'vue'
-import VerificationEmailDialog from '@/components/VerificationEmailDialog.vue'
 import { useSignUpEmailPassword } from '@nhost/vue'
 const emailVerificationDialog = ref(false)
 const email = ref('')

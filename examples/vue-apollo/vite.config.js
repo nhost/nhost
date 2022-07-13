@@ -10,11 +10,11 @@ export default defineConfig({
     vuetify({
       autoImport: true
     })
-  ],
+  ]
   // define: { 'process.env': {} },
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, 'src')
-    }
-  }
+  // resolve: {
+  //   alias: {
+  //     '@': path.resolve(__dirname, 'src')
+  //   }
+  // }
 })

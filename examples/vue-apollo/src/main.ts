@@ -13,6 +13,7 @@ import 'vuetify/styles'
 import EmailPasswordless from './components/EmailPasswordlessForm.vue'
 import ErrorSnackBar from './components/ErrorSnackBar.vue'
 import OauthLinks from './components/OAuthLinks.vue'
+import VerificationEmailDialog from './components/VerificationEmailDialog.vue'
 import App from './App.vue'
 import { routes } from './routes'
 
@@ -88,4 +89,5 @@ createApp(App)
   .component('ErrorSnackBar', ErrorSnackBar)
   .component('EmailPasswordless', EmailPasswordless)
   .component('OauthLinks', OauthLinks)
+  .component('VerificationEmailDialog', VerificationEmailDialog)
   .mount('#app')
