@@ -14,11 +14,11 @@ Avoid breaking changes and regressions. If you feel it is unavoidable, make it e
 ### Tests
 
 - please make sure your changes pass the current tests (Use the `make test` or the `make watch` command).
-- if you are introducing a new feature, please as much tests as possible.
+- if you are introducing a new feature, please write as much tests as possible.
 
 ### Documentation
 
-Please make sure the documentation is updated accordinlgy, in particular:
+Please make sure the documentation is updated accordingly, in particular:
 
 - [Workflows](https://github.com/nhost/hasura-auth/tree/main/docs/workflows). Workflows are [Mermaid sequence diagrams](https://mermaid-js.github.io/mermaid/#/sequenceDiagram)
 - [Schema](https://github.com/nhost/hasura-auth/blob/main/docs/schema.md). The schema in a [Mermaid ER diagram](https://mermaid-js.github.io/mermaid/#/entityRelationshipDiagram)
