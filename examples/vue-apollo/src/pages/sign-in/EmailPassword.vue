@@ -6,6 +6,7 @@
     &#8592; Other Login Options
   </v-btn>
   <error-snack-bar :error="error" />
+  <verification-email-dialog v-model="emailVerificationDialog" :email="email" />
 </template>
 
 <script lang="ts" setup>
@@ -16,13 +17,18 @@ import { useSignInEmailPassword } from '@nhost/vue'
 
 const email = ref('')
 const password = ref('')
+const emailVerificationDialog = ref(false)
 
 const router = useRouter()
 const { signInEmailPassword, error } = useSignInEmailPassword()
+
 const signIn = async () => {
-  const { isSuccess } = await signInEmailPassword(email, password)
+  const { isSuccess, needsEmailVerification } = await signInEmailPassword(email, password)
   if (isSuccess) {
     router.replace('/')
+  }
+  if (needsEmailVerification) {
+    emailVerificationDialog.value = true
   }
 }
 </script>

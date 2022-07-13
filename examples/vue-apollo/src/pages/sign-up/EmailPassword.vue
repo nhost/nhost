@@ -7,7 +7,6 @@
   </v-btn>
   <error-snack-bar :error="error" />
   <verification-email-dialog v-model="emailVerificationDialog" :email="email" />
-
 </template>
 
 <script lang="ts" setup>
