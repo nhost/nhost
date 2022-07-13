@@ -13,7 +13,7 @@ services:
       postgres_password: postgres
       postgres_user: postgres
   auth:
-    version: 0.9.1
+    version: 0.10.0
   storage:
     version: 0.2.2
 auth:
