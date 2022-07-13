@@ -22,13 +22,8 @@ export type Scalars = {
   uuid: any;
 };
 
-export type Boolean_Cast_Exp = {
-  String?: InputMaybe<String_Comparison_Exp>;
-};
-
 /** Boolean expression to compare columns of type "Boolean". All fields are combined with logical 'AND'. */
 export type Boolean_Comparison_Exp = {
-  _cast?: InputMaybe<Boolean_Cast_Exp>;
   _eq?: InputMaybe<Scalars['Boolean']>;
   _gt?: InputMaybe<Scalars['Boolean']>;
   _gte?: InputMaybe<Scalars['Boolean']>;
@@ -73,7 +68,13 @@ export type String_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['String']>;
 };
 
-/** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.provider_requests"
+ *
+ */
 export type AuthProviderRequests = {
   __typename?: 'authProviderRequests';
   id: Scalars['uuid'];
@@ -81,7 +82,13 @@ export type AuthProviderRequests = {
 };
 
 
-/** Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Oauth requests, inserted before redirecting to the provider's site. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.provider_requests"
+ *
+ */
 export type AuthProviderRequestsOptionsArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
@@ -124,7 +131,7 @@ export type AuthProviderRequests_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.provider_requests" */
 export enum AuthProviderRequests_Constraint {
-  /** unique or primary key constraint on columns "id" */
+  /** unique or primary key constraint */
   ProviderRequestsPkey = 'provider_requests_pkey'
 }
 
@@ -215,7 +222,13 @@ export enum AuthProviderRequests_Update_Column {
   Options = 'options'
 }
 
-/** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.providers"
+ *
+ */
 export type AuthProviders = {
   __typename?: 'authProviders';
   id: Scalars['String'];
@@ -226,7 +239,13 @@ export type AuthProviders = {
 };
 
 
-/** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.providers"
+ *
+ */
 export type AuthProvidersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -236,7 +255,13 @@ export type AuthProvidersUserProvidersArgs = {
 };
 
 
-/** List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * List of available Oauth providers. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.providers"
+ *
+ */
 export type AuthProvidersUserProviders_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -278,7 +303,7 @@ export type AuthProviders_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.providers" */
 export enum AuthProviders_Constraint {
-  /** unique or primary key constraint on columns "id" */
+  /** unique or primary key constraint */
   ProvidersPkey = 'providers_pkey'
 }
 
@@ -351,7 +376,13 @@ export enum AuthProviders_Update_Column {
   Id = 'id'
 }
 
-/** User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User refresh tokens. Hasura auth uses them to rotate new access tokens as long as the refresh token is not expired. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.refresh_tokens"
+ *
+ */
 export type AuthRefreshTokens = {
   __typename?: 'authRefreshTokens';
   createdAt: Scalars['timestamptz'];
@@ -412,7 +443,7 @@ export type AuthRefreshTokens_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.refresh_tokens" */
 export enum AuthRefreshTokens_Constraint {
-  /** unique or primary key constraint on columns "refresh_token" */
+  /** unique or primary key constraint */
   RefreshTokensPkey = 'refresh_tokens_pkey'
 }
 
@@ -521,7 +552,13 @@ export enum AuthRefreshTokens_Update_Column {
   UserId = 'userId'
 }
 
-/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.roles"
+ *
+ */
 export type AuthRoles = {
   __typename?: 'authRoles';
   role: Scalars['String'];
@@ -536,7 +573,13 @@ export type AuthRoles = {
 };
 
 
-/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.roles"
+ *
+ */
 export type AuthRolesUserRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -546,7 +589,13 @@ export type AuthRolesUserRolesArgs = {
 };
 
 
-/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.roles"
+ *
+ */
 export type AuthRolesUserRoles_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -556,7 +605,13 @@ export type AuthRolesUserRoles_AggregateArgs = {
 };
 
 
-/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.roles"
+ *
+ */
 export type AuthRolesUsersByDefaultRoleArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -566,7 +621,13 @@ export type AuthRolesUsersByDefaultRoleArgs = {
 };
 
 
-/** Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Persistent Hasura roles for users. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.roles"
+ *
+ */
 export type AuthRolesUsersByDefaultRole_AggregateArgs = {
   distinct_on?: InputMaybe<Array<Users_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -609,7 +670,7 @@ export type AuthRoles_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.roles" */
 export enum AuthRoles_Constraint {
-  /** unique or primary key constraint on columns "role" */
+  /** unique or primary key constraint */
   RolesPkey = 'roles_pkey'
 }
 
@@ -684,7 +745,13 @@ export enum AuthRoles_Update_Column {
   Role = 'role'
 }
 
-/** User webauthn authenticators. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User webauthn authenticators. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.user_authenticators"
+ *
+ */
 export type AuthUserAuthenticators = {
   __typename?: 'authUserAuthenticators';
   counter: Scalars['bigint'];
@@ -776,9 +843,9 @@ export type AuthUserAuthenticators_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.user_authenticators" */
 export enum AuthUserAuthenticators_Constraint {
-  /** unique or primary key constraint on columns "credential_id" */
+  /** unique or primary key constraint */
   UserAuthenticatorsCredentialIdKey = 'user_authenticators_credential_id_key',
-  /** unique or primary key constraint on columns "id" */
+  /** unique or primary key constraint */
   UserAuthenticatorsPkey = 'user_authenticators_pkey'
 }
 
@@ -987,7 +1054,13 @@ export type AuthUserAuthenticators_Variance_Order_By = {
   counter?: InputMaybe<Order_By>;
 };
 
-/** Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Active providers for a given user. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.user_providers"
+ *
+ */
 export type AuthUserProviders = {
   __typename?: 'authUserProviders';
   accessToken: Scalars['String'];
@@ -1059,11 +1132,11 @@ export type AuthUserProviders_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.user_providers" */
 export enum AuthUserProviders_Constraint {
-  /** unique or primary key constraint on columns "id" */
+  /** unique or primary key constraint */
   UserProvidersPkey = 'user_providers_pkey',
-  /** unique or primary key constraint on columns "provider_user_id", "provider_id" */
+  /** unique or primary key constraint */
   UserProvidersProviderIdProviderUserIdKey = 'user_providers_provider_id_provider_user_id_key',
-  /** unique or primary key constraint on columns "provider_id", "user_id" */
+  /** unique or primary key constraint */
   UserProvidersUserIdProviderIdKey = 'user_providers_user_id_provider_id_key'
 }
 
@@ -1218,7 +1291,13 @@ export enum AuthUserProviders_Update_Column {
   UserId = 'userId'
 }
 
-/** Roles of users. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * Roles of users. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.user_roles"
+ *
+ */
 export type AuthUserRoles = {
   __typename?: 'authUserRoles';
   createdAt: Scalars['timestamptz'];
@@ -1282,9 +1361,9 @@ export type AuthUserRoles_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.user_roles" */
 export enum AuthUserRoles_Constraint {
-  /** unique or primary key constraint on columns "id" */
+  /** unique or primary key constraint */
   UserRolesPkey = 'user_roles_pkey',
-  /** unique or primary key constraint on columns "role", "user_id" */
+  /** unique or primary key constraint */
   UserRolesUserIdRoleKey = 'user_roles_user_id_role_key'
 }
 
@@ -1395,13 +1474,8 @@ export enum AuthUserRoles_Update_Column {
   UserId = 'userId'
 }
 
-export type Bigint_Cast_Exp = {
-  String?: InputMaybe<String_Comparison_Exp>;
-};
-
 /** Boolean expression to compare columns of type "bigint". All fields are combined with logical 'AND'. */
 export type Bigint_Comparison_Exp = {
-  _cast?: InputMaybe<Bigint_Cast_Exp>;
   _eq?: InputMaybe<Scalars['bigint']>;
   _gt?: InputMaybe<Scalars['bigint']>;
   _gte?: InputMaybe<Scalars['bigint']>;
@@ -1459,13 +1533,8 @@ export type Citext_Comparison_Exp = {
   _similar?: InputMaybe<Scalars['citext']>;
 };
 
-export type Jsonb_Cast_Exp = {
-  String?: InputMaybe<String_Comparison_Exp>;
-};
-
 /** Boolean expression to compare columns of type "jsonb". All fields are combined with logical 'AND'. */
 export type Jsonb_Comparison_Exp = {
-  _cast?: InputMaybe<Jsonb_Cast_Exp>;
   /** is the column contained in the given json value */
   _contained_in?: InputMaybe<Scalars['jsonb']>;
   /** does the column contain the given json value at the top level */
@@ -2418,13 +2487,8 @@ export type Subscription_RootUsersAggregateArgs = {
   where?: InputMaybe<Users_Bool_Exp>;
 };
 
-export type Timestamptz_Cast_Exp = {
-  String?: InputMaybe<String_Comparison_Exp>;
-};
-
 /** Boolean expression to compare columns of type "timestamptz". All fields are combined with logical 'AND'. */
 export type Timestamptz_Comparison_Exp = {
-  _cast?: InputMaybe<Timestamptz_Cast_Exp>;
   _eq?: InputMaybe<Scalars['timestamptz']>;
   _gt?: InputMaybe<Scalars['timestamptz']>;
   _gte?: InputMaybe<Scalars['timestamptz']>;
@@ -2436,7 +2500,13 @@ export type Timestamptz_Comparison_Exp = {
   _nin?: InputMaybe<Array<Scalars['timestamptz']>>;
 };
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type Users = {
   __typename?: 'users';
   activeMfaType?: Maybe<Scalars['String']>;
@@ -2485,7 +2555,13 @@ export type Users = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersAuthenticatorsArgs = {
   distinct_on?: InputMaybe<Array<AuthUserAuthenticators_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2495,7 +2571,13 @@ export type UsersAuthenticatorsArgs = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersAuthenticators_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserAuthenticators_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2505,13 +2587,25 @@ export type UsersAuthenticators_AggregateArgs = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersMetadataArgs = {
   path?: InputMaybe<Scalars['String']>;
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersRefreshTokensArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2521,7 +2615,13 @@ export type UsersRefreshTokensArgs = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersRefreshTokens_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthRefreshTokens_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2531,7 +2631,13 @@ export type UsersRefreshTokens_AggregateArgs = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersRolesArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2541,7 +2647,13 @@ export type UsersRolesArgs = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersRoles_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserRoles_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2551,7 +2663,13 @@ export type UsersRoles_AggregateArgs = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersUserProvidersArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2561,7 +2679,13 @@ export type UsersUserProvidersArgs = {
 };
 
 
-/** User account information. Don't modify its structure as Hasura Auth relies on it to function properly. */
+/**
+ * User account information. Don't modify its structure as Hasura Auth relies on it to function properly.
+ *
+ *
+ * columns and relationships of "auth.users"
+ *
+ */
 export type UsersUserProviders_AggregateArgs = {
   distinct_on?: InputMaybe<Array<AuthUserProviders_Select_Column>>;
   limit?: InputMaybe<Scalars['Int']>;
@@ -2650,11 +2774,11 @@ export type Users_Bool_Exp = {
 
 /** unique or primary key constraints on table "auth.users" */
 export enum Users_Constraint {
-  /** unique or primary key constraint on columns "email" */
+  /** unique or primary key constraint */
   UsersEmailKey = 'users_email_key',
-  /** unique or primary key constraint on columns "phone_number" */
+  /** unique or primary key constraint */
   UsersPhoneNumberKey = 'users_phone_number_key',
-  /** unique or primary key constraint on columns "id" */
+  /** unique or primary key constraint */
   UsersPkey = 'users_pkey'
 }
 
@@ -3009,13 +3133,8 @@ export enum Users_Update_Column {
   UpdatedAt = 'updatedAt'
 }
 
-export type Uuid_Cast_Exp = {
-  String?: InputMaybe<String_Comparison_Exp>;
-};
-
 /** Boolean expression to compare columns of type "uuid". All fields are combined with logical 'AND'. */
 export type Uuid_Comparison_Exp = {
-  _cast?: InputMaybe<Uuid_Cast_Exp>;
   _eq?: InputMaybe<Scalars['uuid']>;
   _gt?: InputMaybe<Scalars['uuid']>;
   _gte?: InputMaybe<Scalars['uuid']>;
