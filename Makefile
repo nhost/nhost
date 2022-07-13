@@ -86,12 +86,12 @@ dev-jwt:  ## return a jwt valid for development environment
 
 .PHONY: dev-s3-access-key
 dev-s3-access-key:  ## return s3 access key for development environment
-	@docker exec -i docker_minio_1 bash -c 'echo $$MINIO_ROOT_USER'
+	@docker exec -i hasura-storage-minio bash -c 'echo $$MINIO_ROOT_USER'
 
 
 .PHONY: dev-s3-secret-key
 dev-s3-secret-key:  ## restun s3 secret key for development environment
-	@docker exec -i docker_minio_1 bash -c 'echo $$MINIO_ROOT_PASSWORD'
+	@docker exec -i hasura-storage-minio bash -c 'echo $$MINIO_ROOT_PASSWORD'
 
 
 .PHONY: migrations-add

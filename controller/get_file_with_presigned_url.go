@@ -86,17 +86,19 @@ func (ctrl *Controller) getFileWithPresignedURL(ctx *gin.Context) (*FileResponse
 		return nil, apiErr
 	}
 
-	download, apiErr := ctrl.contentStorage.GetFileWithPresignedURL(
-		ctx.Request.Context(),
-		req.fileID,
-		req.signature,
-		ctx.Request.Header,
-	)
+	downloadFunc := func() (*File, *APIError) {
+		return ctrl.contentStorage.GetFileWithPresignedURL(
+			ctx.Request.Context(),
+			req.fileID,
+			req.signature,
+			ctx.Request.Header,
+		)
+	}
 	if apiErr != nil {
 		return nil, apiErr
 	}
 
-	return ctrl.processFileToDownload(ctx, download, fileMetadata, fmt.Sprintf("max-age=%d", req.Expires), nil)
+	return ctrl.processFileToDownload(ctx, downloadFunc, fileMetadata, fmt.Sprintf("max-age=%d", req.Expires), nil)
 }
 
 func (ctrl *Controller) GetFileWithPresignedURL(ctx *gin.Context) {

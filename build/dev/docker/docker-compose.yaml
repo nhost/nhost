@@ -1,6 +1,7 @@
 version: '2.4'
 services:
   postgres:
+    container_name: hasura-storage-postgres
     image: postgres:13
     restart: unless-stopped
     volumes:
@@ -11,6 +12,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hejsan}
 
   graphql-engine:
+    container_name: hasura-storage-graphql
     image: hasura/graphql-engine:v2.5.1
     depends_on:
       - postgres
@@ -28,6 +30,7 @@ services:
       HASURA_GRAPHQL_DEV_MODE: ${HASURA_GRAPHQL_DEV_MODE:-false}
 
   minio:
+    container_name: hasura-storage-minio
     build:
       context: minio
     restart: unless-stopped
@@ -40,6 +43,7 @@ services:
       - '32765:32765'
 
   storage:
+    container_name: hasura-storage-storage
     image: hasura-storage:dev
     depends_on:
       - graphql-engine
