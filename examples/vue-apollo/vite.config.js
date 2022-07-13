@@ -1,5 +1,5 @@
 import { defineConfig } from 'vite'
-
+import path from 'path'
 import vue from '@vitejs/plugin-vue'
 import vuetify from '@vuetify/vite-plugin'
 
@@ -10,11 +10,11 @@ export default defineConfig({
     vuetify({
       autoImport: true
     })
-  ]
+  ],
   // define: { 'process.env': {} },
-  // resolve: {
-  //   alias: {
-  //     '@': path.resolve(__dirname, 'src')
-  //   }
-  // }
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, 'src')
+    }
+  }
 })

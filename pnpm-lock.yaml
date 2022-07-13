@@ -359,7 +359,7 @@ importers:
       '@types/webfontloader': ^1.0.0
       '@vitejs/plugin-vue': ^2.3.1
       '@vue/apollo-composable': 4.0.0-alpha.18
-      '@vuetify/vite-plugin': ^1.0.0-alpha.0
+      '@vuetify/vite-plugin': 1.0.0-alpha.11
       '@xstate/inspect': ^0.6.2
       graphql: 15.7.2
       graphql-tag: ^2.12.6
@@ -389,7 +389,7 @@ importers:
       '@nhost/core': link:../../packages/core
       '@types/webfontloader': 1.6.34
       '@vitejs/plugin-vue': 2.3.2_vite@2.9.7+vue@3.2.37
-      '@vuetify/vite-plugin': 1.0.0-alpha.10_6p6zkoqpynvuex7hgnoefkogfu
+      '@vuetify/vite-plugin': 1.0.0-alpha.11_6p6zkoqpynvuex7hgnoefkogfu
       '@xstate/inspect': 0.6.5
       sass: 1.32.0
       typescript: 4.7.4
@@ -7394,24 +7394,25 @@ packages:
       vue: 3.2.37
     dev: true
 
-  /@vuetify/loader-shared/1.3.0_vuetify@3.0.0-beta.1:
-    resolution: {integrity: sha512-sxLvMYUTQCZJ4u6jS6rSWsjfagzytqylFnDuVcUNi0wy4qq5f1zTrHs5tZfRBppERmexeW3e57vqZAUfZPmfUA==}
+  /@vuetify/loader-shared/1.5.0_vuetify@3.0.0-beta.1:
+    resolution: {integrity: sha512-Sc+CUZGtQfMLmXXdZ3fvYWkDwMm5zYvYgsAPWsvXNokCeE7WhNA/IETFMThfF8Nf9mnf+zX9+jdtVhKND3hBkQ==}
     peerDependencies:
-      vuetify: ^3.0.0-alpha.11
+      vuetify: ^3.0.0-beta.4
     dependencies:
       find-cache-dir: 3.3.2
       upath: 2.0.1
       vuetify: 3.0.0-beta.1_vue@3.2.37
     dev: true
 
-  /@vuetify/vite-plugin/1.0.0-alpha.10_6p6zkoqpynvuex7hgnoefkogfu:
-    resolution: {integrity: sha512-+McI76gXccCi3Ci/Z5YfG81eIW8IJpXKk5G/ljfIoHdez2f+NRqzoPz+v/8K7QCrC6HqfwxJ9ygI9yrvqNpsdw==}
+  /@vuetify/vite-plugin/1.0.0-alpha.11_6p6zkoqpynvuex7hgnoefkogfu:
+    resolution: {integrity: sha512-ADAEubiF+2VHbcsJs0nWCBThc4LX+mGnioYrF0O+jKTvCICT1PJKpp15+M7ZyyM9sAkEFpVH+5FaH5/Ywj7RWg==}
     engines: {node: '>=12'}
+    deprecated: Renamed to vite-plugin-vuetify
     peerDependencies:
       vite: ^2.7.0
       vuetify: ^3.0.0-alpha.11
     dependencies:
-      '@vuetify/loader-shared': 1.3.0_vuetify@3.0.0-beta.1
+      '@vuetify/loader-shared': 1.5.0_vuetify@3.0.0-beta.1
       debug: 4.3.4
       vite: 2.9.7_sass@1.32.0
       vuetify: 3.0.0-beta.1_vue@3.2.37

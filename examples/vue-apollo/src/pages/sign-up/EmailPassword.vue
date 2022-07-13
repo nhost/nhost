@@ -6,33 +6,27 @@
     &#8592; Other registration Options!
   </v-btn>
   <error-snack-bar :error="error" />
+  <VerificationEmailDialog v-model="emailVerificationDialog" :email="email" />
+
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
-
+<script lang="ts" setup>
+import { ref } from 'vue'
+import VerificationEmailDialog from '@/components/VerificationEmailDialog.vue'
 import { useSignUpEmailPassword } from '@nhost/vue'
-
-export default defineComponent({
-  setup() {
-    const email = ref('')
-    const password = ref('')
-    const { signUpEmailPassword, error } = useSignUpEmailPassword({
-      redirectTo: window.location.origin
-    })
-
-    const signUp = async () => {
-      const result = await signUpEmailPassword(email, password)
-      if (result.error) {
-      }
-    }
-
-    return {
-      email,
-      error,
-      password,
-      signUp
-    }
-  }
+const emailVerificationDialog = ref(false)
+const email = ref('')
+const password = ref('')
+const { signUpEmailPassword, error } = useSignUpEmailPassword({
+  redirectTo: window.location.origin
 })
+
+const signUp = async () => {
+  const result = await signUpEmailPassword(email, password)
+  if (result.needsEmailVerification) {
+    emailVerificationDialog.value = true
+  }
+}
+
+
 </script>
