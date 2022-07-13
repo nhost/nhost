@@ -33,9 +33,4 @@ const signOutHandler = async () => {
   await signOut()
   router.replace('/signout')
 }
-return {
-  drawer,
-  isAuthenticated,
-  signOutHandler
-}
 </script>
