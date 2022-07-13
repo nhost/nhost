@@ -153,7 +153,8 @@ import 'uno.css'
 
 // highlight-start
 const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN
+  region: import.meta.env.VITE_NHOST_REGION
 })
 // highlight-end
 
@@ -170,16 +171,16 @@ app
 app.mount('#app')
 ```
 
-Finally, make sure to create an environment variable named
-`VITE_NHOST_URL` to store your Nhost backend URL:
+Finally, store the environment variables for `subdomain` and `region` in `.env`:
 
-```bash title=".env"
-VITE_NHOST_URL=YOUR_NHOST_BACKEND_URL
+```yaml title=".env.development"
+VITE_NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
+VITE_NHOST_REGION=YOUR_NHOST_APP_REGION
 ```
 
-You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
 
-![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
+![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
 
 ## Build the app
 

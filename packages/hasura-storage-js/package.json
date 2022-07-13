@@ -1,6 +1,6 @@
 {
   "name": "@nhost/hasura-storage-js",
-  "version": "0.3.3",
+  "version": "0.5.1",
   "description": "Hasura-storage client",
   "license": "MIT",
   "keywords": [
@@ -28,7 +28,10 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
       "require": "./dist/index.cjs.js"
     }
   },
@@ -42,6 +45,7 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run --config ../../config/vite.lib.config.js",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -52,9 +56,15 @@
     "docgen": "pnpm typedoc && docgen --config ./storage.docgen.json"
   },
   "dependencies": {
-    "axios": "^0.27.2"
+    "axios": "^0.27.2",
+    "xstate": "^4.32.1"
+  },
+  "peerDependencies": {
+    "@nhost/core": "workspace:*"
   },
   "devDependencies": {
-    "@nhost/docgen": "workspace:*"
+    "@nhost/core": "workspace:*",
+    "@nhost/docgen": "workspace:*",
+    "msw": "^0.39.2"
   }
 }

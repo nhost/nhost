@@ -1,6 +1,6 @@
 {
   "name": "@nhost/core",
-  "version": "0.7.1",
+  "version": "0.7.4",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [
@@ -31,7 +31,10 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
       "require": "./dist/index.cjs.js"
     }
   },
@@ -45,6 +48,7 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run --config ../../config/vite.lib.config.js",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -55,7 +59,7 @@
   "dependencies": {
     "axios": "^0.27.2",
     "js-cookie": "^3.0.1",
-    "xstate": "^4.31.0"
+    "xstate": "^4.32.1"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.2",

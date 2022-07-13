@@ -18,6 +18,7 @@ npm install @nhost/react graphql
 # With Yarm
 yarn add @nhost/react graphql
 ```
+
 ## Initialise
 
 Initialize a single `nhost` instance and wrap your app with the `NhostReactProvider`.
@@ -31,7 +32,8 @@ import { NhostClient, NhostReactProvider } from '@nhost/react'
 import App from './App'
 
 const nhost = new NhostClient({
-  backendUrl: '<Your Nhost Backend URL>'
+  subdomain: '<Your Nhost app subdomain>',
+  region: '<Your Nhost app region>'
 })
 
 ReactDOM.render(

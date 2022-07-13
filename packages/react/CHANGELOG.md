@@ -1,5 +1,54 @@
 # @nhost/react
 
+## 0.11.1
+
+### Patch Changes
+
+- Updated dependencies [6eaa5c79]
+  - @nhost/core@0.7.4
+  - @nhost/hasura-storage-js@0.5.1
+  - @nhost/nhost-js@1.4.5
+
+## 0.11.0
+
+### Minor Changes
+
+- 4f928756: Extend file upload parameters
+
+  - `bucketId` is available everywhere as an option
+  - It is possible to pass files as a parameter on a multiple `upload`, making the `add` action optional.
+  - The `add` and `upload` actions of multiple file upload accepts both a `File`, an array of `File` items, and a `FileList`
+
+### Patch Changes
+
+- Updated dependencies [4f928756]
+  - @nhost/hasura-storage-js@0.5.0
+  - @nhost/nhost-js@1.4.4
+
+## 0.10.0
+
+### Minor Changes
+
+- f9854b15: Upload multiple files with `useMultipleFilesUpload`
+- f9854b15: `useFileUpload`: keep track of upload progress and cancel upload
+
+### Patch Changes
+
+- Updated dependencies [f9854b15]
+- Updated dependencies [f9854b15]
+  - @nhost/hasura-storage-js@0.4.0
+  - @nhost/core@0.7.3
+  - @nhost/nhost-js@1.4.3
+
+## 0.9.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/core@0.7.2
+  - @nhost/nhost-js@1.4.2
+
 ## 0.9.1
 
 ### Patch Changes

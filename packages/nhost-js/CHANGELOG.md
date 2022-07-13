@@ -1,5 +1,37 @@
 # @nhost/nhost-js
 
+## 1.4.5
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.3.3
+- @nhost/hasura-storage-js@0.5.1
+
+## 1.4.4
+
+### Patch Changes
+
+- Updated dependencies [4f928756]
+  - @nhost/hasura-storage-js@0.5.0
+
+## 1.4.3
+
+### Patch Changes
+
+- Updated dependencies [f9854b15]
+- Updated dependencies [f9854b15]
+  - @nhost/hasura-storage-js@0.4.0
+  - @nhost/hasura-auth-js@1.3.2
+
+## 1.4.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+- Updated dependencies [dbc10e62]
+  - @nhost/hasura-auth-js@1.3.1
+  - @nhost/hasura-storage-js@0.3.4
+
 ## 1.4.1
 
 ### Patch Changes

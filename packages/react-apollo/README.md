@@ -9,7 +9,6 @@
   </a>
 </p>
 
-
 ## Documentation
 
 [Reference documentation](https://docs.nhost.io/reference/react/apollo)
@@ -33,7 +32,8 @@ import { NhostApolloProvider } from '@nhost/react-apollo'
 import App from './App'
 
 const nhost = new NhostClient({
-  backendUrl: 'https://[app-subdomain].nhost.run'
+  subdomain: '<Your Nhost app subdomain>',
+  region: '<Your Nhost app region>'
 })
 
 ReactDOM.render(
@@ -47,4 +47,3 @@ ReactDOM.render(
   document.getElementById('root')
 )
 ```
-

@@ -1,5 +1,25 @@
 # @nhost/core
 
+## 0.7.4
+
+### Patch Changes
+
+- 6eaa5c79: Return promise when using SMS OTP and an error occurs
+  Closes [#785](https://github.com/nhost/nhost/issues/785), thanks @franzwilhelm
+
+## 0.7.3
+
+### Patch Changes
+
+- f9854b15: Upload multiple files with `useMultipleFilesUpload`
+- f9854b15: `useFileUpload`: keep track of upload progress and cancel upload
+
+## 0.7.2
+
+### Patch Changes
+
+- dbc10e62: fixed `exports` field to support imports in a server-side environment
+
 ## 0.7.1
 
 ### Patch Changes

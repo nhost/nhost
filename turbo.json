@@ -6,6 +6,15 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**", "umd/**", "build/**", ".next"]
     },
+    "@nhost-examples/react-apollo#build": {
+      "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
+      "outputs": ["dist/**"]
+    },
+    "@nhost-examples/vue-apollo#build": {
+      "dependsOn": ["^build", "$VITE_NHOST_SUBDOMAIN", "$VITE_NHOST_REGION"],
+      "outputs": ["dist/**"]
+    },
+    "@nhost/sync-versions#start": { "cache": false },
     "test": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
@@ -24,6 +33,7 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
-    "lint:fix": { "outputs": [] }
+    "lint:fix": { "outputs": [] },
+    "start": {}
   }
 }

@@ -15,7 +15,7 @@
   },
   "scripts": {
     "preinstall": "npx only-allow pnpm",
-    "prepare": "husky install",
+    "prepare": "husky install config/.husky",
     "build": "pnpm run build:all --filter=!@nhost/docs --filter=!@nhost-examples/*",
     "build:docs": "pnpm run build:all --filter=@nhost/docs",
     "build:all": "turbo run build  --include-dependencies",
@@ -34,10 +34,12 @@
     "test": "turbo run test --filter=!@nhost/docs --filter=!@nhost-examples/* --no-deps --include-dependencies",
     "e2e": "turbo run e2e --concurrency=1",
     "changeset": "changeset",
-    "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :"
+    "docgen": "turbo run build --filter=@nhost/docgen --no-deps && turbo run docgen --filter='@nhost/*' && :",
+    "sync-versions": "turbo run start --filter=@nhost/sync-versions --no-deps"
   },
   "workspaces": [
     "packages/*",
+    "examples/*",
     "docs"
   ],
   "devDependencies": {

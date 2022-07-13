@@ -81,6 +81,18 @@ nhost up
 
 Hasura Console starts automatically and your Nhost app is running locally with the backend URL: `http://localhost:1337`.
 
+## Subdomain and Region
+
+Use `localhost:1337` as the `subdomain`, and skip `region` when using the CLI and the [JavaScript SDK](/reference/javascript):
+
+```
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  subdomain: 'localhost:1337',
+})
+```
+
 ## Emails
 
 During local development with the CLI, all transactional emails from Authentication are sent to a local Mailhog instance, instead of to the recipient's email address. You'll see an address where after starting [`nhost up`](/reference/cli/up) where all emails are sent to.

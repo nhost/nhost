@@ -41,7 +41,7 @@ import { useProviderLink } from '@nhost/vue'
 
 export default defineComponent({
   setup() {
-    const { github, google, facebook } = useProviderLink()
+    const { github, google, facebook } = useProviderLink({ redirectTo: window.location.origin })
     return { github, google, facebook }
   }
 })

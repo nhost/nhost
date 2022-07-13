@@ -1,5 +1,9 @@
 # React-Apollo example
 
+## See this example live
+
+Visit our demo application on [react-apollo.example.nhost.io](https://react-apollo.example.nhost.io)
+
 ## Get started
 
 1. Clone the repository
@@ -22,7 +26,7 @@ pnpm install
 nhost dev
 ```
 
-4. Terminal 2: Start React App
+4. Terminal 2: Start the React application
 
 ```sh
 pnpm run dev

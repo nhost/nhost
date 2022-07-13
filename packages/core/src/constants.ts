@@ -12,7 +12,7 @@ export const TOKEN_REFRESH_MARGIN = 300 // five minutes
 /** Number of seconds before retrying a token refresh after an error */
 export const REFRESH_TOKEN_RETRY_INTERVAL = 5
 
-// TODO not implemented yet
+// TODO not yet implemented
 // TODO try when offline for a long time: maybe we could keep state as 'signedIn'
 /** Maximum number of attempts to refresh a token before stopping the timer and logging out */
 export const REFRESH_TOKEN_RETRY_MAX_ATTEMPTS = 30

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react",
-  "version": "0.9.1",
+  "version": "0.11.1",
   "description": "Nhost React library",
   "license": "MIT",
   "keywords": [
@@ -32,7 +32,10 @@
   ],
   "exports": {
     ".": {
-      "import": "./dist/index.esm.js",
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
       "require": "./dist/index.cjs.js"
     }
   },
@@ -46,6 +49,7 @@
     "build:umd": "vite build --config ../../config/vite.react.umd.config.js",
     "test": "vitest run --config ../../config/vite.react.config.js",
     "test:watch": "vitest --config ../../config/vite.react.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -58,10 +62,11 @@
   "dependencies": {
     "@nhost/core": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
+    "@nhost/hasura-storage-js": "workspace:*",
     "@xstate/react": "^3.0.0",
     "immer": "^9.0.14",
     "jwt-decode": "^3.1.2",
-    "xstate": "^4.31.0"
+    "xstate": "^4.32.1"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",

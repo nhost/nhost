@@ -5,12 +5,12 @@ import { NhostFunctionsClient } from '../clients/functions'
 import { NhostGraphqlClient } from '../clients/graphql'
 import { urlFromParams } from '../utils/helpers'
 import { NhostClientConstructorParams } from '../utils/types'
-
 export class NhostClient {
   auth: HasuraAuthClient
   storage: HasuraStorageClient
   functions: NhostFunctionsClient
   graphql: NhostGraphqlClient
+  private _adminSecret?: string
   readonly devTools?: boolean
 
   /**
@@ -85,6 +85,19 @@ export class NhostClient {
         this.graphql.setAccessToken(session?.accessToken)
       })
     })
+    this._adminSecret = adminSecret
     this.devTools = devTools
+  }
+
+  get adminSecret(): string | undefined {
+    return this._adminSecret
+  }
+
+  set adminSecret(newValue: string | undefined) {
+    this._adminSecret = newValue
+    this.storage.setAdminSecret(newValue)
+    // TODO inconsistent API: storage can change admin secret, but functions/graphql cannot
+    // this.functions.setAdminSecret(newValue)
+    // this.graphql.setAdminSecret(newValue)
   }
 }
