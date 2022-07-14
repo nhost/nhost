@@ -14,7 +14,7 @@
           A email has been sent to {{ email }}. Please follow the link to sign in to the application.
         </v-card-text>
         <v-card-actions class="d-flex justify-center">
-          <v-btn text @click="$emit('update:modelValue', false)">
+          <v-btn text @click="emailSentDialog = false">
             Close
           </v-btn>
         </v-card-actions>
