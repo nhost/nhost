@@ -13,14 +13,14 @@ import { useSelector } from '@xstate/vue'
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAuthInterpreter } from './useAuthInterpreter'
 
-interface SignInSmsPasswordlessHandler {
+export interface SignInSmsPasswordlessHandler {
   (
     phoneNumber: RefOrValue<string>,
     options?: NestedRefOfValue<PasswordlessOptions | undefined>
   ): Promise<SignInSmsPasswordlessHandlerResult>
 }
 
-interface SignInSmsPasswordlessOtpHandler {
+export interface SignInSmsPasswordlessOtpHandler {
   (code: RefOrValue<string>): Promise<SignInSmsPasswordlessOtpHandlerResult>
   (
     phoneNumber: RefOrValue<string>,
@@ -28,17 +28,17 @@ interface SignInSmsPasswordlessOtpHandler {
   ): Promise<SignInSmsPasswordlessOtpHandlerResult>
 }
 
-export interface SignInSmsPasswordlessHookResult extends ToRefs<SignInSmsPasswordlessState> {
+export interface SignInSmsPasswordlessComposableResult extends ToRefs<SignInSmsPasswordlessState> {
   /** Sends a one-time code to the given phoneNumber */
   signInSmsPasswordless: SignInSmsPasswordlessHandler
   sendOtp: SignInSmsPasswordlessOtpHandler
 }
 
 /**
- * Use the composable `useSignInSmsPasswordless` to sign in a user using a one-time password sent by SMS on a phone.
+ * Use the composable `useSignInSmsPasswordless` to sign in a user with a one-time password sent via SMS to a phone.
  *
- * 1. The `signInSmsPasswordless` action will send a one-time password to the given phone number.
- * 2. The client is then awaiting the OTP. `needsOtp` is set to true
+ * 1. The `signInSmsPasswordless` action sends a one-time password to the given phone number.
+ * 2. The client is then awaiting the OTP. `needsOtp` equals true.
  * 3. After the code is received by SMS, the client sends the code with `sendOtp`. On success, the client is authenticated, and `isSuccess` equals `true`.
  *
  * Any error is monitored through `isError` and `error`. While the `signInSmsPasswordless` and `sendOtp` actions are running, `isLoading` equals `true`.
@@ -64,7 +64,7 @@ export interface SignInSmsPasswordlessHookResult extends ToRefs<SignInSmsPasswor
  */
 export function useSignInSmsPasswordless(
   stateOptions?: NestedRefOfValue<PasswordlessOptions | undefined>
-): SignInSmsPasswordlessHookResult {
+): SignInSmsPasswordlessComposableResult {
   const service = useAuthInterpreter()
   const _phoneNumber = ref('')
 

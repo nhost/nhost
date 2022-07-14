@@ -11,11 +11,11 @@ import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
 
-interface SignInSmsPasswordlessHandler {
+export interface SignInSmsPasswordlessHandler {
   (phoneNumber: string, options?: PasswordlessOptions): Promise<SignInSmsPasswordlessHandlerResult>
 }
 
-interface SignInSmsPasswordlessOtpHandler {
+export interface SignInSmsPasswordlessOtpHandler {
   (code: string): Promise<SignInSmsPasswordlessOtpHandlerResult>
   (phoneNumber: string, code: string): Promise<SignInSmsPasswordlessOtpHandlerResult>
 }
@@ -27,10 +27,10 @@ export interface SignInSmsPasswordlessHookResult extends SignInSmsPasswordlessSt
 }
 
 /**
- * Use the hook `useSignInSmsPasswordless` to sign in a user using a one-time password sent by SMS on a phone.
+ * Use the hook `useSignInSmsPasswordless` to sign in a user with a one-time password sent via SMS to a phone.
  *
- * 1. The `signInSmsPasswordless` action will send a one-time password to the given phone number.
- * 2. The client is then awaiting the OTP. `needsOtp` is set to true
+ * 1. The `signInSmsPasswordless` action sends a one-time password to the given phone number.
+ * 2. The client is then awaiting the OTP. `needsOtp` equals true.
  * 3. After the code is received by SMS, the client sends the code with `sendOtp`. On success, the client is authenticated, and `isSuccess` equals `true`.
  *
  * Any error is monitored through `isError` and `error`. While the `signInSmsPasswordless` and `sendOtp` actions are running, `isLoading` equals `true`.
