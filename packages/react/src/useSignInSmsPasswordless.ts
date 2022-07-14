@@ -69,9 +69,12 @@ export function useSignInSmsPasswordless(
   }
 
   const sendOtp: SignInSmsPasswordlessOtpHandler = async (...args: string[]) => {
-    const phoneNumber = args.length === 2 ? args[0] : _phoneNumber
-    const code = args.length === 2 ? args[1] : args[0]
-    return signInSmsPasswordlessOtpPromise(service, phoneNumber, code)
+    if (args.length === 2) {
+      const [phoneNumber, code] = args
+      return signInSmsPasswordlessOtpPromise(service, phoneNumber, code)
+    }
+    const [code] = args
+    return signInSmsPasswordlessOtpPromise(service, _phoneNumber, code)
   }
 
   const error = useSelector(
