@@ -1,7 +1,9 @@
 <template>
-  <v-text-field v-model="email" label="Email" />
-  <v-text-field v-model="password" label="Password" type="password" />
-  <v-btn block color="primary" class="my-1" @click="signIn"> Sign in </v-btn>
+  <form @submit="handleSignIn">
+    <v-text-field v-model="email" label="Email" />
+    <v-text-field v-model="password" label="Password" type="password" />
+    <v-btn block color="primary" class="my-1" type="submit"> Sign in </v-btn>
+  </form>
   <v-btn class="my-1" block variant="text" color="primary" to="/signin">
     &#8592; Other Sign-in Options
   </v-btn>
@@ -22,7 +24,9 @@ const emailVerificationDialog = ref(false)
 const router = useRouter()
 const { signInEmailPassword, error } = useSignInEmailPassword()
 
-const signIn = async () => {
+const handleSignIn = async (e: Event) => {
+  console.log('here')
+  e.preventDefault()
   const { isSuccess, needsEmailVerification } = await signInEmailPassword(email, password)
   if (isSuccess) {
     router.replace('/')

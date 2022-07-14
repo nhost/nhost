@@ -1,7 +1,9 @@
 <template>
-  <v-text-field v-model="email" label="Email" />
-  <v-text-field v-model="password" label="Password" type="password" />
-  <v-btn block color="primary" class="my-1" @click="signUp"> Sign up </v-btn>
+  <form @submit="handleSignUp">
+    <v-text-field v-model="email" label="Email" />
+    <v-text-field v-model="password" label="Password" type="password" />
+    <v-btn block color="primary" class="my-1" type="submit"> Sign up </v-btn>
+  </form>
   <v-btn class="my-1" block variant="text" color="primary" to="/signup">
     &#8592; Other registration Options!
   </v-btn>
@@ -19,7 +21,8 @@ const { signUpEmailPassword, error } = useSignUpEmailPassword({
   redirectTo: window.location.origin
 })
 
-const signUp = async () => {
+const handleSignUp = async (e: Event) => {
+  e.preventDefault()
   const result = await signUpEmailPassword(email, password)
   if (result.needsEmailVerification) {
     emailVerificationDialog.value = true

@@ -1,7 +1,9 @@
 <template>
   <div>
-    <v-text-field v-model="email" placeholder="Email Address" autofocus />
-    <v-btn block color="primary" @click="signIn"> Continue with email </v-btn>
+    <form @submit="submit">
+      <v-text-field v-model="email" placeholder="Email Address" autofocus />
+      <v-btn block color="primary" type="submit"> Continue with email </v-btn>
+    </form>
     <error-snack-bar :error="error" />
     <v-dialog v-model="emailSentDialog">
       <v-card>
@@ -32,7 +34,8 @@ const { signInEmailPasswordless, error } = useSignInEmailPasswordless({
   redirectTo: '/#/profile'
 })
 
-const signIn = async () => {
+const submit = async (e: Event) => {
+  e.preventDefault()
   const { isSuccess } = await signInEmailPasswordless(email)
   if (isSuccess) {
     emailSentDialog.value = true
