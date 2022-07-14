@@ -31,7 +31,7 @@ const email = ref('')
 const emailSentDialog = ref(false)
 
 const { signInEmailPasswordless, error } = useSignInEmailPasswordless({
-  redirectTo: '/#/profile'
+  redirectTo: '/profile'
 })
 
 const submit = async (e: Event) => {

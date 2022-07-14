@@ -17,5 +17,5 @@
 
 import { useProviderLink } from '@nhost/vue'
 
-const { github, google, facebook } = useProviderLink({ redirectTo: window.location.origin })
+const { github, google, facebook } = useProviderLink({ redirectTo: '/' })
 </script>

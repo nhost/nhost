@@ -18,7 +18,7 @@ const emailVerificationDialog = ref(false)
 const email = ref('')
 const password = ref('')
 const { signUpEmailPassword, error } = useSignUpEmailPassword({
-  redirectTo: window.location.origin
+  redirectTo: '/'
 })
 
 const handleSignUp = async (e: Event) => {
