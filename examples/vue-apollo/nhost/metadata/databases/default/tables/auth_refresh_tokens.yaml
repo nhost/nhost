@@ -2,6 +2,15 @@ table:
   name: refresh_tokens
   schema: auth
 configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    expires_at:
+      custom_name: expiresAt
+    refresh_token:
+      custom_name: refreshToken
+    user_id:
+      custom_name: userId
   custom_column_names:
     created_at: createdAt
     expires_at: expiresAt
