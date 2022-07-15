@@ -34,7 +34,7 @@ export const createServerSideClient = async (
         return typeof urlValue === 'string' ? urlValue : cookieValue
       },
       setItem: (key, value) => {
-        // TODO: Set expires based on the actual refresh cookie expire time
+        // TODO: Set expires based on the actual refresh token expire time
         // For now, we're using 30 days so the cookie is not removed when the browser is closed because if `expiers` is omitted, the cookie becomes a session cookie.
         Cookies.set(key, value, { httpOnly: false, sameSite: 'strict', expires: 30 })
       },
