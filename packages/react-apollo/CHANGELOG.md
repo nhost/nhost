@@ -1,5 +1,13 @@
 # @nhost/react-apollo
 
+## 4.6.3
+
+### Patch Changes
+
+- f30d6779: Bump @apollo/client to v3.6.9
+- Updated dependencies [f30d6779]
+  - @nhost/apollo@0.5.23
+
 ## 4.6.2
 
 ### Patch Changes
