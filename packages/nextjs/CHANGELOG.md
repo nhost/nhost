@@ -1,5 +1,16 @@
 # @nhost/nextjs
 
+## 1.6.2
+
+### Patch Changes
+
+- 197d1d5c: - Using same cookie package ([`js-cookie`](https://www.npmjs.com/package/js-cookie)) for both `@nhost/nextjs` and `@nhost/core` packages.
+  - Adding `expires` to avoid the cookie turning into a session cookie that some browsers aggressively destroy.
+- Updated dependencies [197d1d5c]
+  - @nhost/core@0.7.5
+  - @nhost/react@0.11.2
+  - @nhost/nhost-js@1.4.6
+
 ## 1.6.1
 
 ### Patch Changes

@@ -1,4 +1,4 @@
 # Docker image versions used in the cloud
 hasura: v2.8.0
 auth: 0.10.0
-storage: 0.2.2
+storage: 0.2.3
