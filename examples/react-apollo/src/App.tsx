@@ -35,7 +35,7 @@ function App() {
             <Header height={60} p="xs">
               <Group position="apart" noWrap>
                 <Group noWrap>
-                  <Image src="/logo.svg" height={35} />
+                  <Image src="/logo.svg" height={35} fit="contain" />
                   <Title order={3} style={{ whiteSpace: 'nowrap' }}>
                     {title}
                   </Title>
