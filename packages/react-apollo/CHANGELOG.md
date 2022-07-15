@@ -1,5 +1,12 @@
 # @nhost/react-apollo
 
+## 4.6.2
+
+### Patch Changes
+
+- @nhost/react@0.11.2
+- @nhost/apollo@0.5.22
+
 ## 4.6.1
 
 ### Patch Changes

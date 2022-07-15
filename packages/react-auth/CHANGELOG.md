@@ -1,5 +1,12 @@
 # @nhost/react-auth
 
+## 3.4.2
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.3.4
+- @nhost/react@0.11.2
+
 ## 3.4.1
 
 ### Patch Changes
