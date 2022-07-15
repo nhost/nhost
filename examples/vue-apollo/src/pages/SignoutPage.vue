@@ -6,14 +6,8 @@
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from 'vue'
+<script lang="ts" setup>
 import { useRouter } from 'vue-router'
-export default defineComponent({
-  setup() {
-    const router = useRouter()
-    setTimeout(() => router.replace('/'), 2_500)
-    return {}
-  }
-})
+const router = useRouter()
+setTimeout(() => router.replace('/'), 2_500)
 </script>
