@@ -2,6 +2,7 @@
 - "!include auth_providers.yaml"
 - "!include auth_refresh_tokens.yaml"
 - "!include auth_roles.yaml"
+- "!include auth_user_authenticators.yaml"
 - "!include auth_user_providers.yaml"
 - "!include auth_user_roles.yaml"
 - "!include auth_users.yaml"
