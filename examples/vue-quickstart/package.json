@@ -10,7 +10,7 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@apollo/client": "^3.6.2",
+    "@apollo/client": "^3.6.9",
     "@nhost/apollo": "*",
     "@nhost/vue": "*",
     "@vue/apollo-composable": "4.0.0-alpha.18",

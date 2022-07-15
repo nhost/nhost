@@ -170,7 +170,7 @@ importers:
 
   examples/nextjs:
     specifiers:
-      '@apollo/client': ^3.6.2
+      '@apollo/client': ^3.6.9
       '@mantine/core': ^4.2.2
       '@mantine/hooks': ^4.2.2
       '@mantine/next': ^4.2.2
@@ -217,7 +217,7 @@ importers:
 
   examples/react-apollo:
     specifiers:
-      '@apollo/client': ^3.6.2
+      '@apollo/client': ^3.6.9
       '@faker-js/faker': ^6.3.1
       '@graphql-codegen/cli': ^2.6.2
       '@mantine/core': ^4.2.2
@@ -284,7 +284,7 @@ importers:
 
   examples/react-apollo-crm:
     specifiers:
-      '@apollo/client': ^3.5.10
+      '@apollo/client': ^3.6.9
       '@graphql-codegen/cli': ^2.6.2
       '@graphql-codegen/introspection': ^2.1.1
       '@graphql-codegen/typescript': ^2.4.8
@@ -316,7 +316,7 @@ importers:
       typescript: ^4.6.3
       vite: ^2.9.7
     dependencies:
-      '@apollo/client': 3.6.2_yaujofatqqw66zcfkmual2ppy4
+      '@apollo/client': 3.6.9_yaujofatqqw66zcfkmual2ppy4
       '@headlessui/react': 1.5.0_sfoxds7t5ydpegc3knd667wn6m
       '@heroicons/react': 1.0.6_react@17.0.2
       '@nhost/react': link:../../packages/react
@@ -399,7 +399,7 @@ importers:
   examples/vue-quickstart:
     specifiers:
       '@antfu/eslint-config': ^0.23.0
-      '@apollo/client': ^3.6.2
+      '@apollo/client': ^3.6.9
       '@iconify-json/carbon': ^1.1.4
       '@nhost/apollo': '*'
       '@nhost/vue': '*'
@@ -425,10 +425,10 @@ importers:
       vue-router: ^4.1.2
       vue-tsc: ^0.38.5
     dependencies:
-      '@apollo/client': 3.6.2_graphql@15.7.2
+      '@apollo/client': 3.6.9_graphql@15.7.2
       '@nhost/apollo': link:../../packages/apollo
       '@nhost/vue': link:../../packages/vue
-      '@vue/apollo-composable': 4.0.0-alpha.18_73fxhwolyb7evgddsd6vo6fbbi
+      '@vue/apollo-composable': 4.0.0-alpha.18_srsqkjlvp5hsqtjfm2vji2ef4y
       '@vueuse/core': 8.9.2_vue@3.2.37
       graphql: 15.7.2
       graphql-tag: 2.12.6_graphql@15.7.2
@@ -455,7 +455,7 @@ importers:
 
   packages/apollo:
     specifiers:
-      '@apollo/client': ^3.6.2
+      '@apollo/client': ^3.6.9
       '@nhost/nhost-js': workspace:*
       graphql: 15.7.2
       graphql-ws: ^5.7.0
@@ -464,7 +464,7 @@ importers:
       graphql: 15.7.2
       graphql-ws: 5.7.0_graphql@15.7.2
     devDependencies:
-      '@apollo/client': 3.6.2_ln7i2g2ohihrgsg7myx26qasgy
+      '@apollo/client': 3.6.9_ln7i2g2ohihrgsg7myx26qasgy
 
   packages/core:
     specifiers:
@@ -631,7 +631,7 @@ importers:
 
   packages/react-apollo:
     specifiers:
-      '@apollo/client': ^3.6.2
+      '@apollo/client': ^3.6.9
       '@nhost/apollo': workspace:*
       '@nhost/react': workspace:*
       '@types/react': ^18.0.8
@@ -956,101 +956,6 @@ packages:
     resolution: {integrity: sha512-CQkeV+oJxUazwjlHD0/3ZD08QWKuGQkhnrKo3e6ly5pd48VUpXbb77q0xMU4+vc2CkJnDS02Eq/M9ugyX20XZA==}
     dev: true
 
-  /@apollo/client/3.6.2_graphql@15.7.2:
-    resolution: {integrity: sha512-DNWyl+NNU2VsfHtXwOr4rV9hnQFPkl2/dNXeouhk9q7bXCWdEh3K8YTt/frULGVKbQjtnlPmz8C+LFI/JZ2N3w==}
-    peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-      graphql-ws: ^5.5.5
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      subscriptions-transport-ws: ^0.9.0 || ^0.11.0
-    peerDependenciesMeta:
-      graphql-ws:
-        optional: true
-      react:
-        optional: true
-      subscriptions-transport-ws:
-        optional: true
-    dependencies:
-      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
-      '@wry/context': 0.6.1
-      '@wry/equality': 0.5.2
-      '@wry/trie': 0.3.1
-      graphql: 15.7.2
-      graphql-tag: 2.12.6_graphql@15.7.2
-      hoist-non-react-statics: 3.3.2
-      optimism: 0.16.1
-      prop-types: 15.8.1
-      symbol-observable: 4.0.0
-      ts-invariant: 0.10.1
-      tslib: 2.4.0
-      use-sync-external-store: 1.1.0
-      zen-observable-ts: 1.2.3
-    dev: false
-
-  /@apollo/client/3.6.2_ln7i2g2ohihrgsg7myx26qasgy:
-    resolution: {integrity: sha512-DNWyl+NNU2VsfHtXwOr4rV9hnQFPkl2/dNXeouhk9q7bXCWdEh3K8YTt/frULGVKbQjtnlPmz8C+LFI/JZ2N3w==}
-    peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-      graphql-ws: ^5.5.5
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      subscriptions-transport-ws: ^0.9.0 || ^0.11.0
-    peerDependenciesMeta:
-      graphql-ws:
-        optional: true
-      react:
-        optional: true
-      subscriptions-transport-ws:
-        optional: true
-    dependencies:
-      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
-      '@wry/context': 0.6.1
-      '@wry/equality': 0.5.2
-      '@wry/trie': 0.3.1
-      graphql: 15.7.2
-      graphql-tag: 2.12.6_graphql@15.7.2
-      graphql-ws: 5.7.0_graphql@15.7.2
-      hoist-non-react-statics: 3.3.2
-      optimism: 0.16.1
-      prop-types: 15.8.1
-      symbol-observable: 4.0.0
-      ts-invariant: 0.10.1
-      tslib: 2.4.0
-      use-sync-external-store: 1.1.0
-      zen-observable-ts: 1.2.3
-    dev: true
-
-  /@apollo/client/3.6.2_yaujofatqqw66zcfkmual2ppy4:
-    resolution: {integrity: sha512-DNWyl+NNU2VsfHtXwOr4rV9hnQFPkl2/dNXeouhk9q7bXCWdEh3K8YTt/frULGVKbQjtnlPmz8C+LFI/JZ2N3w==}
-    peerDependencies:
-      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
-      graphql-ws: ^5.5.5
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-      subscriptions-transport-ws: ^0.9.0 || ^0.11.0
-    peerDependenciesMeta:
-      graphql-ws:
-        optional: true
-      react:
-        optional: true
-      subscriptions-transport-ws:
-        optional: true
-    dependencies:
-      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
-      '@wry/context': 0.6.1
-      '@wry/equality': 0.5.2
-      '@wry/trie': 0.3.1
-      graphql: 15.7.2
-      graphql-tag: 2.12.6_graphql@15.7.2
-      hoist-non-react-statics: 3.3.2
-      optimism: 0.16.1
-      prop-types: 15.8.1
-      react: 17.0.2
-      symbol-observable: 4.0.0
-      ts-invariant: 0.10.1
-      tslib: 2.4.0
-      use-sync-external-store: 1.1.0_react@17.0.2
-      zen-observable-ts: 1.2.3
-    dev: false
-
   /@apollo/client/3.6.9_graphql@15.7.2:
     resolution: {integrity: sha512-Y1yu8qa2YeaCUBVuw08x8NHenFi0sw2I3KCu7Kw9mDSu86HmmtHJkCAifKVrN2iPgDTW/BbP3EpSV8/EQCcxZA==}
     peerDependencies:
@@ -1080,6 +985,37 @@ packages:
       tslib: 2.4.0
       zen-observable-ts: 1.2.5
     dev: false
+
+  /@apollo/client/3.6.9_ln7i2g2ohihrgsg7myx26qasgy:
+    resolution: {integrity: sha512-Y1yu8qa2YeaCUBVuw08x8NHenFi0sw2I3KCu7Kw9mDSu86HmmtHJkCAifKVrN2iPgDTW/BbP3EpSV8/EQCcxZA==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+      graphql-ws: ^5.5.5
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      subscriptions-transport-ws: ^0.9.0 || ^0.11.0
+    peerDependenciesMeta:
+      graphql-ws:
+        optional: true
+      react:
+        optional: true
+      subscriptions-transport-ws:
+        optional: true
+    dependencies:
+      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
+      '@wry/context': 0.6.1
+      '@wry/equality': 0.5.2
+      '@wry/trie': 0.3.1
+      graphql: 15.7.2
+      graphql-tag: 2.12.6_graphql@15.7.2
+      graphql-ws: 5.7.0_graphql@15.7.2
+      hoist-non-react-statics: 3.3.2
+      optimism: 0.16.1
+      prop-types: 15.8.1
+      symbol-observable: 4.0.0
+      ts-invariant: 0.10.3
+      tslib: 2.4.0
+      zen-observable-ts: 1.2.5
+    dev: true
 
   /@apollo/client/3.6.9_qqqj7xqn73klpidhtp57t4zzwm:
     resolution: {integrity: sha512-Y1yu8qa2YeaCUBVuw08x8NHenFi0sw2I3KCu7Kw9mDSu86HmmtHJkCAifKVrN2iPgDTW/BbP3EpSV8/EQCcxZA==}
@@ -1141,6 +1077,37 @@ packages:
       ts-invariant: 0.10.3
       tslib: 2.4.0
       zen-observable-ts: 1.2.5
+
+  /@apollo/client/3.6.9_yaujofatqqw66zcfkmual2ppy4:
+    resolution: {integrity: sha512-Y1yu8qa2YeaCUBVuw08x8NHenFi0sw2I3KCu7Kw9mDSu86HmmtHJkCAifKVrN2iPgDTW/BbP3EpSV8/EQCcxZA==}
+    peerDependencies:
+      graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
+      graphql-ws: ^5.5.5
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      subscriptions-transport-ws: ^0.9.0 || ^0.11.0
+    peerDependenciesMeta:
+      graphql-ws:
+        optional: true
+      react:
+        optional: true
+      subscriptions-transport-ws:
+        optional: true
+    dependencies:
+      '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
+      '@wry/context': 0.6.1
+      '@wry/equality': 0.5.2
+      '@wry/trie': 0.3.1
+      graphql: 15.7.2
+      graphql-tag: 2.12.6_graphql@15.7.2
+      hoist-non-react-statics: 3.3.2
+      optimism: 0.16.1
+      prop-types: 15.8.1
+      react: 17.0.2
+      symbol-observable: 4.0.0
+      ts-invariant: 0.10.3
+      tslib: 2.4.0
+      zen-observable-ts: 1.2.5
+    dev: false
 
   /@ardatan/relay-compiler/12.0.0_graphql@15.7.2:
     resolution: {integrity: sha512-9anThAaj1dQr6IGmzBMcfzOQKTa5artjuPmw8NYK/fiGEMjADbSguBY2FMDykt+QhilR3wc9VA/3yVju7JHg7Q==}
@@ -6593,7 +6560,7 @@ packages:
     resolution: {integrity: sha512-YYknwy0D0iOwKQgz9v8nOzt2J6l4gouBmDnWqUUznltOTaon+r8US8ky8HvN0tXvc38U9m6z/t2RsVsnd1zM0g==}
     dependencies:
       '@types/history': 4.7.11
-      '@types/react': 18.0.15
+      '@types/react': 18.0.8
 
   /@types/react/17.0.44:
     resolution: {integrity: sha512-Ye0nlw09GeMp2Suh8qoOv0odfgCoowfM/9MG6WeRD60Gq9wS90bdkdRtYbRkNhXOpG4H+YXGvj4wOWhAC0LJ1g==}
@@ -6617,6 +6584,7 @@ packages:
       '@types/prop-types': 15.7.5
       '@types/scheduler': 0.16.2
       csstype: 3.1.0
+    dev: false
 
   /@types/react/18.0.8:
     resolution: {integrity: sha512-+j2hk9BzCOrrOSJASi5XiOyBbERk9jG5O73Ya4M0env5Ixi6vUNli4qy994AINcEF+1IEHISYFfIT4zwr++LKw==}
@@ -7249,27 +7217,6 @@ packages:
       '@vue/reactivity': 3.2.37
     dev: true
 
-  /@vue/apollo-composable/4.0.0-alpha.18_73fxhwolyb7evgddsd6vo6fbbi:
-    resolution: {integrity: sha512-AasMZnAOG9fH+vcnQu6C3eyBMWXCsjdF0Njh7gGzQYBdo/CG9g9OKtrmHizq5AbgR2KJe/0RHE9yLBj7SZrcdQ==}
-    peerDependencies:
-      '@apollo/client': ^3.4.13
-      '@vue/composition-api': ^1.0.0
-      graphql: '>=15'
-      vue: ^2.6.0 || ^3.1.0
-    peerDependenciesMeta:
-      '@vue/composition-api':
-        optional: true
-    dependencies:
-      '@apollo/client': 3.6.2_graphql@15.7.2
-      graphql: 15.7.2
-      throttle-debounce: 3.0.1
-      ts-essentials: 9.2.0_typescript@4.6.4
-      vue: 3.2.37
-      vue-demi: 0.13.4_vue@3.2.37
-    transitivePeerDependencies:
-      - typescript
-    dev: false
-
   /@vue/apollo-composable/4.0.0-alpha.18_og3vn2dqyzrhcmsrz3hmdebvxq:
     resolution: {integrity: sha512-AasMZnAOG9fH+vcnQu6C3eyBMWXCsjdF0Njh7gGzQYBdo/CG9g9OKtrmHizq5AbgR2KJe/0RHE9yLBj7SZrcdQ==}
     peerDependencies:
@@ -7285,6 +7232,27 @@ packages:
       graphql: 15.7.2
       throttle-debounce: 3.0.1
       ts-essentials: 9.2.0_typescript@4.7.4
+      vue: 3.2.37
+      vue-demi: 0.13.4_vue@3.2.37
+    transitivePeerDependencies:
+      - typescript
+    dev: false
+
+  /@vue/apollo-composable/4.0.0-alpha.18_srsqkjlvp5hsqtjfm2vji2ef4y:
+    resolution: {integrity: sha512-AasMZnAOG9fH+vcnQu6C3eyBMWXCsjdF0Njh7gGzQYBdo/CG9g9OKtrmHizq5AbgR2KJe/0RHE9yLBj7SZrcdQ==}
+    peerDependencies:
+      '@apollo/client': ^3.4.13
+      '@vue/composition-api': ^1.0.0
+      graphql: '>=15'
+      vue: ^2.6.0 || ^3.1.0
+    peerDependenciesMeta:
+      '@vue/composition-api':
+        optional: true
+    dependencies:
+      '@apollo/client': 3.6.9_graphql@15.7.2
+      graphql: 15.7.2
+      throttle-debounce: 3.0.1
+      ts-essentials: 9.2.0_typescript@4.6.4
       vue: 3.2.37
       vue-demi: 0.13.4_vue@3.2.37
     transitivePeerDependencies:
@@ -8122,7 +8090,7 @@ packages:
   /axios/0.21.4:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: false
@@ -8130,7 +8098,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: true
@@ -8138,7 +8106,7 @@ packages:
   /axios/0.23.0:
     resolution: {integrity: sha512-NmvAE4i0YAv5cKq8zlDoPd1VLKAqX5oLuZKs8xkJa4qi6RGn0uhCYFjWtHHC9EM/MwOwYWOs53W+V0aqEXq1sg==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: false
@@ -8146,7 +8114,7 @@ packages:
   /axios/0.25.0:
     resolution: {integrity: sha512-cD8FOb0tRH3uuEe6+evtAbgJtfxr7ly3fQjYcMcuPlgkwVS9xboaVIpcDV+cYQe+yGykgwZCs1pzjntcGa6l5g==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: false
@@ -8154,7 +8122,7 @@ packages:
   /axios/0.27.2:
     resolution: {integrity: sha512-t+yRIyySRTp/wua5xEr+z1q60QmLq8ABsS5O9Me1AsE5dfKqgnCFzwiCZZ/cGNd1lq4/7akDWMxdhVlucjmnOQ==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       form-data: 4.0.0
     transitivePeerDependencies:
       - debug
@@ -10280,6 +10248,7 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
+    dev: true
 
   /debug/4.3.4:
     resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
@@ -12674,7 +12643,7 @@ packages:
       - encoding
     dev: false
 
-  /follow-redirects/1.14.9_debug@4.3.2:
+  /follow-redirects/1.14.9:
     resolution: {integrity: sha512-MQDfihBQYMcyy5dhRDJUHcw7lb2Pv/TuE6xP1vyraLukNDHKbDxDNaOE3NbCAdKQApno+GPRyo1YAp89yCjK4w==}
     engines: {node: '>=4.0'}
     peerDependencies:
@@ -12682,8 +12651,6 @@ packages:
     peerDependenciesMeta:
       debug:
         optional: true
-    dependencies:
-      debug: 4.3.2
 
   /foreach/2.0.6:
     resolution: {integrity: sha512-k6GAGDyqLe9JaebCsFCoudPPWfihKu8pylYXRlqP1J7ms39iPoTtk2fviNglIeQEwdh0bQeKJ01ZPyuyQvKzwg==}
@@ -13635,7 +13602,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
@@ -19863,12 +19830,6 @@ packages:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
     dev: true
 
-  /ts-invariant/0.10.1:
-    resolution: {integrity: sha512-dOmY3naALBtNyK+nrVGzD8DVxSJ9OIHragItZ3XvxGORNAZL6uszgQYaD3PW+TPh2NWNsOpuQUxznuvTkmcdqw==}
-    engines: {node: '>=8'}
-    dependencies:
-      tslib: 2.4.0
-
   /ts-invariant/0.10.3:
     resolution: {integrity: sha512-uivwYcQaxAucv1CzRp2n/QdYPo4ILf9VXgH19zEIjFx2EJufV16P0JtJVpYHy89DItG6Kwj2oIUjrcK5au+4tQ==}
     engines: {node: '>=8'}
@@ -20766,19 +20727,6 @@ packages:
     resolution: {integrity: sha512-AFVsxg5GkFg8GDcxnl+Z0lMAz9rE8DGJCc28qnBuQF7lac57B5smLcT37aXpXIIPz75rW4g3eXHPjhHwdGskOw==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0-rc
-    dev: false
-
-  /use-sync-external-store/1.1.0:
-    resolution: {integrity: sha512-SEnieB2FPKEVne66NpXPd1Np4R1lTNKfjuy3XdIoPQKYBAFdzbzSZlSn1KJZUiihQLQC5Znot4SBz1EOTBwQAQ==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-
-  /use-sync-external-store/1.1.0_react@17.0.2:
-    resolution: {integrity: sha512-SEnieB2FPKEVne66NpXPd1Np4R1lTNKfjuy3XdIoPQKYBAFdzbzSZlSn1KJZUiihQLQC5Znot4SBz1EOTBwQAQ==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    dependencies:
-      react: 17.0.2
     dev: false
 
   /use-sync-external-store/1.1.0_react@18.1.0:
@@ -21892,11 +21840,6 @@ packages:
   /yocto-queue/0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
-
-  /zen-observable-ts/1.2.3:
-    resolution: {integrity: sha512-hc/TGiPkAWpByykMwDcem3SdUgA4We+0Qb36bItSuJC9xD0XVBZoFHYoadAomDSNf64CG8Ydj0Qb8Od8BUWz5g==}
-    dependencies:
-      zen-observable: 0.8.15
 
   /zen-observable-ts/1.2.5:
     resolution: {integrity: sha512-QZWQekv6iB72Naeake9hS1KxHlotfRpe+WGNbNx5/ta+R3DNjVO2bswf63gXlWDcs+EMd7XY8HfVQyP1X6T4Zg==}
