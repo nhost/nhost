@@ -17,7 +17,7 @@ cd nhost
 
 ```sh
 pnpm install
-pnpm build
+pnpm run build
 ```
 
 3. Go to the example folder
