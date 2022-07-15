@@ -149,6 +149,7 @@ export type Provider =
   | 'strava'
   | 'gitlab'
   | 'bitbucket'
+  | 'discord'
 
 // TODO share with hasura-auth
 export interface JWTHasuraClaims {
