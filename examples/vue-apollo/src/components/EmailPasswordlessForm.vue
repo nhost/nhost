@@ -2,7 +2,8 @@
   <div>
     <form @submit="submit">
       <v-text-field v-model="email" placeholder="Email Address" autofocus />
-      <v-btn block color="primary" type="submit"> Continue with email </v-btn>
+      <v-btn block color="primary" type="submit" :disabled="isLoading" :loading="isLoading"> Continue with email
+      </v-btn>
     </form>
     <error-snack-bar :error="error" />
     <v-dialog v-model="emailSentDialog">
@@ -30,7 +31,7 @@ import { useSignInEmailPasswordless } from '@nhost/vue'
 const email = ref('')
 const emailSentDialog = ref(false)
 
-const { signInEmailPasswordless, error } = useSignInEmailPasswordless({
+const { signInEmailPasswordless, error, isLoading } = useSignInEmailPasswordless({
   redirectTo: '/profile'
 })
 
