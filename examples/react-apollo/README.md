@@ -1,4 +1,4 @@
-# React-Apollo example
+# Nhost React + Apollo example
 
 ## See this example live
 
@@ -13,20 +13,26 @@ git clone https://github.com/nhost/nhost
 cd nhost
 ```
 
-2. Install dependencies
+2. Install and build dependencies
+
+```sh
+pnpm install
+pnpm build
+```
+
+3. Go to the example folder
 
 ```sh
 cd examples/react-apollo
-pnpm install
 ```
 
-3. Terminal 1: Start Nhost
+4. Terminal 1: Start Nhost
 
 ```sh
 nhost dev
 ```
 
-4. Terminal 2: Start the React application
+5. Terminal 2: Start the React application
 
 ```sh
 pnpm run dev
