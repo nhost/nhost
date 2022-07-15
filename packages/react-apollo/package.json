@@ -32,6 +32,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",
