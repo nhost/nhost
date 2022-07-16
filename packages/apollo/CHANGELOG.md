@@ -1,5 +1,11 @@
 # @nhost/apollo
 
+## 0.5.23
+
+### Patch Changes
+
+- f30d6779: Bump @apollo/client to v3.6.9
+
 ## 0.5.22
 
 ### Patch Changes
