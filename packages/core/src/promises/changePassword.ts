@@ -10,11 +10,12 @@ export interface ChangePasswordHandlerResult extends ActionErrorState, ActionSuc
 
 export const changePasswordPromise = async (
   interpreter: InterpreterFrom<ChangePasswordMachine>,
-  password: string
+  password: string,
+  ticket?: string
 ): Promise<ChangePasswordHandlerResult> =>
   new Promise<ChangePasswordHandlerResult>((resolve) => {
     interpreter.send('REQUEST', {
-      password
+      password, ticket
     })
     interpreter.onTransition((state) => {
       if (state.matches({ idle: 'error' })) {

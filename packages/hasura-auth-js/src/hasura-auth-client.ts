@@ -251,7 +251,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.changePassword` to change the password for the user. The old password is not needed.
+   * Use `nhost.auth.changePassword` to change the password for the signed-in user. The old password is not needed. In case the user is not signed-in, a password reset ticket needs to be provided.
    *
    * @example
    * ```ts
@@ -260,9 +260,9 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-password
    */
-  async changePassword({ newPassword }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
+  async changePassword({ newPassword, ticket }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
     const service = interpret(createChangePasswordMachine(this._client)).start()
-    const { error } = await changePasswordPromise(service, newPassword)
+    const { error } = await changePasswordPromise(service, newPassword, ticket)
     return { error }
   }
 
