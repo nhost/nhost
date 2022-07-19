@@ -1,5 +1,14 @@
 # @nhost/hasura-storage-js
 
+## 0.5.3
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+
 ## 0.5.2
 
 ### Patch Changes

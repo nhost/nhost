@@ -1,5 +1,18 @@
 # @nhost/hasura-auth-js
 
+## 1.4.0
+
+### Minor Changes
+
+- 18ac56d0: added option to include ticket in changePassword to allow for changing password without the user being signed in
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+
 ## 1.3.4
 
 ### Patch Changes
