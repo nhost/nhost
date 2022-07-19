@@ -1,5 +1,15 @@
 # @nhost/nhost-js
 
+## 1.4.7
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [18ac56d0]
+- Updated dependencies [10beea72]
+  - @nhost/hasura-auth-js@1.4.0
+  - @nhost/hasura-storage-js@0.5.3
+
 ## 1.4.6
 
 ### Patch Changes

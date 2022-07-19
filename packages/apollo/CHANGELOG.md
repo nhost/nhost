@@ -1,5 +1,13 @@
 # @nhost/apollo
 
+## 0.5.24
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [10beea72]
+  - @nhost/nhost-js@1.4.7
+
 ## 0.5.23
 
 ### Patch Changes
