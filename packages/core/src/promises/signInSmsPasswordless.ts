@@ -1,7 +1,11 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
 import { AuthInterpreter, PasswordlessOptions } from '../types'
 
-import { ActionErrorState, ActionSuccessState } from './types'
+import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
+
+export interface SignInSmsPasswordlessState
+  extends SignInSmsPasswordlessHandlerResult,
+    ActionLoadingState {}
 
 export interface SignInSmsPasswordlessHandlerResult extends ActionErrorState, ActionSuccessState {
   /**
