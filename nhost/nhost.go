@@ -383,7 +383,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "0.6.3"
+				parsed.Services[name].Version = "0.10.0"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -401,7 +401,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "0.2.2"
+				parsed.Services[name].Version = "0.2.3"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -433,7 +433,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "v2.2.0"
+				parsed.Services[name].Version = "v2.8.1"
 			}
 
 			if parsed.Services[name].Image == "" {
@@ -935,7 +935,7 @@ func (config *Configuration) Init(port string) error {
 
 	//  prepare env variables for following container
 	containerVariables = []string{
-        fmt.Sprintf("BIND=:%d", config.Services["storage"].Port),
+		fmt.Sprintf("BIND=:%d", config.Services["storage"].Port),
 		fmt.Sprintf("PUBLIC_URL=http://localhost:%d", config.Services["storage"].Port),
 
 		"HASURA_METADATA=1",
@@ -947,7 +947,7 @@ func (config *Configuration) Init(port string) error {
 		"S3_BUCKET=nhost",
 
 		"POSTGRES_MIGRATIONS=1",
-        "POSTGRES_MIGRATIONS_SOURCE="+ GetAddress(config.Services["postgres"]),
+		"POSTGRES_MIGRATIONS_SOURCE=" + GetAddress(config.Services["postgres"]),
 	}
 
 	//	Add S3 endpoint

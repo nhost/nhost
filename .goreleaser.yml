@@ -1,7 +1,6 @@
 project_name: cli
 builds:
-  -
-    env:
+  - env:
       - "CGO_ENABLED=0"
     goos:
       - "darwin"
@@ -14,8 +13,11 @@ builds:
       - "amd64"
     ldflags:
       - -s -w -X "github.com/nhost/cli/cmd.Version=v{{.Version}}"
+    ignore:
+      - goos: windows
+        goarch: arm64
 archives:
-  - name_template: '{{ .ProjectName }}-v{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
+  - name_template: "{{ .ProjectName }}-v{{.Version}}-{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
     replacements:
       darwin: "darwin"
       linux: "linux"
@@ -28,7 +30,7 @@ archives:
     files:
       - none*
 checksum:
-  name_template: 'checksums.txt'
+  name_template: "checksums.txt"
 snapshot:
   name_template: "{{ .Tag }}-next"
 changelog:
