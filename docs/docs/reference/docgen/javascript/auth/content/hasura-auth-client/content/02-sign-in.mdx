@@ -53,8 +53,8 @@ nhost.auth.signIn({ email: 'joe@example.com' })
 
 ```ts
 // [step 1/2] Passwordless sign in using SMS
-nhost.auth.signIn({ phoneNumber: '+11233213123' })
+nhost.auth.signIn({ phoneNumber: '001122334455' })
 
 // [step 2/2] Finish passwordless sign in using SMS (OTP)
-nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
+nhost.auth.signIn({ phoneNumber: '001122334455', otp: '123456' })
 ```

@@ -135,10 +135,10 @@ export class HasuraAuthClient {
    * ### Sign in a user using passwordless SMS
    * ```ts
    * // [step 1/2] Passwordless sign in using SMS
-   * nhost.auth.signIn({ phoneNumber: '001122334455' })
+   * nhost.auth.signIn({ phoneNumber: '+11233213123' })
    *
    * // [step 2/2] Finish passwordless sign in using SMS (OTP)
-   * nhost.auth.signIn({ phoneNumber: '001122334455', otp: '123456' })
+   * nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
