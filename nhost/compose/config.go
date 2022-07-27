@@ -7,6 +7,7 @@ import (
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -84,6 +85,17 @@ type Config struct {
 	composeProjectName string
 	dotenv             []string // environment variables from .env file
 	ports              Ports
+}
+
+// HasuraCliVersion extracts version from Hasura CLI docker image. That allows us to keep the same version of Hasura CLI
+// both in the docker image and in the hasura-cli on the host
+func HasuraCliVersion() (string, error) {
+	s := strings.SplitN(svcHasuraDefaultImage, ":", 2)
+	if len(s) != 2 {
+		return "", fmt.Errorf("invalid hasura cli version: %s", svcHasuraDefaultImage)
+	}
+
+	return s[1], nil
 }
 
 func NewConfig(conf *nhost.Configuration, p Ports, env []string, gitBranch, projectName string) *Config {
