@@ -137,6 +137,7 @@ in the following manner:
 				for _, item := range projects {
 					if item.Subdomain == subdomain {
 						selectedProject = item
+						break
 					}
 				}
 
@@ -166,8 +167,9 @@ in the following manner:
 				}
 
 				selectedProject = projects[index]
-				location = strings.ReplaceAll(selectedProject.Name, " ", "_")
 			}
+
+			location = strings.ReplaceAll(selectedProject.Name, " ", "_")
 		} else {
 
 			if name == "" {
