@@ -168,6 +168,35 @@ func (c Config) postgresConnectionString() string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", user, password, SvcPostgres, svcPostgresDefaultPort, db)
 }
 
+func (c Config) PublicHasuraConnectionString() string {
+	return fmt.Sprintf("http://localhost:%d/v1/graphql", c.ports[SvcGraphqlEngine])
+}
+
+func (c Config) PublicAuthConnectionString() string {
+	return fmt.Sprintf("http://localhost:%d/v1/auth", c.ports[SvcTraefik])
+}
+
+func (c Config) PublicStorageConnectionString() string {
+	return fmt.Sprintf("http://localhost:%d/v1/storage", c.ports[SvcTraefik])
+}
+
+func (c Config) PublicFunctionsConnectionString() string {
+	return fmt.Sprintf("http://localhost:%d/v1/functions", c.ports[SvcTraefik])
+}
+
+func (c Config) PublicHasuraConsole() string {
+	return fmt.Sprintf("http://localhost:%d", c.ports[SvcTraefik])
+}
+
+func (c Config) PublicPostgresConnectionString() string {
+	postgresEnv := c.postgresServiceEnvs()
+	user := postgresEnv[envPostgresUser]
+	password := postgresEnv[envPostgresPassword]
+	db := postgresEnv[envPostgresDb]
+
+	return fmt.Sprintf("postgres://%s:%s@localhost:%d/%s", user, password, c.ports[SvcPostgres], db)
+}
+
 func (c Config) mailhogServiceEnvs() env {
 	authEnv := c.authServiceEnvs()
 

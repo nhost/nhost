@@ -35,6 +35,7 @@ type Manager interface {
 	Stop(ctx context.Context) error
 	StopSvc(ctx context.Context, svc ...string) error
 	SetGitBranch(string)
+	HasuraConsoleURL() string
 }
 
 func NewDockerComposeManager(c *nhost.Configuration, ports compose.Ports, env []string, gitBranch string, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
@@ -205,6 +206,21 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 	m.status.Info("Ready to use")
 	m.l.Debug("Ready to use")
 
+	return m.svcEndpoints()
+}
+
+func (m *dockerComposeManager) HasuraConsoleURL() string {
+	return m.composeConfig.PublicHasuraConsole()
+}
+
+func (m *dockerComposeManager) svcEndpoints() error {
+	fmt.Println("\n\nURLs:")
+	fmt.Printf("- Postgres:\t\t%s\n", m.composeConfig.PublicPostgresConnectionString())
+	fmt.Printf("- GraphQL:\t\t%s\n", m.composeConfig.PublicHasuraConnectionString())
+	fmt.Printf("- Auth:\t\t\t%s\n", m.composeConfig.PublicAuthConnectionString())
+	fmt.Printf("- Storage:\t\t%s\n", m.composeConfig.PublicStorageConnectionString())
+	fmt.Printf("- Functions:\t\t%s\n", m.composeConfig.PublicFunctionsConnectionString())
+	fmt.Printf("\n- Hasura console:\t%s\n", m.composeConfig.PublicHasuraConsole())
 	return nil
 }
 

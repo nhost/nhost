@@ -123,7 +123,7 @@ var devCmd = &cobra.Command{
 			}
 
 			if !noBrowser {
-				openbrowser(fmt.Sprintf("http://localhost:%d", ports[compose.SvcTraefik]))
+				openbrowser(mgr.HasuraConsoleURL())
 			}
 		}()
 
