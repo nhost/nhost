@@ -33,12 +33,12 @@ const (
 
 	// default docker images
 	svcPostgresDefaultImage      = "nhost/postgres:12-v0.0.6"
-	svcAuthDefaultImage          = "nhost/hasura-auth:0.6.3"
-	svcStorageDefaultImage       = "nhost/hasura-storage:0.2.2"
+	svcAuthDefaultImage          = "nhost/hasura-auth:0.10.0"
+	svcStorageDefaultImage       = "nhost/hasura-storage:0.2.3"
 	svcFunctionsDefaultImage     = "nhost/functions:0.0.2"
 	svcMinioDefaultImage         = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
 	svcMailhogDefaultImage       = "mailhog/mailhog"
-	svcHasuraDefaultImage        = "hasura/graphql-engine:v2.2.0"
+	svcHasuraDefaultImage        = "hasura/graphql-engine:v2.8.3"
 	svcHasuraConsoleDefaultImage = "nhost/hasura-cli-docker:2.2.0"
 	svcTraefikDefaultImage       = "traefik:v2.8"
 	// --
