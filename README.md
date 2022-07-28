@@ -148,17 +148,17 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/gdangelo">
-            <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
-            <br />
-            <sub><b>Grégory D'Angelo</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/nunopato">
             <img src="https://avatars.githubusercontent.com/u/1523504?v=4" width="100;" alt="nunopato"/>
             <br />
             <sub><b>Nuno Pato</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/gdangelo">
+            <img src="https://avatars.githubusercontent.com/u/4352286?v=4" width="100;" alt="gdangelo"/>
+            <br />
+            <sub><b>Grégory D'Angelo</b></sub>
         </a>
     </td>
     <td align="center">
