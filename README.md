@@ -162,20 +162,27 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/szilarddoro">
+            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
+            <br />
+            <sub><b>Szilárd Dóró</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/guicurcio">
             <img src="https://avatars.githubusercontent.com/u/20285232?v=4" width="100;" alt="guicurcio"/>
             <br />
             <sub><b>Guido Curcio</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/subatuba21">
             <img src="https://avatars.githubusercontent.com/u/34824571?v=4" width="100;" alt="subatuba21"/>
             <br />
             <sub><b>Subha Das</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/sebagudelo">
             <img src="https://avatars.githubusercontent.com/u/43288271?v=4" width="100;" alt="sebagudelo"/>
@@ -195,13 +202,6 @@ Here are some ways of contributing to making Nhost better:
             <img src="https://avatars.githubusercontent.com/u/32492961?v=4" width="100;" alt="timpratim"/>
             <br />
             <sub><b>Pratim</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/szilarddoro">
-            <img src="https://avatars.githubusercontent.com/u/310881?v=4" width="100;" alt="szilarddoro"/>
-            <br />
-            <sub><b>Szilárd Dóró</b></sub>
         </a>
     </td>
     <td align="center">
@@ -277,6 +277,13 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
+        <a href="https://github.com/mdp18">
+            <img src="https://avatars.githubusercontent.com/u/11698527?v=4" width="100;" alt="mdp18"/>
+            <br />
+            <sub><b>Max</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/mustafa-hanif">
             <img src="https://avatars.githubusercontent.com/u/30019262?v=4" width="100;" alt="mustafa-hanif"/>
             <br />
@@ -296,15 +303,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Savin Vadim</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/Svarto">
             <img src="https://avatars.githubusercontent.com/u/24279217?v=4" width="100;" alt="Svarto"/>
             <br />
             <sub><b>Svarto</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/muttenzer">
             <img src="https://avatars.githubusercontent.com/u/49474412?v=4" width="100;" alt="muttenzer"/>
@@ -339,15 +346,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Colin Broderick</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/dminkovsky">
             <img src="https://avatars.githubusercontent.com/u/218725?v=4" width="100;" alt="dminkovsky"/>
             <br />
             <sub><b>Dmitry Minkovsky</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/dohomi">
             <img src="https://avatars.githubusercontent.com/u/489221?v=4" width="100;" alt="dohomi"/>
@@ -382,20 +389,27 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Jacob Duval</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/kylehayes">
             <img src="https://avatars.githubusercontent.com/u/509932?v=4" width="100;" alt="kylehayes"/>
             <br />
             <sub><b>Kyle Hayes</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/leothorp">
             <img src="https://avatars.githubusercontent.com/u/12928449?v=4" width="100;" alt="leothorp"/>
             <br />
             <sub><b>Leo Thorp</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/LucasBois1">
+            <img src="https://avatars.githubusercontent.com/u/44686060?v=4" width="100;" alt="LucasBois1"/>
+            <br />
+            <sub><b>Lucas Bois</b></sub>
         </a>
     </td>
     <td align="center">
@@ -418,7 +432,8 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Nirmalya Ghosh</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/quentin-decre">
             <img src="https://avatars.githubusercontent.com/u/1137511?v=4" width="100;" alt="quentin-decre"/>
@@ -432,8 +447,7 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Tapas Adhikary</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/uulwake">
             <img src="https://avatars.githubusercontent.com/u/22399181?v=4" width="100;" alt="uulwake"/>
