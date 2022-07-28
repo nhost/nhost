@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -34,7 +33,6 @@ type Manager interface {
 	SyncExec(ctx context.Context, f func(ctx context.Context) error) error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
-	StopSvc(ctx context.Context, svc ...string) error
 	SetGitBranch(string)
 	HasuraConsoleURL() string
 }
@@ -229,22 +227,35 @@ func (m *dockerComposeManager) svcEndpoints() error {
 
 func (m *dockerComposeManager) Stop(ctx context.Context) error {
 	m.l.Debug("Stopping docker compose")
-	cmd, err := compose.WrapperCmd(ctx, []string{"stop"}, m.composeConfig, &compose.DataStreams{})
+
+	// kill all services but postgres
+	cmd, err := compose.WrapperCmd(
+		ctx,
+		[]string{"kill",
+			compose.SvcFunctions,
+			compose.SvcGraphqlEngine,
+			compose.SvcTraefik,
+			compose.SvcAuth,
+			compose.SvcMailhog,
+			compose.SvcMinio,
+			compose.SvcStorage,
+			compose.SvcHasura,
+		}, m.composeConfig, &compose.DataStreams{})
 	if err != nil {
-		m.l.WithError(err).Debug("Failed to stop docker compose")
+		m.l.WithError(err).Debug("Failed to stop functions service")
 		return err
 	}
 
 	m.setProcessToStartInItsOwnProcessGroup(cmd)
-	return cmd.Run()
-}
-
-func (m *dockerComposeManager) StopSvc(ctx context.Context, svc ...string) error {
-	m.status.Executing(fmt.Sprintf("Stopping service(s) %s", strings.Join(svc, ", ")))
-	m.l.Debugf("Stopping %s service(s)", strings.Join(svc, ", "))
-	cmd, err := compose.WrapperCmd(ctx, append([]string{"stop"}, svc...), m.composeConfig, nil)
+	err = cmd.Run()
 	if err != nil {
-		m.l.WithError(err).Debugf("Failed to stop %s service", svc)
+		m.l.WithError(err).Debug("Failed to stop functions service")
+		return err
+	}
+
+	cmd, err = compose.WrapperCmd(ctx, []string{"down", "--remove-orphans"}, m.composeConfig, &compose.DataStreams{})
+	if err != nil {
+		m.l.WithError(err).Debug("Failed to stop docker compose")
 		return err
 	}
 

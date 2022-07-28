@@ -20,7 +20,7 @@ const (
 	SvcMinio         = "minio"
 	SvcMailhog       = "mailhog"
 	SvcHasura        = "hasura"
-	SvcHasuraConsole = "hasura-console" // TODO: to remove
+	SvcHasuraConsole = "hasura-console"
 	SvcTraefik       = "traefik"
 	SvcGraphqlEngine = "graphql-engine"
 	// --

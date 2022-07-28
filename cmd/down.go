@@ -70,11 +70,7 @@ var downCmd = &cobra.Command{
 			return err
 		}
 
-		err = syscall.Kill(pid, syscall.SIGINT)
-		if err != nil {
-			status.Errorln(err.Error())
-			return err
-		}
+		_ = syscall.Kill(pid, syscall.SIGINT)
 
 		// check if process is still running
 		ticker := time.NewTicker(time.Second)
@@ -90,6 +86,8 @@ var downCmd = &cobra.Command{
 					// check if process is still running
 					if err == syscall.ESRCH {
 						status.Infoln("Process stopped")
+						// remove the pid file
+						_ = os.Remove(pidFile)
 						return nil
 					}
 
@@ -97,9 +95,6 @@ var downCmd = &cobra.Command{
 				}
 			}
 		}
-
-		// remove the pid file
-		_ = os.Remove(pidFile)
 
 		return nil
 	},
