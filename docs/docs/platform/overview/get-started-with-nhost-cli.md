@@ -119,19 +119,18 @@ either public or private.
 
 ### 3. Connect Nhost project to Github
 
-Finally, connect your Github repository to your Nhost project. Doing so will
-enable Nhost to deploy new versions of your project when you push automatically
-commits to your connected Git repository.
+Finally, connect your GitHub repository to your Nhost project. Doing so will
+enable Nhost to deploy new versions of your project when you push new commits to your connected Git repository.
 
-1. From your project workspace, click **Connect to Github**.
+1. From your project workspace, click **Connect to GitHub**.
 
 ![Connect to GitHub](/img/architecture/cli/connect-repo-step-1.png)
 
-2. **Install the Nhost app** on your Github account.
+2. **Install the Nhost app** on your GitHub account.
 
 ![Connect to GitHub](/img/architecture/cli/connect-repo-step-2.png)
 
-3. **Connect** your Github repository.
+3. **Connect** your GitHub repository.
 
 ![Connect to GitHub](/img/architecture/cli/connect-repo-step-3.png)
 
@@ -164,7 +163,7 @@ Or you can directly initialize a local Nhost app from one of your existing
 production apps by specifying the `--remote` flag:
 
 ```bash
-nhost init --remote -n my-nhost-app
+nhost init --remote
 ```
 
 It will also prompt you to choose the remote app you'd like to use to initialize
