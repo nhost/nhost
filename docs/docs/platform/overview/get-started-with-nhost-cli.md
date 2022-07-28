@@ -171,8 +171,7 @@ your local Nhost development environment.
 
 ![Select app](/img/architecture/cli/cli-select-app.png)
 
-The `init` command creates the Nhost app inside your current working directory
-within a `nhost/` folder.
+The `init` command initializes your app inside a directory named after the `-n` argument with a `nhost/` folder within it.
 
 ```
 my-nhost-app/
