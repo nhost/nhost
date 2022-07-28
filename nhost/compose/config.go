@@ -181,7 +181,7 @@ func (c Config) postgresConnectionString() string {
 }
 
 func (c Config) PublicHasuraConnectionString() string {
-	return fmt.Sprintf("http://localhost:%d/v1/graphql", c.ports[SvcGraphqlEngine])
+	return fmt.Sprintf("http://localhost:%d/v1/graphql", c.ports[SvcTraefik])
 }
 
 func (c Config) PublicAuthConnectionString() string {
