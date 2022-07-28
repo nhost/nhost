@@ -37,6 +37,7 @@ import (
 	"os"
 	"os/exec"
 	"os/signal"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"text/tabwriter"
@@ -72,12 +73,33 @@ var devCmd = &cobra.Command{
 			return errors.New("app not found in this directory")
 		}
 
+		// check if pid file exists
+		pidFile := filepath.Join(nhost.DOT_NHOST_DIR, "pid")
+		if util.PathExists(pidFile) {
+			status.Infoln("Another instance of nhost seems to be running. Please stop it first with 'nhost down'")
+			return fmt.Errorf("another instance of nhost seems to be running")
+		}
+
+		// write pid file
+		pid := os.Getpid()
+		err := os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644)
+		if err != nil {
+			status.Error("Failed to write pid file")
+			return err
+		}
+
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var mgr service.Manager
 		var consoleP *os.Process
 		var consoleCmd *exec.Cmd
+
+		defer func() {
+			// remove pid file
+			pidFile := filepath.Join(nhost.DOT_NHOST_DIR, "pid")
+			_ = os.Remove(pidFile)
+		}()
 
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
