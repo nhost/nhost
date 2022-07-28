@@ -20,7 +20,7 @@ const (
 	SvcMinio         = "minio"
 	SvcMailhog       = "mailhog"
 	SvcHasura        = "hasura"
-	SvcHasuraConsole = "hasura-console"
+	SvcHasuraConsole = "hasura-console" // TODO: to remove
 	SvcTraefik       = "traefik"
 	SvcGraphqlEngine = "graphql-engine"
 	// --
@@ -32,15 +32,14 @@ const (
 	// --
 
 	// default docker images
-	svcPostgresDefaultImage      = "nhost/postgres:12-v0.0.6"
-	svcAuthDefaultImage          = "nhost/hasura-auth:0.10.0"
-	svcStorageDefaultImage       = "nhost/hasura-storage:0.2.3"
-	svcFunctionsDefaultImage     = "nhost/functions:0.0.2"
-	svcMinioDefaultImage         = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
-	svcMailhogDefaultImage       = "mailhog/mailhog"
-	svcHasuraDefaultImage        = "hasura/graphql-engine:v2.8.3"
-	svcHasuraConsoleDefaultImage = "nhost/hasura-cli-docker:2.2.0"
-	svcTraefikDefaultImage       = "traefik:v2.8"
+	svcPostgresDefaultImage  = "nhost/postgres:12-v0.0.6"
+	svcAuthDefaultImage      = "nhost/hasura-auth:0.10.0"
+	svcStorageDefaultImage   = "nhost/hasura-storage:0.2.3"
+	svcFunctionsDefaultImage = "nhost/functions:0.0.2"
+	svcMinioDefaultImage     = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
+	svcMailhogDefaultImage   = "mailhog/mailhog"
+	svcHasuraDefaultImage    = "hasura/graphql-engine:v2.8.3"
+	svcTraefikDefaultImage   = "traefik:v2.8"
 	// --
 
 	// environment variables
@@ -134,7 +133,6 @@ func (c *Config) build() *types.Config {
 		c.traefikService(),
 		c.postgresService(),
 		c.hasuraService(),
-		c.hasuraConsoleService(),
 		c.authService(),
 		c.minioService(),
 		c.storageService(),
@@ -197,7 +195,7 @@ func (c Config) PublicFunctionsConnectionString() string {
 }
 
 func (c Config) PublicHasuraConsole() string {
-	return fmt.Sprintf("http://localhost:%d", c.ports[SvcTraefik])
+	return fmt.Sprintf("http://localhost:%d", c.ports[SvcHasuraConsole])
 }
 
 func (c Config) PublicPostgresConnectionString() string {
@@ -565,73 +563,6 @@ func (c Config) hasuraService() *types.ServiceConfig {
 			},
 			SvcFunctions: {
 				Condition: types.ServiceConditionHealthy,
-			},
-		},
-		Restart: types.RestartPolicyAlways,
-	}
-}
-
-func (c Config) hasuraConsoleServiceEnvs() env {
-	return env{
-		"HASURA_GRAPHQL_DATABASE_URL":              c.postgresConnectionString(),
-		"HASURA_GRAPHQL_JWT_SECRET":                c.envValueHasuraGraphqlJwtSecret(),
-		"HASURA_GRAPHQL_ADMIN_SECRET":              util.ADMIN_SECRET,
-		"HASURA_GRAPHQL_ENDPOINT":                  fmt.Sprintf("http://127.0.0.1:%d", c.ports[SvcGraphqlEngine]),
-		"HASURA_GRAPHQL_UNAUTHORIZED_ROLE":         "public",
-		"HASURA_GRAPHQL_DEV_MODE":                  "true",
-		"HASURA_GRAPHQL_LOG_LEVEL":                 "debug",
-		"HASURA_GRAPHQL_ENABLE_CONSOLE":            "false",
-		"HASURA_RUN_CONSOLE":                       "true",
-		"HASURA_GRAPHQL_MIGRATIONS_SERVER_TIMEOUT": "20",
-		"HASURA_GRAPHQL_NO_OF_RETRIES":             "20",
-		"HASURA_GRAPHQL_ENABLE_TELEMETRY":          "false",
-		"GRAPHQL_PORT":                             fmt.Sprint(c.ports[SvcGraphqlEngine]),
-		"API_PORT":                                 fmt.Sprint(c.ports[SvcHasuraConsole]),
-	}
-}
-
-func (c Config) hasuraConsoleService() *types.ServiceConfig {
-	labels := map[string]string{
-		"traefik.enable": "true",
-		"traefik.http.services.hasura-console.loadbalancer.server.port": "9695",
-		"traefik.http.routers.hasura-console.rule":                      "PathPrefix(`/`)",
-		"traefik.http.routers.hasura-console.entrypoints":               "web",
-	}
-
-	return &types.ServiceConfig{
-		Name:        SvcHasuraConsole,
-		Image:       c.serviceDockerImage(SvcHasuraConsole, svcHasuraConsoleDefaultImage),
-		Environment: c.hasuraConsoleServiceEnvs().dockerServiceConfigEnv(),
-		Labels:      labels,
-		DependsOn: map[string]types.ServiceDependency{
-			SvcPostgres: {
-				Condition: types.ServiceConditionHealthy,
-			},
-			SvcGraphqlEngine: {
-				Condition: types.ServiceConditionStarted,
-			},
-			SvcFunctions: {
-				Condition: types.ServiceConditionHealthy,
-			},
-		},
-		Ports: []types.ServicePortConfig{
-			{
-				Mode:     "ingress",
-				Target:   9695,
-				Protocol: "tcp",
-			},
-			{
-				Mode:      "ingress",
-				Target:    9693,
-				Published: fmt.Sprint(c.ports[SvcHasuraConsole]),
-				Protocol:  "tcp",
-			},
-		},
-		Volumes: []types.ServiceVolumeConfig{
-			{
-				Type:   types.VolumeTypeBind,
-				Source: "../nhost",
-				Target: "/usr/src/hasura",
 			},
 		},
 		Restart: types.RestartPolicyAlways,

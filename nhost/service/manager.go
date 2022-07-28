@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/avast/retry-go/v4"
+	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/nhost/compose"
 	"github.com/nhost/cli/util"
@@ -38,13 +39,14 @@ type Manager interface {
 	HasuraConsoleURL() string
 }
 
-func NewDockerComposeManager(c *nhost.Configuration, ports compose.Ports, env []string, gitBranch string, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
+func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports compose.Ports, env []string, gitBranch string, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
 	if gitBranch == "" {
 		gitBranch = "main"
 	}
 
 	return &dockerComposeManager{
 		ports:         ports,
+		hc:            hc,
 		debug:         debug,
 		env:           env,
 		branch:        gitBranch,
@@ -59,6 +61,7 @@ func NewDockerComposeManager(c *nhost.Configuration, ports compose.Ports, env []
 type dockerComposeManager struct {
 	sync.Mutex
 	ports         compose.Ports
+	hc            *hasura.Client
 	debug         bool
 	branch        string
 	projectName   string
@@ -94,7 +97,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 
 	m.status.Executing("Starting nhost app...")
 	m.l.Debug("Starting docker compose")
-	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions, compose.SvcHasuraConsole}, m.composeConfig, ds)
+	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, m.composeConfig, ds)
 	if err != nil && ctx.Err() != context.Canceled {
 		m.status.Error("Failed to start nhost app")
 		m.l.WithError(err).Debug("Failed to start docker compose")
@@ -296,17 +299,7 @@ func (m *dockerComposeManager) applySeeds(ctx context.Context, ds *compose.DataS
 	m.status.Executing("Applying seeds")
 	m.l.Debug("Applying seeds")
 
-	seeds, err := compose.WrapperCmd(
-		ctx,
-		[]string{"exec", compose.SvcHasuraConsole, "hasura", "seeds", "apply", "--database-name", "default", "--disable-interactive", "--skip-update-check"},
-		m.composeConfig,
-		ds,
-	)
-	if err != nil {
-		return fmt.Errorf("Failed to apply migrations: %w", err)
-	}
-
-	err = seeds.Run()
+	err := m.hc.ApplySeed(ctx, m.debug)
 	if err != nil && ctx.Err() != context.Canceled {
 		return fmt.Errorf("Failed to apply migrations: %w", err)
 	}
@@ -324,17 +317,7 @@ func (m *dockerComposeManager) applyMigrations(ctx context.Context, ds *compose.
 	m.status.Executing("Applying migrations...")
 	err := retry.Do(func() error {
 		m.l.Debug("Applying migrations")
-		migrate, err := compose.WrapperCmd(
-			ctx,
-			[]string{"exec", compose.SvcHasuraConsole, "hasura", "migrate", "apply", "--database-name", "default", "--disable-interactive", "--skip-update-check"},
-			m.composeConfig,
-			ds,
-		)
-		if err != nil {
-			return fmt.Errorf("Failed to apply migrations: %w", err)
-		}
-
-		err = migrate.Run()
+		err := m.hc.ApplyMigrations(ctx, m.debug)
 		if err != nil && ctx.Err() != context.Canceled {
 			return fmt.Errorf("Failed to apply migrations: %w", err)
 		}
@@ -356,17 +339,7 @@ func (m *dockerComposeManager) exportMetadata(ctx context.Context, ds *compose.D
 	m.status.Executing("Exporting metadata...")
 	err := retry.Do(func() error {
 		m.l.Debug("Exporting metadata")
-		export, err := compose.WrapperCmd(
-			ctx,
-			[]string{"exec", compose.SvcHasuraConsole, "hasura", "--skip-update-check", "metadata", "export"},
-			m.composeConfig,
-			ds,
-		)
-		if err != nil && ctx.Err() != context.Canceled {
-			return fmt.Errorf("failed to export metadata: %w", err)
-		}
-
-		err = export.Run()
+		err := m.hc.ExportMetadata(ctx, m.debug)
 		if err != nil && ctx.Err() != context.Canceled {
 			return fmt.Errorf("failed to export metadata: %w", err)
 		}
@@ -383,17 +356,7 @@ func (m *dockerComposeManager) applyMetadata(ctx context.Context, ds *compose.Da
 	m.status.Executing("Applying metadata...")
 	err := retry.Do(func() error {
 		m.l.Debug("Applying metadata")
-		applyMetadata, err := compose.WrapperCmd(
-			ctx,
-			[]string{"exec", compose.SvcHasuraConsole, "hasura", "--skip-update-check", "metadata", "apply"},
-			m.composeConfig,
-			ds,
-		)
-		if err != nil && ctx.Err() != context.Canceled {
-			return fmt.Errorf("failed to apply metadata: %w", err)
-		}
-
-		err = applyMetadata.Run()
+		err := m.hc.ApplyMetadata(ctx, m.debug)
 		if err != nil && ctx.Err() != context.Canceled {
 			return fmt.Errorf("failed to apply metadata: %w", err)
 		}

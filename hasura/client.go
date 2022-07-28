@@ -2,8 +2,12 @@ package hasura
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
+	"os"
+	"os/exec"
+	"syscall"
 
 	"github.com/nhost/cli/nhost"
 )
@@ -14,10 +18,14 @@ type RequestBody struct {
 	Args    interface{} `json:"args"`
 }
 
+type HttpDoer interface {
+	Do(req *http.Request) (*http.Response, error)
+}
+
 type Client struct {
 	Endpoint               string
 	AdminSecret            string
-	Client                 *http.Client
+	Client                 HttpDoer
 	CLI                    string
 	CommonOptions          []string
 	CommonOptionsWithoutDB []string
@@ -25,6 +33,12 @@ type Client struct {
 
 func (r *RequestBody) Marshal() ([]byte, error) {
 	return json.Marshal(r)
+}
+
+func InitClient(endpoint, adminSecret string, httpClient HttpDoer) (*Client, error) {
+	c := &Client{}
+	err := c.Init(endpoint, adminSecret, httpClient)
+	return c, err
 }
 
 func (c *Client) Request(body []byte, path string) (*http.Response, error) {
@@ -49,7 +63,7 @@ func (c *Client) Request(body []byte, path string) (*http.Response, error) {
 
 //  Initialize the client with supplied Hasura endpoint,
 //  admin secret and a custom HTTP client.
-func (c *Client) Init(endpoint, adminSecret string, client *http.Client) error {
+func (c *Client) Init(endpoint, adminSecret string, client HttpDoer) error {
 
 	log.Debug("Initializing Hasura client")
 
@@ -81,4 +95,61 @@ func (c *Client) Init(endpoint, adminSecret string, client *http.Client) error {
 	}
 
 	return nil
+}
+
+func (c *Client) RunConsoleCmd(ctx context.Context, debug bool) *exec.Cmd {
+	args := append([]string{"console", "--no-browser"}, c.CommonOptionsWithoutDB...)
+	cmd := exec.CommandContext(ctx, c.CLI, args...)
+	cmd.Dir = nhost.NHOST_DIR
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setCmdDebugStreams(cmd, debug)
+
+	return cmd
+}
+
+func (c *Client) ApplyMetadata(ctx context.Context, debug bool) error {
+	args := append([]string{"metadata", "apply"}, c.CommonOptionsWithoutDB...)
+	cmd := exec.CommandContext(ctx, c.CLI, args...)
+	cmd.Dir = nhost.NHOST_DIR
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setCmdDebugStreams(cmd, debug)
+
+	return cmd.Run()
+}
+
+func (c *Client) ApplyMigrations(ctx context.Context, debug bool) error {
+	args := append([]string{"migrate", "apply", "--disable-interactive"}, c.CommonOptions...)
+	cmd := exec.CommandContext(ctx, c.CLI, args...)
+	cmd.Dir = nhost.NHOST_DIR
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setCmdDebugStreams(cmd, debug)
+
+	return cmd.Run()
+}
+
+func (c *Client) ApplySeed(ctx context.Context, debug bool) error {
+	args := append([]string{"seed", "apply", "--disable-interactive"}, c.CommonOptions...)
+	cmd := exec.CommandContext(ctx, c.CLI, args...)
+	cmd.Dir = nhost.NHOST_DIR
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setCmdDebugStreams(cmd, debug)
+
+	return cmd.Run()
+}
+
+func (c *Client) ExportMetadata(ctx context.Context, debug bool) error {
+	args := append([]string{"metadata", "export"}, c.CommonOptionsWithoutDB...)
+	cmd := exec.CommandContext(ctx, c.CLI, args...)
+	cmd.Dir = nhost.NHOST_DIR
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	setCmdDebugStreams(cmd, debug)
+
+	return cmd.Run()
+}
+
+func setCmdDebugStreams(cmd *exec.Cmd, debug bool) {
+	if debug {
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+	}
 }

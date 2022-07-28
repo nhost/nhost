@@ -243,14 +243,14 @@ in the following manner:
 			//	adminSecret := "hasura-admin-secret"
 
 			//  create new hasura client
-			hasuraClient := hasura.Client{}
-			if err := hasuraClient.Init(hasuraEndpoint, adminSecret, nil); err != nil {
+			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, nil)
+			if err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to initialize Hasura client")
 			}
 
 			//  create migrations from remote
-			_, err := pullMigration(hasuraClient, "init")
+			_, err = pullMigration(hasuraClient, "init")
 			if err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to pull migrations from remote")

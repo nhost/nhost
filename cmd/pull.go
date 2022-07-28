@@ -118,7 +118,7 @@ and sync them with your local app.`,
 	*/
 }
 
-func pullMigration(client hasura.Client, name string) (hasura.Migration, error) {
+func pullMigration(client *hasura.Client, name string) (hasura.Migration, error) {
 
 	var args []string
 	var migration hasura.Migration

@@ -29,10 +29,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/avast/retry-go/v4"
+	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost/compose"
 	"github.com/nhost/cli/nhost/service"
+	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strconv"
 	"syscall"
@@ -73,6 +76,8 @@ var devCmd = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var mgr service.Manager
+		var consoleP *os.Process
+		var consoleCmd *exec.Cmd
 
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
@@ -98,17 +103,44 @@ var devCmd = &cobra.Command{
 		}
 
 		ports := compose.NewPorts(uint32(proxyPort))
-		mgr = service.NewDockerComposeManager(config, ports, env, nhost.GetCurrentBranch(), projectName, log, status, logger.DEBUG)
+		graphqlEndpoint := fmt.Sprintf("http://localhost:%d", ports[compose.SvcGraphqlEngine])
+		hc, err := hasura.InitClient(graphqlEndpoint, util.ADMIN_SECRET, nil)
+		debug := logger.DEBUG
+		mgr = service.NewDockerComposeManager(config, hc, ports, env, nhost.GetCurrentBranch(), projectName, log, status, debug)
 
 		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
+
 			err = mgr.SyncExec(ctx, func(ctx context.Context) error {
 				startCtx, cancel := context.WithTimeout(ctx, time.Minute*3)
 				defer cancel()
 
 				return retry.Do(func() error {
-					return mgr.Start(startCtx)
+					err := mgr.Start(startCtx)
+					if err != nil {
+						return err
+					}
+
+					// start the console
+					consoleCmd = hc.RunConsoleCmd(ctx, debug)
+					consoleP = consoleCmd.Process
+					err = consoleCmd.Start()
+					if err != nil && ctx.Err() != context.Canceled {
+						return err
+					}
+
+					err = consoleWaiter(ctx, fmt.Sprintf("http://localhost:%d", ports[compose.SvcHasuraConsole]), 1*time.Minute)
+					if err != nil {
+						// if console isn't reachable return the error which will cause another retry
+						if consoleP != nil {
+							_ = consoleP.Kill()
+							_ = consoleCmd.Wait()
+						}
+						return err
+					}
+
+					return nil
 				}, retry.Attempts(3))
 			})
 
@@ -123,7 +155,7 @@ var devCmd = &cobra.Command{
 			}
 
 			if !noBrowser {
-				openbrowser(mgr.HasuraConsoleURL())
+				_ = openbrowser(mgr.HasuraConsoleURL())
 			}
 		}()
 
@@ -137,6 +169,11 @@ var devCmd = &cobra.Command{
 		status.Executing("Exiting...")
 		log.Debug("Exiting...")
 		err = mgr.SyncExec(exitCtx, func(ctx context.Context) error {
+			if consoleP != nil {
+				_ = consoleP.Kill()
+				// Wait releases any resources associated with the command
+				_ = consoleCmd.Wait()
+			}
 			return mgr.Stop(exitCtx)
 		})
 		if err != nil {
@@ -156,6 +193,32 @@ func newPrinter() *Printer {
 	return &Printer{
 		Writer: t,
 	}
+}
+
+// consoleWaiter waits for the hasura console to be reachable
+func consoleWaiter(ctx context.Context, endpoint string, timeout time.Duration) error {
+	t := time.After(timeout)
+
+	ticker := time.NewTicker(100 * time.Millisecond)
+
+	for range ticker.C {
+		select {
+		case <-ctx.Done():
+			return nil
+		case <-t:
+			return fmt.Errorf("timeout: hasura console is not ready, please run the command again")
+		default:
+			resp, err := http.Get(endpoint)
+			if err == nil {
+				_ = resp.Body.Close()
+			}
+			if resp != nil && resp.StatusCode == http.StatusOK && err == nil {
+				return nil
+			}
+		}
+	}
+
+	return nil
 }
 
 func (p *Printer) print(loc, head, tail string) {
