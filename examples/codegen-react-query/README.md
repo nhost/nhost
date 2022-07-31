@@ -1,4 +1,4 @@
-# GraphQL Code Generator Example Repo
+# GraphQL Code Generator Example with React and React Query
 
 This is an example repo for how to use GraphQL Code Generator together with:
 
@@ -15,7 +15,7 @@ In the root of the `nhost/nhost` monorepo:
 
 Install dependencies with `pnpm`:
 
-> It's important that you're using `pnpm` because our repo are using [PNPM Workspaces](https://pnpm.io/workspaces).
+> It's important that you're using `pnpm` because our repo is using [PNPM Workspaces](https://pnpm.io/workspaces).
 
 ```
 pnpm install
