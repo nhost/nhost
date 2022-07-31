@@ -25,7 +25,7 @@ pnpm install
 pnpm run dev
 ```
 
-All other commands should run inside this example.
+The following commands should be run inside this folder.
 
 ### Run Nhost
 
