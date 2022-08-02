@@ -4,7 +4,7 @@ This is an example repo for how to use GraphQL Code Generator together with:
 
 - [TypeScript](https://www.typescriptlang.org/)
 - [React](https://reactjs.org/)
-- [React Query](https://react-query-v3.tanstack.com/)
+- [React Query](https://tanstack.com/query/v4/)
 - [Nhost](http://nhost.io/)
 
 ## Get Started

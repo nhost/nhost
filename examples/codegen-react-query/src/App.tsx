@@ -1,8 +1,8 @@
 import { NewCustomer } from './components/new-customer'
 import { Customers } from './components/customers'
 import { NhostReactProvider } from '@nhost/react'
-import { QueryClientProvider } from 'react-query'
-import { ReactQueryDevtools } from 'react-query/devtools'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 
 import { queryClient } from './utils/react-query-client'
 import { nhost } from './utils/nhost'
