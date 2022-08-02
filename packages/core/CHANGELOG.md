@@ -1,5 +1,12 @@
 # @nhost/core
 
+## 0.7.6
+
+### Patch Changes
+
+- 747aa969: fix: added twitch and discord as provider
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+
 ## 0.7.5
 
 ### Patch Changes

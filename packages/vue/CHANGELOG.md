@@ -1,5 +1,37 @@
 # @nhost/vue
 
+## 0.4.0
+
+### Minor Changes
+
+- 84ba29dd: Introduce `useSignInSmsPasswordless`
+
+  ```ts
+  const {
+    signInSmsPasswordless,
+    sendOtp,
+    needsOtp,
+    isLoading,
+    isSuccess,
+    isError,
+    error
+  } = useSignInSmsPasswordless()
+  ```
+
+  1. The `signInSmsPasswordless` action will send a one-time password to the given phone number.
+  2. The client is then awaiting the OTP. `needsOtp` equals true
+  3. After the code is received by SMS, the client sends the code with `sendOtp`. On success, the client is authenticated, and `isSuccess` equals `true`.
+
+  Any error is monitored through `isError` and `error`. While the `signInSmsPasswordless` and `sendOtp` actions are running, `isLoading` equals `true`
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+  - @nhost/nhost-js@1.4.7
+
 ## 0.3.7
 
 ### Patch Changes

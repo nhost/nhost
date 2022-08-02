@@ -1,5 +1,17 @@
 # @nhost/nextjs
 
+## 1.7.0
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+- Updated dependencies [84ba29dd]
+  - @nhost/core@0.7.6
+  - @nhost/nhost-js@1.4.7
+  - @nhost/react@0.12.0
+
 ## 1.6.2
 
 ### Patch Changes

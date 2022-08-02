@@ -20,7 +20,7 @@ File metadata is stored in your database in the `files` table in the `storage` s
 - Create GraphQL relationships between files and your database tables.
 
 :::warning
-Don't modify the database schema, nor GraphQL root fields in any of the tables in the `storage` schema. 
+Don't modify the database schema, nor GraphQL root fields in any of the tables in the `storage` schema.
 :::
 
 :::tip
@@ -28,8 +28,7 @@ You're allowed to add and modify the following:
 
 - GraphQL Relationships
 - Permissions
-:::
-
+  :::
 
 ### Upload File
 
@@ -168,7 +167,7 @@ To upload a file, a user must have the **`insert` permission** to the `storage.f
 
 ### Download
 
-To download a file, a user must have the **`select` permission** to the `storage.files` table. Only the `id` column is required, but we recommend allowing to select all columns. 
+To download a file, a user must have the **`select` permission** to the `storage.files` table. Access to all columns should be granted.
 
 ### Delete
 
@@ -202,7 +201,7 @@ Start with, you would have two tables:
 1. `customers` - Customer data.
 2. `customer_files` - What file belongs to what customer.
 
-```text 
+```text
 - customers
   - id
   - name
@@ -219,12 +218,15 @@ With the two tables and GraphQL relationships in place, you can query customers 
 
 ```graphql
 query {
-  customers { # customers table
+  customers {
+    # customers table
     id
     name
-    customer_files { # customer_files tabel
+    customer_files {
+      # customer_files table
       id
-      file { # storage.files table
+      file {
+        # storage.files table
         id
         name
         size
