@@ -19,14 +19,14 @@ export type BackendUrl = {
 
 export type Subdomain = {
   /**
-   * Project subdomain (e.g. ieingiwnginwnfnegqwvdqwdwq)
+   * Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
    * Use `localhost` during local development
    */
   subdomain: string
 
   /**
-   * Project region (e.g. eu-central-1)
-   * Not required in development (when `subdomain` is `localhost`)
+   * Project region (e.g. `eu-central-1`)
+   * Project region is not required during local development (when `subdomain` is `localhost`)
    */
   region?: string
   /**
