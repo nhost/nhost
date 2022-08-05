@@ -75,21 +75,20 @@ Should only be used when self-hosting
 **<span className="parameter-name">adminSecret</span>** <span className="optional-status">optional</span> `string`
 
 When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-for all requests to GraphQL, Storage, and Functions.
+for all requests to GraphQL, Storage, and Serverless Functions.
 
 ---
 
 **<span className="parameter-name">subdomain</span>** <span className="optional-status">optional</span> `string`
 
-App subdomain (e.g, ieingiwnginwnfnegqwvdqwdwq)
-Should be used when using the Nhost platform
-Use "localhost" in development
+Project subdomain (e.g. ieingiwnginwnfnegqwvdqwdwq)
+Use `localhost` during local development
 
 ---
 
 **<span className="parameter-name">region</span>** <span className="optional-status">optional</span> `string`
 
-App region (e.g., eu-central-1)
-Not required in development (when `subdomain` is "localhost")
+Project region (e.g. eu-central-1)
+Not required in development (when `subdomain` is `localhost`)
 
 ---
