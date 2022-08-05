@@ -99,11 +99,11 @@ nhost logout
 
 ## Set up your project
 
-### 1. Create a new Nhost app
+### 1. Create a new Nhost project
 
-import CreateApp from '@site/src/components/create-nhost-app.mdx';
+import CreateProject from '@site/src/components/create-nhost-project.mdx'
 
-<CreateApp />
+<CreateProject />
 
 ### 2. Create a new GitHub Repository
 
@@ -136,42 +136,26 @@ enable Nhost to deploy new versions of your project when you push new commits to
 
 ## Develop locally
 
-## 1. Initialize your Nhost app
+## 1. Initialize your Nhost project
 
 **Nhost CLI** brings the functionality of your Nhost production environment
 directly to your local machine.
 
 It provides Docker containers to run the backend services that match your
-production application in a local environment. That way, you can make changes
+production environment in a local environment. That way, you can make changes
 and test your code locally before deploying those changes to production.
 
-You can either initialize a blank Nhost app locally to start from scratch by
-running the following command:
-
-```bash
-nhost init -n my-nhost-app
-```
-
-And then link it to a remote app from your Nhost workspace in `app.nhost.io` by
-running the `link` command and selecting the corresponding app from the prompt:
-
-```bash
-nhost link
-```
-
-Or you can directly initialize a local Nhost app from one of your existing
-production apps by specifying the `--remote` flag:
+Initialize your Nhost project locally with the following command:
 
 ```bash
 nhost init --remote
 ```
 
-It will also prompt you to choose the remote app you'd like to use to initialize
-your local Nhost development environment.
+It will prompt you to choose what Nhost project you want to initialize.
 
-![Select app](/img/architecture/cli/cli-select-app.png)
+![Select Nhost Project](/img/architecture/cli/cli-select-app.png)
 
-The `init` command initializes your app inside a directory named after the `-n` argument with a `nhost/` folder within it.
+Your file system will be populated with the following files and folders:
 
 ```
 my-nhost-app/
@@ -198,11 +182,11 @@ git push -u origin main
 
 ## 2. Start a local development environment
 
-To start a local development environment for your Nhost app, run the following
+To start a local development environment for your Nhost project, run the following
 command:
 
 ```bash
-nhost dev
+nhost up
 ```
 
 :::caution
@@ -211,10 +195,10 @@ Make sure [Docker](https://www.docker.com/get-started) is up and running. It’s
 
 Running this command will start up all the backend services provided by Nhost.
 
-It also runs a webserver to serve the Hasura console for the GraphQL engine so
-you can manage the database and try out the API.
+It also runs a webserver to serve the Hasura Console for the GraphQL Engine so
+you can manage the database and test the GraphQL API.
 
-The Hasura console should open automatically at
+The Hasura Console should open automatically at
 [http://localhost:1337](http://localhost:1337/).
 
 ![Hasura Console](/img/architecture/cli/hasura-console.png)
@@ -224,7 +208,7 @@ The Hasura console should open automatically at
 There are three things the Nhost CLI and the GitHub integration track and apply
 to production:
 
-- Database migrations
+- Database Migrations
 - Hasura Metadata
 - Serverless Functions
 
@@ -237,7 +221,7 @@ Settings in `nhost/config.yaml` are not being applied to production. They only w
 Database changes are tracked and managed through migrations.
 
 :::tip
-It's important that you use the Hasura console to make database changes. Indeed, with the Hasura console, DB migration files are generated incrementally to track changes automatically for you.
+You must use the Hasura Console to make database changes. With the Hasura Console, database migration files are automatically generated incrementally to track database changes for you.
 :::
 
 To demonstrate how to make database changes, let's create a new table called
@@ -248,14 +232,15 @@ To demonstrate how to make database changes, let's create a new table called
 - `authorId` (type UUID),
 - `createdAt` (type Timestamp and default `now()`)
 
-In the Hasura console, head over to the **data** tab section and click on the
+In the Hasura Console, go to the **DATA** tab section and click on the
 PostgreSQL database (from the left side navigation) that Nhost provides us.
 
-Click on the **public** schema and the **Create Table** button.
+Click on the **public** schema and then the **Create Table** button.
 
 ![Create Table](/img/architecture/cli/create-table-step-1.png)
 
-Then, enter the values for creating the `messages` table as mentioned above.
+Enter the values for creating the `messages` table as mentioned above.
+
 Also, specify the `id` column as the primary key of the table, and link the
 `authorId` column to the `users.id` column using a foreign key to link the
 `users` and `messages` tables together.
@@ -278,7 +263,7 @@ drwxr-xr-x  3 user  staff   96 Apr 27 17:06 ..
 drwxr-xr-x  4 user  staff  128 Apr 27 17:06 1651071963431_create_table_public_messages
 ```
 
-However, note that this database migration has only been applied locally. In
+Note that this database migration has only been applied locally. In
 other words, the `messages` table does not (yet) exists in production.
 
 To apply the local changes to production, check out the
@@ -336,12 +321,12 @@ insert_permissions:
     role: user
 ```
 
-### Serverless functions
+### Serverless Functions
 
-Now let's create a serverless function before we push all changes to GitHub so
+Now let's create a Serverless Function before we push all changes to GitHub so
 Nhost can deploy them to production.
 
-For this guide, let's create a simple serverless function that will return the
+For this guide, let's create a Serverless Function that will return the
 current date-time when called.
 
 First, make sure to install `express`, which is required for serverless

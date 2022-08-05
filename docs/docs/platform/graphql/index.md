@@ -6,7 +6,7 @@ image: /img/og/platform/graphql.png
 
 A GraphQL API is automatically and instantly available based on the tables and columns in your [database](/platform/database).
 
-The GraphQL API has instant support for inserting, selecting, updating, and deleting data, which usually account for 80% of all operations you need in your app.
+The GraphQL API has instant support for inserting, selecting, updating, and deleting data, which usually account for 80% of all API operations you need.
 
 It's the [Hasura GraphQL engine](https://github.com/hasura/graphql-engine) that powers the GraphQL API which means that all documentation about [queries](https://hasura.io/docs/latest/graphql/core/databases/postgres/queries/index/), [mutations](https://hasura.io/docs/latest/graphql/core/databases/postgres/mutations/index/), and [subscriptions](https://hasura.io/docs/latest/graphql/core/databases/postgres/subscriptions/index/) from Hasura's documentation is applicable.
 
@@ -40,7 +40,7 @@ When building more complex frontend applications, we recommend using a more adva
 A GraphQL query is used to fetch data from the database.
 
 :::tip
-The [Queries documentation from Hasura](https://hasura.io/docs/latest/graphql/core/databases/postgres/queries/index/) is applicable since Nhost uses Hasura's GraphQL Engine for your app.
+The [Queries documentation from Hasura](https://hasura.io/docs/latest/graphql/core/databases/postgres/queries/index/) is applicable since we're using Hasura's GraphQL Engine for your project.
 :::
 
 **Example:** A GraphQL query to select `title`, `body`, and `isCompleted` for every row in the `todos` table.
@@ -131,7 +131,7 @@ query GetTodosWithLatestComments {
 A GraphQL mutation is used to insert, upsert, update, or delete data.
 
 :::tip
-The [Mutations documentation from Hasura](https://hasura.io/docs/latest/graphql/core/databases/postgres/mutations/index/) is applicable since Nhost uses Hasura's GraphQL Engine for your app.
+The [Mutations documentation from Hasura](https://hasura.io/docs/latest/graphql/core/databases/postgres/mutations/index/) is applicable since we're using Hasura's GraphQL Engine for your project.
 :::
 
 ### Insert Data

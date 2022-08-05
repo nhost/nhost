@@ -7,7 +7,7 @@ image: /img/og/platform/authentication.png
 
 Nhost Authentication is a ready-to-use authentication service that is integrated with the [GraphQL API](/platform/graphql) and its permission system from Hasura.
 
-Nhost Authentication lets you authenticate users to your app using different sign-in methods:
+Nhost Authentication lets you authenticate users using different sign-in methods:
 
 - [Email and Password](/platform/authentication/sign-in-with-email-and-password)
 - [Magic Link](/platform/authentication/sign-in-with-magic-link)

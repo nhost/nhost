@@ -6,11 +6,11 @@ image: /img/og/platform/environment-variables.png
 
 Environment Variables are key-value pairs configured outside your source code. They are used to store environment-specific values such as API keys.
 
-You can manage your app's environment variables in Nhost Console under **Variables**. When you define a new variable, you can set one value for **production** and one for **development**.
+You can manage your project's environment variables in Nhost Console under **Variables**. When you define a new variable, you can set one value for **production** and one for **development**.
 
 ![Environment Variables](/img/platform/environment-variables/environment-variables.png)
 
-When an environment variable is changed, you must deploy your app again using the [GitHub integration](/platform/github-integration) for the changes to take effect.
+When an environment variable is changed, you must deploy your project again using the [GitHub integration](/platform/github-integration) for the changes to take effect.
 
 Environment Variables are available in:
 
