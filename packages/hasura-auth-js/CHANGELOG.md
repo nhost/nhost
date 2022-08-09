@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 1.4.1
+
+### Patch Changes
+
+- 93cc6920: fix: phone numbers to follow the E.164 standard in documentation
+
 ## 1.4.0
 
 ### Minor Changes
