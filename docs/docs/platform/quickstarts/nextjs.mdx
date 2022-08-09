@@ -11,7 +11,7 @@ import TabItem from '@theme/TabItem'
 
 ## Introduction
 
-This quickstart guide provides the steps you need to build a simple Next.js app
+This quickstart provides the steps you need to build a Next.js app
 powered by Nhost for the backend. It includes:
 
 - Database: [PostgreSQL](https://www.postgresql.org/)
@@ -19,7 +19,7 @@ powered by Nhost for the backend. It includes:
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
 - Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
 
-By the end of this guide, you'll have a full-stack app that allows users to log
+By the end of this guide, you'll have a full-stack app that allows users to sign
 in to access a protected dashboard and update their profile information.
 
 ## Prerequisites
@@ -33,12 +33,12 @@ You'll need **Node.js** version 12 or later: [install it from here](https://node
 
 ### Create a new Nhost app
 
-import CreateApp from '@site/src/components/create-nhost-app.mdx'
+import CreateApp from '@site/src/components/create-nhost-project.mdx'
 
 <CreateApp />
 
 :::info
-You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+You can also connect your Nhost project to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
 :::
 
 ## Initialize the app
@@ -153,13 +153,13 @@ function MyApp({ Component, pageProps }) {
 Finally, store the environment variables for `subdomain` and `region` in `.env.development`:
 
 ```yaml title=".env.development"
-NEXT_PUBLIC_NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
-NEXT_PUBLIC_NHOST_REGION=YOUR_NHOST_APP_REGION
+NEXT_PUBLIC_NHOST_SUBDOMAIN=[subdomain]
+NEXT_PUBLIC_NHOST_REGION=[region]
 ```
 
-You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
+You find your Nhost project's `subdomain` and `region` in the [project overview](https://app.nhost.io):
 
-![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
+![Project Overview](/img/quickstarts/app-dashboard.png)
 
 :::caution
 Don't forget to restart your Next.js server after saving your `.env.development`

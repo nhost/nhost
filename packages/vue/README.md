@@ -31,8 +31,8 @@ import { NhostClient } from '@nhost/vue'
 import App from './App.vue'
 
 const nhost = new NhostClient({
-  subdomain: '<Your Nhost app subdomain>',
-  region: '<Your Nhost app region>'
+  subdomain: '<Your Nhost project subdomain>',
+  region: '<Your Nhost project region>'
 })
 
 createApp(App).use(nhost).mount('#app')

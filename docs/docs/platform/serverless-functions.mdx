@@ -15,7 +15,7 @@ Serverless functions can be used to handle [event triggers](/platform/database/e
 
 ## Creating a Serverless Function
 
-Every `.js` (JavaScript) and `.ts` (TypeScript) file in the `functions/` folder of your Nhost app is its own serverless function.
+Every `.js` (JavaScript) and `.ts` (TypeScript) file in the `functions/` folder of your Nhost project is its own serverless function.
 
 <Tabs groupId="language">
   <TabItem value="ts" label="TypeScript" default>
@@ -30,7 +30,7 @@ export default (req: Request, res: Response) => {
 
 :::info
 
-You **MUST** install `express` locally in the base directory of your Nhost app.
+You **MUST** install `express` locally in the base directory of your Nhost project.
 
 ```bash
 npm install -d express @types/express
@@ -51,7 +51,7 @@ export default (req, res) => {
 
 :::info
 
-You **MUST** install `express` locally in the base directory of your Nhost app.
+You **MUST** install `express` locally in the base directory of your Nhost project.
 
 ```bash
 npm install -d express
@@ -76,12 +76,12 @@ HTTP endpoints are automatically generated based on the file structure inside `f
 
 Here's an example of four serverless functions with their files and their HTTP endpoints:
 
-| File                        | HTTP Endpoint                                                 |
-| --------------------------- | ------------------------------------------------------------- |
-| `functions/index.js`        | `https://[app-subdomain].nhost.run/v1/functions/`             |
-| `functions/users/index.ts`  | `https://[app-subdomain].nhost.run/v1/functions/users`        |
-| `functions/users/active.ts` | `https://[app-subdomain].nhost.run/v1/functions/users/active` |
-| `functions/my-company.js`   | `https://[app-subdomain].nhost.run/v1/functions/my-company`   |
+| File                        | HTTP Endpoint                                                     |
+| --------------------------- | ----------------------------------------------------------------- |
+| `functions/index.js`        | `https://[project-subdomain].nhost.run/v1/functions/`             |
+| `functions/users/index.ts`  | `https://[project-subdomain].nhost.run/v1/functions/users`        |
+| `functions/users/active.ts` | `https://[project-subdomain].nhost.run/v1/functions/users/active` |
+| `functions/my-company.js`   | `https://[project-subdomain].nhost.run/v1/functions/my-company`   |
 
 ---
 
@@ -103,4 +103,4 @@ All serverless functions in production are running Node.js version 14.x.
 
 ## Regions
 
-Serverless Functions are always deployed to the same region as your app.
+Serverless Functions are always deployed to the same region as your project.

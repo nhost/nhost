@@ -7,7 +7,7 @@ image: /img/og/platform/database.png
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-Every Nhost app comes with its own [Postgres database](https://postgres.org/). Postgres is the world's most advanced open-source relational database and it's the most [popular SQL database for developers](https://insights.stackoverflow.com/survey/2021#section-most-loved-dreaded-and-wanted-databases).
+Every Nhost project comes with its own [Postgres database](https://postgres.org/). Postgres is the world's most advanced open-source relational database and it's the most [popular SQL database for developers](https://insights.stackoverflow.com/survey/2021#section-most-loved-dreaded-and-wanted-databases).
 
 :::info
 
@@ -34,7 +34,7 @@ Hasura Console is where you manage your database. This is where you create and m
 
 The two schemas `auth` and `storage` are reserved for Nhost Auth and Nhost Storage to work. You're allowed to modify **permissions** and **add relationships**. However, never modify any tables or remove relationships that were added by Nhost inside the `auth` and `storage` schemas.
 
-Generally, you should use the `public` schema when creating and managing your tables for your app. It's also ok to add custom schemas for more advanced usage.
+Generally, you should use the `public` schema when creating and managing your tables for your project. It's also ok to add custom schemas for more advanced usage.
 
 ## Create Table
 
