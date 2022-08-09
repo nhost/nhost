@@ -28,11 +28,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/avast/retry-go/v4"
 	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/logger"
-	"github.com/nhost/cli/nhost/compose"
 	"github.com/nhost/cli/nhost/service"
+	flag "github.com/spf13/pflag"
 	"net/http"
 	"os"
 	"os/exec"
@@ -49,13 +48,18 @@ import (
 )
 
 var (
-	//  initialize boolean to determine
-	//  whether to expose the local environment to the public internet
-	//  through a tunnel
-	expose    bool
-	proxyPort string
 	//  signal interruption channel
 	stop = make(chan os.Signal, 1)
+)
+
+const (
+	// default ports
+	defaultProxyPort            = 1337
+	defaultDBPort               = 5432
+	defaultGraphQLPort          = 8080
+	defaultHasuraConsolePort    = 9695
+	defaultHasuraConsoleApiPort = 9693
+	defaultSMTPPort             = 1025
 )
 
 //  devCmd represents the dev command
@@ -77,7 +81,7 @@ var devCmd = &cobra.Command{
 		pidFile := filepath.Join(nhost.DOT_NHOST_DIR, "pid")
 		if util.PathExists(pidFile) {
 			status.Infoln("Another instance of nhost seems to be running. Please stop it first with 'nhost down'")
-			return fmt.Errorf("another instance of nhost seems to be running")
+			return fmt.Errorf("another instance of nhost seems to be running, please stop it first with 'nhost down'")
 		}
 
 		// write pid file
@@ -119,51 +123,56 @@ var devCmd = &cobra.Command{
 			return fmt.Errorf("failed to read .env.development: %v", err)
 		}
 
-		proxyPort, err := strconv.Atoi(cmd.Flag("port").Value.String())
+		ports, err := getPorts(cmd.Flags())
 		if err != nil {
-			return fmt.Errorf("failed to parse port: %v", err)
+			return fmt.Errorf("failed to get ports: %v", err)
 		}
 
-		ports := compose.NewPorts(uint32(proxyPort))
-		graphqlEndpoint := fmt.Sprintf("http://localhost:%d", ports[compose.SvcGraphqlEngine])
-		hc, err := hasura.InitClient(graphqlEndpoint, util.ADMIN_SECRET, nil)
+		hc, err := hasura.InitClient(fmt.Sprintf("http://localhost:%d", ports.GraphQL()), util.ADMIN_SECRET, nil)
 		debug := logger.DEBUG
 		mgr = service.NewDockerComposeManager(config, hc, ports, env, nhost.GetCurrentBranch(), projectName, log, status, debug)
 
 		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
-
 			err = mgr.SyncExec(ctx, func(ctx context.Context) error {
 				startCtx, cancel := context.WithTimeout(ctx, time.Minute*3)
 				defer cancel()
 
-				return retry.Do(func() error {
-					err := mgr.Start(startCtx)
-					if err != nil {
-						return err
-					}
+				// stop just in case there are any leftover containers
+				err := mgr.Stop(ctx)
+				if err != nil {
+					return err
+				}
 
-					// start the console
-					consoleCmd = hc.RunConsoleCmd(ctx, debug)
-					consoleP = consoleCmd.Process
-					err = consoleCmd.Start()
-					if err != nil && ctx.Err() != context.Canceled {
-						return err
-					}
+				if err := ports.EnsurePortsAvailable(); err != nil {
+					return err
+				}
 
-					err = consoleWaiter(ctx, fmt.Sprintf("http://localhost:%d", ports[compose.SvcHasuraConsole]), 1*time.Minute)
-					if err != nil {
-						// if console isn't reachable return the error which will cause another retry
-						if consoleP != nil {
-							_ = consoleP.Kill()
-							_ = consoleCmd.Wait()
-						}
-						return err
-					}
+				err = mgr.Start(startCtx)
+				if err != nil {
+					return err
+				}
 
-					return nil
-				}, retry.Attempts(3))
+				// start the console
+				consoleCmd = hc.RunConsoleCmd(ctx, ports.HasuraConsole(), ports.HasuraConsoleAPI(), debug)
+				consoleP = consoleCmd.Process
+				err = consoleCmd.Start()
+				if err != nil && ctx.Err() != context.Canceled {
+					return err
+				}
+
+				err = consoleWaiter(ctx, mgr.HasuraConsoleURL(), 10*time.Second)
+				if err != nil {
+					// if console isn't reachable return the error which will cause another retry
+					if consoleP != nil {
+						_ = consoleP.Kill()
+						_ = consoleCmd.Wait()
+					}
+					return err
+				}
+
+				return nil
 			})
 
 			if ctx.Err() == context.Canceled {
@@ -204,6 +213,37 @@ var devCmd = &cobra.Command{
 
 		return nil
 	},
+}
+
+func getPorts(fs *flag.FlagSet) (nhost.Ports, error) {
+	var proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort uint32
+	var err error
+
+	if proxyPort, err = fs.GetUint32(nhost.PortProxy); err != nil {
+		return nil, err
+	}
+
+	if dbPort, err = fs.GetUint32(nhost.PortDB); err != nil {
+		return nil, err
+	}
+
+	if graphqlPort, err = fs.GetUint32(nhost.PortGraphQL); err != nil {
+		return nil, err
+	}
+
+	if hasuraConsolePort, err = fs.GetUint32(nhost.PortHasuraConsole); err != nil {
+		return nil, err
+	}
+
+	if hasuraConsoleApiPort, err = fs.GetUint32(nhost.PortHasuraConsoleAPI); err != nil {
+		return nil, err
+	}
+
+	if smtpPort, err = fs.GetUint32(nhost.PortSMTP); err != nil {
+		return nil, err
+	}
+
+	return nhost.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort), nil
 }
 
 type Printer struct {
@@ -267,10 +307,11 @@ func (p *Printer) close() {
 func init() {
 	rootCmd.AddCommand(devCmd)
 
-	//  Here you will define your flags and configuration settings.
-
-	//  Cobra supports Persistent Flags which will work for this command
-	//  and all subcommands, e.g.:
-	devCmd.PersistentFlags().StringVarP(&proxyPort, "port", "p", "1337", "Port for dev proxy")
+	devCmd.PersistentFlags().Uint32P(nhost.PortProxy, "p", defaultProxyPort, "Port for dev proxy")
+	devCmd.PersistentFlags().Uint32(nhost.PortDB, defaultDBPort, "Port for database")
+	devCmd.PersistentFlags().Uint32(nhost.PortGraphQL, defaultGraphQLPort, "Port for graphql server")
+	devCmd.PersistentFlags().Uint32(nhost.PortHasuraConsole, defaultHasuraConsolePort, "Port for hasura console")
+	devCmd.PersistentFlags().Uint32(nhost.PortHasuraConsoleAPI, defaultHasuraConsoleApiPort, "Port for serving hasura migrate API")
+	devCmd.PersistentFlags().Uint32(nhost.PortSMTP, defaultSMTPPort, "Port for smtp server")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
 }

@@ -76,15 +76,7 @@ var (
 			util.Init(util.Config{Writer: status})
 			nhost.Init()
 
-			// if not "init" command, create directories if they don't exist
-			if initCmd.Name() != cmd.Name() {
-				err := nhost.InitLocations()
-				if err != nil {
-					return err
-				}
-			}
-
-			if !util.PathExists(filepath.Join(util.WORKING_DIR, ".nhost/project_name")) {
+			if initCmd.Name() != cmd.Name() && !util.PathExists(filepath.Join(util.WORKING_DIR, ".nhost/project_name")) {
 				rand.Seed(time.Now().UnixNano())
 				randomName := strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-")
 				if err := nhost.SetDockerComposeProjectName(randomName); err != nil {

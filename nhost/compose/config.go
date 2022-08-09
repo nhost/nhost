@@ -20,9 +20,14 @@ const (
 	SvcMinio         = "minio"
 	SvcMailhog       = "mailhog"
 	SvcHasura        = "hasura"
-	SvcHasuraConsole = "hasura-console"
 	SvcTraefik       = "traefik"
 	SvcGraphqlEngine = "graphql-engine"
+	// --
+
+	// container ports
+	graphqlPort = 8080
+	dbPort      = 5432
+	proxyPort   = 1337
 	// --
 
 	// data directory names
@@ -83,7 +88,7 @@ type Config struct {
 	composeConfig      *types.Config
 	composeProjectName string
 	dotenv             []string // environment variables from .env file
-	ports              Ports
+	ports              nhost.Ports
 }
 
 // HasuraCliVersion extracts version from Hasura CLI docker image. That allows us to keep the same version of Hasura CLI
@@ -97,10 +102,7 @@ func HasuraCliVersion() (string, error) {
 	return s[1], nil
 }
 
-func NewConfig(conf *nhost.Configuration, p Ports, env []string, gitBranch, projectName string) *Config {
-	if p == nil {
-		p = DefaultPorts()
-	}
+func NewConfig(conf *nhost.Configuration, p nhost.Ports, env []string, gitBranch, projectName string) *Config {
 	return &Config{nhostConfig: conf, ports: p, dotenv: env, gitBranch: gitBranch, composeProjectName: projectName}
 }
 
@@ -175,27 +177,23 @@ func (c Config) postgresConnectionString() string {
 	password := postgresEnv[envPostgresPassword]
 	db := postgresEnv[envPostgresDb]
 
-	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", user, password, SvcPostgres, svcPostgresDefaultPort, db)
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", user, password, SvcPostgres, dbPort, db)
 }
 
 func (c Config) PublicHasuraConnectionString() string {
-	return fmt.Sprintf("http://localhost:%d/v1/graphql", c.ports[SvcTraefik])
+	return fmt.Sprintf("http://localhost:%d/v1/graphql", c.ports.Proxy())
 }
 
 func (c Config) PublicAuthConnectionString() string {
-	return fmt.Sprintf("http://localhost:%d/v1/auth", c.ports[SvcTraefik])
+	return fmt.Sprintf("http://localhost:%d/v1/auth", c.ports.Proxy())
 }
 
 func (c Config) PublicStorageConnectionString() string {
-	return fmt.Sprintf("http://localhost:%d/v1/storage", c.ports[SvcTraefik])
+	return fmt.Sprintf("http://localhost:%d/v1/storage", c.ports.Proxy())
 }
 
 func (c Config) PublicFunctionsConnectionString() string {
-	return fmt.Sprintf("http://localhost:%d/v1/functions", c.ports[SvcTraefik])
-}
-
-func (c Config) PublicHasuraConsole() string {
-	return fmt.Sprintf("http://localhost:%d", c.ports[SvcHasuraConsole])
+	return fmt.Sprintf("http://localhost:%d/v1/functions", c.ports.Proxy())
 }
 
 func (c Config) PublicPostgresConnectionString() string {
@@ -204,7 +202,7 @@ func (c Config) PublicPostgresConnectionString() string {
 	password := postgresEnv[envPostgresPassword]
 	db := postgresEnv[envPostgresDb]
 
-	return fmt.Sprintf("postgres://%s:%s@localhost:%d/%s", user, password, c.ports[SvcPostgres], db)
+	return fmt.Sprintf("postgres://%s:%s@localhost:%d/%s", user, password, c.ports.DB(), db)
 }
 
 func (c Config) mailhogServiceEnvs() env {
@@ -249,7 +247,7 @@ func (c Config) mailhogService() *types.ServiceConfig {
 			{
 				Mode:      "ingress",
 				Target:    1025,
-				Published: fmt.Sprint(c.ports[SvcMailhog]),
+				Published: fmt.Sprint(c.ports.SMTP()),
 				Protocol:  "tcp",
 			},
 			{
@@ -503,7 +501,7 @@ func (c Config) authService() *types.ServiceConfig {
 }
 
 func (c Config) envValueNhostBackendUrl() string {
-	return "http://traefik:1337"
+	return fmt.Sprintf("http://traefik:%d", proxyPort)
 }
 
 func (c Config) envValueHasuraGraphqlJwtSecret() string {
@@ -511,7 +509,7 @@ func (c Config) envValueHasuraGraphqlJwtSecret() string {
 }
 
 func (c Config) hasuraEndpoint() string {
-	return fmt.Sprintf("http://graphql-engine:%d/v1", svcHasuraDefaultPort)
+	return fmt.Sprintf("http://graphql-engine:%d/v1", graphqlPort)
 }
 
 func (c Config) hasuraServiceEnvs() env {
@@ -552,8 +550,8 @@ func (c Config) hasuraService() *types.ServiceConfig {
 		Ports: []types.ServicePortConfig{
 			{
 				Mode:      "ingress",
-				Target:    svcHasuraDefaultPort,
-				Published: fmt.Sprint(c.ports[SvcGraphqlEngine]),
+				Target:    graphqlPort,
+				Published: fmt.Sprint(c.ports.GraphQL()),
 				Protocol:  "tcp",
 			},
 		},
@@ -615,21 +613,15 @@ func (c Config) postgresService() *types.ServiceConfig {
 		Ports: []types.ServicePortConfig{
 			{
 				Mode:      "ingress",
-				Target:    svcPostgresDefaultPort,
-				Published: fmt.Sprint(c.ports[SvcPostgres]),
+				Target:    dbPort,
+				Published: fmt.Sprint(c.ports.DB()),
 				Protocol:  "tcp",
 			},
 		},
 	}
 }
 
-func (c Config) serverPort() uint32 {
-	return c.ports[SvcTraefik]
-}
-
 func (c Config) traefikService() *types.ServiceConfig {
-	port := c.serverPort()
-
 	return &types.ServiceConfig{
 		Name:    SvcTraefik,
 		Image:   c.serviceDockerImage(SvcTraefik, svcTraefikDefaultImage),
@@ -637,8 +629,8 @@ func (c Config) traefikService() *types.ServiceConfig {
 		Ports: []types.ServicePortConfig{
 			{
 				Mode:      "ingress",
-				Target:    serverDefaultPort,
-				Published: fmt.Sprint(port),
+				Target:    proxyPort,
+				Published: fmt.Sprint(c.ports.Proxy()),
 				Protocol:  "tcp",
 			},
 			{
@@ -660,7 +652,7 @@ func (c Config) traefikService() *types.ServiceConfig {
 			"--providers.docker=true",
 			"--providers.docker.exposedbydefault=false",
 			fmt.Sprintf("--providers.docker.constraints=Label(`com.docker.compose.project`,`%s`)", c.composeProjectName),
-			fmt.Sprintf("--entrypoints.web.address=:%d", serverDefaultPort),
+			fmt.Sprintf("--entrypoints.web.address=:%d", proxyPort),
 		},
 	}
 }

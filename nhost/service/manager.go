@@ -19,12 +19,6 @@ import (
 	"time"
 )
 
-type Ports struct {
-	Console  int
-	GraphQL  int
-	Postgres int
-}
-
 const (
 	retryCount = 3
 )
@@ -37,7 +31,7 @@ type Manager interface {
 	HasuraConsoleURL() string
 }
 
-func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports compose.Ports, env []string, gitBranch string, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
+func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports nhost.Ports, env []string, gitBranch string, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
 	if gitBranch == "" {
 		gitBranch = "main"
 	}
@@ -58,7 +52,7 @@ func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports co
 
 type dockerComposeManager struct {
 	sync.Mutex
-	ports         compose.Ports
+	ports         nhost.Ports
 	hc            *hasura.Client
 	debug         bool
 	branch        string
@@ -133,7 +127,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 		}
 
 		if len(files) > 0 {
-			err = m.applyMigrations(ctx, ds)
+			err = m.applyMigrations(ctx)
 			if err != nil {
 				m.status.Error("Failed to apply migrations")
 				m.l.WithError(err).Debug("Failed to apply migrations")
@@ -154,7 +148,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 		}
 
 		if len(metaFiles) == 0 {
-			err = m.exportMetadata(ctx, ds)
+			err = m.exportMetadata(ctx)
 			if err != nil {
 				m.status.Error("Failed to export metadata")
 				m.l.WithError(err).Debug("Failed to export metadata")
@@ -162,7 +156,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 			}
 		}
 
-		err = m.applyMetadata(ctx, ds)
+		err = m.applyMetadata(ctx)
 		if err != nil {
 			m.status.Error("Failed to apply metadata")
 			m.l.WithError(err).Debug("Failed to apply metadata")
@@ -189,7 +183,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 	}
 
 	// seeds
-	err = m.applySeeds(ctx, ds)
+	err = m.applySeeds(ctx)
 	if err != nil && ctx.Err() != context.Canceled {
 		m.status.Error("Failed to apply seeds")
 		m.l.WithError(err).Debug("Failed to apply seeds")
@@ -211,7 +205,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) HasuraConsoleURL() string {
-	return m.composeConfig.PublicHasuraConsole()
+	return fmt.Sprintf("http://localhost:%d", m.ports.HasuraConsole())
 }
 
 func (m *dockerComposeManager) svcEndpoints() error {
@@ -221,7 +215,7 @@ func (m *dockerComposeManager) svcEndpoints() error {
 	fmt.Printf("- Auth:\t\t\t%s\n", m.composeConfig.PublicAuthConnectionString())
 	fmt.Printf("- Storage:\t\t%s\n", m.composeConfig.PublicStorageConnectionString())
 	fmt.Printf("- Functions:\t\t%s\n", m.composeConfig.PublicFunctionsConnectionString())
-	fmt.Printf("\n- Hasura console:\t%s\n", m.composeConfig.PublicHasuraConsole())
+	fmt.Printf("\n- Hasura console:\t%s\n", m.HasuraConsoleURL())
 	return nil
 }
 
@@ -289,7 +283,7 @@ func (m *dockerComposeManager) waitForServicesToBeRunningHealthy(ctx context.Con
 }
 
 // applySeeds applies seeds if they were not applied
-func (m *dockerComposeManager) applySeeds(ctx context.Context, ds *compose.DataStreams) error {
+func (m *dockerComposeManager) applySeeds(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		return nil
@@ -318,7 +312,7 @@ func (m *dockerComposeManager) applySeeds(ctx context.Context, ds *compose.DataS
 	return ioutil.WriteFile(seedsFlagFile, []byte{}, 0644)
 }
 
-func (m *dockerComposeManager) applyMigrations(ctx context.Context, ds *compose.DataStreams) error {
+func (m *dockerComposeManager) applyMigrations(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		return nil
@@ -346,7 +340,7 @@ func (m *dockerComposeManager) setProcessToStartInItsOwnProcessGroup(cmd *exec.C
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 }
 
-func (m *dockerComposeManager) exportMetadata(ctx context.Context, ds *compose.DataStreams) error {
+func (m *dockerComposeManager) exportMetadata(ctx context.Context) error {
 	m.status.Executing("Exporting metadata...")
 	err := retry.Do(func() error {
 		m.l.Debug("Exporting metadata")
@@ -363,7 +357,7 @@ func (m *dockerComposeManager) exportMetadata(ctx context.Context, ds *compose.D
 	return err
 }
 
-func (m *dockerComposeManager) applyMetadata(ctx context.Context, ds *compose.DataStreams) error {
+func (m *dockerComposeManager) applyMetadata(ctx context.Context) error {
 	m.status.Executing("Applying metadata...")
 	err := retry.Do(func() error {
 		m.l.Debug("Applying metadata")
@@ -381,9 +375,8 @@ func (m *dockerComposeManager) applyMetadata(ctx context.Context, ds *compose.Da
 }
 
 func (m *dockerComposeManager) hasuraHealthcheck() (bool, error) {
-	graphqlPort := m.ports[compose.SvcGraphqlEngine]
 	// GET /healthz and check for 200
-	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/healthz", graphqlPort))
+	resp, err := http.Get(fmt.Sprintf("http://localhost:%d/healthz", m.ports.GraphQL()))
 	if err != nil {
 		return false, err
 	}
