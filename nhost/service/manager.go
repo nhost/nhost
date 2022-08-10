@@ -119,6 +119,20 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 		return nil
 	}
 
+	m.status.Executing("Waiting for all containers to be up and running...")
+	m.l.Debug("Waiting for all containers to be up and running")
+	// run all & wait for healthy/running services
+	err = m.waitForServicesToBeRunningHealthy(ctx, ds)
+	if err != nil && ctx.Err() != context.Canceled {
+		m.status.Error(err.Error())
+		m.l.WithError(err).Debug("Failed to wait for services")
+		return err
+	}
+
+	if ctx.Err() == context.Canceled {
+		return nil
+	}
+
 	// migrations
 	{
 		files, err := os.ReadDir(nhost.MIGRATIONS_DIR)
@@ -162,20 +176,6 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 			m.l.WithError(err).Debug("Failed to apply metadata")
 			return err
 		}
-	}
-
-	if ctx.Err() == context.Canceled {
-		return nil
-	}
-
-	m.status.Executing("Waiting for all containers to be up and running...")
-	m.l.Debug("Waiting for all containers to be up and running")
-	// run all & wait for healthy/running services
-	err = m.waitForServicesToBeRunningHealthy(ctx, ds)
-	if err != nil && ctx.Err() != context.Canceled {
-		m.status.Error(err.Error())
-		m.l.WithError(err).Debug("Failed to wait for services")
-		return err
 	}
 
 	if ctx.Err() == context.Canceled {
