@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -33,6 +34,10 @@ func GetDockerComposeProjectName() (string, error) {
 }
 
 func SetDockerComposeProjectName(name string) error {
+	if err := os.MkdirAll(DOT_NHOST_DIR, os.ModePerm); err != nil {
+		return err
+	}
+
 	return ioutil.WriteFile(filepath.Join(DOT_NHOST_DIR, "project_name"), []byte(name), 0644)
 }
 
