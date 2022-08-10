@@ -87,6 +87,9 @@ func (config *Configuration) Save() error {
 }
 
 func Env() ([]string, error) {
+	if !util.PathExists(ENV_FILE) {
+		return []string{}, nil
+	}
 
 	data, err := ioutil.ReadFile(ENV_FILE)
 	if err != nil {
@@ -96,7 +99,6 @@ func Env() ([]string, error) {
 	pairs := gotenv.Parse(strings.NewReader(string(data)))
 	envs := []string{}
 
-	//  split := strings.Split(string(data), "\n")
 	for key, value := range pairs {
 		envs = append(envs, fmt.Sprintf("%v=%v", key, value))
 	}
