@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
 	"os/exec"
@@ -30,6 +29,7 @@ type Client struct {
 	CLI                    string
 	CommonOptions          []string
 	CommonOptionsWithoutDB []string
+	console                *console
 }
 
 func (r *RequestBody) Marshal() ([]byte, error) {
@@ -89,6 +89,8 @@ func (c *Client) Init(endpoint, adminSecret string, client HttpDoer) error {
 		"--skip-update-check",
 	}
 
+	c.console = initConsole(c.CLI, nhost.NHOST_DIR, c.Endpoint, c.AdminSecret)
+
 	if client == nil {
 		c.Client = &http.Client{}
 	} else {
@@ -98,14 +100,12 @@ func (c *Client) Init(endpoint, adminSecret string, client HttpDoer) error {
 	return nil
 }
 
-func (c *Client) RunConsoleCmd(ctx context.Context, consolePort, consoleAPIPort uint32, debug bool) *exec.Cmd {
-	args := append([]string{"console", "--no-browser", "--console-port", fmt.Sprint(consolePort), "--api-port", fmt.Sprint(consoleAPIPort)}, c.CommonOptionsWithoutDB...)
-	cmd := exec.CommandContext(ctx, c.CLI, args...)
-	cmd.Dir = nhost.NHOST_DIR
-	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
-	setCmdDebugStreams(cmd, debug)
+func (c *Client) StartConsole(ctx context.Context, consolePort, consoleAPIPort uint32, debug bool) error {
+	return c.console.start(ctx, consolePort, consoleAPIPort, debug)
+}
 
-	return cmd
+func (c *Client) StopConsole() error {
+	return c.console.stop()
 }
 
 func (c *Client) ApplyMetadata(ctx context.Context, debug bool) error {

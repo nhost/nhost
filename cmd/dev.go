@@ -34,7 +34,6 @@ import (
 	flag "github.com/spf13/pflag"
 	"net/http"
 	"os"
-	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"strconv"
@@ -96,8 +95,6 @@ var devCmd = &cobra.Command{
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		var mgr service.Manager
-		var consoleP *os.Process
-		var consoleCmd *exec.Cmd
 
 		defer func() {
 			// remove pid file
@@ -155,20 +152,14 @@ var devCmd = &cobra.Command{
 				}
 
 				// start the console
-				consoleCmd = hc.RunConsoleCmd(ctx, ports.HasuraConsole(), ports.HasuraConsoleAPI(), debug)
-				consoleP = consoleCmd.Process
-				err = consoleCmd.Start()
+				err = hc.StartConsole(ctx, ports.HasuraConsole(), ports.HasuraConsoleAPI(), debug)
 				if err != nil && ctx.Err() != context.Canceled {
 					return err
 				}
 
 				err = consoleWaiter(ctx, mgr.HasuraConsoleURL(), 10*time.Second)
 				if err != nil {
-					// if console isn't reachable return the error which will cause another retry
-					if consoleP != nil {
-						_ = consoleP.Kill()
-						_ = consoleCmd.Wait()
-					}
+					_ = hc.StopConsole()
 					return err
 				}
 
@@ -200,11 +191,7 @@ var devCmd = &cobra.Command{
 		status.Executing("Exiting...")
 		log.Debug("Exiting...")
 		err = mgr.SyncExec(exitCtx, func(ctx context.Context) error {
-			if consoleP != nil {
-				_ = consoleP.Kill()
-				// Wait releases any resources associated with the command
-				_ = consoleCmd.Wait()
-			}
+			_ = hc.StopConsole()
 			return mgr.Stop(exitCtx)
 		})
 		if err != nil {
