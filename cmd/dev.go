@@ -48,7 +48,7 @@ import (
 
 var (
 	//  signal interruption channel
-	stop = make(chan os.Signal, 1)
+	stopCh = make(chan os.Signal, 1)
 )
 
 const (
@@ -129,7 +129,7 @@ var devCmd = &cobra.Command{
 		debug := logger.DEBUG
 		mgr = service.NewDockerComposeManager(config, hc, ports, env, nhost.GetCurrentBranch(), projectName, log, status, debug)
 
-		signal.Notify(stop, syscall.SIGINT, syscall.SIGTERM)
+		signal.Notify(stopCh, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
 			err = mgr.SyncExec(ctx, func(ctx context.Context) error {
@@ -182,7 +182,7 @@ var devCmd = &cobra.Command{
 		}()
 
 		// wait for stop signal
-		<-stop
+		<-stopCh
 		cancel()
 
 		exitCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
