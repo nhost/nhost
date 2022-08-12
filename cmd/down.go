@@ -29,12 +29,10 @@ import (
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"syscall"
-	"time"
 )
 
 //  devCmd represents the dev command
@@ -58,7 +56,11 @@ var downCmd = &cobra.Command{
 			return nil
 		}
 
-		d, err := ioutil.ReadFile(pidFile)
+		defer func() {
+			_ = os.Remove(pidFile)
+		}()
+
+		d, err := os.ReadFile(pidFile)
 		if err != nil {
 			status.Errorln(err.Error())
 			return err
@@ -71,31 +73,6 @@ var downCmd = &cobra.Command{
 		}
 
 		_ = syscall.Kill(pid, syscall.SIGINT)
-
-		// check if process is still running
-		ticker := time.NewTicker(time.Second)
-		timeout := time.After(2 * time.Minute)
-		for range ticker.C {
-			select {
-			case <-timeout:
-				status.Errorln("Timeout waiting for process to stop")
-				os.Exit(1)
-			default:
-				err = syscall.Kill(pid, syscall.Signal(0))
-				if err != nil {
-					// check if process is still running
-					if err == syscall.ESRCH {
-						status.Infoln("Process stopped")
-						// remove the pid file
-						_ = os.Remove(pidFile)
-						return nil
-					}
-
-					status.Errorln(err.Error())
-				}
-			}
-		}
-
 		return nil
 	},
 }

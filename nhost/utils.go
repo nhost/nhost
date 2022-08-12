@@ -38,7 +38,7 @@ func SetDockerComposeProjectName(name string) error {
 		return err
 	}
 
-	return ioutil.WriteFile(filepath.Join(DOT_NHOST_DIR, "project_name"), []byte(name), 0644)
+	return ioutil.WriteFile(filepath.Join(DOT_NHOST_DIR, "project_name"), []byte(name), 0600)
 }
 
 func GetCurrentBranch() string {

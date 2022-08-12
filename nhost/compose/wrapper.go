@@ -26,7 +26,7 @@ func WrapperCmd(ctx context.Context, args []string, conf *Config, streams *DataS
 	configFilename := filepath.Join(nhost.DOT_NHOST_DIR, "docker-compose.json")
 
 	// write data to a docker-compose.yml file
-	err = os.WriteFile(configFilename, dockerComposeConfig, 0644)
+	err = os.WriteFile(configFilename, dockerComposeConfig, 0600)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not write docker-compose.yml file")
 	}

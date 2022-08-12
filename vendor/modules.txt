@@ -16,9 +16,6 @@ cloud.google.com/go/iam
 cloud.google.com/go/storage
 cloud.google.com/go/storage/internal
 cloud.google.com/go/storage/internal/apiv2
-# github.com/avast/retry-go/v4 v4.1.0
-## explicit; go 1.13
-github.com/avast/retry-go/v4
 # github.com/aws/aws-sdk-go v1.44.25
 ## explicit; go 1.11
 github.com/aws/aws-sdk-go/aws

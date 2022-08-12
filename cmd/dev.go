@@ -32,11 +32,8 @@ import (
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost/service"
 	flag "github.com/spf13/pflag"
-	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
-	"strconv"
 	"syscall"
 	"text/tabwriter"
 	"time"
@@ -48,7 +45,8 @@ import (
 
 var (
 	//  signal interruption channel
-	stopCh = make(chan os.Signal, 1)
+	stopCh   = make(chan os.Signal, 1)
+	exitCode = 0
 )
 
 const (
@@ -76,32 +74,9 @@ var devCmd = &cobra.Command{
 			return errors.New("app not found in this directory")
 		}
 
-		// check if pid file exists
-		pidFile := filepath.Join(nhost.DOT_NHOST_DIR, "pid")
-		if util.PathExists(pidFile) {
-			status.Infoln("Another instance of nhost seems to be running. Please stop it first with 'nhost down'")
-			return fmt.Errorf("another instance of nhost seems to be running, please stop it first with 'nhost down'")
-		}
-
-		// write pid file
-		pid := os.Getpid()
-		err := os.WriteFile(pidFile, []byte(strconv.Itoa(pid)), 0644)
-		if err != nil {
-			status.Error("Failed to write pid file")
-			return err
-		}
-
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var mgr service.Manager
-
-		defer func() {
-			// remove pid file
-			pidFile := filepath.Join(nhost.DOT_NHOST_DIR, "pid")
-			_ = os.Remove(pidFile)
-		}()
-
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
 
@@ -125,46 +100,29 @@ var devCmd = &cobra.Command{
 			return fmt.Errorf("failed to get ports: %v", err)
 		}
 
-		hc, err := hasura.InitClient(fmt.Sprintf("http://localhost:%d", ports.GraphQL()), util.ADMIN_SECRET, nil)
 		debug := logger.DEBUG
-		mgr = service.NewDockerComposeManager(config, hc, ports, env, nhost.GetCurrentBranch(), projectName, log, status, debug)
+		hc, err := hasura.InitClient(fmt.Sprintf("http://localhost:%d", ports.GraphQL()), util.ADMIN_SECRET, nil)
+		if err != nil {
+			return fmt.Errorf("failed to init hasura client: %v", err)
+		}
+
+		launcher := service.NewLauncher(
+			service.NewDockerComposeManager(config, hc, ports, env, nhost.GetCurrentBranch(),
+				projectName,
+				log,
+				status,
+				debug,
+			),
+			hc, ports, status, log)
+
+		if err = launcher.Init(); err != nil {
+			return err
+		}
 
 		signal.Notify(stopCh, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
-			err = mgr.SyncExec(ctx, func(ctx context.Context) error {
-				startCtx, cancel := context.WithTimeout(ctx, time.Minute*3)
-				defer cancel()
-
-				// stop just in case there are any leftover containers
-				err := mgr.Stop(ctx)
-				if err != nil {
-					return err
-				}
-
-				if err := ports.EnsurePortsAvailable(); err != nil {
-					return err
-				}
-
-				err = mgr.Start(startCtx)
-				if err != nil {
-					return err
-				}
-
-				// start the console
-				err = hc.StartConsole(ctx, ports.HasuraConsole(), ports.HasuraConsoleAPI(), debug)
-				if err != nil && ctx.Err() != context.Canceled {
-					return err
-				}
-
-				err = consoleWaiter(ctx, mgr.HasuraConsoleURL(), 10*time.Second)
-				if err != nil {
-					_ = hc.StopConsole()
-					return err
-				}
-
-				return nil
-			})
+			err = launcher.Start(ctx, debug)
 
 			if ctx.Err() == context.Canceled {
 				return
@@ -173,29 +131,31 @@ var devCmd = &cobra.Command{
 			if err != nil {
 				status.Errorln("Failed to start services")
 				log.WithError(err).Error("Failed to start services")
-				os.Exit(1)
+				cancel()
+				exitCode = 1
+				return
 			}
 
 			if !noBrowser {
-				_ = openbrowser(mgr.HasuraConsoleURL())
+				_ = openbrowser(launcher.HasuraConsoleURL())
 			}
 		}()
 
-		// wait for stop signal
-		<-stopCh
-		cancel()
+		// handle cancellation or termination signals
+		select {
+		case <-ctx.Done():
+			cancel()
+			_ = launcher.Terminate(context.Background())
+			os.Exit(exitCode)
+		case <-stopCh:
+			cancel()
+			exitCtx, exitCancel := context.WithTimeout(context.Background(), 2*time.Minute)
+			defer exitCancel()
 
-		exitCtx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-		defer cancel()
+			status.Executing("Exiting...")
+			log.Debug("Exiting...")
 
-		status.Executing("Exiting...")
-		log.Debug("Exiting...")
-		err = mgr.SyncExec(exitCtx, func(ctx context.Context) error {
-			_ = hc.StopConsole()
-			return mgr.Stop(exitCtx)
-		})
-		if err != nil {
-			status.Errorln("Failed to stop services")
+			_ = launcher.Terminate(exitCtx)
 		}
 
 		return nil
@@ -242,32 +202,6 @@ func newPrinter() *Printer {
 	return &Printer{
 		Writer: t,
 	}
-}
-
-// consoleWaiter waits for the hasura console to be reachable
-func consoleWaiter(ctx context.Context, endpoint string, timeout time.Duration) error {
-	t := time.After(timeout)
-
-	ticker := time.NewTicker(100 * time.Millisecond)
-
-	for range ticker.C {
-		select {
-		case <-ctx.Done():
-			return nil
-		case <-t:
-			return fmt.Errorf("timeout: hasura console is not ready, please run the command again")
-		default:
-			resp, err := http.Get(endpoint)
-			if err == nil {
-				_ = resp.Body.Close()
-			}
-			if resp != nil && resp.StatusCode == http.StatusOK && err == nil {
-				return nil
-			}
-		}
-	}
-
-	return nil
 }
 
 func (p *Printer) print(loc, head, tail string) {

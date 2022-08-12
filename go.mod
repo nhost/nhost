@@ -3,7 +3,6 @@ module github.com/nhost/cli
 go 1.18
 
 require (
-	github.com/avast/retry-go/v4 v4.1.0
 	github.com/compose-spec/compose-go v1.2.7
 	github.com/docker/docker v20.10.16+incompatible
 	github.com/fsnotify/fsnotify v1.5.4

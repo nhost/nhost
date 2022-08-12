@@ -1,12 +1,14 @@
 package nhost
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"runtime"
 	"strings"
 	"time"
@@ -16,6 +18,22 @@ import (
 
 	"gopkg.in/yaml.v2"
 )
+
+func RunCmdAndCaptureStderrIfNotSetup(cmd *exec.Cmd) error {
+	var errBuf *bytes.Buffer
+
+	if cmd.Stderr == nil {
+		errBuf = bytes.NewBuffer(nil)
+		cmd.Stderr = errBuf
+	}
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("%s\n%s", err, errBuf.String())
+	}
+
+	return nil
+}
 
 func (r *Project) MarshalYAML() ([]byte, error) {
 	return yaml.Marshal(r)

@@ -115,7 +115,7 @@ func (c *Client) ApplyMetadata(ctx context.Context, debug bool) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	setCmdDebugStreams(cmd, debug)
 
-	return cmd.Run()
+	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
 }
 
 func (c *Client) ApplyMigrations(ctx context.Context, debug bool) error {
@@ -125,7 +125,7 @@ func (c *Client) ApplyMigrations(ctx context.Context, debug bool) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	setCmdDebugStreams(cmd, debug)
 
-	return cmd.Run()
+	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
 }
 
 func (c *Client) ApplySeed(ctx context.Context, debug bool) error {
@@ -135,7 +135,7 @@ func (c *Client) ApplySeed(ctx context.Context, debug bool) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	setCmdDebugStreams(cmd, debug)
 
-	return cmd.Run()
+	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
 }
 
 func (c *Client) ExportMetadata(ctx context.Context, debug bool) error {
@@ -145,7 +145,7 @@ func (c *Client) ExportMetadata(ctx context.Context, debug bool) error {
 	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	setCmdDebugStreams(cmd, debug)
 
-	return cmd.Run()
+	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
 }
 
 func setCmdDebugStreams(cmd *exec.Cmd, debug bool) {

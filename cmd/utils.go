@@ -43,6 +43,6 @@ func writeToFile(filePath, data, position string) error {
 	}
 
 	//  write the data to the file
-	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0644)
+	err = ioutil.WriteFile(filePath, buffer.Bytes(), 0600)
 	return err
 }
