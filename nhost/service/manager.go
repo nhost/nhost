@@ -153,6 +153,7 @@ func (m *dockerComposeManager) Endpoints() *Endpoints {
 		m.composeConfig.PublicStorageConnectionString(),
 		m.composeConfig.PublicFunctionsConnectionString(),
 		m.HasuraConsoleURL(),
+		fmt.Sprintf("http://localhost:%d", m.ports.Mailhog()),
 	)
 }
 
