@@ -57,6 +57,8 @@ const (
 	defaultHasuraConsolePort    = 9695
 	defaultHasuraConsoleApiPort = 9693
 	defaultSMTPPort             = 1025
+	defaultS3MinioPort          = 9000
+	defaultMailhogPort          = 8025
 )
 
 //  devCmd represents the dev command
@@ -163,7 +165,7 @@ var devCmd = &cobra.Command{
 }
 
 func getPorts(fs *flag.FlagSet) (nhost.Ports, error) {
-	var proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort uint32
+	var proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort uint32
 	var err error
 
 	if proxyPort, err = fs.GetUint32(nhost.PortProxy); err != nil {
@@ -190,7 +192,15 @@ func getPorts(fs *flag.FlagSet) (nhost.Ports, error) {
 		return nil, err
 	}
 
-	return nhost.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort), nil
+	if minioS3Port, err = fs.GetUint32(nhost.PortMinioS3); err != nil {
+		return nil, err
+	}
+
+	if mailhogPort, err = fs.GetUint32(nhost.PortMailhog); err != nil {
+		return nil, err
+	}
+
+	return nhost.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort), nil
 }
 
 type Printer struct {
@@ -234,5 +244,7 @@ func init() {
 	devCmd.PersistentFlags().Uint32(nhost.PortHasuraConsole, defaultHasuraConsolePort, "Port for hasura console")
 	devCmd.PersistentFlags().Uint32(nhost.PortHasuraConsoleAPI, defaultHasuraConsoleApiPort, "Port for serving hasura migrate API")
 	devCmd.PersistentFlags().Uint32(nhost.PortSMTP, defaultSMTPPort, "Port for smtp server")
+	devCmd.PersistentFlags().Uint32(nhost.PortMinioS3, defaultS3MinioPort, "S3 port for minio")
+	devCmd.PersistentFlags().Uint32(nhost.PortMailhog, defaultMailhogPort, "Port for mailhog UI")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
 }

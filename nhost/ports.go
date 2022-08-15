@@ -12,11 +12,13 @@ const (
 	PortHasuraConsole    = "console-port"
 	PortHasuraConsoleAPI = "console-api-port"
 	PortSMTP             = "smtp-port"
+	PortMinioS3          = "minio-s3-port"
+	PortMailhog          = "mailhog-port"
 )
 
 type Ports map[string]uint32
 
-func NewPorts(proxyPort, dbPort, graphqlPort, consolePort, consoleAPIPort, smtpPort uint32) Ports {
+func NewPorts(proxyPort, dbPort, graphqlPort, consolePort, consoleAPIPort, smtpPort, minioS3Port, mailhogPort uint32) Ports {
 	return Ports{
 		PortProxy:            proxyPort,
 		PortDB:               dbPort,
@@ -24,6 +26,8 @@ func NewPorts(proxyPort, dbPort, graphqlPort, consolePort, consoleAPIPort, smtpP
 		PortHasuraConsole:    consolePort,
 		PortHasuraConsoleAPI: consoleAPIPort,
 		PortSMTP:             smtpPort,
+		PortMinioS3:          minioS3Port,
+		PortMailhog:          mailhogPort,
 	}
 }
 
@@ -59,6 +63,14 @@ func (p Ports) HasuraConsoleAPI() uint32 {
 
 func (p Ports) SMTP() uint32 {
 	return p.get(PortSMTP)
+}
+
+func (p Ports) MinioS3() uint32 {
+	return p.get(PortMinioS3)
+}
+
+func (p Ports) Mailhog() uint32 {
+	return p.get(PortMailhog)
 }
 
 func (p Ports) get(name string) uint32 {

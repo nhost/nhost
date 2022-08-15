@@ -3,6 +3,7 @@ module github.com/nhost/cli
 go 1.18
 
 require (
+	github.com/aws/aws-sdk-go v1.44.25
 	github.com/compose-spec/compose-go v1.2.7
 	github.com/docker/docker v20.10.16+incompatible
 	github.com/fsnotify/fsnotify v1.5.4
@@ -26,7 +27,6 @@ require (
 	cloud.google.com/go/compute v1.6.1 // indirect
 	cloud.google.com/go/iam v0.3.0 // indirect
 	cloud.google.com/go/storage v1.22.1 // indirect
-	github.com/aws/aws-sdk-go v1.44.25 // indirect
 	github.com/bgentry/go-netrc v0.0.0-20140422174119-9fd32a8b3d3d // indirect
 	github.com/chzyer/readline v1.5.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect

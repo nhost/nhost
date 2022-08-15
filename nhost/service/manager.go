@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/nhost/cli/aws/s3client"
 	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/nhost/compose"
@@ -91,6 +92,10 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 		return err
 	}
 
+	if err := m.ensureBucketExists(ctx); err != nil {
+		return err
+	}
+
 	// migrations
 	if err := m.applyMigrations(ctx); err != nil {
 		return err
@@ -103,6 +108,18 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 
 	// seeds
 	return m.applySeeds(ctx)
+}
+
+func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
+	const bucketName = "nhost"
+
+	client, err := s3client.NewForMinio(nhost.MINIO_USER, nhost.MINIO_PASSWORD, m.ports.MinioS3())
+	if err != nil {
+		return err
+	}
+
+	bucketCreator := s3client.NewBucketCreator(client)
+	return bucketCreator.EnsureBucketExists(ctx, bucketName)
 }
 
 func (m *dockerComposeManager) startPostgresGraphqlFunctions(ctx context.Context, ds *compose.DataStreams) error {

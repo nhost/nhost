@@ -72,12 +72,10 @@ const (
 	envPostgresData     = "PGDATA"
 
 	// default values for environment variables
-	envPostgresDbDefaultValue        = "postgres"
-	envPostgresUserDefaultValue      = "postgres"
-	envPostgresPasswordDefaultValue  = "postgres"
-	envPostgresDataDefaultValue      = "/var/lib/postgresql/data/pgdata"
-	envMinioRootUserDefaultValue     = "minioaccesskey123123"
-	envMinioRootPasswordDefaultValue = "minioaccesskey123123"
+	envPostgresDbDefaultValue       = "postgres"
+	envPostgresUserDefaultValue     = "postgres"
+	envPostgresPasswordDefaultValue = "postgres"
+	envPostgresDataDefaultValue     = "/var/lib/postgresql/data/pgdata"
 
 	// --
 )
@@ -251,9 +249,10 @@ func (c Config) mailhogService() *types.ServiceConfig {
 				Protocol:  "tcp",
 			},
 			{
-				Mode:     "ingress",
-				Target:   8025,
-				Protocol: "tcp",
+				Mode:      "ingress",
+				Target:    8025,
+				Published: fmt.Sprint(c.ports.Mailhog()),
+				Protocol:  "tcp",
 			},
 		},
 		Volumes: []types.ServiceVolumeConfig{
@@ -268,8 +267,8 @@ func (c Config) mailhogService() *types.ServiceConfig {
 
 func (c Config) minioServiceEnvs() env {
 	e := env{
-		envMinioRootUser:     envMinioRootUserDefaultValue,
-		envMinioRootPassword: envMinioRootPasswordDefaultValue,
+		envMinioRootUser:     nhost.MINIO_USER,
+		envMinioRootPassword: nhost.MINIO_PASSWORD,
 	}
 	e.merge(c.serviceConfigEnvs(SvcMinio))
 	return e
@@ -298,9 +297,10 @@ func (c Config) minioService() *types.ServiceConfig {
 		Command:     []string{"server", "/data", "--address", "0.0.0.0:9000", "--console-address", "0.0.0.0:8484"},
 		Ports: []types.ServicePortConfig{
 			{
-				Mode:     "ingress",
-				Target:   9000,
-				Protocol: "tcp",
+				Mode:      "ingress",
+				Target:    9000,
+				Published: fmt.Sprint(c.ports.MinioS3()),
+				Protocol:  "tcp",
 			},
 			{
 				Mode:     "ingress",
