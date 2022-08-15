@@ -433,7 +433,7 @@ func (c *Configuration) Wrap() error {
 			}
 
 			if parsed.Services[name].Version == nil {
-				parsed.Services[name].Version = "v2.8.1"
+				parsed.Services[name].Version = "v2.10.0"
 			}
 
 			if parsed.Services[name].Image == "" {
