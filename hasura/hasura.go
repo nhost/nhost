@@ -52,7 +52,7 @@ func Binary() (string, error) {
 
 	binary := "hasura"
 
-	version := "v2.0.9"
+	version := "v2.10.1"
 
 	log.WithFields(logrus.Fields{
 		"type":    binary,
