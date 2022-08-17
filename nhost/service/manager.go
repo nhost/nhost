@@ -284,15 +284,8 @@ func (m *dockerComposeManager) exportMetadata(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) applyMetadata(ctx context.Context) error {
-	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
-	if err != nil {
+	if err := m.exportMetadata(ctx); err != nil {
 		return err
-	}
-
-	if len(metaFiles) == 0 {
-		if err := m.exportMetadata(ctx); err != nil {
-			return err
-		}
 	}
 
 	m.status.Executing("Applying metadata...")
