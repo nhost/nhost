@@ -142,7 +142,7 @@ func (m *dockerComposeManager) startPostgresGraphqlFunctions(ctx context.Context
 }
 
 func (m *dockerComposeManager) HasuraConsoleURL() string {
-	return fmt.Sprintf("http://localhost:%d", m.ports.HasuraConsole())
+	return fmt.Sprintf("http://localhost:%d", m.ports.Proxy())
 }
 
 func (m *dockerComposeManager) Endpoints() *Endpoints {
