@@ -123,7 +123,7 @@ func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) startPostgresGraphqlFunctions(ctx context.Context, ds *compose.DataStreams) error {
-	m.status.Executing("Starting nhost app...")
+	m.status.Executing("Starting local Nhost project...")
 	m.l.Debug("Starting docker compose")
 
 	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, m.composeConfig, ds)
