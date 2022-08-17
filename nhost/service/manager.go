@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 	"syscall"
 	"time"
@@ -111,6 +112,7 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
+	m.l.Debug("Ensuring S3 bucket exists")
 	const bucketName = "nhost"
 
 	client, err := s3client.NewForMinio(nhost.MINIO_USER, nhost.MINIO_PASSWORD, m.ports.MinioS3())
@@ -126,6 +128,7 @@ func (m *dockerComposeManager) startPostgresGraphqlFunctions(ctx context.Context
 	m.status.Executing("Starting local Nhost project...")
 	m.l.Debug("Starting docker compose")
 
+	m.l.Debugf("Starting %s containers...", strings.Join([]string{compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, ", "))
 	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, m.composeConfig, ds)
 	if err != nil {
 		if ctx.Err() != nil {
@@ -225,13 +228,16 @@ func (m *dockerComposeManager) waitForServicesToBeRunningHealthy(ctx context.Con
 
 // applySeeds applies seeds if they were not applied
 func (m *dockerComposeManager) applySeeds(ctx context.Context) error {
+	m.l.Debug("Checking if seeds should be applied")
 	if !util.PathExists(filepath.Join(nhost.SEEDS_DIR, nhost.DATABASE)) {
+		m.l.Debug("Seeds not found")
 		return nil
 	}
 
 	seedsFlagFile := filepath.Join(nhost.DOT_NHOST_DIR, "seeds.applied")
 
 	if util.PathExists(seedsFlagFile) {
+		m.l.Debug("Seeds already applied")
 		// seeds already applied
 		return nil
 	}
@@ -252,12 +258,14 @@ func (m *dockerComposeManager) applySeeds(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) applyMigrations(ctx context.Context) error {
+	m.l.Debug("Checking if migrations need to be applied")
 	files, err := os.ReadDir(nhost.MIGRATIONS_DIR)
 	if err != nil {
 		return err
 	}
 
 	if len(files) == 0 {
+		m.l.Debug("No migrations files found")
 		return nil
 	}
 
