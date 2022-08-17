@@ -438,6 +438,7 @@ func (c Config) authServiceEnvs() env {
 		"AUTH_HOST":                   "0.0.0.0",
 		"HASURA_GRAPHQL_DATABASE_URL": c.postgresConnectionString(),
 		"HASURA_GRAPHQL_GRAPHQL_URL":  fmt.Sprintf("%s/graphql", c.hasuraEndpoint()),
+		"AUTH_SERVER_URL":             c.PublicAuthConnectionString(),
 		"HASURA_GRAPHQL_JWT_SECRET":   c.envValueHasuraGraphqlJwtSecret(),
 		"HASURA_GRAPHQL_ADMIN_SECRET": util.ADMIN_SECRET,
 		"NHOST_ADMIN_SECRET":          util.ADMIN_SECRET,
