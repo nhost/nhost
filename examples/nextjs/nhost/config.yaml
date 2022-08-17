@@ -3,7 +3,7 @@ services:
   mailhog:
     port: 8025
   hasura:
-    version: v2.8.0
+    version: v2.10.1
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
