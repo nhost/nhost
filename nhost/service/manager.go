@@ -3,18 +3,20 @@ package service
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"sync"
-	"syscall"
-
 	"github.com/nhost/cli/aws/s3client"
 	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/nhost/compose"
 	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
+	"net/http"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"sync"
+	"syscall"
+	"time"
 )
 
 type Manager interface {
@@ -79,6 +81,14 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 
 	ds := &compose.DataStreams{}
 
+	if err := m.startPostgresGraphqlFunctions(ctx, ds); err != nil {
+		return err
+	}
+
+	if err := m.waitForGraphqlEngine(ctx, time.Millisecond*100, time.Minute*2); err != nil {
+		return err
+	}
+
 	// start all containers
 	if err := m.waitForServicesToBeRunningHealthy(ctx, ds); err != nil {
 		return err
@@ -119,6 +129,26 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 
 	// seeds
 	return m.applySeeds(ctx)
+}
+
+func (m *dockerComposeManager) startPostgresGraphqlFunctions(ctx context.Context, ds *compose.DataStreams) error {
+	m.status.Executing("Starting local Nhost project...")
+	m.l.Debug("Starting docker compose")
+
+	m.l.Debugf("Starting %s containers...", strings.Join([]string{compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, ", "))
+	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, m.composeConfig, ds)
+	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		m.status.Error("Failed to start nhost app")
+		m.l.WithError(err).Debug("Failed to start docker compose")
+		return err
+	}
+
+	m.setProcessToStartInItsOwnProcessGroup(cmd)
+	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
 }
 
 func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
@@ -282,6 +312,17 @@ func (m *dockerComposeManager) exportMetadata(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) applyMetadata(ctx context.Context) error {
+	metaFiles, err := os.ReadDir(nhost.METADATA_DIR)
+	if err != nil {
+		return err
+	}
+
+	if len(metaFiles) == 0 {
+		if err := m.exportMetadata(ctx); err != nil {
+			return err
+		}
+	}
+
 	m.status.Executing("Applying metadata...")
 	m.l.Debug("Applying metadata")
 
@@ -312,4 +353,46 @@ func (m *dockerComposeManager) restartContainers(ctx context.Context, ds *compos
 	}
 
 	return nil
+}
+
+func (m *dockerComposeManager) hasuraHealthcheck(ctx context.Context) (bool, error) {
+	// GET /healthz and check for 200
+	req, err := http.NewRequest("GET", fmt.Sprintf("http://localhost:%d/healthz", m.ports.GraphQL()), http.NoBody)
+	if err != nil {
+		return false, err
+	}
+
+	req = req.WithContext(ctx)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return false, err
+	}
+
+	_ = resp.Body.Close()
+
+	return resp.StatusCode == 200, nil
+}
+
+func (m *dockerComposeManager) waitForGraphqlEngine(ctx context.Context, interval, timeout time.Duration) error {
+	m.status.Executing("Waiting for graphql-engine service to be ready...")
+	m.l.Debug("Waiting for graphql-engine service to be ready")
+
+	t := time.After(timeout)
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		case <-t:
+			return fmt.Errorf("timeout: graphql-engine not ready, please run the command again")
+		case <-ticker.C:
+			if ok, err := m.hasuraHealthcheck(ctx); err == nil && ok {
+				return nil
+			}
+		}
+	}
 }
