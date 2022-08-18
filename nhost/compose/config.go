@@ -3,12 +3,13 @@ package compose
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/compose-spec/compose-go/types"
-	"github.com/nhost/cli/nhost"
-	"github.com/nhost/cli/util"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/compose-spec/compose-go/types"
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
 )
 
 const (

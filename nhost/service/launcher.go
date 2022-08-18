@@ -3,13 +3,14 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/nhost/cli/nhost"
-	"github.com/nhost/cli/util"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/util"
+	"github.com/sirupsen/logrus"
 )
 
 type Launcher struct {
