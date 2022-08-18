@@ -82,6 +82,9 @@ var devCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// add a line-break after the command
+		fmt.Println()
+
 		ctx, cancel := context.WithCancel(cmd.Context())
 		defer cancel()
 
