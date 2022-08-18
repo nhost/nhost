@@ -165,7 +165,7 @@ func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
 }
 
 func (m *dockerComposeManager) HasuraConsoleURL() string {
-	return fmt.Sprintf("http://localhost:%d", m.ports.Proxy())
+	return fmt.Sprintf("http://localhost:%d", m.ports.HasuraConsole())
 }
 
 func (m *dockerComposeManager) Endpoints() *Endpoints {

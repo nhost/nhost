@@ -45,27 +45,9 @@ func (l *Launcher) ensureInitialised() error {
 	return nil
 }
 
-func (l *Launcher) createTraefikConfig() error {
-	conf := fmt.Sprintf(`
-http:
-  services:
-    hasura-console:
-      loadBalancer:
-        servers:
-        - url: "http://host.docker.internal:%d"`, l.p.HasuraConsole())
-
-	filename := filepath.Join(nhost.DOT_NHOST_DIR, ".traefik-rules.yaml")
-
-	return os.WriteFile(filename, []byte(conf), 0600)
-}
-
 func (l *Launcher) Init() error {
 	p := newPidFile(filepath.Join(nhost.DOT_NHOST_DIR, "pid"))
 	if err := p.Create(); err != nil {
-		return err
-	}
-
-	if err := l.createTraefikConfig(); err != nil {
 		return err
 	}
 

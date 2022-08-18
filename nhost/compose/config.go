@@ -624,17 +624,9 @@ func (c Config) postgresService() *types.ServiceConfig {
 }
 
 func (c Config) traefikService() *types.ServiceConfig {
-	labels := map[string]string{
-		"traefik.enable": "true",
-		"traefik.http.routers.hasuraconsole.rule":        "PathPrefix(`/`)",
-		"traefik.http.routers.hasuraconsole.entrypoints": "web",
-		"traefik.http.routers.hasuraconsole.service":     "hasura-console@file",
-	}
-
 	return &types.ServiceConfig{
 		Name:    SvcTraefik,
 		Image:   c.serviceDockerImage(SvcTraefik, svcTraefikDefaultImage),
-		Labels:  labels,
 		Restart: types.RestartPolicyAlways,
 		Ports: []types.ServicePortConfig{
 			{
@@ -656,17 +648,10 @@ func (c Config) traefikService() *types.ServiceConfig {
 				Target:   "/var/run/docker.sock",
 				ReadOnly: true,
 			},
-			{
-				Type:   types.VolumeTypeBind,
-				Source: ".traefik-rules.yaml",
-				Target: "/etc/traefik/rules.yaml",
-			},
 		},
 		Command: []string{
 			"--api.insecure=true",
 			"--providers.docker=true",
-			"--providers.file.filename=/etc/traefik/rules.yaml",
-			"--providers.file.watch=true",
 			"--providers.docker.exposedbydefault=false",
 			fmt.Sprintf("--providers.docker.constraints=Label(`com.docker.compose.project`,`%s`)", c.composeProjectName),
 			fmt.Sprintf("--entrypoints.web.address=:%d", proxyPort),
