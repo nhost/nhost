@@ -30,6 +30,8 @@ import (
 	"fmt"
 	"os"
 	"os/signal"
+	"reflect"
+	"strings"
 	"syscall"
 	"text/tabwriter"
 	"time"
@@ -87,6 +89,8 @@ var devCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		configurationWarnings(config)
 
 		projectName, err := nhost.GetDockerComposeProjectName()
 		if err != nil {
@@ -248,4 +252,30 @@ func init() {
 	devCmd.PersistentFlags().Uint32(nhost.PortMinioS3, defaultS3MinioPort, "S3 port for minio")
 	devCmd.PersistentFlags().Uint32(nhost.PortMailhog, defaultMailhogPort, "Port for mailhog UI")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
+}
+
+func configurationWarnings(c *nhost.Configuration) {
+	// warn about deprecated fields
+	for name, svc := range c.Services {
+		if svc != nil && svc.Version != nil && svc.Version.(string) != "" {
+			fmt.Printf("WARNING: [services.%s.version] \"version\" field is not used anymore, please use \"image\" instead or let CLI use the default version\n", name)
+		}
+	}
+
+	// check auth smtp config
+	if smtp, ok := c.Auth["smtp"]; ok { //nolint:nestif
+		v := reflect.ValueOf(smtp)
+		if v.Kind() == reflect.Map {
+			for _, key := range v.MapKeys() {
+				if key.Interface().(string) != "host" {
+					continue
+				}
+
+				hostValue := v.MapIndex(key).Interface().(string)
+				if hostValue != "" && hostValue != "mailhog" && strings.Contains(hostValue, "mailhog") {
+					fmt.Printf("WARNING: [auth.smtp.host] \"host\" field has a value \"%s\", please set the value to \"mailhog\" if you want CLI to spin up a container for mail catching\n", hostValue)
+				}
+			}
+		}
+	}
 }

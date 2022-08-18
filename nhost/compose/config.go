@@ -106,7 +106,7 @@ func NewConfig(conf *nhost.Configuration, p nhost.Ports, env []string, gitBranch
 }
 
 func (c Config) serviceDockerImage(svcName, dockerImageFallback string) string {
-	if svcConf, ok := c.nhostConfig.Services[svcName]; ok {
+	if svcConf, ok := c.nhostConfig.Services[svcName]; ok && svcConf != nil {
 		if svcConf.Image != "" {
 			return svcConf.Image
 		}
@@ -119,7 +119,7 @@ func (c Config) serviceDockerImage(svcName, dockerImageFallback string) string {
 func (c *Config) serviceConfigEnvs(svc string) env {
 	e := env{}
 
-	if svcConf, ok := c.nhostConfig.Services[svc]; ok {
+	if svcConf, ok := c.nhostConfig.Services[svc]; ok && svcConf != nil {
 		e.mergeWithServiceEnv(svcConf.Environment)
 	}
 
@@ -221,7 +221,7 @@ func (c Config) mailhogServiceEnvs() env {
 }
 
 func (c Config) runMailhogService() bool {
-	if conf, ok := c.nhostConfig.Services[SvcMailhog]; ok {
+	if conf, ok := c.nhostConfig.Services[SvcMailhog]; ok && conf != nil {
 		if conf.NoContainer {
 			return false
 		}
@@ -276,7 +276,7 @@ func (c Config) minioServiceEnvs() env {
 }
 
 func (c Config) runMinioService() bool {
-	if conf, ok := c.nhostConfig.Services[SvcMinio]; ok {
+	if conf, ok := c.nhostConfig.Services[SvcMinio]; ok && conf != nil {
 		if conf.NoContainer {
 			return false
 		}
@@ -380,7 +380,7 @@ func (c Config) storageServiceEnvs() env {
 	minioEnv := c.minioServiceEnvs()
 	s3Endpoint := "http://minio:9000"
 
-	if minioConf, ok := c.nhostConfig.Services[SvcMinio]; ok {
+	if minioConf, ok := c.nhostConfig.Services[SvcMinio]; ok && minioConf != nil {
 		if minioConf.NoContainer {
 			s3Endpoint = minioConf.Address
 		}
