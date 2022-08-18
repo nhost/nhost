@@ -90,8 +90,6 @@ var devCmd = &cobra.Command{
 			return err
 		}
 
-		configurationWarnings(config)
-
 		projectName, err := nhost.GetDockerComposeProjectName()
 		if err != nil {
 			return err
@@ -146,6 +144,9 @@ var devCmd = &cobra.Command{
 			if !noBrowser {
 				_ = openbrowser(launcher.HasuraConsoleURL())
 			}
+
+			fmt.Println()
+			configurationWarnings(config)
 		}()
 
 		// handle cancellation or termination signals
