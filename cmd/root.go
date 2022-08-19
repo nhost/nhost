@@ -26,18 +26,14 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
-	"math/rand"
 	"os"
 	"path/filepath"
-	"strings"
-	"time"
 )
 
 const (
@@ -67,23 +63,12 @@ var (
   Documentation - https://docs.nhost.io
   `, Version),
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-
 			//  reset the umask before creating directories anywhere in this program
 			//  otherwise applied permissions, might get affected
 			//  resetUmask()
-
 			logger.Init()
 			util.Init(util.Config{Writer: status})
 			nhost.Init()
-
-			if initCmd.Name() != cmd.Name() && !util.PathExists(filepath.Join(util.WORKING_DIR, ".nhost/project_name")) {
-				rand.Seed(time.Now().UnixNano())
-				randomName := strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-")
-				if err := nhost.SetDockerComposeProjectName(randomName); err != nil {
-					status.Errorln("Failed to set project name")
-					return err
-				}
-			}
 
 			return nil
 		},

@@ -43,6 +43,9 @@ var composeCmd = &cobra.Command{
     nhost compose up -d
 `,
 	FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return nhost.EnsureProjectNameFileExists()
+	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// we override the args processed by cobra/pflag because we wanna use them as-is for docker compose
 		dcArgs := args

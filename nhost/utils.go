@@ -2,11 +2,19 @@ package nhost
 
 import (
 	"fmt"
+	"github.com/docker/docker/pkg/namesgenerator"
+	"github.com/nhost/cli/util"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
+)
+
+const (
+	projectNameFile = "project_name"
 )
 
 func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) []string {
@@ -25,20 +33,14 @@ func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) 
 }
 
 func GetDockerComposeProjectName() (string, error) {
-	data, err := ioutil.ReadFile(filepath.Join(DOT_NHOST_DIR, "project_name"))
+	projectNameFilename := filepath.Join(DOT_NHOST_DIR, projectNameFile)
+
+	data, err := ioutil.ReadFile(projectNameFilename)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("can't read file '%s' %v", projectNameFile, err)
 	}
 
 	return strings.TrimSpace(string(data)), nil
-}
-
-func SetDockerComposeProjectName(name string) error {
-	if err := os.MkdirAll(DOT_NHOST_DIR, os.ModePerm); err != nil {
-		return err
-	}
-
-	return ioutil.WriteFile(filepath.Join(DOT_NHOST_DIR, "project_name"), []byte(name), 0600)
 }
 
 func GetCurrentBranch() string {
@@ -59,4 +61,21 @@ func GetConfiguration() (*Configuration, error) {
 
 	err = yaml.Unmarshal(data, &c)
 	return &c, err
+}
+
+func EnsureProjectNameFileExists() error {
+	projectNameFilename := filepath.Join(DOT_NHOST_DIR, projectNameFile)
+
+	if !util.PathExists(projectNameFilename) {
+		rand.Seed(time.Now().UnixNano())
+		randomName := strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-")
+
+		if err := os.MkdirAll(DOT_NHOST_DIR, os.ModePerm); err != nil {
+			return err
+		}
+
+		return ioutil.WriteFile(projectNameFilename, []byte(randomName), 0600)
+	}
+
+	return nil
 }
