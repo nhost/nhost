@@ -70,7 +70,7 @@ func (s *Status) Errorln(text string) {
 func (s *Status) Fatal(text string) {
 	s.Error(text)
 	fmt.Println()
-	os.Exit(0)
+	os.Exit(1)
 }
 
 //	Change the status icon to success, and set the text

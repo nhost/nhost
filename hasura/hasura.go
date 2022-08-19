@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/hashicorp/go-version"
+	"github.com/nhost/cli/nhost/compose"
+	"github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,7 +21,6 @@ import (
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
-	"github.com/sirupsen/logrus"
 )
 
 //  initialize the binary path
@@ -34,29 +36,68 @@ func getBinary() string {
 	}
 }
 
+func cliIsOutdated(existingCliPath, expectedVersion string) (bool, error) {
+	expected, err := version.NewVersion(expectedVersion)
+	if err != nil {
+		return false, err
+	}
+
+	type hasuraVersion struct {
+		Version string `json:"version"`
+	}
+
+	// get a version of the existing CLI
+	cmd := exec.Command(existingCliPath, "version", "--skip-update-check")
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		return false, err
+	}
+
+	var hv hasuraVersion
+	if err = json.Unmarshal(out, &hv); err != nil {
+		return false, err
+	}
+
+	existing, err := version.NewVersion(hv.Version)
+	if err != nil {
+		return false, err
+	}
+
+	return existing.LessThan(expected), nil
+}
+
 //  if the required binary exists in $HOME/.nhost
 //  this function returns it's exact path
 //  and if the binary doesn't exist,
 //  it downloads it from specifically supplied URL
 //  based on user's OS and ARCH
 func Binary() (string, error) {
+	cliVersion, err := compose.HasuraCliVersion()
+	if err != nil {
+		return "", err
+	}
 
 	binaryPath := getBinary()
 
 	//  search for installed binary
 	if pathExists(binaryPath) {
-		return binaryPath, nil
+		outdated, err := cliIsOutdated(binaryPath, cliVersion)
+		if err != nil {
+			return "", err
+		}
+
+		if !outdated {
+			return binaryPath, nil
+		}
 	}
 
 	var url string
 
 	binary := "hasura"
 
-	version := "v2.10.1"
-
 	log.WithFields(logrus.Fields{
 		"type":    binary,
-		"version": version,
+		"version": cliVersion,
 	}).Debug("Fetching binary")
 
 	//	Use AMD architecture instead of ARM
@@ -65,7 +106,7 @@ func Binary() (string, error) {
 		architecture = strings.ReplaceAll(architecture, "arm", "amd")
 	}
 
-	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", version, runtime.GOOS, architecture)
+	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", cliVersion, runtime.GOOS, architecture)
 
 	//  create the binary path
 	if err := os.MkdirAll(nhost.ROOT, os.ModePerm); err != nil {

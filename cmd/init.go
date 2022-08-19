@@ -25,7 +25,9 @@ SOFTWARE.
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
@@ -43,6 +45,15 @@ var (
 	name      string
 	location  string
 )
+
+var defaultTemplates = []nhost.Template{
+	{
+		Name:        "Emails",
+		Destination: &nhost.EMAILS_DIR,
+		Repository:  "github.com/nhost/hasura-auth",
+		Path:        "email-templates",
+	},
+}
 
 //  initCmd represents the init command
 var initCmd = &cobra.Command{
@@ -126,6 +137,7 @@ in the following manner:
 				for _, item := range projects {
 					if item.Subdomain == subdomain {
 						selectedProject = item
+						break
 					}
 				}
 
@@ -155,8 +167,9 @@ in the following manner:
 				}
 
 				selectedProject = projects[index]
-				location = strings.ReplaceAll(selectedProject.Name, " ", "_")
 			}
+
+			location = strings.ReplaceAll(selectedProject.Name, " ", "_")
 		} else {
 
 			if name == "" {
@@ -200,17 +213,7 @@ in the following manner:
 			status.Fatal("Failed to save Nhost configuration")
 		}
 
-		//  save the default templates
-		for _, item := range entities {
-			if item.Default {
-
-				//	download the files
-				if err := clone(fmt.Sprintf("github.com/%s/%s", item.Repository, item.Path), *item.Destination); err != nil {
-					log.WithField("compnent", "templates").Debug(err)
-					status.Errorln("Failed to clone templates for " + item.Name)
-				}
-			}
-		}
+		installDefaultTemplates(log)
 
 		//  append to .gitignore
 		log.Debug("Writing ", util.Rel(nhost.GITIGNORE))
@@ -240,14 +243,14 @@ in the following manner:
 			//	adminSecret := "hasura-admin-secret"
 
 			//  create new hasura client
-			hasuraClient := hasura.Client{}
-			if err := hasuraClient.Init(hasuraEndpoint, adminSecret, nil); err != nil {
+			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, nil)
+			if err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to initialize Hasura client")
 			}
 
 			//  create migrations from remote
-			_, err := pullMigration(hasuraClient, "init")
+			_, err = pullMigration(hasuraClient, "init")
 			if err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to pull migrations from remote")
@@ -272,6 +275,19 @@ in the following manner:
 	},
 }
 
+// install default templates
+func installDefaultTemplates(logger logrus.FieldLogger) {
+	tplInstaller := nhost.NewTemplatesInstaller(logger)
+
+	for _, item := range defaultTemplates {
+		//	download the files
+		if err := tplInstaller.Install(context.TODO(), *item.Destination, item.Repository, item.Path); err != nil {
+			logger.WithField("component", "templates").Debug(err)
+			status.Errorln("Failed to clone templates for " + item.Name)
+		}
+	}
+}
+
 func prepareAppList(user nhost.User) []nhost.App {
 	var projects []nhost.App
 	for _, member := range user.WorkspaceMembers {
@@ -284,107 +300,6 @@ func prepareAppList(user nhost.User) []nhost.App {
 
 	return projects
 }
-
-/*
-func getProviders(endpoint, secret string) ([]string, error) {
-
-	log.Debug("Fetching providers from remote")
-
-	var providers []string
-
-	//Encode the data
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"type": "run_sql",
-		"args": map[string]interface{}{
-			"sql": "SELECT * FROM auth.providers;",
-		},
-	})
-
-	req, _ := http.NewRequest(
-		http.MethodPost,
-		endpoint+"/v1/query",
-		bytes.NewBuffer(postBody),
-	)
-
-	req.Header.Set("X-Hasura-Admin-Secret", secret)
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		return providers, err
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	var responseData map[string]interface{}
-	json.Unmarshal(body, &responseData)
-
-	//  Remove the first row/head and filter providers from following rows
-	//  Following is a sample result:
-	//  [github facebook twitter google apple linkedin windowslive]
-	result := responseData["result"].([]interface{})[1:]
-
-	for _, value := range result {
-		providers = append(providers, value.([]interface{})[0].(string))
-	}
-
-	return providers, nil
-}
-
-func getRoles(endpoint, secret string) ([]string, error) {
-
-	log.Debug("Fetching roles from remote")
-
-	var roles []string
-
-	//Encode the data
-	postBody, _ := json.Marshal(map[string]interface{}{
-		"type": "run_sql",
-		"args": map[string]interface{}{
-			"sql": "SELECT * FROM auth.roles;",
-		},
-	})
-
-	req, _ := http.NewRequest(
-		http.MethodPost,
-		endpoint+"/v1/query",
-		bytes.NewBuffer(postBody),
-	)
-
-	req.Header.Set("X-Hasura-Admin-Secret", secret)
-
-	client := http.Client{}
-
-	//Leverage Go's HTTP Post function to make request
-	resp, err := client.Do(req)
-	if err != nil {
-		return roles, err
-	}
-
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	var responseData map[string]interface{}
-	json.Unmarshal(body, &responseData)
-
-	//  Remove the first row/head and filter roles from following rows
-	//  Following is a sample result:
-	//  [user me anonymous]
-	result := responseData["result"].([]interface{})[1:]
-
-	for _, value := range result {
-		roles = append(roles, value.([]interface{})[0].(string))
-	}
-
-	return roles, nil
-}
-
-*/
 
 func init() {
 	rootCmd.AddCommand(initCmd)

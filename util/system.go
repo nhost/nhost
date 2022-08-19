@@ -61,13 +61,17 @@ func GetPort(low, hi int) int {
 }
 
 func PortAvailable(port string) bool {
+	conn, err := net.Dial("tcp", "localhost:"+port)
 
-	ln, err := net.Listen("tcp", ":"+port)
+	defer func() {
+		if conn != nil {
+			conn.Close()
+		}
+	}()
 
 	if err != nil {
-		return false
+		return true
 	}
 
-	ln.Close()
-	return true
+	return false
 }

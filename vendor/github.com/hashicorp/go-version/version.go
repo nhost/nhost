@@ -64,7 +64,6 @@ func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 	}
 	segmentsStr := strings.Split(matches[1], ".")
 	segments := make([]int64, len(segmentsStr))
-	si := 0
 	for i, str := range segmentsStr {
 		val, err := strconv.ParseInt(str, 10, 64)
 		if err != nil {
@@ -72,8 +71,7 @@ func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 				"Error parsing version: %s", err)
 		}
 
-		segments[i] = int64(val)
-		si++
+		segments[i] = val
 	}
 
 	// Even though we could support more than three segments, if we
@@ -92,7 +90,7 @@ func newVersion(v string, pattern *regexp.Regexp) (*Version, error) {
 		metadata: matches[10],
 		pre:      pre,
 		segments: segments,
-		si:       si,
+		si:       len(segmentsStr),
 		original: v,
 	}, nil
 }
@@ -112,7 +110,7 @@ func Must(v *Version, err error) *Version {
 // or larger than the other version, respectively.
 //
 // If you want boolean results, use the LessThan, Equal,
-// or GreaterThan methods.
+// GreaterThan, GreaterThanOrEqual or LessThanOrEqual methods.
 func (v *Version) Compare(other *Version) int {
 	// A quick, efficient equality check
 	if v.String() == other.String() {
@@ -278,8 +276,20 @@ func comparePrereleases(v string, other string) int {
 	return 0
 }
 
+// Core returns a new version constructed from only the MAJOR.MINOR.PATCH
+// segments of the version, without prerelease or metadata.
+func (v *Version) Core() *Version {
+	segments := v.Segments64()
+	segmentsOnly := fmt.Sprintf("%d.%d.%d", segments[0], segments[1], segments[2])
+	return Must(NewVersion(segmentsOnly))
+}
+
 // Equal tests if two versions are equal.
 func (v *Version) Equal(o *Version) bool {
+	if v == nil || o == nil {
+		return v == o
+	}
+
 	return v.Compare(o) == 0
 }
 
@@ -288,9 +298,19 @@ func (v *Version) GreaterThan(o *Version) bool {
 	return v.Compare(o) > 0
 }
 
+// GreaterThanOrEqual tests if this version is greater than or equal to another version.
+func (v *Version) GreaterThanOrEqual(o *Version) bool {
+	return v.Compare(o) >= 0
+}
+
 // LessThan tests if this version is less than another version.
 func (v *Version) LessThan(o *Version) bool {
 	return v.Compare(o) < 0
+}
+
+// LessThanOrEqual tests if this version is less than or equal to another version.
+func (v *Version) LessThanOrEqual(o *Version) bool {
+	return v.Compare(o) <= 0
 }
 
 // Metadata returns any metadata that was part of the version
@@ -367,4 +387,21 @@ func (v *Version) String() string {
 // potential whitespace, `v` prefix, etc.
 func (v *Version) Original() string {
 	return v.original
+}
+
+// UnmarshalText implements encoding.TextUnmarshaler interface.
+func (v *Version) UnmarshalText(b []byte) error {
+	temp, err := NewVersion(string(b))
+	if err != nil {
+		return err
+	}
+
+	*v = *temp
+
+	return nil
+}
+
+// MarshalText implements encoding.TextMarshaler interface.
+func (v *Version) MarshalText() ([]byte, error) {
+	return []byte(v.String()), nil
 }

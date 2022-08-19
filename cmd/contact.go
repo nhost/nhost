@@ -141,22 +141,36 @@ Or even chat with our team and start a new discussion.`,
 	},
 }
 
-func openbrowser(url string) error {
-
-	var err error
-
-	switch runtime.GOOS {
-	case "linux":
-		err = exec.Command("xdg-open", url).Start()
-	case "windows":
-		err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-	case "darwin":
-		err = exec.Command("open", url).Start()
-	default:
-		err = fmt.Errorf("unsupported platform")
+func linuxOpener() (string, error) {
+	cmd := "xdg-open"
+	if _, err := exec.LookPath(cmd); err != nil {
+		// try "wslview", maybe we're on WSL
+		if _, err := exec.LookPath("wslview"); err == nil {
+			cmd = "wslview"
+		} else {
+			return "", err
+		}
 	}
 
-	return err
+	return cmd, nil
+}
+
+func openbrowser(url string) error {
+	switch runtime.GOOS {
+	case "linux":
+		openCmd, err := linuxOpener()
+		if err != nil {
+			return err
+		}
+
+		return exec.Command(openCmd, url).Start()
+	case "windows":
+		return exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+	case "darwin":
+		return exec.Command("open", url).Start()
+	default:
+		return fmt.Errorf("unsupported platform")
+	}
 }
 
 func init() {

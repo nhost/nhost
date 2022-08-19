@@ -25,99 +25,58 @@ SOFTWARE.
 package cmd
 
 import (
-	"os"
-	"strings"
-
-	"github.com/manifoldco/promptui"
+	"fmt"
 	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/nhost/compose"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 //  logsCmd prints the logs from containers and HBP_Catalog
 var logsCmd = &cobra.Command{
-	Use:        "logs",
-	Aliases:    []string{"log"},
-	SuggestFor: []string{"execute"},
-	Short:      "Read container logs of any service",
-	PreRun: func(cmd *cobra.Command, args []string) {
+	Use:                "logs",
+	FParseErrWhitelist: cobra.FParseErrWhitelist{UnknownFlags: true},
+	Short:              "Read container logs",
+	Long: `Read container logs
 
-		//  Initialize the runtime environment
-		if err := env.Init(); err != nil {
-			log.Debug(err)
-			status.Fatal("Failed to initialize the environment")
+  Example:
+    nhost logs  (read logs of all services)
+    nhost logs -f (follow logs of all services)
+    nhost logs -f functions (follow logs of functions service)
+`,
+	RunE: func(cmd *cobra.Command, args []string) error {
+		// we override the args processed by cobra/pflag because we wanna use them as-is for docker compose
+		dcArgs := []string{"logs"}
+		if len(os.Args) > 2 {
+			// filter out the first two args (i.e. "nhost logs") and keep the rest
+			dcArgs = append(dcArgs, os.Args[2:]...)
 		}
 
-		//  if no containers found - abort the execution
-		if len(env.Config.Services) == 0 {
-			status.Fatal("Make sure your Nhost environment is running with `nhost dev`")
-		}
-	},
-	Run: func(cmd *cobra.Command, args []string) {
-
-		var selected *nhost.Service
-
-		if service == "" {
-
-			//  load the saved Nhost configuration
-			type Option struct {
-				Key   string
-				Value string
-			}
-
-			var services []Option
-			for name := range env.Config.Services {
-				services = append(services, Option{
-					Key:   strings.Title(strings.ToLower(name)),
-					Value: name,
-				})
-			}
-
-			//  configure interactive prompt template
-			templates := promptui.SelectTemplates{
-				Active:   `{{ "✔" | green | bold }} {{ .Key | cyan | bold }}`,
-				Inactive: `   {{ .Key | cyan }}`,
-				Selected: `{{ "✔" | green | bold }} {{ "Selected" | bold }}: {{ .Key | cyan }}`,
-			}
-
-			//  configure interative prompt
-			prompt := promptui.Select{
-				Label:     "Select Service",
-				Items:     services,
-				Templates: &templates,
-			}
-
-			index, _, err := prompt.Run()
-			if err != nil {
-				os.Exit(0)
-			}
-
-			service = services[index].Value
-		}
-
-		for name, item := range env.Config.Services {
-			if strings.EqualFold(name, service) {
-				selected = item
-				break
-			}
-		}
-
-		if selected == nil {
-			log.Fatal("No such service found")
-		}
-
-		//  fetch the logs of selected container
-		logs, err := selected.Logs(env.Docker, env.Context)
+		config, err := nhost.GetConfiguration()
 		if err != nil {
-			log.WithField("component", selected.Name).Debug(err)
-			log.WithField("component", selected.Name).Fatal("Failed to fetch service logs")
+			return err
 		}
 
-		//	print the logs for the user
-		os.Stdout.Write(logs)
+		projectName, err := nhost.GetDockerComposeProjectName()
+		if err != nil {
+			return err
+		}
+
+		env, err := nhost.Env()
+		if err != nil {
+			return fmt.Errorf("failed to read .env.development: %v", err)
+		}
+
+		conf := compose.NewConfig(config, nil, env, nhost.GetCurrentBranch(), projectName)
+		dc, err := compose.WrapperCmd(cmd.Context(), dcArgs, conf, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
+		if err != nil {
+			return err
+		}
+
+		return dc.Run()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(logsCmd)
-	logsCmd.Flags().StringVarP(&service, "service", "s", "", "Service to fetch the logs for")
 }

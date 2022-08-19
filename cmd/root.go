@@ -26,88 +26,66 @@ package cmd
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
-
-	"github.com/manifoldco/promptui"
+	"github.com/docker/docker/pkg/namesgenerator"
 	"github.com/nhost/cli/logger"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
 	"github.com/spf13/cobra/doc"
 	"github.com/spf13/viper"
+	"math/rand"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+)
+
+const (
+	ErrNotLoggedIn = "Please login with `nhost login`"
+	ErrLoggedIn    = "You are already logged in, first logout with `nhost logout`"
 )
 
 var (
-
+	Version string
+	cfgFile string
+	status  = &util.Writer
+	log     = &logger.Log
 	//  rootCmd represents the base command when called without any subcommands
 	rootCmd = &cobra.Command{
 		Use:   "nhost",
-		Short: "Open Source Firebase Alternative with GraphQL",
+		Short: "Nhost: The Open Source Firebase Alternative with GraphQL",
 		Long: fmt.Sprintf(`
-		_   ____               __ 
-		/ | / / /_  ____  _____/ /_
-	   /  |/ / __ \/ __ \/ ___/ __/
-	  / /|  / / / / /_/ (__  ) /_  
-	 /_/ |_/_/ /_/\____/____/\__/  
-								   
-	 
-  Nhost.io is a full-fledged serverless backend for Jamstack and client-serverless applications.
+      _   ____               __
+     / | / / /_  ____  _____/ /_
+    /  |/ / __ \/ __ \/ ___/ __/
+   / /|  / / / / /_/ (__  ) /_
+  /_/ |_/_/ /_/\____/____/\__/
+
+
+  Nhost: The Open Source Firebase Alternative with GraphQL.
   Version - %s
   Documentation - https://docs.nhost.io
   `, Version),
-		PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 
 			//  reset the umask before creating directories anywhere in this program
 			//  otherwise applied permissions, might get affected
 			//  resetUmask()
 
 			logger.Init()
-			util.Init(util.Config{
-				WorkingDir: path,
-			})
+			util.Init(util.Config{Writer: status})
 			nhost.Init()
-		},
-		Run: func(cmd *cobra.Command, args []string) {
 
-			//  check if project is already initialized
-			if !util.PathExists(nhost.NHOST_DIR) {
-
-				//  start the "init" command
-				initCmd.Run(cmd, args)
-
-				//  offer to clone templates
-				//  templatesCmd.Run(cmd, args)
-				for _, item := range entities {
-					if !item.Default {
-						prompt := promptui.Prompt{
-							Label:     fmt.Sprintf("Do you want to install %s templates", strings.ToLower(item.Name)),
-							IsConfirm: true,
-						}
-
-						_, err := prompt.Run()
-						if err != nil {
-							continue
-						}
-
-						selected = item
-
-						//  start the "templates" command
-						templatesCmd.Run(cmd, args)
-
-						//	reset selected template choice
-						choice = ""
-					}
+			if initCmd.Name() != cmd.Name() && !util.PathExists(filepath.Join(util.WORKING_DIR, ".nhost/project_name")) {
+				rand.Seed(time.Now().UnixNano())
+				randomName := strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-")
+				if err := nhost.SetDockerComposeProjectName(randomName); err != nil {
+					status.Errorln("Failed to set project name")
+					return err
 				}
 			}
 
-			//  start the "dev" command
-			if err := devCmd.PreRunE(cmd, args); err != nil {
-				log.Debug(err)
-			}
-
-			devCmd.Run(cmd, args)
+			return nil
 		},
 	}
 )
@@ -139,7 +117,6 @@ func generateDocumentation() {
 }
 
 func init() {
-
 	cobra.OnInitialize(initConfig)
 
 	//  Here you will define your flags and configuration settings.
@@ -162,7 +139,6 @@ func init() {
 
 	//  Cobra also supports local flags, which will only run
 	//  when this action is called directly.
-	rootCmd.PersistentFlags().StringVarP(&logger.LOG_FILE, "log-file", "f", "", "Write logs to given file")
 	rootCmd.PersistentFlags().BoolVarP(&logger.DEBUG, "debug", "d", false, "Show debugging level logs")
 
 	path, _ := os.Getwd()

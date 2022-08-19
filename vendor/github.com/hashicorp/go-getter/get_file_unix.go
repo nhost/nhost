@@ -87,7 +87,13 @@ func (g *FileGetter) GetFile(dst string, u *url.URL) error {
 		return os.Symlink(path, dst)
 	}
 
+	var disableSymlinks bool
+
+	if g.client != nil && g.client.DisableSymlinks {
+		disableSymlinks = true
+	}
+
 	// Copy
-	_, err = copyFile(ctx, dst, path, fi.Mode(), g.client.umask())
+	_, err = copyFile(ctx, dst, path, disableSymlinks, fi.Mode(), g.client.umask())
 	return err
 }

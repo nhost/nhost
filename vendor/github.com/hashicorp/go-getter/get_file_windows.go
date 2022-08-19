@@ -111,8 +111,14 @@ func (g *FileGetter) GetFile(dst string, u *url.URL) error {
 		}
 	}
 
+	var disableSymlinks bool
+
+	if g.client != nil && g.client.DisableSymlinks {
+		disableSymlinks = true
+	}
+
 	// Copy
-	_, err = copyFile(ctx, dst, path, 0666, g.client.umask())
+	_, err = copyFile(ctx, dst, path, disableSymlinks, 0666, g.client.umask())
 	return err
 }
 

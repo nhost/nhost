@@ -74,7 +74,9 @@ func (d *ZipDecompressor) Decompress(dst, src string, dir bool, umask os.FileMod
 		// Open the file for reading
 		srcF, err := f.Open()
 		if err != nil {
-			srcF.Close()
+			if srcF != nil {
+				srcF.Close()
+			}
 			return err
 		}
 

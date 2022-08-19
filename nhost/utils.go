@@ -2,7 +2,9 @@ package nhost
 
 import (
 	"fmt"
+	"gopkg.in/yaml.v2"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -22,17 +24,39 @@ func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) 
 	return response
 }
 
-func GetContainerName(name string) string {
-	return strings.Join([]string{PREFIX, name}, "_")
+func GetDockerComposeProjectName() (string, error) {
+	data, err := ioutil.ReadFile(filepath.Join(DOT_NHOST_DIR, "project_name"))
+	if err != nil {
+		return "", err
+	}
+
+	return strings.TrimSpace(string(data)), nil
+}
+
+func SetDockerComposeProjectName(name string) error {
+	if err := os.MkdirAll(DOT_NHOST_DIR, os.ModePerm); err != nil {
+		return err
+	}
+
+	return ioutil.WriteFile(filepath.Join(DOT_NHOST_DIR, "project_name"), []byte(name), 0600)
 }
 
 func GetCurrentBranch() string {
-
-	log.Debug("Fetching local git branch")
 	data, err := ioutil.ReadFile(filepath.Join(GIT_DIR, "HEAD"))
 	if err != nil {
 		return ""
 	}
 	payload := strings.Split(string(data), " ")
 	return strings.TrimSpace(filepath.Base(payload[1]))
+}
+func GetConfiguration() (*Configuration, error) {
+	var c Configuration
+
+	data, err := ioutil.ReadFile(CONFIG_PATH)
+	if err != nil {
+		return nil, err
+	}
+
+	err = yaml.Unmarshal(data, &c)
+	return &c, err
 }
