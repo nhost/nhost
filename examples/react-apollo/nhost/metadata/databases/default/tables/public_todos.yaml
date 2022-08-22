@@ -23,82 +23,82 @@ configuration:
     update: updateTodos
     update_by_pk: updateTodo
 object_relationships:
-- name: user
-  using:
-    foreign_key_constraint_on: user_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
 insert_permissions:
-- permission:
-    check: {}
-    columns:
-    - contents
-    - id
-    set:
-      user_id: x-hasura-user-id
-  role: anonymous
-- permission:
-    check: {}
-    columns:
-    - contents
-    - id
-    set:
-      user_id: x-hasura-user-id
-  role: user
+  - role: anonymous
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-user-id
+      columns:
+        - contents
+        - id
+  - role: user
+    permission:
+      check: {}
+      set:
+        user_id: x-hasura-user-id
+      columns:
+        - contents
+        - id
 select_permissions:
-- permission:
-    allow_aggregations: true
-    columns:
-    - contents
-    - created_at
-    - updated_at
-    - id
-    - user_id
-    filter:
-      user_id:
-        _eq: X-Hasura-User-Id
-  role: anonymous
-- permission:
-    allow_aggregations: true
-    columns:
-    - contents
-    - created_at
-    - updated_at
-    - id
-    - user_id
-    filter:
-      user_id:
-        _eq: X-Hasura-User-Id
-  role: user
+  - role: anonymous
+    permission:
+      columns:
+        - contents
+        - created_at
+        - updated_at
+        - id
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
+  - role: user
+    permission:
+      columns:
+        - contents
+        - created_at
+        - updated_at
+        - id
+        - user_id
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      allow_aggregations: true
 update_permissions:
-- permission:
-    check:
-      user_id:
-        _eq: X-Hasura-User-Id
-    columns:
-    - contents
-    filter:
-      user_id:
-        _eq: X-Hasura-User-Id
-  role: anonymous
-- permission:
-    check:
-      user_id:
-        _eq: X-Hasura-User-Id
-    columns:
-    - contents
-    filter:
-      user_id:
-        _eq: X-Hasura-User-Id
-  role: user
+  - role: anonymous
+    permission:
+      columns:
+        - contents
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      columns:
+        - contents
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+      check:
+        user_id:
+          _eq: X-Hasura-User-Id
 delete_permissions:
-- permission:
-    backend_only: false
-    filter:
-      user_id:
-        _eq: X-Hasura-User-Id
-  role: anonymous
-- permission:
-    backend_only: false
-    filter:
-      user_id:
-        _eq: X-Hasura-User-Id
-  role: user
+  - role: anonymous
+    permission:
+      backend_only: false
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id
+  - role: user
+    permission:
+      backend_only: false
+      filter:
+        user_id:
+          _eq: X-Hasura-User-Id

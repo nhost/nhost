@@ -110,7 +110,7 @@ auth:
     host: mailhog
     method: ''
     pass: password
-    port: 1807
+    port: 1025
     secure: false
     sender: hasura-auth@example.com
     user: user
