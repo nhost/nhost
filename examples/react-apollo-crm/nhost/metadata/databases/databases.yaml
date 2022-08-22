@@ -11,4 +11,4 @@
         max_connections: 50
         retries: 20
       use_prepared_statements: true
-  tables: '!include default/tables/tables.yaml'
+  tables: "!include default/tables/tables.yaml"

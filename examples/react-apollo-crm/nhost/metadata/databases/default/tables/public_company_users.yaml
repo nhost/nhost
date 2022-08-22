@@ -2,6 +2,17 @@ table:
   name: company_users
   schema: public
 configuration:
+  column_config:
+    company_id:
+      custom_name: companyId
+    created_at:
+      custom_name: createdAt
+    id:
+      custom_name: id
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userId
   custom_column_names:
     company_id: companyId
     created_at: createdAt
@@ -27,7 +38,8 @@ object_relationships:
     using:
       foreign_key_constraint_on: user_id
 select_permissions:
-  - permission:
+  - role: user
+    permission:
       columns:
         - id
         - created_at
@@ -39,4 +51,3 @@ select_permissions:
           companyUsers:
             user_id:
               _eq: X-Hasura-User-Id
-    role: user

@@ -2,6 +2,27 @@ table:
   name: files
   schema: storage
 configuration:
+  column_config:
+    bucket_id:
+      custom_name: bucketId
+    created_at:
+      custom_name: createdAt
+    etag:
+      custom_name: etag
+    id:
+      custom_name: id
+    is_uploaded:
+      custom_name: isUploaded
+    mime_type:
+      custom_name: mimeType
+    name:
+      custom_name: name
+    size:
+      custom_name: size
+    updated_at:
+      custom_name: updatedAt
+    uploaded_by_user_id:
+      custom_name: uploadedByUserId
   custom_column_names:
     bucket_id: bucketId
     created_at: createdAt
@@ -39,8 +60,8 @@ array_relationships:
           name: customer_comments
           schema: public
 insert_permissions:
-  - permission:
-      backend_only: false
+  - role: user
+    permission:
       check:
         _or:
           - bucket_id:
@@ -50,9 +71,9 @@ insert_permissions:
         - id
         - mime_type
         - name
-    role: user
 select_permissions:
-  - permission:
+  - role: user
+    permission:
       columns:
         - id
         - created_at
@@ -72,4 +93,3 @@ select_permissions:
                   companyUsers:
                     user_id:
                       _eq: X-Hasura-User-Id
-    role: user

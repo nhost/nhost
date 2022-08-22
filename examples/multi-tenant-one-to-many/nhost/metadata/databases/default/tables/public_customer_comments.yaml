@@ -2,56 +2,56 @@ table:
   name: customer_comments
   schema: public
 object_relationships:
-- name: customer
-  using:
-    foreign_key_constraint_on: customer_id
-- name: user
-  using:
-    foreign_key_constraint_on: author_user_id
+  - name: customer
+    using:
+      foreign_key_constraint_on: customer_id
+  - name: user
+    using:
+      foreign_key_constraint_on: author_user_id
 insert_permissions:
-- permission:
-    backend_only: false
-    check:
-      customer:
-        company:
-          profiles:
-            user_id:
-              _eq: X-Hasura-User-Id
-    columns:
-    - comment
-    set:
-      author_user_id: x-hasura-user-id
-  role: user
+  - role: user
+    permission:
+      check:
+        customer:
+          company:
+            profiles:
+              user_id:
+                _eq: X-Hasura-User-Id
+      set:
+        author_user_id: x-hasura-user-id
+      columns:
+        - comment
 select_permissions:
-- permission:
-    columns:
-    - comment
-    - created_at
-    - updated_at
-    - author_user_id
-    - customer_id
-    - id
-    filter:
-      customer:
-        company:
-          profiles:
-            user_id:
-              _eq: X-Hasura-User-Id
-  role: user
+  - role: user
+    permission:
+      columns:
+        - comment
+        - created_at
+        - updated_at
+        - author_user_id
+        - customer_id
+        - id
+      filter:
+        customer:
+          company:
+            profiles:
+              user_id:
+                _eq: X-Hasura-User-Id
 update_permissions:
-- permission:
-    check: null
-    columns:
-    - comment
-    filter:
-      user:
-        id:
-          _eq: X-Hasura-User-Id
-  role: user
+  - role: user
+    permission:
+      columns:
+        - comment
+      filter:
+        user:
+          id:
+            _eq: X-Hasura-User-Id
+      check: null
 delete_permissions:
-- permission:
-    filter:
-      user:
-        id:
-          _eq: X-Hasura-User-Id
-  role: user
+  - role: user
+    permission:
+      backend_only: false
+      filter:
+        user:
+          id:
+            _eq: X-Hasura-User-Id

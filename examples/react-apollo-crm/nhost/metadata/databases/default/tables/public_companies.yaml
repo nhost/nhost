@@ -2,6 +2,13 @@ table:
   name: companies
   schema: public
 configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    email_domain:
+      custom_name: emailDomain
+    updated_at:
+      custom_name: updatedAt
   custom_column_names:
     created_at: createdAt
     email_domain: emailDomain
@@ -33,7 +40,8 @@ array_relationships:
           name: customers
           schema: public
 select_permissions:
-  - permission:
+  - role: user
+    permission:
       columns:
         - id
         - created_at
@@ -43,4 +51,3 @@ select_permissions:
         companyUsers:
           user_id:
             _eq: X-Hasura-User-Id
-    role: user
