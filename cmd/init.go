@@ -27,16 +27,18 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 
 	"github.com/manifoldco/promptui"
 	"github.com/nhost/cli/hasura"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -243,7 +245,7 @@ in the following manner:
 			//	adminSecret := "hasura-admin-secret"
 
 			//  create new hasura client
-			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, nil)
+			hasuraClient, err := hasura.InitClient(hasuraEndpoint, adminSecret, viper.GetString(userDefinedHasuraCliFlag), nil)
 			if err != nil {
 				log.Debug(err)
 				status.Fatal("Failed to initialize Hasura client")
@@ -312,6 +314,8 @@ func init() {
 	initCmd.Flags().StringVarP(&name, "name", "n", "", "Name of new app")
 	initCmd.Flags().BoolVarP(&remote, "remote", "r", false, "Initialize app from remote?")
 	initCmd.Flags().BoolVarP(&approve, "yes", "y", false, "Approve & bypass app initialization prompt")
+	initCmd.Flags().StringVar(&userDefinedHasuraCli, userDefinedHasuraCliFlag, "", "User-defined path for hasura-cli binary")
+	viper.BindPFlag(userDefinedHasuraCliFlag, initCmd.Flags().Lookup(userDefinedHasuraCliFlag))
 
 	//  Cobra supports local flags which will only run when this command
 	//  is called directly, e.g.:

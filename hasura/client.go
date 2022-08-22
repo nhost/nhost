@@ -36,9 +36,9 @@ func (r *RequestBody) Marshal() ([]byte, error) {
 	return json.Marshal(r)
 }
 
-func InitClient(endpoint, adminSecret string, httpClient HttpDoer) (*Client, error) {
+func InitClient(endpoint, adminSecret, customBinary string, httpClient HttpDoer) (*Client, error) {
 	c := &Client{}
-	err := c.Init(endpoint, adminSecret, httpClient)
+	err := c.Init(endpoint, adminSecret, customBinary, httpClient)
 	return c, err
 }
 
@@ -64,12 +64,12 @@ func (c *Client) Request(body []byte, path string) (*http.Response, error) {
 
 //  Initialize the client with supplied Hasura endpoint,
 //  admin secret and a custom HTTP client.
-func (c *Client) Init(endpoint, adminSecret string, client HttpDoer) error {
+func (c *Client) Init(endpoint, adminSecret, customBinary string, client HttpDoer) error {
 
 	log.Debug("Initializing Hasura client")
 
 	//  Prepare and load required binaries
-	cli, err := Binary()
+	cli, err := Binary(customBinary)
 	if err != nil {
 		return err
 	}

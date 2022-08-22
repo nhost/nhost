@@ -71,13 +71,16 @@ func cliIsOutdated(existingCliPath, expectedVersion string) (bool, error) {
 //  and if the binary doesn't exist,
 //  it downloads it from specifically supplied URL
 //  based on user's OS and ARCH
-func Binary() (string, error) {
+func Binary(customBinary string) (string, error) {
 	cliVersion, err := compose.HasuraCliVersion()
 	if err != nil {
 		return "", err
 	}
 
-	binaryPath := getBinary()
+	binaryPath := customBinary
+    if binaryPath == "" {
+        binaryPath = getBinary()
+    }
 
 	//  search for installed binary
 	if pathExists(binaryPath) {
