@@ -55,8 +55,6 @@ var (
 
 var userDefinedHasuraCli string
 
-const userDefinedHasuraCliFlag = "hasuracli"
-
 const (
 	// default ports
 	defaultProxyPort            = 1337
@@ -67,6 +65,10 @@ const (
 	defaultSMTPPort             = 1025
 	defaultS3MinioPort          = 9000
 	defaultMailhogPort          = 8025
+
+	// flags
+	userDefinedHasuraCliFlag = "hasuracli"
+	startTimeoutFlag         = "start-timeout"
 )
 
 //  devCmd represents the dev command
@@ -122,6 +124,11 @@ var devCmd = &cobra.Command{
 			return fmt.Errorf("failed to init hasura client: %v", err)
 		}
 
+		startTimeout, err := cmd.Flags().GetDuration(startTimeoutFlag)
+		if err != nil {
+			return fmt.Errorf("failed to get start-timeout value: %v", err)
+		}
+
 		launcher := service.NewLauncher(
 			service.NewDockerComposeManager(config, hc, ports, env, nhost.GetCurrentBranch(),
 				projectName,
@@ -138,7 +145,7 @@ var devCmd = &cobra.Command{
 		signal.Notify(stopCh, syscall.SIGINT, syscall.SIGTERM)
 
 		go func() {
-			err = launcher.Start(ctx, debug)
+			err = launcher.Start(ctx, startTimeout, debug)
 
 			if ctx.Err() == context.Canceled {
 				return
@@ -262,6 +269,7 @@ func init() {
 	devCmd.PersistentFlags().Uint32(nhost.PortSMTP, defaultSMTPPort, "Port for smtp server")
 	devCmd.PersistentFlags().Uint32(nhost.PortMinioS3, defaultS3MinioPort, "S3 port for minio")
 	devCmd.PersistentFlags().Uint32(nhost.PortMailhog, defaultMailhogPort, "Port for mailhog UI")
+	devCmd.PersistentFlags().Duration(startTimeoutFlag, 5*time.Minute, "Timeout for starting services")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
 
 	devCmd.PersistentFlags().StringVar(&userDefinedHasuraCli, userDefinedHasuraCliFlag, viper.GetString(userDefinedHasuraCliFlag), "User-defined path for hasura-cli binary")

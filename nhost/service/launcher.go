@@ -59,12 +59,13 @@ func (l *Launcher) HasuraConsoleURL() string {
 	return l.mgr.HasuraConsoleURL()
 }
 
-func (l *Launcher) Start(ctx context.Context, debug bool) error {
+func (l *Launcher) Start(ctx context.Context, startTimeout time.Duration, debug bool) error {
+	l.l.Debugf("start timeout is set to %s", startTimeout.String())
 	if err := l.ensureInitialised(); err != nil {
 		return err
 	}
 
-	startCtx, cancel := context.WithTimeout(ctx, time.Minute*3)
+	startCtx, cancel := context.WithTimeout(ctx, startTimeout)
 	defer cancel()
 
 	return l.mgr.SyncExec(startCtx, func(cCtx context.Context) error {
