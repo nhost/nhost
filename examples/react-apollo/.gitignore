@@ -23,5 +23,7 @@ yarn-debug.log*
 yarn-error.log*
 
 .nhost
-web/node_modules
 functions/node_modules
+
+cypress/videos
+cypress/screenshots
