@@ -7,25 +7,17 @@
     <v-list-item v-if="authenticated" title="Sign out" prepend-icon="mdi-exit-to-app" @click="signOutHandler" />
   </v-list>
 </template>
-<script lang="ts">
-import { defineComponent } from 'vue'
+
+<script lang="ts" setup>
 import { useRouter } from 'vue-router'
 
 import { useAuthenticated, useSignOut } from '@nhost/vue'
 
-export default defineComponent({
-  setup() {
-    const router = useRouter()
-    const { signOut } = useSignOut()
-    const authenticated = useAuthenticated()
-    const signOutHandler = async () => {
-      await signOut()
-      router.push('/')
-    }
-    return {
-      authenticated,
-      signOutHandler
-    }
-  }
-})
+const router = useRouter()
+const { signOut } = useSignOut()
+const authenticated = useAuthenticated()
+const signOutHandler = async () => {
+  await signOut()
+  router.push('/')
+}
 </script>

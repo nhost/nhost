@@ -12,27 +12,26 @@ export type BackendUrl = {
   backendUrl: string
   /**
    * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-   * for all requests to GraphQL, Storage, and Functions.
+   * for all requests to GraphQL, Storage, and Serverless Functions.
    */
   adminSecret?: string
 }
 
 export type Subdomain = {
   /**
-   * App subdomain (e.g, ieingiwnginwnfnegqwvdqwdwq)
-   * Should be used when using the Nhost platform
-   * Use "localhost" in development
+   * Project subdomain (e.g. `ieingiwnginwnfnegqwvdqwdwq`)
+   * Use `localhost` during local development
    */
   subdomain: string
 
   /**
-   * App region (e.g., eu-central-1)
-   * Not required in development (when `subdomain` is "localhost")
+   * Project region (e.g. `eu-central-1`)
+   * Project region is not required during local development (when `subdomain` is `localhost`)
    */
   region?: string
   /**
    * When set, the admin secret is sent as a header, `x-hasura-admin-secret`,
-   * for all requests to GraphQL, Storage, and Functions.
+   * for all requests to GraphQL, Storage, and Serverless Functions.
    */
   adminSecret?: string
 }

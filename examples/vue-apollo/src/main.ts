@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { createRouter, createWebHashHistory } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import { createVuetify, ThemeDefinition } from 'vuetify'
 
 import { createApolloClient } from '@nhost/apollo'
@@ -13,6 +13,7 @@ import 'vuetify/styles'
 import EmailPasswordless from './components/EmailPasswordlessForm.vue'
 import ErrorSnackBar from './components/ErrorSnackBar.vue'
 import OauthLinks from './components/OAuthLinks.vue'
+import VerificationEmailDialog from './components/VerificationEmailDialog.vue'
 import App from './App.vue'
 import { routes } from './routes'
 
@@ -43,7 +44,7 @@ const vuetify = createVuetify({
   }
 })
 
-const devTools = !!import.meta.env.VITE_DEBUG
+const devTools = import.meta.env.VITE_DEBUG === 'true'
 if (devTools) {
   inspect({
     url: 'https://stately.ai/viz?inspect',
@@ -52,7 +53,9 @@ if (devTools) {
 }
 
 const nhost = new NhostClient({
-  backendUrl: import.meta.env.VITE_NHOST_URL
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN || 'localhost:1337',
+  region: import.meta.env.VITE_NHOST_REGION,
+  devTools
 })
 
 const apolloClient = createApolloClient({ nhost })
@@ -66,7 +69,7 @@ nhost.auth.onAuthStateChanged((d) => {
 })
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes
 })
 
@@ -86,4 +89,5 @@ createApp(App)
   .component('ErrorSnackBar', ErrorSnackBar)
   .component('EmailPasswordless', EmailPasswordless)
   .component('OauthLinks', OauthLinks)
+  .component('VerificationEmailDialog', VerificationEmailDialog)
   .mount('#app')

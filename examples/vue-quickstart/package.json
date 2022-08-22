@@ -10,15 +10,15 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@apollo/client": "^3.6.2",
+    "@apollo/client": "^3.6.9",
     "@nhost/apollo": "*",
     "@nhost/vue": "*",
-    "@vue/apollo-composable": "^4.0.0-alpha.17",
-    "@vueuse/core": "^8.4.2",
+    "@vue/apollo-composable": "4.0.0-alpha.18",
+    "@vueuse/core": "^8.9.2",
     "graphql": "^15.7.2",
     "graphql-tag": "^2.12.6",
-    "vue": "^3.2.33",
-    "vue-router": "^4.0.15"
+    "vue": "^3.2.37",
+    "vue-router": "^4.1.2"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.23.0",
@@ -26,7 +26,7 @@
     "@types/node": "^17.0.32",
     "@unocss/reset": "^0.33.2",
     "@vitejs/plugin-vue": "^2.3.2",
-    "@vue/test-utils": "^2.0.0-rc.21",
+    "@vue/test-utils": "^2.0.2",
     "eslint": "^8.15.0",
     "jsdom": "^19.0.0",
     "pnpm": "^7.0.1",
@@ -37,6 +37,6 @@
     "vite": "^2.9.8",
     "vite-plugin-pages": "^0.23.0",
     "vitest": "^0.12.4",
-    "vue-tsc": "^0.34.12"
+    "vue-tsc": "^0.38.5"
   }
 }

@@ -3,13 +3,13 @@ services:
   mailhog:
     port: 8025
   hasura:
-    version: v2.8.0
+    version: v2.10.1
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    version: 0.9.1
+    version: 0.10.0
   storage:
-    version: 0.2.2
+    version: 0.2.3
 auth:
   access_control:
     email:
@@ -18,7 +18,7 @@ auth:
       blocked_email_domains: ''
       blocked_emails: ''
     allowed_redirect_urls: ''
-  anonymous_users_enabled: false
+  anonymous_users_enabled: true
   client_url: http://localhost:3000
   disable_new_users: false
   email:

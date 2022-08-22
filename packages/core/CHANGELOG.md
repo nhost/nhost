@@ -1,5 +1,26 @@
 # @nhost/core
 
+## 0.7.6
+
+### Patch Changes
+
+- 747aa969: fix: added twitch and discord as provider
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+
+## 0.7.5
+
+### Patch Changes
+
+- 197d1d5c: - Using same cookie package ([`js-cookie`](https://www.npmjs.com/package/js-cookie)) for both `@nhost/nextjs` and `@nhost/core` packages.
+  - Adding `expires` to avoid the cookie turning into a session cookie that some browsers aggressively destroy.
+
+## 0.7.4
+
+### Patch Changes
+
+- 6eaa5c79: Return promise when using SMS OTP and an error occurs
+  Closes [#785](https://github.com/nhost/nhost/issues/785), thanks @franzwilhelm
+
 ## 0.7.3
 
 ### Patch Changes

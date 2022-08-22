@@ -95,6 +95,7 @@ export interface ResetPasswordParams {
 
 export interface ChangePasswordParams {
   newPassword: string
+  ticket?: string
 }
 
 export interface SendVerificationEmailParams {

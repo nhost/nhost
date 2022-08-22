@@ -14,16 +14,16 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@apollo/client": "^3.6.2",
+    "@apollo/client": "^3.6.9",
     "@mdi/font": "5.9.55",
     "@nhost/apollo": "*",
     "@nhost/vue": "*",
-    "@vue/apollo-composable": "^4.0.0-alpha.17",
+    "@vue/apollo-composable": "4.0.0-alpha.18",
     "graphql": "15.7.2",
     "graphql-tag": "^2.12.6",
     "roboto-fontface": "*",
-    "vue": "^3.2.25",
-    "vue-router": "^4.0.3",
+    "vue": "^3.2.37",
+    "vue-router": "^4.1.2",
     "vuetify": "^3.0.0-beta.0",
     "webfontloader": "^1.0.0"
   },
@@ -31,12 +31,12 @@
     "@nhost/core": "*",
     "@types/webfontloader": "^1.0.0",
     "@vitejs/plugin-vue": "^2.3.1",
-    "@vuetify/vite-plugin": "^1.0.0-alpha.0",
+    "@vuetify/vite-plugin": "1.0.0-alpha.11",
     "@xstate/inspect": "^0.6.2",
     "sass": "1.32.0",
-    "typescript": "^4.5.4",
+    "typescript": "^4.7.4",
     "vite": "^2.9.0",
-    "vue-tsc": "^0.29.8"
+    "vue-tsc": "^0.38.5"
   },
   "eslintConfig": {
     "root": true,

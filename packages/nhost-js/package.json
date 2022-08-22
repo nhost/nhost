@@ -1,6 +1,6 @@
 {
   "name": "@nhost/nhost-js",
-  "version": "1.4.4",
+  "version": "1.4.8",
   "description": "Nhost JavaScript SDK",
   "license": "MIT",
   "keywords": [
@@ -30,6 +30,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",
@@ -50,6 +51,7 @@
     "ci:test": "vitest run --config ../../config/vite.lib.config.js",
     "e2e:backend": "nhost dev --no-browser",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",

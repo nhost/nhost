@@ -1,13 +1,13 @@
 metadata_directory: metadata
 services:
   hasura:
-    version: v2.8.0
+    version: v2.10.1
     environment:
       hasura_graphql_enable_remote_schema_permissions: true
   auth:
-    version: 0.9.1
+    version: 0.10.0
   storage:
-    version: 0.2.2
+    version: 0.2.3
 auth:
   access_control:
     email:

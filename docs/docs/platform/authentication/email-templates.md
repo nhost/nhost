@@ -12,11 +12,11 @@ The following email templates are available:
 - **signin-passwordless** - Magic Link
 - **password-reset** - Reset password
 
-Changing email templates is only available for apps on the [Pro and Enterprise plan](https://nhost.io/pricing).
+Changing email templates is only available for projects on the [Pro and Enterprise plan](https://nhost.io/pricing).
 
 ## Update Email Templates
 
-Your app must be connected to a GitHub repository using the [GitHub Integration](/platform/github-integration) to be able to change the email templates.
+Your project must be connected to a GitHub repository using the [GitHub Integration](/platform/github-integration) to be able to change the email templates.
 
 Email templates are automatically deployed during a deployment, just like database migrations, Hasura metadata, and Serverless Functions.
 
@@ -29,7 +29,7 @@ The email templates should be provided as body.html and subject.txt files in thi
 **Example:** Email templates for `en` (English) and `es` (Spanish):
 
 ```txt
-my-nhost-app/
+my-nhost-project/
 └── nhost/
     ├── config.yaml
     ├── emails/
@@ -70,7 +70,7 @@ As you see, the format is:
 nhost/emails/{two-letter-language-code}/{email-template}/[subject.txt, body.html]
 ```
 
-Default templates for English (`en`) and French (`fr`) are automatically generated when the app is initialized with the [CLI](/platform/cli).
+Default templates for English (`en`) and French (`fr`) are automatically generated when the project is initialized with the [CLI](/platform/cli).
 
 ## Languages
 

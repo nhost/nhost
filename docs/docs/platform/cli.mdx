@@ -7,9 +7,9 @@ image: /img/og/platform/cli.png
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-Nhost CLI, or `nhost`, is a command-line interface that lets you run and manage Nhost apps locally on Mac, Linux and Windows (WSL2).
+Nhost CLI, or `nhost`, is a command-line interface that lets you run and manage Nhost projects locally on Mac, Linux and Windows (WSL2).
 
-This means you get a full-featured Nhost app running locally on your machine:
+This means you get a full-featured Nhost project running locally on your machine:
 
 - Postgres Database
 - Hasura GraphQL API
@@ -55,31 +55,43 @@ Start by authenticating yourself to Nhost Cloud:
 nhost login
 ```
 
-Once signed in, you can list all your Nhost apps using:
+Once signed in, you can list all your Nhost projects using:
 
 ```
 nhost list
 ```
 
-Let's start by initializing a remote Nhost app locally with the following command:
+Let's start by initializing a remote Nhost project locally with the following command:
 
 ```
 nhost init --remote
 ```
 
-Pick a Nhost app to use then change the directory once the app initialization is completed:
+Pick a Nhost project to use then change the directory once the project initialization is completed:
 
 ```
 cd my_test_app
 ```
 
-Then start the Nhost app locally:
+Then start the Nhost project locally:
 
 ```
 nhost up
 ```
 
-Hasura Console starts automatically and your Nhost app is running locally with the backend URL: `http://localhost:1337`.
+Hasura Console starts automatically and your Nhost project is running locally with the backend URL: `http://localhost:1337`.
+
+## Subdomain and Region
+
+Use `localhost:1337` as the `subdomain`, and skip `region` when using the CLI and the [JavaScript SDK](/reference/javascript):
+
+```
+import { NhostClient } from '@nhost/nhost-js'
+
+const nhost = new NhostClient({
+  subdomain: 'localhost:1337',
+})
+```
 
 ## Emails
 

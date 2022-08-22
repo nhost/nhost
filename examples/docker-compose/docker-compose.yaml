@@ -47,6 +47,8 @@ services:
       - postgres
       - graphql-engine
     restart: always
+    volumes:
+      - ./emails:/app/email-templates
     environment:
       AUTH_HOST: '0.0.0.0'
       HASURA_GRAPHQL_DATABASE_URL: postgres://postgres:${POSTGRES_PASSWORD:-secretpgpassword}@postgres:5432/postgres
@@ -101,7 +103,7 @@ services:
       - "traefik.http.routers.storage.middlewares=strip-suffix@docker"
     command: serve
   functions:
-    build: docker-functions
+    image: nhost/functions:latest
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.strip-functions.stripprefix.prefixes=/v1/functions"

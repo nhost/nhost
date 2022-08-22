@@ -31,14 +31,14 @@ You'll need **Node.js** version 14 or later: [install it from here](https://node
 
 ## Project setup
 
-### Create a new Nhost app
+### Create a new Nhost project
 
-import CreateApp from '@site/src/components/create-nhost-app.mdx'
+import CreateProject from '@site/src/components/create-nhost-project.mdx'
 
-<CreateApp />
+<CreateProject />
 
 :::info
-You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+You can also connect your Nhost project to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
 :::
 
 ## Initialize the app
@@ -128,7 +128,8 @@ Nhost backend:
 import { NhostClient, NhostReactProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
-  backendUrl: process.env.REACT_APP_NHOST_BACKEND_URL || ''
+  subdomain: process.env.REACT_APP_NHOST_SUBDOMAIN,
+  region: process.env.REACT_APP_NHOST_REGION
 })
 
 function App() {
@@ -143,15 +144,16 @@ export default App
 ```
 
 Finally, make sure to create an environment variable named
-`REACT_APP_NHOST_BACKEND_URL` to store your Nhost backend URL:
+`REACT_APP_NHOST_SUBDOMAIN` and `REACT_APP_NHOST_REGION` to store your Nhost domain details:
 
 ```yaml title=".env.local"
-REACT_APP_NHOST_BACKEND_URL=YOUR_NHOST_BACKEND_URL
+REACT_APP_NHOST_SUBDOMAIN=[subdomain]
+REACT_APP_NHOST_REGION=[region]
 ```
 
-You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+You find your Nhost project's `subdomain` and `region` in the [project overview](https://app.nhost.io):
 
-![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
+![Project Overview](/img/quickstarts/app-dashboard.png)
 
 :::caution
 Don't forget to restart your React server after saving your `.env.local`

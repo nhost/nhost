@@ -135,10 +135,10 @@ export class HasuraAuthClient {
    * ### Sign in a user using passwordless SMS
    * ```ts
    * // [step 1/2] Passwordless sign in using SMS
-   * nhost.auth.signIn({ phoneNumber: '001122334455' })
+   * nhost.auth.signIn({ phoneNumber: '+11233213123' })
    *
    * // [step 2/2] Finish passwordless sign in using SMS (OTP)
-   * nhost.auth.signIn({ phoneNumber: '001122334455', otp: '123456' })
+   * nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
    * ```
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
@@ -251,7 +251,7 @@ export class HasuraAuthClient {
   }
 
   /**
-   * Use `nhost.auth.changePassword` to change the password for the user. The old password is not needed.
+   * Use `nhost.auth.changePassword` to change the password for the signed-in user. The old password is not needed. In case the user is not signed-in, a password reset ticket needs to be provided.
    *
    * @example
    * ```ts
@@ -260,9 +260,9 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-password
    */
-  async changePassword({ newPassword }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
+  async changePassword({ newPassword, ticket }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
     const service = interpret(createChangePasswordMachine(this._client)).start()
-    const { error } = await changePasswordPromise(service, newPassword)
+    const { error } = await changePasswordPromise(service, newPassword, ticket)
     return { error }
   }
 

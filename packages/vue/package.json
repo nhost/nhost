@@ -1,6 +1,6 @@
 {
   "name": "@nhost/vue",
-  "version": "0.3.4",
+  "version": "0.4.1",
   "description": "Nhost Vue library",
   "license": "MIT",
   "keywords": [
@@ -31,6 +31,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",
@@ -49,6 +50,7 @@
     "build:umd": "vite build --config ../../config/vite.vue.umd.config.js",
     "test": "vitest run --config ../../config/vite.vue.config.js",
     "test:watch": "vitest --config ../../config/vite.vue.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.vue",
@@ -64,7 +66,7 @@
   "dependencies": {
     "@nhost/core": "workspace:*",
     "@nhost/nhost-js": "workspace:*",
-    "@vueuse/core": "^8.3.1",
+    "@vueuse/core": "^8.9.2",
     "@xstate/vue": "^1.0.0",
     "immer": "^9.0.12",
     "jwt-decode": "^3.1.2"
@@ -74,8 +76,8 @@
     "@nhost/hasura-auth-js": "workspace:*",
     "@vitejs/plugin-vue": "^2.3.1",
     "@xstate/inspect": "^0.6.2",
-    "vue": "^3.2.31",
-    "vue-router": "^4.0.14",
+    "vue": "^3.2.37",
+    "vue-router": "^4.1.2",
     "ws": "^8.4.2",
     "xstate": "^4.32.1"
   }

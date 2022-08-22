@@ -11,7 +11,7 @@ import TabItem from '@theme/TabItem'
 
 ## Introduction
 
-This quickstart guide provides the steps you need to build a simple Next.js app
+This quickstart provides the steps you need to build a Next.js app
 powered by Nhost for the backend. It includes:
 
 - Database: [PostgreSQL](https://www.postgresql.org/)
@@ -19,7 +19,7 @@ powered by Nhost for the backend. It includes:
 - Authentication: [Hasura Auth](https://github.com/nhost/hasura-auth/)
 - Storage: [Hasura Storage](https://hub.docker.com/r/nhost/hasura-storage)
 
-By the end of this guide, you'll have a full-stack app that allows users to log
+By the end of this guide, you'll have a full-stack app that allows users to sign
 in to access a protected dashboard and update their profile information.
 
 ## Prerequisites
@@ -33,12 +33,12 @@ You'll need **Node.js** version 12 or later: [install it from here](https://node
 
 ### Create a new Nhost app
 
-import CreateApp from '@site/src/components/create-nhost-app.mdx'
+import CreateApp from '@site/src/components/create-nhost-project.mdx'
 
 <CreateApp />
 
 :::info
-You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+You can also connect your Nhost project to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
 :::
 
 ## Initialize the app
@@ -132,7 +132,8 @@ import { NhostNextProvider, NhostClient } from '@nhost/nextjs';
 
 // highlight-start
 const nhost = new NhostClient({
-  backendUrl: process.env.NEXT_PUBLIC_NHOST_BACKEND_URL || '',
+  subdomain: process.env.NEXT_PUBLIC_NHOST_SUBDOMAIN || '',
+  region: process.env.NEXT_PUBLIC_NHOST_REGION || ''
 });
 // highlight-end
 
@@ -149,16 +150,16 @@ function MyApp({ Component, pageProps }) {
 }
 ```
 
-Finally, make sure to create an environment variable named
-`NEXT_PUBLIC_NHOST_BACKEND_URL` to store your Nhost backend URL:
+Finally, store the environment variables for `subdomain` and `region` in `.env.development`:
 
 ```yaml title=".env.development"
-NEXT_PUBLIC_NHOST_BACKEND_URL=YOUR_NHOST_BACKEND_URL
+NEXT_PUBLIC_NHOST_SUBDOMAIN=[subdomain]
+NEXT_PUBLIC_NHOST_REGION=[region]
 ```
 
-You can find your Nhost backend URL for your project from [your dashboard](https://app.nhost.io) as shown below:
+You find your Nhost project's `subdomain` and `region` in the [project overview](https://app.nhost.io):
 
-![Nhost Backend URL](/img/quickstarts/app-dashboard.png)
+![Project Overview](/img/quickstarts/app-dashboard.png)
 
 :::caution
 Don't forget to restart your Next.js server after saving your `.env.development`

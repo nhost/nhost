@@ -39,7 +39,8 @@ import { NhostApolloProvider } from '@nhost/react-apollo'
 import { NhostClient, NhostReactProvider } from '@nhost/react'
 
 const nhost = new NhostClient({
-  backendUrl: '<Your Nhost Backend URL>'
+  subdomain: '<app-subdomain>',
+  region: '<app-region>'
 })
 
 ReactDOM.render(

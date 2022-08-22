@@ -17,13 +17,13 @@ Nhost Authentication support the following sign-in methods:
 
 ## Enabling Social Sign-In Provider
 
-To start with social sign-in, select your app in Nhost Console and go to **Users** → **Authentication Settings**.
+To start with social sign-in, select your project in Nhost Dashboard and go to **Users** → **Authentication Settings**.
 
 You need to set the Client ID and Client Secret for each provider that you want to enable.
 
 ## Implementing sign-in experience
 
-Use the [Nhost JavaScript SDK](/reference/javascript) and the `signIn()` method to implement social sign-in in your app,
+Use the [Nhost JavaScript SDK](/reference/javascript) and the `signIn()` method to implement social sign-in for your project.
 
 Here's an example of how to implement sign-in with GitHub:
 
@@ -33,13 +33,24 @@ nhost.auth.signIn({
 })
 ```
 
-Users are redirected to your Nhost app's **client URL** by default. By default, your Nhost app's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Authentication Settings** → **Client URL**.
+Users are redirected to your Nhost project's **client URL** by default. By default, your Nhost project's client URL is set to `http://localhost:3000`. You can change the value of your client URL in the Nhost console by going to **Users** → **Authentication Settings** → **Client URL**.
+
+Here is an example of how to redirect to another host or path:
+
+```js
+nhost.auth.signIn({
+  provider: '<provider>'
+  options: {
+    redirectTo: "<host>/<slug>" // Example: "https://example.com/dashboard"
+  },
+})
+```
 
 ## Provider OAuth scopes
 
 Scopes are a mechanism in OAuth to allow or limit an application's access to a user's account.
 
-By default, Nhost sets the scope to get the name, email, and avatar url for each user. Editing scope is not currently supported.
+By default, Nhost sets the scope to get the name, email, and avatar URL for each user. Editing scope is not currently supported.
 
 ## Provider OAuth Tokens
 

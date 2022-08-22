@@ -17,6 +17,7 @@
     "build": "pnpm clean && tsup",
     "test": "vitest run --config ../../config/vite.lib.config.js",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "clean": "rimraf dist",
     "format": "prettier --write 'src/**/*.ts'",
     "lint": "eslint . --ext .ts,.tsx"

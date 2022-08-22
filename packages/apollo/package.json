@@ -1,6 +1,6 @@
 {
   "name": "@nhost/apollo",
-  "version": "0.5.20",
+  "version": "0.5.25",
   "description": "Nhost Apollo Client library",
   "license": "MIT",
   "keywords": [
@@ -31,6 +31,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",
@@ -49,6 +50,7 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "test": "vitest run --config ../../config/vite.lib.config.js",
     "test:watch": "vitest --config ../../config/vite.lib.config.js",
+    "test:coverage": "vitest run --coverage --config ../../config/vite.lib.config.js",
     "prettier": "prettier --check src/",
     "prettier:fix": "prettier --write src/",
     "lint": "eslint . --ext .ts,.tsx",
@@ -65,6 +67,6 @@
     "graphql-ws": "^5.7.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.6.2"
+    "@apollo/client": "^3.6.9"
   }
 }
