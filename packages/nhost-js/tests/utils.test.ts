@@ -28,7 +28,7 @@ describe('urlFromParams', () => {
       it('should throw an error', async () => {
         expect(() => {
           urlFromParams({ subdomain: 'mysubdomain' }, 'auth')
-        }).toThrow('A region must be specified when using a `subdomain` other than "localhost".')
+        }).toThrow()
       })
     })
 

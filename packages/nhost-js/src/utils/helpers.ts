@@ -1,6 +1,6 @@
 import { NhostClientConstructorParams } from './types'
 
-const LOCALHOST = /^localhost(:\d+)*$/
+const LOCALHOST_REGEX = /^localhost(:\d+)*$/
 
 /**
  * `backendUrl` should now be used only when self-hosting
@@ -14,19 +14,32 @@ export function urlFromParams(
   backendOrSubdomain: Pick<NhostClientConstructorParams, 'region' | 'subdomain' | 'backendUrl'>,
   service: string
 ) {
-  if ('backendUrl' in backendOrSubdomain) {
-    return `${backendOrSubdomain.backendUrl}/v1/${service}`
+  const { backendUrl, subdomain, region } = backendOrSubdomain
+
+  if (!backendUrl && !subdomain) {
+    throw new Error('Either `backendUrl` or `subdomain` must be set.')
   }
 
-  if (backendOrSubdomain.subdomain !== undefined && backendOrSubdomain.subdomain.match(LOCALHOST)) {
-    return backendOrSubdomain === 'localhost'
-      ? `http://localhost:1337/v1/${service}`
-      : `http://${backendOrSubdomain.subdomain}/v1/${service}`
+  // if backendUrl is set, use it.
+  if (backendUrl) {
+    return `${backendUrl}/v1/${service}`
   }
 
-  if (!('region' in backendOrSubdomain)) {
-    throw new Error('A region must be specified when using a `subdomain` other than "localhost".')
+  // to make TS happy
+  if (!subdomain) {
+    throw new Error('`subdomain` must be set if `backendUrl` is not set.')
   }
 
-  return `https://${backendOrSubdomain.subdomain}.${service}.${backendOrSubdomain.region}.nhost.run/v1`
+  // check if subdomain is localhost
+  const subdomainLocalhostFound = subdomain.match(LOCALHOST_REGEX)
+  if (subdomainLocalhostFound && subdomainLocalhostFound.length > 0) {
+    return `http://${subdomainLocalhostFound[0]}/v1/${service}`
+  }
+
+  // subdomain is set, but not to "localhost". `region` must be set.
+  if (!region) {
+    throw new Error('`region` must be set when using a `subdomain` other than "localhost".')
+  }
+
+  return `https://${subdomain}.${service}.${region}.nhost.run/v1`
 }
