@@ -41,7 +41,7 @@ const (
 	svcPostgresDefaultImage  = "nhost/postgres:12-v0.0.6"
 	svcAuthDefaultImage      = "nhost/hasura-auth:0.10.0"
 	svcStorageDefaultImage   = "nhost/hasura-storage:0.2.3"
-	svcFunctionsDefaultImage = "nhost/functions:0.0.4"
+	svcFunctionsDefaultImage = "nhost/functions:0.1.1"
 	svcMinioDefaultImage     = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
 	svcMailhogDefaultImage   = "mailhog/mailhog"
 	svcHasuraDefaultImage    = "hasura/graphql-engine:v2.10.1"
@@ -146,11 +146,6 @@ func (c *Config) build() *types.Config {
 		if service != nil {
 			config.Services = append(config.Services, *service)
 		}
-	}
-
-	// set volumes
-	config.Volumes = types.Volumes{
-		"functions_node_modules": types.VolumeConfig{},
 	}
 
 	c.composeConfig = config
@@ -360,17 +355,15 @@ func (c Config) functionsService() *types.ServiceConfig {
 		Restart:     types.RestartPolicyAlways,
 		Expose:      []string{"3000"},
 		Environment: c.functionsServiceEnvs().dockerServiceConfigEnv(),
-		HealthCheck: c.functionsServiceHealthcheck(time.Second*3, time.Minute*5),
+		HealthCheck: c.functionsServiceHealthcheck(time.Second*1, time.Minute*30), // 30 minutes is the maximum allowed time for a "functions" service to start, see more below
+		// Probe failure during that period will not be counted towards the maximum number of retries
+		// However, if a health check succeeds during the start period, the container is considered started and all
+		// consecutive failures will be counted towards the maximum number of retries.
 		Volumes: []types.ServiceVolumeConfig{
 			{
 				Type:   types.VolumeTypeBind,
 				Source: "..",
 				Target: "/opt/project",
-			},
-			{
-				Type:   types.VolumeTypeVolume,
-				Source: "functions_node_modules",
-				Target: "/opt/project/node_modules",
 			},
 		},
 	}
@@ -559,9 +552,6 @@ func (c Config) hasuraService() *types.ServiceConfig {
 		},
 		DependsOn: map[string]types.ServiceDependency{
 			SvcPostgres: {
-				Condition: types.ServiceConditionHealthy,
-			},
-			SvcFunctions: {
 				Condition: types.ServiceConditionHealthy,
 			},
 		},

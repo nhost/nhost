@@ -19,6 +19,10 @@ import (
 	"time"
 )
 
+const (
+	slowStartWaitMsg = "It takes more than usual to start the nhost project. Most likely because CLI needs to pull js dependencies inside a container. Please wait..."
+)
+
 type Manager interface {
 	SyncExec(ctx context.Context, f func(ctx context.Context) error) error
 	Start(ctx context.Context) error
@@ -78,10 +82,23 @@ func (m *dockerComposeManager) SetGitBranch(gitBranch string) {
 }
 
 func (m *dockerComposeManager) Start(ctx context.Context) error {
+	startTime := time.Now()
+	defer func() {
+		m.l.Debugf("Start took %s", time.Since(startTime).String())
+	}()
 
 	ds := &compose.DataStreams{}
 
-	if err := m.startPostgresGraphqlFunctions(ctx, ds); err != nil {
+	m.status.Executing("Starting local Nhost project...")
+	m.l.Debug("Starting docker compose")
+
+	// spin up the "functions" container first, because it's the one that's going to take the longest to start
+	// though we don't wait for it to be healthy, only start
+	if err := m.startFunctions(ctx, ds); err != nil {
+		return err
+	}
+
+	if err := m.startPostgresGraphql(ctx, ds); err != nil {
 		return err
 	}
 
@@ -89,10 +106,34 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 		return err
 	}
 
-	// start all containers
+	containersHealthy := make(chan bool)
+
+	go func() {
+		ticker := time.NewTicker(time.Second * 20)
+		defer ticker.Stop()
+
+		showSlowStartMsg := time.After(time.Second * 15)
+
+		for {
+			select {
+			case <-containersHealthy:
+				return
+			case <-ticker.C:
+				m.status.Executingln("Processing...")
+				m.l.Debug("Processing...")
+			case <-showSlowStartMsg:
+				m.status.Executing(slowStartWaitMsg)
+				m.l.Debug(slowStartWaitMsg)
+			}
+		}
+	}()
+
+	// start all containers, this is where we make sure that all containers are up & running, including "functions"
 	if err := m.waitForServicesToBeRunningHealthy(ctx, ds); err != nil {
 		return err
 	}
+
+	containersHealthy <- true
 
 	// ensure default bucket `nhost` exists in Minio S3
 	if err := m.ensureBucketExists(ctx); err != nil {
@@ -131,12 +172,28 @@ func (m *dockerComposeManager) Start(ctx context.Context) error {
 	return m.applySeeds(ctx)
 }
 
-func (m *dockerComposeManager) startPostgresGraphqlFunctions(ctx context.Context, ds *compose.DataStreams) error {
-	m.status.Executing("Starting local Nhost project...")
-	m.l.Debug("Starting docker compose")
+func (m *dockerComposeManager) startFunctions(ctx context.Context, ds *compose.DataStreams) error {
+	m.status.Executing("Starting functions...")
+	m.l.Debug("Starting functions")
 
-	m.l.Debugf("Starting %s containers...", strings.Join([]string{compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, ", "))
-	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine, compose.SvcFunctions}, m.composeConfig, ds)
+	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", compose.SvcFunctions}, m.composeConfig, ds)
+	if err != nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		m.status.Error("Failed to start functions container")
+		m.l.WithError(err).Debug("Failed to start functions")
+		return err
+	}
+
+	m.setProcessToStartInItsOwnProcessGroup(cmd)
+	return nhost.RunCmdAndCaptureStderrIfNotSetup(cmd)
+}
+
+func (m *dockerComposeManager) startPostgresGraphql(ctx context.Context, ds *compose.DataStreams) error {
+	m.l.Debugf("Starting %s containers...", strings.Join([]string{compose.SvcPostgres, compose.SvcGraphqlEngine}, ", "))
+	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine}, m.composeConfig, ds)
 	if err != nil {
 		if ctx.Err() != nil {
 			return ctx.Err()
