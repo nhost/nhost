@@ -2,41 +2,41 @@ table:
   name: companies
   schema: public
 array_relationships:
-- name: customers
-  using:
-    foreign_key_constraint_on:
-      column: company_id
-      table:
-        name: customers
-        schema: public
-- name: profiles
-  using:
-    foreign_key_constraint_on:
-      column: company_id
-      table:
-        name: profiles
-        schema: public
+  - name: customers
+    using:
+      foreign_key_constraint_on:
+        column: company_id
+        table:
+          name: customers
+          schema: public
+  - name: profiles
+    using:
+      foreign_key_constraint_on:
+        column: company_id
+        table:
+          name: profiles
+          schema: public
 select_permissions:
-- permission:
-    columns:
-    - id
-    - created_at
-    - updated_at
-    - name
-    - address
-    filter:
-      profiles:
-        user_id:
-          _eq: X-Hasura-User-Id
-  role: user
+  - role: user
+    permission:
+      columns:
+        - id
+        - created_at
+        - updated_at
+        - name
+        - address
+      filter:
+        profiles:
+          user_id:
+            _eq: X-Hasura-User-Id
 update_permissions:
-- permission:
-    check: null
-    columns:
-    - address
-    - name
-    filter:
-      profiles:
-        user_id:
-          _eq: X-Hasura-User-Id
-  role: user
+  - role: user
+    permission:
+      columns:
+        - address
+        - name
+      filter:
+        profiles:
+          user_id:
+            _eq: X-Hasura-User-Id
+      check: null

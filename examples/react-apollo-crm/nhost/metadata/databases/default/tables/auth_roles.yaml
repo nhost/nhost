@@ -2,8 +2,8 @@ table:
   name: roles
   schema: auth
 configuration:
-  custom_column_names:
-    role: role
+  column_config: {}
+  custom_column_names: {}
   custom_name: authRoles
   custom_root_fields:
     delete: deleteAuthRoles

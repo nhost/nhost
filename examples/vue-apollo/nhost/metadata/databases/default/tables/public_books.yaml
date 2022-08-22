@@ -2,9 +2,9 @@ table:
   name: books
   schema: public
 select_permissions:
-- permission:
-    columns:
-    - id
-    - title
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - id
+        - title
+      filter: {}

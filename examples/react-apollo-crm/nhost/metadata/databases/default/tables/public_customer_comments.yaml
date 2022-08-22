@@ -2,6 +2,17 @@ table:
   name: customer_comments
   schema: public
 configuration:
+  column_config:
+    created_at:
+      custom_name: createdAt
+    customer_id:
+      custom_name: customerId
+    file_id:
+      custom_name: fileId
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userId
   custom_column_names:
     created_at: createdAt
     customer_id: customerId
@@ -29,23 +40,23 @@ object_relationships:
     using:
       foreign_key_constraint_on: user_id
 insert_permissions:
-  - permission:
-      backend_only: false
+  - role: user
+    permission:
       check:
         customer:
           company:
             companyUsers:
               user_id:
                 _eq: X-Hasura-User-Id
+      set:
+        user_id: x-hasura-user-id
       columns:
         - customer_id
         - file_id
         - text
-      set:
-        user_id: x-hasura-user-id
-    role: user
 select_permissions:
-  - permission:
+  - role: user
+    permission:
       columns:
         - created_at
         - customer_id
@@ -60,10 +71,9 @@ select_permissions:
             companyUsers:
               user_id:
                 _eq: X-Hasura-User-Id
-    role: user
 update_permissions:
-  - permission:
-      check: null
+  - role: user
+    permission:
       columns: []
       filter:
         customer:
@@ -71,13 +81,14 @@ update_permissions:
             companyUsers:
               user_id:
                 _eq: X-Hasura-User-Id
-    role: user
+      check: null
 delete_permissions:
-  - permission:
+  - role: user
+    permission:
+      backend_only: false
       filter:
         customer:
           company:
             companyUsers:
               user_id:
                 _eq: X-Hasura-User-Id
-    role: user
