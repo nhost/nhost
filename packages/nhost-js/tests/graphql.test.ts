@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { NhostClient } from '../src'
 
 const nhost = new NhostClient({
-  subdomain: 'localhost:1337'
+  subdomain: 'localhost2'
 })
 
 type User = { id: string; displayName: string }

@@ -34,6 +34,11 @@ describe('urlFromParams', () => {
 
     describe('"localhost" without a custom port', () => {
       it('should use port 1337 and return "http://localhost:1337/v1/auth"', async () => {
+        const url = urlFromParams({ subdomain: 'localhost' }, 'auth')
+
+        expect(url).toBe('http://localhost:1337/v1/auth')
+      })
+      it('should use port 1337 and return "http://localhost:1337/v1/auth"', async () => {
         const url = urlFromParams({ subdomain: 'localhost:1337' }, 'auth')
 
         expect(url).toBe('http://localhost:1337/v1/auth')
