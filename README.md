@@ -87,12 +87,12 @@ await nhost.graphql.request(`{
 Nhost is frontend agnostic, which means Nhost works with all frontend frameworks.
 
 <div align="center">
-  <a href="https://github.com/nhost/nhost/tree/main/templates/web/nextjs-apollo"><img src="assets/nextjs.svg"/></a>
-  <a href="https://github.com/nhost/nhost/tree/main/examples/nuxt-apollo"><img src="assets/nuxtjs.svg"/></a>
-  <a href="https://github.com/nhost/nhost/tree/main/templates/web/react-apollo"><img src="assets/react.svg"/></a>
-  <img src="assets/react-native.svg"/>
-  <a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/svelte.svg"/></a>
-  <a href="https://github.com/nhost/nhost/tree/main/packages/nhost-js"><img src="assets/vuejs.svg"/></a>
+  <a href="https://docs.nhost.io/platform/quickstarts/nextjs"><img src="assets/nextjs.svg"/></a>
+  <a href="https://docs.nhost.io/reference/javascript"><img src="assets/nuxtjs.svg"/></a>
+  <a href="https://docs.nhost.io/platform/quickstarts/react"><img src="assets/react.svg"/></a>
+  <a href="https://docs.nhost.io/reference/javascript"><img src="assets/react-native.svg"/></a>
+  <a href="https://docs.nhost.io/reference/javascript"><img src="assets/svelte.svg"/></a>
+  <a href="https://docs.nhost.io/platform/quickstarts/vue"><img src="assets/vuejs.svg"/></a>
 </div>
 
 # Resources
