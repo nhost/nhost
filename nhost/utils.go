@@ -68,7 +68,7 @@ func EnsureProjectNameFileExists() error {
 
 	if !util.PathExists(projectNameFilename) {
 		rand.Seed(time.Now().UnixNano())
-		randomName := strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-")
+		randomName := strings.ToLower(strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-"))
 
 		if err := os.MkdirAll(DOT_NHOST_DIR, os.ModePerm); err != nil {
 			return err
