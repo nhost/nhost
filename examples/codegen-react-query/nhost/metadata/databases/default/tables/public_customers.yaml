@@ -2,16 +2,16 @@ table:
   name: customers
   schema: public
 insert_permissions:
-- permission:
-    check: {}
-    columns:
-    - name
-  role: public
+  - role: public
+    permission:
+      check: {}
+      columns:
+        - name
 select_permissions:
-- permission:
-    columns:
-    - id
-    - name
-    - created_at
-    filter: {}
-  role: public
+  - role: public
+    permission:
+      columns:
+        - id
+        - name
+        - created_at
+      filter: {}

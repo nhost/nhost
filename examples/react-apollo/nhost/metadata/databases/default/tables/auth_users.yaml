@@ -73,35 +73,35 @@ configuration:
     update: updateUsers
     update_by_pk: updateUser
 object_relationships:
-- name: defaultRoleByRole
-  using:
-    foreign_key_constraint_on: default_role
+  - name: defaultRoleByRole
+    using:
+      foreign_key_constraint_on: default_role
 array_relationships:
-- name: authenticators
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: user_authenticators
-        schema: auth
-- name: refreshTokens
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: refresh_tokens
-        schema: auth
-- name: roles
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: user_roles
-        schema: auth
-- name: userProviders
-  using:
-    foreign_key_constraint_on:
-      column: user_id
-      table:
-        name: user_providers
-        schema: auth
+  - name: authenticators
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_authenticators
+          schema: auth
+  - name: refreshTokens
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: refresh_tokens
+          schema: auth
+  - name: roles
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_roles
+          schema: auth
+  - name: userProviders
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_providers
+          schema: auth
