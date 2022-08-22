@@ -2,9 +2,9 @@ table:
   name: test
   schema: public
 select_permissions:
-- permission:
-    columns:
-    - bidon
-    - id
-    filter: {}
-  role: user
+  - role: user
+    permission:
+      columns:
+        - bidon
+        - id
+      filter: {}
