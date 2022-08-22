@@ -48,6 +48,11 @@ const (
 	svcTraefikDefaultImage   = "traefik:v2.8"
 	// --
 
+	// volume names
+	volFunctionsNodeModules = "functions_node_modules"
+	volRootNodeModules      = "root_node_modules"
+	// --
+
 	// environment variables
 
 	// envs prefixes
@@ -139,6 +144,12 @@ func (c *Config) build() *types.Config {
 		c.storageService(),
 		c.functionsService(),
 		c.mailhogService(),
+	}
+
+	// set volumes
+	config.Volumes = types.Volumes{
+		volFunctionsNodeModules: types.VolumeConfig{},
+		volRootNodeModules:      types.VolumeConfig{},
 	}
 
 	// loop over services and filter out nils, i.e. services that are not enabled
@@ -364,6 +375,16 @@ func (c Config) functionsService() *types.ServiceConfig {
 				Type:   types.VolumeTypeBind,
 				Source: "..",
 				Target: "/opt/project",
+			},
+			{
+				Type:   types.VolumeTypeVolume,
+				Source: volRootNodeModules,
+				Target: "/opt/project/node_modules",
+			},
+			{
+				Type:   types.VolumeTypeVolume,
+				Source: volFunctionsNodeModules,
+				Target: "/opt/project/functions/node_modules",
 			},
 		},
 	}

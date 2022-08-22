@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	slowStartWaitMsg = "It takes more than usual to start the nhost project. Most likely because CLI needs to pull js dependencies inside a container. Please wait..."
+	slowStartWaitMsg = "It takes longer than usual to start your Nhost project. Most likely because of the need to install your npm dependencies. Please wait."
 )
 
 type Manager interface {
