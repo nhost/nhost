@@ -29,9 +29,13 @@ export class HasuraStorageApi {
     })
   }
 
+
   async upload(params: ApiUploadParams): Promise<ApiUploadResponse> {
+
+    const { formData } = params;
+
     try {
-      const res = await this.httpClient.post('/files', params.file, {
+      const res = await this.httpClient.post('/files', formData, {
         headers: {
           ...this.generateUploadHeaders(params),
           ...this.generateAuthHeaders(),

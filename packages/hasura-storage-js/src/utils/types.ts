@@ -1,3 +1,5 @@
+import FormData from 'form-data'
+
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 
 // * Avoid circular references and broken links in docusaurus generated docs
@@ -7,7 +9,7 @@ export interface NhostClientReturnType {
   adminSecret?: string
 }
 export interface StorageUploadParams {
-  file: File
+  file: any;
   id?: string
   name?: string
   bucketId?: string
@@ -48,7 +50,7 @@ interface FileResponse {
 }
 
 export interface ApiUploadParams {
-  file: FormData
+  formData: FormData
   id?: string
   name?: string
   bucketId?: string

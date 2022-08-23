@@ -1,3 +1,5 @@
+import FormData from 'form-data'
+
 import {
   StorageDeleteParams,
   StorageDeleteResponse,
@@ -33,7 +35,7 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.upload` to upload a file. The `file` must be of type [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
+   * Use `nhost.storage.upload` to upload a file. 
    * 
    * If no `bucket` is specified the `default` bucket will be used.
    *
@@ -50,12 +52,15 @@ export class HasuraStorageClient {
    * @docs https://docs.nhost.io/reference/javascript/storage/upload
    */
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
-    const file = new FormData()
-    file.append('file', params.file)
+    
+    // construct the FormData
+    const { file } = params;
+    const formData = new FormData()
+    formData.append('file', file);
 
     const { fileMetadata, error } = await this.api.upload({
       ...params,
-      file
+      formData,
     })
     if (error) {
       return { fileMetadata: null, error }
