@@ -33,10 +33,6 @@ type Manager interface {
 }
 
 func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports nhost.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
-	if gitBranch == "" {
-		gitBranch = "main"
-	}
-
 	return &dockerComposeManager{
 		ports:         ports,
 		hc:            hc,

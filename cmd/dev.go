@@ -28,6 +28,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/nhost/cli/internal/git"
 	"os"
 	"os/signal"
 	"reflect"
@@ -129,8 +130,18 @@ var devCmd = &cobra.Command{
 			return fmt.Errorf("failed to get start-timeout value: %v", err)
 		}
 
+		gitRefGetter, err := git.NewReferenceGetterWithFallback()
+		if err != nil {
+			return fmt.Errorf("failed to init git ref getter: %v", err)
+		}
+
+		gitBranchName, err := gitRefGetter.RefName()
+		if err != nil {
+			return fmt.Errorf("failed to get git branch name: %v", err)
+		}
+
 		launcher := service.NewLauncher(
-			service.NewDockerComposeManager(config, hc, ports, env, nhost.GetCurrentBranch(),
+			service.NewDockerComposeManager(config, hc, ports, env, gitBranchName,
 				projectName,
 				log,
 				status,
