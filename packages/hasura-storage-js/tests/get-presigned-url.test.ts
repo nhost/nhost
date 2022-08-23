@@ -1,9 +1,8 @@
 import fs from 'fs'
 import { describe, expect, it } from 'vitest'
-import fetch from 'cross-fetch'
 import { v4 as uuidv4 } from 'uuid'
 
-import { storage } from './helpers'
+import { storage } from './utils/helpers'
 import FormData from 'form-data'
 
 describe('test get presigned url of file', () => {

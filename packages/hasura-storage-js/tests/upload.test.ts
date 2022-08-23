@@ -4,7 +4,7 @@ import fetch from 'cross-fetch'
 import { v4 as uuidv4 } from 'uuid'
 import FormData from 'form-data'
 
-import { storage } from './helpers'
+import { storage } from './utils/helpers'
 
 describe('test upload', () => {
   it('should upload a file from the file system', async () => {

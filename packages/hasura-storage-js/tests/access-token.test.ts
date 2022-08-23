@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { v4 as uuidv4 } from 'uuid'
 
-import { storage } from './helpers'
-import { AxiosError } from 'axios'
+import { storage } from './utils/helpers'
 
 describe('test access token', () => {
   it('should be able to set access token', async () => {
