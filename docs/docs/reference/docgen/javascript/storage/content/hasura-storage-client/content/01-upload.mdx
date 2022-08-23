@@ -23,12 +23,12 @@ await nhost.storage.upload({ file })
 
 **<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`StorageUploadParams`](/reference/docgen/javascript/storage/types/storage-upload-params)
 
-| Property                                                                                    | Type     | Required | Notes |
-| :------------------------------------------------------------------------------------------ | :------- | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">params.</span>file</span>     | `any`    |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>bucketId</span> | `string` |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>name</span>     | `string` |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>id</span>       | `string` |          |       |
+| Property                                                                                    | Type                 | Required | Notes |
+| :------------------------------------------------------------------------------------------ | :------------------- | :------: | :---- |
+| <span className="parameter-name"><span className="light-grey">params.</span>file</span>     | `File` \| `FormData` |    ✔️    |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>bucketId</span> | `string`             |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>name</span>     | `string`             |          |       |
+| <span className="parameter-name"><span className="light-grey">params.</span>id</span>       | `string`             |          |       |
 
 ---
 

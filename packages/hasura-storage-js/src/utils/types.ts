@@ -8,8 +8,18 @@ export interface NhostClientReturnType {
   storage: { url: string }
   adminSecret?: string
 }
+
+// works in browser and server
 export interface StorageUploadParams {
-  file: any;
+  file: File | FormData
+  id?: string
+  name?: string
+  bucketId?: string
+}
+
+// works only in browser
+export interface StorageUploadForBrowserParams {
+  file: File
   id?: string
   name?: string
   bucketId?: string
