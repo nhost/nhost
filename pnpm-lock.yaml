@@ -587,6 +587,7 @@ importers:
       form-data: ^4.0.0
       msw: ^0.39.2
       start-server-and-test: ^1.14.0
+      uuid: ^8.3.2
       xstate: ^4.32.1
     dependencies:
       axios: 0.27.2
@@ -598,6 +599,7 @@ importers:
       cross-fetch: 3.1.5
       msw: 0.39.2
       start-server-and-test: 1.14.0
+      uuid: 8.3.2
 
   packages/hasura-storage-js/nhost-test-folder:
     specifiers:

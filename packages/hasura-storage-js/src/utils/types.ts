@@ -9,21 +9,24 @@ export interface NhostClientReturnType {
   adminSecret?: string
 }
 
-// works in browser and server
-export interface StorageUploadParams {
-  file: File | FormData
-  id?: string
-  name?: string
-  bucketId?: string
-}
-
-// works only in browser
-export interface StorageUploadForBrowserParams {
+// works only in browser. Used for for hooks
+export interface StorageUploadFileParams {
   file: File
   id?: string
   name?: string
   bucketId?: string
 }
+
+// works in browser and server
+export interface StorageUploadFormDataParams {
+  formData: FormData
+  id?: string
+  name?: string
+  bucketId?: string
+}
+
+// works in browser and server
+export type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDataParams
 
 export type StorageUploadResponse =
   | { fileMetadata: FileResponse; error: null }

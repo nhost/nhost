@@ -4,27 +4,11 @@ title: StorageUploadParams
 sidebar_label: StorageUploadParams
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/utils/types.ts#L13
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/utils/types.ts#L29
 ---
 
 # `StorageUploadParams`
 
-## Parameters
-
----
-
-**<span className="parameter-name">file</span>** <span className="optional-status">required</span> `File` | `FormData`
-
----
-
-**<span className="parameter-name">bucketId</span>** <span className="optional-status">optional</span> `string`
-
----
-
-**<span className="parameter-name">name</span>** <span className="optional-status">optional</span> `string`
-
----
-
-**<span className="parameter-name">id</span>** <span className="optional-status">optional</span> `string`
-
----
+```ts
+type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDataParams
+```

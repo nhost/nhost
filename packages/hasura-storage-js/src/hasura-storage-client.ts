@@ -37,7 +37,9 @@ export class HasuraStorageClient {
   /**
    * Use `nhost.storage.upload` to upload a file. 
    * 
-   * If no `bucket` is specified the `default` bucket will be used.
+   * It's possible to use [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File) or [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData) to upload a file. The `File` instance is only available in the browser while `FormData` with [`form-data`](https://www.npmjs.com/package/form-data) works both in the browser and in NodeJS (server).
+   * 
+   * If no `bucketId` is specified the bucket `default` is used.
    *
    * @example
    * ```ts
@@ -49,19 +51,28 @@ export class HasuraStorageClient {
    * await nhost.storage.upload({ file, bucketId: '<Bucket-ID>' })
    * ```
    *
+   * @example
+   * ```ts
+   * const fd = new FormData() 
+   * fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'), 'logo.png')
+   * 
+   * await storage.upload({
+   *   formData: fd
+   * })
+   * ```
+   * 
    * @docs https://docs.nhost.io/reference/javascript/storage/upload
    */
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
-    // construct the FormData
-    const { file } = params
-
     let body
 
-    if (file instanceof FormData) {
-      body = file
-    } else {
+    if ('file' in params) {
+      const { file } = params
       body = new FormData()
       body.append('file', file)
+    } else {
+      const { formData } = params
+      body = formData
     }
 
     const { fileMetadata, error } = await this.api.upload({

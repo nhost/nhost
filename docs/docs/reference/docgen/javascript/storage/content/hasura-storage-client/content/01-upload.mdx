@@ -4,14 +4,16 @@ title: upload()
 sidebar_label: upload()
 slug: /reference/javascript/storage/upload
 description: Use `nhost.storage.upload` to upload a file.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/hasura-storage-client.ts#L54
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-storage-js/src/packages/hasura-storage-js/src/hasura-storage-client.ts#L66
 ---
 
 # `upload()`
 
 Use `nhost.storage.upload` to upload a file.
 
-If no `bucket` is specified the `default` bucket will be used.
+It's possible to use [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File) or [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData) to upload a file. The `File` instance is only available in the browser while `FormData` with [`form-data`](https://www.npmjs.com/package/form-data) works both in the browser and in NodeJS (server).
+
+If no `bucketId` is specified the bucket `default` is used.
 
 ```ts
 await nhost.storage.upload({ file })
@@ -23,13 +25,6 @@ await nhost.storage.upload({ file })
 
 **<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`StorageUploadParams`](/reference/docgen/javascript/storage/types/storage-upload-params)
 
-| Property                                                                                    | Type                 | Required | Notes |
-| :------------------------------------------------------------------------------------------ | :------------------- | :------: | :---- |
-| <span className="parameter-name"><span className="light-grey">params.</span>file</span>     | `File` \| `FormData` |    ✔️    |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>bucketId</span> | `string`             |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>name</span>     | `string`             |          |       |
-| <span className="parameter-name"><span className="light-grey">params.</span>id</span>       | `string`             |          |       |
-
 ---
 
 ## Examples
@@ -40,4 +35,13 @@ await nhost.storage.upload({ file })
 
 ```ts
 await nhost.storage.upload({ file, bucketId: '<Bucket-ID>' })
+```
+
+```ts
+const fd = new FormData()
+fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'), 'logo.png')
+
+await storage.upload({
+  formData: fd
+})
 ```

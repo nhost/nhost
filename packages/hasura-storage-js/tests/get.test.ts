@@ -1,14 +1,18 @@
 import fs from 'fs'
 import { describe, expect, it } from 'vitest'
 import fetch from 'cross-fetch'
+import { v4 as uuidv4 } from 'uuid'
 
 import { storage } from './helpers'
 import FormData from 'form-data'
 
 describe('test get file', () => {
   it('should be able to get uploaded file', async () => {
+    const fd = new FormData()
+    fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+
     const { fileMetadata, error } = await storage.upload({
-      file: fs.createReadStream('./tests/assets/sample.pdf')
+      formData: fd
     })
     expect(error).toBeNull()
 
@@ -24,7 +28,7 @@ describe('test get file', () => {
   })
 
   it('should fail to get file id that does not exist', async () => {
-    const RANDOM_UUID = 'a9766c77-3ed0-4087-90dd-925420dfaf81'
+    const RANDOM_UUID = uuidv4()
 
     const url = storage.getPublicUrl({
       fileId: RANDOM_UUID
