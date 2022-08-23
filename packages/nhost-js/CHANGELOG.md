@@ -1,5 +1,11 @@
 # @nhost/nhost-js
 
+## 1.4.9
+
+### Patch Changes
+
+- eb46f7d8: Use port 1337 if no port is specified when using "localhost" as `subdomain`.
+
 ## 1.4.8
 
 ### Patch Changes

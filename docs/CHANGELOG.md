@@ -1,5 +1,11 @@
 # @nhost/docs
 
+## 0.0.3
+
+### Patch Changes
+
+- eb46f7d8: Use port 1337 if no port is specified when using "localhost" as `subdomain`.
+
 ## 0.0.2
 
 ### Patch Changes
