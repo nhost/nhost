@@ -42,19 +42,28 @@ export class HasuraStorageClient {
    * If no `bucketId` is specified the bucket `default` is used.
    *
    * @example
+   * 
+   * Example to upload a file from the browser using `File`.
+   * 
    * ```ts
    * await nhost.storage.upload({ file })
    * ```
+   * 
+   * Example to upload a file from the browser using `File` to a specific Bucket.
    * 
     @example
    * ```ts
    * await nhost.storage.upload({ file, bucketId: '<Bucket-ID>' })
    * ```
+   * 
+   * Example to upload a file using `FormData` from the server.
    *
    * @example
    * ```ts
+   * import FormData from 'form-data'
+   * 
    * const fd = new FormData() 
-   * fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'), 'logo.png')
+   * fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
    * 
    * await storage.upload({
    *   formData: fd

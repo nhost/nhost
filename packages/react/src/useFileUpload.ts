@@ -5,7 +5,7 @@ import {
   FileItemRef,
   FileUploadMachine,
   FileUploadState,
-  StorageUploadForBrowserParams,
+  StorageUploadFileParams,
   UploadFileHandlerResult,
   uploadFilePromise
 } from '@nhost/hasura-storage-js'
@@ -17,12 +17,12 @@ export interface FileUploadHookResult extends FileUploadState {
   /**
    * Add the file without uploading it.
    */
-  add: (params: StorageUploadForBrowserParams) => void
+  add: (params: StorageUploadFileParams) => void
 
   /**
    * Upload the file given as a parameter, or that has been previously added.
    */
-  upload: (params: Partial<StorageUploadForBrowserParams>) => Promise<UploadFileHandlerResult>
+  upload: (params: Partial<StorageUploadFileParams>) => Promise<UploadFileHandlerResult>
 
   /**
    * Cancel the ongoing upload.
@@ -63,7 +63,7 @@ export const useFileUploadItem = (
 ): FileUploadHookResult => {
   const nhost = useNhostClient()
 
-  const add = (params: StorageUploadForBrowserParams) => {
+  const add = (params: StorageUploadFileParams) => {
     ref.send({
       type: 'ADD',
       file: params.file,
@@ -71,7 +71,7 @@ export const useFileUploadItem = (
     })
   }
 
-  const upload = (params: Partial<StorageUploadForBrowserParams>) =>
+  const upload = (params: Partial<StorageUploadFileParams>) =>
     uploadFilePromise(nhost, ref, {
       file: params.file,
       bucketId: params.bucketId || bucketId,
