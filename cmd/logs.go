@@ -26,6 +26,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/nhost/cli/internal/git"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/nhost/compose"
 	"github.com/spf13/cobra"
@@ -70,7 +71,17 @@ var logsCmd = &cobra.Command{
 			return fmt.Errorf("failed to read .env.development: %v", err)
 		}
 
-		conf := compose.NewConfig(config, nil, env, nhost.GetCurrentBranch(), projectName)
+		gitRefGetter, err := git.NewReferenceGetterWithFallback()
+		if err != nil {
+			return fmt.Errorf("failed to init git ref getter: %v", err)
+		}
+
+		gitBranchName, err := gitRefGetter.RefName()
+		if err != nil {
+			return fmt.Errorf("failed to get git branch name: %v", err)
+		}
+
+		conf := compose.NewConfig(config, nil, env, gitBranchName, projectName)
 		dc, err := compose.WrapperCmd(cmd.Context(), dcArgs, conf, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
 		if err != nil {
 			return err

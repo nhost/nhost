@@ -33,10 +33,6 @@ type Manager interface {
 }
 
 func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports nhost.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
-	if gitBranch == "" {
-		gitBranch = "main"
-	}
-
 	return &dockerComposeManager{
 		ports:         ports,
 		hc:            hc,
@@ -311,7 +307,7 @@ func (m *dockerComposeManager) applySeeds(ctx context.Context) error {
 		return nil
 	}
 
-	seedsFlagFile := filepath.Join(nhost.DOT_NHOST_DIR, "seeds.applied")
+	seedsFlagFile := filepath.Join(nhost.DOT_NHOST_DIR, "data/db", m.branch, "seeds.applied")
 
 	if util.PathExists(seedsFlagFile) {
 		m.l.Debug("Seeds already applied")

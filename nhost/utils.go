@@ -43,14 +43,6 @@ func GetDockerComposeProjectName() (string, error) {
 	return strings.TrimSpace(string(data)), nil
 }
 
-func GetCurrentBranch() string {
-	data, err := ioutil.ReadFile(filepath.Join(GIT_DIR, "HEAD"))
-	if err != nil {
-		return ""
-	}
-	payload := strings.Split(string(data), " ")
-	return strings.TrimSpace(filepath.Base(payload[1]))
-}
 func GetConfiguration() (*Configuration, error) {
 	var c Configuration
 
