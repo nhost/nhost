@@ -62,9 +62,9 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
-        # TODO this is brutal - only change ownership of the current package folder
+        # TODO Change ownership of the current package folder
       - name: Change permissions
-        run: chown -R 1001:1001 .
+        run: chown -R 1001:1001 {{ matrix.package.path }}
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
         run: pnpm run e2e -- --filter="${{ matrix.package.name }}"
