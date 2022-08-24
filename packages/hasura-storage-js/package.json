@@ -46,7 +46,7 @@
     "build:umd": "vite build --config ../../config/vite.lib.umd.config.js",
     "e2e": "start-test e2e:backend :1337/v1/auth/healthz ci:test",
     "ci:test": "vitest run",
-    "e2e:backend": "cd nhost-test-folder; nhost dev --no-browser",
+    "e2e:backend": "nhost dev --no-browser",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "prettier": "prettier --check src/",
