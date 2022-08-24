@@ -96,7 +96,6 @@ describe('test upload', () => {
 
   it('should upload a file with specific bucket id (test-bucket)', async () => {
     const fd = new FormData()
-    // fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'));
     fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
 
     const { fileMetadata, error } = await storage.upload({
