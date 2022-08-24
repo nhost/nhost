@@ -3,14 +3,20 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-version"
 	"net/http"
 	"os"
 	"path/filepath"
 	"time"
 
+	"github.com/docker/docker/client"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/util"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	testedDockerEngineVersion = "20.10.17"
 )
 
 type Launcher struct {
@@ -51,7 +57,41 @@ func (l *Launcher) Init() error {
 		return err
 	}
 
+	if err := l.checkDockerVersion(); err != nil {
+		return fmt.Errorf("failed to check docker version, make sure it's running: %w", err)
+	}
+
 	l.pidF = p
+	return nil
+}
+
+func (l *Launcher) checkDockerVersion() error {
+	cli, err := client.NewClientWithOpts(client.FromEnv)
+	if err != nil {
+		return err
+	}
+
+	info, err := cli.Info(context.Background())
+	if err != nil {
+		return err
+	}
+
+	testedDockerEngineVersionV, err := version.NewVersion(testedDockerEngineVersion)
+	if err != nil {
+		return err
+	}
+
+	dockerEngineVersionV, err := version.NewVersion(info.ServerVersion)
+	if err != nil {
+		return err
+	}
+
+	if dockerEngineVersionV.LessThan(testedDockerEngineVersionV) {
+		fmt.Printf("You are using %s version of docker engine. Please upgrade to %s or higher version.\n", info.ServerVersion, testedDockerEngineVersion)
+		fmt.Println("Upgrade instructions: https://docs.docker.com/engine/install/")
+		fmt.Println()
+	}
+
 	return nil
 }
 

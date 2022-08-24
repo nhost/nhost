@@ -223,6 +223,7 @@ func (c Config) mailhogServiceEnvs() env {
 	}
 
 	e.merge(c.serviceConfigEnvs(SvcMailhog))
+	e.mergeWithSlice(c.dotenv)
 	return e
 }
 
@@ -278,6 +279,7 @@ func (c Config) minioServiceEnvs() env {
 		envMinioRootPassword: nhost.MINIO_PASSWORD,
 	}
 	e.merge(c.serviceConfigEnvs(SvcMinio))
+	e.mergeWithSlice(c.dotenv)
 	return e
 }
 
@@ -327,14 +329,13 @@ func (c Config) minioService() *types.ServiceConfig {
 
 func (c Config) functionsServiceEnvs() env {
 	e := env{}
-	e.mergeWithSlice(c.dotenv)
 	e.merge(env{
 		"NHOST_BACKEND_URL":    c.envValueNhostBackendUrl(),
 		"NHOST_ADMIN_SECRET":   util.ADMIN_SECRET,
 		"NHOST_WEBHOOK_SECRET": util.WEBHOOK_SECRET,
 		"NHOST_JWT_SECRET":     c.envValueHasuraGraphqlJwtSecret(),
 	})
-
+	e.mergeWithSlice(c.dotenv)
 	return e
 }
 
@@ -422,6 +423,7 @@ func (c Config) storageServiceEnvs() env {
 
 	e.merge(c.serviceConfigEnvs(SvcStorage))
 	e.mergeWithConfigEnv(c.nhostConfig.Storage, envPrefixStorage)
+	e.mergeWithSlice(c.dotenv)
 
 	return e
 }
@@ -462,6 +464,7 @@ func (c Config) authServiceEnvs() env {
 
 	e.merge(c.serviceConfigEnvs(SvcAuth))
 	e.mergeWithConfigEnv(c.nhostConfig.Auth, envPrefixAuth)
+	e.mergeWithSlice(c.dotenv)
 
 	return e
 }
@@ -545,8 +548,8 @@ func (c Config) hasuraServiceEnvs() env {
 		"NHOST_WEBHOOK_SECRET":                     util.WEBHOOK_SECRET,
 	}
 
-	e.mergeWithSlice(c.dotenv)
 	e.merge(c.serviceConfigEnvs(SvcHasura))
+	e.mergeWithSlice(c.dotenv)
 
 	return e
 }
@@ -589,6 +592,7 @@ func (c Config) postgresServiceEnvs() env {
 	}
 
 	e.merge(c.serviceConfigEnvs(SvcPostgres))
+	e.mergeWithSlice(c.dotenv)
 
 	return e
 }
