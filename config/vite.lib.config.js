@@ -38,7 +38,8 @@ export default defineConfig({
     coverage: {
       enabled: process.env.CI === 'true',
       reporter: ['json']
-    }
+    },
+    exclude: ['node_modules', 'dist', '.git', '.cache', 'build', '.nhost']
   },
   build: {
     sourcemap: true,
