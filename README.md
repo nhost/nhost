@@ -4,7 +4,6 @@
 
 <div align="center">
 
-[![Release](https://github.com/nhost/cli/actions/workflows/release.yaml/badge.svg)](https://github.com/nhost/cli/actions/workflows/release.yaml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nhost/cli)](https://goreportcard.com/report/github.com/nhost/cli)
 <a href="https://twitter.com/nhost" target="_blank" rel="noopener noreferrer">
 <img src="https://img.shields.io/twitter/follow/nhost?style=social" />
