@@ -1,9 +1,13 @@
+import FormData from 'form-data'
+
 import {
   StorageDeleteParams,
   StorageDeleteResponse,
   StorageGetPresignedUrlParams,
   StorageGetPresignedUrlResponse,
   StorageGetUrlParams,
+  StorageUploadFileParams,
+  StorageUploadFormDataParams,
   StorageUploadParams,
   StorageUploadResponse
 } from './utils/types'
@@ -33,29 +37,57 @@ export class HasuraStorageClient {
   }
 
   /**
-   * Use `nhost.storage.upload` to upload a file. The `file` must be of type [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File).
+   * Use `nhost.storage.upload` to upload a file. 
    * 
-   * If no `bucket` is specified the `default` bucket will be used.
+   * It's possible to use [`File`](https://developer.mozilla.org/en-US/docs/Web/API/File) or [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData) to upload a file. The `File` instance is only available in the browser while `FormData` with [`form-data`](https://www.npmjs.com/package/form-data) works both in the browser and in NodeJS (server).
+   * 
+   * If no `bucketId` is specified the bucket `default` is used.
    *
    * @example
+   * 
+   * Upload a file from a browser using `File`.
+   * 
    * ```ts
    * await nhost.storage.upload({ file })
    * ```
+   * 
+   * Upload a file from a browser using `File` to a specific Bucket.
    * 
     @example
    * ```ts
    * await nhost.storage.upload({ file, bucketId: '<Bucket-ID>' })
    * ```
+   * 
+   * Upload a file from a server using `FormData` with [`form-data`](https://www.npmjs.com/package/form-data).
    *
+   * @example
+   * ```ts
+   * const fd = new FormData() 
+   * fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
+   * 
+   * await storage.upload({
+   *   formData: fd
+   * })
+   * ```
+   * 
    * @docs https://docs.nhost.io/reference/javascript/storage/upload
    */
+
+  async upload(params: StorageUploadFileParams): Promise<StorageUploadResponse>
+  async upload(params: StorageUploadFormDataParams): Promise<StorageUploadResponse>
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
-    const file = new FormData()
-    file.append('file', params.file)
+    let formData: FormData
+
+    if ('file' in params) {
+      formData = new FormData()
+      formData.append('file', params.file)
+    } else {
+      formData = params.formData
+    }
 
     const { fileMetadata, error } = await this.api.upload({
       ...params,
-      file
+      formData: formData
     })
     if (error) {
       return { fileMetadata: null, error }

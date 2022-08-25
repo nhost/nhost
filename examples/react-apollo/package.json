@@ -24,7 +24,7 @@
     "generate": "graphql-codegen --config graphql.config.yaml",
     "cypress": "cypress open",
     "test": "cypress run",
-    "e2e": "start-test e2e:backend :1337/v1/auth/healthz e2e:frontend 3000 test",
+    "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:frontend 3000 test",
     "e2e:backend": "nhost dev --no-browser",
     "e2e:frontend": "run-s build preview",
     "build": "vite build",

@@ -583,15 +583,29 @@ importers:
       '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       axios: ^0.27.2
+      cross-fetch: ^3.1.5
+      form-data: ^4.0.0
       msw: ^0.39.2
+      start-server-and-test: ^1.14.0
+      uuid: ^8.3.2
       xstate: ^4.32.1
     dependencies:
       axios: 0.27.2
+      form-data: 4.0.0
       xstate: 4.32.1
     devDependencies:
       '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
+      cross-fetch: 3.1.5
       msw: 0.39.2
+      start-server-and-test: 1.14.0
+      uuid: 8.3.2
+
+  packages/hasura-storage-js/nhost-test-folder:
+    specifiers:
+      cross-fetch: ^3.1.5
+    devDependencies:
+      cross-fetch: 3.1.5
 
   packages/nextjs:
     specifiers:
@@ -8654,7 +8668,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9_debug@4.3.2
+      follow-redirects: 1.14.9
     transitivePeerDependencies:
       - debug
     dev: true
