@@ -6,6 +6,8 @@ import {
   StorageGetPresignedUrlParams,
   StorageGetPresignedUrlResponse,
   StorageGetUrlParams,
+  StorageUploadFileParams,
+  StorageUploadFormDataParams,
   StorageUploadParams,
   StorageUploadResponse
 } from './utils/types'
@@ -43,25 +45,23 @@ export class HasuraStorageClient {
    *
    * @example
    * 
-   * Example to upload a file from the browser using `File`.
+   * Upload a file from a browser using `File`.
    * 
    * ```ts
    * await nhost.storage.upload({ file })
    * ```
    * 
-   * Example to upload a file from the browser using `File` to a specific Bucket.
+   * Upload a file from a browser using `File` to a specific Bucket.
    * 
     @example
    * ```ts
    * await nhost.storage.upload({ file, bucketId: '<Bucket-ID>' })
    * ```
    * 
-   * Example to upload a file using `FormData` from the server.
+   * Upload a file from a server using `FormData` with [`form-data`](https://www.npmjs.com/package/form-data).
    *
    * @example
    * ```ts
-   * import FormData from 'form-data'
-   * 
    * const fd = new FormData() 
    * fd.append('file', fs.createReadStream('./tests/assets/sample.pdf'))
    * 
@@ -72,13 +72,15 @@ export class HasuraStorageClient {
    * 
    * @docs https://docs.nhost.io/reference/javascript/storage/upload
    */
+
+  async upload(params: StorageUploadFileParams): Promise<StorageUploadResponse>
+  async upload(params: StorageUploadFormDataParams): Promise<StorageUploadResponse>
   async upload(params: StorageUploadParams): Promise<StorageUploadResponse> {
     let formData: FormData
 
     if ('file' in params) {
-      const { file } = params
       formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', params.file)
     } else {
       formData = params.formData
     }

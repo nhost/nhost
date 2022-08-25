@@ -14,6 +14,7 @@ describe('test upload', () => {
     const { error } = await storage.upload({
       formData: fd
     })
+
     expect(error).toBeNull()
   })
 
