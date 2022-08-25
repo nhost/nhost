@@ -1,5 +1,11 @@
 # @nhost/hasura-storage-js
 
+## 0.6.0
+
+### Minor Changes
+
+- 607c457f: nhost.storage.upload() now works in NodeJS (server) using FormData.
+
 ## 0.5.3
 
 ### Patch Changes

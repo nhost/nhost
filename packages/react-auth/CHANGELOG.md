@@ -1,5 +1,11 @@
 # @nhost/react-auth
 
+## 3.5.3
+
+### Patch Changes
+
+- @nhost/react@0.12.3
+
 ## 3.5.2
 
 ### Patch Changes
