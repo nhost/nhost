@@ -578,6 +578,9 @@ importers:
       mailhog: 4.16.0
       start-server-and-test: 1.14.0
 
+  packages/hasura-auth-js/functions:
+    specifiers: {}
+
   packages/hasura-storage-js:
     specifiers:
       '@nhost/core': workspace:*
@@ -601,11 +604,8 @@ importers:
       start-server-and-test: 1.14.0
       uuid: 8.3.2
 
-  packages/hasura-storage-js/nhost-test-folder:
-    specifiers:
-      cross-fetch: ^3.1.5
-    devDependencies:
-      cross-fetch: 3.1.5
+  packages/hasura-storage-js/functions:
+    specifiers: {}
 
   packages/nextjs:
     specifiers:
@@ -654,6 +654,9 @@ importers:
       '@nhost/docgen': link:../docgen
       graphql: 15.7.2
       start-server-and-test: 1.14.0
+
+  packages/nhost-js/functions:
+    specifiers: {}
 
   packages/react:
     specifiers:
@@ -8668,7 +8671,7 @@ packages:
   /axios/0.21.4_debug@4.3.2:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.9
+      follow-redirects: 1.14.9_debug@4.3.2
     transitivePeerDependencies:
       - debug
     dev: true
