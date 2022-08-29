@@ -37,7 +37,7 @@ jobs:
       - name: List examples with an e2e script
         id: set-matrix
         run: |
-          PACKAGES=$(pnpm recursive list --depth -1 --parseable \
+          PACKAGES=$(pnpm recursive list --depth -1 --parseable --filter=!nhost-root \
             | xargs -I@ jq "if (.scripts.e2e | length) != 0  then {name: .name, path: \"@\"} else null end" @/package.json \
             | awk "!/null/" \
             | jq -c --slurp)
@@ -64,7 +64,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
-        run: pnpm --filter="${{ matrix.package.name }} run e2e"
+        run: pnpm run e2e -- --filter="${{ matrix.package.name }}"
       - id: file-name
         if: ${{ failure() }}
         name: Tranform package name into a valid file name
