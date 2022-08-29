@@ -21,18 +21,24 @@ import (
 
 const (
 	slowStartWaitMsg = "It takes longer than usual to start your Nhost project. Most likely because of the need to install your npm dependencies. Please wait."
+	seedsAppliedFile = "seeds.applied"
 )
 
 type Manager interface {
 	SyncExec(ctx context.Context, f func(ctx context.Context) error) error
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
-	SetGitBranch(string)
 	HasuraConsoleURL() string
 	Endpoints() *Endpoints
 }
 
-func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports nhost.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) *dockerComposeManager {
+func NewDockerComposeManager(c *nhost.Configuration, workdir string, hc *hasura.Client, ports nhost.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) (*dockerComposeManager, error) {
+	dcConf := compose.NewConfig(c, ports, env, gitBranch, projectName)
+	w, err := compose.InitWrapper(workdir, gitBranch, dcConf)
+	if err != nil {
+		return nil, err
+	}
+
 	return &dockerComposeManager{
 		ports:         ports,
 		hc:            hc,
@@ -41,10 +47,11 @@ func NewDockerComposeManager(c *nhost.Configuration, hc *hasura.Client, ports nh
 		branch:        gitBranch,
 		projectName:   projectName,
 		nhostConfig:   c,
-		composeConfig: compose.NewConfig(c, ports, env, gitBranch, projectName),
+		composeConfig: dcConf,
 		l:             logger,
 		status:        status,
-	}
+		dcWrapper:     w,
+	}, nil
 }
 
 type dockerComposeManager struct {
@@ -59,6 +66,7 @@ type dockerComposeManager struct {
 	status        *util.Status
 	l             logrus.FieldLogger
 	env           []string
+	dcWrapper     *compose.Wrapper
 }
 
 func (m *dockerComposeManager) SyncExec(ctx context.Context, f func(ctx context.Context) error) error {
@@ -66,15 +74,6 @@ func (m *dockerComposeManager) SyncExec(ctx context.Context, f func(ctx context.
 	defer m.Unlock()
 
 	return f(ctx)
-}
-
-func (m *dockerComposeManager) SetGitBranch(gitBranch string) {
-	if m.branch == gitBranch {
-		return
-	}
-
-	m.branch = gitBranch
-	m.composeConfig = compose.NewConfig(m.nhostConfig, m.ports, m.env, gitBranch, m.projectName)
 }
 
 func (m *dockerComposeManager) Start(ctx context.Context) error {
@@ -172,7 +171,7 @@ func (m *dockerComposeManager) startFunctions(ctx context.Context, ds *compose.D
 	m.status.Executing("Starting functions...")
 	m.l.Debug("Starting functions")
 
-	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", compose.SvcFunctions}, m.composeConfig, ds)
+	cmd, err := m.dcWrapper.Command(ctx, []string{"up", "-d", compose.SvcFunctions}, ds)
 	if err != nil {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -189,7 +188,7 @@ func (m *dockerComposeManager) startFunctions(ctx context.Context, ds *compose.D
 
 func (m *dockerComposeManager) startPostgresGraphql(ctx context.Context, ds *compose.DataStreams) error {
 	m.l.Debugf("Starting %s containers...", strings.Join([]string{compose.SvcPostgres, compose.SvcGraphqlEngine}, ", "))
-	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine}, m.composeConfig, ds)
+	cmd, err := m.dcWrapper.Command(ctx, []string{"up", "-d", "--wait", compose.SvcPostgres, compose.SvcGraphqlEngine}, ds)
 	if err != nil {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -237,7 +236,7 @@ func (m *dockerComposeManager) Stop(ctx context.Context) error {
 	m.l.Debug("Stopping docker compose")
 
 	// kill all services but postgres
-	cmd, err := compose.WrapperCmd(
+	cmd, err := m.dcWrapper.Command(
 		ctx,
 		[]string{"kill",
 			compose.SvcFunctions,
@@ -248,7 +247,7 @@ func (m *dockerComposeManager) Stop(ctx context.Context) error {
 			compose.SvcMinio,
 			compose.SvcStorage,
 			compose.SvcHasura,
-		}, m.composeConfig, &compose.DataStreams{})
+		}, &compose.DataStreams{})
 	if err != nil {
 		m.l.WithError(err).Debug("Failed to stop functions service")
 		return err
@@ -261,7 +260,7 @@ func (m *dockerComposeManager) Stop(ctx context.Context) error {
 		return err
 	}
 
-	cmd, err = compose.WrapperCmd(ctx, []string{"down", "--remove-orphans"}, m.composeConfig, &compose.DataStreams{})
+	cmd, err = m.dcWrapper.Command(ctx, []string{"down", "--remove-orphans"}, nil)
 	if err != nil {
 		m.l.WithError(err).Debug("Failed to stop docker compose")
 		return err
@@ -279,7 +278,7 @@ func (m *dockerComposeManager) waitForServicesToBeRunningHealthy(ctx context.Con
 	m.status.Executing("Waiting for all containers to be up and running...")
 	m.l.Debug("Waiting for all containers to be up and running")
 
-	cmd, err := compose.WrapperCmd(ctx, []string{"up", "-d", "--wait"}, m.composeConfig, ds)
+	cmd, err := m.dcWrapper.Command(ctx, []string{"up", "-d", "--wait"}, ds)
 	if err != nil {
 		return err
 	}
@@ -307,7 +306,7 @@ func (m *dockerComposeManager) applySeeds(ctx context.Context) error {
 		return nil
 	}
 
-	seedsFlagFile := filepath.Join(nhost.DOT_NHOST_DIR, "data/db", m.branch, "seeds.applied")
+	seedsFlagFile := filepath.Join(nhost.DOT_NHOST_DIR, compose.DbDataDirGitBranchScopedPath(m.branch, seedsAppliedFile))
 
 	if util.PathExists(seedsFlagFile) {
 		m.l.Debug("Seeds already applied")
@@ -387,7 +386,7 @@ func (m *dockerComposeManager) restartContainers(ctx context.Context, ds *compos
 
 	restartCommand := append([]string{"restart"}, containers...)
 
-	cmd, err := compose.WrapperCmd(ctx, restartCommand, m.composeConfig, ds)
+	cmd, err := m.dcWrapper.Command(ctx, restartCommand, ds)
 	if err != nil {
 		return err
 	}

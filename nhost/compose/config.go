@@ -31,12 +31,6 @@ const (
 	proxyPort   = 1337
 	// --
 
-	// data directory names
-	dataDirDb      = "db"
-	dataDirMailhog = "mailhog"
-	dataDirMinio   = "minio"
-	// --
-
 	// default docker images
 	svcPostgresDefaultImage  = "nhost/postgres:12-v0.0.6"
 	svcAuthDefaultImage      = "nhost/hasura-auth:0.10.0"
@@ -164,14 +158,6 @@ func (c *Config) build() *types.Config {
 	return config
 }
 
-func (c Config) hostDataDirectory(path string) string {
-	return filepath.Join("data", path)
-}
-
-func (c Config) hostDataDirectoryBranchScoped(path string) string {
-	return filepath.Join("data", path, c.gitBranch)
-}
-
 func (c *Config) BuildJSON() ([]byte, error) {
 	return json.MarshalIndent(c.build(), "", "  ")
 }
@@ -266,7 +252,7 @@ func (c Config) mailhogService() *types.ServiceConfig {
 		Volumes: []types.ServiceVolumeConfig{
 			{
 				Type:   types.VolumeTypeBind,
-				Source: c.hostDataDirectory(dataDirMailhog),
+				Source: MailHogDataDirGiBranchScopedPath(c.gitBranch),
 				Target: "/maildir",
 			},
 		},
@@ -320,7 +306,7 @@ func (c Config) minioService() *types.ServiceConfig {
 		Volumes: []types.ServiceVolumeConfig{
 			{
 				Type:   types.VolumeTypeBind,
-				Source: c.hostDataDirectory(dataDirMinio),
+				Source: MinioDataDirGitBranchScopedPath(c.gitBranch),
 				Target: "/data",
 			},
 		},
@@ -620,7 +606,7 @@ func (c Config) postgresService() *types.ServiceConfig {
 		Volumes: []types.ServiceVolumeConfig{
 			{
 				Type:   types.VolumeTypeBind,
-				Source: c.hostDataDirectoryBranchScoped(dataDirDb),
+				Source: DbDataDirGitBranchScopedPath(c.gitBranch, dataDirPgdata),
 				Target: envPostgresDataDefaultValue,
 			},
 		},

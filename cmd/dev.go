@@ -140,14 +140,22 @@ var devCmd = &cobra.Command{
 			return fmt.Errorf("failed to get git branch name: %v", err)
 		}
 
-		launcher := service.NewLauncher(
-			service.NewDockerComposeManager(config, hc, ports, env, gitBranchName,
-				projectName,
-				log,
-				status,
-				debug,
-			),
-			hc, ports, status, log)
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %v", err)
+		}
+
+		dcMgr, err := service.NewDockerComposeManager(config, cwd, hc, ports, env, gitBranchName,
+			projectName,
+			log,
+			status,
+			debug,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to init docker compose manager: %v", err)
+		}
+
+		launcher := service.NewLauncher(dcMgr, hc, ports, status, log)
 
 		if err = launcher.Init(); err != nil {
 			return err

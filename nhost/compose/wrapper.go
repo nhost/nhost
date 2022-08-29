@@ -17,36 +17,64 @@ type DataStreams struct {
 	Stderr io.Writer
 }
 
-func WrapperCmd(ctx context.Context, args []string, conf *Config, streams *DataStreams) (*exec.Cmd, error) {
-	dockerComposeConfig, err := conf.BuildJSON()
-	if err != nil {
+type Wrapper struct {
+	workdir            string
+	composeProjectName string
+}
+
+func InitWrapper(workdir, gitBranch string, conf *Config) (*Wrapper, error) {
+	w := &Wrapper{
+		workdir:            workdir,
+		composeProjectName: conf.composeProjectName,
+	}
+
+	if err := w.init(workdir, gitBranch, conf); err != nil {
 		return nil, err
 	}
 
-	configFilename := filepath.Join(nhost.DOT_NHOST_DIR, "docker-compose.json")
+	return w, nil
+}
 
-	// write data to a docker-compose.yml file
-	err = os.WriteFile(configFilename, dockerComposeConfig, 0600)
-	if err != nil {
-		return nil, errors.Wrap(err, "could not write docker-compose.yml file")
+func (w Wrapper) init(workdir, gitBranch string, conf *Config) error {
+	if err := w.ensureFoldersExistForDockerVolumes(workdir, gitBranch); err != nil {
+		return err
 	}
 
-	// check that data folders exist
+	jsonConf, err := conf.BuildJSON()
+
+	// write data to a docker-compose.yml file
+	err = os.WriteFile(w.dockerComposePath(), jsonConf, 0600)
+	if err != nil {
+		return errors.Wrap(err, "could not write docker-compose.yml file")
+	}
+	return nil
+}
+
+func (w Wrapper) dockerComposePath() string {
+	return filepath.Join(w.workdir, ".nhost/docker-compose.json")
+}
+
+func (w Wrapper) ensureFoldersExistForDockerVolumes(workdir, gitBranch string) error {
+	dotNhostFolder := filepath.Join(workdir, ".nhost")
+
 	paths := []string{
-		filepath.Join(util.WORKING_DIR, ".nhost/data/minio"),
-		filepath.Join(util.WORKING_DIR, ".nhost/data/mailhog"),
-		filepath.Join(util.WORKING_DIR, ".nhost/custom/keys"),
-		filepath.Join(util.WORKING_DIR, ".nhost/data/db", conf.gitBranch),
+		filepath.Join(workdir, ".nhost/custom/keys"),
+		filepath.Join(dotNhostFolder, MinioDataDirGitBranchScopedPath(gitBranch)),
+		filepath.Join(dotNhostFolder, MailHogDataDirGiBranchScopedPath(gitBranch)),
+		filepath.Join(dotNhostFolder, DbDataDirGitBranchScopedPath(gitBranch, dataDirPgdata)),
 	}
 
 	for _, folder := range paths {
-		err = os.MkdirAll(folder, os.ModePerm)
-		if err != nil {
-			return nil, errors.Wrap(err, fmt.Sprintf("failed to create data folder '%s'", folder))
+		if err := os.MkdirAll(folder, os.ModePerm); err != nil {
+			return errors.Wrap(err, fmt.Sprintf("failed to create data folder '%s'", folder))
 		}
 	}
 
-	dc := exec.CommandContext(ctx, "docker", append([]string{"compose", "-p", conf.composeProjectName, "-f", configFilename}, args...)...)
+	return nil
+}
+
+func (w Wrapper) Command(ctx context.Context, args []string, streams *DataStreams) (*exec.Cmd, error) {
+	dc := exec.CommandContext(ctx, "docker", append([]string{"compose", "-p", w.composeProjectName, "-f", w.dockerComposePath()}, args...)...)
 
 	if streams != nil {
 		// set streams
@@ -58,7 +86,7 @@ func WrapperCmd(ctx context.Context, args []string, conf *Config, streams *DataS
 	return dc, nil
 }
 
-func WrapperCmdWithExistingConfig(ctx context.Context, projectName string, args []string, streams *DataStreams) (*exec.Cmd, error) {
+func CommandWithExistingConfig(ctx context.Context, projectName string, args []string, streams *DataStreams) (*exec.Cmd, error) {
 	configFilename := filepath.Join(nhost.DOT_NHOST_DIR, "docker-compose.json")
 
 	if !util.PathExists(configFilename) {

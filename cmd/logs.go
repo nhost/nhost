@@ -71,6 +71,11 @@ var logsCmd = &cobra.Command{
 			return fmt.Errorf("failed to read .env.development: %v", err)
 		}
 
+		cwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current working directory: %v", err)
+		}
+
 		gitRefGetter, err := git.NewReferenceGetterWithFallback()
 		if err != nil {
 			return fmt.Errorf("failed to init git ref getter: %v", err)
@@ -82,7 +87,12 @@ var logsCmd = &cobra.Command{
 		}
 
 		conf := compose.NewConfig(config, nil, env, gitBranchName, projectName)
-		dc, err := compose.WrapperCmd(cmd.Context(), dcArgs, conf, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
+		dcWrapper, err := compose.InitWrapper(cwd, gitBranchName, conf)
+		if err != nil {
+			return err
+		}
+
+		dc, err := dcWrapper.Command(cmd.Context(), dcArgs, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
 		if err != nil {
 			return err
 		}

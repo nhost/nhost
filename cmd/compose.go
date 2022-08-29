@@ -59,7 +59,7 @@ var composeCmd = &cobra.Command{
 			return err
 		}
 
-		dc, err := compose.WrapperCmdWithExistingConfig(cmd.Context(), projectName, dcArgs, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
+		dc, err := compose.CommandWithExistingConfig(cmd.Context(), projectName, dcArgs, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
 		if err != nil {
 			return err
 		}
