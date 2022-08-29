@@ -40,7 +40,7 @@ const (
 	// default docker images
 	svcPostgresDefaultImage  = "nhost/postgres:12-v0.0.6"
 	svcAuthDefaultImage      = "nhost/hasura-auth:0.10.0"
-	svcStorageDefaultImage   = "nhost/hasura-storage:0.2.3"
+	svcStorageDefaultImage   = "nhost/hasura-storage:0.2.4"
 	svcFunctionsDefaultImage = "nhost/functions:0.1.2"
 	svcMinioDefaultImage     = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
 	svcMailhogDefaultImage   = "mailhog/mailhog"
@@ -404,7 +404,8 @@ func (c Config) storageServiceEnvs() env {
 	e := env{
 		"DEBUG":                       "true",
 		"BIND":                        ":8576",
-		"PUBLIC_URL":                  "http://localhost:8576",
+		"PUBLIC_URL":                  fmt.Sprintf("http://localhost:%d", c.ports.Proxy()),
+		"API_ROOT_PREFIX":             "/v1/storage",
 		"POSTGRES_MIGRATIONS":         "1",
 		"HASURA_METADATA":             "1",
 		"HASURA_ENDPOINT":             c.hasuraEndpoint(),
@@ -433,10 +434,6 @@ func (c Config) storageService() *types.ServiceConfig {
 		"traefik.enable":                           "true",
 		"traefik.http.routers.storage.rule":        "PathPrefix(`/v1/storage`)",
 		"traefik.http.routers.storage.entrypoints": "web",
-		// Rewrite the path so it matches with the new storage API path introduced in hasura-storage 0.2
-		"traefik.http.middlewares.strip-suffix.replacepathregex.regex":       "^/v1/storage/(.*)",
-		"traefik.http.middlewares.strip-suffix.replacepathregex.replacement": "/v1/$$1",
-		"traefik.http.routers.storage.middlewares":                           "strip-suffix@docker",
 	}
 
 	return &types.ServiceConfig{
