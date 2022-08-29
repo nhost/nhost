@@ -20,6 +20,7 @@ import (
 
 const (
 	publicURLFlag                = "public-url"
+	apiRootPrefixFlag            = "api-root-prefix"
 	bindFlag                     = "bind"
 	trustedProxiesFlag           = "trusted-proxies"
 	hasuraEndpointFlag           = "hasura-endpoint"
@@ -70,6 +71,7 @@ func ginLogger(logger *logrus.Logger) gin.HandlerFunc {
 
 func getGin(
 	publicURL string,
+	apiRootPrefix string,
 	hasuraAdminSecret string,
 	metadataStorage controller.MetadataStorage,
 	contentStorage controller.ContentStorage,
@@ -82,7 +84,9 @@ func getGin(
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	ctrl := controller.New(publicURL, hasuraAdminSecret, metadataStorage, contentStorage, imageTransformer, logger)
+	ctrl := controller.New(
+		publicURL, apiRootPrefix, hasuraAdminSecret, metadataStorage, contentStorage, imageTransformer, logger,
+	)
 
 	middlewares := []gin.HandlerFunc{
 		ginLogger(logger),
@@ -94,7 +98,7 @@ func getGin(
 		middlewares = append(middlewares, fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger))
 	}
 
-	return ctrl.SetupRouter(trustedProxies, middlewares...) // nolint: wrapcheck
+	return ctrl.SetupRouter(trustedProxies, apiRootPrefix, middlewares...) // nolint: wrapcheck
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
@@ -154,6 +158,7 @@ func init() {
 
 	{
 		addStringFlag(serveCmd.Flags(), publicURLFlag, "http://localhost:8000", "public URL of the service")
+		addStringFlag(serveCmd.Flags(), apiRootPrefixFlag, "/v1", "API root prefix")
 		addStringFlag(serveCmd.Flags(), bindFlag, ":8000", "bind the service to this address")
 		addStringArrayFlag(
 			serveCmd.Flags(),
@@ -260,6 +265,7 @@ var serveCmd = &cobra.Command{
 		)
 		router, err := getGin(
 			viper.GetString(publicURLFlag),
+			viper.GetString(apiRootPrefixFlag),
 			viper.GetString(hasuraAdminSecretFlag),
 			metadataStorage,
 			contentStorage,

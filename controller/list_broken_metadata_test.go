@@ -94,9 +94,9 @@ func TestListBrokenMetadata(t *testing.T) {
 				}, nil,
 			)
 
-			ctrl := controller.New("http://asd", "asdasd", metadataStorage, contentStorage, nil, logger)
+			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, nil, logger)
 
-			router, _ := ctrl.SetupRouter(nil, ginLogger(logger))
+			router, _ := ctrl.SetupRouter(nil, "/v1", ginLogger(logger))
 
 			responseRecorder := httptest.NewRecorder()
 
