@@ -2,6 +2,7 @@
 
 import { InterpreterFrom } from 'xstate'
 
+import { ErrorPayload } from './errors'
 import { AuthMachine } from './machines'
 import { StorageGetter, StorageSetter } from './storage'
 
@@ -207,3 +208,48 @@ export type ClientStorageType =
   | 'react-native'
   | 'web'
   | 'cookie'
+
+// Hasura-auth API response types
+interface NullableErrorResponse {
+  error: ErrorPayload | null
+}
+
+export type NhostSessionResponse =
+  | { session: null; error: ErrorPayload }
+  | { session: NhostSession | null; error: null }
+
+export type SignUpResponse = NhostSessionResponse
+
+export interface SignInResponse {
+  session: NhostSession | null
+  mfa: {
+    ticket: string
+  } | null
+  error: ErrorPayload | null
+  providerUrl?: string
+  provider?: string
+}
+
+export type RefreshSessionResponse = NhostSession
+
+export interface SignOutResponse extends NullableErrorResponse {}
+
+export interface ResetPasswordResponse extends NullableErrorResponse {}
+
+export interface ChangePasswordResponse extends NullableErrorResponse {}
+
+export interface SendVerificationEmailResponse extends NullableErrorResponse {}
+
+export interface ChangeEmailResponse extends NullableErrorResponse {}
+
+export interface DeanonymizeResponse extends NullableErrorResponse {}
+
+export interface PasswordlessEmailResponse extends NullableErrorResponse {}
+
+export interface PasswordlessSmsResponse extends NullableErrorResponse {}
+
+export type SignInAnonymousResponse = NhostSessionResponse
+
+export type PasswordlessSmsOtpResponse = NhostSessionResponse
+
+export type SignInMfaTotpResponse = NhostSessionResponse

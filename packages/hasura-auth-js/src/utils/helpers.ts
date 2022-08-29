@@ -1,10 +1,8 @@
-import { AuthContext, SessionActionHandlerResult } from '@nhost/core'
-
-import { Session, SignUpResponse } from './types'
+import { AuthContext, NhostSession, SessionActionHandlerResult, SignUpResponse } from '@nhost/core'
 
 export const isBrowser = () => typeof window !== 'undefined'
 
-export const getSession = (context?: AuthContext): Session | null => {
+export const getSession = (context?: AuthContext): NhostSession | null => {
   if (
     !context ||
     !context.accessToken.value ||
