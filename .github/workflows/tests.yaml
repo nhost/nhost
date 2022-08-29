@@ -64,7 +64,7 @@ jobs:
         uses: ./.github/actions/install-dependencies
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
-        run: pnpm --filter="${{ matrix.package.name }} run e2e"
+        run: pnpm --filter="${{ matrix.package.name }}" run e2e
       - id: file-name
         if: ${{ failure() }}
         name: Tranform package name into a valid file name
