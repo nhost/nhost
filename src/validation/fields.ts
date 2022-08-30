@@ -1,3 +1,4 @@
+import { UserRegistrationOptionsWithRedirect } from '@/types';
 import { pwnedPassword } from 'hibp';
 import { isValidPhoneNumber, parsePhoneNumber } from 'libphonenumber-js';
 
@@ -101,30 +102,31 @@ export const refreshToken = uuid
 
 export const token = jwt.optional().description('Access token');
 
-export const registrationOptions = Joi.object({
-  locale,
-  defaultRole,
-  allowedRoles,
-  displayName,
-  metadata,
-  redirectTo,
-})
-  .default()
-  .custom((value, helper) => {
-    const { allowedRoles, defaultRole } = value;
-    if (!allowedRoles.includes(defaultRole)) {
-      return helper.error('Default role must be part of allowed roles');
-    }
-    // check if allowedRoles is a subset of allowed user roles
-    if (
-      !allowedRoles.every((role: string) =>
-        ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.includes(role)
-      )
-    ) {
-      return helper.error('Allowed roles must be a subset of allowedRoles');
-    }
-    return value;
-  });
+export const registrationOptions =
+  Joi.object<UserRegistrationOptionsWithRedirect>({
+    locale,
+    defaultRole,
+    allowedRoles,
+    displayName,
+    metadata,
+    redirectTo,
+  })
+    .default()
+    .custom((value, helper) => {
+      const { allowedRoles, defaultRole } = value;
+      if (!allowedRoles.includes(defaultRole)) {
+        return helper.error('Default role must be part of allowed roles');
+      }
+      // check if allowedRoles is a subset of allowed user roles
+      if (
+        !allowedRoles.every((role: string) =>
+          ENV.AUTH_USER_DEFAULT_ALLOWED_ROLES.includes(role)
+        )
+      ) {
+        return helper.error('Allowed roles must be a subset of allowedRoles');
+      }
+      return value;
+    });
 
 export const mfaTotpTicketPattern = new RegExp(`mfaTotp:${uuidRegex.source}`);
 

@@ -149,11 +149,13 @@ router.post(
 /**
  * POST /user/webauthn/add
  * @summary Initialize adding of a new webauthn authenticator (device, browser)
+ * TODO add @return payload on success
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
+ * @tags User management
  */
+// TODO add body validator
 router.post('/user/webauthn/add', aw(addAuthenticatorHandler));
 
 /**
@@ -164,7 +166,7 @@ router.post('/user/webauthn/add', aw(addAuthenticatorHandler));
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
- * @tags Authentication
+ * @tags User management
  */
 router.post(
   '/user/webauthn/verify',

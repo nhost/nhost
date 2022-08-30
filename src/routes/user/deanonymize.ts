@@ -10,8 +10,12 @@ import {
 import { sendError } from '@/errors';
 import { Joi, email, password, registrationOptions } from '@/validation';
 
+export type DeanonymizeUserRequestBody =
+  | BodyTypeEmailPassword
+  | BodyTypePasswordlessEmail;
+
 // TODO should work with any other authentication methods e.g. Oauth
-export const userDeanonymizeSchema = Joi.object({
+export const userDeanonymizeSchema = Joi.object<DeanonymizeUserRequestBody>({
   signInMethod: Joi.string()
     .valid('email-password', 'passwordless')
     .required()
@@ -27,7 +31,7 @@ export const userDeanonymizeSchema = Joi.object({
 export const userDeanonymizeHandler: RequestHandler<
   {},
   {},
-  BodyTypeEmailPassword | BodyTypePasswordlessEmail
+  DeanonymizeUserRequestBody
 > = async (req, res) => {
   const { body } = req;
   const { userId } = req.auth as RequestAuth;

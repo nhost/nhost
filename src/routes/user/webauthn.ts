@@ -1,22 +1,30 @@
-import { sendError } from '@/errors';
-import { ENV, getSignInResponse, getUser, gqlSdk } from '@/utils';
 import { RequestHandler } from 'express';
-
 import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
-import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
+import {
+  PublicKeyCredentialCreationOptionsJSON,
+  RegistrationCredentialJSON,
+} from '@simplewebauthn/typescript-types';
+
 import { Joi } from '@/validation';
+import { sendError } from '@/errors';
+import { ENV, getSignInResponse, getUser, gqlSdk } from '@/utils';
+import { SignInResponse } from '@/types';
 
-export const userVerifyAddAuthenticatorSchema = Joi.object({
-  credential: Joi.object().required(),
-}).meta({ className: 'VerifyAddAuthenticatorSchema' });
+export type AddAuthenticatorRequestBody = {
+  credential: string;
+};
 
-export const addAuthenticatorHandler: RequestHandler<{}, {}, {}> = async (
-  req,
-  res
-) => {
+export type AddAuthenticatorResponseBody =
+  PublicKeyCredentialCreationOptionsJSON;
+
+export const addAuthenticatorHandler: RequestHandler<
+  {},
+  AddAuthenticatorResponseBody,
+  AddAuthenticatorRequestBody
+> = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
   }
@@ -65,12 +73,20 @@ export const addAuthenticatorHandler: RequestHandler<{}, {}, {}> = async (
   return res.send(registrationOptions);
 };
 
+export type VerifyAuthenticatorRequestBody = {
+  credential: RegistrationCredentialJSON;
+};
+
+export type VerifyAuthenticatorResponseBody = SignInResponse;
+export const userVerifyAddAuthenticatorSchema =
+  Joi.object<VerifyAuthenticatorRequestBody>({
+    credential: Joi.object().required(),
+  }).meta({ className: 'VerifyAddAuthenticatorSchema' });
+
 export const addAuthenticatorVerifyHandler: RequestHandler<
   {},
-  {},
-  {
-    credential: RegistrationCredentialJSON;
-  }
+  VerifyAuthenticatorResponseBody,
+  VerifyAuthenticatorRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');

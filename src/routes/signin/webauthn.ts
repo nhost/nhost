@@ -6,24 +6,24 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from '@simplewebauthn/server';
-import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types';
+import {
+  AuthenticationCredentialJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+} from '@simplewebauthn/typescript-types';
 import { email, Joi } from '@/validation';
+import { SignInResponse } from '@/types';
 
-export const signInWebauthnSchema = Joi.object({
+export type SignInWebAuthnRequestBody = { email: string };
+export type SignInWebAuthnResponseBody = PublicKeyCredentialRequestOptionsJSON;
+
+export const signInWebauthnSchema = Joi.object<SignInWebAuthnRequestBody>({
   email: email.required(),
 }).meta({ className: 'SignInWebauthnSchema' });
 
-export const signInVerifyWebauthnSchema = Joi.object({
-  email: email.required(),
-  credential: Joi.object().required(),
-}).meta({ className: 'SignInVerifyWebauthnSchema' });
-
 export const signInWebauthnHandler: RequestHandler<
   {},
-  {},
-  {
-    email: string;
-  }
+  SignInWebAuthnResponseBody,
+  SignInWebAuthnRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
@@ -34,6 +34,7 @@ export const signInWebauthnHandler: RequestHandler<
 
   const user = await getUserByEmail(email);
 
+  // ? Do we know to let anyone know if the user doesn't exist?
   if (!user) {
     return sendError(res, 'user-not-found');
   }
@@ -70,13 +71,23 @@ export const signInWebauthnHandler: RequestHandler<
   return res.send(options);
 };
 
+export type SignInVerifyWebAuthnRequestBody = {
+  credential: AuthenticationCredentialJSON;
+  email: string;
+};
+
+export type SignInVerifyWebAuthnResponseBody = SignInResponse;
+
+export const signInVerifyWebauthnSchema =
+  Joi.object<SignInVerifyWebAuthnRequestBody>({
+    email: email.required(),
+    credential: Joi.object().required(),
+  }).meta({ className: 'SignInVerifyWebauthnSchema' });
+
 export const signInVerifyWebauthnHandler: RequestHandler<
   {},
-  {},
-  {
-    credential: AuthenticationCredentialJSON;
-    email: string;
-  }
+  SignInVerifyWebAuthnResponseBody,
+  SignInVerifyWebAuthnRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');

@@ -2,21 +2,26 @@ import { RequestHandler } from 'express';
 import bcrypt from 'bcryptjs';
 
 import { ENV, getSignInResponse, gqlSdk } from '@/utils';
-import { OtpSmsBody } from '@/types';
 import { sendError } from '@/errors';
 import { Joi, phoneNumber } from '@/validation';
 import { isVerifySid } from '@/utils/twilio';
 import twilio from 'twilio';
 
-export const signInOtpSchema = Joi.object({
+export type OtpSmsRequestBody = {
+  phoneNumber: string;
+  otp: string;
+};
+
+export const signInOtpSchema = Joi.object<OtpSmsRequestBody>({
   phoneNumber,
   otp: Joi.string().required(),
 }).meta({ className: 'SignInOtpSchema' });
 
-export const signInOtpHandler: RequestHandler<{}, {}, OtpSmsBody> = async (
-  req,
-  res
-) => {
+export const signInOtpHandler: RequestHandler<
+  {},
+  {},
+  OtpSmsRequestBody
+> = async (req, res) => {
   if (!ENV.AUTH_SMS_PASSWORDLESS_ENABLED) {
     return sendError(res, 'disabled-endpoint');
   }

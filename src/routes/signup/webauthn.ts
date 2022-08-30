@@ -1,5 +1,5 @@
 import { sendError } from '@/errors';
-import { UserRegistrationOptions } from '@/types';
+import { SignInResponse, UserRegistrationOptionsWithRedirect } from '@/types';
 import { ENV, getSignInResponse, getUserByEmail, gqlSdk } from '@/utils';
 import { RequestHandler } from 'express';
 
@@ -7,9 +7,20 @@ import {
   generateRegistrationOptions,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
-import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
+import {
+  PublicKeyCredentialCreationOptionsJSON,
+  RegistrationCredentialJSON,
+} from '@simplewebauthn/typescript-types';
 import { email, Joi, registrationOptions } from '@/validation';
 import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
+
+export type SignUpWebAuthnRequestBody = {
+  email: string;
+  options: UserRegistrationOptionsWithRedirect;
+};
+export type SignUpWebAuthnResponseBody =
+  | SignInResponse
+  | PublicKeyCredentialCreationOptionsJSON;
 
 export const signUpWebauthnSchema = Joi.object({
   email: email.required(),
@@ -23,13 +34,8 @@ export const signUpVerifyWebauthnSchema = Joi.object({
 
 export const signUpWebauthnHandler: RequestHandler<
   {},
-  {},
-  {
-    email: string;
-    options: UserRegistrationOptions & {
-      redirectTo: string;
-    };
-  }
+  SignUpWebAuthnResponseBody,
+  SignUpWebAuthnRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');

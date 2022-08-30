@@ -56,6 +56,10 @@ export type UserRegistrationOptions = {
   metadata: Metadata;
 };
 
+export type UserRegistrationOptionsWithRedirect = UserRegistrationOptions & {
+  redirectTo: string;
+};
+
 export type User = Pick<
   NonNullable<UserQuery['user']>,
   | 'id'
@@ -87,23 +91,6 @@ export type Mfa = {
 export type SignInResponse = {
   session: Session | null;
   mfa: Mfa | null;
-};
-
-export type PasswordLessEmailBody = {
-  email: string;
-  options: UserRegistrationOptions & {
-    redirectTo: string;
-  };
-};
-
-export type PasswordLessSmsBody = {
-  phoneNumber: string;
-  options: UserRegistrationOptions;
-};
-
-export type OtpSmsBody = {
-  phoneNumber: string;
-  otp: string;
 };
 
 export type JwtSecret = {

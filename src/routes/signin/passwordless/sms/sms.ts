@@ -2,7 +2,7 @@ import { RequestHandler } from 'express';
 import twilio from 'twilio';
 import { ReasonPhrases } from 'http-status-codes';
 
-import { PasswordLessSmsBody } from '@/types';
+import { UserRegistrationOptions } from '@/types';
 import {
   gqlSdk,
   getNewOneTimePasswordData,
@@ -15,15 +15,21 @@ import { Joi, phoneNumber, registrationOptions } from '@/validation';
 import { isVerifySid } from '@/utils/twilio';
 import { logger } from '@/logger';
 
-export const signInPasswordlessSmsSchema = Joi.object({
-  phoneNumber,
-  options: registrationOptions,
-}).meta({ className: 'SignInPasswordlessSmsSchema' });
+export type PasswordLessSmsRequestBody = {
+  phoneNumber: string;
+  options: UserRegistrationOptions;
+};
+
+export const signInPasswordlessSmsSchema =
+  Joi.object<PasswordLessSmsRequestBody>({
+    phoneNumber,
+    options: registrationOptions,
+  }).meta({ className: 'SignInPasswordlessSmsSchema' });
 
 export const signInPasswordlessSmsHandler: RequestHandler<
   {},
   {},
-  PasswordLessSmsBody
+  PasswordLessSmsRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_SMS_PASSWORDLESS_ENABLED) {
     return sendError(res, 'disabled-endpoint');

@@ -11,7 +11,7 @@ const router = Router();
  * POST /token
  * @summary Refresh the access JWT token
  * @param {TokenSchema} request.body.required
- * @return {SessionPayload} 200 - User successfully authenticated - application/json
+ * @return {SessionModel} 200 - User successfully authenticated - application/json
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {UnauthorizedError} 401 - Unauthenticated user or invalid token - application/json
  * @tags General

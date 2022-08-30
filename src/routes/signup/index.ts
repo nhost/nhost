@@ -34,6 +34,7 @@ router.post(
  * POST /signup/webauthn
  * @summary Signup new device for a email using FIDO2 Webauthn
  * @param {SignUpWebauthnSchema} request.body.required
+ * TODO add @return payload on success
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @tags Registration
  */
