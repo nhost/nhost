@@ -13,6 +13,17 @@ export const ProfilePage: React.FC = () => {
   return (
     <Container>
       <Title>Profile page</Title>
+      <Card shadow="sm" p="lg" m="sm">
+        <Title>WebAuthn</Title>
+        <Button
+          onClick={() => {
+            // TODO improve this
+            nhost.auth.addWebAuthnDevice()
+          }}
+        >
+          Activate a device
+        </Button>
+      </Card>
       <Mfa />
       <ChangeEmail />
       <ChangePassword />

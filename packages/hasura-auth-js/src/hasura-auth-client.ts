@@ -2,6 +2,7 @@ import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
 import {
+  addWebAuthnDevicePromise,
   AuthClient,
   AuthInterpreter,
   changeEmailPromise,
@@ -12,9 +13,11 @@ import {
   createChangePasswordMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
+  createWebAuthnMachine,
   DeanonymizeResponse,
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
+  ErrorPayload,
   INVALID_REFRESH_TOKEN,
   JWTClaims,
   JWTHasuraClaims,
@@ -345,6 +348,14 @@ export class HasuraAuthClient {
       return { error }
     }
     throw Error(`Unknown deanonymization method`)
+  }
+
+  // TODO document
+  // TODO add signIn somehow
+  async addWebAuthnDevice(): Promise<{ error: ErrorPayload | null }> {
+    const service = interpret(createWebAuthnMachine(this._client)).start()
+    const { error } = await addWebAuthnDevicePromise(service)
+    return { error }
   }
 
   /**

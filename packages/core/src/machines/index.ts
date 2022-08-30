@@ -1,6 +1,9 @@
 import type { AxiosRequestConfig } from 'axios'
 import { assign, createMachine, send } from 'xstate'
 
+import { startAuthentication } from '@simplewebauthn/browser'
+import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
+
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
@@ -8,6 +11,7 @@ import {
   TOKEN_REFRESH_MARGIN
 } from '../constants'
 import {
+  CodifiedError,
   INVALID_EMAIL_ERROR,
   INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
@@ -44,6 +48,7 @@ export * from './change-password'
 export * from './enable-mfa'
 export * from './reset-password'
 export * from './send-verification-email'
+export * from './webauthn'
 
 export type { AuthContext, AuthEvents, StateErrorTypes }
 
@@ -61,12 +66,12 @@ type AuthServices = {
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
+  signInWebAuthn: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
   importRefreshToken: { data: NhostSessionResponse }
 }
-// TODO actions typings
 
 export const createAuthMachine = ({
   backendUrl,
@@ -158,7 +163,8 @@ export const createAuthMachine = ({
               on: {
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
-                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
+                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
+                SIGNIN_WEBAUTHN: 'authenticating.webauthn'
               }
             },
             authenticating: {
@@ -224,6 +230,29 @@ export const createAuthMachine = ({
                         }
                       }
                     }
+                  }
+                },
+                webauthn: {
+                  invoke: {
+                    src: 'signInWebAuthn',
+                    id: 'authenticateUserWithWebAuthn',
+                    onDone: {
+                      actions: ['saveSession', 'reportTokenChanged'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: [
+                      {
+                        cond: 'unverified',
+                        target: [
+                          '#nhost.authentication.signedOut',
+                          '#nhost.registration.incomplete.needsEmailVerification'
+                        ]
+                      },
+                      {
+                        actions: 'saveAuthenticationError',
+                        target: '#nhost.authentication.signedOut.failed'
+                      }
+                    ]
                   }
                 }
               }
@@ -682,6 +711,19 @@ export const createAuthMachine = ({
             ticket,
             otp: data.otp
           })
+        },
+        signInWebAuthn: async (_, { email }) => {
+          if (!isValidEmail(email)) {
+            throw new CodifiedError(INVALID_EMAIL_ERROR)
+          }
+          const options = await postRequest('/signin/webauthn', { email })
+          let credential: AuthenticationCredentialJSON
+          try {
+            credential = await startAuthentication(options)
+          } catch (e) {
+            throw new CodifiedError(e as Error)
+          }
+          return postRequest<SignInResponse>('/signin/webauthn/verify', { email, credential })
         },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
