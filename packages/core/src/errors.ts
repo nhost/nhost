@@ -11,8 +11,8 @@ export type ErrorPayload = {
 
 /**
  * @internal
- * This class transforms an error payload codified in hasura-auth as a JS error.
- * Avoids a typing issue when using Promise.reject instead of throw.
+ * Adds a standard error payload to any JS Error, or convert a standard error payload into a JS Error.
+ * Allows xstate to use `throw` instead of `Promise.reject` to propagate errors.
  * See https://github.com/statelyai/xstate/issues/3037
  */
 export class CodifiedError extends Error {

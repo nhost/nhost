@@ -43,12 +43,12 @@ import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from
 import { AuthContext, INITIAL_MACHINE_CONTEXT, StateErrorTypes } from './context'
 import { AuthEvents } from './events'
 
+export * from './add-webauthn'
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'
 export * from './reset-password'
 export * from './send-verification-email'
-export * from './webauthn'
 
 export type { AuthContext, AuthEvents, StateErrorTypes }
 
@@ -163,8 +163,8 @@ export const createAuthMachine = ({
               on: {
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
-                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp',
-                SIGNIN_WEBAUTHN: 'authenticating.webauthn'
+                SIGNIN_WEBAUTHN: 'authenticating.webauthn',
+                SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
               }
             },
             authenticating: {

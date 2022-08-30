@@ -9,11 +9,11 @@ import {
   ChangeEmailResponse,
   changePasswordPromise,
   ChangePasswordResponse,
+  createAddWebAuthnMachine,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
-  createWebAuthnMachine,
   DeanonymizeResponse,
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
@@ -351,9 +351,9 @@ export class HasuraAuthClient {
   }
 
   // TODO document
-  // TODO add signIn somehow
+  // TODO add signIn somehow: nhost.auth.signIn({email}) is already in use
   async addWebAuthnDevice(): Promise<{ error: ErrorPayload | null }> {
-    const service = interpret(createWebAuthnMachine(this._client)).start()
+    const service = interpret(createAddWebAuthnMachine(this._client)).start()
     const { error } = await addWebAuthnDevicePromise(service)
     return { error }
   }

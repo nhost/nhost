@@ -8,7 +8,6 @@ export const nhostApiClient = (backendUrl: string) => {
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError<{ message: string; error?: string; statusCode?: number }>) =>
-      // ? Should we unnest the nhostApiClient interceptor: reject(error) instead of reject({ error })?
       Promise.reject({
         error: {
           message:

@@ -15,6 +15,7 @@ export const ProfilePage: React.FC = () => {
       <Title>Profile page</Title>
       <Card shadow="sm" p="lg" m="sm">
         <Title>WebAuthn</Title>
+        {/* TODO list devices */}
         <Button
           onClick={() => {
             // TODO improve this

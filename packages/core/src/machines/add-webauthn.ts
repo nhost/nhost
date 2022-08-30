@@ -20,23 +20,17 @@ export type WebAuthnEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload }
 
-export type WebAuthnServices = {
-  requestChallenge: { data: PublicKeyCredentialCreationOptionsJSON }
-  startRegistration: { data: RegistrationCredentialJSON }
-}
+export type WebAuthnMachine = ReturnType<typeof createAddWebAuthnMachine>
 
-export type WebAuthnMachine = ReturnType<typeof createWebAuthnMachine>
-
-export const createWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient) => {
+export const createAddWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {
       schema: {
         context: {} as WebAuthnContext,
-        events: {} as WebAuthnEvents,
-        services: {} as WebAuthnServices
+        events: {} as WebAuthnEvents
       },
-      tsTypes: {} as import('./webauthn.typegen').Typegen0,
+      tsTypes: {} as import('./add-webauthn.typegen').Typegen0,
       preserveActionOrder: true,
       id: 'webAuthn',
       initial: 'idle',
@@ -44,7 +38,7 @@ export const createWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient) =
       states: {
         idle: {
           on: {
-            REQUEST: 'requestingChallenge'
+            REQUEST: 'requesting'
           },
           initial: 'initial',
           states: {
@@ -53,33 +47,11 @@ export const createWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient) =
             error: {}
           }
         },
-        requestingChallenge: {
+        requesting: {
           entry: 'clearContext',
           invoke: {
-            src: 'requestChallenge',
-            id: 'requestChallenge',
-            onDone: { target: 'registeringDevice' },
-            onError: {
-              actions: ['saveError', 'reportError'],
-              target: 'idle.error'
-            }
-          }
-        },
-        registeringDevice: {
-          invoke: {
-            src: 'startRegistration',
-            id: 'startRegistration',
-            onDone: { target: 'verifyingChallenge' },
-            onError: {
-              actions: ['saveError', 'reportError'],
-              target: 'idle.error'
-            }
-          }
-        },
-        verifyingChallenge: {
-          invoke: {
-            src: 'verifyChallenge',
-            id: 'verifyChallenge',
+            src: 'request',
+            id: 'request',
             onDone: { target: 'idle.success', actions: 'reportSuccess' },
             onError: {
               actions: ['saveError', 'reportError'],
@@ -98,8 +70,8 @@ export const createWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient) =
         reportSuccess: send('SUCCESS')
       },
       services: {
-        requestChallenge: async (_) => {
-          const res = await api.post<PublicKeyCredentialCreationOptionsJSON>(
+        request: async (_) => {
+          const { data } = await api.post<PublicKeyCredentialCreationOptionsJSON>(
             '/user/webauthn/add',
             {},
             {
@@ -108,20 +80,15 @@ export const createWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient) =
               }
             }
           )
-          return res.data
-        },
-        startRegistration: async (_, { data }) => {
+          let credential: RegistrationCredentialJSON
           try {
-            return await startRegistration(data!)
+            credential = await startRegistration(data!)
           } catch (e) {
             throw new CodifiedError(e as Error)
           }
-        },
-        verifyChallenge: async (_, { data }) => {
-          // TODO Make sure WebAuthn signin is not allowed for anonymous users
           await api.post<SignInResponse>(
             '/user/webauthn/verify',
-            { credential: data },
+            { credential },
             {
               headers: {
                 authorization: `Bearer ${interpreter?.state.context.accessToken.value}`
