@@ -142,7 +142,9 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
    */
-  async signIn(params: SignInParams): Promise<SignInResponse> {
+  async signIn(
+    params: SignInParams
+  ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
     const interpreter = await this.waitUntilReady()
 
     // * Sign in with a social provider (OAuth)
