@@ -1,7 +1,7 @@
 import {
   AuthClient,
   AuthOptions,
-  ErrorPayload,
+  NhostSession,
   PasswordlessOptions,
   Provider,
   ProviderOptions,
@@ -19,14 +19,6 @@ export interface NhostAuthConstructorParams extends AuthOptions {
   autoLogin?: boolean
 }
 
-// TODO remove and use NhostSession instead
-export interface Session {
-  accessToken: string
-  accessTokenExpiresIn: number
-  refreshToken: string
-  user: User | null
-}
-
 // Sign Up
 export interface SignUpEmailPasswordParams {
   email: string
@@ -35,22 +27,6 @@ export interface SignUpEmailPasswordParams {
 }
 
 export type SignUpParams = SignUpEmailPasswordParams
-
-export type SignUpResponse =
-  | { session: null; error: ErrorPayload }
-  | { session: Session | null; error: null }
-
-// Sign In
-
-export interface SignInResponse {
-  session: Session | null
-  mfa: {
-    ticket: string
-  } | null
-  error: ErrorPayload | null
-  providerUrl?: string
-  provider?: string
-}
 export interface SignInEmailPasswordParams {
   email: string
   password: string
@@ -121,68 +97,8 @@ export type DeanonymizeParams =
       connection: 'sms'
     } & SignInPasswordlessSmsParams)
 
-export interface SignInReponse {
-  session: Session | null
-  error: ErrorPayload | null
-  mfa?: {
-    enabled: boolean
-    ticket: string
-  }
-  providerUrl?: string
-  provider?: string
-}
-
 export type AuthChangeEvent = 'SIGNED_IN' | 'SIGNED_OUT'
 
-export type AuthChangedFunction = (event: AuthChangeEvent, session: Session | null) => void
+export type AuthChangedFunction = (event: AuthChangeEvent, session: NhostSession | null) => void
 
-export type OnTokenChangedFunction = (session: Session | null) => void
-export interface Headers {
-  Authorization?: string
-}
-export interface Mfa {
-  ticket: string
-}
-
-export type ApiSignUpEmailPasswordResponse =
-  | { session: null; error: ErrorPayload }
-  | { session: Session; error: null }
-
-export interface ApiSignInData {
-  session: Session
-  mfa: Mfa | null
-}
-export type ApiSignInResponse =
-  | {
-      data: ApiSignInData
-      error: null
-    }
-  | { data: null; error: ErrorPayload }
-
-export type ApiRefreshTokenResponse =
-  | { session: null; error: ErrorPayload }
-  | { session: Session; error: null }
-
-export interface ApiSignOutResponse {
-  error: ErrorPayload | null
-}
-
-export interface ApiResetPasswordResponse {
-  error: ErrorPayload | null
-}
-
-export interface ApiChangePasswordResponse {
-  error: ErrorPayload | null
-}
-
-export interface ApiSendVerificationEmailResponse {
-  error: ErrorPayload | null
-}
-
-export interface ApiChangeEmailResponse {
-  error: ErrorPayload | null
-}
-
-export interface ApiDeanonymizeResponse {
-  error: ErrorPayload | null
-}
+export type OnTokenChangedFunction = (session: NhostSession | null) => void
