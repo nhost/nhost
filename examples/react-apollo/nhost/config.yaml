@@ -7,7 +7,7 @@ services:
   auth:
     image: nhost/hasura-auth:0.10.0
   storage:
-    image: nhost/hasura-storage:0.2.3
+    image: nhost/hasura-storage:0.2.4
 auth:
   access_control:
     email:
