@@ -166,7 +166,7 @@ func pullMigration(client *hasura.Client, name string) (hasura.Migration, error)
 
 		log.Debug("Creating initial migration")
 
-		migration.Data, err = client.Migration(migrationTables)
+		migration.Data, err = client.Migration([]string{"--schema", "public"})
 		if err != nil {
 			log.Debug("Failed to get migration data")
 			return migration, err
