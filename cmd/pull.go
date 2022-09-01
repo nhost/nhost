@@ -118,6 +118,16 @@ and sync them with your local app.`,
 	*/
 }
 
+func pgDumpSchemasFlags(schemas []string) []string {
+	var schemasFlags []string
+
+	for _, schema := range schemas {
+		schemasFlags = append(schemasFlags, "--schema", schema)
+	}
+
+	return schemasFlags
+}
+
 func pullMigration(client *hasura.Client, name string) (hasura.Migration, error) {
 
 	var args []string
@@ -166,7 +176,7 @@ func pullMigration(client *hasura.Client, name string) (hasura.Migration, error)
 
 		log.Debug("Creating initial migration")
 
-		migration.Data, err = client.Migration([]string{"--schema", "public"})
+		migration.Data, err = client.Migration(pgDumpSchemasFlags(schemas))
 		if err != nil {
 			log.Debug("Failed to get migration data")
 			return migration, err
