@@ -352,9 +352,9 @@ export class HasuraAuthClient {
 
   // TODO document
   // TODO add signIn somehow: nhost.auth.signIn({email}) is already in use
-  async addWebAuthnDevice(): Promise<{ error: ErrorPayload | null }> {
+  async addWebAuthnDevice(nickname?: string): Promise<{ error: ErrorPayload | null }> {
     const service = interpret(createAddWebAuthnMachine(this._client)).start()
-    const { error } = await addWebAuthnDevicePromise(service)
+    const { error } = await addWebAuthnDevicePromise(service, nickname)
     return { error }
   }
 

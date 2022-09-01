@@ -16,7 +16,7 @@ export type WebAuthnContext = {
 }
 
 export type WebAuthnEvents =
-  | { type: 'REQUEST' }
+  | { type: 'REQUEST'; nickname?: string }
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload }
 
@@ -70,7 +70,7 @@ export const createAddWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient
         reportSuccess: send('SUCCESS')
       },
       services: {
-        request: async (_) => {
+        request: async (_, { nickname }) => {
           const { data } = await api.post<PublicKeyCredentialCreationOptionsJSON>(
             '/user/webauthn/add',
             {},
@@ -88,7 +88,7 @@ export const createAddWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient
           }
           await api.post<SignInResponse>(
             '/user/webauthn/verify',
-            { credential },
+            { credential, nickname },
             {
               headers: {
                 authorization: `Bearer ${interpreter?.state.context.accessToken.value}`

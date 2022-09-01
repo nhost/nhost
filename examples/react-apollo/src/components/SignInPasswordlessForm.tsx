@@ -75,7 +75,7 @@ export const SignUpPasswordlessForm: React.FC = () => {
         onChange={(e) => setEmail(e.target.value)}
       />
       <Button fullWidth onClick={signInDevice}>
-        Use this device
+        Use a security key
       </Button>
       <Button fullWidth onClick={signInEmail}>
         Send a magic link

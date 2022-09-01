@@ -8,10 +8,11 @@ export interface WebAuthnHandlerResult extends ActionErrorState {}
 export interface WebAuthnState extends WebAuthnHandlerResult, ActionLoadingState {}
 
 export const addWebAuthnDevicePromise = async (
-  interpreter: InterpreterFrom<WebAuthnMachine>
+  interpreter: InterpreterFrom<WebAuthnMachine>,
+  nickname?: string
 ): Promise<WebAuthnHandlerResult> =>
   new Promise<WebAuthnHandlerResult>((resolve) => {
-    interpreter.send('REQUEST')
+    interpreter.send({ type: 'REQUEST', nickname })
     interpreter.onTransition((s) => {
       if (s.matches({ idle: 'error' })) {
         resolve({ error: s.context.error, isError: true })

@@ -5,6 +5,7 @@ import { useHasuraClaims, useNhostClient, useUserData } from '@nhost/react'
 import { ChangeEmail } from './change-email'
 import { ChangePassword } from './change-password'
 import { Mfa } from './mfa'
+import { WebAuthn } from './webauthn'
 
 export const ProfilePage: React.FC = () => {
   const claims = useHasuraClaims()
@@ -13,18 +14,7 @@ export const ProfilePage: React.FC = () => {
   return (
     <Container>
       <Title>Profile page</Title>
-      <Card shadow="sm" p="lg" m="sm">
-        <Title>WebAuthn</Title>
-        {/* TODO list devices */}
-        <Button
-          onClick={() => {
-            // TODO improve this
-            nhost.auth.addWebAuthnDevice()
-          }}
-        >
-          Activate a device
-        </Button>
-      </Card>
+      <WebAuthn />
       <Mfa />
       <ChangeEmail />
       <ChangePassword />

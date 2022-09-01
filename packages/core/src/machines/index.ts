@@ -2,7 +2,10 @@ import type { AxiosRequestConfig } from 'axios'
 import { assign, createMachine, send } from 'xstate'
 
 import { startAuthentication } from '@simplewebauthn/browser'
-import type { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
+import type {
+  AuthenticationCredentialJSON,
+  PublicKeyCredentialRequestOptionsJSON
+} from '@simplewebauthn/typescript-types'
 
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
@@ -716,7 +719,10 @@ export const createAuthMachine = ({
           if (!isValidEmail(email)) {
             throw new CodifiedError(INVALID_EMAIL_ERROR)
           }
-          const options = await postRequest('/signin/webauthn', { email })
+          const options = await postRequest<PublicKeyCredentialRequestOptionsJSON>(
+            '/signin/webauthn',
+            { email }
+          )
           let credential: AuthenticationCredentialJSON
           try {
             credential = await startAuthentication(options)
