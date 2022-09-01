@@ -47,17 +47,15 @@ export const signInWebauthnHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const userAuthenticators = await gqlSdk
-    .getUserAuthenticators({
-      id: user.id,
-    })
-    .then((gqlres) => gqlres.authUserAuthenticators);
+  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({
+    id: user.id,
+  });
 
   const options = generateAuthenticationOptions({
     rpID: ENV.AUTH_WEBAUTHN_RP_ID,
     userVerification: 'preferred',
     timeout: ENV.AUTH_WEBAUTHN_ATTESTATION_TIMEOUT,
-    allowCredentials: userAuthenticators.map((authenticator) => ({
+    allowCredentials: authUserAuthenticators.map((authenticator) => ({
       id: Buffer.from(authenticator.credentialId, 'base64url'),
       type: 'public-key',
     })),
@@ -119,15 +117,15 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'invalid-request');
   }
 
-  const userAuthenticators = await gqlSdk
+  const authenticator = await gqlSdk
     .getUserAuthenticators({
       id: user.id,
     })
-    .then((gqlres) => gqlres.authUserAuthenticators);
-
-  const authenticator = userAuthenticators.find(
-    (auth) => auth.credentialId === credential.id
-  );
+    .then(({ authUserAuthenticators }) =>
+      authUserAuthenticators.find(
+        ({ credentialId }) => credentialId === credential.id
+      )
+    );
 
   if (!authenticator) {
     return sendError(res, 'invalid-request');
