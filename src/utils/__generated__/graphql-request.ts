@@ -758,6 +758,7 @@ export type AuthUserAuthenticators = {
   credentialId: Scalars['String'];
   credentialPublicKey?: Maybe<Scalars['bytea']>;
   id: Scalars['uuid'];
+  nickname?: Maybe<Scalars['String']>;
   transports: Scalars['String'];
   /** An object relationship */
   user: Users;
@@ -836,6 +837,7 @@ export type AuthUserAuthenticators_Bool_Exp = {
   credentialId?: InputMaybe<String_Comparison_Exp>;
   credentialPublicKey?: InputMaybe<Bytea_Comparison_Exp>;
   id?: InputMaybe<Uuid_Comparison_Exp>;
+  nickname?: InputMaybe<String_Comparison_Exp>;
   transports?: InputMaybe<String_Comparison_Exp>;
   user?: InputMaybe<Users_Bool_Exp>;
   userId?: InputMaybe<Uuid_Comparison_Exp>;
@@ -860,6 +862,7 @@ export type AuthUserAuthenticators_Insert_Input = {
   credentialId?: InputMaybe<Scalars['String']>;
   credentialPublicKey?: InputMaybe<Scalars['bytea']>;
   id?: InputMaybe<Scalars['uuid']>;
+  nickname?: InputMaybe<Scalars['String']>;
   transports?: InputMaybe<Scalars['String']>;
   user?: InputMaybe<Users_Obj_Rel_Insert_Input>;
   userId?: InputMaybe<Scalars['uuid']>;
@@ -871,6 +874,7 @@ export type AuthUserAuthenticators_Max_Fields = {
   counter?: Maybe<Scalars['bigint']>;
   credentialId?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  nickname?: Maybe<Scalars['String']>;
   transports?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -880,6 +884,7 @@ export type AuthUserAuthenticators_Max_Order_By = {
   counter?: InputMaybe<Order_By>;
   credentialId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  nickname?: InputMaybe<Order_By>;
   transports?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -890,6 +895,7 @@ export type AuthUserAuthenticators_Min_Fields = {
   counter?: Maybe<Scalars['bigint']>;
   credentialId?: Maybe<Scalars['String']>;
   id?: Maybe<Scalars['uuid']>;
+  nickname?: Maybe<Scalars['String']>;
   transports?: Maybe<Scalars['String']>;
   userId?: Maybe<Scalars['uuid']>;
 };
@@ -899,6 +905,7 @@ export type AuthUserAuthenticators_Min_Order_By = {
   counter?: InputMaybe<Order_By>;
   credentialId?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  nickname?: InputMaybe<Order_By>;
   transports?: InputMaybe<Order_By>;
   userId?: InputMaybe<Order_By>;
 };
@@ -925,6 +932,7 @@ export type AuthUserAuthenticators_Order_By = {
   credentialId?: InputMaybe<Order_By>;
   credentialPublicKey?: InputMaybe<Order_By>;
   id?: InputMaybe<Order_By>;
+  nickname?: InputMaybe<Order_By>;
   transports?: InputMaybe<Order_By>;
   user?: InputMaybe<Users_Order_By>;
   userId?: InputMaybe<Order_By>;
@@ -946,6 +954,8 @@ export enum AuthUserAuthenticators_Select_Column {
   /** column name */
   Id = 'id',
   /** column name */
+  Nickname = 'nickname',
+  /** column name */
   Transports = 'transports',
   /** column name */
   UserId = 'userId'
@@ -957,6 +967,7 @@ export type AuthUserAuthenticators_Set_Input = {
   credentialId?: InputMaybe<Scalars['String']>;
   credentialPublicKey?: InputMaybe<Scalars['bytea']>;
   id?: InputMaybe<Scalars['uuid']>;
+  nickname?: InputMaybe<Scalars['String']>;
   transports?: InputMaybe<Scalars['String']>;
   userId?: InputMaybe<Scalars['uuid']>;
 };
@@ -1015,6 +1026,8 @@ export enum AuthUserAuthenticators_Update_Column {
   CredentialPublicKey = 'credentialPublicKey',
   /** column name */
   Id = 'id',
+  /** column name */
+  Nickname = 'nickname',
   /** column name */
   Transports = 'transports',
   /** column name */

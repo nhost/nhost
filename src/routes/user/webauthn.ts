@@ -1,6 +1,7 @@
 import { RequestHandler } from 'express';
 import {
   generateRegistrationOptions,
+  VerifiedRegistrationResponse,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
 import {
@@ -12,6 +13,7 @@ import { Joi } from '@/validation';
 import { sendError } from '@/errors';
 import { ENV, getSignInResponse, getUser, gqlSdk } from '@/utils';
 import { SignInResponse } from '@/types';
+import { AuthUserAuthenticators_Insert_Input } from '@/utils/__generated__/graphql-request';
 
 export type AddAuthenticatorRequestBody = {
   credential: string;
@@ -65,12 +67,14 @@ export const addAuthenticatorHandler: RequestHandler<
 
 export type VerifyAuthenticatorRequestBody = {
   credential: RegistrationCredentialJSON;
+  nickname?: string;
 };
 
 export type VerifyAuthenticatorResponseBody = SignInResponse;
 export const userVerifyAddAuthenticatorSchema =
   Joi.object<VerifyAuthenticatorRequestBody>({
     credential: Joi.object().required(),
+    nickname: Joi.string().optional(),
   }).meta({ className: 'VerifyAddAuthenticatorSchema' });
 
 export const addAuthenticatorVerifyHandler: RequestHandler<
@@ -82,7 +86,7 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     return sendError(res, 'disabled-endpoint');
   }
 
-  const { credential } = req.body;
+  const { credential, nickname } = req.body;
 
   const { userId } = req.auth as RequestAuth;
 
@@ -102,7 +106,7 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     return sendError(res, 'invalid-request');
   }
 
-  let verification;
+  let verification: VerifiedRegistrationResponse;
   try {
     verification = await verifyRegistrationResponse({
       credential: credential,
@@ -114,13 +118,11 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     return sendError(res, 'invalid-request');
   }
 
-  const { verified } = verification;
+  const { verified, registrationInfo } = verification;
 
   if (!verified) {
     return sendError(res, 'unverified-user');
   }
-
-  const { registrationInfo } = verification;
 
   if (!registrationInfo) {
     throw Error('Something went wrong. Incomplete Webauthn verification.');
@@ -132,12 +134,13 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     counter,
   } = registrationInfo;
 
-  const newAuthenticator = {
+  const newAuthenticator: AuthUserAuthenticators_Insert_Input = {
     credentialId: credentialId.toString('base64url'),
     credentialPublicKey: Buffer.from(
       '\\x' + credentialPublicKey.toString('hex')
     ).toString(),
     counter,
+    nickname,
   };
 
   await gqlSdk.addUserAuthenticator({
