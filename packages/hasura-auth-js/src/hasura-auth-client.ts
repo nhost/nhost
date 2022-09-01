@@ -35,6 +35,7 @@ import {
   SignInResponse,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
+  signInWebAuthnPasswordlessPromise,
   signOutPromise,
   SignOutResponse,
   signUpEmailPasswordPromise,
@@ -176,6 +177,14 @@ export class HasuraAuthClient {
           error: null
         }
       }
+      return { ...getAuthenticationResult(res), mfa: null }
+    }
+
+    if ('email' in params && 'webauthn' in params) {
+      if (params.webauthn !== true) {
+        throw Error('webauthn must be true')
+      }
+      const res = await signInWebAuthnPasswordlessPromise(interpreter, params.email)
       return { ...getAuthenticationResult(res), mfa: null }
     }
 

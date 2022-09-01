@@ -34,7 +34,8 @@ export const getAuthenticationResult = ({
   }
   if (user && accessToken) {
     return {
-      session: { accessToken, accessTokenExpiresIn: 0, refreshToken: 'TODO', user },
+      // TODO either return the refresh token or remove it from the session type
+      session: { accessToken, accessTokenExpiresIn: 0, refreshToken: '', user },
       error: null
     }
   }
