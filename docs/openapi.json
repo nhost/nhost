@@ -2148,7 +2148,7 @@
                      }
                   }
                },
-               "description" : "",
+               "description" : "TODO add @return payload on success",
                "required" : true
             },
             "responses" : {
@@ -2368,7 +2368,7 @@
                      }
                   }
                },
-               "description" : "",
+               "description" : "TODO add @return payload on success",
                "required" : true
             },
             "responses" : {
@@ -2454,7 +2454,7 @@
                   "content" : {
                      "application/json" : {
                         "schema" : {
-                           "$ref" : "#/components/schemas/SessionPayload"
+                           "$ref" : "#/components/schemas/SessionModel"
                         }
                      }
                   },
@@ -2992,9 +2992,9 @@
                }
             },
             "security" : [],
-            "summary" : "Initialize adding of a new webauthn authenticator (device, browser)",
+            "summary" : "Initialize adding of a new webauthn authenticator (device, browser)\nTODO add @return payload on success",
             "tags" : [
-               "Authentication"
+               "User management"
             ]
          }
       },
@@ -3058,7 +3058,7 @@
             "security" : [],
             "summary" : "Verfiy adding of a new webauth authenticator (device, browser)",
             "tags" : [
-               "Authentication"
+               "User management"
             ]
          }
       },
