@@ -1,7 +1,7 @@
 import { assign, createMachine, send } from 'xstate'
 
 import { startRegistration } from '@simplewebauthn/browser'
-import {
+import type {
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'

@@ -4,7 +4,7 @@ export type AuthEvents =
   | { type: 'SESSION_UPDATE'; data: { session: NhostSession } }
   | { type: 'TRY_TOKEN'; token: string }
   | { type: 'SIGNIN_ANONYMOUS' }
-  | { type: 'SIGNIN_WEBAUTHN'; email?: string }
+  | { type: 'SIGNIN_WEBAUTHN_PASSWORDLESS'; email?: string }
   | { type: 'SIGNIN_PASSWORD'; email?: string; password?: string }
   | {
       type: 'PASSWORDLESS_EMAIL'

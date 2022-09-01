@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button, Modal, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInEmailPassword, useSignInWebAuthn } from '@nhost/react'
+import { useSignInEmailPassword, useSignInWebAuthnPasswordless } from '@nhost/react'
 
 import AuthLink from '../components/AuthLink'
 
 export const EmailPassword: React.FC = () => {
-  const { signInWebAuthn } = useSignInWebAuthn()
+  const { signInWebAuthnPasswordless } = useSignInWebAuthnPasswordless()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
@@ -94,7 +94,7 @@ export const EmailPassword: React.FC = () => {
         <Button
           fullWidth
           onClick={() => {
-            signInWebAuthn(email)
+            signInWebAuthnPasswordless(email)
               .then((res) => {
                 console.log(res)
               })

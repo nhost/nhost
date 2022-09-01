@@ -209,7 +209,7 @@ export interface Typegen0 {
     signInPassword: 'done.invoke.authenticateUserWithPassword'
     signInAnonymous: 'done.invoke.authenticateAnonymously'
     signInMfaTotp: 'done.invoke.signInMfaTotp'
-    signInWebAuthn: 'done.invoke.authenticateUserWithWebAuthn'
+    signInWebAuthnPasswordless: 'done.invoke.authenticateUserWithWebAuthn'
     refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
     signUpEmailPassword: 'done.invoke.signUpEmailPassword'
     passwordlessEmail: 'done.invoke.passwordlessEmail'
@@ -226,7 +226,7 @@ export interface Typegen0 {
     importRefreshToken: 'xstate.init'
     signInPassword: 'SIGNIN_PASSWORD'
     signInAnonymous: 'SIGNIN_ANONYMOUS'
-    signInWebAuthn: 'SIGNIN_WEBAUTHN'
+    signInWebAuthnPasswordless: 'SIGNIN_WEBAUTHN_PASSWORDLESS'
     signInMfaTotp: 'SIGNIN_MFA_TOTP'
     signout: 'SIGNOUT'
     refreshToken: '' | 'TRY_TOKEN'
@@ -265,7 +265,7 @@ export interface Typegen0 {
     | 'authentication.authenticating.anonymous'
     | 'authentication.authenticating.mfa'
     | 'authentication.authenticating.mfa.totp'
-    | 'authentication.authenticating.webauthn'
+    | 'authentication.authenticating.webauthnPasswordless'
     | 'authentication.signedIn'
     | 'authentication.signedIn.refreshTimer'
     | 'authentication.signedIn.refreshTimer.disabled'
@@ -304,7 +304,12 @@ export interface Typegen0 {
                 | 'needsMfa'
                 | 'failed'
                 | 'signingOut'
-              authenticating?: 'password' | 'anonymous' | 'mfa' | 'webauthn' | { mfa?: 'totp' }
+              authenticating?:
+                | 'password'
+                | 'anonymous'
+                | 'mfa'
+                | 'webauthnPasswordless'
+                | { mfa?: 'totp' }
               signedIn?:
                 | 'refreshTimer'
                 | {

@@ -7,15 +7,17 @@ import {
   SessionActionHandlerResult
 } from './types'
 
-export interface SignInWebAuthnHandlerResult
+export interface SignInWebAuthnPasswordlessHandlerResult
   extends SessionActionHandlerResult,
     NeedsEmailVerificationState {}
 
-export interface SignInWebAuthnState extends SignInWebAuthnHandlerResult, ActionLoadingState {}
+export interface SignInWebAuthnPasswordlessState
+  extends SignInWebAuthnPasswordlessHandlerResult,
+    ActionLoadingState {}
 
-export const signInWebAuthnPromise = (interpreter: AuthInterpreter, email: string) =>
-  new Promise<SignInWebAuthnHandlerResult>((resolve) => {
-    const { changed, context } = interpreter.send({ type: 'SIGNIN_WEBAUTHN', email })
+export const signInWebAuthnPasswordlessPromise = (interpreter: AuthInterpreter, email: string) =>
+  new Promise<SignInWebAuthnPasswordlessHandlerResult>((resolve) => {
+    const { changed, context } = interpreter.send({ type: 'SIGNIN_WEBAUTHN_PASSWORDLESS', email })
     if (!changed) {
       return resolve({
         accessToken: context.accessToken.value,

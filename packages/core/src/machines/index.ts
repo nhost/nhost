@@ -2,7 +2,7 @@ import type { AxiosRequestConfig } from 'axios'
 import { assign, createMachine, send } from 'xstate'
 
 import { startAuthentication } from '@simplewebauthn/browser'
-import { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
+import type { AuthenticationCredentialJSON } from '@simplewebauthn/typescript-types'
 
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
@@ -66,7 +66,7 @@ type AuthServices = {
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
-  signInWebAuthn: { data: SignInResponse }
+  signInWebAuthnPasswordless: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
@@ -163,7 +163,7 @@ export const createAuthMachine = ({
               on: {
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
-                SIGNIN_WEBAUTHN: 'authenticating.webauthn',
+                SIGNIN_WEBAUTHN_PASSWORDLESS: 'authenticating.webauthnPasswordless',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
               }
             },
@@ -232,9 +232,9 @@ export const createAuthMachine = ({
                     }
                   }
                 },
-                webauthn: {
+                webauthnPasswordless: {
                   invoke: {
-                    src: 'signInWebAuthn',
+                    src: 'signInWebAuthnPasswordless',
                     id: 'authenticateUserWithWebAuthn',
                     onDone: {
                       actions: ['saveSession', 'reportTokenChanged'],
@@ -712,7 +712,7 @@ export const createAuthMachine = ({
             otp: data.otp
           })
         },
-        signInWebAuthn: async (_, { email }) => {
+        signInWebAuthnPasswordless: async (_, { email }) => {
           if (!isValidEmail(email)) {
             throw new CodifiedError(INVALID_EMAIL_ERROR)
           }
