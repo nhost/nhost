@@ -49,16 +49,6 @@ export const addAuthenticatorHandler: RequestHandler<
     userID: user.id,
     userName: user.displayName ?? user.email,
     attestationType: 'indirect',
-    /**
-     * Support the two most common algorithms: ES256, and RS256
-     */
-    supportedAlgorithmIDs: [-7, -257],
-    authenticatorSelection: {
-      authenticatorAttachment: 'platform',
-      userVerification: 'required',
-      residentKey: 'required',
-      requireResidentKey: true,
-    },
     excludeCredentials: userAuthenticators.map((authenticator) => ({
       id: Buffer.from(authenticator.credentialId, 'base64url'),
       type: 'public-key',
