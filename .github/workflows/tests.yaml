@@ -58,15 +58,8 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
-      - name: Cache Cypress binary
-        uses: actions/cache@v1
-        with:
-          path: ~/.cache/Cypress
-          key: cypress-${{ runner.os }}-cypress-${{ github.ref }}-${{ hashFiles('**/package.json') }}
-          restore-keys: |
-            cypress-${{ runner.os }}-cypress-${{ github.ref }}-${{ hashFiles('**/package.json') }}      # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
-      - name: Run e2e test
-        run: pnpm --filter="${{ matrix.package.name }}" run e2e
+      - name: Install Cypress
+        run: pnpm intall cypress
       - id: file-name
         if: ${{ failure() }}
         name: Tranform package name into a valid file name
