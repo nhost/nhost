@@ -58,11 +58,12 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
+        # TODO ugly - check CYPRESS_CACHE_FOLDER
       - name: Install Cypress
         run: pnpm install -w cypress
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
-        run: pnpm run e2e -- --filter="${{ matrix.package.name }}"
+        run: pnpm --filter="${{ matrix.package.name }}" run e2e
       - id: file-name
         if: ${{ failure() }}
         name: Tranform package name into a valid file name
