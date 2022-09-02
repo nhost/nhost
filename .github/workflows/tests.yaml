@@ -62,8 +62,8 @@ jobs:
       - name: Run e2e test
         uses: cypress-io/github-action@v4
         with:
-          start: pnpm e2e
-          working-directory: ${{ matrix.package.path }}
+          start: pnpm --filter="${{ matrix.package.name }}" run e2e
+
         # run: pnpm --filter="${{ matrix.package.name }}" run e2e
       - id: file-name
         if: ${{ failure() }}
