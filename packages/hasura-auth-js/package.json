@@ -63,14 +63,14 @@
   "dependencies": {
     "@nhost/core": "workspace:*",
     "jwt-decode": "^3.1.2",
-    "xstate": "^4.32.1"
+    "xstate": "^4.33.5"
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
     "@types/faker": "5",
     "axios": "^0.27.2",
     "faker": "5",
-    "html-urls": "^2.4.27",
+    "html-urls": "^2.4.38",
     "mailhog": "^4.16.0",
     "start-server-and-test": "^1.14.0"
   }

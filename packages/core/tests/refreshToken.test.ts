@@ -380,6 +380,7 @@ describe(`Auto sign-in`, () => {
   afterAll(() => server.close())
 
   beforeEach(() => {
+    // TODO blocks from updating vitest: https://github.com/vitest-dev/vitest/issues/1888
     windowSpy = vi.spyOn(global, 'window', 'get')
   })
 
@@ -399,7 +400,6 @@ describe(`Auto sign-in`, () => {
         href: `http://localhost:3000/?error=${INVALID_REFRESH_TOKEN.error}&errorDescription=${INVALID_REFRESH_TOKEN.message}`
       }
     }))
-
     authService.start()
 
     const firstState: AuthState = await waitFor(authService, (state: AuthState) =>

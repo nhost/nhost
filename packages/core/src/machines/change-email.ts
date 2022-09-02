@@ -31,7 +31,7 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
         events: {} as ChangeEmailEvents
       },
       tsTypes: {} as import('./change-email.typegen').Typegen0,
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       id: 'changeEmail',
       initial: 'idle',
       context: { error: null },

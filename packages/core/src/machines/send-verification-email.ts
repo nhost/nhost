@@ -30,7 +30,7 @@ export const createSendVerificationEmailMachine = ({ backendUrl, clientUrl }: Au
         events: {} as SendVerificationEmailEvents
       },
       tsTypes: {} as import('./send-verification-email.typegen').Typegen0,
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       id: 'sendVerificationEmail',
       initial: 'idle',
       context: { error: null },
