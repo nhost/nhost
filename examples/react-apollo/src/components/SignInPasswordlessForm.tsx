@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInEmailPasswordless, useSignInSecurityKeyPasswordless } from '@nhost/react'
+import { useSignInEmailPasswordless, useSignInSecurityKeyEmail } from '@nhost/react'
 
 export const SignUpPasswordlessForm: React.FC = () => {
   const navigate = useNavigate()
 
   const { signInEmailPasswordless } = useSignInEmailPasswordless({ redirectTo: '/profile' })
-  const { signInSecurityKeyEmail } = useSignInSecurityKeyPasswordless()
+  const { signInSecurityKeyEmail } = useSignInSecurityKeyEmail()
 
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
   const [emailNeedsVerificationToggle, setEmailNeedsVerificationToggle] = useState(false)

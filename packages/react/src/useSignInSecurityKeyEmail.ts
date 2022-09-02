@@ -21,11 +21,11 @@ interface SignInSecurityKeyPasswordlessHook {
 }
 
 /**
- * Use the hook `useSignInSecurityKeyPasswordless` to sign in a user using SecurityKey.
+ * Use the hook `useSignInSecurityKeyEmail` to sign in a user using SecurityKey.
  *
  * @example
  * ```tsx
- * const { signInSecurityKeyEmail, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInSecurityKeyPasswordless()
+ * const { signInSecurityKeyEmail, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInSecurityKeyEmail()
  *
  * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
  *
@@ -38,7 +38,7 @@ interface SignInSecurityKeyPasswordlessHook {
  *
  * @docs https://docs.nhost.io/reference/react/use-sign-in-web-authn
  */
-export const useSignInSecurityKeyPasswordless: SignInSecurityKeyPasswordlessHook = () => {
+export const useSignInSecurityKeyEmail: SignInSecurityKeyPasswordlessHook = () => {
   const service = useAuthInterpreter()
   const signInSecurityKeyEmail: SignInSecurityKeyPasswordlessHandler = (email: string) =>
     signInSecurityKeyEmailPromise(service, email)

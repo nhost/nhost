@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button, Modal, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInEmailPassword, useSignInSecurityKeyPasswordless } from '@nhost/react'
+import { useSignInEmailPassword, useSignInSecurityKeyEmail } from '@nhost/react'
 
 import AuthLink from '../components/AuthLink'
 
 export const EmailPassword: React.FC = () => {
-  const { signInSecurityKeyEmail } = useSignInSecurityKeyPasswordless()
+  const { signInSecurityKeyEmail } = useSignInSecurityKeyEmail()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
