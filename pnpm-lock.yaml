@@ -555,6 +555,7 @@ importers:
 
   packages/hasura-auth-js:
     specifiers:
+      '@nhost/core': workspace:*
       '@nhost/docgen': workspace:*
       '@types/faker': '5'
       axios: ^0.27.2
@@ -569,6 +570,7 @@ importers:
       jwt-decode: 3.1.2
       xstate: 4.33.5
     devDependencies:
+      '@nhost/core': link:../core
       '@nhost/docgen': link:../docgen
       '@types/faker': 5.5.9
       faker: 5.5.3

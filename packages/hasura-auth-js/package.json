@@ -69,6 +69,7 @@
     "@nhost/core": "workspace:*"
   },
   "devDependencies": {
+    "@nhost/core": "workspace:*",
     "@nhost/docgen": "workspace:*",
     "@types/faker": "5",
     "faker": "5",
