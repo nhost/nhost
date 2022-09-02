@@ -15,3 +15,8 @@ runs:
     - shell: bash
       name: Install packages
       run: pnpm install --frozen-lockfile
+    # * Build all Nhost packages as they are all supposed to be tested.
+    # * They are reused through the Turborepo cache
+    - shell: bash
+      name: Build packages
+      run: pnpm build

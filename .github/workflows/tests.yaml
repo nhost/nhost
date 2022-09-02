@@ -29,10 +29,6 @@ jobs:
       # * Install Node and dependencies. Package downloads will be cached for the next jobs.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
-      # * Build all Nhost packages as they are all supposed to be tested.
-      # * They will be reused through the Turborepo cache
-      - name: Build packages
-        run: pnpm build
       # * List packagesthat has an `e2e` script, except the root, and return an array of their name and path
       - name: List examples with an e2e script
         id: set-matrix
@@ -62,9 +58,6 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
-        # TODO test if this is needed
-      - name: re-run build (will use Turborepo cache)
-        run: pnpm build
       # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
         run: pnpm --filter="${{ matrix.package.name }}" run e2e
