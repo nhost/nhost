@@ -59,7 +59,7 @@ jobs:
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
       - name: Install Cypress
-        run: pnpm intall cypress
+        run: pnpm install cypress
       - id: file-name
         if: ${{ failure() }}
         name: Tranform package name into a valid file name
