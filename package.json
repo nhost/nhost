@@ -88,7 +88,7 @@
   "packageManager": "pnpm@6.24.0",
   "engines": {
     "node": ">=14",
-    "pnpm": ">=7.9.5"
+    "pnpm": ">=7.9.1"
   },
   "eslintConfig": {
     "extends": "./config/.eslintrc.js"

@@ -16,10 +16,10 @@ configuration:
     update: updateAuthProviders
     update_by_pk: updateAuthProvider
 array_relationships:
-- name: userProviders
-  using:
-    foreign_key_constraint_on:
-      column: provider_id
-      table:
-        name: user_providers
-        schema: auth
+  - name: userProviders
+    using:
+      foreign_key_constraint_on:
+        column: provider_id
+        table:
+          name: user_providers
+          schema: auth
