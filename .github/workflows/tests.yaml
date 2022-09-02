@@ -49,7 +49,6 @@ jobs:
       matrix:
         package: ${{ fromJson(needs.build.outputs.matrix) }}
     runs-on: ubuntu-latest
-    container: cypress/included:10.7.0
     steps:
       - uses: actions/checkout@v2
       # * Install Nhost CLI if a `nhost/config.yaml` file is found
@@ -59,7 +58,13 @@ jobs:
       # * Install Node and dependencies. Package dependencies won't be downloaded again as they have been cached by the `build` job.
       - name: Install Node and dependencies
         uses: ./.github/actions/install-dependencies
-      # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
+      - name: Cache Cypress binary
+        uses: actions/cache@v1
+        with:
+          path: ~/.cache/Cypress
+          key: cypress-${{ runner.os }}-cypress-${{ github.ref }}-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            cypress-${{ runner.os }}-cypress-${{ github.ref }}-${{ hashFiles('**/package.json') }}      # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
       - name: Run e2e test
         run: pnpm --filter="${{ matrix.package.name }}" run e2e
       - id: file-name
