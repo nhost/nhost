@@ -1,46 +1,47 @@
 import {
-  SignInWebAuthnPasswordlessHandlerResult,
-  signInWebAuthnPasswordlessPromise,
-  SignInWebAuthnPasswordlessState
+  signInSecurityKeyEmailPromise,
+  SignInSecurityKeyPasswordlessHandlerResult,
+  SignInSecurityKeyPasswordlessState
 } from '@nhost/core'
 import { useSelector } from '@xstate/react'
 
 import { useAuthInterpreter } from './useAuthInterpreter'
 
-interface SignInWebAuthnPasswordlessHandler {
-  (email: string): Promise<SignInWebAuthnPasswordlessHandlerResult>
+interface SignInSecurityKeyPasswordlessHandler {
+  (email: string): Promise<SignInSecurityKeyPasswordlessHandlerResult>
 }
 
-export interface SignInWebAuthnPasswordlessHookResult extends SignInWebAuthnPasswordlessState {
-  signInWebAuthnPasswordless: SignInWebAuthnPasswordlessHandler
+export interface SignInSecurityKeyPasswordlessHookResult
+  extends SignInSecurityKeyPasswordlessState {
+  signInSecurityKeyEmail: SignInSecurityKeyPasswordlessHandler
 }
 
-interface SignInWebAuthnPasswordlessHook {
-  (): SignInWebAuthnPasswordlessHookResult
+interface SignInSecurityKeyPasswordlessHook {
+  (): SignInSecurityKeyPasswordlessHookResult
 }
 
 /**
- * Use the hook `useSignInWebAuthnPasswordless` to sign in a user using WebAuthn.
+ * Use the hook `useSignInSecurityKeyPasswordless` to sign in a user using SecurityKey.
  *
  * @example
  * ```tsx
- * const { signInWebAuthnPasswordless, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInWebAuthnPasswordless()
+ * const { signInSecurityKeyEmail, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInSecurityKeyPasswordless()
  *
  * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
  *
- *   await signInWebAuthnPasswordless('joe@example.com')
+ *   await signInSecurityKeyEmail('joe@example.com')
  * }
  * ```
  *
  * @docs https://docs.nhost.io/reference/react/use-sign-in-web-authn
  */
-export const useSignInWebAuthnPasswordless: SignInWebAuthnPasswordlessHook = () => {
+export const useSignInSecurityKeyPasswordless: SignInSecurityKeyPasswordlessHook = () => {
   const service = useAuthInterpreter()
-  const signInWebAuthnPasswordless: SignInWebAuthnPasswordlessHandler = (email: string) =>
-    signInWebAuthnPasswordlessPromise(service, email)
+  const signInSecurityKeyEmail: SignInSecurityKeyPasswordlessHandler = (email: string) =>
+    signInSecurityKeyEmailPromise(service, email)
 
   const user = useSelector(
     service,
@@ -60,7 +61,7 @@ export const useSignInWebAuthnPasswordless: SignInWebAuthnPasswordlessHook = () 
   )
   const isLoading = useSelector(
     service,
-    (state) => state.matches({ authentication: { authenticating: 'webauthnPasswordless' } }),
+    (state) => state.matches({ authentication: { authenticating: 'securityKeyEmail' } }),
     (a, b) => a === b
   )
   const needsEmailVerification = useSelector(
@@ -85,7 +86,7 @@ export const useSignInWebAuthnPasswordless: SignInWebAuthnPasswordlessHook = () 
     isLoading,
     isSuccess,
     needsEmailVerification,
-    signInWebAuthnPasswordless,
+    signInSecurityKeyEmail,
     user
   }
 }

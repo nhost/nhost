@@ -2,14 +2,14 @@ import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
 import {
-  addWebAuthnDevicePromise,
+  addSecurityKeyPromise,
   AuthClient,
   AuthInterpreter,
   changeEmailPromise,
   ChangeEmailResponse,
   changePasswordPromise,
   ChangePasswordResponse,
-  createAddWebAuthnMachine,
+  createAddSecurityKeyMachine,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
@@ -33,9 +33,9 @@ import {
   signInEmailPasswordPromise,
   signInMfaTotpPromise,
   SignInResponse,
+  signInSecurityKeyEmailPromise,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
-  signInWebAuthnPasswordlessPromise,
   signOutPromise,
   SignOutResponse,
   signUpEmailPasswordPromise,
@@ -180,11 +180,11 @@ export class HasuraAuthClient {
       return { ...getAuthenticationResult(res), mfa: null }
     }
 
-    if ('email' in params && 'webauthn' in params) {
-      if (params.webauthn !== true) {
-        throw Error('webauthn must be true')
+    if ('email' in params && 'securityKey' in params) {
+      if (params.securityKey !== true) {
+        throw Error('securityKey must be true')
       }
-      const res = await signInWebAuthnPasswordlessPromise(interpreter, params.email)
+      const res = await signInSecurityKeyEmailPromise(interpreter, params.email)
       return { ...getAuthenticationResult(res), mfa: null }
     }
 
@@ -361,9 +361,9 @@ export class HasuraAuthClient {
 
   // TODO document
   // TODO add signIn somehow: nhost.auth.signIn({email}) is already in use
-  async addWebAuthnDevice(nickname?: string): Promise<{ error: ErrorPayload | null }> {
-    const service = interpret(createAddWebAuthnMachine(this._client)).start()
-    const { error } = await addWebAuthnDevicePromise(service, nickname)
+  async addSecurityKey(nickname?: string): Promise<{ error: ErrorPayload | null }> {
+    const service = interpret(createAddSecurityKeyMachine(this._client)).start()
+    const { error } = await addSecurityKeyPromise(service, nickname)
     return { error }
   }
 

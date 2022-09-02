@@ -46,7 +46,7 @@ import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from
 import { AuthContext, INITIAL_MACHINE_CONTEXT, StateErrorTypes } from './context'
 import { AuthEvents } from './events'
 
-export * from './add-webauthn'
+export * from './add-security-key'
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'
@@ -69,7 +69,7 @@ type AuthServices = {
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
-  signInWebAuthnPasswordless: { data: SignInResponse }
+  signInSecurityKeyEmail: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
@@ -166,7 +166,7 @@ export const createAuthMachine = ({
               on: {
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
-                SIGNIN_WEBAUTHN_PASSWORDLESS: 'authenticating.webauthnPasswordless',
+                SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
               }
             },
@@ -235,10 +235,10 @@ export const createAuthMachine = ({
                     }
                   }
                 },
-                webauthnPasswordless: {
+                securityKeyEmail: {
                   invoke: {
-                    src: 'signInWebAuthnPasswordless',
-                    id: 'authenticateUserWithWebAuthn',
+                    src: 'signInSecurityKeyEmail',
+                    id: 'authenticateUserWithSecurityKey',
                     onDone: {
                       actions: ['saveSession', 'reportTokenChanged'],
                       target: '#nhost.authentication.signedIn'
@@ -715,7 +715,7 @@ export const createAuthMachine = ({
             otp: data.otp
           })
         },
-        signInWebAuthnPasswordless: async (_, { email }) => {
+        signInSecurityKeyEmail: async (_, { email }) => {
           if (!isValidEmail(email)) {
             throw new CodifiedError(INVALID_EMAIL_ERROR)
           }

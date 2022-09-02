@@ -3,13 +3,13 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInEmailPasswordless, useSignInWebAuthnPasswordless } from '@nhost/react'
+import { useSignInEmailPasswordless, useSignInSecurityKeyPasswordless } from '@nhost/react'
 
 export const SignUpPasswordlessForm: React.FC = () => {
   const navigate = useNavigate()
 
   const { signInEmailPasswordless } = useSignInEmailPasswordless({ redirectTo: '/profile' })
-  const { signInWebAuthnPasswordless } = useSignInWebAuthnPasswordless()
+  const { signInSecurityKeyEmail } = useSignInSecurityKeyPasswordless()
 
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
   const [emailNeedsVerificationToggle, setEmailNeedsVerificationToggle] = useState(false)
@@ -29,7 +29,7 @@ export const SignUpPasswordlessForm: React.FC = () => {
     }
   }
   const signInDevice = async () => {
-    const result = await signInWebAuthnPasswordless(email)
+    const result = await signInSecurityKeyEmail(email)
     if (result.needsEmailVerification) {
     } else if (result.isError) {
       showNotification({

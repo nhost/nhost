@@ -11,28 +11,28 @@ import { CodifiedError, ErrorPayload } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { SignInResponse } from '../types'
 
-export type WebAuthnContext = {
+export type SecurityKeyContext = {
   error: ErrorPayload | null
 }
 
-export type WebAuthnEvents =
+export type SecurityKeyEvents =
   | { type: 'REQUEST'; nickname?: string }
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload }
 
-export type WebAuthnMachine = ReturnType<typeof createAddWebAuthnMachine>
+export type SecurityKeyMachine = ReturnType<typeof createAddSecurityKeyMachine>
 
-export const createAddWebAuthnMachine = ({ backendUrl, interpreter }: AuthClient) => {
+export const createAddSecurityKeyMachine = ({ backendUrl, interpreter }: AuthClient) => {
   const api = nhostApiClient(backendUrl)
   return createMachine(
     {
       schema: {
-        context: {} as WebAuthnContext,
-        events: {} as WebAuthnEvents
+        context: {} as SecurityKeyContext,
+        events: {} as SecurityKeyEvents
       },
-      tsTypes: {} as import('./add-webauthn.typegen').Typegen0,
+      tsTypes: {} as import("./add-security-key.typegen").Typegen0,
       preserveActionOrder: true,
-      id: 'webAuthn',
+      id: 'securityKey',
       initial: 'idle',
       context: { error: null },
       states: {

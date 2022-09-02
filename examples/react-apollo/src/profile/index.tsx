@@ -5,7 +5,7 @@ import { useHasuraClaims, useNhostClient, useUserData } from '@nhost/react'
 import { ChangeEmail } from './change-email'
 import { ChangePassword } from './change-password'
 import { Mfa } from './mfa'
-import { WebAuthn } from './webauthn'
+import { SecurityKeys } from './security-keys'
 
 export const ProfilePage: React.FC = () => {
   const claims = useHasuraClaims()
@@ -14,7 +14,7 @@ export const ProfilePage: React.FC = () => {
   return (
     <Container>
       <Title>Profile page</Title>
-      <WebAuthn />
+      <SecurityKeys />
       <Mfa />
       <ChangeEmail />
       <ChangePassword />

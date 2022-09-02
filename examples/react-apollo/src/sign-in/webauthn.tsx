@@ -3,18 +3,18 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button, Modal, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInWebAuthnPasswordless } from '@nhost/react'
+import { useSignInSecurityKeyPasswordless } from '@nhost/react'
 
 import AuthLink from '../components/AuthLink'
 
 export const EmailPassword: React.FC = () => {
-  const { signInWebAuthnPasswordless } = useSignInWebAuthnPasswordless()
+  const { signInSecurityKeyEmail } = useSignInSecurityKeyPasswordless()
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
 
   const signIn = async () => {
-    const result = await signInWebAuthnPasswordless(email)
+    const result = await signInSecurityKeyEmail(email)
     if (result.isError) {
       showNotification({
         color: 'red',

@@ -22,7 +22,7 @@ const REMOVE_AUTHENTICATOR = gql`
     }
   }
 `
-export const WebAuthn: React.FC = () => {
+export const SecurityKeys: React.FC = () => {
   const nhost = useNhostClient()
   const id = useUserId()
   const { data, refetch } = useQuery<MyAuthenticatorsQuery>(GET_AUTHENTICATORS, {
@@ -59,7 +59,7 @@ export const WebAuthn: React.FC = () => {
         onSubmit={async (e) => {
           e.preventDefault()
           // TODO catch errors
-          await nhost.auth.addWebAuthnDevice(nickname)
+          await nhost.auth.addSecurityKey(nickname)
           setNickname('')
           refetch()
         }}

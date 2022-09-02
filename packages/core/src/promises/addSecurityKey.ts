@@ -1,17 +1,17 @@
 import { InterpreterFrom } from 'xstate'
 
-import { WebAuthnMachine } from '../machines'
+import { SecurityKeyMachine } from '../machines'
 
 import { ActionErrorState, ActionLoadingState } from './types'
-export interface WebAuthnHandlerResult extends ActionErrorState {}
+export interface SecurityKeyHandlerResult extends ActionErrorState {}
 
-export interface WebAuthnState extends WebAuthnHandlerResult, ActionLoadingState {}
+export interface SecurityKeyState extends SecurityKeyHandlerResult, ActionLoadingState {}
 
-export const addWebAuthnDevicePromise = async (
-  interpreter: InterpreterFrom<WebAuthnMachine>,
+export const addSecurityKeyPromise = async (
+  interpreter: InterpreterFrom<SecurityKeyMachine>,
   nickname?: string
-): Promise<WebAuthnHandlerResult> =>
-  new Promise<WebAuthnHandlerResult>((resolve) => {
+): Promise<SecurityKeyHandlerResult> =>
+  new Promise<SecurityKeyHandlerResult>((resolve) => {
     interpreter.send({ type: 'REQUEST', nickname })
     interpreter.onTransition((s) => {
       if (s.matches({ idle: 'error' })) {

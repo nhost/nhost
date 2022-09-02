@@ -42,9 +42,9 @@ export interface SignInPasswordlessEmailParams {
   options?: PasswordlessOptions
 }
 
-export interface SignInPasswordlessWebAuthnParams {
+export interface SignInPasswordlessSecurityKeyParams {
   email: string
-  webauthn: true
+  securityKey: true
 }
 
 export interface SignInPasswordlessSmsParams {
@@ -65,7 +65,7 @@ export type SignInParams =
   | SignInEmailPasswordParams
   | SignInEmailPasswordOtpParams
   | SignInPasswordlessEmailParams
-  | SignInPasswordlessWebAuthnParams
+  | SignInPasswordlessSecurityKeyParams
   | SignInPasswordlessSmsOtpParams
   | SignInPasswordlessSmsParams
   | SignInWithProviderOptions
