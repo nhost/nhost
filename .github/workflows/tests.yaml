@@ -60,6 +60,9 @@ jobs:
         uses: ./.github/actions/install-dependencies
       - name: Install Cypress
         run: pnpm install -w cypress
+      # * Run the `ci` script of the current package of the matrix. Dependencies build is cached by Turborepo
+      - name: Run e2e test
+        run: pnpm run e2e -- --filter="${{ matrix.package.name }}"
       - id: file-name
         if: ${{ failure() }}
         name: Tranform package name into a valid file name
