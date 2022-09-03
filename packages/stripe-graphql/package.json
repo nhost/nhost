@@ -1,0 +1,66 @@
+{
+  "name": "@nhost/graphql-stripe",
+  "version": "0.0.1",
+  "description": "Stripe GraphQL API for Nhost",
+  "license": "MIT",
+  "keywords": [
+    "nhost",
+    "hasura",
+    "graphql",
+    "stripe"
+  ],
+  "author": "Nhost",
+  "homepage": "https://nhost.io",
+  "bugs": "https://github.com/nhost/nhost/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nhost/nhost.git"
+  },
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "source": "src/index.ts",
+  "files": [
+    "dist",
+    "umd",
+    "README.md"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "node": "./dist/index.cjs.js",
+        "default": "./dist/index.esm.js"
+      },
+      "require": "./dist/index.cjs.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "dev": "NODE_ENV=development ts-node-dev dev/server.ts",
+    "build": "tsc",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "prettier": "prettier --check src/",
+    "prettier:fix": "prettier --write src/",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "verify": "run-p prettier lint",
+    "verify:fix": "run-p prettier:fix lint:fix",
+    "typedoc": "typedoc --options ./storage.typedoc.json --tsconfig ./typedoc.tsconfig.json"
+  },
+  "dependencies": {
+    "@graphql-yoga/node": "^2.13.12",
+    "dotenv": "^16.0.2",
+    "graphql": "15.7.2",
+    "stripe": "^10.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.7.14",
+    "ts-node": "^10.7.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^4.8.2"
+  }
+}
