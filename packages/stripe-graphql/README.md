@@ -42,6 +42,8 @@ npm install @nhost/stripe-graphql
 
 ## Quick Start
 
+### Serverless Function Setup
+
 Inside a Nhost project, create a file in `functions/graphql/stripe.ts`:
 
 ```js
@@ -62,11 +64,15 @@ const server = createStripeGraphQLServer({
 export default server;
 ```
 
+### Test
+
 Test the Stripe GraphQL API:
 
 [http://localhost:1337/v1/functions/graphql/stripe](http://localhost:1337/v1/functions/graphql/stripe)
 
-Add the Stripe GraphQL API as a remote schema in Hasura.
+### Remote Schema
+
+Add the Stripe GraphQL API as a Remote Schema in Hasura.
 
 URL: `{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
 
