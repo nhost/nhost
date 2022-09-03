@@ -46,7 +46,6 @@ import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from
 import { AuthContext, INITIAL_MACHINE_CONTEXT, StateErrorTypes } from './context'
 import { AuthEvents } from './events'
 
-export * from './add-security-key'
 export * from './change-email'
 export * from './change-password'
 export * from './enable-mfa'

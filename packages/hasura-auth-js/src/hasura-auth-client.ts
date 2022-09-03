@@ -9,7 +9,6 @@ import {
   ChangeEmailResponse,
   changePasswordPromise,
   ChangePasswordResponse,
-  createAddSecurityKeyMachine,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
@@ -362,10 +361,12 @@ export class HasuraAuthClient {
   // TODO document
   // TODO add signIn somehow: nhost.auth.signIn({email}) is already in use
   async addSecurityKey(nickname?: string): Promise<{ error: ErrorPayload | null }> {
-    const service = interpret(createAddSecurityKeyMachine(this._client)).start()
-    const { error } = await addSecurityKeyPromise(service, nickname)
+    const { error } = await addSecurityKeyPromise(this._client, nickname)
     return { error }
   }
+
+  // todo removeSecurityKey
+  // todo listSecurityKeys
 
   /**
    * Use `nhost.auth.onTokenChanged` to add a custom function that runs every time the access or refresh token is changed.
