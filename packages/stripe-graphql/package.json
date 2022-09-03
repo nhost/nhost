@@ -16,25 +16,13 @@
     "type": "git",
     "url": "https://github.com/nhost/nhost.git"
   },
-  "main": "dist/index.cjs.js",
-  "module": "dist/index.esm.js",
+  "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "source": "src/index.ts",
   "files": [
     "dist",
-    "umd",
     "README.md"
   ],
-  "exports": {
-    "./package.json": "./package.json",
-    ".": {
-      "import": {
-        "node": "./dist/index.cjs.js",
-        "default": "./dist/index.esm.js"
-      },
-      "require": "./dist/index.cjs.js"
-    }
-  },
   "publishConfig": {
     "access": "public"
   },
@@ -48,8 +36,7 @@
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "verify": "run-p prettier lint",
-    "verify:fix": "run-p prettier:fix lint:fix",
-    "typedoc": "typedoc --options ./storage.typedoc.json --tsconfig ./typedoc.tsconfig.json"
+    "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
     "@graphql-yoga/node": "^2.13.12",
