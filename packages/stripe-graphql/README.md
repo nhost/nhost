@@ -76,6 +76,66 @@ Add the Stripe GraphQL API as a Remote Schema in Hasura.
 
 URL: `{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
 
+## Context
+
+You need to provide a `context` function to the Stripe GraphQL Server.
+
+You must return a `stripe` object and optional (recommended) `allowedStripeCustomerIds`.
+
+Minimal example:
+
+```js
+const server = createStripeGraphQLServer({
+  context: () => {
+    return { stripe }
+  }
+})
+```
+
+Realistic example:
+
+```js
+const server = createStripeGraphQLServer({
+  context: ({ request }) => {
+
+  const authorizationHeader = request.headers.get('Authorization');
+  const accessToken = authorizationHeader?.split(' ')[1];
+
+  const userFromAccessToken = accessToken
+    ? getUserFromAccessToken(accessToken)
+    : undefined;
+
+  if (!userFromAccessToken) {
+    return { stripe };
+  }
+
+  // get user's stripe customer ids
+  const { user } = await gqlSDK.getUser({
+    id: userFromAccessToken.id,
+  });
+
+  if (!user) {
+    return { stripe };
+  }
+
+  // get allowed stripe customer ids for this customer
+  const allowedStripeCustomerIds = user?.workspaceMembers
+    .filter((wm) => {
+      return typeof wm.workspace.stripeCustomerId === 'string';
+    })
+    .map((wm) => {
+      return wm.workspace.stripeCustomerId as string;
+    });
+
+    return { stripe, allowedStripeCustomerIds }
+  }
+})
+```
+
+## Permissions
+
+Either use `x-hasura-admin-secret` as a header or send `allowedStripeCustomerIds` as context to allow access.
+
 ## Documentation
 
 TOOD
