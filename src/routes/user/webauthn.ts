@@ -11,8 +11,7 @@ import {
 
 import { Joi } from '@/validation';
 import { sendError } from '@/errors';
-import { ENV, getSignInResponse, getUser, gqlSdk } from '@/utils';
-import { SignInResponse } from '@/types';
+import { ENV, getUser, gqlSdk } from '@/utils';
 import { AuthUserAuthenticators_Insert_Input } from '@/utils/__generated__/graphql-request';
 
 export type AddAuthenticatorRequestBody = {
@@ -70,11 +69,11 @@ export type VerifyAuthenticatorRequestBody = {
   nickname?: string;
 };
 
-export type VerifyAuthenticatorResponseBody = SignInResponse;
+export type VerifyAuthenticatorResponseBody = { id: string; nickname?: string };
 export const userVerifyAddAuthenticatorSchema =
   Joi.object<VerifyAuthenticatorRequestBody>({
     credential: Joi.object().required(),
-    nickname: Joi.string().optional(),
+    nickname: Joi.string().optional().empty(''),
   }).meta({ className: 'VerifyAddAuthenticatorSchema' });
 
 export const addAuthenticatorVerifyHandler: RequestHandler<
@@ -143,12 +142,18 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     nickname,
   };
 
-  await gqlSdk.addUserAuthenticator({
+  const { insertAuthUserAuthenticator } = await gqlSdk.addUserAuthenticator({
     userAuthenticator: {
       userId: user.id,
       ...newAuthenticator,
     },
   });
+
+  if (!insertAuthUserAuthenticator?.id) {
+    throw Error(
+      'Something went wrong. Impossible to insert new authenticator in the database.'
+    );
+  }
 
   await gqlSdk.updateUser({
     id: user.id,
@@ -157,10 +162,5 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     },
   });
 
-  const signInResponse = await getSignInResponse({
-    userId: user.id,
-    checkMFA: false,
-  });
-
-  return res.send(signInResponse);
+  return res.send({ nickname, id: insertAuthUserAuthenticator.id });
 };

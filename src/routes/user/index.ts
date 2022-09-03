@@ -162,7 +162,7 @@ router.post('/user/webauthn/add', aw(addAuthenticatorHandler));
  * POST /user/webauthn/verify
  * @summary Verfiy adding of a new webauth authenticator (device, browser)
  * @param {VerifyAddAuthenticatorSchema} request.body.required
- * @return {SessionPayload} 200 - Signed in successfully - application/json
+ * TODO add @return payload on success
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {UnauthorizedError} 401 - Invalid email or password, or user is not verified - application/json
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
