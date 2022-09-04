@@ -238,7 +238,7 @@ var linkCmd = &cobra.Command{
 			}
 
 			if response != project.Name {
-				status.Fatalf("Expected \"%s\". Linking aborted.", project.Name)
+				status.Fatal("Unexpected name. Linking aborted.")
 			}
 		}
 
