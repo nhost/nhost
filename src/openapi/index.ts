@@ -34,10 +34,6 @@ import {
   signInVerifyWebauthnSchema,
   signInWebauthnSchema,
 } from '@/routes/signin/webauthn';
-import {
-  signUpVerifyWebauthnSchema,
-  signUpWebauthnSchema,
-} from '@/routes/signup/webauthn';
 import { userVerifyAddAuthenticatorSchema } from '@/routes/user/webauthn';
 
 const schema: Record<string, unknown> & { components: SwaggerSchema } = {
@@ -48,8 +44,6 @@ const schema: Record<string, unknown> & { components: SwaggerSchema } = {
 const requestSchemas = [
   signInPasswordlessEmailSchema,
   signUpEmailPasswordSchema,
-  signUpWebauthnSchema,
-  signUpVerifyWebauthnSchema,
   signInEmailPasswordSchema,
   signInWebauthnSchema,
   signInVerifyWebauthnSchema,

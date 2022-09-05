@@ -68,6 +68,7 @@ Read our [configuration guide](./docs/configuration.md) to customise the Hasura 
 - [Change password](./docs/workflows/change-password.md)
 - [Reset password](./docs/workflows/reset-password.md)
 - [Refresh tokens](./docs/workflows/refresh-token.md)
+- [Security keys with WebAuthn](./docs/workflows/webauthn.md)
 
 ## Recipes
 
