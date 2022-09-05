@@ -2809,7 +2809,7 @@
                }
             },
             "security" : [],
-            "summary" : "Initialize adding of a new webauthn authenticator (device, browser)\nTODO add @return payload on success",
+            "summary" : "Initialize adding of a new webauthn authenticator (device, browser)",
             "tags" : [
                "User management"
             ]
@@ -2827,7 +2827,7 @@
                      }
                   }
                },
-               "description" : "TODO add @return payload on success",
+               "description" : "",
                "required" : true
             },
             "responses" : {
