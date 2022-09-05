@@ -1,14 +1,10 @@
-import Stripe from 'stripe'
-
 import { createStripeGraphQLServer } from '../src/index'
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-08-01'
-})
+import * as dotenv from 'dotenv'
+dotenv.config()
 
 const server = createStripeGraphQLServer({
   context: () => {
-    return { stripe }
+    return {}
   }
 })
 
