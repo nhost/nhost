@@ -129,7 +129,6 @@ auth:
     issuer: nhost
   webauthn:
     enabled: true
-    rp_id: 'localhost'
     rp_name: 'Nhost React Apollo Example'
 storage:
   force_download_for_content_types: text/html,application/javascript
