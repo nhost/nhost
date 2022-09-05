@@ -139,3 +139,15 @@ const server = createStripeGraphQLServer({
 ## Permissions
 
 Either use `x-hasura-admin-secret` as a header or send `allowedStripeCustomerIds` as context to allow access.
+
+## Development
+
+Start dev server:
+
+```
+pnpm dev
+```
+
+Open GraphiQL:
+
+[http://0.0.0.0:4000/graphql](http://0.0.0.0:4000/graphql)

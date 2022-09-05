@@ -3,13 +3,9 @@ import { createServer } from '@graphql-yoga/node'
 import { schema } from './schema'
 import { CreateServerProps } from './types'
 
-// export type StripeGraphQLInitialContext = YogaInitialContext
-
-const createStripeGraphQLServer = (props: CreateServerProps) => {
-  const { cors, context } = props
-
+const createStripeGraphQLServer = ({ cors = false, context }: CreateServerProps) => {
   return createServer({
-    cors: cors ? cors : false,
+    cors,
     context,
     schema
   })
