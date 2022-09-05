@@ -21,12 +21,16 @@ query {
     displayName
     userData {
       stripeCustomerId # Customer's Stripe Customer Id
-      stripePaymentMethods {
+      stripeCustomer {
         # Data directly from Stripe
         id
-        card {
-          brand
-          last4
+        name
+        paymentMethods {
+          id
+          card {
+            brand
+            last4
+          }
         }
       }
     }
@@ -118,7 +122,7 @@ const server = createStripeGraphQLServer({
     return { stripe };
   }
 
-  // get allowed stripe customer ids for this customer
+  // get allowed stripe customer ids for this user
   const allowedStripeCustomerIds = user?.workspaceMembers
     .filter((wm) => {
       return typeof wm.workspace.stripeCustomerId === 'string';
@@ -135,7 +139,3 @@ const server = createStripeGraphQLServer({
 ## Permissions
 
 Either use `x-hasura-admin-secret` as a header or send `allowedStripeCustomerIds` as context to allow access.
-
-## Documentation
-
-TOOD
