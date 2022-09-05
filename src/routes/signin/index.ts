@@ -89,11 +89,11 @@ router.post(
   aw(signInOtpHandler)
 );
 
+// TODO add @return payload on success
 /**
  * POST /signin/webauthn
  * @summary Sign in using email via FIDO2 Webauthn authentication
  * @param {SignInWebauthnSchema} request.body.required
- * TODO add @return payload on success
  * @return {InvalidRequestError} 400 - The payload is invalid - application/json
  * @return {DisabledEndpointError} 404 - The feature is not activated - application/json
  * @tags Authentication
