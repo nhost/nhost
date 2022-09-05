@@ -117,15 +117,12 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'invalid-request');
   }
 
-  const authenticator = await gqlSdk
-    .getUserAuthenticators({
-      id: user.id,
-    })
-    .then(({ authUserAuthenticators }) =>
-      authUserAuthenticators.find(
-        ({ credentialId }) => credentialId === credential.id
-      )
-    );
+  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({
+    id: user.id,
+  });
+  const authenticator = authUserAuthenticators?.find(
+    ({ credentialId }) => credentialId === credential.id
+  );
 
   if (!authenticator) {
     return sendError(res, 'invalid-request');
