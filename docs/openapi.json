@@ -872,114 +872,6 @@
             ],
             "type" : "object"
          },
-         "SignUpVerifyWebauthnSchema" : {
-            "additionalProperties" : false,
-            "properties" : {
-               "credential" : {
-                  "additionalProperties" : false,
-                  "properties" : {},
-                  "type" : "object"
-               },
-               "email" : {
-                  "description" : "A valid email",
-                  "example" : "john.smith@nhost.io",
-                  "format" : "email",
-                  "type" : "string"
-               }
-            },
-            "required" : [
-               "email",
-               "credential"
-            ],
-            "type" : "object"
-         },
-         "SignUpWebauthnSchema" : {
-            "additionalProperties" : false,
-            "properties" : {
-               "email" : {
-                  "description" : "A valid email",
-                  "example" : "john.smith@nhost.io",
-                  "format" : "email",
-                  "type" : "string"
-               },
-               "options" : {
-                  "additionalProperties" : false,
-                  "properties" : {
-                     "allowedRoles" : {
-                        "default" : [
-                           "me",
-                           "user"
-                        ],
-                        "example" : [
-                           "me",
-                           "user"
-                        ],
-                        "items" : {
-                           "oneOf" : [
-                              {
-                                 "enum" : [
-                                    "me"
-                                 ]
-                              },
-                              {
-                                 "enum" : [
-                                    "user"
-                                 ]
-                              }
-                           ]
-                        },
-                        "type" : "array"
-                     },
-                     "defaultRole" : {
-                        "default" : "user",
-                        "enum" : [
-                           "me",
-                           "user"
-                        ],
-                        "example" : "user",
-                        "type" : "string"
-                     },
-                     "displayName" : {
-                        "example" : "John Smith",
-                        "type" : "string"
-                     },
-                     "locale" : {
-                        "default" : "en",
-                        "description" : "A two-characters locale",
-                        "example" : "en",
-                        "maxLength" : 2,
-                        "minLength" : 2,
-                        "type" : "string"
-                     },
-                     "metadata" : {
-                        "additionalProperties" : false,
-                        "default" : {},
-                        "example" : {
-                           "firstName" : "John",
-                           "lastName" : "Smith"
-                        },
-                        "properties" : {},
-                        "type" : "object"
-                     },
-                     "redirectTo" : {
-                        "anyOf" : [
-                           {
-                              "pattern" : "^https:\\/\\/my-app.com",
-                              "type" : "string"
-                           }
-                        ],
-                        "default" : "https://my-app.com",
-                        "example" : "https://my-app.com/catch-redirection"
-                     }
-                  },
-                  "type" : "object"
-               }
-            },
-            "required" : [
-               "email"
-            ],
-            "type" : "object"
-         },
          "TokenSchema" : {
             "additionalProperties" : false,
             "properties" : {
@@ -1535,6 +1427,9 @@
                   "additionalProperties" : false,
                   "properties" : {},
                   "type" : "object"
+               },
+               "nickname" : {
+                  "type" : "string"
                }
             },
             "required" : [
@@ -2356,84 +2251,6 @@
             ]
          }
       },
-      "/signup/webauthn" : {
-         "post" : {
-            "deprecated" : false,
-            "parameters" : [],
-            "requestBody" : {
-               "content" : {
-                  "application/json" : {
-                     "schema" : {
-                        "$ref" : "#/components/schemas/SignUpWebauthnSchema"
-                     }
-                  }
-               },
-               "description" : "TODO add @return payload on success",
-               "required" : true
-            },
-            "responses" : {
-               "400" : {
-                  "content" : {
-                     "application/json" : {
-                        "schema" : {
-                           "$ref" : "#/components/schemas/InvalidRequestError"
-                        }
-                     }
-                  },
-                  "description" : "The payload is invalid"
-               }
-            },
-            "security" : [],
-            "summary" : "Signup new device for a email using FIDO2 Webauthn",
-            "tags" : [
-               "Registration"
-            ]
-         }
-      },
-      "/signup/webauthn/verify" : {
-         "post" : {
-            "deprecated" : false,
-            "parameters" : [],
-            "requestBody" : {
-               "content" : {
-                  "application/json" : {
-                     "schema" : {
-                        "$ref" : "#/components/schemas/SignUpVerifyWebauthnSchema"
-                     }
-                  }
-               },
-               "description" : "",
-               "required" : true
-            },
-            "responses" : {
-               "200" : {
-                  "content" : {
-                     "application/json" : {
-                        "schema" : {
-                           "$ref" : "#/components/schemas/SessionPayload"
-                        }
-                     }
-                  },
-                  "description" : "Successfully registered. Null session means email verification is pending"
-               },
-               "400" : {
-                  "content" : {
-                     "application/json" : {
-                        "schema" : {
-                           "$ref" : "#/components/schemas/InvalidRequestError"
-                        }
-                     }
-                  },
-                  "description" : "The payload is invalid"
-               }
-            },
-            "security" : [],
-            "summary" : "Verify signup with FIDO2 Webauthn",
-            "tags" : [
-               "Registration"
-            ]
-         }
-      },
       "/token" : {
          "post" : {
             "deprecated" : false,
@@ -3010,20 +2827,10 @@
                      }
                   }
                },
-               "description" : "",
+               "description" : "TODO add @return payload on success",
                "required" : true
             },
             "responses" : {
-               "200" : {
-                  "content" : {
-                     "application/json" : {
-                        "schema" : {
-                           "$ref" : "#/components/schemas/SessionPayload"
-                        }
-                     }
-                  },
-                  "description" : "Signed in successfully"
-               },
                "400" : {
                   "content" : {
                      "application/json" : {
