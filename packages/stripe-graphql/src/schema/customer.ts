@@ -16,18 +16,17 @@ builder.objectType('StripeCustomer', {
     address: t.expose('address', {
       type: 'StripeAddress',
       nullable: true
+    }),
+    paymentMethods: t.field({
+      type: ['StripePaymentMethod'],
+      nullable: false,
+      resolve: async (customer, _args, { stripe }) => {
+        const { data } = await stripe.customers.listPaymentMethods(customer.id, {
+          type: 'card'
+        })
+        return data
+      }
     })
-    // paymentMethods: t.field({
-    //   type: ['StripePaymentMethod'],
-    //   nullable: false,
-    //   resolve: async (customer, args, ctx) => {
-    //     const { data } = await stripe.customers.listPaymentMethods(customer.id, {
-    //       type: 'card'
-    //     })
-
-    //     return data
-    //   }
-    // })
   })
 })
 

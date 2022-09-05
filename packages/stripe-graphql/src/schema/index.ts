@@ -1,5 +1,6 @@
 import './address'
 import './customer'
+import './payment-method'
 
 import { builder } from '../builder'
 
