@@ -21,7 +21,7 @@ interface SignInSecurityKeyPasswordlessHook {
 }
 
 /**
- * Use the hook `useSignInSecurityKeyEmail` to sign in a user using SecurityKey.
+ * Use the hook `useSignInSecurityKeyEmail` to sign in a user using their email and a security key using the WebAuthn API.
  *
  * @example
  * ```tsx

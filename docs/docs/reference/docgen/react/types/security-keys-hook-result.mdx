@@ -4,7 +4,7 @@ title: SecurityKeysHookResult
 sidebar_label: SecurityKeysHookResult
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useSecurityKeys.ts#L24
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useSecurityKeys.ts#L30
 ---
 
 # `SecurityKeysHookResult`
@@ -39,9 +39,13 @@ Returns `true` if the action is successful.
 
 **<span className="parameter-name">add</span>** <span className="optional-status">required</span> `AddSecurityKeyHandler`
 
+Add a security key to the current user with the WebAuthn API
+
 ---
 
 **<span className="parameter-name">list</span>** <span className="optional-status">required</span> `Array<[`SecurityKey`](/reference/docgen/react/types/security-key)>`
+
+List the security keys of the current user
 
 ---
 

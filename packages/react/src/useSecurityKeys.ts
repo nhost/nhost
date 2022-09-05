@@ -12,21 +12,27 @@ import {
 import { useNhostClient } from './useNhostClient'
 
 interface AddSecurityKeyHandler {
-  (nickname?: string): Promise<AddSecurityKeyHandlerResult>
+  (
+    /** Optional human-readable name of the security key */
+    nickname?: string
+  ): Promise<AddSecurityKeyHandlerResult>
 }
 interface RemoveSecurityKeyHandlerResult extends ActionErrorState, ActionSuccessState {}
 interface RemoveSecurityKeyHandler {
-  (id: string): Promise<RemoveSecurityKeyHandlerResult>
+  (
+    /** Unique identifier of the security to remove */
+    id: string
+  ): Promise<RemoveSecurityKeyHandlerResult>
 }
 
 export type SecurityKey = { id: string; nickname?: string }
 
 export interface SecurityKeysHookResult extends ActionErrorState, ActionSuccessState {
-  // TODO document
+  /** Add a security key to the current user with the WebAuthn API */
   add: AddSecurityKeyHandler
-  //   TODO document
+  /**  List the security keys of the current user */
   list: SecurityKey[]
-  //   TODO
+  /** Remove the given security key from the list of allowed keys for the current user */
   remove: (id: string) => Promise<RemoveSecurityKeyHandlerResult>
 }
 
@@ -35,25 +41,32 @@ interface SecurityKeysHook {
 }
 
 /**
-//  TODO document
- * Use the hook `useSecurityKeys` to list, add and remove security keys of the user.
+ * Use the hook `useSecurityKeys` to list, add and remove the WebAuthn security keys of the user.
+ *
+ * When WebAuthn is enabled, the `add` function will work as expected.
+ *
+ * You have to make sure the current user has the right Hasura permissions on the `auth.user_authenticators` table to list and/or remove their keys:
+ *
+ * - List keys: permissions to select the `id` and `nickname` columns
+ * - Remove keys: permissions to delete rows
+ *
+ * It is recommended add the custom chck `{ user_id: { _eq: "X-Hasura-User-Id" } }` to make sure the user can only list and remove their own keys.
  *
  * @example
  * ```tsx
- * const { SecurityKeys, isLoading, isSuccess, isError, error } = useSecurityKeys();
+ * const { add, list, remove, isLoading, isSuccess, isError, error } = useSecurityKeys()
  *
- * console.log({ isLoading, isSuccess, isError, error });
- *
- * const handleFormSubmit = async (e) => {
- *   e.preventDefault();
- *
- *   await SecurityKeys('my-new-password')
- * }
+ * return (
+ *   <ul>
+ *     {list.map(({ id, nickname }) => (
+ *       <li key={id} onClick={() => remove(id)}>{nickname}</li>
+ *     ))}
+ *   </ul>
+ * )
  * ```
  *
- * @docs https://docs.nhost.io/reference/react/use-change-password
+ * @docs https://docs.nhost.io/reference/react/use-security-keys
  */
-// TODO: depends on default user metadata permissions -> set default permissions into hasura auth
 export const useSecurityKeys: SecurityKeysHook = () => {
   const nhost = useNhostClient()
   const [list, setList] = useState<SecurityKey[]>([])

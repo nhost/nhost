@@ -358,15 +358,16 @@ export class HasuraAuthClient {
     throw Error(`Unknown deanonymization method`)
   }
 
-  // TODO document
-  // TODO add signIn somehow: nhost.auth.signIn({email}) is already in use
+  /**
+   * Use `nhost.auth.addSecurityKey to add a security key to the user, using the WebAuthn API.
+   * @param nickname optional human-readable nickname for the security key
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/add-security-key
+   */
   async addSecurityKey(nickname?: string): Promise<{ error: ErrorPayload | null }> {
     const { error } = await addSecurityKeyPromise(this._client, nickname)
     return { error }
   }
-
-  // todo removeSecurityKey
-  // todo listSecurityKeys
 
   /**
    * Use `nhost.auth.onTokenChanged` to add a custom function that runs every time the access or refresh token is changed.
