@@ -25,6 +25,7 @@ SOFTWARE.
 package cmd
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -128,6 +129,10 @@ func pgDumpSchemasFlags(schemas []string) []string {
 	return schemasFlags
 }
 
+func wrapFunctionsDump(dump []byte) []byte {
+	return bytes.ReplaceAll(dump, []byte("CREATE FUNCTION"), []byte("CREATE OR REPLACE FUNCTION"))
+}
+
 func pullMigration(client *hasura.Client, name string) (hasura.Migration, error) {
 
 	var args []string
@@ -176,11 +181,13 @@ func pullMigration(client *hasura.Client, name string) (hasura.Migration, error)
 
 		log.Debug("Creating initial migration")
 
-		migration.Data, err = client.Migration(pgDumpSchemasFlags(schemas))
+		migrationData, err := client.Migration(pgDumpSchemasFlags(schemas))
 		if err != nil {
 			log.Debug("Failed to get migration data")
 			return migration, err
 		}
+
+		migration.Data = wrapFunctionsDump(migrationData)
 
 		// create migration file
 		if err := os.MkdirAll(migration.Location, os.ModePerm); err != nil {
