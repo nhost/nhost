@@ -380,7 +380,6 @@ describe(`Auto sign-in`, () => {
   afterAll(() => server.close())
 
   beforeEach(() => {
-    // TODO blocks from updating vitest: https://github.com/vitest-dev/vitest/issues/1888
     windowSpy = vi.spyOn(global, 'window', 'get')
   })
 
