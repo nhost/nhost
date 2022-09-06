@@ -1,5 +1,11 @@
 # @nhost/hasura-auth-js
 
+## 1.4.2
+
+### Patch Changes
+
+- a47ce291: Add options to `nhost.auth.signIn({ email, options })`
+
 ## 1.4.1
 
 ### Patch Changes

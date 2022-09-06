@@ -189,7 +189,8 @@ export class HasuraAuthClient {
 
     // * Passwordless Email (magic link)
     if ('email' in params) {
-      const { error } = await signInEmailPasswordlessPromise(interpreter, params.email)
+      const { email, options } = params
+      const { error } = await signInEmailPasswordlessPromise(interpreter, email, options)
       return {
         session: null,
         mfa: null,
