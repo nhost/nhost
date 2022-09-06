@@ -1,7 +1,6 @@
-import { GraphQLYogaError } from '@graphql-yoga/node'
-
 import { builder } from '../builder'
-import { isAllowed } from '../utils'
+
+import { PaymentMethodTypes } from './payment-methods'
 
 builder.objectType('StripeCustomer', {
   description:
@@ -18,40 +17,50 @@ builder.objectType('StripeCustomer', {
       nullable: true
     }),
     paymentMethods: t.field({
-      type: ['StripePaymentMethod'],
-      nullable: false,
-      resolve: async (customer, _args, { stripe }) => {
-        const { data } = await stripe.customers.listPaymentMethods(customer.id, {
-          type: 'card'
+      type: 'StripePaymentMethods',
+      args: {
+        type: t.arg({
+          type: PaymentMethodTypes,
+          required: true,
+          defaultValue: 'card'
+        }),
+        startingAfter: t.arg.string({
+          required: false
+        }),
+        endingBefore: t.arg.string({
+          required: false
+        }),
+        limit: t.arg.int({
+          required: false
         })
-        return data
+      },
+      nullable: false,
+      resolve: async (customer, { type, startingAfter, endingBefore, limit }, { stripe }) => {
+        const paymentMethods = await stripe.customers.listPaymentMethods(customer.id, {
+          type,
+          starting_after: startingAfter || undefined,
+          ending_before: endingBefore || undefined,
+          limit: limit || undefined
+        })
+
+        return paymentMethods
+      }
+    }),
+    subscriptions: t.field({
+      type: 'StripeSubscriptions',
+      args: {
+        startingAfter: t.arg.string({
+          required: false
+        })
+      },
+      resolve: async (customer, { startingAfter }, { stripe }) => {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customer.id,
+          starting_after: startingAfter || undefined
+        })
+
+        return subscriptions
       }
     })
   })
 })
-
-builder.queryFields((t) => ({
-  stripeCustomer: t.field({
-    type: 'StripeCustomer',
-    args: {
-      id: t.arg.string({
-        required: true
-      })
-    },
-    resolve: async (_parent, { id }, context) => {
-      if (!isAllowed(id, context)) {
-        throw new GraphQLYogaError('user is not allowed to see info from this stripe id')
-      }
-
-      const { stripe } = context
-
-      const customer = await stripe.customers.retrieve(id)
-
-      if (customer.deleted) {
-        throw new Error('Customer is deleted')
-      }
-
-      return customer
-    }
-  })
-}))

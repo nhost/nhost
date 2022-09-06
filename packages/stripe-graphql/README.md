@@ -53,7 +53,7 @@ Inside a Nhost project, create a file in `functions/graphql/stripe.ts`:
 ```js
 import Stripe from 'stripe'
 
-import { createStripeGraphQLServer } from '@nhost/stipe-graphql'
+import { createStripeGraphQLServer } from '@nhost/stripe-graphql'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2022-08-01'
