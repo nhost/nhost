@@ -269,6 +269,7 @@ export const initProvider = <T extends Strategy>(
           accessToken: string,
           refreshToken: string,
           idToken: string,
+          _profile: unknown,
           done: VerifyCallback
         ) => {
           const provider = 'apple';
@@ -282,6 +283,7 @@ export const initProvider = <T extends Strategy>(
             email?: string;
             email_verified?: boolean;
           } = decodeJwt(idToken);
+
           if (!id) {
             return done(new Error('no id found in the JWT'));
           }
