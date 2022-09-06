@@ -6,7 +6,7 @@ builder.objectType('StripeCustomer', {
   description:
     'This object represents a customer of your business. It lets you create recurring charges and track payments that belong to the same customer.',
   fields: (t) => ({
-    id: t.exposeID('id'),
+    id: t.exposeString('id'),
     object: t.exposeString('object'),
     balance: t.exposeInt('balance'),
     name: t.exposeString('name', {

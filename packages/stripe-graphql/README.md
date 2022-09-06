@@ -9,7 +9,7 @@
   </a>
 </p>
 
-Stripe GraphQL API for Hasura Remote schemas.
+Stripe GraphQL API with Hasura Remote schemas.
 
 Connect data in your database with data from Stripe, via GraphQL.
 
