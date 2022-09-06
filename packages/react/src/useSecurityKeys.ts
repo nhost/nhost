@@ -50,7 +50,7 @@ interface SecurityKeysHook {
  * - List keys: permissions to select the `id` and `nickname` columns
  * - Remove keys: permissions to delete rows
  *
- * It is recommended add the custom chck `{ user_id: { _eq: "X-Hasura-User-Id" } }` to make sure the user can only list and remove their own keys.
+ * It is recommended to add the custom check `{ user_id: { _eq: "X-Hasura-User-Id" } }` to make sure the user can only list and remove their own keys.
  *
  * @example
  * ```tsx
