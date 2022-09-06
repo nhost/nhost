@@ -31,15 +31,17 @@ export const SignUpPasswordlessForm: React.FC = () => {
   const signInDevice = async () => {
     const result = await signInSecurityKeyEmail(email)
     if (result.needsEmailVerification) {
-    } else if (result.isError) {
+      return
+    }
+    if (result.isError) {
       showNotification({
         color: 'red',
         title: 'Error',
         message: result.error?.message || null
       })
-    } else {
-      navigate('/', { replace: true })
+      return
     }
+    navigate('/', { replace: true })
   }
   return (
     <SimpleGrid cols={1} spacing={6}>
