@@ -25,7 +25,10 @@ interface RemoveSecurityKeyHandler {
   ): Promise<RemoveSecurityKeyHandlerResult>
 }
 
-export type SecurityKey = { id: string; nickname?: string }
+export interface SecurityKey {
+  id: string
+  nickname?: string
+}
 
 export interface SecurityKeysHookResult extends ActionErrorState, ActionSuccessState {
   /** Add a security key to the current user with the WebAuthn API */
@@ -33,7 +36,7 @@ export interface SecurityKeysHookResult extends ActionErrorState, ActionSuccessS
   /**  List the security keys of the current user */
   list: SecurityKey[]
   /** Remove the given security key from the list of allowed keys for the current user */
-  remove: (id: string) => Promise<RemoveSecurityKeyHandlerResult>
+  remove: RemoveSecurityKeyHandler
 }
 
 interface SecurityKeysHook {

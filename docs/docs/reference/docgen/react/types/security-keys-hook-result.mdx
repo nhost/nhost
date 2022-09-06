@@ -4,7 +4,7 @@ title: SecurityKeysHookResult
 sidebar_label: SecurityKeysHookResult
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useSecurityKeys.ts#L30
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/react/src/useSecurityKeys.ts#L33
 ---
 
 # `SecurityKeysHookResult`
@@ -49,6 +49,8 @@ List the security keys of the current user
 
 ---
 
-**<span className="parameter-name">remove</span>** <span className="optional-status">required</span> `(id: string) => Promise<RemoveSecurityKeyHandlerResult>`
+**<span className="parameter-name">remove</span>** <span className="optional-status">required</span> `RemoveSecurityKeyHandler`
+
+Remove the given security key from the list of allowed keys for the current user
 
 ---
