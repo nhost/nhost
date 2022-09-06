@@ -45,7 +45,7 @@ interface SecurityKeysHook {
  *
  * When WebAuthn is enabled, the `add` function will work as expected.
  *
- * You have to make sure the current user has the right Hasura permissions on the `auth.user_authenticators` table to list and/or remove their keys:
+ * You have to make sure the current user has correct Hasura permissions on the `auth.user_authenticators` table to list and/or remove their keys:
  *
  * - List keys: permissions to select the `id` and `nickname` columns
  * - Remove keys: permissions to delete rows
