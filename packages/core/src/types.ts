@@ -152,6 +152,7 @@ export type Provider =
   | 'bitbucket'
   | 'discord'
   | 'twitch'
+  | 'workos'
 
 // TODO share with hasura-auth
 export interface JWTHasuraClaims {
