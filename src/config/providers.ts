@@ -275,6 +275,15 @@ export const PROVIDERS = {
           get clientSecret() {
             return castStringEnv('AUTH_PROVIDER_WORKOS_CLIENT_SECRET');
           },
+          get defaultDomain() {
+            return castStringEnv('AUTH_PROVIDER_WORKOKS_DEFAULT_DOMAIN');
+          },
+          get defaultOrganization() {
+            return castStringEnv('AUTH_PROVIDER_WORKOS_DEFAULT_ORGANIZATION');
+          },
+          get defaultConnection() {
+            return castStringEnv('AUTH_PROVIDER_WORKOS_DEFAULT_CONNECTION');
+          },
         };
   },
 };

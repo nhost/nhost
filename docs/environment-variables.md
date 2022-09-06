@@ -47,11 +47,11 @@
 | AUTH_REFRESH_TOKEN_EXPIRES_IN                         | Number of seconds before the refresh token expires.                                                                                                                                                    | `2592000` (30 days)          |
 | AUTH_EMAIL_TEMPLATE_FETCH_URL                         |                                                                                                                                                                                                        |                              |
 | AUTH_JWT_CUSTOM_CLAIMS                                |                                                                                                                                                                                                        |                              |
-| AUTH_WEBAUTHN_ENABLED                          | When enabled, passwordless Webauthn authentication can be done via device supported strong authenticators like fingerprint, Face ID, etc.                                                              | false                        |
-| AUTH_WEBAUTHN_RP_ID                            | The Webauthn RP also known as the "relying party". Most of the cases this is the domain of the app.                                                                                                    |                              |
-| AUTH_WEBAUTHN_RP_NAME                          | Relying party name. Friendly name visual to the user informing who requires the authentication. Probably your app's name.                                                                              |                              |
-| AUTH_WEBAUTHN_RP_ORIGINS                       | Array of URLs where the registration is permitted and should have occurred on. `AUTH_CLIENT_URL` will be automatically added to the list of origins if is set.                                          |                              |
-| AUTH_WEBAUTHN_ATTESTATION_TIMEOUT              | How long (in ms) the user can take to complete authentication.                                                                                                                                         | `60000` (1 minute)           |
+| AUTH_WEBAUTHN_ENABLED                                 | When enabled, passwordless Webauthn authentication can be done via device supported strong authenticators like fingerprint, Face ID, etc.                                                              | false                        |
+| AUTH_WEBAUTHN_RP_ID                                   | The Webauthn RP also known as the "relying party". Most of the cases this is the domain of the app.                                                                                                    |                              |
+| AUTH_WEBAUTHN_RP_NAME                                 | Relying party name. Friendly name visual to the user informing who requires the authentication. Probably your app's name.                                                                              |                              |
+| AUTH_WEBAUTHN_RP_ORIGINS                              | Array of URLs where the registration is permitted and should have occurred on. `AUTH_CLIENT_URL` will be automatically added to the list of origins if is set.                                         |                              |
+| AUTH_WEBAUTHN_ATTESTATION_TIMEOUT                     | How long (in ms) the user can take to complete authentication.                                                                                                                                         | `60000` (1 minute)           |
 
 # OAuth environment variables
 
@@ -109,3 +109,6 @@
 | AUTH_PROVIDER_WORKOS_ENABLED                                                       | `false`                             |
 | AUTH_PROVIDER_WORKOS_CLIENT_ID<b>\*</b>                                            |                                     |
 | AUTH_PROVIDER_WORKOS_CLIENT_SECRET<b>\*</b>                                        |                                     |
+| AUTH_PROVIDER_WORKOKS_DEFAULT_DOMAIN                                               |                                     |
+| AUTH_PROVIDER_WORKOS_DEFAULT_ORGANIZATION                                          |                                     |
+| AUTH_PROVIDER_WORKOS_DEFAULT_CONNECTION                                            |                                     |
