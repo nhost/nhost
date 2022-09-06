@@ -106,3 +106,6 @@
 | AUTH_PROVIDER_STRAVA_CLIENT_ID<b>\*</b>                                            |                                     |
 | AUTH_PROVIDER_STRAVA_CLIENT_SECRET<b>\*</b>                                        |                                     |
 | AUTH_PROVIDER_STRAVA_SCOPE                                                         | `profile:read_all`                  |
+| AUTH_PROVIDER_WORKOS_ENABLED                                                       | `false`                             |
+| AUTH_PROVIDER_WORKOS_CLIENT_ID<b>\*</b>                                            |                                     |
+| AUTH_PROVIDER_WORKOS_CLIENT_SECRET<b>\*</b>                                        |                                     |

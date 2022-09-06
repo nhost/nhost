@@ -1,6 +1,6 @@
 import { castBooleanEnv, castStringArrayEnv, castStringEnv } from '@config';
 
-const PROVIDERS = {
+export const PROVIDERS = {
   get github() {
     return !castBooleanEnv('AUTH_PROVIDER_GITHUB_ENABLED')
       ? null
@@ -264,6 +264,17 @@ const PROVIDERS = {
           },
         };
   },
-};
 
-export { PROVIDERS };
+  get workos() {
+    return !castBooleanEnv('AUTH_PROVIDER_WORKOS_ENABLED')
+      ? null
+      : {
+          get clientID() {
+            return castStringEnv('AUTH_PROVIDER_WORKOS_CLIENT_ID');
+          },
+          get clientSecret() {
+            return castStringEnv('AUTH_PROVIDER_WORKOS_CLIENT_SECRET');
+          },
+        };
+  },
+};

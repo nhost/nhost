@@ -29,7 +29,7 @@ import {
   getGravatarUrl,
   ENV,
 } from '@/utils';
-import { UserRegistrationOptions } from '@/types';
+import { SocialProvider, UserRegistrationOptions } from '@/types';
 import { decodeJwt, JWTPayload } from 'jose';
 
 export const providerCallbackQuerySchema = Joi.object({
@@ -183,7 +183,7 @@ const providerCallback = asyncWrapper(
   async (req: RequestWithState, res: Response): Promise<void> => {
     // Successful authentication, redirect home.
     // generate tokens and redirect back home
-
+    console.log('IN CALLBACK');
     req.state = req.query.state;
 
     const requestOptions = await gqlSdk
@@ -207,20 +207,7 @@ const providerCallback = asyncWrapper(
 
 export const initProvider = <T extends Strategy>(
   router: Router,
-  strategyName:
-    | 'github'
-    | 'google'
-    | 'facebook'
-    | 'twitter'
-    | 'linkedin'
-    | 'apple'
-    | 'windowslive'
-    | 'spotify'
-    | 'gitlab'
-    | 'bitbucket'
-    | 'strava'
-    | 'discord'
-    | 'twitch',
+  strategyName: SocialProvider,
   strategy: Constructable<T>,
   settings: InitProviderSettings & ConstructorParameters<Constructable<T>>[0], // TODO: Strategy option type is not inferred correctly
   middleware?: RequestHandler
@@ -407,8 +394,12 @@ export const initProvider = <T extends Strategy>(
     }
 
     passport.use(strategyName, strategyToUse);
-    // @ts-expect-error
-    refresh.use(strategyToUse);
+    if (strategyName !== 'workos') {
+      // ! provider token rotation does not work with `passport-workos`.
+      // ! The only impacted endpoint is /user/provider/tokens
+      // @ts-expect-error
+      refresh.use(strategyToUse);
+    }
   }
 
   subRouter.get('/', [
