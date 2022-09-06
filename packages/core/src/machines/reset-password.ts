@@ -3,7 +3,7 @@ import { assign, createMachine, send } from 'xstate'
 import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
-import { ResetPasswordOptions } from '../types'
+import { ResetPasswordOptions, ResetPasswordResponse } from '../types'
 import { rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../validators'
 
@@ -19,6 +19,10 @@ export type ResetPasswordEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type ResetPasswordServices = {
+  requestChange: { data: ResetPasswordResponse }
+}
+
 export type ResetPasswordMachine = ReturnType<typeof createResetPasswordMachine>
 
 export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient) => {
@@ -27,7 +31,8 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
     {
       schema: {
         context: {} as ResetPasswordContext,
-        events: {} as ResetPasswordEvents
+        events: {} as ResetPasswordEvents,
+        services: {} as ResetPasswordServices
       },
       tsTypes: {} as import('./reset-password.typegen').Typegen0,
       predictableActionArguments: true,
@@ -69,6 +74,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
       actions: {
         saveInvalidEmailError: assign({ error: (_) => INVALID_EMAIL_ERROR }),
         saveRequestError: assign({
+          // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
           error: (_, { data: { error } }: any) => error
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),
@@ -79,7 +85,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
       },
       services: {
         requestChange: (_, { email, options }) =>
-          api.post<string, { data: { error?: ErrorPayload } }>('/user/password/reset', {
+          api.post<string, ResetPasswordResponse>('/user/password/reset', {
             email,
             options: rewriteRedirectTo(clientUrl, options)
           })

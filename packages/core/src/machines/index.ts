@@ -1,4 +1,4 @@
-import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosRequestConfig } from 'axios'
 import { assign, createMachine, send } from 'xstate'
 
 import {
@@ -18,7 +18,21 @@ import {
 } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { localStorageGetter, localStorageSetter } from '../storage'
-import { AuthOptions, Mfa, NhostSession } from '../types'
+import {
+  AuthOptions,
+  DeanonymizeResponse,
+  NhostSession,
+  NhostSessionResponse,
+  PasswordlessEmailResponse,
+  PasswordlessSmsOtpResponse,
+  PasswordlessSmsResponse,
+  RefreshSessionResponse,
+  SignInAnonymousResponse,
+  SignInMfaTotpResponse,
+  SignInResponse,
+  SignOutResponse,
+  SignUpResponse
+} from '../types'
 import { getParameterByName, removeParameterFromWindow, rewriteRedirectTo } from '../utils'
 import { isValidEmail, isValidPassword, isValidPhoneNumber, isValidTicket } from '../validators'
 
@@ -40,6 +54,18 @@ export interface AuthMachineOptions extends AuthOptions {
 
 export type AuthMachine = ReturnType<typeof createAuthMachine>
 
+type AuthServices = {
+  signInPassword: { data: SignInResponse }
+  passwordlessSms: { data: PasswordlessSmsResponse | DeanonymizeResponse }
+  passwordlessSmsOtp: { data: PasswordlessSmsOtpResponse }
+  passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
+  signInAnonymous: { data: SignInAnonymousResponse }
+  signInMfaTotp: { data: SignInMfaTotpResponse }
+  refreshToken: { data: NhostSessionResponse }
+  signout: { data: SignOutResponse }
+  signUpEmailPassword: { data: SignUpResponse }
+  importRefreshToken: { data: NhostSessionResponse }
+}
 // TODO actions typings
 
 export const createAuthMachine = ({
@@ -56,19 +82,21 @@ export const createAuthMachine = ({
   const storageGetter = clientStorageGetter || localStorageGetter(clientStorageType, clientStorage)
   const storageSetter = clientStorageSetter || localStorageSetter(clientStorageType, clientStorage)
   const api = nhostApiClient(backendUrl)
-  const postRequest = async <T = any, R = AxiosResponse<T>, D = any>(
+  const postRequest = async <T = any, D = any>(
     url: string,
     data?: D,
     config?: AxiosRequestConfig<D>
-  ): Promise<R> => {
+  ): Promise<T> => {
     const result = await api.post(url, data, config)
+
     return result.data
   }
   return createMachine(
     {
       schema: {
         context: {} as AuthContext,
-        events: {} as AuthEvents
+        events: {} as AuthEvents,
+        services: {} as AuthServices
       },
       tsTypes: {} as import('./index.typegen').Typegen0,
       context: INITIAL_MACHINE_CONTEXT,
@@ -429,33 +457,37 @@ export const createAuthMachine = ({
 
         // * Save session in the context, and persist the refresh token and the jwt expiration outside of the machine
         saveSession: assign({
-          user: (_, { data }: any) => data?.session?.user,
-          accessToken: (_, { data }: any) => {
-            if (data.session.accessTokenExpiresIn) {
-              const nextRefresh = new Date(
-                Date.now() + data.session.accessTokenExpiresIn * 1_000
-              ).toISOString()
-              storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh)
-            } else {
-              storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
+          user: (_, { data }) => data?.session?.user || null,
+          accessToken: (_, { data }) => {
+            if (data.session) {
+              const { accessTokenExpiresIn, accessToken } = data.session
+              const nextRefresh = new Date(Date.now() + accessTokenExpiresIn * 1_000)
+              storageSetter(NHOST_JWT_EXPIRES_AT_KEY, nextRefresh.toISOString())
+              return {
+                value: accessToken,
+                expiresAt: nextRefresh
+              }
             }
+            storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
             return {
-              value: data?.session?.accessToken,
-              expiresAt: new Date(Date.now() + data?.session?.accessTokenExpiresIn * 1_000)
+              value: null,
+              expiresAt: null
             }
           },
-          refreshToken: (_, { data }: any) => {
-            storageSetter(NHOST_REFRESH_TOKEN_KEY, data.session.refreshToken)
-
-            return { value: data?.session?.refreshToken }
+          refreshToken: (_, { data }) => {
+            const refreshToken = data.session?.refreshToken || null
+            if (refreshToken) {
+              storageSetter(NHOST_REFRESH_TOKEN_KEY, refreshToken)
+            }
+            return { value: refreshToken }
           }
         }),
         saveMfaTicket: assign({
-          mfa: (_, e: any) => e.data?.mfa
+          mfa: (_, e) => e.data?.mfa
         }),
 
         resetTimer: assign({
-          refreshTimer: (ctx, e) => ({
+          refreshTimer: (_) => ({
             startedAt: new Date(),
             attempts: 0,
             lastAttempt: null
@@ -472,12 +504,17 @@ export const createAuthMachine = ({
 
         // * Authentication errors
         saveAuthenticationError: assign({
-          errors: ({ errors }, { data: { error } }: any) => ({ ...errors, authentication: error })
+          // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
+          errors: ({ errors }, { data: { error } }: any) => ({
+            ...errors,
+            authentication: error
+          })
         }),
         resetErrors: assign({
           errors: (_) => ({})
         }),
         saveRegistrationError: assign({
+          // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
           errors: ({ errors }, { data: { error } }: any) => ({ ...errors, registration: error })
         }),
         destroyRefreshToken: assign({
@@ -541,14 +578,15 @@ export const createAuthMachine = ({
           return remaining <= 0
         },
         // * Authentication errors
+        // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         unverified: (_, { data: { error } }: any) =>
           error.status === 401 &&
           // * legacy: don't use the message contents to determine if the email is unverified, but the error type (error.error)
           (error.message === 'Email is not verified' || error.error === 'unverified-user'),
 
         // * Event guards
-        hasSession: (_, e: any) => !!e.data?.session,
-        hasMfaTicket: (_, e: any) => !!e.data?.mfa
+        hasSession: (_, e) => !!e.data?.session,
+        hasMfaTicket: (_, e) => !!e.data?.mfa
       },
 
       services: {
@@ -559,7 +597,7 @@ export const createAuthMachine = ({
           if (!isValidPassword(password)) {
             return Promise.reject({ error: INVALID_PASSWORD_ERROR })
           }
-          return postRequest('/signin/email-password', {
+          return postRequest<SignInResponse>('/signin/email-password', {
             email,
             password
           })
@@ -632,7 +670,7 @@ export const createAuthMachine = ({
         },
         signInAnonymous: (_) => postRequest('/signin/anonymous'),
         signInMfaTotp: (context, data) => {
-          const ticket = data.ticket || context.mfa?.ticket
+          const ticket: string | undefined = data.ticket || context.mfa?.ticket
           if (!ticket) {
             return Promise.reject({ error: NO_MFA_TICKET_ERROR })
           }
@@ -640,20 +678,17 @@ export const createAuthMachine = ({
             return Promise.reject({ error: INVALID_MFA_TICKET_ERROR })
           }
 
-          return postRequest<
-            { mfa: Mfa | null; session: NhostSession | null },
-            { mfa: Mfa | null; session: NhostSession | null }
-          >('/signin/mfa/totp', {
+          return postRequest('/signin/mfa/totp', {
             ticket,
             otp: data.otp
           })
         },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
-          const session = await postRequest('/token', {
+          const session = await postRequest<RefreshSessionResponse>('/token', {
             refreshToken
           })
-          return { session }
+          return { session, error: null }
         },
         signout: (ctx, e) =>
           postRequest('/signout', {
@@ -662,13 +697,13 @@ export const createAuthMachine = ({
           }),
         signUpEmailPassword: async (context, { email, password, options }) => {
           if (!isValidEmail(email)) {
-            return Promise.reject({ error: INVALID_EMAIL_ERROR })
+            return Promise.reject<SignUpResponse>({ error: INVALID_EMAIL_ERROR })
           }
           if (!isValidPassword(password)) {
-            return Promise.reject({ error: INVALID_PASSWORD_ERROR })
+            return Promise.reject<SignUpResponse>({ error: INVALID_PASSWORD_ERROR })
           }
           if (context.user?.isAnonymous) {
-            return postRequest(
+            return postRequest<SignUpResponse>(
               '/user/deanonymize',
               {
                 signInMethod: 'email-password',
@@ -683,7 +718,7 @@ export const createAuthMachine = ({
               }
             )
           } else {
-            return postRequest('/signup/email-password', {
+            return postRequest<SignUpResponse>('/signup/email-password', {
               email,
               password,
               options: rewriteRedirectTo(clientUrl, options)
@@ -697,17 +732,18 @@ export const createAuthMachine = ({
             const urlToken = getParameterByName('refreshToken') || null
             if (urlToken) {
               try {
-                const session = await postRequest('/token', {
+                const session = await postRequest<NhostSession>('/token', {
                   refreshToken: urlToken
                 })
-                return { session }
+                return { session, error: null }
               } catch (exception) {
                 error = (exception as { error: ValidationErrorPayload }).error
               }
             } else {
               const error = getParameterByName('error')
               if (error) {
-                return Promise.reject<{ error: ValidationErrorPayload }>({
+                return Promise.reject<NhostSessionResponse>({
+                  session: null,
                   error: {
                     status: VALIDATION_ERROR_CODE,
                     error,
@@ -720,16 +756,15 @@ export const createAuthMachine = ({
           const storageToken = await storageGetter(NHOST_REFRESH_TOKEN_KEY)
           if (storageToken) {
             try {
-              const session = await postRequest('/token', {
+              const session = await postRequest<NhostSession>('/token', {
                 refreshToken: storageToken
               })
-              return { session }
+              return { session, error: null }
             } catch (exception) {
               error = (exception as { error: ValidationErrorPayload }).error
             }
           }
-
-          return Promise.reject<{ error: ValidationErrorPayload }>({ error })
+          return Promise.reject<NhostSessionResponse>({ error })
         }
       }
     }

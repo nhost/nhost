@@ -3,7 +3,7 @@ import { assign, createMachine, send } from 'xstate'
 import { AuthClient } from '../client'
 import { ErrorPayload, INVALID_EMAIL_ERROR } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
-import { ChangeEmailOptions } from '../types'
+import { ChangeEmailOptions, ChangeEmailResponse } from '../types'
 import { rewriteRedirectTo } from '../utils'
 import { isValidEmail } from '../validators'
 
@@ -20,6 +20,10 @@ export type ChangeEmailEvents =
   | { type: 'SUCCESS' }
   | { type: 'ERROR'; error: ErrorPayload | null }
 
+export type ChangeEmailServices = {
+  request: { data: ChangeEmailResponse }
+}
+
 export type ChangeEmailMachine = ReturnType<typeof createChangeEmailMachine>
 
 export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }: AuthClient) => {
@@ -28,7 +32,8 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
     {
       schema: {
         context: {} as ChangeEmailContext,
-        events: {} as ChangeEmailEvents
+        events: {} as ChangeEmailEvents,
+        services: {} as ChangeEmailServices
       },
       tsTypes: {} as import('./change-email.typegen').Typegen0,
       predictableActionArguments: true,
@@ -70,6 +75,7 @@ export const createChangeEmailMachine = ({ backendUrl, clientUrl, interpreter }:
       actions: {
         saveInvalidEmailError: assign({ error: (_) => INVALID_EMAIL_ERROR }),
         saveRequestError: assign({
+          // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
           error: (_, { data: { error } }: any) => error
         }),
         reportError: send((ctx) => ({ type: 'ERROR', error: ctx.error })),

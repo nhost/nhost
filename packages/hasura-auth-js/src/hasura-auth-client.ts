@@ -5,40 +5,42 @@ import {
   AuthClient,
   AuthInterpreter,
   changeEmailPromise,
+  ChangeEmailResponse,
   changePasswordPromise,
+  ChangePasswordResponse,
   createChangeEmailMachine,
   createChangePasswordMachine,
   createResetPasswordMachine,
   createSendVerificationEmailMachine,
+  DeanonymizeResponse,
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
-  ErrorPayload,
   INVALID_REFRESH_TOKEN,
   JWTClaims,
   JWTHasuraClaims,
+  NhostSessionResponse,
   NO_REFRESH_TOKEN,
   resetPasswordPromise,
+  ResetPasswordResponse,
   rewriteRedirectTo,
   sendVerificationEmailPromise,
+  SendVerificationEmailResponse,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
   signInMfaTotpPromise,
+  SignInResponse,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
+  SignOutResponse,
   signUpEmailPasswordPromise,
+  SignUpResponse,
   TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
 import { getAuthenticationResult, getSession, isBrowser } from './utils/helpers'
 import {
-  ApiChangeEmailResponse,
-  ApiChangePasswordResponse,
-  ApiDeanonymizeResponse,
-  ApiResetPasswordResponse,
-  ApiSendVerificationEmailResponse,
-  ApiSignOutResponse,
   AuthChangedFunction,
   ChangeEmailParams,
   ChangePasswordParams,
@@ -47,11 +49,8 @@ import {
   OnTokenChangedFunction,
   ResetPasswordParams,
   SendVerificationEmailParams,
-  Session,
   SignInParams,
-  SignInResponse,
-  SignUpParams,
-  SignUpResponse
+  SignUpParams
 } from './utils/types'
 
 /**
@@ -143,7 +142,9 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
    */
-  async signIn(params: SignInParams): Promise<SignInResponse> {
+  async signIn(
+    params: SignInParams
+  ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
     const interpreter = await this.waitUntilReady()
 
     // * Sign in with a social provider (OAuth)
@@ -177,7 +178,8 @@ export class HasuraAuthClient {
 
     // * Passwordless Email (magic link)
     if ('email' in params) {
-      const { error } = await signInEmailPasswordlessPromise(interpreter, params.email)
+      const { email, options } = params
+      const { error } = await signInEmailPasswordlessPromise(interpreter, email, options)
       return {
         session: null,
         mfa: null,
@@ -228,7 +230,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-out
    */
-  async signOut(params?: { all?: boolean }): Promise<ApiSignOutResponse> {
+  async signOut(params?: { all?: boolean }): Promise<SignOutResponse> {
     const interpreter = await this.waitUntilReady()
     const { error } = await signOutPromise(interpreter, params?.all)
     return { error }
@@ -244,7 +246,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/reset-password
    */
-  async resetPassword({ email, options }: ResetPasswordParams): Promise<ApiResetPasswordResponse> {
+  async resetPassword({ email, options }: ResetPasswordParams): Promise<ResetPasswordResponse> {
     const service = interpret(createResetPasswordMachine(this._client)).start()
     const { error } = await resetPasswordPromise(service, email, options)
     return { error }
@@ -260,7 +262,10 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-password
    */
-  async changePassword({ newPassword, ticket }: ChangePasswordParams): Promise<ApiChangePasswordResponse> {
+  async changePassword({
+    newPassword,
+    ticket
+  }: ChangePasswordParams): Promise<ChangePasswordResponse> {
     const service = interpret(createChangePasswordMachine(this._client)).start()
     const { error } = await changePasswordPromise(service, newPassword, ticket)
     return { error }
@@ -279,7 +284,7 @@ export class HasuraAuthClient {
   async sendVerificationEmail({
     email,
     options
-  }: SendVerificationEmailParams): Promise<ApiSendVerificationEmailResponse> {
+  }: SendVerificationEmailParams): Promise<SendVerificationEmailResponse> {
     const service = interpret(createSendVerificationEmailMachine(this._client)).start()
     const { error } = await sendVerificationEmailPromise(service, email, options)
     return { error }
@@ -295,7 +300,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/change-email
    */
-  async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ApiChangeEmailResponse> {
+  async changeEmail({ newEmail, options }: ChangeEmailParams): Promise<ChangeEmailResponse> {
     const service = interpret(createChangeEmailMachine(this._client)).start()
     const { error } = await changeEmailPromise(service, newEmail, options)
     return { error }
@@ -311,7 +316,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/deanonymize
    */
-  async deanonymize(params: DeanonymizeParams): Promise<ApiDeanonymizeResponse> {
+  async deanonymize(params: DeanonymizeParams): Promise<DeanonymizeResponse> {
     const interpreter = await this.waitUntilReady()
     if (params.signInMethod === 'passwordless') {
       if (params.connection === 'email') {
@@ -578,10 +583,7 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/refresh-session
    */
-  async refreshSession(refreshToken?: string): Promise<{
-    session: Session | null
-    error: ErrorPayload | null
-  }> {
+  async refreshSession(refreshToken?: string): Promise<NhostSessionResponse> {
     try {
       const interpreter = await this.waitUntilReady()
       return new Promise((resolve) => {
