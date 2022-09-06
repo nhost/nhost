@@ -1,5 +1,37 @@
 # @nhost/hasura-auth-js
 
+## 1.4.2
+
+### Patch Changes
+
+- a47ce291: Add options to `nhost.auth.signIn({ email, options })`
+
+## 1.4.1
+
+### Patch Changes
+
+- 93cc6920: fix: phone numbers to follow the E.164 standard in documentation
+
+## 1.4.0
+
+### Minor Changes
+
+- 18ac56d0: added option to include ticket in changePassword to allow for changing password without the user being signed in
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+
+## 1.3.4
+
+### Patch Changes
+
+- Updated dependencies [197d1d5c]
+  - @nhost/core@0.7.5
+
 ## 1.3.3
 
 ### Patch Changes

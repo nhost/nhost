@@ -1,0 +1,48 @@
+{
+  "name": "@nhost-examples/codegen-react-query",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@nhost/react": "*",
+    "@tanstack/react-query": "^4.0.10",
+    "@tanstack/react-query-devtools": "^4.0.10",
+    "graphql": "^16.5.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "scripts": {
+    "codegen": "graphql-codegen --config graphql.config.yaml --errors-only",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host localhost --port 3000"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^2.8.1",
+    "@graphql-codegen/typescript-operations": "^2.5.1",
+    "@graphql-codegen/typescript-react-query": "^4.0.0",
+    "@types/node": "^16.7.13",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "eslint": "^8.0.0",
+    "typescript": "^4.4.2",
+    "vite": "^2.9.7"
+  }
+}

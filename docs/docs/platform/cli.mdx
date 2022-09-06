@@ -7,9 +7,9 @@ image: /img/og/platform/cli.png
 import Tabs from '@theme/Tabs'
 import TabItem from '@theme/TabItem'
 
-Nhost CLI, or `nhost`, is a command-line interface that lets you run and manage Nhost apps locally on Mac, Linux and Windows (WSL2).
+Nhost CLI, or `nhost`, is a command-line interface that lets you run and manage Nhost projects locally on Mac, Linux and Windows (WSL2).
 
-This means you get a full-featured Nhost app running locally on your machine:
+This means you get a full-featured Nhost project running locally on your machine:
 
 - Postgres Database
 - Hasura GraphQL API
@@ -55,41 +55,41 @@ Start by authenticating yourself to Nhost Cloud:
 nhost login
 ```
 
-Once signed in, you can list all your Nhost apps using:
+Once signed in, you can list all your Nhost projects using:
 
 ```
 nhost list
 ```
 
-Let's start by initializing a remote Nhost app locally with the following command:
+Let's start by initializing a remote Nhost project locally with the following command:
 
 ```
 nhost init --remote
 ```
 
-Pick a Nhost app to use then change the directory once the app initialization is completed:
+Pick a Nhost project to use then change the directory once the project initialization is completed:
 
 ```
 cd my_test_app
 ```
 
-Then start the Nhost app locally:
+Then start the Nhost project locally:
 
 ```
 nhost up
 ```
 
-Hasura Console starts automatically and your Nhost app is running locally with the backend URL: `http://localhost:1337`.
+Hasura Console starts automatically and your Nhost project is running locally.
 
 ## Subdomain and Region
 
-Use `localhost:1337` as the `subdomain`, and skip `region` when using the CLI and the [JavaScript SDK](/reference/javascript):
+Use `localhost` as the `subdomain`, and skip `region` when using the CLI and the [JavaScript SDK](/reference/javascript):
 
 ```
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  subdomain: 'localhost:1337',
+  subdomain: 'localhost',
 })
 ```
 
@@ -97,12 +97,22 @@ const nhost = new NhostClient({
 
 During local development with the CLI, all transactional emails from Authentication are sent to a local Mailhog instance, instead of to the recipient's email address. You'll see an address where after starting [`nhost up`](/reference/cli/up) where all emails are sent to.
 
-For the example below, all emails are accessable at `http://localhost:8839`.
+For the example below, all emails are accessible at `http://localhost:8025`.
 
 ```bash
 $ nhost up
-✔ Your app is running at http://localhost:1337 (Ctrl+C to stop)
-ℹ Emails will be sent to http://localhost:8839
+URLs:
+- Postgres:         postgres://postgres:postgres@localhost:5432/postgres
+- GraphQL:          http://localhost:1337/v1/graphql
+- Auth:             http://localhost:1337/v1/auth
+- Storage:          http://localhost:1337/v1/storage
+- Functions:        http://localhost:1337/v1/functions
+
+- Hasura console:  http://localhost:9695
+- Mailhog:         http://localhost:8025
+
+- subdomain:       localhost
+- region:          (empty)
 ```
 
 ## What's next?

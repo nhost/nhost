@@ -28,8 +28,8 @@ yarn add @nhost/nhost-js
 import { NhostClient } from '@nhost/nhost-js'
 
 const nhost = new NhostClient({
-  subdomain: '<Your Nhost app subdomain>',
-  region: '<Your Nhost app region>'
+  subdomain: '<Your Nhost project subdomain>',
+  region: '<Your Nhost project region>'
 })
 ```
 

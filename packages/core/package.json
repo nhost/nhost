@@ -1,6 +1,6 @@
 {
   "name": "@nhost/core",
-  "version": "0.7.4",
+  "version": "0.7.6",
   "description": "Nhost core client library",
   "license": "MIT",
   "keywords": [
@@ -30,6 +30,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",

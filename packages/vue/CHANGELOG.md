@@ -1,5 +1,77 @@
 # @nhost/vue
 
+## 0.4.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.11
+
+## 0.4.3
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.10
+
+## 0.4.2
+
+### Patch Changes
+
+- Updated dependencies [eb46f7d8]
+  - @nhost/nhost-js@1.4.9
+
+## 0.4.1
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.8
+
+## 0.4.0
+
+### Minor Changes
+
+- 84ba29dd: Introduce `useSignInSmsPasswordless`
+
+  ```ts
+  const {
+    signInSmsPasswordless,
+    sendOtp,
+    needsOtp,
+    isLoading,
+    isSuccess,
+    isError,
+    error
+  } = useSignInSmsPasswordless()
+  ```
+
+  1. The `signInSmsPasswordless` action will send a one-time password to the given phone number.
+  2. The client is then awaiting the OTP. `needsOtp` equals true
+  3. After the code is received by SMS, the client sends the code with `sendOtp`. On success, the client is authenticated, and `isSuccess` equals `true`.
+
+  Any error is monitored through `isError` and `error`. While the `signInSmsPasswordless` and `sendOtp` actions are running, `isLoading` equals `true`
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+  - @nhost/nhost-js@1.4.7
+
+## 0.3.7
+
+### Patch Changes
+
+- bc657251: Fix the deletion of refresh tokens in the URL when autoSignIn is enabled.
+  This feature only work when using the HTML5 history mode. A warning will appear when using the Hash mode and when in development mode.
+
+## 0.3.6
+
+### Patch Changes
+
+- Updated dependencies [197d1d5c]
+  - @nhost/core@0.7.5
+  - @nhost/nhost-js@1.4.6
+
 ## 0.3.5
 
 ### Patch Changes

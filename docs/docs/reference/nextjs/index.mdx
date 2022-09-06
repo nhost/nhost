@@ -131,7 +131,7 @@ yarn add @nhost/react-apollo @apollo/client
 
 ### Initializing
 
-Wrap the React app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostNextProvider`.
+Wrap the Next.js app with the `NhostApolloProvider` and make sure the `NhostApolloProvider` is nested inside the `NhostNextProvider`.
 
 ```jsx title=pages/_app.js
 import type { AppProps } from 'next/app'
@@ -157,4 +157,4 @@ function MyApp({ Component, pageProps }: AppProps) {
 export default MyApp
 ```
 
-Since Next.js is built on top of React you can read more about how to use Apollo and GraphQL in [here](/reference/react/apollo#usage).
+Since Next.js uses React you can read more about how to use Apollo and GraphQL in [here](/reference/react/apollo#usage).

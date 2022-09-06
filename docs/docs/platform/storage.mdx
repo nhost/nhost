@@ -20,7 +20,7 @@ File metadata is stored in your database in the `files` table in the `storage` s
 - Create GraphQL relationships between files and your database tables.
 
 :::warning
-Don't modify the database schema, nor GraphQL root fields in any of the tables in the `storage` schema. 
+Don't modify the database schema, nor GraphQL root fields in any of the tables in the `storage` schema.
 :::
 
 :::tip
@@ -28,8 +28,8 @@ You're allowed to add and modify the following:
 
 - GraphQL Relationships
 - Permissions
-:::
 
+:::
 
 ### Upload File
 
@@ -159,16 +159,11 @@ Permissions to upload, download, and delete files are managed through Hasura's p
 
 ### Upload
 
-To upload a file, a user must have the **`insert` permission** to the `storage.files` table. The following columns must be allowed to insert:
-
-- `id`
-- `bucket_id`
-- `name`
-- `mime_type`
+To upload a file, a user must have the **`insert` permission** to the `storage.files` table. The `id` column must be granted.
 
 ### Download
 
-To download a file, a user must have the **`select` permission** to the `storage.files` table. Only the `id` column is required, but we recommend allowing to select all columns. 
+To download a file, a user must have the **`select` permission** to the `storage.files` table. **All** columns must be granted.
 
 ### Delete
 
@@ -200,31 +195,35 @@ Let's say you want to build a CRM system and you want to store files for custome
 Start with, you would have two tables:
 
 1. `customers` - Customer data.
-2. `customer_files` - What file belongs to what customer.
+2. `customer_files` - What file belongs to what customer
 
-```text 
+```text
 - customers
   - id
   - name
   - address
+
 customer_files
   - id
   - customer_id (Foreign Key to `customers.id`)
   - file_id (Foreign Key to `storage.files.id`)
 ```
 
-You would also create [Hasura Relationships](https://hasura.io/docs/latest/graphql/core/databases/postgres/schema/table-relationships/index/) (GraphQL relationships) between between `customers` and `customer_files` and between `customer_files` and `storage.files`.
+You would also create a [Hasura Relationship](https://hasura.io/docs/latest/graphql/core/databases/postgres/schema/table-relationships/index/) (GraphQL relationship) between between `customers` and `customer_files` and between `customer_files` and `storage.files`.
 
 With the two tables and GraphQL relationships in place, you can query customers and the customer's files like this:
 
 ```graphql
 query {
-  customers { # customers table
+  customers {
+    # customers table
     id
     name
-    customer_files { # customer_files tabel
+    customer_files {
+      # customer_files table
       id
-      file { # storage.files table
+      file {
+        # storage.files table
         id
         name
         size
@@ -239,6 +238,6 @@ The file upload process would be as follows:
 
 1. Upload a file.
 2. Get the returned file id.
-3. Insert the file `id` and the customer's `id` into the `customer_files` table.
+3. Insert (GraphQL Mutation) the file `id` and the customer's `id` into the `customer_files` table.
 
 This would allow you to upload and download files belonging to specific customers in your CRM system.

@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-apollo",
-  "version": "4.6.1",
+  "version": "4.7.4",
   "description": "Nhost React Apollo client",
   "license": "MIT",
   "keywords": [
@@ -32,6 +32,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",
@@ -69,7 +70,7 @@
     "react-dom": "^17.0.0 || ^18.0.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.6.2",
+    "@apollo/client": "^3.6.9",
     "@nhost/react": "workspace:*",
     "@types/react": "^18.0.8",
     "graphql": "16",

@@ -46,6 +46,6 @@ configuration:
     update: updateFiles
     update_by_pk: updateFile
 object_relationships:
-- name: bucket
-  using:
-    foreign_key_constraint_on: bucket_id
+  - name: bucket
+    using:
+      foreign_key_constraint_on: bucket_id

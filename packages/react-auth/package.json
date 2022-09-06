@@ -1,6 +1,6 @@
 {
   "name": "@nhost/react-auth",
-  "version": "3.4.1",
+  "version": "3.5.4",
   "description": "Nhost React client",
   "license": "MIT",
   "keywords": [
@@ -31,6 +31,7 @@
     "README.md"
   ],
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "import": {
         "node": "./dist/index.cjs.js",

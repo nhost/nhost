@@ -1,5 +1,51 @@
 # @nhost/react-auth
 
+## 3.5.4
+
+### Patch Changes
+
+- Updated dependencies [a47ce291]
+  - @nhost/hasura-auth-js@1.4.2
+  - @nhost/react@0.12.4
+
+## 3.5.3
+
+### Patch Changes
+
+- @nhost/react@0.12.3
+
+## 3.5.2
+
+### Patch Changes
+
+- @nhost/react@0.12.2
+
+## 3.5.1
+
+### Patch Changes
+
+- Updated dependencies [93cc6920]
+  - @nhost/hasura-auth-js@1.4.1
+  - @nhost/react@0.12.1
+
+## 3.5.0
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [18ac56d0]
+- Updated dependencies [10beea72]
+- Updated dependencies [84ba29dd]
+  - @nhost/hasura-auth-js@1.4.0
+  - @nhost/react@0.12.0
+
+## 3.4.2
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.3.4
+- @nhost/react@0.11.2
+
 ## 3.4.1
 
 ### Patch Changes

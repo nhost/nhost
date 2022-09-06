@@ -1,5 +1,27 @@
 # @nhost/hasura-storage-js
 
+## 0.6.0
+
+### Minor Changes
+
+- 607c457f: nhost.storage.upload() now works in NodeJS (server) using FormData.
+
+## 0.5.3
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+  - @nhost/core@0.7.6
+
+## 0.5.2
+
+### Patch Changes
+
+- Updated dependencies [197d1d5c]
+  - @nhost/core@0.7.5
+
 ## 0.5.1
 
 ### Patch Changes

@@ -2,6 +2,13 @@ table:
   name: profiles
   schema: public
 configuration:
+  column_config:
+    company_id:
+      custom_name: companyId
+    id:
+      custom_name: id
+    user_id:
+      custom_name: userId
   custom_column_names:
     company_id: companyId
     id: id
@@ -18,21 +25,21 @@ configuration:
     update: updateProfiles
     update_by_pk: updateProfile
 object_relationships:
-- name: company
-  using:
-    foreign_key_constraint_on: company_id
-- name: user
-  using:
-    foreign_key_constraint_on: user_id
+  - name: company
+    using:
+      foreign_key_constraint_on: company_id
+  - name: user
+    using:
+      foreign_key_constraint_on: user_id
 select_permissions:
-- permission:
-    columns:
-    - id
-    - user_id
-    - company_id
-    filter:
-      company:
-        profiles:
-          user_id:
-            _eq: X-Hasura-User-Id
-  role: user
+  - role: user
+    permission:
+      columns:
+        - id
+        - user_id
+        - company_id
+      filter:
+        company:
+          profiles:
+            user_id:
+              _eq: X-Hasura-User-Id

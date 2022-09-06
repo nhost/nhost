@@ -9,7 +9,8 @@
   </a>
 </p>
 
-Hasura JS SDK to handle **Storage** with [Hasura](https://hasura.io/).
+Hasura JavaScript SDK to handle **Storage** with [Hasura](https://hasura.io/).
+
 ## Install
 
 `$ npm install @nhost/hasura-storage-js`

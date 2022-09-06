@@ -1,3 +1,5 @@
+import FormData from 'form-data'
+
 import { HasuraAuthClient } from '@nhost/hasura-auth-js'
 
 // * Avoid circular references and broken links in docusaurus generated docs
@@ -6,12 +8,25 @@ export interface NhostClientReturnType {
   storage: { url: string }
   adminSecret?: string
 }
-export interface StorageUploadParams {
+
+// works only in browser. Used for for hooks
+export interface StorageUploadFileParams {
   file: File
   id?: string
   name?: string
   bucketId?: string
 }
+
+// works in browser and server
+export interface StorageUploadFormDataParams {
+  formData: FormData
+  id?: string
+  name?: string
+  bucketId?: string
+}
+
+// works in browser and server
+export type StorageUploadParams = StorageUploadFileParams | StorageUploadFormDataParams
 
 export type StorageUploadResponse =
   | { fileMetadata: FileResponse; error: null }
@@ -48,7 +63,7 @@ interface FileResponse {
 }
 
 export interface ApiUploadParams {
-  file: FormData
+  formData: FormData
   id?: string
   name?: string
   bucketId?: string

@@ -2,6 +2,17 @@ table:
   name: customers
   schema: public
 configuration:
+  column_config:
+    address_line_1:
+      custom_name: addressLine1
+    company_id:
+      custom_name: companyId
+    created_at:
+      custom_name: createdAt
+    updated_at:
+      custom_name: updatedAt
+    user_id:
+      custom_name: userId
   custom_column_names:
     address_line_1: addressLine1
     company_id: companyId
@@ -35,22 +46,22 @@ array_relationships:
           name: customer_comments
           schema: public
 insert_permissions:
-  - permission:
-      backend_only: false
+  - role: user
+    permission:
       check:
         company:
           companyUsers:
             user_id:
               _eq: X-Hasura-User-Id
+      set:
+        user_id: x-hasura-user-id
       columns:
         - address_line_1
         - company_id
         - name
-      set:
-        user_id: x-hasura-user-id
-    role: user
 select_permissions:
-  - permission:
+  - role: user
+    permission:
       columns:
         - id
         - created_at
@@ -64,4 +75,3 @@ select_permissions:
           companyUsers:
             user_id:
               _eq: X-Hasura-User-Id
-    role: user

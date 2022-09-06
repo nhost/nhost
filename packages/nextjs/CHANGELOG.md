@@ -1,5 +1,57 @@
 # @nhost/nextjs
 
+## 1.7.4
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.11
+- @nhost/react@0.12.4
+
+## 1.7.3
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.10
+- @nhost/react@0.12.3
+
+## 1.7.2
+
+### Patch Changes
+
+- Updated dependencies [eb46f7d8]
+  - @nhost/nhost-js@1.4.9
+  - @nhost/react@0.12.2
+
+## 1.7.1
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.8
+- @nhost/react@0.12.1
+
+## 1.7.0
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [747aa969]
+- Updated dependencies [10beea72]
+- Updated dependencies [84ba29dd]
+  - @nhost/core@0.7.6
+  - @nhost/nhost-js@1.4.7
+  - @nhost/react@0.12.0
+
+## 1.6.2
+
+### Patch Changes
+
+- 197d1d5c: - Using same cookie package ([`js-cookie`](https://www.npmjs.com/package/js-cookie)) for both `@nhost/nextjs` and `@nhost/core` packages.
+  - Adding `expires` to avoid the cookie turning into a session cookie that some browsers aggressively destroy.
+- Updated dependencies [197d1d5c]
+  - @nhost/core@0.7.5
+  - @nhost/react@0.11.2
+  - @nhost/nhost-js@1.4.6
+
 ## 1.6.1
 
 ### Patch Changes

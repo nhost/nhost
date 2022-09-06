@@ -39,12 +39,12 @@ You'll need **Node.js** version 14 or later: [install it from here](https://node
 
 ### Create a new Nhost app
 
-import CreateApp from '@site/src/components/create-nhost-app.mdx'
+import CreateApp from '@site/src/components/create-nhost-project.mdx'
 
 <CreateApp />
 
 :::info
-You can also connect your Nhost app to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
+You can also connect your Nhost project to a GitHub repository. When you do this, any updates you push to your code will automatically be deployed. [Learn more](https://docs.nhost.io/platform/github-integration).
 :::
 
 ## Initialize the app
@@ -174,13 +174,13 @@ app.mount('#app')
 Finally, store the environment variables for `subdomain` and `region` in `.env`:
 
 ```yaml title=".env.development"
-VITE_NHOST_SUBDOMAIN=YOUR_NHOST_APP_SUBDOMAIN
-VITE_NHOST_REGION=YOUR_NHOST_APP_REGION
+VITE_NHOST_SUBDOMAIN=[subdomain]
+VITE_NHOST_REGION=[region]
 ```
 
-You find your Nhost app's subdomain and region in [the app dashboard](https://app.nhost.io):
+You find your Nhost project's `subdomain` and `region` in the [project overview](https://app.nhost.io):
 
-![Nhost App Dashboard](/img/quickstarts/app-dashboard.png)
+![Project Overview](/img/quickstarts/app-dashboard.png)
 
 ## Build the app
 

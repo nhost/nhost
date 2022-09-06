@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
+import { BrandGithub } from 'tabler-icons-react'
 
-import { AppShell, Header, MantineProvider } from '@mantine/core'
+import { AppShell, Button, Group, Header, Image, MantineProvider, Title } from '@mantine/core'
 import { NotificationsProvider } from '@mantine/notifications'
 
 import { AuthGate, PublicGate } from './components/auth-gates'
@@ -17,13 +18,13 @@ import './App.css'
 const title = 'Nhost with React and Apollo'
 
 function App() {
+  const colorScheme = 'light'
   return (
     <MantineProvider
       withGlobalStyles
       withNormalizeCSS
       theme={{
-        /** Put your mantine theme override here */
-        colorScheme: 'light'
+        colorScheme
       }}
     >
       <NotificationsProvider>
@@ -32,7 +33,24 @@ function App() {
           navbar={<NavBar />}
           header={
             <Header height={60} p="xs">
-              {title}
+              <Group position="apart" noWrap>
+                <Group noWrap>
+                  <Image src="/logo.svg" height={35} fit="contain" width={120} />
+                  <Title order={3} style={{ whiteSpace: 'nowrap' }}>
+                    {title}
+                  </Title>
+                </Group>
+                <Button
+                  leftIcon={<BrandGithub />}
+                  variant="outline"
+                  color={colorScheme}
+                  component="a"
+                  href="https://github.com/nhost/nhost/tree/main/examples/react-apollo"
+                  target="_blank"
+                >
+                  GitHub
+                </Button>
+              </Group>
             </Header>
           }
           styles={(theme) => ({

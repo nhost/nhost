@@ -1,5 +1,50 @@
 # @nhost/apollo
 
+## 0.5.28
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.11
+
+## 0.5.27
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.10
+
+## 0.5.26
+
+### Patch Changes
+
+- Updated dependencies [eb46f7d8]
+  - @nhost/nhost-js@1.4.9
+
+## 0.5.25
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.8
+
+## 0.5.24
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [10beea72]
+  - @nhost/nhost-js@1.4.7
+
+## 0.5.23
+
+### Patch Changes
+
+- f30d6779: Bump @apollo/client to v3.6.9
+
+## 0.5.22
+
+### Patch Changes
+
+- @nhost/nhost-js@1.4.6
+
 ## 0.5.21
 
 ### Patch Changes

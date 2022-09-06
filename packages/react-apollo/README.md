@@ -32,8 +32,8 @@ import { NhostApolloProvider } from '@nhost/react-apollo'
 import App from './App'
 
 const nhost = new NhostClient({
-  subdomain: '<Your Nhost app subdomain>',
-  region: '<Your Nhost app region>'
+  subdomain: '<Your Nhost project subdomain>',
+  region: '<Your Nhost project region>'
 })
 
 ReactDOM.render(

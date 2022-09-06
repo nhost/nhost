@@ -3,7 +3,7 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@apollo/client": "^3.6.2",
+    "@apollo/client": "^3.6.9",
     "@mantine/core": "^4.2.2",
     "@mantine/dropzone": "^4.2.6",
     "@mantine/hooks": "^4.2.2",
@@ -16,14 +16,15 @@
     "react-dom": "^18.1.0",
     "react-icons": "^4.3.1",
     "react-router": "^6.3.0",
-    "react-router-dom": "^6.3.0"
+    "react-router-dom": "^6.3.0",
+    "tabler-icons-react": "^1.52.0"
   },
   "scripts": {
     "dev": "vite",
     "generate": "graphql-codegen --config graphql.config.yaml",
     "cypress": "cypress open",
     "test": "cypress run",
-    "e2e": "start-test e2e:backend :1337/v1/auth/healthz e2e:frontend 3000 test",
+    "e2e": "start-test e2e:backend http-get://localhost:9695 e2e:frontend 3000 test",
     "e2e:backend": "nhost dev --no-browser",
     "e2e:frontend": "run-s build preview",
     "build": "vite build",

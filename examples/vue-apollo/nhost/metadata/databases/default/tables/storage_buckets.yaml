@@ -2,6 +2,23 @@ table:
   name: buckets
   schema: storage
 configuration:
+  column_config:
+    cache_control:
+      custom_name: cacheControl
+    created_at:
+      custom_name: createdAt
+    download_expiration:
+      custom_name: downloadExpiration
+    id:
+      custom_name: id
+    max_upload_file_size:
+      custom_name: maxUploadFileSize
+    min_upload_file_size:
+      custom_name: minUploadFileSize
+    presigned_urls_enabled:
+      custom_name: presignedUrlsEnabled
+    updated_at:
+      custom_name: updatedAt
   custom_column_names:
     cache_control: cacheControl
     created_at: createdAt
@@ -23,10 +40,10 @@ configuration:
     update: updateBuckets
     update_by_pk: updateBucket
 array_relationships:
-- name: files
-  using:
-    foreign_key_constraint_on:
-      column: bucket_id
-      table:
-        name: files
-        schema: storage
+  - name: files
+    using:
+      foreign_key_constraint_on:
+        column: bucket_id
+        table:
+          name: files
+          schema: storage

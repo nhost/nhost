@@ -32,7 +32,7 @@ The rule above make it so users can only select posts where the value of `user_i
 
 `x-hasura-user-id` is a permission variable that is used to create permission rules in Hasura. The permission variable comes from the [access token](platform/authentication#access-tokens) that signed-in users have.
 
-The `x-hasura-user-id` permission variable is always available for all signed-in users. You can add [custom permission variables](#custom-permission-variables) to create more complex permission rules unique to your app.
+The `x-hasura-user-id` permission variable is always available for all signed-in users. You can add [custom permission variables](#custom-permission-variables) to create more complex permission rules unique to your project.
 
 ## Custom Permission Variables
 

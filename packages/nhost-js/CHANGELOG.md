@@ -1,5 +1,49 @@
 # @nhost/nhost-js
 
+## 1.4.11
+
+### Patch Changes
+
+- Updated dependencies [a47ce291]
+  - @nhost/hasura-auth-js@1.4.2
+
+## 1.4.10
+
+### Patch Changes
+
+- Updated dependencies [607c457f]
+  - @nhost/hasura-storage-js@0.6.0
+
+## 1.4.9
+
+### Patch Changes
+
+- eb46f7d8: Use port 1337 if no port is specified when using "localhost" as `subdomain`.
+
+## 1.4.8
+
+### Patch Changes
+
+- Updated dependencies [93cc6920]
+  - @nhost/hasura-auth-js@1.4.1
+
+## 1.4.7
+
+### Patch Changes
+
+- 10beea72: Fix React Native build: Export `package.json` for all npm packages.
+- Updated dependencies [18ac56d0]
+- Updated dependencies [10beea72]
+  - @nhost/hasura-auth-js@1.4.0
+  - @nhost/hasura-storage-js@0.5.3
+
+## 1.4.6
+
+### Patch Changes
+
+- @nhost/hasura-auth-js@1.3.4
+- @nhost/hasura-storage-js@0.5.2
+
 ## 1.4.5
 
 ### Patch Changes
