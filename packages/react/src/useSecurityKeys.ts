@@ -83,9 +83,9 @@ export const useSecurityKeys: SecurityKeysHook = () => {
     const loadList = async () => {
       setIsLoading(true)
       // * Initial list
-      const userId = nhost?.auth.getUser()?.id
+      const userId = nhost.auth.getUser()?.id
       if (userId) {
-        const query = `
+        const query = `#graphql
           query myAuthenticators ($userId: uuid!) {
             authUserAuthenticators (where: { userId: {_eq: $userId} }) {
               id
