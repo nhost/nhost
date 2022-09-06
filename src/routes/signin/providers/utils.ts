@@ -183,7 +183,7 @@ const providerCallback = asyncWrapper(
   async (req: RequestWithState, res: Response): Promise<void> => {
     // Successful authentication, redirect home.
     // generate tokens and redirect back home
-    console.log('IN CALLBACK');
+
     req.state = req.query.state;
 
     const requestOptions = await gqlSdk

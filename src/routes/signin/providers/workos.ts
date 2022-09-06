@@ -3,6 +3,8 @@ import { WorkOSSSOStrategy } from 'passport-workos';
 import { PROVIDERS } from '@config';
 import { sendError } from '@/errors';
 import { initProvider } from './utils';
+import Joi from 'joi';
+import { queryValidator } from '@/validation';
 
 export default (router: Router): void => {
   const config = PROVIDERS.workos;
@@ -12,15 +14,17 @@ export default (router: Router): void => {
     } else if (!config.clientID || !config.clientSecret) {
       throw new Error(`Missing environment variables for WorkOS OAuth`);
     } else {
-      console.log(req.query);
-      // TODO check:
-      // if ([connection, domain, email, organization].every(a => a === undefined)) {
-      //   console.log("ERROR HERE")
-      //   throw Error("One of 'connection', 'domain', 'organization' and/or 'email' are required");
-      // }
-      // TODO email is deprecated
+      // TODO set a default organization/domain/connection as env var
       req.query.organization = 'org_01GC9CW1NCVZ9R1P9XMP0AYG36';
-      return next();
+      // * Check if at least one of the required query parameters is present: organization, domain, or connection
+      // * req.query.email is deprecated in the current WorkOS API
+      return queryValidator(
+        Joi.object({
+          organization: Joi.string(),
+          domain: Joi.string(),
+          connection: Joi.string(),
+        }).min(1)
+      )(req, res, next);
     }
   });
 };
