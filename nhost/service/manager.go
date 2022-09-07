@@ -204,6 +204,10 @@ func (m *dockerComposeManager) startPostgresGraphql(ctx context.Context, ds *com
 }
 
 func (m *dockerComposeManager) ensureBucketExists(ctx context.Context) error {
+	if !m.composeConfig.RunMinioService() {
+		return nil
+	}
+
 	m.l.Debug("Ensuring S3 bucket exists")
 	const bucketName = "nhost"
 
