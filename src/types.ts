@@ -1,5 +1,21 @@
 import { UserQuery } from './utils/__generated__/graphql-request';
 
+export type SocialProvider =
+  | 'apple'
+  | 'bitbucket'
+  | 'discord'
+  | 'facebook'
+  | 'github'
+  | 'gitlab'
+  | 'google'
+  | 'linkedin'
+  | 'spotify'
+  | 'strava'
+  | 'twitch'
+  | 'twitter'
+  | 'windowslive'
+  | 'workos';
+
 export type ClaimValueType =
   | string
   | string[]

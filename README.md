@@ -38,7 +38,7 @@
 - [**SMS**](./docs/workflows/passwordless-sms.md) - also called **passwordless sms**.
 - [**Anonymous**](./docs/workflows/anonymous-users.md) - sign in users without any method. Anonymous users can be
   converted to _regular_ users.
-- [**OAuth providers**](./docs/workflows/oauth-providers.md): Facebook, Google, GitHub, Twitter, Apple, LinkedIn, Windows Live, Spotify, Strava, GitLab, BitBucket.
+- [**OAuth providers**](./docs/workflows/oauth-providers.md): Facebook, Google, GitHub, Twitter, Apple, LinkedIn, Windows Live, Spotify, Strava, GitLab, BitBucket, Discord, WorkOS.
 
 ## Deploy Hasura Auth in Seconds
 

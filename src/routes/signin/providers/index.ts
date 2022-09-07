@@ -13,6 +13,7 @@ import gitlab from './gitlab';
 import bitbucket from './bitbucket';
 import discord from './discord';
 import twitch from './twitch';
+import workos from './workos';
 
 const router = Router();
 
@@ -29,6 +30,7 @@ gitlab(router);
 bitbucket(router);
 discord(router);
 twitch(router);
+workos(router);
 
 export default (parentRouter: Router) => {
   /**
