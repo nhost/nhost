@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) Nhost
+# Copyright (c) Nhost
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -41,7 +41,7 @@ import (
 
 var User nhost.User
 
-//  linkCmd represents the link command
+// linkCmd represents the link command
 var linkCmd = &cobra.Command{
 	Use:        "link",
 	SuggestFor: []string{"list"},
@@ -237,8 +237,8 @@ var linkCmd = &cobra.Command{
 				return
 			}
 
-			if strings.ToLower(response) != project.Name {
-				status.Fatal("Invalid email. Linking aborted.")
+			if response != project.Name {
+				status.Fatal("Unexpected name. Linking aborted.")
 			}
 		}
 
@@ -290,7 +290,7 @@ func updateNhostProject(app nhost.App) error {
 	return err
 }
 
-//  creates a new remote project
+// creates a new remote project
 func createProject(name, server, User, team string) (string, error) {
 
 	log.Debugf("Creating project '%s'", name)
