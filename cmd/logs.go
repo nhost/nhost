@@ -25,8 +25,6 @@ SOFTWARE.
 package cmd
 
 import (
-	"fmt"
-	"github.com/nhost/cli/internal/git"
 	"github.com/nhost/cli/nhost"
 	"github.com/nhost/cli/nhost/compose"
 	"github.com/spf13/cobra"
@@ -56,43 +54,12 @@ var logsCmd = &cobra.Command{
 			dcArgs = append(dcArgs, os.Args[2:]...)
 		}
 
-		config, err := nhost.GetConfiguration()
-		if err != nil {
-			return err
-		}
-
 		projectName, err := nhost.GetDockerComposeProjectName()
 		if err != nil {
 			return err
 		}
 
-		env, err := nhost.Env()
-		if err != nil {
-			return fmt.Errorf("failed to read .env.development: %v", err)
-		}
-
-		cwd, err := os.Getwd()
-		if err != nil {
-			return fmt.Errorf("failed to get current working directory: %v", err)
-		}
-
-		gitRefGetter, err := git.NewReferenceGetterWithFallback()
-		if err != nil {
-			return fmt.Errorf("failed to init git ref getter: %v", err)
-		}
-
-		gitBranchName, err := gitRefGetter.RefName()
-		if err != nil {
-			return fmt.Errorf("failed to get git branch name: %v", err)
-		}
-
-		conf := compose.NewConfig(config, nil, env, gitBranchName, projectName)
-		dcWrapper, err := compose.InitWrapper(cwd, gitBranchName, conf)
-		if err != nil {
-			return err
-		}
-
-		dc, err := dcWrapper.Command(cmd.Context(), dcArgs, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
+		dc, err := compose.CommandWithExistingConfig(cmd.Context(), projectName, dcArgs, &compose.DataStreams{Stdout: os.Stdout, Stderr: os.Stderr})
 		if err != nil {
 			return err
 		}
