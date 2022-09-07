@@ -2,15 +2,16 @@ package nhost
 
 import (
 	"fmt"
-	"github.com/docker/docker/pkg/namesgenerator"
-	"github.com/nhost/cli/util"
-	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/docker/docker/pkg/namesgenerator"
+	"github.com/nhost/cli/util"
+	"gopkg.in/yaml.v2"
 )
 
 const (

@@ -32,7 +32,7 @@ const (
 	// --
 
 	// default docker images
-	svcPostgresDefaultImage  = "nhost/postgres:12-v0.0.6"
+	svcPostgresDefaultImage  = "nhost/postgres:14.5-20220831-1"
 	svcAuthDefaultImage      = "nhost/hasura-auth:0.10.0"
 	svcStorageDefaultImage   = "nhost/hasura-storage:0.2.4"
 	svcFunctionsDefaultImage = "nhost/functions:0.1.3"
@@ -162,13 +162,11 @@ func (c *Config) BuildJSON() ([]byte, error) {
 	return json.MarshalIndent(c.build(), "", "  ")
 }
 
-func (c Config) postgresConnectionString() string {
+func (c Config) connectionStringForUser(user string) string {
 	postgresEnv := c.postgresServiceEnvs()
-	user := postgresEnv[envPostgresUser]
-	password := postgresEnv[envPostgresPassword]
 	db := postgresEnv[envPostgresDb]
 
-	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s", user, password, SvcPostgres, dbPort, db)
+	return fmt.Sprintf("postgres://%s@%s:%d/%s", user, SvcPostgres, dbPort, db)
 }
 
 func (c Config) PublicHasuraConnectionString() string {
@@ -404,7 +402,7 @@ func (c Config) storageServiceEnvs() env {
 		"NHOST_JWT_SECRET":            c.envValueHasuraGraphqlJwtSecret(),
 		"NHOST_ADMIN_SECRET":          util.ADMIN_SECRET,
 		"NHOST_WEBHOOK_SECRET":        util.WEBHOOK_SECRET,
-		"POSTGRES_MIGRATIONS_SOURCE":  fmt.Sprintf("%s?sslmode=disable", c.postgresConnectionString()),
+		"POSTGRES_MIGRATIONS_SOURCE":  fmt.Sprintf("%s?sslmode=disable", c.connectionStringForUser("nhost_storage_admin")),
 		"NHOST_BACKEND_URL":           c.envValueNhostBackendUrl(),
 	}
 
@@ -436,7 +434,7 @@ func (c Config) storageService() *types.ServiceConfig {
 func (c Config) authServiceEnvs() env {
 	e := env{
 		"AUTH_HOST":                   "0.0.0.0",
-		"HASURA_GRAPHQL_DATABASE_URL": c.postgresConnectionString(),
+		"HASURA_GRAPHQL_DATABASE_URL": c.connectionStringForUser("nhost_auth_admin"),
 		"HASURA_GRAPHQL_GRAPHQL_URL":  fmt.Sprintf("%s/graphql", c.hasuraEndpoint()),
 		"AUTH_SERVER_URL":             c.PublicAuthConnectionString(),
 		"HASURA_GRAPHQL_JWT_SECRET":   c.envValueHasuraGraphqlJwtSecret(),
@@ -516,7 +514,7 @@ func (c Config) hasuraEndpoint() string {
 
 func (c Config) hasuraServiceEnvs() env {
 	e := env{
-		"HASURA_GRAPHQL_DATABASE_URL":              c.postgresConnectionString(),
+		"HASURA_GRAPHQL_DATABASE_URL":              c.connectionStringForUser("nhost_hasura"),
 		"HASURA_GRAPHQL_JWT_SECRET":                c.envValueHasuraGraphqlJwtSecret(),
 		"HASURA_GRAPHQL_ADMIN_SECRET":              util.ADMIN_SECRET,
 		"NHOST_ADMIN_SECRET":                       util.ADMIN_SECRET,
@@ -603,11 +601,21 @@ func (c Config) postgresService() *types.ServiceConfig {
 		Restart:     types.RestartPolicyAlways,
 		Environment: c.postgresServiceEnvs().dockerServiceConfigEnv(),
 		HealthCheck: c.postgresServiceHealthcheck(time.Second*3, time.Minute*2),
+		Command: []string{
+			"postgres",
+			"-c", "config_file=/etc/postgresql.conf",
+			"-c", "hba_file=/etc/pg_hba_local.conf",
+		},
 		Volumes: []types.ServiceVolumeConfig{
 			{
 				Type:   types.VolumeTypeBind,
 				Source: DbDataDirGitBranchScopedPath(c.gitBranch, dataDirPgdata),
 				Target: envPostgresDataDefaultValue,
+			},
+			{
+				Type:   types.VolumeTypeBind,
+				Source: DbDataDirGitBranchScopedPath(c.gitBranch, "pg_hba_local.conf"),
+				Target: "/etc/pg_hba_local.conf",
 			},
 		},
 		Ports: []types.ServicePortConfig{

@@ -3,12 +3,6 @@ package service
 import (
 	"context"
 	"fmt"
-	"github.com/nhost/cli/aws/s3client"
-	"github.com/nhost/cli/hasura"
-	"github.com/nhost/cli/nhost"
-	"github.com/nhost/cli/nhost/compose"
-	"github.com/nhost/cli/util"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"os"
 	"os/exec"
@@ -17,6 +11,13 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/nhost/cli/aws/s3client"
+	"github.com/nhost/cli/hasura"
+	"github.com/nhost/cli/nhost"
+	"github.com/nhost/cli/nhost/compose"
+	"github.com/nhost/cli/util"
+	"github.com/sirupsen/logrus"
 )
 
 const (
