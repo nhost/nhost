@@ -269,7 +269,7 @@ func (c Config) minioServiceEnvs() env {
 	return e
 }
 
-func (c Config) runMinioService() bool {
+func (c Config) RunMinioService() bool {
 	if conf, ok := c.nhostConfig.Services[SvcMinio]; ok && conf != nil {
 		if conf.NoContainer {
 			return false
@@ -280,7 +280,7 @@ func (c Config) runMinioService() bool {
 }
 
 func (c Config) minioService() *types.ServiceConfig {
-	if !c.runMinioService() {
+	if !c.RunMinioService() {
 		return nil
 	}
 
