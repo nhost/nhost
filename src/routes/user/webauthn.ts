@@ -113,14 +113,17 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
       expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
       expectedRPID: ENV.AUTH_WEBAUTHN_RP_ID,
     });
-  } catch (error) {
-    return sendError(res, 'invalid-request');
+  } catch (e) {
+    const error = e as Error;
+    return sendError(res, 'invalid-webauthn-authenticator', {
+      customMessage: error.message,
+    });
   }
 
   const { verified, registrationInfo } = verification;
 
   if (!verified) {
-    return sendError(res, 'unverified-user');
+    return sendError(res, 'invalid-webauthn-verification');
   }
 
   if (!registrationInfo) {

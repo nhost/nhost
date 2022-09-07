@@ -147,14 +147,17 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       authenticator: authenticatorDevice,
       requireUserVerification: true,
     });
-  } catch (error) {
-    return sendError(res, 'unauthenticated-user');
+  } catch (e) {
+    const error = e as Error;
+    return sendError(res, 'invalid-webauthn-authenticator', {
+      customMessage: error.message,
+    });
   }
 
   const { verified } = verification;
 
   if (!verified) {
-    return sendError(res, 'unverified-user');
+    return sendError(res, 'invalid-webauthn-verification');
   }
 
   const { authenticationInfo } = verification;
