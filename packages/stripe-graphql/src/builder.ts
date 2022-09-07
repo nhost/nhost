@@ -12,7 +12,9 @@ const builder = new SchemaBuilder<{
     StripeCustomer: Stripe.Customer
     StripeAddress: Stripe.Address
     StripePaymentMethods: Stripe.ApiList<Stripe.PaymentMethod>
-    StripePaymentMethod: Stripe.PaymentMethod
+    StripePaymentMethod: Stripe.PaymentMethod & {
+      customer: string | null
+    }
     StripeCustomerListPaymentMethodsParamsType: Stripe.CustomerListPaymentMethodsParams.Type
     StripeSubscriptions: Stripe.ApiList<Stripe.Subscription>
     StripeSubscription: Stripe.Subscription

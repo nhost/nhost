@@ -12,14 +12,14 @@ builder.objectType('StripeSubscriptions', {
   })
 })
 
-export const SubscriptionStatus = builder.enumType('SubscriptionStatus', {
-  values: [
-    'active',
-    'canceled',
-    'incomplete',
-    'incomplete_expired',
-    'past_due',
-    'trialing',
-    'unpaid'
-  ] as const
+export const SubscriptionStatus = builder.enumType('StripeSubscriptionStatus', {
+  values: {
+    ACTIVE: { value: 'active' },
+    CANCELED: { value: 'canceled' },
+    INCOMPLETE: { value: 'incomplete' },
+    INCOMPLETE_EXPIRED: { value: 'incomplete_expired' },
+    PAST_DUE: { value: 'past_due' },
+    TRIALING: { value: 'trialing' },
+    UNPAID: { value: 'unpaid' }
+  } as const
 })
