@@ -161,6 +161,6 @@ describe('webauthn', () => {
       .post('/user/webauthn/verify')
       .set('Authorization', `Bearer ${userSession?.accessToken}`)
       .send({ credential })
-      .expect(StatusCodes.BAD_REQUEST);
+      .expect(StatusCodes.UNAUTHORIZED);
   });
 });
