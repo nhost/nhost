@@ -1,6 +1,6 @@
 {
   "$schema": "https://typedoc.org/schema.json",
-  "entryPoints": ["src/index.ts", "../core/src/index.ts"],
+  "entryPoints": ["src/index.ts"],
   "exclude": "*.(spec|test).tsx?",
   "sort": ["source-order"],
   "json": "./.docgen/auth.json",
