@@ -46,6 +46,8 @@ builder.objectType('StripeCustomer', {
           limit: limit || undefined
         })) as Stripe.Response<Stripe.ApiList<StripePaymentMethod>>
 
+        console.log(JSON.stringify(paymentMethods, null, 2))
+
         return paymentMethods
       }
     }),

@@ -4,18 +4,24 @@ builder.objectType('StripePaymentMethod', {
   fields: (t) => ({
     id: t.exposeString('id'),
     object: t.exposeString('object'),
-    // todo
+    billingDetails: t.expose('billing_details', {
+      type: 'StripePaymentMethodBillingDetails',
+      nullable: true
+    }),
+    card: t.expose('card', {
+      type: 'StripePaymentMethodCard',
+      nullable: true
+    }),
     created: t.exposeInt('created'),
-    // customer: t.expose('customer', {
-    //   type: 'String',
-    //   nullable: true
-    // }),
-    livemode: t.exposeBoolean('livemode')
+    customer: t.expose('customer', {
+      type: 'String',
+      nullable: true
+    }),
+    livemode: t.exposeBoolean('livemode'),
     // metadata: t.expose('metadata', {
     //   type: 'StripeMetadata',
     //   nullable: true
     // })
-    // TODO: Type
-    // type: t.expose('type', { type: 'StripePaymentMethodTypes' })
+    type: t.expose('type', { type: 'StripePaymentMethodTypes' })
   })
 })
