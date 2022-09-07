@@ -2,7 +2,7 @@ import Stripe from 'stripe'
 
 import SchemaBuilder from '@pothos/core'
 
-import { Context } from './types'
+import { Context, StripePaymentMethod } from './types'
 
 const builder = new SchemaBuilder<{
   Objects: {
@@ -11,14 +11,14 @@ const builder = new SchemaBuilder<{
     }
     StripeCustomer: Stripe.Customer
     StripeAddress: Stripe.Address
-    StripePaymentMethods: Stripe.ApiList<Stripe.PaymentMethod>
-    StripePaymentMethod: Stripe.PaymentMethod & {
-      customer: string | null
-    }
+    StripePaymentMethods: Stripe.ApiList<StripePaymentMethod>
+    StripePaymentMethod: StripePaymentMethod
     StripeCustomerListPaymentMethodsParamsType: Stripe.CustomerListPaymentMethodsParams.Type
+    StripePaymentMethodTypes: Stripe.PaymentMethod.Type
     StripeSubscriptions: Stripe.ApiList<Stripe.Subscription>
     StripeSubscription: Stripe.Subscription
     StripeSubscriptionStatus: Stripe.Subscription.Status
+    // StripeMetadata: Stripe.Metadata
   }
   Context: Context
 }>({})

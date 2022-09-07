@@ -1,6 +1,9 @@
-import { builder } from '../builder'
+import Stripe from 'stripe'
 
-import { PaymentMethodTypes } from './payment-methods'
+import { builder } from '../builder'
+import { StripePaymentMethod } from '../types'
+
+import { StripePaymentMethodTypes } from './payment-methods'
 
 builder.objectType('StripeCustomer', {
   description:
@@ -20,7 +23,7 @@ builder.objectType('StripeCustomer', {
       type: 'StripePaymentMethods',
       args: {
         type: t.arg({
-          type: PaymentMethodTypes,
+          type: StripePaymentMethodTypes,
           required: true,
           defaultValue: 'card'
         }),
@@ -36,12 +39,12 @@ builder.objectType('StripeCustomer', {
       },
       nullable: false,
       resolve: async (customer, { type, startingAfter, endingBefore, limit }, { stripe }) => {
-        const paymentMethods = await stripe.customers.listPaymentMethods(customer.id, {
+        const paymentMethods = (await stripe.customers.listPaymentMethods(customer.id, {
           type,
           starting_after: startingAfter || undefined,
           ending_before: endingBefore || undefined,
           limit: limit || undefined
-        })
+        })) as Stripe.Response<Stripe.ApiList<StripePaymentMethod>>
 
         return paymentMethods
       }

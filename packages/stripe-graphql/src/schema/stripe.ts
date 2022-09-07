@@ -34,6 +34,6 @@ builder.objectType('Stripe', {
 builder.queryFields((t) => ({
   stripe: t.field({
     type: 'Stripe',
-    resolve: () => ({})
+    resolve: () => ({} as any)
   })
 }))
