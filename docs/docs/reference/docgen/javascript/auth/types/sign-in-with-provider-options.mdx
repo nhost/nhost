@@ -11,9 +11,6 @@ custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-j
 
 ```ts
 type SignInWithProviderOptions =
-  | ({ provider: Provider; options: CommonProviderOptions } & {
-      provider: 'workos'
-      options: WorkOsOptions
-    })
-  | { provider: Exclude<Provider, 'workos'> }
+  | { provider: 'workos'; options: CommonProviderOptions & WorkOsOptions }
+  | { provider: Exclude<Provider, 'workos'>; options: CommonProviderOptions }
 ```
