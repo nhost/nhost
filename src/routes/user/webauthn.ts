@@ -11,7 +11,7 @@ import {
 
 import { Joi } from '@/validation';
 import { sendError } from '@/errors';
-import { ENV, getUser, gqlSdk } from '@/utils';
+import { ENV, getUser, gqlSdk, getWebAuthnRelyingParty } from '@/utils';
 import { AuthUserAuthenticators_Insert_Input } from '@/utils/__generated__/graphql-request';
 
 export type AddAuthenticatorRequestBody = {
@@ -45,7 +45,7 @@ export const addAuthenticatorHandler: RequestHandler<
     .then((gqlres) => gqlres.authUserAuthenticators);
 
   const registrationOptions = generateRegistrationOptions({
-    rpID: ENV.AUTH_WEBAUTHN_RP_ID,
+    rpID: getWebAuthnRelyingParty(),
     rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
     userID: user.id,
     userName: user.displayName ?? user.email,
@@ -111,7 +111,7 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
       credential: credential,
       expectedChallenge,
       expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
-      expectedRPID: ENV.AUTH_WEBAUTHN_RP_ID,
+      expectedRPID: getWebAuthnRelyingParty(),
     });
   } catch (e) {
     const error = e as Error;

@@ -11,3 +11,4 @@ export * from './jwt';
 export * from './env';
 export * from './hasura';
 export * from './async-wrapper';
+export * from './webauthn';

@@ -95,9 +95,6 @@ export const ENV = {
   get AUTH_WEBAUTHN_ENABLED() {
     return castBooleanEnv('AUTH_WEBAUTHN_ENABLED', false);
   },
-  get AUTH_WEBAUTHN_RP_ID() {
-    return ENV.AUTH_SERVER_URL && new URL(ENV.AUTH_SERVER_URL).hostname;
-  },
   get AUTH_WEBAUTHN_RP_NAME() {
     return castStringEnv('AUTH_WEBAUTHN_RP_NAME', '');
   },

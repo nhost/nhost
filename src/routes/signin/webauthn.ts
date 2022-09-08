@@ -1,5 +1,11 @@
 import { sendError } from '@/errors';
-import { ENV, getSignInResponse, getUserByEmail, gqlSdk } from '@/utils';
+import {
+  ENV,
+  getSignInResponse,
+  getUserByEmail,
+  gqlSdk,
+  getWebAuthnRelyingParty,
+} from '@/utils';
 import { RequestHandler } from 'express';
 
 import {
@@ -52,7 +58,7 @@ export const signInWebauthnHandler: RequestHandler<
   });
 
   const options = generateAuthenticationOptions({
-    rpID: ENV.AUTH_WEBAUTHN_RP_ID,
+    rpID: getWebAuthnRelyingParty(),
     userVerification: 'preferred',
     timeout: ENV.AUTH_WEBAUTHN_ATTESTATION_TIMEOUT,
     allowCredentials: authUserAuthenticators.map((authenticator) => ({
@@ -143,7 +149,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       credential,
       expectedChallenge,
       expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
-      expectedRPID: ENV.AUTH_WEBAUTHN_RP_ID,
+      expectedRPID: getWebAuthnRelyingParty(),
       authenticator: authenticatorDevice,
       requireUserVerification: true,
     });
