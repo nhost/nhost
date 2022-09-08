@@ -1,4 +1,21 @@
-# [0.10.0](https://github.com/nhost/hasura-auth/compare/v0.9.3...v0.10.0) (2022-07-13)
+
+
+# [0.11.0](https://github.com/nhost/hasura-auth/compare/v0.10.0...v0.11.0) (2022-09-08)
+
+
+### Bug Fixes
+
+* broaden WebAuthn authenticators & algorithms ([bdff4fe](https://github.com/nhost/hasura-auth/commit/bdff4fec245bcf264e4312c71b8992ba7b2e9195))
+* send id+nickname when adding a security key ([f2cb098](https://github.com/nhost/hasura-auth/commit/f2cb098136c80b8b3c3fe46052a3102a7bc2660c))
+* **webauthn:** use the hostname of `AUTH_SERVER_URL` as a default relying party ([7f3944d](https://github.com/nhost/hasura-auth/commit/7f3944d0ad027154856559b80c74fa08f3803136))
+* **webauthn:** use the server url hostname as RP ([50126b4](https://github.com/nhost/hasura-auth/commit/50126b483aa292d40eb1467e0ba20203c6720539))
+
+
+### Features
+
+* remove webauthn signup endpoints ([224e990](https://github.com/nhost/hasura-auth/commit/224e9902b49fedffca3df198d4adea55112e0bba))
+* **webauthn:** add optional authenticator nickname ([457fafd](https://github.com/nhost/hasura-auth/commit/457fafd6a0d6be8a7d84e1982b619487f083445a))
+* workos oauth provider ([ab35971](https://github.com/nhost/hasura-auth/commit/ab359713a2346f1b6eebb8fdffa1de8cc4ec0a59))# [0.10.0](https://github.com/nhost/hasura-auth/compare/v0.9.3...v0.10.0) (2022-07-13)
 
 ### Bug Fixes
 
