@@ -1,7 +1,7 @@
 import { GraphQLYogaError } from '@graphql-yoga/node'
 
 import { builder } from '../builder'
-import { isAllowed } from '../utils'
+import { isAllowed, stripe } from '../utils'
 
 builder.objectType('Stripe', {
   fields: (t) => ({
@@ -16,8 +16,6 @@ builder.objectType('Stripe', {
         if (!isAllowed(id, context)) {
           throw new GraphQLYogaError('user is not allowed to see info from this stripe id')
         }
-
-        const { stripe } = context
 
         const customer = await stripe.customers.retrieve(id)
 
@@ -34,6 +32,6 @@ builder.objectType('Stripe', {
 builder.queryFields((t) => ({
   stripe: t.field({
     type: 'Stripe',
-    resolve: () => ({} as any)
+    resolve: () => ({})
   })
 }))

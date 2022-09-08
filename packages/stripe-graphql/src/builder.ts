@@ -4,13 +4,17 @@ import SchemaBuilder from '@pothos/core'
 
 import { Context, StripePaymentMethod } from './types'
 
-// TODO: Make sure we either use Type or Types everywhere
+// TODO: Make sure we either use Type or Types (e.g. StripePaymentMethodTypes or StripePaymentMethodType ) everywhere
 
 const builder = new SchemaBuilder<{
-  Objects: {
-    Stripe: {
-      customer: Stripe.Customer
+  Scalars: {
+    JSON: {
+      Input: Date
+      Output: Date
     }
+  }
+  Objects: {
+    Stripe: {}
     StripeCustomer: Stripe.Customer
     StripeAddress: Stripe.Address
     StripePaymentMethods: Stripe.ApiList<StripePaymentMethod>
@@ -30,7 +34,6 @@ const builder = new SchemaBuilder<{
     StripeSubscriptions: Stripe.ApiList<Stripe.Subscription>
     StripeSubscription: Stripe.Subscription
     StripeSubscriptionStatus: Stripe.Subscription.Status
-    // StripeMetadata: Stripe.Metadata
   }
   Context: Context
 }>({})

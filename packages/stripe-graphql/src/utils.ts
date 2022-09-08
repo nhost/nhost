@@ -1,4 +1,14 @@
+import Stripe from 'stripe'
+
 import { Context } from './types'
+
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY env var is not set')
+}
+
+export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2022-08-01'
+})
 
 export const isAllowed = (stripeCustomerId: string, context: Context) => {
   const { request, allowedCustomerIds } = context

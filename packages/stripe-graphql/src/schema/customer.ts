@@ -2,6 +2,7 @@ import Stripe from 'stripe'
 
 import { builder } from '../builder'
 import { StripePaymentMethod } from '../types'
+import { stripe } from '../utils'
 
 import { StripePaymentMethodTypes } from './payment-methods'
 
@@ -19,6 +20,11 @@ builder.objectType('StripeCustomer', {
       type: 'StripeAddress',
       nullable: true
     }),
+    // TODO
+    // metadata: t.expose('metadata', {
+    //   type: 'StripeMetadata',
+    //   nullable: true
+    // }),
     paymentMethods: t.field({
       type: 'StripePaymentMethods',
       args: {
@@ -38,7 +44,7 @@ builder.objectType('StripeCustomer', {
         })
       },
       nullable: false,
-      resolve: async (customer, { type, startingAfter, endingBefore, limit }, { stripe }) => {
+      resolve: async (customer, { type, startingAfter, endingBefore, limit }) => {
         const paymentMethods = (await stripe.customers.listPaymentMethods(customer.id, {
           type,
           starting_after: startingAfter || undefined,
@@ -58,7 +64,7 @@ builder.objectType('StripeCustomer', {
           required: false
         })
       },
-      resolve: async (customer, { startingAfter }, { stripe }) => {
+      resolve: async (customer, { startingAfter }) => {
         const subscriptions = await stripe.subscriptions.list({
           customer: customer.id,
           starting_after: startingAfter || undefined

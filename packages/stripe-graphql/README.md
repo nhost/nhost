@@ -51,21 +51,11 @@ npm install @nhost/stripe-graphql
 Inside a Nhost project, create a file in `functions/graphql/stripe.ts`:
 
 ```js
-import Stripe from 'stripe'
-
 import { createStripeGraphQLServer } from '@nhost/stripe-graphql'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2022-08-01'
-})
+const server = createStripeGraphQLServer()
 
-const server = createStripeGraphQLServer({
-  context: () => {
-    return { stripe }
-  }
-})
-
-export default server;
+export default server
 ```
 
 ### Test
@@ -82,18 +72,14 @@ URL: `{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
 
 ## Context
 
-You need to provide a `context` function to the Stripe GraphQL Server.
+You can provide a `context` function to the Stripe GraphQL Server.
 
-You must return a `stripe` object and optional (recommended) `allowedStripeCustomerIds`.
+You can return `allowedStripeCustomerIds`.
 
 Minimal example:
 
 ```js
-const server = createStripeGraphQLServer({
-  context: () => {
-    return { stripe }
-  }
-})
+const server = createStripeGraphQLServer()
 ```
 
 Realistic example:
@@ -110,7 +96,7 @@ const server = createStripeGraphQLServer({
     : undefined;
 
   if (!userFromAccessToken) {
-    return { stripe };
+    return { };
   }
 
   // get user's stripe customer ids
@@ -119,7 +105,7 @@ const server = createStripeGraphQLServer({
   });
 
   if (!user) {
-    return { stripe };
+    return { };
   }
 
   // get allowed stripe customer ids for this user
@@ -131,7 +117,7 @@ const server = createStripeGraphQLServer({
       return wm.workspace.stripeCustomerId as string;
     });
 
-    return { stripe, allowedStripeCustomerIds }
+    return {, allowedStripeCustomerIds }
   }
 })
 ```

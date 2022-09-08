@@ -3,7 +3,6 @@ import type Stripe from 'stripe'
 import type { CORSOptions, YogaInitialContext } from '@graphql-yoga/node'
 
 export type StripeGraphQLContext = {
-  stripe: Stripe
   allowedCustomerIds?: string[]
 }
 
