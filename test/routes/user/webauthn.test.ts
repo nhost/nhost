@@ -14,7 +14,7 @@ describe('webauthn', () => {
   const displayName = `${faker.name.firstName()} ${faker.name.lastName()}`;
 
   const rpName = 'Nhost tests';
-  const rpId = 'localhost';
+  const serverUrl = 'http://localhost:4000';
 
   beforeAll(async () => {
     client = new Client({
@@ -37,7 +37,7 @@ describe('webauthn', () => {
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_WEBAUTHN_ENABLED: true,
-      AUTH_WEBAUTHN_RP_ID: rpId,
+      AUTH_SERVER_URL: serverUrl,
       AUTH_WEBAUTHN_RP_NAME: rpName,
       AUTH_WEBAUTHN_RP_ORIGINS: ['http://localhost:3000'],
     });
@@ -103,7 +103,7 @@ describe('webauthn', () => {
     expect(body).toEqual({
       rp: {
         name: rpName,
-        id: rpId,
+        id: new URL(serverUrl).hostname,
       },
       user: {
         name: displayName,
