@@ -19,6 +19,9 @@ builder.objectType('Stripe', {
 
         const customer = await stripe.customers.retrieve(id)
 
+        console.log('customer')
+        console.log(customer)
+
         if (customer.deleted) {
           throw new GraphQLYogaError('customer is deleted')
         }

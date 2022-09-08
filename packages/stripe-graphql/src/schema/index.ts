@@ -1,5 +1,8 @@
 import './address'
 import './customer'
+import './customer-shipping'
+import './customer-tax'
+import './customer-tax-location'
 import './payment-methods'
 import './payment-method'
 import './payment-method-billing-details'

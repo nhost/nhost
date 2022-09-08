@@ -12,19 +12,69 @@ builder.objectType('StripeCustomer', {
   fields: (t) => ({
     id: t.exposeString('id'),
     object: t.exposeString('object'),
-    balance: t.exposeInt('balance'),
-    name: t.exposeString('name', {
-      nullable: true
-    }),
     address: t.expose('address', {
       type: 'StripeAddress',
       nullable: true
     }),
-    // TODO
-    // metadata: t.expose('metadata', {
-    //   type: 'StripeMetadata',
-    //   nullable: true
-    // }),
+    balance: t.exposeInt('balance'),
+    // TODO: cash_balance
+    created: t.exposeInt('created'),
+    currency: t.exposeString('currency', {
+      nullable: true
+    }),
+    // TODO: default_source
+    delinquent: t.exposeBoolean('delinquent', {
+      nullable: true
+    }),
+    description: t.exposeString('description', {
+      nullable: true
+    }),
+    // TODO: discount
+    email: t.exposeString('email', {
+      nullable: true
+    }),
+    // TODO: invoice_credit_balance
+    invoicePrefix: t.exposeString('invoice_prefix', {
+      nullable: true
+    }),
+    // TODO: invoice_settings
+    livemode: t.exposeBoolean('livemode'),
+    // TODO: metadata
+    name: t.exposeString('name', {
+      nullable: true
+    }),
+    nextInvoiceSequence: t.exposeInt('next_invoice_sequence', {
+      nullable: true
+    }),
+    phone: t.exposeString('phone', {
+      nullable: true
+    }),
+    preferredLocales: t.exposeStringList('preferred_locales', {
+      nullable: true
+    }),
+    shipping: t.expose('shipping', {
+      type: 'StripeCustomerShipping',
+      nullable: true
+    }),
+    // TODO: sources
+    tax: t.expose('tax', {
+      type: 'StripeCustomerTax',
+      nullable: true
+    }),
+    // TODO: tax_exempt
+    // type TaxExempt = 'exempt' | 'none' | 'reverse';
+    // TODO: tax_ids
+    // tax_ids?: ApiList<Stripe.TaxId>;
+    subscriptions: t.field({
+      type: 'StripeSubscriptions',
+      nullable: false,
+      resolve: async (customer) => {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: customer.id
+        })
+        return subscriptions
+      }
+    }),
     paymentMethods: t.field({
       type: 'StripePaymentMethods',
       args: {
@@ -55,22 +105,6 @@ builder.objectType('StripeCustomer', {
         console.log(JSON.stringify(paymentMethods, null, 2))
 
         return paymentMethods
-      }
-    }),
-    subscriptions: t.field({
-      type: 'StripeSubscriptions',
-      args: {
-        startingAfter: t.arg.string({
-          required: false
-        })
-      },
-      resolve: async (customer, { startingAfter }) => {
-        const subscriptions = await stripe.subscriptions.list({
-          customer: customer.id,
-          starting_after: startingAfter || undefined
-        })
-
-        return subscriptions
       }
     })
   })
