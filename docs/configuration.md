@@ -112,10 +112,10 @@ Hasura Auth supports [Webauthn authentication](https://en.wikipedia.org/wiki/Web
 Enabling and configuring of the Webauthn can be done by setting these env variables:
 
 ```bash
+AUTH_SERVER_URL=https://hasura-auth.com
 AUTH_WEBAUTHN_ENABLED=true
-AUTH_WEBAUTHN_RP_ID=my-app.vercel.com
 AUTH_WEBAUTHN_RP_NAME='My App'
-AUTH_WEBAUTHN_RP_ORIGINS=https://my-app.example.com
+AUTH_WEBAUTHN_RP_ORIGINS=https://my-app.vercel.com
 ```
 
 By default if `AUTH_CLIENT_URL` is set, will be whitelisted as allowed origin for such authentication. Additional urls can be specified using `AUTH_WEBAUTHN_RP_ORIGINS`.
