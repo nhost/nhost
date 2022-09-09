@@ -233,7 +233,7 @@ describe('custom JWT claims', () => {
   it('should add a custom claim from a nested array relationship without element in array', async () => {
     await request.post('/change-env').send({
       AUTH_JWT_CUSTOM_CLAIMS:
-        '{"project-ids":"profile.contributesTo.project.id"}',
+        '{"project-ids":"profile.contributesTo[].project.id"}',
     });
     const userProjects: string[] = [];
     const email = faker.internet.email();
