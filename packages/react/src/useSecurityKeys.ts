@@ -84,8 +84,10 @@ export const useSecurityKeys: SecurityKeysHook = () => {
       setIsLoading(true)
       // * Initial list
       const userId = nhost.auth.getUser()?.id
-      if (userId) {
-        const query = `#graphql
+      if (!userId) {
+        return
+      }
+      const query = `#graphql
           query myAuthenticators ($userId: uuid!) {
             authUserAuthenticators (where: { userId: {_eq: $userId} }) {
               id
@@ -93,20 +95,19 @@ export const useSecurityKeys: SecurityKeysHook = () => {
             }
           }
         `
-        const { data, error: e } = await nhost.graphql.request<
-          { authUserAuthenticators: SecurityKey[] },
-          { userId: string }
-        >(query, {
-          userId
-        })
-        if (e) {
-          // non-standard error
-          setError({ error: 'graphq-error', message: JSON.stringify(e), status: OTHER_ERROR_CODE })
-        } else if (data) {
-          setList(data.authUserAuthenticators)
-        }
-        setIsLoading(false)
+      const { data, error: e } = await nhost.graphql.request<
+        { authUserAuthenticators: SecurityKey[] },
+        { userId: string }
+      >(query, {
+        userId
+      })
+      if (e) {
+        // non-standard error
+        setError({ error: 'graphq-error', message: JSON.stringify(e), status: OTHER_ERROR_CODE })
+      } else if (data) {
+        setList(data.authUserAuthenticators)
       }
+      setIsLoading(false)
     }
     loadList()
   }, [nhost])
@@ -133,20 +134,27 @@ export const useSecurityKeys: SecurityKeysHook = () => {
     const { data, error: e } = await nhost.graphql.request<unknown, { id: string }>(query, {
       id
     })
-    if (data) {
-      setList(list.filter((item) => item.id !== id))
+    if (e) {
       return {
-        error: null,
-        isError: false,
-        isSuccess: true
+        // non-standard error
+        error: { error: 'graphq-error', message: 'No data', status: OTHER_ERROR_CODE },
+        isError: true,
+        isSuccess: false
       }
-    } else {
+    }
+    if (!data) {
       return {
         // non-standard error
         error: { error: 'graphq-error', message: JSON.stringify(e), status: OTHER_ERROR_CODE },
         isError: true,
         isSuccess: false
       }
+    }
+    setList(list.filter((item) => item.id !== id))
+    return {
+      error: null,
+      isError: false,
+      isSuccess: true
     }
   }
 
