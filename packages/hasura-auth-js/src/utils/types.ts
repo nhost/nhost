@@ -53,15 +53,9 @@ export interface SignInPasswordlessSmsOtpParams {
   otp: string
 }
 
-export type SignInWithProviderOptions = { provider: Provider; options?: CommonProviderOptions } & (
-  | {
-      provider: 'workos'
-      options?: WorkOsOptions
-    }
-  | {
-      provider: Exclude<Provider, 'workos'>
-    }
-)
+export type SignInWithProviderOptions =
+  | { provider: Exclude<Provider, 'workos'>; options?: CommonProviderOptions }
+  | { provider: 'workos'; options?: WorkOsOptions }
 
 export type SignInParams =
   | SignInEmailPasswordParams

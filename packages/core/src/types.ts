@@ -89,7 +89,7 @@ export interface DeanonymizeOptions extends RegistrationOptions {
 }
 
 export interface CommonProviderOptions extends RegistrationOptions, RedirectOption {}
-export interface WorkOsOptions {
+export interface WorkOsOptions extends CommonProviderOptions {
   connection?: string
   organization?: string
   provider?: string
