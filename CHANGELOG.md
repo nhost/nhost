@@ -262,7 +262,7 @@ Each custom claim is defined by a pair of a key and a value:
 - The value is a representation of the path to look at to determine the value of the claim. For instance `[profile.organisation.id](http://profile.organisation.id)` will look for the `user.profile` Hasura relationship, and the `profile.organisation` Hasura relationship. Array values are transformed into Postgres syntax so Hasura can interpret them. See the official Hasura documentation to understand the [session variables format](https://hasura.io/docs/latest/graphql/core/auth/authorization/roles-variables.html#format-of-session-variables).
 
 ```bash
-AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"profile.organisation.id", "project-ids":"profile.contributesTo.project.id"}
+AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"profile.organisation[].id", "project-ids":"profile.contributesTo[].project.id"}
 ```
 
 Will automatically generate and fetch the following GraphQL query:
