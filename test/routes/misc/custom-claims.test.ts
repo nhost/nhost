@@ -192,9 +192,9 @@ describe('custom JWT claims', () => {
   it('should add a custom claim from a nested array relationship', async () => {
     await request.post('/change-env').send({
       AUTH_JWT_CUSTOM_CLAIMS:
-        '{"project-ids":"profile.contributesTo.project.id"}',
+        '{"project-ids":"profile.contributesTo[].project.id"}',
     });
-    const userProjects = projects.slice(1);
+    const userProjects = projects;
     const email = faker.internet.email();
     const password = faker.internet.password();
 
@@ -224,6 +224,88 @@ describe('custom JWT claims', () => {
     expect(jwt).not.toBeNull();
     if (jwt) {
       expect(jwt['https://hasura.io/jwt/claims']).toBeObject();
+      expect(
+        jwt['https://hasura.io/jwt/claims']['x-hasura-project-ids']
+      ).toEqual(escapeValueToPg(userProjects));
+    }
+  });
+
+  it('should add a custom claim from a nested array relationship without element in array', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS:
+        '{"project-ids":"profile.contributesTo.project.id"}',
+    });
+    const userProjects: string[] = [];
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    const {
+      body: {
+        session: { user },
+      },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+
+    await client.query(`INSERT INTO public.profiles(id) VALUES('${user.id}');`);
+    const {
+      body: {
+        session: { accessToken },
+      },
+    } = await request.post('/signin/email-password').send({
+      email,
+      password,
+    });
+
+    const jwt = await decodeAccessToken(accessToken);
+
+    expect(jwt).not.toBeNull();
+    if (jwt) {
+      expect(
+        jwt['https://hasura.io/jwt/claims']['x-hasura-project-ids']
+      ).toEqual(escapeValueToPg(userProjects));
+    }
+  });
+
+  it('should add a custom claim from a nested array relationship with only one element in array', async () => {
+    await request.post('/change-env').send({
+      AUTH_JWT_CUSTOM_CLAIMS:
+        '{"project-ids":"profile.contributesTo[].project.id"}',
+    });
+    const userProjects = projects.slice(0, 1);
+    const email = faker.internet.email();
+    const password = faker.internet.password();
+
+    const {
+      body: {
+        session: { user },
+      },
+    } = await request.post('/signup/email-password').send({
+      email,
+      password,
+    });
+
+    await client.query(
+      `INSERT INTO public.profiles(id) VALUES('${user.id}');
+      INSERT INTO public.project_members(user_id, project_id) VALUES ${userProjects
+        .map((p) => "('" + user.id + "', '" + p + "')")
+        .join(',')};`
+    );
+
+    const {
+      body: {
+        session: { accessToken },
+      },
+    } = await request.post('/signin/email-password').send({
+      email,
+      password,
+    });
+
+    const jwt = await decodeAccessToken(accessToken);
+
+    expect(jwt).not.toBeNull();
+    if (jwt) {
       expect(
         jwt['https://hasura.io/jwt/claims']['x-hasura-project-ids']
       ).toEqual(escapeValueToPg(userProjects));
