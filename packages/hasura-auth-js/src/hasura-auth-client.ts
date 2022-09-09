@@ -25,6 +25,7 @@ import {
   resetPasswordPromise,
   ResetPasswordResponse,
   rewriteRedirectTo,
+  SecurityKey,
   sendVerificationEmailPromise,
   SendVerificationEmailResponse,
   signInAnonymousPromise,
@@ -365,9 +366,11 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/add-security-key
    */
-  async addSecurityKey(nickname?: string): Promise<{ error: ErrorPayload | null }> {
-    const { error } = await addSecurityKeyPromise(this._client, nickname)
-    return { error }
+  async addSecurityKey(
+    nickname?: string
+  ): Promise<{ error: ErrorPayload | null; key?: SecurityKey }> {
+    const { error, key } = await addSecurityKeyPromise(this._client, nickname)
+    return { error, key }
   }
 
   /**

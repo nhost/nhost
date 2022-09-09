@@ -6,7 +6,8 @@ import {
   AddSecurityKeyHandlerResult,
   addSecurityKeyPromise,
   ErrorPayload,
-  OTHER_ERROR_CODE
+  OTHER_ERROR_CODE,
+  SecurityKey
 } from '@nhost/core'
 
 import { useNhostClient } from './useNhostClient'
@@ -23,11 +24,6 @@ interface RemoveSecurityKeyHandler {
     /** Unique identifier of the security to remove */
     id: string
   ): Promise<RemoveSecurityKeyHandlerResult>
-}
-
-export interface SecurityKey {
-  id: string
-  nickname?: string
 }
 
 export interface SecurityKeysHookResult extends ActionErrorState, ActionSuccessState {
@@ -114,11 +110,9 @@ export const useSecurityKeys: SecurityKeysHook = () => {
 
   const add: AddSecurityKeyHandler = async (nickname) => {
     const result = await addSecurityKeyPromise(nhost.auth.client, nickname)
-    const { isError, id } = result
-    if (!isError && id) {
-      setList(
-        [...list, { id, nickname }].sort((a, b) => a.nickname?.localeCompare(b.nickname || '') || 0)
-      )
+    const { isError, key } = result
+    if (!isError && key) {
+      setList([...list, key].sort((a, b) => a.nickname?.localeCompare(b.nickname || '') || 0))
     }
     return result
   }

@@ -7,11 +7,11 @@ import {
 import { AuthClient } from '../client'
 import { CodifiedError, ErrorPayload } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
+import { SecurityKey } from '../types'
 
 import { ActionErrorState, ActionLoadingState, ActionSuccessState } from './types'
 export interface AddSecurityKeyHandlerResult extends ActionErrorState, ActionSuccessState {
-  id?: string
-  nickname?: string
+  key?: SecurityKey
 }
 
 export interface AddSecurityKeyState extends AddSecurityKeyHandlerResult, ActionLoadingState {}
@@ -37,7 +37,7 @@ export const addSecurityKeyPromise = async (
     } catch (e) {
       throw new CodifiedError(e as Error)
     }
-    const { data } = await api.post<AddSecurityKeyHandlerResult>(
+    const { data: key } = await api.post<SecurityKey>(
       '/user/webauthn/verify',
       { credential, nickname },
       {
@@ -46,7 +46,7 @@ export const addSecurityKeyPromise = async (
         }
       }
     )
-    return { id: data.id, nickname, isError: false, error: null, isSuccess: true }
+    return { key, isError: false, error: null, isSuccess: true }
   } catch (e) {
     const { error } = e as { error: ErrorPayload }
     return { isError: true, error, isSuccess: false }
