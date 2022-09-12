@@ -87,7 +87,14 @@ export interface DeanonymizeOptions extends RegistrationOptions {
   email?: string
   password?: string
 }
-export interface ProviderOptions extends RegistrationOptions, RedirectOption {}
+
+export interface CommonProviderOptions extends RegistrationOptions, RedirectOption {}
+export interface WorkOsOptions extends CommonProviderOptions {
+  connection?: string
+  organization?: string
+  provider?: string
+}
+export interface ProviderOptions extends CommonProviderOptions, WorkOsOptions {}
 
 // TODO share with hasura-auth
 /** User information */
@@ -152,6 +159,7 @@ export type Provider =
   | 'bitbucket'
   | 'discord'
   | 'twitch'
+  | 'workos'
 
 // TODO share with hasura-auth
 export interface JWTHasuraClaims {

@@ -4,19 +4,13 @@ title: SignInWithProviderOptions
 sidebar_label: SignInWithProviderOptions
 description: No description provided.
 displayed_sidebar: referenceSidebar
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L59
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/utils/types.ts#L61
 ---
 
 # `SignInWithProviderOptions`
 
-## Parameters
-
----
-
-**<span className="parameter-name">provider</span>** <span className="optional-status">required</span> [`Provider`](/reference/docgen/javascript/auth/types/provider)
-
----
-
-**<span className="parameter-name">options</span>** <span className="optional-status">optional</span> `ProviderOptions`
-
----
+```ts
+type SignInWithProviderOptions =
+  | { provider: Exclude<Provider, 'workos'>; options: CommonProviderOptions }
+  | { provider: 'workos'; options: WorkOsOptions }
+```
