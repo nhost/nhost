@@ -1215,14 +1215,16 @@ export type AddItemMutation = { __typename?: 'mutation_root', insertTodo?: { __t
 
 export type NewTodoFragment = { __typename?: 'todos', id: string, contents: string };
 
-export type MyAuthenticatorsQueryVariables = Exact<{ [key: string]: never; }>;
+export type SecurityKeysQueryVariables = Exact<{
+  userId: Scalars['uuid'];
+}>;
 
 
-export type MyAuthenticatorsQuery = { __typename?: 'query_root', authUserAuthenticators: Array<{ __typename?: 'authUserAuthenticators', id: string, nickname?: string | null }> };
+export type SecurityKeysQuery = { __typename?: 'query_root', authUserAuthenticators: Array<{ __typename?: 'authUserAuthenticators', id: string, nickname?: string | null }> };
 
-export type RemoveAuthenticatorMutationVariables = Exact<{
+export type RemoveSecurityKeyMutationVariables = Exact<{
   id: Scalars['uuid'];
 }>;
 
 
-export type RemoveAuthenticatorMutation = { __typename?: 'mutation_root', deleteAuthUserAuthenticator?: { __typename?: 'authUserAuthenticators', id: string } | null };
+export type RemoveSecurityKeyMutation = { __typename?: 'mutation_root', deleteAuthUserAuthenticator?: { __typename?: 'authUserAuthenticators', id: string } | null };

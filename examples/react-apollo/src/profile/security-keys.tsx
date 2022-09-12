@@ -1,12 +1,64 @@
+import { useState } from 'react'
 import { FaMinus } from 'react-icons/fa'
+import { RemoveSecurityKeyMutation, SecurityKeysQuery } from 'src/generated'
 
+import { gql, useMutation } from '@apollo/client'
 import { ActionIcon, Button, Card, SimpleGrid, Table, TextInput, Title } from '@mantine/core'
 import { useInputState } from '@mantine/hooks'
-import { useSecurityKeys } from '@nhost/react'
+import { useAddSecurityKey, useUserId } from '@nhost/react'
+import { useAuthQuery } from '@nhost/react-apollo'
+
+const SECURITY_KEYS_LIST = gql`
+  query securityKeys($userId: uuid!) {
+    authUserAuthenticators(where: { userId: { _eq: $userId } }) {
+      id
+      nickname
+    }
+  }
+`
+
+const REMOVE_SECURITY_KEY = gql`
+  mutation removeSecurityKey($id: uuid!) {
+    deleteAuthUserAuthenticator(id: $id) {
+      id
+    }
+  }
+`
 
 export const SecurityKeys: React.FC = () => {
-  const { list, add, remove } = useSecurityKeys()
+  const { add } = useAddSecurityKey()
+  const userId = useUserId()
   const [nickname, setNickname] = useInputState('')
+  const [list, setList] = useState<{ id: string; nickname?: string | null }[]>([])
+  useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
+    variables: { userId },
+    onCompleted: ({ authUserAuthenticators }) => {
+      if (authUserAuthenticators) {
+        setList(authUserAuthenticators || [])
+      }
+    }
+  })
+
+  const addKey = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const { key, error } = await add(nickname)
+    if (error) {
+      console.log(error)
+    } else {
+      setNickname('')
+    }
+    if (key) {
+      setList([...list, key])
+    }
+  }
+  const [removeKey] = useMutation<RemoveSecurityKeyMutation>(REMOVE_SECURITY_KEY, {
+    onCompleted: ({ deleteAuthUserAuthenticator }) => {
+      if (deleteAuthUserAuthenticator?.id) {
+        setList(list.filter((item) => item.id !== deleteAuthUserAuthenticator.id))
+      }
+    }
+  })
+
   return (
     <Card shadow="sm" p="lg" m="sm">
       <Title>Security keys</Title>
@@ -20,7 +72,7 @@ export const SecurityKeys: React.FC = () => {
             <tr key={id}>
               <td>{nickname || id}</td>
               <td>
-                <ActionIcon onClick={() => remove(id)} color="red">
+                <ActionIcon onClick={() => removeKey({ variables: { id } })} color="red">
                   <FaMinus />
                 </ActionIcon>
               </td>
@@ -28,17 +80,7 @@ export const SecurityKeys: React.FC = () => {
           ))}
         </tbody>
       </Table>
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault()
-          const { error } = await add(nickname)
-          if (error) {
-            console.log(error)
-          } else {
-            setNickname('')
-          }
-        }}
-      >
+      <form onSubmit={addKey}>
         <SimpleGrid cols={2}>
           <TextInput
             autoFocus
