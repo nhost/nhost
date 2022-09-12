@@ -31,7 +31,7 @@ interface AddSecuritKeyHook {
  *
  * @example
  * ```tsx
- * const { add, isLoading, isSuccess, isError, error } = useSecurityKeys()
+ * const { add, isLoading, isSuccess, isError, error } = useAddSecurityKey()
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
