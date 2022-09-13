@@ -96,18 +96,19 @@ describe('Redirections', () => {
     expect(message).toBeTruthy();
 
     const link = message.Content.Headers['X-Link'][0];
+
     const res = await request
       .get(link.replace('http://localhost:4000', ''))
       .expect(StatusCodes.MOVED_TEMPORARILY);
 
-    const resParams = getUrlParameters(res);
-    expect(Array.from(resParams.keys())).toIncludeAllMembers(
-      Object.keys(params)
-    );
-    expect(Array.from(resParams.values())).toIncludeAllMembers(
-      Object.values(params)
-    );
-    expectUrlParameters(res).not.toIncludeAnyMembers([
+    const resParams = Object.fromEntries(getUrlParameters(res));
+    expect(resParams).toEqual(expect.objectContaining(params));
+
+    expect(Object.keys(resParams)).toIncludeAllMembers([
+      'refreshToken',
+      'type',
+    ]);
+    expect(Object.keys(resParams)).not.toIncludeAnyMembers([
       'error',
       'errorDescription',
     ]);

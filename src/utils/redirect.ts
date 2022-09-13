@@ -6,38 +6,16 @@ export const generateRedirectUrl = (
   queryParameters: { [key: string]: string },
   hashTag?: string
 ): string => {
-  let finalRedirectTo = redirectTo;
-
-  // add query paramters
-
-  // if there are query paramters to add:
-  // add first ? or & depending on of there are already query parameters
-  if (Object.keys(queryParameters).length !== 0) {
-    if (redirectTo.includes('&')) {
-      finalRedirectTo += '&';
-    } else {
-      finalRedirectTo += '?';
-    }
-  }
-
-  const nrOfKeys = Object.keys(queryParameters).length;
-
-  // add query paramters
-  for (const [i, key] of Object.keys(queryParameters).entries()) {
-    // add & if not the last key
-    if (i !== nrOfKeys - 1) {
-      finalRedirectTo += key + '=' + queryParameters[key] + '&';
-    } else {
-      finalRedirectTo += key + '=' + queryParameters[key];
-    }
+  const url = new URL(redirectTo);
+  for (const [key, value] of Object.entries(queryParameters)) {
+    url.searchParams.set(key, value);
   }
 
   // add hash tag
   if (hashTag) {
-    finalRedirectTo += '#' + hashTag;
+    url.hash = `#${hashTag}`;
   }
-
-  return finalRedirectTo;
+  return url.href;
 };
 
 export const createEmailRedirectionLink = (
