@@ -1,5 +1,14 @@
 # @nhost/react
 
+## 0.12.5
+
+### Patch Changes
+
+- Updated dependencies [9eb78e06]
+  - @nhost/core@0.7.7
+  - @nhost/hasura-storage-js@0.6.1
+  - @nhost/nhost-js@1.4.12
+
 ## 0.12.4
 
 ### Patch Changes
