@@ -14,6 +14,7 @@ import { sendError } from '@/errors';
 import { Joi, phoneNumber, registrationOptions } from '@/validation';
 import { isVerifySid } from '@/utils/twilio';
 import { logger } from '@/logger';
+import { renderTemplate } from '@/templates';
 
 export type PasswordLessSmsRequestBody = {
   phoneNumber: string;
@@ -97,8 +98,15 @@ export const signInPasswordlessSmsHandler: RequestHandler<
           to: phoneNumber,
         });
     } else {
+      const template = 'signin-passwordless-sms';
+      const message = await renderTemplate(`${template}/text`, {
+        locale: user.locale ?? ENV.AUTH_LOCALE_DEFAULT,
+        displayName: user.displayName,
+        code: otp,
+      });
+
       await twilioClient.messages.create({
-        body: `Your code is ${otp}`,
+        body: message ?? `Your code is ${otp}`,
         from: ENV.AUTH_SMS_TWILIO_MESSAGING_SERVICE_ID,
         to: phoneNumber,
       });
