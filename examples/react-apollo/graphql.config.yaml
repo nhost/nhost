@@ -10,6 +10,12 @@ generates:
       namingConvention:
         typeNames: change-case-all#pascalCase
         transformUnderscore: true
+      scalars:
+        uuid: string
+        bigint: number
+        citext: string
+        timestamptz: string
+
     plugins:
       - typescript
       - typescript-operations

@@ -274,3 +274,11 @@ export type PasswordlessSmsOtpResponse = NhostSessionResponse
 
 /** payload from hasura-auth endpoint /signin/mfa/totp */
 export type SignInMfaTotpResponse = NhostSessionResponse
+
+/** Data of a WebAuthn security key */
+export interface SecurityKey {
+  /** Unique indentifier of the security key */
+  id: string
+  /** Human-readable nickname fof the security key */
+  nickname?: string
+}
