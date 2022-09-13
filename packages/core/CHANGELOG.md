@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.7.7
+
+### Patch Changes
+
+- 9eb78e06: Add `workos` social provider
+
 ## 0.7.6
 
 ### Patch Changes
