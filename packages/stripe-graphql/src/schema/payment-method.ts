@@ -13,8 +13,7 @@ builder.objectType('StripePaymentMethod', {
       nullable: true
     }),
     created: t.exposeInt('created'),
-    customer: t.expose('customer', {
-      type: 'String',
+    customer: t.exposeString('customer', {
       nullable: true
     }),
     livemode: t.exposeBoolean('livemode'),

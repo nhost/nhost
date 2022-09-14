@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 
 import { builder } from '../builder'
-import { StripePaymentMethod } from '../types'
+import { StripePaymentMethod, StripeSubscription } from '../types'
 import { stripe } from '../utils'
 
 import { StripePaymentMethodTypes } from './payment-methods'
@@ -72,7 +72,7 @@ builder.objectType('StripeCustomer', {
         const subscriptions = await stripe.subscriptions.list({
           customer: customer.id
         })
-        return subscriptions
+        return subscriptions as Stripe.Response<Stripe.ApiList<StripeSubscription>>
       }
     }),
     paymentMethods: t.field({

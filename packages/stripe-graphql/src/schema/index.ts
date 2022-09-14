@@ -16,6 +16,8 @@ import './payment-method-card-wallet'
 import './stripe'
 import './subscriptions'
 import './subscription'
+import './invoices'
+import './invoice'
 
 import { builder } from '../builder'
 

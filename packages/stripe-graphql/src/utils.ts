@@ -27,15 +27,11 @@ export const isAllowed = (stripeCustomerId: string, context: Context) => {
   // check if the request is from Hasura
   const nhostWebhookSecretFromHeader = request.headers.get('x-nhost-webhook-secret')
   const nhostWebhookSecret = process.env.NHOST_WEBHOOK_SECRET
+  const role = request.headers.get('x-hasura-role')
 
-  if (nhostWebhookSecretFromHeader === nhostWebhookSecret) {
-    // if the request is from Hsaura, we can trust the `x-hasura-role` header.
-    const role = request.headers.get('x-hasura-role')
-
-    // this is the same as if the request was using the correct admin secret
-    if (role === 'admin') {
-      return true
-    }
+  // if the request is from Hasura, we can trust the `x-hasura-role` header. This is the same as if the request was using the correct admin secret
+  if (role === 'admin' && nhostWebhookSecretFromHeader === nhostWebhookSecret) {
+    return true
   }
 
   return false

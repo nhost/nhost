@@ -18,3 +18,12 @@ export type CreateServerProps = {
 export type StripePaymentMethod = Stripe.PaymentMethod & {
   customer: string | null
 }
+
+export type StripeSubscription = Stripe.Subscription & {
+  customer: string
+}
+
+export type StripeInvoice = Stripe.Invoice & {
+  id: string
+  customer: string
+}
