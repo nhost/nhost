@@ -23,7 +23,7 @@ sequenceDiagram
     opt Sign challenge
         U->>+G: Sign Challenge
         G->>-G: Verfiy user
-        G->>U:
+        G->>U: Success
         Note left of G: Signed Challenge
     end
     U->>+A: HTTP POST /user/webauthn/verify
@@ -52,7 +52,7 @@ sequenceDiagram
     opt Verify user
         U->>+G: Sign Challenge
         G->>-G: Verfiy user
-        G->>U:
+        G->>U: Success
         Note left of G: Signed Challenge
     end
     U->>+A: HTTP POST /signin/webauthn/verify
