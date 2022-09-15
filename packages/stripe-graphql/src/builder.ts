@@ -40,6 +40,9 @@ const builder = new SchemaBuilder<{
     StripeSubscriptionStatus: Stripe.Subscription.Status
     StripeInvoice: StripeInvoice
     StripeInvoices: Stripe.ApiList<StripeInvoice>
+    // StripeInvoceAccountTaxIds: Array<string | Stripe.TaxId | Stripe.DeletedTaxId> | null
+    StripeInvoiceAutomaticTax: Stripe.Invoice.AutomaticTax
+    StripeInvoiceCustomField: Stripe.Invoice.CustomField
   }
   Context: Context
 }>({})

@@ -11,11 +11,14 @@ builder.objectType('StripeInvoice', {
     accountName: t.exposeString('account_name', {
       nullable: true
     }),
+    // accountTaxIds: t.expose('account_tax_ids', {
+    //   type: 'StripeInvoceAccountTaxIds',
+    //   nullable: true
+    // }),
     amountDue: t.exposeInt('amount_due'),
     amountPaid: t.exposeInt('amount_paid'),
     amountRemaining: t.exposeInt('amount_remaining'),
     // todo: application
-    // todo: account tax ids
     applicationFeeAmount: t.exposeInt('application_fee_amount', {
       nullable: true
     }),
@@ -24,12 +27,23 @@ builder.objectType('StripeInvoice', {
     autoAdvance: t.exposeBoolean('auto_advance', {
       nullable: true
     }),
-    // todo: billing reason
+    automaticTax: t.expose('automatic_tax', {
+      type: 'StripeInvoiceAutomaticTax'
+    }),
+    billingReason: t.exposeString('billing_reason', {
+      nullable: true
+    }),
     // todo: charge
-    // todo:collection method
+    collectionMethod: t.exposeString('collection_method', {
+      nullable: true
+    }),
     created: t.exposeInt('created'),
     currency: t.exposeString('currency'),
-    //todo: custom fields
+    // customFields: t.expose('custom_fields', {
+    //   type: 'StripeInvoiceCustomField',
+    //   list: true,
+    //   nullable: true
+    // }),
     customer: t.exposeString('customer'),
     customerAddress: t.expose('customer_address', {
       type: 'StripeAddress',

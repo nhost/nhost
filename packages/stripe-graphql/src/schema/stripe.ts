@@ -13,14 +13,15 @@ builder.objectType('Stripe', {
         })
       },
       resolve: async (_parent, { id }, context) => {
+        if (!id) {
+          throw new GraphQLYogaError('id must be set')
+        }
+
         if (!isAllowed(id, context)) {
           throw new GraphQLYogaError('user is not allowed to see info from this stripe id')
         }
 
         const customer = await stripe.customers.retrieve(id)
-
-        console.log('customer')
-        console.log(customer)
 
         if (customer.deleted) {
           throw new GraphQLYogaError('customer is deleted')

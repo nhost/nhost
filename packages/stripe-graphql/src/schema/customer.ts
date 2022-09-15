@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 
 import { builder } from '../builder'
-import { StripePaymentMethod, StripeSubscription } from '../types'
+import { StripeInvoice, StripePaymentMethod, StripeSubscription } from '../types'
 import { stripe } from '../utils'
 
 import { StripePaymentMethodTypes } from './payment-methods'
@@ -75,6 +75,16 @@ builder.objectType('StripeCustomer', {
         return subscriptions as Stripe.Response<Stripe.ApiList<StripeSubscription>>
       }
     }),
+    invoices: t.field({
+      type: 'StripeInvoices',
+      nullable: false,
+      resolve: async (customer) => {
+        const invoices = await stripe.invoices.list({
+          customer: customer.id
+        })
+        return invoices as Stripe.Response<Stripe.ApiList<StripeInvoice>>
+      }
+    }),
     paymentMethods: t.field({
       type: 'StripePaymentMethods',
       args: {
@@ -95,16 +105,13 @@ builder.objectType('StripeCustomer', {
       },
       nullable: false,
       resolve: async (customer, { type, startingAfter, endingBefore, limit }) => {
-        const paymentMethods = (await stripe.customers.listPaymentMethods(customer.id, {
+        const paymentMethods = await stripe.customers.listPaymentMethods(customer.id, {
           type,
           starting_after: startingAfter || undefined,
           ending_before: endingBefore || undefined,
           limit: limit || undefined
-        })) as Stripe.Response<Stripe.ApiList<StripePaymentMethod>>
-
-        console.log(JSON.stringify(paymentMethods, null, 2))
-
-        return paymentMethods
+        })
+        return paymentMethods as Stripe.Response<Stripe.ApiList<StripePaymentMethod>>
       }
     })
   })

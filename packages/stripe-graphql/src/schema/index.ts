@@ -18,6 +18,8 @@ import './subscriptions'
 import './subscription'
 import './invoices'
 import './invoice'
+import './invoice-automatic-tax'
+import './invoice-custom-field'
 
 import { builder } from '../builder'
 
