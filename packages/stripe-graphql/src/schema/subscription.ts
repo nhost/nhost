@@ -34,11 +34,7 @@ builder.objectType('StripeSubscription', {
     description: t.exposeString('description', {
       nullable: true
     }),
-    // TODO:
-    // discount: t.expose('discount', {
-    //   type: 'StripeDiscount',
-    //   nullable: true
-    // }),
+    // TODO: discount
     endedAt: t.exposeInt('ended_at', {
       nullable: true
     }),
@@ -58,7 +54,7 @@ builder.objectType('StripeSubscription', {
     startDate: t.exposeInt('start_date'),
     // todo: status (enum below)
     // todo: test clock
-    // todo:  transfer data
+    // todo: transfer data
     trialEnd: t.exposeInt('trial_end', {
       nullable: true
     }),
