@@ -72,15 +72,15 @@ URL: `{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
 
 ## Context
 
-You can provide a `context` function to the Stripe GraphQL Server.
-
-You can return `allowedStripeCustomerIds`.
-
-Minimal example:
+Minimal example without a context. Only request using the `x-hasura-admin-secret` header will work:
 
 ```js
 const server = createStripeGraphQLServer()
 ```
+
+You can provide a `context` function to the Stripe GraphQL Server.
+
+You can return `allowedStripeCustomerIds`.
 
 Realistic example:
 
@@ -88,9 +88,11 @@ Realistic example:
 const server = createStripeGraphQLServer({
   context: ({ request }) => {
 
+  // get the user's access token
   const authorizationHeader = request.headers.get('Authorization');
   const accessToken = authorizationHeader?.split(' ')[1];
 
+  // verify the user's access token
   const userFromAccessToken = accessToken
     ? getUserFromAccessToken(accessToken)
     : undefined;
@@ -99,7 +101,7 @@ const server = createStripeGraphQLServer({
     return { };
   }
 
-  // get user's stripe customer ids
+  // get user information
   const { user } = await gqlSDK.getUser({
     id: userFromAccessToken.id,
   });
@@ -108,7 +110,7 @@ const server = createStripeGraphQLServer({
     return { };
   }
 
-  // get allowed stripe customer ids for this user
+  // get user's allowed stripe customer ids
   const allowedStripeCustomerIds = user?.workspaceMembers
     .filter((wm) => {
       return typeof wm.workspace.stripeCustomerId === 'string';
@@ -117,8 +119,7 @@ const server = createStripeGraphQLServer({
       return wm.workspace.stripeCustomerId as string;
     });
 
-    return {, allowedStripeCustomerIds }
-  }
+  return { allowedStripeCustomerIds }
 })
 ```
 
