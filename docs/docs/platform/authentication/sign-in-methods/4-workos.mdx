@@ -1,0 +1,35 @@
+---
+title: Sign In with WorkOS
+sidebar_label: WorkOS
+slug: /platform/authentication/sign-in-with-workos
+image: /img/og/platform/sign-in-with-workos.png
+---
+
+Follow this guide to sign in users with Twitch.
+
+<p align="center">
+  <img
+    alt="WorkOS Sign In Preview"
+    src="/img/social-providers/workos-preview.svg"
+    width={480}
+    height={267}
+  />
+</p>
+
+## Create a WorkOS Account
+
+- Create a new [Twitch account](https://twitch.tv/) if you don't have one already.
+
+## Create a WorkOS Organization
+
+WIP
+
+## Sign In Users
+
+Use the [Nhost JavaScript client](/reference/javascript) to sign in users:
+
+```js
+nhost.auth.signIn({
+  provider: 'workos'
+})
+```
