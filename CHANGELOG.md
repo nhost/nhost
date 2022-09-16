@@ -1,6 +1,18 @@
 
 
-# [0.11.0](https://github.com/nhost/hasura-auth/compare/v0.10.0...v0.11.0) (2022-09-08)
+# [0.12.0](https://github.com/nhost/hasura-auth/compare/v0.11.0...v0.12.0) (2022-09-16)
+
+
+### Bug Fixes
+
+* 🐛 deprecate AUTH_EMAIL_TEMPLATE_FETCH_URL ([4067c03](https://github.com/nhost/hasura-auth/commit/4067c03385962cbde4b6c432a9d50880ebcbc26b))
+* 🐛 don't add custom claims when null/undefined values ([7a129f6](https://github.com/nhost/hasura-auth/commit/7a129f6cf04b880b5cc4b4e7aebee1a44bca4af7))
+* 🐛 don't break reditection with redirectTo and params ([3e55b9e](https://github.com/nhost/hasura-auth/commit/3e55b9e11cee221a04c4ce45167493aa1a37aeb7)), closes [#233](https://github.com/nhost/hasura-auth/issues/233)
+
+
+### Features
+
+* **sms:** support for templates for the sms message ([#217](https://github.com/nhost/hasura-auth/issues/217)) ([e99ec64](https://github.com/nhost/hasura-auth/commit/e99ec64bcaf4831bbc16e85ced86f8bc0166a999))# [0.11.0](https://github.com/nhost/hasura-auth/compare/v0.10.0...v0.11.0) (2022-09-08)
 
 
 ### Bug Fixes
