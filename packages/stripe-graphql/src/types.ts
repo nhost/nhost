@@ -26,4 +26,5 @@ export type StripeSubscription = Stripe.Subscription & {
 export type StripeInvoice = Stripe.Invoice & {
   id: string
   customer: string
+  default_payment_method: StripePaymentMethod | null
 }

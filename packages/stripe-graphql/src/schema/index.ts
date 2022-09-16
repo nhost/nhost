@@ -20,6 +20,11 @@ import './invoices'
 import './invoice'
 import './invoice-automatic-tax'
 import './invoice-custom-field'
+import './invoice-customer-shipping'
+import './invoice-customer-tax-id'
+import './invoice-line-item'
+import './invoice-rendering-options'
+import './invoice-status-transitions'
 
 import { builder } from '../builder'
 

@@ -43,6 +43,11 @@ const builder = new SchemaBuilder<{
     // StripeInvoceAccountTaxIds: Array<string | Stripe.TaxId | Stripe.DeletedTaxId> | null
     StripeInvoiceAutomaticTax: Stripe.Invoice.AutomaticTax
     StripeInvoiceCustomField: Stripe.Invoice.CustomField
+    StripeInvoiceCustomerShipping: Stripe.Invoice.CustomerShipping
+    StripeInvoiceCustomerTaxId: Stripe.Invoice.CustomerTaxId
+    StripeInvoiceLineItem: Stripe.InvoiceLineItem
+    StripeInvoiceRenderingOptions: Stripe.Invoice.RenderingOptions
+    StripeInvoiceStatusTransitions: Stripe.Invoice.StatusTransitions
   }
   Context: Context
 }>({})

@@ -1,4 +1,6 @@
 import { builder } from '../builder'
+import { StripePaymentMethod, StripeSubscription } from '../types'
+import { stripe } from '../utils'
 
 builder.objectType('StripeInvoice', {
   description: '',
@@ -58,12 +60,38 @@ builder.objectType('StripeInvoice', {
     customerPhone: t.exposeString('customer_phone', {
       nullable: true
     }),
-    // todo: customer shipping
-    // todo: customer tax exempt
-    // todo: customer tax ids
-    // todo: default payment method
+    customerShipping: t.expose('customer_shipping', {
+      type: 'StripeInvoiceCustomerShipping',
+      nullable: true
+    }),
+    customerTaxExempt: t.exposeString('customer_tax_exempt', {
+      nullable: true
+    }),
+    // TODO: Why is this not working??
+    // customerTaxIds: t.expose('customer_tax_ids', {
+    //   type: 'StripeInvoiceCustomerTaxId',
+    //   list: true,
+    //   nullable: true
+    // }),
+    defaultPaymentMethod: t.field({
+      type: 'StripePaymentMethod',
+      nullable: true,
+      resolve: async (invoice) => {
+        const { default_payment_method } = invoice
+
+        if (!default_payment_method) {
+          return null
+        }
+
+        const paymentMethod = await stripe.paymentMethods.retrieve(default_payment_method as string)
+
+        return paymentMethod as StripePaymentMethod
+      }
+    }),
     // todo: default source
-    // todo: default tax rates
+    // defaultTaxRates: t.exposeString('default_tax_rates', {
+    //   list: true
+    // }),
     // skipping: deleted
     description: t.exposeString('description', {
       nullable: true
@@ -86,7 +114,11 @@ builder.objectType('StripeInvoice', {
       nullable: true
     }),
     // todo: last finalization error
-    // todo: lines
+    // todo: Why is this not working?
+    // lines: t.expose('lines', {
+    //   type: 'StripeInvoiceLineItem',
+    //   list: true
+    // }),
     livemode: t.exposeBoolean('livemode'),
     // todo: metadata
     nextPaymentAttempt: t.exposeInt('next_payment_attempt', {
@@ -108,14 +140,40 @@ builder.objectType('StripeInvoice', {
     receiptNumber: t.exposeString('receipt_number', {
       nullable: true
     }),
-    // todo: render options
+    renderingOptions: t.expose('rendering_options', {
+      type: 'StripeInvoiceRenderingOptions',
+      description: 'Options for invoice PDF rendering.',
+      nullable: true
+    }),
     startingBalance: t.exposeInt('starting_balance'),
     statementDescriptor: t.exposeString('statement_descriptor', {
       nullable: true
     }),
-    // todo: status
+    status: t.exposeString('status', {
+      description:
+        'The status of the invoice, one of `draft`, `open`, `paid`, `uncollectible`, or `void`. [Learn more](https://stripe.com/docs/billing/invoices/workflow#workflow-overview)',
+      nullable: true
+    }),
     // todo: status transitions
-    // todo: subscription
+    statusTransition: t.expose('status_transitions', {
+      type: 'StripeInvoiceStatusTransitions',
+      nullable: true
+    }),
+    subscription: t.field({
+      type: 'StripeSubscription',
+      nullable: true,
+      resolve: async (invoice) => {
+        const { subscription } = invoice
+
+        if (!subscription) {
+          return null
+        }
+
+        const subscriptionData = await stripe.subscriptions.retrieve(subscription as string)
+
+        return subscriptionData as StripeSubscription
+      }
+    }),
     subscriptionProrationDate: t.exposeInt('subscription_proration_date', {
       nullable: true
     }),
