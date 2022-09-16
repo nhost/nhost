@@ -5,7 +5,7 @@ services:
     environment:
       hasura_graphql_enable_remote_schema_permissions: false
   auth:
-    image: nhost/hasura-auth:0.10.0
+    image: nhost/hasura-auth:0.11.0
   storage:
     image: nhost/hasura-storage:0.2.4
 auth:
@@ -127,6 +127,9 @@ auth:
   mfa:
     enabled: true
     issuer: nhost
+  webauthn:
+    enabled: true
+    rp_name: Nhost React Apollo Example
 storage:
   force_download_for_content_types: text/html,application/javascript
 version: 3

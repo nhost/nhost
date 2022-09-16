@@ -2,6 +2,7 @@ import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
 import {
+  addSecurityKeyPromise,
   AuthClient,
   AuthInterpreter,
   changeEmailPromise,
@@ -15,6 +16,7 @@ import {
   DeanonymizeResponse,
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
+  ErrorPayload,
   INVALID_REFRESH_TOKEN,
   JWTClaims,
   JWTHasuraClaims,
@@ -23,6 +25,7 @@ import {
   resetPasswordPromise,
   ResetPasswordResponse,
   rewriteRedirectTo,
+  SecurityKey,
   sendVerificationEmailPromise,
   SendVerificationEmailResponse,
   signInAnonymousPromise,
@@ -30,6 +33,7 @@ import {
   signInEmailPasswordPromise,
   signInMfaTotpPromise,
   SignInResponse,
+  signInSecurityKeyEmailPromise,
   signInSmsPasswordlessOtpPromise,
   signInSmsPasswordlessPromise,
   signOutPromise,
@@ -173,6 +177,14 @@ export class HasuraAuthClient {
           error: null
         }
       }
+      return { ...getAuthenticationResult(res), mfa: null }
+    }
+
+    if ('email' in params && 'securityKey' in params) {
+      if (params.securityKey !== true) {
+        throw Error('securityKey must be true')
+      }
+      const res = await signInSecurityKeyEmailPromise(interpreter, params.email)
       return { ...getAuthenticationResult(res), mfa: null }
     }
 
@@ -346,6 +358,19 @@ export class HasuraAuthClient {
       return { error }
     }
     throw Error(`Unknown deanonymization method`)
+  }
+
+  /**
+   * Use `nhost.auth.addSecurityKey to add a security key to the user, using the WebAuthn API.
+   * @param nickname optional human-readable nickname for the security key
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/add-security-key
+   */
+  async addSecurityKey(
+    nickname?: string
+  ): Promise<{ error: ErrorPayload | null; key?: SecurityKey }> {
+    const { error, key } = await addSecurityKeyPromise(this._client, nickname)
+    return { error, key }
   }
 
   /**

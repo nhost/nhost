@@ -1,15 +1,16 @@
 import {
   AuthClient,
   AuthOptions,
+  CommonProviderOptions,
   NhostSession,
   PasswordlessOptions,
   Provider,
-  ProviderOptions,
   RedirectOption,
   SignUpOptions,
   StorageGetter,
   StorageSetter,
-  User
+  User,
+  WorkOsOptions
 } from '@nhost/core'
 export type { AuthClient, Provider, StorageGetter, StorageSetter, User }
 export interface NhostAuthConstructorParams extends AuthOptions {
@@ -42,6 +43,11 @@ export interface SignInPasswordlessEmailParams {
   options?: PasswordlessOptions
 }
 
+export interface SignInPasswordlessSecurityKeyParams {
+  email: string
+  securityKey: true
+}
+
 export interface SignInPasswordlessSmsParams {
   phoneNumber: string
   options?: PasswordlessOptions
@@ -51,15 +57,16 @@ export interface SignInPasswordlessSmsOtpParams {
   phoneNumber: string
   otp: string
 }
-export interface SignInWithProviderOptions {
-  provider: Provider
-  options?: ProviderOptions
-}
+
+export type SignInWithProviderOptions =
+  | { provider: Exclude<Provider, 'workos'>; options?: CommonProviderOptions }
+  | { provider: 'workos'; options?: WorkOsOptions }
 
 export type SignInParams =
   | SignInEmailPasswordParams
   | SignInEmailPasswordOtpParams
   | SignInPasswordlessEmailParams
+  | SignInPasswordlessSecurityKeyParams
   | SignInPasswordlessSmsOtpParams
   | SignInPasswordlessSmsParams
   | SignInWithProviderOptions
