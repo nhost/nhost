@@ -15,6 +15,7 @@ const builder = new SchemaBuilder<{
   }
   Objects: {
     Stripe: {}
+    StripeCustomers: Stripe.ApiList<Stripe.Customer>
     StripeCustomer: Stripe.Customer
     StripeCustomerShipping: Stripe.Customer.Shipping
     StripeCustomerTax: Stripe.Customer.Tax

@@ -68,11 +68,10 @@ builder.objectType('StripeInvoice', {
       nullable: true
     }),
     // TODO: Why is this not working??
-    // customerTaxIds: t.expose('customer_tax_ids', {
-    //   type: 'StripeInvoiceCustomerTaxId',
-    //   list: true,
-    //   nullable: true
-    // }),
+    customerTaxIds: t.expose('customer_tax_ids', {
+      type: ['StripeInvoiceCustomerTaxId'],
+      nullable: true
+    }),
     defaultPaymentMethod: t.field({
       type: 'StripePaymentMethod',
       nullable: true,

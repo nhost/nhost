@@ -48,7 +48,7 @@ npm install @nhost/stripe-graphql
 
 ### Serverless Function Setup
 
-Inside a Nhost project, create a file in `functions/graphql/stripe.ts`:
+Create a new [Serverless Function](https://docs.nhost.io/platform/serverless-functions) `functions/graphql/stripe.ts`:
 
 ```js
 import { createStripeGraphQLServer } from '@nhost/stripe-graphql'
@@ -124,7 +124,7 @@ const server = createStripeGraphQLServer({
 
 ## Permissions
 
-Either use `x-hasura-admin-secret` as a header or send `allowedStripeCustomerIds` as context to allow access.
+Either use `x-hasura-admin-secret` (full access) as a header or send `allowedStripeCustomerIds` as context to allow access.
 
 ## Development
 

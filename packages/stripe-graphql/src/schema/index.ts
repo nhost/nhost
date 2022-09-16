@@ -1,5 +1,6 @@
 import './address'
 import './customer'
+import './customers'
 import './customer-shipping'
 import './customer-tax'
 import './customer-tax-location'
