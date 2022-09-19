@@ -53,6 +53,7 @@ user_authenticators {
     bytea credential_public_key
     bigint counter "0"
     text transports "''"
+    text nickname
 }
 
 user_roles {
