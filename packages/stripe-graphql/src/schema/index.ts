@@ -29,6 +29,7 @@ import './invoice-customer-tax-id'
 import './invoice-line-item'
 import './invoice-rendering-options'
 import './invoice-status-transitions'
+import './price'
 
 import { builder } from '../builder'
 

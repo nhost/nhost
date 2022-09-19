@@ -2,7 +2,7 @@ import { createServer, YogaInitialContext } from '@graphql-yoga/node'
 
 import { schema } from './schema'
 import { Context, CreateServerProps } from './types'
-import { getUserClaims, getUserId } from './utils'
+import { getUserClaims } from './utils'
 
 const createStripeGraphQLServer = (params?: CreateServerProps) => {
   const cors = params?.cors

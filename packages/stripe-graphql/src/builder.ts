@@ -65,6 +65,9 @@ const builder = new SchemaBuilder<{
     StripeInvoiceLineItem: Stripe.InvoiceLineItem
     StripeInvoiceRenderingOptions: Stripe.Invoice.RenderingOptions
     StripeInvoiceStatusTransitions: Stripe.Invoice.StatusTransitions
+
+    // PRICE
+    StripePrice: Stripe.Price
   }
   Context: Context
 }>({})
