@@ -1,5 +1,5 @@
 {
-  "name": "@nhost/stripe-graphql",
+  "name": "@nhost/stripe-graphql-js",
   "version": "0.0.1",
   "description": "Stripe GraphQL API",
   "license": "MIT",
