@@ -39,7 +39,9 @@ builder.objectType('StripeCustomer', {
     }),
     // TODO: invoice_settings
     livemode: t.exposeBoolean('livemode'),
-    // TODO: metadata
+    metadata: t.expose('metadata', {
+      type: 'JSON'
+    }),
     name: t.exposeString('name', {
       nullable: true
     }),

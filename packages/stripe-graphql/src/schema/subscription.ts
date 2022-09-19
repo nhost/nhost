@@ -41,7 +41,9 @@ builder.objectType('StripeSubscription', {
     // todo: items
     // todo: latest invoice
     livemode: t.exposeBoolean('livemode'),
-    // todo: metadata
+    metadata: t.expose('metadata', {
+      type: 'JSON'
+    }),
     nextPendingInvoiceItemInvoice: t.exposeInt('next_pending_invoice_item_invoice', {
       nullable: true
     }),
@@ -52,7 +54,7 @@ builder.objectType('StripeSubscription', {
     // pending_update
     // schedule
     startDate: t.exposeInt('start_date'),
-    // todo: status (enum below)
+    status: t.exposeString('status'),
     // todo: test clock
     // todo: transfer data
     trialEnd: t.exposeInt('trial_end', {
@@ -64,14 +66,14 @@ builder.objectType('StripeSubscription', {
   })
 })
 
-export const SubscriptionStatus = builder.enumType('StripeSubscriptionStatus', {
-  values: {
-    ACTIVE: { value: 'active' },
-    CANCELED: { value: 'canceled' },
-    INCOMPLETE: { value: 'incomplete' },
-    INCOMPLETE_EXPIRED: { value: 'incomplete_expired' },
-    PAST_DUE: { value: 'past_due' },
-    TRIALING: { value: 'trialing' },
-    UNPAID: { value: 'unpaid' }
-  } as const
-})
+// export const SubscriptionStatus = builder.enumType('StripeSubscriptionStatus', {
+//   values: {
+//     ACTIVE: { value: 'active' },
+//     CANCELED: { value: 'canceled' },
+//     INCOMPLETE: { value: 'incomplete' },
+//     INCOMPLETE_EXPIRED: { value: 'incomplete_expired' },
+//     PAST_DUE: { value: 'past_due' },
+//     TRIALING: { value: 'trialing' },
+//     UNPAID: { value: 'unpaid' }
+//   } as const
+// })

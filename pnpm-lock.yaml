@@ -723,19 +723,21 @@ importers:
 
   packages/stripe-graphql:
     specifiers:
-      '@graphql-yoga/node': ^2.13.12
-      '@pothos/core': ^3.20.0
+      '@graphql-yoga/node': ^2.13.13
+      '@pothos/core': ^3.21.0
       '@types/node': ^18.7.14
       dotenv: ^16.0.2
       graphql: 15.7.2
-      stripe: ^10.7.0
+      graphql-scalars: ^1.18.0
+      stripe: ^10.10.0
       ts-node-dev: ^2.0.0
       typescript: ^4.8.2
     dependencies:
-      '@graphql-yoga/node': 2.13.12_graphql@15.7.2
-      '@pothos/core': 3.20.0_graphql@15.7.2
+      '@graphql-yoga/node': 2.13.13_graphql@15.7.2
+      '@pothos/core': 3.21.0_graphql@15.7.2
       graphql: 15.7.2
-      stripe: 10.7.0
+      graphql-scalars: 1.18.0_graphql@15.7.2
+      stripe: 10.10.0
     devDependencies:
       '@types/node': 18.7.14
       dotenv: 16.0.2
@@ -5114,8 +5116,8 @@ packages:
     dependencies:
       graphql: 15.7.2
 
-  /@graphql-yoga/common/2.12.11_graphql@15.7.2:
-    resolution: {integrity: sha512-MQ5AFFSwKvi3/nmvT7LYyQscwNMyz7+d2Yxqr8pY25eh7TlHZY45BLtFj4xRlphuogS9HiNEWTWMqhAo2Rxdew==}
+  /@graphql-yoga/common/2.12.12_graphql@15.7.2:
+    resolution: {integrity: sha512-La2ygIw2qlIJZrRGT4nW70Nam7gQ2xZkOn0FDCnKWSJhQ4nHw4aFAkeHIJdZGK0u2TqtXRrNSAj5cb/TZoqUiQ==}
     peerDependencies:
       graphql: ^15.2.0 || ^16.0.0
     dependencies:
@@ -5155,14 +5157,14 @@ packages:
       - encoding
     dev: true
 
-  /@graphql-yoga/node/2.13.12_graphql@15.7.2:
-    resolution: {integrity: sha512-QVlMTSLyOWw1uCsS8Lm4lufGMcQs9R4PIo/LkFU9w9e+NHfFdrU+VaHODU2+3CY5KksIHnX9OmWX9N+3d9rBfA==}
+  /@graphql-yoga/node/2.13.13_graphql@15.7.2:
+    resolution: {integrity: sha512-3NmdEq3BkuVLRbo5yUi401sBiwowSKgY8O1DN1RwYdHRr0nu2dXzlYEETf4XLymyP6mKsVfQgsy7HQjwsc1oNw==}
     peerDependencies:
       graphql: ^15.2.0 || ^16.0.0
     dependencies:
       '@envelop/core': 2.6.0_graphql@15.7.2
       '@graphql-tools/utils': 8.10.1_graphql@15.7.2
-      '@graphql-yoga/common': 2.12.11_graphql@15.7.2
+      '@graphql-yoga/common': 2.12.12_graphql@15.7.2
       '@graphql-yoga/subscription': 2.2.3
       '@whatwg-node/fetch': 0.3.2
       graphql: 15.7.2
@@ -6173,8 +6175,8 @@ packages:
     resolution: {integrity: sha512-9X2obfABZuDVLCgPK9aX0a/x4jaOEweTTWE2+9sr0Qqqevj2Uv5XorvusThmc9XGYpS9yI+fhh8RTafBtGposw==}
     dev: false
 
-  /@pothos/core/3.20.0_graphql@15.7.2:
-    resolution: {integrity: sha512-BfWnHJvOMtESg8syGJWvon26xnF8xVEjzUICnByae9ZHNNCPkRJ3kYSrmCGD46d7QSeaT/DQc/moHa01mnyqww==}
+  /@pothos/core/3.21.0_graphql@15.7.2:
+    resolution: {integrity: sha512-ZyXtLAzYnMplmeGiUYvHV991fCKof9zVtWdXUS6k6eQEjeBkeW/oCYhKZGBYKZhMExn/TRj48tR54bT1DpPMzA==}
     peerDependencies:
       graphql: '>=15.1.0'
     dependencies:
@@ -14013,6 +14015,16 @@ packages:
       - encoding
     dev: true
 
+  /graphql-scalars/1.18.0_graphql@15.7.2:
+    resolution: {integrity: sha512-XrMwSim4xJ5n1UdT3YMJh9uT3oB/th5jR5bIMJvYxmgq/rGDkfXNtCRSL/+dLMHxGM0thYPfIZDua1+aQlKBMA==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0
+    dependencies:
+      graphql: 15.7.2
+      tslib: 2.4.0
+    dev: false
+
   /graphql-tag/2.12.6_graphql@15.7.2:
     resolution: {integrity: sha512-FdSNcu2QQcWnM2VNvSCCDCVS5PpPqpzgFT8+GXzqJuoDd0CBncxCY278u4mhRO7tMgo2JjgJA5aZ+nWSQ/Z+xg==}
     engines: {node: '>=10'}
@@ -20284,8 +20296,8 @@ packages:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
 
-  /stripe/10.7.0:
-    resolution: {integrity: sha512-yCd8xTPaPLps7BYJL3FuBwza6A4TcYvE074bCEpN5xJUYBUYN4lly0F275HkUa7QODXn8UjO93oIanV/L6O14w==}
+  /stripe/10.10.0:
+    resolution: {integrity: sha512-CINNkuDEmF1rsHoTKS39iZ641NFONKZKllUioeQkRpz7qYPJayp7Xl/V30vbM2n5CTJo3X0FmZ2CychThfPTDA==}
     engines: {node: ^8.1 || >=10.*}
     dependencies:
       '@types/node': 18.7.14

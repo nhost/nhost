@@ -17,11 +17,9 @@ builder.objectType('StripePaymentMethod', {
       nullable: true
     }),
     livemode: t.exposeBoolean('livemode'),
-    // TODO
-    // metadata: t.expose('metadata', {
-    //   type: 'StripeMetadata',
-    //   nullable: true
-    // }),
+    metadata: t.expose('metadata', {
+      type: 'JSON'
+    }),
     type: t.expose('type', { type: 'StripePaymentMethodTypes' })
   })
 })

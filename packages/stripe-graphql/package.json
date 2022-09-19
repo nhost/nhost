@@ -40,10 +40,11 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "dependencies": {
-    "@graphql-yoga/node": "^2.13.12",
-    "@pothos/core": "^3.20.0",
-    "graphql": "15.7.2",
-    "stripe": "^10.7.0"
+    "@graphql-yoga/node": "^2.13.13",
+    "@pothos/core": "^3.21.0",
+    "graphql": "16.6.0",
+    "graphql-scalars": "^1.18.0",
+    "stripe": "^10.10.0"
   },
   "devDependencies": {
     "@types/node": "^18.7.14",

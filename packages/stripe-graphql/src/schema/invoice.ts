@@ -119,7 +119,9 @@ builder.objectType('StripeInvoice', {
     //   list: true
     // }),
     livemode: t.exposeBoolean('livemode'),
-    // todo: metadata
+    metadata: t.expose('metadata', {
+      type: 'JSON'
+    }),
     nextPaymentAttempt: t.exposeInt('next_payment_attempt', {
       nullable: true
     }),
