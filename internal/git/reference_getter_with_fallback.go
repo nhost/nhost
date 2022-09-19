@@ -41,7 +41,7 @@ func gitFolderLookup() (string, error) {
 	for {
 		gitPath := path + "/.git"
 		if util.PathExists(gitPath) {
-			return gitPath, nil
+			return path, nil
 		}
 
 		// If we are at the root, stop looking
