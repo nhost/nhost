@@ -1,3 +1,7 @@
+<h1>⚠️ Work In Progress ⚠️</h1>
+
+> This package being actively worked and is not stable.
+
 <h1 align="center">@nhost/stripe-graphql</h1>
 <h2 align="center">Stripe GraphQL</h2>
 
