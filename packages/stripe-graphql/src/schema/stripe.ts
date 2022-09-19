@@ -1,7 +1,7 @@
 import { GraphQLYogaError } from '@graphql-yoga/node'
 
 import { builder } from '../builder'
-import { isAllowed, stripe } from '../utils'
+import { stripe } from '../utils'
 
 builder.objectType('Stripe', {
   fields: (t) => ({
@@ -13,6 +13,8 @@ builder.objectType('Stripe', {
         })
       },
       resolve: async (_parent, { id }, context) => {
+        const { isAllowed } = context
+
         if (!id) {
           throw new GraphQLYogaError('id must be set')
         }
@@ -55,6 +57,8 @@ builder.objectType('Stripe', {
         })
       },
       resolve: async (_parent, { email, endingBefore, limit, startingAfter }, context) => {
+        const { isAllowed } = context
+
         const customers = await stripe.customers.list({
           email: email || undefined,
           limit: limit || undefined,

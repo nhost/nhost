@@ -44,9 +44,11 @@
     "@pothos/core": "^3.21.0",
     "graphql": "16.6.0",
     "graphql-scalars": "^1.18.0",
+    "jsonwebtoken": "^8.5.1",
     "stripe": "^10.10.0"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^8.5.9",
     "@types/node": "^18.7.14",
     "dotenv": "^16.0.2",
     "ts-node-dev": "^2.0.0",

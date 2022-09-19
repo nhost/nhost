@@ -1,11 +1,17 @@
-import { createStripeGraphQLServer } from '../src/index'
+import { Context, createStripeGraphQLServer } from '../src/index'
+
+const isAllowed = (stripeCustomerId: string, context: Context) => {
+  const { isAdmin } = context
+
+  if (isAdmin) {
+    return true
+  }
+
+  return false
+}
 
 const server = createStripeGraphQLServer({
-  context: (context) => {
-    return {
-      ...context
-    }
-  }
+  isAllowed
 })
 
 server.start()

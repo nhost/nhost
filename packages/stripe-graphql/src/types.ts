@@ -3,14 +3,16 @@ import type Stripe from 'stripe'
 import type { CORSOptions, YogaInitialContext } from '@graphql-yoga/node'
 
 export type StripeGraphQLContext = {
-  allowedCustomerIds?: string[]
+  isAllowed: (stripeCustomerId: string, context: Context) => boolean
+  userId?: string
+  isAdmin: boolean
 }
 
 export type Context = YogaInitialContext & StripeGraphQLContext
 
 export type CreateServerProps = {
   cors?: CORSOptions
-  context: (params: YogaInitialContext) => Context
+  isAllowed?: (stripeCustomerId: string, context: Context) => boolean
 }
 
 // removing Stripe.Customer from `customer` because we will never expand

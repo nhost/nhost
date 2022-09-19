@@ -38,7 +38,9 @@ builder.objectType('StripeSubscription', {
     endedAt: t.exposeInt('ended_at', {
       nullable: true
     }),
-    // todo: items
+    items: t.expose('items', {
+      type: 'StripeSubscriptionItems'
+    }),
     // todo: latest invoice
     livemode: t.exposeBoolean('livemode'),
     metadata: t.expose('metadata', {
