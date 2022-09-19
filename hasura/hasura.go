@@ -129,6 +129,7 @@ func Binary(customBinary string) (string, error) {
 	}
 
 	status.Executing(fmt.Sprintf("Downloading %s binary for %s-%s", binary, runtime.GOOS, runtime.GOARCH))
+  log.Debugf("Downloading hasura cli from '%s'", url)
 
 	resp, err := http.Get(url)
 	if err != nil {
