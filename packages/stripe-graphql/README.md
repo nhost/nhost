@@ -3,7 +3,7 @@
 > This package being actively worked and is not stable.
 
 <h1 align="center">@nhost/stripe-graphql</h1>
-<h2 align="center">Stripe GraphQL</h2>
+<h2 align="center">Stripe GraphQL API</h2>
 
 <p align="center">
   <img alt="npm" src="https://img.shields.io/npm/v/@nhost/stripe-graphql">
@@ -26,7 +26,7 @@ query {
     userData {
       stripeCustomerId # Customer's Stripe Customer Id
       stripeCustomer {
-        # Data directly from Stripe
+        # Data from Stripe
         id
         name
         paymentMethods {
@@ -76,7 +76,7 @@ URL: `{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
 
 ## Context
 
-Minimal example without a context. Only request using the `x-hasura-admin-secret` header will work:
+Minimal example without a context. Only requests using the `x-hasura-admin-secret` header will work:
 
 ```js
 const server = createStripeGraphQLServer()

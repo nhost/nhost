@@ -1,13 +1,14 @@
 {
-  "name": "@nhost/graphql-stripe",
+  "name": "@nhost/stripe-graphql",
   "version": "0.0.1",
-  "description": "Stripe GraphQL API for Nhost",
+  "description": "Stripe GraphQL API",
   "license": "MIT",
   "keywords": [
-    "nhost",
-    "hasura",
+    "stripe",
     "graphql",
-    "stripe"
+    "api",
+    "nhost",
+    "hasura"
   ],
   "author": "Nhost",
   "homepage": "https://nhost.io",
