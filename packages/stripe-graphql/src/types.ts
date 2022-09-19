@@ -4,7 +4,7 @@ import type { CORSOptions, YogaInitialContext } from '@graphql-yoga/node'
 
 export type StripeGraphQLContext = {
   isAllowed: (stripeCustomerId: string, context: Context) => boolean
-  userId?: string
+  userClaims?: UserHasuraClaims
   isAdmin: boolean
 }
 
@@ -29,4 +29,12 @@ export type StripeInvoice = Stripe.Invoice & {
   id: string
   customer: string
   default_payment_method: StripePaymentMethod | null
+}
+
+export type UserHasuraClaims = {
+  'x-hasura-user-id': string
+  'x-hasura-default-role': string
+  'x-hasura-allowed-roles': string[]
+} & {
+  [key: string]: string // had to add this here to avoide adding `| string[]` at the end here.
 }

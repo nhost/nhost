@@ -2,7 +2,7 @@ import { createServer, YogaInitialContext } from '@graphql-yoga/node'
 
 import { schema } from './schema'
 import { Context, CreateServerProps } from './types'
-import { getUserId } from './utils'
+import { getUserClaims, getUserId } from './utils'
 
 const createStripeGraphQLServer = (params?: CreateServerProps) => {
   const cors = params?.cors
@@ -12,7 +12,7 @@ const createStripeGraphQLServer = (params?: CreateServerProps) => {
     const { request } = context
 
     // user id
-    const userId = getUserId(request)
+    const userClaims = getUserClaims(request)
 
     // check if using correct `x-hasura-admin-secret` header
     const adminSecretFromHeader = request.headers.get('x-hasura-admin-secret')
@@ -39,7 +39,7 @@ const createStripeGraphQLServer = (params?: CreateServerProps) => {
     return {
       ...context,
       isAllowed: isAllowedFunction,
-      userId,
+      userClaims,
       isAdmin
     }
   }
