@@ -43,8 +43,6 @@ builder.objectType('StripeSubscription', {
       resolve: async (subscription) => {
         const { default_payment_method } = subscription
         if (!default_payment_method) {
-          console.log('no default payment method')
-
           return null
         }
 

@@ -74,8 +74,6 @@ builder.objectType('StripeCustomer', {
         const subscriptions = await stripe.subscriptions.list({
           customer: customer.id
         })
-        console.log(JSON.stringify(subscriptions, null, 2))
-
         return subscriptions as Stripe.Response<Stripe.ApiList<StripeSubscription>>
       }
     }),

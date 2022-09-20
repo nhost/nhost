@@ -112,7 +112,9 @@ builder.objectType('StripeInvoice', {
       nullable: true
     }),
     // todo: last finalization error
-    // todo: lines
+    lines: t.expose('lines', {
+      type: 'StripeInvoiceLineItems'
+    }),
     livemode: t.exposeBoolean('livemode'),
     metadata: t.expose('metadata', {
       type: 'JSON'

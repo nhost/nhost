@@ -20,7 +20,39 @@ builder.objectType('StripeInvoiceLineItem', {
         'The ID of the [invoice item](https://stripe.com/docs/api/invoiceitems) associated with this line item if any.',
       nullable: true
     }),
-
-    type: t.exposeString('type')
+    livemode: t.exposeBoolean('livemode'),
+    metadata: t.expose('metadata', {
+      type: 'JSON'
+    }),
+    period: t.expose('period', {
+      type: 'StripeInvoiceLineItemPeriod'
+    }),
+    plan: t.expose('plan', {
+      type: 'StripePlan',
+      nullable: true
+    }),
+    price: t.expose('price', {
+      type: 'StripePrice',
+      nullable: true
+    }),
+    proration: t.exposeBoolean('proration'),
+    // todo: proration details
+    quantity: t.exposeInt('quantity', {
+      nullable: true
+    }),
+    // todo: subscription field + resolver
+    // todo: subscription_item field + resolver
+    taxAmount: t.expose('tax_amounts', {
+      type: ['StripeInvoiceLineItemTaxAmount'],
+      nullable: true
+    }),
+    taxRates: t.expose('tax_rates', {
+      type: ['StripeTaxRate'],
+      nullable: true
+    }),
+    type: t.exposeString('type'),
+    unitAmountExcludingTax: t.exposeString('unit_amount_excluding_tax', {
+      nullable: true
+    })
   })
 })

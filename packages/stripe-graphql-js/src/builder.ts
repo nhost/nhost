@@ -66,9 +66,14 @@ const builder = new SchemaBuilder<{
     StripeInvoiceCustomField: Stripe.Invoice.CustomField
     StripeInvoiceCustomerShipping: Stripe.Invoice.CustomerShipping
     StripeInvoiceCustomerTaxId: Stripe.Invoice.CustomerTaxId
-    StripeInvoiceLineItem: Stripe.InvoiceLineItem
     StripeInvoiceRenderingOptions: Stripe.Invoice.RenderingOptions
     StripeInvoiceStatusTransitions: Stripe.Invoice.StatusTransitions
+
+    // INVOICE LINE ITEM
+    StripeInvoiceLineItems: Stripe.ApiList<Stripe.InvoiceLineItem>
+    StripeInvoiceLineItem: Stripe.InvoiceLineItem
+    StripeInvoiceLineItemPeriod: Stripe.InvoiceLineItem.Period
+    StripeInvoiceLineItemTaxAmount: Stripe.InvoiceLineItem.TaxAmount
 
     // PRICE
     StripePrice: Stripe.Price
