@@ -1,7 +1,7 @@
 import { RequestHandler } from 'express';
 
 import { getSignInResponse, getUserByEmail, ENV } from '@/utils';
-import { UserRegistrationOptions } from '@/types';
+import { UserRegistrationOptionsWithRedirect } from '@/types';
 import { sendError } from '@/errors';
 import { Joi, email, passwordInsert, registrationOptions } from '@/validation';
 import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
@@ -18,9 +18,7 @@ export const signUpEmailPasswordHandler: RequestHandler<
   {
     email: string;
     password: string;
-    options: UserRegistrationOptions & {
-      redirectTo: string;
-    };
+    options: UserRegistrationOptionsWithRedirect;
   }
 > = async (req, res) => {
   const { body } = req;

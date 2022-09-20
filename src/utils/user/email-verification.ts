@@ -3,7 +3,7 @@ import { generateTicketExpiresAt } from '../ticket';
 import { v4 as uuidv4 } from 'uuid';
 import { insertUser } from './insert';
 import { getGravatarUrl } from '../avatar';
-import { EMAIL_TYPES, UserRegistrationOptions } from '@/types';
+import { EMAIL_TYPES, UserRegistrationOptionsWithRedirect } from '@/types';
 import { hashPassword } from '../password';
 import { emailClient } from '@/email';
 import { createEmailRedirectionLink } from '../redirect';
@@ -22,7 +22,7 @@ const sendEmailIfNotVerified = async ({
   newEmail: string;
   user: NonNullable<UserQuery['user']>;
   displayName: string;
-  ticket: string;
+  ticket?: string | null;
   redirectTo: string;
 }) => {
   if (
@@ -30,6 +30,10 @@ const sendEmailIfNotVerified = async ({
     ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED &&
     !user.emailVerified
   ) {
+    if (!ticket) {
+      throw Error(`No ticket found for the user ${user.id}`);
+    }
+
     const template = 'email-verify';
     const link = createEmailRedirectionLink(
       EMAIL_TYPES.VERIFY,
@@ -78,9 +82,7 @@ const sendEmailIfNotVerified = async ({
 
 export const createUserAndSendVerificationEmail = async (
   email: string,
-  options: UserRegistrationOptions & {
-    redirectTo: string;
-  },
+  options: UserRegistrationOptionsWithRedirect,
   password?: string
 ) => {
   const {
@@ -95,20 +97,12 @@ export const createUserAndSendVerificationEmail = async (
   const existingUser = await getUserByEmail(email);
 
   if (existingUser) {
-    if (
-      !existingUser.ticket &&
-      !existingUser.emailVerified &&
-      ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED
-    ) {
-      throw Error(`No ticket found for the user ${existingUser.id}`);
-    }
-
     await sendEmailIfNotVerified({
       email,
       newEmail: email,
       user: existingUser,
       displayName,
-      ticket: existingUser.ticket!,
+      ticket: existingUser.ticket,
       redirectTo,
     });
 

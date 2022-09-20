@@ -88,6 +88,7 @@ users {
     text ticket "nullable"
     timestamptz ticket_expires_at "now()"
     jsonb metadata "nullable"
+    text webauthn_current_challenge
 }
 
 roles {

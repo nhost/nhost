@@ -1,6 +1,5 @@
 import { RequestHandler } from 'express';
 import {
-  generateRegistrationOptions,
   VerifiedRegistrationResponse,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
@@ -11,7 +10,13 @@ import {
 
 import { Joi } from '@/validation';
 import { sendError } from '@/errors';
-import { ENV, getUser, gqlSdk, getWebAuthnRelyingParty } from '@/utils';
+import {
+  ENV,
+  getUser,
+  gqlSdk,
+  getWebAuthnRelyingParty,
+  generateWebAuthnRegistrationOptions,
+} from '@/utils';
 import { AuthUserAuthenticators_Insert_Input } from '@/utils/__generated__/graphql-request';
 
 export type AddAuthenticatorRequestBody = {
@@ -38,28 +43,7 @@ export const addAuthenticatorHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const userAuthenticators = await gqlSdk
-    .getUserAuthenticators({
-      id: user.id,
-    })
-    .then((gqlres) => gqlres.authUserAuthenticators);
-
-  const registrationOptions = generateRegistrationOptions({
-    rpID: getWebAuthnRelyingParty(),
-    rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
-    userID: user.id,
-    userName: user.displayName ?? user.email,
-    attestationType: 'indirect',
-    excludeCredentials: userAuthenticators.map((authenticator) => ({
-      id: Buffer.from(authenticator.credentialId, 'base64url'),
-      type: 'public-key',
-    })),
-  });
-
-  await gqlSdk.updateUserChallenge({
-    userId: user.id,
-    challenge: registrationOptions.challenge,
-  });
+  const registrationOptions = await generateWebAuthnRegistrationOptions(user);
 
   return res.send(registrationOptions);
 };

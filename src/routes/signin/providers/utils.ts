@@ -29,16 +29,16 @@ import {
   getGravatarUrl,
   ENV,
 } from '@/utils';
-import { SocialProvider, UserRegistrationOptions } from '@/types';
+import {
+  SocialProvider,
+  UserRegistrationOptions,
+  UserRegistrationOptionsWithRedirect,
+} from '@/types';
 import { decodeJwt, JWTPayload } from 'jose';
 
 export const providerCallbackQuerySchema = Joi.object({
   state: uuid.required(),
 }).unknown(true);
-
-type ProviderQuery = UserRegistrationOptions & {
-  redirectTo: string;
-};
 
 type ProviderCallbackQuery = Record<string, unknown> & {
   state: string;
@@ -406,7 +406,7 @@ export const initProvider = <T extends Strategy>(
     queryValidator(registrationOptions),
     asyncWrapper(
       async (
-        req: RequestWithState<ProviderQuery>,
+        req: RequestWithState<UserRegistrationOptionsWithRedirect>,
         res: Response,
         next: NextFunction
       ) => {
@@ -423,7 +423,10 @@ export const initProvider = <T extends Strategy>(
       }
     ),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (req: RequestWithState<ProviderQuery>, ...rest: any) => {
+    (
+      req: RequestWithState<UserRegistrationOptionsWithRedirect>,
+      ...rest: unknown[]
+    ) => {
       return passport.authenticate(strategyName, {
         session: false,
         state: req.state,

@@ -12,15 +12,13 @@ import {
   createEmailRedirectionLink,
 } from '@/utils';
 import { emailClient } from '@/email';
-import { EMAIL_TYPES, UserRegistrationOptions } from '@/types';
+import { EMAIL_TYPES, UserRegistrationOptionsWithRedirect } from '@/types';
 import { sendError } from '@/errors';
 import { Joi, email, registrationOptions } from '@/validation';
 
 export type PasswordLessEmailRequestBody = {
   email: string;
-  options: UserRegistrationOptions & {
-    redirectTo: string;
-  };
+  options: UserRegistrationOptionsWithRedirect;
 };
 
 export const signInPasswordlessEmailSchema =
