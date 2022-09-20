@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, Modal, TextInput } from '@mantine/core'
+import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { useSignInSecurityKeyEmail } from '@nhost/react'
 
@@ -28,7 +28,7 @@ export const SecurityKey: React.FC = () => {
   }
 
   return (
-    <form onSubmit={signIn}>
+    <SimpleGrid cols={1} spacing={6}>
       <Modal
         title="Awaiting email verification"
         transition="fade"
@@ -42,17 +42,18 @@ export const SecurityKey: React.FC = () => {
         You need to verify your email first. Please check your mailbox and follow the confirmation
         link to complete the registration.
       </Modal>
-      <TextInput
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email Address"
-        size="lg"
-        autoFocus
-        style={{ marginBottom: '0.5em' }}
-      />
-      <Button fullWidth type="submit">
-        Sign in with a security key
-      </Button>
-    </form>
+      <form onSubmit={signIn}>
+        <TextInput
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="Email Address"
+          autoFocus
+          style={{ marginBottom: '0.5em' }}
+        />
+        <Button fullWidth type="submit">
+          Sign in with a security key
+        </Button>
+      </form>
+    </SimpleGrid>
   )
 }
