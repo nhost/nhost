@@ -20,6 +20,9 @@ import './subscription'
 import './subscription-items'
 import './subscription-item'
 import './subscription-item-billing-thresholds'
+import './subscription-automatic-tax'
+import './subscription-billing-thresholds'
+import './subscription-pause-collection'
 import './invoices'
 import './invoice'
 import './invoice-automatic-tax'
@@ -29,10 +32,14 @@ import './invoice-customer-tax-id'
 import './invoice-line-item'
 import './invoice-rendering-options'
 import './invoice-status-transitions'
+import './plan'
+import './plan-transform-usage'
 import './price'
+import './product'
+import './tax-rate'
+import './test-clock'
+import './billing-portal-session'
 
 import { builder } from '../builder'
 
-const schema = builder.toSchema()
-
-export { schema }
+export const schema = builder.toSchema()

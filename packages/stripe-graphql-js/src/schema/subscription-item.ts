@@ -13,8 +13,12 @@ builder.objectType('StripeSubscriptionItem', {
     metadata: t.expose('metadata', {
       type: 'JSON'
     }),
-    // todo: plan
-    // todo: price
+    plan: t.expose('plan', {
+      type: 'StripePlan'
+    }),
+    price: t.expose('price', {
+      type: 'StripePrice'
+    }),
     quantity: t.exposeInt('quantity', {
       nullable: true
     }),

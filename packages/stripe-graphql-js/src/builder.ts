@@ -16,6 +16,7 @@ const builder = new SchemaBuilder<{
   }
   Objects: {
     Stripe: {}
+    StripeMutations: {}
 
     // CUSTOMER
     StripeCustomers: Stripe.ApiList<Stripe.Customer>
@@ -53,6 +54,9 @@ const builder = new SchemaBuilder<{
     StripeSubscriptionItems: Stripe.ApiList<Stripe.SubscriptionItem>
     StripeSubscriptionItem: Stripe.SubscriptionItem
     StripeSubscriptionItemBillingThresholds: Stripe.SubscriptionItem.BillingThresholds
+    StripeSubscriptionAutomaticTax: Stripe.Subscription.AutomaticTax
+    StripeSubscriptionBillingThresholds: Stripe.Subscription.BillingThresholds
+    StripeSubscriptionPauseCollection: Stripe.Subscription.PauseCollection
 
     // INVOICE
     StripeInvoice: StripeInvoice
@@ -68,12 +72,28 @@ const builder = new SchemaBuilder<{
 
     // PRICE
     StripePrice: Stripe.Price
+
+    // PLAN
+    StripePlan: Stripe.Plan
+    StripePlanTransformUsage: Stripe.Plan.TransformUsage
+
+    // PRODUCT
+    StripeProduct: Stripe.Product
+
+    // TAX RATES
+    StripeTaxRate: Stripe.TaxRate
+
+    // TEST CLOCK
+    StripeTestClock: Stripe.TestHelpers.TestClock
+
+    // BILLING PORTAL
+    StripeBillingPortalSession: Stripe.BillingPortal.Session
   }
   Context: Context
 }>({})
 
 builder.queryType()
-// builder.mutationType()
+builder.mutationType()
 
 builder.addScalarType('JSON', GraphQLJSONObject, {})
 

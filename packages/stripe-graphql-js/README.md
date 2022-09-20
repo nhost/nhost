@@ -127,7 +127,7 @@ const isAllowed = (stripeCustomerId: string, context: Context) => {
 The `context` object contains:
 
 - `userClaims` - verified JWT claims from the user's access token.
-- `isAdmin` - `true` if the request was made using a valid `x-hasura-admin-secret`.
+- `isAdmin` - `true` if the request was made using a valid `x-hasura-admin-secret` header.
 - `request` - [Fetch API Request object](https://developer.mozilla.org/en-US/docs/Web/API/Request) that represents the incoming HTTP request in platform-independent way. It can be useful for accessing headers to authenticate a user
 - `query` - the DocumentNode that was parsed from the GraphQL query string
 - `operationName` - the operation name selected from the incoming query

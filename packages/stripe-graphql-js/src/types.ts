@@ -23,6 +23,7 @@ export type StripePaymentMethod = Stripe.PaymentMethod & {
 
 export type StripeSubscription = Stripe.Subscription & {
   customer: string
+  test_clock: string | null
 }
 
 export type StripeInvoice = Stripe.Invoice & {

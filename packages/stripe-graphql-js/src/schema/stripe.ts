@@ -1,3 +1,5 @@
+import Stripe from 'stripe'
+
 import { GraphQLYogaError } from '@graphql-yoga/node'
 
 import { builder } from '../builder'
@@ -14,10 +16,6 @@ builder.objectType('Stripe', {
       },
       resolve: async (_parent, { id }, context) => {
         const { isAllowed } = context
-
-        if (!id) {
-          throw new GraphQLYogaError('The id argument must be set for the stripe customer')
-        }
 
         if (!isAllowed(id, context)) {
           throw new GraphQLYogaError('Not allowed')
@@ -76,9 +74,54 @@ builder.objectType('Stripe', {
   })
 })
 
+builder.objectType('StripeMutations', {
+  fields: (t) => ({
+    createBillingPortalSession: t.field({
+      type: 'StripeBillingPortalSession',
+      args: {
+        customer: t.arg.string({
+          required: true
+        }),
+        configuration: t.arg.string({
+          required: false
+        }),
+        locale: t.arg.string({
+          required: false
+        }),
+        returnUrl: t.arg.string({
+          required: false
+        })
+      },
+      resolve: async (_, { customer, configuration, locale, returnUrl }, context) => {
+        const { isAllowed } = context
+
+        if (!isAllowed(customer, context)) {
+          throw new GraphQLYogaError('Not allowed')
+        }
+
+        const session = await stripe.billingPortal.sessions.create({
+          customer,
+          configuration: configuration || undefined,
+          locale: (locale as Stripe.BillingPortal.SessionCreateParams.Locale) || undefined,
+          return_url: returnUrl || undefined
+        })
+
+        return session
+      }
+    })
+  })
+})
+
 builder.queryFields((t) => ({
   stripe: t.field({
     type: 'Stripe',
+    resolve: () => ({})
+  })
+}))
+
+builder.mutationFields((t) => ({
+  stripe: t.field({
+    type: 'StripeMutations',
     resolve: () => ({})
   })
 }))

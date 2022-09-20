@@ -67,7 +67,6 @@ builder.objectType('StripeInvoice', {
     customerTaxExempt: t.exposeString('customer_tax_exempt', {
       nullable: true
     }),
-    // TODO: Why is this not working??
     customerTaxIds: t.expose('customer_tax_ids', {
       type: ['StripeInvoiceCustomerTaxId'],
       nullable: true
@@ -113,11 +112,7 @@ builder.objectType('StripeInvoice', {
       nullable: true
     }),
     // todo: last finalization error
-    // todo: Why is this not working?
-    // lines: t.expose('lines', {
-    //   type: 'StripeInvoiceLineItem',
-    //   list: true
-    // }),
+    // todo: lines
     livemode: t.exposeBoolean('livemode'),
     metadata: t.expose('metadata', {
       type: 'JSON'
