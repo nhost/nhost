@@ -422,7 +422,6 @@ export const initProvider = <T extends Strategy>(
         next();
       }
     ),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (
       req: RequestWithState<UserRegistrationOptionsWithRedirect>,
       ...rest: unknown[]
