@@ -13,29 +13,27 @@ import { AuthUserAuthenticators_Insert_Input } from './__generated__/graphql-req
 export const getWebAuthnRelyingParty = () =>
   ENV.AUTH_SERVER_URL && new URL(ENV.AUTH_SERVER_URL).hostname;
 
-export const generateWebAuthnRegistrationOptions = async (
-  user: Pick<User, 'id' | 'displayName' | 'email'>
-) => {
-  const authenticators = await gqlSdk
-    .getUserAuthenticators({
-      id: user.id,
-    })
-    .then((gqlres) => gqlres.authUserAuthenticators);
+export const generateWebAuthnRegistrationOptions = async ({
+  id,
+  email,
+  displayName,
+}: Pick<User, 'id' | 'displayName' | 'email'>) => {
+  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({ id });
 
   const options = generateRegistrationOptions({
     rpID: getWebAuthnRelyingParty(),
     rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
-    userID: user.id,
-    userName: user.displayName ?? user.email,
+    userID: id,
+    userName: displayName ?? email,
     attestationType: 'indirect',
-    excludeCredentials: authenticators.map((authenticator) => ({
+    excludeCredentials: authUserAuthenticators.map((authenticator) => ({
       id: Buffer.from(authenticator.credentialId, 'base64url'),
       type: 'public-key',
     })),
   });
 
   await gqlSdk.updateUserChallenge({
-    userId: user.id,
+    userId: id,
     challenge: options.challenge,
   });
 
@@ -62,7 +60,7 @@ export const verifyWebAuthnRegistration = async (
   let verification: VerifiedRegistrationResponse;
   try {
     verification = await verifyRegistrationResponse({
-      credential: credential,
+      credential,
       expectedChallenge: currentChallenge,
       expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
       expectedRPID: getWebAuthnRelyingParty(),
@@ -98,7 +96,7 @@ export const verifyWebAuthnRegistration = async (
 
   const { insertAuthUserAuthenticator } = await gqlSdk.addUserAuthenticator({
     userAuthenticator: {
-      userId: user.id,
+      userId: id,
       ...newAuthenticator,
     },
   });
@@ -110,7 +108,7 @@ export const verifyWebAuthnRegistration = async (
   }
 
   await gqlSdk.updateUser({
-    id: user.id,
+    id,
     user: {
       currentChallenge: null,
     },

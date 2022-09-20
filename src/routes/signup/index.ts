@@ -7,6 +7,7 @@ import {
 } from './email-password';
 import { bodyValidator } from '@/validation';
 import {
+  signInVerifyWebauthnHandler,
   signUpVerifyWebauthnSchema,
   signUpWebauthnHandler,
   signUpWebauthnSchema,
@@ -58,7 +59,7 @@ router.post(
 router.post(
   '/signup/webauthn/verify',
   bodyValidator(signUpVerifyWebauthnSchema),
-  aw(signUpWebauthnHandler)
+  aw(signInVerifyWebauthnHandler)
 );
 
 const signUpRouter = router;
