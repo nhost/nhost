@@ -48,7 +48,7 @@ func cliIsOutdated(existingCliPath, expectedVersion string) (bool, error) {
 
 	// get a version of the existing CLI
 	cmd := exec.Command(existingCliPath, "version", "--skip-update-check")
-	out, err := cmd.CombinedOutput()
+	out, err := cmd.Output()
 	if err != nil {
 		return false, err
 	}
@@ -77,10 +77,18 @@ func Binary(customBinary string) (string, error) {
 		return "", err
 	}
 
-	binaryPath := customBinary
-    if binaryPath == "" {
-        binaryPath = getBinary()
-    }
+	if customBinary != "" {
+		outdated, err := cliIsOutdated(customBinary, cliVersion)
+		if err != nil {
+			return "", err
+		}
+		if outdated {
+			return "", fmt.Errorf("specified %s is outdated", customBinary)
+		}
+		return customBinary, nil
+	}
+
+	binaryPath := getBinary()
 
 	//  search for installed binary
 	if pathExists(binaryPath) {
@@ -129,7 +137,7 @@ func Binary(customBinary string) (string, error) {
 	}
 
 	status.Executing(fmt.Sprintf("Downloading %s binary for %s-%s", binary, runtime.GOOS, runtime.GOARCH))
-  log.Debugf("Downloading hasura cli from '%s'", url)
+	log.Debugf("Downloading hasura cli from '%s'", url)
 
 	resp, err := http.Get(url)
 	if err != nil {
