@@ -89,7 +89,7 @@ Here is an example of an `isAllowed` function:
 ```js
 
 const isAllowed = (stripeCustomerId: string, context: Context) => {
-  const { isAdmin } = context
+  const { isAdmin, userClaims } = context
 
   // allow requests if it has a valid `x-hasura-admin-secret`
   if (isAdmin) {
