@@ -1,5 +1,3 @@
-import Stripe from 'stripe'
-
 import { builder } from '../builder'
 import { StripeInvoice, StripePaymentMethod } from '../types'
 import { stripe } from '../utils'
