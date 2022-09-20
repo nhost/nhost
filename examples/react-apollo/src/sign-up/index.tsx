@@ -22,7 +22,7 @@ const Index: React.FC = () => {
         </>
       )}
       <AuthLink leftIcon={<FaLock />} variant="outline" link="/sign-up/email-passwordless">
-        Continue with passwordless email
+        Continue with a magic link
       </AuthLink>
       <AuthLink variant="subtle" link="/sign-up/email-password">
         Continue with email + password
@@ -39,7 +39,7 @@ export const SignUpPage: React.FC = () => {
           <Text>
             Already have an account?{' '}
             <Anchor component={Link} to="/sign-in">
-              Log in
+              Sign in
             </Anchor>
           </Text>
         </Center>

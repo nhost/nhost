@@ -1,19 +1,18 @@
-import { useState } from 'react'
+import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button, Modal, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { useSignInSecurityKeyEmail } from '@nhost/react'
 
-import AuthLink from '../components/AuthLink'
-
-export const EmailPassword: React.FC = () => {
+export const SecurityKey: React.FC = () => {
   const { signInSecurityKeyEmail } = useSignInSecurityKeyEmail()
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
 
-  const signIn = async () => {
+  const signIn = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     const result = await signInSecurityKeyEmail(email)
     if (result.isError) {
       showNotification({
@@ -29,7 +28,7 @@ export const EmailPassword: React.FC = () => {
   }
 
   return (
-    <>
+    <form onSubmit={signIn}>
       <Modal
         title="Awaiting email verification"
         transition="fade"
@@ -51,12 +50,9 @@ export const EmailPassword: React.FC = () => {
         autoFocus
         style={{ marginBottom: '0.5em' }}
       />
-      <Button fullWidth onClick={signIn}>
-        Sign in
+      <Button fullWidth type="submit">
+        Sign in with a security key
       </Button>
-      <AuthLink link="/sign-in/forgot-password" variant="white">
-        Forgot password?
-      </AuthLink>
-    </>
+    </form>
   )
 }
