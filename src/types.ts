@@ -91,7 +91,6 @@ export type User = Pick<
   | 'phoneNumber'
   | 'phoneNumberVerified'
   | 'activeMfaType'
-  | 'currentChallenge'
 > & { roles: string[] };
 
 export type Session = {

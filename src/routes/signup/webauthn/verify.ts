@@ -1,4 +1,4 @@
-import { ERRORS, sendError } from '@/errors';
+import { sendError, sendUnspecifiedError } from '@/errors';
 import {
   ENV,
   getSignInResponse,
@@ -7,6 +7,7 @@ import {
   createVerifyEmailTicket,
   createEmailRedirectionLink,
   getUserByEmail,
+  getCurrentChallenge,
 } from '@/utils';
 import { RequestHandler } from 'express';
 
@@ -22,8 +23,9 @@ import { emailClient } from '@/email';
 export type SignUpVerifyWebAuthnRequestBody = {
   credential: RegistrationCredentialJSON;
   userId: string;
-  nickname?: string;
-  options: Pick<UserRegistrationOptionsWithRedirect, 'redirectTo'>;
+  options: Pick<UserRegistrationOptionsWithRedirect, 'redirectTo'> & {
+    nickname?: string;
+  };
 };
 
 export type SignUpVerifyWebAuthnResponseBody = SignInResponse;
@@ -32,8 +34,10 @@ export const signUpVerifyWebauthnSchema =
   Joi.object<SignUpVerifyWebAuthnRequestBody>({
     userId: uuid.required(),
     credential: Joi.object().required(),
-    nickname: Joi.string().optional().empty(''),
-    options: Joi.object({ redirectTo }).default(),
+    options: Joi.object({
+      redirectTo,
+      nickname: Joi.string().optional(),
+    }).default(),
   }).meta({ className: 'SignUpVerifyWebauthnSchema' });
 
 export const signInVerifyWebauthnHandler: RequestHandler<
@@ -45,8 +49,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     body: {
       credential,
       userId,
-      nickname,
-      options: { redirectTo },
+      options: { redirectTo, nickname },
     },
   },
   res
@@ -66,12 +69,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'email-already-in-use');
   }
 
-  const { currentChallenge } = user;
-  if (!currentChallenge) {
-    return sendError(res, 'invalid-request', {
-      customMessage: 'No webauthn challenge for the user',
-    });
-  }
+  await getCurrentChallenge(userId);
 
   try {
     await verifyWebAuthnRegistration(user, credential, nickname);
@@ -151,7 +149,6 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     });
     return res.send(signInResponse);
   } catch (e) {
-    const error = e as Error;
-    return sendError(res, error.message as keyof typeof ERRORS);
+    return sendUnspecifiedError(res, e);
   }
 };

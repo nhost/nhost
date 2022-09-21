@@ -25,7 +25,7 @@ export type SignUpWebAuthnResponseBody = {
 
 export const signUpWebauthnSchema = Joi.object<SignUpWebAuthnRequestBody>({
   email: email.required(),
-  options: registrationOptions,
+  options: registrationOptions.unknown(true),
 }).meta({ className: 'SignUpWebauthnSchema' });
 
 export const signUpWebauthnHandler: RequestHandler<

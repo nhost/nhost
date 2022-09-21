@@ -150,6 +150,10 @@ export const ERRORS = asErrors({
     status: StatusCodes.INTERNAL_SERVER_ERROR,
     message: 'Absent or invalid SMS provider type',
   },
+  'internal-error': {
+    status: StatusCodes.INTERNAL_SERVER_ERROR,
+    message: 'Internal server error',
+  },
 });
 
 export const sendError = (
@@ -174,4 +178,19 @@ export const sendError = (
   }
 
   return res.status(status).send({ status, message, error: code });
+};
+
+export const sendUnspecifiedError = (res: Response, e: unknown) => {
+  const error = e as Error;
+  if (error.message in ERRORS) {
+    return sendError(res, error.message as keyof typeof ERRORS);
+  } else {
+    return sendError(
+      res,
+      'internal-error',
+      process.env.NODE_ENV !== 'production'
+        ? { customMessage: error.message }
+        : undefined
+    );
+  }
 };

@@ -12,20 +12,26 @@ import { AuthUserAuthenticators_Insert_Input } from './__generated__/graphql-req
 export const getWebAuthnRelyingParty = () =>
   ENV.AUTH_SERVER_URL && new URL(ENV.AUTH_SERVER_URL).hostname;
 
+export const getCurrentChallenge = async (id: string) => {
+  const { user } = await gqlSdk.getUserChallenge({ id });
+
+  if (!user?.currentChallenge) {
+    throw Error('invalid-request');
+  }
+  return user.currentChallenge;
+};
+
 export const verifyWebAuthnRegistration = async (
-  { id, currentChallenge }: Pick<User, 'id' | 'currentChallenge'>,
+  { id }: Pick<User, 'id'>,
   credential: RegistrationCredentialJSON,
   nickname?: string
 ) => {
-  if (!currentChallenge) {
-    throw Error('invalid-request');
-  }
-
+  const expectedChallenge = await getCurrentChallenge(id);
   let verification: VerifiedRegistrationResponse;
   try {
     verification = await verifyRegistrationResponse({
       credential,
-      expectedChallenge: currentChallenge,
+      expectedChallenge,
       expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
       expectedRPID: getWebAuthnRelyingParty(),
     });

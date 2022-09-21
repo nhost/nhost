@@ -6,7 +6,7 @@ import {
 import { generateRegistrationOptions } from '@simplewebauthn/server';
 
 import { Joi } from '@/validation';
-import { sendError } from '@/errors';
+import { sendError, sendUnspecifiedError } from '@/errors';
 import {
   ENV,
   getUser,
@@ -95,7 +95,11 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const id = await verifyWebAuthnRegistration(user, credential, nickname);
+  try {
+    const id = await verifyWebAuthnRegistration(user, credential, nickname);
 
-  return res.send({ nickname, id });
+    return res.send({ nickname, id });
+  } catch (e) {
+    return sendUnspecifiedError(res, e);
+  }
 };

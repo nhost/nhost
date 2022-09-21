@@ -5,6 +5,7 @@ import {
   getUserByEmail,
   gqlSdk,
   getWebAuthnRelyingParty,
+  getCurrentChallenge,
 } from '@/utils';
 import { RequestHandler } from 'express';
 
@@ -113,15 +114,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const expectedChallenge = await gqlSdk
-    .getUserChallenge({
-      id: user.id,
-    })
-    .then((gqlres) => gqlres.user?.currentChallenge);
-
-  if (!expectedChallenge) {
-    return sendError(res, 'invalid-request');
-  }
+  const expectedChallenge = await getCurrentChallenge(user.id);
 
   const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({
     id: user.id,
