@@ -810,6 +810,11 @@ export const createAuthMachine = ({
           }
           // TODO anonymous users
           const nickname = options?.nickname
+          /*
+           * The `/signup/webauthn` endpoint accepts any option from SignUpOptions,
+           * We therefore remove the nickname from the options object before sending it to the server,
+           * as options if of type `SignUpSecurityKeyOptions`, which extends `SignUpOptions` with the optional `nickname` property.
+           */
           if (nickname) delete options.nickname
           const webAuthnOptions = await postRequest<PublicKeyCredentialCreationOptionsJSON>(
             '/signup/webauthn',

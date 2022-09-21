@@ -61,6 +61,7 @@ afterEach(() => {
   authService.stop()
   customStorage.clear()
   server.resetHandlers()
+  vi.restoreAllMocks()
 })
 
 test(`should fail if network is unavailable`, async () => {
