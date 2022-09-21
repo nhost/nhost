@@ -40,6 +40,7 @@ import {
   SignOutResponse,
   signUpEmailPasswordPromise,
   SignUpResponse,
+  signUpSecurityKeyPromise,
   TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
 
@@ -103,10 +104,14 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
-  async signUp({ email, password, options }: SignUpParams): Promise<SignUpResponse> {
+  async signUp(params: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
+    const { email, options } = params
+    if ('securityKey' in params) {
+      return getAuthenticationResult(await signUpSecurityKeyPromise(interpreter, email, options))
+    }
     return getAuthenticationResult(
-      await signUpEmailPasswordPromise(interpreter, email, password, options)
+      await signUpEmailPasswordPromise(interpreter, email, params.password, options)
     )
   }
 

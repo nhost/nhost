@@ -1,10 +1,12 @@
 import type { AxiosRequestConfig } from 'axios'
 import { assign, createMachine, send } from 'xstate'
 
-import { startAuthentication } from '@simplewebauthn/browser'
+import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
 import type {
   AuthenticationCredentialJSON,
-  PublicKeyCredentialRequestOptionsJSON
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+  RegistrationCredentialJSON
 } from '@simplewebauthn/typescript-types'
 
 import {
@@ -72,6 +74,7 @@ type AuthServices = {
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
+  signUpSecurityKey: { data: SignUpResponse }
   importRefreshToken: { data: NhostSessionResponse }
 }
 
@@ -371,6 +374,7 @@ export const createAuthMachine = ({
             incomplete: {
               on: {
                 SIGNUP_EMAIL_PASSWORD: 'emailPassword',
+                SIGNUP_SECURITY_KEY: 'securityKey',
                 PASSWORDLESS_EMAIL: 'passwordlessEmail',
                 PASSWORDLESS_SMS: 'passwordlessSms',
                 PASSWORDLESS_SMS_OTP: 'passwordlessSmsOtp'
@@ -388,6 +392,34 @@ export const createAuthMachine = ({
               invoke: {
                 src: 'signUpEmailPassword',
                 id: 'signUpEmailPassword',
+                onDone: [
+                  {
+                    cond: 'hasSession',
+                    actions: ['saveSession', 'reportTokenChanged'],
+                    target: '#nhost.authentication.signedIn'
+                  },
+                  {
+                    actions: 'clearContext',
+                    target: ['#nhost.authentication.signedOut', 'incomplete.needsEmailVerification']
+                  }
+                ],
+                onError: [
+                  {
+                    cond: 'unverified',
+                    target: 'incomplete.needsEmailVerification'
+                  },
+                  {
+                    actions: 'saveRegistrationError',
+                    target: 'incomplete.failed'
+                  }
+                ]
+              }
+            },
+            securityKey: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'signUpSecurityKey',
+                id: 'signUpSecurityKey',
                 onDone: [
                   {
                     cond: 'hasSession',
@@ -772,7 +804,32 @@ export const createAuthMachine = ({
             })
           }
         },
-
+        signUpSecurityKey: async (_, { email, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject<SignUpResponse>({ error: INVALID_EMAIL_ERROR })
+          }
+          // TODO anonymous users
+          const nickname = options?.nickname
+          if (nickname) delete options.nickname
+          const { options: webAuthnOptions, userId } = await postRequest<{
+            options: PublicKeyCredentialCreationOptionsJSON
+            userId: string
+          }>('/signup/webauthn', { email, options })
+          let credential: RegistrationCredentialJSON
+          try {
+            credential = await startRegistration(webAuthnOptions)
+          } catch (e) {
+            throw new CodifiedError(e as Error)
+          }
+          return postRequest<SignUpResponse>('/signup/webauthn/verify', {
+            userId,
+            credential,
+            options: {
+              redirectTo: options?.redirectTo,
+              nickname
+            }
+          })
+        },
         importRefreshToken: async () => {
           let error: ValidationErrorPayload | null = null
           if (autoSignIn) {
