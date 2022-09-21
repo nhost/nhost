@@ -110,7 +110,6 @@ test(`should fail if server returns an error`, async () => {
 })
 
 test(`should fail if email is incorrectly formatted`, async () => {
-  // Scenario 1: Providing an invalid email address with a valid password
   authService.send({
     type: 'SIGNUP_SECURITY_KEY',
     email: faker.internet.userName()
@@ -125,27 +124,6 @@ test(`should fail if email is incorrectly formatted`, async () => {
         "registration": {
           "error": "invalid-email",
           "message": "Email is incorrectly formatted",
-          "status": 10,
-        },
-      }
-    `)
-
-  // Scenario 2: Providing a valid email address with an invalid password
-  authService.send({
-    type: 'SIGNUP_EMAIL_PASSWORD',
-    email: faker.internet.email(),
-    password: faker.internet.password(2)
-  })
-
-  const passwordErrorSignInState: AuthState = await waitFor(authService, (state: AuthState) =>
-    state.matches('registration.incomplete.failed')
-  )
-
-  expect(passwordErrorSignInState.context.errors).toMatchInlineSnapshot(`
-      {
-        "registration": {
-          "error": "invalid-password",
-          "message": "Password is incorrectly formatted",
           "status": 10,
         },
       }
