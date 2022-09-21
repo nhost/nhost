@@ -169,6 +169,27 @@
             },
             "type" : "object"
          },
+         "InternalErrorError" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "error" : {
+                  "enum" : [
+                     "internal-error"
+                  ]
+               },
+               "message" : {
+                  "enum" : [
+                     "Internal server error"
+                  ]
+               },
+               "status" : {
+                  "enum" : [
+                     500
+                  ]
+               }
+            },
+            "type" : "object"
+         },
          "InvalidAdminSecretError" : {
             "additionalProperties" : false,
             "properties" : {
@@ -348,6 +369,48 @@
                "message" : {
                   "enum" : [
                      "Invalid or expired verification ticket"
+                  ]
+               },
+               "status" : {
+                  "enum" : [
+                     401
+                  ]
+               }
+            },
+            "type" : "object"
+         },
+         "InvalidWebauthnAuthenticatorError" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "error" : {
+                  "enum" : [
+                     "invalid-webauthn-authenticator"
+                  ]
+               },
+               "message" : {
+                  "enum" : [
+                     "Invalid WebAuthn authenticator"
+                  ]
+               },
+               "status" : {
+                  "enum" : [
+                     401
+                  ]
+               }
+            },
+            "type" : "object"
+         },
+         "InvalidWebauthnVerificationError" : {
+            "additionalProperties" : false,
+            "properties" : {
+               "error" : {
+                  "enum" : [
+                     "invalid-webauthn-verification"
+                  ]
+               },
+               "message" : {
+                  "enum" : [
+                     "Invalid WebAuthn verification"
                   ]
                },
                "status" : {
@@ -1477,7 +1540,7 @@
             "type" : "object"
          },
          "Version" : {
-            "example" : "0.10.0",
+            "example" : "0.12.0",
             "type" : "string"
          }
       },
@@ -1496,7 +1559,7 @@
       },
       "termsOfService" : "",
       "title" : "Hasura auth",
-      "version" : "0.10.0"
+      "version" : "0.12.0"
    },
    "openapi" : "3.0.0",
    "paths" : {
@@ -2043,7 +2106,7 @@
                      }
                   }
                },
-               "description" : "TODO add @return payload on success",
+               "description" : "",
                "required" : true
             },
             "responses" : {
@@ -2248,6 +2311,104 @@
             "summary" : "Signup with email and password",
             "tags" : [
                "Registration"
+            ]
+         }
+      },
+      "/signup/webauthn" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "requestBody" : {
+               "content" : {
+                  "application/json" : {
+                     "schema" : {
+                        "$ref" : "#/components/schemas/SignUpWebauthnSchema"
+                     }
+                  }
+               },
+               "description" : "",
+               "required" : true
+            },
+            "responses" : {
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               },
+               "404" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/DisabledEndpointError"
+                        }
+                     }
+                  },
+                  "description" : "The feature is not activated"
+               }
+            },
+            "security" : [],
+            "summary" : "Sign up using email via FIDO2 Webauthn authentication",
+            "tags" : [
+               "Authentication"
+            ]
+         }
+      },
+      "/signup/webauthn/verify" : {
+         "post" : {
+            "deprecated" : false,
+            "parameters" : [],
+            "requestBody" : {
+               "content" : {
+                  "application/json" : {
+                     "schema" : {
+                        "$ref" : "#/components/schemas/SignUpVerifyWebauthnSchema"
+                     }
+                  }
+               },
+               "description" : "",
+               "required" : true
+            },
+            "responses" : {
+               "200" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/SessionPayload"
+                        }
+                     }
+                  },
+                  "description" : "Signed in successfully"
+               },
+               "400" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/InvalidRequestError"
+                        }
+                     }
+                  },
+                  "description" : "The payload is invalid"
+               },
+               "404" : {
+                  "content" : {
+                     "application/json" : {
+                        "schema" : {
+                           "$ref" : "#/components/schemas/DisabledEndpointError"
+                        }
+                     }
+                  },
+                  "description" : "The feature is not activated"
+               }
+            },
+            "security" : [],
+            "summary" : "Verfiy FIDO2 Webauthn authentication and complete signup",
+            "tags" : [
+               "Authentication"
             ]
          }
       },
