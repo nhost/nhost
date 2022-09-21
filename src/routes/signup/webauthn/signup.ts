@@ -18,10 +18,7 @@ export type SignUpWebAuthnRequestBody = {
   email: string;
   options: UserRegistrationOptions;
 };
-export type SignUpWebAuthnResponseBody = {
-  options: PublicKeyCredentialRequestOptionsJSON;
-  userId: string;
-};
+export type SignUpWebAuthnResponseBody = PublicKeyCredentialRequestOptionsJSON;
 
 export const signUpWebauthnSchema = Joi.object<SignUpWebAuthnRequestBody>({
   email: email.required(),
@@ -59,7 +56,6 @@ export const signUpWebauthnHandler: RequestHandler<
     attestationType: 'indirect',
   });
 
-  registrationOptions.challenge;
   await insertUser({
     id: userId,
     isAnonymous: true,
@@ -78,6 +74,5 @@ export const signUpWebauthnHandler: RequestHandler<
     metadata,
     currentChallenge: registrationOptions.challenge,
   });
-
-  return res.send({ options: registrationOptions, userId });
+  return res.send(registrationOptions);
 };

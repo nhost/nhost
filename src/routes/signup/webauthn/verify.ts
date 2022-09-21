@@ -7,12 +7,11 @@ import {
   createVerifyEmailTicket,
   createEmailRedirectionLink,
   getUserByEmail,
-  getCurrentChallenge,
 } from '@/utils';
 import { RequestHandler } from 'express';
 
 import { RegistrationCredentialJSON } from '@simplewebauthn/typescript-types';
-import { Joi, redirectTo, uuid } from '@/validation';
+import { Joi, redirectTo } from '@/validation';
 import {
   EMAIL_TYPES,
   SignInResponse,
@@ -22,7 +21,6 @@ import { emailClient } from '@/email';
 
 export type SignUpVerifyWebAuthnRequestBody = {
   credential: RegistrationCredentialJSON;
-  userId: string;
   options: Pick<UserRegistrationOptionsWithRedirect, 'redirectTo'> & {
     nickname?: string;
   };
@@ -32,7 +30,6 @@ export type SignUpVerifyWebAuthnResponseBody = SignInResponse;
 
 export const signUpVerifyWebauthnSchema =
   Joi.object<SignUpVerifyWebAuthnRequestBody>({
-    userId: uuid.required(),
     credential: Joi.object().required(),
     options: Joi.object({
       redirectTo,
@@ -48,7 +45,6 @@ export const signInVerifyWebauthnHandler: RequestHandler<
   {
     body: {
       credential,
-      userId,
       options: { redirectTo, nickname },
     },
   },
@@ -58,7 +54,20 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'disabled-endpoint');
   }
 
-  const { user } = await gqlSdk.user({ id: userId });
+  let challenge: string;
+  try {
+    challenge = JSON.parse(
+      Buffer.from(credential.response.clientDataJSON, 'base64').toString()
+    ).challenge;
+  } catch {
+    return sendError(res, 'invalid-request', {
+      customMessage: 'Could not parse challenge',
+    });
+  }
+
+  const {
+    users: [user],
+  } = await gqlSdk.users({ where: { currentChallenge: { _eq: challenge } } });
 
   if (!user) {
     return sendError(res, 'user-not-found');
@@ -69,13 +78,11 @@ export const signInVerifyWebauthnHandler: RequestHandler<
     return sendError(res, 'email-already-in-use');
   }
 
-  await getCurrentChallenge(userId);
-
   try {
     await verifyWebAuthnRegistration(user, credential, nickname);
 
     await gqlSdk.updateUser({
-      id: userId,
+      id: user.id,
       user: {
         isAnonymous: false,
         email: user.newEmail,
@@ -93,7 +100,7 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       const { ticket, ticketExpiresAt } = createVerifyEmailTicket();
 
       await gqlSdk.updateUser({
-        id: userId,
+        id: user.id,
         user: {
           ticket,
           ticketExpiresAt,
