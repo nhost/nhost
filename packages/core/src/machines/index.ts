@@ -811,10 +811,10 @@ export const createAuthMachine = ({
           // TODO anonymous users
           const nickname = options?.nickname
           if (nickname) delete options.nickname
-          const { options: webAuthnOptions, userId } = await postRequest<{
-            options: PublicKeyCredentialCreationOptionsJSON
-            userId: string
-          }>('/signup/webauthn', { email, options })
+          const webAuthnOptions = await postRequest<PublicKeyCredentialCreationOptionsJSON>(
+            '/signup/webauthn',
+            { email, options }
+          )
           let credential: RegistrationCredentialJSON
           try {
             credential = await startRegistration(webAuthnOptions)
@@ -822,7 +822,6 @@ export const createAuthMachine = ({
             throw new CodifiedError(e as Error)
           }
           return postRequest<SignUpResponse>('/signup/webauthn/verify', {
-            userId,
             credential,
             options: {
               redirectTo: options?.redirectTo,

@@ -18,7 +18,6 @@ import {
   correctSecurityKeyVerifyHandler,
   incorrectSecurityKeyVerifyHandler
 } from './helpers/handlers'
-import fakeUser from './helpers/mocks/user'
 
 const customStorage = new CustomClientStorage(new Map())
 
