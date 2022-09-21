@@ -113,6 +113,7 @@ export const createUserAndSendVerificationEmail = async (
   const passwordHash = password && (await hashPassword(password));
 
   // create ticket
+  // TODO use createVerifyEmailTicket()
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60 * 24 * 30); // 30 days
 

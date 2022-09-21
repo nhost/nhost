@@ -21,6 +21,7 @@ fragment userFields on users {
   roles {
     role
   }
+  currentChallenge
 }
 
 query user($id: uuid!) {

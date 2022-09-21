@@ -1,6 +1,5 @@
 import { User } from '@/types';
 import {
-  generateRegistrationOptions,
   VerifiedRegistrationResponse,
   verifyRegistrationResponse,
 } from '@simplewebauthn/server';
@@ -13,46 +12,11 @@ import { AuthUserAuthenticators_Insert_Input } from './__generated__/graphql-req
 export const getWebAuthnRelyingParty = () =>
   ENV.AUTH_SERVER_URL && new URL(ENV.AUTH_SERVER_URL).hostname;
 
-export const generateWebAuthnRegistrationOptions = async ({
-  id,
-  email,
-  displayName,
-}: Pick<User, 'id' | 'displayName' | 'email'>) => {
-  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({ id });
-
-  const options = generateRegistrationOptions({
-    rpID: getWebAuthnRelyingParty(),
-    rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
-    userID: id,
-    userName: displayName ?? email,
-    attestationType: 'indirect',
-    excludeCredentials: authUserAuthenticators.map((authenticator) => ({
-      id: Buffer.from(authenticator.credentialId, 'base64url'),
-      type: 'public-key',
-    })),
-  });
-
-  await gqlSdk.updateUserChallenge({
-    userId: id,
-    challenge: options.challenge,
-  });
-
-  return options;
-};
-
 export const verifyWebAuthnRegistration = async (
-  { id }: Pick<User, 'id'>,
+  { id, currentChallenge }: Pick<User, 'id' | 'currentChallenge'>,
   credential: RegistrationCredentialJSON,
   nickname?: string
 ) => {
-  const { user } = await gqlSdk.getUserChallenge({
-    id,
-  });
-
-  if (!user) {
-    throw Error('user-not-found');
-  }
-  const { currentChallenge } = user;
   if (!currentChallenge) {
     throw Error('invalid-request');
   }
@@ -113,4 +77,6 @@ export const verifyWebAuthnRegistration = async (
       currentChallenge: null,
     },
   });
+
+  return insertAuthUserAuthenticator.id;
 };

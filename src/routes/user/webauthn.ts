@@ -1,23 +1,19 @@
 import { RequestHandler } from 'express';
 import {
-  VerifiedRegistrationResponse,
-  verifyRegistrationResponse,
-} from '@simplewebauthn/server';
-import {
   PublicKeyCredentialCreationOptionsJSON,
   RegistrationCredentialJSON,
 } from '@simplewebauthn/typescript-types';
+import { generateRegistrationOptions } from '@simplewebauthn/server';
 
 import { Joi } from '@/validation';
 import { sendError } from '@/errors';
 import {
   ENV,
   getUser,
-  gqlSdk,
+  verifyWebAuthnRegistration,
   getWebAuthnRelyingParty,
-  generateWebAuthnRegistrationOptions,
+  gqlSdk,
 } from '@/utils';
-import { AuthUserAuthenticators_Insert_Input } from '@/utils/__generated__/graphql-request';
 
 export type AddAuthenticatorRequestBody = {
   credential: string;
@@ -37,15 +33,34 @@ export const addAuthenticatorHandler: RequestHandler<
 
   const { userId } = req.auth as RequestAuth;
 
-  const user = await getUser({ userId });
+  const { displayName, email, emailVerified } = await getUser({ userId });
 
-  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !user.emailVerified) {
+  if (ENV.AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED && !emailVerified) {
     return sendError(res, 'unverified-user');
   }
 
-  const registrationOptions = await generateWebAuthnRegistrationOptions(user);
+  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({
+    id: userId,
+  });
 
-  return res.send(registrationOptions);
+  const options = generateRegistrationOptions({
+    rpID: getWebAuthnRelyingParty(),
+    rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
+    userID: userId,
+    userName: displayName ?? email,
+    attestationType: 'indirect',
+    excludeCredentials: authUserAuthenticators.map((authenticator) => ({
+      id: Buffer.from(authenticator.credentialId, 'base64url'),
+      type: 'public-key',
+    })),
+  });
+
+  await gqlSdk.updateUserChallenge({
+    userId,
+    challenge: options.challenge,
+  });
+
+  return res.send(options);
 };
 
 export type VerifyAuthenticatorRequestBody = {
@@ -64,14 +79,15 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
   {},
   VerifyAuthenticatorResponseBody,
   VerifyAuthenticatorRequestBody
-> = async (req, res) => {
+> = async ({ body: { credential, nickname }, auth }, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
   }
 
-  const { credential, nickname } = req.body;
-
-  const { userId } = req.auth as RequestAuth;
+  const userId = auth?.userId;
+  if (!userId) {
+    return sendError(res, 'unauthenticated-user');
+  }
 
   const user = await getUser({ userId });
 
@@ -79,75 +95,7 @@ export const addAuthenticatorVerifyHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const expectedChallenge = await gqlSdk
-    .getUserChallenge({
-      id: user.id,
-    })
-    .then((gqlres) => gqlres.user?.currentChallenge);
+  const id = await verifyWebAuthnRegistration(user, credential, nickname);
 
-  if (!expectedChallenge) {
-    return sendError(res, 'invalid-request');
-  }
-
-  let verification: VerifiedRegistrationResponse;
-  try {
-    verification = await verifyRegistrationResponse({
-      credential: credential,
-      expectedChallenge,
-      expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
-      expectedRPID: getWebAuthnRelyingParty(),
-    });
-  } catch (e) {
-    const error = e as Error;
-    return sendError(res, 'invalid-webauthn-authenticator', {
-      customMessage: error.message,
-    });
-  }
-
-  const { verified, registrationInfo } = verification;
-
-  if (!verified) {
-    return sendError(res, 'invalid-webauthn-verification');
-  }
-
-  if (!registrationInfo) {
-    throw Error('Something went wrong. Incomplete Webauthn verification.');
-  }
-
-  const {
-    credentialPublicKey,
-    credentialID: credentialId,
-    counter,
-  } = registrationInfo;
-
-  const newAuthenticator: AuthUserAuthenticators_Insert_Input = {
-    credentialId: credentialId.toString('base64url'),
-    credentialPublicKey: Buffer.from(
-      '\\x' + credentialPublicKey.toString('hex')
-    ).toString(),
-    counter,
-    nickname,
-  };
-
-  const { insertAuthUserAuthenticator } = await gqlSdk.addUserAuthenticator({
-    userAuthenticator: {
-      userId: user.id,
-      ...newAuthenticator,
-    },
-  });
-
-  if (!insertAuthUserAuthenticator?.id) {
-    throw Error(
-      'Something went wrong. Impossible to insert new authenticator in the database.'
-    );
-  }
-
-  await gqlSdk.updateUser({
-    id: user.id,
-    user: {
-      currentChallenge: null,
-    },
-  });
-
-  return res.send({ nickname, id: insertAuthUserAuthenticator.id });
+  return res.send({ nickname, id });
 };

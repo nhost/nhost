@@ -59,6 +59,7 @@ export const handleDeanonymizeUserEmailPassword = async (
     userRoles: allowedRoles.map((role: string) => ({ role, userId })),
   });
 
+  // TODO use createVerifyEmailTicket()
   const ticket = `verifyEmail:${uuidv4()}`;
   const ticketExpiresAt = generateTicketExpiresAt(60 * 60);
 

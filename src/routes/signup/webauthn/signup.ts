@@ -2,20 +2,26 @@ import { sendError } from '@/errors';
 import {
   ENV,
   getUserByEmail,
-  generateWebAuthnRegistrationOptions,
+  getGravatarUrl,
+  insertUser,
+  getWebAuthnRelyingParty,
 } from '@/utils';
+import { generateRegistrationOptions } from '@simplewebauthn/server';
+import { v4 as uuidv4 } from 'uuid';
 import { RequestHandler } from 'express';
 
 import { PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/typescript-types';
 import { email, Joi, registrationOptions } from '@/validation';
-import { createUserAndSendVerificationEmail } from '@/utils/user/email-verification';
-import { UserRegistrationOptionsWithRedirect } from '@/types';
+import { UserRegistrationOptions } from '@/types';
 
 export type SignUpWebAuthnRequestBody = {
   email: string;
-  options: UserRegistrationOptionsWithRedirect;
+  options: UserRegistrationOptions;
 };
-export type SignUpWebAuthnResponseBody = PublicKeyCredentialRequestOptionsJSON;
+export type SignUpWebAuthnResponseBody = {
+  options: PublicKeyCredentialRequestOptionsJSON;
+  userId: string;
+};
 
 export const signUpWebauthnSchema = Joi.object<SignUpWebAuthnRequestBody>({
   email: email.required(),
@@ -36,9 +42,42 @@ export const signUpWebauthnHandler: RequestHandler<
     return sendError(res, 'email-already-in-use');
   }
 
-  const user = await createUserAndSendVerificationEmail(email, options);
+  const {
+    locale,
+    defaultRole,
+    allowedRoles,
+    metadata,
+    displayName = email,
+  } = options;
 
-  const registrationOptions = await generateWebAuthnRegistrationOptions(user);
+  const userId = uuidv4();
+  const registrationOptions = generateRegistrationOptions({
+    rpID: getWebAuthnRelyingParty(),
+    rpName: ENV.AUTH_WEBAUTHN_RP_NAME,
+    userID: userId,
+    userName: displayName ?? email,
+    attestationType: 'indirect',
+  });
 
-  return res.send(registrationOptions);
+  registrationOptions.challenge;
+  await insertUser({
+    id: userId,
+    isAnonymous: true,
+    newEmail: email,
+    email: null,
+    disabled: ENV.AUTH_DISABLE_NEW_USERS,
+    displayName,
+    avatarUrl: getGravatarUrl(email),
+    emailVerified: false,
+    locale,
+    defaultRole,
+    roles: {
+      // restructure user roles to be inserted in GraphQL mutation
+      data: allowedRoles.map((role: string) => ({ role })),
+    },
+    metadata,
+    currentChallenge: registrationOptions.challenge,
+  });
+
+  return res.send({ options: registrationOptions, userId });
 };
