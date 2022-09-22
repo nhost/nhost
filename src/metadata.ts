@@ -63,8 +63,21 @@ type CreateRelationshipArgs = TableArgs & {
   };
 };
 
-export const runMetadataRequest = async (args: { type: string; args: {} }) => {
-  await axios.post(
+// Not strongly typed, but is enough to our current needs
+type MetadataInconsistency = {
+  type: string;
+  name: string;
+  definition: {
+    name: string;
+    schema?: string;
+    source?: string;
+    table?: { schema: string; name: string };
+  };
+  reason: string;
+};
+
+export const runMetadataRequest = async <T>(args: { type: string; args: {} }) =>
+  await axios.post<T>(
     ENV.HASURA_GRAPHQL_GRAPHQL_URL.replace('/v1/graphql', '/v1/metadata'),
     args,
     {
@@ -73,6 +86,17 @@ export const runMetadataRequest = async (args: { type: string; args: {} }) => {
       },
     }
   );
+
+export const dropInconsistentMetadata = async () => {
+  try {
+    await runMetadataRequest<MetadataInconsistencies>({
+      type: 'drop_inconsistent_metadata',
+      args: {},
+    });
+  } catch (error: any) {
+    logger.error(error);
+    throw new Error(`Error dropping metadata inconsistencies`);
+  }
 };
 
 // https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/table-view.html#track-table-v2
@@ -105,18 +129,26 @@ export const untrackTable = async (args: UntrackTableArgs) => {
   }
 };
 
+type ReloadMetadataResult = {
+  message: string;
+  is_consistent: boolean;
+  inconsistent_objects: Array<MetadataInconsistency>;
+};
+
 export const reloadMetadata = async (
   args: {
     reload_remote_schemas?: boolean;
     reload_sources?: boolean;
     recreate_event_triggers?: boolean;
   } = {}
-) => {
-  await runMetadataRequest({
+): Promise<ReloadMetadataResult> => {
+  const res = await runMetadataRequest<ReloadMetadataResult>({
     type: 'reload_metadata',
     args,
   });
+  return res.data;
 };
+
 export const setTableCustomization = async (args: TableCustomisationArgs) => {
   logger.info(`Set table customization for ${args.table.name}`);
 
@@ -196,7 +228,21 @@ export const applyMetadata = async (): Promise<void> => {
   logger.info('Applying metadata...');
 
   logger.debug('Reloading metadata...');
-  await reloadMetadata();
+  const { is_consistent, inconsistent_objects } = await reloadMetadata();
+
+  // * Manage metadata inconsistencies
+  if (!is_consistent) {
+    // * Drop inconsistencies when it contains auth.user_authenticators
+    if (
+      inconsistent_objects.some(
+        ({ definition: { name, schema } }) =>
+          name === 'user_authenticators' && schema === 'auth'
+      )
+    ) {
+      await dropInconsistentMetadata();
+    }
+  }
+
   logger.debug('Metadata reloaded');
 
   try {
