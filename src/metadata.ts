@@ -89,7 +89,7 @@ export const runMetadataRequest = async <T>(args: { type: string; args: {} }) =>
 
 export const dropInconsistentMetadata = async () => {
   try {
-    await runMetadataRequest<MetadataInconsistencies>({
+    await runMetadataRequest({
       type: 'drop_inconsistent_metadata',
       args: {},
     });
