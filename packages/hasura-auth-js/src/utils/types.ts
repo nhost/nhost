@@ -7,6 +7,7 @@ import {
   Provider,
   RedirectOption,
   SignUpOptions,
+  SignUpSecurityKeyOptions,
   StorageGetter,
   StorageSetter,
   User,
@@ -32,6 +33,7 @@ export interface SignUpEmailPasswordParams extends CommonSignUpParams {
 
 export interface SignUpSecurityKeyParams extends CommonSignUpParams {
   email: string
+  options?: SignUpSecurityKeyOptions
   securityKey: true
 }
 
