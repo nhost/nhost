@@ -132,7 +132,7 @@ export const untrackTable = async (args: UntrackTableArgs) => {
 type ReloadMetadataResult = {
   message: string;
   is_consistent: boolean;
-  inconsistent_objects: Array<MetadataInconsistency>;
+  inconsistent_objects?: Array<MetadataInconsistency>;
 };
 
 export const reloadMetadata = async (
@@ -234,7 +234,7 @@ export const applyMetadata = async (): Promise<void> => {
   if (!is_consistent) {
     // * Drop inconsistencies when it contains auth.user_authenticators
     if (
-      inconsistent_objects.some(
+      inconsistent_objects?.some(
         ({ definition: { name, schema } }) =>
           name === 'user_authenticators' && schema === 'auth'
       )
