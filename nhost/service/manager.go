@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"github.com/nhost/cli/internal/ports"
 	"net/http"
 	"os"
 	"os/exec"
@@ -33,15 +34,15 @@ type Manager interface {
 	Endpoints() *Endpoints
 }
 
-func NewDockerComposeManager(c *nhost.Configuration, workdir string, hc *hasura.Client, ports nhost.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) (*dockerComposeManager, error) {
-	dcConf := compose.NewConfig(c, ports, env, gitBranch, projectName)
+func NewDockerComposeManager(c *nhost.Configuration, workdir string, hc *hasura.Client, p *ports.Ports, env []string, gitBranch, projectName string, logger logrus.FieldLogger, status *util.Status, debug bool) (*dockerComposeManager, error) {
+	dcConf := compose.NewConfig(c, p, env, gitBranch, projectName)
 	w, err := compose.InitWrapper(workdir, gitBranch, dcConf)
 	if err != nil {
 		return nil, err
 	}
 
 	return &dockerComposeManager{
-		ports:         ports,
+		ports:         p,
 		hc:            hc,
 		debug:         debug,
 		env:           env,
@@ -57,7 +58,7 @@ func NewDockerComposeManager(c *nhost.Configuration, workdir string, hc *hasura.
 
 type dockerComposeManager struct {
 	sync.Mutex
-	ports         nhost.Ports
+	ports         *ports.Ports
 	hc            *hasura.Client
 	debug         bool
 	branch        string
