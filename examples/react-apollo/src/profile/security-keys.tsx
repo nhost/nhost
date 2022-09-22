@@ -28,6 +28,7 @@ const REMOVE_SECURITY_KEY = gql`
 export const SecurityKeys: React.FC = () => {
   const { add } = useAddSecurityKey()
   const userId = useUserId()
+  // Nickname of the security key
   const [nickname, setNickname] = useInputState('')
   const [list, setList] = useState<{ id: string; nickname?: string | null }[]>([])
   useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {

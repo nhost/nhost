@@ -11,7 +11,7 @@ import OAuthLinks from '../components/OauthLinks'
 import { EmailPassword } from './email-password'
 import { EmailPasswordless } from './email-passwordless'
 import { ForgotPassword } from './forgot-password'
-import { SecurityKey } from './security-key'
+import { SecurityKeySignIn } from './security-key'
 
 const Index: React.FC = () => (
   <>
@@ -61,7 +61,7 @@ export const SignInPage: React.FC = () => {
         <Route path="/email-password" element={<EmailPassword />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/email-passwordless" element={<EmailPasswordless />} />
-        <Route path="/security-key" element={<SecurityKey />} />
+        <Route path="/security-key" element={<SecurityKeySignIn />} />
       </Routes>
     </AuthLayout>
   )

@@ -5,7 +5,7 @@ import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { useSignUpSecurityKeyEmail } from '@nhost/react'
 
-export const SecurityKey: React.FC = () => {
+export const SecurityKeySignUp: React.FC = () => {
   const { signUpSecurityKeyEmail } = useSignUpSecurityKeyEmail()
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
@@ -13,16 +13,18 @@ export const SecurityKey: React.FC = () => {
 
   const signIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const result = await signUpSecurityKeyEmail(email)
-    if (result.isError) {
+    const { isError, isSuccess, needsEmailVerification, error } = await signUpSecurityKeyEmail(
+      email
+    )
+    if (isError) {
       showNotification({
         color: 'red',
         title: 'Error',
-        message: result.error?.message
+        message: error?.message
       })
-    } else if (result.needsEmailVerification) {
+    } else if (needsEmailVerification) {
       setEmailVerificationToggle(true)
-    } else if (result.isSuccess) {
+    } else if (isSuccess) {
       navigate('/', { replace: true })
     }
   }

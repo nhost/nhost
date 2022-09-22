@@ -10,7 +10,7 @@ import OAuthLinks from '../components/OauthLinks'
 
 import { EmailPassword } from './email-password'
 import { EmailPasswordless } from './email-passwordless'
-import { SecurityKey } from './security-key'
+import { SecurityKeySignUp } from './security-key'
 
 const Index: React.FC = () => {
   const isAnonymous = useUserIsAnonymous()
@@ -53,7 +53,7 @@ export const SignUpPage: React.FC = () => {
         <Route path="/" element={<Index />} />
         <Route path="/email-password" element={<EmailPassword />} />
         <Route path="/email-passwordless" element={<EmailPasswordless />} />
-        <Route path="/security-key" element={<SecurityKey />} />
+        <Route path="/security-key" element={<SecurityKeySignUp />} />
       </Routes>
     </AuthLayout>
   )
