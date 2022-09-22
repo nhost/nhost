@@ -142,11 +142,11 @@ export const reloadMetadata = async (
     recreate_event_triggers?: boolean;
   } = {}
 ): Promise<ReloadMetadataResult> => {
-  const res = await runMetadataRequest<ReloadMetadataResult>({
+  const { data } = await runMetadataRequest<ReloadMetadataResult>({
     type: 'reload_metadata',
     args,
   });
-  return res.data;
+  return data;
 };
 
 export const setTableCustomization = async (args: TableCustomisationArgs) => {
