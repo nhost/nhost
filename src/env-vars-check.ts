@@ -197,9 +197,9 @@ if (ENV.AUTH_SMS_PROVIDER) {
 }
 
 if (ENV.AUTH_WEBAUTHN_ENABLED) {
-  if (isUnset(ENV.AUTH_SERVER_URL)) {
+  if (isUnset(ENV.AUTH_CLIENT_URL)) {
     errors.push(
-      `Env var AUTH_SERVER_URL is required when the Webauthn is enabled, but no value was provided`
+      `Env var AUTH_CLIENT_URL is required when the Webauthn is enabled, but no value was provided`
     );
   }
   if (isUnset(ENV.AUTH_WEBAUTHN_RP_NAME)) {

@@ -10,7 +10,7 @@ import { gqlSdk } from './gql-sdk';
 import { AuthUserAuthenticators_Insert_Input } from './__generated__/graphql-request';
 
 export const getWebAuthnRelyingParty = () =>
-  ENV.AUTH_SERVER_URL && new URL(ENV.AUTH_SERVER_URL).hostname;
+  ENV.AUTH_CLIENT_URL && new URL(ENV.AUTH_CLIENT_URL).hostname;
 
 export const getCurrentChallenge = async (id: string) => {
   const { user } = await gqlSdk.getUserChallenge({ id });
