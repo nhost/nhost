@@ -35,7 +35,7 @@ sequenceDiagram
     activate A
     Note left of A: Signed challenge
     A->>A: Verify Signed challenge
-	A->>A: Add authenticator
+	A->>A: Add security key
 	A->>A: Set user data
 
 	alt No email verification
@@ -84,7 +84,7 @@ sequenceDiagram
     else Email verified and user enabled
         A->>A: Verify Signed challenge
         opt
-            A->>A: Update authenticator
+            A->>A: Update security key
         end
         A->>-U: HTTP OK response
         Note left of A: Refresh token + access token
@@ -112,7 +112,7 @@ sequenceDiagram
     U->>+A: HTTP POST /user/webauthn/verify
     Note left of A: Signed challenge
     A->>A: Verify Signed challenge
-	A->>A: Add authenticator
+	A->>A: Add security key
     A->>-U: HTTP OK response
     Note left of A: Refresh token + access token
 ```

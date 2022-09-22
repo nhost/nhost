@@ -15,17 +15,16 @@ import {
   gqlSdk,
 } from '@/utils';
 
-export type AddAuthenticatorRequestBody = {
+export type AddSecurityKeyRequestBody = {
   credential: string;
 };
 
-export type AddAuthenticatorResponseBody =
-  PublicKeyCredentialCreationOptionsJSON;
+export type AddSecurityKeyResponseBody = PublicKeyCredentialCreationOptionsJSON;
 
-export const addAuthenticatorHandler: RequestHandler<
+export const addSecurityKeyHandler: RequestHandler<
   {},
-  AddAuthenticatorResponseBody,
-  AddAuthenticatorRequestBody
+  AddSecurityKeyResponseBody,
+  AddSecurityKeyRequestBody
 > = async (req, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');
@@ -39,7 +38,7 @@ export const addAuthenticatorHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({
+  const { authUserSecurityKeys } = await gqlSdk.getUserSecurityKeys({
     id: userId,
   });
 
@@ -49,8 +48,8 @@ export const addAuthenticatorHandler: RequestHandler<
     userID: userId,
     userName: displayName ?? email,
     attestationType: 'indirect',
-    excludeCredentials: authUserAuthenticators.map((authenticator) => ({
-      id: Buffer.from(authenticator.credentialId, 'base64url'),
+    excludeCredentials: authUserSecurityKeys.map((securityKey) => ({
+      id: Buffer.from(securityKey.credentialId, 'base64url'),
       type: 'public-key',
     })),
   });
@@ -63,22 +62,22 @@ export const addAuthenticatorHandler: RequestHandler<
   return res.send(options);
 };
 
-export type VerifyAuthenticatorRequestBody = {
+export type VerifySecurityKeyRequestBody = {
   credential: RegistrationCredentialJSON;
   nickname?: string;
 };
 
-export type VerifyAuthenticatorResponseBody = { id: string; nickname?: string };
-export const userVerifyAddAuthenticatorSchema =
-  Joi.object<VerifyAuthenticatorRequestBody>({
+export type VerifySecurityKeyResponseBody = { id: string; nickname?: string };
+export const userVerifyAddSecurityKeySchema =
+  Joi.object<VerifySecurityKeyRequestBody>({
     credential: Joi.object().required(),
     nickname: Joi.string().optional().empty(''),
-  }).meta({ className: 'VerifyAddAuthenticatorSchema' });
+  }).meta({ className: 'VerifyAddSecurityKeySchema' });
 
-export const addAuthenticatorVerifyHandler: RequestHandler<
+export const addSecurityKeyVerifyHandler: RequestHandler<
   {},
-  VerifyAuthenticatorResponseBody,
-  VerifyAuthenticatorRequestBody
+  VerifySecurityKeyResponseBody,
+  VerifySecurityKeyRequestBody
 > = async ({ body: { credential, nickname }, auth }, res) => {
   if (!ENV.AUTH_WEBAUTHN_ENABLED) {
     return sendError(res, 'disabled-endpoint');

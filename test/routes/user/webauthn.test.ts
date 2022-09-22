@@ -30,7 +30,7 @@ describe('webauthn', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
-    await client.query(`DELETE FROM auth.user_authenticators;`);
+    await client.query(`DELETE FROM auth.user_security_keys;`);
 
     // set env vars
     await request.post('/change-env').send({
@@ -68,7 +68,7 @@ describe('webauthn', () => {
     userSession = session;
   });
 
-  it('should failed if trying to add new authenticator while webauth is not enabled', async () => {
+  it('should failed if trying to add new security key while webauth is not enabled', async () => {
     // reset env vars
     await request.post('/change-env').send({
       AUTH_WEBAUTHN_ENABLED: false,

@@ -54,7 +54,7 @@ export const signInWebauthnHandler: RequestHandler<
     return sendError(res, 'unverified-user');
   }
 
-  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({
+  const { authUserSecurityKeys } = await gqlSdk.getUserSecurityKeys({
     id: user.id,
   });
 
@@ -62,8 +62,8 @@ export const signInWebauthnHandler: RequestHandler<
     rpID: getWebAuthnRelyingParty(),
     userVerification: 'preferred',
     timeout: ENV.AUTH_WEBAUTHN_ATTESTATION_TIMEOUT,
-    allowCredentials: authUserAuthenticators.map((authenticator) => ({
-      id: Buffer.from(authenticator.credentialId, 'base64url'),
+    allowCredentials: authUserSecurityKeys.map((securityKey) => ({
+      id: Buffer.from(securityKey.credentialId, 'base64url'),
       type: 'public-key',
     })),
   });
@@ -116,22 +116,22 @@ export const signInVerifyWebauthnHandler: RequestHandler<
 
   const expectedChallenge = await getCurrentChallenge(user.id);
 
-  const { authUserAuthenticators } = await gqlSdk.getUserAuthenticators({
+  const { authUserSecurityKeys } = await gqlSdk.getUserSecurityKeys({
     id: user.id,
   });
-  const authenticator = authUserAuthenticators?.find(
+  const securityKey = authUserSecurityKeys?.find(
     ({ credentialId }) => credentialId === credential.id
   );
 
-  if (!authenticator) {
+  if (!securityKey) {
     return sendError(res, 'invalid-request');
   }
 
-  const authenticatorDevice = {
-    counter: authenticator.counter,
-    credentialID: Buffer.from(authenticator.credentialId, 'base64url'),
+  const securityKeyDevice = {
+    counter: securityKey.counter,
+    credentialID: Buffer.from(securityKey.credentialId, 'base64url'),
     credentialPublicKey: Buffer.from(
-      authenticator.credentialPublicKey.substr(2),
+      securityKey.credentialPublicKey.substr(2),
       'hex'
     ),
   };
@@ -143,12 +143,12 @@ export const signInVerifyWebauthnHandler: RequestHandler<
       expectedChallenge,
       expectedOrigin: ENV.AUTH_WEBAUTHN_RP_ORIGINS,
       expectedRPID: getWebAuthnRelyingParty(),
-      authenticator: authenticatorDevice,
+      authenticator: securityKeyDevice,
       requireUserVerification: true,
     });
   } catch (e) {
     const error = e as Error;
-    return sendError(res, 'invalid-webauthn-authenticator', {
+    return sendError(res, 'invalid-webauthn-security-key', {
       customMessage: error.message,
     });
   }
@@ -162,9 +162,9 @@ export const signInVerifyWebauthnHandler: RequestHandler<
   const { authenticationInfo } = verification;
   const { newCounter } = authenticationInfo;
 
-  if (authenticator.counter != newCounter) {
-    await gqlSdk.updateUserAuthenticator({
-      id: authenticator.id,
+  if (securityKey.counter != newCounter) {
+    await gqlSdk.updateUserSecurityKey({
+      id: securityKey.id,
       counter: newCounter,
     });
   }

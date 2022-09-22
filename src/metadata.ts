@@ -254,7 +254,7 @@ export const applyMetadata = async (): Promise<void> => {
       source: 'default',
       table: {
         schema: 'auth',
-        name: 'user_authenticators',
+        name: 'user_security_keys',
       },
     });
 
@@ -479,20 +479,20 @@ export const applyMetadata = async (): Promise<void> => {
       source: 'default',
       table: {
         schema: 'auth',
-        name: 'user_authenticators',
+        name: 'user_security_keys',
       },
       configuration: {
-        custom_name: 'authUserAuthenticators',
+        custom_name: 'authUserSecurityKeys',
         custom_root_fields: {
-          select: 'authUserAuthenticators',
-          select_by_pk: 'authUserAuthenticator',
-          select_aggregate: 'authUserAuthenticatorsAggregate',
-          insert: 'insertAuthUserAuthenticators',
-          insert_one: 'insertAuthUserAuthenticator',
-          update: 'updateAuthUserAuthenticators',
-          update_by_pk: 'updateAuthUserAuthenticator',
-          delete: 'deleteAuthUserAuthenticators',
-          delete_by_pk: 'deleteAuthUserAuthenticator',
+          select: 'authUserSecurityKeys',
+          select_by_pk: 'authUserSecurityKey',
+          select_aggregate: 'authUserSecurityKeysAggregate',
+          insert: 'insertAuthUserSecurityKeys',
+          insert_one: 'insertAuthUserSecurityKey',
+          update: 'updateAuthUserSecurityKeys',
+          update_by_pk: 'updateAuthUserSecurityKey',
+          delete: 'deleteAuthUserSecurityKeys',
+          delete_by_pk: 'deleteAuthUserSecurityKey',
         },
         custom_column_names: {
           // * See: https://github.com/hasura/graphql-engine/issues/8020
@@ -696,7 +696,7 @@ export const applyMetadata = async (): Promise<void> => {
       source: 'default',
       table: {
         schema: 'auth',
-        name: 'user_authenticators',
+        name: 'user_security_keys',
       },
       name: 'user',
       using: {
@@ -709,12 +709,12 @@ export const applyMetadata = async (): Promise<void> => {
         schema: 'auth',
         name: 'users',
       },
-      name: 'authenticators',
+      name: 'securityKeys',
       using: {
         foreign_key_constraint_on: {
           table: {
             schema: 'auth',
-            name: 'user_authenticators',
+            name: 'user_security_keys',
           },
           columns: ['user_id'],
         },

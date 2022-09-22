@@ -78,9 +78,9 @@ export const ERRORS = asErrors({
     status: StatusCodes.UNAUTHORIZED,
     message: 'Invalid or expired verification ticket',
   },
-  'invalid-webauthn-authenticator': {
+  'invalid-webauthn-security-key': {
     status: StatusCodes.UNAUTHORIZED,
-    message: 'Invalid WebAuthn authenticator',
+    message: 'Invalid WebAuthn security key',
   },
   'invalid-webauthn-verification': {
     status: StatusCodes.UNAUTHORIZED,

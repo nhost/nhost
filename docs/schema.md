@@ -15,7 +15,7 @@ users ||--o{ user_roles : roles
 user_roles }o--|| roles: role
 users }o--|| roles: role
 users ||--o{ refresh_tokens: refreshTokens
-users ||--o{ user_authenticators: authenticator
+users ||--o{ user_security_keys: security_key
 users ||--o{ user_providers: provider
 providers ||--o{ user_providers: user
 
@@ -46,7 +46,7 @@ user_providers {
     text provider_user_id
 }
 
-user_authenticators {
+user_security_keys {
     uuid id PK "gen_random_uuid()"
     uuid user_id FK
     text credential_id

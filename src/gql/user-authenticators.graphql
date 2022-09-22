@@ -1,5 +1,5 @@
-query getUserAuthenticators($id: uuid!) {
-  authUserAuthenticators(where: { userId: { _eq: $id } }) {
+query getUserSecurityKeys($id: uuid!) {
+  authUserSecurityKeys(where: { userId: { _eq: $id } }) {
     counter
     credentialId
     credentialPublicKey
@@ -27,16 +27,16 @@ mutation updateUserChallenge($userId: uuid!, $challenge: String!) {
   }
 }
 
-mutation addUserAuthenticator(
-  $userAuthenticator: authUserAuthenticators_insert_input!
+mutation addUserSecurityKey(
+  $userSecurityKey: authUserSecurityKeys_insert_input!
 ) {
-  insertAuthUserAuthenticator(object: $userAuthenticator) {
+  insertAuthUserSecurityKey(object: $userSecurityKey) {
     id
   }
 }
 
-mutation updateUserAuthenticator($id: uuid!, $counter: bigint!) {
-  updateAuthUserAuthenticator(
+mutation updateUserSecurityKey($id: uuid!, $counter: bigint!) {
+  updateAuthUserSecurityKey(
     pk_columns: { id: $id }
     _set: { counter: $counter }
   ) {

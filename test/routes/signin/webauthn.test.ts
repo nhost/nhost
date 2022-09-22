@@ -25,7 +25,7 @@ describe('webauthn', () => {
 
   beforeEach(async () => {
     await client.query(`DELETE FROM auth.users;`);
-    await client.query(`DELETE FROM auth.user_authenticators;`);
+    await client.query(`DELETE FROM auth.user_security_keys;`);
 
     // set env vars
     await request.post('/change-env').send({

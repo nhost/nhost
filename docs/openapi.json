@@ -379,17 +379,17 @@
             },
             "type" : "object"
          },
-         "InvalidWebauthnAuthenticatorError" : {
+         "InvalidWebauthnSecurityKeyError" : {
             "additionalProperties" : false,
             "properties" : {
                "error" : {
                   "enum" : [
-                     "invalid-webauthn-authenticator"
+                     "invalid-webauthn-security-key"
                   ]
                },
                "message" : {
                   "enum" : [
-                     "Invalid WebAuthn authenticator"
+                     "Invalid WebAuthn security key"
                   ]
                },
                "status" : {
@@ -1483,7 +1483,7 @@
             ],
             "type" : "object"
          },
-         "VerifyAddAuthenticatorSchema" : {
+         "VerifyAddSecurityKeySchema" : {
             "additionalProperties" : false,
             "properties" : {
                "credential" : {
@@ -2970,7 +2970,7 @@
                }
             },
             "security" : [],
-            "summary" : "Initialize adding of a new webauthn authenticator (device, browser)",
+            "summary" : "Initialize adding of a new webauthn security key (device, browser)",
             "tags" : [
                "User management"
             ]
@@ -2984,7 +2984,7 @@
                "content" : {
                   "application/json" : {
                      "schema" : {
-                        "$ref" : "#/components/schemas/VerifyAddAuthenticatorSchema"
+                        "$ref" : "#/components/schemas/VerifyAddSecurityKeySchema"
                      }
                   }
                },
@@ -3024,7 +3024,7 @@
                }
             },
             "security" : [],
-            "summary" : "Verfiy adding of a new webauth authenticator (device, browser)",
+            "summary" : "Verfiy adding of a new webauth security key (device, browser)",
             "tags" : [
                "User management"
             ]
