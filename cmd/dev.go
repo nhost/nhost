@@ -295,19 +295,28 @@ func configurationWarnings(c *nhost.Configuration) {
 	}
 
 	// check auth smtp config
+	var smtpHost, smtpPort string
 	if smtp, ok := c.Auth["smtp"]; ok { //nolint:nestif
 		v := reflect.ValueOf(smtp)
+
 		if v.Kind() == reflect.Map {
 			for _, key := range v.MapKeys() {
-				if key.Interface().(string) != "host" {
-					continue
+				if key.Interface().(string) == "host" {
+					smtpHost = v.MapIndex(key).Interface().(string)
 				}
 
-				hostValue := v.MapIndex(key).Interface().(string)
-				if hostValue != "" && hostValue != "mailhog" && strings.Contains(hostValue, "mailhog") {
-					fmt.Printf("WARNING: [auth.smtp.host] \"host\" field has a value \"%s\", please set the value to \"mailhog\" if you want CLI to spin up a container for mail catching\n", hostValue)
+				if key.Interface().(string) == "port" {
+					smtpPort = fmt.Sprint(v.MapIndex(key).Interface())
 				}
 			}
+		}
+
+		if smtpHost != "" && smtpHost != "mailhog" && strings.Contains(smtpHost, "mailhog") {
+			fmt.Printf("WARNING: [auth.smtp.host] \"host\" field has a value \"%s\", please set the value to \"mailhog\" if you want CLI to spin up a container for mail catching\n", smtpHost)
+		}
+
+		if smtpPort != "1025" && strings.Contains(smtpHost, "mailhog") {
+			fmt.Printf("WARNING: [auth.smtp.port] \"port\" field has a value \"%s\", please set the value to \"1025\" if you want mailhog to work properly\n", smtpPort)
 		}
 	}
 }
