@@ -3,7 +3,7 @@
 '@nhost/nhost-js': minor
 ---
 
-Sign up with an email and a security key
+Sign up with an email and a security key.
 
 ```ts
 const { error, session } = await nhost.auth.signUp({ email: 'joe@example.com', securityKey: true })
