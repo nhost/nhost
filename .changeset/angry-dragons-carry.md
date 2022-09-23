@@ -3,7 +3,7 @@
 '@nhost-examples/react-apollo': minor
 ---
 
-Sign up with an email and a security key
+Sign up with an email and a security key.
 
 Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
 
