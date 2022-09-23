@@ -1,6 +1,14 @@
 
 
-# [0.12.0](https://github.com/nhost/hasura-auth/compare/v0.11.0...v0.12.0) (2022-09-16)
+# [0.13.0](https://github.com/nhost/hasura-auth/compare/v0.12.0...v0.13.0) (2022-09-23)
+
+
+### Bug Fixes
+
+* Rename `authenticators` to `security keys` in the DB and GraphQL schemas
+* Fetch profile from WorkOS oauth connection ([b49d4f7](https://github.com/nhost/hasura-auth/commit/b49d4f70c7dd1cf560243b11e34f94ce7b688e05))
+* Use client hostname as RP ID ([2371fdc](https://github.com/nhost/hasura-auth/commit/2371fdc9173ffa79b008c8581450c51ce1546d08))
+* webauthn signup endpoints ([8982a49](https://github.com/nhost/hasura-auth/commit/8982a497df87fafa7c7cad3b52de8c1f9e2e134e))# [0.12.0](https://github.com/nhost/hasura-auth/compare/v0.11.0...v0.12.0) (2022-09-16)
 
 
 ### Bug Fixes
