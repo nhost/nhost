@@ -23,11 +23,11 @@ interface SignUpSecurityKeyHook {
 }
 
 /**
- * Use the hook `useSignUpSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
+ * Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
  *
  * @example
  * ```tsx
- * const { signUpSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpSecurityKey()
+ * const { signUpSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpEmailSecurityKey()
  *
  * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
  *
@@ -40,7 +40,7 @@ interface SignUpSecurityKeyHook {
  *
  * @docs https://docs.nhost.io/reference/react/use-sign-up-security-key
  */
-export const useSignUpSecurityKeyEmail: SignUpSecurityKeyHook = (
+export const useSignUpEmailSecurityKeyEmail: SignUpSecurityKeyHook = (
   hookOptions?: SignUpSecurityKeyOptions
 ) => {
   const service = useAuthInterpreter()

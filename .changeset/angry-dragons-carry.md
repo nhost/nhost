@@ -5,11 +5,11 @@
 
 Sign up with an email and a security key
 
-Use the hook `useSignUpSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
+Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
 
 ```tsx
 const { signUpSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } =
-  useSignUpSecurityKey()
+  useSignUpEmailSecurityKey()
 
 console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
 

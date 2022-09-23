@@ -3,10 +3,10 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInSecurityKeyEmail } from '@nhost/react'
+import { useSignInEmailSecurityKey } from '@nhost/react'
 
 export const SecurityKeySignIn: React.FC = () => {
-  const { signInSecurityKeyEmail } = useSignInSecurityKeyEmail()
+  const { signInSecurityKeyEmail } = useSignInEmailSecurityKey()
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
