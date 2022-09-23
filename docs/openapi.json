@@ -1540,7 +1540,7 @@
             "type" : "object"
          },
          "Version" : {
-            "example" : "0.12.0",
+            "example" : "0.13.0",
             "type" : "string"
          }
       },
@@ -1559,7 +1559,7 @@
       },
       "termsOfService" : "",
       "title" : "Hasura auth",
-      "version" : "0.12.0"
+      "version" : "0.13.0"
    },
    "openapi" : "3.0.0",
    "paths" : {
@@ -1997,6 +1997,7 @@
                         "facebook",
                         "twitter",
                         "apple",
+                        "azuread",
                         "windowslive",
                         "linkedin",
                         "spotify",
@@ -2054,6 +2055,7 @@
                         "facebook",
                         "twitter",
                         "apple",
+                        "azuread",
                         "windowslive",
                         "linkedin",
                         "spotify",
@@ -2088,7 +2090,7 @@
                }
             },
             "security" : [],
-            "summary" : "Oauth callback url, that will be used by the Oauth provider, to redirect to the client application. Attention: all providers are using a GET operation, except Apple that uses POST",
+            "summary" : "Oauth callback url, that will be used by the Oauth provider, to redirect to the client application. Attention: all providers are using a GET operation, except Apple and Azure AD that use POST",
             "tags" : [
                "Authentication"
             ]

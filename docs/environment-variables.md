@@ -110,3 +110,7 @@
 | AUTH_PROVIDER_WORKOKS_DEFAULT_DOMAIN                                               |                                     |
 | AUTH_PROVIDER_WORKOS_DEFAULT_ORGANIZATION                                          |                                     |
 | AUTH_PROVIDER_WORKOS_DEFAULT_CONNECTION                                            |                                     |
+| AUTH_PROVIDER_AZUREAD_ENABLED                                                        |                                     |
+| AUTH_PROVIDER_AZUREAD_CLIENT_ID                                                      |                                     |
+| AUTH_PROVIDER_AZUREAD_CLIENT_SECRET                                                  |                                     |
+| AUTH_PROVIDER_AZUREAD_TENANT                                                         |                                     |

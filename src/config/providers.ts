@@ -286,4 +286,19 @@ export const PROVIDERS = {
           },
         };
   },
+  get azuread() {
+    return !castBooleanEnv('AUTH_PROVIDER_AZUREAD_ENABLED')
+      ? null
+      : {
+          get clientID() {
+            return castStringEnv('AUTH_PROVIDER_AZUREAD_CLIENT_ID');
+          },
+          get clientSecret() {
+            return castStringEnv('AUTH_PROVIDER_AZUREAD_CLIENT_SECRET');
+          },
+          get tenant() {
+            return castStringEnv('AUTH_PROVIDER_AZUREAD_TENANT');
+          },
+        };
+  },
 };
