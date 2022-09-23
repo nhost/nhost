@@ -8,7 +8,7 @@ import fakeUser from '../mocks/user'
 /**
  * Request handler for MSW to mock a network error when trying to sign up with webauthn.
  */
-export const signUpSecurityKeyNetworkErrorHandler = rest.post(
+export const signUpEmailSecurityKeyNetworkErrorHandler = rest.post(
   `${BASE_URL}/signup/webauthn`,
   (_req, res) => {
     return res.networkError('Network error')
@@ -18,7 +18,7 @@ export const signUpSecurityKeyNetworkErrorHandler = rest.post(
 /**
  * Request handler for MSW to mock an internal server error when trying to sign up with webauthn.
  */
-export const signUpSecurityKeyInternalErrorHandler = rest.post(
+export const signUpEmailSecurityKeyInternalErrorHandler = rest.post(
   `${BASE_URL}/signup/webauthn`,
   (_req, res, ctx) => {
     return res(
@@ -31,7 +31,7 @@ export const signUpSecurityKeyInternalErrorHandler = rest.post(
 /**
  * Request handler for MSW to mock a conflicting email error when trying to sign up with webauthn.
  */
-export const signUpSecurityKeyConflictErrorHandler = rest.post(
+export const signUpEmailSecurityKeyConflictErrorHandler = rest.post(
   `${BASE_URL}/signup/webauthn`,
   (_req, res, ctx) => {
     return res(
@@ -49,7 +49,7 @@ export const signUpSecurityKeyConflictErrorHandler = rest.post(
  * Request handler for MSW to mock a successful first step of webauthn sign up.
  * the server.
  */
-export const signUpSecurityKeySuccessHandler = rest.post(
+export const signUpEmailSecurityKeySuccessHandler = rest.post(
   `${BASE_URL}/signup/webauthn`,
   (_req, res, ctx) => {
     return res(

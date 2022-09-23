@@ -13,7 +13,7 @@ Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and
 
 ```tsx
 const {
-  signUpSecurityKey,
+  signUpEmailSecurityKey,
   needsEmailVerification,
   isLoading,
   isSuccess,
@@ -26,7 +26,7 @@ console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
 const handleFormSubmit = async (e) => {
   e.preventDefault()
 
-  await signUpSecurityKey('joe@example.com')
+  await signUpEmailSecurityKey('joe@example.com')
 }
 ```
 

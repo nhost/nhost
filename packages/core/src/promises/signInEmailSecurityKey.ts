@@ -1,5 +1,5 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
-import { AuthInterpreter, SignUpSecurityKeyOptions } from '../types'
+import { AuthInterpreter } from '../types'
 
 import {
   ActionLoadingState,
@@ -7,28 +7,21 @@ import {
   SessionActionHandlerResult
 } from './types'
 
-export interface SignUpSecurityKeyHandlerResult
+export interface SignInSecurityKeyPasswordlessHandlerResult
   extends SessionActionHandlerResult,
     NeedsEmailVerificationState {}
 
-export interface SignUpSecurityKeyState
-  extends SignUpSecurityKeyHandlerResult,
+export interface SignInSecurityKeyPasswordlessState
+  extends SignInSecurityKeyPasswordlessHandlerResult,
     ActionLoadingState {}
 
-export const signUpSecurityKeyPromise = (
-  interpreter: AuthInterpreter,
-  email: string,
-  options?: SignUpSecurityKeyOptions
-): Promise<SignUpSecurityKeyHandlerResult> =>
-  new Promise<SignUpSecurityKeyHandlerResult>((resolve) => {
-    const { changed, context } = interpreter.send('SIGNUP_SECURITY_KEY', {
-      email,
-      options
-    })
+export const signInEmailSecurityKeyPromise = (interpreter: AuthInterpreter, email: string) =>
+  new Promise<SignInSecurityKeyPasswordlessHandlerResult>((resolve) => {
+    const { changed, context } = interpreter.send({ type: 'SIGNIN_SECURITY_KEY_EMAIL', email })
     if (!changed) {
       return resolve({
-        error: USER_ALREADY_SIGNED_IN,
         accessToken: context.accessToken.value,
+        error: USER_ALREADY_SIGNED_IN,
         isError: true,
         isSuccess: false,
         needsEmailVerification: false,
@@ -36,16 +29,7 @@ export const signUpSecurityKeyPromise = (
       })
     }
     interpreter.onTransition((state) => {
-      if (state.matches('registration.incomplete.failed')) {
-        resolve({
-          accessToken: null,
-          error: state.context.errors.registration || null,
-          isError: true,
-          isSuccess: false,
-          needsEmailVerification: false,
-          user: null
-        })
-      } else if (
+      if (
         state.matches({
           authentication: { signedOut: 'noErrors' },
           registration: { incomplete: 'needsEmailVerification' }
@@ -59,7 +43,16 @@ export const signUpSecurityKeyPromise = (
           needsEmailVerification: true,
           user: null
         })
-      } else if (state.matches({ authentication: 'signedIn', registration: 'complete' })) {
+      } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
+        resolve({
+          accessToken: null,
+          error: state.context.errors.authentication || null,
+          isError: true,
+          isSuccess: false,
+          needsEmailVerification: false,
+          user: null
+        })
+      } else if (state.matches({ authentication: 'signedIn' })) {
         resolve({
           accessToken: state.context.accessToken.value,
           error: null,

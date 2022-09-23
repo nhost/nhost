@@ -6,10 +6,10 @@ import { waitFor } from 'xstate/lib/waitFor'
 import { AuthMachine, createAuthMachine } from '../src/machines'
 import { BASE_URL } from './helpers/config'
 import {
-  signUpSecurityKeyConflictErrorHandler,
-  signUpSecurityKeyInternalErrorHandler,
-  signUpSecurityKeyNetworkErrorHandler,
-  signUpSecurityKeySuccessHandler,
+  signUpEmailSecurityKeyConflictErrorHandler,
+  signUpEmailSecurityKeyInternalErrorHandler,
+  signUpEmailSecurityKeyNetworkErrorHandler,
+  signUpEmailSecurityKeySuccessHandler,
   signUpVerifySecurityKeySuccessHandler,
   signUpVerifySecurityKeySuccessWithSessionHandler
 } from './helpers/handlers'
@@ -65,7 +65,7 @@ afterEach(() => {
 })
 
 test(`should fail if network is unavailable`, async () => {
-  server.use(signUpSecurityKeyNetworkErrorHandler)
+  server.use(signUpEmailSecurityKeyNetworkErrorHandler)
 
   authService.send({
     type: 'SIGNUP_SECURITY_KEY',
@@ -88,7 +88,7 @@ test(`should fail if network is unavailable`, async () => {
 })
 
 test(`should fail if server returns an error`, async () => {
-  server.use(signUpSecurityKeyInternalErrorHandler)
+  server.use(signUpEmailSecurityKeyInternalErrorHandler)
 
   authService.send({
     type: 'SIGNUP_SECURITY_KEY',
@@ -132,7 +132,7 @@ test(`should fail if email is incorrectly formatted`, async () => {
 })
 
 test(`should fail if email has already been taken`, async () => {
-  server.use(signUpSecurityKeyConflictErrorHandler)
+  server.use(signUpEmailSecurityKeyConflictErrorHandler)
 
   authService.send({
     type: 'SIGNUP_SECURITY_KEY',
@@ -155,7 +155,7 @@ test(`should fail if email has already been taken`, async () => {
 })
 
 test(`should succeed if email is correctly formatted but pending verification`, async () => {
-  server.use(signUpSecurityKeySuccessHandler, signUpVerifySecurityKeySuccessHandler)
+  server.use(signUpEmailSecurityKeySuccessHandler, signUpVerifySecurityKeySuccessHandler)
   mockAuthenticator()
 
   authService.send({
@@ -175,7 +175,7 @@ test(`should succeed if email is correctly formatted but pending verification`, 
 })
 
 test(`should succeed if email is correctly formatted and user is already signed up`, async () => {
-  server.use(signUpSecurityKeySuccessHandler, signUpVerifySecurityKeySuccessWithSessionHandler)
+  server.use(signUpEmailSecurityKeySuccessHandler, signUpVerifySecurityKeySuccessWithSessionHandler)
   mockAuthenticator()
 
   authService.send({

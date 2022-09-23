@@ -13,7 +13,7 @@ Use the hook `useSignInEmailSecurityKey` to sign in a user using their email and
 
 ```tsx
 const {
-  signInSecurityKeyEmail,
+  signInEmailSecurityKey,
   needsEmailVerification,
   isLoading,
   isSuccess,
@@ -26,6 +26,6 @@ console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
 const handleFormSubmit = async (e) => {
   e.preventDefault()
 
-  await signInSecurityKeyEmail('joe@example.com')
+  await signInEmailSecurityKey('joe@example.com')
 }
 ```

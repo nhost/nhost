@@ -1,5 +1,5 @@
 import {
-  signInSecurityKeyEmailPromise,
+  signInEmailSecurityKeyPromise,
   SignInSecurityKeyPasswordlessHandlerResult,
   SignInSecurityKeyPasswordlessState
 } from '@nhost/core'
@@ -13,7 +13,7 @@ interface SignInSecurityKeyPasswordlessHandler {
 
 export interface SignInSecurityKeyPasswordlessHookResult
   extends SignInSecurityKeyPasswordlessState {
-  signInSecurityKeyEmail: SignInSecurityKeyPasswordlessHandler
+  signInEmailSecurityKey: SignInSecurityKeyPasswordlessHandler
 }
 
 interface SignInSecurityKeyPasswordlessHook {
@@ -25,14 +25,14 @@ interface SignInSecurityKeyPasswordlessHook {
  *
  * @example
  * ```tsx
- * const { signInSecurityKeyEmail, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInEmailSecurityKey()
+ * const { signInEmailSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInEmailSecurityKey()
  *
  * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
  *
- *   await signInSecurityKeyEmail('joe@example.com')
+ *   await signInEmailSecurityKey('joe@example.com')
  * }
  * ```
  *
@@ -40,8 +40,8 @@ interface SignInSecurityKeyPasswordlessHook {
  */
 export const useSignInEmailSecurityKey: SignInSecurityKeyPasswordlessHook = () => {
   const service = useAuthInterpreter()
-  const signInSecurityKeyEmail: SignInSecurityKeyPasswordlessHandler = (email: string) =>
-    signInSecurityKeyEmailPromise(service, email)
+  const signInEmailSecurityKey: SignInSecurityKeyPasswordlessHandler = (email: string) =>
+    signInEmailSecurityKeyPromise(service, email)
 
   const user = useSelector(
     service,
@@ -86,7 +86,7 @@ export const useSignInEmailSecurityKey: SignInSecurityKeyPasswordlessHook = () =
     isLoading,
     isSuccess,
     needsEmailVerification,
-    signInSecurityKeyEmail,
+    signInEmailSecurityKey,
     user
   }
 }

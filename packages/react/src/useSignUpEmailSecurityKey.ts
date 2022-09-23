@@ -1,6 +1,6 @@
 import {
   SignUpSecurityKeyOptions,
-  signUpSecurityKeyPromise,
+  signUpEmailSecurityKeyPromise,
   SignUpSecurityKeyState
 } from '@nhost/core'
 import { useSelector } from '@xstate/react'
@@ -15,7 +15,7 @@ interface SignUpSecurityKeyHandler {
 
 export interface SignUpSecurityKeyHookResult extends SignUpSecurityKeyState {
   /** Used for a new user to sign up with a security key. Returns a promise with the current context */
-  signUpSecurityKeyEmail: SignUpSecurityKeyHandler
+  signUpEmailSecurityKey: SignUpSecurityKeyHandler
 }
 
 interface SignUpSecurityKeyHook {
@@ -27,14 +27,14 @@ interface SignUpSecurityKeyHook {
  *
  * @example
  * ```tsx
- * const { signUpSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpEmailSecurityKey()
+ * const { signUpEmailSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignUpEmailSecurityKey()
  *
  * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
  *
- *   await signUpSecurityKey('joe@example.com')
+ *   await signUpEmailSecurityKey('joe@example.com')
  * }
  * ```
  *
@@ -65,8 +65,8 @@ export const useSignUpEmailSecurityKeyEmail: SignUpSecurityKeyHook = (
     })
   )
 
-  const signUpSecurityKeyEmail: SignUpSecurityKeyHandler = (email, options = hookOptions) =>
-    signUpSecurityKeyPromise(service, email, options)
+  const signUpEmailSecurityKey: SignUpSecurityKeyHandler = (email, options = hookOptions) =>
+    signUpEmailSecurityKeyPromise(service, email, options)
 
   const user = useSelector(
     service,
@@ -82,7 +82,7 @@ export const useSignUpEmailSecurityKeyEmail: SignUpSecurityKeyHook = (
     isLoading,
     isSuccess,
     needsEmailVerification,
-    signUpSecurityKeyEmail,
+    signUpEmailSecurityKey,
     user
   }
 }

@@ -6,14 +6,14 @@ import { showNotification } from '@mantine/notifications'
 import { useSignInEmailSecurityKey } from '@nhost/react'
 
 export const SecurityKeySignIn: React.FC = () => {
-  const { signInSecurityKeyEmail } = useSignInEmailSecurityKey()
+  const { signInEmailSecurityKey } = useSignInEmailSecurityKey()
   const [email, setEmail] = useState('')
   const navigate = useNavigate()
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
 
   const signIn = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const { isError, isSuccess, needsEmailVerification, error } = await signInSecurityKeyEmail(
+    const { isError, isSuccess, needsEmailVerification, error } = await signInEmailSecurityKey(
       email
     )
     if (isError) {
