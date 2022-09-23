@@ -1,6 +1,6 @@
 import {
-  SignUpSecurityKeyOptions,
   signUpEmailSecurityKeyPromise,
+  SignUpSecurityKeyOptions,
   SignUpSecurityKeyState
 } from '@nhost/core'
 import { useSelector } from '@xstate/react'
