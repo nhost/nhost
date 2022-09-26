@@ -1,22 +1,19 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { FormEvent, useState } from 'react'
 
 import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInEmailPasswordless, useSignInSecurityKeyEmail } from '@nhost/react'
+import { useSignInEmailPasswordless } from '@nhost/react'
 
 export const SignUpPasswordlessForm: React.FC = () => {
-  const navigate = useNavigate()
-
   const { signInEmailPasswordless } = useSignInEmailPasswordless({ redirectTo: '/profile' })
-  const { signInSecurityKeyEmail } = useSignInSecurityKeyEmail()
 
   const [emailVerificationToggle, setEmailVerificationToggle] = useState(false)
   const [emailNeedsVerificationToggle, setEmailNeedsVerificationToggle] = useState(false)
 
   const [email, setEmail] = useState('')
 
-  const signInEmail = async () => {
+  const signInEmail = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     const result = await signInEmailPasswordless(email)
     if (result.isError) {
       showNotification({
@@ -27,21 +24,6 @@ export const SignUpPasswordlessForm: React.FC = () => {
     } else {
       setEmailVerificationToggle(true)
     }
-  }
-  const signInDevice = async () => {
-    const result = await signInSecurityKeyEmail(email)
-    if (result.needsEmailVerification) {
-      return
-    }
-    if (result.isError) {
-      showNotification({
-        color: 'red',
-        title: 'Error',
-        message: result.error?.message || null
-      })
-      return
-    }
-    navigate('/', { replace: true })
   }
   return (
     <SimpleGrid cols={1} spacing={6}>
@@ -70,18 +52,19 @@ export const SignUpPasswordlessForm: React.FC = () => {
         You need to verify your email first. Please check your mailbox and follow the confirmation
         link to complete the registration.
       </Modal>
-      <TextInput
-        type="email"
-        placeholder="Email Address"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
-      <Button fullWidth onClick={signInDevice}>
-        Use a security key
-      </Button>
-      <Button fullWidth onClick={signInEmail}>
-        Send a magic link
-      </Button>
+      <form onSubmit={signInEmail}>
+        <TextInput
+          type="email"
+          placeholder="Email Address"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoFocus
+          style={{ marginBottom: '0.5em' }}
+        />
+        <Button fullWidth type="submit">
+          Send a magic link
+        </Button>
+      </form>
     </SimpleGrid>
   )
 }

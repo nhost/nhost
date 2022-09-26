@@ -1,5 +1,5 @@
 table:
-  name: user_authenticators
+  name: user_security_keys
   schema: auth
 configuration:
   column_config:
@@ -13,17 +13,17 @@ configuration:
     credential_id: credentialId
     credential_public_key: credentialPublicKey
     user_id: userId
-  custom_name: authUserAuthenticators
+  custom_name: authUserSecurityKeys
   custom_root_fields:
-    delete: deleteAuthUserAuthenticators
-    delete_by_pk: deleteAuthUserAuthenticator
-    insert: insertAuthUserAuthenticators
-    insert_one: insertAuthUserAuthenticator
-    select: authUserAuthenticators
-    select_aggregate: authUserAuthenticatorsAggregate
-    select_by_pk: authUserAuthenticator
-    update: updateAuthUserAuthenticators
-    update_by_pk: updateAuthUserAuthenticator
+    delete: deleteAuthUserSecurityKeys
+    delete_by_pk: deleteAuthUserSecurityKey
+    insert: insertAuthUserSecurityKeys
+    insert_one: insertAuthUserSecurityKey
+    select: authUserSecurityKeys
+    select_aggregate: authUserSecurityKeysAggregate
+    select_by_pk: authUserSecurityKey
+    update: updateAuthUserSecurityKeys
+    update_by_pk: updateAuthUserSecurityKey
 object_relationships:
   - name: user
     using:
@@ -32,14 +32,12 @@ select_permissions:
   - role: user
     permission:
       columns:
-        - counter
         - id
         - nickname
         - user_id
       filter:
         user_id:
           _eq: X-Hasura-User-Id
-      allow_aggregations: true
 delete_permissions:
   - role: user
     permission:

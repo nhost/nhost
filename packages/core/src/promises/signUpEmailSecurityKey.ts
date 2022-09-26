@@ -1,5 +1,5 @@
 import { USER_ALREADY_SIGNED_IN } from '../errors'
-import { AuthInterpreter } from '../types'
+import { AuthInterpreter, SignUpSecurityKeyOptions } from '../types'
 
 import {
   ActionLoadingState,
@@ -7,21 +7,28 @@ import {
   SessionActionHandlerResult
 } from './types'
 
-export interface SignInSecurityKeyPasswordlessHandlerResult
+export interface SignUpSecurityKeyHandlerResult
   extends SessionActionHandlerResult,
     NeedsEmailVerificationState {}
 
-export interface SignInSecurityKeyPasswordlessState
-  extends SignInSecurityKeyPasswordlessHandlerResult,
+export interface SignUpSecurityKeyState
+  extends SignUpSecurityKeyHandlerResult,
     ActionLoadingState {}
 
-export const signInSecurityKeyEmailPromise = (interpreter: AuthInterpreter, email: string) =>
-  new Promise<SignInSecurityKeyPasswordlessHandlerResult>((resolve) => {
-    const { changed, context } = interpreter.send({ type: 'SIGNIN_SECURITY_KEY_EMAIL', email })
+export const signUpEmailSecurityKeyPromise = (
+  interpreter: AuthInterpreter,
+  email: string,
+  options?: SignUpSecurityKeyOptions
+): Promise<SignUpSecurityKeyHandlerResult> =>
+  new Promise<SignUpSecurityKeyHandlerResult>((resolve) => {
+    const { changed, context } = interpreter.send('SIGNUP_SECURITY_KEY', {
+      email,
+      options
+    })
     if (!changed) {
       return resolve({
-        accessToken: context.accessToken.value,
         error: USER_ALREADY_SIGNED_IN,
+        accessToken: context.accessToken.value,
         isError: true,
         isSuccess: false,
         needsEmailVerification: false,
@@ -29,7 +36,16 @@ export const signInSecurityKeyEmailPromise = (interpreter: AuthInterpreter, emai
       })
     }
     interpreter.onTransition((state) => {
-      if (
+      if (state.matches('registration.incomplete.failed')) {
+        resolve({
+          accessToken: null,
+          error: state.context.errors.registration || null,
+          isError: true,
+          isSuccess: false,
+          needsEmailVerification: false,
+          user: null
+        })
+      } else if (
         state.matches({
           authentication: { signedOut: 'noErrors' },
           registration: { incomplete: 'needsEmailVerification' }
@@ -43,16 +59,7 @@ export const signInSecurityKeyEmailPromise = (interpreter: AuthInterpreter, emai
           needsEmailVerification: true,
           user: null
         })
-      } else if (state.matches({ authentication: { signedOut: 'failed' } })) {
-        resolve({
-          accessToken: null,
-          error: state.context.errors.authentication || null,
-          isError: true,
-          isSuccess: false,
-          needsEmailVerification: false,
-          user: null
-        })
-      } else if (state.matches({ authentication: 'signedIn' })) {
+      } else if (state.matches({ authentication: 'signedIn', registration: 'complete' })) {
         resolve({
           accessToken: state.context.accessToken.value,
           error: null,

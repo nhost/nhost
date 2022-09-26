@@ -52,7 +52,7 @@ Cypress.Commands.add('signUpEmailPassword', (email, password) => {
 
 Cypress.Commands.add('signUpEmailPasswordless', (email) => {
   cy.visit('/sign-up')
-  cy.findByRole('button', { name: /Continue with passwordless email/i }).click()
+  cy.findByRole('button', { name: /Continue with a magic link/i }).click()
   cy.findByPlaceholderText('Email Address').type(email)
   cy.findByRole('button', { name: /Continue with email/i }).click()
 })

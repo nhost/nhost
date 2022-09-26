@@ -1,5 +1,5 @@
 import {
-  signInSecurityKeyEmailPromise,
+  signInEmailSecurityKeyPromise,
   SignInSecurityKeyPasswordlessHandlerResult,
   SignInSecurityKeyPasswordlessState
 } from '@nhost/core'
@@ -13,7 +13,7 @@ interface SignInSecurityKeyPasswordlessHandler {
 
 export interface SignInSecurityKeyPasswordlessHookResult
   extends SignInSecurityKeyPasswordlessState {
-  signInSecurityKeyEmail: SignInSecurityKeyPasswordlessHandler
+  signInEmailSecurityKey: SignInSecurityKeyPasswordlessHandler
 }
 
 interface SignInSecurityKeyPasswordlessHook {
@@ -21,27 +21,27 @@ interface SignInSecurityKeyPasswordlessHook {
 }
 
 /**
- * Use the hook `useSignInSecurityKeyEmail` to sign in a user using their email and a security key using the WebAuthn API.
+ * Use the hook `useSignInEmailSecurityKey` to sign in a user using their email and a security key using the WebAuthn API.
  *
  * @example
  * ```tsx
- * const { signInSecurityKeyEmail, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInSecurityKeyEmail()
+ * const { signInEmailSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } = useSignInEmailSecurityKey()
  *
  * console.log({ needsEmailVerification, isLoading, isSuccess, isError, error });
  *
  * const handleFormSubmit = async (e) => {
  *   e.preventDefault();
  *
- *   await signInSecurityKeyEmail('joe@example.com')
+ *   await signInEmailSecurityKey('joe@example.com')
  * }
  * ```
  *
  * @docs https://docs.nhost.io/reference/react/use-sign-in-web-authn
  */
-export const useSignInSecurityKeyEmail: SignInSecurityKeyPasswordlessHook = () => {
+export const useSignInEmailSecurityKey: SignInSecurityKeyPasswordlessHook = () => {
   const service = useAuthInterpreter()
-  const signInSecurityKeyEmail: SignInSecurityKeyPasswordlessHandler = (email: string) =>
-    signInSecurityKeyEmailPromise(service, email)
+  const signInEmailSecurityKey: SignInSecurityKeyPasswordlessHandler = (email: string) =>
+    signInEmailSecurityKeyPromise(service, email)
 
   const user = useSelector(
     service,
@@ -86,7 +86,7 @@ export const useSignInSecurityKeyEmail: SignInSecurityKeyPasswordlessHook = () =
     isLoading,
     isSuccess,
     needsEmailVerification,
-    signInSecurityKeyEmail,
+    signInEmailSecurityKey,
     user
   }
 }

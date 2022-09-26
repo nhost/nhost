@@ -7,6 +7,7 @@ import {
   Provider,
   RedirectOption,
   SignUpOptions,
+  SignUpSecurityKeyOptions,
   StorageGetter,
   StorageSetter,
   User,
@@ -21,13 +22,22 @@ export interface NhostAuthConstructorParams extends AuthOptions {
 }
 
 // Sign Up
-export interface SignUpEmailPasswordParams {
-  email: string
-  password: string
+export interface CommonSignUpParams {
   options?: SignUpOptions
 }
 
-export type SignUpParams = SignUpEmailPasswordParams
+export interface SignUpEmailPasswordParams extends CommonSignUpParams {
+  email: string
+  password: string
+}
+
+export interface SignUpSecurityKeyParams extends CommonSignUpParams {
+  email: string
+  options?: SignUpSecurityKeyOptions
+  securityKey: true
+}
+
+export type SignUpParams = SignUpEmailPasswordParams | SignUpSecurityKeyParams
 export interface SignInEmailPasswordParams {
   email: string
   password: string
@@ -94,7 +104,8 @@ export interface ChangeEmailParams {
 export type DeanonymizeParams =
   | ({
       signInMethod: 'email-password'
-    } & SignUpParams)
+    } & SignUpEmailPasswordParams)
+  // TODO deanonymise with security key
   | ({
       signInMethod: 'passwordless'
       connection: 'email'
