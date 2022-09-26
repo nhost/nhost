@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/hashicorp/go-version"
+	"github.com/nhost/cli/internal/ports"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -22,7 +23,7 @@ const (
 type Launcher struct {
 	mgr  Manager
 	hc   HasuraConsoleStartStopper
-	p    nhost.Ports
+	p    *ports.Ports
 	s    *util.Status
 	l    logrus.FieldLogger
 	pidF *pidFile
@@ -33,7 +34,7 @@ type HasuraConsoleStartStopper interface {
 	StopConsole() error
 }
 
-func NewLauncher(mgr Manager, hc HasuraConsoleStartStopper, p nhost.Ports, s *util.Status, l logrus.FieldLogger) *Launcher {
+func NewLauncher(mgr Manager, hc HasuraConsoleStartStopper, p *ports.Ports, s *util.Status, l logrus.FieldLogger) *Launcher {
 	return &Launcher{
 		mgr: mgr,
 		hc:  hc,

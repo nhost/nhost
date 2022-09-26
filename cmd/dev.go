@@ -29,6 +29,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nhost/cli/internal/git"
+	"github.com/nhost/cli/internal/ports"
 	"os"
 	"os/signal"
 	"reflect"
@@ -57,16 +58,6 @@ var (
 var userDefinedHasuraCli string
 
 const (
-	// default ports
-	defaultProxyPort            = 1337
-	defaultDBPort               = 5432
-	defaultGraphQLPort          = 8080
-	defaultHasuraConsolePort    = 9695
-	defaultHasuraConsoleApiPort = 9693
-	defaultSMTPPort             = 1025
-	defaultS3MinioPort          = 9000
-	defaultMailhogPort          = 8025
-
 	// flags
 	userDefinedHasuraCliFlag = "hasuracli"
 	startTimeoutFlag         = "start-timeout"
@@ -207,43 +198,43 @@ var devCmd = &cobra.Command{
 	},
 }
 
-func getPorts(fs *flag.FlagSet) (nhost.Ports, error) {
+func getPorts(fs *flag.FlagSet) (*ports.Ports, error) {
 	var proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort uint32
 	var err error
 
-	if proxyPort, err = fs.GetUint32(nhost.PortProxy); err != nil {
+	if proxyPort, err = fs.GetUint32(ports.FlagPortProxy); err != nil {
 		return nil, err
 	}
 
-	if dbPort, err = fs.GetUint32(nhost.PortDB); err != nil {
+	if dbPort, err = fs.GetUint32(ports.FlagPortDB); err != nil {
 		return nil, err
 	}
 
-	if graphqlPort, err = fs.GetUint32(nhost.PortGraphQL); err != nil {
+	if graphqlPort, err = fs.GetUint32(ports.FlagPortGraphQL); err != nil {
 		return nil, err
 	}
 
-	if hasuraConsolePort, err = fs.GetUint32(nhost.PortHasuraConsole); err != nil {
+	if hasuraConsolePort, err = fs.GetUint32(ports.FlagPortHasuraConsole); err != nil {
 		return nil, err
 	}
 
-	if hasuraConsoleApiPort, err = fs.GetUint32(nhost.PortHasuraConsoleAPI); err != nil {
+	if hasuraConsoleApiPort, err = fs.GetUint32(ports.FlagPortHasuraConsoleAPI); err != nil {
 		return nil, err
 	}
 
-	if smtpPort, err = fs.GetUint32(nhost.PortSMTP); err != nil {
+	if smtpPort, err = fs.GetUint32(ports.FlagPortSMTP); err != nil {
 		return nil, err
 	}
 
-	if minioS3Port, err = fs.GetUint32(nhost.PortMinioS3); err != nil {
+	if minioS3Port, err = fs.GetUint32(ports.FlagPortMinioS3); err != nil {
 		return nil, err
 	}
 
-	if mailhogPort, err = fs.GetUint32(nhost.PortMailhog); err != nil {
+	if mailhogPort, err = fs.GetUint32(ports.FlagPortMailhog); err != nil {
 		return nil, err
 	}
 
-	return nhost.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort), nil
+	return ports.NewPorts(proxyPort, dbPort, graphqlPort, hasuraConsolePort, hasuraConsoleApiPort, smtpPort, minioS3Port, mailhogPort), nil
 }
 
 type Printer struct {
@@ -280,14 +271,14 @@ func (p *Printer) close() {
 func init() {
 	rootCmd.AddCommand(devCmd)
 
-	devCmd.PersistentFlags().Uint32P(nhost.PortProxy, "p", defaultProxyPort, "Port for dev proxy")
-	devCmd.PersistentFlags().Uint32(nhost.PortDB, defaultDBPort, "Port for database")
-	devCmd.PersistentFlags().Uint32(nhost.PortGraphQL, defaultGraphQLPort, "Port for graphql server")
-	devCmd.PersistentFlags().Uint32(nhost.PortHasuraConsole, defaultHasuraConsolePort, "Port for hasura console")
-	devCmd.PersistentFlags().Uint32(nhost.PortHasuraConsoleAPI, defaultHasuraConsoleApiPort, "Port for serving hasura migrate API")
-	devCmd.PersistentFlags().Uint32(nhost.PortSMTP, defaultSMTPPort, "Port for smtp server")
-	devCmd.PersistentFlags().Uint32(nhost.PortMinioS3, defaultS3MinioPort, "S3 port for minio")
-	devCmd.PersistentFlags().Uint32(nhost.PortMailhog, defaultMailhogPort, "Port for mailhog UI")
+	devCmd.PersistentFlags().Uint32P(ports.FlagPortProxy, "p", ports.DefaultProxyPort, "Port for dev proxy")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortDB, ports.DefaultDBPort, "Port for database")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortGraphQL, ports.DefaultGraphQLPort, "Port for graphql server")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsole, ports.DefaultHasuraConsolePort, "Port for hasura console")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortHasuraConsoleAPI, ports.DefaultHasuraConsoleApiPort, "Port for serving hasura migrate API")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortSMTP, ports.DefaultSMTPPort, "Port for smtp server")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortMinioS3, ports.DefaultS3MinioPort, "S3 port for minio")
+	devCmd.PersistentFlags().Uint32(ports.FlagPortMailhog, ports.DefaultMailhogPort, "Port for mailhog UI")
 	devCmd.PersistentFlags().Duration(startTimeoutFlag, 10*time.Minute, "Timeout for starting services")
 	devCmd.PersistentFlags().BoolVar(&noBrowser, "no-browser", false, "Don't open browser windows automatically")
 
@@ -304,19 +295,28 @@ func configurationWarnings(c *nhost.Configuration) {
 	}
 
 	// check auth smtp config
+	var smtpHost, smtpPort string
 	if smtp, ok := c.Auth["smtp"]; ok { //nolint:nestif
 		v := reflect.ValueOf(smtp)
+
 		if v.Kind() == reflect.Map {
 			for _, key := range v.MapKeys() {
-				if key.Interface().(string) != "host" {
-					continue
+				if key.Interface().(string) == "host" {
+					smtpHost = v.MapIndex(key).Interface().(string)
 				}
 
-				hostValue := v.MapIndex(key).Interface().(string)
-				if hostValue != "" && hostValue != "mailhog" && strings.Contains(hostValue, "mailhog") {
-					fmt.Printf("WARNING: [auth.smtp.host] \"host\" field has a value \"%s\", please set the value to \"mailhog\" if you want CLI to spin up a container for mail catching\n", hostValue)
+				if key.Interface().(string) == "port" {
+					smtpPort = fmt.Sprint(v.MapIndex(key).Interface())
 				}
 			}
+		}
+
+		if smtpHost != "" && smtpHost != "mailhog" && strings.Contains(smtpHost, "mailhog") {
+			fmt.Printf("WARNING: [auth.smtp.host] \"host\" field has a value \"%s\", please set the value to \"mailhog\" if you want CLI to spin up a container for mail catching\n", smtpHost)
+		}
+
+		if smtpPort != "1025" && strings.Contains(smtpHost, "mailhog") {
+			fmt.Printf("WARNING: [auth.smtp.port] \"port\" field has a value \"%s\", please set the value to \"1025\" if you want mailhog to work properly\n", smtpPort)
 		}
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/nhost/cli/internal/ports"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -382,7 +383,7 @@ func GenerateConfig(options App) Configuration {
 			},
 			"smtp": map[interface{}]interface{}{
 				"host":   "mailhog",
-				"port":   util.GetPort(1000, 1999),
+				"port":   ports.DefaultSMTPPort,
 				"user":   "user",
 				"pass":   "password",
 				"sender": "hasura-auth@example.com",

@@ -3,6 +3,7 @@ package compose
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/nhost/cli/internal/ports"
 	"path/filepath"
 	"strings"
 	"time"
@@ -86,7 +87,7 @@ type Config struct {
 	composeConfig      *types.Config
 	composeProjectName string
 	dotenv             []string // environment variables from .env file
-	ports              nhost.Ports
+	ports              *ports.Ports
 }
 
 // HasuraCliVersion extracts version from Hasura CLI docker image. That allows us to keep the same version of Hasura CLI
@@ -100,7 +101,7 @@ func HasuraCliVersion() (string, error) {
 	return s[1], nil
 }
 
-func NewConfig(conf *nhost.Configuration, p nhost.Ports, env []string, gitBranch, projectName string) *Config {
+func NewConfig(conf *nhost.Configuration, p *ports.Ports, env []string, gitBranch, projectName string) *Config {
 	return &Config{nhostConfig: conf, ports: p, dotenv: env, gitBranch: gitBranch, composeProjectName: projectName}
 }
 
