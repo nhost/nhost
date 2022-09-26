@@ -39,7 +39,7 @@ query {
 
 Users should be created using the sign-up or sign-in flows as described under [sign-in methods](/platform/authentication/sign-in-methods).
 
-- **Never** create users directly via GraphQL or database.
+- **Never** create users directly via GraphQL or database, unless you [import users](#import-users) from an external system.
 - **Never** modify the `auth.users` table.
 - **Never** modify the GraphQL root queries or fields for any of the tables in the `auth` schema.
 
@@ -136,3 +136,31 @@ await nhost.auth.signUp({
   }
 })
 ```
+
+## Import Users
+
+If you have users in a different system, you can import them into Nhost. When importing users you should insert the users directly into the database instead of using the authentication endpoints (`/signup/email-password`).
+
+It's possible to insert users via GraphQL or SQL.
+
+### GraphQL
+
+Make a GraphQL request to insert a user like this:
+
+```graphql
+mutation insertUser($user: users_insert_input!) {
+  insertUser(object: $user) {
+    id
+  }
+}
+```
+
+### SQL
+
+Connect directly to the database and insert a user like this:
+
+```sql
+INSERT INTO auth.users (id, email, display_name, password_hash, ..) VALUES ('<user-id>', '<email>', '<display-name>', '<password-hash>', ..);
+```
+
+User passwords are hashed using [bcrypt](https://en.wikipedia.org/wiki/Bcrypt) in Nhost.
