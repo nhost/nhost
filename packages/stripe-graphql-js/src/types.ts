@@ -13,6 +13,7 @@ export type Context = YogaInitialContext & StripeGraphQLContext
 export type CreateServerProps = {
   cors?: CORSOptions
   isAllowed?: (stripeCustomerId: string, context: Context) => boolean
+  graphiql?: boolean
 }
 
 // removing Stripe.Customer from `customer` because we will never expand
