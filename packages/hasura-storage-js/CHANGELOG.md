@@ -1,6 +1,6 @@
 # @nhost/hasura-storage-js
 
-## 1.0.0
+## 0.6.2
 
 ### Patch Changes
 
