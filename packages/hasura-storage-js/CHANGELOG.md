@@ -1,5 +1,12 @@
 # @nhost/hasura-storage-js
 
+## 1.0.0
+
+### Patch Changes
+
+- Updated dependencies [8e4d790b]
+  - @nhost/core@0.8.0
+
 ## 0.6.1
 
 ### Patch Changes
