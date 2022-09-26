@@ -179,6 +179,8 @@ Start the development server:
 pnpm dev
 ```
 
+The GraphQL Server will reload every time the code changes.
+
 Open GraphiQL:
 
 [http://0.0.0.0:4000/graphql](http://0.0.0.0:4000/graphql)
