@@ -29,5 +29,6 @@
 ### Patch Changes
 
 - Updated dependencies [739a3c45]
+- Updated dependencies [74758f2c]
   - @nhost/react@0.13.0
   - @nhost/react-apollo@5.0.0

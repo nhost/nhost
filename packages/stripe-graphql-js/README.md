@@ -1,7 +1,3 @@
-<h1>⚠️ Work In Progress ⚠️</h1>
-
-**This package being actively worked on and is NOT stable!**
-
 <h1 align="center">@nhost/stripe-graphql-js</h1>
 <h2 align="center">Stripe GraphQL API</h2>
 
@@ -13,9 +9,28 @@
   </a>
 </p>
 
-Stripe GraphQL API with Hasura Remote schemas.
+This package creates a Stripe GraphQL API.
 
-Connect data in your database with data from Stripe, via GraphQL.
+```graphql
+query {
+  stripe {
+    customer(id: "cus_MVBRpmnBis9v5x") {
+      id
+      name
+      invoices {
+        data {
+          id
+          created
+          paid
+          hostedInvoiceUrl
+        }
+      }
+    }
+  }
+}
+```
+
+You can also add the Stripe GraphQL API as a Hasura Remote Schema and connect data from your database and Stripe. This allows you to request data from your database and Stripe in a single GraphQL query:
 
 ```graphql
 query {
@@ -62,9 +77,11 @@ const server = createStripeGraphQLServer()
 export default server
 ```
 
+> You can run the Stripe GraphQL API in any JS environment because it's built using [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga).
+
 ### Test
 
-Test the Stripe GraphQL API in the rowser:
+Test the Stripe GraphQL API in the browser:
 
 [http://localhost:1337/v1/functions/graphql/stripe](http://localhost:1337/v1/functions/graphql/stripe)
 
@@ -72,7 +89,19 @@ Test the Stripe GraphQL API in the rowser:
 
 Add the Stripe GraphQL API as a Remote Schema in Hasura.
 
-URL: `{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
+**URL**
+
+```
+{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
+```
+
+**Headers**
+
+```
+x-nhost-webhook-secret: NHOST_WEBHOOK_SECRET (from env var)
+```
+
+![Hasura Remote Schema](./assets//hasura-remote-schema.png)
 
 ## Permissions
 
@@ -149,6 +178,8 @@ Start the development server:
 ```bash
 pnpm dev
 ```
+
+The GraphQL Server will reload every time the code changes.
 
 Open GraphiQL:
 
