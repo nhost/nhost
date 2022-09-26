@@ -1,5 +1,39 @@
 # @nhost/react
 
+## 0.13.0
+
+### Minor Changes
+
+- 739a3c45: Sign up with an email and a security key.
+
+  Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
+
+  ```tsx
+  const {
+    signUpEmailSecurityKey,
+    needsEmailVerification,
+    isLoading,
+    isSuccess,
+    isError,
+    error
+  } = useSignUpEmailSecurityKey()
+
+  console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
+
+  const handleFormSubmit = async (e) => {
+    e.preventDefault()
+    await signUpEmailSecurityKey('joe@example.com')
+  }
+  ```
+
+### Patch Changes
+
+- Updated dependencies [739a3c45]
+- Updated dependencies [8e4d790b]
+  - @nhost/nhost-js@1.5.0
+  - @nhost/core@0.8.0
+  - @nhost/hasura-storage-js@1.0.0
+
 ## 0.12.5
 
 ### Patch Changes
