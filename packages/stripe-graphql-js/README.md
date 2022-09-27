@@ -2,8 +2,8 @@
 <h2 align="center">Stripe GraphQL API</h2>
 
 <p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/stripe-graphql">
-  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/stripe-graphql">
+  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/stripe-graphql-js">
+  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/stripe-graphql-js">
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
   </a>
