@@ -228,20 +228,7 @@ export const applyMetadata = async (): Promise<void> => {
   logger.info('Applying metadata...');
 
   logger.debug('Reloading metadata...');
-  const { is_consistent, inconsistent_objects } = await reloadMetadata();
-
-  // * Manage metadata inconsistencies
-  if (is_consistent === false) {
-    // * Drop inconsistencies when it contains auth.user_authenticators
-    if (
-      inconsistent_objects?.some(
-        ({ definition: { name, schema } }) =>
-          name === 'user_authenticators' && schema === 'auth'
-      )
-    ) {
-      await dropInconsistentMetadata();
-    }
-  }
+  await reloadMetadata();
 
   logger.debug('Metadata reloaded');
 
