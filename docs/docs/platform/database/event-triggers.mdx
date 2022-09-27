@@ -6,13 +6,17 @@ image: /img/og/platform/event-triggers.png
 
 Event Triggers enable you to invoke webhooks when a database event happens. Event Triggers are typically used to do post-processing tasks, using custom backend code, based on database events.
 
-Event Triggers are associated with a specific table in the database the following event types are available:
+Event Triggers are associated with a specific table in the database and the following event types are available:
 
-- **INSERT** - A row is inserted into a table
-- **UPDATE** - A row is updated in a table
-- **DELETE** - A row is deleted from a table
+- **INSERT** - A row is inserted into a table.
+- **UPDATE** - A row is updated in a table.
+- **DELETE** - A row is deleted from a table.
 
-Event Triggers can also be triggered manually in the Hasura Console.
+:::info
+
+It's currently only possible to create Event Triggers in the Hasura Console. We're working on adding support for creating Event Triggers in the Nhost Dashboard.
+
+:::
 
 ### Example Use Case
 
@@ -30,7 +34,7 @@ Event Triggers are managed in the Hasura Console. Select **Events** in the main 
 
 ## Event Triggers and Serverless Functions
 
-Event Triggers and [Serverless Functions](/platform/serverless-functions) is a perfect combination to build powerful database-backend logic. Every Serverless Function is exposed as an HTTP endpoint that can be used as a webhook for your Event Triggers.
+Event Triggers and [Serverless Functions](/platform/serverless-functions) is a perfect combination to build powerful database-backend logic. Every Serverless Function is exposed as an HTTP endpoint and can be used as a webhook for Event Triggers.
 
 ### Format
 
@@ -40,7 +44,7 @@ When using Serverless Functions as webhooks you should configure the webhook usi
 {{NHOST_BACKEND_URL}}/v1/functions/orders-insert-send-email
 ```
 
-![as](/img/database/event-triggers/webhook-url-format.png)
+![Webhook URL Format](/img/database/event-triggers/webhook-url-format.png)
 
 The `NHOST_BACKEND_URL` is a [system environment variable](/platform/environment-variables#system-environment-variables) and available in production and in development environments using the [CLI](/platform/cli).
 
@@ -54,7 +58,7 @@ To set this up is a two-step process:
 
 - Step 1: Add the header `nhost-webhook-secret` with the value `NHOST_WEBHOOK_SECRET` (From env var) when creating the Event Trigger in the Hasura Console.
 
-![as](/img/database/event-triggers/webhook-secret-header.png)
+![Webhook Secret Header](/img/database/event-triggers/webhook-secret-header.png)
 
 - Step 2: Check the header `nhost-webhook-secret` for incoming requests and make sure the header is the same as the environment variable `NHOST_WEBHOOK_SECRET`.
 
