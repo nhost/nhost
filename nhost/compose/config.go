@@ -3,10 +3,11 @@ package compose
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/nhost/cli/internal/ports"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/nhost/cli/internal/ports"
 
 	"github.com/compose-spec/compose-go/types"
 	"github.com/nhost/cli/nhost"
@@ -34,7 +35,7 @@ const (
 
 	// default docker images
 	svcPostgresDefaultImage  = "nhost/postgres:14.5-20220831-1"
-	svcAuthDefaultImage      = "nhost/hasura-auth:0.13.0"
+	svcAuthDefaultImage      = "nhost/hasura-auth:0.13.1"
 	svcStorageDefaultImage   = "nhost/hasura-storage:0.2.4"
 	svcFunctionsDefaultImage = "nhost/functions:0.1.5"
 	svcMinioDefaultImage     = "minio/minio:RELEASE.2022-07-08T00-05-23Z"
