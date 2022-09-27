@@ -14,7 +14,7 @@ This package creates a Stripe GraphQL API.
 ```graphql
 query {
   stripe {
-    customer(id: "cus_MVBRpmnBis9v5x") {
+    customer(id: "cus_xxx" {
       id
       name
       invoices {
