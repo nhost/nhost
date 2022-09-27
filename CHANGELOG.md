@@ -1,6 +1,11 @@
 
 
-# [0.13.0](https://github.com/nhost/hasura-auth/compare/v0.12.0...v0.13.0) (2022-09-23)
+## [0.13.1](https://github.com/nhost/hasura-auth/compare/v0.13.0...v0.13.1) (2022-09-27)
+
+
+### Bug Fixes
+
+* don't drop inconsistencies when applying Hasura metadata ([3744152](https://github.com/nhost/hasura-auth/commit/374415289b83df84557b3822897082e38aff1cd6))# [0.13.0](https://github.com/nhost/hasura-auth/compare/v0.12.0...v0.13.0) (2022-09-23)
 
 
 ### Bug Fixes
