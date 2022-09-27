@@ -30,7 +30,7 @@ The two schemas `auth` and `storage` are reserved for [Nhost Auth](/platform/aut
 3. Enter a **name** for the table.
 4. Add **columns**.
 5. Select a **Primary Key** (usually the `id` column).
-6. (Optional) Select an **identity** column (for integer columns only).
+6. (Optional) Select an **Identity** column (for integer columns only).
 7. (Optional) Add **Foreign Keys**.
 8. Click **Create**.
 
@@ -50,7 +50,7 @@ Here's an example of how to create a `customers` table:
 
 ```sql
 CREATE TABLE "public"."customers" (
-  "id" serial NOT NULL PRIMARY KEY,
+  "id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   "name" text NOT NULL
 );
 ```
