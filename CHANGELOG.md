@@ -1,6 +1,11 @@
 
 
-## [0.13.1](https://github.com/nhost/hasura-auth/compare/v0.13.0...v0.13.1) (2022-09-27)
+## [0.13.2](https://github.com/nhost/hasura-auth/compare/v0.13.1...v0.13.2) (2022-09-28)
+
+
+### Bug Fixes
+
+* drop authenticators inconsistency safely ([5939bd8](https://github.com/nhost/hasura-auth/commit/5939bd81c1943034801da11f3da06b163fc2f291))## [0.13.1](https://github.com/nhost/hasura-auth/compare/v0.13.0...v0.13.1) (2022-09-27)
 
 
 ### Bug Fixes
