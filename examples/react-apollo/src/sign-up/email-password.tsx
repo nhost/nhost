@@ -87,7 +87,7 @@ export const EmailPassword: React.FC = () => {
       </SimpleGrid>
       <Divider />
       <AuthLink link="/sign-up" variant="white">
-        &#8592; Other Registration Options
+        &#8592; Other Sign-up Options
       </AuthLink>
     </>
   )

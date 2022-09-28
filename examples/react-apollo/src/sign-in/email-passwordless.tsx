@@ -8,8 +8,8 @@ export const EmailPasswordless: React.FC = () => {
     <>
       <PasswordlessForm />
       <Divider />
-      <AuthLink link="/sign-up" variant="white">
-        &#8592; Other Login Options
+      <AuthLink link="/sign-in" variant="white">
+        &#8592; Other Sign-in Options
       </AuthLink>
     </>
   )
