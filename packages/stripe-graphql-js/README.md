@@ -81,7 +81,7 @@ export default server
 
 ### Stripe Secret Key
 
-Add `STRIPE_SECRET_KEY` as an environment variable. If you're usingn Nhost add `STRIPE_SECRET_KEY` to `.env.development` like this:
+Add `STRIPE_SECRET_KEY` as an environment variable. If you're using Nhost, add `STRIPE_SECRET_KEY` to `.env.development` like this:
 
 ```
 STRIPE_SECRET_KEY=sk_test_xxx
