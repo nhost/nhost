@@ -2,8 +2,8 @@
 <h2 align="center">Stripe GraphQL API</h2>
 
 <p align="center">
-  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/stripe-graphql">
-  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/stripe-graphql">
+  <img alt="npm" src="https://img.shields.io/npm/v/@nhost/stripe-graphql-js">
+  <img alt="npm" src="https://img.shields.io/npm/dm/@nhost/stripe-graphql-js">
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-yellow.svg" alt="license: MIT" />
   </a>
@@ -14,7 +14,7 @@ This package creates a Stripe GraphQL API.
 ```graphql
 query {
   stripe {
-    customer(id: "cus_MVBRpmnBis9v5x") {
+    customer(id: "cus_xxx" {
       id
       name
       invoices {
@@ -79,6 +79,24 @@ export default server
 
 > You can run the Stripe GraphQL API in any JS environment because it's built using [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga).
 
+### Stripe Secret Key
+
+Add `STRIPE_SECRET_KEY` as an environment variable. If you're using Nhost, add `STRIPE_SECRET_KEY` to `.env.development` like this:
+
+```
+STRIPE_SECRET_KEY=sk_test_xxx
+```
+
+Learn more about [Stripe API keys](https://stripe.com/docs/keys#obtain-api-keys).
+
+### Start Nhost
+
+```
+nhost up
+```
+
+Learn more about the [Nhost CLI](https://docs.nhost.io/platform/cli).
+
 ### Test
 
 Test the Stripe GraphQL API in the browser:
@@ -92,7 +110,7 @@ Add the Stripe GraphQL API as a Remote Schema in Hasura.
 **URL**
 
 ```
-{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
+{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe
 ```
 
 **Headers**
