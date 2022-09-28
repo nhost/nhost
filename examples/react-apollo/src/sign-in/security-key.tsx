@@ -1,9 +1,11 @@
 import { FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, Modal, SimpleGrid, TextInput } from '@mantine/core'
+import { Button, Divider, Modal, SimpleGrid, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
 import { useSignInEmailSecurityKey } from '@nhost/react'
+
+import AuthLink from '../components/AuthLink'
 
 export const SecurityKeySignIn: React.FC = () => {
   const { signInEmailSecurityKey } = useSignInEmailSecurityKey()
@@ -56,6 +58,10 @@ export const SecurityKeySignIn: React.FC = () => {
           Sign in with a security key
         </Button>
       </form>
+      <Divider />
+      <AuthLink link="/sign-in" variant="white">
+        &#8592; Other Sign-in Options
+      </AuthLink>
     </SimpleGrid>
   )
 }
