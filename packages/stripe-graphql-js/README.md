@@ -79,6 +79,24 @@ export default server
 
 > You can run the Stripe GraphQL API in any JS environment because it's built using [GraphQL Yoga](https://github.com/dotansimha/graphql-yoga).
 
+### Stripe Secret Key
+
+Add `STRIPE_SECRET_KEY` as an environment variable. If you're usingn Nhost add `STRIPE_SECRET_KEY` to `.env.development` like this:
+
+```
+STRIPE_SECRET_KEY=sk_test_xxx
+```
+
+Learn more about [Stripe API keys](https://stripe.com/docs/keys#obtain-api-keys).
+
+### Start Nhost
+
+```
+nhost up
+```
+
+Learn more about the [Nhost CLI](https://docs.nhost.io/platform/cli).
+
 ### Test
 
 Test the Stripe GraphQL API in the browser:
@@ -92,7 +110,7 @@ Add the Stripe GraphQL API as a Remote Schema in Hasura.
 **URL**
 
 ```
-{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe`
+{{NHOST_BACKEND_URL}}/v1/functions/graphql/stripe
 ```
 
 **Headers**
