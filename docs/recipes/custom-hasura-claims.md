@@ -32,6 +32,36 @@ Will automatically generate and fetch the following GraphQL query:
 }
 ```
 
+Please note that the strings you pass as values in your custom claims will be evaluated starting from the user object itself, hence they need to be a valid path inside it **without** the `user` part; so, for example is your user object has the following shape:
+
+```js
+user:{
+  profile:{
+    organizations:[
+      {
+        name:"org1"
+      },
+      {
+        name:"org2
+      }
+    ]
+  }
+}
+```
+
+This will not work:
+```
+// ❌ WRONG, the path `user.profile.organisation[].id` will not work
+AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"user.profile.organisation[].id"}
+```
+
+This will
+```
+// ✅ CORRECT, the path `profile.organisation[].id` will work
+AUTH_JWT_CUSTOM_CLAIMS={"organisation-id":"profile.organisation[].id"}
+```
+
+
 It will then use the same expressions e.g. `profile.contributesTo[].project.id` to evaluate the result with [JSONata](https://jsonata.org/), and possibly transform arrays into Hasura-readable, PostgreSQL arrays.Finally, it adds the custom claims to the JWT in the `https://hasura.io/jwt/claims` namespace:
 
 ```json
