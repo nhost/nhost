@@ -3,6 +3,7 @@ package vm
 
 import (
 	"math"
+	"reflect"
 	"sort"
 	"unsafe"
 
@@ -194,9 +195,12 @@ func Run(ctx *encoder.RuntimeContext, b []byte, codeSet *encoder.OpcodeSet) ([]b
 				typ = iface.typ
 			}
 			if ifacePtr == nil {
-				b = appendNullComma(ctx, b)
-				code = code.Next
-				break
+				isDirectedNil := typ != nil && typ.Kind() == reflect.Struct && !runtime.IfaceIndir(typ)
+				if !isDirectedNil {
+					b = appendNullComma(ctx, b)
+					code = code.Next
+					break
+				}
 			}
 			ctx.KeepRefs = append(ctx.KeepRefs, up)
 			ifaceCodeSet, err := encoder.CompileToGetCodeSet(ctx, uintptr(unsafe.Pointer(typ)))

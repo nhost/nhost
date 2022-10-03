@@ -3,7 +3,6 @@ package controller_test
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"testing"
 	"time"
 
@@ -15,11 +14,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type _readerMatcher struct {
+type readerMatcher struct {
 	v string
 }
 
-func (m _readerMatcher) Matches(x interface{}) bool {
+func (m readerMatcher) Matches(x interface{}) bool {
 	reader, ok := x.(io.ReadSeeker)
 	if !ok {
 		return false
@@ -29,7 +28,7 @@ func (m _readerMatcher) Matches(x interface{}) bool {
 		panic(err)
 	}
 
-	b, err := ioutil.ReadAll(reader)
+	b, err := io.ReadAll(reader)
 	if err != nil {
 		panic(err)
 	}
@@ -37,28 +36,28 @@ func (m _readerMatcher) Matches(x interface{}) bool {
 	return string(b) == m.v
 }
 
-func (m _readerMatcher) String() string {
+func (m readerMatcher) String() string {
 	return m.v
 }
 
 func ReaderMatcher(v string) gomock.Matcher {
-	return _readerMatcher{v}
+	return readerMatcher{v}
 }
 
-type _fileMetadataMatcher struct {
+type fileMetadataMatcher struct {
 	v controller.FileMetadata
 }
 
-func (m _fileMetadataMatcher) Matches(x interface{}) bool {
+func (m fileMetadataMatcher) Matches(x interface{}) bool {
 	return cmp.Equal(m.v, x, cmpopts.IgnoreFields(controller.FileMetadata{}, "CreatedAt", "UpdatedAt"))
 }
 
-func (m _fileMetadataMatcher) String() string {
+func (m fileMetadataMatcher) String() string {
 	return fmt.Sprintf("%v", m.v)
 }
 
 func FileMetadataMatcher(v controller.FileMetadata) gomock.Matcher {
-	return _fileMetadataMatcher{v}
+	return fileMetadataMatcher{v}
 }
 
 func ginLogger(logger *logrus.Logger) gin.HandlerFunc {

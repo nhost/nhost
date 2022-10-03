@@ -29,3 +29,11 @@ func Eot(raw []byte, limit uint32) bool {
 			bytes.Equal(raw[8:11], []byte{0x01, 0x00, 0x00}) ||
 			bytes.Equal(raw[8:11], []byte{0x02, 0x00, 0x02}))
 }
+
+// Ttc matches a TrueType Collection font file.
+func Ttc(raw []byte, limit uint32) bool {
+	return len(raw) > 7 &&
+		bytes.HasPrefix(raw, []byte("ttcf")) &&
+		(bytes.Equal(raw[4:8], []byte{0x00, 0x01, 0x00, 0x00}) ||
+			bytes.Equal(raw[4:8], []byte{0x00, 0x02, 0x00, 0x00}))
+}

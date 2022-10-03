@@ -80,7 +80,7 @@ func modifiedSince(updatedAt string, modifiedSince string) (bool, *APIError) {
 	return modtime.After(wants), nil
 }
 
-func checkConditionals( // nolint: cyclop
+func checkConditionals( //nolint: cyclop
 	etag string,
 	updatedAt string,
 	headers *getFileInformationHeaders,

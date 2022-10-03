@@ -206,7 +206,7 @@ func (h *Hasura) PopulateMetadata(
 	headers http.Header,
 ) (controller.FileMetadata, *controller.APIError) {
 	var query struct {
-		UpdateStorageFile FileMetadata `graphql:"updateFile(pk_columns: {id: $id}, _set: {bucketId: $bucketId, etag: $etag, isUploaded: $isUploaded, mimeType: $mimeType, name: $name, size: $size})"` // nolint
+		UpdateStorageFile FileMetadata `graphql:"updateFile(pk_columns: {id: $id}, _set: {bucketId: $bucketId, etag: $etag, isUploaded: $isUploaded, mimeType: $mimeType, name: $name, size: $size})"` //nolint
 	}
 
 	variables := map[string]interface{}{

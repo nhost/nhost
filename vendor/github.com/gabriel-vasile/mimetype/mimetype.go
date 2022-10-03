@@ -52,7 +52,7 @@ func DetectReader(r io.Reader) (*MIME, error) {
 			return errMIME, err
 		}
 	} else {
-		n := 0
+		var n int
 		in = make([]byte, l)
 		// io.UnexpectedEOF means len(r) < len(in). It is not an error in this case,
 		// it just means the input file is smaller than the allocated bytes slice.

@@ -29,7 +29,7 @@ func main() {
 
 	now := time.Now()
 	iat := now.Unix()
-	exp := now.Add(15 * time.Minute).Unix()
+	exp := now.Add(24 * 365 * 10 * time.Hour).Unix()
 
 	// Create the Claims
 	claims := &jwt.MapClaims{

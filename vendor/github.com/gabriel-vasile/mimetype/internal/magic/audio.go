@@ -22,6 +22,8 @@ var (
 	Voc = prefix([]byte("Creative Voice File"))
 	// M3u matches a Playlist file.
 	M3u = prefix([]byte("#EXTM3U"))
+	// AAC matches an Advanced Audio Coding file.
+	AAC = prefix([]byte{0xFF, 0xF1}, []byte{0xFF, 0xF9})
 )
 
 // Mp3 matches an mp3 file.
@@ -52,24 +54,18 @@ func Mp3(raw []byte, limit uint32) bool {
 	return false
 }
 
-// Aac matches an Advanced Audio Coding file.
-func Aac(raw []byte, limit uint32) bool {
-	return bytes.HasPrefix(raw, []byte{0xFF, 0xF1}) ||
-		bytes.HasPrefix(raw, []byte{0xFF, 0xF9})
-}
-
 // Wav matches a Waveform Audio File Format file.
 func Wav(raw []byte, limit uint32) bool {
 	return len(raw) > 12 &&
 		bytes.Equal(raw[:4], []byte("RIFF")) &&
-		bytes.Equal(raw[8:12], []byte("\x57\x41\x56\x45"))
+		bytes.Equal(raw[8:12], []byte{0x57, 0x41, 0x56, 0x45})
 }
 
 // Aiff matches Audio Interchange File Format file.
 func Aiff(raw []byte, limit uint32) bool {
 	return len(raw) > 12 &&
-		bytes.Equal(raw[:4], []byte("\x46\x4F\x52\x4D")) &&
-		bytes.Equal(raw[8:12], []byte("\x41\x49\x46\x46"))
+		bytes.Equal(raw[:4], []byte{0x46, 0x4F, 0x52, 0x4D}) &&
+		bytes.Equal(raw[8:12], []byte{0x41, 0x49, 0x46, 0x46})
 }
 
 // Qcp matches a Qualcomm Pure Voice file.

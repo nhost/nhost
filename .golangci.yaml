@@ -2,23 +2,22 @@
 linters:
     enable-all: true
     disable:
-      # - gochecknoglobals
-      # - gochecknoinits
-      # - lll
-      # - gomnd
-      # - gofumpt
-      # - paralleltest
-      # - testpackage
-      # - forbidigo
       - varnamelen
       - gomoddirectives
       - nlreturn
       - wsl
       - exhaustivestruct
-      - maligned  # deprecated
-      - scopelint  # deprecated
-      - interfacer  # deprecated
-      - golint  # deprecated
+      - maligned      # deprecated
+      - scopelint     # deprecated
+      - interfacer    # deprecated
+      - golint        # deprecated
+      - varcheck      # deprecated
+      - ifshort       # deprecated
+      - deadcode      # deprecated
+      - nosnakecase   # deprecated
+      - structcheck   # deprecated
+      - usestdlibvars # needs to be fixed
+      - exhaustruct   # needs to be fixed
 
 issues:
   exclude-rules:
@@ -36,3 +35,6 @@ issues:
       linters:
         - funlen
         - ireturn
+    - path: image/image.go
+      linters:
+        - nosnakecase

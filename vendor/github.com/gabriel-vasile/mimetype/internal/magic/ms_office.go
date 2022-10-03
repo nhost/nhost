@@ -3,7 +3,6 @@ package magic
 import (
 	"bytes"
 	"encoding/binary"
-	"strings"
 )
 
 var (
@@ -45,65 +44,19 @@ var (
 	}
 )
 
-// zipTokenizer holds the source zip file and scanned index.
-type zipTokenizer struct {
-	in []byte
-	i  int // current index
-}
-
-// next returns the next file name from the zip headers.
-// https://web.archive.org/web/20191129114319/https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html
-func (t *zipTokenizer) next() (fileName string) {
-	if t.i > len(t.in) {
-		return
-	}
-	in := t.in[t.i:]
-	// pkSig is the signature of the zip local file header.
-	pkSig := []byte("PK\003\004")
-	pkIndex := bytes.Index(in, pkSig)
-	// 30 is the offset of the file name in the header.
-	fNameOffset := pkIndex + 30
-	// end if signature not found or file name offset outside of file.
-	if pkIndex == -1 || fNameOffset > len(in) {
-		return
-	}
-
-	fNameLen := int(binary.LittleEndian.Uint16(in[pkIndex+26 : pkIndex+28]))
-	if fNameLen <= 0 || fNameOffset+fNameLen > len(in) {
-		return
-	}
-	t.i += fNameOffset + fNameLen
-	return string(in[fNameOffset : fNameOffset+fNameLen])
-}
-
-// msoXML reads at most first 10 local headers and returns whether the input
-// looks like a Microsoft Office file.
-func msoXML(in []byte, prefixes ...string) bool {
-	t := zipTokenizer{in: in}
-	for i, tok := 0, t.next(); i < 10 && tok != ""; i, tok = i+1, t.next() {
-		for p := range prefixes {
-			if strings.HasPrefix(tok, prefixes[p]) {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
 // Xlsx matches a Microsoft Excel 2007 file.
 func Xlsx(raw []byte, limit uint32) bool {
-	return msoXML(raw, xlsxSigFiles...)
+	return zipContains(raw, xlsxSigFiles...)
 }
 
 // Docx matches a Microsoft Word 2007 file.
 func Docx(raw []byte, limit uint32) bool {
-	return msoXML(raw, docxSigFiles...)
+	return zipContains(raw, docxSigFiles...)
 }
 
 // Pptx matches a Microsoft PowerPoint 2007 file.
 func Pptx(raw []byte, limit uint32) bool {
-	return msoXML(raw, pptxSigFiles...)
+	return zipContains(raw, pptxSigFiles...)
 }
 
 // Ole matches an Open Linking and Embedding file.
@@ -125,14 +78,24 @@ func Aaf(raw []byte, limit uint32) bool {
 }
 
 // Doc matches a Microsoft Word 97-2003 file.
-//
-// BUG(gabriel-vasile): Doc should look for subheaders like Ppt and Xls does.
-//
-// Ole is a container for Doc, Ppt, Pub and Xls.
-// Right now, when an Ole file is detected, it is considered to be a Doc file
-// if the checks for Ppt, Pub and Xls failed.
-func Doc(raw []byte, limit uint32) bool {
-	return true
+// See: https://github.com/decalage2/oletools/blob/412ee36ae45e70f42123e835871bac956d958461/oletools/common/clsid.py
+func Doc(raw []byte, _ uint32) bool {
+	clsids := [][]byte{
+		// Microsoft Word 97-2003 Document (Word.Document.8)
+		{0x06, 0x09, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46},
+		// Microsoft Word 6.0-7.0 Document (Word.Document.6)
+		{0x00, 0x09, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46},
+		// Microsoft Word Picture (Word.Picture.8)
+		{0x07, 0x09, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x46},
+	}
+
+	for _, clsid := range clsids {
+		if matchOleClsid(raw, clsid) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Ppt matches a Microsoft PowerPoint 97-2003 file or a PowerPoint 95 presentation.
@@ -237,15 +200,22 @@ func Msi(raw []byte, limit uint32) bool {
 //
 // http://fileformats.archiveteam.org/wiki/Microsoft_Compound_File
 func matchOleClsid(in []byte, clsid []byte) bool {
-	if len(in) <= 512 {
+	// Microsoft Compound files v3 have a sector length of 512, while v4 has 4096.
+	// Change sector offset depending on file version.
+	// https://www.loc.gov/preservation/digital/formats/fdd/fdd000392.shtml
+	sectorLength := 512
+	if len(in) < sectorLength {
 		return false
 	}
+	if in[26] == 0x04 && in[27] == 0x00 {
+		sectorLength = 4096
+	}
 
-	// SecID of first sector of the directory stream
+	// SecID of first sector of the directory stream.
 	firstSecID := int(binary.LittleEndian.Uint32(in[48:52]))
 
-	// Expected offset of CLSID for root storage object
-	clsidOffset := 512*(1+firstSecID) + 80
+	// Expected offset of CLSID for root storage object.
+	clsidOffset := sectorLength*(1+firstSecID) + 80
 
 	if len(in) <= clsidOffset+16 {
 		return false

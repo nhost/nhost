@@ -3,7 +3,7 @@ package image
 // #cgo pkg-config: vips
 // #include <vips/vips.h>
 // #include "image.h"
-import "C"
+import "C" //nolint: gci
 
 import (
 	"bytes"
@@ -14,16 +14,16 @@ import (
 	"runtime/debug"
 	"sync"
 	"sync/atomic"
-	"unsafe"
+	"unsafe" //nolint: gci
 )
 
 const (
 	maxWorkers = 3
 )
 
-type ImageType int
+type ImageType int //nolint: revive
 
-var initialized int32 = 0 // nolint: gochecknoglobals
+var initialized int32 //nolint: gochecknoglobals
 
 const (
 	ImageTypeJPEG ImageType = C.JPEG
@@ -124,21 +124,21 @@ func Manipulate(buf []byte, opts Options) ([]byte, error) {
 	err := C.manipulate(
 		unsafe.Pointer(&buf[0]),
 		C.size_t(len(buf)),
-		&result,
+		&result, //nolint: exhaustruct
 		C.Options{
 			width:  C.int(opts.Width),
 			height: C.int(opts.Height),
 			crop:   C.VIPS_INTERESTING_CENTRE,
-			size:   C.VIPS_SIZE_BOTH, // nolint: gocritic
+			size:   C.VIPS_SIZE_BOTH, //nolint: gocritic
 			blur:   C.double(opts.Blur),
-			format: C.ImageType(opts.Format), // nolint: gocritic
+			format: C.ImageType(opts.Format), //nolint: gocritic
 		},
 	)
 	if err != 0 {
 		s := C.GoString(C.vips_error_buffer())
 		C.vips_error_clear()
 
-		return nil, fmt.Errorf("%v\nStack:\n%s", s, debug.Stack()) // nolint: goerr113
+		return nil, fmt.Errorf("%v\nStack:\n%s", s, debug.Stack()) //nolint: goerr113
 	}
 
 	var data []byte

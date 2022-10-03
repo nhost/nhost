@@ -32,17 +32,18 @@
 // if some slice of bytes is a valid beginning of a json string.
 package json
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type (
-	context    int
 	scanStatus int
 )
 
 const (
-	contextKey context = iota
-	contextObj
-	contextArr
+	parseObjectKey   = iota // parsing object key (before colon)
+	parseObjectValue        // parsing object value (after colon)
+	parseArrayValue         // parsing array value
 
 	scanContinue     scanStatus = iota // uninteresting byte
 	scanBeginLiteral                   // end implied by next result != scanContinue
@@ -56,20 +57,24 @@ const (
 	scanSkipSpace                      // space byte; can skip; known to be last "continue" result
 	scanEnd                            // top-level value ended *before* this byte; known to be first "stop" result
 	scanError                          // hit an error, scanner.err.
+
+	// This limits the max nesting depth to prevent stack overflow.
+	// This is permitted by https://tools.ietf.org/html/rfc7159#section-9
+	maxNestingDepth = 10000
 )
 
 type (
 	scanner struct {
-		step     func(*scanner, byte) scanStatus
-		contexts []context
-		endTop   bool
-		err      error
-		index    int
+		step       func(*scanner, byte) scanStatus
+		parseState []int
+		endTop     bool
+		err        error
+		index      int
 	}
 )
 
 // Scan returns the number of bytes scanned and if there was any error
-// in trying to reach the end of data
+// in trying to reach the end of data.
 func Scan(data []byte) (int, error) {
 	s := &scanner{}
 	_ = checkValid(data, s)
@@ -98,7 +103,7 @@ func isSpace(c byte) bool {
 
 func (s *scanner) reset() {
 	s.step = stateBeginValue
-	s.contexts = s.contexts[0:0]
+	s.parseState = s.parseState[0:0]
 	s.err = nil
 }
 
@@ -121,16 +126,21 @@ func (s *scanner) eof() scanStatus {
 	return scanError
 }
 
-// pushContext pushes a new parse state p onto the parse stack.
-func (s *scanner) pushParseState(p context) {
-	s.contexts = append(s.contexts, p)
+// pushParseState pushes a new parse state p onto the parse stack.
+// an error state is returned if maxNestingDepth was exceeded, otherwise successState is returned.
+func (s *scanner) pushParseState(c byte, newParseState int, successState scanStatus) scanStatus {
+	s.parseState = append(s.parseState, newParseState)
+	if len(s.parseState) <= maxNestingDepth {
+		return successState
+	}
+	return s.error(c, "exceeded max depth")
 }
 
 // popParseState pops a parse state (already obtained) off the stack
 // and updates s.step accordingly.
 func (s *scanner) popParseState() {
-	n := len(s.contexts) - 1
-	s.contexts = s.contexts[0:n]
+	n := len(s.parseState) - 1
+	s.parseState = s.parseState[0:n]
 	if n == 0 {
 		s.step = stateEndTop
 		s.endTop = true
@@ -158,12 +168,10 @@ func stateBeginValue(s *scanner, c byte) scanStatus {
 	switch c {
 	case '{':
 		s.step = stateBeginStringOrEmpty
-		s.pushParseState(contextKey)
-		return scanBeginObject
+		return s.pushParseState(c, parseObjectKey, scanBeginObject)
 	case '[':
 		s.step = stateBeginValueOrEmpty
-		s.pushParseState(contextArr)
-		return scanBeginArray
+		return s.pushParseState(c, parseArrayValue, scanBeginArray)
 	case '"':
 		s.step = stateInString
 		return scanBeginLiteral
@@ -196,8 +204,8 @@ func stateBeginStringOrEmpty(s *scanner, c byte) scanStatus {
 		return scanSkipSpace
 	}
 	if c == '}' {
-		n := len(s.contexts)
-		s.contexts[n-1] = contextObj
+		n := len(s.parseState)
+		s.parseState[n-1] = parseObjectValue
 		return stateEndValue(s, c)
 	}
 	return stateBeginString(s, c)
@@ -218,7 +226,7 @@ func stateBeginString(s *scanner, c byte) scanStatus {
 // stateEndValue is the state after completing a value,
 // such as after reading `{}` or `true` or `["x"`.
 func stateEndValue(s *scanner, c byte) scanStatus {
-	n := len(s.contexts)
+	n := len(s.parseState)
 	if n == 0 {
 		// Completed top-level before the current byte.
 		s.step = stateEndTop
@@ -229,18 +237,18 @@ func stateEndValue(s *scanner, c byte) scanStatus {
 		s.step = stateEndValue
 		return scanSkipSpace
 	}
-	ps := s.contexts[n-1]
+	ps := s.parseState[n-1]
 	switch ps {
-	case contextKey:
+	case parseObjectKey:
 		if c == ':' {
-			s.contexts[n-1] = contextObj
+			s.parseState[n-1] = parseObjectValue
 			s.step = stateBeginValue
 			return scanObjectKey
 		}
 		return s.error(c, "after object key")
-	case contextObj:
+	case parseObjectValue:
 		if c == ',' {
-			s.contexts[n-1] = contextKey
+			s.parseState[n-1] = parseObjectKey
 			s.step = stateBeginString
 			return scanObjectValue
 		}
@@ -249,7 +257,7 @@ func stateEndValue(s *scanner, c byte) scanStatus {
 			return scanEndObject
 		}
 		return s.error(c, "after object key:value pair")
-	case contextArr:
+	case parseArrayValue:
 		if c == ',' {
 			s.step = stateBeginValue
 			return scanArrayValue

@@ -21,10 +21,10 @@ var root = newMIME("application/octet-stream", "",
 	jpm, gif, webp, exe, elf, ar, tar, xar, bz2, fits, tiff, bmp, ico, mp3, flac,
 	midi, ape, musePack, amr, wav, aiff, au, mpeg, quickTime, mqv, mp4, webM,
 	threeGP, threeG2, avi, flv, mkv, asf, aac, voc, aMp4, m4a, m3u, m4v, rmvb,
-	gzip, class, swf, crx, ttf, woff, woff2, otf, eot, wasm, shx, dbf, dcm, rar,
+	gzip, class, swf, crx, ttf, woff, woff2, otf, ttc, eot, wasm, shx, dbf, dcm, rar,
 	djvu, mobi, lit, bpg, sqlite3, dwg, nes, lnk, macho, qcp, icns, heic,
 	heicSeq, heif, heifSeq, hdr, mrc, mdb, accdb, zstd, cab, rpm, xz, lzip,
-	torrent, cpio, tzif, xcf, pat, gbr, glb,
+	torrent, cpio, tzif, xcf, pat, gbr, glb, avif, cabIS,
 	// Keep text last because it is the slowest check
 	text,
 )
@@ -76,23 +76,27 @@ var (
 		alias("application/x-ogg")
 	oggAudio = newMIME("audio/ogg", ".oga", magic.OggAudio)
 	oggVideo = newMIME("video/ogg", ".ogv", magic.OggVideo)
-	text     = newMIME("text/plain", ".txt", magic.Text, html, svg, xml, php, js, lua, perl, python, json, ndJSON, rtf, tcl, csv, tsv, vCard, iCalendar, warc)
-	xml      = newMIME("text/xml", ".xml", magic.Xml, rss, atom, x3d, kml, xliff, collada, gml, gpx, tcx, amf, threemf, xfdf, owl2)
+	text     = newMIME("text/plain", ".txt", magic.Text, html, svg, xml, php, js, lua, perl, python, json, ndJSON, rtf, srt, tcl, csv, tsv, vCard, iCalendar, warc, vtt)
+	xml      = newMIME("text/xml", ".xml", magic.XML, rss, atom, x3d, kml, xliff, collada, gml, gpx, tcx, amf, threemf, xfdf, owl2)
 	json     = newMIME("application/json", ".json", magic.JSON, geoJSON, har)
 	har      = newMIME("application/json", ".har", magic.HAR)
 	csv      = newMIME("text/csv", ".csv", magic.Csv)
 	tsv      = newMIME("text/tab-separated-values", ".tsv", magic.Tsv)
 	geoJSON  = newMIME("application/geo+json", ".geojson", magic.GeoJSON)
 	ndJSON   = newMIME("application/x-ndjson", ".ndjson", magic.NdJSON)
-	html     = newMIME("text/html", ".html", magic.Html)
+	html     = newMIME("text/html", ".html", magic.HTML)
 	php      = newMIME("text/x-php", ".php", magic.Php)
 	rtf      = newMIME("text/rtf", ".rtf", magic.Rtf)
 	js       = newMIME("application/javascript", ".js", magic.Js).
 			alias("application/x-javascript", "text/javascript")
+	srt = newMIME("application/x-subrip", ".srt", magic.Srt).
+		alias("application/x-srt", "text/x-srt")
+	vtt    = newMIME("text/vtt", ".vtt", magic.Vtt)
 	lua    = newMIME("text/x-lua", ".lua", magic.Lua)
 	perl   = newMIME("text/x-perl", ".pl", magic.Perl)
-	python = newMIME("application/x-python", ".py", magic.Python)
-	tcl    = newMIME("text/x-tcl", ".tcl", magic.Tcl).
+	python = newMIME("text/x-python", ".py", magic.Python).
+		alias("text/x-script.python", "application/x-python")
+	tcl = newMIME("text/x-tcl", ".tcl", magic.Tcl).
 		alias("application/x-tcl")
 	vCard     = newMIME("text/vcard", ".vcf", magic.VCard)
 	iCalendar = newMIME("text/calendar", ".ics", magic.ICalendar)
@@ -110,7 +114,8 @@ var (
 	tcx     = newMIME("application/vnd.garmin.tcx+xml", ".tcx", magic.Tcx)
 	amf     = newMIME("application/x-amf", ".amf", magic.Amf)
 	threemf = newMIME("application/vnd.ms-package.3dmanufacturing-3dmodel+xml", ".3mf", magic.Threemf)
-	png     = newMIME("image/png", ".png", magic.Png)
+	png     = newMIME("image/png", ".png", magic.Png, apng)
+	apng    = newMIME("image/vnd.mozilla.apng", ".png", magic.Apng)
 	jpg     = newMIME("image/jpeg", ".jpg", magic.Jpg)
 	jxl     = newMIME("image/jxl", ".jxl", magic.Jxl)
 	jp2     = newMIME("image/jp2", ".jp2", magic.Jp2)
@@ -133,6 +138,7 @@ var (
 	heif    = newMIME("image/heif", ".heif", magic.Heif)
 	heifSeq = newMIME("image/heif-sequence", ".heif", magic.HeifSequence)
 	hdr     = newMIME("image/vnd.radiance", ".hdr", magic.Hdr)
+	avif    = newMIME("image/avif", ".avif", magic.AVIF)
 	mp3     = newMIME("audio/mpeg", ".mp3", magic.Mp3).
 		alias("audio/x-mpeg", "audio/mp3")
 	flac = newMIME("audio/flac", ".flac", magic.Flac)
@@ -142,11 +148,11 @@ var (
 	musePack = newMIME("audio/musepack", ".mpc", magic.MusePack)
 	wav      = newMIME("audio/wav", ".wav", magic.Wav).
 			alias("audio/x-wav", "audio/vnd.wave", "audio/wave")
-	aiff = newMIME("audio/aiff", ".aiff", magic.Aiff)
+	aiff = newMIME("audio/aiff", ".aiff", magic.Aiff).alias("audio/x-aiff")
 	au   = newMIME("audio/basic", ".au", magic.Au)
 	amr  = newMIME("audio/amr", ".amr", magic.Amr).
 		alias("audio/amr-nb")
-	aac  = newMIME("audio/aac", ".aac", magic.Aac)
+	aac  = newMIME("audio/aac", ".aac", magic.AAC)
 	voc  = newMIME("audio/x-unknown", ".voc", magic.Voc)
 	aMp4 = newMIME("audio/mp4", ".mp4", magic.AMp4).
 		alias("audio/x-m4a", "audio/x-mp4a")
@@ -172,17 +178,18 @@ var (
 		alias("video/asf", "video/x-ms-wmv")
 	rmvb  = newMIME("application/vnd.rn-realmedia-vbr", ".rmvb", magic.Rmvb)
 	class = newMIME("application/x-java-applet", ".class", magic.Class)
-	swf   = newMIME("application/x-shockwave-flash", ".swf", magic.Swf)
-	crx   = newMIME("application/x-chrome-extension", ".crx", magic.Crx)
+	swf   = newMIME("application/x-shockwave-flash", ".swf", magic.SWF)
+	crx   = newMIME("application/x-chrome-extension", ".crx", magic.CRX)
 	ttf   = newMIME("font/ttf", ".ttf", magic.Ttf).
 		alias("font/sfnt", "application/x-font-ttf", "application/font-sfnt")
 	woff    = newMIME("font/woff", ".woff", magic.Woff)
 	woff2   = newMIME("font/woff2", ".woff2", magic.Woff2)
 	otf     = newMIME("font/otf", ".otf", magic.Otf)
+	ttc     = newMIME("font/collection", ".ttc", magic.Ttc)
 	eot     = newMIME("application/vnd.ms-fontobject", ".eot", magic.Eot)
 	wasm    = newMIME("application/wasm", ".wasm", magic.Wasm)
-	shp     = newMIME("application/octet-stream", ".shp", magic.Shp)
-	shx     = newMIME("application/octet-stream", ".shx", magic.Shx, shp)
+	shp     = newMIME("application/vnd.shp", ".shp", magic.Shp)
+	shx     = newMIME("application/vnd.shx", ".shx", magic.Shx, shp)
 	dbf     = newMIME("application/x-dbf", ".dbf", magic.Dbf)
 	exe     = newMIME("application/vnd.microsoft.portable-executable", ".exe", magic.Exe)
 	elf     = newMIME("application/x-elf", "", magic.Elf, elfObj, elfExe, elfLib, elfDump)
@@ -193,7 +200,7 @@ var (
 	ar      = newMIME("application/x-archive", ".a", magic.Ar, deb).
 		alias("application/x-unix-archive")
 	deb = newMIME("application/vnd.debian.binary-package", ".deb", magic.Deb)
-	rpm = newMIME("application/x-rpm", ".rpm", magic.Rpm)
+	rpm = newMIME("application/x-rpm", ".rpm", magic.RPM)
 	dcm = newMIME("application/dicom", ".dcm", magic.Dcm)
 	odt = newMIME("application/vnd.oasis.opendocument.text", ".odt", magic.Odt, ott).
 		alias("application/x-vnd.oasis.opendocument.text")
@@ -216,7 +223,7 @@ var (
 	odc = newMIME("application/vnd.oasis.opendocument.chart", ".odc", magic.Odc).
 		alias("application/x-vnd.oasis.opendocument.chart")
 	sxc = newMIME("application/vnd.sun.xml.calc", ".sxc", magic.Sxc)
-	rar = newMIME("application/x-rar-compressed", ".rar", magic.Rar).
+	rar = newMIME("application/x-rar-compressed", ".rar", magic.RAR).
 		alias("application/x-rar")
 	djvu    = newMIME("image/vnd.djvu", ".djvu", magic.DjVu)
 	mobi    = newMIME("application/x-mobipocket-ebook", ".mobi", magic.Mobi)
@@ -237,7 +244,8 @@ var (
 	accdb   = newMIME("application/x-msaccess", ".accdb", magic.MsAccessAce)
 	zstd    = newMIME("application/zstd", ".zst", magic.Zstd)
 	cab     = newMIME("application/vnd.ms-cab-compressed", ".cab", magic.Cab)
-	lzip    = newMIME("application/lzip", ".lz", magic.Lzip)
+	cabIS   = newMIME("application/x-installshield", ".cab", magic.InstallShieldCab)
+	lzip    = newMIME("application/lzip", ".lz", magic.Lzip).alias("application/x-lzip")
 	torrent = newMIME("application/x-bittorrent", ".torrent", magic.Torrent)
 	cpio    = newMIME("application/x-cpio", ".cpio", magic.Cpio)
 	tzif    = newMIME("application/tzif", "", magic.TzIf)

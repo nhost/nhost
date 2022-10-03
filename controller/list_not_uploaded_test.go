@@ -9,7 +9,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/nhost/hasura-storage/controller"
-	"github.com/nhost/hasura-storage/controller/mock_controller"
+	"github.com/nhost/hasura-storage/controller/mock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -48,8 +48,8 @@ func TestListNotUploaded(t *testing.T) {
 			c := gomock.NewController(t)
 			defer c.Finish()
 
-			metadataStorage := mock_controller.NewMockMetadataStorage(c)
-			contentStorage := mock_controller.NewMockContentStorage(c)
+			metadataStorage := mock.NewMockMetadataStorage(c)
+			contentStorage := mock.NewMockContentStorage(c)
 
 			metadataStorage.EXPECT().ListFiles(
 				gomock.Any(), gomock.Any(),

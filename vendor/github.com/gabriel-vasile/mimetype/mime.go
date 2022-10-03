@@ -70,7 +70,6 @@ func newMIME(
 	mime, extension string,
 	detector magic.Detector,
 	children ...*MIME) *MIME {
-
 	m := &MIME{
 		mime:      mime,
 		extension: extension,

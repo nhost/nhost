@@ -36,7 +36,7 @@ func getQueryFloat(ctx *gin.Context, param string) (float64, *APIError) {
 	if !ok {
 		return 0, nil
 	}
-	x, err := strconv.ParseFloat(s, 32) // nolint: gomnd
+	x, err := strconv.ParseFloat(s, 32) //nolint: gomnd
 	if err != nil {
 		return 0, BadDataError(err, fmt.Sprintf("query parameter %s must be an int", param))
 	}
@@ -80,7 +80,7 @@ func getImageManipulationOptions(ctx *gin.Context, mimeType string) (image.Optio
 			opts.Format = image.ImageTypeJPEG
 		default:
 			return image.Options{}, BadDataError(
-				fmt.Errorf("image manipulation features are not supported for '%s'", mimeType), // nolint: goerr113
+				fmt.Errorf("image manipulation features are not supported for '%s'", mimeType), //nolint: goerr113
 				fmt.Sprintf("image manipulation features are not supported for '%s'", mimeType),
 			)
 		}
@@ -127,7 +127,7 @@ func (ctrl *Controller) manipulateImage(
 
 type getFileFunc func() (*File, *APIError)
 
-func (ctrl *Controller) processFileToDownload(
+func (ctrl *Controller) processFileToDownload( //nolint: funlen
 	ctx *gin.Context,
 	downloadFunc getFileFunc,
 	fileMetadata FileMetadata,

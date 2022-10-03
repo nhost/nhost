@@ -6,7 +6,7 @@ package storage_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -23,7 +23,7 @@ import (
 )
 
 func getS3() *storage.S3 {
-	config := &aws.Config{ // nolint: exhaustivestruct
+	config := &aws.Config{ //nolint: exhaustivestruct
 		Credentials: credentials.NewStaticCredentials(
 			os.Getenv("TEST_S3_ACCESS_KEY"),
 			os.Getenv("TEST_S3_SECRET_KEY"),
@@ -269,7 +269,7 @@ func TestGetFilePresignedURL(t *testing.T) {
 			}
 
 			if tc.expectedContent != "" {
-				b, err := ioutil.ReadAll(got.Body)
+				b, err := io.ReadAll(got.Body)
 				if err != nil {
 					t.Error(err)
 				}

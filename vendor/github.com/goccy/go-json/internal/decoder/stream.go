@@ -138,8 +138,11 @@ func (s *Stream) Token() (interface{}, error) {
 			s.cursor++
 		case '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			bytes := floatBytes(s)
-			s := *(*string)(unsafe.Pointer(&bytes))
-			f64, err := strconv.ParseFloat(s, 64)
+			str := *(*string)(unsafe.Pointer(&bytes))
+			if s.UseNumber {
+				return json.Number(str), nil
+			}
+			f64, err := strconv.ParseFloat(str, 64)
 			if err != nil {
 				return nil, err
 			}
@@ -277,7 +280,7 @@ func (s *Stream) skipObject(depth int64) error {
 					if char(p, cursor) == nul {
 						s.cursor = cursor
 						if s.read() {
-							_, cursor, p = s.statForRetry()
+							_, cursor, p = s.stat()
 							continue
 						}
 						return errors.ErrUnexpectedEndOfJSON("string of object", cursor)
@@ -340,7 +343,7 @@ func (s *Stream) skipArray(depth int64) error {
 					if char(p, cursor) == nul {
 						s.cursor = cursor
 						if s.read() {
-							_, cursor, p = s.statForRetry()
+							_, cursor, p = s.stat()
 							continue
 						}
 						return errors.ErrUnexpectedEndOfJSON("string of object", cursor)
@@ -398,7 +401,7 @@ func (s *Stream) skipValue(depth int64) error {
 					if char(p, cursor) == nul {
 						s.cursor = cursor
 						if s.read() {
-							_, cursor, p = s.statForRetry()
+							_, cursor, p = s.stat()
 							continue
 						}
 						return errors.ErrUnexpectedEndOfJSON("value of string", s.totalOffset())

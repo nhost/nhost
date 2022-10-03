@@ -29,7 +29,7 @@ var (
 
 // Execute executes the root command.
 func Execute() error {
-	return rootCmd.Execute() // nolint: wrapcheck
+	return rootCmd.Execute() //nolint: wrapcheck
 }
 
 func init() {

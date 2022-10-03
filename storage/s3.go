@@ -33,10 +33,10 @@ func parseS3Error(resp *http.Response) *controller.APIError {
 			)
 		}
 		return controller.InternalServerError(
-			fmt.Errorf("problem parsing S3 error, status code %d: %s", resp.StatusCode, b), // nolint: goerr113
+			fmt.Errorf("problem parsing S3 error, status code %d: %s", resp.StatusCode, b), //nolint: goerr113
 		)
 	}
-	return controller.NewAPIError(resp.StatusCode, s3Error.Message, errors.New(s3Error.Message), nil) // nolint: goerr113
+	return controller.NewAPIError(resp.StatusCode, s3Error.Message, errors.New(s3Error.Message), nil) //nolint: goerr113
 }
 
 type S3 struct {
@@ -124,7 +124,7 @@ func (s *S3) GetFile(filepath string, headers http.Header) (*controller.File, *c
 
 func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, *controller.APIError) {
 	request, _ := s.session.GetObjectRequest(
-		&s3.GetObjectInput{ // nolint:exhaustivestruct
+		&s3.GetObjectInput{ //nolint:exhaustivestruct
 			Bucket: s.bucket,
 			Key:    aws.String(s.rootFolder + "/" + filepath),
 		},
@@ -135,7 +135,7 @@ func (s *S3) CreatePresignedURL(filepath string, expire time.Duration) (string, 
 	}
 
 	parts := strings.Split(url, "?")
-	if len(parts) != 2 { // nolint: gomnd
+	if len(parts) != 2 { //nolint: gomnd
 		return "", controller.InternalServerError(fmt.Errorf("problem generating pre-signed URL: %w", err))
 	}
 
@@ -178,7 +178,7 @@ func (s *S3) GetFileWithPresignedURL(
 			respHeaders["Content-Range"] = []string{resp.Header.Get("Content-Range")}
 		}
 
-		length, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 32) // nolint: gomnd
+		length, err = strconv.ParseInt(resp.Header.Get("Content-Length"), 10, 32) //nolint: gomnd
 		if err != nil {
 			return nil, controller.InternalServerError(fmt.Errorf("problem parsing Content-Length: %w", err))
 		}

@@ -8,7 +8,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/nhost/hasura-storage/controller"
-	"github.com/nhost/hasura-storage/controller/mock_controller"
+	"github.com/nhost/hasura-storage/controller/mock"
 	"github.com/nhost/hasura-storage/image"
 	"github.com/sirupsen/logrus"
 )
@@ -105,8 +105,8 @@ func TestGetFileInfo(t *testing.T) {
 			c := gomock.NewController(t)
 			defer c.Finish()
 
-			metadataStorage := mock_controller.NewMockMetadataStorage(c)
-			contentStorage := mock_controller.NewMockContentStorage(c)
+			metadataStorage := mock.NewMockMetadataStorage(c)
+			contentStorage := mock.NewMockContentStorage(c)
 
 			metadataStorage.EXPECT().GetFileByID(
 				gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),
@@ -136,7 +136,15 @@ func TestGetFileInfo(t *testing.T) {
 				CacheControl:         "max-age=3600",
 			}, nil)
 
-			ctrl := controller.New("http://asd", "/v1", "asdasd", metadataStorage, contentStorage, image.NewTransformer(), logger)
+			ctrl := controller.New(
+				"http://asd",
+				"/v1",
+				"asdasd",
+				metadataStorage,
+				contentStorage,
+				image.NewTransformer(),
+				logger,
+			)
 
 			router, _ := ctrl.SetupRouter(nil, "/v1", ginLogger(logger))
 

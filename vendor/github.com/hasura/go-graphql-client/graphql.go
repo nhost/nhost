@@ -71,13 +71,13 @@ func (c *Client) NamedMutate(ctx context.Context, name string, m interface{}, va
 // with a query derived from q, populating the response into it.
 // q should be a pointer to struct that corresponds to the GraphQL schema.
 // return raw bytes message.
-func (c *Client) QueryRaw(ctx context.Context, q interface{}, variables map[string]interface{}, options ...Option) (*json.RawMessage, error) {
+func (c *Client) QueryRaw(ctx context.Context, q interface{}, variables map[string]interface{}, options ...Option) ([]byte, error) {
 	return c.doRaw(ctx, queryOperation, q, variables, options...)
 }
 
 // NamedQueryRaw executes a single GraphQL query request, with operation name
 // return raw bytes message.
-func (c *Client) NamedQueryRaw(ctx context.Context, name string, q interface{}, variables map[string]interface{}, options ...Option) (*json.RawMessage, error) {
+func (c *Client) NamedQueryRaw(ctx context.Context, name string, q interface{}, variables map[string]interface{}, options ...Option) ([]byte, error) {
 	return c.doRaw(ctx, queryOperation, q, variables, append(options, OperationName(name))...)
 }
 
@@ -85,18 +85,18 @@ func (c *Client) NamedQueryRaw(ctx context.Context, name string, q interface{}, 
 // with a mutation derived from m, populating the response into it.
 // m should be a pointer to struct that corresponds to the GraphQL schema.
 // return raw bytes message.
-func (c *Client) MutateRaw(ctx context.Context, m interface{}, variables map[string]interface{}, options ...Option) (*json.RawMessage, error) {
+func (c *Client) MutateRaw(ctx context.Context, m interface{}, variables map[string]interface{}, options ...Option) ([]byte, error) {
 	return c.doRaw(ctx, mutationOperation, m, variables, options...)
 }
 
 // NamedMutateRaw executes a single GraphQL mutation request, with operation name
 // return raw bytes message.
-func (c *Client) NamedMutateRaw(ctx context.Context, name string, m interface{}, variables map[string]interface{}, options ...Option) (*json.RawMessage, error) {
+func (c *Client) NamedMutateRaw(ctx context.Context, name string, m interface{}, variables map[string]interface{}, options ...Option) ([]byte, error) {
 	return c.doRaw(ctx, mutationOperation, m, variables, append(options, OperationName(name))...)
 }
 
 // buildAndRequest the common method that builds and send graphql request
-func (c *Client) buildAndRequest(ctx context.Context, op operationType, v interface{}, variables map[string]interface{}, options ...Option) (*json.RawMessage, *http.Response, io.Reader, Errors) {
+func (c *Client) buildAndRequest(ctx context.Context, op operationType, v interface{}, variables map[string]interface{}, options ...Option) ([]byte, *http.Response, io.Reader, Errors) {
 	var query string
 	var err error
 	switch op {
@@ -114,7 +114,7 @@ func (c *Client) buildAndRequest(ctx context.Context, op operationType, v interf
 }
 
 // Request the common method that send graphql request
-func (c *Client) request(ctx context.Context, query string, variables map[string]interface{}, options ...Option) (*json.RawMessage, *http.Response, io.Reader, Errors) {
+func (c *Client) request(ctx context.Context, query string, variables map[string]interface{}, options ...Option) ([]byte, *http.Response, io.Reader, Errors) {
 	in := struct {
 		Query     string                 `json:"query"`
 		Variables map[string]interface{} `json:"variables,omitempty"`
@@ -210,6 +210,11 @@ func (c *Client) request(ctx context.Context, query string, variables map[string
 		return nil, nil, nil, Errors{we}
 	}
 
+	var rawData []byte
+	if out.Data != nil && len(*out.Data) > 0 {
+		rawData = []byte(*out.Data)
+	}
+
 	if len(out.Errors) > 0 {
 		if c.debug && (out.Errors[0].Extensions == nil || out.Errors[0].Extensions["request"] == nil) {
 			out.Errors[0] = out.Errors[0].
@@ -217,15 +222,15 @@ func (c *Client) request(ctx context.Context, query string, variables map[string
 				withResponse(resp, respReader)
 		}
 
-		return out.Data, resp, respReader, out.Errors
+		return rawData, resp, respReader, out.Errors
 	}
 
-	return out.Data, resp, respReader, nil
+	return rawData, resp, respReader, nil
 }
 
 // do executes a single GraphQL operation.
 // return raw message and error
-func (c *Client) doRaw(ctx context.Context, op operationType, v interface{}, variables map[string]interface{}, options ...Option) (*json.RawMessage, error) {
+func (c *Client) doRaw(ctx context.Context, op operationType, v interface{}, variables map[string]interface{}, options ...Option) ([]byte, error) {
 	data, _, _, err := c.buildAndRequest(ctx, op, v, variables, options...)
 	if len(err) > 0 {
 		return data, err
@@ -246,9 +251,19 @@ func (c *Client) Exec(ctx context.Context, query string, v interface{}, variable
 	return c.processResponse(v, data, resp, respBuf, errs)
 }
 
-func (c *Client) processResponse(v interface{}, data *json.RawMessage, resp *http.Response, respBuf io.Reader, errs Errors) error {
-	if data != nil {
-		err := jsonutil.UnmarshalGraphQL(*data, v)
+// Executes a pre-built query and returns the raw json message. Unlike the Query method you have to specify in the query the
+// fields that you want to receive as they are not inferred from the interface. This method is useful if you need to build the query dynamically.
+func (c *Client) ExecRaw(ctx context.Context, query string, variables map[string]interface{}, options ...Option) ([]byte, error) {
+	data, _, _, errs := c.request(ctx, query, variables, options...)
+	if len(errs) > 0 {
+		return data, errs
+	}
+	return data, nil
+}
+
+func (c *Client) processResponse(v interface{}, data []byte, resp *http.Response, respBuf io.Reader, errs Errors) error {
+	if len(data) > 0 {
+		err := jsonutil.UnmarshalGraphQL(data, v)
 		if err != nil {
 			we := newError(ErrGraphQLDecode, err)
 			if c.debug {

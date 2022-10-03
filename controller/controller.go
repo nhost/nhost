@@ -49,7 +49,7 @@ type FileMetadataWithBucket struct {
 	Bucket BucketMetadata
 }
 
-//go:generate mockgen --build_flags=--mod=mod -destination mock_controller/metadata_storage.go -package mock_controller . MetadataStorage
+//go:generate mockgen --build_flags=--mod=mod -destination mock/metadata_storage.go -package mock . MetadataStorage
 type MetadataStorage interface {
 	GetBucketByID(ctx context.Context, id string, headers http.Header) (BucketMetadata, *APIError)
 	GetFileByID(ctx context.Context, id string, headers http.Header) (FileMetadata, *APIError)
@@ -64,7 +64,7 @@ type MetadataStorage interface {
 	ListFiles(ctx context.Context, headers http.Header) ([]FileSummary, *APIError)
 }
 
-//go:generate mockgen --build_flags=--mod=mod -destination mock_controller/content_storage.go -package mock_controller . ContentStorage
+//go:generate mockgen --build_flags=--mod=mod -destination mock/content_storage.go -package mock . ContentStorage
 type ContentStorage interface {
 	PutFile(content io.ReadSeeker, filepath, contentType string) (string, *APIError)
 	GetFile(filepath string, headers http.Header) (*File, *APIError)
@@ -114,7 +114,7 @@ func (ctrl *Controller) SetupRouter(
 		return nil, fmt.Errorf("problem setting trusted proxies: %w", err)
 	}
 
-	router.MaxMultipartMemory = 1000 << 20 // nolint:gomnd  // 1GB
+	router.MaxMultipartMemory = 1000 << 20 //nolint:gomnd  // 1GB
 	router.Use(gin.Recovery())
 
 	for _, mw := range middleware {
@@ -132,7 +132,7 @@ func (ctrl *Controller) SetupRouter(
 		ExposeHeaders: []string{
 			"Content-Length", "Content-Type", "Cache-Control", "ETag", "Last-Modified", "X-Error",
 		},
-		MaxAge: 12 * time.Hour, // nolint: gomnd
+		MaxAge: 12 * time.Hour, //nolint: gomnd
 	}))
 
 	router.GET("/healthz", ctrl.Health)

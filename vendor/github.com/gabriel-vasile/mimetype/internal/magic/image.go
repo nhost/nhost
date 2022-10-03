@@ -4,7 +4,11 @@ import "bytes"
 
 var (
 	// Png matches a Portable Network Graphics file.
+	// https://www.w3.org/TR/PNG/
 	Png = prefix([]byte{0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A})
+	// Apng matches an Animated Portable Network Graphics file.
+	// https://wiki.mozilla.org/APNG_Specification
+	Apng = offset([]byte("acTL"), 37)
 	// Jpg matches a Joint Photographic Experts Group file.
 	Jpg = prefix([]byte{0xFF, 0xD8, 0xFF})
 	// Jp2 matches a JPEG 2000 Image file (ISO 15444-1).

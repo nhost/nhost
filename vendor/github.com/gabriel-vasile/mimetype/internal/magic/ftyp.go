@@ -1,6 +1,10 @@
 package magic
 
 var (
+	// AVIF matches an AV1 Image File Format still or animated.
+	// Wikipedia page seems outdated listing image/avif-sequence for animations.
+	// https://github.com/AOMediaCodec/av1-avif/issues/59
+	AVIF = ftyp([]byte("avif"), []byte("avis"))
 	// Mp4 matches an MP4 file.
 	Mp4 = ftyp(
 		[]byte("avc1"), []byte("dash"), []byte("iso2"), []byte("iso3"),

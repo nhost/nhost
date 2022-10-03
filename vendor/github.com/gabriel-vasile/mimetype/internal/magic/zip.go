@@ -1,5 +1,11 @@
 package magic
 
+import (
+	"bytes"
+	"encoding/binary"
+	"strings"
+)
+
 var (
 	// Odt matches an OpenDocument Text file.
 	Odt = offset([]byte("mimetypeapplication/vnd.oasis.opendocument.text"), 30)
@@ -37,10 +43,48 @@ func Zip(raw []byte, limit uint32) bool {
 
 // Jar matches a Java archive file.
 func Jar(raw []byte, limit uint32) bool {
-	t := zipTokenizer{in: raw}
-	for i, tok := 0, t.next(); i < 10 && tok != ""; i, tok = i+1, t.next() {
-		if tok == "META-INF/MANIFEST.MF" {
-			return true
+	return zipContains(raw, "META-INF/MANIFEST.MF")
+}
+
+// zipTokenizer holds the source zip file and scanned index.
+type zipTokenizer struct {
+	in []byte
+	i  int // current index
+}
+
+// next returns the next file name from the zip headers.
+// https://web.archive.org/web/20191129114319/https://users.cs.jmu.edu/buchhofp/forensics/formats/pkzip.html
+func (t *zipTokenizer) next() (fileName string) {
+	if t.i > len(t.in) {
+		return
+	}
+	in := t.in[t.i:]
+	// pkSig is the signature of the zip local file header.
+	pkSig := []byte("PK\003\004")
+	pkIndex := bytes.Index(in, pkSig)
+	// 30 is the offset of the file name in the header.
+	fNameOffset := pkIndex + 30
+	// end if signature not found or file name offset outside of file.
+	if pkIndex == -1 || fNameOffset > len(in) {
+		return
+	}
+
+	fNameLen := int(binary.LittleEndian.Uint16(in[pkIndex+26 : pkIndex+28]))
+	if fNameLen <= 0 || fNameOffset+fNameLen > len(in) {
+		return
+	}
+	t.i += fNameOffset + fNameLen
+	return string(in[fNameOffset : fNameOffset+fNameLen])
+}
+
+// zipContains returns true if the zip file headers from in contain any of the paths.
+func zipContains(in []byte, paths ...string) bool {
+	t := zipTokenizer{in: in}
+	for i, tok := 0, t.next(); tok != ""; i, tok = i+1, t.next() {
+		for p := range paths {
+			if strings.HasPrefix(tok, paths[p]) {
+				return true
+			}
 		}
 	}
 

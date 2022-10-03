@@ -12,7 +12,6 @@ type cors struct {
 	allowCredentials bool
 	allowOriginFunc  func(string) bool
 	allowOrigins     []string
-	exposeHeaders    []string
 	normalHeaders    http.Header
 	preflightHeaders http.Header
 	wildcardOrigins  [][]string
@@ -41,6 +40,12 @@ var (
 func newCors(config Config) *cors {
 	if err := config.Validate(); err != nil {
 		panic(err.Error())
+	}
+
+	for _, origin := range config.AllowOrigins {
+		if origin == "*" {
+			config.AllowAllOrigins = true
+		}
 	}
 
 	return &cors{

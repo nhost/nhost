@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net/http"
 
@@ -19,7 +18,7 @@ type FileInformationHeaderWithReader struct {
 }
 
 func unmarshalGetFileError(resp *http.Response) error {
-	b, err := ioutil.ReadAll(resp.Body)
+	b, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return fmt.Errorf("got an error but failed to read the body: %w", err)
 	}
@@ -47,8 +46,7 @@ func parseFilename(resp *http.Response) (string, error) {
 	return filename, nil
 }
 
-// nolint: cyclop
-func (c *Client) GetFile(
+func (c *Client) GetFile( //nolint: cyclop
 	ctx context.Context, fileID string, opts ...GetFileInformationOpt,
 ) (*FileInformationHeaderWithReader, error) {
 	req, err := http.NewRequestWithContext(ctx, "GET", c.baseURL+"/files/"+fileID, nil)

@@ -54,7 +54,7 @@ func NewEncoder(w io.Writer) *Encoder {
 // This behavior can be controlled on an individual struct field basis with the
 // inline tag:
 //
-//   MyField `inline:"true"`
+//	MyField `toml:",inline"`
 func (enc *Encoder) SetTablesInline(inline bool) *Encoder {
 	enc.tablesInline = inline
 	return enc
@@ -65,7 +65,7 @@ func (enc *Encoder) SetTablesInline(inline bool) *Encoder {
 //
 // This behavior can be controlled on an individual struct field basis with the multiline tag:
 //
-//   MyField `multiline:"true"`
+//	MyField `multiline:"true"`
 func (enc *Encoder) SetArraysMultiline(multiline bool) *Encoder {
 	enc.arraysMultiline = multiline
 	return enc
@@ -89,7 +89,7 @@ func (enc *Encoder) SetIndentTables(indent bool) *Encoder {
 //
 // If v cannot be represented to TOML it returns an error.
 //
-// Encoding rules
+// # Encoding rules
 //
 // A top level slice containing only maps or structs is encoded as [[table
 // array]].
@@ -117,7 +117,20 @@ func (enc *Encoder) SetIndentTables(indent bool) *Encoder {
 // When encoding structs, fields are encoded in order of definition, with their
 // exact name.
 //
-// Struct tags
+// Tables and array tables are separated by empty lines. However, consecutive
+// subtables definitions are not. For example:
+//
+//	[top1]
+//
+//	[top2]
+//	[top2.child1]
+//
+//	[[array]]
+//
+//	[[array]]
+//	[array.child2]
+//
+// # Struct tags
 //
 // The encoding of each public struct field can be customized by the format
 // string in the "toml" key of the struct field's tag. This follows
@@ -333,12 +346,12 @@ func isNil(v reflect.Value) bool {
 	}
 }
 
+func shouldOmitEmpty(options valueOptions, v reflect.Value) bool {
+	return options.omitempty && isEmptyValue(v)
+}
+
 func (enc *Encoder) encodeKv(b []byte, ctx encoderCtx, options valueOptions, v reflect.Value) ([]byte, error) {
 	var err error
-
-	if (ctx.options.omitempty || options.omitempty) && isEmptyValue(v) {
-		return b, nil
-	}
 
 	if !ctx.inline {
 		b = enc.encodeComment(ctx.indent, options.comment, b)
@@ -365,6 +378,8 @@ func (enc *Encoder) encodeKv(b []byte, ctx encoderCtx, options valueOptions, v r
 
 func isEmptyValue(v reflect.Value) bool {
 	switch v.Kind() {
+	case reflect.Struct:
+		return isEmptyStruct(v)
 	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
 		return v.Len() == 0
 	case reflect.Bool:
@@ -379,6 +394,34 @@ func isEmptyValue(v reflect.Value) bool {
 		return v.IsNil()
 	}
 	return false
+}
+
+func isEmptyStruct(v reflect.Value) bool {
+	// TODO: merge with walkStruct and cache.
+	typ := v.Type()
+	for i := 0; i < typ.NumField(); i++ {
+		fieldType := typ.Field(i)
+
+		// only consider exported fields
+		if fieldType.PkgPath != "" {
+			continue
+		}
+
+		tag := fieldType.Tag.Get("toml")
+
+		// special field name to skip field
+		if tag == "-" {
+			continue
+		}
+
+		f := v.Field(i)
+
+		if !isEmptyValue(f) {
+			return false
+		}
+	}
+
+	return true
 }
 
 const literalQuote = '\''
@@ -410,7 +453,6 @@ func (enc *Encoder) encodeLiteralString(b []byte, v string) []byte {
 	return b
 }
 
-//nolint:cyclop
 func (enc *Encoder) encodeQuotedString(multiline bool, b []byte, v string) []byte {
 	stringQuote := `"`
 
@@ -757,7 +799,13 @@ func (enc *Encoder) encodeTable(b []byte, ctx encoderCtx, t table) ([]byte, erro
 	}
 	ctx.skipTableHeader = false
 
+	hasNonEmptyKV := false
 	for _, kv := range t.kvs {
+		if shouldOmitEmpty(kv.Options, kv.Value) {
+			continue
+		}
+		hasNonEmptyKV = true
+
 		ctx.setKey(kv.Key)
 
 		b, err = enc.encodeKv(b, ctx, kv.Options, kv.Value)
@@ -768,7 +816,20 @@ func (enc *Encoder) encodeTable(b []byte, ctx encoderCtx, t table) ([]byte, erro
 		b = append(b, '\n')
 	}
 
+	first := true
 	for _, table := range t.tables {
+		if shouldOmitEmpty(table.Options, table.Value) {
+			continue
+		}
+		if first {
+			first = false
+			if hasNonEmptyKV {
+				b = append(b, '\n')
+			}
+		} else {
+			b = append(b, "\n"...)
+		}
+
 		ctx.setKey(table.Key)
 
 		ctx.options = table.Options
@@ -777,8 +838,6 @@ func (enc *Encoder) encodeTable(b []byte, ctx encoderCtx, t table) ([]byte, erro
 		if err != nil {
 			return nil, err
 		}
-
-		b = append(b, '\n')
 	}
 
 	return b, nil
@@ -791,6 +850,10 @@ func (enc *Encoder) encodeTableInline(b []byte, ctx encoderCtx, t table) ([]byte
 
 	first := true
 	for _, kv := range t.kvs {
+		if shouldOmitEmpty(kv.Options, kv.Value) {
+			continue
+		}
+
 		if first {
 			first = false
 		} else {
@@ -806,7 +869,7 @@ func (enc *Encoder) encodeTableInline(b []byte, ctx encoderCtx, t table) ([]byte
 	}
 
 	if len(t.tables) > 0 {
-		panic("inline table cannot contain nested tables, online key-values")
+		panic("inline table cannot contain nested tables, only key-values")
 	}
 
 	b = append(b, "}"...)
@@ -905,6 +968,10 @@ func (enc *Encoder) encodeSliceAsArrayTable(b []byte, ctx encoderCtx, v reflect.
 	b = enc.encodeComment(ctx.indent, ctx.options.comment, b)
 
 	for i := 0; i < v.Len(); i++ {
+		if i != 0 {
+			b = append(b, "\n"...)
+		}
+
 		b = append(b, scratch...)
 
 		var err error

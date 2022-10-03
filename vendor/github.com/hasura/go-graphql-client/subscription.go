@@ -3,6 +3,7 @@ package graphql
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -50,6 +51,10 @@ const (
 	GQL_INTERNAL OperationMessageType = "internal"
 )
 
+// ErrSubscriptionStopped a special error which forces the subscription stop
+var ErrSubscriptionStopped = errors.New("subscription stopped")
+
+// OperationMessage represents a subscription operation message
 type OperationMessage struct {
 	ID      string               `json:"id,omitempty"`
 	Type    OperationMessageType `json:"type"`
@@ -75,11 +80,11 @@ type WebsocketConn interface {
 	SetReadLimit(limit int64)
 }
 
-type handlerFunc func(data *json.RawMessage, err error) error
+type handlerFunc func(data []byte, err error) error
 type subscription struct {
 	query     string
 	variables map[string]interface{}
-	handler   func(data *json.RawMessage, err error)
+	handler   func(data []byte, err error)
 	started   Boolean
 }
 
@@ -197,7 +202,7 @@ func (sc *SubscriptionClient) OnConnected(fn func()) *SubscriptionClient {
 	return sc
 }
 
-// OnDisconnected event is triggered when the websocket server was still down after retry timeout
+// OnDisconnected event is triggered when the websocket client was disconnected
 func (sc *SubscriptionClient) OnDisconnected(fn func()) *SubscriptionClient {
 	sc.onDisconnected = fn
 	return sc
@@ -245,12 +250,19 @@ func (sc *SubscriptionClient) init() error {
 			}
 			return err
 		}
-		sc.printLog(err.Error()+". retry in second....", GQL_INTERNAL)
+		sc.printLog(fmt.Sprintf("%s. retry in second...", err.Error()), "client", GQL_INTERNAL)
 		time.Sleep(time.Second)
 	}
 }
 
-func (sc *SubscriptionClient) printLog(message interface{}, opType OperationMessageType) {
+func (sc *SubscriptionClient) writeJSON(v interface{}) error {
+	if sc.conn != nil {
+		return sc.conn.WriteJSON(v)
+	}
+	return nil
+}
+
+func (sc *SubscriptionClient) printLog(message interface{}, source string, opType OperationMessageType) {
 	if sc.log == nil {
 		return
 	}
@@ -260,7 +272,7 @@ func (sc *SubscriptionClient) printLog(message interface{}, opType OperationMess
 		}
 	}
 
-	sc.log(message)
+	sc.log(message, source)
 }
 
 func (sc *SubscriptionClient) sendConnectionInit() (err error) {
@@ -279,30 +291,36 @@ func (sc *SubscriptionClient) sendConnectionInit() (err error) {
 		Payload: bParams,
 	}
 
-	sc.printLog(msg, GQL_CONNECTION_INIT)
-	return sc.conn.WriteJSON(msg)
+	sc.printLog(msg, "client", GQL_CONNECTION_INIT)
+	return sc.writeJSON(msg)
 }
 
 // Subscribe sends start message to server and open a channel to receive data.
 // The handler callback function will receive raw message data or error. If the call return error, onError event will be triggered
 // The function returns subscription ID and error. You can use subscription ID to unsubscribe the subscription
-func (sc *SubscriptionClient) Subscribe(v interface{}, variables map[string]interface{}, handler func(message *json.RawMessage, err error) error, options ...Option) (string, error) {
+func (sc *SubscriptionClient) Subscribe(v interface{}, variables map[string]interface{}, handler func(message []byte, err error) error, options ...Option) (string, error) {
 	return sc.do(v, variables, handler, options...)
 }
 
 // NamedSubscribe sends start message to server and open a channel to receive data, with operation name
 //
 // Deprecated: this is the shortcut of Subscribe method, with NewOperationName option
-func (sc *SubscriptionClient) NamedSubscribe(name string, v interface{}, variables map[string]interface{}, handler func(message *json.RawMessage, err error) error, options ...Option) (string, error) {
+func (sc *SubscriptionClient) NamedSubscribe(name string, v interface{}, variables map[string]interface{}, handler func(message []byte, err error) error, options ...Option) (string, error) {
 	return sc.do(v, variables, handler, append(options, OperationName(name))...)
 }
 
 // SubscribeRaw sends start message to server and open a channel to receive data, with raw query
-func (sc *SubscriptionClient) SubscribeRaw(query string, variables map[string]interface{}, handler func(message *json.RawMessage, err error) error) (string, error) {
+// Deprecated: use Exec instead
+func (sc *SubscriptionClient) SubscribeRaw(query string, variables map[string]interface{}, handler func(message []byte, err error) error) (string, error) {
 	return sc.doRaw(query, variables, handler)
 }
 
-func (sc *SubscriptionClient) do(v interface{}, variables map[string]interface{}, handler func(message *json.RawMessage, err error) error, options ...Option) (string, error) {
+// Exec sends start message to server and open a channel to receive data, with raw query
+func (sc *SubscriptionClient) Exec(query string, variables map[string]interface{}, handler func(message []byte, err error) error) (string, error) {
+	return sc.doRaw(query, variables, handler)
+}
+
+func (sc *SubscriptionClient) do(v interface{}, variables map[string]interface{}, handler func(message []byte, err error) error, options ...Option) (string, error) {
 	query, err := ConstructSubscription(v, variables, options...)
 	if err != nil {
 		return "", err
@@ -311,7 +329,7 @@ func (sc *SubscriptionClient) do(v interface{}, variables map[string]interface{}
 	return sc.doRaw(query, variables, handler)
 }
 
-func (sc *SubscriptionClient) doRaw(query string, variables map[string]interface{}, handler func(message *json.RawMessage, err error) error) (string, error) {
+func (sc *SubscriptionClient) doRaw(query string, variables map[string]interface{}, handler func(message []byte, err error) error) (string, error) {
 	id := uuid.New().String()
 
 	sub := subscription{
@@ -360,8 +378,8 @@ func (sc *SubscriptionClient) startSubscription(id string, sub *subscription) er
 		Payload: payload,
 	}
 
-	sc.printLog(msg, GQL_START)
-	if err := sc.conn.WriteJSON(msg); err != nil {
+	sc.printLog(msg, "client", GQL_START)
+	if err := sc.writeJSON(msg); err != nil {
 		return err
 	}
 
@@ -369,8 +387,8 @@ func (sc *SubscriptionClient) startSubscription(id string, sub *subscription) er
 	return nil
 }
 
-func (sc *SubscriptionClient) wrapHandler(fn handlerFunc) func(data *json.RawMessage, err error) {
-	return func(data *json.RawMessage, err error) {
+func (sc *SubscriptionClient) wrapHandler(fn handlerFunc) func(data []byte, err error) {
+	return func(data []byte, err error) {
 		if errValue := fn(data, err); errValue != nil {
 			sc.errorChan <- errValue
 		}
@@ -394,95 +412,121 @@ func (sc *SubscriptionClient) Run() error {
 	sc.subscribersMu.Unlock()
 
 	sc.setIsRunning(true)
+	go func() {
+		for atomic.LoadInt64(&sc.isRunning) > 0 {
+			select {
+			case <-sc.context.Done():
+				return
+			default:
+				if sc.conn == nil {
+					return
+				}
+
+				var message OperationMessage
+				if err := sc.conn.ReadJSON(&message); err != nil {
+					// manual EOF check
+					if err == io.EOF || strings.Contains(err.Error(), "EOF") {
+						if err = sc.Reset(); err != nil {
+							sc.errorChan <- err
+							return
+						}
+					}
+					closeStatus := websocket.CloseStatus(err)
+					if closeStatus == websocket.StatusNormalClosure {
+						// close event from websocket client, exiting...
+						return
+					}
+					if closeStatus != -1 {
+						sc.printLog(fmt.Sprintf("%s. Retry connecting...", err), "client", GQL_INTERNAL)
+						if err = sc.Reset(); err != nil {
+							sc.errorChan <- err
+							return
+						}
+					}
+
+					if sc.onError != nil {
+						if err = sc.onError(sc, err); err != nil {
+							return
+						}
+					}
+					continue
+				}
+
+				switch message.Type {
+				case GQL_ERROR:
+					sc.printLog(message, "server", GQL_ERROR)
+					fallthrough
+				case GQL_DATA:
+					sc.printLog(message, "server", GQL_DATA)
+					id, err := uuid.Parse(message.ID)
+					if err != nil {
+						continue
+					}
+
+					sc.subscribersMu.Lock()
+					sub, ok := sc.subscriptions[id.String()]
+					sc.subscribersMu.Unlock()
+
+					if !ok {
+						continue
+					}
+					var out struct {
+						Data   *json.RawMessage
+						Errors Errors
+					}
+
+					err = json.Unmarshal(message.Payload, &out)
+					if err != nil {
+						go sub.handler(nil, err)
+						continue
+					}
+					if len(out.Errors) > 0 {
+						go sub.handler(nil, out.Errors)
+						continue
+					}
+
+					var outData []byte
+					if out.Data != nil && len(*out.Data) > 0 {
+						outData = *out.Data
+					}
+
+					go sub.handler(outData, nil)
+				case GQL_CONNECTION_ERROR:
+					sc.printLog(message, "server", GQL_CONNECTION_ERROR)
+				case GQL_COMPLETE:
+					sc.printLog(message, "server", GQL_COMPLETE)
+					sc.Unsubscribe(message.ID)
+				case GQL_CONNECTION_KEEP_ALIVE:
+					sc.printLog(message, "server", GQL_CONNECTION_KEEP_ALIVE)
+				case GQL_CONNECTION_ACK:
+					sc.printLog(message, "server", GQL_CONNECTION_ACK)
+					if sc.onConnected != nil {
+						sc.onConnected()
+					}
+				default:
+					sc.printLog(message, "server", GQL_UNKNOWN)
+				}
+			}
+		}
+	}()
 
 	for atomic.LoadInt64(&sc.isRunning) > 0 {
 		select {
 		case <-sc.context.Done():
 			return nil
 		case e := <-sc.errorChan:
+			// stop the subscription if the error has stop message
+			if e == ErrSubscriptionStopped {
+				return nil
+			}
+
 			if sc.onError != nil {
 				if err := sc.onError(sc, e); err != nil {
 					return err
 				}
 			}
-		default:
-
-			var message OperationMessage
-			if err := sc.conn.ReadJSON(&message); err != nil {
-				// manual EOF check
-				if err == io.EOF || strings.Contains(err.Error(), "EOF") {
-					return sc.Reset()
-				}
-				closeStatus := websocket.CloseStatus(err)
-				if closeStatus == websocket.StatusNormalClosure {
-					// close event from websocket client, exiting...
-					return nil
-				}
-				if closeStatus != -1 {
-					sc.printLog(fmt.Sprintf("%s. Retry connecting...", err), GQL_INTERNAL)
-					return sc.Reset()
-				}
-
-				if sc.onError != nil {
-					if err = sc.onError(sc, err); err != nil {
-						return err
-					}
-				}
-				continue
-			}
-
-			switch message.Type {
-			case GQL_ERROR:
-				sc.printLog(message, GQL_ERROR)
-				fallthrough
-			case GQL_DATA:
-				sc.printLog(message, GQL_DATA)
-				id, err := uuid.Parse(message.ID)
-				if err != nil {
-					continue
-				}
-
-				sc.subscribersMu.Lock()
-				sub, ok := sc.subscriptions[id.String()]
-				sc.subscribersMu.Unlock()
-
-				if !ok {
-					continue
-				}
-				var out struct {
-					Data   *json.RawMessage
-					Errors Errors
-				}
-
-				err = json.Unmarshal(message.Payload, &out)
-				if err != nil {
-					go sub.handler(nil, err)
-					continue
-				}
-				if len(out.Errors) > 0 {
-					go sub.handler(nil, out.Errors)
-					continue
-				}
-
-				go sub.handler(out.Data, nil)
-			case GQL_CONNECTION_ERROR:
-				sc.printLog(message, GQL_CONNECTION_ERROR)
-			case GQL_COMPLETE:
-				sc.printLog(message, GQL_COMPLETE)
-				sc.Unsubscribe(message.ID)
-			case GQL_CONNECTION_KEEP_ALIVE:
-				sc.printLog(message, GQL_CONNECTION_KEEP_ALIVE)
-			case GQL_CONNECTION_ACK:
-				sc.printLog(message, GQL_CONNECTION_ACK)
-				if sc.onConnected != nil {
-					sc.onConnected()
-				}
-			default:
-				sc.printLog(message, GQL_UNKNOWN)
-			}
 		}
 	}
-
 	// if the running status is false, stop retrying
 	if atomic.LoadInt64(&sc.isRunning) == 0 {
 		return nil
@@ -503,7 +547,17 @@ func (sc *SubscriptionClient) Unsubscribe(id string) error {
 	}
 
 	delete(sc.subscriptions, id)
-	return sc.stopSubscription(id)
+	err := sc.stopSubscription(id)
+	if err != nil {
+		return err
+	}
+
+	// close the client if there is no running subscription
+	if len(sc.subscriptions) == 0 {
+		sc.printLog("no running subscription. exiting...", "client", GQL_INTERNAL)
+		return sc.Close()
+	}
+	return nil
 }
 
 func (sc *SubscriptionClient) stopSubscription(id string) error {
@@ -514,8 +568,8 @@ func (sc *SubscriptionClient) stopSubscription(id string) error {
 			Type: GQL_STOP,
 		}
 
-		sc.printLog(msg, GQL_STOP)
-		if err := sc.conn.WriteJSON(msg); err != nil {
+		sc.printLog(msg, "server", GQL_STOP)
+		if err := sc.writeJSON(msg); err != nil {
 			return err
 		}
 
@@ -525,14 +579,14 @@ func (sc *SubscriptionClient) stopSubscription(id string) error {
 }
 
 func (sc *SubscriptionClient) terminate() error {
-	if sc.conn != nil {
-		// send terminate message to the server
-		msg := OperationMessage{
-			Type: GQL_CONNECTION_TERMINATE,
-		}
+	// send terminate message to the server
+	msg := OperationMessage{
+		Type: GQL_CONNECTION_TERMINATE,
+	}
 
-		sc.printLog(msg, GQL_CONNECTION_TERMINATE)
-		return sc.conn.WriteJSON(msg)
+	if sc.conn != nil {
+		sc.printLog(msg, "client", GQL_CONNECTION_TERMINATE)
+		return sc.writeJSON(msg)
 	}
 
 	return nil
@@ -564,18 +618,20 @@ func (sc *SubscriptionClient) Reset() error {
 // Close closes all subscription channel and websocket as well
 func (sc *SubscriptionClient) Close() (err error) {
 	sc.setIsRunning(false)
-
 	for id := range sc.subscriptions {
 		if err = sc.Unsubscribe(id); err != nil {
 			sc.cancel()
-			return err
+			return
 		}
 	}
 
+	_ = sc.terminate()
 	if sc.conn != nil {
-		_ = sc.terminate()
 		err = sc.conn.Close()
 		sc.conn = nil
+		if sc.onDisconnected != nil {
+			sc.onDisconnected()
+		}
 	}
 	sc.cancel()
 

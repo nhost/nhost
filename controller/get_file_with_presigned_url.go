@@ -46,7 +46,7 @@ func expiresIn(urlValues url.Values) (int, *APIError) {
 	expires := time.Second*time.Duration(amzExpires) - time.Since(date)
 
 	if expires <= 0 {
-		return 0, BadDataError(errors.New("signature already expired"), "signature already expired") // nolint: goerr113
+		return 0, BadDataError(errors.New("signature already expired"), "signature already expired") //nolint: goerr113
 	}
 
 	return int(expires.Seconds()), nil
@@ -55,12 +55,13 @@ func expiresIn(urlValues url.Values) (int, *APIError) {
 func (ctrl *Controller) getFileWithPresignedURLParse(ctx *gin.Context) (GetFileWithPresignedURLRequest, *APIError) {
 	var headers getFileInformationHeaders
 	if err := ctx.ShouldBindHeader(&headers); err != nil {
-		return GetFileWithPresignedURLRequest{}, InternalServerError(fmt.Errorf("problem parsing request headers: %w", err))
+		return GetFileWithPresignedURLRequest{}, //nolint: exhaustruct
+			InternalServerError(fmt.Errorf("problem parsing request headers: %w", err))
 	}
 
 	expires, apiErr := expiresIn(ctx.Request.URL.Query())
 	if apiErr != nil {
-		return GetFileWithPresignedURLRequest{}, apiErr
+		return GetFileWithPresignedURLRequest{}, apiErr //nolint: exhaustruct
 	}
 
 	return GetFileWithPresignedURLRequest{

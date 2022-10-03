@@ -35,7 +35,7 @@ func updateFileParseRequest(ctx *gin.Context) (fileData, *APIError) {
 	res.header = file[0]
 
 	metadata, ok := form.Value["metadata"]
-	if ok { // nolint: nestif
+	if ok { //nolint: nestif
 		if len(metadata) != len(file) {
 			return fileData{}, ErrMetadataLength
 		}

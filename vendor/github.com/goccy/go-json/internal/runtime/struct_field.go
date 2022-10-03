@@ -13,7 +13,11 @@ func getTag(field reflect.StructField) string {
 func IsIgnoredStructField(field reflect.StructField) bool {
 	if field.PkgPath != "" {
 		if field.Anonymous {
-			if !(field.Type.Kind() == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct) && field.Type.Kind() != reflect.Struct {
+			t := field.Type
+			if t.Kind() == reflect.Ptr {
+				t = t.Elem()
+			}
+			if t.Kind() != reflect.Struct {
 				return true
 			}
 		} else {

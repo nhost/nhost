@@ -25,10 +25,10 @@ const (
 	trustedProxiesFlag           = "trusted-proxies"
 	hasuraEndpointFlag           = "hasura-endpoint"
 	hasuraMetadataFlag           = "hasura-metadata"
-	hasuraAdminSecretFlag        = "hasura-graphql-admin-secret" // nolint: gosec
+	hasuraAdminSecretFlag        = "hasura-graphql-admin-secret" //nolint: gosec
 	s3EndpointFlag               = "s3-endpoint"
 	s3AccessKeyFlag              = "s3-access-key"
-	s3SecretKeyFlag              = "s3-secret-key" // nolint: gosec
+	s3SecretKeyFlag              = "s3-secret-key" //nolint: gosec
 	s3RegionFlag                 = "s3-region"
 	s3BucketFlag                 = "s3-bucket"
 	s3RootFolderFlag             = "s3-root-folder"
@@ -98,7 +98,7 @@ func getGin(
 		middlewares = append(middlewares, fastly.New(fastlyService, viper.GetString(fastlyKeyFlag), logger))
 	}
 
-	return ctrl.SetupRouter(trustedProxies, apiRootPrefix, middlewares...) // nolint: wrapcheck
+	return ctrl.SetupRouter(trustedProxies, apiRootPrefix, middlewares...) //nolint: wrapcheck
 }
 
 func getMetadataStorage(endpoint string) *metadata.Hasura {
@@ -108,7 +108,7 @@ func getMetadataStorage(endpoint string) *metadata.Hasura {
 func getContentStorage(
 	s3Endpoint, region, s3AccessKey, s3SecretKey, bucket, rootFolder string, logger *logrus.Logger,
 ) *storage.S3 {
-	config := &aws.Config{ // nolint: exhaustivestruct
+	config := &aws.Config{ //nolint: exhaustivestruct
 		Credentials:      credentials.NewStaticCredentials(s3AccessKey, s3SecretKey, ""),
 		Endpoint:         aws.String(s3Endpoint),
 		Region:           aws.String(region),

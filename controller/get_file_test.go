@@ -10,7 +10,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/nhost/hasura-storage/controller"
-	"github.com/nhost/hasura-storage/controller/mock_controller"
+	"github.com/nhost/hasura-storage/controller/mock"
 	"github.com/sirupsen/logrus"
 )
 
@@ -31,8 +31,8 @@ func TestGetFile(t *testing.T) {
 			c := gomock.NewController(t)
 			defer c.Finish()
 
-			metadataStorage := mock_controller.NewMockMetadataStorage(c)
-			contentStorage := mock_controller.NewMockContentStorage(c)
+			metadataStorage := mock.NewMockMetadataStorage(c)
+			contentStorage := mock.NewMockContentStorage(c)
 
 			metadataStorage.EXPECT().GetFileByID(
 				gomock.Any(), "55af1e60-0f28-454e-885e-ea6aab2bb288", gomock.Any(),

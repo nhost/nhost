@@ -22,7 +22,7 @@ func (ctrl *Controller) listBrokenMetadata(ctx *gin.Context) ([]FileSummary, *AP
 		return nil, apiErr
 	}
 
-	missing := make([]FileSummary, 0, 10) // nolint: gomnd
+	missing := make([]FileSummary, 0, 10) //nolint: gomnd
 
 	for _, fileHasura := range filesInHasura {
 		found := false

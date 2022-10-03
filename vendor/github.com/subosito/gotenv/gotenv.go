@@ -124,6 +124,7 @@ func Read(filename string) (Env, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	return strictParse(f, false)
 }
 

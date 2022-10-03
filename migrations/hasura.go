@@ -21,7 +21,7 @@ type hasuraErrResponse struct {
 }
 
 func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
-	client := &http.Client{
+	client := &http.Client{ //nolint: exhaustruct
 		Timeout: time.Second * timeout,
 	}
 
@@ -48,12 +48,12 @@ func postMetadata(baseURL, hasuraSecret string, data interface{}) error {
 		var errResponse *hasuraErrResponse
 		b, _ := io.ReadAll(resp.Body)
 		if err := json.Unmarshal(b, &errResponse); err != nil {
-			return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) // nolint: goerr113
+			return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) //nolint: goerr113
 		}
 		if errResponse.Code == "already-tracked" || errResponse.Code == "already-exists" {
 			return nil
 		}
-		return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) // nolint: goerr113
+		return fmt.Errorf("status_code: %d\nresponse: %s", resp.StatusCode, b) //nolint: goerr113
 	}
 
 	return nil
@@ -69,24 +69,22 @@ type Table struct {
 	Name   string `json:"name"`
 }
 
-// nolint: tagliatelle
 type CustomRootFields struct {
 	Select          string `json:"select"`
-	SelectByPk      string `json:"select_by_pk"`
-	SelectAggregate string `json:"select_aggregate"`
+	SelectByPk      string `json:"select_by_pk"`     //nolint: tagliatelle
+	SelectAggregate string `json:"select_aggregate"` //nolint: tagliatelle
 	Insert          string `json:"insert"`
-	InsertOne       string `json:"insert_one"`
+	InsertOne       string `json:"insert_one"` //nolint: tagliatelle
 	Update          string `json:"update"`
-	UpdateByPk      string `json:"update_by_pk"`
+	UpdateByPk      string `json:"update_by_pk"` //nolint: tagliatelle
 	Delete          string `json:"delete"`
-	DeleteByPk      string `json:"delete_by_pk"`
+	DeleteByPk      string `json:"delete_by_pk"` //nolint: tagliatelle
 }
 
-// nolint: tagliatelle
 type Configuration struct {
-	CustomName        string            `json:"custom_name"`
-	CustomRootFields  CustomRootFields  `json:"custom_root_fields"`
-	CustomColumnNames map[string]string `json:"custom_column_names"`
+	CustomName        string            `json:"custom_name"`         //nolint: tagliatelle
+	CustomRootFields  CustomRootFields  `json:"custom_root_fields"`  //nolint: tagliatelle
+	CustomColumnNames map[string]string `json:"custom_column_names"` //nolint: tagliatelle
 }
 
 type PgTrackTableArgs struct {
@@ -100,9 +98,8 @@ type CreateObjectRelationship struct {
 	Args CreateObjectRelationshipArgs `json:"args"`
 }
 
-// nolint: tagliatelle
 type CreateObjectRelationshipUsing struct {
-	ForeignKeyConstraintOn []string `json:"foreign_key_constraint_on"`
+	ForeignKeyConstraintOn []string `json:"foreign_key_constraint_on"` //nolint: tagliatelle
 }
 
 type CreateObjectRelationshipArgs struct {
@@ -122,9 +119,8 @@ type ForeignKeyConstraintOn struct {
 	Columns []string `json:"columns"`
 }
 
-// nolint: tagliatelle
 type CreateArrayRelationshipUsing struct {
-	ForeignKeyConstraintOn ForeignKeyConstraintOn `json:"foreign_key_constraint_on"`
+	ForeignKeyConstraintOn ForeignKeyConstraintOn `json:"foreign_key_constraint_on"` //nolint: tagliatelle
 }
 
 type CreateArrayRelationshipArgs struct {
@@ -146,8 +142,7 @@ type DropRelationshipArgs struct {
 	Relationship string `json:"relationship"`
 }
 
-// nolint: funlen
-func ApplyHasuraMetadata(url, hasuraSecret string) error {
+func ApplyHasuraMetadata(url, hasuraSecret string) error { //nolint: funlen
 	bucketsTable := TrackTable{
 		Type: "pg_track_table",
 		Args: PgTrackTableArgs{

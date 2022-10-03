@@ -31,7 +31,7 @@ func TestManipulate(t *testing.T) {
 		{
 			name:     "png",
 			filename: "testdata/nhost.png",
-			sum:      "23926d3aeb6e53527e46d2dac3bd4fc5ca66332c8643fe7d9e9f3caf2668944d",
+			sum:      "ac7da45c3a994e50fdbc25123992b31116d32f20dac2c5436d2d6fdbfd319853",
 			size:     68307,
 			options:  image.Options{Width: 300, Height: 100, Blur: 2, Format: image.ImageTypePNG},
 		},
