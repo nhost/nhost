@@ -17,7 +17,7 @@ const (
 )
 
 var (
-	cfgFile string
+	cfgFile *string
 	rootCmd = &cobra.Command{
 		Use:        name,
 		Aliases:    []string{},
@@ -35,7 +35,7 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().String(configFlag, "", "use this configuration file")
+	cfgFile = rootCmd.PersistentFlags().StringP(configFlag, "c", "", "use this configuration file")
 	addBoolFlag(rootCmd.PersistentFlags(), debugFlag, false, "enable debug messages")
 }
 
@@ -43,9 +43,9 @@ func initConfig() {
 	viper.AutomaticEnv()
 	viper.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
 
-	if cfgFile != "" {
+	if *cfgFile != "" {
 		// Use config file from the flag.
-		viper.SetConfigFile(cfgFile)
+		viper.SetConfigFile(*cfgFile)
 	} else {
 		// Find home directory.
 		viper.SetConfigName(name)
