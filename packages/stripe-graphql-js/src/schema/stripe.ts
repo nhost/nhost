@@ -17,7 +17,7 @@ builder.objectType('Stripe', {
       resolve: async (_parent, { id }, context) => {
         const { isAllowed } = context
 
-        if (!isAllowed(id, context)) {
+        if (!await isAllowed(id, context)) {
           throw new GraphQLYogaError('Not allowed')
         }
 
@@ -64,7 +64,7 @@ builder.objectType('Stripe', {
           starting_after: startingAfter || undefined
         })
 
-        const customerData = customers.data.filter((customer) => isAllowed(customer.id, context))
+        const customerData = customers.data.filter(async (customer) => await isAllowed(customer.id, context))
 
         customers.data = customerData
 
@@ -95,7 +95,7 @@ builder.objectType('StripeMutations', {
       resolve: async (_, { customer, configuration, locale, returnUrl }, context) => {
         const { isAllowed } = context
 
-        if (!isAllowed(customer, context)) {
+        if (!await isAllowed(customer, context)) {
           throw new GraphQLYogaError('Not allowed')
         }
 
