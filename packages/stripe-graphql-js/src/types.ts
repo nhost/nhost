@@ -12,7 +12,7 @@ export type Context = YogaInitialContext & StripeGraphQLContext
 
 export type CreateServerProps = {
   cors?: CORSOptions
-  isAllowed?: (stripeCustomerId: string, context: Context) => boolean
+  isAllowed?: (stripeCustomerId: string, context: Context) => boolean | Promise<boolean>
   graphiql?: boolean
 }
 
