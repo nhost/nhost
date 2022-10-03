@@ -31,7 +31,9 @@ export const createServerSideClient = async (
         const urlKey = key === NHOST_REFRESH_TOKEN_KEY ? 'refreshToken' : key
         const urlValue = context.query[urlKey]
         const cookieValue = Cookies.get(key) ?? null
-        return typeof urlValue === 'string' ? urlValue : cookieValue
+        const nextCtxValue = context.req.cookies[key]
+
+        return typeof urlValue === 'string' ? urlValue : cookieValue ?? nextCtxValue
       },
       setItem: (key, value) => {
         // TODO: Set expires based on the actual refresh token expire time
