@@ -1,5 +1,6 @@
+import Stripe from 'stripe';
 import { builder } from '../builder'
-import { StripePaymentMethod, StripeSubscription } from '../types'
+import { StripePaymentMethod, StripeSubscription, StripePaymentIntent } from '../types';
 import { stripe } from '../utils'
 
 builder.objectType('StripeInvoice', {
@@ -128,7 +129,21 @@ builder.objectType('StripeInvoice', {
     // todo: on behalf of
     paid: t.exposeBoolean('paid'),
     paidOutOfBand: t.exposeBoolean('paid_out_of_band'),
-    // todo: payment intent
+    paymentIntent: t.field({
+      type: 'StripePaymentIntent',
+      nullable: true,
+      resolve: async (invoice) => {
+        const { payment_intent } = invoice
+
+        if (!payment_intent) {
+          return null
+        }
+
+        const paymentIntentData = await stripe.paymentIntents.retrieve(payment_intent as string) 
+
+        return paymentIntentData as Stripe.Response<StripePaymentIntent> 
+      }
+    }),
     // todo: payment settings
     periodEnd: t.exposeInt('period_end'),
     periodStart: t.exposeInt('period_start'),
