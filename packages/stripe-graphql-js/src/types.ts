@@ -3,7 +3,7 @@ import type Stripe from 'stripe'
 import type { CORSOptions, YogaInitialContext } from '@graphql-yoga/node'
 
 export type StripeGraphQLContext = {
-  isAllowed: (stripeCustomerId: string, context: Context) => boolean
+  isAllowed: (stripeCustomerId: string, context: Context) => boolean | Promise<boolean>
   userClaims?: UserHasuraClaims
   isAdmin: boolean
 }
