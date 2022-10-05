@@ -64,7 +64,12 @@ builder.objectType('Stripe', {
           starting_after: startingAfter || undefined
         })
 
-        const customerData = customers.data.filter(async (customer) => await isAllowed(customer.id, context))
+        const customerData: Stripe.Customer[] = []
+        for (const customer of customers.data) {
+          if (await isAllowed(customer.id, context)) {
+            customerData.push(customer)
+          }
+        }
 
         customers.data = customerData
 
