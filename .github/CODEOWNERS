@@ -1,7 +1,7 @@
 # Documentation
 # https://help.github.com/en/articles/about-code-owners
 
-/packages                                @plmercereau @plmercereau
+/packages                                @plmercereau @szilarddoro
 /packages/docgen                         @szilarddoro
 /packages/stripe-graphql-js              @elitan
 /.github                                 @plmercereau
