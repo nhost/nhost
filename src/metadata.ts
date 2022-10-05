@@ -150,7 +150,7 @@ export const reloadMetadata = async (
 };
 
 export const setTableCustomization = async (args: TableCustomisationArgs) => {
-  logger.info(`Set table customization for ${args.table.name}`);
+  logger.debug(`Set table customization for ${args.table.name}`);
 
   try {
     await runMetadataRequest({
@@ -166,7 +166,7 @@ export const setTableCustomization = async (args: TableCustomisationArgs) => {
 export const createObjectRelationship = async (
   args: CreateRelationshipArgs
 ) => {
-  logger.info(`Set object relationship ${args.name} for ${args.table.name}`);
+  logger.debug(`Set object relationship ${args.name} for ${args.table.name}`);
   try {
     await runMetadataRequest({
       type: 'pg_create_object_relationship',
@@ -186,7 +186,7 @@ export const createObjectRelationship = async (
 };
 
 export const createArrayRelationship = async (args: CreateRelationshipArgs) => {
-  logger.info(`Create array relationship ${args.name} for ${args.table.name}`);
+  logger.debug(`Create array relationship ${args.name} for ${args.table.name}`);
   try {
     await runMetadataRequest({
       type: 'pg_create_array_relationship',
@@ -205,7 +205,7 @@ export const createArrayRelationship = async (args: CreateRelationshipArgs) => {
 };
 
 export const dropRelationship = async (args: DropRelationshipArgs) => {
-  logger.info(`Drop relationship ${args.relationship} for ${args.table.name}`);
+  logger.debug(`Drop relationship ${args.relationship} for ${args.table.name}`);
   try {
     await runMetadataRequest({
       type: 'pg_drop_relationship',
@@ -225,9 +225,9 @@ export const dropRelationship = async (args: DropRelationshipArgs) => {
 };
 
 export const applyMetadata = async (): Promise<void> => {
-  logger.info('Applying metadata...');
+  logger.info('Applying Hasura metadata...');
 
-  logger.debug('Reloading metadata...');
+  logger.debug('Reloading metadata');
   const { is_consistent, inconsistent_objects } = await reloadMetadata();
 
   // * Manage metadata inconsistencies
@@ -247,8 +247,9 @@ export const applyMetadata = async (): Promise<void> => {
           table?.name === 'users'
       )
     ) {
-      logger.debug('Dropping the authenticators inconsistency...');
+      logger.debug('Dropping the authenticators inconsistency');
       await dropInconsistentMetadata();
+      logger.debug('Authenticators inconsistency dropped');
     }
   }
 
@@ -776,9 +777,9 @@ export const applyMetadata = async (): Promise<void> => {
       },
     });
   } finally {
-    logger.debug('Reloading metadata...');
+    logger.debug('Reloading metadata');
     await reloadMetadata();
     logger.debug('Metadata reloaded');
   }
-  logger.info('Metadata applied');
+  logger.info('Hasura metadata applied');
 };

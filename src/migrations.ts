@@ -6,7 +6,7 @@ import { logger } from './logger';
 import { ENV } from './utils/env';
 
 export async function applyMigrations(): Promise<void> {
-  logger.info('Applying migrations...');
+  logger.info('Applying SQL migrations...');
 
   const dbConfig = {
     connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
@@ -85,5 +85,5 @@ export async function applyMigrations(): Promise<void> {
   } finally {
     await client.end();
   }
-  logger.info('Migrations applied');
+  logger.info('SQL migrations applied');
 }
