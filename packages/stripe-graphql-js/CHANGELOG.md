@@ -1,5 +1,11 @@
 # @nhost/stripe-graphql-js
 
+## 0.0.4
+
+### Patch Changes
+
+- c922de7b: feat/added async support for isAllowed prop for createStripeGraphQLServer
+
 ## 0.0.3
 
 ### Patch Changes
