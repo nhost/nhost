@@ -19,14 +19,14 @@ if (devTools) {
     iframe: false
   })
 }
-const nhost = new NhostClient({ backendUrl: BACKEND_URL })
+export const nhost = new NhostClient({ backendUrl: BACKEND_URL })
 const title = 'Nhost with NextJs'
 function MyApp({ Component, pageProps }: AppProps) {
   // * Monorepo-related. See: https://stackoverflow.com/questions/71843247/react-nextjs-type-error-component-cannot-be-used-as-a-jsx-component
   // const AnyComponent = Component as any
   return (
     <NhostNextProvider nhost={nhost} initial={pageProps.nhostSession}>
-      <NhostApolloProvider nhost={nhost}>
+      <NhostApolloProvider nhost={nhost} initialState={pageProps}>
         <Head>
           <title>{title}</title>
           <meta name="viewport" content="minimum-scale=1, initial-scale=1, width=device-width" />

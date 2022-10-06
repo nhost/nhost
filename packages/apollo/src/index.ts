@@ -1,3 +1,7 @@
+import merge from 'deepmerge'
+import isEqual from 'lodash/isEqual'
+import * as React from 'react'
+
 import {
   ApolloClient,
   ApolloClientOptions,
@@ -14,9 +18,10 @@ import { getMainDefinition } from '@apollo/client/utilities'
 import { NhostClient } from '@nhost/nhost-js'
 
 import { createRestartableClient } from './ws'
+
 const isBrowser = typeof window !== 'undefined'
 
-export type NhostApolloClientOptions = {
+export type NhostCreateApolloClientOptions = {
   nhost?: NhostClient
   graphqlUrl?: string
   headers?: any
@@ -27,17 +32,15 @@ export type NhostApolloClientOptions = {
   onError?: RequestHandler
 }
 
-export const createApolloClient = ({
-  nhost,
-  graphqlUrl,
-  headers = {},
-  publicRole = 'public',
-  fetchPolicy,
-  cache = new InMemoryCache(),
-  connectToDevTools = isBrowser && process.env.NODE_ENV === 'development',
-  onError
-}: NhostApolloClientOptions): ApolloClient<any> => {
+export type NhostApolloClientOptions = NhostCreateApolloClientOptions & {
+  initialState?: any
+}
+
+export const createApolloClient = (options: NhostCreateApolloClientOptions): ApolloClient<any> => {
+  const { cache, connectToDevTools, fetchPolicy, graphqlUrl, headers, nhost, onError, publicRole } =
+    options
   let backendUrl = graphqlUrl || nhost?.graphql.getUrl()
+
   if (!backendUrl) {
     throw Error("Can't initialize the Apollo Client: no backend Url has been provided")
   }
@@ -126,7 +129,7 @@ export const createApolloClient = ({
 
   const client = new ApolloClient(apolloClientOptions)
 
-  interpreter?.onTransition(async (state, event) => {
+  interpreter?.onTransition(async (state: any, event: any) => {
     if (['SIGNOUT', 'SIGNED_IN', 'TOKEN_CHANGED'].includes(event.type)) {
       const newToken = state.context.accessToken.value
       token = newToken
@@ -146,4 +149,49 @@ export const createApolloClient = ({
   })
 
   return client
+}
+
+export const APOLLO_STATE_PROP_NAME = '__APOLLO_STATE__'
+
+let apolloClient: ApolloClient<any>
+export function initializeApollo(options: NhostApolloClientOptions) {
+  const { initialState } = options
+  const _apolloClient = apolloClient ?? createApolloClient({ ...options })
+
+  if (initialState) {
+    const existingCache = _apolloClient.extract()
+
+    const data = merge(existingCache, initialState, {
+      arrayMerge: (destinationArray, sourceArray) => [
+        ...sourceArray,
+        ...destinationArray.filter((d) => sourceArray.every((s) => !isEqual(d, s)))
+      ]
+    })
+
+    _apolloClient.cache.restore(data)
+  }
+
+  if (typeof window === 'undefined') return _apolloClient
+  if (!apolloClient) apolloClient = _apolloClient
+
+  return _apolloClient
+}
+
+export function addApolloState(client: ApolloClient<any>, pageProps: any) {
+  if (pageProps?.props) {
+    pageProps.props[APOLLO_STATE_PROP_NAME] = client.cache.extract()
+  }
+
+  return pageProps
+}
+
+export function useApollo(options: NhostApolloClientOptions) {
+  const { initialState } = options
+  const state = initialState[APOLLO_STATE_PROP_NAME]
+  const store = React.useMemo(
+    () => initializeApollo({ ...options, initialState: state }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [state]
+  )
+  return store
 }

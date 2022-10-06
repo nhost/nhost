@@ -59,7 +59,9 @@
     "verify:fix": "run-p prettier:fix lint:fix"
   },
   "peerDependencies": {
-    "@apollo/client": "^3.6.2"
+    "@apollo/client": "^3.6.2",
+    "deepmerge": "^4.2.2",    
+    "lodash": "^4.17.21"
   },
   "dependencies": {
     "@nhost/nhost-js": "workspace:*",
@@ -67,6 +69,8 @@
     "graphql-ws": "^5.7.0"
   },
   "devDependencies": {
-    "@apollo/client": "^3.6.9"
+    "@apollo/client": "^3.6.9",
+    "deepmerge": "^4.2.2",    
+    "lodash": "^4.17.21"
   }
 }
