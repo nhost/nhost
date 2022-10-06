@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -16,6 +17,10 @@ import (
 
 const (
 	projectNameFile = "project_name"
+)
+
+var (
+	projectNameIgnoreRegex = regexp.MustCompile(`([^a-z0-9-_])+`)
 )
 
 func ParseEnvVarsFromConfig(payload map[interface{}]interface{}, prefix string) []string {
@@ -60,8 +65,7 @@ func EnsureProjectNameFileExists() error {
 	projectNameFilename := filepath.Join(DOT_NHOST_DIR, projectNameFile)
 
 	if !util.PathExists(projectNameFilename) {
-		rand.Seed(time.Now().UnixNano())
-		randomName := strings.ToLower(strings.Join([]string{filepath.Base(util.WORKING_DIR), namesgenerator.GetRandomName(0)}, "-"))
+		randomName := randomProjectName(filepath.Base(util.WORKING_DIR))
 
 		if err := os.MkdirAll(DOT_NHOST_DIR, os.ModePerm); err != nil {
 			return err
@@ -71,4 +75,15 @@ func EnsureProjectNameFileExists() error {
 	}
 
 	return nil
+}
+
+func randomProjectName(base string) string {
+	base = strings.ToLower(base)
+	base = strings.TrimLeft(base, "_")
+	base = strings.TrimRight(base, "_")
+	base = projectNameIgnoreRegex.ReplaceAllString(base, "-")
+	base = strings.TrimSuffix(base, "-")
+
+	rand.Seed(time.Now().UnixNano())
+	return strings.ToLower(strings.Join([]string{base, namesgenerator.GetRandomName(0)}, "-"))
 }
