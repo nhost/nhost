@@ -7,6 +7,7 @@ import { getUserClaims } from './utils'
 const createStripeGraphQLServer = (params?: CreateServerProps) => {
   const cors = params?.cors
   const isAllowed = params?.isAllowed
+  const graphiql = params?.graphiql
 
   const context = (context: YogaInitialContext): Context => {
     const { request } = context
@@ -46,6 +47,7 @@ const createStripeGraphQLServer = (params?: CreateServerProps) => {
 
   return createServer({
     cors,
+    graphiql,
     context,
     schema
   })

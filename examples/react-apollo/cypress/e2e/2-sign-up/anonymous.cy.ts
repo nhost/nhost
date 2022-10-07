@@ -27,7 +27,7 @@ context('Anonymous users', () => {
       })
   })
 
-  it('should deanonymise with passwordless email', () => {
+  it('should deanonymise with a magic link', () => {
     cy.fetchUserData()
       .its('id')
       .then((id) => {

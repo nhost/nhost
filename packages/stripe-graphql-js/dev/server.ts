@@ -11,7 +11,8 @@ const isAllowed = (stripeCustomerId: string, context: Context) => {
 }
 
 const server = createStripeGraphQLServer({
-  isAllowed
+  isAllowed,
+  graphiql: true
 })
 
 server.start()

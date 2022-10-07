@@ -1,5 +1,11 @@
 # @nhost/core
 
+## 0.8.0
+
+### Minor Changes
+
+- 8e4d790b: Sign up with an email and a security key.
+
 ## 0.7.7
 
 ### Patch Changes

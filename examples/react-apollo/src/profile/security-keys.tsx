@@ -10,7 +10,7 @@ import { useAuthQuery } from '@nhost/react-apollo'
 
 const SECURITY_KEYS_LIST = gql`
   query securityKeys($userId: uuid!) {
-    authUserAuthenticators(where: { userId: { _eq: $userId } }) {
+    authUserSecurityKeys(where: { userId: { _eq: $userId } }) {
       id
       nickname
     }
@@ -19,7 +19,7 @@ const SECURITY_KEYS_LIST = gql`
 
 const REMOVE_SECURITY_KEY = gql`
   mutation removeSecurityKey($id: uuid!) {
-    deleteAuthUserAuthenticator(id: $id) {
+    deleteAuthUserSecurityKey(id: $id) {
       id
     }
   }
@@ -28,13 +28,14 @@ const REMOVE_SECURITY_KEY = gql`
 export const SecurityKeys: React.FC = () => {
   const { add } = useAddSecurityKey()
   const userId = useUserId()
+  // Nickname of the security key
   const [nickname, setNickname] = useInputState('')
   const [list, setList] = useState<{ id: string; nickname?: string | null }[]>([])
   useAuthQuery<SecurityKeysQuery>(SECURITY_KEYS_LIST, {
     variables: { userId },
-    onCompleted: ({ authUserAuthenticators }) => {
-      if (authUserAuthenticators) {
-        setList(authUserAuthenticators || [])
+    onCompleted: ({ authUserSecurityKeys }) => {
+      if (authUserSecurityKeys) {
+        setList(authUserSecurityKeys || [])
       }
     }
   })
@@ -52,9 +53,9 @@ export const SecurityKeys: React.FC = () => {
     }
   }
   const [removeKey] = useMutation<RemoveSecurityKeyMutation>(REMOVE_SECURITY_KEY, {
-    onCompleted: ({ deleteAuthUserAuthenticator }) => {
-      if (deleteAuthUserAuthenticator?.id) {
-        setList(list.filter((item) => item.id !== deleteAuthUserAuthenticator.id))
+    onCompleted: ({ deleteAuthUserSecurityKey }) => {
+      if (deleteAuthUserSecurityKey?.id) {
+        setList(list.filter((item) => item.id !== deleteAuthUserSecurityKey.id))
       }
     }
   })

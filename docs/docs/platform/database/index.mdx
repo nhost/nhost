@@ -9,52 +9,40 @@ import TabItem from '@theme/TabItem'
 
 Every Nhost project comes with its own [Postgres database](https://postgres.org/). Postgres is the world's most advanced open-source relational database and it's the most [popular SQL database for developers](https://insights.stackoverflow.com/survey/2021#section-most-loved-dreaded-and-wanted-databases).
 
-:::info
+There are three ways of managing your database:
 
-It's currently not possible to connect directly to the Postgres database via a connection string. We're working on making the database available soon. You can follow [this issue on GitHub](https://github.com/nhost/nhost/issues/113).
-
-:::
-
-The database is managed via the Hasura Console where you can manage the database via an intuitive UI. You can also use SQL to directly interact with the database via the Hasura Console.
-
-## Hasura Console
-
-Hasura Console is where you manage your database. This is where you create and manage tables, schemas, and data.
-
-1. Open the Hasura Console by clicking on **GraphQL** in the top menu in the Nhost Dashboard.
-2. Click **Open Hasura Console** at the top right of the page.
-3. Copy the **admin secret**, and click **Open Hasura**.
-4. Use the **admin secret** to sign in.
-
-<video width="99%" autoPlay muted loop controls="true">
-  <source src="/videos/open-hasura-console.mp4" type="video/mp4" />
-</video>
+1. Nhost Database UI (recommended).
+2. Hasura Console.
+3. [Connect directly to the database.](#postgres-access)
 
 ## Schemas
 
-The two schemas `auth` and `storage` are reserved for Nhost Auth and Nhost Storage to work. You're allowed to modify **permissions** and **add relationships**. However, never modify any tables or remove relationships that were added by Nhost inside the `auth` and `storage` schemas.
+Generally, you should use the `public` schema for your project. It's also ok to add custom schemas for more advanced usage.
 
-Generally, you should use the `public` schema when creating and managing your tables for your project. It's also ok to add custom schemas for more advanced usage.
+The two schemas `auth` and `storage` are reserved for [Nhost Auth](/platform/authentication) and [Nhost Storage](/platform/storage). You're allowed to modify **permissions** and **add relationships**. However, never modify any tables or remove relationships that were added by Nhost inside the `auth` and `storage` schemas.
 
-## Create Table
+## Manage Tables
 
-1. In Hasura Console, go to the **Data** tab, select the **public** schema in the left menu and click **Create Table**.
-2. Enter a table name.
-3. Add table columns.
-4. Add a primary key (usually the ID column).
-5. (Optional) Add foreign keys.
-6. (Optional) Add unique keys.
-7. Click **Add Table**.
+### Create Table
 
-When a table is created the table is instantly available through the [GraphQL API](/platform/graphql).
+1. Go to **Database** in the left menu.
+2. Click **New table**.
+3. Enter a **name** for the table.
+4. Add **columns**.
+5. Select a **Primary Key** (usually the `id` column).
+6. (Optional) Select an **Identity** column. Identity is for integer columns only and is usually selected for the `id` column so the `id` is automatically incremented (1,2,3...) on new rows.
+7. (Optional) Add **Foreign Keys**.
+8. Click **Create**.
+
+When a table is created it is instantly available through the [GraphQL API](/platform/graphql).
 
 Here's an example of how to create a `customers` table:
 
-<Tabs groupId="hasura-console-vs-sql">
-  <TabItem value="hasura-cosnole" label="Hasura Console" default>
+<Tabs groupId="nhost-vs-sql">
+  <TabItem value="nhost" label="Nhost" default>
 
 <video width="99%" autoPlay muted loop controls="true">
-  <source src="/videos/hasura-create-table.mp4" type="video/mp4" />
+  <source src="/videos/nhost-table-create.mp4" type="video/mp4" />
 </video>
 
   </TabItem>
@@ -62,7 +50,7 @@ Here's an example of how to create a `customers` table:
 
 ```sql
 CREATE TABLE "public"."customers" (
-  "id" serial NOT NULL PRIMARY KEY,
+  "id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
   "name" text NOT NULL
 );
 ```
@@ -70,19 +58,20 @@ CREATE TABLE "public"."customers" (
   </TabItem>
 </Tabs>
 
-## Modify Table
+### Edit Table
 
-1. In Hasura Console, go to the **Data** tab and click on the table you want to edit in the left menu.
-2. Click **Modify**.
-3. Modify or add table columns.
+1. Go to the **Database** in the left menu
+2. Click on the **context menu** of the table you want to change and click **Edit table**.
+3. **Edit** (add, change, delete) the table's columns.
+4. Click **Save**.
 
-Here's an example of how to modify a `customers` table by adding an `address` column:
+Here's an example of how to edit a `customers` table by adding an `address` column:
 
-<Tabs groupId="hasura-console-vs-sql">
-  <TabItem value="hasura-cosnole" label="Hasura Console" default>
+<Tabs groupId="nhost-vs-sql">
+  <TabItem value="nhost" label="Nhost" default>
 
 <video width="99%" autoPlay muted loop controls="true">
-  <source src="/videos/hasura-modify-table.mp4" type="video/mp4" />
+  <source src="/videos/nhost-table-edit.mp4" type="video/mp4" />
 </video>
 
   </TabItem>
@@ -95,20 +84,19 @@ ALTER TABLE "public"."customers" ADD COLUMN "address" text;
   </TabItem>
 </Tabs>
 
-## Delete Table
+### Delete Table
 
-1. In Hasura Console, go to the **Data** tab and select the table you want to delete in the left menu.
-2. Click **Modify**.
-3. Scroll to the bottom of the page and click **Delete table** to open the confirmation dialog.
-4. Type the **name of the table** and click OK.
+1. Go to the **Database** in the left menu
+2. Click on the **context menu** of the table you want to delete and click **Delete table**.
+3. Click **Delete** to confirm deleting the table.
 
-Here's an example of how to delete a `customers` table:
+**Example:** Delete a `customers` table:
 
-<Tabs groupId="hasura-console-vs-sql">
-  <TabItem value="hasura-cosnole" label="Hasura Console" default>
+<Tabs groupId="nhost-vs-sql">
+  <TabItem value="nhost" label="Nhost" default>
 
 <video width="99%" autoPlay muted loop controls="true">
-  <source src="/videos/hasura-delete-table.mp4" type="video/mp4" />
+  <source src="/videos/nhost-table-delete.mp4" type="video/mp4" />
 </video>
 
   </TabItem>
@@ -120,6 +108,34 @@ DROP TABLE "public"."customers";
 
   </TabItem>
 </Tabs>
+
+## Postgres Access
+
+It's possible to access your Postgres database directly with your favorite Postgres client.
+
+:::info
+
+For projects older than September 2022, it's not possible to connect directly to the database via a connection string. We're working on a one-click fix that can be expected to be available in October 2022.
+
+:::
+
+Go to **Settings** in the left menu and click on **Database**. You'll find the connection string and credentials to connect to your database.
+
+![Database Connection Info](/img/database/connection-info.png)
+
+### Reset Postgres Password
+
+It's possible to reset the database password that was provided when the project was created.
+
+1. Go to the **Overview** page of your project.
+2. Click on **Project Settings**.
+3. Click on **Reset Database Password**.
+4. Either **copy** the newly automatically generated password, or **type** your own new database password.
+5. Click **Reset Database Password**.
+
+<video width="99%" autoPlay muted loop controls="true">
+  <source src="/videos/nhost-database-reset-password.mp4" type="video/mp4" />
+</video>
 
 ## Migrations
 
@@ -148,12 +164,14 @@ nhost/seeds/default/002-products.sql
 
 ## Backups
 
-Databases on [Pro and Enterprise plans](https://nhost.io/pricing) are backed up automatically.
+Databases on the [Pro and Enterprise plans](https://nhost.io/pricing) are automatically backed up daily.
 
 ## Best Practices
 
 - Use lower-case names for tables. E.g. `customers` instead of `Customers`.
 - Use plural names for tables. E.g. `customers` instead of `customer`.
+- use underscore (`_`) instead of camelCase for table names. E.g. `customer_invoices` instead of `customerInvoices`.
+- use underscore (`_`) instead of camelCase for column names. E.g. `first_name` instead of `firstName`.
 
 ## Next Steps
 

@@ -80,6 +80,11 @@ export interface RedirectOption {
 
 export interface PasswordlessOptions extends RegistrationOptions, RedirectOption {}
 export interface SignUpOptions extends RegistrationOptions, RedirectOption {}
+export interface SignUpSecurityKeyOptions extends SignUpOptions {
+  /** Optional nickname for the security key */
+  nickname?: string
+}
+
 export interface ChangeEmailOptions extends RedirectOption {}
 export interface ResetPasswordOptions extends RedirectOption {}
 export interface SendVerificationEmailOptions extends RedirectOption {}

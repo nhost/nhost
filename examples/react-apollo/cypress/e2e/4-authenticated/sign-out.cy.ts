@@ -8,6 +8,6 @@ context('Sign out', () => {
     cy.goToProfilePage()
     cy.contains('Profile page')
     cy.signOut()
-    cy.contains('Log in to the Application')
+    cy.contains('Sign in to the Application')
   })
 })

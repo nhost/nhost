@@ -18,7 +18,6 @@ import {
   correctSecurityKeyVerifyHandler,
   incorrectSecurityKeyVerifyHandler
 } from './helpers/handlers'
-import fakeUser from './helpers/mocks/user'
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -63,6 +62,7 @@ afterEach(() => {
   authService.stop()
   customStorage.clear()
   server.resetHandlers()
+  vi.restoreAllMocks()
 })
 
 test(`should fail if network is unavailable`, async () => {

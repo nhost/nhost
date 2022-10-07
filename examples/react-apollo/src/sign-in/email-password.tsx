@@ -1,14 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
-import { Button, Modal, TextInput } from '@mantine/core'
+import { Button, Divider, Modal, TextInput } from '@mantine/core'
 import { showNotification } from '@mantine/notifications'
-import { useSignInEmailPassword, useSignInSecurityKeyEmail } from '@nhost/react'
+import { useSignInEmailPassword } from '@nhost/react'
 
 import AuthLink from '../components/AuthLink'
 
 export const EmailPassword: React.FC = () => {
-  const { signInSecurityKeyEmail } = useSignInSecurityKeyEmail()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [otp, setOtp] = useState('')
@@ -79,7 +78,6 @@ export const EmailPassword: React.FC = () => {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="Email Address"
-          size="lg"
           autoFocus
           style={{ marginBottom: '0.5em' }}
         />
@@ -88,28 +86,17 @@ export const EmailPassword: React.FC = () => {
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Password"
           type="password"
-          size="lg"
           style={{ marginBottom: '0.5em' }}
         />
-        <Button
-          fullWidth
-          onClick={() => {
-            signInSecurityKeyEmail(email)
-              .then((res) => {
-                console.log(res)
-              })
-              .catch((err) => {
-                console.log('bummer', err)
-              })
-          }}
-        >
-          SecurityKey
-        </Button>
         <Button fullWidth onClick={signIn}>
           Sign in
         </Button>
         <AuthLink link="/sign-in/forgot-password" variant="white">
           Forgot password?
+        </AuthLink>
+        <Divider />
+        <AuthLink link="/sign-in" variant="white">
+          &#8592; Other Sign-in Options
         </AuthLink>
       </>
     )
