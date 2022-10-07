@@ -113,9 +113,6 @@ func Binary(customBinary string) (string, error) {
 
 	//	Use AMD architecture instead of ARM
 	architecture := runtime.GOARCH
-	if strings.Contains(architecture, "arm") {
-		architecture = strings.ReplaceAll(architecture, "arm", "amd")
-	}
 
 	url = fmt.Sprintf("https://github.com/hasura/graphql-engine/releases/download/%v/cli-hasura-%v-%v", cliVersion, runtime.GOOS, architecture)
 
