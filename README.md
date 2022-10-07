@@ -442,13 +442,6 @@ Here are some ways of contributing to making Nhost better:
         </a>
     </td>
     <td align="center">
-        <a href="https://github.com/piromsurang">
-            <img src="https://avatars.githubusercontent.com/u/17776837?v=4" width="100;" alt="piromsurang"/>
-            <br />
-            <sub><b>Piromsurang Rungserichai</b></sub>
-        </a>
-    </td>
-    <td align="center">
         <a href="https://github.com/quentin-decre">
             <img src="https://avatars.githubusercontent.com/u/1137511?v=4" width="100;" alt="quentin-decre"/>
             <br />
@@ -475,8 +468,7 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Ulrich Wake</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/komninoschat">
             <img src="https://avatars.githubusercontent.com/u/29049104?v=4" width="100;" alt="komninoschat"/>
