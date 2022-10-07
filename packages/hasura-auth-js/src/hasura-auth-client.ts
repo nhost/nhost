@@ -172,7 +172,7 @@ export class HasuraAuthClient {
   ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
     const interpreter = await this.waitUntilReady()
     // * Anonymous sign-in
-    if (!params || Object.keys(params).length === 0) {
+    if (!params) {
       const anonymousResult = await signInAnonymousPromise(interpreter)
       return { ...getAuthenticationResult(anonymousResult), mfa: null }
     }
