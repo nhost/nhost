@@ -242,8 +242,8 @@ export const initProvider = <T extends Strategy>(
   if (PROVIDERS[strategyName]) {
     let strategyToUse;
 
-    // Apple is special
-    if (strategyName === 'apple') {
+    // Apple and Azure AD are special
+    if (strategyName === 'apple' || strategyName === 'azuread') {
       strategyToUse = new strategy(
         {
           ...PROVIDERS[strategyName],
@@ -255,21 +255,39 @@ export const initProvider = <T extends Strategy>(
           req: RequestWithState<ProviderCallbackQuery, { user: string }>,
           accessToken: string,
           refreshToken: string,
-          idToken: string,
+          params: unknown,
           _profile: unknown,
           done: VerifyCallback
         ) => {
-          const provider = 'apple';
+          const provider = strategyName;
           const state = req.query.state;
 
-          const {
-            sub: id,
-            email,
-            email_verified: emailVerified,
-          }: JWTPayload & {
-            email?: string;
-            email_verified?: boolean;
-          } = decodeJwt(idToken);
+          let id;
+          let email;
+          let emailVerified;
+          let displayName;
+          if (strategyName === 'apple') {
+            const decodedJwt: JWTPayload & {
+              sub?: string
+              email?: string;
+              email_verified?: boolean;
+            } = decodeJwt(params as string);
+            id = decodedJwt.sub
+            email = decodedJwt.email
+            emailVerified = decodedJwt.email_verified
+          } else if (strategyName === 'azuread') {
+            const decodedJwt: JWTPayload & {
+              oid?: string;
+              upn?: string;
+              name?: string;
+          } = decodeJwt((params as { id_token: string }).id_token);
+            id = decodedJwt.oid
+            email = decodedJwt.upn
+            emailVerified = !!email
+            displayName = decodedJwt.name
+          } else {
+            throw new Error(`Unsupported strategy "${strategyName}"`)
+          }
 
           if (!id) {
             return done(new Error('no id found in the JWT'));
@@ -344,7 +362,6 @@ export const initProvider = <T extends Strategy>(
 
           // get user from request
           let user;
-          let displayName;
           try {
             user = JSON.parse(req.body.user);
             displayName = `${user.name.firstName} ${user.name.lastName}`;
@@ -443,7 +460,7 @@ export const initProvider = <T extends Strategy>(
   ];
 
   if (callbackMethod === 'POST') {
-    // The Sign in with Apple auth provider requires a POST route for authentication
+    // The Sign in with Apple and Azure AD auth providers require a POST route for authentication
     subRouter.post(
       '/callback',
       express.urlencoded({ extended: true }),

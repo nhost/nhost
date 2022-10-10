@@ -5,6 +5,7 @@ import google from './google';
 import facebook from './facebook';
 import twitter from './twitter';
 import apple from './apple';
+import azuread from './azuread';
 import windowslive from './windowslive';
 import linkedin from './linkedin';
 import spotify from './spotify';
@@ -22,6 +23,7 @@ google(router);
 facebook(router);
 twitter(router);
 apple(router);
+azuread(router);
 windowslive(router);
 linkedin(router);
 spotify(router);
@@ -36,7 +38,7 @@ export default (parentRouter: Router) => {
   /**
    * GET /signin/provider/{provider}
    * @summary
-   * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,windowslive,linkedin,spotify,strava,gitlab,bitbucket
+   * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,azuread,windowslive,linkedin,spotify,strava,gitlab,bitbucket
    * @param {string} redirectUrl.query.required -
    * @return {string} 302 - Redirect to the provider's authentication page
    * @tags Authentication
@@ -44,8 +46,8 @@ export default (parentRouter: Router) => {
 
   /**
    * GET /signin/provider/{provider}/callback
-   * @summary Oauth callback url, that will be used by the Oauth provider, to redirect to the client application. Attention: all providers are using a GET operation, except Apple that uses POST
-   * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,windowslive,linkedin,spotify,strava,gitlab,bitbucket
+   * @summary Oauth callback url, that will be used by the Oauth provider, to redirect to the client application. Attention: all providers are using a GET operation, except Apple and Azure AD that use POST
+   * @param {string} provider.path.required - name param description - enum:github,google,facebook,twitter,apple,azuread,windowslive,linkedin,spotify,strava,gitlab,bitbucket
    * @param {string} redirectUrl.query.required
    * @return {string} 302 - Redirect to the initial url given as a query parameter in /signin/provider/{provider}
    * @tags Authentication
