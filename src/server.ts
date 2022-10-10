@@ -1,8 +1,10 @@
 import { ENV } from '@/utils/env';
 import { logger, LOG_LEVEL } from './logger';
+import { tag } from './timer';
 
 export const start = async () => {
   logger.info(`Log level: ${LOG_LEVEL}`);
+  tag('Start');
 
   /**
    * Async imports allow to dynamically import the required modules,
@@ -15,14 +17,22 @@ export const start = async () => {
   //   logger.info(`Skipping migrations and metadata`);
   // } else {
   const { waitForHasura } = await import('@/utils');
+  tag('Import waitfor module');
   const { applyMigrations } = await import('./migrations');
-  const { applyMetadata } = await import('./metadata');
+  tag('Import migrations module');
+  // const { applyMetadata } = await import('./metadata');
+  const { patchMetadata } = await import('./metadata-patch');
+  tag('Import metadata module');
 
   // wait for hasura to be ready
   await waitForHasura();
+  tag('Wait for Hasura');
   // apply migrations and metadata
   await applyMigrations();
-  await applyMetadata();
+  tag('Apply migrations');
+  // await applyMetadata();
+  await patchMetadata();
+  tag('Apply metadata');
   // }
 
   // if (ENV.AUTH_SKIP_SERVE) {
@@ -35,6 +45,7 @@ export const start = async () => {
 
   app.listen(ENV.AUTH_PORT, () => {
     logger.info(`Running on port ${ENV.AUTH_PORT}`);
+    tag('Ready');
   });
   // }
 };
