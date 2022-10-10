@@ -12,7 +12,7 @@ export const logger = winston.createLogger({
 
 // * Give more importance about Unauthorized and Forbidden status codes to give more visibility to hacking attempts
 const SUSPICIOUS_REQUEST_CODES = [401, 403];
-const isSimpleQuery = (_: Request, res: Response) =>
+const isSimpleRequest = (_: Request, res: Response) =>
   res.statusCode < 500 &&
   SUSPICIOUS_REQUEST_CODES.every((code) => res.statusCode != code);
 
@@ -43,7 +43,7 @@ const commonLoggerOptions: LoggerOptions = {
 export const simpleLogger = expressWinston.logger({
   ...commonLoggerOptions,
   expressFormat: true,
-  ignoreRoute: (...args) => !isSimpleQuery(...args),
+  skip: (req, res) => !isSimpleRequest(req, res),
   // * Flag /healthz and /change-env as debug, and everything else as info
   level: (req) =>
     ['/healthz', '/change-env'].includes(req.path) ? 'debug' : 'info',
@@ -59,7 +59,7 @@ export const simpleLogger = expressWinston.logger({
 export const detailedLogger = expressWinston.logger({
   ...commonLoggerOptions,
   expressFormat: true,
-  ignoreRoute: isSimpleQuery,
+  skip: isSimpleRequest,
   level: function (_, res) {
     // * Flag suspitious 4xx request as warn, and everything else as error
     if (SUSPICIOUS_REQUEST_CODES.includes(res.statusCode)) {
