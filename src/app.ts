@@ -8,7 +8,7 @@ import router from './routes';
 import { serverErrors } from './errors';
 import { authMiddleware } from './middleware/auth';
 import { addOpenApiRoute } from './openapi';
-import { uncaughtErrorLogger, simpleLogger, detailedLogger } from './logger';
+import { uncaughtErrorLogger, httpLogger } from './logger';
 
 const app = express();
 
@@ -17,7 +17,7 @@ if (process.env.NODE_ENV === 'production') {
 }
 
 addOpenApiRoute(app);
-app.use(simpleLogger, detailedLogger);
+app.use(httpLogger);
 
 app.use(helmet(), json(), cors());
 app.use(authMiddleware);

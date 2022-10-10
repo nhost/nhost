@@ -1,6 +1,5 @@
 import winston from 'winston';
 import expressWinston, { LoggerOptions } from 'express-winston';
-import { Request, Response } from 'express';
 
 export const LOG_LEVEL = process.env.AUTH_LOG_LEVEL || 'info';
 
@@ -12,9 +11,14 @@ export const logger = winston.createLogger({
 
 // * Give more importance to Unauthorized and Forbidden status codes to give more visibility to hacking attempts
 const SUSPICIOUS_REQUEST_CODES = [401, 403];
-const isSimpleRequest = (_: Request, res: Response) =>
-  res.statusCode < 500 &&
-  SUSPICIOUS_REQUEST_CODES.every((code) => res.statusCode != code);
+
+const rewriteUrl = (url: string) => {
+  if (LOG_LEVEL !== 'debug' && (url.includes('?') || url.includes('#'))) {
+    const pathname = new URL(url, 'http://noop').pathname;
+    return `${pathname}*****`;
+  }
+  return url;
+};
 
 const commonLoggerOptions: LoggerOptions = {
   winstonInstance: logger,
@@ -25,8 +29,13 @@ const commonLoggerOptions: LoggerOptions = {
     const result: Record<string, unknown> = {
       status: res.statusCode,
       method: req.method,
-      url: req.url,
     };
+    if (LOG_LEVEL === 'debug') {
+      result.headers = req.headers;
+      result.url = req.url;
+    } else {
+      result.url = rewriteUrl(req.url);
+    }
     const userId = req.auth?.userId;
     if (userId) {
       result.userId = userId;
@@ -40,33 +49,27 @@ const commonLoggerOptions: LoggerOptions = {
  * - Requests are logged as info, expect for /healthz et and /change-env which are logged as debug
  * - No additional meta is logged
  * */
-export const simpleLogger = expressWinston.logger({
+export const httpLogger = expressWinston.logger({
   ...commonLoggerOptions,
-  expressFormat: true,
-  skip: (req, res) => !isSimpleRequest(req, res),
+  msg: (req, res) =>
+    `${req.method} ${rewriteUrl(req.url)} ${res.statusCode} ${
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (res as any).responseTime
+    }ms`,
   // * Flag /healthz and /change-env as debug, and everything else as info
-  level: (req) =>
-    ['/healthz', '/change-env'].includes(req.path) ? 'debug' : 'info',
-  requestWhitelist: [],
-  responseWhitelist: [],
-});
-
-/**
- * Logger for 5xx and suspicious requests.
- * - 5xx requests are logged as error, and suspicious requests are logged as warn
- * - The winston-express meta is logged
- */
-export const detailedLogger = expressWinston.logger({
-  ...commonLoggerOptions,
-  expressFormat: true,
-  skip: isSimpleRequest,
-  level: function (_, res) {
-    // * Flag suspitious 4xx request as warn, and everything else as error
+  level: (req, res) => {
+    if (['/healthz', '/change-env'].includes(req.path)) return 'debug';
     if (SUSPICIOUS_REQUEST_CODES.includes(res.statusCode)) {
       return 'warn';
     }
-    return 'error';
+    if (res.statusCode >= 500) {
+      return 'error';
+    }
+    return 'info';
   },
+
+  requestWhitelist: [],
+  responseWhitelist: [],
 });
 
 export const uncaughtErrorLogger =
