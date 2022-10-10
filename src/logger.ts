@@ -10,7 +10,7 @@ export const logger = winston.createLogger({
   format: winston.format.combine(winston.format.json()),
 });
 
-// * Give more importance about Unauthorized and Forbidden status codes to give more visibility to hacking attempts
+// * Give more importance to Unauthorized and Forbidden status codes to give more visibility to hacking attempts
 const SUSPICIOUS_REQUEST_CODES = [401, 403];
 const isSimpleRequest = (_: Request, res: Response) =>
   res.statusCode < 500 &&
