@@ -1,5 +1,21 @@
 # @nhost/react-apollo
 
+## 4.7.6
+
+### Patch Changes
+
+- 74758f2c: fix (react-apollo): broken Next.js SSG when client was not available
+- Updated dependencies [739a3c45]
+  - @nhost/react@0.13.0
+  - @nhost/apollo@0.5.30
+
+## 4.7.5
+
+### Patch Changes
+
+- @nhost/react@0.12.5
+- @nhost/apollo@0.5.29
+
 ## 4.7.4
 
 ### Patch Changes

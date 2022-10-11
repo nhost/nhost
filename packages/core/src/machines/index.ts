@@ -1,6 +1,14 @@
 import type { AxiosRequestConfig } from 'axios'
 import { assign, createMachine, send } from 'xstate'
 
+import { startAuthentication, startRegistration } from '@simplewebauthn/browser'
+import type {
+  AuthenticationCredentialJSON,
+  PublicKeyCredentialCreationOptionsJSON,
+  PublicKeyCredentialRequestOptionsJSON,
+  RegistrationCredentialJSON
+} from '@simplewebauthn/typescript-types'
+
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
   NHOST_REFRESH_TOKEN_KEY,
@@ -8,6 +16,7 @@ import {
   TOKEN_REFRESH_MARGIN
 } from '../constants'
 import {
+  CodifiedError,
   INVALID_EMAIL_ERROR,
   INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
@@ -61,12 +70,13 @@ type AuthServices = {
   passwordlessEmail: { data: PasswordlessEmailResponse | DeanonymizeResponse }
   signInAnonymous: { data: SignInAnonymousResponse }
   signInMfaTotp: { data: SignInMfaTotpResponse }
+  signInSecurityKeyEmail: { data: SignInResponse }
   refreshToken: { data: NhostSessionResponse }
   signout: { data: SignOutResponse }
   signUpEmailPassword: { data: SignUpResponse }
+  signUpSecurityKey: { data: SignUpResponse }
   importRefreshToken: { data: NhostSessionResponse }
 }
-// TODO actions typings
 
 export const createAuthMachine = ({
   backendUrl,
@@ -158,6 +168,7 @@ export const createAuthMachine = ({
               on: {
                 SIGNIN_PASSWORD: 'authenticating.password',
                 SIGNIN_ANONYMOUS: 'authenticating.anonymous',
+                SIGNIN_SECURITY_KEY_EMAIL: 'authenticating.securityKeyEmail',
                 SIGNIN_MFA_TOTP: 'authenticating.mfa.totp'
               }
             },
@@ -224,6 +235,29 @@ export const createAuthMachine = ({
                         }
                       }
                     }
+                  }
+                },
+                securityKeyEmail: {
+                  invoke: {
+                    src: 'signInSecurityKeyEmail',
+                    id: 'authenticateUserWithSecurityKey',
+                    onDone: {
+                      actions: ['saveSession', 'reportTokenChanged'],
+                      target: '#nhost.authentication.signedIn'
+                    },
+                    onError: [
+                      {
+                        cond: 'unverified',
+                        target: [
+                          '#nhost.authentication.signedOut',
+                          '#nhost.registration.incomplete.needsEmailVerification'
+                        ]
+                      },
+                      {
+                        actions: 'saveAuthenticationError',
+                        target: '#nhost.authentication.signedOut.failed'
+                      }
+                    ]
                   }
                 }
               }
@@ -340,6 +374,7 @@ export const createAuthMachine = ({
             incomplete: {
               on: {
                 SIGNUP_EMAIL_PASSWORD: 'emailPassword',
+                SIGNUP_SECURITY_KEY: 'securityKey',
                 PASSWORDLESS_EMAIL: 'passwordlessEmail',
                 PASSWORDLESS_SMS: 'passwordlessSms',
                 PASSWORDLESS_SMS_OTP: 'passwordlessSmsOtp'
@@ -357,6 +392,34 @@ export const createAuthMachine = ({
               invoke: {
                 src: 'signUpEmailPassword',
                 id: 'signUpEmailPassword',
+                onDone: [
+                  {
+                    cond: 'hasSession',
+                    actions: ['saveSession', 'reportTokenChanged'],
+                    target: '#nhost.authentication.signedIn'
+                  },
+                  {
+                    actions: 'clearContext',
+                    target: ['#nhost.authentication.signedOut', 'incomplete.needsEmailVerification']
+                  }
+                ],
+                onError: [
+                  {
+                    cond: 'unverified',
+                    target: 'incomplete.needsEmailVerification'
+                  },
+                  {
+                    actions: 'saveRegistrationError',
+                    target: 'incomplete.failed'
+                  }
+                ]
+              }
+            },
+            securityKey: {
+              entry: ['resetErrors'],
+              invoke: {
+                src: 'signUpSecurityKey',
+                id: 'signUpSecurityKey',
                 onDone: [
                   {
                     cond: 'hasSession',
@@ -683,6 +746,22 @@ export const createAuthMachine = ({
             otp: data.otp
           })
         },
+        signInSecurityKeyEmail: async (_, { email }) => {
+          if (!isValidEmail(email)) {
+            throw new CodifiedError(INVALID_EMAIL_ERROR)
+          }
+          const options = await postRequest<PublicKeyCredentialRequestOptionsJSON>(
+            '/signin/webauthn',
+            { email }
+          )
+          let credential: AuthenticationCredentialJSON
+          try {
+            credential = await startAuthentication(options)
+          } catch (e) {
+            throw new CodifiedError(e as Error)
+          }
+          return postRequest<SignInResponse>('/signin/webauthn/verify', { email, credential })
+        },
         refreshToken: async (ctx, event) => {
           const refreshToken = event.type === 'TRY_TOKEN' ? event.token : ctx.refreshToken.value
           const session = await postRequest<RefreshSessionResponse>('/token', {
@@ -725,7 +804,36 @@ export const createAuthMachine = ({
             })
           }
         },
-
+        signUpSecurityKey: async (_, { email, options }) => {
+          if (!isValidEmail(email)) {
+            return Promise.reject<SignUpResponse>({ error: INVALID_EMAIL_ERROR })
+          }
+          // TODO anonymous users
+          const nickname = options?.nickname
+          /*
+           * The `/signup/webauthn` endpoint accepts any option from SignUpOptions,
+           * We therefore remove the nickname from the options object before sending it to the server,
+           * as options if of type `SignUpSecurityKeyOptions`, which extends `SignUpOptions` with the optional `nickname` property.
+           */
+          if (nickname) delete options.nickname
+          const webAuthnOptions = await postRequest<PublicKeyCredentialCreationOptionsJSON>(
+            '/signup/webauthn',
+            { email, options }
+          )
+          let credential: RegistrationCredentialJSON
+          try {
+            credential = await startRegistration(webAuthnOptions)
+          } catch (e) {
+            throw new CodifiedError(e as Error)
+          }
+          return postRequest<SignUpResponse>('/signup/webauthn/verify', {
+            credential,
+            options: {
+              redirectTo: options?.redirectTo,
+              nickname
+            }
+          })
+        },
         importRefreshToken: async () => {
           let error: ValidationErrorPayload | null = null
           if (autoSignIn) {

@@ -8,7 +8,7 @@ services:
       hasura_graphql_enable_remote_schema_permissions: false
     image: hasura/graphql-engine:v2.10.1
   auth:
-    image: nhost/hasura-auth:0.10.0
+    image: nhost/hasura-auth:0.13.2
   storage:
     image: nhost/hasura-storage:0.2.4
 auth:

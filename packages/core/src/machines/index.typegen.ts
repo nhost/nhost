@@ -2,102 +2,10 @@
 
 export interface Typegen0 {
   '@@xstate/typegen': true
-  eventsCausingActions: {
-    saveSession:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.importRefreshToken'
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateAnonymously'
-      | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.refreshToken'
-      | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessSmsOtp'
-    resetTimer: 'SESSION_UPDATE' | 'done.invoke.refreshToken' | ''
-    reportTokenChanged:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.importRefreshToken'
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateAnonymously'
-      | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.refreshToken'
-      | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessSmsOtp'
-    saveAuthenticationError:
-      | 'error.platform.importRefreshToken'
-      | 'error.platform.signingOut'
-      | 'error.platform.authenticateUserWithPassword'
-      | 'error.platform.authenticateAnonymously'
-      | 'error.platform.signInMfaTotp'
-      | 'error.platform.authenticateWithToken'
-    saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    saveRefreshAttempt: 'error.platform.refreshToken'
-    clearContext:
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessEmail'
-      | 'done.invoke.passwordlessSms'
-    saveRegistrationError:
-      | 'error.platform.signUpEmailPassword'
-      | 'error.platform.passwordlessEmail'
-      | 'error.platform.passwordlessSms'
-      | 'error.platform.passwordlessSmsOtp'
-    resetErrors:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.importRefreshToken'
-      | ''
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateAnonymously'
-      | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessSmsOtp'
-      | 'SIGNUP_EMAIL_PASSWORD'
-      | 'PASSWORDLESS_EMAIL'
-      | 'PASSWORDLESS_SMS'
-      | 'PASSWORDLESS_SMS_OTP'
-    reportSignedOut:
-      | 'error.platform.importRefreshToken'
-      | 'error.platform.authenticateUserWithPassword'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessEmail'
-      | 'done.invoke.passwordlessSms'
-    destroyRefreshToken: 'xstate.init'
-    clearContextExceptRefreshToken: 'SIGNOUT'
-    reportSignedIn:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.importRefreshToken'
-      | ''
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateAnonymously'
-      | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessSmsOtp'
-    cleanUrl:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.importRefreshToken'
-      | ''
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateAnonymously'
-      | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessSmsOtp'
-    broadcastToken:
-      | 'SESSION_UPDATE'
-      | 'done.invoke.importRefreshToken'
-      | ''
-      | 'done.invoke.authenticateUserWithPassword'
-      | 'done.invoke.authenticateAnonymously'
-      | 'done.invoke.signInMfaTotp'
-      | 'done.invoke.authenticateWithToken'
-      | 'done.invoke.signUpEmailPassword'
-      | 'done.invoke.passwordlessSmsOtp'
-  }
   internalEvents: {
-    'done.invoke.importRefreshToken': {
-      type: 'done.invoke.importRefreshToken'
+    '': { type: '' }
+    'done.invoke.authenticateAnonymously': {
+      type: 'done.invoke.authenticateAnonymously'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -106,18 +14,8 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'done.invoke.authenticateAnonymously': {
-      type: 'done.invoke.authenticateAnonymously'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
-    'done.invoke.signInMfaTotp': {
-      type: 'done.invoke.signInMfaTotp'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
-    'done.invoke.refreshToken': {
-      type: 'done.invoke.refreshToken'
+    'done.invoke.authenticateUserWithSecurityKey': {
+      type: 'done.invoke.authenticateUserWithSecurityKey'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
@@ -126,36 +24,11 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'done.invoke.signUpEmailPassword': {
-      type: 'done.invoke.signUpEmailPassword'
+    'done.invoke.importRefreshToken': {
+      type: 'done.invoke.importRefreshToken'
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'done.invoke.passwordlessSmsOtp': {
-      type: 'done.invoke.passwordlessSmsOtp'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
-    '': { type: '' }
-    'error.platform.importRefreshToken': {
-      type: 'error.platform.importRefreshToken'
-      data: unknown
-    }
-    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
-    'error.platform.authenticateUserWithPassword': {
-      type: 'error.platform.authenticateUserWithPassword'
-      data: unknown
-    }
-    'error.platform.authenticateAnonymously': {
-      type: 'error.platform.authenticateAnonymously'
-      data: unknown
-    }
-    'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
-    'error.platform.authenticateWithToken': {
-      type: 'error.platform.authenticateWithToken'
-      data: unknown
-    }
-    'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
     'done.invoke.passwordlessEmail': {
       type: 'done.invoke.passwordlessEmail'
       data: unknown
@@ -166,8 +39,54 @@ export interface Typegen0 {
       data: unknown
       __tip: 'See the XState TS docs to learn how to strongly type this.'
     }
-    'error.platform.signUpEmailPassword': {
-      type: 'error.platform.signUpEmailPassword'
+    'done.invoke.passwordlessSmsOtp': {
+      type: 'done.invoke.passwordlessSmsOtp'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.refreshToken': {
+      type: 'done.invoke.refreshToken'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.signInMfaTotp': {
+      type: 'done.invoke.signInMfaTotp'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.signUpEmailPassword': {
+      type: 'done.invoke.signUpEmailPassword'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.signUpSecurityKey': {
+      type: 'done.invoke.signUpSecurityKey'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'done.invoke.signingOut': {
+      type: 'done.invoke.signingOut'
+      data: unknown
+      __tip: 'See the XState TS docs to learn how to strongly type this.'
+    }
+    'error.platform.authenticateAnonymously': {
+      type: 'error.platform.authenticateAnonymously'
+      data: unknown
+    }
+    'error.platform.authenticateUserWithPassword': {
+      type: 'error.platform.authenticateUserWithPassword'
+      data: unknown
+    }
+    'error.platform.authenticateUserWithSecurityKey': {
+      type: 'error.platform.authenticateUserWithSecurityKey'
+      data: unknown
+    }
+    'error.platform.authenticateWithToken': {
+      type: 'error.platform.authenticateWithToken'
+      data: unknown
+    }
+    'error.platform.importRefreshToken': {
+      type: 'error.platform.importRefreshToken'
       data: unknown
     }
     'error.platform.passwordlessEmail': { type: 'error.platform.passwordlessEmail'; data: unknown }
@@ -176,27 +95,33 @@ export interface Typegen0 {
       type: 'error.platform.passwordlessSmsOtp'
       data: unknown
     }
+    'error.platform.refreshToken': { type: 'error.platform.refreshToken'; data: unknown }
+    'error.platform.signInMfaTotp': { type: 'error.platform.signInMfaTotp'; data: unknown }
+    'error.platform.signUpEmailPassword': {
+      type: 'error.platform.signUpEmailPassword'
+      data: unknown
+    }
+    'error.platform.signUpSecurityKey': { type: 'error.platform.signUpSecurityKey'; data: unknown }
+    'error.platform.signingOut': { type: 'error.platform.signingOut'; data: unknown }
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
     'xstate.init': { type: 'xstate.init' }
-    'done.invoke.signingOut': {
-      type: 'done.invoke.signingOut'
-      data: unknown
-      __tip: 'See the XState TS docs to learn how to strongly type this.'
-    }
+    'xstate.stop': { type: 'xstate.stop' }
   }
   invokeSrcNameMap: {
     importRefreshToken: 'done.invoke.importRefreshToken'
-    signout: 'done.invoke.signingOut'
-    signInPassword: 'done.invoke.authenticateUserWithPassword'
-    signInAnonymous: 'done.invoke.authenticateAnonymously'
-    signInMfaTotp: 'done.invoke.signInMfaTotp'
-    refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
-    signUpEmailPassword: 'done.invoke.signUpEmailPassword'
     passwordlessEmail: 'done.invoke.passwordlessEmail'
     passwordlessSms: 'done.invoke.passwordlessSms'
     passwordlessSmsOtp: 'done.invoke.passwordlessSmsOtp'
+    refreshToken: 'done.invoke.refreshToken' | 'done.invoke.authenticateWithToken'
+    signInAnonymous: 'done.invoke.authenticateAnonymously'
+    signInMfaTotp: 'done.invoke.signInMfaTotp'
+    signInPassword: 'done.invoke.authenticateUserWithPassword'
+    signInSecurityKeyEmail: 'done.invoke.authenticateUserWithSecurityKey'
+    signUpEmailPassword: 'done.invoke.signUpEmailPassword'
+    signUpSecurityKey: 'done.invoke.signUpSecurityKey'
+    signout: 'done.invoke.signingOut'
   }
   missingImplementations: {
     actions: never
@@ -204,104 +129,268 @@ export interface Typegen0 {
     guards: never
     delays: never
   }
+  eventsCausingActions: {
+    broadcastToken:
+      | ''
+      | 'SESSION_UPDATE'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithToken'
+      | 'done.invoke.importRefreshToken'
+      | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+    cleanUrl:
+      | ''
+      | 'SESSION_UPDATE'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithToken'
+      | 'done.invoke.importRefreshToken'
+      | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+    clearContext:
+      | 'done.invoke.passwordlessEmail'
+      | 'done.invoke.passwordlessSms'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+    clearContextExceptRefreshToken: 'SIGNOUT'
+    destroyRefreshToken:
+      | 'SESSION_UPDATE'
+      | 'SIGNIN_ANONYMOUS'
+      | 'SIGNIN_MFA_TOTP'
+      | 'SIGNIN_PASSWORD'
+      | 'SIGNIN_SECURITY_KEY_EMAIL'
+      | 'done.invoke.signingOut'
+      | 'error.platform.signingOut'
+      | 'xstate.stop'
+    reportSignedIn:
+      | ''
+      | 'SESSION_UPDATE'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithToken'
+      | 'done.invoke.importRefreshToken'
+      | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+    reportSignedOut:
+      | 'SIGNOUT'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.passwordlessEmail'
+      | 'done.invoke.passwordlessSms'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+      | 'error.platform.authenticateAnonymously'
+      | 'error.platform.authenticateUserWithPassword'
+      | 'error.platform.authenticateUserWithSecurityKey'
+      | 'error.platform.authenticateWithToken'
+      | 'error.platform.importRefreshToken'
+      | 'error.platform.signInMfaTotp'
+    reportTokenChanged:
+      | 'SESSION_UPDATE'
+      | 'SIGNIN_ANONYMOUS'
+      | 'SIGNIN_MFA_TOTP'
+      | 'SIGNIN_PASSWORD'
+      | 'SIGNIN_SECURITY_KEY_EMAIL'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithToken'
+      | 'done.invoke.importRefreshToken'
+      | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.refreshToken'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+      | 'done.invoke.signingOut'
+      | 'error.platform.signingOut'
+      | 'xstate.stop'
+    resetErrors:
+      | ''
+      | 'PASSWORDLESS_EMAIL'
+      | 'PASSWORDLESS_SMS'
+      | 'PASSWORDLESS_SMS_OTP'
+      | 'SESSION_UPDATE'
+      | 'SIGNIN_ANONYMOUS'
+      | 'SIGNIN_MFA_TOTP'
+      | 'SIGNIN_PASSWORD'
+      | 'SIGNIN_SECURITY_KEY_EMAIL'
+      | 'SIGNUP_EMAIL_PASSWORD'
+      | 'SIGNUP_SECURITY_KEY'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithToken'
+      | 'done.invoke.importRefreshToken'
+      | 'done.invoke.passwordlessEmail'
+      | 'done.invoke.passwordlessSms'
+      | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+      | 'error.platform.authenticateWithToken'
+      | 'xstate.init'
+    resetTimer: '' | 'SESSION_UPDATE' | 'done.invoke.refreshToken'
+    saveAuthenticationError:
+      | 'error.platform.authenticateAnonymously'
+      | 'error.platform.authenticateUserWithPassword'
+      | 'error.platform.authenticateUserWithSecurityKey'
+      | 'error.platform.authenticateWithToken'
+      | 'error.platform.importRefreshToken'
+      | 'error.platform.signInMfaTotp'
+      | 'error.platform.signingOut'
+    saveMfaTicket: 'done.invoke.authenticateUserWithPassword'
+    saveRefreshAttempt: 'error.platform.refreshToken'
+    saveRegistrationError:
+      | 'error.platform.passwordlessEmail'
+      | 'error.platform.passwordlessSms'
+      | 'error.platform.passwordlessSmsOtp'
+      | 'error.platform.signUpEmailPassword'
+      | 'error.platform.signUpSecurityKey'
+    saveSession:
+      | 'SESSION_UPDATE'
+      | 'done.invoke.authenticateAnonymously'
+      | 'done.invoke.authenticateUserWithPassword'
+      | 'done.invoke.authenticateUserWithSecurityKey'
+      | 'done.invoke.authenticateWithToken'
+      | 'done.invoke.importRefreshToken'
+      | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.refreshToken'
+      | 'done.invoke.signInMfaTotp'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+  }
   eventsCausingServices: {
-    importRefreshToken: 'xstate.init'
-    signInPassword: 'SIGNIN_PASSWORD'
-    signInAnonymous: 'SIGNIN_ANONYMOUS'
-    signInMfaTotp: 'SIGNIN_MFA_TOTP'
-    signout: 'SIGNOUT'
-    refreshToken: '' | 'TRY_TOKEN'
-    signUpEmailPassword: 'SIGNUP_EMAIL_PASSWORD'
+    importRefreshToken:
+      | 'done.invoke.authenticateWithToken'
+      | 'done.invoke.passwordlessEmail'
+      | 'done.invoke.passwordlessSms'
+      | 'done.invoke.passwordlessSmsOtp'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
+      | 'error.platform.authenticateWithToken'
+      | 'xstate.init'
     passwordlessEmail: 'PASSWORDLESS_EMAIL'
     passwordlessSms: 'PASSWORDLESS_SMS'
     passwordlessSmsOtp: 'PASSWORDLESS_SMS_OTP'
+    refreshToken: '' | 'TRY_TOKEN'
+    signInAnonymous: 'SIGNIN_ANONYMOUS'
+    signInMfaTotp: 'SIGNIN_MFA_TOTP'
+    signInPassword: 'SIGNIN_PASSWORD'
+    signInSecurityKeyEmail: 'SIGNIN_SECURITY_KEY_EMAIL'
+    signUpEmailPassword: 'SIGNUP_EMAIL_PASSWORD'
+    signUpSecurityKey: 'SIGNUP_SECURITY_KEY'
+    signout: 'SIGNOUT'
   }
   eventsCausingGuards: {
-    hasSession: 'SESSION_UPDATE' | 'done.invoke.signUpEmailPassword'
-    isSignedIn: '' | 'error.platform.authenticateWithToken'
     hasMfaTicket: 'done.invoke.authenticateUserWithPassword'
-    unverified: 'error.platform.authenticateUserWithPassword' | 'error.platform.signUpEmailPassword'
-    noToken: ''
-    isAutoRefreshDisabled: ''
     hasRefreshToken: ''
-    refreshTimerShouldRefresh: ''
+    hasSession:
+      | 'SESSION_UPDATE'
+      | 'done.invoke.signUpEmailPassword'
+      | 'done.invoke.signUpSecurityKey'
     isAnonymous: 'SIGNED_IN'
+    isAutoRefreshDisabled: ''
+    isSignedIn: '' | 'error.platform.authenticateWithToken'
+    noToken: ''
+    refreshTimerShouldRefresh: ''
+    unverified:
+      | 'error.platform.authenticateUserWithPassword'
+      | 'error.platform.authenticateUserWithSecurityKey'
+      | 'error.platform.signUpEmailPassword'
+      | 'error.platform.signUpSecurityKey'
   }
   eventsCausingDelays: {}
   matchesStates:
     | 'authentication'
-    | 'authentication.starting'
-    | 'authentication.signedOut'
-    | 'authentication.signedOut.noErrors'
-    | 'authentication.signedOut.success'
-    | 'authentication.signedOut.needsSmsOtp'
-    | 'authentication.signedOut.needsMfa'
-    | 'authentication.signedOut.failed'
-    | 'authentication.signedOut.signingOut'
     | 'authentication.authenticating'
-    | 'authentication.authenticating.password'
     | 'authentication.authenticating.anonymous'
     | 'authentication.authenticating.mfa'
     | 'authentication.authenticating.mfa.totp'
+    | 'authentication.authenticating.password'
+    | 'authentication.authenticating.securityKeyEmail'
     | 'authentication.signedIn'
     | 'authentication.signedIn.refreshTimer'
     | 'authentication.signedIn.refreshTimer.disabled'
-    | 'authentication.signedIn.refreshTimer.stopped'
     | 'authentication.signedIn.refreshTimer.idle'
     | 'authentication.signedIn.refreshTimer.running'
     | 'authentication.signedIn.refreshTimer.running.pending'
     | 'authentication.signedIn.refreshTimer.running.refreshing'
-    | 'token'
-    | 'token.idle'
-    | 'token.idle.noErrors'
-    | 'token.idle.error'
-    | 'token.running'
+    | 'authentication.signedIn.refreshTimer.stopped'
+    | 'authentication.signedOut'
+    | 'authentication.signedOut.failed'
+    | 'authentication.signedOut.needsMfa'
+    | 'authentication.signedOut.needsSmsOtp'
+    | 'authentication.signedOut.noErrors'
+    | 'authentication.signedOut.signingOut'
+    | 'authentication.signedOut.success'
+    | 'authentication.starting'
     | 'registration'
+    | 'registration.complete'
+    | 'registration.emailPassword'
     | 'registration.incomplete'
-    | 'registration.incomplete.noErrors'
+    | 'registration.incomplete.failed'
     | 'registration.incomplete.needsEmailVerification'
     | 'registration.incomplete.needsOtp'
-    | 'registration.incomplete.failed'
-    | 'registration.emailPassword'
+    | 'registration.incomplete.noErrors'
     | 'registration.passwordlessEmail'
     | 'registration.passwordlessSms'
     | 'registration.passwordlessSmsOtp'
-    | 'registration.complete'
+    | 'registration.securityKey'
+    | 'token'
+    | 'token.idle'
+    | 'token.idle.error'
+    | 'token.idle.noErrors'
+    | 'token.running'
     | {
         authentication?:
-          | 'starting'
-          | 'signedOut'
           | 'authenticating'
           | 'signedIn'
+          | 'signedOut'
+          | 'starting'
           | {
-              signedOut?:
-                | 'noErrors'
-                | 'success'
-                | 'needsSmsOtp'
-                | 'needsMfa'
-                | 'failed'
-                | 'signingOut'
-              authenticating?: 'password' | 'anonymous' | 'mfa' | { mfa?: 'totp' }
+              authenticating?:
+                | 'anonymous'
+                | 'mfa'
+                | 'password'
+                | 'securityKeyEmail'
+                | { mfa?: 'totp' }
               signedIn?:
                 | 'refreshTimer'
                 | {
                     refreshTimer?:
                       | 'disabled'
-                      | 'stopped'
                       | 'idle'
                       | 'running'
+                      | 'stopped'
                       | { running?: 'pending' | 'refreshing' }
                   }
+              signedOut?:
+                | 'failed'
+                | 'needsMfa'
+                | 'needsSmsOtp'
+                | 'noErrors'
+                | 'signingOut'
+                | 'success'
             }
-        token?: 'idle' | 'running' | { idle?: 'noErrors' | 'error' }
         registration?:
-          | 'incomplete'
+          | 'complete'
           | 'emailPassword'
+          | 'incomplete'
           | 'passwordlessEmail'
           | 'passwordlessSms'
           | 'passwordlessSmsOtp'
-          | 'complete'
-          | { incomplete?: 'noErrors' | 'needsEmailVerification' | 'needsOtp' | 'failed' }
+          | 'securityKey'
+          | { incomplete?: 'failed' | 'needsEmailVerification' | 'needsOtp' | 'noErrors' }
+        token?: 'idle' | 'running' | { idle?: 'error' | 'noErrors' }
       }
   tags: 'loading'
 }

@@ -1,5 +1,35 @@
 # @nhost/nextjs
 
+## 1.7.7
+
+### Patch Changes
+
+- 1e31a956: read nextjs context cookies in `createServerSideClient`
+- 8eafa198: Fix `createServerSideClient`
+
+  The refresh token was not fetched from the cookie when using `createServerSideClient` since [this PR](https://github.com/nhost/nhost/pull/823).
+  It is now fixed.
+
+## 1.7.6
+
+### Patch Changes
+
+- Updated dependencies [739a3c45]
+- Updated dependencies [739a3c45]
+- Updated dependencies [8e4d790b]
+  - @nhost/react@0.13.0
+  - @nhost/nhost-js@1.5.0
+  - @nhost/core@0.8.0
+
+## 1.7.5
+
+### Patch Changes
+
+- Updated dependencies [9eb78e06]
+  - @nhost/core@0.7.7
+  - @nhost/react@0.12.5
+  - @nhost/nhost-js@1.4.12
+
 ## 1.7.4
 
 ### Patch Changes

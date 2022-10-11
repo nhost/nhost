@@ -80,6 +80,11 @@ export interface RedirectOption {
 
 export interface PasswordlessOptions extends RegistrationOptions, RedirectOption {}
 export interface SignUpOptions extends RegistrationOptions, RedirectOption {}
+export interface SignUpSecurityKeyOptions extends SignUpOptions {
+  /** Optional nickname for the security key */
+  nickname?: string
+}
+
 export interface ChangeEmailOptions extends RedirectOption {}
 export interface ResetPasswordOptions extends RedirectOption {}
 export interface SendVerificationEmailOptions extends RedirectOption {}
@@ -87,7 +92,14 @@ export interface DeanonymizeOptions extends RegistrationOptions {
   email?: string
   password?: string
 }
-export interface ProviderOptions extends RegistrationOptions, RedirectOption {}
+
+export interface CommonProviderOptions extends RegistrationOptions, RedirectOption {}
+export interface WorkOsOptions extends CommonProviderOptions {
+  connection?: string
+  organization?: string
+  provider?: string
+}
+export interface ProviderOptions extends CommonProviderOptions, WorkOsOptions {}
 
 // TODO share with hasura-auth
 /** User information */
@@ -152,6 +164,7 @@ export type Provider =
   | 'bitbucket'
   | 'discord'
   | 'twitch'
+  | 'workos'
 
 // TODO share with hasura-auth
 export interface JWTHasuraClaims {
@@ -266,3 +279,11 @@ export type PasswordlessSmsOtpResponse = NhostSessionResponse
 
 /** payload from hasura-auth endpoint /signin/mfa/totp */
 export type SignInMfaTotpResponse = NhostSessionResponse
+
+/** Data of a WebAuthn security key */
+export interface SecurityKey {
+  /** Unique indentifier of the security key */
+  id: string
+  /** Human-readable nickname fof the security key */
+  nickname?: string
+}

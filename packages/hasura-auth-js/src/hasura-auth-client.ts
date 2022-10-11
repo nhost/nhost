@@ -2,6 +2,7 @@ import jwt_decode from 'jwt-decode'
 import { interpret } from 'xstate'
 
 import {
+  addSecurityKeyPromise,
   AuthClient,
   AuthInterpreter,
   changeEmailPromise,
@@ -15,6 +16,7 @@ import {
   DeanonymizeResponse,
   EMAIL_NEEDS_VERIFICATION,
   encodeQueryParameters,
+  ErrorPayload,
   INVALID_REFRESH_TOKEN,
   JWTClaims,
   JWTHasuraClaims,
@@ -23,11 +25,13 @@ import {
   resetPasswordPromise,
   ResetPasswordResponse,
   rewriteRedirectTo,
+  SecurityKey,
   sendVerificationEmailPromise,
   SendVerificationEmailResponse,
   signInAnonymousPromise,
   signInEmailPasswordlessPromise,
   signInEmailPasswordPromise,
+  signInEmailSecurityKeyPromise,
   signInMfaTotpPromise,
   SignInResponse,
   signInSmsPasswordlessOtpPromise,
@@ -35,6 +39,7 @@ import {
   signOutPromise,
   SignOutResponse,
   signUpEmailPasswordPromise,
+  signUpEmailSecurityKeyPromise,
   SignUpResponse,
   TOKEN_REFRESHER_RUNNING_ERROR
 } from '@nhost/core'
@@ -99,10 +104,16 @@ export class HasuraAuthClient {
    *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-up
    */
-  async signUp({ email, password, options }: SignUpParams): Promise<SignUpResponse> {
+  async signUp(params: SignUpParams): Promise<SignUpResponse> {
     const interpreter = await this.waitUntilReady()
+    const { email, options } = params
+    if ('securityKey' in params) {
+      return getAuthenticationResult(
+        await signUpEmailSecurityKeyPromise(interpreter, email, options)
+      )
+    }
     return getAuthenticationResult(
-      await signUpEmailPasswordPromise(interpreter, email, password, options)
+      await signUpEmailPasswordPromise(interpreter, email, params.password, options)
     )
   }
 
@@ -173,6 +184,14 @@ export class HasuraAuthClient {
           error: null
         }
       }
+      return { ...getAuthenticationResult(res), mfa: null }
+    }
+
+    if ('email' in params && 'securityKey' in params) {
+      if (params.securityKey !== true) {
+        throw Error('securityKey must be true')
+      }
+      const res = await signInEmailSecurityKeyPromise(interpreter, params.email)
       return { ...getAuthenticationResult(res), mfa: null }
     }
 
@@ -346,6 +365,19 @@ export class HasuraAuthClient {
       return { error }
     }
     throw Error(`Unknown deanonymization method`)
+  }
+
+  /**
+   * Use `nhost.auth.addSecurityKey to add a security key to the user, using the WebAuthn API.
+   * @param nickname optional human-readable nickname for the security key
+   *
+   * @docs https://docs.nhost.io/reference/javascript/auth/add-security-key
+   */
+  async addSecurityKey(
+    nickname?: string
+  ): Promise<{ error: ErrorPayload | null; key?: SecurityKey }> {
+    const { error, key } = await addSecurityKeyPromise(this._client, nickname)
+    return { error, key }
   }
 
   /**
