@@ -119,7 +119,7 @@ export const dropInconsistentMetadata = async () => {
   }
 };
 
-// https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/table-view.html#track-table-v2
+// https://hasura.io/docs/latest/api-reference/metadata-api/table-view/#metadata-pg-track-table
 export const trackTable = async (args: TrackTableArgs) => {
   try {
     await runMetadataRequest({
