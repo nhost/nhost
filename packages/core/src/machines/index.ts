@@ -17,13 +17,15 @@ import {
 } from '../constants'
 import {
   CodifiedError,
+  ErrorPayload,
   INVALID_EMAIL_ERROR,
   INVALID_MFA_TICKET_ERROR,
   INVALID_PASSWORD_ERROR,
   INVALID_PHONE_NUMBER_ERROR,
+  NETWORK_ERROR_CODE,
   NO_MFA_TICKET_ERROR,
-  VALIDATION_ERROR_CODE,
-  ValidationErrorPayload
+  NO_REFRESH_TOKEN,
+  VALIDATION_ERROR_CODE
 } from '../errors'
 import { nhostApiClient } from '../hasura-auth'
 import { localStorageGetter, localStorageSetter } from '../storage'
@@ -77,6 +79,9 @@ type AuthServices = {
   signUpSecurityKey: { data: SignUpResponse }
   importRefreshToken: { data: NhostSessionResponse }
 }
+
+/** Number of attempts to refresh the access token from the stored refresh token */
+export const MAX_IMPORT_TOKEN_ATTEMPTS = 20
 
 export const createAuthMachine = ({
   backendUrl,
@@ -137,7 +142,20 @@ export const createAuthMachine = ({
                   actions: ['saveSession', 'reportTokenChanged'],
                   target: 'signedIn'
                 },
-                onError: { actions: ['saveAuthenticationError'], target: 'signedOut' }
+                onError: [
+                  {
+                    cond: 'shouldRetryImportToken',
+                    actions: 'incrementTokenImportAttempts',
+                    target: 'retryTokenImport'
+                  },
+                  { actions: ['saveAuthenticationError'], target: 'signedOut' }
+                ]
+              }
+            },
+            retryTokenImport: {
+              tags: ['loading'],
+              after: {
+                RETRY_IMPORT_TOKEN_DELAY: 'starting'
               }
             },
             signedOut: {
@@ -503,6 +521,9 @@ export const createAuthMachine = ({
         reportSignedIn: send('SIGNED_IN'),
         reportSignedOut: send('SIGNED_OUT'),
         reportTokenChanged: send('TOKEN_CHANGED'),
+        incrementTokenImportAttempts: assign({
+          importTokenAttempts: ({ importTokenAttempts }) => importTokenAttempts + 1
+        }),
         clearContext: assign(() => {
           storageSetter(NHOST_JWT_EXPIRES_AT_KEY, null)
           storageSetter(NHOST_REFRESH_TOKEN_KEY, null)
@@ -574,7 +595,8 @@ export const createAuthMachine = ({
           })
         }),
         resetErrors: assign({
-          errors: (_) => ({})
+          errors: (_) => ({}),
+          importTokenAttempts: (_) => 0
         }),
         saveRegistrationError: assign({
           // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
@@ -640,6 +662,10 @@ export const createAuthMachine = ({
           const remaining = expiresIn - 1_000 * TOKEN_REFRESH_MARGIN
           return remaining <= 0
         },
+        // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
+        shouldRetryImportToken: ({ importTokenAttempts }, e: any) =>
+          e.data.error.status === NETWORK_ERROR_CODE &&
+          importTokenAttempts < MAX_IMPORT_TOKEN_ATTEMPTS,
         // * Authentication errors
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         unverified: (_, { data: { error } }: any) =>
@@ -835,7 +861,7 @@ export const createAuthMachine = ({
           })
         },
         importRefreshToken: async () => {
-          let error: ValidationErrorPayload | null = null
+          let error: ErrorPayload | null = null
           if (autoSignIn) {
             const urlToken = getParameterByName('refreshToken') || null
             if (urlToken) {
@@ -845,7 +871,7 @@ export const createAuthMachine = ({
                 })
                 return { session, error: null }
               } catch (exception) {
-                error = (exception as { error: ValidationErrorPayload }).error
+                error = (exception as { error: ErrorPayload }).error
               }
             } else {
               const error = getParameterByName('error')
@@ -869,10 +895,21 @@ export const createAuthMachine = ({
               })
               return { session, error: null }
             } catch (exception) {
-              error = (exception as { error: ValidationErrorPayload }).error
+              error = (exception as { error: ErrorPayload }).error
             }
           }
+          if (!error) {
+            error = NO_REFRESH_TOKEN
+          }
           return Promise.reject<NhostSessionResponse>({ error })
+        }
+      },
+      delays: {
+        RETRY_IMPORT_TOKEN_DELAY: ({ importTokenAttempts }) => {
+          if (importTokenAttempts < 5) {
+            return 1000
+          }
+          return 5000
         }
       }
     }

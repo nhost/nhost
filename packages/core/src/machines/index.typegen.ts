@@ -106,6 +106,9 @@ export interface Typegen0 {
     'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending': {
       type: 'xstate.after(1000)#nhost.authentication.signedIn.refreshTimer.running.pending'
     }
+    'xstate.after(RETRY_IMPORT_TOKEN_DELAY)#nhost.authentication.retryTokenImport': {
+      type: 'xstate.after(RETRY_IMPORT_TOKEN_DELAY)#nhost.authentication.retryTokenImport'
+    }
     'xstate.init': { type: 'xstate.init' }
     'xstate.stop': { type: 'xstate.stop' }
   }
@@ -169,6 +172,7 @@ export interface Typegen0 {
       | 'done.invoke.signingOut'
       | 'error.platform.signingOut'
       | 'xstate.stop'
+    incrementTokenImportAttempts: 'error.platform.importRefreshToken'
     reportSignedIn:
       | ''
       | 'SESSION_UPDATE'
@@ -237,6 +241,7 @@ export interface Typegen0 {
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
       | 'error.platform.authenticateWithToken'
+      | 'xstate.after(RETRY_IMPORT_TOKEN_DELAY)#nhost.authentication.retryTokenImport'
       | 'xstate.init'
     resetTimer: '' | 'SESSION_UPDATE' | 'done.invoke.refreshToken'
     saveAuthenticationError:
@@ -277,6 +282,7 @@ export interface Typegen0 {
       | 'done.invoke.signUpEmailPassword'
       | 'done.invoke.signUpSecurityKey'
       | 'error.platform.authenticateWithToken'
+      | 'xstate.after(RETRY_IMPORT_TOKEN_DELAY)#nhost.authentication.retryTokenImport'
       | 'xstate.init'
     passwordlessEmail: 'PASSWORDLESS_EMAIL'
     passwordlessSms: 'PASSWORDLESS_SMS'
@@ -302,13 +308,16 @@ export interface Typegen0 {
     isSignedIn: '' | 'error.platform.authenticateWithToken'
     noToken: ''
     refreshTimerShouldRefresh: ''
+    shouldRetryImportToken: 'error.platform.importRefreshToken'
     unverified:
       | 'error.platform.authenticateUserWithPassword'
       | 'error.platform.authenticateUserWithSecurityKey'
       | 'error.platform.signUpEmailPassword'
       | 'error.platform.signUpSecurityKey'
   }
-  eventsCausingDelays: {}
+  eventsCausingDelays: {
+    RETRY_IMPORT_TOKEN_DELAY: 'error.platform.importRefreshToken'
+  }
   matchesStates:
     | 'authentication'
     | 'authentication.authenticating'
@@ -317,6 +326,7 @@ export interface Typegen0 {
     | 'authentication.authenticating.mfa.totp'
     | 'authentication.authenticating.password'
     | 'authentication.authenticating.securityKeyEmail'
+    | 'authentication.retryTokenImport'
     | 'authentication.signedIn'
     | 'authentication.signedIn.refreshTimer'
     | 'authentication.signedIn.refreshTimer.disabled'
@@ -353,6 +363,7 @@ export interface Typegen0 {
     | {
         authentication?:
           | 'authenticating'
+          | 'retryTokenImport'
           | 'signedIn'
           | 'signedOut'
           | 'starting'
