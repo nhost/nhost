@@ -5,7 +5,7 @@ const pino = pinoLogger({
   autoLogging: {
     ignorePaths: ['/healthz', '/change-env'],
   },
-  level: 'silent',
+  level: LOG_LEVEL,
 });
 
 const logger = pino.logger;

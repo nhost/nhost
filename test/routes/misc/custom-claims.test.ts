@@ -1,14 +1,7 @@
 import { Client } from 'pg';
 import * as faker from 'faker';
 
-import {
-  createArrayRelationship,
-  createObjectRelationship,
-  dropRelationship,
-  reloadMetadata,
-  trackTable,
-  untrackTable,
-} from '@/metadata';
+import { patchMetadata } from '@/utils';
 import { escapeValueToPg, ENV } from '@/utils';
 
 import { request } from '../../server';
@@ -24,7 +17,8 @@ describe('custom JWT claims', () => {
       connectionString: ENV.HASURA_GRAPHQL_DATABASE_URL,
     });
     await client.connect();
-    await client.query(`
+    try {
+      await client.query(`
       CREATE TABLE IF NOT EXISTS public.profiles (
         id uuid PRIMARY KEY
             CONSTRAINT fk_user REFERENCES auth.users(id) 
@@ -41,104 +35,89 @@ describe('custom JWT claims', () => {
         .map((id) => "('" + id + "')")
         .join(',')};
       `);
-    await trackTable({ table: { schema: 'public', name: 'projects' } });
-    await trackTable({
-      table: { schema: 'public', name: 'project_members' },
-    });
-    await trackTable({ table: { schema: 'public', name: 'organisations' } });
-    await trackTable({ table: { schema: 'public', name: 'profiles' } });
-    await createObjectRelationship({
-      source: 'default',
-      table: {
-        schema: 'auth',
-        name: 'users',
-      },
-      name: 'profile',
-      using: {
-        foreign_key_constraint_on: {
-          table: {
-            schema: 'public',
-            name: 'profiles',
+    } catch (e) {
+      console.log('cannot create custom jwt test tables');
+    }
+    await patchMetadata({
+      additions: {
+        tables: [
+          { table: { schema: 'public', name: 'projects' } },
+          {
+            table: { schema: 'public', name: 'project_members' },
+            object_relationships: [
+              {
+                name: 'project',
+                using: {
+                  foreign_key_constraint_on: 'project_id',
+                },
+              },
+            ],
           },
-          columns: ['id'],
-        },
-      },
-    });
-    await createObjectRelationship({
-      source: 'default',
-      table: {
-        schema: 'public',
-        name: 'profiles',
-      },
-      name: 'organisation',
-      using: {
-        foreign_key_constraint_on: ['organisation_id'],
-      },
-    });
-    await createArrayRelationship({
-      source: 'default',
-      table: {
-        schema: 'public',
-        name: 'profiles',
-      },
-      name: 'contributesTo',
-      using: {
-        foreign_key_constraint_on: {
-          table: {
-            schema: 'public',
-            name: 'project_members',
+          { table: { schema: 'public', name: 'organisations' } },
+          {
+            table: { schema: 'public', name: 'profiles' },
+            object_relationships: [
+              {
+                name: 'organisation',
+                using: {
+                  foreign_key_constraint_on: 'organisation_id',
+                },
+              },
+            ],
+            array_relationships: [
+              {
+                name: 'contributesTo',
+                using: {
+                  foreign_key_constraint_on: {
+                    table: {
+                      schema: 'public',
+                      name: 'project_members',
+                    },
+                    column: 'user_id',
+                  },
+                },
+              },
+            ],
           },
-          columns: ['user_id'],
-        },
+          {
+            table: { schema: 'auth', name: 'users' },
+            object_relationships: [
+              {
+                name: 'profile',
+                using: {
+                  foreign_key_constraint_on: {
+                    column: 'id',
+                    table: {
+                      schema: 'public',
+                      name: 'profiles',
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
       },
     });
-    await createObjectRelationship({
-      source: 'default',
-      table: {
-        schema: 'public',
-        name: 'project_members',
-      },
-      name: 'project',
-      using: {
-        foreign_key_constraint_on: ['project_id'],
-      },
-    });
-
-    await reloadMetadata();
     await request.post('/change-env').send({
       AUTH_DISABLE_NEW_USERS: false,
       AUTH_EMAIL_SIGNIN_EMAIL_VERIFIED_REQUIRED: false,
     });
-  });
+  }, 10000);
 
   afterAll(async () => {
-    await dropRelationship({
-      table: { schema: 'public', name: 'profiles' },
-      relationship: 'contributesTo',
-    });
-    await dropRelationship({
-      table: { schema: 'auth', name: 'users' },
-      relationship: 'profile',
-    });
-    await dropRelationship({
-      table: { schema: 'public', name: 'project_members' },
-      relationship: 'project',
-    });
-    await untrackTable({
-      table: { schema: 'public', name: 'project_members' },
-      cascade: true,
-    });
-    await untrackTable({
-      table: { schema: 'public', name: 'organisations' },
-      cascade: true,
-    });
-    await untrackTable({
-      table: { schema: 'public', name: 'profiles' },
-      cascade: true,
-    });
-    await untrackTable({
-      table: { schema: 'public', name: 'projects' },
-      cascade: true,
+    await patchMetadata({
+      deletions: {
+        tables: [
+          { schema: 'public', name: 'project_members' },
+          { schema: 'public', name: 'organisations' },
+          { schema: 'public', name: 'profiles' },
+          { schema: 'public', name: 'projects' },
+        ],
+        relationships: [
+          { table: { schema: 'auth', name: 'users' }, relationship: 'profile' },
+        ],
+      },
     });
     await client.query(
       `DROP TABLE public.project_members;
@@ -148,7 +127,6 @@ describe('custom JWT claims', () => {
         `
     );
     await client.end();
-    await reloadMetadata();
   });
 
   beforeEach(async () => {
