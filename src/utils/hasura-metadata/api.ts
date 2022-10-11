@@ -136,7 +136,7 @@ export const trackTable = async (args: TrackTableArgs) => {
   }
 };
 
-// https://hasura.io/docs/latest/graphql/core/api-reference/schema-metadata-api/table-view.html#untrack-table
+// https://hasura.io/docs/latest/api-reference/metadata-api/table-view/#metadata-pg-untrack-table
 export const untrackTable = async (args: UntrackTableArgs) => {
   try {
     await runMetadataRequest({
