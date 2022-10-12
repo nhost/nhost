@@ -158,7 +158,7 @@ export class HasuraAuthClient {
    * // Sign in anonymously
    * nhost.auth.signIn()
    *
-   * // Later in the application, the user can complete their registration>
+   * // Later in the application, the user can complete their registration
    * nhost.auth.signUp({
    *   email: 'joe@example.com',
    *   password: 'secret-password'
