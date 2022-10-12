@@ -109,7 +109,7 @@ test.skip(`should retry token refresh if refresh endpoint is unreachable`, async
   )
 
   expect(state.context.refreshTimer.attempts).toBeGreaterThan(0)
-}, 10000)
+})
 
 test(`should fail if either email or password is incorrectly formatted`, async () => {
   // Scenario 1: Providing an invalid email address with a valid password
