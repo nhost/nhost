@@ -121,3 +121,9 @@ export const INVALID_REFRESH_TOKEN = {
   error: 'invalid-refresh-token',
   message: 'Invalid or expired refresh token'
 }
+
+export const INVALID_SIGN_IN_METHOD = {
+  status: OTHER_ERROR_CODE,
+  error: 'invalid-sign-in-method',
+  message: 'Invalid sign-in method'
+}
