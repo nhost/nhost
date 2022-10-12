@@ -23,7 +23,7 @@
     "clean:all": "pnpm clean && rm -rf ./{{packages,examples}/*,docs}/{.nhost,node_modules} node_modules",
     "clean": "rm -rf ./{{packages,examples}/*,docs}/{dist,umd,.next,.turbo,coverage}",
     "ci:version": "changeset version && pnpm install --frozen-lockfile false",
-    "coverage": "pnpm run test --coverage",
+    "coverage": "pnpm run test -- --coverage",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write .",
     "lint": "turbo run lint --stream",

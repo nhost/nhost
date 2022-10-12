@@ -155,7 +155,7 @@ describe('Security Key', () => {
     `)
   })
 
-  test.only(`should succeed if email is correctly formatted but pending verification`, async () => {
+  test(`should succeed if email is correctly formatted but pending verification`, async () => {
     server.use(signUpEmailSecurityKeySuccessHandler, signUpVerifySecurityKeySuccessHandler)
     mockAuthenticator()
 
