@@ -7,24 +7,13 @@ runs:
       uses: actions/setup-node@v2
       with:
         node-version: 16
-    - uses: pnpm/action-setup@v2.2.2
+        cache: 'pnpm'
+    - uses: pnpm/action-setup@v2.2.3
       with:
         version: 7.9.1
-        run_install: false
-    - name: Get pnpm store directory
-      shell: bash
-      id: pnpm-cache
-      run: echo "::set-output name=pnpm_cache_dir::$(pnpm store path)"
-    - uses: actions/cache@v3
-      name: Setup pnpm cache
-      with:
-        path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
-        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-        restore-keys: ${{ runner.os }}-pnpm-store-
-    # * Install package dependencies. As cache is enabled, it will cache/restore downloaded files
-    - shell: bash
-      name: Install packages
-      run: pnpm install --frozen-lockfile
+        run_install: |
+          - recursive: true
+            args: [--frozen-lockfile]
     # * Build all Nhost packages as they are all supposed to be tested.
     # * They are reused through the Turborepo cache
     - shell: bash
