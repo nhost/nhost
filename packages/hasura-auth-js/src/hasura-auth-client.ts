@@ -18,6 +18,7 @@ import {
   encodeQueryParameters,
   ErrorPayload,
   INVALID_REFRESH_TOKEN,
+  INVALID_SIGN_IN_METHOD,
   JWTClaims,
   JWTHasuraClaims,
   NhostSessionResponse,
@@ -151,12 +152,30 @@ export class HasuraAuthClient {
    * nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
    * ```
    *
+   * @example
+   * ### Sign in anonymously
+   * ```ts
+   * // Sign in anonymously
+   * nhost.auth.signIn()
+   *
+   * // Later in the application, the user can complete their registration
+   * nhost.auth.signUp({
+   *   email: 'joe@example.com',
+   *   password: 'secret-password'
+   * })
+   * ```
+   *
    * @docs https://docs.nhost.io/reference/javascript/auth/sign-in
    */
   async signIn(
-    params: SignInParams
+    params?: SignInParams
   ): Promise<SignInResponse & { providerUrl?: string; provider?: string }> {
     const interpreter = await this.waitUntilReady()
+    // * Anonymous sign-in
+    if (!params) {
+      const anonymousResult = await signInAnonymousPromise(interpreter)
+      return { ...getAuthenticationResult(anonymousResult), mfa: null }
+    }
 
     // * Sign in with a social provider (OAuth)
     if ('provider' in params) {
@@ -227,9 +246,8 @@ export class HasuraAuthClient {
       const res = await signInMfaTotpPromise(interpreter, params.otp, params.ticket)
       return { ...getAuthenticationResult(res), mfa: null }
     }
-    // * Anonymous sign-in
-    const anonymousResult = await signInAnonymousPromise(interpreter)
-    return { ...getAuthenticationResult(anonymousResult), mfa: null }
+
+    return { error: INVALID_SIGN_IN_METHOD, mfa: null, session: null }
   }
 
   /**
