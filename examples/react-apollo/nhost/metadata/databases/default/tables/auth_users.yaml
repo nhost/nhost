@@ -77,13 +77,6 @@ object_relationships:
     using:
       foreign_key_constraint_on: default_role
 array_relationships:
-  - name: authenticators
-    using:
-      foreign_key_constraint_on:
-        column: user_id
-        table:
-          name: user_authenticators
-          schema: auth
   - name: refreshTokens
     using:
       foreign_key_constraint_on:
@@ -98,6 +91,13 @@ array_relationships:
         table:
           name: user_roles
           schema: auth
+  - name: securityKeys
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_security_keys
+          schema: auth
   - name: userProviders
     using:
       foreign_key_constraint_on:
@@ -105,3 +105,29 @@ array_relationships:
         table:
           name: user_providers
           schema: auth
+select_permissions:
+  - role: user
+    permission:
+      columns:
+        - active_mfa_type
+        - avatar_url
+        - created_at
+        - default_role
+        - disabled
+        - display_name
+        - email
+        - email_verified
+        - id
+        - is_anonymous
+        - last_seen
+        - locale
+        - metadata
+        - otp_hash
+        - otp_method_last_used
+        - phone_number
+        - phone_number_verified
+        - updated_at
+        - webauthn_current_challenge
+      filter:
+        id:
+          _eq: X-Hasura-User-Id

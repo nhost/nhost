@@ -1,15 +1,17 @@
 import {
   AuthClient,
   AuthOptions,
+  CommonProviderOptions,
   NhostSession,
   PasswordlessOptions,
   Provider,
-  ProviderOptions,
   RedirectOption,
   SignUpOptions,
+  SignUpSecurityKeyOptions,
   StorageGetter,
   StorageSetter,
-  User
+  User,
+  WorkOsOptions
 } from '@nhost/core'
 export type { AuthClient, Provider, StorageGetter, StorageSetter, User }
 export interface NhostAuthConstructorParams extends AuthOptions {
@@ -20,13 +22,22 @@ export interface NhostAuthConstructorParams extends AuthOptions {
 }
 
 // Sign Up
-export interface SignUpEmailPasswordParams {
-  email: string
-  password: string
+export interface CommonSignUpParams {
   options?: SignUpOptions
 }
 
-export type SignUpParams = SignUpEmailPasswordParams
+export interface SignUpEmailPasswordParams extends CommonSignUpParams {
+  email: string
+  password: string
+}
+
+export interface SignUpSecurityKeyParams extends CommonSignUpParams {
+  email: string
+  options?: SignUpSecurityKeyOptions
+  securityKey: true
+}
+
+export type SignUpParams = SignUpEmailPasswordParams | SignUpSecurityKeyParams
 export interface SignInEmailPasswordParams {
   email: string
   password: string
@@ -42,6 +53,11 @@ export interface SignInPasswordlessEmailParams {
   options?: PasswordlessOptions
 }
 
+export interface SignInPasswordlessSecurityKeyParams {
+  email: string
+  securityKey: true
+}
+
 export interface SignInPasswordlessSmsParams {
   phoneNumber: string
   options?: PasswordlessOptions
@@ -51,15 +67,16 @@ export interface SignInPasswordlessSmsOtpParams {
   phoneNumber: string
   otp: string
 }
-export interface SignInWithProviderOptions {
-  provider: Provider
-  options?: ProviderOptions
-}
+
+export type SignInWithProviderOptions =
+  | { provider: Exclude<Provider, 'workos'>; options?: CommonProviderOptions }
+  | { provider: 'workos'; options?: WorkOsOptions }
 
 export type SignInParams =
   | SignInEmailPasswordParams
   | SignInEmailPasswordOtpParams
   | SignInPasswordlessEmailParams
+  | SignInPasswordlessSecurityKeyParams
   | SignInPasswordlessSmsOtpParams
   | SignInPasswordlessSmsParams
   | SignInWithProviderOptions
@@ -87,7 +104,8 @@ export interface ChangeEmailParams {
 export type DeanonymizeParams =
   | ({
       signInMethod: 'email-password'
-    } & SignUpParams)
+    } & SignUpEmailPasswordParams)
+  // TODO deanonymise with security key
   | ({
       signInMethod: 'passwordless'
       connection: 'email'

@@ -1,6 +1,6 @@
 import axios, { AxiosError } from 'axios'
 
-import { NETWORK_ERROR_CODE } from './errors'
+import { ErrorPayload, NETWORK_ERROR_CODE } from './errors'
 
 export const nhostApiClient = (backendUrl: string) => {
   const client = axios.create({ baseURL: backendUrl })
@@ -8,7 +8,7 @@ export const nhostApiClient = (backendUrl: string) => {
   client.interceptors.response.use(
     (response) => response,
     (error: AxiosError<{ message: string; error?: string; statusCode?: number }>) =>
-      Promise.reject({
+      Promise.reject<{ error: ErrorPayload }>({
         error: {
           message:
             error.response?.data?.message ??

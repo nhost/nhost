@@ -11,7 +11,7 @@ context('Sign in with email+password', () => {
     cy.contains('Verification email sent').should('be.visible')
     cy.confirmEmail(email)
     cy.signOut()
-    cy.contains('Log in to the Application').should('be.visible')
+    cy.contains('Sign in to the Application').should('be.visible')
     cy.signInEmailPassword(email, password)
 
     cy.contains('You are authenticated')

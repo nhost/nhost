@@ -37,3 +37,4 @@ nhost dev
 ```sh
 pnpm run dev
 ```
+
