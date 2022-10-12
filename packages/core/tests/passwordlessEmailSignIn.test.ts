@@ -2,7 +2,6 @@ import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   passwordlessEmailInternalErrorHandler,
@@ -10,9 +9,6 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
-
-type AuthState = GeneralAuthState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -47,7 +43,7 @@ test('should fail if network is unavailable', async () => {
     email: faker.internet.email()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -70,7 +66,7 @@ test(`should fail if server returns an error`, async () => {
     email: faker.internet.email()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -91,7 +87,7 @@ test(`should fail if the provided email address was invalid`, async () => {
     email: faker.internet.userName()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -112,7 +108,7 @@ test(`should succeed if the provided email address was valid`, async () => {
     email: faker.internet.email()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches({ authentication: { signedOut: 'noErrors' } })
   )
 

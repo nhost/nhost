@@ -4,7 +4,6 @@ import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
 import { INVALID_PASSWORD_ERROR } from '../src/errors'
 import { createAuthMachine, createChangePasswordMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/change-password.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   changePasswordInternalErrorHandler,
@@ -13,9 +12,6 @@ import {
 import contextWithUser from './helpers/mocks/contextWithUser'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralChangePasswordState } from './helpers/types'
-
-type ChangePasswordState = GeneralChangePasswordState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -28,7 +24,9 @@ const authClient = new AuthClient({
 authClient.interpreter = interpret(
   createAuthMachine({
     backendUrl: BASE_URL,
-    clientUrl: 'http://localhost:3000'
+    clientUrl: 'http://localhost:3000',
+    clientStorage: customStorage,
+    clientStorageType: 'custom'
   }).withContext(contextWithUser)
 ).start()
 
@@ -56,10 +54,7 @@ test(`should fail if there is a network error`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: ChangePasswordState = await waitFor(
-    changePasswordService,
-    (state: ChangePasswordState) => state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(changePasswordService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
@@ -78,10 +73,7 @@ test(`should fail if server returns an error`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: ChangePasswordState = await waitFor(
-    changePasswordService,
-    (state: ChangePasswordState) => state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(changePasswordService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
@@ -98,10 +90,7 @@ test(`should fail if password is invalid`, async () => {
     password: faker.internet.password(2)
   })
 
-  const state: ChangePasswordState = await waitFor(
-    changePasswordService,
-    (state: ChangePasswordState) => state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(changePasswordService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchObject(INVALID_PASSWORD_ERROR)
 })
@@ -112,10 +101,7 @@ test(`should succeed if password is valid`, async () => {
     password: faker.internet.password(15)
   })
 
-  const state: ChangePasswordState = await waitFor(
-    changePasswordService,
-    (state: ChangePasswordState) => state.matches({ idle: 'success' })
-  )
+  const state = await waitFor(changePasswordService, (state) => state.matches({ idle: 'success' }))
 
   expect(state.context.error).toBeNull()
 })
