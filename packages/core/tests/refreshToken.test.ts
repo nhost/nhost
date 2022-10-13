@@ -13,6 +13,7 @@ import { BASE_URL } from './helpers/config'
 import {
   authTokenInternalErrorHandler,
   authTokenNetworkErrorHandler,
+  authTokenSuccessHandler,
   authTokenUnauthorizedHandler
 } from './helpers/handlers'
 import contextWithUser from './helpers/mocks/contextWithUser'
@@ -437,7 +438,7 @@ describe(`Auto sign-in`, () => {
     `)
   })
 
-  test(`should fail if server returns an error`, async () => {
+  test(`should retry a token refresh if server returns an error`, async () => {
     server.use(authTokenInternalErrorHandler)
 
     vi.stubGlobal('location', {
@@ -447,19 +448,34 @@ describe(`Auto sign-in`, () => {
 
     authService.start()
 
-    const state = await waitFor(authService, (state) =>
-      state.matches({ authentication: { signedOut: 'noErrors' } })
+    const state = await waitFor(authService, (state) => state.context.importTokenAttempts === 2)
+
+    expect(state.context.importTokenAttempts).toEqual(2)
+  })
+
+  test(`should wait for the server to be online when starting offline`, async () => {
+    server.use(authTokenInternalErrorHandler)
+
+    vi.stubGlobal('location', {
+      ...globalThis.location,
+      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+    })
+
+    authService.start()
+
+    const offlineState = await waitFor(
+      authService,
+      (state) => state.context.importTokenAttempts === 2
     )
 
-    expect(state.context.errors).toMatchInlineSnapshot(`
-      {
-        "authentication": {
-          "error": "internal-error",
-          "message": "Internal error",
-          "status": 500,
-        },
-      }
-    `)
+    expect(offlineState.context.importTokenAttempts).toEqual(2)
+
+    server.use(authTokenSuccessHandler)
+
+    const signedInState = await waitFor(authService, (state) =>
+      state.matches('authentication.signedIn')
+    )
+    expect(signedInState.context.user).not.toBeNull()
   })
 
   test(`should automatically sign in if "refreshToken" was in the URL`, async () => {

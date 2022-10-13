@@ -128,7 +128,6 @@ export const createAuthMachine = ({
           },
           states: {
             starting: {
-              entry: 'resetErrors',
               tags: ['loading'],
               always: { cond: 'isSignedIn', target: 'signedIn' },
               invoke: {
