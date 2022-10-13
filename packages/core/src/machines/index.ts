@@ -55,7 +55,6 @@ export * from './change-password'
 export * from './enable-mfa'
 export * from './reset-password'
 export * from './send-verification-email'
-
 export type { AuthContext, AuthEvents, StateErrorTypes }
 
 export interface AuthMachineOptions extends AuthOptions {
@@ -79,9 +78,6 @@ type AuthServices = {
   signUpSecurityKey: { data: SignUpResponse }
   importRefreshToken: { data: NhostSessionResponse }
 }
-
-/** Number of attempts to refresh the access token from the stored refresh token */
-export const MAX_IMPORT_TOKEN_ATTEMPTS = 20
 
 export const createAuthMachine = ({
   backendUrl,
@@ -663,9 +659,9 @@ export const createAuthMachine = ({
           return remaining <= 0
         },
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
-        shouldRetryImportToken: ({ importTokenAttempts }, e: any) =>
-          e.data.error.status === NETWORK_ERROR_CODE &&
-          importTokenAttempts < MAX_IMPORT_TOKEN_ATTEMPTS,
+        /** Shoud retry to import the token on network error or any internal server error */
+        shouldRetryImportToken: (_, e: any) =>
+          e.data.error.status === NETWORK_ERROR_CODE || e.data.error.status >= 500,
         // * Authentication errors
         // * Untyped action payload. See https://github.com/statelyai/xstate/issues/3037
         unverified: (_, { data: { error } }: any) =>
