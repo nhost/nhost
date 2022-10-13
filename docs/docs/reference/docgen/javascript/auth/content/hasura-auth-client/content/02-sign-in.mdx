@@ -4,7 +4,7 @@ title: signIn()
 sidebar_label: signIn()
 slug: /reference/javascript/auth/sign-in
 description: Use `nhost.auth.signIn` to sign in a user using email and password, passwordless (email or sms) or an external provider. `signIn` can be used to sign in a user in various ways depending on the parameters.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L156
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L170
 ---
 
 # `signIn()`
@@ -22,7 +22,7 @@ nhost.auth.signIn({
 
 ---
 
-**<span className="parameter-name">params</span>** <span className="optional-status">required</span> [`SignInParams`](/reference/docgen/javascript/auth/types/sign-in-params)
+**<span className="parameter-name">params</span>** <span className="optional-status">optional</span> [`SignInParams`](/reference/docgen/javascript/auth/types/sign-in-params)
 
 ---
 
@@ -57,4 +57,17 @@ nhost.auth.signIn({ phoneNumber: '+11233213123' })
 
 // [step 2/2] Finish passwordless sign in using SMS (OTP)
 nhost.auth.signIn({ phoneNumber: '+11233213123', otp: '123456' })
+```
+
+### Sign in anonymously
+
+```ts
+// Sign in anonymously
+nhost.auth.signIn()
+
+// Later in the application, the user can complete their registration
+nhost.auth.signUp({
+  email: 'joe@example.com',
+  password: 'secret-password'
+})
 ```

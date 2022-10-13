@@ -35,7 +35,7 @@ export const createEnableMfaMachine = ({ backendUrl, interpreter }: AuthClient) 
         events: {} as EnableMfaEvents
       },
       tsTypes: {} as import('./enable-mfa.typegen').Typegen0,
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       id: 'enableMfa',
       initial: 'idle',
       context: { error: null, imageUrl: null, secret: null },

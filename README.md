@@ -306,6 +306,13 @@ Here are some ways of contributing to making Nhost better:
     </td></tr>
 <tr>
     <td align="center">
+        <a href="https://github.com/piromsurang">
+            <img src="https://avatars.githubusercontent.com/u/17776837?v=4" width="100;" alt="piromsurang"/>
+            <br />
+            <sub><b>Piromsurang Rungserichai</b></sub>
+        </a>
+    </td>
+    <td align="center">
         <a href="https://github.com/Savinvadim1312">
             <img src="https://avatars.githubusercontent.com/u/16936043?v=4" width="100;" alt="Savinvadim1312"/>
             <br />
@@ -339,20 +346,27 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Anders Kjær Damgaard</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/Sonichigo">
             <img src="https://avatars.githubusercontent.com/u/53110238?v=4" width="100;" alt="Sonichigo"/>
             <br />
             <sub><b>Animesh Pathak</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/rustyb">
             <img src="https://avatars.githubusercontent.com/u/53086?v=4" width="100;" alt="rustyb"/>
             <br />
             <sub><b>Colin Broderick</b></sub>
+        </a>
+    </td>
+    <td align="center">
+        <a href="https://github.com/d4g0">
+            <img src="https://avatars.githubusercontent.com/u/34744883?v=4" width="100;" alt="d4g0"/>
+            <br />
+            <sub><b>Dago</b></sub>
         </a>
     </td>
     <td align="center">
@@ -375,7 +389,8 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Gaurav Agrawal</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/alveshelio">
             <img src="https://avatars.githubusercontent.com/u/8176422?v=4" width="100;" alt="alveshelio"/>
@@ -389,8 +404,7 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Hoang Do</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/eltociear">
             <img src="https://avatars.githubusercontent.com/u/22633385?v=4" width="100;" alt="eltociear"/>
@@ -418,7 +432,8 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Lucas Bois</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/MarcelloTheArcane">
             <img src="https://avatars.githubusercontent.com/u/21159570?v=4" width="100;" alt="MarcelloTheArcane"/>
@@ -432,20 +447,12 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Nacho Aldama</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/ghoshnirmalya">
             <img src="https://avatars.githubusercontent.com/u/6391763?v=4" width="100;" alt="ghoshnirmalya"/>
             <br />
             <sub><b>Nirmalya Ghosh</b></sub>
-        </a>
-    </td>
-    <td align="center">
-        <a href="https://github.com/piromsurang">
-            <img src="https://avatars.githubusercontent.com/u/17776837?v=4" width="100;" alt="piromsurang"/>
-            <br />
-            <sub><b>Piromsurang Rungserichai</b></sub>
         </a>
     </td>
     <td align="center">
@@ -468,15 +475,15 @@ Here are some ways of contributing to making Nhost better:
             <br />
             <sub><b>Tapas Adhikary</b></sub>
         </a>
-    </td>
+    </td></tr>
+<tr>
     <td align="center">
         <a href="https://github.com/uulwake">
             <img src="https://avatars.githubusercontent.com/u/22399181?v=4" width="100;" alt="uulwake"/>
             <br />
             <sub><b>Ulrich Wake</b></sub>
         </a>
-    </td></tr>
-<tr>
+    </td>
     <td align="center">
         <a href="https://github.com/komninoschat">
             <img src="https://avatars.githubusercontent.com/u/29049104?v=4" width="100;" alt="komninoschat"/>

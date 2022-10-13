@@ -12,7 +12,6 @@ logs/
 .idea/
 .npm/
 .vagrant/
-/.vscode/
 .eslintcache
 .yarnclean
 

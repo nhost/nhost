@@ -3,9 +3,10 @@ description: 'Install Node dependencies with pnpm'
 runs:
   using: 'composite'
   steps:
-    - uses: pnpm/action-setup@v2.2.1
+    - uses: pnpm/action-setup@v2.2.3
       with:
-        version: 6.32.14
+        version: 7.9.1
+        run_install: false
     - name: Use Node.js 16
       uses: actions/setup-node@v2
       with:
@@ -15,3 +16,8 @@ runs:
     - shell: bash
       name: Install packages
       run: pnpm install --frozen-lockfile
+    # * Build all Nhost packages as they are all supposed to be tested.
+    # * They are reused through the Turborepo cache
+    - shell: bash
+      name: Build packages
+      run: pnpm build
