@@ -11,7 +11,7 @@ import './styles/main.css'
 import 'uno.css'
 
 const nhost = new NhostClient({
-  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN
+  subdomain: import.meta.env.VITE_NHOST_SUBDOMAIN,
   region: import.meta.env.VITE_NHOST_REGION
 })
 

@@ -1,4 +1,4 @@
-import { computed, ToRefs, unref } from 'vue'
+import { ToRefs, unref } from 'vue'
 
 import {
   SignUpEmailPasswordHandlerResult,
@@ -10,7 +10,6 @@ import { useSelector } from '@xstate/vue'
 
 import { NestedRefOfValue, nestedUnref, RefOrValue } from './helpers'
 import { useAccessToken } from './useAccessToken'
-import { useAuthenticationStatus } from './useAuthenticationStatus'
 import { useAuthInterpreter } from './useAuthInterpreter'
 import { useError } from './useError'
 import { useUserData } from './useUserData'

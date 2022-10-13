@@ -3,7 +3,6 @@ import { afterAll, afterEach, beforeAll, expect, test } from 'vitest'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   mfaTotpInternalErrorHandler,
@@ -12,9 +11,6 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
-
-type AuthState = GeneralAuthState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -50,7 +46,7 @@ test(`should fail if network is unavailable`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -74,7 +70,7 @@ test(`should fail if server returns an error`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -96,7 +92,7 @@ test(`should fail if MFA ticket is not provided or invalid`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const noTicketState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const noTicketState = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -116,7 +112,7 @@ test(`should fail if MFA ticket is not provided or invalid`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const invalidTicketState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const invalidTicketState = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -140,7 +136,7 @@ test(`should fail if TOTP is invalid`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -162,7 +158,7 @@ test(`should succeed if the provided MFA ticket and TOTP were valid`, async () =
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 
@@ -177,7 +173,7 @@ test(`should succeed if MFA ticket is already in context and TOTP was valid`, as
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 

@@ -70,7 +70,7 @@
   },
   "devDependencies": {
     "@nhost/docgen": "workspace:*",
-    "graphql": "16",
+    "graphql": "15.7.2",
     "start-server-and-test": "^1.14.0"
   },
   "peerDependencies": {

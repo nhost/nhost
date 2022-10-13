@@ -4,7 +4,6 @@ import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
 import { INVALID_EMAIL_ERROR } from '../src/errors'
 import { createResetPasswordMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/reset-password.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   resetPasswordInternalErrorHandler,
@@ -13,9 +12,6 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralResetPasswordState } from './helpers/types'
-
-type ResetPasswordState = GeneralResetPasswordState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -50,10 +46,7 @@ test(`should fail if there is a network error`, async () => {
     email: faker.internet.email()
   })
 
-  const state: ResetPasswordState = await waitFor(
-    resetPasswordService,
-    (state: ResetPasswordState) => state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(resetPasswordService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
@@ -72,10 +65,7 @@ test(`should fail if server returns an error`, async () => {
     email: faker.internet.email()
   })
 
-  const state: ResetPasswordState = await waitFor(
-    resetPasswordService,
-    (state: ResetPasswordState) => state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(resetPasswordService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
@@ -92,10 +82,7 @@ test(`should fail if email is invalid`, async () => {
     email: faker.internet.userName()
   })
 
-  const state: ResetPasswordState = await waitFor(
-    resetPasswordService,
-    (state: ResetPasswordState) => state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(resetPasswordService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchObject(INVALID_EMAIL_ERROR)
 })
@@ -108,10 +95,7 @@ test(`should fail if user is not found`, async () => {
     email: faker.internet.email()
   })
 
-  const state: ResetPasswordState = await waitFor(
-    resetPasswordService,
-    (state: ResetPasswordState) => state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(resetPasswordService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
@@ -125,10 +109,7 @@ test(`should fail if user is not found`, async () => {
 test(`should succeed if email is valid`, async () => {
   resetPasswordService.send({ type: 'REQUEST', email: faker.internet.email() })
 
-  const state: ResetPasswordState = await waitFor(
-    resetPasswordService,
-    (state: ResetPasswordState) => state.matches({ idle: 'success' })
-  )
+  const state = await waitFor(resetPasswordService, (state) => state.matches({ idle: 'success' }))
 
   expect(state.context.error).toBeNull()
 })

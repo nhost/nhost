@@ -4,9 +4,9 @@
   "private": true,
   "dependencies": {
     "@nhost/react": "*",
-    "@tanstack/react-query": "^4.0.10",
-    "@tanstack/react-query-devtools": "^4.0.10",
-    "graphql": "^16.5.0",
+    "@tanstack/react-query": "^4.2.3",
+    "@tanstack/react-query-devtools": "^4.2.3",
+    "graphql": "15.7.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
@@ -35,14 +35,14 @@
     ]
   },
   "devDependencies": {
-    "@graphql-codegen/cli": "^2.8.1",
-    "@graphql-codegen/typescript-operations": "^2.5.1",
-    "@graphql-codegen/typescript-react-query": "^4.0.0",
-    "@types/node": "^16.7.13",
-    "@types/react": "^18.0.0",
-    "@types/react-dom": "^18.0.0",
-    "eslint": "^8.0.0",
-    "typescript": "^4.4.2",
-    "vite": "^2.9.7"
+    "@graphql-codegen/cli": "^2.12.0",
+    "@graphql-codegen/typescript-operations": "^2.5.3",
+    "@graphql-codegen/typescript-react-query": "^4.0.1",
+    "@types/node": "^16.11.56",
+    "@types/react": "^18.0.18",
+    "@types/react-dom": "^18.0.6",
+    "eslint": "^8.23.0",
+    "typescript": "^4.8.2",
+    "vite": "^2.9.15"
   }
 }

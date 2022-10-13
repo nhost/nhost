@@ -40,10 +40,10 @@ configuration:
     update: updateBuckets
     update_by_pk: updateBucket
 array_relationships:
-- name: files
-  using:
-    foreign_key_constraint_on:
-      column: bucket_id
-      table:
-        name: files
-        schema: storage
+  - name: files
+    using:
+      foreign_key_constraint_on:
+        column: bucket_id
+        table:
+          name: files
+          schema: storage

@@ -111,7 +111,7 @@ export const createAuthMachine = ({
       },
       tsTypes: {} as import('./index.typegen').Typegen0,
       context: INITIAL_MACHINE_CONTEXT,
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       id: 'nhost',
       type: 'parallel',
       states: {
