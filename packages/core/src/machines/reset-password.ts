@@ -35,7 +35,7 @@ export const createResetPasswordMachine = ({ backendUrl, clientUrl }: AuthClient
         services: {} as ResetPasswordServices
       },
       tsTypes: {} as import('./reset-password.typegen').Typegen0,
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       id: 'changePassword',
       initial: 'idle',
       context: { error: null },

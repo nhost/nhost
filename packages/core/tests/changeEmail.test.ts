@@ -4,15 +4,11 @@ import { waitFor } from 'xstate/lib/waitFor'
 import { AuthClient } from '../src/client'
 import { INVALID_EMAIL_ERROR } from '../src/errors'
 import { createAuthMachine, createChangeEmailMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/change-email.typegen'
 import { BASE_URL } from './helpers/config'
 import { changeEmailInternalErrorHandler, changeEmailNetworkErrorHandler } from './helpers/handlers'
 import contextWithUser from './helpers/mocks/contextWithUser'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralChangeEmailState } from './helpers/types'
-
-type ChangeEmailState = GeneralChangeEmailState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -25,7 +21,9 @@ const authClient = new AuthClient({
 authClient.interpreter = interpret(
   createAuthMachine({
     backendUrl: BASE_URL,
-    clientUrl: 'http://localhost:3000'
+    clientUrl: 'http://localhost:3000',
+    clientStorage: customStorage,
+    clientStorageType: 'custom'
   }).withContext(contextWithUser)
 ).start()
 
@@ -53,9 +51,7 @@ test(`should fail if there is a network error`, async () => {
     email: faker.internet.email()
   })
 
-  const state: ChangeEmailState = await waitFor(changeEmailService, (state: ChangeEmailState) =>
-    state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(changeEmailService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
@@ -74,9 +70,7 @@ test(`should fail if server returns an error`, async () => {
     email: faker.internet.email()
   })
 
-  const state: ChangeEmailState = await waitFor(changeEmailService, (state: ChangeEmailState) =>
-    state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(changeEmailService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchInlineSnapshot(`
     {
@@ -93,9 +87,7 @@ test(`should fail if email is invalid`, async () => {
     email: faker.internet.userName()
   })
 
-  const state: ChangeEmailState = await waitFor(changeEmailService, (state: ChangeEmailState) =>
-    state.matches({ idle: 'error' })
-  )
+  const state = await waitFor(changeEmailService, (state) => state.matches({ idle: 'error' }))
 
   expect(state.context.error).toMatchObject(INVALID_EMAIL_ERROR)
 })
@@ -103,9 +95,7 @@ test(`should fail if email is invalid`, async () => {
 test(`should succeed if email is valid`, async () => {
   changeEmailService.send({ type: 'REQUEST', email: faker.internet.email() })
 
-  const state: ChangeEmailState = await waitFor(changeEmailService, (state: ChangeEmailState) =>
-    state.matches({ idle: 'success' })
-  )
+  const state = await waitFor(changeEmailService, (state) => state.matches({ idle: 'success' }))
 
   expect(state.context.error).toBeNull()
 })

@@ -2,7 +2,6 @@ import faker from '@faker-js/faker'
 import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   passwordlessSmsOtpInternalErrorHandler,
@@ -11,9 +10,6 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
-
-type AuthState = GeneralAuthState<Typegen0>
 
 const customStorage = new CustomClientStorage(new Map())
 
@@ -49,7 +45,7 @@ test(`should fail if network is unavailable`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -73,7 +69,7 @@ test(`should fail if server returns an error`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -96,7 +92,7 @@ test(`should fail if the provided phone number was invalid`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -120,7 +116,7 @@ test(`should fail if the provided OTP was invalid`, async () => {
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('registration.incomplete.failed')
   )
 
@@ -142,7 +138,7 @@ test(`should succeed if the provided phone number and OTP were valid`, async () 
     otp: faker.random.numeric(6).toString()
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 

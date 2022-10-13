@@ -34,7 +34,7 @@ export const createChangePasswordMachine = ({ backendUrl, interpreter }: AuthCli
         services: {} as ChangePasswordServices
       },
       tsTypes: {} as import('./change-password.typegen').Typegen0,
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       id: 'changePassword',
       initial: 'idle',
       context: { error: null },

@@ -36,7 +36,7 @@ export type FileUploadMachine = ReturnType<typeof createFileUploadMachine>
 export const createFileUploadMachine = () =>
   createMachine(
     {
-      preserveActionOrder: true,
+      predictableActionArguments: true,
       schema: {
         context: {} as FileUploadContext,
         events: {} as FileUploadEvents

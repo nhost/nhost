@@ -3,7 +3,6 @@ import { interpret } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import { NHOST_REFRESH_TOKEN_KEY } from '../src/constants'
 import { createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
 import { BASE_URL } from './helpers/config'
 import {
   signOutAllErrorHandler,
@@ -12,23 +11,20 @@ import {
 } from './helpers/handlers'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
-
-type AuthState = GeneralAuthState<Typegen0>
 
 /**
  * Simulate sign in with password.
  *
  * @returns Promise that resolves when the sign in process is finished.
  */
-function simulateSignIn(): Promise<AuthState> {
+function simulateSignIn() {
   authService.send({
     type: 'SIGNIN_PASSWORD',
     email: faker.internet.email(),
     password: faker.internet.password(15)
   })
 
-  return waitFor(authService, (state: AuthState) =>
+  return waitFor(authService, (state) =>
     state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
   )
 }
@@ -67,7 +63,7 @@ test(`should fail if network is unavailable`, async () => {
     type: 'SIGNOUT'
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -91,7 +87,7 @@ test(`should fail if server returns an error`, async () => {
     type: 'SIGNOUT'
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -116,7 +112,7 @@ test(`should fail if user wants to sign out from all devices using an invalid to
     all: true
   })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) =>
+  const state = await waitFor(authService, (state) =>
     state.matches('authentication.signedOut.failed')
   )
 
@@ -134,7 +130,7 @@ test(`should fail if user wants to sign out from all devices using an invalid to
 test(`should succeed if even if no user was signed in previously`, async () => {
   authService.send({ type: 'SIGNOUT' })
 
-  const state: AuthState = await waitFor(authService, (state: AuthState) => !!state.value)
+  const state = await waitFor(authService, (state) => !!state.value)
 
   expect(state.matches({ authentication: { signedOut: 'noErrors' } })).toBeTruthy()
 })
@@ -149,7 +145,7 @@ test(`should succeed if user wants to sign out from all devices and provides a v
     all: true
   })
 
-  const signedOutState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const signedOutState = await waitFor(authService, (state) =>
     state.matches({
       authentication: { signedOut: 'success' }
     })
@@ -169,7 +165,7 @@ test(`should succeed if user was previously signed in`, async () => {
     type: 'SIGNOUT'
   })
 
-  const signedOutState: AuthState = await waitFor(authService, (state: AuthState) =>
+  const signedOutState = await waitFor(authService, (state) =>
     state.matches({
       authentication: { signedOut: 'success' }
     })

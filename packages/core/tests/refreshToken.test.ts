@@ -1,6 +1,6 @@
 import faker from '@faker-js/faker'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, test, vi } from 'vitest'
-import { BaseActionObject, interpret, Interpreter, ResolveTypegenMeta, ServiceMap } from 'xstate'
+import { interpret, InterpreterFrom } from 'xstate'
 import { waitFor } from 'xstate/lib/waitFor'
 import {
   NHOST_JWT_EXPIRES_AT_KEY,
@@ -8,8 +8,7 @@ import {
   TOKEN_REFRESH_MARGIN
 } from '../src/constants'
 import { INVALID_REFRESH_TOKEN } from '../src/errors'
-import { AuthContext, AuthEvents, createAuthMachine } from '../src/machines'
-import { Typegen0 } from '../src/machines/index.typegen'
+import { AuthMachine, createAuthMachine } from '../src/machines'
 import { BASE_URL } from './helpers/config'
 import {
   authTokenInternalErrorHandler,
@@ -20,9 +19,6 @@ import contextWithUser from './helpers/mocks/contextWithUser'
 import fakeUser from './helpers/mocks/user'
 import server from './helpers/server'
 import CustomClientStorage from './helpers/storage'
-import { GeneralAuthState } from './helpers/types'
-
-type AuthState = GeneralAuthState<Typegen0>
 
 describe(`Time based token refresh`, () => {
   const initialToken = faker.datatype.uuid()
@@ -66,11 +62,11 @@ describe(`Time based token refresh`, () => {
     // Fast forwarding to initial expiration date
     vi.setSystemTime(initialExpiration)
 
-    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+    await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
     )
 
-    const state: AuthState = await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+    const state = await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
@@ -81,40 +77,38 @@ describe(`Time based token refresh`, () => {
     // Fast forward to the initial expiration date
     vi.setSystemTime(new Date(initialExpiration.getTime() - TOKEN_REFRESH_MARGIN * 1000))
 
-    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+    await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
     )
 
-    const firstRefreshState: AuthState = await waitFor(
-      authServiceWithInitialSession,
-      (state: AuthState) =>
-        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    const firstRefreshState = await waitFor(authServiceWithInitialSession, (state) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
     const firstRefreshAccessToken = firstRefreshState.context.accessToken.value
-    const firstRefreshAccessTokenExpiration = firstRefreshState.context.accessToken.expiresAt
+    const firstRefreshAccessTokenExpiration = firstRefreshState.context.accessToken.expiresAt!
 
     expect(firstRefreshAccessToken).not.toBeNull()
     expect(firstRefreshAccessToken).not.toBe(initialToken)
-    expect(firstRefreshAccessTokenExpiration.getTime()).toBeGreaterThan(initialExpiration.getTime())
+    expect(firstRefreshAccessTokenExpiration?.getTime()).toBeGreaterThan(
+      initialExpiration.getTime()
+    )
 
     // Fast forward to the expiration date of the access token
     vi.setSystemTime(
       new Date(firstRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN * 1000)
     )
 
-    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+    await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
     )
 
-    const secondRefreshState: AuthState = await waitFor(
-      authServiceWithInitialSession,
-      (state: AuthState) =>
-        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    const secondRefreshState = await waitFor(authServiceWithInitialSession, (state) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
     const secondRefreshAccessToken = secondRefreshState.context.accessToken.value
-    const secondRefreshAccessTokenExpiration = secondRefreshState.context.accessToken.expiresAt
+    const secondRefreshAccessTokenExpiration = secondRefreshState.context.accessToken.expiresAt!
 
     expect(secondRefreshAccessToken).not.toBeNull()
     expect(secondRefreshAccessToken).not.toBe(firstRefreshAccessToken)
@@ -127,14 +121,12 @@ describe(`Time based token refresh`, () => {
       new Date(secondRefreshAccessTokenExpiration.getTime() - TOKEN_REFRESH_MARGIN * 5 * 1000)
     )
 
-    const thirdRefreshState: AuthState = await waitFor(
-      authServiceWithInitialSession,
-      (state: AuthState) =>
-        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    const thirdRefreshState = await waitFor(authServiceWithInitialSession, (state) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
     const thirdRefreshAccessToken = thirdRefreshState.context.accessToken.value
-    const thirdRefreshAccessTokenExpiration = thirdRefreshState.context.accessToken.expiresAt
+    const thirdRefreshAccessTokenExpiration = thirdRefreshState.context.accessToken.expiresAt!
 
     expect(thirdRefreshAccessToken).toBe(secondRefreshAccessToken)
     expect(thirdRefreshAccessTokenExpiration.getTime()).toBe(
@@ -165,14 +157,12 @@ describe(`Time based token refresh`, () => {
     // Fast N seconds to the refresh interval
     vi.setSystemTime(new Date(Date.now() + refreshIntervalTime * 1000))
 
-    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+    await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
     )
 
-    const firstRefreshState: AuthState = await waitFor(
-      authServiceWithInitialSession,
-      (state: AuthState) =>
-        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    const firstRefreshState = await waitFor(authServiceWithInitialSession, (state) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
     expect(firstRefreshState.context.accessToken.value).not.toBeNull()
@@ -181,14 +171,12 @@ describe(`Time based token refresh`, () => {
     // Fast N seconds to the refresh interval
     vi.setSystemTime(new Date(Date.now() + refreshIntervalTime * 1000))
 
-    await waitFor(authServiceWithInitialSession, (state: AuthState) =>
+    await waitFor(authServiceWithInitialSession, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'refreshing' } } } })
     )
 
-    const secondRefreshState: AuthState = await waitFor(
-      authServiceWithInitialSession,
-      (state: AuthState) =>
-        state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
+    const secondRefreshState = await waitFor(authServiceWithInitialSession, (state) =>
+      state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
     expect(secondRefreshState.context.accessToken.value).not.toBeNull()
@@ -251,7 +239,7 @@ describe('General and disabled auto-sign in', () => {
       }
     })
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
@@ -271,14 +259,14 @@ describe('General and disabled auto-sign in', () => {
       data: {
         session: {
           user,
-          accessTokenExpiresIn: null,
+          accessTokenExpiresIn: 0,
           accessToken,
           refreshToken
         }
       }
     })
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
@@ -295,7 +283,7 @@ describe('General and disabled auto-sign in', () => {
 
     authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches('authentication.signedOut.failed')
     )
 
@@ -315,7 +303,7 @@ describe('General and disabled auto-sign in', () => {
 
     authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches('authentication.signedOut.failed')
     )
 
@@ -333,7 +321,7 @@ describe('General and disabled auto-sign in', () => {
   test(`should succeed if a valid custom token is provided`, async () => {
     authService.send({ type: 'TRY_TOKEN', token: faker.datatype.uuid() })
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
@@ -344,20 +332,10 @@ describe('General and disabled auto-sign in', () => {
 describe(`Auto sign-in`, () => {
   const customStorage = new CustomClientStorage(new Map())
 
-  let authMachine: ReturnType<typeof createAuthMachine>
-  let authService: Interpreter<
-    AuthContext,
-    any,
-    AuthEvents,
-    {
-      value: any
-      context: AuthContext
-    },
-    ResolveTypegenMeta<Typegen0, AuthEvents, BaseActionObject, ServiceMap>
-  >
+  let authMachine: AuthMachine
+  let authService: InterpreterFrom<AuthMachine>
 
-  const originalWindow = { ...global.window }
-  let windowSpy: jest.SpyInstance
+  const originalLocation = { ...global.location }
 
   beforeAll(() => {
     server.listen({ onUnhandledRequest: 'error' })
@@ -379,30 +357,23 @@ describe(`Auto sign-in`, () => {
 
   afterAll(() => server.close())
 
-  beforeEach(() => {
-    windowSpy = vi.spyOn(global, 'window', 'get')
-  })
-
   afterEach(() => {
     server.resetHandlers()
     authService.stop()
     customStorage.clear()
+    // * Stubbed global is not restored after `vi.restoreAllMocks`. Restoring it manually
+    vi.stubGlobal('location', originalLocation)
     vi.restoreAllMocks()
   })
 
   test(`should throw an error if "error" was in the URL when opening the application`, async () => {
     // Scenario 1: Testing when `errorDescription` is provided.
-    windowSpy.mockImplementation(() => ({
-      ...originalWindow,
-      location: {
-        ...originalWindow.location,
-        href: `http://localhost:3000/?error=${INVALID_REFRESH_TOKEN.error}&errorDescription=${INVALID_REFRESH_TOKEN.message}`
-      }
-    }))
-
+    vi.stubGlobal('location', {
+      ...globalThis.location,
+      href: `http://localhost:3000/?error=${INVALID_REFRESH_TOKEN.error}&errorDescription=${INVALID_REFRESH_TOKEN.message}`
+    })
     authService.start()
-
-    const firstState: AuthState = await waitFor(authService, (state: AuthState) =>
+    const firstState = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
@@ -419,17 +390,14 @@ describe(`Auto sign-in`, () => {
     authService.stop()
 
     // Scenario 2: Testing when `errorDescription` is not provided.
-    windowSpy.mockImplementation(() => ({
-      ...originalWindow,
-      location: {
-        ...originalWindow.location,
-        href: `http://localhost:3000/?error=${INVALID_REFRESH_TOKEN.error}`
-      }
-    }))
+    vi.stubGlobal('location', {
+      ...globalThis.location,
+      href: `http://localhost:3000/?error=${INVALID_REFRESH_TOKEN.error}`
+    })
 
     authService.start()
 
-    const secondState: AuthState = await waitFor(authService, (state: AuthState) =>
+    const secondState = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
@@ -447,17 +415,14 @@ describe(`Auto sign-in`, () => {
   test(`should fail if network is unavailable`, async () => {
     server.use(authTokenNetworkErrorHandler)
 
-    windowSpy.mockImplementation(() => ({
-      ...originalWindow,
-      location: {
-        ...originalWindow.location,
-        href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
-      }
-    }))
+    vi.stubGlobal('location', {
+      ...globalThis.location,
+      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+    })
 
     authService.start()
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
@@ -475,17 +440,14 @@ describe(`Auto sign-in`, () => {
   test(`should fail if server returns an error`, async () => {
     server.use(authTokenInternalErrorHandler)
 
-    windowSpy.mockImplementation(() => ({
-      ...originalWindow,
-      location: {
-        ...originalWindow.location,
-        href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
-      }
-    }))
+    vi.stubGlobal('location', {
+      ...globalThis.location,
+      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+    })
 
     authService.start()
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedOut: 'noErrors' } })
     )
 
@@ -501,17 +463,14 @@ describe(`Auto sign-in`, () => {
   })
 
   test(`should automatically sign in if "refreshToken" was in the URL`, async () => {
-    windowSpy.mockImplementation(() => ({
-      ...originalWindow,
-      location: {
-        ...originalWindow.location,
-        href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
-      }
-    }))
+    vi.stubGlobal('location', {
+      ...globalThis.location,
+      href: `http://localhost:3000/?refreshToken=${faker.datatype.uuid()}`
+    })
 
     authService.start()
 
-    const state: AuthState = await waitFor(authService, (state: AuthState) =>
+    const state = await waitFor(authService, (state) =>
       state.matches({ authentication: { signedIn: { refreshTimer: { running: 'pending' } } } })
     )
 
