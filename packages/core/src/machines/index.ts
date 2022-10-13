@@ -891,6 +891,7 @@ export const createAuthMachine = ({
               return { session, error: null }
             } catch (exception) {
               error = (exception as { error: ErrorPayload }).error
+              return Promise.reject<NhostSessionResponse>({ error })
             }
           }
           if (!error) {
