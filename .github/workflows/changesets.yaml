@@ -21,20 +21,9 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v2.2.2
-        with:
-          version: 7.9.1
-          # run_install: true
-      - name: Use Node.js 17
-        uses: actions/setup-node@v2
-        with:
-          node-version: '17.8.0'
-          cache: 'pnpm'
-      - name: Pick the right npm version
-        # * See: https://github.com/pnpm/pnpm/issues/4348
-        run: npm install --global npm@8.4
-      - name: Install dependencies
-        run: pnpm install
+      # * Install Node and dependencies
+      - name: Install Node and dependencies
+        uses: ./.github/actions/install-dependencies
       - name: Create PR or Publish release
         id: changesets
         uses: changesets/action@v1
