@@ -4,7 +4,7 @@ title: getAuthenticationStatus()
 sidebar_label: getAuthenticationStatus()
 slug: /reference/javascript/auth/get-authentication-status
 description: Use `nhost.auth.getAuthenticationStatus` to get the authentication status of the user.
-custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L533
+custom_edit_url: https://github.com/nhost/nhost/edit/main/packages/hasura-auth-js/src/hasura-auth-client.ts#L538
 ---
 
 # `getAuthenticationStatus()`
@@ -13,6 +13,8 @@ Use `nhost.auth.getAuthenticationStatus` to get the authentication status of the
 
 If `isLoading` is `true`, the client doesn't know whether the user is authenticated yet or not
 because some internal authentication network requests have not been resolved yet.
+
+The `connectionAttempts` returns the number of times the client has tried to connect to the server with no success (offline, or the server retruned an internal error).
 
 ```ts
 const { isAuthenticated, isLoading } = nhost.auth.getAuthenticationStatus()
