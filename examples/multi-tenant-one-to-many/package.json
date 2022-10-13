@@ -14,6 +14,6 @@
     "typescript": "^4.8.2"
   },
   "dependencies": {
-    "@nhost/nhost-js": "^0.3.3"
+    "@nhost/nhost-js": "*"
   }
 }
