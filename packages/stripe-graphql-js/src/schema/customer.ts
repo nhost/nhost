@@ -2,12 +2,11 @@ import Stripe from 'stripe'
 
 import { builder } from '../builder'
 import {
+  StripeCharge,
   StripeInvoice,
-  StripePaymentMethod,
-  StripeSubscription,
   StripePaymentIntent,
-  StripeCharge
-} from '../types'
+  StripePaymentMethod,
+  StripeSubscription} from '../types'
 import { stripe } from '../utils'
 
 import { StripePaymentMethodTypes } from './payment-methods'

@@ -5,12 +5,11 @@ import SchemaBuilder from '@pothos/core'
 
 import {
   Context,
+  StripeCharge,
   StripeInvoice,
-  StripePaymentMethod,
-  StripeSubscription,
   StripePaymentIntent,
-  StripeCharge
-} from './types'
+  StripePaymentMethod,
+  StripeSubscription} from './types'
 
 // TODO: Make sure we either use Type or Types (e.g. StripePaymentMethodTypes or StripePaymentMethodType ) everywhere
 

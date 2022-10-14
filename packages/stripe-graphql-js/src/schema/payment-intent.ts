@@ -1,7 +1,8 @@
 import Stripe from 'stripe'
+
 import { builder } from '../builder'
-import { stripe } from '../utils'
 import { StripeInvoice } from '../types'
+import { stripe } from '../utils'
 
 builder.objectType('StripePaymentIntent', {
   description: 'Payment intents',

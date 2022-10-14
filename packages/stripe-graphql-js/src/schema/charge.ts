@@ -1,7 +1,8 @@
 import Stripe from 'stripe'
+
 import { builder } from '../builder'
+import { StripeInvoice } from '../types'
 import { stripe } from '../utils'
-import { StripeInvoice, StripeConnectedAccount } from '../types'
 
 builder.objectType('StripeCharge', {
   description: 'Stripe charge object',
