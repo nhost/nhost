@@ -7,6 +7,29 @@ import { stripe } from '../utils'
 
 builder.objectType('Stripe', {
   fields: (t) => ({
+    connectedAccount: t.field({
+      type: 'StripeConnectedAccounts',
+      args: {
+        id: t.arg.string({
+          required: true
+        })
+      },
+      resolve: async (_parent, { id }, context) => {
+        // const { isAllowed } = context
+
+        // if (!isAllowed(id, context)) {
+        //   throw new GraphQLYogaError('Not allowed')
+        // }
+
+        const connectedAccounts = await stripe.accounts.list()
+
+        // if (customer.deleted) {
+        //   throw new GraphQLYogaError('The Stripe customer is deleted')
+        // }
+
+        return connectedAccounts
+      }
+    }),
     customer: t.field({
       type: 'StripeCustomer',
       args: {

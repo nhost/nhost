@@ -43,6 +43,8 @@ export type StripeCharge = Stripe.Charge & {
   payment_intent: string | null
 }
 
+export type StripeConnectedAccount = Stripe.Account & {}
+
 export type UserHasuraClaims = {
   'x-hasura-user-id': string
   'x-hasura-default-role': string
