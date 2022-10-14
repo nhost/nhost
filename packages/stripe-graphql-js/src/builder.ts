@@ -109,7 +109,7 @@ const builder = new SchemaBuilder<{
     StripeCharge: StripeCharge
     StripeCharges: Stripe.ApiList<StripeCharge>
 
-    // ConnectedAccounts
+    // CONNECTED ACCOUNTS
     StripeConnectedAccount: Stripe.Account
     StripeConnectedAccounts: Stripe.ApiList<Stripe.Account>
   }
