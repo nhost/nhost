@@ -23,7 +23,10 @@ export const useAuthenticationStatus = () => {
         isError: state.matches({ authentication: { signedOut: 'failed' } }),
         connectionAttempts: state.context.importTokenAttempts
       }),
-      (a, b) => a.isAuthenticated === b.isAuthenticated && a.isLoading === b.isLoading
+      (a, b) =>
+        a.isAuthenticated === b.isAuthenticated &&
+        a.isLoading === b.isLoading &&
+        a.connectionAttempts === b.connectionAttempts
     )
   )
 }
