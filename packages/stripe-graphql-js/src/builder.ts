@@ -3,7 +3,14 @@ import Stripe from 'stripe'
 
 import SchemaBuilder from '@pothos/core'
 
-import { Context, StripeInvoice, StripePaymentMethod, StripeSubscription, StripePaymentIntent } from './types'
+import {
+  Context,
+  StripeInvoice,
+  StripePaymentMethod,
+  StripeSubscription,
+  StripePaymentIntent,
+  StripeCharge
+} from './types'
 
 // TODO: Make sure we either use Type or Types (e.g. StripePaymentMethodTypes or StripePaymentMethodType ) everywhere
 
@@ -97,6 +104,10 @@ const builder = new SchemaBuilder<{
     // PAYMENT INTENT
     StripePaymentIntent: StripePaymentIntent
     StripePaymentIntents: Stripe.ApiList<StripePaymentIntent>
+
+    // CHARGEs
+    StripeCharge: StripeCharge
+    StripeCharges: Stripe.ApiList<StripeCharge>
   }
   Context: Context
 }>({})

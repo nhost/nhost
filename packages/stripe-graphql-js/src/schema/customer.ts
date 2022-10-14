@@ -1,7 +1,13 @@
 import Stripe from 'stripe'
 
 import { builder } from '../builder'
-import { StripeInvoice, StripePaymentMethod, StripeSubscription, StripePaymentIntent } from '../types';
+import {
+  StripeInvoice,
+  StripePaymentMethod,
+  StripeSubscription,
+  StripePaymentIntent,
+  StripeCharge
+} from '../types'
 import { stripe } from '../utils'
 
 import { StripePaymentMethodTypes } from './payment-methods'
@@ -124,6 +130,16 @@ builder.objectType('StripeCustomer', {
           limit: limit || undefined
         })
         return paymentMethods as Stripe.Response<Stripe.ApiList<StripePaymentMethod>>
+      }
+    }),
+    charges: t.field({
+      type: 'StripeCharges',
+      nullable: false,
+      resolve: async (customer) => {
+        const charges = await stripe.charges.list({
+          customer: customer.id
+        })
+        return charges as Stripe.Response<Stripe.ApiList<StripeCharge>>
       }
     })
   })
