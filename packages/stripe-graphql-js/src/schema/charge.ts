@@ -1,7 +1,7 @@
 import Stripe from 'stripe'
 import { builder } from '../builder'
 import { stripe } from '../utils'
-import { StripeInvoice } from '../types'
+import { StripeInvoice, StripeConnectedAccount } from '../types'
 
 builder.objectType('StripeCharge', {
   description: 'Stripe charge object',
@@ -39,6 +39,18 @@ builder.objectType('StripeCharge', {
         return invoiceData as Stripe.Response<StripeInvoice>
       }
     }),
+    application: t.field({
+      type: 'StripeConnectedAccount',
+      nullable: true,
+      resolve: async (charge) => {
+        const { application } = charge
+        if (!application) return null
+
+        const connectedAccount = await stripe.accounts.retrieve(application as string)
+
+        return connectedAccount
+      }
+    }),
     livemode: t.exposeBoolean('livemode'),
     metadata: t.expose('metadata', { nullable: true, type: 'JSON' }),
     outcome: t.expose('outcome', { nullable: true, type: 'JSON' }),
@@ -60,11 +72,9 @@ builder.objectType('StripeCharge', {
     paymentMethod: t.exposeString('payment_method', { nullable: true })
 
     // todo: add missing fields
-    //  Missing
-    // application
     // application_fee
-    // balanceTransaction
-    // onBehalfOf
+    // balance_transaction
+    // on_behalf_of
     // failure_balance_transaction
     // source_transfer
   })

@@ -7,7 +7,18 @@ builder.objectType('StripeSubscription', {
   fields: (t) => ({
     id: t.exposeString('id'),
     object: t.exposeString('object'),
-    // todo: application
+    application: t.field({
+      type: 'StripeConnectedAccount',
+      nullable: true,
+      resolve: async (subscription) => {
+        const { application } = subscription
+        if (!application) return null
+
+        const connectedAccount = await stripe.accounts.retrieve(application as string)
+
+        return connectedAccount
+      }
+    }),
     applicationFeePercent: t.exposeFloat('application_fee_percent', {
       nullable: true
     }),

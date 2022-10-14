@@ -1,6 +1,6 @@
-import Stripe from 'stripe';
+import Stripe from 'stripe'
 import { builder } from '../builder'
-import { StripePaymentMethod, StripeSubscription, StripePaymentIntent } from '../types';
+import { StripePaymentMethod, StripeSubscription, StripePaymentIntent } from '../types'
 import { stripe } from '../utils'
 
 builder.objectType('StripeInvoice', {
@@ -21,7 +21,18 @@ builder.objectType('StripeInvoice', {
     amountDue: t.exposeInt('amount_due'),
     amountPaid: t.exposeInt('amount_paid'),
     amountRemaining: t.exposeInt('amount_remaining'),
-    // todo: application
+    application: t.field({
+      type: 'StripeConnectedAccount',
+      nullable: true,
+      resolve: async (invoice) => {
+        const { application } = invoice
+        if (!application) return null
+
+        const connectedAccount = await stripe.accounts.retrieve(application as string)
+
+        return connectedAccount
+      }
+    }),
     applicationFeeAmount: t.exposeInt('application_fee_amount', {
       nullable: true
     }),
@@ -139,9 +150,9 @@ builder.objectType('StripeInvoice', {
           return null
         }
 
-        const paymentIntentData = await stripe.paymentIntents.retrieve(payment_intent as string) 
+        const paymentIntentData = await stripe.paymentIntents.retrieve(payment_intent as string)
 
-        return paymentIntentData as Stripe.Response<StripePaymentIntent> 
+        return paymentIntentData as Stripe.Response<StripePaymentIntent>
       }
     }),
     // todo: payment settings

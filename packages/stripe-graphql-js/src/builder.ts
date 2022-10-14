@@ -9,8 +9,7 @@ import {
   StripePaymentMethod,
   StripeSubscription,
   StripePaymentIntent,
-  StripeCharge,
-  StripeConnectedAccount
+  StripeCharge
 } from './types'
 
 // TODO: Make sure we either use Type or Types (e.g. StripePaymentMethodTypes or StripePaymentMethodType ) everywhere
@@ -111,8 +110,8 @@ const builder = new SchemaBuilder<{
     StripeCharges: Stripe.ApiList<StripeCharge>
 
     // ConnectedAccounts
-    StripeConnectedAccount: StripeConnectedAccount
-    StripeConnectedAccounts: Stripe.ApiList<StripeConnectedAccount>
+    StripeConnectedAccount: Stripe.Account
+    StripeConnectedAccounts: Stripe.ApiList<Stripe.Account>
   }
   Context: Context
 }>({})
