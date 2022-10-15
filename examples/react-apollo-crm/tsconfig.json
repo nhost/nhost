@@ -1,6 +1,6 @@
 {
-  "extends": "../../config/tsconfig.base.json",
   "compilerOptions": {
+    "baseUrl": ".",
     "target": "ESNext",
     "useDefineForClassFields": true,
     "lib": ["DOM", "DOM.Iterable", "ESNext"],
@@ -17,6 +17,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": ["src"],
-  "references": [{ "path": "../../config/tsconfig.base.json" }]
+  "include": ["src"]
 }

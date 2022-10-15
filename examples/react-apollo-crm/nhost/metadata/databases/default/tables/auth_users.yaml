@@ -86,13 +86,6 @@ object_relationships:
     using:
       foreign_key_constraint_on: default_role
 array_relationships:
-  - name: authenticators
-    using:
-      foreign_key_constraint_on:
-        column: user_id
-        table:
-          name: user_authenticators
-          schema: auth
   - name: customer_comments
     using:
       foreign_key_constraint_on:
@@ -120,6 +113,13 @@ array_relationships:
         column: user_id
         table:
           name: user_roles
+          schema: auth
+  - name: securityKeys
+    using:
+      foreign_key_constraint_on:
+        column: user_id
+        table:
+          name: user_security_keys
           schema: auth
   - name: userProviders
     using:

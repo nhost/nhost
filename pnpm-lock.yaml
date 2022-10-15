@@ -334,6 +334,7 @@ importers:
       '@graphql-codegen/typescript-react-apollo': ^3.3.3
       '@headlessui/react': ^1.6.6
       '@heroicons/react': ^1.0.6
+      '@nhost/nhost-js': workspace:^1.5.0
       '@nhost/react': '*'
       '@nhost/react-apollo': '*'
       '@tailwindcss/forms': ^0.5.3
@@ -361,6 +362,7 @@ importers:
       '@apollo/client': 3.6.9_yaujofatqqw66zcfkmual2ppy4
       '@headlessui/react': 1.7.3_sfoxds7t5ydpegc3knd667wn6m
       '@heroicons/react': 1.0.6_react@17.0.2
+      '@nhost/nhost-js': link:../../packages/nhost-js
       '@nhost/react': link:../../packages/react
       '@nhost/react-apollo': link:../../packages/react-apollo
       '@tailwindcss/forms': 0.5.3_tailwindcss@3.1.8
