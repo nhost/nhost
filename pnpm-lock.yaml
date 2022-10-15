@@ -195,6 +195,25 @@ importers:
   examples/docker-compose/functions:
     specifiers: {}
 
+  examples/gqty:
+    specifiers:
+      '@types/react': ^18.0.17
+      '@types/react-dom': ^18.0.6
+      '@vitejs/plugin-react': ^2.1.0
+      react: ^18.2.0
+      react-dom: ^18.2.0
+      typescript: ^4.6.4
+      vite: ^3.1.0
+    dependencies:
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    devDependencies:
+      '@types/react': 18.0.21
+      '@types/react-dom': 18.0.6
+      '@vitejs/plugin-react': 2.1.0_vite@3.1.7
+      typescript: 4.8.3
+      vite: 3.1.7
+
   examples/multi-tenant-one-to-many:
     specifiers:
       '@nhost/nhost-js': '*'
@@ -390,6 +409,35 @@ importers:
       postcss: 8.4.17
       typescript: 4.8.3
       vite: 2.9.15
+
+  examples/react-gqty:
+    specifiers:
+      '@gqty/cli': 3.3.0-alpha-d8cdbf6.0
+      '@gqty/react': 2.1.0
+      '@nhost/react': workspace:^0.13.0
+      '@types/react': ^18.0.17
+      '@types/react-dom': ^18.0.6
+      '@vitejs/plugin-react': ^2.1.0
+      gqty: ^2.3.0
+      graphql: 15.7.2
+      react: 18.2.0
+      react-dom: 18.2.0
+      typescript: ^4.6.4
+      vite: ^3.1.0
+    dependencies:
+      '@gqty/react': 2.1.0_facumlwdezyowqzbzb2sy4uxwu
+      '@nhost/react': link:../../packages/react
+      gqty: 2.3.0_graphql@15.7.2
+      graphql: 15.7.2
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
+    devDependencies:
+      '@gqty/cli': 3.3.0-alpha-d8cdbf6.0_graphql@15.7.2
+      '@types/react': 18.0.21
+      '@types/react-dom': 18.0.6
+      '@vitejs/plugin-react': 2.1.0_vite@3.1.7
+      typescript: 4.8.3
+      vite: 3.1.7
 
   examples/vue-apollo:
     specifiers:
@@ -3011,16 +3059,6 @@ packages:
       '@babel/helper-plugin-utils': 7.19.0
     dev: true
 
-  /@babel/plugin-transform-react-jsx-development/7.16.7_@babel+core@7.19.3:
-    resolution: {integrity: sha512-RMvQWvpla+xy6MlBpPlrKZCMRs2AGiHOGHY3xRwl0pEeim348dDyxeH4xBsMPbIMhujeq7ihE702eM2Ew0Wo+A==}
-    engines: {node: '>=6.9.0'}
-    peerDependencies:
-      '@babel/core': ^7.0.0-0
-    dependencies:
-      '@babel/core': 7.19.3
-      '@babel/plugin-transform-react-jsx': 7.19.0_@babel+core@7.19.3
-    dev: false
-
   /@babel/plugin-transform-react-jsx-development/7.18.6_@babel+core@7.19.3:
     resolution: {integrity: sha512-SA6HEjwYFKF7WDjWcMcMGUimmw/nhNRDWxr+KaLSCrkD/LMDBvWRmHAYgE1HDeF8KUuI8OAu+RT6EOtKxSW2qA==}
     engines: {node: '>=6.9.0'}
@@ -3029,7 +3067,6 @@ packages:
     dependencies:
       '@babel/core': 7.19.3
       '@babel/plugin-transform-react-jsx': 7.19.0_@babel+core@7.19.3
-    dev: true
 
   /@babel/plugin-transform-react-jsx-self/7.18.6_@babel+core@7.19.3:
     resolution: {integrity: sha512-A0LQGx4+4Jv7u/tWzoJF7alZwnBDQd6cGLh9P+Ttk4dpiL+J5p7NSNv/9tlEFFJDq3kjxOavWmbm6t0Gk+A3Ig==}
@@ -3524,7 +3561,7 @@ packages:
       '@babel/helper-validator-option': 7.16.7
       '@babel/plugin-transform-react-display-name': 7.16.7_@babel+core@7.19.3
       '@babel/plugin-transform-react-jsx': 7.19.0_@babel+core@7.19.3
-      '@babel/plugin-transform-react-jsx-development': 7.16.7_@babel+core@7.19.3
+      '@babel/plugin-transform-react-jsx-development': 7.18.6_@babel+core@7.19.3
       '@babel/plugin-transform-react-pure-annotations': 7.16.7_@babel+core@7.19.3
     dev: false
 
@@ -4784,6 +4821,38 @@ packages:
   /@gar/promisify/1.1.3:
     resolution: {integrity: sha512-k2Ty1JcVojjJFwrg/ThKi2ujJ7XNLYaFGNB/bWT9wGR+oSMJHMa5w+CUq6p/pVrKeNNgA7pCqEcjSnHVoqJQFw==}
     dev: true
+
+  /@gqty/cli/3.3.0-alpha-d8cdbf6.0_graphql@15.7.2:
+    resolution: {integrity: sha512-j5KzqYwsEwmgBB89OnZGQzjjU9WiFTxHnYGheOCm6bppbCsfNOwQevUUP6I3Ms24ppjQjUrtRLC718SZVTsX4Q==}
+    engines: {node: ^12.20.0 || >=14.13.0}
+    hasBin: true
+    peerDependencies:
+      graphql: '*'
+    peerDependenciesMeta:
+      graphql:
+        optional: true
+    dependencies:
+      gqty: 2.3.0_graphql@15.7.2
+      graphql: 15.7.2
+      undici: 5.11.0
+    dev: true
+
+  /@gqty/react/2.1.0_facumlwdezyowqzbzb2sy4uxwu:
+    resolution: {integrity: sha512-aTQEE2voYBqvgLhOs1VgBczL/EUVnbYHFzY1HKCNONH+MyLW0SClGXUcAPcHYEAgkfUfJlbM8egPd5cY1aJZDg==}
+    engines: {node: ^12.20.0 || >=14.13.0}
+    peerDependencies:
+      gqty: ^2.0.4
+      graphql: '*'
+      react: '>=16.8'
+    dependencies:
+      gqty: 2.3.0_graphql@15.7.2
+      graphql: 15.7.2
+      react: 18.2.0
+      react-ssr-prepass: 1.5.0_react@18.2.0
+    dev: false
+
+  /@gqty/utils/1.0.0:
+    resolution: {integrity: sha512-QJMlzts//d0H5mlekOZgx1a4KsTYXfxmRhhx8g/8mvzdaNVPxhFzCsv3+ljTOzbW3A08qy4jXQPWAMoTefSJDQ==}
 
   /@graphql-codegen/cli/2.13.6_5wsvjj5dlgf6f3mkib2xuannqm:
     resolution: {integrity: sha512-3Q7/aRFPJnd7Zd+gMM/cymUYdaS8dHc+7D6kkEDhYo/rVDusnPMdBkYQ9XUT4UIqE7TZ+gX3yedBsqOeyJyg1Q==}
@@ -8257,6 +8326,24 @@ packages:
       '@rollup/pluginutils': 4.2.1
       react-refresh: 0.13.0
       resolve: 1.22.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@vitejs/plugin-react/2.1.0_vite@3.1.7:
+    resolution: {integrity: sha512-am6rPyyU3LzUYne3Gd9oj9c4Rzbq5hQnuGXSMT6Gujq45Il/+bunwq3lrB7wghLkiF45ygMwft37vgJ/NE8IAA==}
+    engines: {node: ^14.18.0 || >=16.0.0}
+    peerDependencies:
+      vite: ^3.0.0
+    dependencies:
+      '@babel/core': 7.19.3
+      '@babel/plugin-transform-react-jsx': 7.19.0_@babel+core@7.19.3
+      '@babel/plugin-transform-react-jsx-development': 7.18.6_@babel+core@7.19.3
+      '@babel/plugin-transform-react-jsx-self': 7.18.6_@babel+core@7.19.3
+      '@babel/plugin-transform-react-jsx-source': 7.18.6_@babel+core@7.19.3
+      magic-string: 0.26.2
+      react-refresh: 0.14.0
+      vite: 3.1.7
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -13299,7 +13386,7 @@ packages:
       eslint-plugin-es: 4.1.0_eslint@8.25.0
       eslint-utils: 3.0.0_eslint@8.25.0
       ignore: 5.2.0
-      is-core-module: 2.9.0
+      is-core-module: 2.10.0
       minimatch: 3.1.2
       resolve: 1.22.1
       semver: 6.3.0
@@ -14460,6 +14547,18 @@ packages:
       url-parse-lax: 3.0.0
     dev: false
 
+  /gqty/2.3.0_graphql@15.7.2:
+    resolution: {integrity: sha512-2YnbUHMYsWRB/J2Rc8ttVTcIEwLs1v0XC8owc+gCxoGw5k6Xjfp8OgB0EjuPos8xQhgqX8rZ14S48GAFLP+WBA==}
+    engines: {node: ^12.20.0 || >=14.13.0}
+    peerDependencies:
+      graphql: '*'
+    peerDependenciesMeta:
+      graphql:
+        optional: true
+    dependencies:
+      '@gqty/utils': 1.0.0
+      graphql: 15.7.2
+
   /graceful-fs/4.2.10:
     resolution: {integrity: sha512-9ByhssR2fPVsNZj478qUUbKfmL0+t5BDVyjShtyZZLiK7ZDAArFFfopyOTj0M05wE2tJPisA4iTnnXl2YoPvOA==}
     requiresBuild: true
@@ -15365,12 +15464,6 @@ packages:
     resolution: {integrity: sha512-Erxj2n/LDAZ7H8WNJXd9tw38GYM3dv8rk8Zcs+jJuxYTW7sozH+SS8NtrSjVL1/vpLvWi1hxy96IzjJ3EHTJJg==}
     dependencies:
       has: 1.0.3
-
-  /is-core-module/2.9.0:
-    resolution: {integrity: sha512-+5FPy5PnwmO3lvfMb0AsoPaBG+5KHUI0wYFXOtYPnVVVspTFUuMZNfNaNVRt3FZadstu2c8x23vykRW/NBoU6A==}
-    dependencies:
-      has: 1.0.3
-    dev: true
 
   /is-date-object/1.0.5:
     resolution: {integrity: sha512-9YQaSxsAiSwcvS33MBk3wTCVnWK+HhF8VZR2jRxehM16QcVOdHqPn4VPHmRK4lSr38n9JriurInLcP90xsYNfQ==}
@@ -19675,6 +19768,11 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /react-refresh/0.14.0:
+    resolution: {integrity: sha512-wViHqhAd8OHeLS/IRMJjTSDHF3U9eWi62F/MledQGPdJGDhodXJ9PBLNGr6WWL7qlH12Mt3TyTpbS+hGXMjCzQ==}
+    engines: {node: '>=0.10.0'}
+    dev: true
+
   /react-router-config/5.1.1_53jg2tb4f34fvmclurfotx7m6y:
     resolution: {integrity: sha512-DuanZjaD8mQp1ppHjgnnUnyOlqYXZVjnov/JzFhjLEwd3Z4dYjMSnqrEzzGThH47vpCOqPPwJM2FtthLeJ8Pbg==}
     peerDependencies:
@@ -19758,6 +19856,14 @@ packages:
       react: '>=16.8'
     dependencies:
       history: 5.3.0
+      react: 18.2.0
+    dev: false
+
+  /react-ssr-prepass/1.5.0_react@18.2.0:
+    resolution: {integrity: sha512-yFNHrlVEReVYKsLI5lF05tZoHveA5pGzjFbFJY/3pOqqjGOmMmqx83N4hIjN2n6E1AOa+eQEUxs3CgRnPmT0RQ==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+    dependencies:
       react: 18.2.0
     dev: false
 
@@ -20235,7 +20341,7 @@ packages:
     resolution: {integrity: sha512-Hhtrw0nLeSrFQ7phPp4OOcVjLPIeMnRlr5mcnVuMe7M/7eBn98A3hmFRLoFo3DLZkivSYwhRUJTyPyWAk56WLw==}
     hasBin: true
     dependencies:
-      is-core-module: 2.9.0
+      is-core-module: 2.10.0
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
     dev: true
@@ -22287,6 +22393,13 @@ packages:
       '@antfu/utils': 0.5.2
       defu: 6.0.0
       jiti: 1.13.0
+    dev: true
+
+  /undici/5.11.0:
+    resolution: {integrity: sha512-oWjWJHzFet0Ow4YZBkyiJwiK5vWqEYoH7BINzJAJOLedZ++JpAlCbUktW2GQ2DS2FpKmxD/JMtWUUWl1BtghGw==}
+    engines: {node: '>=12.18'}
+    dependencies:
+      busboy: 1.6.0
     dev: true
 
   /undici/5.8.0:

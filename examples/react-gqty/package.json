@@ -1,0 +1,28 @@
+{
+  "name": "gqty",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "generate": "gqty generate"
+  },
+  "dependencies": {
+    "@gqty/react": "2.1.0",
+    "@nhost/react": "*",
+    "gqty": "^2.3.0",
+    "graphql": "15.7.2",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@gqty/cli": "3.3.0-alpha-d8cdbf6.0",
+    "@types/react": "^18.0.17",
+    "@types/react-dom": "^18.0.6",
+    "@vitejs/plugin-react": "^2.1.0",
+    "typescript": "^4.6.4",
+    "vite": "^3.1.0"
+  }
+}
