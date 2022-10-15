@@ -38,9 +38,6 @@ function AppRouter() {
         }
       >
         <Route path="/" element={<Dashboard />} />
-        <Route path="/orders">
-          <Route path="" element={<div>Coming soon...</div>} />
-        </Route>
         <Route path="/customers">
           <Route path="" element={<Customers />} />
           <Route path=":customerId" element={<Customer />}>

@@ -79,29 +79,33 @@ git clone https://github.com/nhost/nhost
 cd nhost
 ```
 
-2. Install dependencies
+2. Terminal 1: Run SDKs in dev-mode
+
+```sh
+pnpm install
+pnpm dev
+```
+
+3. Terminal 2: Install dependencies and start Nhost
 
 ```sh
 cd examples/react-apollo-crm
 pnpm install
-```
-
-3. Terminal 1: Start Nhost
-
-```sh
 nhost dev
 ```
 
-4. Terminal 2: Start React App
+4. Terminal 3: Start React App
 
 ```sh
+cd examples/react-apollo-crm
 pnpm run dev
 ```
 
-5. Terminal 3: Start GraphQL Codegens
+5. Terminal 4 (optional): Start GraphQL Codegens
 
 > Make sure that the Nhost backend in step 2 has started and is available before you run this command
 
 ```
-npm run codegen -- -w
+cd examples/react-apollo-crm
+pnpm run codegen -- -w
 ```

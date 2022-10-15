@@ -13,7 +13,7 @@ const handler = async (req: Request, res: Response) => {
   const emailDomain = user.email.split('@')[1]
 
   // Check if a company with the user's email domain already exists.
-  const GET_COMPANY_WITH_EMAIL_DOMAIN = `
+  const GET_COMPANY_WITH_EMAIL_DOMAIN = `#graphql
   query getCompanyWithEmailDomain($emailDomain: String!) {
     companies(where: { emailDomain: { _eq: $emailDomain } }) {
       id
@@ -44,7 +44,7 @@ const handler = async (req: Request, res: Response) => {
     companyId = companies[0].id
   } else {
     // else, create a new company for the newly created user with the same email domain as the user
-    const CREATE_NEW_COMPANY = `
+    const CREATE_NEW_COMPANY = `#graphql
   mutation insertCompany($emailDomain: String!) {
     insertCompany(object: { name: $emailDomain, emailDomain: $emailDomain }) {
       id
@@ -75,7 +75,7 @@ const handler = async (req: Request, res: Response) => {
   // We now have the company id of an existing, or a newly created company.
   // Now let's add the user to the company.
 
-  const ADD_USER_TO_COMPANY = `
+  const ADD_USER_TO_COMPANY = `#graphql
   mutation addUserToCompany($userId: uuid!, $companyId: uuid!) {
     insertCompanyUser(object: {userId: $userId, companyId: $companyId}) {
       id
