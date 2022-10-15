@@ -1,36 +1,16 @@
-import { defineComponent, ref } from "vue";
+import { ? } from 'vue'
 
-export default defineComponent({
+import {
+    //Are the below imports correct for fileupload in vue?
+    createFileUploadMachine,
+    FileItemRef,
+    FileUploadMachine,
+    FileUploadState,
+    StorageUploadFileParams,
+    UploadFileHandlerResult,
+    uploadFilePromise
+} from '@nhost/hasura-storage-js'
+import { useInterpret, useSelector } from '@xstate/react'
 
-    name: "FileUpload",
+import { useNhostClient } from './useNhostClient'
 
-    setup() {
-        const file = ref<File | null>();
-        const form = ref<HTMLFormElement>();
-
-        function onFileChanged($event: Event) {
-            const target = $event.target as HTMLInputElement;
-            if (target && target.files) {
-                file.value = target.files[0];
-            }
-        }
-
-        async function saveImage() {
-            if (file.value) {
-                try {
-                    // save file.value
-                } catch (error) {
-                    console.error(error);
-                    form.value?.reset();
-                    file.value = null;
-                } finally {
-                }
-            }
-        };
-
-        return {
-            saveImage,
-            onFileChanged,
-        }
-    }
-});
