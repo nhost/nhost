@@ -23,7 +23,6 @@ import { userMfaSchema } from '@/routes/user/mfa';
 import { userDeanonymizeSchema } from '@/routes/user/deanonymize';
 import { userProviderTokensSchema } from '@/routes/user/provider-tokens';
 import { tokenSchema } from '@/routes/token/token';
-import { providerCallbackQuerySchema } from '@/routes/signin/providers/utils';
 import { verifySchema } from '@/routes/verify/verify';
 
 import * as responses from './responses';
@@ -62,7 +61,6 @@ const requestSchemas = [
   userVerifyAddSecurityKeySchema,
   tokenSchema,
   verifyTokenSchema,
-  providerCallbackQuerySchema,
   verifySchema,
 ];
 

@@ -13,9 +13,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { PROVIDERS } from '@config';
 import {
-  Joi,
   email as emailValidator,
-  uuid,
   queryValidator,
   registrationOptions,
 } from '@/validation';
@@ -35,13 +33,14 @@ import {
   UserRegistrationOptionsWithRedirect,
 } from '@/types';
 import { decodeJwt, JWTPayload } from 'jose';
-
-export const providerCallbackQuerySchema = Joi.object({
-  state: uuid.required(),
-}).unknown(true);
+import { sendError } from '@/errors';
 
 type ProviderCallbackQuery = Record<string, unknown> & {
   state: string;
+  error?: string;
+  error_code?: number;
+  error_description?: string;
+  error_reason?: string;
 };
 
 type RequestWithState<Q = {}, B = {}> = Request<
@@ -179,32 +178,6 @@ const manageProviderStrategy =
     return done(null, insertedUser);
   };
 
-const providerCallback = asyncWrapper(
-  async (req: RequestWithState, res: Response): Promise<void> => {
-    // Successful authentication, redirect home.
-    // generate tokens and redirect back home
-
-    req.state = req.query.state;
-
-    const requestOptions = await gqlSdk
-      .deleteProviderRequest({
-        id: req.state,
-      })
-      .then((res) => res.deleteAuthProviderRequest?.options);
-
-    const user = req.user as UserFieldsFragment;
-
-    const refreshToken = await getNewRefreshToken(user.id);
-
-    // redirect back user to app url
-    // ! temparily send the refresh token in both hash and query parameter
-    // TODO at a later stage, only send as a query parameter
-    res.redirect(
-      `${requestOptions.redirectTo}?refreshToken=${refreshToken}#refreshToken=${refreshToken}`
-    );
-  }
-);
-
 export const initProvider = <T extends Strategy>(
   router: Router,
   strategyName: SocialProvider,
@@ -268,25 +241,25 @@ export const initProvider = <T extends Strategy>(
           let displayName;
           if (strategyName === 'apple') {
             const decodedJwt: JWTPayload & {
-              sub?: string
+              sub?: string;
               email?: string;
               email_verified?: boolean;
             } = decodeJwt(params as string);
-            id = decodedJwt.sub
-            email = decodedJwt.email
-            emailVerified = decodedJwt.email_verified
+            id = decodedJwt.sub;
+            email = decodedJwt.email;
+            emailVerified = decodedJwt.email_verified;
           } else if (strategyName === 'azuread') {
             const decodedJwt: JWTPayload & {
               oid?: string;
               upn?: string;
               name?: string;
-          } = decodeJwt((params as { id_token: string }).id_token);
-            id = decodedJwt.oid
-            email = decodedJwt.upn
-            emailVerified = !!email
-            displayName = decodedJwt.name
+            } = decodeJwt((params as { id_token: string }).id_token);
+            id = decodedJwt.oid;
+            email = decodedJwt.upn;
+            emailVerified = !!email;
+            displayName = decodedJwt.name;
           } else {
-            throw new Error(`Unsupported strategy "${strategyName}"`)
+            throw new Error(`Unsupported strategy "${strategyName}"`);
           }
 
           if (!id) {
@@ -451,23 +424,48 @@ export const initProvider = <T extends Strategy>(
     },
   ]);
 
-  const handlers = [
-    passport.authenticate(strategyName, {
-      session: false,
-    }),
-    queryValidator(providerCallbackQuerySchema),
-    providerCallback,
-  ];
+  const callbackHandler = asyncWrapper(
+    async (req: RequestWithState<ProviderCallbackQuery>, res: Response) =>
+      passport.authenticate(
+        strategyName,
+        { session: true },
+        async (_, user: UserFieldsFragment) => {
+          const { state, error_description } = req.query;
+          const redirectTo: string = await gqlSdk
+            .deleteProviderRequest({ id: state })
+            .then((res) => res.deleteAuthProviderRequest?.options.redirectTo);
+
+          if (user?.id) {
+            const refreshToken = await getNewRefreshToken(user.id);
+            // * redirect back user to app url
+            // ! temparily send the refresh token in both hash and query parameter
+            // TODO at a later stage, only send as a query parameter
+            return res.redirect(
+              `${redirectTo}?refreshToken=${refreshToken}#refreshToken=${refreshToken}`
+            );
+          }
+          return sendError(
+            res,
+            'invalid-request',
+            {
+              customMessage: error_description || 'invalid-request',
+              redirectTo,
+            },
+            true
+          );
+        }
+      )(req, res)
+  );
 
   if (callbackMethod === 'POST') {
     // The Sign in with Apple and Azure AD auth providers require a POST route for authentication
     subRouter.post(
       '/callback',
       express.urlencoded({ extended: true }),
-      ...handlers
+      callbackHandler
     );
   } else {
-    subRouter.get('/callback', ...handlers);
+    subRouter.get('/callback', callbackHandler);
   }
 
   router.use(`/${strategyName}`, subRouter);
