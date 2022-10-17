@@ -60,6 +60,11 @@ const createCustomFieldQuery = (jwtFields: Record<string, string>): string => {
     }
   });
 
+  // * Do not try to expand the `metadata` column as we know it is a JSON column
+  // * See: https://github.com/nhost/hasura-auth/issues/204#issuecomment-1281363335
+  if (fields.metadata) {
+    fields.metadata = true;
+  }
   // * Prepare the query so it will accept userId as a variable
   const query = {
     query: {
