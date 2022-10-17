@@ -1,5 +1,17 @@
 # @nhost/react-auth
 
+## 4.0.0
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6]
+- Updated dependencies [ba785da1]
+- Updated dependencies [6da44bf8]
+- Updated dependencies [6da44bf8]
+  - @nhost/hasura-auth-js@2.0.0
+  - @nhost/react@0.14.0
+
 ## 3.5.6
 
 ### Patch Changes

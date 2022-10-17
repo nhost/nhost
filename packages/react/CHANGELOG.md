@@ -1,5 +1,22 @@
 # @nhost/react
 
+## 0.14.0
+
+### Minor Changes
+
+- 6da44bf8: The `useAuthenticationStatus` hook now returns the number of attempts to get an access token from the server `connectionAttempts`.
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6]
+- Updated dependencies [ba785da1]
+- Updated dependencies [ba785da1]
+- Updated dependencies [3ced63ab]
+  - @nhost/core@0.9.0
+  - @nhost/hasura-storage-js@1.0.0
+  - @nhost/nhost-js@1.5.1
+
 ## 0.13.0
 
 ### Minor Changes
@@ -9,14 +26,8 @@
   Use the hook `useSignUpEmailSecurityKey` to sign up a user with security key and an email using the WebAuthn API.
 
   ```tsx
-  const {
-    signUpEmailSecurityKey,
-    needsEmailVerification,
-    isLoading,
-    isSuccess,
-    isError,
-    error
-  } = useSignUpEmailSecurityKey()
+  const { signUpEmailSecurityKey, needsEmailVerification, isLoading, isSuccess, isError, error } =
+    useSignUpEmailSecurityKey()
 
   console.log({ needsEmailVerification, isLoading, isSuccess, isError, error })
 
@@ -77,15 +88,8 @@
 - 84ba29dd: Introduce `useSignInSmsPasswordless`
 
   ```ts
-  const {
-    signInSmsPasswordless,
-    sendOtp,
-    needsOtp,
-    isLoading,
-    isSuccess,
-    isError,
-    error
-  } = useSignInSmsPasswordless()
+  const { signInSmsPasswordless, sendOtp, needsOtp, isLoading, isSuccess, isError, error } =
+    useSignInSmsPasswordless()
   ```
 
   1. The `signInSmsPasswordless` action will send a one-time password to the given phone number.

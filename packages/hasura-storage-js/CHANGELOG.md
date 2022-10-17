@@ -1,5 +1,16 @@
 # @nhost/hasura-storage-js
 
+## 1.0.0
+
+### Patch Changes
+
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6]
+- Updated dependencies [ba785da1]
+- Updated dependencies [ba785da1]
+- Updated dependencies [3ced63ab]
+  - @nhost/core@0.9.0
+
 ## 0.6.2
 
 ### Patch Changes

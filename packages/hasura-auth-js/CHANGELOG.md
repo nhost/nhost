@@ -1,5 +1,22 @@
 # @nhost/hasura-auth-js
 
+## 2.0.0
+
+### Minor Changes
+
+- 6da44bf8: The `nhost.auth.getAuthenticationStatus` function now returns the number of attempts to get an access token from the server `connectionAttempts`.
+
+### Patch Changes
+
+- 13c41fe6: Correct `nhost.auth.signIn` to allow anonymous sign-in
+  The typings were not allowing empty or undefined parameters to let users sign in anonymously. `nhost.auth.signIn()` now triggers an anonymous sign-in.
+- ba785da1: Bump dependencies versions
+- Updated dependencies [13c41fe6]
+- Updated dependencies [ba785da1]
+- Updated dependencies [ba785da1]
+- Updated dependencies [3ced63ab]
+  - @nhost/core@0.9.0
+
 ## 1.5.0
 
 ### Minor Changes
