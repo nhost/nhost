@@ -326,14 +326,15 @@ importers:
 
   examples/react-apollo-crm:
     specifiers:
-      '@apollo/client': ^3.6.9
+      '@apollo/client': ^3.7.0
       '@graphql-codegen/cli': ^2.12.0
       '@graphql-codegen/introspection': ^2.2.1
       '@graphql-codegen/typescript': ^2.7.3
       '@graphql-codegen/typescript-operations': ^2.5.3
       '@graphql-codegen/typescript-react-apollo': ^3.3.3
-      '@headlessui/react': ^1.6.6
+      '@headlessui/react': ^1.7.3
       '@heroicons/react': ^1.0.6
+      '@nhost/nhost-js': '*'
       '@nhost/react': '*'
       '@nhost/react-apollo': '*'
       '@tailwindcss/forms': ^0.5.3
@@ -349,6 +350,7 @@ importers:
       express: ^4.18.1
       graphql: 15.7.2
       graphql-tag: ^2.12.6
+      graphql-ws: ^5.10.1
       postcss: ^8.4.16
       pretty-bytes: ^5.6.0
       react: ^17.0.2
@@ -358,9 +360,10 @@ importers:
       typescript: ^4.8.2
       vite: ^2.9.15
     dependencies:
-      '@apollo/client': 3.6.9_yaujofatqqw66zcfkmual2ppy4
+      '@apollo/client': 3.7.0_ff64czod6ifp3kuofb6aeca3ci
       '@headlessui/react': 1.7.3_sfoxds7t5ydpegc3knd667wn6m
       '@heroicons/react': 1.0.6_react@17.0.2
+      '@nhost/nhost-js': link:../../packages/nhost-js
       '@nhost/react': link:../../packages/react
       '@nhost/react-apollo': link:../../packages/react-apollo
       '@tailwindcss/forms': 0.5.3_tailwindcss@3.1.8
@@ -368,6 +371,7 @@ importers:
       date-fns: 2.29.3
       graphql: 15.7.2
       graphql-tag: 2.12.6_graphql@15.7.2
+      graphql-ws: 5.11.2_graphql@15.7.2
       pretty-bytes: 5.6.0
       react: 17.0.2
       react-dom: 17.0.2_react@17.0.2
@@ -1166,31 +1170,37 @@ packages:
       zen-observable-ts: 1.2.5
     dev: false
 
-  /@apollo/client/3.6.9_yaujofatqqw66zcfkmual2ppy4:
-    resolution: {integrity: sha512-Y1yu8qa2YeaCUBVuw08x8NHenFi0sw2I3KCu7Kw9mDSu86HmmtHJkCAifKVrN2iPgDTW/BbP3EpSV8/EQCcxZA==}
+  /@apollo/client/3.7.0_ff64czod6ifp3kuofb6aeca3ci:
+    resolution: {integrity: sha512-hp4OvrH1ZIQACRYcIrh/C0WFnY7IM7G6nlTpC8DSTEWxfZQ2kvpvDY0I/hYmCs0oAVrg26g3ANEdOzGWTcYbPg==}
     peerDependencies:
       graphql: ^14.0.0 || ^15.0.0 || ^16.0.0
       graphql-ws: ^5.5.5
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
       subscriptions-transport-ws: ^0.9.0 || ^0.11.0
     peerDependenciesMeta:
       graphql-ws:
         optional: true
       react:
         optional: true
+      react-dom:
+        optional: true
       subscriptions-transport-ws:
         optional: true
     dependencies:
       '@graphql-typed-document-node/core': 3.1.1_graphql@15.7.2
-      '@wry/context': 0.6.1
+      '@wry/context': 0.7.0
       '@wry/equality': 0.5.2
       '@wry/trie': 0.3.1
       graphql: 15.7.2
       graphql-tag: 2.12.6_graphql@15.7.2
+      graphql-ws: 5.11.2_graphql@15.7.2
       hoist-non-react-statics: 3.3.2
       optimism: 0.16.1
       prop-types: 15.8.1
       react: 17.0.2
+      react-dom: 17.0.2_react@17.0.2
+      response-iterator: 0.2.6
       symbol-observable: 4.0.0
       ts-invariant: 0.10.3
       tslib: 2.4.0
@@ -8632,6 +8642,13 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       tslib: 2.4.0
+
+  /@wry/context/0.7.0:
+    resolution: {integrity: sha512-LcDAiYWRtwAoSOArfk7cuYvFXytxfVrdX7yxoUmK7pPITLk5jYh2F8knCwS7LjgYL8u1eidPlKKV6Ikqq0ODqQ==}
+    engines: {node: '>=8'}
+    dependencies:
+      tslib: 2.4.0
+    dev: false
 
   /@wry/equality/0.5.2:
     resolution: {integrity: sha512-oVMxbUXL48EV/C0/M7gLVsoK6qRHPS85x8zECofEZOVvxGmIPLA9o5Z27cc2PoAyZz1S2VoM2A7FLAnpfGlneA==}
@@ -20256,6 +20273,11 @@ packages:
       path-parse: 1.0.7
       supports-preserve-symlinks-flag: 1.0.0
     dev: true
+
+  /response-iterator/0.2.6:
+    resolution: {integrity: sha512-pVzEEzrsg23Sh053rmDUvLSkGXluZio0qu8VT6ukrYuvtjVfCbDZH9d6PGXb8HZfzdNZt8feXv/jvUzlhRgLnw==}
+    engines: {node: '>=0.8'}
+    dev: false
 
   /responselike/1.0.2:
     resolution: {integrity: sha1-kYcg7ztjHFZCvgaPFa3lpG9Loec=}

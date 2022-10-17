@@ -1,6 +1,0 @@
-query getCompanyWhere($where: companies_bool_exp) {
-  companies(where: $where) {
-    id
-    name
-  }
-}
