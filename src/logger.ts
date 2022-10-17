@@ -1,6 +1,6 @@
 import winston from 'winston';
 import expressWinston, { LoggerOptions } from 'express-winston';
-
+import { Response } from 'express';
 export const LOG_LEVEL = process.env.AUTH_LOG_LEVEL || 'info';
 
 // * Create a common Winston logger that can be used in both middlewares and manually
@@ -20,42 +20,38 @@ const rewriteUrl = (url: string) => {
   return url;
 };
 
-const commonLoggerOptions: LoggerOptions = {
+const loggerOptions: LoggerOptions = {
   winstonInstance: logger,
   // * Put meta fields at the root of the logged object
   metaField: null,
-  // * Always log status, method, url, and userId when it exists
-  dynamicMeta: (req, res) => {
-    const result: Record<string, unknown> = {
-      status: res.statusCode,
-      method: req.method,
-    };
-    if (LOG_LEVEL === 'debug') {
-      result.headers = req.headers;
-      result.url = req.url;
-    } else {
-      result.url = rewriteUrl(req.url);
-    }
-    const userId = req.auth?.userId;
-    if (userId) {
-      result.userId = userId;
-    }
-    return result;
-  },
-};
-
-/**
- * Logger for non 5xx, non suspicious requests e.g. 200, 204, 400...
- * - Requests are logged as info, expect for /healthz et and /change-env which are logged as debug
- * - No additional meta is logged
- * */
-export const httpLogger = expressWinston.logger({
-  ...commonLoggerOptions,
+  responseField: null,
   msg: (req, res) =>
     `${req.method} ${rewriteUrl(req.url)} ${res.statusCode} ${
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (res as any).responseTime
     }ms`,
+  // * Always log status, method, url, and userId when it exists
+  dynamicMeta: ({ method, url, auth, headers }, res) => {
+    const { responseTime, statusCode } = res as Response & {
+      responseTime: number;
+    };
+    const meta: Record<string, unknown> = {
+      statusCode,
+      method,
+      latencyInNs: responseTime * 1e6,
+    };
+    if (LOG_LEVEL === 'debug') {
+      meta.url = url;
+      meta.headers = headers;
+    } else {
+      meta.url = rewriteUrl(url);
+    }
+    const userId = auth?.userId;
+    if (userId) {
+      meta.userId = userId;
+    }
+    return meta;
+  },
   // * Flag /healthz and /change-env as debug, and everything else as info
   level: (req, res) => {
     if (['/healthz', '/change-env'].includes(req.path)) return 'debug';
@@ -67,10 +63,15 @@ export const httpLogger = expressWinston.logger({
     }
     return 'info';
   },
-
   requestWhitelist: [],
-  responseWhitelist: [],
-});
+  responseWhitelist: ['responseTime'],
+};
 
-export const uncaughtErrorLogger =
-  expressWinston.errorLogger(commonLoggerOptions);
+/**
+ * Logger for non 5xx, non suspicious requests e.g. 200, 204, 400...
+ * - Requests are logged as info, expect for /healthz et and /change-env which are logged as debug
+ * - No additional meta is logged
+ * */
+export const httpLogger = expressWinston.logger(loggerOptions);
+
+export const uncaughtErrorLogger = expressWinston.errorLogger(loggerOptions);
