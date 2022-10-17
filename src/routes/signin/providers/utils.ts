@@ -26,6 +26,7 @@ import {
   insertUser,
   getGravatarUrl,
   ENV,
+  generateRedirectUrl,
 } from '@/utils';
 import {
   SocialProvider,
@@ -430,7 +431,7 @@ export const initProvider = <T extends Strategy>(
         strategyName,
         { session: true },
         async (_, user: UserFieldsFragment) => {
-          const { state, error_description } = req.query;
+          const { state, error_description, error } = req.query;
           const redirectTo: string = await gqlSdk
             .deleteProviderRequest({ id: state })
             .then((res) => res.deleteAuthProviderRequest?.options.redirectTo);
@@ -444,14 +445,12 @@ export const initProvider = <T extends Strategy>(
               `${redirectTo}?refreshToken=${refreshToken}#refreshToken=${refreshToken}`
             );
           }
-          return sendError(
-            res,
-            'invalid-request',
-            {
-              customMessage: error_description || 'invalid-request',
-              redirectTo,
-            },
-            true
+          return res.redirect(
+            generateRedirectUrl(redirectTo, {
+              error: error || 'invalid-request',
+              provider: strategyName,
+              errorDescription: error_description || 'OAuth request cancelled',
+            })
           );
         }
       )(req, res)
