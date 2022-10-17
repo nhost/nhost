@@ -34,7 +34,6 @@ import {
   UserRegistrationOptionsWithRedirect,
 } from '@/types';
 import { decodeJwt, JWTPayload } from 'jose';
-import { sendError } from '@/errors';
 
 type ProviderCallbackQuery = Record<string, unknown> & {
   state: string;
