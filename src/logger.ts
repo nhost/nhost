@@ -15,7 +15,8 @@ const SUSPICIOUS_REQUEST_CODES = [401, 403];
 const rewriteUrl = (url: string) => {
   if (LOG_LEVEL !== 'debug' && (url.includes('?') || url.includes('#'))) {
     const pathname = new URL(url, 'http://noop').pathname;
-    return `${pathname}*****`;
+    const char = url.includes('?') ? '?' : '#';
+    return `${pathname}${char}*****`;
   }
   return url;
 };
