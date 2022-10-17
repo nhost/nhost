@@ -1,7 +1,6 @@
 import winston from 'winston';
 import expressWinston, { LoggerOptions } from 'express-winston';
-import { Request, Response } from 'express';
-
+import { Response } from 'express';
 export const LOG_LEVEL = process.env.AUTH_LOG_LEVEL || 'info';
 
 // * Create a common Winston logger that can be used in both middlewares and manually
@@ -12,27 +11,60 @@ export const logger = winston.createLogger({
 
 // * Give more importance to Unauthorized and Forbidden status codes to give more visibility to hacking attempts
 const SUSPICIOUS_REQUEST_CODES = [401, 403];
-const isSimpleRequest = (_: Request, res: Response) =>
-  res.statusCode < 500 &&
-  SUSPICIOUS_REQUEST_CODES.every((code) => res.statusCode != code);
 
-const commonLoggerOptions: LoggerOptions = {
+const rewriteUrl = (url: string) => {
+  if (LOG_LEVEL !== 'debug' && (url.includes('?') || url.includes('#'))) {
+    const pathname = new URL(url, 'http://noop').pathname;
+    return `${pathname}*****`;
+  }
+  return url;
+};
+
+const loggerOptions: LoggerOptions = {
   winstonInstance: logger,
   // * Put meta fields at the root of the logged object
   metaField: null,
+  responseField: null,
+  msg: (req, res) =>
+    `${req.method} ${rewriteUrl(req.url)} ${res.statusCode} ${
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (res as any).responseTime
+    }ms`,
   // * Always log status, method, url, and userId when it exists
-  dynamicMeta: (req, res) => {
-    const result: Record<string, unknown> = {
-      status: res.statusCode,
-      method: req.method,
-      url: req.url,
+  dynamicMeta: ({ method, url, auth, headers }, res) => {
+    const { responseTime, statusCode } = res as Response & {
+      responseTime: number;
     };
-    const userId = req.auth?.userId;
-    if (userId) {
-      result.userId = userId;
+    const meta: Record<string, unknown> = {
+      statusCode,
+      method,
+      latencyInNs: responseTime * 1e6,
+    };
+    if (LOG_LEVEL === 'debug') {
+      meta.url = url;
+      meta.headers = headers;
+    } else {
+      meta.url = rewriteUrl(url);
     }
-    return result;
+    const userId = auth?.userId;
+    if (userId) {
+      meta.userId = userId;
+    }
+    return meta;
   },
+  // * Flag /healthz and /change-env as debug, and everything else as info
+  level: (req, res) => {
+    if (['/healthz', '/change-env'].includes(req.path)) return 'debug';
+    if (SUSPICIOUS_REQUEST_CODES.includes(res.statusCode)) {
+      return 'warn';
+    }
+    if (res.statusCode >= 500) {
+      return 'error';
+    }
+    return 'info';
+  },
+  requestWhitelist: [],
+  responseWhitelist: ['responseTime'],
 };
 
 /**
@@ -40,34 +72,6 @@ const commonLoggerOptions: LoggerOptions = {
  * - Requests are logged as info, expect for /healthz et and /change-env which are logged as debug
  * - No additional meta is logged
  * */
-export const simpleLogger = expressWinston.logger({
-  ...commonLoggerOptions,
-  expressFormat: true,
-  skip: (req, res) => !isSimpleRequest(req, res),
-  // * Flag /healthz and /change-env as debug, and everything else as info
-  level: (req) =>
-    ['/healthz', '/change-env'].includes(req.path) ? 'debug' : 'info',
-  requestWhitelist: [],
-  responseWhitelist: [],
-});
+export const httpLogger = expressWinston.logger(loggerOptions);
 
-/**
- * Logger for 5xx and suspicious requests.
- * - 5xx requests are logged as error, and suspicious requests are logged as warn
- * - The winston-express meta is logged
- */
-export const detailedLogger = expressWinston.logger({
-  ...commonLoggerOptions,
-  expressFormat: true,
-  skip: isSimpleRequest,
-  level: function (_, res) {
-    // * Flag suspitious 4xx request as warn, and everything else as error
-    if (SUSPICIOUS_REQUEST_CODES.includes(res.statusCode)) {
-      return 'warn';
-    }
-    return 'error';
-  },
-});
-
-export const uncaughtErrorLogger =
-  expressWinston.errorLogger(commonLoggerOptions);
+export const uncaughtErrorLogger = expressWinston.errorLogger(loggerOptions);
