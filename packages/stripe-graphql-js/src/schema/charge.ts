@@ -11,7 +11,7 @@ builder.objectType('StripeCharge', {
     customer: t.exposeString('customer'),
     amount: t.exposeInt('amount'),
     amountCaptured: t.exposeInt('amount_captured'),
-    amount_refunded: t.exposeInt('amount_refunded'),
+    amountRefunded: t.exposeInt('amount_refunded'),
     applicationFeeAmount: t.exposeInt('application_fee_amount', { nullable: true }),
     calculatedStatementDescriptor: t.exposeString('calculated_statement_descriptor', {
       nullable: true
