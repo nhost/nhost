@@ -1,15 +1,11 @@
 # @nhost/nextjs
 
-## 2.0.0
+## 1.8.0
 
 ### Patch Changes
 
 - ba785da1: Bump dependencies versions
-- Updated dependencies [13c41fe6]
-- Updated dependencies [ba785da1]
-- Updated dependencies [ba785da1]
-- Updated dependencies [3ced63ab]
-- Updated dependencies [6da44bf8]
+- Updated dependencies [13c41fe6] [ba785da1] [3ced63ab] [6da44bf8]
   - @nhost/core@0.9.0
   - @nhost/nhost-js@1.5.1
   - @nhost/react@0.14.0
